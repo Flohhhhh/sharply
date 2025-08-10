@@ -1,8 +1,43 @@
+"use client";
+
 import Link from "next/link";
+import { signIn, signOut, useSession } from "next-auth/react";
+
+function AuthButton() {
+  const { data: session } = useSession();
+
+  if (session) {
+    return (
+      <div className="absolute top-4 right-4 flex items-center gap-4">
+        <span className="text-sm text-white/80">
+          Welcome, {session.user.name}!
+        </span>
+        <button
+          onClick={() => signOut()}
+          className="rounded-lg bg-white/10 px-4 py-2 text-sm text-white transition-colors hover:bg-white/20"
+        >
+          Sign Out
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="absolute top-4 right-4">
+      <button
+        onClick={() => signIn("discord")}
+        className="rounded-lg bg-white/10 px-4 py-2 text-sm text-white transition-colors hover:bg-white/20"
+      >
+        Sign In with Discord
+      </button>
+    </div>
+  );
+}
 
 export default function HomePage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
+      <AuthButton />
       <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
         <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
           Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
