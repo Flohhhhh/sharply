@@ -11,6 +11,7 @@ import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { formatPrice, getMountDisplayName } from "~/lib/mapping";
+import { GearActionButtons } from "~/components/gear-action-buttons";
 
 interface GearPageProps {
   params: Promise<{
@@ -251,11 +252,7 @@ export default async function GearPage({ params }: GearPageProps) {
           </div>
 
           {/* Actions */}
-          <div className="pt-4">
-            <button className="w-full rounded-xl bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700">
-              Add to Collection
-            </button>
-          </div>
+          <GearActionButtons slug={slug} />
         </div>
       </div>
     </main>
