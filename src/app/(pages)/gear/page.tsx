@@ -15,7 +15,7 @@ export default async function GearIndex() {
       brandName: brands.name,
       brandSlug: brands.slug,
       thumbnailUrl: gear.thumbnailUrl,
-      priceUsdCents: gear.priceUsdCents,
+      msrpUsdCents: gear.msrpUsdCents,
       releaseDate: gear.releaseDate,
       createdAt: gear.createdAt,
     })
@@ -52,9 +52,9 @@ export default async function GearIndex() {
                     </span>
                   </div>
                   <div className="text-lg font-medium">{g.name}</div>
-                  {g.priceUsdCents && (
+                  {g.msrpUsdCents && (
                     <div className="text-sm font-medium text-green-600">
-                      {formatPrice(g.priceUsdCents)}
+                      {formatPrice(g.msrpUsdCents)}
                     </div>
                   )}
                   {g.releaseDate && (

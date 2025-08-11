@@ -29,6 +29,20 @@
       "when": 1754859490741,
       "tag": "0003_next_blazing_skull",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1754878945714,
+      "tag": "0004_talented_enchantress",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1754879523270,
+      "tag": "0005_bumpy_ben_urich",
+      "breakpoints": true
     }
   ]
 }

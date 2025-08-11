@@ -22,7 +22,7 @@ export default async function GearPage({ params }: GearPageProps) {
       brandId: gear.brandId,
       mountId: gear.mountId,
       releaseDate: gear.releaseDate,
-      priceUsdCents: gear.priceUsdCents,
+      msrpUsdCents: gear.msrpUsdCents,
       thumbnailUrl: gear.thumbnailUrl,
       createdAt: gear.createdAt,
       updatedAt: gear.updatedAt,
@@ -96,9 +96,9 @@ export default async function GearPage({ params }: GearPageProps) {
 
             <h1 className="text-3xl font-bold">{item.name}</h1>
 
-            {item.priceUsdCents && (
+            {item.msrpUsdCents && (
               <div className="text-2xl font-semibold text-green-600">
-                {formatPrice(item.priceUsdCents)}
+                {formatPrice(item.msrpUsdCents)}
               </div>
             )}
           </div>

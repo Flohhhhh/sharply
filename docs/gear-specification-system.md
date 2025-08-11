@@ -1,0 +1,246 @@
+# Gear Specification System
+
+## Overview
+
+The gear specification system uses a flexible subtable approach to store detailed specifications for different types of gear items. This design allows for type-specific data while maintaining a clean, normalized database structure.
+
+## Architecture
+
+### Core Tables
+
+#### `gear` - Main Gear Table
+
+The central table that stores common gear information:
+
+- **Basic Info**: ID, slug, name, search name
+- **Classification**: Gear type (CAMERA, LENS)
+- **Brand & Mount**: References to brands and mounts
+- **Metadata**: Release date, price, thumbnail URL
+- **Timestamps**: Created/updated tracking
+
+#### `cameraSpecs` - Camera Specifications
+
+Stores detailed camera-specific specifications:
+
+- **Primary Key**: `gearId` (1:1 relationship with gear)
+- **Sensor**: Format reference, resolution in megapixels
+- **Performance**: ISO range (min/max), IBIS (in-body stabilization)
+- **Video**: Maximum video resolution
+- **Flexibility**: JSONB extra field for additional specs
+
+#### `lensSpecs` - Lens Specifications
+
+Stores detailed lens-specific specifications:
+
+- **Primary Key**: `gearId` (1:1 relationship with gear)
+- **Focal Length**: Minimum and maximum focal length in mm
+- **Aperture**: Maximum aperture value
+- **Stabilization**: Whether the lens has stabilization
+- **Flexibility**: JSONB extra field for additional specs
+
+## Database Schema
+
+The system uses three main tables with the following structure:
+
+```sql
+-- Core gear table with common fields
+CREATE TABLE sharply_gear (
+  -- Primary key and identifiers
+  -- Basic information (name, slug, search name)
+  -- Classification (gear type, brand, mount)
+  -- Metadata (release date, price, thumbnail)
+  -- Timestamps
+);
+
+-- Camera specifications table
+CREATE TABLE sharply_camera_specs (
+  -- Primary key referencing gear table
+  -- Sensor-related specifications
+  -- Performance specifications
+  -- Video capabilities
+  -- Flexible extra data field
+  -- Timestamps
+);
+
+-- Lens specifications table
+CREATE TABLE sharply_lens_specs (
+  -- Primary key referencing gear table
+  -- Optical specifications
+  -- Mechanical features
+  -- Flexible extra data field
+  -- Timestamps
+);
+```
+
+## Relationships
+
+### One-to-One Relationships
+
+- Each gear item has exactly one set of specifications
+- Camera gear → `cameraSpecs`
+- Lens gear → `lensSpecs`
+- Enforced by primary key constraints on `gearId`
+
+### Foreign Key Relationships
+
+- **Gear → Brands**: Required relationship (restrict delete)
+- **Gear → Mounts**: Optional relationship (set null on delete)
+- **Camera Specs → Sensor Formats**: Optional relationship (set null on delete)
+
+### Cascade Behavior
+
+- Deleting a gear item automatically removes its specifications
+- Deleting a sensor format sets the reference to null in camera specs
+
+## Data Types & Constraints
+
+### Numeric Precision
+
+- **Resolution**: High precision for megapixel values
+- **Focal Length**: Precise measurements in millimeters
+- **Aperture**: Standard aperture scale precision
+
+### Text Fields
+
+- **Names & Slugs**: Limited lengths for performance
+- **Search Name**: Lowercase for efficient LIKE queries and trigram searches
+- **Video Resolution**: Free-form text for various format specifications
+
+### JSONB Extra Field
+
+The `extra` field provides flexibility for storing additional specifications without schema changes:
+
+```json
+{
+  "weatherSealing": true,
+  "filterThread": "67mm",
+  "weight": "450g",
+  "dimensions": "125×85×70mm"
+}
+```
+
+## Indexing Strategy
+
+### Performance Indexes
+
+- **Gear Search**: Index on search name for text search
+- **Type & Brand**: Composite index for filtering by gear type and brand
+- **Brand & Mount**: Index for mount compatibility queries
+- **Camera Sensor**: Index for sensor format lookups
+- **Lens Focal**: Index for focal length range queries
+
+### Query Optimization
+
+Indexes are designed to support common use cases:
+
+- Finding all cameras by a specific brand
+- Searching for lenses within a focal length range
+- Filtering gear by mount compatibility
+- Full-text search across gear names
+
+## Usage Examples
+
+### Creating a Camera with Specs
+
+```typescript
+// Insert gear item
+const [camera] = await db
+  .insert(gear)
+  .values({
+    slug: "canon-eos-r5",
+    searchName: "canon eos r5",
+    name: "Canon EOS R5",
+    gearType: "CAMERA",
+    brandId: "canon-brand-id",
+    mountId: "rf-mount-id",
+    priceUsdCents: 389900,
+  })
+  .returning();
+
+// Insert camera specifications
+await db.insert(cameraSpecs).values({
+  gearId: camera.id,
+  sensorFormatId: "full-frame-id",
+  resolutionMp: 45.0,
+  isoMin: 100,
+  isoMax: 51200,
+  ibis: true,
+  videoMaxRes: "8K RAW",
+  extra: { weatherSealing: true, dualCardSlots: true },
+});
+```
+
+### Querying Gear with Specs
+
+```typescript
+// Get camera with full specifications
+const cameraWithSpecs = await db.query.gear.findFirst({
+  where: eq(gear.slug, "canon-eos-r5"),
+  with: {
+    cameraSpecs: true,
+    brand: true,
+    mount: true,
+  },
+});
+
+// Find all full-frame cameras
+const fullFrameCameras = await db
+  .select()
+  .from(gear)
+  .innerJoin(cameraSpecs, eq(gear.id, cameraSpecs.gearId))
+  .innerJoin(sensorFormats, eq(cameraSpecs.sensorFormatId, sensorFormats.id))
+  .where(eq(sensorFormats.slug, "full-frame"));
+```
+
+## Benefits of This Design
+
+### 1. **Type Safety**
+
+- Clear separation between camera and lens specifications
+- Type-specific fields prevent invalid data combinations
+
+### 2. **Flexibility**
+
+- JSONB extra field allows for future specification additions
+- Easy to add new gear types without schema changes
+
+### 3. **Performance**
+
+- Efficient indexing for common query patterns
+- Normalized structure reduces data duplication
+
+### 4. **Maintainability**
+
+- Clear separation of concerns
+- Easy to understand and modify
+
+### 5. **Scalability**
+
+- Supports large numbers of gear items
+- Efficient queries with proper indexing
+
+## Future Considerations
+
+### Adding New Gear Types
+
+To add a new gear type (e.g., tripods, lighting):
+
+1. Add new enum value to `gearTypeEnum`
+2. Create new specification table
+3. Add relationship to `gearRelations`
+4. Update application logic
+
+### Schema Evolution
+
+- The JSONB `extra` field provides immediate flexibility
+- Major changes can be handled through migrations
+- Backward compatibility maintained through careful migration planning
+
+## Migration Notes
+
+When deploying this schema:
+
+1. Ensure all required indexes are created
+2. Consider data migration if upgrading from a flat structure
+3. Update application code to use the new relationship patterns
+4. Test performance with realistic data volumes

@@ -150,22 +150,15 @@ async function main() {
     { name: "Canon APS-H", slug: "canon-aps-h" },
   ];
 
+  const sensorFormatMap = new Map<string, any>();
   for (const format of sensorFormatData) {
-    await upsertBySlug(sensorFormats, format);
+    const result = await upsertBySlug(sensorFormats, format);
+    sensorFormatMap.set(format.slug, result);
   }
 
   // Sample gear rows with normalized search names
   // The normalizeSearchName function combines brand name and gear name for better searchability
-  const items: Array<{
-    name: string;
-    slug: string;
-    searchName: string;
-    gearType: "CAMERA" | "LENS";
-    brandId: string;
-    mountId: string | null;
-    priceUsdCents: number;
-    thumbnailUrl: string | null;
-  }> = [
+  const items: (typeof gear.$inferInsert)[] = [
     {
       name: "Nikon Z 400mm f/4.5 VR S",
       slug: s("Nikon Z 400mm f/4.5 VR S"),
@@ -173,7 +166,8 @@ async function main() {
       gearType: "LENS" as const,
       brandId: nikon!.id,
       mountId: mountLookup["z-nikon"] || null,
-      priceUsdCents: 324900,
+      msrpUsdCents: 324900,
+      releaseDate: new Date("2023-01-01"),
       thumbnailUrl: null,
     },
     {
@@ -183,7 +177,8 @@ async function main() {
       gearType: "CAMERA" as const,
       brandId: nikon!.id,
       mountId: mountLookup["z-nikon"] || null,
-      priceUsdCents: 159695,
+      msrpUsdCents: 159695,
+      releaseDate: new Date("2023-01-01"),
       thumbnailUrl: null,
     },
     {
@@ -193,7 +188,8 @@ async function main() {
       gearType: "CAMERA" as const,
       brandId: canon!.id,
       mountId: mountLookup["rf-canon"] || null,
-      priceUsdCents: 389900,
+      msrpUsdCents: 389900,
+      releaseDate: new Date("2023-01-01"),
       thumbnailUrl: null,
     },
     {
@@ -203,7 +199,8 @@ async function main() {
       gearType: "CAMERA" as const,
       brandId: sony!.id,
       mountId: mountLookup["e-sony"] || null,
-      priceUsdCents: 249900,
+      msrpUsdCents: 249900,
+      releaseDate: new Date("2023-01-01"),
       thumbnailUrl: null,
     },
     {
@@ -213,7 +210,8 @@ async function main() {
       gearType: "CAMERA" as const,
       brandId: fujifilm!.id,
       mountId: mountLookup["x-fujifilm"] || null,
-      priceUsdCents: 169900,
+      msrpUsdCents: 169900,
+      releaseDate: new Date("2023-01-01"),
       thumbnailUrl: null,
     },
   ];
@@ -242,9 +240,47 @@ async function main() {
   console.log("Cleared existing gear items");
 
   // Insert gear items with correct mount IDs
+  const insertedGear: any[] = [];
   for (const g of items) {
     console.log(`Inserting gear: ${g.name} with mountId: ${g.mountId}`);
-    await db.insert(gear).values(g);
+    const [inserted] = await db.insert(gear).values(g).returning();
+    insertedGear.push(inserted);
+  }
+
+  // Seed camera and lens specifications
+  console.log("Seeding gear specifications...");
+
+  // Import the specs tables
+  const { cameraSpecs, lensSpecs } = await import("../src/server/db/schema");
+
+  // Clear existing specs
+  await db.delete(cameraSpecs);
+  await db.delete(lensSpecs);
+
+  // Add camera specifications
+  for (const item of insertedGear) {
+    if (item.gearType === "CAMERA") {
+      await db.insert(cameraSpecs).values({
+        gearId: item.id,
+        sensorFormatId: sensorFormatMap.get("full-frame")!.id,
+        resolutionMp: "24.0", // Use string for decimal fields
+        isoMin: 100,
+        isoMax: 51200,
+        maxFpsRaw: 30,
+        maxFpsJpg: 120,
+        extra: {},
+      });
+      console.log(`Added camera specs for: ${item.name}`);
+    } else if (item.gearType === "LENS") {
+      await db.insert(lensSpecs).values({
+        gearId: item.id,
+        focalLengthMinMm: "400.0", // Use string for decimal fields
+        focalLengthMaxMm: "400.0", // Use string for decimal fields
+        hasStabilization: true,
+        extra: {},
+      });
+      console.log(`Added lens specs for: ${item.name}`);
+    }
   }
 
   console.log("Seed complete.");

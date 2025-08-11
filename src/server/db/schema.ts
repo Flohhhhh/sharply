@@ -10,6 +10,8 @@ import {
   varchar,
   decimal,
   integer,
+  boolean,
+  jsonb,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccount } from "next-auth/adapters";
 
@@ -82,8 +84,12 @@ export const gear = createTable(
     mountId: varchar("mount_id", { length: 36 }).references(() => mounts.id, {
       onDelete: "set null",
     }),
+    sensorFormatId: varchar("sensor_format_id", { length: 36 }).references(
+      () => sensorFormats.id,
+      { onDelete: "set null" },
+    ),
     releaseDate: timestamp("release_date", { withTimezone: true }),
-    priceUsdCents: integer("price_usd_cents"),
+    msrpUsdCents: integer("msrp_usd_cents"),
     thumbnailUrl: text("thumbnail_url"),
     createdAt,
     updatedAt,
@@ -92,6 +98,55 @@ export const gear = createTable(
     index("gear_search_idx").on(t.searchName),
     index("gear_type_brand_idx").on(t.gearType, t.brandId),
     index("gear_brand_mount_idx").on(t.brandId, t.mountId),
+  ],
+);
+
+// --- Gear Specification Tables ---
+export const cameraSpecs = createTable(
+  "camera_specs",
+  (d) => ({
+    gearId: varchar("gear_id", { length: 36 })
+      .primaryKey()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    sensorFormatId: varchar("sensor_format_id", { length: 36 }).references(
+      () => sensorFormats.id,
+      { onDelete: "set null" },
+    ),
+    resolutionMp: decimal("resolution_mp", { precision: 6, scale: 2 }),
+    isoMin: integer("iso_min"),
+    isoMax: integer("iso_max"),
+    maxFpsRaw: integer("max_fps_raw"),
+    maxFpsJpg: integer("max_fps_jpg"),
+    extra: jsonb("extra"),
+    createdAt,
+    updatedAt,
+  }),
+  // 1:1 already enforced by PK=gearId; index format if you like
+  (t) => [index("camera_specs_sensor_idx").on(t.sensorFormatId)],
+);
+
+// Lenses
+export const lensSpecs = createTable(
+  "lens_specs",
+  (d) => ({
+    gearId: varchar("gear_id", { length: 36 })
+      .primaryKey()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    focalLengthMinMm: decimal("focal_length_min_mm", {
+      precision: 6,
+      scale: 2,
+    }),
+    focalLengthMaxMm: decimal("focal_length_max_mm", {
+      precision: 6,
+      scale: 2,
+    }),
+    hasStabilization: boolean("has_stabilization"),
+    extra: jsonb("extra"),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    index("lens_specs_focal_idx").on(t.focalLengthMinMm, t.focalLengthMaxMm),
   ],
 );
 
@@ -193,3 +248,15 @@ export const verificationTokens = createTable(
   }),
   (t) => [primaryKey({ columns: [t.identifier, t.token] })],
 );
+
+// --- Gear Relations ---
+export const gearRelations = relations(gear, ({ one }) => ({
+  cameraSpecs: one(cameraSpecs, {
+    fields: [gear.id],
+    references: [cameraSpecs.gearId],
+  }),
+  lensSpecs: one(lensSpecs, {
+    fields: [gear.id],
+    references: [lensSpecs.gearId],
+  }),
+}));
