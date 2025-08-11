@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await auth();
@@ -16,7 +16,7 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const proposalId = params.id;
+    const { id: proposalId } = await params;
 
     // Get the proposal
     const proposal = await db
@@ -32,7 +32,7 @@ export async function POST(
       );
     }
 
-    const proposalData = proposal[0];
+    const proposalData = proposal[0]!;
 
     if (proposalData.status !== "PENDING") {
       return NextResponse.json(

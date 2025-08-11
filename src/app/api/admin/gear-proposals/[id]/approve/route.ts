@@ -6,7 +6,7 @@ import { eq, and } from "drizzle-orm";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await auth();
@@ -16,7 +16,7 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const proposalId = params.id;
+    const { id: proposalId } = await params;
 
     // Get the proposal
     const proposal = await db
@@ -32,7 +32,7 @@ export async function POST(
       );
     }
 
-    const proposalData = proposal[0];
+    const proposalData = proposal[0]!;
 
     if (proposalData.status !== "PENDING") {
       return NextResponse.json(
@@ -50,27 +50,38 @@ export async function POST(
         .where(eq(gearEdits.id, proposalId));
 
       // Apply the changes to the gear
-      if (proposalData.payload.core) {
-        await tx
-          .update(gear)
-          .set(proposalData.payload.core)
-          .where(eq(gear.id, proposalData.gearId));
-      }
+      if (
+        proposalData.payload &&
+        typeof proposalData.payload === "object" &&
+        "core" in proposalData.payload
+      ) {
+        const payload = proposalData.payload as {
+          core?: any;
+          camera?: any;
+          lens?: any;
+        };
+        if (payload.core) {
+          await tx
+            .update(gear)
+            .set(payload.core)
+            .where(eq(gear.id, proposalData.gearId));
+        }
 
-      // Apply camera specs if they exist
-      if (proposalData.payload.camera) {
-        await tx
-          .update(cameraSpecs)
-          .set(proposalData.payload.camera)
-          .where(eq(cameraSpecs.gearId, proposalData.gearId));
-      }
+        // Apply camera specs if they exist
+        if (payload.camera) {
+          await tx
+            .update(cameraSpecs)
+            .set(payload.camera)
+            .where(eq(cameraSpecs.gearId, proposalData.gearId));
+        }
 
-      // Apply lens specs if they exist
-      if (proposalData.payload.lens) {
-        await tx
-          .update(lensSpecs)
-          .set(proposalData.payload.lens)
-          .where(eq(lensSpecs.gearId, proposalData.gearId));
+        // Apply lens specs if they exist
+        if (payload.lens) {
+          await tx
+            .update(lensSpecs)
+            .set(payload.lens)
+            .where(eq(lensSpecs.gearId, proposalData.gearId));
+        }
       }
 
       // Set all other pending proposals for the same gear to MERGED
