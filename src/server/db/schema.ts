@@ -132,14 +132,8 @@ export const lensSpecs = createTable(
     gearId: varchar("gear_id", { length: 36 })
       .primaryKey()
       .references(() => gear.id, { onDelete: "cascade" }),
-    focalLengthMinMm: decimal("focal_length_min_mm", {
-      precision: 6,
-      scale: 2,
-    }),
-    focalLengthMaxMm: decimal("focal_length_max_mm", {
-      precision: 6,
-      scale: 2,
-    }),
+    focalLengthMinMm: integer("focal_length_min_mm"),
+    focalLengthMaxMm: integer("focal_length_max_mm"),
     hasStabilization: boolean("has_stabilization"),
     extra: jsonb("extra"),
     createdAt,

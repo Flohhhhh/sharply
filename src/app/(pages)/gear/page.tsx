@@ -1,5 +1,5 @@
 import { db } from "~/server/db";
-import { gear, brands } from "~/server/db/schema";
+import { gear, brands, cameraSpecs, lensSpecs } from "~/server/db/schema";
 import { eq, desc } from "drizzle-orm";
 import Link from "next/link";
 import { formatPrice } from "~/lib/mapping";
@@ -18,9 +18,16 @@ export default async function GearIndex() {
       msrpUsdCents: gear.msrpUsdCents,
       releaseDate: gear.releaseDate,
       createdAt: gear.createdAt,
+      // Camera specs
+      resolutionMp: cameraSpecs.resolutionMp,
+      // Lens specs
+      focalLengthMinMm: lensSpecs.focalLengthMinMm,
+      focalLengthMaxMm: lensSpecs.focalLengthMaxMm,
     })
     .from(gear)
     .leftJoin(brands, eq(gear.brandId, brands.id))
+    .leftJoin(cameraSpecs, eq(gear.id, cameraSpecs.gearId))
+    .leftJoin(lensSpecs, eq(gear.id, lensSpecs.gearId))
     .orderBy(desc(gear.createdAt))
     .limit(24);
 
@@ -52,6 +59,22 @@ export default async function GearIndex() {
                     </span>
                   </div>
                   <div className="text-lg font-medium">{g.name}</div>
+
+                  {/* Basic specifications */}
+                  {g.gearType === "CAMERA" && g.resolutionMp && (
+                    <div className="text-sm text-zinc-600">
+                      {g.resolutionMp} MP
+                    </div>
+                  )}
+
+                  {g.gearType === "LENS" && g.focalLengthMinMm && (
+                    <div className="text-sm text-zinc-600">
+                      {g.focalLengthMinMm === g.focalLengthMaxMm
+                        ? `${g.focalLengthMinMm}mm (Prime)`
+                        : `${g.focalLengthMinMm}mm - ${g.focalLengthMaxMm}mm`}
+                    </div>
+                  )}
+
                   {g.msrpUsdCents && (
                     <div className="text-sm font-medium text-green-600">
                       {formatPrice(g.msrpUsdCents)}

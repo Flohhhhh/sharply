@@ -1,17 +1,25 @@
 import { db } from "~/server/db";
-import { gear, brands, mounts } from "~/server/db/schema";
+import {
+  gear,
+  brands,
+  mounts,
+  cameraSpecs,
+  lensSpecs,
+  sensorFormats,
+} from "~/server/db/schema";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { formatPrice, getMountDisplayName } from "~/lib/mapping";
 
 interface GearPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export default async function GearPage({ params }: GearPageProps) {
+  const { slug } = await params;
   const gearItem = await db
     .select({
       id: gear.id,
@@ -35,11 +43,34 @@ export default async function GearPage({ params }: GearPageProps) {
         id: mounts.id,
         value: mounts.value,
       },
+      cameraSpecs: {
+        sensorFormatId: cameraSpecs.sensorFormatId,
+        resolutionMp: cameraSpecs.resolutionMp,
+        isoMin: cameraSpecs.isoMin,
+        isoMax: cameraSpecs.isoMax,
+        maxFpsRaw: cameraSpecs.maxFpsRaw,
+        maxFpsJpg: cameraSpecs.maxFpsJpg,
+        extra: cameraSpecs.extra,
+      },
+      lensSpecs: {
+        focalLengthMinMm: lensSpecs.focalLengthMinMm,
+        focalLengthMaxMm: lensSpecs.focalLengthMaxMm,
+        hasStabilization: lensSpecs.hasStabilization,
+        extra: lensSpecs.extra,
+      },
+      sensorFormat: {
+        id: sensorFormats.id,
+        name: sensorFormats.name,
+        slug: sensorFormats.slug,
+      },
     })
     .from(gear)
     .leftJoin(brands, eq(gear.brandId, brands.id))
     .leftJoin(mounts, eq(gear.mountId, mounts.id))
-    .where(eq(gear.slug, params.slug))
+    .leftJoin(cameraSpecs, eq(gear.id, cameraSpecs.gearId))
+    .leftJoin(lensSpecs, eq(gear.id, lensSpecs.gearId))
+    .leftJoin(sensorFormats, eq(cameraSpecs.sensorFormatId, sensorFormats.id))
+    .where(eq(gear.slug, slug))
     .limit(1);
 
   if (!gearItem.length) {
@@ -127,6 +158,83 @@ export default async function GearPage({ params }: GearPageProps) {
                     })}
                   </span>
                 </div>
+              )}
+
+              {/* Camera-specific specifications */}
+              {item.gearType === "CAMERA" && item.cameraSpecs && (
+                <>
+                  {item.cameraSpecs.resolutionMp && (
+                    <div className="flex justify-between border-b border-gray-100 py-2">
+                      <span className="text-zinc-600">Resolution</span>
+                      <span className="font-medium">
+                        {item.cameraSpecs.resolutionMp} MP
+                      </span>
+                    </div>
+                  )}
+
+                  {item.sensorFormat && (
+                    <div className="flex justify-between border-b border-gray-100 py-2">
+                      <span className="text-zinc-600">Sensor Format</span>
+                      <span className="font-medium">
+                        {item.sensorFormat.name}
+                      </span>
+                    </div>
+                  )}
+
+                  {item.cameraSpecs.isoMin && item.cameraSpecs.isoMax && (
+                    <div className="flex justify-between border-b border-gray-100 py-2">
+                      <span className="text-zinc-600">ISO Range</span>
+                      <span className="font-medium">
+                        {item.cameraSpecs.isoMin} - {item.cameraSpecs.isoMax}
+                      </span>
+                    </div>
+                  )}
+
+                  {item.cameraSpecs.maxFpsRaw && (
+                    <div className="flex justify-between border-b border-gray-100 py-2">
+                      <span className="text-zinc-600">Max FPS (RAW)</span>
+                      <span className="font-medium">
+                        {item.cameraSpecs.maxFpsRaw} fps
+                      </span>
+                    </div>
+                  )}
+
+                  {item.cameraSpecs.maxFpsJpg && (
+                    <div className="flex justify-between border-b border-gray-100 py-2">
+                      <span className="text-zinc-600">Max FPS (JPEG)</span>
+                      <span className="font-medium">
+                        {item.cameraSpecs.maxFpsJpg} fps
+                      </span>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Lens-specific specifications */}
+              {item.gearType === "LENS" && item.lensSpecs && (
+                <>
+                  {item.lensSpecs.focalLengthMinMm &&
+                    item.lensSpecs.focalLengthMaxMm && (
+                      <div className="flex justify-between border-b border-gray-100 py-2">
+                        <span className="text-zinc-600">Focal Length</span>
+                        <span className="font-medium">
+                          {item.lensSpecs.focalLengthMinMm ===
+                          item.lensSpecs.focalLengthMaxMm
+                            ? `${item.lensSpecs.focalLengthMinMm}mm (Prime)`
+                            : `${item.lensSpecs.focalLengthMinMm}mm - ${item.lensSpecs.focalLengthMaxMm}mm (Zoom)`}
+                        </span>
+                      </div>
+                    )}
+
+                  {item.lensSpecs.hasStabilization !== null && (
+                    <div className="flex justify-between border-b border-gray-100 py-2">
+                      <span className="text-zinc-600">Image Stabilization</span>
+                      <span className="font-medium">
+                        {item.lensSpecs.hasStabilization ? "Yes" : "No"}
+                      </span>
+                    </div>
+                  )}
+                </>
               )}
 
               <div className="flex justify-between border-b border-gray-100 py-2">

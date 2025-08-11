@@ -171,6 +171,89 @@ async function main() {
       thumbnailUrl: null,
     },
     {
+      name: "Nikon Z 24-70mm f/2.8 S",
+      slug: s("Nikon Z 24-70mm f/2.8 S"),
+      searchName: normalizeSearchName("Nikon Z 24-70mm f/2.8 S", "Nikon"),
+      gearType: "LENS" as const,
+      brandId: nikon!.id,
+      mountId: mountLookup["z-nikon"] || null,
+      msrpUsdCents: 239900,
+      releaseDate: new Date("2022-01-01"),
+      thumbnailUrl: null,
+    },
+    {
+      name: "Nikon Z 50mm f/1.8 S",
+      slug: s("Nikon Z 50mm f/1.8 S"),
+      searchName: normalizeSearchName("Nikon Z 50mm f/1.8 S", "Nikon"),
+      gearType: "LENS" as const,
+      brandId: nikon!.id,
+      mountId: mountLookup["z-nikon"] || null,
+      msrpUsdCents: 59900,
+      releaseDate: new Date("2021-01-01"),
+      thumbnailUrl: null,
+    },
+    {
+      name: "Canon RF 70-200mm f/2.8L IS USM",
+      slug: s("Canon RF 70-200mm f/2.8L IS USM"),
+      searchName: normalizeSearchName(
+        "Canon RF 70-200mm f/2.8L IS USM",
+        "Canon",
+      ),
+      gearType: "LENS" as const,
+      brandId: canon!.id,
+      mountId: mountLookup["rf-canon"] || null,
+      msrpUsdCents: 269900,
+      releaseDate: new Date("2022-01-01"),
+      thumbnailUrl: null,
+    },
+    {
+      name: "Canon RF 85mm f/1.2L USM",
+      slug: s("Canon RF 85mm f/1.2L USM"),
+      searchName: normalizeSearchName("Canon RF 85mm f/1.2L USM", "Canon"),
+      gearType: "LENS" as const,
+      brandId: canon!.id,
+      mountId: mountLookup["rf-canon"] || null,
+      msrpUsdCents: 269900,
+      releaseDate: new Date("2021-01-01"),
+      thumbnailUrl: null,
+    },
+    {
+      name: "Sony FE 24-70mm f/2.8 GM II",
+      slug: s("Sony FE 24-70mm f/2.8 GM II"),
+      searchName: normalizeSearchName("Sony FE 24-70mm f/2.8 GM II", "Sony"),
+      gearType: "LENS" as const,
+      brandId: sony!.id,
+      mountId: mountLookup["e-sony"] || null,
+      msrpUsdCents: 219900,
+      releaseDate: new Date("2022-01-01"),
+      thumbnailUrl: null,
+    },
+    {
+      name: "Sony FE 50mm f/1.4 GM",
+      slug: s("Sony FE 50mm f/1.4 GM"),
+      searchName: normalizeSearchName("Sony FE 50mm f/1.4 GM", "Sony"),
+      gearType: "LENS" as const,
+      brandId: sony!.id,
+      mountId: mountLookup["e-sony"] || null,
+      msrpUsdCents: 139900,
+      releaseDate: new Date("2021-01-01"),
+      thumbnailUrl: null,
+    },
+    {
+      name: "Fujifilm XF 56mm f/1.2 R WR",
+      slug: s("Fujifilm XF 56mm f/1.2 R WR"),
+      searchName: normalizeSearchName(
+        "Fujifilm XF 56mm f/1.2 R WR",
+        "Fujifilm",
+      ),
+      gearType: "LENS" as const,
+      brandId: fujifilm!.id,
+      mountId: mountLookup["x-fujifilm"] || null,
+      msrpUsdCents: 99900,
+      releaseDate: new Date("2021-01-01"),
+      thumbnailUrl: null,
+    },
+    {
       name: "Nikon Z6 III",
       slug: s("Nikon Z6 III"),
       searchName: normalizeSearchName("Nikon Z6 III", "Nikon"),
@@ -260,25 +343,120 @@ async function main() {
   // Add camera specifications
   for (const item of insertedGear) {
     if (item.gearType === "CAMERA") {
-      await db.insert(cameraSpecs).values({
+      // Determine specs based on the camera name
+      let specs: any = {
         gearId: item.id,
-        sensorFormatId: sensorFormatMap.get("full-frame")!.id,
-        resolutionMp: "24.0", // Use string for decimal fields
-        isoMin: 100,
-        isoMax: 51200,
-        maxFpsRaw: 30,
-        maxFpsJpg: 120,
         extra: {},
-      });
+      };
+
+      if (item.name.includes("Z6 III")) {
+        specs = {
+          ...specs,
+          sensorFormatId: sensorFormatMap.get("full-frame")!.id,
+          resolutionMp: "24.5",
+          isoMin: 100,
+          isoMax: 204800,
+          maxFpsRaw: 20,
+          maxFpsJpg: 120,
+        };
+      } else if (item.name.includes("EOS R5ii")) {
+        specs = {
+          ...specs,
+          sensorFormatId: sensorFormatMap.get("full-frame")!.id,
+          resolutionMp: "45.0",
+          isoMin: 100,
+          isoMax: 102400,
+          maxFpsRaw: 20,
+          maxFpsJpg: 60,
+        };
+      } else if (item.name.includes("Alpha A7 IV")) {
+        specs = {
+          ...specs,
+          sensorFormatId: sensorFormatMap.get("full-frame")!.id,
+          resolutionMp: "33.0",
+          isoMin: 100,
+          isoMax: 51200,
+          maxFpsRaw: 10,
+          maxFpsJpg: 120,
+        };
+      } else if (item.name.includes("X-T5")) {
+        specs = {
+          ...specs,
+          sensorFormatId: sensorFormatMap.get("aps-c")!.id,
+          resolutionMp: "40.2",
+          isoMin: 160,
+          isoMax: 12800,
+          maxFpsRaw: 15,
+          maxFpsJpg: 20,
+        };
+      } else {
+        // Default specs for other cameras
+        specs = {
+          ...specs,
+          sensorFormatId: sensorFormatMap.get("full-frame")!.id,
+          resolutionMp: "24.0",
+          isoMin: 100,
+          isoMax: 51200,
+          maxFpsRaw: 30,
+          maxFpsJpg: 120,
+        };
+      }
+
+      await db.insert(cameraSpecs).values(specs);
       console.log(`Added camera specs for: ${item.name}`);
     } else if (item.gearType === "LENS") {
-      await db.insert(lensSpecs).values({
+      // Determine specs based on the lens name
+      let specs: any = {
         gearId: item.id,
-        focalLengthMinMm: "400.0", // Use string for decimal fields
-        focalLengthMaxMm: "400.0", // Use string for decimal fields
-        hasStabilization: true,
         extra: {},
-      });
+      };
+
+      if (item.name.includes("400mm")) {
+        specs = {
+          ...specs,
+          focalLengthMinMm: 400,
+          focalLengthMaxMm: 400,
+          hasStabilization: true,
+        };
+      } else if (item.name.includes("24-70mm")) {
+        specs = {
+          ...specs,
+          focalLengthMinMm: 24,
+          focalLengthMaxMm: 70,
+          hasStabilization: true,
+        };
+      } else if (item.name.includes("50mm")) {
+        specs = {
+          ...specs,
+          focalLengthMinMm: 50,
+          focalLengthMaxMm: 50,
+          hasStabilization: false,
+        };
+      } else if (item.name.includes("85mm")) {
+        specs = {
+          ...specs,
+          focalLengthMinMm: 85,
+          focalLengthMaxMm: 85,
+          hasStabilization: false,
+        };
+      } else if (item.name.includes("70-200mm")) {
+        specs = {
+          ...specs,
+          focalLengthMinMm: 70,
+          focalLengthMaxMm: 200,
+          hasStabilization: true,
+        };
+      } else {
+        // Default specs for other lenses
+        specs = {
+          ...specs,
+          focalLengthMinMm: 50,
+          focalLengthMaxMm: 50,
+          hasStabilization: false,
+        };
+      }
+
+      await db.insert(lensSpecs).values(specs);
       console.log(`Added lens specs for: ${item.name}`);
     }
   }
