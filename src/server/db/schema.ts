@@ -14,6 +14,7 @@ import {
   jsonb,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccount } from "next-auth/adapters";
+import { POPULARITY_POINTS, type PopularityEventType } from "~/lib/constants";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -144,6 +145,83 @@ export const lensSpecs = createTable(
   ],
 );
 
+// --- Gear Relations ---
+export const gearRelations = relations(gear, ({ one }) => ({
+  cameraSpecs: one(cameraSpecs, {
+    fields: [gear.id],
+    references: [cameraSpecs.gearId],
+  }),
+  lensSpecs: one(lensSpecs, {
+    fields: [gear.id],
+    references: [lensSpecs.gearId],
+  }),
+}));
+
+// --- Interactions ---
+export const wishlists = createTable(
+  "wishlists",
+  (d) => ({
+    userId: d
+      .varchar("user_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    gearId: d
+      .varchar("gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    createdAt,
+  }),
+  (t) => [
+    primaryKey({ columns: [t.userId, t.gearId] }),
+    index("wishlist_gear_idx").on(t.gearId),
+  ],
+);
+
+export const ownerships = createTable(
+  "ownerships",
+  (d) => ({
+    userId: d
+      .varchar("user_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    gearId: d
+      .varchar("gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    createdAt,
+  }),
+  (t) => [
+    primaryKey({ columns: [t.userId, t.gearId] }),
+    index("ownership_gear_idx").on(t.gearId),
+  ],
+);
+
+// Popularity events table
+export const popularityEvents = createTable(
+  "popularity_events",
+  (d) => ({
+    id: d
+      .varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    gearId: d
+      .varchar("gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    userId: d
+      .varchar("user_id", { length: 255 })
+      .references(() => users.id, { onDelete: "set null" }),
+    eventType: d.varchar("event_type", { length: 40 }).notNull(), // 'wishlist', 'ownership', 'compare', 'review', 'share'
+    points: d.integer("points").notNull(),
+    createdAt,
+  }),
+  (t) => [
+    index("pop_events_gear_idx").on(t.gearId),
+    index("pop_events_gear_type_idx").on(t.gearId, t.eventType),
+    index("pop_events_created_idx").on(t.createdAt),
+  ],
+);
+
 // DEFAULT //
 
 export const posts = createTable(
@@ -242,15 +320,3 @@ export const verificationTokens = createTable(
   }),
   (t) => [primaryKey({ columns: [t.identifier, t.token] })],
 );
-
-// --- Gear Relations ---
-export const gearRelations = relations(gear, ({ one }) => ({
-  cameraSpecs: one(cameraSpecs, {
-    fields: [gear.id],
-    references: [cameraSpecs.gearId],
-  }),
-  lensSpecs: one(lensSpecs, {
-    fields: [gear.id],
-    references: [lensSpecs.gearId],
-  }),
-}));
