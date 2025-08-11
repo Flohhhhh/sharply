@@ -57,6 +57,27 @@
       "when": 1754889992650,
       "tag": "0007_open_excalibur",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1754927199515,
+      "tag": "0008_fat_selene",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1754927470645,
+      "tag": "0009_gigantic_namor",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1754927511075,
+      "tag": "0010_mighty_lethal_legion",
+      "breakpoints": true
     }
   ]
 }

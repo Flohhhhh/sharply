@@ -120,8 +120,8 @@ export function GearActionButtons({ slug }: GearActionButtonsProps) {
   if (status === "loading") {
     return (
       <div className="space-y-3 pt-4">
-        <div className="h-10 animate-pulse rounded-xl bg-gray-200" />
-        <div className="h-10 animate-pulse rounded-xl bg-gray-200" />
+        <div className="bg-muted h-10 animate-pulse rounded-md" />
+        <div className="bg-muted h-10 animate-pulse rounded-md" />
       </div>
     );
   }
@@ -141,11 +141,7 @@ export function GearActionButtons({ slug }: GearActionButtonsProps) {
       {/* Wishlist Button */}
       <Button
         variant={inWishlist ? "default" : "outline"}
-        className={`w-full ${
-          inWishlist
-            ? "bg-red-600 text-white hover:bg-red-700"
-            : "hover:border-red-200 hover:bg-red-50"
-        }`}
+        className="w-full"
         onClick={handleWishlistToggle}
         loading={loading.wishlist}
         icon={inWishlist ? <Heart className="fill-current" /> : <Heart />}
@@ -156,11 +152,7 @@ export function GearActionButtons({ slug }: GearActionButtonsProps) {
       {/* Ownership Button */}
       <Button
         variant={isOwned ? "default" : "outline"}
-        className={`w-full ${
-          isOwned
-            ? "bg-green-600 text-white hover:bg-green-700"
-            : "hover:border-green-200 hover:bg-green-50"
-        }`}
+        className="w-full"
         onClick={handleOwnershipToggle}
         loading={loading.ownership}
         icon={isOwned ? <CheckCircle className="fill-current" /> : <Plus />}
@@ -172,7 +164,7 @@ export function GearActionButtons({ slug }: GearActionButtonsProps) {
       <Link href={`/u/${session.user.id}`} className="block">
         <Button
           variant="ghost"
-          className="w-full text-zinc-600 hover:bg-zinc-50 hover:text-zinc-800"
+          className="w-full"
           icon={<User className="h-4 w-4" />}
         >
           View My Collection

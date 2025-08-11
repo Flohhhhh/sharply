@@ -56,7 +56,7 @@ export default async function BrandPage({ params }: BrandPageProps) {
       <div className="mb-6">
         <Link
           href="/gear"
-          className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
+          className="text-primary flex items-center gap-2 text-sm"
         >
           ← Back to Gear
         </Link>
@@ -64,14 +64,16 @@ export default async function BrandPage({ params }: BrandPageProps) {
 
       <div className="mb-8">
         <h1 className="text-4xl font-bold">{brand.name}</h1>
-        <p className="mt-2 text-lg text-zinc-600">
+        <p className="text-muted-foreground mt-2 text-lg">
           {brandGear.length} piece{brandGear.length !== 1 ? "s" : ""} of gear
         </p>
       </div>
 
       {brandGear.length === 0 ? (
         <div className="py-12 text-center">
-          <p className="text-lg text-zinc-500">No gear found for this brand.</p>
+          <p className="text-muted-foreground text-lg">
+            No gear found for this brand.
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -79,49 +81,49 @@ export default async function BrandPage({ params }: BrandPageProps) {
             <Link
               key={item.id}
               href={`/gear/${item.slug}`}
-              className="group block rounded-lg border border-gray-200 p-4 transition-all hover:border-gray-300 hover:shadow-md"
+              className="border-input bg-card hover:bg-accent block rounded-md border p-4"
             >
               <div className="space-y-3">
                 {/* Thumbnail */}
                 {item.thumbnailUrl ? (
-                  <div className="aspect-video overflow-hidden rounded-lg bg-gray-100">
+                  <div className="bg-muted aspect-video overflow-hidden rounded-md">
                     <img
                       src={item.thumbnailUrl}
                       alt={item.name}
-                      className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                      className="h-full w-full object-cover"
                     />
                   </div>
                 ) : (
-                  <div className="flex aspect-video items-center justify-center rounded-lg bg-gray-100">
-                    <div className="text-sm text-gray-400">No image</div>
+                  <div className="bg-muted flex aspect-video items-center justify-center rounded-md">
+                    <div className="text-muted-foreground text-sm">
+                      No image
+                    </div>
                   </div>
                 )}
 
                 {/* Gear Info */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
+                    <span className="bg-secondary rounded-full px-2 py-1 text-xs font-medium">
                       {item.gearType}
                     </span>
                     {item.mount && (
-                      <span className="text-xs text-zinc-500">
+                      <span className="text-muted-foreground text-xs">
                         {getMountDisplayName(item.mount.value)}
                       </span>
                     )}
                   </div>
 
-                  <h3 className="font-semibold text-zinc-900 group-hover:text-blue-600">
-                    {item.name}
-                  </h3>
+                  <h3 className="font-semibold">{item.name}</h3>
 
                   {item.msrpUsdCents && (
-                    <p className="text-sm font-medium text-green-600">
+                    <p className="text-sm font-medium">
                       {formatPrice(item.msrpUsdCents)}
                     </p>
                   )}
 
                   {item.releaseDate && (
-                    <p className="text-xs text-zinc-500">
+                    <p className="text-muted-foreground text-xs">
                       Released{" "}
                       {new Date(item.releaseDate).toLocaleDateString("en-US", {
                         year: "numeric",

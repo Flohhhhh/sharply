@@ -93,15 +93,6 @@ export default async function UserProfilePage({
 
   return (
     <main className="mx-auto max-w-6xl p-6">
-      <div className="mb-8">
-        <Link
-          href="/gear"
-          className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
-        >
-          ← Back to Gear
-        </Link>
-      </div>
-
       {/* User Header */}
       <div className="mb-8 flex items-center gap-4">
         {user.image && (
@@ -115,7 +106,7 @@ export default async function UserProfilePage({
           <h1 className="text-3xl font-bold">
             {user.name || "Anonymous User"}
           </h1>
-          <p className="text-zinc-600">Gear Collection & Wishlist</p>
+          <p className="text-muted-foreground">Gear Collection & Wishlist</p>
         </div>
       </div>
 
@@ -124,7 +115,7 @@ export default async function UserProfilePage({
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold">Collection</h2>
-            <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800">
+            <span className="bg-secondary rounded-full px-3 py-1 text-sm font-medium">
               {ownedItems.length} items
             </span>
           </div>
@@ -136,12 +127,9 @@ export default async function UserProfilePage({
               ))}
             </div>
           ) : (
-            <div className="rounded-lg border-2 border-dashed border-gray-200 p-8 text-center">
-              <p className="text-gray-500">No gear in collection yet</p>
-              <Link
-                href="/gear"
-                className="mt-2 inline-block text-blue-600 hover:text-blue-800"
-              >
+            <div className="border-border rounded-lg border-2 border-dashed p-8 text-center">
+              <p className="text-muted-foreground">No gear in collection yet</p>
+              <Link href="/gear" className="text-primary mt-2 inline-block">
                 Browse gear to add to your collection
               </Link>
             </div>
@@ -152,7 +140,7 @@ export default async function UserProfilePage({
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold">Wishlist</h2>
-            <span className="rounded-full bg-red-100 px-3 py-1 text-sm font-medium text-red-800">
+            <span className="bg-secondary rounded-full px-3 py-1 text-sm font-medium">
               {wishlistItems.length} items
             </span>
           </div>
@@ -164,12 +152,9 @@ export default async function UserProfilePage({
               ))}
             </div>
           ) : (
-            <div className="rounded-lg border-2 border-dashed border-gray-200 p-8 text-center">
-              <p className="text-gray-500">No items in wishlist yet</p>
-              <Link
-                href="/gear"
-                className="mt-2 inline-block text-blue-600 hover:text-blue-800"
-              >
+            <div className="border-border rounded-lg border-2 border-dashed p-8 text-center">
+              <p className="text-muted-foreground">No items in wishlist yet</p>
+              <Link href="/gear" className="text-primary mt-2 inline-block">
                 Browse gear to add to your wishlist
               </Link>
             </div>
@@ -185,11 +170,11 @@ function GearCard({ item }: { item: any }) {
   return (
     <Link
       href={`/gear/${item.slug}`}
-      className="block rounded-lg border border-gray-200 p-4 transition-colors hover:border-gray-300 hover:bg-gray-50"
+      className="border-input bg-card hover:bg-accent block rounded-md border p-4"
     >
       <div className="flex gap-4">
         {item.thumbnailUrl ? (
-          <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
+          <div className="bg-muted h-20 w-20 flex-shrink-0 overflow-hidden rounded-md">
             <img
               src={item.thumbnailUrl}
               alt={item.name}
@@ -197,17 +182,15 @@ function GearCard({ item }: { item: any }) {
             />
           </div>
         ) : (
-          <div className="h-20 w-20 flex-shrink-0 rounded-lg bg-gray-100" />
+          <div className="bg-muted h-20 w-20 flex-shrink-0 rounded-md" />
         )}
 
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between">
             <div className="min-w-0 flex-1">
-              <h3 className="truncate font-medium text-gray-900">
-                {item.name}
-              </h3>
-              <div className="mt-1 flex items-center gap-2 text-sm text-gray-500">
-                <span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
+              <h3 className="truncate font-medium">{item.name}</h3>
+              <div className="text-muted-foreground mt-1 flex items-center gap-2 text-sm">
+                <span className="bg-secondary rounded-full px-2 py-1 text-xs font-medium">
                   {item.gearType}
                 </span>
                 {item.brand && (
@@ -215,7 +198,7 @@ function GearCard({ item }: { item: any }) {
                 )}
               </div>
               {item.mount && (
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="text-muted-foreground mt-1 text-xs">
                   {getMountDisplayName(item.mount.value)}
                 </p>
               )}
@@ -223,9 +206,7 @@ function GearCard({ item }: { item: any }) {
 
             {item.msrpUsdCents && (
               <div className="text-right">
-                <p className="font-medium text-green-600">
-                  {formatPrice(item.msrpUsdCents)}
-                </p>
+                <p className="font-medium">{formatPrice(item.msrpUsdCents)}</p>
               </div>
             )}
           </div>

@@ -36,14 +36,11 @@ export default async function GearIndex() {
       <h1 className="mb-6 text-2xl font-semibold">Gear</h1>
       <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((g) => (
-          <li
-            key={g.id}
-            className="rounded-2xl border p-6 transition-shadow hover:shadow-lg"
-          >
+          <li key={g.id} className="border-input bg-card rounded-md border p-4">
             <Link href={`/gear/${g.slug}`} className="block">
               <div className="space-y-3">
                 {g.thumbnailUrl && (
-                  <div className="aspect-video overflow-hidden rounded-lg bg-gray-100">
+                  <div className="bg-muted aspect-video overflow-hidden rounded-md">
                     <img
                       src={g.thumbnailUrl}
                       alt={g.name}
@@ -53,10 +50,10 @@ export default async function GearIndex() {
                 )}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <div className="text-sm text-zinc-500">
-                      <p className="hover:text-zinc-700">{g.brandName}</p>
+                    <div className="text-muted-foreground text-sm">
+                      <p>{g.brandName}</p>
                     </div>
-                    <span className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800">
+                    <span className="bg-secondary rounded-full px-2 py-1 text-xs">
                       {g.gearType}
                     </span>
                   </div>
@@ -64,13 +61,13 @@ export default async function GearIndex() {
 
                   {/* Basic specifications */}
                   {g.gearType === "CAMERA" && g.resolutionMp && (
-                    <div className="text-sm text-zinc-600">
+                    <div className="text-muted-foreground text-sm">
                       {g.resolutionMp} MP
                     </div>
                   )}
 
                   {g.gearType === "LENS" && g.focalLengthMinMm && (
-                    <div className="text-sm text-zinc-600">
+                    <div className="text-muted-foreground text-sm">
                       {g.focalLengthMinMm === g.focalLengthMaxMm
                         ? `${g.focalLengthMinMm}mm (Prime)`
                         : `${g.focalLengthMinMm}mm - ${g.focalLengthMaxMm}mm`}
@@ -78,12 +75,12 @@ export default async function GearIndex() {
                   )}
 
                   {g.msrpUsdCents && (
-                    <div className="text-sm font-medium text-green-600">
+                    <div className="text-sm font-medium">
                       {formatPrice(g.msrpUsdCents)}
                     </div>
                   )}
                   {g.releaseDate && (
-                    <div className="text-xs text-zinc-400">
+                    <div className="text-muted-foreground text-xs">
                       Released {new Date(g.releaseDate).getFullYear()}
                     </div>
                   )}

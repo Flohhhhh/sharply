@@ -82,6 +82,5 @@ When database changes cannot be made through schema updates alone:
 
 - **Database changes require both schema updates AND migrations**
 - **Documentation must stay synchronized with code changes**
-- **Test all database operations locally before committing**
 - **Follow existing naming conventions** for consistency
 - **Use Drizzle ORM features** instead of raw SQL when possible

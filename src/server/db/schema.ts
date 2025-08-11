@@ -26,6 +26,12 @@ export const createTable = pgTableCreator((name) => `sharply_${name}`);
 
 // --- Enums ---
 export const gearTypeEnum = pgEnum("gear_type", ["CAMERA", "LENS"]);
+export const proposalStatusEnum = pgEnum("proposal_status", [
+  "PENDING",
+  "APPROVED",
+  "REJECTED",
+  "MERGED",
+]);
 
 // --- Base helpers ---
 const createdAt = timestamp("created_at", { withTimezone: true })
@@ -145,8 +151,35 @@ export const lensSpecs = createTable(
   ],
 );
 
+// --- Gear Edits ---
+export const gearEdits = createTable(
+  "gear_edits",
+  (d) => ({
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    gearId: varchar("gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    createdById: varchar("created_by_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    status: proposalStatusEnum("status").notNull().default("PENDING"),
+    // payload: proposed diffs for core + subtype; keep it compact
+    payload: jsonb("payload").notNull(), // { core?: {...}, camera?: {...}, lens?: {...} }
+    note: text("note"),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    index("gear_edits_status_idx").on(t.status),
+    index("gear_edits_gear_idx").on(t.gearId),
+    index("gear_edits_created_by_idx").on(t.createdById),
+  ],
+);
+
 // --- Gear Relations ---
-export const gearRelations = relations(gear, ({ one }) => ({
+export const gearRelations = relations(gear, ({ one, many }) => ({
   cameraSpecs: one(cameraSpecs, {
     fields: [gear.id],
     references: [cameraSpecs.gearId],
@@ -154,6 +187,18 @@ export const gearRelations = relations(gear, ({ one }) => ({
   lensSpecs: one(lensSpecs, {
     fields: [gear.id],
     references: [lensSpecs.gearId],
+  }),
+  edits: many(gearEdits),
+}));
+
+export const gearEditsRelations = relations(gearEdits, ({ one }) => ({
+  gear: one(gear, {
+    fields: [gearEdits.gearId],
+    references: [gear.id],
+  }),
+  createdBy: one(users, {
+    fields: [gearEdits.createdById],
+    references: [users.id],
   }),
 }));
 
@@ -264,6 +309,7 @@ export const users = createTable("user", (d) => ({
 
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
+  gearEdits: many(gearEdits),
 }));
 
 export const accounts = createTable(

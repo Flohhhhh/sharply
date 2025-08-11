@@ -1,71 +1,33 @@
 "use client";
 
 import Link from "next/link";
-import { signIn, signOut, useSession } from "next-auth/react";
-
-function AuthButton() {
-  const { data: session } = useSession();
-
-  if (session) {
-    return (
-      <div className="absolute top-4 right-4 flex items-center gap-4">
-        <span className="text-sm text-white/80">
-          Welcome, {session.user.name}!
-        </span>
-        <button
-          onClick={() => signOut()}
-          className="rounded-lg bg-white/10 px-4 py-2 text-sm text-white transition-colors hover:bg-white/20"
-        >
-          Sign Out
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="absolute top-4 right-4">
-      <button
-        onClick={() => signIn("discord")}
-        className="rounded-lg bg-white/10 px-4 py-2 text-sm text-white transition-colors hover:bg-white/20"
-      >
-        Sign In with Discord
-      </button>
-    </div>
-  );
-}
 
 export default function HomePage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-      <AuthButton />
-      <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-        <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
-          Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
+    <main className="bg-background text-foreground flex min-h-screen flex-col items-start justify-center">
+      <div className="container flex flex-col items-start gap-8 px-4 py-16">
+        <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
+          Sharply is under construction
         </h1>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
-          <Link
-            className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
-            href="https://create.t3.gg/en/usage/first-steps"
-            target="_blank"
-          >
-            <h3 className="text-2xl font-bold">First Steps →</h3>
-            <div className="text-lg">
-              Just the basics - Everything you need to know to set up your
-              database and authentication.
-            </div>
-          </Link>
-          <Link
-            className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
-            href="https://create.t3.gg/en/introduction"
-            target="_blank"
-          >
-            <h3 className="text-2xl font-bold">Documentation →</h3>
-            <div className="text-lg">
-              Learn more about Create T3 App, the libraries it uses, and how to
-              deploy it.
-            </div>
-          </Link>
-        </div>
+        <p className="max-w-3xl text-lg text-black/80">
+          We're building a modern, contributor-driven photography hub. A place
+          where passionate photographers can explore in-depth gear specs, share
+          real-world experiences, and discover tools that inspire.
+          <br />
+          <br />
+          We're in the early stages of development, but we're already working on
+          some cool features. If you're interested in helping us build this
+          project, we'd love to have you on board.
+        </p>
+        <p className="text-lg text-black/80">
+          Check out some sample content while we build!
+        </p>
+        <Link
+          href="/gear"
+          className="border-input bg-primary text-primary-foreground hover:bg-primary/90 rounded-md border px-6 py-3 text-lg font-medium"
+        >
+          Browse Gear
+        </Link>
       </div>
     </main>
   );
