@@ -69,6 +69,17 @@ export async function POST(
           and(eq(ownerships.userId, userId), eq(ownerships.gearId, gearId)),
         );
 
+      // Delete the popularity event for this ownership action
+      await db
+        .delete(popularityEvents)
+        .where(
+          and(
+            eq(popularityEvents.gearId, gearId),
+            eq(popularityEvents.userId, userId),
+            eq(popularityEvents.eventType, "ownership"),
+          ),
+        );
+
       return NextResponse.json({ success: true, action: "removed" });
     } else {
       return NextResponse.json({ error: "Invalid action" }, { status: 400 });

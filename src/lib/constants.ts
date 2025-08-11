@@ -1,10 +1,11 @@
 // Popularity tracking constants
 export const POPULARITY_POINTS = {
-  WISHLIST: 1,
-  OWNERSHIP: 1,
-  COMPARE: 1,
-  REVIEW: 2,
-  SHARE: 1,
+  VISIT: 1,
+  WISHLIST: 10,
+  OWNERSHIP: 20,
+  COMPARE: 5,
+  REVIEW: 10,
+  SHARE: 10,
 } as const;
 
 export type PopularityEventType = keyof typeof POPULARITY_POINTS;

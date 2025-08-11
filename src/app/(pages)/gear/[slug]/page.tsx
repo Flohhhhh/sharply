@@ -12,6 +12,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { formatPrice, getMountDisplayName } from "~/lib/mapping";
 import { GearActionButtons } from "~/components/gear-action-buttons";
+import { GearVisitTracker } from "~/components/gear-visit-tracker";
 
 interface GearPageProps {
   params: Promise<{
@@ -82,6 +83,9 @@ export default async function GearPage({ params }: GearPageProps) {
 
   return (
     <main className="mx-auto max-w-4xl p-6">
+      {/* Track page visit for popularity */}
+      <GearVisitTracker slug={slug} />
+
       <div className="mb-6">
         <Link
           href="/gear"

@@ -68,6 +68,17 @@ export async function POST(
         .delete(wishlists)
         .where(and(eq(wishlists.userId, userId), eq(wishlists.gearId, gearId)));
 
+      // Delete the popularity event for this wishlist action
+      await db
+        .delete(popularityEvents)
+        .where(
+          and(
+            eq(popularityEvents.gearId, gearId),
+            eq(popularityEvents.userId, userId),
+            eq(popularityEvents.eventType, "wishlist"),
+          ),
+        );
+
       return NextResponse.json({ success: true, action: "removed" });
     } else {
       return NextResponse.json({ error: "Invalid action" }, { status: 400 });

@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Button } from "~/components/ui/button";
-import { Heart, CheckCircle, Plus } from "lucide-react";
+import { Heart, CheckCircle, Plus, User } from "lucide-react";
 import { toast } from "sonner";
+import Link from "next/link";
 
 interface GearActionButtonsProps {
   slug: string;
@@ -166,6 +167,17 @@ export function GearActionButtons({ slug }: GearActionButtonsProps) {
       >
         {isOwned ? "Remove from Collection" : "Add to Collection"}
       </Button>
+
+      {/* Profile Link */}
+      <Link href={`/u/${session.user.id}`} className="block">
+        <Button
+          variant="ghost"
+          className="w-full text-zinc-600 hover:bg-zinc-50 hover:text-zinc-800"
+          icon={<User className="h-4 w-4" />}
+        >
+          View My Collection
+        </Button>
+      </Link>
     </div>
   );
 }
