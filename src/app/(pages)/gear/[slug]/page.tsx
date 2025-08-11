@@ -122,7 +122,7 @@ export default async function GearPage({ params }: GearPageProps) {
               </span>
               {item.brand && (
                 <Link
-                  href={`/brands/${item.brand.slug}`}
+                  href={`/brand/${item.brand.slug}`}
                   className="text-sm text-zinc-600 hover:text-zinc-800"
                 >
                   {item.brand.name}

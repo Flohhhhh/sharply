@@ -53,7 +53,18 @@ export default async function GearIndex() {
                 )}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <div className="text-sm text-zinc-500">{g.brandName}</div>
+                    <div className="text-sm text-zinc-500">
+                      {g.brandSlug ? (
+                        <Link
+                          href={`/brand/${g.brandSlug}`}
+                          className="hover:text-zinc-700 hover:underline"
+                        >
+                          {g.brandName}
+                        </Link>
+                      ) : (
+                        g.brandName
+                      )}
+                    </div>
                     <span className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800">
                       {g.gearType}
                     </span>
