@@ -32,6 +32,11 @@ export const proposalStatusEnum = pgEnum("proposal_status", [
   "REJECTED",
   "MERGED",
 ]);
+export const reviewStatusEnum = pgEnum("review_status", [
+  "PENDING",
+  "APPROVED",
+  "REJECTED",
+]);
 
 // --- Base helpers ---
 const createdAt = timestamp("created_at", { withTimezone: true })
@@ -178,6 +183,31 @@ export const gearEdits = createTable(
   ],
 );
 
+// --- Personal Reviews ---
+export const reviews = createTable(
+  "reviews",
+  (d) => ({
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    gearId: varchar("gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    createdById: varchar("created_by_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    status: reviewStatusEnum("status").notNull().default("PENDING"),
+    content: text("content").notNull(),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    index("reviews_status_idx").on(t.status),
+    index("reviews_gear_idx").on(t.gearId),
+    index("reviews_created_by_idx").on(t.createdById),
+  ],
+);
+
 // --- Gear Relations ---
 export const gearRelations = relations(gear, ({ one, many }) => ({
   cameraSpecs: one(cameraSpecs, {
@@ -189,6 +219,7 @@ export const gearRelations = relations(gear, ({ one, many }) => ({
     references: [lensSpecs.gearId],
   }),
   edits: many(gearEdits),
+  reviews: many(reviews),
 }));
 
 export const gearEditsRelations = relations(gearEdits, ({ one }) => ({
@@ -198,6 +229,17 @@ export const gearEditsRelations = relations(gearEdits, ({ one }) => ({
   }),
   createdBy: one(users, {
     fields: [gearEdits.createdById],
+    references: [users.id],
+  }),
+}));
+
+export const reviewsRelations = relations(reviews, ({ one }) => ({
+  gear: one(gear, {
+    fields: [reviews.gearId],
+    references: [gear.id],
+  }),
+  createdBy: one(users, {
+    fields: [reviews.createdById],
     references: [users.id],
   }),
 }));
@@ -310,6 +352,7 @@ export const users = createTable("user", (d) => ({
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
   gearEdits: many(gearEdits),
+  reviews: many(reviews),
 }));
 
 export const accounts = createTable(

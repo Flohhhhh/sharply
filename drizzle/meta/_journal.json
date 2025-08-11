@@ -78,6 +78,13 @@
       "when": 1754927511075,
       "tag": "0010_mighty_lethal_legion",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1754938862855,
+      "tag": "0011_workable_wendell_vaughn",
+      "breakpoints": true
     }
   ]
 }

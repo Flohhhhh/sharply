@@ -13,6 +13,8 @@ import Link from "next/link";
 import { formatPrice, getMountDisplayName } from "~/lib/mapping";
 import { GearActionButtons } from "~/components/gear-action-buttons";
 import { GearVisitTracker } from "~/components/gear-visit-tracker";
+import { GearReviewForm } from "~/components/gear-review-form";
+import { GearReviewsList } from "~/components/gear-reviews-list";
 
 interface GearPageProps {
   params: Promise<{
@@ -264,6 +266,13 @@ export default async function GearPage({ params }: GearPageProps) {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Reviews */}
+      <div className="mt-12">
+        <h2 className="text-lg font-semibold mb-4">Reviews</h2>
+        <GearReviewForm gearSlug={item.slug} />
+        <GearReviewsList gearSlug={item.slug} />
       </div>
     </main>
   );

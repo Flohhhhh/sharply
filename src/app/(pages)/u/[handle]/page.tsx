@@ -11,6 +11,7 @@ import { eq, and } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { formatPrice, getMountDisplayName } from "~/lib/mapping";
+import { UserReviewsList } from "~/components/user-reviews-list";
 
 interface UserProfilePageProps {
   params: Promise<{
@@ -159,6 +160,14 @@ export default async function UserProfilePage({
               </Link>
             </div>
           )}
+        </div>
+
+        {/* Reviews */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-semibold">Reviews</h2>
+          </div>
+          <UserReviewsList />
         </div>
       </div>
     </main>
