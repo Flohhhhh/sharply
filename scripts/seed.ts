@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import slugify from "slugify";
 import { db } from "../src/server/db";
 import { brands, gear, mounts, sensorFormats } from "../src/server/db/schema";
+import { normalizeSearchName } from "../src/lib/utils";
 
 const s = (v: string) => slugify(v, { lower: true, strict: true });
 
@@ -126,24 +127,17 @@ async function main() {
     }
   }
 
-  // Get specific mounts from the database
-  const zMount = await db
-    .select()
-    .from(mounts)
-    .where(eq(mounts.value, "z-nikon"))
-    .limit(1);
-  const rfMount = await db
-    .select()
-    .from(mounts)
-    .where(eq(mounts.value, "rf-canon"))
-    .limit(1);
+  // Get all mounts and create a simple lookup object
+  const allMounts = await db.select().from(mounts);
+  const mountLookup = allMounts.reduce(
+    (acc: Record<string, string>, mount: any) => {
+      acc[mount.value] = mount.id;
+      return acc;
+    },
+    {},
+  );
 
-  console.log("Found mounts:", {
-    zMount: zMount[0]?.value,
-    rfMount: rfMount[0]?.value,
-    zMountId: zMount[0]?.id,
-    rfMountId: rfMount[0]?.id,
-  });
+  console.log("Available mounts:", Object.keys(mountLookup));
 
   // Seed sensor formats
   const sensorFormatData = [
@@ -160,7 +154,8 @@ async function main() {
     await upsertBySlug(sensorFormats, format);
   }
 
-  // Two sample gear rows
+  // Sample gear rows with normalized search names
+  // The normalizeSearchName function combines brand name and gear name for better searchability
   const items: Array<{
     name: string;
     slug: string;
@@ -174,45 +169,73 @@ async function main() {
     {
       name: "Nikon Z 400mm f/4.5 VR S",
       slug: s("Nikon Z 400mm f/4.5 VR S"),
-      searchName: "nikon z 400mm f/4.5 vr s",
+      searchName: normalizeSearchName("Nikon Z 400mm f/4.5 VR S", "Nikon"),
       gearType: "LENS" as const,
       brandId: nikon!.id,
-      mountId: null, // Will be set after mount lookup
+      mountId: mountLookup["z-nikon"] || null,
       priceUsdCents: 324900,
       thumbnailUrl: null,
     },
     {
       name: "Nikon Z6 III",
       slug: s("Nikon Z6 III"),
-      searchName: "nikon z6 iii",
+      searchName: normalizeSearchName("Nikon Z6 III", "Nikon"),
       gearType: "CAMERA" as const,
       brandId: nikon!.id,
-      mountId: null, // Will be set after mount lookup
+      mountId: mountLookup["z-nikon"] || null,
       priceUsdCents: 159695,
       thumbnailUrl: null,
     },
     {
       name: "Canon EOS R5ii",
       slug: s("Canon EOS R5ii"),
-      searchName: "canon eos r5ii",
+      searchName: normalizeSearchName("Canon EOS R5ii", "Canon"),
       gearType: "CAMERA" as const,
       brandId: canon!.id,
-      mountId: null, // Will be set after mount lookup
+      mountId: mountLookup["rf-canon"] || null,
       priceUsdCents: 389900,
+      thumbnailUrl: null,
+    },
+    {
+      name: "Sony Alpha A7 IV",
+      slug: s("Sony Alpha A7 IV"),
+      searchName: normalizeSearchName("Sony Alpha A7 IV", "Sony"),
+      gearType: "CAMERA" as const,
+      brandId: sony!.id,
+      mountId: mountLookup["e-sony"] || null,
+      priceUsdCents: 249900,
+      thumbnailUrl: null,
+    },
+    {
+      name: "Fujifilm X-T5",
+      slug: s("Fujifilm X-T5"),
+      searchName: normalizeSearchName("Fujifilm X-T5", "Fujifilm"),
+      gearType: "CAMERA" as const,
+      brandId: fujifilm!.id,
+      mountId: mountLookup["x-fujifilm"] || null,
+      priceUsdCents: 169900,
       thumbnailUrl: null,
     },
   ];
 
-  // Set mount IDs directly from the seeded data
-  for (const item of items) {
-    if (item.name.includes("Nikon Z")) {
-      item.mountId = zMount[0]?.id || null;
-      console.log(`Setting ${item.name} mountId to: ${item.mountId}`);
-    } else if (item.name.includes("Canon EOS")) {
-      item.mountId = rfMount[0]?.id || null;
-      console.log(`Setting ${item.name} mountId to: ${item.mountId}`);
-    }
-  }
+  // Mount IDs will be set directly in the gear items below
+  console.log("Mounts available for assignment:", mountLookup);
+
+  // Demonstrate the normalizeSearchName function
+  console.log("\n=== normalizeSearchName Examples ===");
+  console.log(
+    `"Nikon Z6 III" + "Nikon" → "${normalizeSearchName("Nikon Z6 III", "Nikon")}"`,
+  );
+  console.log(
+    `"Canon EOS R5ii" + "Canon" → "${normalizeSearchName("Canon EOS R5ii", "Canon")}"`,
+  );
+  console.log(
+    `"Sony Alpha A7 IV" + "Sony" → "${normalizeSearchName("Sony Alpha A7 IV", "Sony")}"`,
+  );
+  console.log(
+    `"Fujifilm X-T5" + "Fujifilm" → "${normalizeSearchName("Fujifilm X-T5", "Fujifilm")}"`,
+  );
+  console.log("=====================================\n");
 
   // Clear existing gear items first
   await db.delete(gear);
