@@ -144,9 +144,29 @@ export default async function GearPage({ params }: GearPageProps) {
         <GearActionButtons slug={slug} />
       </div>
 
+      {/* Suggest Edit Button */}
+      <div className="mb-6">
+        <Link
+          scroll={false}
+          href={`/gear/${item.slug}/edit?type=${item.gearType}`}
+          className="bg-primary hover:bg-primary/90 text-primary-foreground inline-flex items-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
+        >
+          Suggest Edit
+        </Link>
+      </div>
+
       {/* Specifications */}
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold">Specifications</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Specifications</h2>
+          <Link
+            scroll={false}
+            href={`/gear/${item.slug}/edit?type=${item.gearType}`}
+            className="bg-secondary hover:bg-secondary/80 text-secondary-foreground inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors"
+          >
+            Suggest Edit
+          </Link>
+        </div>
         <div className="border-border overflow-hidden rounded-md border">
           <div className="divide-border divide-y">
             {item.mount && (
@@ -270,7 +290,7 @@ export default async function GearPage({ params }: GearPageProps) {
 
       {/* Reviews */}
       <div className="mt-12">
-        <h2 className="text-lg font-semibold mb-4">Reviews</h2>
+        <h2 className="mb-4 text-lg font-semibold">Reviews</h2>
         <GearReviewForm gearSlug={item.slug} />
         <GearReviewsList gearSlug={item.slug} />
       </div>

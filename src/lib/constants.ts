@@ -9,3 +9,6 @@ export const POPULARITY_POINTS = {
 } as const;
 
 export type PopularityEventType = keyof typeof POPULARITY_POINTS;
+
+// Re-export generated constants
+export * from "./generated";
