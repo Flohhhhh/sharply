@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "~/components/ui/button";
-import { CoreFields } from "./edit-gear/core-fields";
+import { CoreFields } from "./core-fields";
 import type { CurrentSpecs } from "~/lib/gear-helpers";
 
 interface EditGearFormProps {

@@ -1,4 +1,4 @@
-import { EditGearModal } from "~/components/edit-gear-modal";
+import { EditGearModal } from "~/app/(pages)/gear/_components/edit-gear/edit-gear-modal";
 import { fetchGearData } from "~/lib/gear-helpers";
 
 interface EditGearModalPageProps {

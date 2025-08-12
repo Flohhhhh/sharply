@@ -1,4 +1,4 @@
-import { EditGearForm } from "~/components/edit-gear-form";
+import { EditGearForm } from "~/app/(pages)/gear/_components/edit-gear/edit-gear-form";
 import { fetchGearData } from "~/lib/gear-helpers";
 
 interface EditGearPageProps {

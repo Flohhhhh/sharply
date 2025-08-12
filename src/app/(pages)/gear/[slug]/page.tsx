@@ -3,10 +3,10 @@ import { cameraSpecs, lensSpecs, sensorFormats } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { formatPrice, getMountDisplayName } from "~/lib/mapping";
-import { GearActionButtons } from "~/components/gear-action-buttons";
-import { GearVisitTracker } from "~/components/gear-visit-tracker";
-import { GearReviewForm } from "~/components/gear-review-form";
-import { GearReviewsList } from "~/components/gear-reviews-list";
+import { GearActionButtons } from "~/app/(pages)/gear/_components/gear-action-buttons";
+import { GearVisitTracker } from "~/app/(pages)/gear/_components/gear-visit-tracker";
+import { GearReviewForm } from "~/app/(pages)/gear/_components/gear-review-form";
+import { GearReviewsList } from "~/app/(pages)/gear/_components/gear-reviews-list";
 import { fetchGearData } from "~/lib/gear-helpers";
 
 interface GearPageProps {
