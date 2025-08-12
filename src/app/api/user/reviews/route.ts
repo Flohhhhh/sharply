@@ -23,15 +23,11 @@ export async function GET(request: NextRequest) {
         status: reviews.status,
         createdAt: reviews.createdAt,
         updatedAt: reviews.updatedAt,
-        gear: {
-          id: gear.id,
-          slug: gear.slug,
-          name: gear.name,
-          gearType: gear.gearType,
-          brand: {
-            name: brands.name,
-          },
-        },
+        gearId: gear.id,
+        gearSlug: gear.slug,
+        gearName: gear.name,
+        gearType: gear.gearType,
+        brandName: brands.name,
       })
       .from(reviews)
       .leftJoin(gear, eq(reviews.gearId, gear.id))

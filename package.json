@@ -17,6 +17,7 @@
     "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
+    "prebuild": "npm run constants:generate",
     "preview": "next build && next start",
     "start": "next start",
     "typecheck": "tsc --noEmit"
