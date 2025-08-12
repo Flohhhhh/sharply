@@ -12,13 +12,10 @@ import {
 import { DateInput, PriceInput } from "~/components/ui/inputs";
 import { MOUNTS } from "~/lib/constants";
 import { getMountLongName } from "~/lib/mapping/mounts-map";
+import type { CurrentSpecs } from "~/lib/gear-helpers";
 
 interface CoreFieldsProps {
-  currentSpecs: {
-    releaseDate?: string | null;
-    msrpUsdCents?: number | null;
-    mountId?: string | null;
-  };
+  currentSpecs: CurrentSpecs["core"];
   onChange: (section: string, field: string, value: any) => void;
 }
 
@@ -32,7 +29,7 @@ export function CoreFields({ currentSpecs, onChange }: CoreFieldsProps) {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <DateInput
             label="Release Date"
-            value={currentSpecs.releaseDate}
+            value={currentSpecs.releaseDate ?? ""}
             onChange={(value) => onChange("core", "releaseDate", value)}
           />
 
@@ -45,7 +42,7 @@ export function CoreFields({ currentSpecs, onChange }: CoreFieldsProps) {
           <div className="space-y-2">
             <Label htmlFor="mount">Mount</Label>
             <Select
-              value={currentSpecs.mountId || ""}
+              value={currentSpecs.mountId ?? ""}
               onValueChange={(value) => onChange("core", "mountId", value)}
             >
               <SelectTrigger>

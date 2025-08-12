@@ -96,10 +96,6 @@ export const gear = createTable(
     mountId: varchar("mount_id", { length: 36 }).references(() => mounts.id, {
       onDelete: "set null",
     }),
-    sensorFormatId: varchar("sensor_format_id", { length: 36 }).references(
-      () => sensorFormats.id,
-      { onDelete: "set null" },
-    ),
     releaseDate: timestamp("release_date", { withTimezone: true }),
     msrpUsdCents: integer("msrp_usd_cents"),
     thumbnailUrl: text("thumbnail_url"),

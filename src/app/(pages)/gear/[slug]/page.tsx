@@ -1,20 +1,13 @@
 import { db } from "~/server/db";
-import {
-  gear,
-  brands,
-  mounts,
-  cameraSpecs,
-  lensSpecs,
-  sensorFormats,
-} from "~/server/db/schema";
+import { cameraSpecs, lensSpecs, sensorFormats } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
-import { notFound } from "next/navigation";
 import Link from "next/link";
 import { formatPrice, getMountDisplayName } from "~/lib/mapping";
 import { GearActionButtons } from "~/components/gear-action-buttons";
 import { GearVisitTracker } from "~/components/gear-visit-tracker";
 import { GearReviewForm } from "~/components/gear-review-form";
 import { GearReviewsList } from "~/components/gear-reviews-list";
+import { fetchGearData } from "~/lib/gear-helpers";
 
 interface GearPageProps {
   params: Promise<{
@@ -24,30 +17,14 @@ interface GearPageProps {
 
 export default async function GearPage({ params }: GearPageProps) {
   const { slug } = await params;
-  const gearItem = await db
-    .select({
-      id: gear.id,
-      slug: gear.slug,
-      name: gear.name,
-      searchName: gear.searchName,
-      gearType: gear.gearType,
-      brandId: gear.brandId,
-      mountId: gear.mountId,
-      releaseDate: gear.releaseDate,
-      msrpUsdCents: gear.msrpUsdCents,
-      thumbnailUrl: gear.thumbnailUrl,
-      createdAt: gear.createdAt,
-      updatedAt: gear.updatedAt,
-      brand: {
-        id: brands.id,
-        name: brands.name,
-        slug: brands.slug,
-      },
-      mount: {
-        id: mounts.id,
-        value: mounts.value,
-      },
-      cameraSpecs: {
+
+  // Fetch core gear data
+  const item = await fetchGearData(slug);
+
+  // Fetch additional specs that aren't in the core helper yet
+  const [cameraSpecsData, lensSpecsData] = await Promise.all([
+    db
+      .select({
         sensorFormatId: cameraSpecs.sensorFormatId,
         resolutionMp: cameraSpecs.resolutionMp,
         isoMin: cameraSpecs.isoMin,
@@ -55,33 +32,42 @@ export default async function GearPage({ params }: GearPageProps) {
         maxFpsRaw: cameraSpecs.maxFpsRaw,
         maxFpsJpg: cameraSpecs.maxFpsJpg,
         extra: cameraSpecs.extra,
-      },
-      lensSpecs: {
+      })
+      .from(cameraSpecs)
+      .where(eq(cameraSpecs.gearId, item.gear.id))
+      .limit(1),
+    db
+      .select({
         focalLengthMinMm: lensSpecs.focalLengthMinMm,
         focalLengthMaxMm: lensSpecs.focalLengthMaxMm,
         hasStabilization: lensSpecs.hasStabilization,
         extra: lensSpecs.extra,
-      },
-      sensorFormat: {
+      })
+      .from(lensSpecs)
+      .where(eq(lensSpecs.gearId, item.gear.id))
+      .limit(1),
+  ]);
+
+  // Get sensor format if camera specs exist
+  let sensorFormat = null;
+  if (cameraSpecsData.length > 0 && cameraSpecsData[0]?.sensorFormatId) {
+    const sensorFormatData = await db
+      .select({
         id: sensorFormats.id,
         name: sensorFormats.name,
         slug: sensorFormats.slug,
-      },
-    })
-    .from(gear)
-    .leftJoin(brands, eq(gear.brandId, brands.id))
-    .leftJoin(mounts, eq(gear.mountId, mounts.id))
-    .leftJoin(cameraSpecs, eq(gear.id, cameraSpecs.gearId))
-    .leftJoin(lensSpecs, eq(gear.id, lensSpecs.gearId))
-    .leftJoin(sensorFormats, eq(cameraSpecs.sensorFormatId, sensorFormats.id))
-    .where(eq(gear.slug, slug))
-    .limit(1);
+      })
+      .from(sensorFormats)
+      .where(eq(sensorFormats.id, cameraSpecsData[0].sensorFormatId))
+      .limit(1);
 
-  if (!gearItem.length) {
-    notFound();
+    if (sensorFormatData.length > 0) {
+      sensorFormat = sensorFormatData[0];
+    }
   }
 
-  const item = gearItem[0]!;
+  const cameraSpecsItem = cameraSpecsData[0] || null;
+  const lensSpecsItem = lensSpecsData[0] || null;
 
   return (
     <main className="mx-auto max-w-4xl p-6">
@@ -101,32 +87,32 @@ export default async function GearPage({ params }: GearPageProps) {
       <div className="mb-6">
         <div className="mb-3 flex items-center gap-3">
           <span className="bg-secondary rounded-full px-3 py-1 text-xs font-medium">
-            {item.gearType}
+            {item.gear.gearType}
           </span>
-          {item.brand && (
+          {item.brands && (
             <Link
-              href={`/brand/${item.brand.slug}`}
+              href={`/brand/${item.brands.slug}`}
               className="text-muted-foreground text-sm"
             >
-              {item.brand.name}
+              {item.brands.name}
             </Link>
           )}
         </div>
-        <h1 className="text-3xl font-bold">{item.name}</h1>
-        {item.msrpUsdCents && (
+        <h1 className="text-3xl font-bold">{item.gear.name}</h1>
+        {item.gear.msrpUsdCents && (
           <div className="mt-2 text-2xl font-semibold">
-            {formatPrice(item.msrpUsdCents)}
+            {formatPrice(item.gear.msrpUsdCents)}
           </div>
         )}
       </div>
 
       {/* Photo Placeholder */}
       <div className="mb-6">
-        {item.thumbnailUrl ? (
+        {item.gear.thumbnailUrl ? (
           <div className="bg-muted aspect-video overflow-hidden rounded-md">
             <img
-              src={item.thumbnailUrl}
-              alt={item.name}
+              src={item.gear.thumbnailUrl}
+              alt={item.gear.name}
               className="h-full w-full object-cover"
             />
           </div>
@@ -148,7 +134,7 @@ export default async function GearPage({ params }: GearPageProps) {
       <div className="mb-6">
         <Link
           scroll={false}
-          href={`/gear/${item.slug}/edit?type=${item.gearType}`}
+          href={`/gear/${item.gear.slug}/edit?type=${item.gear.gearType}`}
           className="bg-primary hover:bg-primary/90 text-primary-foreground inline-flex items-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
         >
           Suggest Edit
@@ -161,7 +147,7 @@ export default async function GearPage({ params }: GearPageProps) {
           <h2 className="text-lg font-semibold">Specifications</h2>
           <Link
             scroll={false}
-            href={`/gear/${item.slug}/edit?type=${item.gearType}`}
+            href={`/gear/${item.gear.slug}/edit?type=${item.gear.gearType}`}
             className="bg-secondary hover:bg-secondary/80 text-secondary-foreground inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors"
           >
             Suggest Edit
@@ -169,20 +155,20 @@ export default async function GearPage({ params }: GearPageProps) {
         </div>
         <div className="border-border overflow-hidden rounded-md border">
           <div className="divide-border divide-y">
-            {item.mount && (
+            {item.mounts && (
               <div className="flex justify-between px-4 py-3">
                 <span className="text-muted-foreground">Mount</span>
                 <span className="font-medium">
-                  {getMountDisplayName(item.mount.value)}
+                  {getMountDisplayName(item.mounts.value)}
                 </span>
               </div>
             )}
 
-            {item.releaseDate && (
+            {item.gear.releaseDate && (
               <div className="flex justify-between px-4 py-3">
                 <span className="text-muted-foreground">Release Date</span>
                 <span className="font-medium">
-                  {new Date(item.releaseDate).toLocaleDateString("en-US", {
+                  {new Date(item.gear.releaseDate).toLocaleDateString("en-US", {
                     year: "numeric",
                     month: "long",
                     day: "numeric",
@@ -192,51 +178,49 @@ export default async function GearPage({ params }: GearPageProps) {
             )}
 
             {/* Camera-specific specifications */}
-            {item.gearType === "CAMERA" && item.cameraSpecs && (
+            {item.gear.gearType === "CAMERA" && cameraSpecsItem && (
               <>
-                {item.cameraSpecs.resolutionMp && (
+                {cameraSpecsItem.resolutionMp && (
                   <div className="flex justify-between px-4 py-3">
                     <span className="text-muted-foreground">Resolution</span>
                     <span className="font-medium">
-                      {item.cameraSpecs.resolutionMp} MP
+                      {cameraSpecsItem.resolutionMp} MP
                     </span>
                   </div>
                 )}
 
-                {item.sensorFormat && (
+                {sensorFormat && (
                   <div className="flex justify-between px-4 py-3">
                     <span className="text-muted-foreground">Sensor Format</span>
-                    <span className="font-medium">
-                      {item.sensorFormat.name}
-                    </span>
+                    <span className="font-medium">{sensorFormat.name}</span>
                   </div>
                 )}
 
-                {item.cameraSpecs.isoMin && item.cameraSpecs.isoMax && (
+                {cameraSpecsItem.isoMin && cameraSpecsItem.isoMax && (
                   <div className="flex justify-between px-4 py-3">
                     <span className="text-muted-foreground">ISO Range</span>
                     <span className="font-medium">
-                      {item.cameraSpecs.isoMin} - {item.cameraSpecs.isoMax}
+                      {cameraSpecsItem.isoMin} - {cameraSpecsItem.isoMax}
                     </span>
                   </div>
                 )}
 
-                {item.cameraSpecs.maxFpsRaw && (
+                {cameraSpecsItem.maxFpsRaw && (
                   <div className="flex justify-between px-4 py-3">
                     <span className="text-muted-foreground">Max FPS (RAW)</span>
                     <span className="font-medium">
-                      {item.cameraSpecs.maxFpsRaw} fps
+                      {cameraSpecsItem.maxFpsRaw} fps
                     </span>
                   </div>
                 )}
 
-                {item.cameraSpecs.maxFpsJpg && (
+                {cameraSpecsItem.maxFpsJpg && (
                   <div className="flex justify-between px-4 py-3">
                     <span className="text-muted-foreground">
                       Max FPS (JPEG)
                     </span>
                     <span className="font-medium">
-                      {item.cameraSpecs.maxFpsJpg} fps
+                      {cameraSpecsItem.maxFpsJpg} fps
                     </span>
                   </div>
                 )}
@@ -244,30 +228,30 @@ export default async function GearPage({ params }: GearPageProps) {
             )}
 
             {/* Lens-specific specifications */}
-            {item.gearType === "LENS" && item.lensSpecs && (
+            {item.gear.gearType === "LENS" && lensSpecsItem && (
               <>
-                {item.lensSpecs.focalLengthMinMm &&
-                  item.lensSpecs.focalLengthMaxMm && (
+                {lensSpecsItem.focalLengthMinMm &&
+                  lensSpecsItem.focalLengthMaxMm && (
                     <div className="flex justify-between px-4 py-3">
                       <span className="text-muted-foreground">
                         Focal Length
                       </span>
                       <span className="font-medium">
-                        {item.lensSpecs.focalLengthMinMm ===
-                        item.lensSpecs.focalLengthMaxMm
-                          ? `${item.lensSpecs.focalLengthMinMm}mm (Prime)`
-                          : `${item.lensSpecs.focalLengthMinMm}mm - ${item.lensSpecs.focalLengthMaxMm}mm (Zoom)`}
+                        {lensSpecsItem.focalLengthMinMm ===
+                        lensSpecsItem.focalLengthMaxMm
+                          ? `${lensSpecsItem.focalLengthMinMm}mm (Prime)`
+                          : `${lensSpecsItem.focalLengthMinMm}mm - ${lensSpecsItem.focalLengthMaxMm}mm (Zoom)`}
                       </span>
                     </div>
                   )}
 
-                {item.lensSpecs.hasStabilization !== null && (
+                {lensSpecsItem.hasStabilization !== null && (
                   <div className="flex justify-between px-4 py-3">
                     <span className="text-muted-foreground">
                       Image Stabilization
                     </span>
                     <span className="font-medium">
-                      {item.lensSpecs.hasStabilization ? "Yes" : "No"}
+                      {lensSpecsItem.hasStabilization ? "Yes" : "No"}
                     </span>
                   </div>
                 )}
@@ -277,7 +261,7 @@ export default async function GearPage({ params }: GearPageProps) {
             <div className="flex justify-between px-4 py-3">
               <span className="text-muted-foreground">Added</span>
               <span className="font-medium">
-                {new Date(item.createdAt).toLocaleDateString("en-US", {
+                {new Date(item.gear.createdAt).toLocaleDateString("en-US", {
                   year: "numeric",
                   month: "long",
                   day: "numeric",
@@ -291,8 +275,8 @@ export default async function GearPage({ params }: GearPageProps) {
       {/* Reviews */}
       <div className="mt-12">
         <h2 className="mb-4 text-lg font-semibold">Reviews</h2>
-        <GearReviewForm gearSlug={item.slug} />
-        <GearReviewsList gearSlug={item.slug} />
+        <GearReviewForm gearSlug={item.gear.slug} />
+        <GearReviewsList gearSlug={item.gear.slug} />
       </div>
     </main>
   );

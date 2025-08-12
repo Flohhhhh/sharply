@@ -3,23 +3,44 @@
 import { useState, useEffect } from "react";
 import { Button } from "~/components/ui/button";
 import { CoreFields } from "./edit-gear/core-fields";
+import type { CurrentSpecs } from "~/lib/gear-helpers";
 
 interface EditGearFormProps {
   gearType?: "CAMERA" | "LENS";
-  currentSpecs?: any;
+  currentSpecs?: CurrentSpecs;
+  gearSlug: string;
 }
 
-export function EditGearForm({ gearType, currentSpecs }: EditGearFormProps) {
+export function EditGearForm({
+  gearType,
+  currentSpecs,
+  gearSlug,
+}: EditGearFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     core: {
-      releaseDate: currentSpecs?.releaseDate || "2024-01-15",
-      msrpUsdCents: currentSpecs?.msrpUsdCents || 389900,
-      mountId: currentSpecs?.mountId || "rf-mount",
+      releaseDate: currentSpecs?.core?.releaseDate || null,
+      msrpUsdCents: currentSpecs?.core?.msrpUsdCents || null,
+      mountId: currentSpecs?.core?.mountId || null,
     },
     camera: {},
     lens: {},
   });
+
+  // Update form data when currentSpecs changes
+  useEffect(() => {
+    if (currentSpecs) {
+      setFormData({
+        core: {
+          releaseDate: currentSpecs.core?.releaseDate || null,
+          msrpUsdCents: currentSpecs.core?.msrpUsdCents || null,
+          mountId: currentSpecs.core?.mountId || null,
+        },
+        camera: currentSpecs.camera || {},
+        lens: currentSpecs.lens || {},
+      });
+    }
+  }, [currentSpecs]);
 
   const handleChange = (section: string, field: string, value: any) => {
     setFormData((prev) => ({
@@ -37,6 +58,7 @@ export function EditGearForm({ gearType, currentSpecs }: EditGearFormProps) {
 
     // TODO: Implement form submission logic
     console.log("Form submitted with data:", formData);
+    console.log("Gear slug:", gearSlug);
 
     setIsSubmitting(false);
   };
