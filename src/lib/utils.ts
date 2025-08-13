@@ -49,3 +49,98 @@ export function usdToCents(dollars: number | undefined): number | null {
   }
   return Math.round(dollars * 100);
 }
+
+/**
+ * Converts camelCase/snake_case/kebab-case keys to human-friendly labels.
+ * Examples: "msrpUsdCents" -> "Msrp Usd Cents" (then acronym fixes -> "MSRP USD Cents")
+ */
+export function humanizeKey(key: string): string {
+  if (!key) return "";
+  // Insert spaces between camelCase boundaries and normalize separators
+  let label = key
+    .replace(/[_-]+/g, " ")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/([A-Z])([A-Z][a-z])/g, "$1 $2")
+    .trim()
+    .toLowerCase()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+
+  // Common acronym and unit fixes
+  label = label
+    .replace(/\bId\b/g, "ID")
+    .replace(/\bIso\b/g, "ISO")
+    .replace(/\bFps\b/g, "FPS")
+    .replace(/\bMp\b/g, "MP")
+    .replace(/\bUsd\b/g, "USD")
+    .replace(/\bMsrp\b/g, "MSRP")
+    .replace(/\bMm\b/g, "mm");
+
+  // Remove unwanted tokens entirely (case-insensitive)
+  const STOP_WORDS = new Set(["id", "ids", "cent", "cents"]);
+  label = label
+    .split(/\s+/)
+    .filter((t) => !STOP_WORDS.has(t.toLowerCase()))
+    .join(" ");
+
+  return label;
+}
+
+/**
+ * Formats a date into "June 25th, 2025" style.
+ * Accepts Date, string, or number. Returns empty string for invalid inputs.
+ */
+export function formatHumanDate(
+  input: Date | string | number | null | undefined,
+): string {
+  if (!input) return "";
+  // Normalize: if input is a Date, derive an ISO date string to avoid TZ shifts.
+  // If input is an ISO date string (YYYY-MM-DD), use it directly.
+  let y = 0,
+    m = 0,
+    d = 0;
+  if (input instanceof Date) {
+    const iso = input.toISOString().split("T")[0] || ""; // UTC date component
+    const parts = iso.split("-").map((n) => Number(n));
+    if (parts.length === 3) {
+      y = parts[0]!;
+      m = parts[1]!;
+      d = parts[2]!;
+    } else {
+      const date = new Date(input);
+      if (Number.isNaN(date.getTime())) return "";
+      y = date.getUTCFullYear();
+      m = date.getUTCMonth() + 1;
+      d = date.getUTCDate();
+    }
+  } else if (typeof input === "string" && /^\d{4}-\d{2}-\d{2}$/.test(input)) {
+    const parts = input.split("-").map((n) => Number(n));
+    y = parts[0]!;
+    m = parts[1]!;
+    d = parts[2]!;
+  } else {
+    const date = new Date(input);
+    if (Number.isNaN(date.getTime())) return "";
+    // Use UTC components to avoid local TZ shifts for midnight UTC dates
+    y = date.getUTCFullYear();
+    m = date.getUTCMonth() + 1;
+    d = date.getUTCDate();
+  }
+
+  const month = new Date(Date.UTC(y, m - 1, 1)).toLocaleString("en-US", {
+    month: "long",
+    timeZone: "UTC",
+  });
+  const day = d;
+  const year = y;
+
+  const suffix = (() => {
+    const j = day % 10;
+    const k = day % 100;
+    if (j === 1 && k !== 11) return "st";
+    if (j === 2 && k !== 12) return "nd";
+    if (j === 3 && k !== 13) return "rd";
+    return "th";
+  })();
+
+  return `${month} ${day}${suffix}, ${year}`;
+}

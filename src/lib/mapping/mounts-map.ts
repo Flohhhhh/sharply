@@ -39,3 +39,27 @@ export function getMountLongName(
   const formattedBrand = brand.charAt(0).toUpperCase() + brand.slice(1);
   return `${mount} - ${formattedBrand}`;
 }
+
+import { MOUNTS } from "~/lib/constants";
+
+/**
+ * Get a readable display name for a mount by its database id
+ */
+export function getMountNameById(mountId: string | null | undefined): string {
+  if (!mountId) return "Unknown";
+  const m = (MOUNTS as any[]).find((x) => x.id === mountId);
+  if (!m) return mountId;
+  return getMountDisplayName(m.value as string);
+}
+
+/**
+ * Get the long display name for a mount by its database id
+ */
+export function getMountLongNameById(
+  mountId: string | null | undefined,
+): string {
+  if (!mountId) return "Unknown";
+  const m = (MOUNTS as any[]).find((x) => x.id === mountId);
+  if (!m) return mountId;
+  return getMountLongName(m.value as string);
+}

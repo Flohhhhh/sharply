@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
+import { normalizeProposalPayloadForDb } from "~/server/db/normalizers";
 import { gearEdits, gear, cameraSpecs, lensSpecs } from "~/server/db/schema";
 import { eq, and } from "drizzle-orm";
 
@@ -17,6 +18,15 @@ export async function POST(
     }
 
     const { id: proposalId } = await params;
+
+    // Parse optional filtered payload from admin UI
+    let filteredPayload: { core?: any; camera?: any; lens?: any } | undefined;
+    try {
+      const json = await request.json().catch(() => undefined);
+      if (json && typeof json === "object" && "payload" in json) {
+        filteredPayload = (json as any).payload;
+      }
+    } catch {}
 
     // Get the proposal
     const proposal = await db
@@ -43,23 +53,19 @@ export async function POST(
 
     // Start a transaction
     await db.transaction(async (tx) => {
-      // Update the proposal status to APPROVED
+      // Determine final payload (filtered if provided) and normalize to DB types
+      const source = filteredPayload ?? proposalData.payload;
+      const normalized = normalizeProposalPayloadForDb(source as any);
+
+      // Update the proposal status to APPROVED and persist only the applied changes
       await tx
         .update(gearEdits)
-        .set({ status: "APPROVED" })
+        .set({ status: "APPROVED", payload: normalized || {} })
         .where(eq(gearEdits.id, proposalId));
 
       // Apply the changes to the gear
-      if (
-        proposalData.payload &&
-        typeof proposalData.payload === "object" &&
-        "core" in proposalData.payload
-      ) {
-        const payload = proposalData.payload as {
-          core?: any;
-          camera?: any;
-          lens?: any;
-        };
+      if (normalized && typeof normalized === "object") {
+        const payload = normalized as { core?: any; camera?: any; lens?: any };
         if (payload.core) {
           await tx
             .update(gear)

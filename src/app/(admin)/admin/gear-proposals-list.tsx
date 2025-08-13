@@ -1,10 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Card, CardContent } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
-import { Check, X } from "lucide-react";
+import { Check, X, ArrowRight } from "lucide-react";
+import Link from "next/link";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "~/components/ui/collapsible";
+import { humanizeKey, formatHumanDate } from "~/lib/utils";
+import { formatPrice } from "~/lib/mapping";
+import { sensorNameFromSlug, sensorNameFromId } from "~/lib/mapping/sensor-map";
+import { getMountLongNameById } from "~/lib/mapping/mounts-map";
 
 interface GearProposal {
   id: string;
@@ -19,6 +29,9 @@ interface GearProposal {
     camera?: Record<string, any>;
     lens?: Record<string, any>;
   };
+  beforeCore?: Record<string, any>;
+  beforeCamera?: Record<string, any>;
+  beforeLens?: Record<string, any>;
   note?: string;
   createdAt: string;
 }
@@ -144,32 +157,66 @@ const TEST_DATA: GearProposal[] = [
 export function GearProposalsList() {
   const [proposals, setProposals] = useState<GearProposal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedByProposal, setSelectedByProposal] = useState<
+    Record<string, Record<string, boolean>>
+  >({});
 
   useEffect(() => {
-    // Simulate loading and then show test data
-    const timer = setTimeout(() => {
-      setProposals(TEST_DATA);
-      setLoading(false);
-    }, 1000);
-
-    return () => clearTimeout(timer);
+    fetchProposals();
   }, []);
 
   const fetchProposals = async () => {
     try {
       const response = await fetch("/api/admin/gear-proposals");
       if (response.ok) {
-        const data = await response.json();
-        setProposals(data);
+        const grouped = await response.json();
+        // Flatten groups into a list of proposals for this simple list view
+        const flat: GearProposal[] = grouped.flatMap((g: any) =>
+          g.proposals.map((p: any) => ({
+            id: p.id,
+            gearId: p.gearId,
+            gearName: g.gearName,
+            gearSlug: g.gearSlug,
+            createdById: p.createdById,
+            createdByName: p.createdByName ?? "User",
+            status: p.status,
+            payload: p.payload,
+            beforeCore: p.beforeCore,
+            beforeCamera: p.beforeCamera,
+            beforeLens: p.beforeLens,
+            note: p.note,
+            createdAt: p.createdAt,
+          })),
+        );
+        setProposals(flat);
       }
     } catch (error) {
       console.error("Failed to fetch proposals:", error);
-      // Fallback to test data if API fails
-      setProposals(TEST_DATA);
+      setProposals([]);
     } finally {
       setLoading(false);
     }
   };
+
+  // Initialize field selections (all selected by default) when proposals load
+  useEffect(() => {
+    if (proposals.length === 0) return;
+    setSelectedByProposal((prev) => {
+      const next = { ...prev };
+      for (const p of proposals) {
+        if (!next[p.id]) {
+          const coreKeys = Object.keys(p.payload.core || {});
+          const cameraKeys = Object.keys(p.payload.camera || {});
+          const lensKeys = Object.keys(p.payload.lens || {});
+          const allKeys = [...coreKeys, ...cameraKeys, ...lensKeys];
+          const initial: Record<string, boolean> = {};
+          for (const k of allKeys) initial[k] = true;
+          next[p.id] = initial;
+        }
+      }
+      return next;
+    });
+  }, [proposals]);
 
   const handleAction = async (
     proposalId: string,
@@ -205,6 +252,59 @@ export function GearProposalsList() {
     }
   };
 
+  const buildSelectedPayload = (proposal: GearProposal) => {
+    const selected = selectedByProposal[proposal.id] || {};
+    const pick = (
+      obj: Record<string, any> | undefined,
+    ): Record<string, any> | undefined => {
+      if (!obj) return undefined;
+      const out: Record<string, any> = {};
+      for (const [k, v] of Object.entries(obj)) {
+        if (selected[k]) out[k] = v;
+      }
+      return Object.keys(out).length ? out : undefined;
+    };
+    return {
+      core: pick(proposal.payload.core),
+      camera: pick(proposal.payload.camera),
+      lens: pick(proposal.payload.lens),
+    } as {
+      core?: Record<string, any>;
+      camera?: Record<string, any>;
+      lens?: Record<string, any>;
+    };
+  };
+
+  const handleApprove = async (proposal: GearProposal) => {
+    try {
+      const filteredPayload = buildSelectedPayload(proposal);
+      console.log("filteredPayload", filteredPayload);
+      // Call API with filtered payload
+      const res = await fetch(
+        `/api/admin/gear-proposals/${proposal.id}/approve`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ payload: filteredPayload }),
+        },
+      );
+      if (res.ok) {
+        // Reflect status and filtered payload locally
+        setProposals((prev) =>
+          prev.map((p) =>
+            p.id === proposal.id
+              ? { ...p, status: "APPROVED", payload: filteredPayload }
+              : p,
+          ),
+        );
+      } else {
+        console.error("Approve failed", await res.text());
+      }
+    } catch (error) {
+      console.error("Failed to approve proposal:", error);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const variants: Record<string, "secondary" | "default" | "destructive"> = {
       PENDING: "secondary",
@@ -229,90 +329,288 @@ export function GearProposalsList() {
     );
   }
 
-  return (
-    <div className="space-y-4">
-      {proposals.map((proposal) => (
-        <Card key={proposal.id}>
-          <CardContent className="p-6">
-            <div className="space-y-4">
-              {/* Header with gear info and status */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold">{proposal.gearName}</h3>
-                  <p className="text-muted-foreground text-sm">
-                    Proposed by {proposal.createdByName}
-                  </p>
-                </div>
-                <div className="flex items-center space-x-3">
-                  {getStatusBadge(proposal.status)}
-                  <div className="text-muted-foreground text-sm">
-                    {new Date(proposal.createdAt).toLocaleDateString()}
+  // Split pending and resolved
+  const pending = proposals.filter((p) => p.status === "PENDING");
+  const resolved = proposals.filter((p) => p.status !== "PENDING");
+
+  const renderCard = (proposal: GearProposal) => {
+    const beforeMerged = {
+      ...(proposal.beforeCore || {}),
+      ...(proposal.beforeCamera || {}),
+      ...(proposal.beforeLens || {}),
+    };
+    const afterMerged = {
+      ...(proposal.payload.core || {}),
+      ...(proposal.payload.camera || {}),
+      ...(proposal.payload.lens || {}),
+    };
+    const formatValue = (k: string, v: any): string => {
+      if (k === "msrpUsdCents") return formatPrice(v as number);
+      if (k === "releaseDate") return formatHumanDate(v as any);
+      if (k === "sensorFormatId") return sensorNameFromSlug(v as string);
+      if (k === "mountId") return getMountLongNameById(v as string);
+      return String(v);
+    };
+    const formatBeforeValue = (k: string, v: any): string => {
+      if (k === "msrpUsdCents") return formatPrice(v as number);
+      if (k === "releaseDate") return formatHumanDate(v as any);
+      if (k === "sensorFormatId") return sensorNameFromId(v as string);
+      if (k === "mountId") return getMountLongNameById(v as string);
+      return String(v);
+    };
+    const renderFieldDiffs = (
+      before: Record<string, any>,
+      after: Record<string, any>,
+    ) => {
+      const keys = Array.from(
+        new Set([...Object.keys(before), ...Object.keys(after)]),
+      );
+      return (
+        <div className="grid grid-cols-1 gap-2">
+          {keys.map((k) => {
+            const b = before[k];
+            const a = after[k];
+            const beforeIsEmpty = b === null || b === undefined || b === "";
+            const beforeDisplay = beforeIsEmpty
+              ? "Empty"
+              : formatBeforeValue(k, b);
+            const afterDisplay = formatValue(k, a);
+            const selected = selectedByProposal[proposal.id]?.[k] ?? true;
+            const toggle = () => {
+              setSelectedByProposal((prev) => ({
+                ...prev,
+                [proposal.id]: {
+                  ...(prev[proposal.id] || {}),
+                  [k]: !selected,
+                },
+              }));
+            };
+            return (
+              <button
+                key={k}
+                type="button"
+                onClick={toggle}
+                className={`border-input hover:bg-muted/30 flex w-full items-start justify-between rounded border p-2 text-left transition ${selected ? "" : "opacity-60"}`}
+              >
+                <div className="mr-2 w-full">
+                  <div className="text-muted-foreground mb-1 text-[11px]">
+                    {humanizeKey(k)}
+                  </div>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <span
+                      className={
+                        beforeIsEmpty
+                          ? "text-muted-foreground text-sm italic"
+                          : "rounded bg-red-50 px-2 py-0.5 text-sm font-medium text-red-400 dark:bg-red-950/30"
+                      }
+                    >
+                      - {beforeDisplay}
+                    </span>
+                    <span className="w-full rounded bg-emerald-50 px-2 py-0.5 text-sm font-medium text-emerald-600 dark:bg-emerald-950/30">
+                      + {afterDisplay}
+                    </span>
                   </div>
                 </div>
-              </div>
-
-              {/* Note if present */}
-              {proposal.note && (
-                <div className="border-input bg-muted rounded border p-3 text-sm">
-                  <span className="font-medium">Note:</span> {proposal.note}
-                </div>
-              )}
-
-              {/* Proposed Changes */}
-              <div className="space-y-3">
-                <h4 className="text-sm font-medium">Proposed Changes:</h4>
-                <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-3">
-                  {proposal.payload.core && (
-                    <div className="border-input bg-muted rounded border p-3">
-                      <div className="mb-2 font-medium">Core Specs</div>
-                      <pre className="text-xs whitespace-pre-wrap">
-                        {JSON.stringify(proposal.payload.core, null, 2)}
-                      </pre>
-                    </div>
-                  )}
-                  {proposal.payload.camera && (
-                    <div className="border-input bg-muted rounded border p-3">
-                      <div className="mb-2 font-medium">Camera Specs</div>
-                      <pre className="text-xs whitespace-pre-wrap">
-                        {JSON.stringify(proposal.payload.camera, null, 2)}
-                      </pre>
-                    </div>
-                  )}
-                  {proposal.payload.lens && (
-                    <div className="border-input bg-muted rounded border p-3">
-                      <div className="mb-2 font-medium">Lens Specs</div>
-                      <pre className="text-xs whitespace-pre-wrap">
-                        {JSON.stringify(proposal.payload.lens, null, 2)}
-                      </pre>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              {proposal.status === "PENDING" && (
-                <div className="flex items-center justify-end space-x-3 pt-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleAction(proposal.id, "reject")}
+                <input
+                  type="checkbox"
+                  checked={selected}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    toggle();
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="mt-0.5 h-4 w-4"
+                />
+              </button>
+            );
+          })}
+        </div>
+      );
+    };
+    return (
+      <Card key={proposal.id}>
+        <CardContent className="p-4">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-semibold">
+                  <Link
+                    href={`/gear/${proposal.gearSlug}`}
+                    className="hover:underline"
                   >
-                    <X className="mr-2 h-4 w-4" />
-                    Reject
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => handleAction(proposal.id, "approve")}
-                  >
-                    <Check className="mr-2 h-4 w-4" />
-                    Approve
-                  </Button>
+                    {proposal.gearName}
+                  </Link>
+                </h3>
+                <p className="text-muted-foreground text-xs">
+                  Proposed by {proposal.createdByName}
+                </p>
+              </div>
+              <div className="flex items-center space-x-3">
+                {getStatusBadge(proposal.status)}
+                <div className="text-muted-foreground text-xs">
+                  {new Date(proposal.createdAt).toLocaleDateString()}
                 </div>
-              )}
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      ))}
+
+            {proposal.note && (
+              <div className="border-input bg-muted rounded border p-2 text-xs">
+                <span className="font-medium">Note:</span> {proposal.note}
+              </div>
+            )}
+
+            {renderFieldDiffs(beforeMerged, afterMerged)}
+
+            {proposal.status === "PENDING" && (
+              <div className="flex items-center justify-end space-x-2 pt-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleAction(proposal.id, "reject")}
+                >
+                  <X className="mr-2 h-4 w-4" />
+                  Reject All Changes
+                </Button>
+                <Button size="sm" onClick={() => handleApprove(proposal)}>
+                  <Check className="mr-2 h-4 w-4" />
+                  Apply Selected Changes
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const renderResolvedCard = (proposal: GearProposal) => {
+    const beforeMerged = {
+      ...(proposal.beforeCore || {}),
+      ...(proposal.beforeCamera || {}),
+      ...(proposal.beforeLens || {}),
+    };
+    const afterMerged = {
+      ...(proposal.payload.core || {}),
+      ...(proposal.payload.camera || {}),
+      ...(proposal.payload.lens || {}),
+    };
+    const formatValue = (k: string, v: any): string => {
+      if (k === "msrpUsdCents") return formatPrice(v as number);
+      if (k === "releaseDate") return formatHumanDate(v as any);
+      if (k === "sensorFormatId") return sensorNameFromSlug(v as string);
+      if (k === "mountId") return getMountLongNameById(v as string);
+      return String(v);
+    };
+    const formatBeforeValue = (k: string, v: any): string => {
+      if (k === "msrpUsdCents") return formatPrice(v as number);
+      if (k === "releaseDate") return formatHumanDate(v as any);
+      if (k === "sensorFormatId") return sensorNameFromId(v as string);
+      if (k === "mountId") return getMountLongNameById(v as string);
+      return String(v);
+    };
+    const renderStaticDiffs = (
+      before: Record<string, any>,
+      after: Record<string, any>,
+    ) => {
+      const keys = Array.from(
+        new Set([...Object.keys(before), ...Object.keys(after)]),
+      );
+      return (
+        <div className="grid grid-cols-1 gap-2">
+          {keys.map((k) => {
+            const b = before[k];
+            const a = after[k];
+            const beforeIsEmpty = b === null || b === undefined || b === "";
+            const beforeDisplay = beforeIsEmpty
+              ? "Empty"
+              : formatBeforeValue(k, b);
+            const afterDisplay = formatValue(k, a);
+            return (
+              <div key={k} className="border-input rounded border p-2">
+                <div className="text-muted-foreground mb-1 text-[11px]">
+                  {humanizeKey(k)}
+                </div>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <span
+                    className={
+                      beforeIsEmpty
+                        ? "text-muted-foreground text-sm italic"
+                        : "rounded bg-red-50 px-2 py-0.5 text-sm font-medium text-red-400 dark:bg-red-950/30"
+                    }
+                  >
+                    - {beforeDisplay}
+                  </span>
+                  <span className="w-full rounded bg-emerald-50 px-2 py-0.5 text-sm font-medium text-emerald-600 dark:bg-emerald-950/30">
+                    + {afterDisplay}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      );
+    };
+
+    return (
+      <Card key={proposal.id}>
+        <CardContent className="p-4">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-semibold">
+                  <Link
+                    href={`/gear/${proposal.gearSlug}`}
+                    className="hover:underline"
+                  >
+                    {proposal.gearName}
+                  </Link>
+                </h3>
+                <p className="text-muted-foreground text-xs">
+                  Proposed by {proposal.createdByName}
+                </p>
+              </div>
+              <div className="flex items-center space-x-3">
+                {getStatusBadge(proposal.status)}
+                <div className="text-muted-foreground text-xs">
+                  {new Date(proposal.createdAt).toLocaleDateString()}
+                </div>
+              </div>
+            </div>
+
+            {proposal.note && (
+              <div className="border-input bg-muted rounded border p-2 text-xs">
+                <span className="font-medium">Note:</span> {proposal.note}
+              </div>
+            )}
+
+            {renderStaticDiffs(beforeMerged, afterMerged)}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  return (
+    <div className="space-y-5">
+      <div className="space-y-3">
+        {pending.map((p) => renderCard(p))}
+        {pending.length === 0 && (
+          <Card>
+            <CardContent className="text-muted-foreground py-6 text-center text-sm">
+              No pending proposals.
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      <Collapsible>
+        <CollapsibleTrigger className="text-sm font-medium underline">
+          {resolved.length} resolved
+        </CollapsibleTrigger>
+        <CollapsibleContent className="mt-3 space-y-3">
+          {resolved.map((p) => renderResolvedCard(p))}
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 }

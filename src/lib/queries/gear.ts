@@ -15,8 +15,6 @@ import type { GearItem } from "~/types/gear";
  * Returns raw data for maximum reusability - let components transform as needed
  */
 export async function fetchGearBySlug(slug: string): Promise<GearItem> {
-  let result: GearItem;
-
   const gearItem = await db
     .select()
     .from(gear)
@@ -29,40 +27,31 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
     notFound();
   }
 
-  // if gear type is CAMERA, return the camera specs
-  if (gearItem[0]!.gear.gearType === "CAMERA") {
-    const camera = await db
-      .select()
-      .from(cameraSpecs)
-      .where(eq(cameraSpecs.gearId, gearItem[0]!.gear.id));
-
-    result = {
-      ...gearItem[0]!.gear,
-      lensSpecs: null,
-      cameraSpecs: camera[0],
-    };
-  }
-
-  // if gear type is LENS, return the lens specs
-  if (gearItem[0]!.gear.gearType === "LENS") {
-    const lens = await db
-      .select()
-      .from(lensSpecs)
-      .where(eq(lensSpecs.gearId, gearItem[0]!.gear.id));
-
-    result = {
-      ...gearItem[0]!.gear,
-      cameraSpecs: null,
-      lensSpecs: lens[0],
-    };
-  }
-
-  // if gear type is not CAMERA or LENS, return the gear item
-  result = {
+  const base: GearItem = {
     ...gearItem[0]!.gear,
     cameraSpecs: null,
     lensSpecs: null,
   };
 
-  return result;
+  // CAMERA
+  if (gearItem[0]!.gear.gearType === "CAMERA") {
+    const camera = await db
+      .select()
+      .from(cameraSpecs)
+      .where(eq(cameraSpecs.gearId, gearItem[0]!.gear.id))
+      .limit(1);
+    return { ...base, cameraSpecs: camera[0] ?? null };
+  }
+
+  // LENS
+  if (gearItem[0]!.gear.gearType === "LENS") {
+    const lens = await db
+      .select()
+      .from(lensSpecs)
+      .where(eq(lensSpecs.gearId, gearItem[0]!.gear.id))
+      .limit(1);
+    return { ...base, lensSpecs: lens[0] ?? null };
+  }
+
+  return base;
 }

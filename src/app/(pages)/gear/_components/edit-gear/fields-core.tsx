@@ -36,7 +36,16 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
 
   const handleReleaseDateChange = useCallback(
     (value: string) => {
-      onChange("releaseDate", value ? new Date(value) : null);
+      if (!value) {
+        onChange("releaseDate", null);
+        return;
+      }
+      const [yStr, mStr, dStr] = value.split("-");
+      const y = Number(yStr);
+      const m = Number(mStr);
+      const d = Number(dStr);
+      const utcDate = new Date(Date.UTC(y, m - 1, d));
+      onChange("releaseDate", utcDate);
     },
     [onChange],
   );
@@ -69,7 +78,11 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
   const formattedReleaseDate = useMemo(() => {
     if (!currentSpecs.releaseDate) return "";
     try {
-      return currentSpecs.releaseDate.toISOString().split("T")[0];
+      const d = currentSpecs.releaseDate;
+      const y = d.getUTCFullYear();
+      const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+      const day = String(d.getUTCDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
     } catch {
       return "";
     }

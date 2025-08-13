@@ -1,8 +1,14 @@
 import { db } from "~/server/db";
-import { cameraSpecs, lensSpecs, sensorFormats } from "~/server/db/schema";
+import {
+  cameraSpecs,
+  lensSpecs,
+  sensorFormats,
+  gearEdits,
+} from "~/server/db/schema";
 import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { formatPrice, getMountDisplayName } from "~/lib/mapping";
+import { formatHumanDate } from "~/lib/utils";
 import { GearActionButtons } from "~/app/(pages)/gear/_components/gear-action-buttons";
 import { GearVisitTracker } from "~/app/(pages)/gear/_components/gear-visit-tracker";
 import { GearReviewForm } from "~/app/(pages)/gear/_components/gear-review-form";
@@ -126,6 +132,35 @@ export default async function GearPage({ params }: GearPageProps) {
         )}
       </div>
 
+      {/* Open submission banner (any recent edit) */}
+      {/** For simplicity, we show banner if any edit exists for this gear. */}
+      {(
+        await db
+          .select({ id: gearEdits.id })
+          .from(gearEdits)
+          .where(eq(gearEdits.gearId, item.id))
+          .limit(1)
+      ).length > 0 && (
+        <div className="border-border bg-muted/50 text-muted-foreground mb-6 rounded-md border px-4 py-3 text-sm">
+          You have a recent suggestion pending review.{" "}
+          <Link
+            href={`/edit-success?id=${
+              (
+                await db
+                  .select({ id: gearEdits.id })
+                  .from(gearEdits)
+                  .where(eq(gearEdits.gearId, item.id))
+                  .limit(1)
+              )[0]!.id
+            }`}
+            className="text-primary underline"
+          >
+            View submission
+          </Link>
+          .
+        </div>
+      )}
+
       {/* Action Buttons */}
       <div className="mb-8">
         <GearActionButtons slug={slug} />
@@ -133,26 +168,74 @@ export default async function GearPage({ params }: GearPageProps) {
 
       {/* Suggest Edit Button */}
       <div className="mb-6">
-        <Link
-          scroll={false}
-          href={`/gear/${item.slug}/edit?type=${item.gearType}`}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground inline-flex items-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
-        >
-          Suggest Edit
-        </Link>
+        {(
+          await db
+            .select({ id: gearEdits.id })
+            .from(gearEdits)
+            .where(eq(gearEdits.gearId, item.id))
+            .limit(1)
+        ).length > 0 ? (
+          <Link
+            scroll={false}
+            href={`/edit-success?id=${
+              (
+                await db
+                  .select({ id: gearEdits.id })
+                  .from(gearEdits)
+                  .where(eq(gearEdits.gearId, item.id))
+                  .limit(1)
+              )[0]!.id
+            }`}
+            className="bg-secondary text-secondary-foreground hover:bg-secondary/80 inline-flex items-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
+          >
+            Submission Pending
+          </Link>
+        ) : (
+          <Link
+            scroll={false}
+            href={`/gear/${item.slug}/edit?type=${item.gearType}`}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground inline-flex items-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
+          >
+            Suggest Edit
+          </Link>
+        )}
       </div>
 
       {/* Specifications */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Specifications</h2>
-          <Link
-            scroll={false}
-            href={`/gear/${item.slug}/edit?type=${item.gearType}`}
-            className="bg-secondary hover:bg-secondary/80 text-secondary-foreground inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors"
-          >
-            Suggest Edit
-          </Link>
+          {(
+            await db
+              .select({ id: gearEdits.id })
+              .from(gearEdits)
+              .where(eq(gearEdits.gearId, item.id))
+              .limit(1)
+          ).length > 0 ? (
+            <Link
+              scroll={false}
+              href={`/edit-success?id=${
+                (
+                  await db
+                    .select({ id: gearEdits.id })
+                    .from(gearEdits)
+                    .where(eq(gearEdits.gearId, item.id))
+                    .limit(1)
+                )[0]!.id
+              }`}
+              className="bg-muted text-muted-foreground hover:bg-muted/80 inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors"
+            >
+              Submission Pending
+            </Link>
+          ) : (
+            <Link
+              scroll={false}
+              href={`/gear/${item.slug}/edit?type=${item.gearType}`}
+              className="bg-secondary hover:bg-secondary/80 text-secondary-foreground inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors"
+            >
+              Suggest Edit
+            </Link>
+          )}
         </div>
         <div className="border-border overflow-hidden rounded-md border">
           <div className="divide-border divide-y">
@@ -169,11 +252,7 @@ export default async function GearPage({ params }: GearPageProps) {
               <div className="flex justify-between px-4 py-3">
                 <span className="text-muted-foreground">Release Date</span>
                 <span className="font-medium">
-                  {new Date(item.releaseDate).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
+                  {formatHumanDate(item.releaseDate)}
                 </span>
               </div>
             )}
@@ -262,11 +341,7 @@ export default async function GearPage({ params }: GearPageProps) {
             <div className="flex justify-between px-4 py-3">
               <span className="text-muted-foreground">Added</span>
               <span className="font-medium">
-                {new Date(item.createdAt).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
+                {formatHumanDate(item.createdAt)}
               </span>
             </div>
           </div>

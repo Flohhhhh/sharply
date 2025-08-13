@@ -18,6 +18,17 @@ export default async function EditGearPage({
   // Fetch current gear data
   const gearData: GearItem = await fetchGearBySlug(slug);
 
+  // Debug: log incoming data for the edit page
+  console.log("[EditGearPage] params", { slug, type });
+  console.log("[EditGearPage] gearData summary", {
+    id: gearData?.id,
+    name: gearData?.name,
+    gearType: gearData?.gearType,
+    mountId: gearData?.mountId,
+    lensSpecs: gearData?.lensSpecs,
+    cameraSpecs: gearData?.cameraSpecs,
+  });
+
   return (
     <div className="container mx-auto max-w-4xl p-6">
       <div className="mb-6">
