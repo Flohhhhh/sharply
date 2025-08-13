@@ -4,8 +4,8 @@ import Link from "next/link";
 
 export default function HomePage() {
   return (
-    <main className="bg-background text-foreground flex min-h-screen flex-col items-start justify-center">
-      <div className="container flex flex-col items-start gap-8 px-4 py-16">
+    <main className="bg-background text-foreground flex min-h-screen flex-col items-start justify-center px-4 sm:px-8">
+      <div className="container mx-auto flex w-full max-w-4xl flex-col items-start gap-8">
         <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
           Sharply is under construction
         </h1>
