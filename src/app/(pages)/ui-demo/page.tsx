@@ -6,6 +6,7 @@ import { ExampleUsage } from "~/components/ui/example-usage";
 import ApertureInput from "~/components/custom-inputs/aperture-input";
 import IsoInput from "~/components/custom-inputs/iso-input";
 import SensorFormatInput from "~/components/custom-inputs/sensor-format-input";
+import CurrencyInput from "~/components/custom-inputs/currency-input";
 
 export default function UIDemoPage() {
   const [apertureValue, setApertureValue] = useState<number | undefined>(
@@ -16,6 +17,9 @@ export default function UIDemoPage() {
   const [sensorFormatValue, setSensorFormatValue] = useState<
     string | undefined
   >(undefined);
+  const [currencyValue, setCurrencyValue] = useState<number | undefined>(
+    undefined,
+  );
 
   return (
     <div className="container mx-auto space-y-8 p-6">
@@ -59,6 +63,30 @@ export default function UIDemoPage() {
 
           <div className="text-muted-foreground text-sm">
             <p>Current value: {sensorFormatValue || "None selected"}</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Currency Input Demo */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Currency Input Component</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <CurrencyInput
+            id="demo-currency"
+            label="Price"
+            value={currencyValue}
+            onChange={setCurrencyValue}
+            placeholder="0.00"
+            min={0}
+          />
+
+          <div className="text-muted-foreground text-sm">
+            <p>
+              Current value:{" "}
+              {currencyValue ? `$${currencyValue}` : "None entered"}
+            </p>
           </div>
         </CardContent>
       </Card>

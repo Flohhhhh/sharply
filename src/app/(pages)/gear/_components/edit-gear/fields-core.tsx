@@ -10,9 +10,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { DateInput, PriceInput } from "~/components/custom-inputs";
+import { DateInput } from "~/components/custom-inputs";
+import CurrencyInput from "~/components/custom-inputs/currency-input";
 import { MOUNTS } from "~/lib/constants";
 import { getMountLongName } from "~/lib/mapping/mounts-map";
+import { centsToUsd, usdToCents } from "~/lib/utils";
 
 interface CoreFieldsProps {
   currentSpecs: {
@@ -40,8 +42,8 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
   );
 
   const handlePriceChange = useCallback(
-    (value: number) => {
-      onChange("msrpUsdCents", value);
+    (value: number | undefined) => {
+      onChange("msrpUsdCents", usdToCents(value));
     },
     [onChange],
   );
@@ -73,14 +75,9 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
     }
   }, [currentSpecs.releaseDate]);
 
-  // Safely format the price for the input
+  // Safely format the price for the input (convert cents to dollars)
   const formattedPrice = useMemo(() => {
-    if (
-      currentSpecs.msrpUsdCents === null ||
-      currentSpecs.msrpUsdCents === undefined
-    )
-      return null;
-    return currentSpecs.msrpUsdCents;
+    return centsToUsd(currentSpecs.msrpUsdCents);
   }, [currentSpecs.msrpUsdCents]);
 
   // Safely format the weight for the input
@@ -111,10 +108,13 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
             onChange={handleReleaseDateChange}
           />
 
-          <PriceInput
+          <CurrencyInput
+            id="msrp"
             label="MSRP (USD)"
             value={formattedPrice}
             onChange={handlePriceChange}
+            placeholder="0.00"
+            min={0}
           />
 
           <div className="space-y-2">
@@ -132,7 +132,7 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
           <div className="space-y-2">
             <Label htmlFor="mount">Mount</Label>
             <Select value={formattedMountId} onValueChange={handleMountChange}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select mount" />
               </SelectTrigger>
               <SelectContent>{mountOptions}</SelectContent>
