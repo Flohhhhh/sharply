@@ -1,4 +1,6 @@
 import { db } from "~/server/db";
+import { auth, signIn } from "~/server/auth";
+import Link from "next/link";
 import {
   cameraSpecs,
   lensSpecs,
@@ -6,7 +8,6 @@ import {
   gearEdits,
 } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
-import Link from "next/link";
 import { formatPrice, getMountDisplayName } from "~/lib/mapping";
 import { formatHumanDate } from "~/lib/utils";
 import { GearActionButtons } from "~/app/(pages)/gear/_components/gear-action-buttons";
@@ -27,6 +28,8 @@ export default async function GearPage({ params }: GearPageProps) {
 
   // Fetch core gear data
   const item: GearItem = await fetchGearBySlug(slug);
+  const session = await auth();
+  const isLoggedIn = !!session?.user;
 
   // Fetch additional specs that aren't in the core helper yet
   const [cameraSpecsData, lensSpecsData] = await Promise.all([
@@ -93,9 +96,9 @@ export default async function GearPage({ params }: GearPageProps) {
       {/* Item Name and Brand */}
       <div className="mb-6">
         <div className="mb-3 flex items-center gap-3">
-          <span className="bg-secondary rounded-full px-3 py-1 text-xs font-medium">
+          {/* <span className="bg-secondary rounded-full px-3 py-1 text-xs font-medium">
             {item.gearType}
-          </span>
+          </span> */}
           {item.brands && (
             <Link
               href={`/brand/${item.brands.slug}`}
@@ -166,45 +169,9 @@ export default async function GearPage({ params }: GearPageProps) {
         <GearActionButtons slug={slug} />
       </div>
 
-      {/* Suggest Edit Button */}
-      <div className="mb-6">
-        {(
-          await db
-            .select({ id: gearEdits.id })
-            .from(gearEdits)
-            .where(eq(gearEdits.gearId, item.id))
-            .limit(1)
-        ).length > 0 ? (
-          <Link
-            scroll={false}
-            href={`/edit-success?id=${
-              (
-                await db
-                  .select({ id: gearEdits.id })
-                  .from(gearEdits)
-                  .where(eq(gearEdits.gearId, item.id))
-                  .limit(1)
-              )[0]!.id
-            }`}
-            className="bg-secondary text-secondary-foreground hover:bg-secondary/80 inline-flex items-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
-          >
-            Submission Pending
-          </Link>
-        ) : (
-          <Link
-            scroll={false}
-            href={`/gear/${item.slug}/edit?type=${item.gearType}`}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground inline-flex items-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
-          >
-            Suggest Edit
-          </Link>
-        )}
-      </div>
-
-      {/* Specifications */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Specifications</h2>
+      {/* Suggest Edit Button (only when logged in) */}
+      {isLoggedIn && (
+        <div className="mb-6">
           {(
             await db
               .select({ id: gearEdits.id })
@@ -223,7 +190,7 @@ export default async function GearPage({ params }: GearPageProps) {
                     .limit(1)
                 )[0]!.id
               }`}
-              className="bg-muted text-muted-foreground hover:bg-muted/80 inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors"
+              className="bg-secondary text-secondary-foreground hover:bg-secondary/80 inline-flex items-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
             >
               Submission Pending
             </Link>
@@ -231,11 +198,50 @@ export default async function GearPage({ params }: GearPageProps) {
             <Link
               scroll={false}
               href={`/gear/${item.slug}/edit?type=${item.gearType}`}
-              className="bg-secondary hover:bg-secondary/80 text-secondary-foreground inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground inline-flex items-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
             >
               Suggest Edit
             </Link>
           )}
+        </div>
+      )}
+
+      {/* Specifications */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Specifications</h2>
+          {isLoggedIn &&
+            ((
+              await db
+                .select({ id: gearEdits.id })
+                .from(gearEdits)
+                .where(eq(gearEdits.gearId, item.id))
+                .limit(1)
+            ).length > 0 ? (
+              <Link
+                scroll={false}
+                href={`/edit-success?id=${
+                  (
+                    await db
+                      .select({ id: gearEdits.id })
+                      .from(gearEdits)
+                      .where(eq(gearEdits.gearId, item.id))
+                      .limit(1)
+                  )[0]!.id
+                }`}
+                className="bg-muted text-muted-foreground hover:bg-muted/80 inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors"
+              >
+                Submission Pending
+              </Link>
+            ) : (
+              <Link
+                scroll={false}
+                href={`/gear/${item.slug}/edit?type=${item.gearType}`}
+                className="bg-secondary hover:bg-secondary/80 text-secondary-foreground inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors"
+              >
+                Suggest Edit
+              </Link>
+            ))}
         </div>
         <div className="border-border overflow-hidden rounded-md border">
           <div className="divide-border divide-y">
@@ -347,6 +353,27 @@ export default async function GearPage({ params }: GearPageProps) {
           </div>
         </div>
       </div>
+
+      {/* Sign-in CTA banner for editing specs (visible only when signed out) */}
+      {!isLoggedIn && (
+        <div className="border-border bg-muted/60 text-muted-foreground my-8 rounded-md border px-4 py-3 text-sm">
+          <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+            <div className="space-y-1">
+              <span className="block">Want to help improve these specs?</span>
+              <span className="block text-xs opacity-90">
+                Sharply gear specs are crowdsourced by the community. Your edits
+                are reviewed for accuracy before they go live.
+              </span>
+            </div>
+            <Link
+              href="/api/auth/signin"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
+            >
+              Sign in to edit specs
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Reviews */}
       <div className="mt-12">

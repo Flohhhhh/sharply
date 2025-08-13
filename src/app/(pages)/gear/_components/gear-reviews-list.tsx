@@ -72,7 +72,7 @@ export function GearReviewsList({
 
   if (reviews.length === 0) {
     return (
-      <Card>
+      <Card className="mt-4">
         <CardContent className="p-6">
           <div className="text-muted-foreground text-center">
             No reviews yet. Be the first to review this gear!
