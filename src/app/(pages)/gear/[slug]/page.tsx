@@ -7,7 +7,8 @@ import { GearActionButtons } from "~/app/(pages)/gear/_components/gear-action-bu
 import { GearVisitTracker } from "~/app/(pages)/gear/_components/gear-visit-tracker";
 import { GearReviewForm } from "~/app/(pages)/gear/_components/gear-review-form";
 import { GearReviewsList } from "~/app/(pages)/gear/_components/gear-reviews-list";
-import { fetchGearData } from "~/lib/gear-helpers";
+import { fetchGearBySlug } from "~/lib/queries/gear";
+import type { GearItem } from "~/types/gear";
 
 interface GearPageProps {
   params: Promise<{
@@ -19,7 +20,7 @@ export default async function GearPage({ params }: GearPageProps) {
   const { slug } = await params;
 
   // Fetch core gear data
-  const item = await fetchGearData(slug);
+  const item: GearItem = await fetchGearBySlug(slug);
 
   // Fetch additional specs that aren't in the core helper yet
   const [cameraSpecsData, lensSpecsData] = await Promise.all([
@@ -34,7 +35,7 @@ export default async function GearPage({ params }: GearPageProps) {
         extra: cameraSpecs.extra,
       })
       .from(cameraSpecs)
-      .where(eq(cameraSpecs.gearId, item.gear.id))
+      .where(eq(cameraSpecs.gearId, item.id))
       .limit(1),
     db
       .select({
@@ -44,7 +45,7 @@ export default async function GearPage({ params }: GearPageProps) {
         extra: lensSpecs.extra,
       })
       .from(lensSpecs)
-      .where(eq(lensSpecs.gearId, item.gear.id))
+      .where(eq(lensSpecs.gearId, item.id))
       .limit(1),
   ]);
 
@@ -87,7 +88,7 @@ export default async function GearPage({ params }: GearPageProps) {
       <div className="mb-6">
         <div className="mb-3 flex items-center gap-3">
           <span className="bg-secondary rounded-full px-3 py-1 text-xs font-medium">
-            {item.gear.gearType}
+            {item.gearType}
           </span>
           {item.brands && (
             <Link
@@ -98,21 +99,21 @@ export default async function GearPage({ params }: GearPageProps) {
             </Link>
           )}
         </div>
-        <h1 className="text-3xl font-bold">{item.gear.name}</h1>
-        {item.gear.msrpUsdCents && (
+        <h1 className="text-3xl font-bold">{item.name}</h1>
+        {item.msrpUsdCents && (
           <div className="mt-2 text-2xl font-semibold">
-            {formatPrice(item.gear.msrpUsdCents)}
+            {formatPrice(item.msrpUsdCents)}
           </div>
         )}
       </div>
 
       {/* Photo Placeholder */}
       <div className="mb-6">
-        {item.gear.thumbnailUrl ? (
+        {item.thumbnailUrl ? (
           <div className="bg-muted aspect-video overflow-hidden rounded-md">
             <img
-              src={item.gear.thumbnailUrl}
-              alt={item.gear.name}
+              src={item.thumbnailUrl}
+              alt={item.name}
               className="h-full w-full object-cover"
             />
           </div>
@@ -134,7 +135,7 @@ export default async function GearPage({ params }: GearPageProps) {
       <div className="mb-6">
         <Link
           scroll={false}
-          href={`/gear/${item.gear.slug}/edit?type=${item.gear.gearType}`}
+          href={`/gear/${item.slug}/edit?type=${item.gearType}`}
           className="bg-primary hover:bg-primary/90 text-primary-foreground inline-flex items-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
         >
           Suggest Edit
@@ -147,7 +148,7 @@ export default async function GearPage({ params }: GearPageProps) {
           <h2 className="text-lg font-semibold">Specifications</h2>
           <Link
             scroll={false}
-            href={`/gear/${item.gear.slug}/edit?type=${item.gear.gearType}`}
+            href={`/gear/${item.slug}/edit?type=${item.gearType}`}
             className="bg-secondary hover:bg-secondary/80 text-secondary-foreground inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors"
           >
             Suggest Edit
@@ -164,11 +165,11 @@ export default async function GearPage({ params }: GearPageProps) {
               </div>
             )}
 
-            {item.gear.releaseDate && (
+            {item.releaseDate && (
               <div className="flex justify-between px-4 py-3">
                 <span className="text-muted-foreground">Release Date</span>
                 <span className="font-medium">
-                  {new Date(item.gear.releaseDate).toLocaleDateString("en-US", {
+                  {new Date(item.releaseDate).toLocaleDateString("en-US", {
                     year: "numeric",
                     month: "long",
                     day: "numeric",
@@ -178,7 +179,7 @@ export default async function GearPage({ params }: GearPageProps) {
             )}
 
             {/* Camera-specific specifications */}
-            {item.gear.gearType === "CAMERA" && cameraSpecsItem && (
+            {item.gearType === "CAMERA" && cameraSpecsItem && (
               <>
                 {cameraSpecsItem.resolutionMp && (
                   <div className="flex justify-between px-4 py-3">
@@ -228,7 +229,7 @@ export default async function GearPage({ params }: GearPageProps) {
             )}
 
             {/* Lens-specific specifications */}
-            {item.gear.gearType === "LENS" && lensSpecsItem && (
+            {item.gearType === "LENS" && lensSpecsItem && (
               <>
                 {lensSpecsItem.focalLengthMinMm &&
                   lensSpecsItem.focalLengthMaxMm && (
@@ -261,7 +262,7 @@ export default async function GearPage({ params }: GearPageProps) {
             <div className="flex justify-between px-4 py-3">
               <span className="text-muted-foreground">Added</span>
               <span className="font-medium">
-                {new Date(item.gear.createdAt).toLocaleDateString("en-US", {
+                {new Date(item.createdAt).toLocaleDateString("en-US", {
                   year: "numeric",
                   month: "long",
                   day: "numeric",
@@ -275,8 +276,8 @@ export default async function GearPage({ params }: GearPageProps) {
       {/* Reviews */}
       <div className="mt-12">
         <h2 className="mb-4 text-lg font-semibold">Reviews</h2>
-        <GearReviewForm gearSlug={item.gear.slug} />
-        <GearReviewsList gearSlug={item.gear.slug} />
+        <GearReviewForm gearSlug={item.slug} />
+        <GearReviewsList gearSlug={item.slug} />
       </div>
     </main>
   );

@@ -1,5 +1,6 @@
 import { EditGearModal } from "~/app/(pages)/gear/_components/edit-gear/edit-gear-modal";
-import { fetchGearData } from "~/lib/gear-helpers";
+import { fetchGearBySlug } from "~/lib/queries/gear";
+import type { GearItem } from "~/types/gear";
 
 interface EditGearModalPageProps {
   params: Promise<{
@@ -15,28 +16,26 @@ export default async function EditGearModalPage({
   const [{ slug }, { type }] = await Promise.all([params, searchParams]);
 
   // Fetch current gear data
-  const gearData = await fetchGearData(slug);
+  const gearDataResult: GearItem = await fetchGearBySlug(slug);
 
-  // Transform data for the edit form
-  const currentSpecs = {
-    core: {
-      releaseDate: gearData.gear.releaseDate
-        ? gearData.gear.releaseDate.toISOString().split("T")[0]
-        : null,
-      msrpUsdCents: gearData.gear.msrpUsdCents ?? null,
-      mountId: gearData.gear.mountId ?? null,
-    },
-    // TODO: Add camera and lens specs when implementing those sections
-    camera: {},
-    lens: {},
-  };
+  // Validate and set default gear type
+  const gearType = type === "CAMERA" || type === "LENS" ? type : "CAMERA";
+
+  // Create gearData object outside of JSX to prevent recreation on every render
+  const gearData = gearDataResult
+    ? {
+        ...gearDataResult,
+        cameraSpecs: gearDataResult.cameraSpecs || null,
+        lensSpecs: gearDataResult.lensSpecs || null,
+      }
+    : ({} as GearItem);
 
   return (
     <EditGearModal
-      gearType={type as "CAMERA" | "LENS"}
-      currentSpecs={currentSpecs}
+      gearType={gearType}
+      gearData={gearData}
       gearSlug={slug}
-      gearName={gearData.gear.name}
+      gearName={gearData.name || ""}
     />
   );
 }

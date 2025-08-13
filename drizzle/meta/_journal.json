@@ -92,6 +92,13 @@
       "when": 1755005049952,
       "tag": "0012_true_jane_foster",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1755038834216,
+      "tag": "0013_fancy_goliath",
+      "breakpoints": true
     }
   ]
 }

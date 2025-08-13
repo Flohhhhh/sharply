@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback } from "react";
 import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
 
@@ -17,20 +18,26 @@ export function PriceInput({
   placeholder,
 }: PriceInputProps) {
   // Convert cents to dollars for display
-  const formatPriceForInput = (cents: number | null | undefined): string => {
-    if (cents === null || cents === undefined) return "";
-    return (cents / 100).toFixed(2);
-  };
+  const formatPriceForInput = useCallback(
+    (cents: number | null | undefined): string => {
+      if (cents === null || cents === undefined) return "";
+      return (cents / 100).toFixed(2);
+    },
+    [],
+  );
 
   // Convert dollars to cents for storage
-  const handlePriceChange = (inputValue: string) => {
-    const dollars = parseFloat(inputValue);
-    if (!isNaN(dollars) && dollars >= 0) {
-      onChange(Math.round(dollars * 100));
-    } else {
-      onChange(0);
-    }
-  };
+  const handlePriceChange = useCallback(
+    (inputValue: string) => {
+      const dollars = parseFloat(inputValue);
+      if (!isNaN(dollars) && dollars >= 0) {
+        onChange(Math.round(dollars * 100));
+      } else {
+        onChange(0);
+      }
+    },
+    [onChange],
+  );
 
   return (
     <div className="space-y-2">

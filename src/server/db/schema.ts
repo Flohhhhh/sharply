@@ -99,6 +99,7 @@ export const gear = createTable(
     releaseDate: timestamp("release_date", { withTimezone: true }),
     msrpUsdCents: integer("msrp_usd_cents"),
     thumbnailUrl: text("thumbnail_url"),
+    weightGrams: integer("weight_grams"),
     createdAt,
     updatedAt,
   }),

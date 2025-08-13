@@ -11,7 +11,7 @@ import { eq, and } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { formatPrice, getMountDisplayName } from "~/lib/mapping";
-import { UserReviewsList } from "~/components/user-reviews-list";
+import { UserReviewsList } from "~/app/(pages)/u/_components/user-reviews-list";
 
 interface UserProfilePageProps {
   params: Promise<{

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,36 +9,36 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { EditGearForm } from "./edit-gear-form";
-import type { CurrentSpecs } from "~/lib/gear-helpers";
+import type { GearItem } from "~/types/gear";
 
 interface EditGearModalProps {
   gearType?: "CAMERA" | "LENS";
-  currentSpecs?: CurrentSpecs;
+  gearData: GearItem;
   gearSlug: string;
   gearName: string;
 }
 
 export function EditGearModal({
   gearType,
-  currentSpecs,
+  gearData,
   gearSlug,
   gearName,
 }: EditGearModalProps) {
   const router = useRouter();
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     router.back();
-  };
+  }, [router]);
 
   return (
-    <Dialog open onOpenChange={handleClose}>
+    <Dialog defaultOpen open onOpenChange={handleClose}>
       <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Gear: {gearName}</DialogTitle>
         </DialogHeader>
         <EditGearForm
           gearType={gearType}
-          currentSpecs={currentSpecs}
+          gearData={gearData}
           gearSlug={gearSlug}
         />
       </DialogContent>
