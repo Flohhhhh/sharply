@@ -75,6 +75,8 @@ export const sensorFormats = createTable("sensor_formats", (d) => ({
     .default(sql`gen_random_uuid()::text`),
   name: varchar("name", { length: 200 }).notNull().unique(),
   slug: varchar("slug", { length: 200 }).notNull().unique(),
+  cropFactor: decimal("crop_factor", { precision: 4, scale: 2 }).notNull(),
+  description: varchar("description", { length: 500 }),
   createdAt,
   updatedAt,
 }));

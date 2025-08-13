@@ -1,0 +1,5 @@
+---
+alwaysApply: true
+---
+
+Do not delete any comments if the related code is still there, you can update them if the related code changes, or remove the comment if the related code is gone.

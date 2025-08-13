@@ -136,53 +136,67 @@ export const MOUNTS = [
 ];
 export const SENSOR_FORMATS = [
   {
-    "id": "6ee84eb4-da79-4525-a50e-cee49d3a895c",
+    "id": "5d5d6dc5-3808-4171-abc5-d4138b9bd193",
     "name": "Full-frame",
     "slug": "full-frame",
-    "created_at": "2025-08-10 21:03:52.231343+00",
-    "updated_at": "2025-08-10 21:03:52.231343+00"
+    "created_at": "2025-08-13 14:47:38.598174+00",
+    "updated_at": "2025-08-13 14:47:38.598174+00",
+    "crop_factor": "1.00",
+    "description": "35mm equivalent"
   },
   {
-    "id": "256ab553-3ce7-4d39-bed7-2ead9d0907b4",
+    "id": "a5cbee22-8ec4-4e0e-b077-8ff8da4dc9da",
     "name": "APS-C",
     "slug": "aps-c",
-    "created_at": "2025-08-10 21:03:52.489489+00",
-    "updated_at": "2025-08-10 21:03:52.489489+00"
+    "created_at": "2025-08-13 14:47:38.913186+00",
+    "updated_at": "2025-08-13 14:47:38.913186+00",
+    "crop_factor": "1.50",
+    "description": "Nikon, Sony, Fujifilm"
   },
   {
-    "id": "b7f9688c-185f-4a2a-a85b-2401002b7152",
+    "id": "ab14d049-e330-4c6e-aecf-748c05c46c59",
     "name": "Canon APS-C",
     "slug": "canon-aps-c",
-    "created_at": "2025-08-10 21:03:52.735848+00",
-    "updated_at": "2025-08-10 21:03:52.735848+00"
+    "created_at": "2025-08-13 14:47:39.258471+00",
+    "updated_at": "2025-08-13 14:47:39.258471+00",
+    "crop_factor": "1.60",
+    "description": "Canon specific"
   },
   {
-    "id": "26f28c03-eb59-4016-b989-0ee6acff1ce6",
+    "id": "05d34144-7862-4e41-acd6-8814cd139573",
     "name": "Medium Format",
     "slug": "medium-format",
-    "created_at": "2025-08-10 21:03:52.983233+00",
-    "updated_at": "2025-08-10 21:03:52.983233+00"
+    "created_at": "2025-08-13 14:47:39.598223+00",
+    "updated_at": "2025-08-13 14:47:39.598223+00",
+    "crop_factor": "0.79",
+    "description": "Larger than full frame"
   },
   {
-    "id": "b0a55960-c8f4-40b5-bbf7-4755b143f2f0",
+    "id": "2b452f7c-6129-4ba1-91b1-4fe1b2b8d8ee",
     "name": "Micro 4/3",
     "slug": "micro-4-3",
-    "created_at": "2025-08-10 21:03:53.233508+00",
-    "updated_at": "2025-08-10 21:03:53.233508+00"
+    "created_at": "2025-08-13 14:47:39.933102+00",
+    "updated_at": "2025-08-13 14:47:39.933102+00",
+    "crop_factor": "2.00",
+    "description": "Panasonic, Olympus"
   },
   {
-    "id": "8879aee2-ba9b-4f21-bdb1-dd049260e1a4",
+    "id": "b18b8afb-48ce-4ec9-a828-e72349375f60",
     "name": "1\"",
     "slug": "1-inch",
-    "created_at": "2025-08-10 21:03:53.480853+00",
-    "updated_at": "2025-08-10 21:03:53.480853+00"
+    "created_at": "2025-08-13 14:47:40.258206+00",
+    "updated_at": "2025-08-13 14:47:40.258206+00",
+    "crop_factor": "2.70",
+    "description": "Compact cameras"
   },
   {
-    "id": "3909e8fa-2b50-4c2f-bec1-de3cbad47869",
+    "id": "99d26b62-f492-4bc8-ab1e-5251e2b3777b",
     "name": "Canon APS-H",
     "slug": "canon-aps-h",
-    "created_at": "2025-08-10 21:03:53.727768+00",
-    "updated_at": "2025-08-10 21:03:53.727768+00"
+    "created_at": "2025-08-13 14:47:40.578164+00",
+    "updated_at": "2025-08-13 14:47:40.578164+00",
+    "crop_factor": "1.30",
+    "description": "Canon intermediate format"
   }
 ];
 export const BRANDS = [

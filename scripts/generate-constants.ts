@@ -5,8 +5,8 @@ import { writeFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
-// Load environment variables from .env.local
-config({ path: ".env.local" });
+// Load environment variables from .env or .env.local
+config();
 
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -14,11 +14,19 @@ const __dirname = dirname(__filename);
 
 async function generateConstants() {
   console.log("Generating constants from database...");
+  console.log(
+    "Environment variables loaded:",
+    Object.keys(process.env).filter((key) => key.includes("DATABASE")),
+  );
 
   try {
     // Connect directly to database
     const connectionString = process.env.DATABASE_URL;
     if (!connectionString) {
+      console.error(
+        "Available environment variables:",
+        Object.keys(process.env),
+      );
       throw new Error("DATABASE_URL not found in environment");
     }
 

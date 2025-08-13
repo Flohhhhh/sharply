@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { DateInput, PriceInput } from "~/components/ui/inputs";
+import { DateInput, PriceInput } from "~/components/custom-inputs";
 import { MOUNTS } from "~/lib/constants";
 import { getMountLongName } from "~/lib/mapping/mounts-map";
 
@@ -21,27 +21,34 @@ interface CoreFieldsProps {
     mountId: string | null;
     weightGrams: number | null;
   };
-  onChange: (section: string, field: string, value: any) => void;
+  onChange: (field: string, value: any) => void;
 }
 
 function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
   const handleMountChange = useCallback(
     (value: string) => {
-      onChange("core", "mountId", value);
+      onChange("mountId", value);
     },
     [onChange],
   );
 
   const handleReleaseDateChange = useCallback(
     (value: string) => {
-      onChange("core", "releaseDate", value ? new Date(value) : null);
+      onChange("releaseDate", value ? new Date(value) : null);
     },
     [onChange],
   );
 
   const handlePriceChange = useCallback(
     (value: number) => {
-      onChange("core", "msrpUsdCents", value);
+      onChange("msrpUsdCents", value);
+    },
+    [onChange],
+  );
+
+  const handleWeightChange = useCallback(
+    (value: number) => {
+      onChange("weightGrams", value);
     },
     [onChange],
   );
@@ -76,6 +83,16 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
     return currentSpecs.msrpUsdCents;
   }, [currentSpecs.msrpUsdCents]);
 
+  // Safely format the weight for the input
+  const formattedWeight = useMemo(() => {
+    if (
+      currentSpecs.weightGrams === null ||
+      currentSpecs.weightGrams === undefined
+    )
+      return null;
+    return currentSpecs.weightGrams;
+  }, [currentSpecs.weightGrams]);
+
   // Safely format the mount value for the select
   const formattedMountId = useMemo(() => {
     return currentSpecs.mountId || "";
@@ -99,6 +116,18 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
             value={formattedPrice}
             onChange={handlePriceChange}
           />
+
+          <div className="space-y-2">
+            <Label htmlFor="weight">Weight (grams)</Label>
+            <input
+              id="weight"
+              type="number"
+              value={formattedWeight || ""}
+              onChange={(e) => handleWeightChange(Number(e.target.value) || 0)}
+              className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder="Enter weight in grams"
+            />
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="mount">Mount</Label>

@@ -141,13 +141,48 @@ async function main() {
 
   // Seed sensor formats
   const sensorFormatData = [
-    { name: "Full-frame", slug: "full-frame" },
-    { name: "APS-C", slug: "aps-c" },
-    { name: "Canon APS-C", slug: "canon-aps-c" },
-    { name: "Medium Format", slug: "medium-format" },
-    { name: "Micro 4/3", slug: "micro-4-3" },
-    { name: '1"', slug: "1-inch" },
-    { name: "Canon APS-H", slug: "canon-aps-h" },
+    {
+      name: "Full-frame",
+      slug: "full-frame",
+      cropFactor: "1.00",
+      description: "35mm equivalent",
+    },
+    {
+      name: "APS-C",
+      slug: "aps-c",
+      cropFactor: "1.50",
+      description: "Nikon, Sony, Fujifilm",
+    },
+    {
+      name: "Canon APS-C",
+      slug: "canon-aps-c",
+      cropFactor: "1.60",
+      description: "Canon specific",
+    },
+    {
+      name: "Medium Format",
+      slug: "medium-format",
+      cropFactor: "0.79",
+      description: "Larger than full frame",
+    },
+    {
+      name: "Micro 4/3",
+      slug: "micro-4-3",
+      cropFactor: "2.00",
+      description: "Panasonic, Olympus",
+    },
+    {
+      name: '1"',
+      slug: "1-inch",
+      cropFactor: "2.70",
+      description: "Compact cameras",
+    },
+    {
+      name: "Canon APS-H",
+      slug: "canon-aps-h",
+      cropFactor: "1.30",
+      description: "Canon intermediate format",
+    },
   ];
 
   const sensorFormatMap = new Map<string, any>();
