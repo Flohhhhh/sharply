@@ -78,7 +78,7 @@ export default async function EditSuccessPage({
         </p>
 
         {/* Payload preview */}
-        {edit?.payload && (
+        {!!edit?.payload && (
           <div className="bg-muted/40 border-border space-y-2 rounded-md border p-3 text-sm">
             {Object.keys(edit.payload as any).length === 0 ? (
               <p className="text-muted-foreground">No changes detected.</p>
