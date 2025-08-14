@@ -9,12 +9,13 @@ import {
 } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
 import { formatPrice, getMountDisplayName } from "~/lib/mapping";
-import { formatHumanDate } from "~/lib/utils";
+import { formatHumanDate, getConstructionState } from "~/lib/utils";
 import { GearActionButtons } from "~/app/(pages)/gear/_components/gear-action-buttons";
 import { GearVisitTracker } from "~/app/(pages)/gear/_components/gear-visit-tracker";
 import { GearReviewForm } from "~/app/(pages)/gear/_components/gear-review-form";
 import { GearReviewsList } from "~/app/(pages)/gear/_components/gear-reviews-list";
 import { fetchGearBySlug } from "~/lib/queries/gear";
+import { ConstructionNotice } from "~/app/(pages)/gear/_components/construction-notice";
 import type { GearItem } from "~/types/gear";
 
 interface GearPageProps {
@@ -79,8 +80,41 @@ export default async function GearPage({ params }: GearPageProps) {
   const cameraSpecsItem = cameraSpecsData[0] || null;
   const lensSpecsItem = lensSpecsData[0] || null;
 
+  // Under construction state
+  const construction = getConstructionState({
+    gearType: item.gearType,
+    gearName: item.name,
+    brandId: item.brandId ?? null,
+    mountId: item.mountId ?? null,
+    camera:
+      item.gearType === "CAMERA"
+        ? {
+            sensorFormatId: cameraSpecsItem?.sensorFormatId ?? null,
+            resolutionMp: Number(cameraSpecsItem?.resolutionMp ?? null) || null,
+          }
+        : null,
+    lens:
+      item.gearType === "LENS"
+        ? {
+            focalLengthMinMm: lensSpecsItem?.focalLengthMinMm ?? null,
+            focalLengthMaxMm: lensSpecsItem?.focalLengthMaxMm ?? null,
+            maxAperture: (lensSpecsItem as any)?.maxAperture ?? null,
+          }
+        : null,
+  });
+
   return (
     <main className="mx-auto max-w-4xl p-6">
+      {/* Under construction banner */}
+      {construction.underConstruction && (
+        <ConstructionNotice
+          gearName={item.name}
+          slug={item.slug}
+          missing={construction.missing}
+          editHref={`/gear/${item.slug}/edit?type=${item.gearType}`}
+        />
+      )}
+
       {/* Track page visit for popularity */}
       <GearVisitTracker slug={slug} />
 

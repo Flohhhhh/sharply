@@ -144,3 +144,50 @@ export function formatHumanDate(
 
   return `${month} ${day}${suffix}, ${year}`;
 }
+
+// Under construction state for gear pages
+export type ConstructionCheckInput = {
+  gearType: "CAMERA" | "LENS";
+  gearName?: string;
+  brandId?: string | null;
+  mountId?: string | null;
+  camera?: {
+    sensorFormatId?: string | null;
+    resolutionMp?: number | null;
+  } | null;
+  lens?: {
+    focalLengthMinMm?: number | null;
+    focalLengthMaxMm?: number | null;
+    // Optional for future: maxAperture, minAperture, etc.
+    maxAperture?: number | null;
+  } | null;
+};
+
+export function getConstructionState(input: ConstructionCheckInput) {
+  const missing: string[] = [];
+
+  // Core checks
+  if (!input.brandId) missing.push("Brand");
+  if (!input.mountId) missing.push("Mount");
+
+  if (input.gearType === "LENS") {
+    const lens = input.lens || {};
+    if (!lens.focalLengthMinMm || !lens.focalLengthMaxMm) {
+      missing.push("Focal length");
+    }
+    if (lens.maxAperture == null) {
+      missing.push("Aperture");
+    }
+  }
+
+  if (input.gearType === "CAMERA") {
+    const camera = input.camera || {};
+    if (!camera.sensorFormatId) missing.push("Sensor type");
+    if (!camera.resolutionMp) missing.push("Sensor resolution");
+  }
+
+  return {
+    underConstruction: missing.length > 0,
+    missing,
+  };
+}

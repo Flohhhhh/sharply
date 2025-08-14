@@ -90,7 +90,8 @@ export const gear = createTable(
       .default(sql`gen_random_uuid()::text`),
     slug: varchar("slug", { length: 220 }).notNull().unique(),
     searchName: text("search_name").notNull(), // lowercased for LIKE/trigram later
-    name: varchar("name", { length: 240 }).notNull(),
+    name: varchar("name", { length: 240 }).notNull().unique(),
+    modelNumber: varchar("model_number", { length: 240 }).unique(), // optional model number for de-duplication and display
     gearType: gearTypeEnum("gear_type").notNull(),
     brandId: varchar("brand_id", { length: 36 })
       .notNull()
