@@ -16,6 +16,7 @@ import { GearReviewForm } from "~/app/(pages)/gear/_components/gear-review-form"
 import { GearReviewsList } from "~/app/(pages)/gear/_components/gear-reviews-list";
 import { fetchGearBySlug } from "~/lib/queries/gear";
 import { ConstructionNotice } from "~/app/(pages)/gear/_components/construction-notice";
+import { ConstructionFullPage } from "~/app/(pages)/gear/_components/construction-full";
 import type { GearItem } from "~/types/gear";
 
 interface GearPageProps {
@@ -103,18 +104,21 @@ export default async function GearPage({ params }: GearPageProps) {
         : null,
   });
 
-  return (
-    <main className="mx-auto max-w-4xl p-6">
-      {/* Under construction banner */}
-      {construction.underConstruction && (
-        <ConstructionNotice
+  if (construction.underConstruction) {
+    return (
+      <main className="mx-auto max-w-4xl p-6">
+        <ConstructionFullPage
           gearName={item.name}
-          slug={item.slug}
           missing={construction.missing}
           editHref={`/gear/${item.slug}/edit?type=${item.gearType}`}
+          isLoggedIn={isLoggedIn}
         />
-      )}
+      </main>
+    );
+  }
 
+  return (
+    <main className="mx-auto max-w-4xl p-6">
       {/* Track page visit for popularity */}
       <GearVisitTracker slug={slug} />
 
