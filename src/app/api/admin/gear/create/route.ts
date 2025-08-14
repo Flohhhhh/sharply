@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
-import { brands, gear } from "~/server/db/schema";
+import { brands, gear, cameraSpecs, lensSpecs } from "~/server/db/schema";
 import { and, eq, ilike, or, sql } from "drizzle-orm";
 import { normalizeSearchName } from "~/lib/utils";
 
@@ -88,22 +88,32 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const created = await db
-      .insert(gear)
-      .values({
-        name,
-        slug,
-        gearType,
-        brandId,
-        modelNumber: modelNumber || null,
-        searchName: normalizeSearchName(name, b[0]!.name),
-      })
-      .returning({ id: gear.id, slug: gear.slug });
+    const created = await db.transaction(async (tx) => {
+      const inserted = await tx
+        .insert(gear)
+        .values({
+          name,
+          slug,
+          gearType,
+          brandId,
+          modelNumber: modelNumber || null,
+          searchName: normalizeSearchName(name, b[0]!.name),
+        })
+        .returning({ id: gear.id, slug: gear.slug });
 
-    return NextResponse.json(
-      { success: true, gear: created[0] },
-      { status: 201 },
-    );
+      const createdGear = inserted[0]!;
+
+      // Create an empty specs row matching the gear type
+      if (gearType === "CAMERA") {
+        await tx.insert(cameraSpecs).values({ gearId: createdGear.id });
+      } else if (gearType === "LENS") {
+        await tx.insert(lensSpecs).values({ gearId: createdGear.id });
+      }
+
+      return createdGear;
+    });
+
+    return NextResponse.json({ success: true, gear: created }, { status: 201 });
   } catch (error) {
     console.error("Failed to create gear:", error);
     return NextResponse.json(
