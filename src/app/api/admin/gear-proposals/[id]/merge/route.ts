@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
-import { gearEdits } from "~/server/db/schema";
+import { gearEdits, auditLogs } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function POST(
@@ -46,6 +46,18 @@ export async function POST(
       .update(gearEdits)
       .set({ status: "MERGED" })
       .where(eq(gearEdits.id, proposalId));
+
+    // Audit: merged
+    try {
+      await db.insert(auditLogs).values({
+        action: "GEAR_EDIT_MERGE",
+        actorUserId: session.user.id,
+        gearEditId: proposalId,
+        gearId: proposalData.gearId,
+      });
+    } catch (e) {
+      console.warn("[merge POST] audit log failed", e);
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

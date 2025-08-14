@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { FileText, Users, Settings } from "lucide-react";
 import { GearProposalsList } from "./gear-proposals-list";
+import { AuditLogList } from "./admin-audit-log-list";
 import { GearCreateCard } from "./gear-create";
 
 export default function AdminPage() {
@@ -74,6 +75,19 @@ export default function AdminPage() {
           </CardContent>
         </Card>
       </div> */}
+
+      {/* Audit Logs */}
+      <div className="space-y-3">
+        <div>
+          <h2 className="text-2xl font-bold">Audit Logs</h2>
+          <p className="text-muted-foreground mt-2">
+            Recent admin actions with links to affected items.
+          </p>
+        </div>
+        <Suspense fallback={<div>Loading audit logs...</div>}>
+          <AuditLogList />
+        </Suspense>
+      </div>
 
       {/* Gear Proposals Tool */}
       <div className="space-y-6">

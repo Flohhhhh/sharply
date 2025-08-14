@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "~/server/db";
-import { gear, gearEdits } from "~/server/db/schema";
+import { gear, gearEdits, auditLogs } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
 import { auth } from "~/server/auth";
 
@@ -54,6 +54,18 @@ export async function POST(
         note: body.note ?? null,
       })
       .returning({ id: gearEdits.id, createdAt: gearEdits.createdAt });
+
+    // Audit: gear edit proposed
+    try {
+      await db.insert(auditLogs).values({
+        action: "GEAR_EDIT_PROPOSE",
+        actorUserId: session.user.id,
+        gearId: found[0]!.id,
+        gearEditId: created[0]!.id,
+      });
+    } catch (e) {
+      console.warn("[edits POST] audit log failed", e);
+    }
 
     const response = {
       id: created[0]?.id,

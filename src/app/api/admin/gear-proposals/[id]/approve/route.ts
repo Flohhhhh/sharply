@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { normalizeProposalPayloadForDb } from "~/server/db/normalizers";
-import { gearEdits, gear, cameraSpecs, lensSpecs } from "~/server/db/schema";
+import {
+  gearEdits,
+  gear,
+  cameraSpecs,
+  lensSpecs,
+  auditLogs,
+} from "~/server/db/schema";
 import { eq, and } from "drizzle-orm";
 
 export async function POST(
@@ -63,6 +69,14 @@ export async function POST(
         .set({ status: "APPROVED", payload: normalized || {} })
         .where(eq(gearEdits.id, proposalId));
 
+      // Audit: approved
+      await tx.insert(auditLogs).values({
+        action: "GEAR_EDIT_APPROVE",
+        actorUserId: session.user.id,
+        gearId: proposalData.gearId,
+        gearEditId: proposalId,
+      });
+
       // Apply the changes to the gear
       if (normalized && typeof normalized === "object") {
         const payload = normalized as { core?: any; camera?: any; lens?: any };
@@ -101,6 +115,14 @@ export async function POST(
             eq(gearEdits.id, proposalId),
           ),
         );
+
+      // Audit: merged others (self-noted)
+      await tx.insert(auditLogs).values({
+        action: "GEAR_EDIT_MERGE",
+        actorUserId: session.user.id,
+        gearId: proposalData.gearId,
+        gearEditId: proposalId,
+      });
     });
 
     return NextResponse.json({ success: true });

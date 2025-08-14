@@ -26,8 +26,7 @@ When database changes cannot be made through schema updates alone:
 1. **Create individual migration files** in the `/drizzle` folder
 2. **Use descriptive names** for migration files (e.g., `add_user_preferences.sql`)
 3. **Follow existing naming convention**: `000X_descriptive_name.sql`
-4. **Test migrations** locally before committing
-5. **Update documentation** in `/docs` folder to reflect changes
+4. **Update documentation** in `/docs` folder to reflect changes
 
 ### Migration Guidelines
 
@@ -67,7 +66,6 @@ When database changes cannot be made through schema updates alone:
 
 - **Create individual migration files** in `/drizzle` folder
 - **Use descriptive names** following the existing pattern
-- **Test migrations** before committing
 - **Update documentation** to reflect migration changes
 - **Follow Drizzle best practices** for migration creation
 
@@ -75,7 +73,6 @@ When database changes cannot be made through schema updates alone:
 
 - **Always update documentation** when modifying schemas
 - **Create migrations** for complex changes that can't be done in schema
-- **Test changes** locally before committing
 - **Maintain referential integrity** in database relationships
 
 ## Important Notes

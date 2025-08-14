@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
-import { brands, gear, cameraSpecs, lensSpecs } from "~/server/db/schema";
+import {
+  brands,
+  gear,
+  cameraSpecs,
+  lensSpecs,
+  auditLogs,
+} from "~/server/db/schema";
 import { and, eq, ilike, or, sql } from "drizzle-orm";
 import { normalizeSearchName } from "~/lib/utils";
 
@@ -109,6 +115,13 @@ export async function POST(request: NextRequest) {
       } else if (gearType === "LENS") {
         await tx.insert(lensSpecs).values({ gearId: createdGear.id });
       }
+
+      // Audit: gear created
+      await tx.insert(auditLogs).values({
+        action: "GEAR_CREATE",
+        actorUserId: session.user.id,
+        gearId: createdGear.id,
+      });
 
       return createdGear;
     });

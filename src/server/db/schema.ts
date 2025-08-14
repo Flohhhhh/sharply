@@ -32,6 +32,13 @@ export const proposalStatusEnum = pgEnum("proposal_status", [
   "REJECTED",
   "MERGED",
 ]);
+export const auditActionEnum = pgEnum("audit_action", [
+  "GEAR_CREATE",
+  "GEAR_EDIT_PROPOSE",
+  "GEAR_EDIT_APPROVE",
+  "GEAR_EDIT_REJECT",
+  "GEAR_EDIT_MERGE",
+]);
 export const reviewStatusEnum = pgEnum("review_status", [
   "PENDING",
   "APPROVED",
@@ -180,6 +187,35 @@ export const gearEdits = createTable(
     index("gear_edits_status_idx").on(t.status),
     index("gear_edits_gear_idx").on(t.gearId),
     index("gear_edits_created_by_idx").on(t.createdById),
+  ],
+);
+
+// --- Audit Logs ---
+export const auditLogs = createTable(
+  "audit_logs",
+  (d) => ({
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    action: auditActionEnum("action").notNull(),
+    actorUserId: varchar("actor_user_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    gearId: varchar("gear_id", { length: 36 }).references(() => gear.id, {
+      onDelete: "set null",
+    }),
+    gearEditId: varchar("gear_edit_id", { length: 36 }).references(
+      () => gearEdits.id,
+      { onDelete: "set null" },
+    ),
+    createdAt,
+  }),
+  (t) => [
+    index("audit_created_idx").on(t.createdAt),
+    index("audit_action_idx").on(t.action),
+    index("audit_actor_idx").on(t.actorUserId),
+    index("audit_gear_idx").on(t.gearId),
+    index("audit_edit_idx").on(t.gearEditId),
   ],
 );
 
