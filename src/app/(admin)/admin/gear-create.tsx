@@ -17,6 +17,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import {
+  isBrandNameOnly as isBrandOnlyName,
+  getNameSoftWarnings,
+  type SoftWarning,
+} from "~/lib/validation/gear-creation-validations";
 
 type Brand = { id: string; name: string };
 
@@ -49,6 +54,18 @@ export function GearCreateCard() {
     })();
   }, []);
 
+  useEffect(() => {
+    // Reset form when changing brand or gear type
+    setName("");
+    setModelNumber("");
+    setSlugPreview("");
+    setProceedAnyway(false);
+    setHardSlugConflict(null);
+    setHardModelConflict(null);
+    setFuzzy([]);
+    setCreatedSlug(null);
+  }, [brandId, gearType]);
+
   const canSubmit =
     name.trim().length > 1 &&
     brandId &&
@@ -56,7 +73,29 @@ export function GearCreateCard() {
     !loading &&
     !hardSlugConflict &&
     !hardModelConflict &&
-    (fuzzy.length === 0 || proceedAnyway);
+    (fuzzy.length === 0 || proceedAnyway) &&
+    name.trim().toLowerCase() !==
+      brands.find((b) => b.id === brandId)?.name.toLowerCase();
+
+  const selectedBrandName = brands.find((b) => b.id === brandId)?.name;
+  const isBrandNameOnly = isBrandOnlyName({
+    name,
+    brandName: selectedBrandName,
+  });
+  const softWarnings: SoftWarning[] = getNameSoftWarnings({
+    name,
+    brandName: selectedBrandName,
+    gearType,
+  });
+  const nikkorWarn = softWarnings.some((w) => w.id === "nikkor");
+  const missingMmWarn = softWarnings.some((w) => w.id === "missing-mm");
+  const missingApertureWarn = softWarnings.some(
+    (w) => w.id === "missing-aperture",
+  );
+  const lensFormatWarn = missingMmWarn || missingApertureWarn;
+
+  const canSubmitWithWarnings =
+    canSubmit && (!(nikkorWarn || lensFormatWarn) || proceedAnyway);
 
   const onSubmit = async () => {
     try {
@@ -173,6 +212,11 @@ export function GearCreateCard() {
                 Slug: {slugPreview}
               </div>
             )}
+            {isBrandNameOnly && (
+              <div className="text-destructive text-xs">
+                Please enter the specific product name, not just the brand name.
+              </div>
+            )}
             <Collapsible>
               <CollapsibleTrigger className="text-muted-foreground text-xs underline">
                 Naming guide
@@ -255,6 +299,59 @@ export function GearCreateCard() {
           </div>
         )}
 
+        {nikkorWarn && !hardSlugConflict && !hardModelConflict && (
+          <div className="rounded border border-amber-300 bg-amber-50 p-2 text-sm text-amber-900">
+            <div className="mb-1 font-medium">Suggestion: add "Nikkor"</div>
+            <p>
+              Nikon lenses are commonly named with the Nikkor prefix, e.g.
+              <span className="font-medium"> Nikon Nikkor Z 400 f/4.5</span>.
+              Consider adding "Nikkor" after "Nikon".
+            </p>
+          </div>
+        )}
+
+        {missingMmWarn && !hardSlugConflict && !hardModelConflict && (
+          <div className="rounded border border-amber-300 bg-amber-50 p-2 text-sm text-amber-900">
+            <div className="mb-1 font-medium">Suggestion: add focal length</div>
+            <p>Lens names typically include focal length, e.g., "24-70mm".</p>
+          </div>
+        )}
+
+        {missingApertureWarn && !hardSlugConflict && !hardModelConflict && (
+          <div className="rounded border border-amber-300 bg-amber-50 p-2 text-sm text-amber-900">
+            <div className="mb-1 font-medium">
+              Suggestion: add maximum aperture
+            </div>
+            <p>Lens names typically include maximum aperture, e.g., "f/2.8".</p>
+          </div>
+        )}
+
+        {softWarnings.some((w) => w.id === "canon-eos") &&
+          !hardSlugConflict &&
+          !hardModelConflict && (
+            <div className="rounded border border-amber-300 bg-amber-50 p-2 text-sm text-amber-900">
+              <div className="mb-1 font-medium">Suggestion: add "EOS"</div>
+              <p>
+                Canon digital ILC cameras are typically named with the EOS
+                prefix, e.g., "Canon EOS R5". Consider adding "EOS" after
+                "Canon".
+              </p>
+            </div>
+          )}
+
+        {(nikkorWarn || lensFormatWarn) &&
+          !hardSlugConflict &&
+          !hardModelConflict && (
+            <label className="mt-2 flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={proceedAnyway}
+                onChange={(e) => setProceedAnyway(e.target.checked)}
+              />
+              Proceed anyway – I confirm the name format is intentional
+            </label>
+          )}
+
         {fuzzy.length > 0 && !hardSlugConflict && !hardModelConflict && (
           <div className="rounded border border-yellow-300 bg-yellow-50 p-2 text-sm text-yellow-900">
             <div className="mb-1 font-medium">Possible duplicates</div>
@@ -290,7 +387,11 @@ export function GearCreateCard() {
               View page →
             </a>
           )}
-          <Button onClick={onSubmit} disabled={!canSubmit} loading={loading}>
+          <Button
+            onClick={onSubmit}
+            disabled={!canSubmitWithWarnings}
+            loading={loading}
+          >
             Create
           </Button>
         </div>

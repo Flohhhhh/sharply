@@ -32,7 +32,6 @@ When database changes cannot be made through schema updates alone:
 
 - Each migration should be atomic and focused on a single change
 - Include both `UP` and `DOWN` migrations when possible
-- Test rollback scenarios
 - Document complex migrations in the `/docs` folder
 - Use `npm run db:generate` to create new migrations
 

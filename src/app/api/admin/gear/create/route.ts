@@ -8,8 +8,12 @@ import {
   lensSpecs,
   auditLogs,
 } from "~/server/db/schema";
-import { and, eq, ilike, or, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { normalizeSearchName } from "~/lib/utils";
+import {
+  performFuzzySearch,
+  shouldBlockFuzzyResults,
+} from "~/lib/utils/gear-creation";
 
 export async function POST(request: NextRequest) {
   const session = await auth();
@@ -41,8 +45,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid brand" }, { status: 400 });
     }
 
-    // Create slug from name
-    const slug = name
+    // Ensure brand is prefixed in display name
+    const brandName = b[0]!.name;
+    const inputName = name.trim();
+    const hasBrandPrefix = inputName
+      .toLowerCase()
+      .startsWith(brandName.toLowerCase());
+    const displayName = hasBrandPrefix
+      ? inputName
+      : `${brandName} ${inputName}`;
+
+    // Create slug from display name (brand + name)
+    const slug = displayName
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)+/g, "");
@@ -76,34 +90,41 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Fuzzy warn: brand-scoped ilike tokens
-    const normalized = normalizeSearchName(name, b[0]!.name);
-    const tokens = normalized.split(" ").filter(Boolean);
-    if (!force && tokens.length) {
-      const orParts = tokens.map((t) => ilike(gear.searchName, `%${t}%`));
-      const fuzzy = await db
-        .select({ id: gear.id, name: gear.name, slug: gear.slug })
-        .from(gear)
-        .where(and(eq(gear.brandId, brandId), or(...orParts)))
-        .limit(5);
-      if (fuzzy.length > 0) {
-        return NextResponse.json(
-          { error: "Similar items exist", fuzzy },
-          { status: 409 },
-        );
-      }
+    // Fuzzy search using centralized logic
+    const {
+      results: fuzzy,
+      tokens: tokensForMatch,
+      normalized,
+    } = await performFuzzySearch({
+      inputName: displayName,
+      brandName,
+      brandId,
+      db,
+    });
+
+    // Check if fuzzy results should block creation
+    const blockResult = shouldBlockFuzzyResults(fuzzy, force);
+    if (blockResult) {
+      console.log("[gear:create] fuzzy block", {
+        input: displayName,
+        brandId,
+        normalized,
+        tokensForMatch,
+        results: fuzzy,
+      });
+      return NextResponse.json(blockResult, { status: 409 });
     }
 
     const created = await db.transaction(async (tx) => {
       const inserted = await tx
         .insert(gear)
         .values({
-          name,
+          name: displayName,
           slug,
           gearType,
           brandId,
           modelNumber: modelNumber || null,
-          searchName: normalizeSearchName(name, b[0]!.name),
+          searchName: normalizeSearchName(displayName, brandName),
         })
         .returning({ id: gear.id, slug: gear.slug });
 

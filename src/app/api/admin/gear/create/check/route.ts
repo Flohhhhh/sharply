@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "~/server/db";
 import { brands, gear } from "~/server/db/schema";
-import { and, eq, ilike, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { normalizeSearchName } from "~/lib/utils";
+import { performFuzzySearch } from "~/lib/utils/gear-creation";
 
 function buildSlug(brandName: string, name: string) {
   const sanitize = (s: string) =>
@@ -63,39 +64,13 @@ export async function GET(request: NextRequest) {
       .limit(1);
   }
 
-  // Fuzzy (brand-scoped), exclude brand tokens and require all tokens to appear,
-  // with letter–digit boundary tokenization (e.g., "z6iii" => ["6", "iii"]).
-  const sanitize = (s: string) =>
-    s
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, " ")
-      .trim();
-  const brandTokens = new Set(sanitize(brandName).split(/\s+/).filter(Boolean));
-  const rawTokens = sanitize(name)
-    .split(/\s+/)
-    .filter(Boolean)
-    .filter((t) => !brandTokens.has(t));
-
-  const expanded: string[] = [];
-  for (const t of rawTokens) {
-    const parts = t.match(/[a-z]+|\d+/gi) || [];
-    for (const p of parts) {
-      if (p.length >= 2 || /\d+/.test(p)) expanded.push(p);
-    }
-  }
-
-  let fuzzy: { id: string; name: string; slug: string }[] = [];
-  const tokensForMatch = expanded.length > 0 ? expanded : rawTokens;
-  if (tokensForMatch.length > 0) {
-    const andParts = tokensForMatch.map((t) =>
-      ilike(gear.searchName, `%${t}%`),
-    );
-    fuzzy = await db
-      .select({ id: gear.id, name: gear.name, slug: gear.slug })
-      .from(gear)
-      .where(and(eq(gear.brandId, brandId), ...andParts))
-      .limit(10);
-  }
+  // Fuzzy search using centralized logic
+  const { results: fuzzy, tokens: tokensForMatch } = await performFuzzySearch({
+    inputName: name,
+    brandName,
+    brandId,
+    db,
+  });
 
   return NextResponse.json({
     slugPreview,
