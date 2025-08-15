@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { signIn, signOut, useSession } from "next-auth/react";
+import { GlobalSearchBar } from "~/components/search/global-search-bar";
+import { CommandPalette } from "~/components/search/command-palette";
 
 export function Header() {
   const { data: session } = useSession();
@@ -13,6 +15,11 @@ export function Header() {
         <Link href="/" className="text-xl font-bold">
           Sharply
         </Link>
+
+        {/* Global Search */}
+        <div className="flex-1 px-6">
+          <GlobalSearchBar />
+        </div>
 
         {/* Auth Controls */}
         <div className="flex items-center gap-4">
@@ -44,6 +51,8 @@ export function Header() {
           )}
         </div>
       </div>
+      {/* Command Palette (portaled dialog) */}
+      <CommandPalette />
     </header>
   );
 }
