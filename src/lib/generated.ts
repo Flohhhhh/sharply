@@ -201,13 +201,6 @@ export const SENSOR_FORMATS = [
 ];
 export const BRANDS = [
   {
-    "id": "ed062070-d2e3-47c1-a37b-cf427a0736a7",
-    "slug": "acme",
-    "created_at": "2025-08-10 21:03:41.788141+00",
-    "updated_at": "2025-08-10 21:03:41.788141+00",
-    "name": "ACME Imaging"
-  },
-  {
     "id": "89e991fb-249f-41a8-b75f-91cb636ede7f",
     "slug": "nikon",
     "created_at": "2025-08-10 21:03:42.03813+00",
