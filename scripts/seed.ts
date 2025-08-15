@@ -26,7 +26,6 @@ async function upsertBySlug<T extends { slug: string }>(table: any, row: T) {
 async function main() {
   // Seed brands from CSV data
   const brandData = [
-    { name: "ACME Imaging", slug: "acme" },
     { name: "Nikon", slug: "nikon" },
     { name: "Canon", slug: "canon" },
     { name: "Sony", slug: "sony" },

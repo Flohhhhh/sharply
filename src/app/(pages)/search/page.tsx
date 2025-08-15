@@ -1,4 +1,7 @@
 import { searchGear } from "@utils/search";
+import { FilterPills } from "~/components/search/filter-pills";
+import { FiltersModal } from "~/components/search/filters-modal";
+import { SortSelect } from "~/components/search/sort-select";
 
 type SearchPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -70,38 +73,14 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           {result.total === 1 ? "" : "s"}
         </p>
 
-        {/* Sort options */}
-        <div className="mb-6 flex gap-2">
-          <a
-            href={`/search?${new URLSearchParams({ ...Object.fromEntries(baseParams), sort: "relevance" }).toString()}`}
-            className={`rounded-md px-3 py-1.5 text-sm ${
-              sort === "relevance"
-                ? "bg-primary text-primary-foreground"
-                : "border-input hover:bg-accent border"
-            }`}
-          >
-            Relevance
-          </a>
-          <a
-            href={`/search?${new URLSearchParams({ ...Object.fromEntries(baseParams), sort: "name" }).toString()}`}
-            className={`rounded-md px-3 py-1.5 text-sm ${
-              sort === "name"
-                ? "bg-primary text-primary-foreground"
-                : "border-input hover:bg-accent border"
-            }`}
-          >
-            Name
-          </a>
-          <a
-            href={`/search?${new URLSearchParams({ ...Object.fromEntries(baseParams), sort: "newest" }).toString()}`}
-            className={`rounded-md px-3 py-1.5 text-sm ${
-              sort === "newest"
-                ? "bg-primary text-primary-foreground"
-                : "border-input hover:bg-accent border"
-            }`}
-          >
-            Newest
-          </a>
+        {/* Controls row */}
+        <div className="mb-2 flex items-center justify-end gap-2">
+          <SortSelect />
+          <FiltersModal />
+        </div>
+        {/* Active filter pills row */}
+        <div className="mb-6">
+          <FilterPills />
         </div>
 
         {/* Results grouped by relevance */}
