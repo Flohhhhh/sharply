@@ -2,11 +2,18 @@
 
 import Link from "next/link";
 import { signIn, signOut, useSession } from "next-auth/react";
+import { usePathname, useSearchParams } from "next/navigation";
 import { GlobalSearchBar } from "~/components/search/global-search-bar";
 import { CommandPalette } from "~/components/search/command-palette";
 
 export function Header() {
   const { data: session } = useSession();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const callbackUrl = (() => {
+    const qs = searchParams?.toString();
+    return qs ? `${pathname}?${qs}` : pathname || "/";
+  })();
 
   return (
     <header className="border-border bg-card border-b px-6 py-4">
@@ -43,7 +50,7 @@ export function Header() {
             </>
           ) : (
             <button
-              onClick={() => signIn("discord")}
+              onClick={() => signIn("discord", { callbackUrl })}
               className="border-input bg-background hover:bg-accent rounded-md border px-3 py-1.5 text-sm"
             >
               Sign In

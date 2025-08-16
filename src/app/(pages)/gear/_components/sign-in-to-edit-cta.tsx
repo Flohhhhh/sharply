@@ -2,9 +2,22 @@
 
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import React from "react";
 
-export function SignInToEditSpecsCta() {
+interface SignInToEditSpecsCtaProps {
+  slug: string;
+  gearType: "CAMERA" | "LENS";
+}
+
+export function SignInToEditSpecsCta({
+  slug,
+  gearType,
+}: SignInToEditSpecsCtaProps) {
   const { data: session, status } = useSession();
+  const callbackUrl = React.useMemo(
+    () => `/gear/${slug}/edit?type=${gearType}`,
+    [slug, gearType],
+  );
   if (status === "loading") return null;
   if (session) return null;
 
@@ -19,7 +32,7 @@ export function SignInToEditSpecsCta() {
           </span>
         </div>
         <Link
-          href="/api/auth/signin"
+          href={`/api/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`}
           className="bg-primary hover:bg-primary/90 text-primary-foreground inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
         >
           Sign in to edit specs

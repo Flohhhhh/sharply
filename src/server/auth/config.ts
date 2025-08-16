@@ -62,5 +62,18 @@ export const authConfig = {
         role: (user as any)?.role ?? "USER",
       },
     }),
+    async redirect({ url, baseUrl }) {
+      try {
+        // Allow relative callback paths
+        if (url.startsWith("/")) return `${baseUrl}${url}`;
+        const target = new URL(url);
+        // Allow same-origin absolute URLs
+        if (target.origin === baseUrl) return url;
+      } catch {
+        // ignore and fallback
+      }
+      // Fallback to site root
+      return baseUrl;
+    },
   },
 } satisfies NextAuthConfig;

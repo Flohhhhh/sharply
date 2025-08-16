@@ -23,12 +23,14 @@ interface GearReviewsListProps {
   gearSlug: string;
   onReviewsLoaded?: (count: number) => void;
   initialReviews?: Review[];
+  showHeader?: boolean;
 }
 
 export function GearReviewsList({
   gearSlug,
   onReviewsLoaded,
   initialReviews,
+  showHeader = true,
 }: GearReviewsListProps) {
   const [reviews, setReviews] = useState<Review[]>(initialReviews ?? []);
   const [isLoading, setIsLoading] = useState(!initialReviews);
@@ -93,9 +95,11 @@ export function GearReviewsList({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Reviews ({reviews.length})</h3>
-      </div>
+      {showHeader && (
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Reviews ({reviews.length})</h3>
+        </div>
+      )}
 
       {reviews.map((review) => (
         <Card key={review.id} className="rounded-md shadow-none">

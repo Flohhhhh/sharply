@@ -13,7 +13,7 @@ export default async function AdminLayout({
     !session?.user ||
     !["ADMIN", "EDITOR"].includes((session.user as any).role)
   ) {
-    redirect("/api/auth/signin");
+    redirect(`/api/auth/signin?callbackUrl=${encodeURIComponent("/admin")}`);
   }
 
   return (

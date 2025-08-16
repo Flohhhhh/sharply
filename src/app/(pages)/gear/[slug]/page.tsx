@@ -19,6 +19,8 @@ import type { GearItem } from "~/types/gear";
 import { GearContributors } from "~/app/(pages)/gear/_components/gear-contributors";
 import { UserPendingEditBanner } from "../_components/user-pending-edit-banner";
 import { SignInToEditSpecsCta } from "../_components/sign-in-to-edit-cta";
+import { SuggestEditButton } from "../_components/suggest-edit-button";
+import { EditPendingToast } from "../_components/edit-pending-toast";
 
 export const revalidate = 3600;
 
@@ -120,6 +122,8 @@ export default async function GearPage({ params }: GearPageProps) {
 
   return (
     <main className="mx-auto max-w-4xl p-6">
+      {/* Toast if redirected back due to existing pending submission */}
+      <EditPendingToast />
       {/* Track page visit for popularity */}
       <GearVisitTracker slug={slug} />
 
@@ -184,26 +188,21 @@ export default async function GearPage({ params }: GearPageProps) {
 
       {/* Suggest Edit Button */}
       <div className="mb-6">
-        <Link
-          scroll={false}
-          href={`/gear/${item.slug}/edit?type=${item.gearType}`}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground inline-flex items-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
-        >
-          Suggest Edit
-        </Link>
+        <SuggestEditButton
+          slug={item.slug}
+          gearType={item.gearType as "CAMERA" | "LENS"}
+        />
       </div>
 
       {/* Specifications */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Specifications</h2>
-          <Link
-            scroll={false}
-            href={`/gear/${item.slug}/edit?type=${item.gearType}`}
-            className="bg-secondary hover:bg-secondary/80 text-secondary-foreground inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors"
-          >
-            Suggest Edit
-          </Link>
+          <SuggestEditButton
+            slug={item.slug}
+            gearType={item.gearType as "CAMERA" | "LENS"}
+            variant="secondary"
+          />
         </div>
         <div className="border-border overflow-hidden rounded-md border">
           <div className="divide-border divide-y">
@@ -310,7 +309,10 @@ export default async function GearPage({ params }: GearPageProps) {
       </div>
 
       {/* Sign-in CTA banner for editing specs (client, only when signed out) */}
-      <SignInToEditSpecsCta />
+      <SignInToEditSpecsCta
+        slug={item.slug}
+        gearType={item.gearType as "CAMERA" | "LENS"}
+      />
 
       {/* Reviews */}
       <GearReviews slug={item.slug} />

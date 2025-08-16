@@ -27,6 +27,7 @@ export function GearReviewForm({
   onReviewSubmitted,
 }: GearReviewFormProps) {
   const { data: session, status } = useSession();
+  const callbackUrl = `/gear/${gearSlug}`;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState<boolean | null>(null);
   const [content, setContent] = useState("");
@@ -121,18 +122,18 @@ export function GearReviewForm({
 
   if (!session) {
     return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center">
-            <p className="text-muted-foreground mb-4">
-              Log in to leave reviews on gear!
-            </p>
-            <Button asChild>
-              <a href="/api/auth/signin">Sign In</a>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="mb-4">
+        <div className="flex flex-col items-start justify-between gap-2 rounded-md border p-3 sm:flex-row sm:items-center">
+          <div className="text-sm">Log in to leave a review.</div>
+          <Button asChild>
+            <a
+              href={`/api/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+            >
+              Write a Review
+            </a>
+          </Button>
+        </div>
+      </div>
     );
   }
 

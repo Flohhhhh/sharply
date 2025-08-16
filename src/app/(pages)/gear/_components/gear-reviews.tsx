@@ -56,14 +56,22 @@ export function GearReviews({ slug }: { slug: string }) {
   }
 
   return (
-    <div className="mt-12">
+    <div className="mt-12 space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Reviews</h3>
+        {!bannerHidden && <span />}
+      </div>
       {!bannerHidden && (
         <GearReviewForm
           gearSlug={slug}
           onReviewSubmitted={() => setBannerHidden(true)}
         />
       )}
-      <GearReviewsList gearSlug={slug} initialReviews={initialReviews} />
+      <GearReviewsList
+        gearSlug={slug}
+        initialReviews={initialReviews}
+        showHeader={false}
+      />
     </div>
   );
 }
