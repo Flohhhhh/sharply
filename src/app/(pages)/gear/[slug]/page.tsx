@@ -1,13 +1,12 @@
 import { db } from "~/server/db";
-import { auth, signIn } from "~/server/auth";
 import Link from "next/link";
 import {
   cameraSpecs,
   lensSpecs,
   sensorFormats,
-  gearEdits,
+  gear,
 } from "~/server/db/schema";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { formatPrice, getMountDisplayName } from "~/lib/mapping";
 import { formatHumanDate, getConstructionState } from "~/lib/utils";
 import { GearActionButtons } from "~/app/(pages)/gear/_components/gear-action-buttons";
@@ -19,6 +18,10 @@ import { ConstructionNotice } from "~/app/(pages)/gear/_components/construction-
 import { ConstructionFullPage } from "~/app/(pages)/gear/_components/construction-full";
 import type { GearItem } from "~/types/gear";
 import { GearContributors } from "~/app/(pages)/gear/_components/gear-contributors";
+import { UserPendingEditBanner } from "../_components/user-pending-edit-banner";
+import { SignInToEditSpecsCta } from "../_components/sign-in-to-edit-cta";
+
+export const revalidate = 3600;
 
 interface GearPageProps {
   params: Promise<{
@@ -28,11 +31,10 @@ interface GearPageProps {
 
 export default async function GearPage({ params }: GearPageProps) {
   const { slug } = await params;
+  console.log("[gear/[slug]] Generating static page (build/ISR)", { slug });
 
   // Fetch core gear data
   const item: GearItem = await fetchGearBySlug(slug);
-  const session = await auth();
-  const isLoggedIn = !!session?.user;
 
   // Fetch additional specs that aren't in the core helper yet
   const [cameraSpecsData, lensSpecsData] = await Promise.all([
@@ -112,28 +114,10 @@ export default async function GearPage({ params }: GearPageProps) {
           gearName={item.name}
           missing={construction.missing}
           editHref={`/gear/${item.slug}/edit?type=${item.gearType}`}
-          isLoggedIn={isLoggedIn}
         />
       </main>
     );
   }
-
-  // Find any pending edit for this gear created by the current user
-  const userPendingEdit = isLoggedIn
-    ? await db
-        .select({ id: gearEdits.id })
-        .from(gearEdits)
-        .where(
-          and(
-            eq(gearEdits.gearId, item.id),
-            eq(gearEdits.createdById, session!.user!.id),
-            eq(gearEdits.status, "PENDING"),
-          ),
-        )
-        .limit(1)
-    : [];
-  const hasPendingEdit = userPendingEdit.length > 0;
-  const pendingEditId = userPendingEdit[0]?.id;
 
   return (
     <main className="mx-auto max-w-4xl p-6">
@@ -191,70 +175,36 @@ export default async function GearPage({ params }: GearPageProps) {
         )}
       </div>
 
-      {/* Pending submission banner (only for this user and only when pending) */}
-      {isLoggedIn && hasPendingEdit && (
-        <div className="border-border bg-muted/50 text-muted-foreground mb-6 rounded-md border px-4 py-3 text-sm">
-          You have a recent suggestion pending review.{" "}
-          <Link
-            href={`/edit-success?id=${pendingEditId}`}
-            className="text-primary underline"
-          >
-            View submission
-          </Link>
-          .
-        </div>
-      )}
+      {/* Pending submission banner (client, only for this user when pending) */}
+      <UserPendingEditBanner slug={slug} />
 
       {/* Action Buttons */}
       <div className="mb-8">
         <GearActionButtons slug={slug} />
       </div>
 
-      {/* Suggest Edit Button (only when logged in) */}
-      {isLoggedIn && (
-        <div className="mb-6">
-          {hasPendingEdit ? (
-            <Link
-              scroll={false}
-              href={`/edit-success?id=${pendingEditId}`}
-              className="bg-secondary text-secondary-foreground hover:bg-secondary/80 inline-flex items-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
-            >
-              Submission Pending
-            </Link>
-          ) : (
-            <Link
-              scroll={false}
-              href={`/gear/${item.slug}/edit?type=${item.gearType}`}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground inline-flex items-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
-            >
-              Suggest Edit
-            </Link>
-          )}
-        </div>
-      )}
+      {/* Suggest Edit Button */}
+      <div className="mb-6">
+        <Link
+          scroll={false}
+          href={`/gear/${item.slug}/edit?type=${item.gearType}`}
+          className="bg-primary hover:bg-primary/90 text-primary-foreground inline-flex items-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
+        >
+          Suggest Edit
+        </Link>
+      </div>
 
       {/* Specifications */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Specifications</h2>
-          {isLoggedIn &&
-            (hasPendingEdit ? (
-              <Link
-                scroll={false}
-                href={`/edit-success?id=${pendingEditId}`}
-                className="bg-muted text-muted-foreground hover:bg-muted/80 inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors"
-              >
-                Submission Pending
-              </Link>
-            ) : (
-              <Link
-                scroll={false}
-                href={`/gear/${item.slug}/edit?type=${item.gearType}`}
-                className="bg-secondary hover:bg-secondary/80 text-secondary-foreground inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors"
-              >
-                Suggest Edit
-              </Link>
-            ))}
+          <Link
+            scroll={false}
+            href={`/gear/${item.slug}/edit?type=${item.gearType}`}
+            className="bg-secondary hover:bg-secondary/80 text-secondary-foreground inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors"
+          >
+            Suggest Edit
+          </Link>
         </div>
         <div className="border-border overflow-hidden rounded-md border">
           <div className="divide-border divide-y">
@@ -360,26 +310,8 @@ export default async function GearPage({ params }: GearPageProps) {
         </div>
       </div>
 
-      {/* Sign-in CTA banner for editing specs (visible only when signed out) */}
-      {!isLoggedIn && (
-        <div className="border-border bg-muted/60 text-muted-foreground my-8 rounded-md border px-4 py-3 text-sm">
-          <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
-            <div className="space-y-1">
-              <span className="block">Want to help improve these specs?</span>
-              <span className="block text-xs opacity-90">
-                Sharply gear specs are crowdsourced by the community. Your edits
-                are reviewed for accuracy before they go live.
-              </span>
-            </div>
-            <Link
-              href="/api/auth/signin"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
-            >
-              Sign in to edit specs
-            </Link>
-          </div>
-        </div>
-      )}
+      {/* Sign-in CTA banner for editing specs (client, only when signed out) */}
+      <SignInToEditSpecsCta />
 
       {/* Reviews */}
       <div className="mt-12">
@@ -406,4 +338,9 @@ export default async function GearPage({ params }: GearPageProps) {
       </div>
     </main>
   );
+}
+
+export async function generateStaticParams() {
+  const rows = await db.select({ slug: gear.slug }).from(gear);
+  return rows.map((r) => ({ slug: r.slug }));
 }

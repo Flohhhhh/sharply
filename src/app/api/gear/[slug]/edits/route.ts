@@ -1,8 +1,52 @@
 import { NextResponse } from "next/server";
 import { db } from "~/server/db";
 import { gear, gearEdits, auditLogs } from "~/server/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { auth } from "~/server/auth";
+
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ slug: string }> },
+) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { slug } = await params;
+
+    // find gear by slug
+    const found = await db
+      .select({ id: gear.id })
+      .from(gear)
+      .where(eq(gear.slug, slug))
+      .limit(1);
+    if (!found.length) {
+      return NextResponse.json({ error: "Gear not found" }, { status: 404 });
+    }
+
+    const pending = await db
+      .select({ id: gearEdits.id })
+      .from(gearEdits)
+      .where(
+        and(
+          eq(gearEdits.gearId, found[0]!.id),
+          eq(gearEdits.createdById, session.user.id),
+          eq(gearEdits.status, "PENDING"),
+        ),
+      )
+      .limit(1);
+
+    return NextResponse.json({ pendingEditId: pending[0]?.id ?? null });
+  } catch (err) {
+    console.error("/api/gear/[slug]/edits GET error", err);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
+  }
+}
 
 export async function POST(
   req: Request,

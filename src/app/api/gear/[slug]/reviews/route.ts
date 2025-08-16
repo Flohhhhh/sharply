@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { reviews, gear } from "~/server/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
 // Validation schema for review submission
@@ -51,7 +51,10 @@ export async function POST(
       .select({ id: reviews.id })
       .from(reviews)
       .where(
-        eq(reviews.gearId, gearId) && eq(reviews.createdById, session.user.id),
+        and(
+          eq(reviews.gearId, gearId),
+          eq(reviews.createdById, session.user.id),
+        ),
       )
       .limit(1);
 
@@ -135,7 +138,7 @@ export async function GET(
           },
         })
         .from(reviews)
-        .where(eq(reviews.gearId, gearId) && eq(reviews.status, "APPROVED"))
+        .where(and(eq(reviews.gearId, gearId), eq(reviews.status, "APPROVED")))
         .orderBy(reviews.createdAt);
 
       console.log("Successfully fetched reviews:", gearReviews.length);
