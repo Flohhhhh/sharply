@@ -50,6 +50,7 @@ export async function GearContributors({ gearId }: GearContributorsProps) {
 
   let contributors = Array.from(contributions.values());
 
+  // TODO: remove this once we have real contributors
   // TEMP: add two test contributors with counts
   contributors = contributors.concat([
     { id: "test_user_1", name: "Test User One", image: null, count: 7 },
