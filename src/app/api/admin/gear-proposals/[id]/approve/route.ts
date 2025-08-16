@@ -9,7 +9,7 @@ import {
   lensSpecs,
   auditLogs,
 } from "~/server/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, ne } from "drizzle-orm";
 
 export async function POST(
   request: NextRequest,
@@ -112,7 +112,7 @@ export async function POST(
           and(
             eq(gearEdits.gearId, proposalData.gearId),
             eq(gearEdits.status, "PENDING"),
-            eq(gearEdits.id, proposalId),
+            ne(gearEdits.id, proposalId),
           ),
         );
 

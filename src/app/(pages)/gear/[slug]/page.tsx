@@ -7,7 +7,7 @@ import {
   sensorFormats,
   gearEdits,
 } from "~/server/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { formatPrice, getMountDisplayName } from "~/lib/mapping";
 import { formatHumanDate, getConstructionState } from "~/lib/utils";
 import { GearActionButtons } from "~/app/(pages)/gear/_components/gear-action-buttons";
@@ -117,6 +117,23 @@ export default async function GearPage({ params }: GearPageProps) {
     );
   }
 
+  // Find any pending edit for this gear created by the current user
+  const userPendingEdit = isLoggedIn
+    ? await db
+        .select({ id: gearEdits.id })
+        .from(gearEdits)
+        .where(
+          and(
+            eq(gearEdits.gearId, item.id),
+            eq(gearEdits.createdById, session!.user!.id),
+            eq(gearEdits.status, "PENDING"),
+          ),
+        )
+        .limit(1)
+    : [];
+  const hasPendingEdit = userPendingEdit.length > 0;
+  const pendingEditId = userPendingEdit[0]?.id;
+
   return (
     <main className="mx-auto max-w-4xl p-6">
       {/* Track page visit for popularity */}
@@ -173,27 +190,12 @@ export default async function GearPage({ params }: GearPageProps) {
         )}
       </div>
 
-      {/* Open submission banner (any recent edit) */}
-      {/** For simplicity, we show banner if any edit exists for this gear. */}
-      {(
-        await db
-          .select({ id: gearEdits.id })
-          .from(gearEdits)
-          .where(eq(gearEdits.gearId, item.id))
-          .limit(1)
-      ).length > 0 && (
+      {/* Pending submission banner (only for this user and only when pending) */}
+      {isLoggedIn && hasPendingEdit && (
         <div className="border-border bg-muted/50 text-muted-foreground mb-6 rounded-md border px-4 py-3 text-sm">
           You have a recent suggestion pending review.{" "}
           <Link
-            href={`/edit-success?id=${
-              (
-                await db
-                  .select({ id: gearEdits.id })
-                  .from(gearEdits)
-                  .where(eq(gearEdits.gearId, item.id))
-                  .limit(1)
-              )[0]!.id
-            }`}
+            href={`/edit-success?id=${pendingEditId}`}
             className="text-primary underline"
           >
             View submission
@@ -210,24 +212,10 @@ export default async function GearPage({ params }: GearPageProps) {
       {/* Suggest Edit Button (only when logged in) */}
       {isLoggedIn && (
         <div className="mb-6">
-          {(
-            await db
-              .select({ id: gearEdits.id })
-              .from(gearEdits)
-              .where(eq(gearEdits.gearId, item.id))
-              .limit(1)
-          ).length > 0 ? (
+          {hasPendingEdit ? (
             <Link
               scroll={false}
-              href={`/edit-success?id=${
-                (
-                  await db
-                    .select({ id: gearEdits.id })
-                    .from(gearEdits)
-                    .where(eq(gearEdits.gearId, item.id))
-                    .limit(1)
-                )[0]!.id
-              }`}
+              href={`/edit-success?id=${pendingEditId}`}
               className="bg-secondary text-secondary-foreground hover:bg-secondary/80 inline-flex items-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
             >
               Submission Pending
@@ -249,24 +237,10 @@ export default async function GearPage({ params }: GearPageProps) {
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Specifications</h2>
           {isLoggedIn &&
-            ((
-              await db
-                .select({ id: gearEdits.id })
-                .from(gearEdits)
-                .where(eq(gearEdits.gearId, item.id))
-                .limit(1)
-            ).length > 0 ? (
+            (hasPendingEdit ? (
               <Link
                 scroll={false}
-                href={`/edit-success?id=${
-                  (
-                    await db
-                      .select({ id: gearEdits.id })
-                      .from(gearEdits)
-                      .where(eq(gearEdits.gearId, item.id))
-                      .limit(1)
-                  )[0]!.id
-                }`}
+                href={`/edit-success?id=${pendingEditId}`}
                 className="bg-muted text-muted-foreground hover:bg-muted/80 inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors"
               >
                 Submission Pending
@@ -381,13 +355,6 @@ export default async function GearPage({ params }: GearPageProps) {
                 )}
               </>
             )}
-
-            <div className="flex justify-between px-4 py-3">
-              <span className="text-muted-foreground">Added</span>
-              <span className="font-medium">
-                {formatHumanDate(item.createdAt)}
-              </span>
-            </div>
           </div>
         </div>
       </div>
@@ -418,6 +385,20 @@ export default async function GearPage({ params }: GearPageProps) {
         <h2 className="mb-4 text-lg font-semibold">Reviews</h2>
         <GearReviewForm gearSlug={item.slug} />
         <GearReviewsList gearSlug={item.slug} />
+      </div>
+
+      {/* Page Metadata */}
+      <div className="mt-8 border-t pt-6">
+        <div className="text-muted-foreground space-y-2 text-sm">
+          <div className="flex justify-between">
+            <span>Item Created</span>
+            <span>{formatHumanDate(item.createdAt)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Last Updated</span>
+            <span>{formatHumanDate(item.updatedAt)}</span>
+          </div>
+        </div>
       </div>
     </main>
   );

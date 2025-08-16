@@ -41,6 +41,7 @@ export default async function EditSuccessPage({
       gearId: gearEdits.gearId,
       gearName: gear.name,
       gearSlug: gear.slug,
+      gearType: gear.gearType,
     })
     .from(gearEdits)
     .leftJoin(gear, eq(gearEdits.gearId, gear.id))
@@ -72,10 +73,30 @@ export default async function EditSuccessPage({
         {edit?.status ? (
           <p className="text-muted-foreground">Current status: {edit.status}</p>
         ) : null}
-        <p className="text-muted-foreground">
-          Your submission has been queued for review by our moderators. You’ll
-          be notified if it’s approved or if we need more details.
-        </p>
+        {edit?.status === "PENDING" && (
+          <p className="text-muted-foreground">
+            Your submission has been queued for review by our moderators. You’ll
+            be notified if it’s approved or if we need more details.
+          </p>
+        )}
+        {edit?.status === "APPROVED" && (
+          <p className="text-muted-foreground">
+            Your suggestion was approved and applied to the gear page. Thank you
+            for contributing!
+          </p>
+        )}
+        {edit?.status === "REJECTED" && (
+          <p className="text-muted-foreground">
+            Your suggestion was reviewed but not approved. You can submit
+            another update from the gear page.
+          </p>
+        )}
+        {edit?.status === "MERGED" && (
+          <p className="text-muted-foreground">
+            This submission was merged into another approved edit for the same
+            gear.
+          </p>
+        )}
 
         {/* Payload preview */}
         {!!edit?.payload && (
@@ -153,13 +174,26 @@ export default async function EditSuccessPage({
         )}
 
         <ul className="text-muted-foreground list-disc pl-6">
-          <li>Edits are typically reviewed within 24–72 hours.</li>
+          {edit?.status === "PENDING" && (
+            <li>Edits are typically reviewed within 24–72 hours.</li>
+          )}
           <li>You can continue browsing; this page is safe to close.</li>
           <li>
             Want to help more? Submit additional edits from the gear page
             anytime.
           </li>
         </ul>
+
+        {edit?.gearSlug && (
+          <div className="pt-2">
+            <Link
+              href={`/gear/${edit.gearSlug}${edit?.gearType ? `#suggest` : ""}`}
+              className="text-primary text-sm"
+            >
+              Go to gear page
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );
