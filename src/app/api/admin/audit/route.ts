@@ -6,7 +6,10 @@ import { and, desc, eq, lt } from "drizzle-orm";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
-  if (!session?.user) {
+  if (
+    !session?.user ||
+    !["ADMIN", "EDITOR"].includes((session.user as any).role)
+  ) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

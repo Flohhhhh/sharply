@@ -17,7 +17,10 @@ import {
 
 export async function POST(request: NextRequest) {
   const session = await auth();
-  if (!session?.user) {
+  if (
+    !session?.user ||
+    !["ADMIN", "EDITOR"].includes((session.user as any).role)
+  ) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

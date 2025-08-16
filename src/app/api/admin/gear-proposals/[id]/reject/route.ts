@@ -11,8 +11,11 @@ export async function POST(
   try {
     const session = await auth();
 
-    // TODO: Add proper admin role check
-    if (!session?.user) {
+    // Role check: require EDITOR or ADMIN
+    if (
+      !session?.user ||
+      !["ADMIN", "EDITOR"].includes((session.user as any).role)
+    ) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

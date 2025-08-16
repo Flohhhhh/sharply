@@ -11,18 +11,14 @@ interface UserReview {
   status: string;
   createdAt: string;
   updatedAt: string;
-  gear: {
-    id: string;
-    slug: string;
-    name: string;
-    gearType: string;
-    brand: {
-      name: string;
-    };
-  };
+  gearId: string;
+  gearSlug: string;
+  gearName: string;
+  gearType: string;
+  brandName: string | null;
 }
 
-export function UserReviewsList() {
+export function UserReviewsList({ userId }: { userId?: string }) {
   const [reviews, setReviews] = useState<UserReview[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -30,7 +26,8 @@ export function UserReviewsList() {
   useEffect(() => {
     const fetchUserReviews = async () => {
       try {
-        const response = await fetch("/api/user/reviews");
+        const qs = userId ? `?userId=${encodeURIComponent(userId)}` : "";
+        const response = await fetch(`/api/user/reviews${qs}`);
         if (!response.ok) {
           throw new Error("Failed to fetch reviews");
         }
@@ -45,7 +42,7 @@ export function UserReviewsList() {
     };
 
     fetchUserReviews();
-  }, []);
+  }, [userId]);
 
   if (isLoading) {
     return (
@@ -113,9 +110,7 @@ export function UserReviewsList() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">
-          Your Reviews ({reviews.length})
-        </h3>
+        <h3 className="text-lg font-semibold">Reviews ({reviews.length})</h3>
       </div>
 
       {reviews.map((review) => (
@@ -125,13 +120,13 @@ export function UserReviewsList() {
               <div className="flex-1">
                 <div className="mb-2 flex items-center gap-2">
                   <Link
-                    href={`/gear/${review.gear.slug}`}
+                    href={`/gear/${review.gearSlug}`}
                     className="text-primary font-medium hover:underline"
                   >
-                    {review.gear.brand.name} {review.gear.name}
+                    {review.brandName} {review.gearName}
                   </Link>
                   <Badge variant="outline" className="text-xs">
-                    {review.gear.gearType}
+                    {review.gearType}
                   </Badge>
                 </div>
                 <div className="mt-1 flex items-center gap-2">

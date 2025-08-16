@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { brands, gear } from "~/server/db/schema";
 import { eq, sql } from "drizzle-orm";
@@ -24,6 +25,13 @@ function buildSlug(brandName: string, name: string) {
 }
 
 export async function GET(request: NextRequest) {
+  const session = await auth();
+  if (
+    !session?.user ||
+    !["ADMIN", "EDITOR"].includes((session.user as any).role)
+  ) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   const { searchParams } = new URL(request.url);
   const brandId = searchParams.get("brandId") || "";
   const name = searchParams.get("name") || "";

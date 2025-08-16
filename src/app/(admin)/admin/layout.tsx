@@ -8,8 +8,11 @@ export default async function AdminLayout({
 }) {
   const session = await auth();
 
-  // TODO: Add proper admin role check
-  if (!session?.user) {
+  // Role check: only EDITOR and ADMIN may access
+  if (
+    !session?.user ||
+    !["ADMIN", "EDITOR"].includes((session.user as any).role)
+  ) {
     redirect("/api/auth/signin");
   }
 

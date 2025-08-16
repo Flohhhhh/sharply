@@ -30,10 +30,7 @@ When database changes cannot be made through schema updates alone:
 
 ### Migration Guidelines
 
-- Each migration should be atomic and focused on a single change
-- Include both `UP` and `DOWN` migrations when possible
-- Document complex migrations in the `/docs` folder
-- Use `npm run db:generate` to create new migrations
+Do not create migration files, just make changes to schema, then developer will run the migration generation and push scripts
 
 ## Documentation Management
 

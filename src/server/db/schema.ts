@@ -25,6 +25,7 @@ import { POPULARITY_POINTS, type PopularityEventType } from "~/lib/constants";
 export const createTable = pgTableCreator((name) => `sharply_${name}`);
 
 // --- Enums ---
+export const userRoleEnum = pgEnum("user_role", ["USER", "EDITOR", "ADMIN"]);
 export const gearTypeEnum = pgEnum("gear_type", ["CAMERA", "LENS"]);
 export const proposalStatusEnum = pgEnum("proposal_status", [
   "PENDING",
@@ -233,6 +234,9 @@ export const reviews = createTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     status: reviewStatusEnum("status").notNull().default("PENDING"),
+    // Review metadata
+    genres: jsonb("genres"),
+    recommend: boolean("recommend"),
     content: text("content").notNull(),
     createdAt,
     updatedAt,
@@ -383,6 +387,7 @@ export const users = createTable("user", (d) => ({
     })
     .default(sql`CURRENT_TIMESTAMP`),
   image: d.varchar({ length: 255 }),
+  role: userRoleEnum("role").notNull().default("USER"),
 }));
 
 export const usersRelations = relations(users, ({ many }) => ({

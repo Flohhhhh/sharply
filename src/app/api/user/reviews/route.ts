@@ -6,13 +6,14 @@ import { eq } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const requestedUserId = searchParams.get("userId");
+    // If a userId is provided, fetch reviews for that user (public profile view).
+    // Otherwise, require auth and fetch the current user's reviews.
     const session = await auth();
-
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 },
-      );
+    const targetUserId = requestedUserId || session?.user?.id || null;
+    if (!targetUserId) {
+      return NextResponse.json({ reviews: [] });
     }
 
     // Get user's reviews with gear information
@@ -32,7 +33,7 @@ export async function GET(request: NextRequest) {
       .from(reviews)
       .leftJoin(gear, eq(reviews.gearId, gear.id))
       .leftJoin(brands, eq(gear.brandId, brands.id))
-      .where(eq(reviews.createdById, session.user.id))
+      .where(eq(reviews.createdById, targetUserId))
       .orderBy(reviews.createdAt);
 
     return NextResponse.json({ reviews: userReviews });

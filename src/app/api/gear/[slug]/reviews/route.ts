@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
-import { reviews, gear } from "~/server/db/schema";
-import { and, eq } from "drizzle-orm";
+import { reviews, gear, users } from "~/server/db/schema";
+import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 // Validation schema for review submission
 const reviewSchema = z.object({
   content: z.string().min(1),
+  genres: z.array(z.string()).min(1).max(3),
+  recommend: z.boolean(),
 });
 
 export async function POST(
@@ -26,8 +28,6 @@ export async function POST(
 
     const { slug } = await params;
     const body = await request.json();
-
-    // Validate request body
     const validatedData = reviewSchema.parse(body);
 
     // Get gear item by slug
@@ -72,6 +72,8 @@ export async function POST(
         gearId,
         createdById: session.user.id,
         content: validatedData.content,
+        genres: validatedData.genres as any,
+        recommend: validatedData.recommend,
       })
       .returning();
 
@@ -106,6 +108,7 @@ export async function GET(
   try {
     const { slug } = await params;
     console.log("Fetching reviews for gear slug:", slug);
+    const { searchParams } = new URL(request.url);
 
     // Get gear item by slug
     const gearItem = await db
@@ -125,21 +128,48 @@ export async function GET(
     const gearId = gearItem[0]!.id;
     console.log("Found gear ID:", gearId);
 
+    // If requesting current user's review existence, short-circuit
+    const mine = searchParams.get("mine");
+    if (mine) {
+      const session = await auth();
+      if (!session?.user?.id) {
+        return NextResponse.json({ hasReview: false });
+      }
+      const my = await db
+        .select({ id: reviews.id, status: reviews.status })
+        .from(reviews)
+        .where(
+          and(
+            eq(reviews.gearId, gearId),
+            eq(reviews.createdById, session.user.id),
+          ),
+        )
+        .limit(1);
+      return NextResponse.json({
+        hasReview: my.length > 0,
+        status: my[0]?.status ?? null,
+      });
+    }
+
     try {
-      // Get approved reviews for this gear
+      // Get approved reviews for this gear with user info and new metadata
       const gearReviews = await db
         .select({
           id: reviews.id,
           content: reviews.content,
+          genres: reviews.genres,
+          recommend: reviews.recommend,
           createdAt: reviews.createdAt,
           createdBy: {
-            id: reviews.createdById,
-            name: reviews.createdById, // This will need to be joined with users table for actual names
+            id: users.id,
+            name: users.name,
+            image: users.image,
           },
         })
         .from(reviews)
+        .leftJoin(users, eq(reviews.createdById, users.id))
         .where(and(eq(reviews.gearId, gearId), eq(reviews.status, "APPROVED")))
-        .orderBy(reviews.createdAt);
+        .orderBy(desc(reviews.createdAt));
 
       console.log("Successfully fetched reviews:", gearReviews.length);
       return NextResponse.json({ reviews: gearReviews });

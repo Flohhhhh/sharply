@@ -11,8 +11,7 @@ import { formatPrice, getMountDisplayName } from "~/lib/mapping";
 import { formatHumanDate, getConstructionState } from "~/lib/utils";
 import { GearActionButtons } from "~/app/(pages)/gear/_components/gear-action-buttons";
 import { GearVisitTracker } from "~/app/(pages)/gear/_components/gear-visit-tracker";
-import { GearReviewForm } from "~/app/(pages)/gear/_components/gear-review-form";
-import { GearReviewsList } from "~/app/(pages)/gear/_components/gear-reviews-list";
+import { GearReviews } from "~/app/(pages)/gear/_components/gear-reviews";
 import { fetchGearBySlug } from "~/lib/queries/gear";
 import { ConstructionNotice } from "~/app/(pages)/gear/_components/construction-notice";
 import { ConstructionFullPage } from "~/app/(pages)/gear/_components/construction-full";
@@ -314,11 +313,7 @@ export default async function GearPage({ params }: GearPageProps) {
       <SignInToEditSpecsCta />
 
       {/* Reviews */}
-      <div className="mt-12">
-        <h2 className="mb-4 text-lg font-semibold">Reviews</h2>
-        <GearReviewForm gearSlug={item.slug} />
-        <GearReviewsList gearSlug={item.slug} />
-      </div>
+      <GearReviews slug={item.slug} />
 
       {/* Contributors */}
       <GearContributors gearId={item.id} />

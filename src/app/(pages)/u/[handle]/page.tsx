@@ -167,7 +167,7 @@ export default async function UserProfilePage({
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold">Reviews</h2>
           </div>
-          <UserReviewsList />
+          <UserReviewsList userId={user.id} />
         </div>
       </div>
     </main>
