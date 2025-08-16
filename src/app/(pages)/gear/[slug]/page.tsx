@@ -18,6 +18,7 @@ import { fetchGearBySlug } from "~/lib/queries/gear";
 import { ConstructionNotice } from "~/app/(pages)/gear/_components/construction-notice";
 import { ConstructionFullPage } from "~/app/(pages)/gear/_components/construction-full";
 import type { GearItem } from "~/types/gear";
+import { GearContributors } from "~/app/(pages)/gear/_components/gear-contributors";
 
 interface GearPageProps {
   params: Promise<{
@@ -386,6 +387,9 @@ export default async function GearPage({ params }: GearPageProps) {
         <GearReviewForm gearSlug={item.slug} />
         <GearReviewsList gearSlug={item.slug} />
       </div>
+
+      {/* Contributors */}
+      <GearContributors gearId={item.id} />
 
       {/* Page Metadata */}
       <div className="mt-8 border-t pt-6">
