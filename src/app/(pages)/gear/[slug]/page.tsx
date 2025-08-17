@@ -20,7 +20,6 @@ import { GearContributors } from "~/app/(pages)/gear/_components/gear-contributo
 import { UserPendingEditBanner } from "../_components/user-pending-edit-banner";
 import { SignInToEditSpecsCta } from "../_components/sign-in-to-edit-cta";
 import { SuggestEditButton } from "../_components/suggest-edit-button";
-import { EditPendingToast } from "../_components/edit-pending-toast";
 
 export const revalidate = 3600;
 
@@ -122,8 +121,6 @@ export default async function GearPage({ params }: GearPageProps) {
 
   return (
     <main className="mx-auto max-w-4xl p-6">
-      {/* Toast if redirected back due to existing pending submission */}
-      <EditPendingToast />
       {/* Track page visit for popularity */}
       <GearVisitTracker slug={slug} />
 
