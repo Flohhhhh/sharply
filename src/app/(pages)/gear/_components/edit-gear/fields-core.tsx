@@ -22,6 +22,9 @@ interface CoreFieldsProps {
     msrpUsdCents: number | null;
     mountId: string | null;
     weightGrams: number | null;
+    linkManufacturer?: string | null;
+    linkMpb?: string | null;
+    linkAmazon?: string | null;
   };
   onChange: (field: string, value: any) => void;
 }
@@ -60,6 +63,14 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
   const handleWeightChange = useCallback(
     (value: number) => {
       onChange("weightGrams", value);
+    },
+    [onChange],
+  );
+
+  const handleLinkChange = useCallback(
+    (field: "linkManufacturer" | "linkMpb" | "linkAmazon", value: string) => {
+      const v = value.trim();
+      onChange(field, v.length ? v : null);
     },
     [onChange],
   );
@@ -150,6 +161,44 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
               </SelectTrigger>
               <SelectContent>{mountOptions}</SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="linkManufacturer">Manufacturer Link</Label>
+            <input
+              id="linkManufacturer"
+              type="url"
+              value={currentSpecs.linkManufacturer || ""}
+              onChange={(e) =>
+                handleLinkChange("linkManufacturer", e.target.value)
+              }
+              className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder="https://manufacturer.example.com/product"
+            />
+          </div>
+
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="linkMpb">MPB Link</Label>
+            <input
+              id="linkMpb"
+              type="url"
+              value={currentSpecs.linkMpb || ""}
+              onChange={(e) => handleLinkChange("linkMpb", e.target.value)}
+              className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder="https://www.mpb.com/..."
+            />
+          </div>
+
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="linkAmazon">Amazon Link</Label>
+            <input
+              id="linkAmazon"
+              type="url"
+              value={currentSpecs.linkAmazon || ""}
+              onChange={(e) => handleLinkChange("linkAmazon", e.target.value)}
+              className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder="https://amazon.com/..."
+            />
           </div>
         </div>
       </CardContent>

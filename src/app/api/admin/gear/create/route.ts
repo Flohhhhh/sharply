@@ -26,11 +26,23 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { name, brandId, gearType, modelNumber, force } = body as {
+    const {
+      name,
+      brandId,
+      gearType,
+      modelNumber,
+      linkManufacturer,
+      linkMpb,
+      linkAmazon,
+      force,
+    } = body as {
       name?: string;
       brandId?: string;
       gearType?: "CAMERA" | "LENS";
       modelNumber?: string;
+      linkManufacturer?: string;
+      linkMpb?: string;
+      linkAmazon?: string;
       force?: boolean;
     };
 
@@ -127,6 +139,9 @@ export async function POST(request: NextRequest) {
           gearType,
           brandId,
           modelNumber: modelNumber || null,
+          linkManufacturer: linkManufacturer || null,
+          linkMpb: linkMpb || null,
+          linkAmazon: linkAmazon || null,
           searchName: normalizeSearchName(displayName, brandName),
         })
         .returning({ id: gear.id, slug: gear.slug });

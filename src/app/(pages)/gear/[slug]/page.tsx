@@ -20,6 +20,7 @@ import { GearContributors } from "~/app/(pages)/gear/_components/gear-contributo
 import { UserPendingEditBanner } from "../_components/user-pending-edit-banner";
 import { SignInToEditSpecsCta } from "../_components/sign-in-to-edit-cta";
 import { SuggestEditButton } from "../_components/suggest-edit-button";
+import { GearLinks } from "~/app/(pages)/gear/_components/gear-links";
 
 export const revalidate = 3600;
 
@@ -181,6 +182,16 @@ export default async function GearPage({ params }: GearPageProps) {
       {/* Action Buttons */}
       <div className="mb-8">
         <GearActionButtons slug={slug} />
+      </div>
+
+      {/* Links */}
+      <div className="mb-8">
+        <GearLinks
+          slug={item.slug}
+          linkManufacturer={item.linkManufacturer ?? null}
+          linkMpb={item.linkMpb ?? null}
+          linkAmazon={item.linkAmazon ?? null}
+        />
       </div>
 
       {/* Suggest Edit Button */}

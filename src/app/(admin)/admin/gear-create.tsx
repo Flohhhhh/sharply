@@ -28,6 +28,9 @@ type Brand = { id: string; name: string };
 export function GearCreateCard() {
   const [name, setName] = useState("");
   const [modelNumber, setModelNumber] = useState("");
+  const [linkManufacturer, setLinkManufacturer] = useState("");
+  const [linkMpb, setLinkMpb] = useState("");
+  const [linkAmazon, setLinkAmazon] = useState("");
   const [brandId, setBrandId] = useState<string>("");
   const [gearType, setGearType] = useState<"CAMERA" | "LENS" | "">("");
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -58,6 +61,9 @@ export function GearCreateCard() {
     // Reset form when changing brand or gear type
     setName("");
     setModelNumber("");
+    setLinkManufacturer("");
+    setLinkMpb("");
+    setLinkAmazon("");
     setSlugPreview("");
     setProceedAnyway(false);
     setHardSlugConflict(null);
@@ -109,6 +115,9 @@ export function GearCreateCard() {
           brandId,
           gearType,
           modelNumber: modelNumber.trim() || undefined,
+          linkManufacturer: linkManufacturer.trim() || undefined,
+          linkMpb: linkMpb.trim() || undefined,
+          linkAmazon: linkAmazon.trim() || undefined,
           force: proceedAnyway,
         }),
       });
@@ -119,6 +128,9 @@ export function GearCreateCard() {
         setBrandId("");
         setGearType("");
         setModelNumber("");
+        setLinkManufacturer("");
+        setLinkMpb("");
+        setLinkAmazon("");
         setSlugPreview("");
         setHardSlugConflict(null);
         setHardModelConflict(null);
@@ -288,6 +300,39 @@ export function GearCreateCard() {
                 </div>
               </CollapsibleContent>
             </Collapsible>
+          </div>
+          <div className="space-y-1 md:col-span-3">
+            <Label htmlFor="link-manufacturer">Manufacturer Link</Label>
+            <Input
+              id="link-manufacturer"
+              type="url"
+              value={linkManufacturer}
+              onChange={(e) => setLinkManufacturer(e.target.value)}
+              placeholder="https://manufacturer.example.com/product"
+              disabled={!brandId || !gearType}
+            />
+          </div>
+          <div className="space-y-1 md:col-span-3">
+            <Label htmlFor="link-mpb">MPB Link</Label>
+            <Input
+              id="link-mpb"
+              type="url"
+              value={linkMpb}
+              onChange={(e) => setLinkMpb(e.target.value)}
+              placeholder="https://www.mpb.com/..."
+              disabled={!brandId || !gearType}
+            />
+          </div>
+          <div className="space-y-1 md:col-span-3">
+            <Label htmlFor="link-amazon">Amazon Link</Label>
+            <Input
+              id="link-amazon"
+              type="url"
+              value={linkAmazon}
+              onChange={(e) => setLinkAmazon(e.target.value)}
+              placeholder="https://amazon.com/..."
+              disabled={!brandId || !gearType}
+            />
           </div>
         </div>
 

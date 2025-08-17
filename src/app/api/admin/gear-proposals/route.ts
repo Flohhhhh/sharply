@@ -46,15 +46,7 @@ export async function GET(request: NextRequest) {
     const getBaseline = async (gearId: string) => {
       if (baselineCache.has(gearId)) return baselineCache.get(gearId);
       const [g] = await db
-        .select({
-          id: gear.id,
-          name: gear.name,
-          slug: gear.slug,
-          releaseDate: gear.releaseDate,
-          msrpUsdCents: gear.msrpUsdCents,
-          mountId: gear.mountId,
-          weightGrams: gear.weightGrams,
-        })
+        .select()
         .from(gear)
         .where(eq(gear.id, gearId))
         .limit(1);

@@ -114,6 +114,9 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
       "releaseDate",
       "msrpUsdCents",
       "weightGrams",
+      "linkManufacturer",
+      "linkMpb",
+      "linkAmazon",
     ] as const;
     const coreDiff = diffByKeys(gearData as any, formData as any, coreKeys);
     if (Object.keys(coreDiff).length > 0) payload.core = coreDiff;
