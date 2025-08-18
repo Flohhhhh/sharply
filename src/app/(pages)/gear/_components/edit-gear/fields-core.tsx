@@ -13,6 +13,8 @@ import {
 import { DateInput } from "~/components/custom-inputs";
 import CurrencyInput from "~/components/custom-inputs/currency-input";
 import { MOUNTS } from "~/lib/constants";
+import MultiSelect from "~/components/ui/multi-select";
+import { GENRES } from "~/lib/constants";
 import { getMountLongName } from "~/lib/mapping/mounts-map";
 import { centsToUsd, usdToCents } from "~/lib/utils";
 
@@ -25,6 +27,7 @@ interface CoreFieldsProps {
     linkManufacturer?: string | null;
     linkMpb?: string | null;
     linkAmazon?: string | null;
+    genres?: string[] | null;
   };
   onChange: (field: string, value: any) => void;
 }
@@ -119,6 +122,19 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
     return currentSpecs.mountId || "";
   }, [currentSpecs.mountId]);
 
+  // Genres options and values
+  const genreOptions = useMemo(
+    () =>
+      (GENRES as any[]).map((g) => ({
+        id: (g.slug as string) ?? (g.id as string),
+        name: (g.name as string) ?? ((g.slug as string) || ""),
+      })),
+    [],
+  );
+  const formattedGenres = useMemo(() => {
+    return Array.isArray(currentSpecs.genres) ? currentSpecs.genres : [];
+  }, [currentSpecs.genres]);
+
   return (
     <Card>
       <CardHeader>
@@ -161,6 +177,17 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
               </SelectTrigger>
               <SelectContent>{mountOptions}</SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2 md:col-span-2">
+            <Label>Use cases (genres)</Label>
+            <MultiSelect
+              options={genreOptions}
+              value={formattedGenres}
+              onChange={(ids) => onChange("genres", ids)}
+              placeholder="Select use cases..."
+              searchPlaceholder="Search genres..."
+            />
           </div>
 
           <div className="space-y-2 md:col-span-2">

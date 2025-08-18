@@ -38,11 +38,13 @@ async function generateConstants() {
     const sensorFormatsData =
       await client`SELECT * FROM sharply_sensor_formats`;
     const brandsData = await client`SELECT * FROM sharply_brands`;
+    const genresData = await client`SELECT * FROM sharply_genres`;
 
     const content = `// Auto-generated constants from database
 export const MOUNTS = ${JSON.stringify(mountsData, null, 2)};
 export const SENSOR_FORMATS = ${JSON.stringify(sensorFormatsData, null, 2)};
 export const BRANDS = ${JSON.stringify(brandsData, null, 2)};
+export const GENRES = ${JSON.stringify(genresData, null, 2)};
 `;
 
     const outputPath = join(__dirname, "../src/lib/generated.ts");

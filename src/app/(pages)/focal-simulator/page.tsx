@@ -45,8 +45,18 @@ function formatMm(value: number): string {
 }
 
 export default function FocalSimulatorPage() {
-  const [selectedSceneId, setSelectedSceneId] = useState<string>(SCENES[0].id);
-  const selectedScene = SCENES.find((s) => s.id === selectedSceneId)!;
+  // Guard: if no scenes are defined, render nothing (should not happen in prod)
+  if (SCENES.length === 0) {
+    return null;
+  }
+
+  const [selectedSceneId, setSelectedSceneId] = useState<string>(
+    SCENES[0]?.id ?? "",
+  );
+  const selectedScene = useMemo(
+    () => SCENES.find((s) => s.id === selectedSceneId) ?? SCENES[0]!,
+    [selectedSceneId],
+  );
 
   // Target focal starts at the next common step above the capture focal
   const nextPresetAbove = (base: number) =>

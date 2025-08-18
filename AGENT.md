@@ -19,18 +19,11 @@ Sharply is a photography gear database and cataloging application built with Nex
 - **NEVER** modify the database directly without going through the schema
 - Use Drizzle's type-safe schema definitions
 
-### Migration Process
-
-When database changes cannot be made through schema updates alone:
-
-1. **Create individual migration files** in the `/drizzle` folder
-2. **Use descriptive names** for migration files (e.g., `add_user_preferences.sql`)
-3. **Follow existing naming convention**: `000X_descriptive_name.sql`
-4. **Update documentation** in `/docs` folder to reflect changes
-
 ### Migration Guidelines
 
-Do not create migration files, just make changes to schema, then developer will run the migration generation and push scripts
+Do not create migration files, just make changes to schema, then developer will run the migration generation and push scripts.
+
+NEVER RUN DB:PUSH OR drizzle-kit push
 
 ## Documentation Management
 
@@ -60,10 +53,7 @@ Do not create migration files, just make changes to schema, then developer will 
 
 ### For Database Migrations
 
-- **Create individual migration files** in `/drizzle` folder
-- **Use descriptive names** following the existing pattern
-- **Update documentation** to reflect migration changes
-- **Follow Drizzle best practices** for migration creation
+NEVER RUN DB:PUSH or drizzle-kit push
 
 ### For Schema Changes
 

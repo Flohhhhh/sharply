@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
-import { REVIEW_GENRES } from "~/lib/constants";
+import { GENRES } from "~/lib/constants";
 
 interface Review {
   id: string;
@@ -134,8 +134,12 @@ export function GearReviewsList({
                 {Array.isArray(review.genres) && review.genres.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {review.genres.map((gid) => {
-                      const match = REVIEW_GENRES.find((g) => g.id === gid);
-                      const label = match?.name ?? gid;
+                      const match = (GENRES as any[]).find(
+                        (g) =>
+                          (g.slug as string) === gid ||
+                          (g.id as string) === gid,
+                      );
+                      const label = (match?.name as string) ?? gid;
                       return (
                         <Badge
                           key={gid}

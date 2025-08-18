@@ -14,7 +14,7 @@ import {
   DialogTrigger,
 } from "~/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
-import { REVIEW_GENRES } from "~/lib/constants";
+import { GENRES } from "~/lib/constants";
 import React from "react";
 
 interface GearReviewFormProps {
@@ -163,12 +163,14 @@ export function GearReviewForm({
                   What do you use it for?
                 </label>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                  {REVIEW_GENRES.map((g) => {
-                    const checked = genres.includes(g.id);
+                  {(GENRES as any[]).map((g) => {
+                    const checked = genres.includes(
+                      (g.slug as string) ?? (g.id as string),
+                    );
                     const disabled = !checked && genres.length >= 3;
                     return (
                       <label
-                        key={g.id}
+                        key={(g.id as string) ?? (g.slug as string)}
                         className="flex items-center gap-2 text-sm"
                       >
                         <input
@@ -178,13 +180,18 @@ export function GearReviewForm({
                           onChange={(e) => {
                             if (e.target.checked) {
                               if (genres.length < 3)
-                                setGenres([...genres, g.id]);
+                                setGenres([
+                                  ...genres,
+                                  ((g.slug as string) ?? (g.id as string))!,
+                                ]);
                             } else {
-                              setGenres(genres.filter((id) => id !== g.id));
+                              const key =
+                                (g.slug as string) ?? (g.id as string);
+                              setGenres(genres.filter((id) => id !== key));
                             }
                           }}
                         />
-                        <span>{g.name}</span>
+                        <span>{(g.name as string) ?? (g.slug as string)}</span>
                       </label>
                     );
                   })}

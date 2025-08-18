@@ -1,1 +1,0 @@
-ALTER TABLE "gear" RENAME COLUMN "price_usd" TO "price_usd_cents";

@@ -2,7 +2,14 @@ import "dotenv/config";
 import { eq } from "drizzle-orm";
 import slugify from "slugify";
 import { db } from "../src/server/db";
-import { brands, gear, mounts, sensorFormats } from "../src/server/db/schema";
+import {
+  brands,
+  gear,
+  mounts,
+  sensorFormats,
+  genres as genresTable,
+  gearGenres,
+} from "../src/server/db/schema";
 import { normalizeSearchName } from "../src/lib/utils";
 
 const s = (v: string) => slugify(v, { lower: true, strict: true });
@@ -190,6 +197,39 @@ async function main() {
     sensorFormatMap.set(format.slug, result);
   }
 
+  // Seed genres (use-cases)
+  const defaultGenres = [
+    {
+      name: "Portraits",
+      slug: "portraits",
+      description:
+        "Portraits of people; senior portraits, engagement shoots, models, fashion photography, etc.",
+    },
+    { name: "Weddings", slug: "weddings", description: "Wedding photography" },
+    { name: "Sports", slug: "sports", description: "Fast action and sports" },
+    {
+      name: "Wildlife",
+      slug: "wildlife",
+      description: "Animals, birds, and other creatures.",
+    },
+    { name: "Street", slug: "street", description: "Street and candid" },
+    { name: "Travel", slug: "travel", description: "Travel and documentary" },
+    {
+      name: "Landscape",
+      slug: "landscape",
+      description: "Landscapes and nature",
+    },
+    { name: "Macro", slug: "macro", description: "Close-up and macro" },
+    { name: "Product", slug: "product", description: "Product and studio" },
+    { name: "Events", slug: "events", description: "Events and concerts" },
+    { name: "Video", slug: "video", description: "Video and filmmaking" },
+  ];
+  const genreMap = new Map<string, any>();
+  for (const g of defaultGenres) {
+    const result = await upsertBySlug(genresTable, g);
+    genreMap.set(g.slug, result);
+  }
+
   // Sample gear rows with normalized search names
   // The normalizeSearchName function combines brand name and gear name for better searchability
   const items: (typeof gear.$inferInsert)[] = [
@@ -205,89 +245,6 @@ async function main() {
       thumbnailUrl: null,
     },
     {
-      name: "Nikon Z 24-70mm f/2.8 S",
-      slug: s("Nikon Z 24-70mm f/2.8 S"),
-      searchName: normalizeSearchName("Nikon Z 24-70mm f/2.8 S", "Nikon"),
-      gearType: "LENS" as const,
-      brandId: nikon!.id,
-      mountId: mountLookup["z-nikon"] || null,
-      msrpUsdCents: 239900,
-      releaseDate: new Date("2022-01-01"),
-      thumbnailUrl: null,
-    },
-    {
-      name: "Nikon Z 50mm f/1.8 S",
-      slug: s("Nikon Z 50mm f/1.8 S"),
-      searchName: normalizeSearchName("Nikon Z 50mm f/1.8 S", "Nikon"),
-      gearType: "LENS" as const,
-      brandId: nikon!.id,
-      mountId: mountLookup["z-nikon"] || null,
-      msrpUsdCents: 59900,
-      releaseDate: new Date("2021-01-01"),
-      thumbnailUrl: null,
-    },
-    {
-      name: "Canon RF 70-200mm f/2.8L IS USM",
-      slug: s("Canon RF 70-200mm f/2.8L IS USM"),
-      searchName: normalizeSearchName(
-        "Canon RF 70-200mm f/2.8L IS USM",
-        "Canon",
-      ),
-      gearType: "LENS" as const,
-      brandId: canon!.id,
-      mountId: mountLookup["rf-canon"] || null,
-      msrpUsdCents: 269900,
-      releaseDate: new Date("2022-01-01"),
-      thumbnailUrl: null,
-    },
-    {
-      name: "Canon RF 85mm f/1.2L USM",
-      slug: s("Canon RF 85mm f/1.2L USM"),
-      searchName: normalizeSearchName("Canon RF 85mm f/1.2L USM", "Canon"),
-      gearType: "LENS" as const,
-      brandId: canon!.id,
-      mountId: mountLookup["rf-canon"] || null,
-      msrpUsdCents: 269900,
-      releaseDate: new Date("2021-01-01"),
-      thumbnailUrl: null,
-    },
-    {
-      name: "Sony FE 24-70mm f/2.8 GM II",
-      slug: s("Sony FE 24-70mm f/2.8 GM II"),
-      searchName: normalizeSearchName("Sony FE 24-70mm f/2.8 GM II", "Sony"),
-      gearType: "LENS" as const,
-      brandId: sony!.id,
-      mountId: mountLookup["e-sony"] || null,
-      msrpUsdCents: 219900,
-      releaseDate: new Date("2022-01-01"),
-      thumbnailUrl: null,
-    },
-    {
-      name: "Sony FE 50mm f/1.4 GM",
-      slug: s("Sony FE 50mm f/1.4 GM"),
-      searchName: normalizeSearchName("Sony FE 50mm f/1.4 GM", "Sony"),
-      gearType: "LENS" as const,
-      brandId: sony!.id,
-      mountId: mountLookup["e-sony"] || null,
-      msrpUsdCents: 139900,
-      releaseDate: new Date("2021-01-01"),
-      thumbnailUrl: null,
-    },
-    {
-      name: "Fujifilm XF 56mm f/1.2 R WR",
-      slug: s("Fujifilm XF 56mm f/1.2 R WR"),
-      searchName: normalizeSearchName(
-        "Fujifilm XF 56mm f/1.2 R WR",
-        "Fujifilm",
-      ),
-      gearType: "LENS" as const,
-      brandId: fujifilm!.id,
-      mountId: mountLookup["x-fujifilm"] || null,
-      msrpUsdCents: 99900,
-      releaseDate: new Date("2021-01-01"),
-      thumbnailUrl: null,
-    },
-    {
       name: "Nikon Z6 III",
       slug: s("Nikon Z6 III"),
       searchName: normalizeSearchName("Nikon Z6 III", "Nikon"),
@@ -298,59 +255,10 @@ async function main() {
       releaseDate: new Date("2023-01-01"),
       thumbnailUrl: null,
     },
-    {
-      name: "Canon EOS R5ii",
-      slug: s("Canon EOS R5ii"),
-      searchName: normalizeSearchName("Canon EOS R5ii", "Canon"),
-      gearType: "CAMERA" as const,
-      brandId: canon!.id,
-      mountId: mountLookup["rf-canon"] || null,
-      msrpUsdCents: 389900,
-      releaseDate: new Date("2023-01-01"),
-      thumbnailUrl: null,
-    },
-    {
-      name: "Sony Alpha A7 IV",
-      slug: s("Sony Alpha A7 IV"),
-      searchName: normalizeSearchName("Sony Alpha A7 IV", "Sony"),
-      gearType: "CAMERA" as const,
-      brandId: sony!.id,
-      mountId: mountLookup["e-sony"] || null,
-      msrpUsdCents: 249900,
-      releaseDate: new Date("2023-01-01"),
-      thumbnailUrl: null,
-    },
-    {
-      name: "Fujifilm X-T5",
-      slug: s("Fujifilm X-T5"),
-      searchName: normalizeSearchName("Fujifilm X-T5", "Fujifilm"),
-      gearType: "CAMERA" as const,
-      brandId: fujifilm!.id,
-      mountId: mountLookup["x-fujifilm"] || null,
-      msrpUsdCents: 169900,
-      releaseDate: new Date("2023-01-01"),
-      thumbnailUrl: null,
-    },
   ];
 
   // Mount IDs will be set directly in the gear items below
   console.log("Mounts available for assignment:", mountLookup);
-
-  // Demonstrate the normalizeSearchName function
-  console.log("\n=== normalizeSearchName Examples ===");
-  console.log(
-    `"Nikon Z6 III" + "Nikon" → "${normalizeSearchName("Nikon Z6 III", "Nikon")}"`,
-  );
-  console.log(
-    `"Canon EOS R5ii" + "Canon" → "${normalizeSearchName("Canon EOS R5ii", "Canon")}"`,
-  );
-  console.log(
-    `"Sony Alpha A7 IV" + "Sony" → "${normalizeSearchName("Sony Alpha A7 IV", "Sony")}"`,
-  );
-  console.log(
-    `"Fujifilm X-T5" + "Fujifilm" → "${normalizeSearchName("Fujifilm X-T5", "Fujifilm")}"`,
-  );
-  console.log("=====================================\n");
 
   // Clear existing gear items first
   await db.delete(gear);
@@ -452,34 +360,6 @@ async function main() {
           focalLengthMaxMm: 400,
           hasStabilization: true,
         };
-      } else if (item.name.includes("24-70mm")) {
-        specs = {
-          ...specs,
-          focalLengthMinMm: 24,
-          focalLengthMaxMm: 70,
-          hasStabilization: true,
-        };
-      } else if (item.name.includes("50mm")) {
-        specs = {
-          ...specs,
-          focalLengthMinMm: 50,
-          focalLengthMaxMm: 50,
-          hasStabilization: false,
-        };
-      } else if (item.name.includes("85mm")) {
-        specs = {
-          ...specs,
-          focalLengthMinMm: 85,
-          focalLengthMaxMm: 85,
-          hasStabilization: false,
-        };
-      } else if (item.name.includes("70-200mm")) {
-        specs = {
-          ...specs,
-          focalLengthMinMm: 70,
-          focalLengthMaxMm: 200,
-          hasStabilization: true,
-        };
       } else {
         // Default specs for other lenses
         specs = {
@@ -492,6 +372,30 @@ async function main() {
 
       await db.insert(lensSpecs).values(specs);
       console.log(`Added lens specs for: ${item.name}`);
+    }
+  }
+
+  // Link some genres to gear via join table (demonstration)
+  console.log("Linking genres to gear...");
+  const link = async (gearId: string, slugs: string[]) => {
+    for (const slug of slugs) {
+      const g = genreMap.get(slug);
+      if (!g) continue;
+      await db
+        .insert(gearGenres)
+        .values({ gearId, genreId: g.id, createdAt: new Date() });
+    }
+  };
+  for (const item of insertedGear) {
+    if (item.gearType === "CAMERA") {
+      await link(item.id, ["travel", "street", "landscape"]);
+    } else {
+      // lenses: pick a couple based on name heuristics
+      if (item.name.includes("400mm") || item.name.includes("70-200mm")) {
+        await link(item.id, ["sports", "wildlife"]);
+      } else {
+        await link(item.id, ["product", "macro"]);
+      }
     }
   }
 

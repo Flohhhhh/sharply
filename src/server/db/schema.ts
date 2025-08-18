@@ -89,6 +89,18 @@ export const sensorFormats = createTable("sensor_formats", (d) => ({
   updatedAt,
 }));
 
+// --- Genres (Use-cases) ---
+export const genres = createTable("genres", (d) => ({
+  id: varchar("id", { length: 36 })
+    .primaryKey()
+    .default(sql`gen_random_uuid()::text`),
+  name: varchar("name", { length: 200 }).notNull().unique(),
+  slug: varchar("slug", { length: 200 }).notNull().unique(),
+  description: varchar("description", { length: 500 }),
+  createdAt,
+  updatedAt,
+}));
+
 // --- Gear core ---
 export const gear = createTable(
   "gear",
@@ -114,6 +126,8 @@ export const gear = createTable(
     linkManufacturer: text("link_manufacturer"),
     linkMpb: text("link_mpb"),
     linkAmazon: text("link_amazon"),
+    // Denormalized shortlist of genre slugs for quick reads (authoritative list via join table)
+    genres: jsonb("genres"),
     createdAt,
     updatedAt,
   }),
@@ -121,6 +135,27 @@ export const gear = createTable(
     index("gear_search_idx").on(t.searchName),
     index("gear_type_brand_idx").on(t.gearType, t.brandId),
     index("gear_brand_mount_idx").on(t.brandId, t.mountId),
+  ],
+);
+
+// Many-to-many: Gear x Genres
+export const gearGenres = createTable(
+  "gear_genres",
+  (d) => ({
+    gearId: d
+      .varchar("gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    genreId: d
+      .varchar("genre_id", { length: 36 })
+      .notNull()
+      .references(() => genres.id, { onDelete: "cascade" }),
+    createdAt,
+  }),
+  (t) => [
+    primaryKey({ columns: [t.gearId, t.genreId] }),
+    index("gear_genres_gear_idx").on(t.gearId),
+    index("gear_genres_genre_idx").on(t.genreId),
   ],
 );
 
@@ -263,6 +298,7 @@ export const gearRelations = relations(gear, ({ one, many }) => ({
   }),
   edits: many(gearEdits),
   reviews: many(reviews),
+  genres: many(gearGenres),
 }));
 
 export const gearEditsRelations = relations(gearEdits, ({ one }) => ({
@@ -285,6 +321,15 @@ export const reviewsRelations = relations(reviews, ({ one }) => ({
     fields: [reviews.createdById],
     references: [users.id],
   }),
+}));
+
+export const gearGenresRelations = relations(gearGenres, ({ one }) => ({
+  gear: one(gear, { fields: [gearGenres.gearId], references: [gear.id] }),
+  genre: one(genres, { fields: [gearGenres.genreId], references: [genres.id] }),
+}));
+
+export const genresRelations = relations(genres, ({ many }) => ({
+  gearLinks: many(gearGenres),
 }));
 
 // --- Interactions ---

@@ -66,7 +66,7 @@ export function MultiSelect({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-full justify-between"
+            className="h-auto min-h-9 w-full items-start justify-between"
           >
             <div className="flex min-h-5 flex-1 flex-wrap items-center gap-1">
               {selected.length > 0 ? (

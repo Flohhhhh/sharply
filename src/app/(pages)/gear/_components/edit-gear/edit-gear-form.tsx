@@ -117,6 +117,7 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
       "linkManufacturer",
       "linkMpb",
       "linkAmazon",
+      "genres",
     ] as const;
     const coreDiff = diffByKeys(gearData as any, formData as any, coreKeys);
     if (Object.keys(coreDiff).length > 0) payload.core = coreDiff;
@@ -221,7 +222,17 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <CoreFields currentSpecs={formData} onChange={handleChange} />
+      <CoreFields
+        currentSpecs={
+          {
+            ...(formData as any),
+            genres: Array.isArray((formData as any).genres)
+              ? ((formData as any).genres as string[])
+              : [],
+          } as any
+        }
+        onChange={handleChange}
+      />
 
       {/* TODO: Add gear-type-specific fields */}
       {gearType === "CAMERA" && (

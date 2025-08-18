@@ -1,1 +1,0 @@
-ALTER TABLE "sharply_gear" ADD COLUMN "weight_grams" integer;
