@@ -5,7 +5,7 @@ This guide explains the minimal, end‑to‑end flow to add a new field to the d
 - Core gear fields live on `gear` (e.g., `genres` cache).
 - Camera/Lens spec fields live on `camera_specs` or `lens_specs`.
 
-The project uses Drizzle ORM for schema, with a convenience script to push schema changes directly to the database.
+The project uses Drizzle ORM for schema, and we manage changes via generated SQL migrations only.
 
 ### TL;DR
 
@@ -13,7 +13,7 @@ Pick your path:
 
 - Core field on `gear` (example: `genres`)
   1. Edit `src/server/db/schema.ts` → add the column on `gear` (and optionally add taxonomy/join tables)
-  2. Run DB sync: `npm run db:push`
+  2. Generate and apply a migration: `npm run db:generate && npm run db:migrate`
   3. Add field UI in `src/app/(pages)/gear/_components/edit-gear/fields-core.tsx`
   4. Add the key to `coreKeys` in `edit-gear-form.tsx` so it’s included in the diff payload
   5. If it needs coercion (dates/numbers/booleans), update `normalizeProposalPayloadForDb`
@@ -22,7 +22,7 @@ Pick your path:
 
 - Camera/Lens spec field
   1. Edit `src/server/db/schema.ts` → add column to `camera_specs` or `lens_specs`
-  2. Run DB sync: `npm run db:push`
+  2. Generate and apply a migration: `npm run db:generate && npm run db:migrate`
   3. Add field UI (`fields-cameras.tsx` or `fields-lenses.tsx`)
   4. Add the key to `cameraKeys` or `lensKeys` in `edit-gear-form.tsx`
   5. Add coercion rules in `normalizeProposalPayloadForDb` as needed
@@ -109,17 +109,14 @@ Notes
   - varchar/text for strings
 - Add an index if the field will be used in filters or joins frequently
 
-## 2) Push schema changes to the DB
+## 2) Generate and apply a migration
 
-Run the project’s push script to apply the schema diff directly to your database:
+Create a migration and then apply it to your database:
 
 ```bash
-npm run db:push
+npm run db:generate
+npm run db:migrate
 ```
-
-This updates the DB to match `schema.ts`. No manual SQL file is required for this path.
-
-If you prefer a migration file workflow, you can still use `npm run db:generate` to emit SQL and then `npm run db:migrate`, but for most incremental spec fields, `db:push` is the fastest path.
 
 ## 3) Add the form field in the UI
 
@@ -185,10 +182,11 @@ genres: jsonb("genres"), // array of slugs
 // tables: genres, gearGenres (see examples above)
 ```
 
-2. Sync schema
+2. Generate and apply a migration
 
 ```bash
-npm run db:push
+npm run db:generate
+npm run db:migrate
 ```
 
 3. Constants & options (DB‑driven)
@@ -279,10 +277,11 @@ npm run constants:generate
 widthInches: decimal("width_inches", { precision: 5, scale: 2 }),
 ```
 
-2. Push
+2. Generate and apply a migration
 
 ```bash
-npm run db:push
+npm run db:generate
+npm run db:migrate
 ```
 
 3. UI
@@ -301,3 +300,4 @@ npm run db:push
 ```
 
 That’s it—types flow automatically from `schema.ts`, and the form will carry the new value through the existing `onChange` pipeline.
+ì

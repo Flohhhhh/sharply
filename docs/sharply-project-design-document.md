@@ -36,43 +36,41 @@ It is designed to serve both experienced photographers seeking deep technical da
 - **Sample Images** (RAW/JPEG, consistent testing).
 - **External Resources**: Curated links to YouTube reviews, articles, tutorials.
 - **"I Have This" Gear Ownership Button**:
-    - Adds the gear to a member’s collection.
-    - Changes to **"Write a Personal Review"** once marked as owned.
-    - Allows upload of sample images tied to that gear.
+  - Adds the gear to a member’s collection.
+  - Authenticated users see a **"Write a Review"** button; ownership is not required to leave a personal review.
+  - Allows upload of sample images tied to that gear.
 - **Popularity Tracking**:
-    - Track number of “I Have This” clicks, wishlist adds, comparison tool usage, and personal reviews for each item.
-    - Use this data to display **popularity badges** (“Most Owned This Month,” “Rising Star,” etc.).
-    - Feed data into *trending gear lists* and personalized recommendations.
+  - Track ownership ("I Have This") actions, wishlist adds, and signed‑in page visits. Comparison tool usage and personal review events are planned.
+  - Use this data to display **popularity badges** (“Most Owned This Month,” “Rising Star,” etc.).
+  - Feed data into _trending gear lists_ and personalized recommendations.
 
 ---
 
 ### **3.2 Reviews**
 
-- Written only by **Verified Reviewers**.
-- Standardized format:
-    - Context & test conditions
-    - Measured performance (charts, graphs)
-    - Pros/Cons
-    - Conclusion & ideal use cases
+- Editorial reviews (planned).
+- Standardized format (planned):
+  - Context & test conditions
+  - Measured performance (charts, graphs)
+  - Pros/Cons
+  - Conclusion & ideal use cases
 - Includes reviewer credentials and portfolio links.
 
 ---
 
 ### **3.3 Personal Reviews (From Gear Ownership)**
 
-- Short-form (200–500 words, optional images).
-- Context prompts:
-    - Primary use case.
-    - Likes/dislikes.
-    - Skill level.
-    - Paired gear.
+- Short-form free‑text with selected genres (1–3) and a recommend toggle; optional images are planned.
+- Current prompts:
+  - Select primary genres/use cases (1–3).
+  - Recommend: Yes/No.
 - Visible in:
-    - Gear pages (community section).
-    - Contributor profiles.
-    - Mini-review archive.
+  - Gear pages (community section).
+  - Contributor profiles.
+  - Mini-review archive.
 - **AI Summaries** of all personal reviews for an item:
-    - Highlights patterns in strengths, weaknesses, and best use cases.
-    - No numeric ratings — keeps nuance intact.
+  - Highlights patterns in strengths, weaknesses, and best use cases.
+  - No numeric ratings — keeps nuance intact.
 
 ---
 
@@ -108,10 +106,9 @@ It is designed to serve both experienced photographers seeking deep technical da
 
 ### **4.1 Roles**
 
-1. **General Member** – Can suggest spec changes, submit mini-reviews, upload sample images, mark gear as owned.
-2. **Verified Contributor** – Can approve spec edits, submit high-detail data.
-3. **Verified Reviewer** – Can publish authoritative reviews.
-4. **Admin/Editor** – Oversees platform, manages disputes, final approvals.
+1. **Member (USER)** – Can suggest spec changes, submit personal reviews, upload sample images, mark gear as owned.
+2. **Editor (EDITOR)** – Can approve spec edits and moderate personal reviews.
+3. **Admin (ADMIN)** – Oversees platform, manages disputes, and final approvals.
 
 ---
 
@@ -120,17 +117,19 @@ It is designed to serve both experienced photographers seeking deep technical da
 1. **User finds missing/inaccurate spec** → clicks “Suggest Edit.”
 2. Structured form enforces data types & prevents junk entries.
 3. Suggestion enters **pending review queue**.
-4. **Verified Contributor** reviews for accuracy.
+4. **Editor** reviews for accuracy.
 5. If approved:
-    - Changes go live.
-    - User credited (“Last updated by @username”).
-    - Points/badges awarded.
+   - Changes go live.
+   - User credited (“Last updated by @username”).
+   - Points/badges awarded.
 
 ---
 
 ### **4.3 Review Contribution Flow**
 
-1. **Verified Reviewer** applies to review specific gear.
+_(Planned editorial reviews)_
+
+1. Reviewer applies to review specific gear.
 2. Outline & test methodology pre-approved by Editor.
 3. Review drafted in standard template.
 4. Editor approval before publish.
@@ -140,12 +139,10 @@ It is designed to serve both experienced photographers seeking deep technical da
 
 ### **4.4 Personal Review Flow**
 
-1. Member clicks **"I Have This"** on gear page.
-2. Gear is added to their **collection**.
-3. Option appears to **"Write Personal Review"**.
-4. Review submitted via short-form, structured prompts.
-5. Published instantly or after light moderation.
-6. AI aggregates community reviews into strengths, weaknesses, and best-for summaries.
+1. Authenticated member clicks **"Write a Review"** on the gear page.
+2. Review submitted via short-form with genres (1–3) and a recommend toggle.
+3. Review enters a **moderation queue** and is published after approval.
+4. AI aggregates community reviews into strengths, weaknesses, and best‑for summaries (planned).
 
 ---
 
@@ -196,7 +193,7 @@ It is designed to serve both experienced photographers seeking deep technical da
 3. Expert review publishing workflow.
 4. "I Have This" gear ownership + personal reviews.
 5. AI-powered summaries of personal reviews.
-6. Search & filter by brand, type, and contributor preference.
+6. Search & filter by brand and type.
 7. Pricing links + external resources on gear pages.
 8. Wishlist & exportable gear profiles.
 9. Focal length simulator tool.
