@@ -399,6 +399,85 @@ async function main() {
     }
   }
 
+  // Seed editorial content
+  console.log("Seeding editorial content...");
+  const { useCaseRatings, staffVerdicts } = await import(
+    "../src/server/db/schema"
+  );
+
+  // Clear existing editorial data
+  await db.delete(useCaseRatings);
+  await db.delete(staffVerdicts);
+
+  // Add use-case ratings for the Nikon Z6 III
+  const nikonZ6III = insertedGear.find((item) => item.name === "Nikon Z6 III");
+  if (nikonZ6III) {
+    const ratingsData = [
+      {
+        gearId: nikonZ6III.id,
+        genreId: genreMap.get("sports")!.id,
+        score: 9,
+        note: "Excellent AF tracking and high FPS make this ideal for fast-moving subjects.",
+      },
+      {
+        gearId: nikonZ6III.id,
+        genreId: genreMap.get("wildlife")!.id,
+        score: 9,
+        note: "Great for wildlife with fast AF and high burst rates.",
+      },
+      {
+        gearId: nikonZ6III.id,
+        genreId: genreMap.get("landscape")!.id,
+        score: 8,
+        note: "Great low-light performance and dynamic range for landscape work.",
+      },
+      {
+        gearId: nikonZ6III.id,
+        genreId: genreMap.get("portraits")!.id,
+        score: 7,
+        note: "Good for portraits but not the best choice for studio work.",
+      },
+    ];
+
+    for (const rating of ratingsData) {
+      await db.insert(useCaseRatings).values(rating);
+      console.log(`✅ Added rating for ${rating.genreId}: ${rating.score}/10`);
+    }
+
+    // Add staff verdict
+    const verdictData = {
+      gearId: nikonZ6III.id,
+      content: `The Nikon Z6 III represents a significant step forward for Nikon's mid-range mirrorless lineup. With its 24.5MP sensor, improved autofocus system, and enhanced video capabilities, it's a versatile camera that excels in multiple shooting scenarios.
+
+The new stacked sensor design provides excellent readout speeds, enabling high-speed continuous shooting and reducing rolling shutter in video mode. The improved AF system with subject detection makes it much more capable for action photography compared to its predecessor.`,
+      pros: [
+        "Excellent autofocus performance with subject detection",
+        "High-speed continuous shooting at 20fps",
+        "Great low-light performance with ISO up to 204,800",
+        "4K video with minimal rolling shutter",
+        "Robust weather-sealed build quality",
+      ],
+      cons: [
+        "Single card slot (CFexpress Type B)",
+        "No built-in flash",
+        "Battery life could be better for video",
+        "Limited buffer depth in RAW at highest speeds",
+      ],
+      whoFor:
+        "Photographers who need a versatile camera for sports, wildlife, and general photography with occasional video work.",
+      notFor:
+        "Professional videographers who need extensive video features, or photographers who require dual card slots for backup.",
+      alternatives: [
+        "Sony A7 IV - Better video features and dual card slots",
+        "Canon R6 Mark II - Superior AF and faster burst rates",
+        "Nikon Z7 II - Higher resolution for landscape work",
+      ],
+    };
+
+    await db.insert(staffVerdicts).values(verdictData);
+    console.log("✅ Added staff verdict for Nikon Z6 III");
+  }
+
   console.log("Seed complete.");
 }
 

@@ -1,6 +1,6 @@
 {
-  "id": "fce596d6-cf87-4392-aa28-37f149b6f9bb",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "76e1f082-d911-4dfe-a6f7-add296804dfa",
+  "prevId": "fce596d6-cf87-4392-aa28-37f149b6f9bb",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -1289,7 +1289,7 @@
         },
         "event_type": {
           "name": "event_type",
-          "type": "varchar(40)",
+          "type": "varchar(48)",
           "primaryKey": false,
           "notNull": true
         },

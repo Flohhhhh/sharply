@@ -5,6 +5,9 @@ import {
   lensSpecs,
   sensorFormats,
   gear,
+  genres,
+  useCaseRatings,
+  staffVerdicts,
 } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
 import { formatPrice, getMountDisplayName } from "~/lib/mapping";
@@ -84,6 +87,30 @@ export default async function GearPage({ params }: GearPageProps) {
 
   const cameraSpecsItem = cameraSpecsData[0] || null;
   const lensSpecsItem = lensSpecsData[0] || null;
+
+  // Fetch editorial content
+  const [ratingsRows, staffVerdictRows] = await Promise.all([
+    db
+      .select({
+        score: useCaseRatings.score,
+        note: useCaseRatings.note,
+        genreId: genres.id,
+        genreName: genres.name,
+        genreSlug: genres.slug,
+      })
+      .from(useCaseRatings)
+      .leftJoin(genres, eq(useCaseRatings.genreId, genres.id))
+      .where(eq(useCaseRatings.gearId, item.id)),
+    db
+      .select()
+      .from(staffVerdicts)
+      .where(eq(staffVerdicts.gearId, item.id))
+      .limit(1),
+  ]);
+
+  const ratings = (ratingsRows ?? []).filter((r) => r.genreId != null);
+  ratings.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+  const verdict = staffVerdictRows?.[0] ?? null;
 
   // Under construction state
   const construction = getConstructionState({
@@ -321,6 +348,145 @@ export default async function GearPage({ params }: GearPageProps) {
         slug={item.slug}
         gearType={item.gearType as "CAMERA" | "LENS"}
       />
+
+      {/* Use-case performance */}
+      {ratings.length > 0 && (
+        <div className="mt-12 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">Use‑case performance</h3>
+          </div>
+          <div className="border-border overflow-hidden rounded-md border">
+            <div className="divide-border divide-y">
+              {ratings.map((r) => (
+                <div key={r.genreId} className="px-4 py-3">
+                  <div className="mb-1 flex items-center justify-between">
+                    <span className="font-medium">{r.genreName}</span>
+                    <span className="text-muted-foreground text-sm">
+                      {r.score}/10
+                    </span>
+                  </div>
+                  <div className="bg-muted relative h-2 w-full overflow-hidden rounded">
+                    <div
+                      className="bg-primary h-2 rounded"
+                      style={{
+                        width: `${Math.max(0, Math.min(10, r.score)) * 10}%`,
+                      }}
+                    />
+                  </div>
+                  {r.note && (
+                    <div className="text-muted-foreground mt-2 text-sm">
+                      {r.note}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Staff Verdict */}
+      {verdict &&
+        Boolean(
+          verdict.content ||
+            verdict.pros ||
+            verdict.cons ||
+            verdict.whoFor ||
+            verdict.notFor ||
+            verdict.alternatives,
+        ) && (
+          <div className="mt-12 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Staff Verdict</h3>
+            </div>
+            <div className="border-border overflow-hidden rounded-md border p-4">
+              {verdict.content && (
+                <div className="space-y-3">
+                  {verdict.content.split("\n").map((p: string, i: number) =>
+                    p.trim() ? (
+                      <p key={i} className="text-sm">
+                        {p}
+                      </p>
+                    ) : (
+                      <br key={i} />
+                    ),
+                  )}
+                </div>
+              )}
+
+              {(Array.isArray(verdict.pros) && verdict.pros.length > 0) ||
+              (Array.isArray(verdict.cons) && verdict.cons.length > 0) ? (
+                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  {Array.isArray(verdict.pros) && verdict.pros.length > 0 && (
+                    <div>
+                      <div className="text-muted-foreground mb-1 text-xs font-semibold tracking-wide uppercase">
+                        Pros
+                      </div>
+                      <ul className="list-disc pl-5 text-sm">
+                        {(verdict.pros as string[]).map(
+                          (p: string, i: number) => (
+                            <li key={i}>{p}</li>
+                          ),
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                  {Array.isArray(verdict.cons) && verdict.cons.length > 0 && (
+                    <div>
+                      <div className="text-muted-foreground mb-1 text-xs font-semibold tracking-wide uppercase">
+                        Cons
+                      </div>
+                      <ul className="list-disc pl-5 text-sm">
+                        {(verdict.cons as string[]).map(
+                          (c: string, i: number) => (
+                            <li key={i}>{c}</li>
+                          ),
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ) : null}
+
+              {(verdict.whoFor || verdict.notFor) && (
+                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  {verdict.whoFor && (
+                    <div>
+                      <div className="text-muted-foreground mb-1 text-xs font-semibold tracking-wide uppercase">
+                        Who it's for
+                      </div>
+                      <p className="text-sm">{verdict.whoFor}</p>
+                    </div>
+                  )}
+                  {verdict.notFor && (
+                    <div>
+                      <div className="text-muted-foreground mb-1 text-xs font-semibold tracking-wide uppercase">
+                        Not for
+                      </div>
+                      <p className="text-sm">{verdict.notFor}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {Array.isArray(verdict.alternatives) &&
+                verdict.alternatives.length > 0 && (
+                  <div className="mt-4">
+                    <div className="text-muted-foreground mb-1 text-xs font-semibold tracking-wide uppercase">
+                      Top alternatives
+                    </div>
+                    <ul className="list-disc pl-5 text-sm">
+                      {(verdict.alternatives as string[]).map(
+                        (a: string, i: number) => (
+                          <li key={i}>{a}</li>
+                        ),
+                      )}
+                    </ul>
+                  </div>
+                )}
+            </div>
+          </div>
+        )}
 
       {/* Reviews */}
       <GearReviews slug={item.slug} />

@@ -12,9 +12,12 @@ import {
   integer,
   boolean,
   jsonb,
+  pgSchema,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccount } from "next-auth/adapters";
 import { POPULARITY_POINTS, type PopularityEventType } from "~/lib/constants";
+
+export const appSchema = pgSchema("app");
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -22,7 +25,7 @@ import { POPULARITY_POINTS, type PopularityEventType } from "~/lib/constants";
  *
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
-export const createTable = pgTableCreator((name) => `sharply_${name}`);
+// export const createTable = pgTableCreator((name) => `sharply_${name}`);
 
 // --- Enums ---
 export const userRoleEnum = pgEnum("user_role", ["USER", "EDITOR", "ADMIN"]);
@@ -55,7 +58,7 @@ const updatedAt = timestamp("updated_at", { withTimezone: true })
   .notNull();
 
 // --- Taxonomy tables ---
-export const brands = createTable("brands", (d) => ({
+export const brands = appSchema.table("brands", (d) => ({
   id: varchar("id", { length: 36 })
     .primaryKey()
     .default(sql`gen_random_uuid()::text`),
@@ -65,7 +68,7 @@ export const brands = createTable("brands", (d) => ({
   updatedAt,
 }));
 
-export const mounts = createTable("mounts", (d) => ({
+export const mounts = appSchema.table("mounts", (d) => ({
   id: varchar("id", { length: 36 })
     .primaryKey()
     .default(sql`gen_random_uuid()::text`),
@@ -77,7 +80,7 @@ export const mounts = createTable("mounts", (d) => ({
   updatedAt,
 }));
 
-export const sensorFormats = createTable("sensor_formats", (d) => ({
+export const sensorFormats = appSchema.table("sensor_formats", (d) => ({
   id: varchar("id", { length: 36 })
     .primaryKey()
     .default(sql`gen_random_uuid()::text`),
@@ -90,7 +93,7 @@ export const sensorFormats = createTable("sensor_formats", (d) => ({
 }));
 
 // --- Genres (Use-cases) ---
-export const genres = createTable("genres", (d) => ({
+export const genres = appSchema.table("genres", (d) => ({
   id: varchar("id", { length: 36 })
     .primaryKey()
     .default(sql`gen_random_uuid()::text`),
@@ -102,7 +105,7 @@ export const genres = createTable("genres", (d) => ({
 }));
 
 // --- Gear core ---
-export const gear = createTable(
+export const gear = appSchema.table(
   "gear",
   (d) => ({
     id: varchar("id", { length: 36 })
@@ -139,7 +142,7 @@ export const gear = createTable(
 );
 
 // Many-to-many: Gear x Genres
-export const gearGenres = createTable(
+export const gearGenres = appSchema.table(
   "gear_genres",
   (d) => ({
     gearId: d
@@ -160,7 +163,7 @@ export const gearGenres = createTable(
 );
 
 // --- Gear Specification Tables ---
-export const cameraSpecs = createTable(
+export const cameraSpecs = appSchema.table(
   "camera_specs",
   (d) => ({
     gearId: varchar("gear_id", { length: 36 })
@@ -184,7 +187,7 @@ export const cameraSpecs = createTable(
 );
 
 // Lenses
-export const lensSpecs = createTable(
+export const lensSpecs = appSchema.table(
   "lens_specs",
   (d) => ({
     gearId: varchar("gear_id", { length: 36 })
@@ -203,7 +206,7 @@ export const lensSpecs = createTable(
 );
 
 // --- Gear Edits ---
-export const gearEdits = createTable(
+export const gearEdits = appSchema.table(
   "gear_edits",
   (d) => ({
     id: varchar("id", { length: 36 })
@@ -230,7 +233,7 @@ export const gearEdits = createTable(
 );
 
 // --- Audit Logs ---
-export const auditLogs = createTable(
+export const auditLogs = appSchema.table(
   "audit_logs",
   (d) => ({
     id: varchar("id", { length: 36 })
@@ -259,7 +262,7 @@ export const auditLogs = createTable(
 );
 
 // --- Personal Reviews ---
-export const reviews = createTable(
+export const reviews = appSchema.table(
   "reviews",
   (d) => ({
     id: varchar("id", { length: 36 })
@@ -286,6 +289,53 @@ export const reviews = createTable(
   ],
 );
 
+// --- Editorial: Use-case Ratings ---
+export const useCaseRatings = appSchema.table(
+  "use_case_ratings",
+  (d) => ({
+    gearId: d
+      .varchar("gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    genreId: d
+      .varchar("genre_id", { length: 36 })
+      .notNull()
+      .references(() => genres.id, { onDelete: "cascade" }),
+    score: d.integer("score").notNull(), // 0-10
+    note: d.text("note"),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    primaryKey({ columns: [t.gearId, t.genreId] }),
+    index("ucr_gear_idx").on(t.gearId),
+    index("ucr_genre_idx").on(t.genreId),
+  ],
+);
+
+// --- Editorial: Staff Verdicts ---
+export const staffVerdicts = appSchema.table(
+  "staff_verdicts",
+  (d) => ({
+    gearId: d
+      .varchar("gear_id", { length: 36 })
+      .primaryKey()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    content: d.text("content"), // optional
+    pros: d.jsonb("pros"), // string[]
+    cons: d.jsonb("cons"), // string[]
+    whoFor: d.text("who_for"),
+    notFor: d.text("not_for"),
+    alternatives: d.jsonb("alternatives"), // string[]
+    authorUserId: d
+      .varchar("author_user_id", { length: 255 })
+      .references(() => users.id, { onDelete: "set null" }),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [index("staff_verdicts_author_idx").on(t.authorUserId)],
+);
+
 // --- Gear Relations ---
 export const gearRelations = relations(gear, ({ one, many }) => ({
   cameraSpecs: one(cameraSpecs, {
@@ -299,6 +349,11 @@ export const gearRelations = relations(gear, ({ one, many }) => ({
   edits: many(gearEdits),
   reviews: many(reviews),
   genres: many(gearGenres),
+  useCaseRatings: many(useCaseRatings),
+  staffVerdict: one(staffVerdicts, {
+    fields: [gear.id],
+    references: [staffVerdicts.gearId],
+  }),
 }));
 
 export const gearEditsRelations = relations(gearEdits, ({ one }) => ({
@@ -323,6 +378,23 @@ export const reviewsRelations = relations(reviews, ({ one }) => ({
   }),
 }));
 
+// --- Editorial Relations ---
+export const useCaseRatingsRelations = relations(useCaseRatings, ({ one }) => ({
+  gear: one(gear, { fields: [useCaseRatings.gearId], references: [gear.id] }),
+  genre: one(genres, {
+    fields: [useCaseRatings.genreId],
+    references: [genres.id],
+  }),
+}));
+
+export const staffVerdictsRelations = relations(staffVerdicts, ({ one }) => ({
+  gear: one(gear, { fields: [staffVerdicts.gearId], references: [gear.id] }),
+  author: one(users, {
+    fields: [staffVerdicts.authorUserId],
+    references: [users.id],
+  }),
+}));
+
 export const gearGenresRelations = relations(gearGenres, ({ one }) => ({
   gear: one(gear, { fields: [gearGenres.gearId], references: [gear.id] }),
   genre: one(genres, { fields: [gearGenres.genreId], references: [genres.id] }),
@@ -333,7 +405,7 @@ export const genresRelations = relations(genres, ({ many }) => ({
 }));
 
 // --- Interactions ---
-export const wishlists = createTable(
+export const wishlists = appSchema.table(
   "wishlists",
   (d) => ({
     userId: d
@@ -352,7 +424,7 @@ export const wishlists = createTable(
   ],
 );
 
-export const ownerships = createTable(
+export const ownerships = appSchema.table(
   "ownerships",
   (d) => ({
     userId: d
@@ -372,7 +444,7 @@ export const ownerships = createTable(
 );
 
 // Popularity events table
-export const popularityEvents = createTable(
+export const popularityEvents = appSchema.table(
   "popularity_events",
   (d) => ({
     id: d
@@ -386,7 +458,7 @@ export const popularityEvents = createTable(
     userId: d
       .varchar("user_id", { length: 255 })
       .references(() => users.id, { onDelete: "set null" }),
-    eventType: d.varchar("event_type", { length: 40 }).notNull(), // 'wishlist', 'ownership', 'compare', 'review', 'share'
+    eventType: d.varchar("event_type", { length: 48 }).notNull(), // 'wishlist', 'ownership', 'compare', 'review', 'share'
     points: d.integer("points").notNull(),
     createdAt,
   }),
@@ -399,7 +471,7 @@ export const popularityEvents = createTable(
 
 // DEFAULT //
 
-export const posts = createTable(
+export const posts = appSchema.table(
   "post",
   (d) => ({
     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
@@ -420,7 +492,7 @@ export const posts = createTable(
   ],
 );
 
-export const users = createTable("user", (d) => ({
+export const users = appSchema.table("user", (d) => ({
   id: d
     .varchar({ length: 255 })
     .notNull()
@@ -444,7 +516,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   reviews: many(reviews),
 }));
 
-export const accounts = createTable(
+export const accounts = appSchema.table(
   "account",
   (d) => ({
     userId: d
@@ -472,7 +544,7 @@ export const accountsRelations = relations(accounts, ({ one }) => ({
   user: one(users, { fields: [accounts.userId], references: [users.id] }),
 }));
 
-export const sessions = createTable(
+export const sessions = appSchema.table(
   "session",
   (d) => ({
     sessionToken: d.varchar({ length: 255 }).notNull().primaryKey(),
@@ -489,7 +561,7 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
   user: one(users, { fields: [sessions.userId], references: [users.id] }),
 }));
 
-export const verificationTokens = createTable(
+export const verificationTokens = appSchema.table(
   "verification_token",
   (d) => ({
     identifier: d.varchar({ length: 255 }).notNull(),
