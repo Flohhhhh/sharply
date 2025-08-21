@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search } from "lucide-react";
+import { GlobalSearchBar } from "@/components/search/global-search-bar";
 
 function ScopeChips() {
   const chips = ["Gear", "Reviews", "Compare", "News"];
@@ -22,39 +23,32 @@ function ScopeChips() {
 
 export default async function Home() {
   return (
-    <>
+    <div className="min-h-screen">
       {/* HERO */}
-      <section className="bg-muted/20 w-full border-b">
+      <section className="bg-muted/20 w-full border-b pt-24">
         <div className="mx-auto max-w-7xl px-4 py-8 md:py-10">
           <div className="mx-auto max-w-3xl text-center">
             <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
-              Serious gear. Smarter choices.
+              Real specs, real reviews, real fast.
             </h1>
             <p className="text-muted-foreground mx-auto mt-2 max-w-2xl text-balance">
               Independent reviews, real specs, and side-by-side comparisons.
             </p>
 
             {/* Search box */}
-            <div className="mx-auto mt-5 w-full max-w-[min(560px,42vw)]">
+            <div className="mx-auto mt-5 w-full max-w-7xl">
               <div className="relative">
-                <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 opacity-60" />
-                <Input
-                  aria-label="Search"
-                  placeholder="Search cameras, lenses, or compare models…"
-                  className="h-14 rounded-xl border-2 pl-9 shadow-[inset_0_1px_0_rgba(0,0,0,.04)]"
-                />
+                <GlobalSearchBar size="lg" />
               </div>
-              <p className="text-muted-foreground mt-2 text-center text-xs">
-                Try “Nikon Z6 II”, “R6 II vs A7 IV”, “35mm f/1.8 Z mount”
-              </p>
-              <ScopeChips />
+
+              {/* <ScopeChips /> */}
             </div>
 
             <Link
               href="/about/how-we-test"
               className="text-primary mt-4 inline-block text-sm underline-offset-4 hover:underline"
             >
-              How we test
+              Learn more
             </Link>
           </div>
         </div>
@@ -118,6 +112,6 @@ export default async function Home() {
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }

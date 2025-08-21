@@ -19,6 +19,9 @@ import { POPULARITY_POINTS, type PopularityEventType } from "~/lib/constants";
 
 export const appSchema = pgSchema("app");
 
+// Create the pg_trgm extension for similarity functions
+export const createExtensions = sql`CREATE EXTENSION IF NOT EXISTS pg_trgm`;
+
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
  * database instance for multiple projects.

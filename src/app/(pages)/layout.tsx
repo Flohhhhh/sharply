@@ -1,5 +1,6 @@
 import { Suspense } from "react";
-import { Header } from "~/components/layout/header-old";
+import Header from "~/components/layout/header";
+import Footer from "~/components/layout/footer";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -14,6 +15,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <Header />
       </Suspense>
       {children}
+      <Footer />
     </div>
   );
 }

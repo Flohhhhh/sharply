@@ -6,18 +6,57 @@ import { Search as SearchIcon, Clock, X, Loader2 } from "lucide-react";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { mergeSearchParams } from "@utils/url";
+import { cn } from "~/lib/utils";
 
 type GlobalSearchBarProps = {
   placeholder?: string;
   className?: string;
+  size?: "sm" | "md" | "lg";
 };
 
 const RECENT_SEARCHES_KEY = "sharply-recent-searches";
 const MAX_RECENT_SEARCHES = 8;
 
+const sizeVariants = {
+  sm: {
+    input: "h-8 text-sm rounded-md",
+    icon: "size-3",
+    button: "h-5 px-1 text-[9px]",
+    dropdown: "mt-1 max-h-48",
+    recentItem: "px-2 py-1.5",
+    recentIcon: "h-3 w-3",
+    clearButton: "h-5 px-1.5 text-xs",
+    removeButton: "h-5 w-5",
+    removeIcon: "h-2.5 w-2.5",
+  },
+  md: {
+    input: "h-10 text-sm rounded-md",
+    icon: "size-4",
+    button: "h-6 px-1.5 text-[10px]",
+    dropdown: "mt-1 max-h-64",
+    recentItem: "px-3 py-2",
+    recentIcon: "h-4 w-4",
+    clearButton: "h-6 px-2 text-xs",
+    removeButton: "h-6 w-6",
+    removeIcon: "h-3 w-3",
+  },
+  lg: {
+    input: "h-12 text-base rounded-lg",
+    icon: "size-5",
+    button: "h-7 px-2 text-xs",
+    dropdown: "mt-1 max-h-80",
+    recentItem: "px-4 py-2.5",
+    recentIcon: "h-5 w-5",
+    clearButton: "h-7 px-2.5 text-sm",
+    removeButton: "h-7 w-7",
+    removeIcon: "h-3.5 w-3.5",
+  },
+};
+
 export function GlobalSearchBar({
   placeholder = "Search gear…",
   className,
+  size = "md",
 }: GlobalSearchBarProps) {
   const router = useRouter();
   const sp = useSearchParams();
@@ -27,6 +66,8 @@ export function GlobalSearchBar({
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const sizes = sizeVariants[size];
 
   // Load recent searches from localStorage
   useEffect(() => {
@@ -142,7 +183,12 @@ export function GlobalSearchBar({
   return (
     <div className={className}>
       <div className="relative">
-        <SearchIcon className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+        <SearchIcon
+          className={cn(
+            "text-muted-foreground pointer-events-none absolute top-1/2 left-3 -translate-y-1/2",
+            sizes.icon,
+          )}
+        />
 
         {/* Input wrapper - not a form to avoid nested button issues */}
         <div className="relative">
@@ -158,7 +204,7 @@ export function GlobalSearchBar({
             }}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
-            className="pr-14 pl-9"
+            className={cn("pr-14 pl-9", sizes.input)}
             aria-label="Global search"
           />
         </div>
@@ -166,7 +212,7 @@ export function GlobalSearchBar({
         {/* Loading spinner */}
         {loading && (
           <div className="absolute top-1/2 right-12 -translate-y-1/2">
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className={cn("animate-spin", sizes.icon)} />
           </div>
         )}
 
@@ -178,7 +224,10 @@ export function GlobalSearchBar({
               new CustomEvent("sharply:open-command-palette"),
             );
           }}
-          className="text-muted-foreground absolute top-1/2 right-2 -translate-y-1/2 rounded-md border px-1.5 py-0.5 text-[10px] leading-none"
+          className={cn(
+            "text-muted-foreground absolute top-1/2 right-2 -translate-y-1/2 rounded-md border",
+            sizes.button,
+          )}
           aria-label="Open command palette"
           title={isMac ? "Command Palette (⌘K)" : "Command Palette (Ctrl+K)"}
         >
@@ -189,7 +238,10 @@ export function GlobalSearchBar({
         {showRecent && recentSearches.length > 0 && (
           <div
             ref={dropdownRef}
-            className="bg-background absolute top-full right-0 left-0 z-50 mt-1 max-h-64 overflow-y-auto rounded-md border shadow-lg"
+            className={cn(
+              "bg-background absolute top-full right-0 left-0 z-50 overflow-y-auto rounded-md border shadow-lg",
+              sizes.dropdown,
+            )}
           >
             <div className="border-b p-2">
               <div className="flex items-center justify-between">
@@ -200,7 +252,7 @@ export function GlobalSearchBar({
                   variant="ghost"
                   size="sm"
                   onClick={clearAllRecent}
-                  className="h-6 px-2 text-xs"
+                  className={cn("text-xs", sizes.clearButton)}
                 >
                   Clear all
                 </Button>
@@ -211,22 +263,33 @@ export function GlobalSearchBar({
               {recentSearches.map((recentQuery, index) => (
                 <div
                   key={`${recentQuery}-${index}`}
-                  className="hover:bg-accent group flex w-full items-center justify-between px-3 py-2"
+                  className={cn(
+                    "hover:bg-accent group flex w-full items-center justify-between",
+                    sizes.recentItem,
+                  )}
                 >
                   <button
                     onClick={() => handleRecentSearchClick(recentQuery)}
                     className="flex min-w-0 flex-1 items-center text-left"
                   >
-                    <Clock className="text-muted-foreground mr-2 h-4 w-4 flex-shrink-0" />
+                    <Clock
+                      className={cn(
+                        "text-muted-foreground mr-2 flex-shrink-0",
+                        sizes.recentIcon,
+                      )}
+                    />
                     <span className="truncate">{recentQuery}</span>
                   </button>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={(e) => removeRecentSearch(recentQuery, e)}
-                    className="h-6 w-6 p-0 opacity-0 transition-opacity group-hover:opacity-100"
+                    className={cn(
+                      "p-0 opacity-0 transition-opacity group-hover:opacity-100",
+                      sizes.removeButton,
+                    )}
                   >
-                    <X className="h-3 w-3" />
+                    <X className={sizes.removeIcon} />
                   </Button>
                 </div>
               ))}
