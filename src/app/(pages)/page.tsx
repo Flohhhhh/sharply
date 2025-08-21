@@ -1,8 +1,6 @@
 import Link from "next/link";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Search } from "lucide-react";
-import { GlobalSearchBar } from "@/components/search/global-search-bar";
+import { Badge } from "~/components/ui/badge";
+import { GlobalSearchBar } from "~/components/search/global-search-bar";
 
 function ScopeChips() {
   const chips = ["Gear", "Reviews", "Compare", "News"];

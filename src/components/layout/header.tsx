@@ -6,11 +6,18 @@ import { Menu } from "lucide-react";
 import { GlobalSearchBar } from "../search/global-search-bar";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { NavMenuDesktop } from "./nav-menu-desktop";
+import { NavMenuMobile } from "./nav-menu-mobile";
+import { NavSheetDesktop } from "./nav-sheet-desktop";
 
 export default function Header() {
   const { hasScrolled } = useScrollState(200);
   const pathname = usePathname();
   const isHomePage = pathname === "/";
+  const sheetTopClass =
+    hasScrolled || !isHomePage
+      ? "top-16 h-[calc(100vh-4rem)]"
+      : "top-24 h-[calc(100vh-6rem)]";
 
   return (
     <header
@@ -37,8 +44,16 @@ export default function Header() {
             >
               {hasScrolled || !isHomePage ? (
                 <div className="flex items-center gap-2">
-                  {/* Menu button - hidden on mobile when scrolled */}
-                  <Menu className="hidden size-4 md:block" />
+                  {/* Desktop nav sheet trigger - hidden on mobile when scrolled */}
+                  <NavSheetDesktop topClass={sheetTopClass}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="hidden h-8 w-8 p-2 md:inline-flex"
+                    >
+                      <Menu className="size-4" />
+                    </Button>
+                  </NavSheetDesktop>
                   <Link href="/">Sharply</Link>
                 </div>
               ) : (
@@ -54,44 +69,28 @@ export default function Header() {
                 <GlobalSearchBar />
               </div>
             ) : (
-              <nav className="hidden space-x-6 md:flex">
-                <a href="#" className="hover:text-gray-600">
-                  Home
-                </a>
-                <a href="#" className="hover:text-gray-600">
-                  About
-                </a>
-                <a href="#" className="hover:text-gray-600">
-                  Contact
-                </a>
-              </nav>
+              <div className="hidden md:flex">
+                <NavMenuDesktop />
+              </div>
             )}
           </div>
 
-          {/* Right section - Auth buttons or Mobile menu */}
+          {/* Right section - Mobile menu and Desktop auth buttons */}
           <div className="flex justify-end">
-            {hasScrolled || !isHomePage ? (
-              <>
-                {/* Mobile menu button - visible on mobile when scrolled */}
-                <Button variant="outline" size="sm" className="md:hidden">
-                  <Menu className="size-4" />
-                </Button>
-                {/* Desktop auth buttons - hidden on mobile when scrolled */}
-                <div className="hidden items-center gap-2 md:flex">
-                  <Button variant="outline" size="sm">
-                    Login
-                  </Button>
-                  <Button size="sm">Sign up</Button>
-                </div>
-              </>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm">
-                  Login
-                </Button>
-                <Button size="sm">Sign up</Button>
-              </div>
-            )}
+            {/* Mobile menu button - always visible on mobile */}
+            <NavMenuMobile>
+              <Button variant="outline" size="sm" className="md:hidden">
+                <Menu className="size-4" />
+              </Button>
+            </NavMenuMobile>
+
+            {/* Desktop auth buttons - only visible on desktop */}
+            <div className="hidden items-center gap-2 md:flex">
+              <Button variant="ghost" size="sm">
+                Login
+              </Button>
+              <Button size="sm">Sign up</Button>
+            </div>
           </div>
         </div>
       </div>
