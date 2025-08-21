@@ -458,7 +458,7 @@ export const popularityEvents = appSchema.table(
     userId: d
       .varchar("user_id", { length: 255 })
       .references(() => users.id, { onDelete: "set null" }),
-    eventType: d.varchar("event_type", { length: 48 }).notNull(), // 'wishlist', 'ownership', 'compare', 'review', 'share'
+    eventType: d.varchar("event_type", { length: 40 }).notNull(), // 'wishlist', 'ownership', 'compare', 'review', 'share'
     points: d.integer("points").notNull(),
     createdAt,
   }),

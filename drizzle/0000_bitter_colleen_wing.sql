@@ -135,7 +135,7 @@ CREATE TABLE "app"."popularity_events" (
 	"id" varchar(36) PRIMARY KEY DEFAULT gen_random_uuid()::text NOT NULL,
 	"gear_id" varchar(36) NOT NULL,
 	"user_id" varchar(255),
-	"event_type" varchar(40) NOT NULL,
+	"event_type" varchar(48) NOT NULL,
 	"points" integer NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );

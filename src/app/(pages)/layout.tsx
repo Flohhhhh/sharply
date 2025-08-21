@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { Header } from "~/components/layout/header";
+import { Header } from "~/components/layout/header-old";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
