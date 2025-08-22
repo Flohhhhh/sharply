@@ -38,7 +38,7 @@ export default function Header() {
           {/* Left section - Logo */}
           <div className="flex justify-start">
             <div
-              className={`font-bold transition-all duration-200 ${
+              className={`font-extrabold transition-all duration-200 ${
                 hasScrolled || !isHomePage ? "text-lg" : "text-2xl"
               }`}
             >

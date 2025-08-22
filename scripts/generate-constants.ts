@@ -33,12 +33,11 @@ async function generateConstants() {
     const client = postgres(connectionString);
     const db = drizzle(client);
 
-    // Fetch data directly with SQL queries (using correct table names with sharply_ prefix)
-    const mountsData = await client`SELECT * FROM sharply_mounts`;
-    const sensorFormatsData =
-      await client`SELECT * FROM sharply_sensor_formats`;
-    const brandsData = await client`SELECT * FROM sharply_brands`;
-    const genresData = await client`SELECT * FROM sharply_genres`;
+    // Fetch data directly with SQL queries from the app schema
+    const mountsData = await client`SELECT * FROM app.mounts`;
+    const sensorFormatsData = await client`SELECT * FROM app.sensor_formats`;
+    const brandsData = await client`SELECT * FROM app.brands`;
+    const genresData = await client`SELECT * FROM app.genres`;
 
     const content = `// Auto-generated constants from database
 export const MOUNTS = ${JSON.stringify(mountsData, null, 2)};

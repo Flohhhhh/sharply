@@ -5,11 +5,12 @@ import { GlobalSearchBar } from "~/components/search/global-search-bar";
 import { GearCounter } from "~/components/home/gear-counter";
 import { ContributionCounter } from "~/components/home/contribution-counter";
 import { Button } from "~/components/ui/button";
-import { ArrowRightIcon, BookOpenIcon } from "lucide-react";
+import { ArrowRightIcon, BookOpenIcon, Loader } from "lucide-react";
 import BrandsStrip from "~/components/home/brands-strip";
 import LatestContent from "~/components/home/latest-content";
 import LatestNews from "~/components/home/latest-news";
 import { Separator } from "~/components/ui/separator";
+import { Suspense } from "react";
 
 export default async function Home() {
   return (
@@ -28,7 +29,18 @@ export default async function Home() {
             {/* Search box */}
             <div className="mx-auto mt-12 w-full max-w-7xl">
               <div className="relative">
-                <GlobalSearchBar size="lg" />
+                <Suspense
+                  fallback={
+                    <div className="relative">
+                      <div className="pr-14 pl-9 h-12 rounded-lg border flex items-center text-sm text-muted-foreground">
+                        Loading search…
+                        <Loader className="ml-auto h-5 w-5 animate-spin" />
+                      </div>
+                    </div>
+                  }
+               >
+                  <GlobalSearchBar size="lg" />
+                </Suspense>
               </div>
 
               {/* <ScopeChips /> */}
