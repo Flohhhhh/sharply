@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function BrandsStrip() {
   return (
-    <section className="bg-muted/50 mt-18 w-full px-4 py-8 sm:px-8">
+    <section className="mt-28 hidden w-full border-t border-b px-4 py-10 sm:px-8 md:block">
       <div className="text-muted-foreground mx-auto flex w-full justify-center gap-24 text-2xl font-bold">
         <Link href="/brands/canon" className="hover:text-primary">
           Canon

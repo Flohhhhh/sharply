@@ -7,6 +7,9 @@ import { ContributionCounter } from "~/components/home/contribution-counter";
 import { Button } from "~/components/ui/button";
 import { ArrowRightIcon, BookOpenIcon } from "lucide-react";
 import BrandsStrip from "~/components/home/brands-strip";
+import LatestContent from "~/components/home/latest-content";
+import LatestNews from "~/components/home/latest-news";
+import { Separator } from "~/components/ui/separator";
 
 export default async function Home() {
   return (
@@ -23,7 +26,7 @@ export default async function Home() {
             </p>
 
             {/* Search box */}
-            <div className="mx-auto mt-5 w-full max-w-7xl">
+            <div className="mx-auto mt-12 w-full max-w-7xl">
               <div className="relative">
                 <GlobalSearchBar size="lg" />
               </div>
@@ -45,7 +48,7 @@ export default async function Home() {
       <section className="mt-12 w-full px-4 sm:px-8">
         <div className="mx-auto grid max-w-[96rem] grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-10">
           {/* Left column */}
-          <div className="space-y-3 xl:col-span-2">
+          <div className="hidden space-y-3 xl:col-span-2 xl:block">
             <h2 className="text-3xl font-bold">About the site</h2>
             <p className="text-muted-foreground">
               Sharply is a contributor-driven photography platform for
@@ -73,20 +76,22 @@ export default async function Home() {
           </div>
           {/* Center column featured post */}
           <div className="xl:col-span-5">
-            <article className="group bg-background overflow-hidden rounded-xl border shadow-sm">
-              <div className="relative aspect-[16/9] w-full">
-                <Image
-                  src="/image-temp.png"
-                  alt="Featured post image"
-                  fill
-                  priority
-                  className="object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-                <div className="absolute top-3 left-3">
-                  <Badge>Featured</Badge>
+            <article className="group bg-background flex h-full flex-col overflow-hidden rounded-xl border shadow-sm">
+              <div className="shrink-0 p-2">
+                <div className="relative aspect-[16/9] w-full">
+                  <Image
+                    src="/image-temp.png"
+                    alt="Featured post image"
+                    fill
+                    priority
+                    className="rounded-lg object-cover"
+                  />
+                  <div className="absolute top-3 left-3">
+                    <Badge>Featured</Badge>
+                  </div>
                 </div>
               </div>
-              <div className="p-4">
+              <div className="flex flex-1 flex-col px-3 pt-2 pb-4">
                 <h3 className="text-xl font-semibold">
                   Nikon Releases Mark II version of the 24-70 f/2.8 S
                 </h3>
@@ -96,12 +101,17 @@ export default async function Home() {
                   originally released in 2014. The new version is said to be
                   faster and more accurate.
                 </p>
-                <Link
-                  href="#"
-                  className="text-primary mt-3 inline-block text-sm underline-offset-4 hover:underline"
-                >
-                  Read more
-                </Link>
+                <div className="mt-auto">
+                  <Separator className="my-5" />
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-muted-foreground text-sm">
+                      2025-08-22
+                    </span>
+                    <Badge variant="secondary" className="h-fit">
+                      8 Min Read
+                    </Badge>
+                  </div>
+                </div>
               </div>
             </article>
           </div>
@@ -109,31 +119,30 @@ export default async function Home() {
           <div className="xl:col-span-3">
             <div className="flex h-full flex-col gap-4">
               {/* Compact latest review card */}
-              <article className="group bg-background overflow-hidden rounded-xl border shadow-sm">
-                <div className="relative aspect-[16/9] w-full">
-                  <Image
-                    src="/image-temp.png"
-                    alt="Latest review image"
-                    fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                  <div className="absolute top-2 left-2">
-                    <Badge>Latest Review</Badge>
+              <article className="group bg-background flex flex-col overflow-hidden rounded-xl border shadow-sm">
+                <div className="shrink-0 p-1">
+                  <div className="relative aspect-[16/9] w-full">
+                    <Image
+                      src="/image-temp.png"
+                      alt="Latest review image"
+                      fill
+                      className="rounded-lg object-cover"
+                    />
+                    <div className="absolute top-2 left-2">
+                      <Badge>Latest Review</Badge>
+                    </div>
                   </div>
                 </div>
-                <div className="p-3">
-                  <h4 className="text-base font-semibold">
-                    Latest review title
-                  </h4>
-                  <p className="text-muted-foreground mt-1 line-clamp-2 text-sm">
-                    Quick blurb for the latest review goes here.
-                  </p>
-                  <Link
-                    href="#"
-                    className="text-primary mt-2 inline-block text-sm underline-offset-4 hover:underline"
-                  >
-                    Read review
-                  </Link>
+                <div className="flex flex-1 flex-col px-3 pt-2 pb-3">
+                  <h4 className="text-sm font-semibold">Latest review title</h4>
+                  <div className="mt-auto">
+                    <Separator className="my-3" />
+                    <div className="flex items-center gap-4">
+                      <span className="text-muted-foreground text-sm">
+                        2025-08-22
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </article>
               {/* Banner link: New to Photography? */}
@@ -158,7 +167,13 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* BRANDS STRIP */}
       <BrandsStrip />
+
+      {/* LATEST NEWS */}
+      {/* <LatestContent /> */}
+
+      <LatestNews />
     </div>
   );
 }
