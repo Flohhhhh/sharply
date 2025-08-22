@@ -50,6 +50,11 @@ interface NavItem {
 
 export const navItems: NavItem[] = [
   {
+    title: "News",
+    type: "link",
+    url: "/news",
+  },
+  {
     title: "Gear",
     type: "category",
     items: [

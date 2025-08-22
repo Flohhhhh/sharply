@@ -11,7 +11,7 @@ import { NavMenuMobile } from "./nav-menu-mobile";
 import { NavSheetDesktop } from "./nav-sheet-desktop";
 
 export default function Header() {
-  const { hasScrolled } = useScrollState(200);
+  const { hasScrolled } = useScrollState(290);
   const pathname = usePathname();
   const isHomePage = pathname === "/";
   const sheetTopClass =
@@ -23,8 +23,8 @@ export default function Header() {
     <header
       className={`fixed top-0 right-0 left-0 z-50 transition-all duration-200 ${
         hasScrolled || !isHomePage
-          ? "h-16 bg-white shadow-sm backdrop-blur-sm"
-          : "h-24 bg-white"
+          ? "bg-background h-16 shadow-sm backdrop-blur-sm"
+          : "bg-background h-20"
       }`}
     >
       <div className="mx-auto h-full px-4 sm:px-8">

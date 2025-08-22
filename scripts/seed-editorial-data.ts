@@ -36,12 +36,17 @@ async function seedEditorialData() {
     ];
 
     for (const rating of ratingsData) {
-      if (rating.genreId) {
-        await db.insert(useCaseRatings).values(rating);
-        console.log(
-          `✅ Added rating for genre ${rating.genreId}: ${rating.score}/10`,
-        );
-      }
+      const { genreId } = rating;
+      if (!genreId) continue;
+
+      // Construct a typed insert object so genreId is guaranteed to be a string
+      await db.insert(useCaseRatings).values({
+        gearId: rating.gearId,
+        genreId,
+        score: rating.score,
+        note: rating.note,
+      });
+      console.log(`✅ Added rating for genre ${genreId}: ${rating.score}/10`);
     }
 
     // Insert staff verdict
