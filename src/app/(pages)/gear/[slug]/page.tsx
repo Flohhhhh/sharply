@@ -148,7 +148,7 @@ export default async function GearPage({ params }: GearPageProps) {
   }
 
   return (
-    <main className="mx-auto max-w-4xl p-6 pt-24">
+    <main className="mx-auto max-w-4xl p-6 pt-20">
       {/* Track page visit for popularity */}
       <GearVisitTracker slug={slug} />
 

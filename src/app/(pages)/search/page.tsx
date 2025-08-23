@@ -66,7 +66,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       nextParams.set("page", String(result.page + 1));
 
     return (
-      <div className="mx-auto h-screen px-4 py-8 pt-24 sm:px-8">
+      <div className="0 mx-auto h-screen px-4 py-8 sm:px-8">
         <h1 className="mb-4 text-2xl font-semibold">Search</h1>
         <p className="text-muted-foreground mb-6 text-sm">
           {q ? `Results for "${q}"` : "Browse all gear"} — {result.total} item

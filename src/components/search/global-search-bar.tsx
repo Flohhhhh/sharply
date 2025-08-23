@@ -41,7 +41,7 @@ const sizeVariants = {
     removeIcon: "h-3 w-3",
   },
   lg: {
-    input: "h-12 text-base rounded-lg",
+    input: "h-16 text-base rounded-xl",
     icon: "size-5",
     button: "h-7 px-2 text-xs",
     dropdown: "mt-1 max-h-80",
@@ -182,7 +182,7 @@ export function GlobalSearchBar({
 
   return (
     <div className={className}>
-      <div className="relative">
+      <div className="relative bg-white">
         <SearchIcon
           className={cn(
             "text-muted-foreground pointer-events-none absolute top-1/2 left-3 -translate-y-1/2",
@@ -204,7 +204,7 @@ export function GlobalSearchBar({
             }}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
-            className={cn("pr-14 pl-9", sizes.input)}
+            className={cn("pr-14 pl-10", sizes.input)}
             aria-label="Global search"
           />
         </div>

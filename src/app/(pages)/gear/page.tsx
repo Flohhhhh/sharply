@@ -32,7 +32,7 @@ export default async function GearIndex() {
     .limit(24);
 
   return (
-    <main className="mx-auto min-h-screen max-w-5xl p-6 pt-24">
+    <main className="mx-auto min-h-screen max-w-5xl p-6 pt-20">
       <h1 className="mb-6 text-2xl font-semibold">Gear</h1>
       <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((g) => (
