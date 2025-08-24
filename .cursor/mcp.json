@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "directus": {
+      "command": "npx",
+      "args": ["@directus/content-mcp@latest"],
+      "env": {
+        "DIRECTUS_URL": "https://sharply-directus.onrender.com",
+        "DIRECTUS_TOKEN": "23gkNjde1f9J-uHLhihzs4HmuAe09Qnf"
+      }
+    }
+  }
+}

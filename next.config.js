@@ -9,6 +9,14 @@ const config = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "sharply-directus.onrender.com",
+      },
+    ],
+  },
 };
 
 export default config;
