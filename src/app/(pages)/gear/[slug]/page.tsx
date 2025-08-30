@@ -113,27 +113,7 @@ export default async function GearPage({ params }: GearPageProps) {
   const verdict = staffVerdictRows?.[0] ?? null;
 
   // Under construction state
-  const construction = getConstructionState({
-    gearType: item.gearType,
-    gearName: item.name,
-    brandId: item.brandId ?? null,
-    mountId: item.mountId ?? null,
-    camera:
-      item.gearType === "CAMERA"
-        ? {
-            sensorFormatId: cameraSpecsItem?.sensorFormatId ?? null,
-            resolutionMp: Number(cameraSpecsItem?.resolutionMp ?? null) || null,
-          }
-        : null,
-    lens:
-      item.gearType === "LENS"
-        ? {
-            focalLengthMinMm: lensSpecsItem?.focalLengthMinMm ?? null,
-            focalLengthMaxMm: lensSpecsItem?.focalLengthMaxMm ?? null,
-            maxAperture: (lensSpecsItem as any)?.maxAperture ?? null,
-          }
-        : null,
-  });
+  const construction = getConstructionState(item);
 
   if (construction.underConstruction) {
     return (

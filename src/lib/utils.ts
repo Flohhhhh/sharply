@@ -1,4 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
+import type { GearItem } from "~/types/gear";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -146,44 +147,31 @@ export function formatHumanDate(
 }
 
 // Under construction state for gear pages
-export type ConstructionCheckInput = {
-  gearType: "CAMERA" | "LENS";
-  gearName?: string;
-  brandId?: string | null;
-  mountId?: string | null;
-  camera?: {
-    sensorFormatId?: string | null;
-    resolutionMp?: number | null;
-  } | null;
-  lens?: {
-    focalLengthMinMm?: number | null;
-    focalLengthMaxMm?: number | null;
-    // Optional for future: maxAperture, minAperture, etc.
-    maxAperture?: number | null;
-  } | null;
-};
-
-export function getConstructionState(input: ConstructionCheckInput) {
+export function getConstructionState(gearItem: GearItem) {
   const missing: string[] = [];
 
   // Core checks
-  if (!input.brandId) missing.push("Brand");
-  if (!input.mountId) missing.push("Mount");
+  if (!gearItem?.brandId) missing.push("Brand");
+  if (!gearItem?.mountId) missing.push("Mount");
 
-  if (input.gearType === "LENS") {
-    const lens = input.lens || {};
-    if (!lens.focalLengthMinMm || !lens.focalLengthMaxMm) {
+  if (gearItem.gearType === "LENS") {
+    const focalMin = gearItem.lensSpecs?.focalLengthMinMm ?? null;
+    const focalMax = gearItem.lensSpecs?.focalLengthMaxMm ?? null;
+    if (!focalMin || !focalMax) {
       missing.push("Focal length");
     }
-    if (lens.maxAperture == null) {
+    const maxAperture = (gearItem.lensSpecs as any)?.maxAperture ?? null;
+    if (maxAperture == null) {
       missing.push("Aperture");
     }
   }
 
-  if (input.gearType === "CAMERA") {
-    const camera = input.camera || {};
-    if (!camera.sensorFormatId) missing.push("Sensor type");
-    if (!camera.resolutionMp) missing.push("Sensor resolution");
+  if (gearItem.gearType === "CAMERA") {
+    const sensorFormatId = gearItem.cameraSpecs?.sensorFormatId ?? null;
+    const resolution =
+      Number((gearItem.cameraSpecs as any)?.resolutionMp ?? null) || null;
+    if (!sensorFormatId) missing.push("Sensor type");
+    if (!resolution) missing.push("Sensor resolution");
   }
 
   return {
