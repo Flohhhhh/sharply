@@ -1,6 +1,7 @@
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
+import Resend from "next-auth/providers/resend";
 
 import { db } from "~/server/db";
 import {
@@ -36,6 +37,10 @@ declare module "next-auth" {
  */
 export const authConfig = {
   providers: [
+    Resend({
+      from: process.env.RESEND_EMAIL_FROM!,
+      apiKey: process.env.RESEND_API_KEY, // optional if you use AUTH_RESEND_KEY
+    }),
     DiscordProvider,
     /**
      * ...add more providers here.
@@ -47,6 +52,10 @@ export const authConfig = {
      * @see https://next-auth.js.org/providers/github
      */
   ],
+  pages: {
+    signIn: "/auth/signin",
+    verifyRequest: "/auth/verify",
+  },
   adapter: DrizzleAdapter(db, {
     usersTable: users,
     accountsTable: accounts,

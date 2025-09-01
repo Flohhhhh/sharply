@@ -4,20 +4,28 @@ import { useScrollState } from "@/lib/hooks/useScrollState";
 import { Button } from "../ui/button";
 import { Menu } from "lucide-react";
 import { GlobalSearchBar } from "../search/global-search-bar";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { NavMenuDesktop } from "./nav-menu-desktop";
 import { NavMenuMobile } from "./nav-menu-mobile";
 import { NavSheetDesktop } from "./nav-sheet-desktop";
+import { useSession, signOut } from "next-auth/react";
 
 export default function Header() {
+  const { data: session } = useSession();
   const { hasScrolled } = useScrollState(290);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const isHomePage = pathname === "/";
   const sheetTopClass =
     hasScrolled || !isHomePage
       ? "top-16 h-[calc(100vh-4rem)]"
       : "top-24 h-[calc(100vh-6rem)]";
+
+  const callbackUrl = (() => {
+    const qs = searchParams?.toString();
+    return qs ? `${pathname}?${qs}` : pathname || "/";
+  })();
 
   return (
     <header
@@ -86,10 +94,33 @@ export default function Header() {
 
             {/* Desktop auth buttons - only visible on desktop */}
             <div className="hidden items-center gap-2 md:flex">
-              <Button variant="ghost" size="sm">
-                Login
-              </Button>
-              <Button size="sm">Sign up</Button>
+              {session ? (
+                <>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={`/u/${session.user?.id ?? ""}`}>Profile</Link>
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => signOut()}>
+                    Sign out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link
+                      href={`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+                    >
+                      Login
+                    </Link>
+                  </Button>
+                  <Button size="sm" asChild>
+                    <Link
+                      href={`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}&mode=signup`}
+                    >
+                      Sign up
+                    </Link>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
