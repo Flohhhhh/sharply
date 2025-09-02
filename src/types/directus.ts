@@ -11,8 +11,8 @@ export interface Brand {
   id: string;
   name: string;
   slug: string;
-  created_at: 'datetime';
-  updated_at: 'datetime';
+  created_at: "datetime";
+  updated_at: "datetime";
 }
 
 export interface Gear {
@@ -24,7 +24,7 @@ export interface Gear {
   gear_type: string;
   brand_id: string;
   mount_id: string;
-  release_date: 'datetime';
+  release_date: "datetime";
   msrp_usd_cents: number;
   thumbnail_url: string;
   weight_grams: number;
@@ -32,8 +32,8 @@ export interface Gear {
   link_mpb: string;
   link_amazon: string;
   genres: Record<string, unknown>;
-  created_at: 'datetime';
-  updated_at: 'datetime';
+  created_at: "datetime";
+  updated_at: "datetime";
 }
 
 export interface Genre {
@@ -41,8 +41,8 @@ export interface Genre {
   name: string;
   slug: string;
   description: string;
-  created_at: 'datetime';
-  updated_at: 'datetime';
+  created_at: "datetime";
+  updated_at: "datetime";
 }
 
 export interface Mount {
@@ -54,11 +54,11 @@ export interface Post {
   status: string;
   sort: number;
   user_created: string | DirectusUser;
-  date_created: 'datetime';
+  date_created: "datetime";
   user_updated: string | DirectusUser;
-  date_updated: 'datetime';
+  date_updated: "datetime";
   post_type: string;
-  Title: string;
+  title: string;
   /** Slug will be auto generated */
   slug: string;
   related_brand: string | Brand;
@@ -88,8 +88,8 @@ export interface SensorFormat {
   name: string;
   crop_factor: number;
   description: string;
-  updated_at: 'datetime';
-  created_at: 'datetime';
+  updated_at: "datetime";
+  created_at: "datetime";
 }
 
 export interface DirectusUser {
@@ -184,4 +184,3 @@ export interface ApiCollections {
   directus_users: DirectusUser[];
   directus_files: DirectusFile[];
 }
-

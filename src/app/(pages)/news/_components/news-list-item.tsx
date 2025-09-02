@@ -38,7 +38,7 @@ export function NewsListItem({ post }: NewsListItemProps) {
           {imgSrc ? (
             <Image
               src={imgSrc}
-              alt={post.Title}
+              alt={post.title}
               width={560}
               height={320}
               className="aspect-[16/9] h-full w-full object-cover"
@@ -49,12 +49,12 @@ export function NewsListItem({ post }: NewsListItemProps) {
         </div>
 
         <div className="flex h-full flex-col">
-          <span className="text-muted-foreground text-xs">
+          <span className="text-muted-foreground mb-4 text-xs sm:mt-0">
             {formatDotDate(post.date_created as unknown as string)}
           </span>
           <div className="mt-auto flex flex-col gap-2">
-            <h3 className="text-lg leading-snug font-semibold tracking-tight group-hover:underline sm:text-2xl">
-              {post.Title}
+            <h3 className="line-clamp-2 text-lg leading-snug font-semibold tracking-tight group-hover:underline sm:text-2xl">
+              {post.title}
             </h3>
             <p className="text-muted-foreground line-clamp-2 text-xs sm:text-sm">
               {stripHtml(post.news_content_wysiwyg)}

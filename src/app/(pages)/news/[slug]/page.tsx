@@ -31,7 +31,7 @@ export default async function DynamicPage({
     <div className="mx-auto mt-24 flex min-h-screen max-w-5xl flex-col items-center gap-12 p-6">
       <div className="flex flex-col items-center gap-4">
         <Badge className="bg-accent text-accent-foreground">{category}</Badge>
-        <h1 className="text-center text-6xl font-semibold">{page.Title}</h1>
+        <h1 className="text-center text-6xl font-semibold">{page.title}</h1>
         <div className="text-muted-foreground -mt-1 flex items-center gap-2 text-sm">
           <Calendar className="h-4 w-4" />
           <span className="pt-1">
@@ -43,7 +43,7 @@ export default async function DynamicPage({
       {page.thumbnail && (
         <Image
           src={imageSrc}
-          alt={page.Title}
+          alt={page.title}
           width={1280}
           height={720}
           className="aspect-video w-full rounded-lg object-cover"
