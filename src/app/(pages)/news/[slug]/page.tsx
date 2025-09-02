@@ -6,6 +6,8 @@ import { Badge } from "~/components/ui/badge";
 import { Calendar } from "lucide-react";
 import { formatHumanDate } from "~/lib/utils";
 
+export const revalidate = 60;
+
 export async function generateStaticParams() {
   const posts = await getNewsPosts();
   return posts.map((post) => ({ slug: post.slug }));
@@ -21,6 +23,8 @@ export default async function DynamicPage({
   if (!page) return notFound();
 
   const category = page.post_type === "news" ? "News" : "Article";
+  // Add a timestamp to the image src to ensure it's revalidated when page is rebuilt
+  const imageSrc = `https://sharply-directus.onrender.com/assets/${page.thumbnail}?v=${Date.now()}`;
   // console.log(page);
 
   return (
@@ -38,7 +42,7 @@ export default async function DynamicPage({
 
       {page.thumbnail && (
         <Image
-          src={`https://sharply-directus.onrender.com/assets/${page.thumbnail}`}
+          src={imageSrc}
           alt={page.Title}
           width={1280}
           height={720}

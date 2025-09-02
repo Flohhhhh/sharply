@@ -1,16 +1,23 @@
 import { getNewsPosts } from "@/lib/directus";
-import type { Post } from "@/types/directus";
-import Link from "next/link";
+import { Separator } from "~/components/ui/separator";
+import NewsListItem from "./_components/news-list-item";
 
 export default async function NewsPage() {
   const posts = await getNewsPosts();
   return (
-    <div className="mx-auto min-h-screen max-w-4xl p-6 pt-20">
-      {posts.map((post) => (
-        <Link href={`/news/${post.slug}`} key={post.id}>
-          <div>{post.Title}</div>
-        </Link>
-      ))}
+    <div className="mx-auto min-h-screen max-w-5xl p-6 pt-24">
+      <h1 className="mb-6 text-4xl font-semibold tracking-tight">
+        News & Updates
+      </h1>
+      <Separator className="mb-2" />
+      <div>
+        {posts.map((post, idx) => (
+          <div key={post.id}>
+            <NewsListItem post={post} />
+            {idx < posts.length - 1 && <Separator />}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
