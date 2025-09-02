@@ -55,6 +55,7 @@ export const authConfig = {
   pages: {
     signIn: "/auth/signin",
     verifyRequest: "/auth/verify",
+    newUser: "/auth/welcome",
   },
   adapter: DrizzleAdapter(db, {
     usersTable: users,
