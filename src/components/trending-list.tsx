@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Flame } from "lucide-react";
+import { getTrendingData } from "~/server/popularity/data";
 
 export type TrendingItem = {
   gearId: string;
@@ -17,48 +18,6 @@ export type TrendingItem = {
   };
   asOfDate: string;
 };
-
-function getBaseUrl() {
-  if (process.env.NEXT_PUBLIC_BASE_URL) return process.env.NEXT_PUBLIC_BASE_URL;
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return "http://localhost:3000";
-}
-
-async function fetchTrending({
-  timeframe,
-  limit,
-  filters,
-}: {
-  timeframe: "7d" | "30d";
-  limit: number;
-  filters?: {
-    brandId?: string;
-    mountId?: string;
-    gearType?: "CAMERA" | "LENS";
-  };
-}): Promise<TrendingItem[]> {
-  const base = getBaseUrl();
-  const url = new URL(`${base}/api/popularity/trending`);
-  url.searchParams.set("timeframe", timeframe);
-  url.searchParams.set("limit", String(limit));
-  if (filters?.brandId) url.searchParams.set("brandId", filters.brandId);
-  if (filters?.mountId) url.searchParams.set("mountId", filters.mountId);
-  if (filters?.gearType) url.searchParams.set("gearType", filters.gearType);
-
-  try {
-    const res = await fetch(url.toString(), {
-      next: { revalidate: 60 * 60 * 12, tags: ["trending"] },
-    });
-    if (!res.ok) return [];
-    const data = (await res.json()) as {
-      items: TrendingItem[];
-    };
-    return data.items ?? [];
-  } catch {
-    // During static prerender there is no server listening; fail soft and show nothing
-    return [];
-  }
-}
 
 function Skeleton({
   rows = 10,
@@ -115,7 +74,7 @@ export default async function TrendingList({
 }) {
   if (loading) return <Skeleton rows={rows} title={title} />;
 
-  const items = await fetchTrending({ timeframe, limit, filters });
+  const items = await getTrendingData(timeframe, limit, filters);
   if (!items.length) return null;
 
   const topScore = items[0]?.score ?? 0;
