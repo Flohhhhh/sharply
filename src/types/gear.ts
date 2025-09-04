@@ -5,6 +5,7 @@ import type {
   brands,
   mounts,
   sensorFormats,
+  popularityEventTypeEnum,
 } from "~/server/db/schema";
 
 // Base types from schema
@@ -22,3 +23,5 @@ export type GearItem = Gear & {
   cameraSpecs?: CameraSpecs | null;
   lensSpecs?: LensSpecs | null;
 };
+
+export type PopularityEventType = (typeof popularityEventTypeEnum.enumValues)[number];

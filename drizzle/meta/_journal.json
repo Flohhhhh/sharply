@@ -22,6 +22,27 @@
       "when": 1755964857488,
       "tag": "0002_dear_katie_power",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1756846835067,
+      "tag": "0003_awesome_norrin_radd",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1756864890657,
+      "tag": "0004_watery_madripoor",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1756991095519,
+      "tag": "0005_absurd_doctor_doom",
+      "breakpoints": true
     }
   ]
 }

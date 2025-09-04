@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { formatPrice, getMountDisplayName } from "~/lib/mapping";
+import BrandTrendingList from "./_components/brand-trending-list";
 
 interface BrandPageProps {
   params: Promise<{
@@ -67,6 +68,10 @@ export default async function BrandPage({ params }: BrandPageProps) {
         <p className="text-muted-foreground mt-2 text-lg">
           {brandGear.length} piece{brandGear.length !== 1 ? "s" : ""} of gear
         </p>
+      </div>
+
+      <div className="mb-8">
+        <BrandTrendingList brandId={brand.id} timeframe="30d" limit={10} />
       </div>
 
       {brandGear.length === 0 ? (

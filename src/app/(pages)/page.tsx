@@ -10,6 +10,7 @@ import { Separator } from "~/components/ui/separator";
 import { Suspense } from "react";
 import { NewsCard as HomeNewsCard } from "~/components/home/news-card";
 import { ReviewCard, type ReviewPost } from "~/components/home/review-card";
+import TrendingList from "~/components/trending-list";
 
 type NewsItem = {
   id: number;
@@ -126,7 +127,7 @@ export default async function Home() {
                 <Suspense
                   fallback={
                     <div className="relative">
-                      <div className="text-muted-foreground flex h-12 items-center rounded-lg border pr-14 pl-9 text-sm">
+                      <div className="text-muted-foreground flex h-12 items-center rounded-lg border pl-9 pr-14 text-sm">
                         Loading search…
                         <Loader className="ml-auto h-5 w-5 animate-spin" />
                       </div>
@@ -218,7 +219,7 @@ export default async function Home() {
                 className="flex flex-col gap-2 overflow-hidden rounded-xl border bg-white p-5 transition-colors"
               >
                 <h3 className="text-2xl font-semibold">New to Photography?</h3>
-                <p className="text-muted-foreground mt-1 mb-8 text-sm">
+                <p className="text-muted-foreground mb-8 mt-1 text-sm">
                   We've put together a beginners guide to everything you need to
                   know to get started! View our step-by-step guide series.
                 </p>
@@ -233,6 +234,10 @@ export default async function Home() {
               <Separator className="my-4" />
               {/* Latest Reviews */}
               <div className="space-y-4">
+                <Suspense fallback={<TrendingList loading rows={10} />}>
+                  <TrendingList timeframe="30d" limit={10} />
+                </Suspense>
+                <Separator className="my-8" />
                 <h2 className="text-2xl font-semibold">Latest Reviews</h2>
                 {REVIEW_ITEMS.map((post) => (
                   <ReviewCard key={post.id} post={post} />

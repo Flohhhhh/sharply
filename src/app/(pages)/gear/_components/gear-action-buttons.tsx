@@ -3,7 +3,14 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Button } from "~/components/ui/button";
-import { Heart, CheckCircle, Plus, User } from "lucide-react";
+import {
+  Heart,
+  CheckCircle,
+  Plus,
+  User,
+  PackageOpen,
+  Package,
+} from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -13,47 +20,51 @@ interface GearActionButtonsProps {
 
 export function GearActionButtons({ slug }: GearActionButtonsProps) {
   const { data: session, status } = useSession();
-  const [inWishlist, setInWishlist] = useState(false);
-  const [isOwned, setIsOwned] = useState(false);
+  const [inWishlist, setInWishlist] = useState<boolean | null>(null);
+  const [isOwned, setIsOwned] = useState<boolean | null>(null);
   const [loading, setLoading] = useState({
     wishlist: false,
     ownership: false,
   });
 
-  // Check initial state when component mounts
+  // Check initial state when component mounts or slug/session changes
   useEffect(() => {
-    if (session?.user && status === "authenticated") {
-      checkWishlistStatus();
-      checkOwnershipStatus();
+    let cancelled = false;
+    async function init() {
+      if (session?.user && status === "authenticated") {
+        try {
+          const [wl, own] = await Promise.all([
+            fetch(`/api/gear/${slug}/wishlist`).then((r) =>
+              r.ok ? r.json() : Promise.reject(r),
+            ),
+            fetch(`/api/gear/${slug}/ownership`).then((r) =>
+              r.ok ? r.json() : Promise.reject(r),
+            ),
+          ]);
+          if (!cancelled) {
+            setInWishlist(Boolean(wl.inWishlist));
+            setIsOwned(Boolean(own.isOwned));
+          }
+        } catch {
+          if (!cancelled) {
+            setInWishlist(false);
+            setIsOwned(false);
+          }
+        }
+      } else {
+        // Not authenticated; keep nulls (component renders sign-in CTA)
+        setInWishlist(null);
+        setIsOwned(null);
+      }
     }
+    init();
+    return () => {
+      cancelled = true;
+    };
   }, [session, status, slug]);
 
-  const checkWishlistStatus = async () => {
-    try {
-      const response = await fetch(`/api/gear/${slug}/wishlist`);
-      if (response.ok) {
-        const data = await response.json();
-        setInWishlist(data.inWishlist);
-      }
-    } catch (error) {
-      console.error("Error checking wishlist status:", error);
-    }
-  };
-
-  const checkOwnershipStatus = async () => {
-    try {
-      const response = await fetch(`/api/gear/${slug}/ownership`);
-      if (response.ok) {
-        const data = await response.json();
-        setIsOwned(data.isOwned);
-      }
-    } catch (error) {
-      console.error("Error checking ownership status:", error);
-    }
-  };
-
   const handleWishlistToggle = async () => {
-    if (!session?.user) return;
+    if (!session?.user || inWishlist === null) return;
 
     setLoading((prev) => ({ ...prev, wishlist: true }));
     try {
@@ -67,6 +78,12 @@ export function GearActionButtons({ slug }: GearActionButtonsProps) {
       if (response.ok) {
         const data = await response.json();
         setInWishlist(!inWishlist);
+
+        // Optimistic stats update event
+        const delta = data.action === "added" ? 1 : -1;
+        window.dispatchEvent(
+          new CustomEvent("gear:wishlist", { detail: { delta, slug } }),
+        );
 
         if (data.action === "added") {
           toast.success("Added to wishlist");
@@ -85,7 +102,7 @@ export function GearActionButtons({ slug }: GearActionButtonsProps) {
   };
 
   const handleOwnershipToggle = async () => {
-    if (!session?.user) return;
+    if (!session?.user || isOwned === null) return;
 
     setLoading((prev) => ({ ...prev, ownership: true }));
     try {
@@ -99,6 +116,12 @@ export function GearActionButtons({ slug }: GearActionButtonsProps) {
       if (response.ok) {
         const data = await response.json();
         setIsOwned(!isOwned);
+
+        // Optimistic stats update event
+        const delta = data.action === "added" ? 1 : -1;
+        window.dispatchEvent(
+          new CustomEvent("gear:ownership", { detail: { delta, slug } }),
+        );
 
         if (data.action === "added") {
           toast.success("Added to collection");
@@ -116,7 +139,7 @@ export function GearActionButtons({ slug }: GearActionButtonsProps) {
     }
   };
 
-  // Don't show buttons if not authenticated
+  // Loading skeleton before auth status resolved
   if (status === "loading") {
     return (
       <div className="space-y-3 pt-4">
@@ -136,28 +159,33 @@ export function GearActionButtons({ slug }: GearActionButtonsProps) {
     );
   }
 
+  const wishlistActive = inWishlist === true;
+  const ownedActive = isOwned === true;
+
   return (
     <div className="space-y-3 pt-4">
       {/* Wishlist Button */}
       <Button
-        variant={inWishlist ? "default" : "outline"}
+        variant={!wishlistActive ? "outline" : "default"}
         className="w-full"
         onClick={handleWishlistToggle}
         loading={loading.wishlist}
-        icon={inWishlist ? <Heart className="fill-current" /> : <Heart />}
+        disabled={inWishlist === null}
+        icon={wishlistActive ? <Heart className="fill-current" /> : <Heart />}
       >
-        {inWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
+        {wishlistActive ? "Remove from Wishlist" : "Add to Wishlist"}
       </Button>
 
       {/* Ownership Button */}
       <Button
-        variant={isOwned ? "default" : "outline"}
+        variant={!ownedActive ? "outline" : "default"}
         className="w-full"
         onClick={handleOwnershipToggle}
         loading={loading.ownership}
-        icon={isOwned ? <CheckCircle className="fill-current" /> : <Plus />}
+        disabled={isOwned === null}
+        icon={ownedActive ? <Package /> : <PackageOpen />}
       >
-        {isOwned ? "Remove from Collection" : "Add to Collection"}
+        {ownedActive ? "Remove from Collection" : "Add to Collection"}
       </Button>
 
       {/* Profile Link */}

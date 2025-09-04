@@ -3,7 +3,8 @@ import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { ownerships, popularityEvents, gear } from "~/server/db/schema";
 import { eq, and } from "drizzle-orm";
-import { POPULARITY_POINTS } from "~/lib/constants";
+import { hasEventForUserOnUtcDay } from "~/lib/validation/dedupe";
+// No points; event_type enum values enforced in schema
 
 export async function POST(
   request: NextRequest,
@@ -12,6 +13,7 @@ export async function POST(
   try {
     const session = await auth();
     if (!session?.user?.id) {
+      console.info("ownership blocked", { reason: "unauthorized" });
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -26,6 +28,7 @@ export async function POST(
       .limit(1);
 
     if (!gearResult.length) {
+      console.warn("ownership blocked", { reason: "gear_not_found", slug });
       return NextResponse.json({ error: "Gear not found" }, { status: 404 });
     }
 
@@ -43,6 +46,12 @@ export async function POST(
         .limit(1);
 
       if (existing.length > 0) {
+        console.info("ownership blocked", {
+          reason: "already_owned",
+          slug,
+          userId,
+          gearId,
+        });
         return NextResponse.json({ error: "Already owned" }, { status: 400 });
       }
 
@@ -52,32 +61,35 @@ export async function POST(
         gearId,
       });
 
-      // Record popularity event
-      await db.insert(popularityEvents).values({
+      // Record popularity event (append-only) with same-day dedupe
+      const alreadyToday = await hasEventForUserOnUtcDay({
         gearId,
         userId,
-        eventType: "ownership",
-        points: POPULARITY_POINTS.OWNERSHIP,
+        eventType: "owner_add",
       });
+      if (!alreadyToday) {
+        await db.insert(popularityEvents).values({
+          gearId,
+          userId,
+          eventType: "owner_add",
+        });
+      } else {
+        console.info("popularity_event blocked", {
+          reason: "same_day_dedupe",
+          eventType: "owner_add",
+          slug,
+          userId,
+          gearId,
+        });
+      }
 
       return NextResponse.json({ success: true, action: "added" });
     } else if (action === "remove") {
-      // Remove ownership
+      // Remove ownership (append-only popularity events: do not delete past events)
       await db
         .delete(ownerships)
         .where(
           and(eq(ownerships.userId, userId), eq(ownerships.gearId, gearId)),
-        );
-
-      // Delete the popularity event for this ownership action
-      await db
-        .delete(popularityEvents)
-        .where(
-          and(
-            eq(popularityEvents.gearId, gearId),
-            eq(popularityEvents.userId, userId),
-            eq(popularityEvents.eventType, "ownership"),
-          ),
         );
 
       return NextResponse.json({ success: true, action: "removed" });

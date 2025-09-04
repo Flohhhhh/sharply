@@ -13,9 +13,10 @@ import {
   boolean,
   jsonb,
   pgSchema,
+  date as dateCol,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccount } from "next-auth/adapters";
-import { POPULARITY_POINTS, type PopularityEventType } from "~/lib/constants";
+// Popularity event enum will be defined below for strong typing in DB
 
 export const appSchema = pgSchema("app");
 
@@ -50,6 +51,16 @@ export const reviewStatusEnum = pgEnum("review_status", [
   "PENDING",
   "APPROVED",
   "REJECTED",
+]);
+
+// --- Popularity Enums ---
+export const popularityEventTypeEnum = pgEnum("popularity_event_type", [
+  "view",
+  "wishlist_add",
+  "owner_add",
+  "compare_add",
+  "review_submit",
+  "api_fetch",
 ]);
 
 // --- Base helpers ---
@@ -461,15 +472,117 @@ export const popularityEvents = appSchema.table(
     userId: d
       .varchar("user_id", { length: 255 })
       .references(() => users.id, { onDelete: "set null" }),
-    eventType: d.varchar("event_type", { length: 40 }).notNull(), // 'wishlist', 'ownership', 'compare', 'review', 'share'
-    points: d.integer("points").notNull(),
+    visitorId: d.varchar("visitor_id", { length: 64 }),
+    eventType: popularityEventTypeEnum("event_type").notNull(),
     createdAt,
   }),
   (t) => [
     index("pop_events_gear_idx").on(t.gearId),
     index("pop_events_gear_type_idx").on(t.gearId, t.eventType),
     index("pop_events_created_idx").on(t.createdAt),
+    index("pop_events_visitor_idx").on(t.visitorId),
+    index("pop_events_gear_visitor_created_idx").on(
+      t.gearId,
+      t.visitorId,
+      t.createdAt,
+    ),
   ],
+);
+
+// --- Popularity Rollup Tables ---
+export const gearPopularityDaily = appSchema.table(
+  "gear_popularity_daily",
+  (d) => ({
+    date: dateCol("date").notNull(),
+    gearId: d
+      .varchar("gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    views: integer("views").notNull().default(0),
+    wishlistAdds: integer("wishlist_adds").notNull().default(0),
+    ownerAdds: integer("owner_adds").notNull().default(0),
+    compareAdds: integer("compare_adds").notNull().default(0),
+    reviewSubmits: integer("review_submits").notNull().default(0),
+    apiFetches: integer("api_fetches").notNull().default(0),
+    updatedAt,
+  }),
+  (t) => [
+    primaryKey({ columns: [t.date, t.gearId] }),
+    index("gpd_gear_idx").on(t.gearId),
+    index("gpd_date_idx").on(t.date),
+  ],
+);
+
+export const popularityTimeframeEnum = pgEnum("popularity_timeframe", [
+  "7d",
+  "30d",
+]);
+
+export const gearPopularityWindows = appSchema.table(
+  "gear_popularity_windows",
+  (d) => ({
+    gearId: d
+      .varchar("gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    timeframe: popularityTimeframeEnum("timeframe").notNull(),
+    asOfDate: dateCol("as_of_date").notNull(),
+    viewsSum: integer("views_sum").notNull().default(0),
+    wishlistAddsSum: integer("wishlist_adds_sum").notNull().default(0),
+    ownerAddsSum: integer("owner_adds_sum").notNull().default(0),
+    compareAddsSum: integer("compare_adds_sum").notNull().default(0),
+    reviewSubmitsSum: integer("review_submits_sum").notNull().default(0),
+    apiFetchesSum: integer("api_fetches_sum").notNull().default(0),
+    updatedAt,
+  }),
+  (t) => [
+    primaryKey({ columns: [t.gearId, t.timeframe] }),
+    index("gpw_timeframe_idx").on(t.timeframe),
+  ],
+);
+
+export const gearPopularityLifetime = appSchema.table(
+  "gear_popularity_lifetime",
+  (d) => ({
+    gearId: d
+      .varchar("gear_id", { length: 36 })
+      .primaryKey()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    viewsLifetime: integer("views_lifetime").notNull().default(0),
+    wishlistLifetimeAdds: integer("wishlist_lifetime_adds")
+      .notNull()
+      .default(0),
+    ownerLifetimeAdds: integer("owner_lifetime_adds").notNull().default(0),
+    compareLifetimeAdds: integer("compare_lifetime_adds").notNull().default(0),
+    reviewLifetimeSubmits: integer("review_lifetime_submits")
+      .notNull()
+      .default(0),
+    apiFetchLifetime: integer("api_fetch_lifetime").notNull().default(0),
+    updatedAt,
+  }),
+  (t) => [index("gpl_gear_idx").on(t.gearId)],
+);
+
+// Rollup run history
+export const rollupRuns = appSchema.table(
+  "rollup_runs",
+  (d) => ({
+    id: d
+      .varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    asOfDate: dateCol("as_of_date").notNull(),
+    correctedDate: dateCol("corrected_date").notNull(),
+    dailyRows: integer("daily_rows").notNull().default(0),
+    lateArrivals: integer("late_arrivals").notNull().default(0),
+    windowsRows: integer("windows_rows").notNull().default(0),
+    lifetimeTotalRows: integer("lifetime_total_rows").notNull().default(0),
+    durationMs: integer("duration_ms").notNull().default(0),
+    success: boolean("success").notNull().default(false),
+    error: text("error"),
+    createdAt,
+  }),
+  (t) => [index("rollup_runs_created_idx").on(t.createdAt)],
 );
 
 // DEFAULT //

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
-import { reviews, gear, users } from "~/server/db/schema";
+import { reviews, gear, users, popularityEvents } from "~/server/db/schema";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
+// No points; event_type enum values enforced in schema
 
 // Validation schema for review submission
 const reviewSchema = z.object({
@@ -76,6 +77,13 @@ export async function POST(
         recommend: validatedData.recommend,
       })
       .returning();
+
+    // Record popularity event for review creation (append-only)
+    await db.insert(popularityEvents).values({
+      gearId,
+      userId: session.user.id,
+      eventType: "review_submit",
+    });
 
     return NextResponse.json(
       {

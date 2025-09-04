@@ -6,6 +6,7 @@ import { GearProposalsList } from "./gear-proposals-list";
 import { AuditLogList } from "./admin-audit-log-list";
 import { GearCreateCard } from "./gear-create";
 import { ReviewsApprovalQueue } from "./reviews-approval-queue";
+import { RollupRunsList } from "./rollup-runs-list";
 
 export default function AdminPage() {
   return (
@@ -115,6 +116,19 @@ export default function AdminPage() {
         </div>
         <Suspense fallback={<div>Loading reviews...</div>}>
           <ReviewsApprovalQueue />
+        </Suspense>
+      </div>
+
+      {/* Rollup Runs */}
+      <div className="space-y-3">
+        <div>
+          <h2 className="text-2xl font-bold">Popularity Rollup Runs</h2>
+          <p className="text-muted-foreground mt-2">
+            Recent rollup history and metrics.
+          </p>
+        </div>
+        <Suspense fallback={<div>Loading rollup runs...</div>}>
+          <RollupRunsList />
         </Suspense>
       </div>
     </div>

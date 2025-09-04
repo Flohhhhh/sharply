@@ -9,11 +9,28 @@ export default async function AdminLayout({
   const session = await auth();
 
   // Role check: only EDITOR and ADMIN may access
-  if (
-    !session?.user ||
-    !["ADMIN", "EDITOR"].includes((session.user as any).role)
-  ) {
+  if (!session?.user) {
     redirect(`/api/auth/signin?callbackUrl=${encodeURIComponent("/admin")}`);
+  }
+
+  if (!["ADMIN", "EDITOR"].includes((session.user as any).role)) {
+    return (
+      <div className="bg-background min-h-screen">
+        <main className="container mx-auto px-4 py-16">
+          <div className="mx-auto max-w-md text-center">
+            <h1 className="text-3xl font-bold">Access denied</h1>
+            <p className="text-muted-foreground mt-2">
+              You don’t have permission to view this page.
+            </p>
+            <div className="mt-6">
+              <a className="text-primary underline" href="/">
+                Go back home
+              </a>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
   }
 
   return (

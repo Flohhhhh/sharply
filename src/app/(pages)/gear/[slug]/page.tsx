@@ -24,6 +24,8 @@ import { UserPendingEditBanner } from "../_components/user-pending-edit-banner";
 import { SignInToEditSpecsCta } from "../_components/sign-in-to-edit-cta";
 import { SuggestEditButton } from "../_components/suggest-edit-button";
 import { GearLinks } from "~/app/(pages)/gear/_components/gear-links";
+import GearStatsCard from "../_components/gear-stats-card";
+import GearBadges from "../_components/gear-badges";
 
 export const revalidate = 3600;
 
@@ -164,6 +166,11 @@ export default async function GearPage({ params }: GearPageProps) {
         )}
       </div>
 
+      {/* Badges */}
+      <div className="mb-4">
+        <GearBadges slug={slug} />
+      </div>
+
       {/* Photo Placeholder */}
       <div className="mb-6">
         {item.thumbnailUrl ? (
@@ -181,6 +188,11 @@ export default async function GearPage({ params }: GearPageProps) {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Popularity Stats */}
+      <div className="mb-8">
+        <GearStatsCard slug={slug} />
       </div>
 
       {/* Pending submission banner (client, only for this user when pending) */}
