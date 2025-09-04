@@ -11,17 +11,53 @@ import {
 } from "~/server/db/schema";
 import { and, desc, eq, gte, sql } from "drizzle-orm";
 
+/**
+ * Popularity data access layer (server-only)
+ *
+ * Purpose:
+ * - Provide a single source of truth for popularity reads used by server components
+ * - Centralize caching policy (revalidate windows, tag invalidation) with `unstable_cache`
+ * - Avoid HTTP round-trips to our own API during SSG/ISR (prevents build-time failures)
+ *
+ * Design:
+ * - Expose small, composable functions that return ready-to-render shapes
+ * - Keep queries transparent and documented; prefer straightforward SQL aggregation
+ * - Match tag names used by rollup revalidation (e.g., 'trending')
+ */
+
+/**
+ * Optional filters used to scope trending results.
+ * - brandId: restrict to a specific brand
+ * - mountId: restrict to a specific mount (if populated on gear)
+ * - gearType: camera or lens
+ */
 export type TrendingFilters = {
   brandId?: string;
   mountId?: string;
   gearType?: "CAMERA" | "LENS";
 };
 
+/**
+ * getTrendingData(timeframe, limit, filters)
+ *
+ * Returns top-N trending gear for the given window.
+ *
+ * Caching:
+ * - Cached for 12h via `unstable_cache`
+ * - Tagged with 'trending' so a rollup can revalidate proactively
+ * - Cache key includes timeframe, limit, and filters to avoid collisions
+ *
+ * Query notes:
+ * - We compute a weighted composite score over window columns
+ * - We always select the most recent `as_of_date` for the timeframe
+ * - Optional filters apply at the gear row (brand/mount/type)
+ */
 export async function getTrendingData(
   timeframe: "7d" | "30d",
   limit: number,
   filters: TrendingFilters = {},
 ) {
+  // Stable cache key across inputs (kept small and deterministic)
   const key = [
     "pop-trending",
     timeframe,
@@ -31,8 +67,10 @@ export async function getTrendingData(
     filters.gearType ?? "-",
   ];
 
+  // Wrap the resolver with unstable_cache to enable ISR-style caching and tag invalidation
   const run = unstable_cache(
     async () => {
+      // Composite score: simple, transparent weights; tweakable in one place
       const scoreFormula = sql`(
         views_sum * 0.1 +
         wishlist_adds_sum * 2 +
@@ -41,6 +79,7 @@ export async function getTrendingData(
         review_submits_sum * 2.5
       )`;
 
+      // Base conditions: fixed timeframe and only the most recent snapshot for that timeframe
       const conds: any[] = [
         eq(gearPopularityWindows.timeframe, timeframe as any),
         sql`${gearPopularityWindows.asOfDate} = (
@@ -49,11 +88,13 @@ export async function getTrendingData(
           WHERE timeframe = ${timeframe}::popularity_timeframe
         )`,
       ];
+      // Optional scoping filters
       if (filters.brandId) conds.push(eq(gear.brandId, filters.brandId));
       if (filters.mountId) conds.push(eq(gear.mountId, filters.mountId));
       if (filters.gearType)
         conds.push(eq(gear.gearType, filters.gearType as any));
 
+      // Read a single row per gear for the latest snapshot; order by score desc; limit N
       const rows = await db
         .select({
           gearId: gearPopularityWindows.gearId,
@@ -77,6 +118,7 @@ export async function getTrendingData(
         .orderBy(desc(scoreFormula))
         .limit(limit);
 
+      // Map to a render-ready shape
       return rows.map((r) => ({
         gearId: r.gearId,
         slug: r.slug,
@@ -101,16 +143,35 @@ export async function getTrendingData(
   return run();
 }
 
+/**
+ * getGearStats(slug)
+ *
+ * Returns aggregated stats for a gear slug:
+ * - lifetimeViews (from lifetime table)
+ * - views30d (from window snapshot; falls back to summing daily if missing)
+ * - wishlistTotal and ownershipTotal (from truth tables)
+ *
+ * Caching:
+ * - Cached for 1h via `unstable_cache`
+ * - Tagged with 'popularity' and a gear-specific tag for partial invalidation
+ *
+ * Query notes:
+ * - We resolve the gear id by slug to avoid exposing ids at the call site
+ * - We read the latest 30d snapshot; if missing (e.g., right after bootstrap), we sum daily rows
+ * - Truth counts stay authoritative for current totals
+ */
 export async function getGearStats(slug: string) {
   const key = ["gear-stats", slug];
   const run = unstable_cache(
     async () => {
+      // Resolve gear id from slug (keeps call-sites simple and stable)
       const gearRow = await db
         .select({ id: gear.id })
         .from(gear)
         .where(eq(gear.slug, slug))
         .limit(1);
       if (!gearRow.length) {
+        // Keep return type stable; callers can render zeros or hide blocks
         return {
           gearId: "",
           lifetimeViews: 0,
@@ -121,6 +182,7 @@ export async function getGearStats(slug: string) {
       }
       const gearId = gearRow[0]!.id;
 
+      // Lifetime totals: monotonic sums for fast reads
       const lifetimeRow = await db
         .select({ v: gearPopularityLifetime.viewsLifetime })
         .from(gearPopularityLifetime)
@@ -128,6 +190,7 @@ export async function getGearStats(slug: string) {
         .limit(1);
       const lifetimeViews = Number(lifetimeRow[0]?.v ?? 0);
 
+      // 30d views: prefer the cached window snapshot at the latest as_of_date
       const win30Row = await db
         .select({
           v: gearPopularityWindows.viewsSum,
@@ -144,6 +207,7 @@ export async function getGearStats(slug: string) {
         .limit(1);
       let views30d = Number(win30Row[0]?.v ?? 0);
 
+      // Fallback: if no window snapshot exists yet, sum from daily (bounded window)
       if (!views30d) {
         const d30Row = await db
           .select({
@@ -162,6 +226,7 @@ export async function getGearStats(slug: string) {
         views30d = Number(d30Row[0]?.v ?? 0);
       }
 
+      // Truth counts: authoritative for "now"
       const [wlRow, ownRow] = await Promise.all([
         db
           .select({ c: sql<number>`count(*)` })
