@@ -9,9 +9,9 @@ type ReviewItem = {
   id: string;
   status: "PENDING" | "APPROVED" | "REJECTED";
   content: string;
-  genres: string[] | null;
+  genres: unknown;
   recommend: boolean | null;
-  createdAt: string;
+  createdAt: Date;
   userId: string | null;
   userName: string | null;
   gearId: string | null;
@@ -19,9 +19,26 @@ type ReviewItem = {
   gearSlug: string | null;
 };
 
-export function ReviewsApprovalQueue() {
-  const [items, setItems] = useState<ReviewItem[]>([]);
-  const [loading, setLoading] = useState(true);
+interface ReviewsApprovalQueueProps {
+  initialReviews: Array<{
+    id: string;
+    status: "PENDING" | "APPROVED" | "REJECTED";
+    content: string;
+    genres: unknown;
+    recommend: boolean | null;
+    createdAt: Date;
+    userId: string | null;
+    userName: string | null;
+    gearId: string | null;
+    gearName: string | null;
+    gearSlug: string | null;
+  }>;
+}
+
+export function ReviewsApprovalQueue({
+  initialReviews,
+}: ReviewsApprovalQueueProps) {
+  const [items, setItems] = useState<ReviewItem[]>(initialReviews);
   const [error, setError] = useState<string>("");
 
   const pending = useMemo(
@@ -33,36 +50,30 @@ export function ReviewsApprovalQueue() {
     [items],
   );
 
-  const refresh = async () => {
-    setLoading(true);
-    setError("");
+  const act = async (id: string, action: "approve" | "reject") => {
     try {
-      const { fetchAdminReviews } = await import(
-        "~/server/admin/reviews/service"
+      const { actionApproveReview, actionRejectReview } = await import(
+        "~/server/admin/reviews/actions"
       );
-      const rows = await fetchAdminReviews();
-      setItems(rows as unknown as ReviewItem[]);
+      if (action === "approve") await actionApproveReview(id);
+      else await actionRejectReview(id);
+
+      // Update local state to reflect the action
+      setItems((prev) =>
+        prev.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                status: action === "approve" ? "APPROVED" : "REJECTED",
+              }
+            : item,
+        ),
+      );
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load");
-    } finally {
-      setLoading(false);
+      setError(e instanceof Error ? e.message : "Failed to update review");
     }
   };
 
-  useEffect(() => {
-    void refresh();
-  }, []);
-
-  const act = async (id: string, action: "approve" | "reject") => {
-    const { actionApproveReview, actionRejectReview } = await import(
-      "~/server/admin/reviews/actions"
-    );
-    if (action === "approve") await actionApproveReview(id);
-    else await actionRejectReview(id);
-    await refresh();
-  };
-
-  if (loading) return <div className="py-6 text-center">Loading…</div>;
   if (error)
     return (
       <div className="text-destructive py-6 text-center text-sm">{error}</div>
@@ -95,9 +106,9 @@ export function ReviewsApprovalQueue() {
                     </div>
                     <div className="text-muted-foreground text-xs">
                       by {r.userName ?? r.userId ?? "User"} •{" "}
-                      {new Date(r.createdAt).toLocaleDateString()}
+                      {r.createdAt.toLocaleDateString()}
                     </div>
-                    {r.genres && r.genres.length > 0 && (
+                    {Array.isArray(r.genres) && r.genres.length > 0 && (
                       <div className="flex flex-wrap gap-1">
                         {r.genres.map((g) => (
                           <span
@@ -158,7 +169,7 @@ export function ReviewsApprovalQueue() {
                     </div>
                     <div className="text-muted-foreground text-xs">
                       by {r.userName || r.userId || "User"} •{" "}
-                      {new Date(r.createdAt).toLocaleDateString()}
+                      {r.createdAt.toLocaleDateString()}
                     </div>
                     <div className="text-sm">{r.content}</div>
                   </div>

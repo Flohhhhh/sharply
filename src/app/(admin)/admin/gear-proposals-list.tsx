@@ -32,181 +32,67 @@ interface GearProposal {
   beforeCore?: Record<string, any>;
   beforeCamera?: Record<string, any>;
   beforeLens?: Record<string, any>;
-  note?: string;
+  note?: string | null;
   createdAt: string | Date;
 }
 
-// Simplified test data - just individual proposals
-const TEST_DATA: GearProposal[] = [
-  {
-    id: "1",
-    gearId: "1",
-    gearName: "Nikon Z 400mm f/4.5 VR S",
-    gearSlug: "nikon-z-400mm-f45-vr-s",
-    createdById: "user1",
-    createdByName: "John Smith",
-    status: "PENDING",
-    payload: {
-      core: {
-        msrpUsdCents: 649900,
-        releaseDate: "2024-01-15T00:00:00Z",
-      },
-      lens: {
-        focalLengthMinMm: 400,
-        focalLengthMaxMm: 400,
-        hasStabilization: true,
-      },
-    },
-    note: "Updated pricing and confirmed stabilization feature",
-    createdAt: "2024-01-20T10:30:00Z",
-  },
-  {
-    id: "2",
-    gearId: "1",
-    gearName: "Nikon Z 400mm f/4.5 VR S",
-    gearSlug: "nikon-z-400mm-f45-vr-s",
-    createdById: "user2",
-    createdByName: "Sarah Johnson",
-    status: "PENDING",
-    payload: {
-      lens: {
-        focalLengthMinMm: 400,
-        focalLengthMaxMm: 400,
-        hasStabilization: true,
-        extra: {
-          filterSize: "95mm",
-          weight: "1160g",
-        },
-      },
-    },
-    note: "Added filter size and weight specifications",
-    createdAt: "2024-01-21T14:15:00Z",
-  },
-  {
-    id: "3",
-    gearId: "2",
-    gearName: "Sony FE 24-70mm f/2.8 GM II",
-    gearSlug: "sony-fe-24-70mm-f28-gm-ii",
-    createdById: "user3",
-    createdByName: "Mike Chen",
-    status: "PENDING",
-    payload: {
-      core: {
-        msrpUsdCents: 219800,
-      },
-      lens: {
-        focalLengthMinMm: 24,
-        focalLengthMaxMm: 70,
-        hasStabilization: false,
-        extra: {
-          filterSize: "82mm",
-          weight: "695g",
-          apertureBlades: 11,
-        },
-      },
-    },
-    note: "Corrected pricing and added detailed lens specifications",
-    createdAt: "2024-01-22T09:45:00Z",
-  },
-  {
-    id: "4",
-    gearId: "3",
-    gearName: "Canon RF 70-200mm f/2.8L IS USM",
-    gearSlug: "canon-rf-70-200mm-f28l-is-usm",
-    createdById: "user4",
-    createdByName: "Emily Davis",
-    status: "APPROVED",
-    payload: {
-      core: {
-        msrpUsdCents: 269900,
-      },
-      lens: {
-        focalLengthMinMm: 70,
-        focalLengthMaxMm: 200,
-        hasStabilization: true,
-      },
-    },
-    note: "Updated pricing and confirmed focal length range",
-    createdAt: "2024-01-18T16:20:00Z",
-  },
-  {
-    id: "5",
-    gearId: "4",
-    gearName: "Fujifilm XF 56mm f/1.2 R WR",
-    gearSlug: "fujifilm-xf-56mm-f12-r-wr",
-    createdById: "user5",
-    createdByName: "Alex Thompson",
-    status: "PENDING",
-    payload: {
-      lens: {
-        focalLengthMinMm: 56,
-        focalLengthMaxMm: 56,
-        hasStabilization: false,
-        extra: {
-          filterSize: "62mm",
-          weight: "445g",
-          apertureBlades: 9,
-        },
-      },
-    },
-    note: "Added detailed lens specifications and weight",
-    createdAt: "2024-01-23T11:30:00Z",
-  },
-];
+interface GearProposalsListProps {
+  initialProposals: Array<{
+    gearId: string;
+    gearName: string;
+    gearSlug: string;
+    proposals: Array<{
+      id: string;
+      gearId: string;
+      createdById: string;
+      createdByName: string | null;
+      status: string;
+      payload: unknown;
+      beforeCore?: Record<string, unknown>;
+      beforeCamera?: Record<string, unknown>;
+      beforeLens?: Record<string, unknown>;
+      note?: string | null;
+      createdAt: string | Date;
+    }>;
+  }>;
+}
 
-export function GearProposalsList() {
-  const [proposals, setProposals] = useState<GearProposal[]>([]);
-  const [loading, setLoading] = useState(true);
+export function GearProposalsList({
+  initialProposals,
+}: GearProposalsListProps) {
+  const [proposals, setProposals] = useState<GearProposal[]>(() => {
+    // Flatten groups into a list of proposals for this simple list view
+    return initialProposals.flatMap((g) =>
+      g.proposals.map((p) => ({
+        id: p.id,
+        gearId: p.gearId,
+        gearName: g.gearName,
+        gearSlug: g.gearSlug,
+        createdById: p.createdById,
+        createdByName: p.createdByName,
+        status:
+          p.status === "PENDING" ||
+          p.status === "APPROVED" ||
+          p.status === "REJECTED"
+            ? p.status
+            : "APPROVED",
+        payload:
+          (p.payload as {
+            core?: Record<string, any>;
+            camera?: Record<string, any>;
+            lens?: Record<string, any>;
+          }) || {},
+        beforeCore: p.beforeCore as Record<string, any> | undefined,
+        beforeCamera: p.beforeCamera as Record<string, any> | undefined,
+        beforeLens: p.beforeLens as Record<string, any> | undefined,
+        note: p.note,
+        createdAt: p.createdAt,
+      })),
+    );
+  });
   const [selectedByProposal, setSelectedByProposal] = useState<
     Record<string, Record<string, boolean>>
   >({});
-
-  useEffect(() => {
-    fetchProposals().catch(console.error);
-  }, []);
-
-  const fetchProposals = async () => {
-    try {
-      const { fetchGearProposals } = await import(
-        "~/server/admin/proposals/service"
-      );
-      const grouped = await fetchGearProposals();
-      // Flatten groups into a list of proposals for this simple list view
-      const flat: GearProposal[] = grouped.flatMap((g) =>
-        g.proposals.map((p) => ({
-          id: p.id,
-          gearId: p.gearId,
-          gearName: g.gearName,
-          gearSlug: g.gearSlug,
-          createdById: p.createdById,
-          createdByName: p.createdByName,
-          status:
-            p.status === "PENDING" ||
-            p.status === "APPROVED" ||
-            p.status === "REJECTED"
-              ? p.status
-              : "APPROVED",
-          payload:
-            (p.payload as {
-              core?: Record<string, any>;
-              camera?: Record<string, any>;
-              lens?: Record<string, any>;
-            }) || {},
-          beforeCore: p.beforeCore,
-          beforeCamera: p.beforeCamera,
-          beforeLens: p.beforeLens,
-          note: (p.note as string | undefined) ?? undefined,
-          createdAt: p.createdAt as string | Date,
-        })),
-      );
-      setProposals(flat);
-    } catch (e) {
-      console.error("Failed to fetch proposals:", e);
-      setProposals([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Initialize field selections (all selected by default) when proposals load
   useEffect(() => {
@@ -233,10 +119,17 @@ export function GearProposalsList() {
     action: "approve" | "reject",
   ) => {
     try {
-      // For demo purposes, simulate API call
-      console.log(`${action}ing proposal ${proposalId}`);
+      const { actionApproveProposal, actionRejectProposal } = await import(
+        "~/server/admin/proposals/actions"
+      );
 
-      // Update local state to simulate the action
+      if (action === "approve") {
+        await actionApproveProposal(proposalId);
+      } else {
+        await actionRejectProposal(proposalId);
+      }
+
+      // Update local state to reflect the action
       setProposals((prev) => {
         return prev.map((proposal) => {
           if (proposal.id === proposalId) {
@@ -248,15 +141,6 @@ export function GearProposalsList() {
           return proposal;
         });
       });
-
-      // In production, you would call the actual API
-      // const response = await fetch(`/api/admin/gear-proposals/${proposalId}/${action}`, {
-      //   method: "POST",
-      // });
-
-      // if (response.ok) {
-      //   await fetchProposals();
-      // }
     } catch (error) {
       console.error(`Failed to ${action} proposal:`, error);
     }
@@ -289,27 +173,20 @@ export function GearProposalsList() {
     try {
       const filteredPayload = buildSelectedPayload(proposal);
       console.log("filteredPayload", filteredPayload);
-      // Call API with filtered payload
-      const res = await fetch(
-        `/api/admin/gear-proposals/${proposal.id}/approve`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ payload: filteredPayload }),
-        },
+
+      const { actionApproveProposal } = await import(
+        "~/server/admin/proposals/actions"
       );
-      if (res.ok) {
-        // Reflect status and filtered payload locally
-        setProposals((prev) =>
-          prev.map((p) =>
-            p.id === proposal.id
-              ? { ...p, status: "APPROVED", payload: filteredPayload }
-              : p,
-          ),
-        );
-      } else {
-        console.error("Approve failed", await res.text());
-      }
+      await actionApproveProposal(proposal.id, filteredPayload);
+
+      // Reflect status and filtered payload locally
+      setProposals((prev) =>
+        prev.map((p) =>
+          p.id === proposal.id
+            ? { ...p, status: "APPROVED", payload: filteredPayload }
+            : p,
+        ),
+      );
     } catch (error) {
       console.error("Failed to approve proposal:", error);
     }
@@ -324,10 +201,6 @@ export function GearProposalsList() {
 
     return <Badge variant={variants[status] || "default"}>{status}</Badge>;
   };
-
-  if (loading) {
-    return <div className="py-8 text-center">Loading proposals...</div>;
-  }
 
   if (proposals.length === 0) {
     return (

@@ -7,6 +7,9 @@ import { AuditLogList } from "./admin-audit-log-list";
 import { GearCreateCard } from "./gear-create";
 import { ReviewsApprovalQueue } from "./reviews-approval-queue";
 import { RollupRunsList } from "./rollup-runs-list";
+import { fetchGearProposals } from "~/server/admin/proposals/service";
+import { fetchAdminReviews } from "~/server/admin/reviews/service";
+import type { GearEditProposal } from "~/types/gear";
 
 export default function AdminPage() {
   return (
@@ -102,7 +105,7 @@ export default function AdminPage() {
         </div>
 
         <Suspense fallback={<div>Loading proposals...</div>}>
-          <GearProposalsList />
+          <GearProposalsWrapper />
         </Suspense>
       </div>
 
@@ -115,7 +118,7 @@ export default function AdminPage() {
           </p>
         </div>
         <Suspense fallback={<div>Loading reviews...</div>}>
-          <ReviewsApprovalQueue />
+          <ReviewsApprovalWrapper />
         </Suspense>
       </div>
 
@@ -133,4 +136,14 @@ export default function AdminPage() {
       </div>
     </div>
   );
+}
+
+async function GearProposalsWrapper() {
+  const proposals = await fetchGearProposals();
+  return <GearProposalsList initialProposals={proposals} />;
+}
+
+async function ReviewsApprovalWrapper() {
+  const reviews = await fetchAdminReviews();
+  return <ReviewsApprovalQueue initialReviews={reviews} />;
 }
