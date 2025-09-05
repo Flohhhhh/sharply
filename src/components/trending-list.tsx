@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Flame } from "lucide-react";
-import { getTrendingData } from "~/server/popularity/data";
+import { fetchTrending } from "~/server/popularity/service";
 
 export type TrendingItem = {
   gearId: string;
@@ -74,7 +74,7 @@ export default async function TrendingList({
 }) {
   if (loading) return <Skeleton rows={rows} title={title} />;
 
-  const items = await getTrendingData(timeframe, limit, filters);
+  const items = await fetchTrending({ timeframe, limit, filters });
   if (!items.length) return null;
 
   const topScore = items[0]?.score ?? 0;

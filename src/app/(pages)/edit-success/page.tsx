@@ -1,7 +1,5 @@
 import Link from "next/link";
-import { db } from "~/server/db";
-import { gear, gearEdits } from "~/server/db/schema";
-import { eq } from "drizzle-orm";
+import { fetchGearEditById } from "~/server/gear/service";
 import { formatPrice } from "~/lib/mapping";
 import { sensorNameFromSlug } from "~/lib/mapping/sensor-map";
 import { humanizeKey, formatHumanDate } from "~/lib/utils";
@@ -32,23 +30,7 @@ export default async function EditSuccessPage({
     );
   }
 
-  const rows = await db
-    .select({
-      id: gearEdits.id,
-      createdAt: gearEdits.createdAt,
-      status: gearEdits.status,
-      payload: gearEdits.payload,
-      gearId: gearEdits.gearId,
-      gearName: gear.name,
-      gearSlug: gear.slug,
-      gearType: gear.gearType,
-    })
-    .from(gearEdits)
-    .leftJoin(gear, eq(gearEdits.gearId, gear.id))
-    .where(eq(gearEdits.id, id))
-    .limit(1);
-
-  const edit = rows[0];
+  const edit = await fetchGearEditById(id);
 
   return (
     <div className="container mx-auto max-w-3xl p-6">

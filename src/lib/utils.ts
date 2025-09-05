@@ -160,7 +160,8 @@ export function getConstructionState(gearItem: GearItem) {
     if (!focalMin || !focalMax) {
       missing.push("Focal length");
     }
-    const maxAperture = (gearItem.lensSpecs as any)?.maxAperture ?? null;
+    const maxAperture =
+      (gearItem.lensSpecs as { maxAperture?: number })?.maxAperture ?? null;
     if (maxAperture == null) {
       missing.push("Aperture");
     }
@@ -169,7 +170,7 @@ export function getConstructionState(gearItem: GearItem) {
   if (gearItem.gearType === "CAMERA") {
     const sensorFormatId = gearItem.cameraSpecs?.sensorFormatId ?? null;
     const resolution =
-      Number((gearItem.cameraSpecs as any)?.resolutionMp ?? null) || null;
+      Number(gearItem.cameraSpecs?.resolutionMp ?? null) || null;
     if (!sensorFormatId) missing.push("Sensor type");
     if (!resolution) missing.push("Sensor resolution");
   }

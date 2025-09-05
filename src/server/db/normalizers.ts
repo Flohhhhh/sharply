@@ -1,9 +1,11 @@
 import { SENSOR_FORMATS } from "~/lib/constants";
+import { z } from "zod";
 
+type ProposalPayloadSection = Record<string, unknown>;
 type ProposalPayload = {
-  core?: Record<string, any>;
-  camera?: Record<string, any>;
-  lens?: Record<string, any>;
+  core?: ProposalPayloadSection;
+  camera?: ProposalPayloadSection;
+  lens?: ProposalPayloadSection;
 };
 
 function isUuid(value: string): boolean {
@@ -31,13 +33,13 @@ function parseDateUTC(value: string): Date | null {
   return isNaN(d.getTime()) ? null : d;
 }
 
-function coerceNumber(n: any): number | null {
+function coerceNumber(n: unknown): number | null {
   if (n === null || n === undefined || n === "") return null;
   const num = typeof n === "number" ? n : Number(n);
   return Number.isFinite(num) ? num : null;
 }
 
-function coerceBoolean(b: any): boolean | null {
+function coerceBoolean(b: unknown): boolean | null {
   if (b === null || b === undefined) return null;
   if (typeof b === "boolean") return b;
   if (b === "true") return true;
@@ -45,88 +47,131 @@ function coerceBoolean(b: any): boolean | null {
   return null;
 }
 
+function pruneUndefined<T extends Record<string, unknown>>(obj: T): T {
+  const entries = Object.entries(obj).filter(
+    ([, value]) => value !== undefined,
+  );
+  return Object.fromEntries(entries) as T;
+}
+
 export function normalizeProposalPayloadForDb(
   payload: ProposalPayload,
 ): ProposalPayload {
-  const out: ProposalPayload = {};
+  const CoreSchema = z
+    .object({
+      releaseDate: z
+        .preprocess((value) => {
+          if (value instanceof Date) return value;
+          if (typeof value === "string")
+            return parseDateUTC(value) ?? undefined;
+          return undefined;
+        }, z.date().optional())
+        .optional(),
+      msrpUsdCents: z
+        .preprocess((value) => {
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().optional())
+        .optional(),
+      weightGrams: z
+        .preprocess((value) => {
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().optional())
+        .optional(),
+    })
+    .catchall(z.unknown());
+
+  const CameraSchema = z
+    .object({
+      sensorFormatId: z
+        .preprocess((value) => {
+          if (typeof value !== "string") return undefined;
+          if (isUuid(value)) return value;
+          const match = SENSOR_FORMATS.find((f) =>
+            typeof f === "object" && f !== null
+              ? (f as { slug?: string; id?: string }).slug === value ||
+                (f as { slug?: string; id?: string }).id === value
+              : false,
+          ) as { id?: string } | undefined;
+          return match?.id ?? undefined;
+        }, z.string().uuid().optional())
+        .optional(),
+      resolutionMp: z
+        .preprocess(
+          (value) => coerceNumber(value) ?? undefined,
+          z.number().optional(),
+        )
+        .optional(),
+      isoMin: z
+        .preprocess((value) => {
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().optional())
+        .optional(),
+      isoMax: z
+        .preprocess((value) => {
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().optional())
+        .optional(),
+      maxFpsRaw: z
+        .preprocess((value) => {
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().optional())
+        .optional(),
+      maxFpsJpg: z
+        .preprocess((value) => {
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().optional())
+        .optional(),
+    })
+    .catchall(z.unknown());
+
+  const LensSchema = z
+    .object({
+      focalLengthMinMm: z
+        .preprocess((value) => {
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().optional())
+        .optional(),
+      focalLengthMaxMm: z
+        .preprocess((value) => {
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().optional())
+        .optional(),
+      hasStabilization: z
+        .preprocess(
+          (value) => coerceBoolean(value) ?? undefined,
+          z.boolean().optional(),
+        )
+        .optional(),
+    })
+    .catchall(z.unknown());
+
+  const normalized: ProposalPayload = {};
 
   if (payload.core) {
-    const core: Record<string, any> = {};
-    for (const [k, v] of Object.entries(payload.core)) {
-      if (v === undefined) continue;
-      if (k === "releaseDate") {
-        if (v instanceof Date) core.releaseDate = v;
-        else if (typeof v === "string") {
-          const d = parseDateUTC(v);
-          if (d) core.releaseDate = d;
-        }
-        continue;
-      }
-      if (k === "msrpUsdCents" || k === "weightGrams") {
-        const num = coerceNumber(v);
-        if (num !== null) core[k] = Math.trunc(num);
-        continue;
-      }
-      // pass-through for other known scalar fields (name, slug, mountId, brandId, thumbnailUrl, etc.)
-      core[k] = v;
-    }
-    if (Object.keys(core).length) out.core = core;
+    const parsed = CoreSchema.parse(payload.core);
+    const pruned = pruneUndefined(parsed as Record<string, unknown>);
+    if (Object.keys(pruned).length) normalized.core = pruned;
   }
 
   if (payload.camera) {
-    const camera: Record<string, any> = {};
-    for (const [k, v] of Object.entries(payload.camera)) {
-      if (v === undefined) continue;
-      if (k === "sensorFormatId") {
-        if (typeof v === "string") {
-          if (isUuid(v)) camera.sensorFormatId = v;
-          else {
-            const match = SENSOR_FORMATS.find(
-              (f: any) => f.slug === v || f.id === v,
-            );
-            if (match) camera.sensorFormatId = match.id;
-          }
-        }
-        continue;
-      }
-      if (k === "resolutionMp") {
-        const num = coerceNumber(v);
-        if (num !== null) camera.resolutionMp = num;
-        continue;
-      }
-      if (
-        k === "isoMin" ||
-        k === "isoMax" ||
-        k === "maxFpsRaw" ||
-        k === "maxFpsJpg"
-      ) {
-        const num = coerceNumber(v);
-        if (num !== null) camera[k] = Math.trunc(num);
-        continue;
-      }
-      camera[k] = v;
-    }
-    if (Object.keys(camera).length) out.camera = camera;
+    const parsed = CameraSchema.parse(payload.camera);
+    const pruned = pruneUndefined(parsed as Record<string, unknown>);
+    if (Object.keys(pruned).length) normalized.camera = pruned;
   }
 
   if (payload.lens) {
-    const lens: Record<string, any> = {};
-    for (const [k, v] of Object.entries(payload.lens)) {
-      if (v === undefined) continue;
-      if (k === "focalLengthMinMm" || k === "focalLengthMaxMm") {
-        const num = coerceNumber(v);
-        if (num !== null) lens[k] = Math.trunc(num);
-        continue;
-      }
-      if (k === "hasStabilization") {
-        const bool = coerceBoolean(v);
-        if (bool !== null) lens.hasStabilization = bool;
-        continue;
-      }
-      lens[k] = v;
-    }
-    if (Object.keys(lens).length) out.lens = lens;
+    const parsed = LensSchema.parse(payload.lens);
+    const pruned = pruneUndefined(parsed as Record<string, unknown>);
+    if (Object.keys(pruned).length) normalized.lens = pruned;
   }
 
-  return out;
+  return normalized;
 }

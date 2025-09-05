@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "~/server/auth";
 
@@ -23,9 +24,9 @@ export default async function AdminLayout({
               You don’t have permission to view this page.
             </p>
             <div className="mt-6">
-              <a className="text-primary underline" href="/">
+              <Link className="text-primary underline" href="/">
                 Go back home
-              </a>
+              </Link>
             </div>
           </div>
         </main>

@@ -1,15 +1,8 @@
-import { sql } from "drizzle-orm";
-import { db } from "~/server/db";
-import { gearEdits, reviews } from "~/server/db/schema";
 import { NumberTicker } from "~/components/magicui/number-ticker";
+import { fetchContributionCount } from "~/server/metrics/service";
 
 export async function ContributionCounter() {
-  const [editResult, reviewResult] = await Promise.all([
-    db.select({ count: sql<number>`count(*)` }).from(gearEdits),
-    db.select({ count: sql<number>`count(*)` }).from(reviews),
-  ]);
-  const totalContributions =
-    Number(editResult[0]?.count ?? 0) + Number(reviewResult[0]?.count ?? 0);
+  const totalContributions = await fetchContributionCount();
 
   return (
     <div>

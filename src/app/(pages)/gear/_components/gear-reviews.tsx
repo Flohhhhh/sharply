@@ -30,7 +30,9 @@ export function GearReviews({ slug }: { slug: string }) {
         setBannerHidden(false);
       }
     };
-    run();
+    run().catch((error) => {
+      console.error("[GearReviews] error", error);
+    });
     return () => {
       mounted = false;
     };

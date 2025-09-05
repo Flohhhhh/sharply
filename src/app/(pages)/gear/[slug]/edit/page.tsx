@@ -1,10 +1,8 @@
 import { EditGearForm } from "~/app/(pages)/gear/_components/edit-gear/edit-gear-form";
-import { fetchGearBySlug } from "~/lib/queries/gear";
+import { fetchGearBySlug } from "~/server/gear/service";
 import type { GearItem } from "~/types/gear";
 import { auth } from "~/server/auth";
-import { db } from "~/server/db";
-import { gear, gearEdits } from "~/server/db/schema";
-import { and, eq } from "drizzle-orm";
+import { fetchPendingEditId } from "~/server/gear/service";
 import { redirect } from "next/navigation";
 
 interface EditGearPageProps {
@@ -29,26 +27,9 @@ export default async function EditGearPage({
 
   // Prevent duplicate submissions: redirect back if user already has a pending edit
   if (session?.user?.id) {
-    const found = await db
-      .select({ id: gear.id })
-      .from(gear)
-      .where(eq(gear.slug, slug))
-      .limit(1);
-    if (found.length) {
-      const pending = await db
-        .select({ id: gearEdits.id })
-        .from(gearEdits)
-        .where(
-          and(
-            eq(gearEdits.gearId, found[0]!.id),
-            eq(gearEdits.createdById, session.user.id),
-            eq(gearEdits.status, "PENDING"),
-          ),
-        )
-        .limit(1);
-      if (pending[0]?.id) {
-        redirect(`/gear/${slug}?editAlreadyPending=1&id=${pending[0]!.id}`);
-      }
+    const pendingId = await fetchPendingEditId(slug).catch(() => null);
+    if (pendingId) {
+      redirect(`/gear/${slug}?editAlreadyPending=1&id=${pendingId}`);
     }
   }
 

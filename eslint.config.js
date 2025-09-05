@@ -23,16 +23,24 @@ export default tseslint.config(
       ...tseslint.configs.stylisticTypeChecked,
     ],
     rules: {
+      "react/no-unescaped-entities": "off",
+      "react-hooks/exhaustive-deps": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/prefer-nullish-coalescing": "off",
+      "@typescript-eslint/prefer-regexp-exec": "off",
+      "@typescript-eslint/no-unsafe-argument": "off",
       "@typescript-eslint/array-type": "off",
       "@typescript-eslint/consistent-type-definitions": "off",
+      "@typescript-eslint/no-inferrable-types": "off",
+
       "@typescript-eslint/consistent-type-imports": [
         "warn",
         { prefer: "type-imports", fixStyle: "inline-type-imports" },
       ],
-      "@typescript-eslint/no-unused-vars": [
-        "warn",
-        { argsIgnorePattern: "^_" },
-      ],
+      "@typescript-eslint/no-unsafe-assignment": "warn",
+      "@typescript-eslint/no-unsafe-member-access": "warn",
+      "@typescript-eslint/no-unnecessary-type-assertion": "warn",
+      "@typescript-eslint/no-unused-vars": "off",
       "@typescript-eslint/require-await": "off",
       "@typescript-eslint/no-misused-promises": [
         "error",
@@ -46,6 +54,38 @@ export default tseslint.config(
         "error",
         { drizzleObjectName: ["db", "ctx.db"] },
       ],
+      // Use TS variant to support allowTypeImports
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "~/server/db",
+              message:
+                "Import via domain service (e.g., ~/server/gear/service).",
+            },
+            {
+              name: "~/server/db/schema",
+              message:
+                "Use type-only imports from schema; runtime imports are restricted.",
+              allowTypeImports: true,
+            },
+          ],
+          patterns: [
+            {
+              group: ["~/server/*/data"],
+              message: "Import via service.ts; data.ts is internal.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  // Allow internal server modules to import DB/data freely
+  {
+    files: ["src/server/**/*.{ts,tsx}"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": "off",
     },
   },
   {

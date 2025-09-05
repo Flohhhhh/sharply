@@ -234,7 +234,7 @@ export async function runDailyPopularityRollup(
   });
 
   const started = Date.now();
-  let dailyCounts = { d2: 0, d1: 0 };
+  const dailyCounts = { d2: 0, d1: 0 };
   const durations = {
     d2DailyMs: 0,
     d1DailyMs: 0,
@@ -314,7 +314,17 @@ export async function runDailyPopularityRollup(
       (ev as unknown as { rows?: Array<{ c?: number }> })?.rows?.[0]?.c ?? 0,
     );
 
-    const agg = await db.execute(sql`
+    type DailyAggRow = {
+      items?: unknown;
+      views?: unknown;
+      wishlist_adds?: unknown;
+      owner_adds?: unknown;
+      compare_adds?: unknown;
+      review_submits?: unknown;
+      api_fetches?: unknown;
+    };
+
+    const agg = await db.execute(sql<DailyAggRow>`
       SELECT
         count(*)::int AS items,
         COALESCE(sum(views), 0)::bigint AS views,
@@ -326,18 +336,17 @@ export async function runDailyPopularityRollup(
       FROM app.gear_popularity_daily
       WHERE date = ${asOfDate};
     `);
-    {
-      const row = (agg as unknown as { rows?: Array<any> })?.rows?.[0] ?? {};
-      dailyAgg = {
-        items: Number(row.items ?? 0),
-        views: Number(row.views ?? 0),
-        wishlist_adds: Number(row.wishlist_adds ?? 0),
-        owner_adds: Number(row.owner_adds ?? 0),
-        compare_adds: Number(row.compare_adds ?? 0),
-        review_submits: Number(row.review_submits ?? 0),
-        api_fetches: Number(row.api_fetches ?? 0),
-      };
-    }
+    const r = (agg as unknown as { rows?: DailyAggRow[] })?.rows?.[0] ?? {};
+    const num = (v: unknown) => Number(v ?? 0);
+    dailyAgg = {
+      items: num(r.items),
+      views: num(r.views),
+      wishlist_adds: num(r.wishlist_adds),
+      owner_adds: num(r.owner_adds),
+      compare_adds: num(r.compare_adds),
+      review_submits: num(r.review_submits),
+      api_fetches: num(r.api_fetches),
+    };
 
     const win = await db.execute(sql`
       SELECT count(*)::int AS c
@@ -407,7 +416,7 @@ export async function runDailyPopularityRollup(
           username: "Sharply Rollup Runs",
           content: lines.join("\n"),
         }),
-      }).catch(() => {});
+      }).catch(console.error);
     }
   }
 

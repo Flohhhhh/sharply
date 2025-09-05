@@ -1,6 +1,5 @@
-import { db } from "~/server/db";
-import { gear, brands, mounts } from "~/server/db/schema";
-import { eq } from "drizzle-orm";
+import { fetchBrandBySlug } from "~/server/brands/service";
+import { fetchGearForBrand } from "~/server/gear/service";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { formatPrice, getMountDisplayName } from "~/lib/mapping";
@@ -16,41 +15,13 @@ export default async function BrandPage({ params }: BrandPageProps) {
   const { slug } = await params;
 
   // Get brand information
-  const brandInfo = await db
-    .select({
-      id: brands.id,
-      name: brands.name,
-      slug: brands.slug,
-    })
-    .from(brands)
-    .where(eq(brands.slug, slug))
-    .limit(1);
-
-  if (!brandInfo.length) {
+  const brand = await fetchBrandBySlug(slug);
+  if (!brand) {
     notFound();
   }
 
-  const brand = brandInfo[0]!;
-
   // Get all gear for this brand
-  const brandGear = await db
-    .select({
-      id: gear.id,
-      slug: gear.slug,
-      name: gear.name,
-      gearType: gear.gearType,
-      releaseDate: gear.releaseDate,
-      msrpUsdCents: gear.msrpUsdCents,
-      thumbnailUrl: gear.thumbnailUrl,
-      mount: {
-        id: mounts.id,
-        value: mounts.value,
-      },
-    })
-    .from(gear)
-    .leftJoin(mounts, eq(gear.mountId, mounts.id))
-    .where(eq(gear.brandId, brand.id))
-    .orderBy(gear.createdAt);
+  const brandGear = await fetchGearForBrand(brand.id);
 
   return (
     <main className="mx-auto max-w-6xl p-6">
@@ -112,11 +83,17 @@ export default async function BrandPage({ params }: BrandPageProps) {
                     <span className="bg-secondary rounded-full px-2 py-1 text-xs font-medium">
                       {item.gearType}
                     </span>
-                    {item.mount && (
-                      <span className="text-muted-foreground text-xs">
-                        {getMountDisplayName(item.mount.value)}
-                      </span>
-                    )}
+                    {(() => {
+                      const m = (item as any).mount as
+                        | { id: string; value: string }
+                        | null
+                        | undefined;
+                      return m ? (
+                        <span className="text-muted-foreground text-xs">
+                          {getMountDisplayName(m.value)}
+                        </span>
+                      ) : null;
+                    })()}
                   </div>
 
                   <h3 className="font-semibold">{item.name}</h3>

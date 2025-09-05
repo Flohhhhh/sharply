@@ -10,6 +10,7 @@ import {
   users,
   verificationTokens,
 } from "~/server/db/schema";
+import type { SessionRole } from ".";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -69,7 +70,7 @@ export const authConfig = {
       user: {
         ...session.user,
         id: user.id,
-        role: (user as any)?.role ?? "USER",
+        role: (user as { role?: SessionRole })?.role ?? "USER",
       },
     }),
     async redirect({ url, baseUrl }) {

@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { cameraSpecs, sensorFormats } from "~/server/db/schema";
+import type { cameraSpecs, sensorFormats } from "~/server/db/schema";
 import { SENSOR_FORMATS } from "~/lib/constants";
 import ApertureInput from "~/components/custom-inputs/aperture-input";
 import IsoInput from "~/components/custom-inputs/iso-input";

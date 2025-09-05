@@ -23,7 +23,7 @@ export function ConstructionFullPage(props: {
       {missing.length > 0 && (
         <div className="max-w-xl text-left">
           <div className="mb-2 text-sm font-semibold">
-            We're missing the following key specs:
+            We are missing the following key specs:
           </div>
           <ul className="text-muted-foreground border-muted-foreground/20 list-disc rounded-md border p-2 pl-5 text-sm">
             {missing.map((m) => (

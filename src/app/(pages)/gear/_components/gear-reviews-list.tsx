@@ -56,7 +56,9 @@ export function GearReviewsList({
         setIsLoading(false);
       }
     };
-    fetchReviews();
+    fetchReviews().catch((error) => {
+      console.error("[GearReviewsList] error", error);
+    });
   }, [gearSlug, onReviewsLoaded, initialReviews]);
 
   if (isLoading) {

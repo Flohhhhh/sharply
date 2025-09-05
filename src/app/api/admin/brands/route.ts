@@ -1,18 +1,12 @@
 import { NextResponse } from "next/server";
-import { auth } from "~/server/auth";
-import { db } from "~/server/db";
-import { brands } from "~/server/db/schema";
+import { fetchAdminBrands } from "~/server/admin/brands/service";
 
 export async function GET() {
-  const session = await auth();
-  if (
-    !session?.user ||
-    !["ADMIN", "EDITOR"].includes((session.user as any).role)
-  ) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const rows = await fetchAdminBrands();
+    return NextResponse.json({ brands: rows });
+  } catch (error) {
+    const status = (error as { status?: number }).status ?? 500;
+    return NextResponse.json({ error: "Unauthorized" }, { status });
   }
-  const rows = await db
-    .select({ id: brands.id, name: brands.name })
-    .from(brands);
-  return NextResponse.json({ brands: rows });
 }

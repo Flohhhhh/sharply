@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { fetchGearBySlug } from "~/lib/queries/gear";
+import { fetchGearBySlug } from "~/server/gear/service";
 
 interface SubmittedPageProps {
   params: Promise<{ slug: string }>;

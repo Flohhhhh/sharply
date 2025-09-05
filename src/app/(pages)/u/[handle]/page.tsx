@@ -1,17 +1,13 @@
-import { db } from "~/server/db";
-import {
-  gear,
-  brands,
-  mounts,
-  wishlists,
-  ownerships,
-  users,
-} from "~/server/db/schema";
-import { eq, and } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { formatPrice, getMountDisplayName } from "~/lib/mapping";
 import { UserReviewsList } from "~/app/(pages)/u/_components/user-reviews-list";
+import {
+  fetchUserById,
+  fetchUserOwnedItems,
+  fetchUserWishlistItems,
+} from "~/server/users/service";
+// Note: page is a Server Component and reads from the service layer only.
 
 interface UserProfilePageProps {
   params: Promise<{
@@ -24,73 +20,17 @@ export default async function UserProfilePage({
 }: UserProfilePageProps) {
   const { handle } = await params;
 
-  // Get user by handle (assuming handle is the user ID for now)
-  const userResult = await db
-    .select({
-      id: users.id,
-      name: users.name,
-      email: users.email,
-      image: users.image,
-    })
-    .from(users)
-    .where(eq(users.id, handle))
-    .limit(1);
+  // Load user profile
+  const user = await fetchUserById(handle);
+  if (!user) notFound();
 
-  if (!userResult.length) {
-    notFound();
-  }
+  // Wishlist and owned items via service layer
+  const [wishlistItems, ownedItems] = await Promise.all([
+    fetchUserWishlistItems(user.id),
+    fetchUserOwnedItems(user.id),
+  ]);
 
-  const user = userResult[0]!;
-
-  // Get user's wishlist items
-  const wishlistItems = await db
-    .select({
-      id: gear.id,
-      slug: gear.slug,
-      name: gear.name,
-      gearType: gear.gearType,
-      msrpUsdCents: gear.msrpUsdCents,
-      thumbnailUrl: gear.thumbnailUrl,
-      brand: {
-        id: brands.id,
-        name: brands.name,
-        slug: brands.slug,
-      },
-      mount: {
-        id: mounts.id,
-        value: mounts.value,
-      },
-    })
-    .from(wishlists)
-    .innerJoin(gear, eq(wishlists.gearId, gear.id))
-    .leftJoin(brands, eq(gear.brandId, brands.id))
-    .leftJoin(mounts, eq(gear.mountId, mounts.id))
-    .where(eq(wishlists.userId, user.id));
-
-  // Get user's owned items
-  const ownedItems = await db
-    .select({
-      id: gear.id,
-      slug: gear.slug,
-      name: gear.name,
-      gearType: gear.gearType,
-      msrpUsdCents: gear.msrpUsdCents,
-      thumbnailUrl: gear.thumbnailUrl,
-      brand: {
-        id: brands.id,
-        name: brands.name,
-        slug: brands.slug,
-      },
-      mount: {
-        id: mounts.id,
-        value: mounts.value,
-      },
-    })
-    .from(ownerships)
-    .innerJoin(gear, eq(ownerships.gearId, gear.id))
-    .leftJoin(brands, eq(gear.brandId, brands.id))
-    .leftJoin(mounts, eq(gear.mountId, mounts.id))
-    .where(eq(ownerships.userId, user.id));
+  // ownedItems loaded above
 
   return (
     <main className="mx-auto max-w-6xl p-6">

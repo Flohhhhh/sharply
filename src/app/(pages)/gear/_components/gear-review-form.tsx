@@ -56,7 +56,10 @@ export function GearReviewForm({
         setHasSubmitted(false);
       }
     };
-    if (status === "authenticated") run();
+    if (status === "authenticated")
+      run().catch((error) => {
+        console.error("[GearReviewForm] error", error);
+      });
     else if (status === "unauthenticated") setHasSubmitted(false);
   }, [gearSlug, status]);
 

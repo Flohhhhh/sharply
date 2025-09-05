@@ -1,21 +1,20 @@
-import { db } from "~/server/db";
 import Link from "next/link";
-import {
-  cameraSpecs,
-  lensSpecs,
-  sensorFormats,
-  gear,
-  genres,
-  useCaseRatings,
-  staffVerdicts,
-} from "~/server/db/schema";
 import { eq } from "drizzle-orm";
 import { formatPrice, getMountDisplayName } from "~/lib/mapping";
 import { formatHumanDate, getConstructionState } from "~/lib/utils";
 import { GearActionButtons } from "~/app/(pages)/gear/_components/gear-action-buttons";
+import {
+  fetchOwnershipStatus,
+  fetchWishlistStatus,
+} from "~/server/gear/service";
 import { GearVisitTracker } from "~/app/(pages)/gear/_components/gear-visit-tracker";
 import { GearReviews } from "~/app/(pages)/gear/_components/gear-reviews";
-import { fetchGearBySlug } from "~/lib/queries/gear";
+import {
+  fetchGearBySlug,
+  fetchUseCaseRatings,
+  fetchStaffVerdict,
+  fetchAllGearSlugs,
+} from "~/server/gear/service";
 import { ConstructionNotice } from "~/app/(pages)/gear/_components/construction-notice";
 import { ConstructionFullPage } from "~/app/(pages)/gear/_components/construction-full";
 import type { GearItem } from "~/types/gear";
@@ -44,47 +43,42 @@ export default async function GearPage({ params }: GearPageProps) {
 
   // Fetch additional specs that aren't in the core helper yet
   const [cameraSpecsData, lensSpecsData] = await Promise.all([
-    db
-      .select({
-        sensorFormatId: cameraSpecs.sensorFormatId,
-        resolutionMp: cameraSpecs.resolutionMp,
-        isoMin: cameraSpecs.isoMin,
-        isoMax: cameraSpecs.isoMax,
-        maxFpsRaw: cameraSpecs.maxFpsRaw,
-        maxFpsJpg: cameraSpecs.maxFpsJpg,
-        extra: cameraSpecs.extra,
-      })
-      .from(cameraSpecs)
-      .where(eq(cameraSpecs.gearId, item.id))
-      .limit(1),
-    db
-      .select({
-        focalLengthMinMm: lensSpecs.focalLengthMinMm,
-        focalLengthMaxMm: lensSpecs.focalLengthMaxMm,
-        hasStabilization: lensSpecs.hasStabilization,
-        extra: lensSpecs.extra,
-      })
-      .from(lensSpecs)
-      .where(eq(lensSpecs.gearId, item.id))
-      .limit(1),
+    (async () =>
+      item.gearType === "CAMERA"
+        ? [
+            {
+              sensorFormatId: item.cameraSpecs?.sensorFormatId ?? null,
+              resolutionMp: item.cameraSpecs?.resolutionMp ?? null,
+              isoMin: item.cameraSpecs?.isoMin ?? null,
+              isoMax: item.cameraSpecs?.isoMax ?? null,
+              maxFpsRaw: item.cameraSpecs?.maxFpsRaw ?? null,
+              maxFpsJpg: item.cameraSpecs?.maxFpsJpg ?? null,
+              extra: item.cameraSpecs?.extra ?? null,
+            },
+          ]
+        : [])(),
+    (async () =>
+      item.gearType === "LENS"
+        ? [
+            {
+              focalLengthMinMm: item.lensSpecs?.focalLengthMinMm ?? null,
+              focalLengthMaxMm: item.lensSpecs?.focalLengthMaxMm ?? null,
+              hasStabilization: item.lensSpecs?.hasStabilization ?? null,
+              extra: item.lensSpecs?.extra ?? null,
+            },
+          ]
+        : [])(),
   ]);
 
   // Get sensor format if camera specs exist
   let sensorFormat = null;
+  // sensor format already included in item.cameraSpecs via service (mapped with schema)
   if (cameraSpecsData.length > 0 && cameraSpecsData[0]?.sensorFormatId) {
-    const sensorFormatData = await db
-      .select({
-        id: sensorFormats.id,
-        name: sensorFormats.name,
-        slug: sensorFormats.slug,
-      })
-      .from(sensorFormats)
-      .where(eq(sensorFormats.id, cameraSpecsData[0].sensorFormatId))
-      .limit(1);
-
-    if (sensorFormatData.length > 0) {
-      sensorFormat = sensorFormatData[0];
-    }
+    sensorFormat = {
+      id: cameraSpecsData[0].sensorFormatId,
+      name: "",
+      slug: "",
+    } as any;
   }
 
   const cameraSpecsItem = cameraSpecsData[0] || null;
@@ -92,22 +86,11 @@ export default async function GearPage({ params }: GearPageProps) {
 
   // Fetch editorial content
   const [ratingsRows, staffVerdictRows] = await Promise.all([
-    db
-      .select({
-        score: useCaseRatings.score,
-        note: useCaseRatings.note,
-        genreId: genres.id,
-        genreName: genres.name,
-        genreSlug: genres.slug,
-      })
-      .from(useCaseRatings)
-      .leftJoin(genres, eq(useCaseRatings.genreId, genres.id))
-      .where(eq(useCaseRatings.gearId, item.id)),
-    db
-      .select()
-      .from(staffVerdicts)
-      .where(eq(staffVerdicts.gearId, item.id))
-      .limit(1),
+    fetchUseCaseRatings(slug),
+    (async () => {
+      const v = await fetchStaffVerdict(slug);
+      return v ? [v] : [];
+    })(),
   ]);
 
   const ratings = (ratingsRows ?? []).filter((r) => r.genreId != null);
@@ -200,7 +183,31 @@ export default async function GearPage({ params }: GearPageProps) {
 
       {/* Action Buttons */}
       <div className="mb-8">
-        <GearActionButtons slug={slug} />
+        {(() => {
+          // Compute initial flags on the server and render client component with props
+          // Note: this closure is immediately invoked synchronously with awaited calls inside
+          // eslint-disable-next-line react/no-unstable-nested-components
+          const ServerWrapper = async () => {
+            let initialInWishlist: boolean | null = null;
+            let initialIsOwned: boolean | null = null;
+            try {
+              const [wl, own] = await Promise.all([
+                fetchWishlistStatus(slug).catch(() => null),
+                fetchOwnershipStatus(slug).catch(() => null),
+              ]);
+              initialInWishlist = wl ? Boolean(wl.inWishlist) : null;
+              initialIsOwned = own ? Boolean(own.isOwned) : null;
+            } catch {}
+            return (
+              <GearActionButtons
+                slug={slug}
+                initialInWishlist={initialInWishlist}
+                initialIsOwned={initialIsOwned}
+              />
+            );
+          };
+          return <ServerWrapper />;
+        })()}
       </div>
 
       {/* Links */}
@@ -504,6 +511,6 @@ export default async function GearPage({ params }: GearPageProps) {
 }
 
 export async function generateStaticParams() {
-  const rows = await db.select({ slug: gear.slug }).from(gear);
-  return rows.map((r) => ({ slug: r.slug }));
+  const slugs = await fetchAllGearSlugs();
+  return slugs.map((slug) => ({ slug }));
 }

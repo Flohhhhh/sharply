@@ -13,7 +13,7 @@ import {
 import { CoreFields } from "./fields-core";
 import { LensFields } from "./fields-lenses";
 import CameraFields from "./fields-cameras";
-import { gear, cameraSpecs, lensSpecs } from "~/server/db/schema";
+import type { gear, cameraSpecs, lensSpecs } from "~/server/db/schema";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { formatPrice } from "~/lib/mapping";
@@ -64,27 +64,38 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
   );
 
   // Helpers to compute diff-only payloads we can show and submit
-  const equalish = (a: unknown, b: unknown) => {
-    if (a === b) return true;
+  const equalish = (a: unknown, b: unknown): boolean => {
+    if (Object.is(a, b)) return true;
     if (a == null && b == null) return true;
     if (a == null || b == null) return false;
-    if (a instanceof Date || b instanceof Date) {
-      const ta =
-        a instanceof Date ? a.getTime() : new Date(String(a)).getTime();
-      const tb =
-        b instanceof Date ? b.getTime() : new Date(String(b)).getTime();
-      return Number.isFinite(ta) && Number.isFinite(tb) && ta === tb;
-    }
-    if (
-      (typeof a === "number" &&
-        typeof b === "string" &&
-        !Number.isNaN(Number(b))) ||
-      (typeof b === "number" &&
-        typeof a === "string" &&
-        !Number.isNaN(Number(a)))
-    ) {
-      return Number(a) === Number(b);
-    }
+
+    const toMs = (v: unknown): number | null => {
+      if (v instanceof Date) return v.getTime();
+      if (typeof v === "string") {
+        const t = Date.parse(v);
+        return Number.isNaN(t) ? null : t;
+      }
+      return null;
+    };
+    const aMs = toMs(a);
+    const bMs = toMs(b);
+    if (aMs !== null && bMs !== null) return aMs === bMs;
+
+    const toNum = (v: unknown): number | null => {
+      if (typeof v === "number" && Number.isFinite(v)) return v;
+      if (
+        typeof v === "string" &&
+        v.trim() !== "" &&
+        !Number.isNaN(Number(v))
+      ) {
+        return Number(v);
+      }
+      return null;
+    };
+    const aNum = toNum(a);
+    const bNum = toNum(b);
+    if (aNum !== null && bNum !== null) return aNum === bNum;
+
     return false;
   };
 

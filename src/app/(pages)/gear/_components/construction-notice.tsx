@@ -16,7 +16,7 @@ export function ConstructionNotice(props: {
         </h2>
         {missing.length > 0 && (
           <div className="text-sm">
-            <div className="mb-1">We're missing the following key specs:</div>
+            <div className="mb-1">We are missing the following key specs:</div>
             <ul className="list-disc pl-5">
               {missing.map((m) => (
                 <li key={m}>{m}</li>

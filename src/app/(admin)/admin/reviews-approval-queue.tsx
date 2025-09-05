@@ -37,10 +37,11 @@ export function ReviewsApprovalQueue() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/admin/reviews");
-      if (!res.ok) throw new Error("Failed to fetch reviews");
-      const data = await res.json();
-      setItems((data.reviews || []) as ReviewItem[]);
+      const { fetchAdminReviews } = await import(
+        "~/server/admin/reviews/service"
+      );
+      const rows = await fetchAdminReviews();
+      setItems(rows as unknown as ReviewItem[]);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
     } finally {
@@ -53,8 +54,11 @@ export function ReviewsApprovalQueue() {
   }, []);
 
   const act = async (id: string, action: "approve" | "reject") => {
-    const endpoint = `/api/admin/reviews/${id}/${action}`;
-    await fetch(endpoint, { method: "POST" });
+    const { actionApproveReview, actionRejectReview } = await import(
+      "~/server/admin/reviews/actions"
+    );
+    if (action === "approve") await actionApproveReview(id);
+    else await actionRejectReview(id);
     await refresh();
   };
 
@@ -90,7 +94,7 @@ export function ReviewsApprovalQueue() {
                       <Badge variant="secondary">PENDING</Badge>
                     </div>
                     <div className="text-muted-foreground text-xs">
-                      by {r.userName || r.userId || "User"} •{" "}
+                      by {r.userName ?? r.userId ?? "User"} •{" "}
                       {new Date(r.createdAt).toLocaleDateString()}
                     </div>
                     {r.genres && r.genres.length > 0 && (

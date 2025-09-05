@@ -8,8 +8,9 @@ import {
   gearPopularityWindows,
   gearPopularityDaily,
   gearPopularityLifetime,
+  popularityEvents,
 } from "~/server/db/schema";
-import { and, desc, eq, gte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, lt, sql, type SQL } from "drizzle-orm";
 
 /**
  * Popularity data access layer (server-only)
@@ -70,8 +71,8 @@ export async function getTrendingData(
   // Wrap the resolver with unstable_cache to enable ISR-style caching and tag invalidation
   const run = unstable_cache(
     async () => {
-      // Composite score: simple, transparent weights; tweakable in one place
-      const scoreFormula = sql`(
+      // Composite score: simple, transparent weights; typed numeric expression
+      const scoreFormula = sql<number>`(
         views_sum * 0.1 +
         wishlist_adds_sum * 2 +
         owner_adds_sum * 3 +
@@ -80,8 +81,8 @@ export async function getTrendingData(
       )`;
 
       // Base conditions: fixed timeframe and only the most recent snapshot for that timeframe
-      const conds: any[] = [
-        eq(gearPopularityWindows.timeframe, timeframe as any),
+      const conditions: SQL[] = [
+        eq(gearPopularityWindows.timeframe, timeframe),
         sql`${gearPopularityWindows.asOfDate} = (
           SELECT MAX(as_of_date)
           FROM app.gear_popularity_windows
@@ -89,10 +90,10 @@ export async function getTrendingData(
         )`,
       ];
       // Optional scoping filters
-      if (filters.brandId) conds.push(eq(gear.brandId, filters.brandId));
-      if (filters.mountId) conds.push(eq(gear.mountId, filters.mountId));
+      if (filters.brandId) conditions.push(eq(gear.brandId, filters.brandId));
+      if (filters.mountId) conditions.push(eq(gear.mountId, filters.mountId));
       if (filters.gearType)
-        conds.push(eq(gear.gearType, filters.gearType as any));
+        conditions.push(eq(gear.gearType, filters.gearType));
 
       // Read a single row per gear for the latest snapshot; order by score desc; limit N
       const rows = await db
@@ -114,7 +115,7 @@ export async function getTrendingData(
         .from(gearPopularityWindows)
         .innerJoin(gear, eq(gearPopularityWindows.gearId, gear.id))
         .innerJoin(brands, eq(gear.brandId, brands.id))
-        .where(and(...conds))
+        .where(and(...conditions))
         .orderBy(desc(scoreFormula))
         .limit(limit);
 
@@ -124,7 +125,7 @@ export async function getTrendingData(
         slug: r.slug,
         name: r.name,
         brandName: r.brandName,
-        gearType: r.gearType as "CAMERA" | "LENS",
+        gearType: r.gearType,
         score: Number(r.score),
         stats: {
           views: Number(r.viewsSum),
@@ -200,7 +201,7 @@ export async function getGearStats(slug: string) {
         .where(
           and(
             eq(gearPopularityWindows.gearId, gearId),
-            eq(gearPopularityWindows.timeframe, "30d" as any),
+            eq(gearPopularityWindows.timeframe, "30d"),
           ),
         )
         .orderBy(desc(gearPopularityWindows.asOfDate))
@@ -251,4 +252,79 @@ export async function getGearStats(slug: string) {
   );
 
   return run();
+}
+
+/**
+ * hasViewEventForIdentityToday
+ *
+ * Checks if a 'view' event exists for the given gear and identity (user or visitor)
+ * within the current UTC calendar day.
+ */
+export async function hasViewEventForIdentityToday(params: {
+  gearId: string;
+  userId?: string | null;
+  visitorId?: string | null;
+  now?: Date;
+}): Promise<boolean> {
+  const now = params.now ?? new Date();
+  const startUtc = new Date(
+    Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      0,
+      0,
+      0,
+      0,
+    ),
+  );
+  const nextUtc = new Date(
+    Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate() + 1,
+      0,
+      0,
+      0,
+      0,
+    ),
+  );
+
+  const identityFilter = params.userId
+    ? eq(popularityEvents.userId, params.userId)
+    : eq(popularityEvents.visitorId, params.visitorId!);
+
+  const existing = await db
+    .select({ id: popularityEvents.id })
+    .from(popularityEvents)
+    .where(
+      and(
+        eq(popularityEvents.gearId, params.gearId),
+        eq(popularityEvents.eventType, "view"),
+        gte(popularityEvents.createdAt, startUtc),
+        lt(popularityEvents.createdAt, nextUtc),
+        identityFilter,
+      ),
+    )
+    .limit(1);
+
+  return existing.length > 0;
+}
+
+/**
+ * insertViewEvent
+ *
+ * Appends a 'view' popularity event. When a userId is present, visitorId is ignored.
+ */
+export async function insertViewEvent(params: {
+  gearId: string;
+  userId?: string | null;
+  visitorId?: string | null;
+}) {
+  await db.insert(popularityEvents).values({
+    gearId: params.gearId,
+    userId: params.userId ?? null,
+    visitorId: params.userId ? null : (params.visitorId ?? null),
+    eventType: "view",
+  });
 }

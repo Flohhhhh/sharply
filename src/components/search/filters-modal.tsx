@@ -24,6 +24,15 @@ import { mergeSearchParams } from "@utils/url";
 import { SENSOR_FORMATS, MOUNTS, BRANDS } from "~/lib/constants";
 import { getMountLongName } from "~/lib/mapping/mounts-map";
 
+// Narrow generated constants to safe shapes to avoid `any`
+const MOUNT_OPTIONS = MOUNTS as Array<{ id: string; value: string }>;
+const SENSOR_OPTIONS = SENSOR_FORMATS as Array<{
+  id: string;
+  slug: string;
+  name: string;
+}>;
+const BRAND_OPTIONS = BRANDS as Array<{ id: string; name: string }>;
+
 function useSyncedParam(key: string, fallback: string | undefined = undefined) {
   const sp = useSearchParams();
   const [value, setValue] = useState<string>(sp.get(key) ?? fallback ?? "");
@@ -144,9 +153,9 @@ export function FiltersModal() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="__any__">Any mount</SelectItem>
-              {(MOUNTS as any[]).map((m) => (
-                <SelectItem key={m.id} value={m.value as string}>
-                  {getMountLongName(m.value as string)}
+              {MOUNT_OPTIONS.map((m) => (
+                <SelectItem key={m.id} value={m.value}>
+                  {getMountLongName(m.value)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -162,9 +171,9 @@ export function FiltersModal() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="__any__">Any sensor</SelectItem>
-              {(SENSOR_FORMATS as any[]).map((s) => (
-                <SelectItem key={s.id} value={s.slug as string}>
-                  {s.name as string}
+              {SENSOR_OPTIONS.map((s) => (
+                <SelectItem key={s.id} value={s.slug}>
+                  {s.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -183,9 +192,9 @@ export function FiltersModal() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="__any__">Any brand</SelectItem>
-              {(BRANDS as any[]).map((b) => (
-                <SelectItem key={b.id} value={(b.name as string) ?? ""}>
-                  {b.name as string}
+              {BRAND_OPTIONS.map((b) => (
+                <SelectItem key={b.id} value={b.name}>
+                  {b.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -205,12 +214,12 @@ export function FiltersModal() {
             min={0}
             max={PRICE_MAX}
             step={50}
-            onValueChange={(v) => {
-              const [min = 0, max = PRICE_MAX] = v as number[];
+            onValueChange={(v: number[]) => {
+              const [min = 0, max = PRICE_MAX] = v;
               setPrice([min, max]);
             }}
-            onValueCommit={(v) => {
-              const [min, max] = v as [number, number];
+            onValueCommit={(v: number[]) => {
+              const [min = 0, max = PRICE_MAX] = v;
               pushParams({
                 priceMin: min > 0 ? min : null,
                 priceMax: max && max < PRICE_MAX ? max : null,

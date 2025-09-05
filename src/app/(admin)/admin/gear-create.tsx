@@ -24,6 +24,7 @@ import {
 } from "~/lib/validation/gear-creation-validations";
 
 type Brand = { id: string; name: string };
+type FuzzyItem = { id: string; slug: string; name: string };
 
 export function GearCreateCard() {
   const [name, setName] = useState("");
@@ -37,21 +38,36 @@ export function GearCreateCard() {
   const [loading, setLoading] = useState(false);
   const [createdSlug, setCreatedSlug] = useState<string | null>(null);
   const [slugPreview, setSlugPreview] = useState<string>("");
-  const [hardSlugConflict, setHardSlugConflict] = useState<any | null>(null);
-  const [hardModelConflict, setHardModelConflict] = useState<any | null>(null);
-  const [fuzzy, setFuzzy] = useState<any[]>([]);
+  const [hardSlugConflict, setHardSlugConflict] = useState<boolean>(false);
+  const [hardModelConflict, setHardModelConflict] = useState<boolean>(false);
+  const [fuzzy, setFuzzy] = useState<FuzzyItem[]>([]);
   const [proceedAnyway, setProceedAnyway] = useState(false);
   const debouncedName = useDebounce(name, 300);
   const debouncedModel = useDebounce(modelNumber, 300);
 
   useEffect(() => {
     // Load brands minimal list
-    (async () => {
+    void (async () => {
       try {
         const res = await fetch("/api/admin/brands");
         if (res.ok) {
-          const data = await res.json();
-          setBrands(data.brands || []);
+          const data: unknown = await res.json();
+          if (
+            typeof data === "object" &&
+            data !== null &&
+            "brands" in data &&
+            Array.isArray((data as { brands: unknown }).brands)
+          ) {
+            const arr = (data as { brands: unknown }).brands as unknown[];
+            const typed = arr.filter((b): b is Brand => {
+              if (typeof b !== "object" || b === null) return false;
+              const rec = b as Record<string, unknown>;
+              return typeof rec.id === "string" && typeof rec.name === "string";
+            });
+            setBrands(typed);
+          } else {
+            setBrands([]);
+          }
         }
       } catch {}
     })();
@@ -66,8 +82,8 @@ export function GearCreateCard() {
     setLinkAmazon("");
     setSlugPreview("");
     setProceedAnyway(false);
-    setHardSlugConflict(null);
-    setHardModelConflict(null);
+    setHardSlugConflict(false);
+    setHardModelConflict(false);
     setFuzzy([]);
     setCreatedSlug(null);
   }, [brandId, gearType]);
@@ -107,38 +123,32 @@ export function GearCreateCard() {
     try {
       setLoading(true);
       setCreatedSlug(null);
-      const res = await fetch("/api/admin/gear/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name.trim(),
-          brandId,
-          gearType,
-          modelNumber: modelNumber.trim() || undefined,
-          linkManufacturer: linkManufacturer.trim() || undefined,
-          linkMpb: linkMpb.trim() || undefined,
-          linkAmazon: linkAmazon.trim() || undefined,
-          force: proceedAnyway,
-        }),
+      const { actionCreateGear } = await import("~/server/admin/gear/actions");
+      const result = await actionCreateGear({
+        name: name.trim(),
+        brandId,
+        gearType: gearType as "CAMERA" | "LENS",
+        modelNumber: modelNumber.trim() || undefined,
+        linkManufacturer: linkManufacturer.trim() || undefined,
+        linkMpb: linkMpb.trim() || undefined,
+        linkAmazon: linkAmazon.trim() || undefined,
+        force: proceedAnyway,
       });
-      if (res.ok) {
-        const data = await res.json();
-        setCreatedSlug(data.gear?.slug ?? null);
-        setName("");
-        setBrandId("");
-        setGearType("");
-        setModelNumber("");
-        setLinkManufacturer("");
-        setLinkMpb("");
-        setLinkAmazon("");
-        setSlugPreview("");
-        setHardSlugConflict(null);
-        setHardModelConflict(null);
-        setFuzzy([]);
-        setProceedAnyway(false);
-      } else {
-        console.error("Create failed", await res.text());
-      }
+      setCreatedSlug(result.slug);
+      setName("");
+      setBrandId("");
+      setGearType("");
+      setModelNumber("");
+      setLinkManufacturer("");
+      setLinkMpb("");
+      setLinkAmazon("");
+      setSlugPreview("");
+      setHardSlugConflict(false);
+      setHardModelConflict(false);
+      setFuzzy([]);
+      setProceedAnyway(false);
+    } catch (error) {
+      console.error("Create failed", error);
     } finally {
       setLoading(false);
     }
@@ -146,11 +156,11 @@ export function GearCreateCard() {
 
   // Debounced preflight check
   useEffect(() => {
-    const run = async () => {
+    void (async () => {
       if (!brandId || !debouncedName.trim()) {
         setSlugPreview("");
-        setHardSlugConflict(null);
-        setHardModelConflict(null);
+        setHardSlugConflict(false);
+        setHardModelConflict(false);
         setFuzzy([]);
         setProceedAnyway(false);
         return;
@@ -162,15 +172,33 @@ export function GearCreateCard() {
       });
       const res = await fetch(`/api/admin/gear/create/check?${params}`);
       if (res.ok) {
-        const data = await res.json();
-        setSlugPreview(data.slugPreview || "");
-        setHardSlugConflict(data.hard?.slug || null);
-        setHardModelConflict(data.hard?.modelName || null);
-        setFuzzy(data.fuzzy || []);
-        setProceedAnyway(false);
+        const data: unknown = await res.json();
+        if (typeof data === "object" && data !== null) {
+          const rec = data as Record<string, unknown>;
+          const sp = rec.slugPreview;
+          setSlugPreview(typeof sp === "string" ? sp : "");
+          const hard = rec.hard as Record<string, unknown> | undefined;
+          setHardSlugConflict(Boolean(hard?.slug));
+          setHardModelConflict(Boolean(hard?.modelName));
+          const fz = rec.fuzzy as unknown;
+          if (Array.isArray(fz)) {
+            const items = fz.filter((g): g is FuzzyItem => {
+              if (typeof g !== "object" || g === null) return false;
+              const gr = g as Record<string, unknown>;
+              return (
+                typeof gr.id === "string" &&
+                typeof gr.slug === "string" &&
+                typeof gr.name === "string"
+              );
+            });
+            setFuzzy(items);
+          } else {
+            setFuzzy([]);
+          }
+          setProceedAnyway(false);
+        }
       }
-    };
-    run();
+    })();
   }, [brandId, debouncedName, debouncedModel]);
 
   return (
@@ -199,7 +227,7 @@ export function GearCreateCard() {
             <Label>Type</Label>
             <Select
               value={gearType}
-              onValueChange={(v) => setGearType(v as any)}
+              onValueChange={(v) => setGearType(v as "CAMERA" | "LENS")}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select type" />

@@ -26,13 +26,14 @@ import {
   isBrandNameOnly as isBrandOnlyName,
   getNameSoftWarnings,
 } from "~/lib/validation/gear-creation-validations";
-import { Loader2, Check, CheckCircle } from "lucide-react";
+import { Loader2, CheckCircle } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "~/components/ui/collapsible";
 import { useState, useEffect } from "react";
+import { z } from "zod";
 
 type Brand = { id: string; name: string };
 type GearType = "CAMERA" | "LENS";
@@ -54,6 +55,21 @@ type RowState = {
   errorMessage?: string;
   createdSlug?: string;
 };
+
+const CheckResponse = z.object({
+  slugPreview: z.string().optional(),
+  hard: z
+    .object({
+      slugHit: z.boolean().optional(),
+      slug: z.string().optional(),
+      modelHit: z.boolean().optional(),
+      model: z.string().optional(),
+    })
+    .optional(),
+  fuzzy: z
+    .array(z.object({ id: z.string(), name: z.string(), slug: z.string() }))
+    .optional(),
+});
 
 type BulkCreateRowProps = {
   row: RowState;
@@ -94,12 +110,13 @@ function BulkCreateRow({
     }).toString();
     fetch(`/api/admin/gear/create/check?${params}`)
       .then((r) => r.json())
+      .then((json) => CheckResponse.parse(json))
       .then((data) => {
         const validation: RowValidation = {
-          slugPreview: data.slugPreview || "",
-          slugConflict: Boolean(data.hard?.slugHit || data.hard?.slug),
-          modelConflict: Boolean(data.hard?.modelHit || data.hard?.model),
-          fuzzyMatches: Array.isArray(data.fuzzy) ? data.fuzzy : [],
+          slugPreview: data.slugPreview ?? "",
+          slugConflict: Boolean(data.hard?.slugHit ?? data.hard?.slug),
+          modelConflict: Boolean(data.hard?.modelHit ?? data.hard?.model),
+          fuzzyMatches: data.fuzzy ?? [],
         };
         updateRow(row.id, { validation });
       })
@@ -488,27 +505,26 @@ export default function GearBulkCreate(): React.JSX.Element {
           continue;
         }
         updateRow(r.id, { status: "creating" });
-        const res = await fetch("/api/admin/gear/create", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+        try {
+          const { actionCreateGear } = await import(
+            "~/server/admin/gear/actions"
+          );
+          const result = await actionCreateGear({
             name,
             modelNumber: r.modelNumber.trim() || undefined,
             brandId,
-            gearType,
+            gearType: gearType as "CAMERA" | "LENS",
             force: r.proceedAnyway,
-          }),
-        });
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
+          });
+          updateRow(r.id, { status: "created", createdSlug: result.slug });
+        } catch (error) {
           updateRow(r.id, {
             status: "error",
-            errorMessage: data?.error || `Request failed (${res.status})`,
+            errorMessage:
+              error instanceof Error ? error.message : "Unknown error",
           });
           continue;
         }
-        const data = await res.json();
-        updateRow(r.id, { status: "created", createdSlug: data?.gear?.slug });
         createdCount++;
       }
       // Show success state and clear form

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "~/server/auth";
-import { db } from "~/server/db";
-import { reviews, gear, brands } from "~/server/db/schema";
-import { eq } from "drizzle-orm";
+import { getUserReviews } from "~/server/users/service";
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,24 +15,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user's reviews with gear information
-    const userReviews = await db
-      .select({
-        id: reviews.id,
-        content: reviews.content,
-        status: reviews.status,
-        createdAt: reviews.createdAt,
-        updatedAt: reviews.updatedAt,
-        gearId: gear.id,
-        gearSlug: gear.slug,
-        gearName: gear.name,
-        gearType: gear.gearType,
-        brandName: brands.name,
-      })
-      .from(reviews)
-      .leftJoin(gear, eq(reviews.gearId, gear.id))
-      .leftJoin(brands, eq(gear.brandId, brands.id))
-      .where(eq(reviews.createdById, targetUserId))
-      .orderBy(reviews.createdAt);
+    const userReviews = await getUserReviews(targetUserId);
 
     return NextResponse.json({ reviews: userReviews });
   } catch (error) {

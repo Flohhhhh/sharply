@@ -1,13 +1,7 @@
-import { db } from "~/server/db";
-import { rollupRuns } from "~/server/db/schema";
-import { desc } from "drizzle-orm";
+import { fetchRollupRuns } from "~/server/admin/rollups/service";
 
 export async function RollupRunsList() {
-  const rows = await db
-    .select()
-    .from(rollupRuns)
-    .orderBy(desc(rollupRuns.createdAt))
-    .limit(50);
+  const rows = await fetchRollupRuns(50);
 
   if (rows.length === 0) {
     return <div className="text-muted-foreground text-sm">No runs yet.</div>;

@@ -13,16 +13,16 @@ export function UserPendingEditBanner({ slug }: { slug: string }) {
 
     const run = async () => {
       try {
-        const res = await fetch(`/api/gear/${slug}/edits`);
+        const res = await fetch(`/api/gear/${slug}/pending-edit`);
         if (!res.ok) return;
         const data = await res.json();
         setPendingEditId(data?.pendingEditId ?? null);
-      } catch {
-        // ignore
-      }
+      } catch {}
     };
 
-    run();
+    run().catch((error) => {
+      console.error("[UserPendingEditBanner] error", error);
+    });
   }, [session, status, slug]);
 
   if (status !== "authenticated" || !pendingEditId) return null;

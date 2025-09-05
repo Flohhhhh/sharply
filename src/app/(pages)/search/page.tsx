@@ -1,4 +1,8 @@
-import { searchGear } from "@utils/search";
+import {
+  searchGear,
+  type SearchResponse,
+  type SearchResult,
+} from "~/server/search/service";
 import { FilterPills } from "~/components/search/filter-pills";
 import { FiltersModal } from "~/components/search/filters-modal";
 import { SortSelect } from "~/components/search/sort-select";
@@ -39,7 +43,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   };
 
   try {
-    const result = await searchGear({
+    const result: SearchResponse = await searchGear({
       query: q,
       sort,
       page,
@@ -87,16 +91,17 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         {sort === "relevance" && result.results.length > 0 ? (
           <>
             {/* Best Matches - High relevance results */}
-            {result.results.filter((r) => (r.relevance ?? 0) > 0.8).length >
-              0 && (
+            {result.results.filter(
+              (r: SearchResult) => (r.relevance ?? 0) > 0.8,
+            ).length > 0 && (
               <div className="mb-8">
                 <h2 className="text-foreground mb-4 text-lg font-semibold">
                   Best Matches
                 </h2>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {result.results
-                    .filter((r) => (r.relevance ?? 0) > 0.8)
-                    .map((r) => (
+                    .filter((r: SearchResult) => (r.relevance ?? 0) > 0.8)
+                    .map((r: SearchResult) => (
                       <a
                         key={r.id}
                         href={`/gear/${r.slug}`}
@@ -122,16 +127,17 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             )}
 
             {/* Other Results - Lower relevance results */}
-            {result.results.filter((r) => (r.relevance ?? 0) <= 0.8).length >
-              0 && (
+            {result.results.filter(
+              (r: SearchResult) => (r.relevance ?? 0) <= 0.8,
+            ).length > 0 && (
               <div>
                 <h2 className="text-muted-foreground mb-4 text-lg font-semibold">
                   Other Results
                 </h2>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {result.results
-                    .filter((r) => (r.relevance ?? 0) <= 0.8)
-                    .map((r) => (
+                    .filter((r: SearchResult) => (r.relevance ?? 0) <= 0.8)
+                    .map((r: SearchResult) => (
                       <a
                         key={r.id}
                         href={`/gear/${r.slug}`}
@@ -159,7 +165,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         ) : (
           /* Default grid for non-relevance sorting */
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {result.results.map((r) => (
+            {result.results.map((r: SearchResult) => (
               <a
                 key={r.id}
                 href={`/gear/${r.slug}`}

@@ -1,35 +1,9 @@
-import { db } from "~/server/db";
-import { gear, brands, cameraSpecs, lensSpecs } from "~/server/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { fetchLatestGearCards } from "~/server/gear/service";
 import Link from "next/link";
 import { formatPrice } from "~/lib/mapping";
 
 export default async function GearIndex() {
-  const items = await db
-    .select({
-      id: gear.id,
-      slug: gear.slug,
-      name: gear.name,
-      searchName: gear.searchName,
-      gearType: gear.gearType,
-      brandName: brands.name,
-      brandSlug: brands.slug,
-      thumbnailUrl: gear.thumbnailUrl,
-      msrpUsdCents: gear.msrpUsdCents,
-      releaseDate: gear.releaseDate,
-      createdAt: gear.createdAt,
-      // Camera specs
-      resolutionMp: cameraSpecs.resolutionMp,
-      // Lens specs
-      focalLengthMinMm: lensSpecs.focalLengthMinMm,
-      focalLengthMaxMm: lensSpecs.focalLengthMaxMm,
-    })
-    .from(gear)
-    .leftJoin(brands, eq(gear.brandId, brands.id))
-    .leftJoin(cameraSpecs, eq(gear.id, cameraSpecs.gearId))
-    .leftJoin(lensSpecs, eq(gear.id, lensSpecs.gearId))
-    .orderBy(desc(gear.createdAt))
-    .limit(24);
+  const items = await fetchLatestGearCards(24);
 
   return (
     <main className="mx-auto min-h-screen max-w-5xl p-6 pt-20">

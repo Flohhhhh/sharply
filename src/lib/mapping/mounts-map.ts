@@ -3,6 +3,12 @@
  * Simply removes everything after the dash and uppercases the result
  */
 
+import { MOUNTS } from "~/lib/constants";
+import type { Mount } from "~/types/gear";
+
+type MountConst = Pick<Mount, "id"> & { value: string };
+const MOUNT_LIST = MOUNTS as MountConst[];
+
 /**
  * Get the short display name for a mount value
  * @param mountValue - The database mount value (e.g., "z-nikon")
@@ -40,16 +46,14 @@ export function getMountLongName(
   return `${mount} - ${formattedBrand}`;
 }
 
-import { MOUNTS } from "~/lib/constants";
-
 /**
  * Get a readable display name for a mount by its database id
  */
 export function getMountNameById(mountId: string | null | undefined): string {
   if (!mountId) return "Unknown";
-  const m = (MOUNTS as any[]).find((x) => x.id === mountId);
+  const m = MOUNT_LIST.find((x) => x.id === mountId);
   if (!m) return mountId;
-  return getMountDisplayName(m.value as string);
+  return getMountDisplayName(m.value);
 }
 
 /**
@@ -59,7 +63,7 @@ export function getMountLongNameById(
   mountId: string | null | undefined,
 ): string {
   if (!mountId) return "Unknown";
-  const m = (MOUNTS as any[]).find((x) => x.id === mountId);
+  const m = MOUNT_LIST.find((x) => x.id === mountId);
   if (!m) return mountId;
-  return getMountLongName(m.value as string);
+  return getMountLongName(m.value);
 }

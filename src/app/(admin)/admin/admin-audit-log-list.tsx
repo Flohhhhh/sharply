@@ -22,7 +22,7 @@ export function AuditLogList() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    (async () => {
+    void (async () => {
       try {
         const res = await fetch("/api/admin/audit?limit=25");
         if (res.ok) {

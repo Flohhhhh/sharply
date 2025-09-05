@@ -51,6 +51,16 @@ NEVER RUN DB:PUSH OR drizzle-kit push
 - **Maintain consistency** between code and documentation
 - **Reference migration files** when documenting database changes
 
+### Server Code Structure (data/service/actions)
+
+- Follow the server layering documented in `docs/server-structure.md`:
+  - data/: raw DB reads/writes (no auth, no caching). Never imported by UI.
+  - service/: orchestrated, safe server functions (auth/roles, composition).
+  - actions/: Next.js server actions for client-triggered CRUD only.
+- Prefer importing from service/ in pages, API routes, and server components.
+- Do not introduce DB access inside UI or lib modules.
+- Flow: data → service → actions. Auth/role checks live in service; actions are thin wrappers that delegate to service and may revalidate.
+
 ### For Database Migrations
 
 NEVER RUN DB:PUSH or drizzle-kit push

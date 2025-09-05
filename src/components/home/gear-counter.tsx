@@ -1,11 +1,8 @@
-import { sql } from "drizzle-orm";
-import { db } from "~/server/db";
-import { gear } from "~/server/db/schema";
 import { NumberTicker } from "~/components/magicui/number-ticker";
+import { fetchGearCount } from "~/server/metrics/service";
 
 export async function GearCounter() {
-  const result = await db.select({ count: sql<number>`count(*)` }).from(gear);
-  const totalGearItems = Number(result[0]?.count ?? 0);
+  const totalGearItems = await fetchGearCount();
 
   return (
     <div>

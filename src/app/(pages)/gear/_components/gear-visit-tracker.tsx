@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { actionRecordGearView } from "~/server/popularity/actions";
 
 interface GearVisitTrackerProps {
   slug: string;
@@ -10,24 +11,22 @@ interface GearVisitTrackerProps {
 export function GearVisitTracker({ slug }: GearVisitTrackerProps) {
   const { data: session, status } = useSession();
 
-  useEffect(() => {
-    // Only track visits for authenticated users
-    if (status === "authenticated" && session?.user) {
-      recordVisit();
-    }
-  }, [status, session, slug]);
-
   const recordVisit = async () => {
     try {
-      await fetch(`/api/gear/${slug}/visit`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
+      await actionRecordGearView({ slug });
     } catch (error) {
-      // Silently fail - we don't want to break the user experience
       console.error("Failed to record visit:", error);
     }
   };
+
+  useEffect(() => {
+    // Only track visits for authenticated users
+    if (status === "authenticated" && session?.user) {
+      recordVisit().catch((error) => {
+        console.error("[GearVisitTracker] error", error);
+      });
+    }
+  }, [status, session, slug]);
 
   // This component doesn't render anything
   return null;

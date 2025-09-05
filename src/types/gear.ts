@@ -6,6 +6,7 @@ import type {
   mounts,
   sensorFormats,
   popularityEventTypeEnum,
+  gearEdits,
 } from "~/server/db/schema";
 
 // Base types from schema
@@ -15,6 +16,7 @@ export type LensSpecs = typeof lensSpecs.$inferSelect;
 export type Brand = typeof brands.$inferSelect;
 export type Mount = typeof mounts.$inferSelect;
 export type SensorFormat = typeof sensorFormats.$inferSelect;
+export type GearEditProposal = typeof gearEdits.$inferSelect;
 
 // Unified gear item types
 export type GearItem = Gear & {
@@ -24,4 +26,5 @@ export type GearItem = Gear & {
   lensSpecs?: LensSpecs | null;
 };
 
-export type PopularityEventType = (typeof popularityEventTypeEnum.enumValues)[number];
+export type PopularityEventType =
+  (typeof popularityEventTypeEnum.enumValues)[number];

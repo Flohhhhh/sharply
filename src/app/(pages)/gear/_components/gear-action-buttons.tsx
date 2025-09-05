@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { Button } from "~/components/ui/button";
 import {
@@ -16,83 +16,55 @@ import Link from "next/link";
 
 interface GearActionButtonsProps {
   slug: string;
+  initialInWishlist?: boolean | null;
+  initialIsOwned?: boolean | null;
 }
 
-export function GearActionButtons({ slug }: GearActionButtonsProps) {
+import {
+  actionToggleWishlist,
+  actionToggleOwnership,
+} from "~/server/gear/actions";
+
+export function GearActionButtons({
+  slug,
+  initialInWishlist = null,
+  initialIsOwned = null,
+}: GearActionButtonsProps) {
   const { data: session, status } = useSession();
-  const [inWishlist, setInWishlist] = useState<boolean | null>(null);
-  const [isOwned, setIsOwned] = useState<boolean | null>(null);
+  const [inWishlist, setInWishlist] = useState<boolean | null>(
+    initialInWishlist,
+  );
+  const [isOwned, setIsOwned] = useState<boolean | null>(initialIsOwned);
   const [loading, setLoading] = useState({
     wishlist: false,
     ownership: false,
   });
 
-  // Check initial state when component mounts or slug/session changes
-  useEffect(() => {
-    let cancelled = false;
-    async function init() {
-      if (session?.user && status === "authenticated") {
-        try {
-          const [wl, own] = await Promise.all([
-            fetch(`/api/gear/${slug}/wishlist`).then((r) =>
-              r.ok ? r.json() : Promise.reject(r),
-            ),
-            fetch(`/api/gear/${slug}/ownership`).then((r) =>
-              r.ok ? r.json() : Promise.reject(r),
-            ),
-          ]);
-          if (!cancelled) {
-            setInWishlist(Boolean(wl.inWishlist));
-            setIsOwned(Boolean(own.isOwned));
-          }
-        } catch {
-          if (!cancelled) {
-            setInWishlist(false);
-            setIsOwned(false);
-          }
-        }
-      } else {
-        // Not authenticated; keep nulls (component renders sign-in CTA)
-        setInWishlist(null);
-        setIsOwned(null);
-      }
-    }
-    init();
-    return () => {
-      cancelled = true;
-    };
-  }, [session, status, slug]);
+  // Initial state comes from server props; no client fetch
 
   const handleWishlistToggle = async () => {
     if (!session?.user || inWishlist === null) return;
 
     setLoading((prev) => ({ ...prev, wishlist: true }));
     try {
-      const action = inWishlist ? "remove" : "add";
-      const response = await fetch(`/api/gear/${slug}/wishlist`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
+      const action = inWishlist ? "remove" : ("add" as const);
+      const res = await actionToggleWishlist(slug, action);
+      if (res.ok) {
         setInWishlist(!inWishlist);
 
         // Optimistic stats update event
-        const delta = data.action === "added" ? 1 : -1;
+        const delta = res.action === "added" ? 1 : -1;
         window.dispatchEvent(
           new CustomEvent("gear:wishlist", { detail: { delta, slug } }),
         );
 
-        if (data.action === "added") {
+        if (res.action === "added") {
           toast.success("Added to wishlist");
         } else {
           toast.success("Removed from wishlist");
         }
       } else {
-        const error = await response.json();
-        toast.error(error.error || "Failed to update wishlist");
+        toast.error("Failed to update wishlist");
       }
     } catch (error) {
       toast.error("Failed to update wishlist");
@@ -106,31 +78,24 @@ export function GearActionButtons({ slug }: GearActionButtonsProps) {
 
     setLoading((prev) => ({ ...prev, ownership: true }));
     try {
-      const action = isOwned ? "remove" : "add";
-      const response = await fetch(`/api/gear/${slug}/ownership`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
+      const action = isOwned ? "remove" : ("add" as const);
+      const res = await actionToggleOwnership(slug, action);
+      if (res.ok) {
         setIsOwned(!isOwned);
 
         // Optimistic stats update event
-        const delta = data.action === "added" ? 1 : -1;
+        const delta = res.action === "added" ? 1 : -1;
         window.dispatchEvent(
           new CustomEvent("gear:ownership", { detail: { delta, slug } }),
         );
 
-        if (data.action === "added") {
+        if (res.action === "added") {
           toast.success("Added to collection");
         } else {
           toast.success("Removed from collection");
         }
       } else {
-        const error = await response.json();
-        toast.error(error.error || "Failed to update collection");
+        toast.error("Failed to update collection");
       }
     } catch (error) {
       toast.error("Failed to update collection");

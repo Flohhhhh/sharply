@@ -22,7 +22,7 @@ interface GearProposal {
   gearName: string;
   gearSlug: string;
   createdById: string;
-  createdByName: string;
+  createdByName: string | null;
   status: "PENDING" | "APPROVED" | "REJECTED";
   payload: {
     core?: Record<string, any>;
@@ -33,7 +33,7 @@ interface GearProposal {
   beforeCamera?: Record<string, any>;
   beforeLens?: Record<string, any>;
   note?: string;
-  createdAt: string;
+  createdAt: string | Date;
 }
 
 // Simplified test data - just individual proposals
@@ -162,36 +162,46 @@ export function GearProposalsList() {
   >({});
 
   useEffect(() => {
-    fetchProposals();
+    fetchProposals().catch(console.error);
   }, []);
 
   const fetchProposals = async () => {
     try {
-      const response = await fetch("/api/admin/gear-proposals");
-      if (response.ok) {
-        const grouped = await response.json();
-        // Flatten groups into a list of proposals for this simple list view
-        const flat: GearProposal[] = grouped.flatMap((g: any) =>
-          g.proposals.map((p: any) => ({
-            id: p.id,
-            gearId: p.gearId,
-            gearName: g.gearName,
-            gearSlug: g.gearSlug,
-            createdById: p.createdById,
-            createdByName: p.createdByName ?? "User",
-            status: p.status,
-            payload: p.payload,
-            beforeCore: p.beforeCore,
-            beforeCamera: p.beforeCamera,
-            beforeLens: p.beforeLens,
-            note: p.note,
-            createdAt: p.createdAt,
-          })),
-        );
-        setProposals(flat);
-      }
-    } catch (error) {
-      console.error("Failed to fetch proposals:", error);
+      const { fetchGearProposals } = await import(
+        "~/server/admin/proposals/service"
+      );
+      const grouped = await fetchGearProposals();
+      // Flatten groups into a list of proposals for this simple list view
+      const flat: GearProposal[] = grouped.flatMap((g) =>
+        g.proposals.map((p) => ({
+          id: p.id,
+          gearId: p.gearId,
+          gearName: g.gearName,
+          gearSlug: g.gearSlug,
+          createdById: p.createdById,
+          createdByName: p.createdByName,
+          status:
+            p.status === "PENDING" ||
+            p.status === "APPROVED" ||
+            p.status === "REJECTED"
+              ? p.status
+              : "APPROVED",
+          payload:
+            (p.payload as {
+              core?: Record<string, any>;
+              camera?: Record<string, any>;
+              lens?: Record<string, any>;
+            }) || {},
+          beforeCore: p.beforeCore,
+          beforeCamera: p.beforeCamera,
+          beforeLens: p.beforeLens,
+          note: (p.note as string | undefined) ?? undefined,
+          createdAt: p.createdAt as string | Date,
+        })),
+      );
+      setProposals(flat);
+    } catch (e) {
+      console.error("Failed to fetch proposals:", e);
       setProposals([]);
     } finally {
       setLoading(false);
@@ -205,9 +215,9 @@ export function GearProposalsList() {
       const next = { ...prev };
       for (const p of proposals) {
         if (!next[p.id]) {
-          const coreKeys = Object.keys(p.payload.core || {});
-          const cameraKeys = Object.keys(p.payload.camera || {});
-          const lensKeys = Object.keys(p.payload.lens || {});
+          const coreKeys = Object.keys(p.payload.core ?? {});
+          const cameraKeys = Object.keys(p.payload.camera ?? {});
+          const lensKeys = Object.keys(p.payload.lens ?? {});
           const allKeys = [...coreKeys, ...cameraKeys, ...lensKeys];
           const initial: Record<string, boolean> = {};
           for (const k of allKeys) initial[k] = true;
@@ -346,14 +356,14 @@ export function GearProposalsList() {
     };
     const formatValue = (k: string, v: any): string => {
       if (k === "msrpUsdCents") return formatPrice(v as number);
-      if (k === "releaseDate") return formatHumanDate(v as any);
+      if (k === "releaseDate") return formatHumanDate(v);
       if (k === "sensorFormatId") return sensorNameFromSlug(v as string);
       if (k === "mountId") return getMountLongNameById(v as string);
       return String(v);
     };
     const formatBeforeValue = (k: string, v: any): string => {
       if (k === "msrpUsdCents") return formatPrice(v as number);
-      if (k === "releaseDate") return formatHumanDate(v as any);
+      if (k === "releaseDate") return formatHumanDate(v);
       if (k === "sensorFormatId") return sensorNameFromId(v as string);
       if (k === "mountId") return getMountLongNameById(v as string);
       return String(v);

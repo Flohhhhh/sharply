@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import { Label } from "~/components/ui/label";
 import { Button } from "~/components/ui/button";
 import { Slider } from "~/components/ui/slider";
@@ -45,18 +46,19 @@ function formatMm(value: number): string {
 }
 
 export default function FocalSimulatorPage() {
-  // Guard: if no scenes are defined, render nothing (should not happen in prod)
-  if (SCENES.length === 0) {
-    return null;
-  }
-
-  const [selectedSceneId, setSelectedSceneId] = useState<string>(
-    SCENES[0]?.id ?? "",
-  );
-  const selectedScene = useMemo(
-    () => SCENES.find((s) => s.id === selectedSceneId) ?? SCENES[0]!,
-    [selectedSceneId],
-  );
+  const defaultSceneId = SCENES[0]?.id ?? "scene-default";
+  const [selectedSceneId, setSelectedSceneId] =
+    useState<string>(defaultSceneId);
+  const selectedScene = useMemo(() => {
+    const fallback: Scene = SCENES[0] ?? {
+      id: "fallback",
+      label: "Scene",
+      src: "",
+      baseFocalMm: 35,
+      aspectHint: "3:2",
+    };
+    return SCENES.find((s) => s.id === selectedSceneId) ?? fallback;
+  }, [selectedSceneId]);
 
   // Target focal starts at the next common step above the capture focal
   const nextPresetAbove = (base: number) =>
@@ -68,7 +70,7 @@ export default function FocalSimulatorPage() {
   // Keep base params in sync when switching scenes, but allow user overrides
   const onSelectScene = (id: string) => {
     setSelectedSceneId(id);
-    const scene = SCENES.find((s) => s.id === id)!;
+    const scene = SCENES.find((s) => s.id === id) ?? selectedScene;
     setTargetFocalMm(nextPresetAbove(scene.baseFocalMm));
   };
 
@@ -123,11 +125,12 @@ export default function FocalSimulatorPage() {
                     )}
                     aria-pressed={selectedSceneId === scene.id}
                   >
-                    <img
+                    <Image
                       src={scene.src}
                       alt={scene.label}
+                      fill
+                      unoptimized
                       className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      crossOrigin="anonymous"
                     />
                     <span className="absolute inset-x-0 bottom-0 bg-black/40 px-1 py-0.5 text-[10px] text-white">
                       {scene.label} · Captured {formatMm(scene.baseFocalMm)}
@@ -151,7 +154,9 @@ export default function FocalSimulatorPage() {
                     step={1}
                     value={[targetFocalMm]}
                     onValueChange={(vals) =>
-                      setTargetFocalMm(Math.max(baseFocalMm, vals[0] as number))
+                      setTargetFocalMm(
+                        Math.max(baseFocalMm, vals[0] ?? baseFocalMm),
+                      )
                     }
                   />
                 </div>
@@ -192,15 +197,16 @@ export default function FocalSimulatorPage() {
                 )}
               >
                 {/* Base image, scaled by zoomScale to simulate narrower FOV */}
-                <img
+                <Image
                   src={baseUrl}
                   alt={selectedScene.label}
+                  fill
+                  unoptimized
                   className="absolute inset-0 h-full w-full object-cover"
                   style={{
                     transform: `scale(${zoomScale})`,
                     transformOrigin: "center center",
                   }}
-                  crossOrigin="anonymous"
                 />
 
                 {/* No guides; the viewport shows the simulated tighter framing */}

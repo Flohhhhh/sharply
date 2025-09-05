@@ -12,9 +12,21 @@ export { auth, handlers, signIn, signOut };
 export type SessionRole = "USER" | "EDITOR" | "ADMIN";
 
 export function requireRole(
-  session: Awaited<ReturnType<typeof auth>>,
+  session: { user?: { role?: SessionRole } } | null | undefined,
   allowed: SessionRole[],
 ) {
-  const role = (session as any)?.user?.role as SessionRole | undefined;
-  return role && allowed.includes(role);
+  const role = session?.user?.role;
+  return Boolean(role && allowed.includes(role));
 }
+
+// Centralized helpers
+export async function requireUser(): Promise<{
+  user: { id: string; role?: SessionRole };
+}> {
+  const session = await auth();
+  if (!session?.user?.id)
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  return session as { user: { id: string; role?: SessionRole } };
+}
+
+// Note: requireUserId was removed for a smaller API surface. Use `requireUser()` and access `.user.id`.

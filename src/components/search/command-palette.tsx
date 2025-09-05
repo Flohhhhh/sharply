@@ -50,15 +50,9 @@ export function CommandPalette() {
   // Programmatic open
   useEffect(() => {
     const handler = () => setOpen(true);
-    document.addEventListener(
-      "sharply:open-command-palette",
-      handler as EventListener,
-    );
+    document.addEventListener("sharply:open-command-palette", handler);
     return () =>
-      document.removeEventListener(
-        "sharply:open-command-palette",
-        handler as EventListener,
-      );
+      document.removeEventListener("sharply:open-command-palette", handler);
   }, []);
 
   // When opened, focus input and refresh results for current query
@@ -86,7 +80,9 @@ export function CommandPalette() {
         signal: abortControllerRef.current.signal,
       })
         .then((r) => (r.ok ? r.json() : null))
-        .then((data) => setResults((data?.suggestions as Suggestion[]) ?? []))
+        .then((data: { suggestions: Suggestion[] } | null) =>
+          setResults(data?.suggestions ?? []),
+        )
         .catch(() => setResults([]))
         .finally(() => setLoading(false)); // Clear loading state
     }
@@ -127,8 +123,8 @@ export function CommandPalette() {
       signal: abortControllerRef.current.signal,
     })
       .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        setResults((data?.suggestions as Suggestion[]) ?? []);
+      .then((data: { suggestions: Suggestion[] } | null) => {
+        setResults(data?.suggestions ?? []);
         setHasSearched(true); // Mark that we've completed a search
       })
       .catch(() => {
@@ -161,7 +157,7 @@ export function CommandPalette() {
   return (
     <CommandDialog open={open} onOpenChange={setOpen} shouldFilter={false}>
       <CommandInput
-        ref={inputRef as any}
+        ref={inputRef}
         value={query}
         onValueChange={setQuery}
         placeholder="Search gear, brands, users…"

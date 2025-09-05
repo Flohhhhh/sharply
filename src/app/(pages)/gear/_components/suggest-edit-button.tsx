@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Button } from "~/components/ui/button";
-import { Clock, Loader2 } from "lucide-react";
+import { Clock } from "lucide-react";
 
 type GearType = "CAMERA" | "LENS";
 
@@ -25,7 +25,7 @@ export function SuggestEditButton({
   useEffect(() => {
     const run = async () => {
       try {
-        const res = await fetch(`/api/gear/${slug}/edits`);
+        const res = await fetch(`/api/gear/${slug}/pending-edit`);
         if (!res.ok) return;
         const data = await res.json();
         setHasPending(Boolean(data?.pendingEditId));
@@ -33,7 +33,10 @@ export function SuggestEditButton({
         setHasPending(false);
       }
     };
-    if (status === "authenticated") run();
+    if (status === "authenticated")
+      run().catch((error) => {
+        console.error("[SuggestEditButton] error", error);
+      });
   }, [slug, status]);
 
   const className = useMemo(() => {

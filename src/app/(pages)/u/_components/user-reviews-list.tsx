@@ -18,6 +18,18 @@ interface UserReview {
   brandName: string | null;
 }
 
+type UserReviewsResponse = {
+  reviews: UserReview[];
+};
+
+function isUserReviewsResponse(value: unknown): value is UserReviewsResponse {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    Array.isArray((value as { reviews?: unknown }).reviews)
+  );
+}
+
 export function UserReviewsList({ userId }: { userId?: string }) {
   const [reviews, setReviews] = useState<UserReview[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,8 +44,12 @@ export function UserReviewsList({ userId }: { userId?: string }) {
           throw new Error("Failed to fetch reviews");
         }
 
-        const data = await response.json();
-        setReviews(data.reviews || []);
+        const data: unknown = await response.json();
+        if (isUserReviewsResponse(data)) {
+          setReviews(data.reviews);
+        } else {
+          setReviews([]);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load reviews");
       } finally {
@@ -41,7 +57,7 @@ export function UserReviewsList({ userId }: { userId?: string }) {
       }
     };
 
-    fetchUserReviews();
+    void fetchUserReviews();
   }, [userId]);
 
   if (isLoading) {
