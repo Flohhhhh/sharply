@@ -12,6 +12,7 @@ import {
   Package,
 } from "lucide-react";
 import { toast } from "sonner";
+import { withBadgeToasts } from "~/components/badges/badge-toast";
 import Link from "next/link";
 
 interface GearActionButtonsProps {
@@ -48,7 +49,7 @@ export function GearActionButtons({
     setLoading((prev) => ({ ...prev, wishlist: true }));
     try {
       const action = inWishlist ? "remove" : ("add" as const);
-      const res = await actionToggleWishlist(slug, action);
+      const res = await withBadgeToasts(actionToggleWishlist(slug, action));
       if (res.ok) {
         setInWishlist(!inWishlist);
 
@@ -79,7 +80,7 @@ export function GearActionButtons({
     setLoading((prev) => ({ ...prev, ownership: true }));
     try {
       const action = isOwned ? "remove" : ("add" as const);
-      const res = await actionToggleOwnership(slug, action);
+      const res = await withBadgeToasts(actionToggleOwnership(slug, action));
       if (res.ok) {
         setIsOwned(!isOwned);
 

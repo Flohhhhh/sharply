@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { formatPrice } from "~/lib/mapping";
 import { sensorNameFromSlug } from "~/lib/mapping/sensor-map";
 import { humanizeKey, formatHumanDate } from "~/lib/utils";
+import { actionSubmitGearProposal } from "~/server/gear/actions";
 
 interface EditGearFormProps {
   gearType?: "CAMERA" | "LENS";
@@ -177,48 +178,32 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
     }
 
     try {
-      const endpoint = `/api/gear/${gearSlug}/edits`;
       console.log("[EditGearForm] submitting suggestion", {
-        endpoint,
         gearType,
         gearSlug,
         payload,
       });
       console.time(`[EditGearForm] submit ${gearSlug}`);
 
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ payload }),
-      });
-      // Clone to safely inspect response body and headers
-      const resClone = res.clone();
-      let data: unknown = null;
-      try {
-        data = await res.json();
-      } catch {
-        // non-JSON
-        data = await resClone.text();
-      }
-      console.log("[EditGearForm] response", {
-        ok: res.ok,
-        status: res.status,
-        statusText: res.statusText,
-        headers: Object.fromEntries(res.headers.entries()),
-        body: data,
-      });
+      const res = await actionSubmitGearProposal({ slug: gearSlug, payload });
       console.timeEnd(`[EditGearForm] submit ${gearSlug}`);
-      if (res.ok) {
+      if (res?.ok) {
         setIsDirty(false);
-        const createdId = (data as any)?.id;
+        const createdId = (res as any)?.proposal?.id;
         toast.success("Suggestion submitted", {
           description: "Thanks! We'll review it shortly.",
         });
-        // Navigate out of the parallel route modal by going to a top-level page
         router.replace(`/edit-success?id=${createdId ?? ""}`);
+      } else {
+        toast.error("Failed to submit suggestion", {
+          description: "Please try again in a moment.",
+        });
       }
     } catch (err) {
       console.error("[EditGearForm] submit error", err);
+      toast.error("Something went wrong", {
+        description: "Could not submit your suggestion.",
+      });
     }
 
     setIsSubmitting(false);

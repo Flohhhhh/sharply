@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { formatPrice, getMountDisplayName } from "~/lib/mapping";
 import { UserReviewsList } from "~/app/(pages)/u/_components/user-reviews-list";
+import { UserBadges } from "~/app/(pages)/u/_components/user-badges";
 import {
   fetchUserById,
   fetchUserOwnedItems,
@@ -33,7 +34,7 @@ export default async function UserProfilePage({
   // ownedItems loaded above
 
   return (
-    <main className="mx-auto max-w-6xl p-6">
+    <main className="mx-auto min-h-screen max-w-6xl p-6 pt-32">
       {/* User Header */}
       <div className="mb-8 flex items-center gap-4">
         {user.image && (
@@ -52,6 +53,11 @@ export default async function UserProfilePage({
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        {/* Badges */}
+        <div className="space-y-4 lg:col-span-2">
+          <UserBadges userId={user.id} />
+        </div>
+
         {/* Collection */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">

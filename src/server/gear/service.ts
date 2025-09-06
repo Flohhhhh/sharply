@@ -20,6 +20,7 @@ import {
 } from "./data";
 import type { GearItem } from "~/types/gear";
 import { normalizeProposalPayloadForDb } from "~/server/db/normalizers";
+import { evaluateForEvent } from "~/server/badges/service";
 import {
   createGearEditProposal,
   fetchLatestGearCardsData,
@@ -106,7 +107,11 @@ export async function toggleWishlist(slug: string, action: "add" | "remove") {
     const res = await addToWishlist(gearId, userId);
     if (res.alreadyExists)
       return { ok: false, reason: "already_in_wishlist" } as const;
-    return { ok: true, action: "added" as const };
+    const evalRes = await evaluateForEvent(
+      { type: "wishlist.added", context: { gearId } },
+      userId,
+    );
+    return { ok: true, action: "added" as const, awarded: evalRes.awarded };
   }
   await removeFromWishlist(gearId, userId);
   return { ok: true, action: "removed" as const };
@@ -120,7 +125,11 @@ export async function toggleOwnership(slug: string, action: "add" | "remove") {
     const res = await addOwnership(gearId, userId);
     if (res.alreadyExists)
       return { ok: false, reason: "already_owned" } as const;
-    return { ok: true, action: "added" as const };
+    const evalRes = await evaluateForEvent(
+      { type: "ownership.added", context: { gearId } },
+      userId,
+    );
+    return { ok: true, action: "added" as const, awarded: evalRes.awarded };
   }
   await removeOwnership(gearId, userId);
   return { ok: true, action: "removed" as const };

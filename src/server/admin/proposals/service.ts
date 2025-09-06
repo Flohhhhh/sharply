@@ -9,6 +9,7 @@ import {
   mergeProposalData,
   rejectProposalData,
 } from "./data";
+import { evaluateForEvent } from "~/server/badges/service";
 
 type EnrichedProposal = GearEditProposal & {
   gearName: string;
@@ -90,6 +91,14 @@ export async function approveProposal(id: string, filteredPayload?: unknown) {
     session.user.id,
     filteredPayload,
   );
+
+  // Emit badge event for contributor who created the proposal
+  if (proposal.createdById) {
+    await evaluateForEvent(
+      { type: "edit.approved", context: { gearId: proposal.gearId } },
+      proposal.createdById,
+    );
+  }
 }
 
 export async function mergeProposal(id: string) {

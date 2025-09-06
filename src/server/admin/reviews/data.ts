@@ -38,3 +38,12 @@ export async function rejectReviewById(id: string) {
     .set({ status: "REJECTED" })
     .where(eq(reviews.id, id));
 }
+
+export async function getReviewUserAndGear(id: string) {
+  const rows = await db
+    .select({ userId: reviews.createdById, gearId: reviews.gearId })
+    .from(reviews)
+    .where(eq(reviews.id, id))
+    .limit(1);
+  return rows[0] ?? null;
+}

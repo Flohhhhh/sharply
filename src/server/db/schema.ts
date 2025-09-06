@@ -48,11 +48,20 @@ export const auditActionEnum = pgEnum("audit_action", [
   "GEAR_EDIT_APPROVE",
   "GEAR_EDIT_REJECT",
   "GEAR_EDIT_MERGE",
+  // Reviews
+  "REVIEW_APPROVE",
+  "REVIEW_REJECT",
 ]);
 export const reviewStatusEnum = pgEnum("review_status", [
   "PENDING",
   "APPROVED",
   "REJECTED",
+]);
+
+// --- Badges Enums ---
+export const badgeAwardSourceEnum = pgEnum("badge_award_source", [
+  "auto",
+  "manual",
 ]);
 
 // --- Popularity Enums ---
@@ -687,4 +696,51 @@ export const verificationTokens = appSchema.table(
     expires: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
   }),
   (t) => [primaryKey({ columns: [t.identifier, t.token] })],
+);
+
+// --- Badges Storage (minimal) ---
+export const userBadges = appSchema.table(
+  "user_badges",
+  (d) => ({
+    userId: d
+      .varchar({ length: 255 })
+      .notNull()
+      .references(() => users.id),
+    badgeKey: d.varchar({ length: 200 }).notNull(),
+    awardedAt: d
+      .timestamp({ mode: "date", withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    source: badgeAwardSourceEnum("source").notNull().default("auto"),
+    context: jsonb("context"),
+    sortOverride: integer("sort_override"),
+  }),
+  (t) => [primaryKey({ columns: [t.userId, t.badgeKey] })],
+);
+
+// Optional: append-only award log for audit/analytics
+export const badgeAwardsLog = appSchema.table(
+  "badge_awards_log",
+  (d) => ({
+    id: d
+      .varchar({ length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    userId: d
+      .varchar({ length: 255 })
+      .references(() => users.id, { onDelete: "set null" }),
+    badgeKey: d.varchar({ length: 200 }).notNull(),
+    eventType: d.varchar({ length: 100 }).notNull(),
+    source: badgeAwardSourceEnum("source").notNull().default("auto"),
+    context: jsonb("context"),
+    awardedAt: d
+      .timestamp({ mode: "date", withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  }),
+  (t) => [
+    index("badge_awards_log_user_idx").on(t.userId),
+    index("badge_awards_log_awarded_idx").on(t.awardedAt),
+    index("badge_awards_log_badge_idx").on(t.badgeKey),
+  ],
 );

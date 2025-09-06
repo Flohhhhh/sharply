@@ -7,6 +7,9 @@ import { AuditLogList } from "./admin-audit-log-list";
 import { GearCreateCard } from "./gear-create";
 import { ReviewsApprovalQueue } from "./reviews-approval-queue";
 import { RollupRunsList } from "./rollup-runs-list";
+import { BadgesCatalog } from "./badges-catalog";
+import { BadgesTestToastButton } from "./badges-test-toast";
+import { BadgesAwardsList } from "./badges-awards-list";
 import { fetchGearProposals } from "~/server/admin/proposals/service";
 import { fetchAdminReviews } from "~/server/admin/reviews/service";
 import type { GearEditProposal } from "~/types/gear";
@@ -119,6 +122,35 @@ export default function AdminPage() {
         </div>
         <Suspense fallback={<div>Loading reviews...</div>}>
           <ReviewsApprovalWrapper />
+        </Suspense>
+      </div>
+
+      {/* Recent Badge Awards */}
+      <div className="space-y-3">
+        <div>
+          <h2 className="text-2xl font-bold">Recent Badge Awards</h2>
+          <p className="text-muted-foreground mt-2">
+            Latest awarded badges across the platform.
+          </p>
+        </div>
+        <Suspense fallback={<div>Loading awards...</div>}>
+          <BadgesAwardsList />
+        </Suspense>
+      </div>
+
+      {/* Badge Catalog */}
+      <div className="space-y-3">
+        <div>
+          <h2 className="text-2xl font-bold">Badge Catalog</h2>
+          <p className="text-muted-foreground mt-2">
+            All defined badges with triggers and sort metadata.
+          </p>
+        </div>
+        <div>
+          <BadgesTestToastButton />
+        </div>
+        <Suspense fallback={<div>Loading catalog...</div>}>
+          <BadgesCatalog />
         </Suspense>
       </div>
 

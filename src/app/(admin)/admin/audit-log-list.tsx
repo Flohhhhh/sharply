@@ -17,6 +17,7 @@ type AuditRow = {
   editStatus: string | null;
 };
 
+// TODO: seems to not be working, did not show a review approval, and i want to give this tabs possibly, and show the badge logs here
 export function AuditLogList() {
   const [items, setItems] = useState<AuditRow[]>([]);
   const [loading, setLoading] = useState(true);

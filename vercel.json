@@ -4,6 +4,10 @@
     {
       "path": "/api/admin/popularity/rollup",
       "schedule": "0 1 * * *"
+    },
+    {
+      "path": "/api/admin/badges/anniversary",
+      "schedule": "0 0 * * *"
     }
   ]
 }
