@@ -1,11 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { env } from "~/env";
-import { db } from "~/server/db";
-import { users } from "~/server/db/schema";
-import { sql } from "drizzle-orm";
 import { evaluateForEvent } from "~/server/badges/service";
+import { fetchUsersWithAnniversaryToday } from "~/server/users/service";
 
-export async function GET(req: NextRequest) {
+export async function GET(req: Request) {
   const authHeader = req.headers.get("authorization");
   if (authHeader !== `Bearer ${env.CRON_SECRET}`) {
     console.warn("[badges-cron] anniversary unauthorized request");
@@ -15,13 +13,7 @@ export async function GET(req: NextRequest) {
   const startedAt = new Date();
   console.log("[badges-cron] anniversary start", startedAt.toISOString());
 
-  // Find users whose signup month/day is today (using emailVerified as join date fallback)
-  const rows = await db
-    .select({ id: users.id })
-    .from(users)
-    .where(
-      sql`to_char(${users.emailVerified}, 'MM-DD') = to_char(now(), 'MM-DD')`,
-    );
+  const rows = await fetchUsersWithAnniversaryToday();
 
   console.log("[badges-cron] users to process:", rows.length);
   let processed = 0;

@@ -1,7 +1,7 @@
 import "server-only";
 
 import { auth } from "~/server/auth";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db } from "~/server/db";
 import {
   brands,
@@ -108,4 +108,16 @@ export async function fetchUserOwnedItems(
     .leftJoin(mounts, eq(gear.mountId, mounts.id))
     .where(eq(ownerships.userId, userId));
   return rows as unknown as GearListItem[];
+}
+
+export async function fetchUsersWithAnniversaryToday(): Promise<
+  { id: string }[]
+> {
+  const rows = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(
+      sql`to_char(${users.emailVerified}, 'MM-DD') = to_char(now(), 'MM-DD')`,
+    );
+  return rows;
 }

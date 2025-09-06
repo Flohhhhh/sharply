@@ -14,10 +14,10 @@ const __dirname = dirname(__filename);
 
 async function generateConstants() {
   console.log("Generating constants from database...");
-  console.log(
-    "Environment variables loaded:",
-    Object.keys(process.env).filter((key) => key.includes("DATABASE")),
-  );
+  // console.log(
+  //   "Environment variables loaded:",
+  //   Object.keys(process.env).filter((key) => key.includes("DATABASE")),
+  // );
 
   try {
     // Connect directly to database
