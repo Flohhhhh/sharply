@@ -7,6 +7,7 @@ import {
   gear,
   users,
   cameraSpecs,
+  cameraAfAreaSpecs,
   lensSpecs,
   auditLogs,
 } from "~/server/db/schema";
@@ -171,26 +172,63 @@ export async function approveProposalData(
         lens?: any;
       };
       if (normalizedPayload.core) {
-        await tx
-          .update(gear)
-          .set(normalizedPayload.core)
-          .where(eq(gear.id, gearId));
+        // Map legacy keys to current column names and avoid empty UPDATE SET
+        const coreUpdate: Record<string, unknown> = {
+          ...normalizedPayload.core,
+        };
+        if (Object.prototype.hasOwnProperty.call(coreUpdate, "msrpUsdCents")) {
+          coreUpdate.msrpNowUsdCents = coreUpdate.msrpUsdCents as unknown;
+          delete (coreUpdate as any).msrpUsdCents;
+        }
+        if (Object.keys(coreUpdate).length > 0) {
+          await tx.update(gear).set(coreUpdate).where(eq(gear.id, gearId));
+        }
       }
 
       // Apply camera specs if they exist
       if (normalizedPayload.camera) {
-        await tx
-          .update(cameraSpecs)
-          .set(normalizedPayload.camera)
-          .where(eq(cameraSpecs.gearId, gearId));
+        // Split pivot-field (afAreaModes) from actual cameraSpecs columns
+        const { afAreaModes: afAreaModeIds, ...cameraUpdate } =
+          normalizedPayload.camera ?? {};
+
+        // Only issue UPDATE if we actually have column updates
+        if (Object.keys(cameraUpdate).length > 0) {
+          await tx
+            .update(cameraSpecs)
+            .set(cameraUpdate)
+            .where(eq(cameraSpecs.gearId, gearId));
+        }
+
+        // Handle pivot updates for AF area modes if provided
+        if (Array.isArray(afAreaModeIds)) {
+          // Replace existing links with the provided set
+          await tx
+            .delete(cameraAfAreaSpecs)
+            .where(eq(cameraAfAreaSpecs.gearId, gearId));
+
+          if (afAreaModeIds.length > 0) {
+            const rows = afAreaModeIds.map((id: string) => ({
+              gearId,
+              afAreaModeId: id,
+            }));
+            await tx.insert(cameraAfAreaSpecs).values(rows);
+          }
+        }
       }
 
       // Apply lens specs if they exist
       if (normalizedPayload.lens) {
-        await tx
-          .update(lensSpecs)
-          .set(normalizedPayload.lens)
-          .where(eq(lensSpecs.gearId, gearId));
+        // Avoid empty UPDATE SET
+        const lensUpdate = { ...normalizedPayload.lens } as Record<
+          string,
+          unknown
+        >;
+        if (Object.keys(lensUpdate).length > 0) {
+          await tx
+            .update(lensSpecs)
+            .set(lensUpdate)
+            .where(eq(lensSpecs.gearId, gearId));
+        }
       }
     }
 

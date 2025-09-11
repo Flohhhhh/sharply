@@ -98,9 +98,9 @@ export default async function BrandPage({ params }: BrandPageProps) {
 
                   <h3 className="font-semibold">{item.name}</h3>
 
-                  {item.msrpUsdCents && (
+                  {item.msrpNowUsdCents && (
                     <p className="text-sm font-medium">
-                      {formatPrice(item.msrpUsdCents)}
+                      {formatPrice(item.msrpNowUsdCents)}
                     </p>
                   )}
 

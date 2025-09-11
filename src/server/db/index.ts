@@ -1,4 +1,9 @@
-import "server-only";
+// In Next.js runtime, enforce server-only import. In scripts (Node), skip.
+if (process.env.NEXT_RUNTIME) {
+  import("server-only").catch(() => {
+    console.warn("Server-only import failed, skipping.");
+  });
+}
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 

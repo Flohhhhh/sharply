@@ -1,4 +1,6 @@
 // Auto-generated constants from database
+// DO NOT EDIT MANUALLY
+
 export const MOUNTS = [
   {
     "id": "21323f59-f91a-418a-8f88-09aeacd0f84d",
@@ -480,3 +482,460 @@ export const GENRES = [
     "updated_at": "2025-08-19 01:55:31.374829+00"
   }
 ];
+export const AF_AREA_MODES = [
+  {
+    "id": "de992499-30fd-42a2-bb4b-0ba11192e1f7",
+    "name": "Spot AF",
+    "search_name": "spot af",
+    "description": "Spot AF",
+    "brand_id": "7df18188-0939-4241-9ca7-6561c6e233e1",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:39.55669+00",
+    "updated_at": "2025-09-06 20:38:39.55669+00"
+  },
+  {
+    "id": "1a10b1c4-278f-47d8-8b44-735822bfeb9d",
+    "name": "1-point AF",
+    "search_name": "1-point af",
+    "description": "1-point AF",
+    "brand_id": "7df18188-0939-4241-9ca7-6561c6e233e1",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:39.685906+00",
+    "updated_at": "2025-09-06 20:38:39.685906+00"
+  },
+  {
+    "id": "45125249-6e69-4156-8b04-a780f2352821",
+    "name": "Single-point AF",
+    "search_name": "single-point af",
+    "description": "Single-point AF available on Canon DSLRs",
+    "brand_id": "7df18188-0939-4241-9ca7-6561c6e233e1",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:39.815944+00",
+    "updated_at": "2025-09-06 20:38:39.815944+00"
+  },
+  {
+    "id": "0d24cd68-b3ac-4904-b029-765faef8f251",
+    "name": "Zone AF",
+    "search_name": "zone af",
+    "description": "Zone AF available on Canon DSLRs",
+    "brand_id": "7df18188-0939-4241-9ca7-6561c6e233e1",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:39.955225+00",
+    "updated_at": "2025-09-06 20:38:39.955225+00"
+  },
+  {
+    "id": "7f2adc28-3fc6-4522-ab03-c0ae30707140",
+    "name": "Large-zone AF",
+    "search_name": "large-zone af",
+    "description": "Large-zone AF available on Canon DSLRs",
+    "brand_id": "7df18188-0939-4241-9ca7-6561c6e233e1",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:40.106741+00",
+    "updated_at": "2025-09-06 20:38:40.106741+00"
+  },
+  {
+    "id": "eb7a2383-5ff3-45e9-8bed-d040923fbe11",
+    "name": "Expanded AF Area",
+    "search_name": "expanded af area",
+    "description": "Expanded AF area: Above, below, left, right, around, etc.",
+    "brand_id": "7df18188-0939-4241-9ca7-6561c6e233e1",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:40.235788+00",
+    "updated_at": "2025-09-06 20:38:40.235788+00"
+  },
+  {
+    "id": "6ae09846-df6a-418c-ad45-e3b674ed1f66",
+    "name": "Flexible Zone AF",
+    "search_name": "flexible zone af",
+    "description": "Flexible Zone AF",
+    "brand_id": "7df18188-0939-4241-9ca7-6561c6e233e1",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:40.370236+00",
+    "updated_at": "2025-09-06 20:38:40.370236+00"
+  },
+  {
+    "id": "58737259-b871-4c89-9898-565b5b4d703b",
+    "name": "Automatic-selection AF",
+    "search_name": "automatic-selection af",
+    "description": "The Area AF frame (entire AF area) is used to focus. Available on Canon DSLRs",
+    "brand_id": "7df18188-0939-4241-9ca7-6561c6e233e1",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:40.495716+00",
+    "updated_at": "2025-09-06 20:38:40.495716+00"
+  },
+  {
+    "id": "7acf3296-40cb-4ab0-b4c0-286363aa668a",
+    "name": "Dynamic-area AF",
+    "search_name": "dynamic-area af",
+    "description": "Dynamic-area AF",
+    "brand_id": "7df18188-0939-4241-9ca7-6561c6e233e1",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:40.615914+00",
+    "updated_at": "2025-09-06 20:38:40.615914+00"
+  },
+  {
+    "id": "e4f15f94-b9f2-4705-8a5a-c9bb1dcdcb8c",
+    "name": "Whole area AF",
+    "search_name": "whole area af",
+    "description": "Whole area AF",
+    "brand_id": "7df18188-0939-4241-9ca7-6561c6e233e1",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:40.746682+00",
+    "updated_at": "2025-09-06 20:38:40.746682+00"
+  },
+  {
+    "id": "48c29227-f076-4413-9939-b523ac944e40",
+    "name": "Pinpoint AF",
+    "search_name": "pinpoint af",
+    "description": "Pinpoint AF",
+    "brand_id": "a19fbe71-3a17-4095-8d79-f40eb5475480",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:40.870773+00",
+    "updated_at": "2025-09-06 20:38:40.870773+00"
+  },
+  {
+    "id": "04a82831-83ba-44d9-a61e-cd814414bca1",
+    "name": "Single Point AF",
+    "search_name": "single point af",
+    "description": "Single Point AF",
+    "brand_id": "a19fbe71-3a17-4095-8d79-f40eb5475480",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:41.000845+00",
+    "updated_at": "2025-09-06 20:38:41.000845+00"
+  },
+  {
+    "id": "cc9bc64f-10d6-4c48-9638-e181fa1f71be",
+    "name": "Dynamic Area AF (Small)",
+    "search_name": "dynamic area af (small)",
+    "description": "Small version of Dynamic Area AF, sometimes called 9-point",
+    "brand_id": "a19fbe71-3a17-4095-8d79-f40eb5475480",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:41.1257+00",
+    "updated_at": "2025-09-06 20:38:41.1257+00"
+  },
+  {
+    "id": "5bc4c252-7e9d-4f8b-a5b1-a2a6852ddc2e",
+    "name": "Dynamic Area AF (Medium)",
+    "search_name": "dynamic area af (medium)",
+    "description": "Medium version of Dynamic Area AF, sometimes called 21-point",
+    "brand_id": "a19fbe71-3a17-4095-8d79-f40eb5475480",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:41.265847+00",
+    "updated_at": "2025-09-06 20:38:41.265847+00"
+  },
+  {
+    "id": "b68a35af-8036-45d6-b0fa-fa78a62f2d5b",
+    "name": "Dynamic Area AF (Large)",
+    "search_name": "dynamic area af (large)",
+    "description": "Large version of Dynamic Area AF, sometimes called 39 or 51 point",
+    "brand_id": "a19fbe71-3a17-4095-8d79-f40eb5475480",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:41.395914+00",
+    "updated_at": "2025-09-06 20:38:41.395914+00"
+  },
+  {
+    "id": "303cba8f-10b1-42e8-8bce-ec38c2171bf7",
+    "name": "Dynamic Area AF",
+    "search_name": "dynamic area af",
+    "description": "Standalone version of Dynamic Area AF for cameras without Small, Medium, or Large options",
+    "brand_id": "a19fbe71-3a17-4095-8d79-f40eb5475480",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:41.525734+00",
+    "updated_at": "2025-09-06 20:38:41.525734+00"
+  },
+  {
+    "id": "8e796fa5-58ef-4760-b188-c7743ab49756",
+    "name": "Wide Area AF (Small)",
+    "search_name": "wide area af (small)",
+    "description": "Wide Area AF (Small)",
+    "brand_id": "a19fbe71-3a17-4095-8d79-f40eb5475480",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:41.655807+00",
+    "updated_at": "2025-09-06 20:38:41.655807+00"
+  },
+  {
+    "id": "cf5df2c6-c7eb-4d04-93ca-b7e006427cc9",
+    "name": "Wide Area AF (Large)",
+    "search_name": "wide area af (large)",
+    "description": "Wide Area AF (Large)",
+    "brand_id": "a19fbe71-3a17-4095-8d79-f40eb5475480",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:41.795277+00",
+    "updated_at": "2025-09-06 20:38:41.795277+00"
+  },
+  {
+    "id": "39fa0687-83fc-48f3-a2bc-c6f0424f3ca5",
+    "name": "Subject Tracking AF",
+    "search_name": "subject tracking af",
+    "description": "Similar to 3D Tracking, but usually available as a function while using Auto-area AF",
+    "brand_id": "a19fbe71-3a17-4095-8d79-f40eb5475480",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:41.925904+00",
+    "updated_at": "2025-09-06 20:38:41.925904+00"
+  },
+  {
+    "id": "ff842d72-24d7-4fce-81a5-c8bae5687da7",
+    "name": "Group-area AF",
+    "search_name": "group-area af",
+    "description": "Group-area AF",
+    "brand_id": "a19fbe71-3a17-4095-8d79-f40eb5475480",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:42.065727+00",
+    "updated_at": "2025-09-06 20:38:42.065727+00"
+  },
+  {
+    "id": "b5e08450-0260-4bc6-afec-6e64c485df20",
+    "name": "3D Tracking",
+    "search_name": "3d tracking",
+    "description": "3D Tracking",
+    "brand_id": "a19fbe71-3a17-4095-8d79-f40eb5475480",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:42.195111+00",
+    "updated_at": "2025-09-06 20:38:42.195111+00"
+  },
+  {
+    "id": "8b15b339-21c4-477e-b319-f4f47291e83c",
+    "name": "Auto-area AF",
+    "search_name": "auto-area af",
+    "description": "Auto-area AF",
+    "brand_id": "a19fbe71-3a17-4095-8d79-f40eb5475480",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:42.326318+00",
+    "updated_at": "2025-09-06 20:38:42.326318+00"
+  },
+  {
+    "id": "b8bad940-b250-4069-a7f4-5dc47792e93d",
+    "name": "Wide",
+    "search_name": "wide",
+    "description": "Focuses on subjects across the entire monitor. Effective for erratic subjects such as children, animals, or athletes.",
+    "brand_id": "3f030fbd-3567-4b2d-85d4-900e5c69af4b",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:42.450668+00",
+    "updated_at": "2025-09-06 20:38:42.450668+00"
+  },
+  {
+    "id": "cffd29c7-e807-47ff-9bd0-7de0f799979c",
+    "name": "Local",
+    "search_name": "local",
+    "description": "Choose the area for which you want to activate the focus from among nine areas. Usually available on older DSLRs",
+    "brand_id": "3f030fbd-3567-4b2d-85d4-900e5c69af4b",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:42.595678+00",
+    "updated_at": "2025-09-06 20:38:42.595678+00"
+  },
+  {
+    "id": "fcaf60d2-11ad-4411-8c97-d334545c48ee",
+    "name": "Zone",
+    "search_name": "zone",
+    "description": "Automatically focuses on the area within your selected focusing zone on the monitor. [Zone] is divided into nine focusing areas, which makes it effective for focusing on moving subjects within these specific areas.",
+    "brand_id": "3f030fbd-3567-4b2d-85d4-900e5c69af4b",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:42.715895+00",
+    "updated_at": "2025-09-06 20:38:42.715895+00"
+  },
+  {
+    "id": "87c92ddb-e3d9-47bc-a529-c94da87c94af",
+    "name": "Center Fix",
+    "search_name": "center fix",
+    "description": "Focuses on subjects centered on the monitor. When used with focus-lock, effective for shots with your preferred composition.",
+    "brand_id": "3f030fbd-3567-4b2d-85d4-900e5c69af4b",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:42.835252+00",
+    "updated_at": "2025-09-06 20:38:42.835252+00"
+  },
+  {
+    "id": "90e6da5a-a6b9-4a26-bcf8-f0cd932c784e",
+    "name": "Spot",
+    "search_name": "spot",
+    "description": "Focuses on very small subjects or narrow areas in a frame that you can move freely on the monitor. Choose a small, medium, or large focusing frame. Called 'Flexible Spot' on some cameras.",
+    "brand_id": "3f030fbd-3567-4b2d-85d4-900e5c69af4b",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:42.96024+00",
+    "updated_at": "2025-09-06 20:38:42.96024+00"
+  },
+  {
+    "id": "d2cd4f9a-2f6b-4e4a-a4a8-111a178c928a",
+    "name": "Expanded Spot",
+    "search_name": "expanded spot",
+    "description": "Expands the focus area around [Spot] if focusing is not possible within your selected spot. Called 'Flexible Expanded Spot' on some cameras.",
+    "brand_id": "3f030fbd-3567-4b2d-85d4-900e5c69af4b",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:43.09134+00",
+    "updated_at": "2025-09-06 20:38:43.09134+00"
+  },
+  {
+    "id": "ddd5525c-04a2-47db-92cc-2c312024a7f3",
+    "name": "Tracking",
+    "search_name": "tracking",
+    "description": "Available addition to all other area modes, only available in AF-C, tracks subjects across the frame.",
+    "brand_id": "3f030fbd-3567-4b2d-85d4-900e5c69af4b",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:43.215695+00",
+    "updated_at": "2025-09-06 20:38:43.215695+00"
+  },
+  {
+    "id": "7afbe5d5-8c2a-4d37-a5af-30707a39bc14",
+    "name": "Single Point",
+    "search_name": "single point",
+    "description": "Fujifilm Single Point AF",
+    "brand_id": "14807c17-227f-4349-a56d-401c1d5d4626",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:43.337249+00",
+    "updated_at": "2025-09-06 20:38:43.337249+00"
+  },
+  {
+    "id": "1f36d994-056c-4feb-919c-2a6e7c284ee0",
+    "name": "Zone",
+    "search_name": "zone",
+    "description": "Fujifilm Zone AF",
+    "brand_id": "14807c17-227f-4349-a56d-401c1d5d4626",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:43.456762+00",
+    "updated_at": "2025-09-06 20:38:43.456762+00"
+  },
+  {
+    "id": "f30f3215-fa61-420e-9aaa-bc3d65150b57",
+    "name": "Wide/Tracking",
+    "search_name": "wide/tracking",
+    "description": "Fujifilm Wide/Tracking AF",
+    "brand_id": "14807c17-227f-4349-a56d-401c1d5d4626",
+    "aliases": null,
+    "created_at": "2025-09-06 20:38:43.586642+00",
+    "updated_at": "2025-09-06 20:38:43.586642+00"
+  }
+];
+
+export const ENUMS = {
+  "audit_action": [
+    "GEAR_CREATE",
+    "GEAR_EDIT_PROPOSE",
+    "GEAR_EDIT_APPROVE",
+    "GEAR_EDIT_REJECT",
+    "GEAR_EDIT_MERGE",
+    "REVIEW_APPROVE",
+    "REVIEW_REJECT"
+  ],
+  "badge_award_source": [
+    "auto",
+    "manual"
+  ],
+  "camera_af_subject_categories_enum": [
+    "people",
+    "animals",
+    "vehicles",
+    "birds",
+    "aircraft"
+  ],
+  "card_bus_enum": [
+    "sd_default",
+    "uhs_i",
+    "uhs_ii",
+    "uhs_iii",
+    "sd_express",
+    "cfexpress_pcie_gen3x1",
+    "cfexpress_pcie_gen3x2",
+    "cfexpress_pcie_gen4x1",
+    "cfexpress_pcie_gen4x2",
+    "xqd_1_0",
+    "xqd_2_0",
+    "cfast_sata_ii",
+    "cfast_sata_iii",
+    "cf_udma4",
+    "cf_udma5",
+    "cf_udma6",
+    "cf_udma7",
+    "sxs_pcie_gen1",
+    "sxs_pcie_gen2",
+    "p2_pci"
+  ],
+  "card_form_factor_enum": [
+    "sd",
+    "cfexpress_type_a",
+    "cfexpress_type_b",
+    "cfexpress_type_c",
+    "xqd",
+    "cfast",
+    "compactflash_type_i",
+    "compactflash_type_ii",
+    "memory_stick_pro_duo",
+    "memory_stick_pro_hg_duo",
+    "xd_picture_card",
+    "smartmedia",
+    "sxs",
+    "p2"
+  ],
+  "card_speed_class_enum": [
+    "c2",
+    "c4",
+    "c6",
+    "c10",
+    "u1",
+    "u3",
+    "v6",
+    "v10",
+    "v30",
+    "v60",
+    "v90",
+    "vpg_20",
+    "vpg_65",
+    "vpg_130"
+  ],
+  "gear_type": [
+    "CAMERA",
+    "LENS"
+  ],
+  "popularity_event_type": [
+    "view",
+    "wishlist_add",
+    "owner_add",
+    "compare_add",
+    "review_submit",
+    "api_fetch"
+  ],
+  "popularity_timeframe": [
+    "7d",
+    "30d"
+  ],
+  "proposal_status": [
+    "PENDING",
+    "APPROVED",
+    "REJECTED",
+    "MERGED"
+  ],
+  "raw_bit_depth_enum": [
+    "12",
+    "14",
+    "16"
+  ],
+  "review_status": [
+    "PENDING",
+    "APPROVED",
+    "REJECTED"
+  ],
+  "sensor_stacking_types_enum": [
+    "unstacked",
+    "partially-stacked",
+    "fully-stacked"
+  ],
+  "sensor_tech_types_enum": [
+    "cmos",
+    "ccd"
+  ],
+  "shutter_types_enum": [
+    "mechanical",
+    "efc",
+    "electronic"
+  ],
+  "user_role": [
+    "USER",
+    "EDITOR",
+    "ADMIN"
+  ],
+  "viewfinder_types_enum": [
+    "none",
+    "optical",
+    "electronic"
+  ]
+} as const;
+
+export type EnumValues<TName extends keyof typeof ENUMS> = (typeof ENUMS)[TName][number];

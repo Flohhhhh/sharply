@@ -60,7 +60,7 @@ type GearListItem = {
   slug: string;
   name: string;
   gearType: string;
-  msrpUsdCents: number | null;
+  msrpNowUsdCents: number | null;
   thumbnailUrl: string | null;
   brand: { id: string; name: string; slug: string } | null;
   mount: { id: string; value: string } | null;
@@ -75,7 +75,7 @@ export async function fetchUserWishlistItems(
       slug: gear.slug,
       name: gear.name,
       gearType: gear.gearType,
-      msrpUsdCents: gear.msrpUsdCents,
+      msrpNowUsdCents: gear.msrpNowUsdCents,
       thumbnailUrl: gear.thumbnailUrl,
       brand: { id: brands.id, name: brands.name, slug: brands.slug },
       mount: { id: mounts.id, value: mounts.value },
@@ -97,7 +97,7 @@ export async function fetchUserOwnedItems(
       slug: gear.slug,
       name: gear.name,
       gearType: gear.gearType,
-      msrpUsdCents: gear.msrpUsdCents,
+      msrpNowUsdCents: gear.msrpNowUsdCents,
       thumbnailUrl: gear.thumbnailUrl,
       brand: { id: brands.id, name: brands.name, slug: brands.slug },
       mount: { id: mounts.id, value: mounts.value },

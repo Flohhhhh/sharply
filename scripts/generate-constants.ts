@@ -38,12 +38,36 @@ async function generateConstants() {
     const sensorFormatsData = await client`SELECT * FROM app.sensor_formats`;
     const brandsData = await client`SELECT * FROM app.brands`;
     const genresData = await client`SELECT * FROM app.genres`;
+    const afAreaModesData = await client`SELECT * FROM app.af_area_modes`;
 
-    const content = `// Auto-generated constants from database
+    // Introspect Postgres enums (public schema)
+    const enumRows: { name: string; labels: string[] }[] = await client`
+      SELECT t.typname AS name,
+             array_agg(e.enumlabel ORDER BY e.enumsortorder) AS labels
+      FROM pg_type t
+      JOIN pg_enum e ON e.enumtypid = t.oid
+      JOIN pg_namespace n ON n.oid = t.typnamespace
+      WHERE n.nspname = 'public'
+      GROUP BY t.typname
+      ORDER BY t.typname
+    `;
+
+    const enumMap: Record<string, string[]> = {};
+    for (const row of enumRows) {
+      enumMap[row.name] = row.labels;
+    }
+
+    const banner = `// Auto-generated constants from database\n// DO NOT EDIT MANUALLY\n`;
+    const content = `${banner}
 export const MOUNTS = ${JSON.stringify(mountsData, null, 2)};
 export const SENSOR_FORMATS = ${JSON.stringify(sensorFormatsData, null, 2)};
 export const BRANDS = ${JSON.stringify(brandsData, null, 2)};
 export const GENRES = ${JSON.stringify(genresData, null, 2)};
+export const AF_AREA_MODES = ${JSON.stringify(afAreaModesData, null, 2)};
+
+export const ENUMS = ${JSON.stringify(enumMap, null, 2)} as const;
+
+export type EnumValues<TName extends keyof typeof ENUMS> = (typeof ENUMS)[TName][number];
 `;
 
     const outputPath = join(__dirname, "../src/lib/generated.ts");

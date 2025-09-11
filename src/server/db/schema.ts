@@ -16,6 +16,8 @@ import {
   jsonb,
   pgSchema,
   date as dateCol,
+  uniqueIndex,
+  uuid,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccount } from "next-auth/adapters";
 // Popularity event enum will be defined below for strong typing in DB
@@ -33,7 +35,9 @@ export const createExtensions = sql`CREATE EXTENSION IF NOT EXISTS pg_trgm`;
  */
 // export const createTable = pgTableCreator((name) => `sharply_${name}`);
 
-// --- Enums ---
+// --- Enums --- now defined inline to ensure migrations create types before use
+
+// Core app enums
 export const userRoleEnum = pgEnum("user_role", ["USER", "EDITOR", "ADMIN"]);
 export const gearTypeEnum = pgEnum("gear_type", ["CAMERA", "LENS"]);
 export const proposalStatusEnum = pgEnum("proposal_status", [
@@ -58,13 +62,13 @@ export const reviewStatusEnum = pgEnum("review_status", [
   "REJECTED",
 ]);
 
-// --- Badges Enums ---
+// Badges
 export const badgeAwardSourceEnum = pgEnum("badge_award_source", [
   "auto",
   "manual",
 ]);
 
-// --- Popularity Enums ---
+// Popularity
 export const popularityEventTypeEnum = pgEnum("popularity_event_type", [
   "view",
   "wishlist_add",
@@ -73,6 +77,122 @@ export const popularityEventTypeEnum = pgEnum("popularity_event_type", [
   "review_submit",
   "api_fetch",
 ]);
+
+export const popularityTimeframeEnum = pgEnum("popularity_timeframe", [
+  "7d",
+  "30d",
+]);
+
+/** 1) Card form factor (aka format/shape) */
+export const cardFormFactorEnum = pgEnum("card_form_factor_enum", [
+  // Modern / current
+  "sd",
+  "cfexpress_type_a",
+  "cfexpress_type_b",
+  "cfexpress_type_c",
+  "xqd",
+  "cfast",
+
+  // Legacy (still seen on spec sheets)
+  "compactflash_type_i",
+  "compactflash_type_ii",
+  "memory_stick_pro_duo",
+  "memory_stick_pro_hg_duo",
+  "xd_picture_card",
+  "smartmedia",
+  "sxs", // Sony SxS (ExpressCard form factor; pro video)
+  "p2", // Panasonic P2 (PC Card form factor; pro video)
+]);
+
+/** 2) Card bus / electrical interface */
+export const cardBusEnum = pgEnum("card_bus_enum", [
+  // SD family buses
+  "sd_default", // legacy (non-UHS)
+  "uhs_i",
+  "uhs_ii",
+  "uhs_iii",
+  "sd_express", // PCIe/NVMe over SD
+
+  // CFexpress (PCIe/NVMe lane configs commonly listed)
+  "cfexpress_pcie_gen3x1",
+  "cfexpress_pcie_gen3x2",
+  "cfexpress_pcie_gen4x1",
+  "cfexpress_pcie_gen4x2",
+
+  // XQD
+  "xqd_1_0",
+  "xqd_2_0",
+
+  // CFast (SATA)
+  "cfast_sata_ii",
+  "cfast_sata_iii",
+
+  // CompactFlash (PATA/UDMA modes)
+  "cf_udma4",
+  "cf_udma5",
+  "cf_udma6",
+  "cf_udma7",
+
+  // Pro video buses
+  "sxs_pcie_gen1",
+  "sxs_pcie_gen2",
+  "p2_pci",
+]);
+
+/** 3) Speed / performance rating (non-mobile; no A1/A2) */
+export const cardSpeedClassEnum = pgEnum("card_speed_class_enum", [
+  // SD Speed Class
+  "c2",
+  "c4",
+  "c6",
+  "c10",
+
+  // SD UHS Speed Class
+  "u1",
+  "u3",
+
+  // SD Video Speed Class
+  "v6",
+  "v10",
+  "v30",
+  "v60",
+  "v90",
+
+  // Video Performance Guarantee (seen on CF/CFast/CFexpress media)
+  "vpg_20",
+  "vpg_65",
+  "vpg_130",
+]);
+
+export const viewfinderTypesEnum = pgEnum("viewfinder_types_enum", [
+  "none",
+  "optical",
+  "electronic",
+]);
+
+export const shutterTypesEnum = pgEnum("shutter_types_enum", [
+  "mechanical",
+  "efc",
+  "electronic",
+]);
+
+export const sensorStackingTypesEnum = pgEnum("sensor_stacking_types_enum", [
+  "unstacked",
+  "partially-stacked",
+  "fully-stacked",
+]);
+
+export const sensorTechTypesEnum = pgEnum("sensor_tech_types_enum", [
+  "cmos",
+  "ccd",
+]);
+
+export const afSubjectCategoriesEnum = pgEnum(
+  "camera_af_subject_categories_enum",
+  ["people", "animals", "vehicles", "birds", "aircraft"],
+);
+
+export const rawBitDepthEnum = pgEnum("raw_bit_depth_enum", ["12", "14", "16"]);
 
 // --- Base helpers ---
 const createdAt = timestamp("created_at", { withTimezone: true })
@@ -129,6 +249,37 @@ export const genres = appSchema.table("genres", (d) => ({
   updatedAt,
 }));
 
+// --- AF Area Modes Dictionary ---
+// Brand-scoped dictionary of AF area modes. Users can add missing items.
+// No brandless default fallback. Duplicates allowed; admins merge later.
+export const afAreaModes = appSchema.table(
+  "af_area_modes",
+  (d) => ({
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    name: varchar("name", { length: 200 }).notNull(),
+    // lowercased version of name for LIKE/trigram search
+    searchName: text("search_name").notNull(),
+    description: varchar("description", { length: 500 }),
+    brandId: varchar("brand_id", { length: 36 }).references(() => brands.id, {
+      onDelete: "restrict",
+    }),
+    // Optional synonyms to aid search and de-duplication (array of strings)
+    aliases: jsonb("aliases"),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    index("af_area_modes_brand_idx").on(t.brandId),
+    index("af_area_modes_name_idx").on(t.name),
+    index("af_area_modes_search_name_idx").on(t.searchName),
+  ],
+);
+
+// Admin merge log of AF area modes: records mapping from duplicate to canonical
+// Merge table removed: we will perform in-place mutation/soft-deletes for deduplication.
+
 // --- Gear core ---
 export const gear = appSchema.table(
   "gear",
@@ -147,8 +298,10 @@ export const gear = appSchema.table(
     mountId: varchar("mount_id", { length: 36 }).references(() => mounts.id, {
       onDelete: "set null",
     }),
+    announcedDate: timestamp("announced_date", { withTimezone: true }),
     releaseDate: timestamp("release_date", { withTimezone: true }),
-    msrpUsdCents: integer("msrp_usd_cents"),
+    msrpNowUsdCents: integer("msrp_now_usd_cents"),
+    msrpAtLaunchUsdCents: integer("msrp_at_launch_usd_cents"),
     thumbnailUrl: text("thumbnail_url"),
     weightGrams: integer("weight_grams"),
     linkManufacturer: text("link_manufacturer"),
@@ -194,21 +347,112 @@ export const cameraSpecs = appSchema.table(
     gearId: varchar("gear_id", { length: 36 })
       .primaryKey()
       .references(() => gear.id, { onDelete: "cascade" }),
+    // sensor
     sensorFormatId: varchar("sensor_format_id", { length: 36 }).references(
       () => sensorFormats.id,
       { onDelete: "set null" },
     ),
     resolutionMp: decimal("resolution_mp", { precision: 6, scale: 2 }),
+    sensorStackingType: sensorStackingTypesEnum("sensor_stacking_type"),
+    sensorTechType: sensorTechTypesEnum("sensor_tech_type"),
+    isBackSideIlluminated: boolean("is_back_side_illuminated"),
     isoMin: integer("iso_min"),
     isoMax: integer("iso_max"),
+    sensorReadoutSpeedMs: integer("sensor_readout_speed_ms"), // we will provide a checkbox for global shutter which sets this to 0ms
+    maxRawBitDepth: rawBitDepthEnum("max_raw_bit_depth"),
+    hasIbis: boolean("has_ibis"),
+    hasElectronicVibrationReduction: boolean(
+      "has_electronic_vibration_reduction",
+    ),
+    cipaStabilizationRatingStops: decimal("cipa_stabilization_rating_stops", {
+      precision: 4,
+      scale: 1,
+    }),
+    hasPixelShiftShooting: boolean("has_pixel_shift_shooting"),
+    hasAntiAliasingFilter: boolean("has_anti_aliasing_filter"),
+    // hardware
+    widthMm: decimal("width_mm", { precision: 6, scale: 2 }),
+    heightMm: decimal("height_mm", { precision: 6, scale: 2 }),
+    depthMm: decimal("depth_mm", { precision: 6, scale: 2 }),
+    processorName: varchar("processor_name", { length: 200 }),
+    hasWeatherSealing: boolean("has_weather_sealing"),
+    // focus
+    focusPoints: integer("focus_points"),
+    afSubjectCategories: afSubjectCategoriesEnum(
+      "af_subject_categories",
+    ).array(),
+    hasFocusPeaking: boolean("has_focus_peaking"),
+    hasFocusBracketing: boolean("has_focus_bracketing"),
+    // shutter
+    shutterSpeedMax: integer("shutter_speed_max"),
+    shutterSpeedMin: integer("shutter_speed_min"),
     maxFpsRaw: integer("max_fps_raw"),
     maxFpsJpg: integer("max_fps_jpg"),
+    flashSyncSpeed: integer("flash_sync_speed"),
+    hasSilentShootingAvailable: boolean("has_silent_shooting_available"),
+    availableShutterTypes: shutterTypesEnum("available_shutter_types").array(),
+    // battery
+    cipaBatteryShotsPerCharge: integer("cipa_battery_shots_per_charge"),
+    supportedBatteries: text("supported_batteries").array(),
+    usbPowerDelivery: boolean("usb_power_delivery"),
+    usbCharging: boolean("usb_charging"),
+    // video
+    hasLogColorProfile: boolean("has_log_color_profile"),
+    has10BitVideo: boolean("has_10_bit_video"),
+    has12BitVideo: boolean("has_12_bit_video"),
+    // misc
+    hasIntervalometer: boolean("has_intervalometer"),
+    hasSelfTimer: boolean("has_self_timer"),
+    hasBuiltInFlash: boolean("has_built_in_flash"),
+    hasHotShoe: boolean("has_hot_shoe"),
     extra: jsonb("extra"),
     createdAt,
     updatedAt,
   }),
   // 1:1 already enforced by PK=gearId; index format if you like
   (t) => [index("camera_specs_sensor_idx").on(t.sensorFormatId)],
+);
+
+// --- Camera AF Area Specs ---
+// Which AF area modes are assigned to which camera (gear_type = CAMERA)
+export const cameraAfAreaSpecs = appSchema.table(
+  "camera_af_area_specs",
+  (d) => ({
+    gearId: varchar("gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    afAreaModeId: varchar("af_area_mode_id", { length: 36 })
+      .notNull()
+      .references(() => afAreaModes.id, { onDelete: "restrict" }),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    primaryKey({ columns: [t.gearId, t.afAreaModeId] }),
+    index("camera_af_area_specs_af_area_mode_idx").on(t.afAreaModeId),
+    index("camera_af_area_specs_gear_idx").on(t.gearId),
+  ],
+);
+
+export const cameraCardSlots = appSchema.table(
+  "camera_card_slots",
+  (d) => ({
+    id: uuid("id").defaultRandom().primaryKey(),
+    // Replace `cameras` with your actual cameras table
+    gearId: uuid("gear_id").notNull(),
+    slotIndex: integer("slot_index").notNull(), // 1,2,...
+    supportedFormFactors: cardFormFactorEnum("supported_form_factors")
+      .array()
+      .notNull(),
+    supportedBuses: cardBusEnum("supported_buses").array().notNull(),
+    supportedSpeedClasses: cardSpeedClassEnum(
+      "supported_speed_classes",
+    ).array(), // optional
+    notes: text("notes"),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [uniqueIndex("uniq_camera_card_slot").on(t.gearId, t.slotIndex)],
 );
 
 // Lenses
@@ -524,10 +768,7 @@ export const gearPopularityDaily = appSchema.table(
   ],
 );
 
-export const popularityTimeframeEnum = pgEnum("popularity_timeframe", [
-  "7d",
-  "30d",
-]);
+// popularityTimeframeEnum imported
 
 export const gearPopularityWindows = appSchema.table(
   "gear_popularity_windows",

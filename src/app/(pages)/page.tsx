@@ -127,7 +127,7 @@ export default async function Home() {
                 <Suspense
                   fallback={
                     <div className="relative">
-                      <div className="text-muted-foreground flex h-12 items-center rounded-lg border pl-9 pr-14 text-sm">
+                      <div className="text-muted-foreground flex h-12 items-center rounded-lg border pr-14 pl-9 text-sm">
                         Loading search…
                         <Loader className="ml-auto h-5 w-5 animate-spin" />
                       </div>
@@ -219,7 +219,7 @@ export default async function Home() {
                 className="flex flex-col gap-2 overflow-hidden rounded-xl border bg-white p-5 transition-colors"
               >
                 <h3 className="text-2xl font-semibold">New to Photography?</h3>
-                <p className="text-muted-foreground mb-8 mt-1 text-sm">
+                <p className="text-muted-foreground mt-1 mb-8 text-sm">
                   We've put together a beginners guide to everything you need to
                   know to get started! View our step-by-step guide series.
                 </p>

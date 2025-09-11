@@ -32,7 +32,7 @@ export function EditGearModal({
 
   return (
     <Dialog defaultOpen open onOpenChange={handleClose}>
-      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
+      <DialogContent className="max-h-[90vh] w-full overflow-y-auto sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>Edit Gear: {gearName}</DialogTitle>
         </DialogHeader>

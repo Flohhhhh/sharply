@@ -9,6 +9,7 @@ import {
   sensorFormats,
   genres as genresTable,
   gearGenres,
+  afAreaModes,
 } from "../src/server/db/schema";
 import { normalizeSearchName } from "../src/lib/utils";
 
@@ -230,6 +231,160 @@ async function main() {
     genreMap.set(g.slug, result);
   }
 
+  const rawAfAreaModeData = [
+    { name: "Spot AF", brandId: canon!.id, description: "Spot AF" },
+    { name: "1-point AF", brandId: canon!.id, description: "1-point AF" },
+    {
+      name: "Single-point AF",
+      brandId: canon!.id,
+      description: "Single-point AF available on Canon DSLRs",
+    },
+    {
+      name: "Zone AF",
+      brandId: canon!.id,
+      description: "Zone AF available on Canon DSLRs",
+    },
+    {
+      name: "Large-zone AF",
+      brandId: canon!.id,
+      description: "Large-zone AF available on Canon DSLRs",
+    },
+    {
+      name: "Expanded AF Area",
+      brandId: canon!.id,
+      description: "Expanded AF area: Above, below, left, right, around, etc.",
+    },
+    {
+      name: "Flexible Zone AF",
+      brandId: canon!.id,
+      description: "Flexible Zone AF",
+    },
+    {
+      name: "Automatic-selection AF",
+      brandId: canon!.id,
+      description:
+        "The Area AF frame (entire AF area) is used to focus. Available on Canon DSLRs",
+    },
+    {
+      name: "Dynamic-area AF",
+      brandId: canon!.id,
+      description: "Dynamic-area AF",
+    },
+    { name: "Whole area AF", brandId: canon!.id, description: "Whole area AF" },
+    { name: "Pinpoint AF", brandId: nikon!.id, description: "Pinpoint AF" },
+    {
+      name: "Single Point AF",
+      brandId: nikon!.id,
+      description: "Single Point AF",
+    },
+    {
+      name: "Dynamic Area AF (Small)",
+      brandId: nikon!.id,
+      description: "Small version of Dynamic Area AF, sometimes called 9-point",
+    },
+    {
+      name: "Dynamic Area AF (Medium)",
+      brandId: nikon!.id,
+      description:
+        "Medium version of Dynamic Area AF, sometimes called 21-point",
+    },
+    {
+      name: "Dynamic Area AF (Large)",
+      brandId: nikon!.id,
+      description:
+        "Large version of Dynamic Area AF, sometimes called 39 or 51 point",
+    },
+    {
+      name: "Dynamic Area AF",
+      brandId: nikon!.id,
+      description:
+        "Standalone version of Dynamic Area AF for cameras without Small, Medium, or Large options",
+    },
+    {
+      name: "Wide Area AF (Small)",
+      brandId: nikon!.id,
+      description: "Wide Area AF (Small)",
+    },
+    {
+      name: "Wide Area AF (Large)",
+      brandId: nikon!.id,
+      description: "Wide Area AF (Large)",
+    },
+    {
+      name: "Subject Tracking AF",
+      brandId: nikon!.id,
+      description:
+        "Similar to 3D Tracking, but usually available as a function while using Auto-area AF",
+    },
+    { name: "Group-area AF", brandId: nikon!.id, description: "Group-area AF" },
+    { name: "3D Tracking", brandId: nikon!.id, description: "3D Tracking" },
+    { name: "Auto-area AF", brandId: nikon!.id, description: "Auto-area AF" },
+    {
+      name: "Wide",
+      brandId: sony!.id,
+      description:
+        "Focuses on subjects across the entire monitor. Effective for erratic subjects such as children, animals, or athletes.",
+    },
+    {
+      name: "Local",
+      brandId: sony!.id,
+      description:
+        "Choose the area for which you want to activate the focus from among nine areas. Usually available on older DSLRs",
+    },
+    {
+      name: "Zone",
+      brandId: sony!.id,
+      description:
+        "Automatically focuses on the area within your selected focusing zone on the monitor. [Zone] is divided into nine focusing areas, which makes it effective for focusing on moving subjects within these specific areas.",
+    },
+    {
+      name: "Center Fix",
+      brandId: sony!.id,
+      description:
+        "Focuses on subjects centered on the monitor. When used with focus-lock, effective for shots with your preferred composition.",
+    },
+    {
+      name: "Spot",
+      brandId: sony!.id,
+      description:
+        "Focuses on very small subjects or narrow areas in a frame that you can move freely on the monitor. Choose a small, medium, or large focusing frame. Called 'Flexible Spot' on some cameras.",
+    },
+    {
+      name: "Expanded Spot",
+      brandId: sony!.id,
+      description:
+        "Expands the focus area around [Spot] if focusing is not possible within your selected spot. Called 'Flexible Expanded Spot' on some cameras.",
+    },
+    {
+      name: "Tracking",
+      brandId: sony!.id,
+      description:
+        "Available addition to all other area modes, only available in AF-C, tracks subjects across the frame.",
+    },
+    {
+      name: "Single Point",
+      brandId: fujifilm!.id,
+      description: "Fujifilm Single Point AF",
+    },
+    { name: "Zone", brandId: fujifilm!.id, description: "Fujifilm Zone AF" },
+    {
+      name: "Wide/Tracking",
+      brandId: fujifilm!.id,
+      description: "Fujifilm Wide/Tracking AF",
+    },
+  ];
+
+  const afAreaModeData: (typeof afAreaModes.$inferInsert)[] =
+    rawAfAreaModeData.map((m) => ({
+      ...m,
+      searchName: m.name.toLowerCase(),
+    }));
+  const afAreaModeMap = new Map<string, any>();
+  for (const mode of afAreaModeData) {
+    const result = await db.insert(afAreaModes).values(mode).returning();
+    afAreaModeMap.set(mode.name, result);
+  }
+
   // Sample gear rows with normalized search names
   // The normalizeSearchName function combines brand name and gear name for better searchability
   const items: (typeof gear.$inferInsert)[] = [
@@ -240,7 +395,8 @@ async function main() {
       gearType: "LENS" as const,
       brandId: nikon!.id,
       mountId: mountLookup["z-nikon"] || null,
-      msrpUsdCents: 324900,
+      msrpNowUsdCents: 324900,
+      msrpAtLaunchUsdCents: 324900,
       releaseDate: new Date("2023-01-01"),
       thumbnailUrl: null,
     },
@@ -251,7 +407,8 @@ async function main() {
       gearType: "CAMERA" as const,
       brandId: nikon!.id,
       mountId: mountLookup["z-nikon"] || null,
-      msrpUsdCents: 159695,
+      msrpNowUsdCents: 159695,
+      msrpAtLaunchUsdCents: 159695,
       releaseDate: new Date("2023-01-01"),
       thumbnailUrl: null,
     },
@@ -300,6 +457,20 @@ async function main() {
           isoMax: 204800,
           maxFpsRaw: 20,
           maxFpsJpg: 120,
+          maxRawBitDepth: "14",
+          hasElectronicVibrationReduction: true,
+          hasPixelShiftShooting: true,
+          hasFocusPeaking: true,
+          hasFocusBracketing: true,
+          hasIbis: true,
+          hasWeatherSealing: true,
+          afSubjectCategories: [
+            "people",
+            "animals",
+            "vehicles",
+            "birds",
+            "aircraft",
+          ],
         };
       } else if (item.name.includes("EOS R5ii")) {
         specs = {

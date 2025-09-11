@@ -24,7 +24,7 @@ Stores detailed camera-specific specifications:
 
 - **Primary Key**: `gearId` (1:1 relationship with gear)
 - **Sensor**: Format reference, resolution in megapixels
-- **Performance**: ISO range (min/max), IBIS (in-body stabilization)
+- **Performance**: ISO range (min/max), IBIS (in-body stabilization), available shutter types, viewfinder type
 - **Video**: Maximum video resolution
 - **Flexibility**: JSONB extra field for additional specs
 

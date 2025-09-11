@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 import { withBadgeToasts } from "~/components/badges/badge-toast";
 import Link from "next/link";
+import { MultiSelect } from "~/components/ui/multi-select";
 
 interface GearActionButtonsProps {
   slug: string;

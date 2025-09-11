@@ -159,9 +159,11 @@ function GearCard({ item }: { item: any }) {
               )}
             </div>
 
-            {item.msrpUsdCents && (
+            {item.msrpNowUsdCents && (
               <div className="text-right">
-                <p className="font-medium">{formatPrice(item.msrpUsdCents)}</p>
+                <p className="font-medium">
+                  {formatPrice(item.msrpNowUsdCents)}
+                </p>
               </div>
             )}
           </div>

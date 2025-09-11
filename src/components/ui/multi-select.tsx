@@ -4,11 +4,8 @@ import * as React from "react";
 import { Check, ChevronsUpDown, X } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
+import * as PopoverBase from "~/components/ui/popover";
+import * as PopoverInDialog from "~/components/ui/popover-in-dialog";
 import { Input } from "~/components/ui/input";
 
 export type MultiSelectOption = { id: string; name: string };
@@ -21,6 +18,7 @@ type MultiSelectProps = {
   maxSelected?: number;
   className?: string;
   searchPlaceholder?: string;
+  inDialog?: boolean;
 };
 
 export function MultiSelect({
@@ -31,9 +29,28 @@ export function MultiSelect({
   maxSelected,
   className,
   searchPlaceholder = "Search...",
+  inDialog,
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [detectedInDialog, setDetectedInDialog] = React.useState(false);
+
+  React.useEffect(() => {
+    if (containerRef.current) {
+      const isInsideDialog = !!containerRef.current.closest(
+        '[data-slot="dialog-content"]',
+      );
+      setDetectedInDialog(isInsideDialog);
+    }
+  }, []);
+
+  const useDialog = React.useMemo(
+    () => (typeof inDialog === "boolean" ? inDialog : detectedInDialog),
+    [inDialog, detectedInDialog],
+  );
+
+  const P = useDialog ? PopoverInDialog : PopoverBase;
 
   const selected = React.useMemo(
     () => options.filter((o) => value.includes(o.id)),
@@ -59,9 +76,9 @@ export function MultiSelect({
   const remove = (id: string) => onChange(value.filter((v) => v !== id));
 
   return (
-    <div className={cn("w-full", className)}>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
+    <div ref={containerRef} className={cn("w-full", className)}>
+      <P.Popover open={open} onOpenChange={setOpen}>
+        <P.PopoverTrigger asChild>
           <Button
             variant="outline"
             role="combobox"
@@ -98,8 +115,8 @@ export function MultiSelect({
             </div>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[--radix-popover-trigger-width] p-2">
+        </P.PopoverTrigger>
+        <P.PopoverContent className="w-[--radix-popover-trigger-width] p-2">
           <div className="mb-2">
             <Input
               value={query}
@@ -134,8 +151,8 @@ export function MultiSelect({
               </div>
             )}
           </div>
-        </PopoverContent>
-      </Popover>
+        </P.PopoverContent>
+      </P.Popover>
     </div>
   );
 }

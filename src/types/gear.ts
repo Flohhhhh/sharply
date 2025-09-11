@@ -7,6 +7,7 @@ import type {
   sensorFormats,
   popularityEventTypeEnum,
   gearEdits,
+  afAreaModes,
 } from "~/server/db/schema";
 
 // Base types from schema
@@ -17,13 +18,19 @@ export type Brand = typeof brands.$inferSelect;
 export type Mount = typeof mounts.$inferSelect;
 export type SensorFormat = typeof sensorFormats.$inferSelect;
 export type GearEditProposal = typeof gearEdits.$inferSelect;
+export type AfAreaMode = typeof afAreaModes.$inferSelect;
+
+export type EnrichedCameraSpecs = CameraSpecs & {
+  afAreaModes?: AfAreaMode[] | null;
+};
 
 // Unified gear item types
 export type GearItem = Gear & {
   brands?: Brand | null;
   mounts?: Mount | null;
-  cameraSpecs?: CameraSpecs | null;
+  cameraSpecs?: EnrichedCameraSpecs | null;
   lensSpecs?: LensSpecs | null;
+  afAreaModes?: AfAreaMode[] | null;
 };
 
 export type PopularityEventType =

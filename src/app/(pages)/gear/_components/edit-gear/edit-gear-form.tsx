@@ -138,10 +138,45 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
       const cameraKeys = [
         "sensorFormatId",
         "resolutionMp",
+        "sensorStackingType",
+        "sensorTechType",
+        "isBackSideIlluminated",
+        "sensorReadoutSpeedMs",
+        "maxRawBitDepth",
         "isoMin",
         "isoMax",
+        "hasIbis",
+        "hasElectronicVibrationReduction",
+        "cipaStabilizationRatingStops",
+        "hasPixelShiftShooting",
+        "hasAntiAliasingFilter",
+        "widthMm",
+        "heightMm",
+        "depthMm",
+        "processorName",
+        "hasWeatherSealing",
+        "focusPoints",
+        "afAreaModes",
+        "hasFocusPeaking",
+        "hasFocusBracketing",
+        "shutterSpeedMax",
+        "shutterSpeedMin",
         "maxFpsRaw",
         "maxFpsJpg",
+        "flashSyncSpeed",
+        "hasSilentShootingAvailable",
+        "availableShutterTypes",
+        "cipaBatteryShotsPerCharge",
+        "supportedBatteries",
+        "usbCharging",
+        "usbPowerDelivery",
+        "hasLogColorProfile",
+        "has10BitVideo",
+        "has12BitVideo",
+        "hasIntervalometer",
+        "hasSelfTimer",
+        "hasBuiltInFlash",
+        "hasHotShoe",
       ] as const;
       const orig = (gearData.cameraSpecs ?? {}) as Record<string, any>;
       const diffs = diffByKeys(orig, formData.cameraSpecs as any, cameraKeys);
@@ -233,6 +268,7 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
       {/* TODO: Add gear-type-specific fields */}
       {gearType === "CAMERA" && (
         <CameraFields
+          gearItem={formData}
           currentSpecs={formData.cameraSpecs}
           onChange={(field, value) => handleChange(field, value, "cameraSpecs")}
         />

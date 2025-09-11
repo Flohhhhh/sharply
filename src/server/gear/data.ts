@@ -15,6 +15,8 @@ import {
   users,
   wishlists,
   cameraSpecs,
+  cameraAfAreaSpecs,
+  afAreaModes,
   lensSpecs,
   gearEdits,
   useCaseRatings,
@@ -61,25 +63,45 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
     lensSpecs: null,
   };
 
+  // CAMERA SPECS
   if (gearItem[0]!.gear.gearType === "CAMERA") {
     const camera = await db
       .select()
       .from(cameraSpecs)
       .where(eq(cameraSpecs.gearId, gearItem[0]!.gear.id))
       .limit(1);
-    return { ...base, cameraSpecs: camera[0] ?? null };
-  }
 
-  if (gearItem[0]!.gear.gearType === "LENS") {
+    const afRows = await db
+      .select()
+      .from(cameraAfAreaSpecs)
+      .innerJoin(
+        afAreaModes,
+        eq(cameraAfAreaSpecs.afAreaModeId, afAreaModes.id),
+      )
+      .where(
+        and(
+          eq(cameraAfAreaSpecs.gearId, gearItem[0]!.gear.id),
+          eq(afAreaModes.brandId, gearItem[0]!.gear.brandId),
+        ),
+      );
+
+    const modes = afRows.map((r) => r.af_area_modes);
+
+    return {
+      ...base,
+      cameraSpecs: camera[0] ? { ...camera[0], afAreaModes: modes } : null,
+    };
+    // LENS SPECS
+  } else if (gearItem[0]!.gear.gearType === "LENS") {
     const lens = await db
       .select()
       .from(lensSpecs)
       .where(eq(lensSpecs.gearId, gearItem[0]!.gear.id))
       .limit(1);
     return { ...base, lensSpecs: lens[0] ?? null };
+  } else {
+    return base;
   }
-
-  return base;
 }
 
 export type GearCardRow = {
@@ -91,7 +113,8 @@ export type GearCardRow = {
   brandName: string | null;
   brandSlug: string | null;
   thumbnailUrl: string | null;
-  msrpUsdCents: number | null;
+  msrpNowUsdCents: number | null;
+  msrpAtLaunchUsdCents: number | null;
   releaseDate: Date | null;
   createdAt: Date;
   resolutionMp: number | null;
@@ -112,7 +135,8 @@ export async function fetchLatestGearCardsData(
       brandName: brands.name,
       brandSlug: brands.slug,
       thumbnailUrl: gear.thumbnailUrl,
-      msrpUsdCents: gear.msrpUsdCents,
+      msrpNowUsdCents: gear.msrpNowUsdCents,
+      msrpAtLaunchUsdCents: gear.msrpAtLaunchUsdCents,
       releaseDate: gear.releaseDate,
       createdAt: gear.createdAt,
       resolutionMp: cameraSpecs.resolutionMp,
@@ -143,7 +167,7 @@ export async function fetchBrandGearData(
       brandName: brands.name,
       brandSlug: brands.slug,
       thumbnailUrl: gear.thumbnailUrl,
-      msrpUsdCents: gear.msrpUsdCents,
+      msrpUsdCents: gear.msrpNowUsdCents,
       releaseDate: gear.releaseDate,
       createdAt: gear.createdAt,
       resolutionMp: cameraSpecs.resolutionMp,

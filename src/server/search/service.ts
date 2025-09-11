@@ -96,12 +96,12 @@ export async function searchGear(
     }
     if (filters.priceMin !== undefined) {
       filterConditions.push(
-        sql`${gear.msrpUsdCents} >= ${filters.priceMin * 100}`,
+        sql`${gear.msrpNowUsdCents} >= ${filters.priceMin * 100}`,
       );
     }
     if (filters.priceMax !== undefined) {
       filterConditions.push(
-        sql`${gear.msrpUsdCents} <= ${filters.priceMax * 100}`,
+        sql`${gear.msrpNowUsdCents} <= ${filters.priceMax * 100}`,
       );
     }
 

@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { eq } from "drizzle-orm";
-import { formatPrice, getMountDisplayName } from "~/lib/mapping";
+import {
+  formatPrice,
+  getMountDisplayName,
+  formatDimensions,
+} from "~/lib/mapping";
 import { formatHumanDate, getConstructionState } from "~/lib/utils";
 import { GearActionButtons } from "~/app/(pages)/gear/_components/gear-action-buttons";
 import {
@@ -25,6 +29,14 @@ import { SuggestEditButton } from "../_components/suggest-edit-button";
 import { GearLinks } from "~/app/(pages)/gear/_components/gear-links";
 import GearStatsCard from "../_components/gear-stats-card";
 import GearBadges from "../_components/gear-badges";
+import { sensorTypeLabel } from "~/lib/mapping/sensor-map";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
+import { InfoIcon } from "lucide-react";
+import { SpecsMissingNote } from "../_components/specs-missing-note";
 
 export const revalidate = 3600;
 
@@ -41,48 +53,49 @@ export default async function GearPage({ params }: GearPageProps) {
   // Fetch core gear data
   const item: GearItem = await fetchGearBySlug(slug);
 
-  // Fetch additional specs that aren't in the core helper yet
-  const [cameraSpecsData, lensSpecsData] = await Promise.all([
-    (async () =>
-      item.gearType === "CAMERA"
-        ? [
-            {
-              sensorFormatId: item.cameraSpecs?.sensorFormatId ?? null,
-              resolutionMp: item.cameraSpecs?.resolutionMp ?? null,
-              isoMin: item.cameraSpecs?.isoMin ?? null,
-              isoMax: item.cameraSpecs?.isoMax ?? null,
-              maxFpsRaw: item.cameraSpecs?.maxFpsRaw ?? null,
-              maxFpsJpg: item.cameraSpecs?.maxFpsJpg ?? null,
-              extra: item.cameraSpecs?.extra ?? null,
-            },
-          ]
-        : [])(),
-    (async () =>
-      item.gearType === "LENS"
-        ? [
-            {
-              focalLengthMinMm: item.lensSpecs?.focalLengthMinMm ?? null,
-              focalLengthMaxMm: item.lensSpecs?.focalLengthMaxMm ?? null,
-              hasStabilization: item.lensSpecs?.hasStabilization ?? null,
-              extra: item.lensSpecs?.extra ?? null,
-            },
-          ]
-        : [])(),
-  ]);
+  // Specs (strongly typed via schema); avoid manual field mapping
+  const cameraSpecsItem =
+    item.gearType === "CAMERA" ? (item.cameraSpecs ?? null) : null;
+  const lensSpecsItem =
+    item.gearType === "LENS" ? (item.lensSpecs ?? null) : null;
+
+  // console.log("[GearPage] cameraSpecsItem", cameraSpecsItem);
 
   // Get sensor format if camera specs exist
   let sensorFormat = null;
-  // sensor format already included in item.cameraSpecs via service (mapped with schema)
-  if (cameraSpecsData.length > 0 && cameraSpecsData[0]?.sensorFormatId) {
+  // sensor format id available on camera specs; join for name elsewhere
+  if (cameraSpecsItem?.sensorFormatId) {
     sensorFormat = {
-      id: cameraSpecsData[0].sensorFormatId,
+      id: cameraSpecsItem.sensorFormatId,
       name: "",
       slug: "",
     } as any;
   }
 
-  const cameraSpecsItem = cameraSpecsData[0] || null;
-  const lensSpecsItem = lensSpecsData[0] || null;
+  // Compute combined Sensor Type label (e.g., "Partially-Stacked BSI-CMOS")
+  // const sensorTypeLabel = (() => {
+  //   if (!cameraSpecsItem) return null;
+  //   const parts: string[] = [];
+  //   const stacking = cameraSpecsItem.sensorStackingType as
+  //     | "unstacked"
+  //     | "partially-stacked"
+  //     | "fully-stacked"
+  //     | null
+  //     | undefined;
+  //   if (stacking && stacking !== "unstacked") {
+  //     let stackingLabel: string | null = null;
+  //     if (stacking === "partially-stacked") stackingLabel = "Partially-Stacked";
+  //     if (stacking === "fully-stacked") stackingLabel = "Stacked";
+  //     if (stackingLabel) parts.push(stackingLabel);
+  //   }
+  //   const tech = cameraSpecsItem.sensorTechType
+  //     ? String(cameraSpecsItem.sensorTechType).toUpperCase()
+  //     : null;
+  //   const bsi = cameraSpecsItem.isBackSideIlluminated ? "BSI" : null;
+  //   const techSegment = [bsi, tech].filter(Boolean).join("-");
+  //   if (techSegment) parts.push(techSegment);
+  //   return parts.length ? parts.join(" ") : null;
+  // })();
 
   // Fetch editorial content
   const [ratingsRows, staffVerdictRows] = await Promise.all([
@@ -142,9 +155,9 @@ export default async function GearPage({ params }: GearPageProps) {
           )}
         </div>
         <h1 className="text-3xl font-bold">{item.name}</h1>
-        {item.msrpUsdCents && (
+        {item.msrpNowUsdCents && (
           <div className="mt-2 text-2xl font-semibold">
-            {formatPrice(item.msrpUsdCents)}
+            {formatPrice(item.msrpNowUsdCents)}
           </div>
         )}
       </div>
@@ -265,7 +278,8 @@ export default async function GearPage({ params }: GearPageProps) {
                   <div className="flex justify-between px-4 py-3">
                     <span className="text-muted-foreground">Resolution</span>
                     <span className="font-medium">
-                      {cameraSpecsItem.resolutionMp} MP
+                      {Number(cameraSpecsItem.resolutionMp).toFixed(1)}{" "}
+                      megapixels
                     </span>
                   </div>
                 )}
@@ -305,6 +319,367 @@ export default async function GearPage({ params }: GearPageProps) {
                     </span>
                   </div>
                 )}
+
+                {sensorTypeLabel && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">Sensor Type</span>
+                    <span className="font-medium">
+                      {sensorTypeLabel(cameraSpecsItem)}
+                    </span>
+                  </div>
+                )}
+
+                {cameraSpecsItem.hasIbis !== null &&
+                  cameraSpecsItem.hasIbis !== undefined && (
+                    <div className="flex justify-between px-4 py-3">
+                      <span className="text-muted-foreground flex items-center gap-2">
+                        Has IBIS{" "}
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <InfoIcon className="text-muted-foreground h-4 w-4" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            <p>In-body image stabilization</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </span>
+                      <span className="font-medium">
+                        {cameraSpecsItem.hasIbis ? "Yes" : "No"}
+                      </span>
+                    </div>
+                  )}
+
+                {cameraSpecsItem.hasElectronicVibrationReduction !== null &&
+                  cameraSpecsItem.hasElectronicVibrationReduction !==
+                    undefined && (
+                    <div className="flex justify-between px-4 py-3">
+                      <span className="text-muted-foreground flex items-center gap-2">
+                        Has Electronic VR{" "}
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <InfoIcon className="text-muted-foreground h-4 w-4" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            <p>Digital image stabilization.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </span>
+                      <span className="font-medium">
+                        {cameraSpecsItem.hasElectronicVibrationReduction
+                          ? "Yes"
+                          : "No"}
+                      </span>
+                    </div>
+                  )}
+
+                {cameraSpecsItem.cipaStabilizationRatingStops && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      CIPA Stabilization Rating Stops
+                    </span>
+                    <span className="font-medium">
+                      {cameraSpecsItem.cipaStabilizationRatingStops} stops
+                    </span>
+                  </div>
+                )}
+
+                {cameraSpecsItem.hasPixelShiftShooting !== null &&
+                  cameraSpecsItem.hasPixelShiftShooting !== undefined && (
+                    <div className="flex justify-between px-4 py-3">
+                      <span className="text-muted-foreground">
+                        Has Pixel Shift Shooting
+                      </span>
+                      <span className="font-medium">
+                        {cameraSpecsItem.hasPixelShiftShooting ? "Yes" : "No"}
+                      </span>
+                    </div>
+                  )}
+
+                {cameraSpecsItem.hasAntiAliasingFilter !== null &&
+                  cameraSpecsItem.hasAntiAliasingFilter !== undefined && (
+                    <div className="flex justify-between px-4 py-3">
+                      <span className="text-muted-foreground">
+                        Has Anti Aliasing Filter
+                      </span>
+                      <span className="font-medium">
+                        {cameraSpecsItem.hasAntiAliasingFilter ? "Yes" : "No"}
+                      </span>
+                    </div>
+                  )}
+
+                {(cameraSpecsItem.widthMm != null ||
+                  cameraSpecsItem.heightMm != null ||
+                  cameraSpecsItem.depthMm != null) &&
+                  (() => {
+                    const dims = formatDimensions({
+                      widthMm:
+                        typeof cameraSpecsItem.widthMm === "number"
+                          ? cameraSpecsItem.widthMm
+                          : cameraSpecsItem.widthMm != null
+                            ? Number(cameraSpecsItem.widthMm)
+                            : null,
+                      heightMm:
+                        typeof cameraSpecsItem.heightMm === "number"
+                          ? cameraSpecsItem.heightMm
+                          : cameraSpecsItem.heightMm != null
+                            ? Number(cameraSpecsItem.heightMm)
+                            : null,
+                      depthMm:
+                        typeof cameraSpecsItem.depthMm === "number"
+                          ? cameraSpecsItem.depthMm
+                          : cameraSpecsItem.depthMm != null
+                            ? Number(cameraSpecsItem.depthMm)
+                            : null,
+                    });
+                    return dims ? (
+                      <div className="flex justify-between px-4 py-3">
+                        <span className="text-muted-foreground">
+                          Dimensions
+                        </span>
+                        <span className="font-medium">{dims}</span>
+                      </div>
+                    ) : null;
+                  })()}
+                {cameraSpecsItem.processorName && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Processor Name
+                    </span>
+                    <span className="font-medium">
+                      {cameraSpecsItem.processorName}
+                    </span>
+                  </div>
+                )}
+                {cameraSpecsItem.hasWeatherSealing !== null &&
+                  cameraSpecsItem.hasWeatherSealing !== undefined && (
+                    <div className="flex justify-between px-4 py-3">
+                      <span className="text-muted-foreground">
+                        Weather Sealed
+                      </span>
+                      <span className="font-medium">
+                        {cameraSpecsItem.hasWeatherSealing ? "Yes" : "No"}
+                      </span>
+                    </div>
+                  )}
+                {cameraSpecsItem.focusPoints && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">Focus Points</span>
+                    <span className="font-medium">
+                      {cameraSpecsItem.focusPoints}
+                    </span>
+                  </div>
+                )}
+                {cameraSpecsItem.afAreaModes && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">AF Area Modes</span>
+                    <ul className="list-disc pl-5 text-sm">
+                      {cameraSpecsItem.afAreaModes.map((mode) => (
+                        <li key={mode.id}>{mode.name}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {cameraSpecsItem.hasFocusPeaking !== null &&
+                  cameraSpecsItem.hasFocusPeaking !== undefined && (
+                    <div className="flex justify-between px-4 py-3">
+                      <span className="text-muted-foreground">
+                        Has Focus Peaking
+                      </span>
+                      <span className="font-medium">
+                        {cameraSpecsItem.hasFocusPeaking ? "Yes" : "No"}
+                      </span>
+                    </div>
+                  )}
+                {cameraSpecsItem.hasFocusBracketing !== null &&
+                  cameraSpecsItem.hasFocusBracketing !== undefined && (
+                    <div className="flex justify-between px-4 py-3">
+                      <span className="text-muted-foreground">
+                        Has Focus Bracketing
+                      </span>
+                      <span className="font-medium">
+                        {cameraSpecsItem.hasFocusBracketing ? "Yes" : "No"}
+                      </span>
+                    </div>
+                  )}
+                {cameraSpecsItem.shutterSpeedMax && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Longest Shutter Speed
+                    </span>
+                    <span className="font-medium">
+                      {cameraSpecsItem.shutterSpeedMax} sec.
+                    </span>
+                  </div>
+                )}
+                {/* TODO: should split this based on shutter types */}
+                {cameraSpecsItem.shutterSpeedMin && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Fastest Shutter Speed
+                    </span>
+                    <span className="font-medium">
+                      1/{cameraSpecsItem.shutterSpeedMin}s
+                    </span>
+                  </div>
+                )}
+                {cameraSpecsItem.flashSyncSpeed && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Flash Sync Speed
+                    </span>
+                    <span className="font-medium">
+                      1/{cameraSpecsItem.flashSyncSpeed}s
+                    </span>
+                  </div>
+                )}
+                {cameraSpecsItem.hasSilentShootingAvailable !== null &&
+                  cameraSpecsItem.hasSilentShootingAvailable !== undefined && (
+                    <div className="flex justify-between px-4 py-3">
+                      <span className="text-muted-foreground">
+                        Has Silent Shooting Available
+                      </span>
+                      <span className="font-medium">
+                        {cameraSpecsItem.hasSilentShootingAvailable
+                          ? "Yes"
+                          : "No"}
+                      </span>
+                    </div>
+                  )}
+                {cameraSpecsItem.availableShutterTypes && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Available Shutter Types
+                    </span>
+                    <ul className="list-disc pl-5 text-sm">
+                      {cameraSpecsItem.availableShutterTypes.map((type) => (
+                        <li key={type}>{type}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {cameraSpecsItem.cipaBatteryShotsPerCharge && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      CIPA Battery Shots Per Charge
+                    </span>
+                    <span className="font-medium">
+                      {cameraSpecsItem.cipaBatteryShotsPerCharge} shots
+                    </span>
+                  </div>
+                )}
+                {cameraSpecsItem.supportedBatteries && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Supported Batteries
+                    </span>
+                    <ul className="list-disc pl-5 text-sm">
+                      {cameraSpecsItem.supportedBatteries.map(
+                        (battery: string) => (
+                          <li key={battery}>{battery}</li>
+                        ),
+                      )}
+                    </ul>
+                  </div>
+                )}
+                {cameraSpecsItem.usbCharging !== null &&
+                  cameraSpecsItem.usbCharging !== undefined && (
+                    <div className="flex justify-between px-4 py-3">
+                      <span className="text-muted-foreground">
+                        USB Charging
+                      </span>
+                      <span className="font-medium">
+                        {cameraSpecsItem.usbCharging ? "Yes" : "No"}
+                      </span>
+                    </div>
+                  )}
+                {cameraSpecsItem.usbPowerDelivery !== null &&
+                  cameraSpecsItem.usbPowerDelivery !== undefined && (
+                    <div className="flex justify-between px-4 py-3">
+                      <span className="text-muted-foreground">
+                        USB Power Delivery
+                      </span>
+                      <span className="font-medium">
+                        {cameraSpecsItem.usbPowerDelivery ? "Yes" : "No"}
+                      </span>
+                    </div>
+                  )}
+                {cameraSpecsItem.hasLogColorProfile !== null &&
+                  cameraSpecsItem.hasLogColorProfile !== undefined && (
+                    <div className="flex justify-between px-4 py-3">
+                      <span className="text-muted-foreground">
+                        Log Color Profiles Available
+                      </span>
+                      <span className="font-medium">
+                        {cameraSpecsItem.hasLogColorProfile ? "Yes" : "No"}
+                      </span>
+                    </div>
+                  )}
+                {cameraSpecsItem.has10BitVideo !== null &&
+                  cameraSpecsItem.has10BitVideo !== undefined && (
+                    <div className="flex justify-between px-4 py-3">
+                      <span className="text-muted-foreground">
+                        Has 10 Bit Video
+                      </span>
+                      <span className="font-medium">
+                        {cameraSpecsItem.has10BitVideo ? "Yes" : "No"}
+                      </span>
+                    </div>
+                  )}
+                {cameraSpecsItem.has12BitVideo !== null &&
+                  cameraSpecsItem.has12BitVideo !== undefined && (
+                    <div className="flex justify-between px-4 py-3">
+                      <span className="text-muted-foreground">
+                        Has 12 Bit Video
+                      </span>
+                      <span className="font-medium">
+                        {cameraSpecsItem.has12BitVideo ? "Yes" : "No"}
+                      </span>
+                    </div>
+                  )}
+                {cameraSpecsItem.hasIntervalometer !== null &&
+                  cameraSpecsItem.hasIntervalometer !== undefined && (
+                    <div className="flex justify-between px-4 py-3">
+                      <span className="text-muted-foreground">
+                        Has Intervalometer
+                      </span>
+                      <span className="font-medium">
+                        {cameraSpecsItem.hasIntervalometer ? "Yes" : "No"}
+                      </span>
+                    </div>
+                  )}
+                {cameraSpecsItem.hasSelfTimer !== null &&
+                  cameraSpecsItem.hasSelfTimer !== undefined && (
+                    <div className="flex justify-between px-4 py-3">
+                      <span className="text-muted-foreground">
+                        Has Self Timer
+                      </span>
+                      <span className="font-medium">
+                        {cameraSpecsItem.hasSelfTimer ? "Yes" : "No"}
+                      </span>
+                    </div>
+                  )}
+                {cameraSpecsItem.hasBuiltInFlash !== null &&
+                  cameraSpecsItem.hasBuiltInFlash !== undefined && (
+                    <div className="flex justify-between px-4 py-3">
+                      <span className="text-muted-foreground">
+                        Has Built In Flash
+                      </span>
+                      <span className="font-medium">
+                        {cameraSpecsItem.hasBuiltInFlash ? "Yes" : "No"}
+                      </span>
+                    </div>
+                  )}
+                {cameraSpecsItem.hasHotShoe !== null &&
+                  cameraSpecsItem.hasHotShoe !== undefined && (
+                    <div className="flex justify-between px-4 py-3">
+                      <span className="text-muted-foreground">
+                        Has Hot Shoe
+                      </span>
+                      <span className="font-medium">
+                        {cameraSpecsItem.hasHotShoe ? "Yes" : "No"}
+                      </span>
+                    </div>
+                  )}
               </>
             )}
 
@@ -326,19 +701,22 @@ export default async function GearPage({ params }: GearPageProps) {
                     </div>
                   )}
 
-                {lensSpecsItem.hasStabilization !== null && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Image Stabilization
-                    </span>
-                    <span className="font-medium">
-                      {lensSpecsItem.hasStabilization ? "Yes" : "No"}
-                    </span>
-                  </div>
-                )}
+                {lensSpecsItem.hasStabilization !== null &&
+                  lensSpecsItem.hasStabilization !== undefined && (
+                    <div className="flex justify-between px-4 py-3">
+                      <span className="text-muted-foreground">
+                        Image Stabilization
+                      </span>
+                      <span className="font-medium">
+                        {lensSpecsItem.hasStabilization ? "Yes" : "No"}
+                      </span>
+                    </div>
+                  )}
               </>
             )}
           </div>
+          {/* number of missing specs with inline "sign in to contribute" or "help improve this item" */}
+          <SpecsMissingNote item={item} />
         </div>
       </div>
 

@@ -25,7 +25,8 @@ export interface Gear {
   brand_id: string;
   mount_id: string;
   release_date: "datetime";
-  msrp_usd_cents: number;
+  msrp_now_usd_cents: number;
+  msrp_at_launch_usd_cents: number;
   thumbnail_url: string;
   weight_grams: number;
   link_manufacturer: string;

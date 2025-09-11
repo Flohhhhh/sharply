@@ -48,9 +48,9 @@ export default async function GearIndex() {
                     </div>
                   )}
 
-                  {g.msrpUsdCents && (
+                  {g.msrpNowUsdCents && (
                     <div className="text-sm font-medium">
-                      {formatPrice(g.msrpUsdCents)}
+                      {formatPrice(g.msrpNowUsdCents)}
                     </div>
                   )}
                   {g.releaseDate && (

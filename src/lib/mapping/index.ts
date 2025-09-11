@@ -11,6 +11,9 @@ export { getMountDisplayName, getMountLongName } from "./mounts-map";
 // Price formatting utilities
 export { formatPrice } from "./price-map";
 
+// Dimensions formatting utilities
+export { formatDimensions } from "./dimensions-map";
+
 // Import for use in this file
 import { getMountDisplayName } from "./mounts-map";
 
@@ -24,7 +27,7 @@ export function getDisplayName(
   value: string | null | undefined,
   type: "mount",
 ): string {
-  if (!value) return "Unknown"; 
+  if (!value) return "Unknown";
 
   switch (type) {
     case "mount":
