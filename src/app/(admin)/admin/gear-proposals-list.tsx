@@ -12,7 +12,7 @@ import {
   CollapsibleTrigger,
 } from "~/components/ui/collapsible";
 import { humanizeKey, formatHumanDate } from "~/lib/utils";
-import { formatPrice } from "~/lib/mapping";
+import { formatPrice, formatCardSlotDetails } from "~/lib/mapping";
 import { sensorNameFromSlug, sensorNameFromId } from "~/lib/mapping/sensor-map";
 import { getMountLongNameById } from "~/lib/mapping/mounts-map";
 
@@ -281,8 +281,40 @@ export function GearProposalsList({
             const b = before[k];
             const a = after[k];
             if (k === "cameraCardSlots") {
-              const slots = Array.isArray(a) ? (a as any[]) : [];
-              const beforeSlots = Array.isArray(b) ? (b as any[]) : [];
+              const toNormalizedSlot = (s: unknown) => {
+                const obj =
+                  s && typeof s === "object"
+                    ? (s as Record<string, unknown>)
+                    : {};
+                const slotIndexRaw = obj["slotIndex"];
+                const indexNum =
+                  typeof slotIndexRaw === "number"
+                    ? slotIndexRaw
+                    : Number(slotIndexRaw ?? 0);
+                const toStringArray = (v: unknown): string[] =>
+                  Array.isArray(v)
+                    ? (v as unknown[]).filter(
+                        (x): x is string => typeof x === "string",
+                      )
+                    : [];
+                return {
+                  slotIndex:
+                    Number.isFinite(indexNum) && indexNum > 0
+                      ? Math.trunc(indexNum)
+                      : null,
+                  supportedFormFactors: toStringArray(
+                    obj["supportedFormFactors"],
+                  ),
+                  supportedBuses: toStringArray(obj["supportedBuses"]),
+                  supportedSpeedClasses: toStringArray(
+                    obj["supportedSpeedClasses"],
+                  ),
+                };
+              };
+              const slots = Array.isArray(a) ? a.map(toNormalizedSlot) : [];
+              const beforeSlots = Array.isArray(b)
+                ? b.map(toNormalizedSlot)
+                : [];
               const selected = selectedByProposal[proposal.id]?.[k] ?? true;
               const toggle = () => {
                 setSelectedByProposal((prev) => ({
@@ -310,8 +342,8 @@ export function GearProposalsList({
                         {beforeSlots.length
                           ? beforeSlots
                               .map(
-                                (s) =>
-                                  `S${s.slotIndex}: ${(s.supportedFormFactors || []).join(", ")} | ${(s.supportedBuses || []).join(", ")}${(s.supportedSpeedClasses || []).length ? ` | ${s.supportedSpeedClasses.join(", ")}` : ""}`,
+                                (s, idx) =>
+                                  `S${s.slotIndex ?? idx + 1}: ${formatCardSlotDetails(s)}`,
                               )
                               .join("; ")
                           : "Empty"}
@@ -320,8 +352,8 @@ export function GearProposalsList({
                         +{" "}
                         {slots
                           .map(
-                            (s) =>
-                              `S${s.slotIndex}: ${(s.supportedFormFactors || []).join(", ")} | ${(s.supportedBuses || []).join(", ")}${(s.supportedSpeedClasses || []).length ? ` | ${s.supportedSpeedClasses.join(", ")}` : ""}`,
+                            (s, idx) =>
+                              `S${s.slotIndex ?? idx + 1}: ${formatCardSlotDetails(s)}`,
                           )
                           .join("; ")}
                       </div>

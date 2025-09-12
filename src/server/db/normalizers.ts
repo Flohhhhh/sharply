@@ -433,7 +433,7 @@ export function normalizeProposalPayloadForDb(
       .filter((s) => typeof s.slotIndex === "number");
     // enforce a max of 2 slots
     const capped = cleaned
-      .sort((a, b) => (a.slotIndex as number) - (b.slotIndex as number))
+      .sort((a, b) => a.slotIndex! - b.slotIndex!)
       .slice(0, 2)
       .map((s, i) => ({ ...s, slotIndex: i + 1 }));
     if (capped.length) normalized.cameraCardSlots = capped as unknown[];

@@ -407,8 +407,8 @@ export default async function GearPage({ params }: GearPageProps) {
                     </div>
                   )}
 
-                {Array.isArray((item as any).cameraCardSlots) &&
-                  (item as any).cameraCardSlots.length > 0 && (
+                {Array.isArray(item.cameraCardSlots) &&
+                  item.cameraCardSlots.length > 0 && (
                     <div className="px-4 py-3">
                       <div className="mb-1 flex items-center justify-between">
                         <span className="text-muted-foreground">
@@ -416,12 +416,19 @@ export default async function GearPage({ params }: GearPageProps) {
                         </span>
                       </div>
                       <div className="space-y-1">
-                        {((item as any).cameraCardSlots as any[])
+                        {item.cameraCardSlots
                           .sort(
                             (a, b) => (a.slotIndex ?? 0) - (b.slotIndex ?? 0),
                           )
                           .map((s, i) => {
-                            const details = formatCardSlotDetails(s);
+                            const details = formatCardSlotDetails({
+                              slotIndex: s.slotIndex,
+                              supportedFormFactors:
+                                s.supportedFormFactors ?? [],
+                              supportedBuses: s.supportedBuses ?? [],
+                              supportedSpeedClasses:
+                                s.supportedSpeedClasses ?? [],
+                            });
                             return (
                               <div key={i} className="flex justify-between">
                                 <span className="text-muted-foreground">

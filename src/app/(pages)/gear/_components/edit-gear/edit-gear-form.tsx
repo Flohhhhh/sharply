@@ -16,7 +16,7 @@ import CameraFields from "./fields-cameras";
 import type { gear, cameraSpecs, lensSpecs } from "~/server/db/schema";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { formatPrice } from "~/lib/mapping";
+import { formatPrice, formatCardSlotDetails } from "~/lib/mapping";
 import { sensorNameFromSlug } from "~/lib/mapping/sensor-map";
 import { humanizeKey, formatHumanDate } from "~/lib/utils";
 import { actionSubmitGearProposal } from "~/server/gear/actions";
@@ -195,39 +195,49 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
     }
 
     // Top-level cameraCardSlots (first-class section)
-    const normalizeSlots = (slots: any): any[] => {
-      if (!Array.isArray(slots)) return [];
-      return slots
-        .map((s) => {
-          const slotIndex =
+    type NormalizedSlot = {
+      slotIndex: number;
+      supportedFormFactors: string[];
+      supportedBuses: string[];
+      supportedSpeedClasses: string[];
+    };
+    const normalizeSlots = (slots: unknown): NormalizedSlot[] => {
+      if (!Array.isArray(slots)) return [] as NormalizedSlot[];
+      const out: NormalizedSlot[] = slots
+        .map((s: any): NormalizedSlot => {
+          const rawIndex =
             typeof s?.slotIndex === "number"
               ? s.slotIndex
               : Number(s?.slotIndex ?? 0);
-          const ff = Array.isArray(s?.supportedFormFactors)
+          const slotIndex =
+            Number.isFinite(rawIndex) && rawIndex > 0
+              ? Math.trunc(rawIndex)
+              : 0;
+          const supportedFormFactors = Array.isArray(s?.supportedFormFactors)
             ? [...s.supportedFormFactors]
-                .filter((x) => typeof x === "string")
+                .filter((x: unknown): x is string => typeof x === "string")
                 .sort()
             : [];
-          const buses = Array.isArray(s?.supportedBuses)
-            ? [...s.supportedBuses].filter((x) => typeof x === "string").sort()
+          const supportedBuses = Array.isArray(s?.supportedBuses)
+            ? [...s.supportedBuses]
+                .filter((x: unknown): x is string => typeof x === "string")
+                .sort()
             : [];
-          const speeds = Array.isArray(s?.supportedSpeedClasses)
+          const supportedSpeedClasses = Array.isArray(s?.supportedSpeedClasses)
             ? [...s.supportedSpeedClasses]
-                .filter((x) => typeof x === "string")
+                .filter((x: unknown): x is string => typeof x === "string")
                 .sort()
             : [];
           return {
-            slotIndex:
-              Number.isFinite(slotIndex) && slotIndex > 0
-                ? Math.trunc(slotIndex)
-                : 0,
-            supportedFormFactors: ff,
-            supportedBuses: buses,
-            supportedSpeedClasses: speeds,
+            slotIndex,
+            supportedFormFactors,
+            supportedBuses,
+            supportedSpeedClasses,
           };
         })
         .filter((s) => s.slotIndex > 0)
         .sort((a, b) => a.slotIndex - b.slotIndex);
+      return out;
     };
 
     const prevSlots = normalizeSlots((gearData as any).cameraCardSlots);
@@ -436,17 +446,24 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
                                 Slot {s.slotIndex}:
                               </span>{" "}
                               <span className="font-medium">
-                                {Array.isArray(s.supportedFormFactors)
-                                  ? s.supportedFormFactors.join(", ")
-                                  : ""}
-                                {Array.isArray(s.supportedBuses)
-                                  ? ` | ${s.supportedBuses.join(", ")}`
-                                  : ""}
-                                {Array.isArray(s.supportedSpeedClasses) &&
-                                s.supportedSpeedClasses.length
-                                  ? ` | ${s.supportedSpeedClasses.join(", ")}`
-                                  : ""}
-                                {s.notes ? ` — ${s.notes}` : ""}
+                                {formatCardSlotDetails({
+                                  slotIndex: Number(s?.slotIndex) || null,
+                                  supportedFormFactors: Array.isArray(
+                                    s?.supportedFormFactors,
+                                  )
+                                    ? (s.supportedFormFactors as string[])
+                                    : [],
+                                  supportedBuses: Array.isArray(
+                                    s?.supportedBuses,
+                                  )
+                                    ? (s.supportedBuses as string[])
+                                    : [],
+                                  supportedSpeedClasses: Array.isArray(
+                                    s?.supportedSpeedClasses,
+                                  )
+                                    ? (s.supportedSpeedClasses as string[])
+                                    : [],
+                                })}
                               </span>
                             </li>
                           ),
