@@ -91,20 +91,42 @@ export function MultiSelect({
                   <span
                     key={s.id}
                     className="bg-secondary text-secondary-foreground inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onTouchStart={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
                     }}
                   >
                     {s.name}
-                    <X
-                      className="h-3 w-3 cursor-pointer opacity-70"
+                    <span
+                      className="pointer-events-auto inline-flex h-3 w-3 items-center justify-center"
+                      role="button"
+                      aria-label={`Remove ${s.name}`}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        remove(s.id);
+                      }}
+                      onTouchStart={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        remove(s.id);
+                      }}
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
                         remove(s.id);
                       }}
-                    />
+                    >
+                      <X className="h-3 w-3 opacity-70" />
+                    </span>
                   </span>
                 ))
               ) : (

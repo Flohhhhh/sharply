@@ -17,6 +17,7 @@ import {
   cameraSpecs,
   cameraAfAreaSpecs,
   afAreaModes,
+  cameraCardSlots,
   lensSpecs,
   gearEdits,
   useCaseRatings,
@@ -87,9 +88,16 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
 
     const modes = afRows.map((r) => r.af_area_modes);
 
+    // card slots
+    const slots = await db
+      .select()
+      .from(cameraCardSlots)
+      .where(eq(cameraCardSlots.gearId, gearItem[0]!.gear.id as any));
+
     return {
       ...base,
       cameraSpecs: camera[0] ? { ...camera[0], afAreaModes: modes } : null,
+      cameraCardSlots: slots.length ? (slots as any) : [],
     };
     // LENS SPECS
   } else if (gearItem[0]!.gear.gearType === "LENS") {

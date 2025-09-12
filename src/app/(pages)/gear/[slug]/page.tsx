@@ -4,6 +4,7 @@ import {
   formatPrice,
   getMountDisplayName,
   formatDimensions,
+  formatCardSlotDetails,
 } from "~/lib/mapping";
 import { formatHumanDate, getConstructionState } from "~/lib/utils";
 import { GearActionButtons } from "~/app/(pages)/gear/_components/gear-action-buttons";
@@ -52,7 +53,6 @@ export default async function GearPage({ params }: GearPageProps) {
 
   // Fetch core gear data
   const item: GearItem = await fetchGearBySlug(slug);
-
   // Specs (strongly typed via schema); avoid manual field mapping
   const cameraSpecsItem =
     item.gearType === "CAMERA" ? (item.cameraSpecs ?? null) : null;
@@ -404,6 +404,34 @@ export default async function GearPage({ params }: GearPageProps) {
                       <span className="font-medium">
                         {cameraSpecsItem.hasAntiAliasingFilter ? "Yes" : "No"}
                       </span>
+                    </div>
+                  )}
+
+                {Array.isArray((item as any).cameraCardSlots) &&
+                  (item as any).cameraCardSlots.length > 0 && (
+                    <div className="px-4 py-3">
+                      <div className="mb-1 flex items-center justify-between">
+                        <span className="text-muted-foreground">
+                          Card Slots
+                        </span>
+                      </div>
+                      <div className="space-y-1">
+                        {((item as any).cameraCardSlots as any[])
+                          .sort(
+                            (a, b) => (a.slotIndex ?? 0) - (b.slotIndex ?? 0),
+                          )
+                          .map((s, i) => {
+                            const details = formatCardSlotDetails(s);
+                            return (
+                              <div key={i} className="flex justify-between">
+                                <span className="text-muted-foreground">
+                                  Slot {s.slotIndex}
+                                </span>
+                                <span className="font-medium">{details}</span>
+                              </div>
+                            );
+                          })}
+                      </div>
                     </div>
                   )}
 

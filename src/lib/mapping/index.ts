@@ -13,6 +13,11 @@ export { formatPrice } from "./price-map";
 
 // Dimensions formatting utilities
 export { formatDimensions } from "./dimensions-map";
+export {
+  titleizeCardEnum,
+  formatCardSlotDetails,
+  summarizeCardSlots,
+} from "./card-slots-map";
 
 // Import for use in this file
 import { getMountDisplayName } from "./mounts-map";

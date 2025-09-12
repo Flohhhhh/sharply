@@ -193,6 +193,50 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
       const diffs = diffByKeys(orig, formData.lensSpecs as any, lensKeys);
       if (Object.keys(diffs).length > 0) payload.lens = diffs;
     }
+
+    // Top-level cameraCardSlots (first-class section)
+    const normalizeSlots = (slots: any): any[] => {
+      if (!Array.isArray(slots)) return [];
+      return slots
+        .map((s) => {
+          const slotIndex =
+            typeof s?.slotIndex === "number"
+              ? s.slotIndex
+              : Number(s?.slotIndex ?? 0);
+          const ff = Array.isArray(s?.supportedFormFactors)
+            ? [...s.supportedFormFactors]
+                .filter((x) => typeof x === "string")
+                .sort()
+            : [];
+          const buses = Array.isArray(s?.supportedBuses)
+            ? [...s.supportedBuses].filter((x) => typeof x === "string").sort()
+            : [];
+          const speeds = Array.isArray(s?.supportedSpeedClasses)
+            ? [...s.supportedSpeedClasses]
+                .filter((x) => typeof x === "string")
+                .sort()
+            : [];
+          return {
+            slotIndex:
+              Number.isFinite(slotIndex) && slotIndex > 0
+                ? Math.trunc(slotIndex)
+                : 0,
+            supportedFormFactors: ff,
+            supportedBuses: buses,
+            supportedSpeedClasses: speeds,
+          };
+        })
+        .filter((s) => s.slotIndex > 0)
+        .sort((a, b) => a.slotIndex - b.slotIndex);
+    };
+
+    const prevSlots = normalizeSlots((gearData as any).cameraCardSlots);
+    const nextSlots = normalizeSlots((formData as any).cameraCardSlots);
+    const slotsChanged =
+      JSON.stringify(prevSlots) !== JSON.stringify(nextSlots);
+    if (slotsChanged) {
+      payload.cameraCardSlots = nextSlots;
+    }
     return payload;
   };
 
@@ -271,6 +315,7 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
           gearItem={formData}
           currentSpecs={formData.cameraSpecs}
           onChange={(field, value) => handleChange(field, value, "cameraSpecs")}
+          onChangeTopLevel={(field, value) => handleChange(field, value)}
         />
       )}
 
@@ -377,6 +422,35 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
                             <span className="font-medium">{String(v)}</span>
                           </li>
                         ))}
+                      </ul>
+                    </div>
+                  )}
+                  {Array.isArray((diffPreview as any).cameraCardSlots) && (
+                    <div>
+                      <div className="mb-1 font-medium">Card Slots</div>
+                      <ul className="list-disc pl-5">
+                        {((diffPreview as any).cameraCardSlots as any[]).map(
+                          (s, i) => (
+                            <li key={i}>
+                              <span className="text-muted-foreground">
+                                Slot {s.slotIndex}:
+                              </span>{" "}
+                              <span className="font-medium">
+                                {Array.isArray(s.supportedFormFactors)
+                                  ? s.supportedFormFactors.join(", ")
+                                  : ""}
+                                {Array.isArray(s.supportedBuses)
+                                  ? ` | ${s.supportedBuses.join(", ")}`
+                                  : ""}
+                                {Array.isArray(s.supportedSpeedClasses) &&
+                                s.supportedSpeedClasses.length
+                                  ? ` | ${s.supportedSpeedClasses.join(", ")}`
+                                  : ""}
+                                {s.notes ? ` — ${s.notes}` : ""}
+                              </span>
+                            </li>
+                          ),
+                        )}
                       </ul>
                     </div>
                   )}

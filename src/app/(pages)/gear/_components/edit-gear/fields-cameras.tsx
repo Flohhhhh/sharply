@@ -21,11 +21,13 @@ import { InfoIcon } from "lucide-react";
 import { Input } from "~/components/ui/input";
 import { MultiSelect } from "~/components/ui/multi-select";
 import type { EnrichedCameraSpecs, GearItem } from "~/types/gear";
+import CardSlotsManager, { type CardSlot } from "./card-slots-manager";
 
 interface CameraFieldsProps {
   gearItem: GearItem;
   currentSpecs: EnrichedCameraSpecs | null | undefined;
   onChange: (field: string, value: any) => void;
+  onChangeTopLevel?: (field: string, value: any) => void; // for cameraCardSlots
 }
 
 // Using shared NumberInput from custom-inputs
@@ -34,6 +36,7 @@ function CameraFieldsComponent({
   gearItem,
   currentSpecs,
   onChange,
+  onChangeTopLevel,
 }: CameraFieldsProps) {
   // Debug logging
   // console.log("CameraFieldsComponent - currentSpecs:", currentSpecs);
@@ -299,6 +302,12 @@ function CameraFieldsComponent({
             onChange={(value) =>
               handleFieldChange("hasAntiAliasingFilter", value)
             }
+          />
+
+          {/* Card Slots Manager */}
+          <CardSlotsManager
+            value={(gearItem as any)?.cameraCardSlots as CardSlot[] | undefined}
+            onChange={(slots) => onChangeTopLevel?.("cameraCardSlots", slots)}
           />
 
           {/* Width */}

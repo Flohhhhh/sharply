@@ -8,6 +8,7 @@ import {
   users,
   cameraSpecs,
   cameraAfAreaSpecs,
+  cameraCardSlots,
   lensSpecs,
   auditLogs,
 } from "~/server/db/schema";
@@ -106,6 +107,7 @@ export async function fetchGearProposalsData(): Promise<EnrichedProposal[]> {
         core?: Record<string, unknown>;
         camera?: Record<string, unknown>;
         lens?: Record<string, unknown>;
+        cameraCardSlots?: unknown;
       };
       return {
         ...p,
@@ -228,6 +230,32 @@ export async function approveProposalData(
             .update(lensSpecs)
             .set(lensUpdate)
             .where(eq(lensSpecs.gearId, gearId));
+        }
+      }
+
+      // Apply camera card slots (replace set) if provided
+      if (Array.isArray((normalized as any).cameraCardSlots)) {
+        const slots = (normalized as any).cameraCardSlots as Array<{
+          slotIndex: number;
+          supportedFormFactors: string[];
+          supportedBuses: string[];
+          supportedSpeedClasses?: string[];
+        }>;
+
+        // Replace existing slots for this gear
+        await tx
+          .delete(cameraCardSlots)
+          .where(eq(cameraCardSlots.gearId, gearId as any));
+
+        if (slots.length > 0) {
+          const rows = slots.map((s) => ({
+            gearId: gearId as any,
+            slotIndex: s.slotIndex,
+            supportedFormFactors: s.supportedFormFactors,
+            supportedBuses: s.supportedBuses,
+            supportedSpeedClasses: s.supportedSpeedClasses ?? [],
+          }));
+          await tx.insert(cameraCardSlots).values(rows as any);
         }
       }
     }

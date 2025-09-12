@@ -28,6 +28,12 @@ interface GearProposal {
     core?: Record<string, any>;
     camera?: Record<string, any>;
     lens?: Record<string, any>;
+    cameraCardSlots?: Array<{
+      slotIndex: number;
+      supportedFormFactors: string[];
+      supportedBuses: string[];
+      supportedSpeedClasses?: string[];
+    }>;
   };
   beforeCore?: Record<string, any>;
   beforeCamera?: Record<string, any>;
@@ -162,10 +168,14 @@ export function GearProposalsList({
       core: pick(proposal.payload.core),
       camera: pick(proposal.payload.camera),
       lens: pick(proposal.payload.lens),
+      cameraCardSlots: Array.isArray(proposal.payload.cameraCardSlots)
+        ? proposal.payload.cameraCardSlots
+        : undefined,
     } as {
       core?: Record<string, any>;
       camera?: Record<string, any>;
       lens?: Record<string, any>;
+      cameraCardSlots?: unknown;
     };
   };
 
@@ -180,12 +190,26 @@ export function GearProposalsList({
       await actionApproveProposal(proposal.id, filteredPayload);
 
       // Reflect status and filtered payload locally
-      setProposals((prev) =>
-        prev.map((p) =>
-          p.id === proposal.id
-            ? { ...p, status: "APPROVED", payload: filteredPayload }
-            : p,
-        ),
+      setProposals((prev): GearProposal[] =>
+        prev.map((p) => {
+          if (p.id !== proposal.id) return p;
+          const nextPayload = {
+            core: (filteredPayload as any)?.core ?? p.payload.core,
+            camera: (filteredPayload as any)?.camera ?? p.payload.camera,
+            lens: (filteredPayload as any)?.lens ?? p.payload.lens,
+            cameraCardSlots: Array.isArray(
+              (filteredPayload as any)?.cameraCardSlots,
+            )
+              ? ((filteredPayload as any)
+                  .cameraCardSlots as GearProposal["payload"]["cameraCardSlots"])
+              : p.payload.cameraCardSlots,
+          };
+          return {
+            ...p,
+            status: "APPROVED",
+            payload: nextPayload,
+          } as GearProposal;
+        }),
       );
     } catch (error) {
       console.error("Failed to approve proposal:", error);
@@ -226,6 +250,9 @@ export function GearProposalsList({
       ...(proposal.payload.core || {}),
       ...(proposal.payload.camera || {}),
       ...(proposal.payload.lens || {}),
+      ...(Array.isArray(proposal.payload.cameraCardSlots)
+        ? { cameraCardSlots: proposal.payload.cameraCardSlots }
+        : {}),
     };
     const formatValue = (k: string, v: any): string => {
       if (k === "msrpUsdCents") return formatPrice(v as number);
@@ -253,6 +280,66 @@ export function GearProposalsList({
           {keys.map((k) => {
             const b = before[k];
             const a = after[k];
+            if (k === "cameraCardSlots") {
+              const slots = Array.isArray(a) ? (a as any[]) : [];
+              const beforeSlots = Array.isArray(b) ? (b as any[]) : [];
+              const selected = selectedByProposal[proposal.id]?.[k] ?? true;
+              const toggle = () => {
+                setSelectedByProposal((prev) => ({
+                  ...prev,
+                  [proposal.id]: {
+                    ...(prev[proposal.id] || {}),
+                    [k]: !selected,
+                  },
+                }));
+              };
+              return (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={toggle}
+                  className={`border-input hover:bg-muted/30 flex w-full items-start justify-between rounded border p-2 text-left transition ${selected ? "" : "opacity-60"}`}
+                >
+                  <div className="mr-2 w-full">
+                    <div className="text-muted-foreground mb-1 text-[11px]">
+                      Card Slots
+                    </div>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      <div className="text-muted-foreground text-sm">
+                        -{" "}
+                        {beforeSlots.length
+                          ? beforeSlots
+                              .map(
+                                (s) =>
+                                  `S${s.slotIndex}: ${(s.supportedFormFactors || []).join(", ")} | ${(s.supportedBuses || []).join(", ")}${(s.supportedSpeedClasses || []).length ? ` | ${s.supportedSpeedClasses.join(", ")}` : ""}`,
+                              )
+                              .join("; ")
+                          : "Empty"}
+                      </div>
+                      <div className="text-sm">
+                        +{" "}
+                        {slots
+                          .map(
+                            (s) =>
+                              `S${s.slotIndex}: ${(s.supportedFormFactors || []).join(", ")} | ${(s.supportedBuses || []).join(", ")}${(s.supportedSpeedClasses || []).length ? ` | ${s.supportedSpeedClasses.join(", ")}` : ""}`,
+                          )
+                          .join("; ")}
+                      </div>
+                    </div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={selected}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      toggle();
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="mt-0.5 h-4 w-4"
+                  />
+                </button>
+              );
+            }
             const beforeIsEmpty = b === null || b === undefined || b === "";
             const beforeDisplay = beforeIsEmpty
               ? "Empty"

@@ -150,6 +150,37 @@ export default async function EditSuccessPage({
                     </ul>
                   </div>
                 )}
+                {Array.isArray((edit.payload as any).cameraCardSlots) && (
+                  <div>
+                    <div className="mb-1 font-medium">Card Slots</div>
+                    <ul className="list-disc pl-5">
+                      {((edit.payload as any).cameraCardSlots as any[]).map(
+                        (s, i) => {
+                          const ff = Array.isArray(s.supportedFormFactors)
+                            ? (s.supportedFormFactors as string[]).join(", ")
+                            : "";
+                          const buses = Array.isArray(s.supportedBuses)
+                            ? (s.supportedBuses as string[]).join(", ")
+                            : "";
+                          const speeds = Array.isArray(s.supportedSpeedClasses)
+                            ? (s.supportedSpeedClasses as string[]).join(", ")
+                            : "";
+                          const details = [ff, buses, speeds]
+                            .filter(Boolean)
+                            .join(" | ");
+                          return (
+                            <li key={i}>
+                              <span className="text-muted-foreground">
+                                Slot {s.slotIndex}:
+                              </span>{" "}
+                              <span className="font-medium">{details}</span>
+                            </li>
+                          );
+                        },
+                      )}
+                    </ul>
+                  </div>
+                )}
               </>
             )}
           </div>

@@ -6,6 +6,7 @@ type ProposalPayload = {
   core?: ProposalPayloadSection;
   camera?: ProposalPayloadSection;
   lens?: ProposalPayloadSection;
+  cameraCardSlots?: unknown;
 };
 
 function isUuid(value: string): boolean {
@@ -346,6 +347,50 @@ export function normalizeProposalPayloadForDb(
     })
     .catchall(z.unknown());
 
+  const CardSlotsSchema = z
+    .array(
+      z
+        .object({
+          slotIndex: z
+            .preprocess((value) => {
+              const num = coerceNumber(value);
+              return num === null ? undefined : Math.trunc(num);
+            }, z.number().int().positive())
+            .optional(),
+          supportedFormFactors: z
+            .array(
+              z.preprocess((value) => {
+                if (typeof value !== "string") return undefined;
+                const allowed =
+                  ENUMS.card_form_factor_enum as readonly string[];
+                return allowed.includes(value) ? value : undefined;
+              }, z.string()),
+            )
+            .optional(),
+          supportedBuses: z
+            .array(
+              z.preprocess((value) => {
+                if (typeof value !== "string") return undefined;
+                const allowed = ENUMS.card_bus_enum as readonly string[];
+                return allowed.includes(value) ? value : undefined;
+              }, z.string()),
+            )
+            .optional(),
+          supportedSpeedClasses: z
+            .array(
+              z.preprocess((value) => {
+                if (typeof value !== "string") return undefined;
+                const allowed =
+                  ENUMS.card_speed_class_enum as readonly string[];
+                return allowed.includes(value) ? value : undefined;
+              }, z.string()),
+            )
+            .optional(),
+        })
+        .catchall(z.unknown()),
+    )
+    .optional();
+
   const normalized: ProposalPayload = {};
 
   if (payload.core) {
@@ -364,6 +409,34 @@ export function normalizeProposalPayloadForDb(
     const parsed = LensSchema.parse(payload.lens);
     const pruned = pruneUndefined(parsed as Record<string, unknown>);
     if (Object.keys(pruned).length) normalized.lens = pruned;
+  }
+
+  if (payload.cameraCardSlots) {
+    const parsed = CardSlotsSchema.parse(payload.cameraCardSlots);
+    const list = Array.isArray(parsed) ? parsed : [];
+    const cleaned = list
+      .map((s) => ({
+        slotIndex:
+          typeof s?.slotIndex === "number" && s.slotIndex > 0
+            ? Math.trunc(s.slotIndex)
+            : undefined,
+        supportedFormFactors: Array.isArray(s?.supportedFormFactors)
+          ? s.supportedFormFactors
+          : undefined,
+        supportedBuses: Array.isArray(s?.supportedBuses)
+          ? s.supportedBuses
+          : undefined,
+        supportedSpeedClasses: Array.isArray(s?.supportedSpeedClasses)
+          ? s.supportedSpeedClasses
+          : undefined,
+      }))
+      .filter((s) => typeof s.slotIndex === "number");
+    // enforce a max of 2 slots
+    const capped = cleaned
+      .sort((a, b) => (a.slotIndex as number) - (b.slotIndex as number))
+      .slice(0, 2)
+      .map((s, i) => ({ ...s, slotIndex: i + 1 }));
+    if (capped.length) normalized.cameraCardSlots = capped as unknown[];
   }
 
   return normalized;
