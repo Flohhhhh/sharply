@@ -284,9 +284,19 @@ export function GearProposalsList({
               const toNormalizedSlot = (s: unknown) => {
                 const obj =
                   s && typeof s === "object"
-                    ? (s as Record<string, unknown>)
-                    : {};
-                const slotIndexRaw = obj["slotIndex"];
+                    ? (s as {
+                        slotIndex?: unknown;
+                        supportedFormFactors?: unknown;
+                        supportedBuses?: unknown;
+                        supportedSpeedClasses?: unknown;
+                      })
+                    : ({} as {
+                        slotIndex?: unknown;
+                        supportedFormFactors?: unknown;
+                        supportedBuses?: unknown;
+                        supportedSpeedClasses?: unknown;
+                      });
+                const slotIndexRaw = obj.slotIndex;
                 const indexNum =
                   typeof slotIndexRaw === "number"
                     ? slotIndexRaw
@@ -302,12 +312,10 @@ export function GearProposalsList({
                     Number.isFinite(indexNum) && indexNum > 0
                       ? Math.trunc(indexNum)
                       : null,
-                  supportedFormFactors: toStringArray(
-                    obj["supportedFormFactors"],
-                  ),
-                  supportedBuses: toStringArray(obj["supportedBuses"]),
+                  supportedFormFactors: toStringArray(obj.supportedFormFactors),
+                  supportedBuses: toStringArray(obj.supportedBuses),
                   supportedSpeedClasses: toStringArray(
-                    obj["supportedSpeedClasses"],
+                    obj.supportedSpeedClasses,
                   ),
                 };
               };
