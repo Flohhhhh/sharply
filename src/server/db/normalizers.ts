@@ -80,6 +80,24 @@ export function normalizeProposalPayloadForDb(
           return num === null ? undefined : Math.trunc(num);
         }, z.number().int().optional())
         .optional(),
+      widthMm: z
+        .preprocess((value) => {
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().optional())
+        .optional(),
+      heightMm: z
+        .preprocess((value) => {
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().optional())
+        .optional(),
+      depthMm: z
+        .preprocess((value) => {
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().optional())
+        .optional(),
     })
     .catchall(z.unknown());
 
@@ -179,24 +197,7 @@ export function normalizeProposalPayloadForDb(
           z.boolean().optional(),
         )
         .optional(),
-      widthMm: z
-        .preprocess((value) => {
-          const num = coerceNumber(value);
-          return num === null ? undefined : Math.trunc(num);
-        }, z.number().int().optional())
-        .optional(),
-      heightMm: z
-        .preprocess((value) => {
-          const num = coerceNumber(value);
-          return num === null ? undefined : Math.trunc(num);
-        }, z.number().int().optional())
-        .optional(),
-      depthMm: z
-        .preprocess((value) => {
-          const num = coerceNumber(value);
-          return num === null ? undefined : Math.trunc(num);
-        }, z.number().int().optional())
-        .optional(),
+
       processorName: z.string().optional(),
       hasWeatherSealing: z
         .preprocess(

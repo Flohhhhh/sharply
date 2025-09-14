@@ -310,36 +310,6 @@ function CameraFieldsComponent({
             onChange={(slots) => onChangeTopLevel?.("cameraCardSlots", slots)}
           />
 
-          {/* Width */}
-          <NumberInput
-            id="widthMm"
-            label="Width (mm)"
-            value={Number(currentSpecs?.widthMm ?? null)}
-            onChange={(value) => handleFieldChange("widthMm", value)}
-            placeholder="e.g., 100"
-            suffix="mm"
-          />
-
-          {/* Height */}
-          <NumberInput
-            id="heightMm"
-            label="Height (mm)"
-            value={Number(currentSpecs?.heightMm ?? null)}
-            onChange={(value) => handleFieldChange("heightMm", value)}
-            placeholder="e.g., 100"
-            suffix="mm"
-          />
-
-          {/* Depth */}
-          <NumberInput
-            id="depthMm"
-            label="Depth (mm)"
-            value={Number(currentSpecs?.depthMm ?? null)}
-            onChange={(value) => handleFieldChange("depthMm", value)}
-            placeholder="e.g., 100"
-            suffix="mm"
-          />
-
           {/* Processor Name */}
           <div className="space-y-2">
             <Label htmlFor="processorName">Processor Name</Label>

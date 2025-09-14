@@ -304,6 +304,10 @@ export const gear = appSchema.table(
     msrpAtLaunchUsdCents: integer("msrp_at_launch_usd_cents"),
     thumbnailUrl: text("thumbnail_url"),
     weightGrams: integer("weight_grams"),
+    // Physical dimensions
+    widthMm: decimal("width_mm", { precision: 6, scale: 2 }),
+    heightMm: decimal("height_mm", { precision: 6, scale: 2 }),
+    depthMm: decimal("depth_mm", { precision: 6, scale: 2 }),
     linkManufacturer: text("link_manufacturer"),
     linkMpb: text("link_mpb"),
     linkAmazon: text("link_amazon"),
@@ -371,9 +375,6 @@ export const cameraSpecs = appSchema.table(
     hasPixelShiftShooting: boolean("has_pixel_shift_shooting"),
     hasAntiAliasingFilter: boolean("has_anti_aliasing_filter"),
     // hardware
-    widthMm: decimal("width_mm", { precision: 6, scale: 2 }),
-    heightMm: decimal("height_mm", { precision: 6, scale: 2 }),
-    depthMm: decimal("depth_mm", { precision: 6, scale: 2 }),
     processorName: varchar("processor_name", { length: 200 }),
     hasWeatherSealing: boolean("has_weather_sealing"),
     // focus

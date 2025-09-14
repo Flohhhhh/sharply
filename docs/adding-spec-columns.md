@@ -2,7 +2,7 @@
 
 This guide explains the minimal, end‑to‑end flow to add a new field to the data model, wire it through the UI, and keep types correct.
 
-- Core gear fields live on `gear` (e.g., `genres` cache).
+- Core gear fields live on `gear` (e.g., `genres` cache, `widthMm/heightMm/depthMm`).
 - Camera/Lens spec fields live on `camera_specs` or `lens_specs`.
 
 The project uses Drizzle ORM for schema, and we manage changes via generated SQL migrations only.
@@ -32,7 +32,7 @@ Edit `src/server/db/schema.ts` and add your new column to either `gear`, `camera
 
 Examples:
 
-1. Core gear field (jsonb cache for use cases)
+1. Core gear field (jsonb cache for use cases) and a numeric core spec (dimensions)
 
 ```ts
 // src/server/db/schema.ts
@@ -41,6 +41,9 @@ export const gear = createTable(
   (d) => ({
     // ...existing columns...
     genres: jsonb("genres"), // array of genre slugs for fast reads/filters
+    widthMm: decimal("width_mm", { precision: 6, scale: 2 }),
+    heightMm: decimal("height_mm", { precision: 6, scale: 2 }),
+    depthMm: decimal("depth_mm", { precision: 6, scale: 2 }),
     // ...existing columns...
   }),
   // indexes...

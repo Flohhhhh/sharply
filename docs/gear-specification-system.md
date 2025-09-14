@@ -16,6 +16,7 @@ The central table that stores common gear information:
 - **Classification**: Gear type (CAMERA, LENS)
 - **Brand & Mount**: References to brands and mounts
 - **Metadata**: Release date, price, thumbnail URL
+- **Core Specs**: Physical dimensions (width, height, depth in mm), weight
 - **Timestamps**: Created/updated tracking
 
 #### `cameraSpecs` - Camera Specifications
@@ -114,8 +115,8 @@ The `extra` field provides flexibility for storing additional specifications wit
 {
   "weatherSealing": true,
   "filterThread": "67mm",
-  "weight": "450g",
-  "dimensions": "125×85×70mm"
+  "weight": "450g"
+  // Note: dimensions moved to core `gear` table as numeric fields
 }
 ```
 

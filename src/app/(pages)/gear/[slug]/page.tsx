@@ -442,28 +442,28 @@ export default async function GearPage({ params }: GearPageProps) {
                     </div>
                   )}
 
-                {(cameraSpecsItem.widthMm != null ||
-                  cameraSpecsItem.heightMm != null ||
-                  cameraSpecsItem.depthMm != null) &&
+                {(item.widthMm != null ||
+                  item.heightMm != null ||
+                  item.depthMm != null) &&
                   (() => {
                     const dims = formatDimensions({
                       widthMm:
-                        typeof cameraSpecsItem.widthMm === "number"
-                          ? cameraSpecsItem.widthMm
-                          : cameraSpecsItem.widthMm != null
-                            ? Number(cameraSpecsItem.widthMm)
+                        typeof item.widthMm === "number"
+                          ? item.widthMm
+                          : item.widthMm != null
+                            ? Number(item.widthMm)
                             : null,
                       heightMm:
-                        typeof cameraSpecsItem.heightMm === "number"
-                          ? cameraSpecsItem.heightMm
-                          : cameraSpecsItem.heightMm != null
-                            ? Number(cameraSpecsItem.heightMm)
+                        typeof item.heightMm === "number"
+                          ? item.heightMm
+                          : item.heightMm != null
+                            ? Number(item.heightMm)
                             : null,
                       depthMm:
-                        typeof cameraSpecsItem.depthMm === "number"
-                          ? cameraSpecsItem.depthMm
-                          : cameraSpecsItem.depthMm != null
-                            ? Number(cameraSpecsItem.depthMm)
+                        typeof item.depthMm === "number"
+                          ? item.depthMm
+                          : item.depthMm != null
+                            ? Number(item.depthMm)
                             : null,
                     });
                     return dims ? (
@@ -831,7 +831,7 @@ export default async function GearPage({ params }: GearPageProps) {
                 <div className="mt-4 grid gap-4 md:grid-cols-2">
                   {Array.isArray(verdict.pros) && verdict.pros.length > 0 && (
                     <div>
-                      <div className="text-muted-foreground mb-1 text-xs font-semibold tracking-wide uppercase">
+                      <div className="text-muted-foreground mb-1 text-xs font-semibold uppercase tracking-wide">
                         Pros
                       </div>
                       <ul className="list-disc pl-5 text-sm">
@@ -845,7 +845,7 @@ export default async function GearPage({ params }: GearPageProps) {
                   )}
                   {Array.isArray(verdict.cons) && verdict.cons.length > 0 && (
                     <div>
-                      <div className="text-muted-foreground mb-1 text-xs font-semibold tracking-wide uppercase">
+                      <div className="text-muted-foreground mb-1 text-xs font-semibold uppercase tracking-wide">
                         Cons
                       </div>
                       <ul className="list-disc pl-5 text-sm">
@@ -864,7 +864,7 @@ export default async function GearPage({ params }: GearPageProps) {
                 <div className="mt-4 grid gap-4 md:grid-cols-2">
                   {verdict.whoFor && (
                     <div>
-                      <div className="text-muted-foreground mb-1 text-xs font-semibold tracking-wide uppercase">
+                      <div className="text-muted-foreground mb-1 text-xs font-semibold uppercase tracking-wide">
                         Who it's for
                       </div>
                       <p className="text-sm">{verdict.whoFor}</p>
@@ -872,7 +872,7 @@ export default async function GearPage({ params }: GearPageProps) {
                   )}
                   {verdict.notFor && (
                     <div>
-                      <div className="text-muted-foreground mb-1 text-xs font-semibold tracking-wide uppercase">
+                      <div className="text-muted-foreground mb-1 text-xs font-semibold uppercase tracking-wide">
                         Not for
                       </div>
                       <p className="text-sm">{verdict.notFor}</p>
@@ -884,7 +884,7 @@ export default async function GearPage({ params }: GearPageProps) {
               {Array.isArray(verdict.alternatives) &&
                 verdict.alternatives.length > 0 && (
                   <div className="mt-4">
-                    <div className="text-muted-foreground mb-1 text-xs font-semibold tracking-wide uppercase">
+                    <div className="text-muted-foreground mb-1 text-xs font-semibold uppercase tracking-wide">
                       Top alternatives
                     </div>
                     <ul className="list-disc pl-5 text-sm">
