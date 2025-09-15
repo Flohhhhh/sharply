@@ -194,6 +194,21 @@ export const afSubjectCategoriesEnum = pgEnum(
 
 export const rawBitDepthEnum = pgEnum("raw_bit_depth_enum", ["12", "14", "16"]);
 
+export const mountMaterialEnum = pgEnum("mount_material_enum", [
+  "metal",
+  "plastic",
+]);
+
+export const lensFilterTypesEnum = pgEnum("lens_filter_types_enum", [
+  "none",
+  "front-screw-on",
+  "rear-screw-on",
+  "rear-bayonet",
+  "rear-gel-slot",
+  "rear-drop-in",
+  "internal-rotary",
+]);
+
 // --- Base helpers ---
 const createdAt = timestamp("created_at", { withTimezone: true })
   .defaultNow()
@@ -463,9 +478,54 @@ export const lensSpecs = appSchema.table(
     gearId: varchar("gear_id", { length: 36 })
       .primaryKey()
       .references(() => gear.id, { onDelete: "cascade" }),
+    hasAutofocus: boolean("has_autofocus"),
+    // focal length
+    isPrime: boolean("is_prime"),
     focalLengthMinMm: integer("focal_length_min_mm"),
     focalLengthMaxMm: integer("focal_length_max_mm"),
+    // aperture
+    maxApertureWide: decimal("max_aperture_wide", { precision: 4, scale: 2 }),
+    maxApertureTele: decimal("max_aperture_tele", { precision: 4, scale: 2 }), // nullable
+    minApertureWide: decimal("min_aperture_wide", { precision: 4, scale: 2 }),
+    minApertureTele: decimal("min_aperture_tele", { precision: 4, scale: 2 }), // nullable
+    //apertureProfileJson: jsonb("aperture_profile_json"), // could be used to accurately show how the aperture changes across the focal length range
+    // stabilization
     hasStabilization: boolean("has_stabilization"),
+    cipaStabilizationRatingStops: decimal("cipa_stabilization_rating_stops", {
+      precision: 4,
+      scale: 1,
+    }),
+    hasStabilizationSwitch: boolean("has_stabilization_switch"),
+    // focus
+    isMacro: boolean("is_macro"),
+    magnification: decimal("magnification", { precision: 4, scale: 2 }),
+    minimumFocusDistanceMm: integer("minimum_focus_distance_mm"), // TODO: display this using mapping as feet/meters
+    hasFocusRing: boolean("has_focus_ring"),
+    focusMotorType: text("focus_motor_type"), //TODO: may want to make a relation for this eventually, brands have proprietary names for different types
+    hasAfMfSwitch: boolean("has_af_mf_switch"),
+    hasFocusLimiter: boolean("has_focus_limiter"),
+    // optics
+    numberElements: integer("number_elements"),
+    numberElementGroups: integer("number_element_groups"),
+    hasDiffractiveOptics: boolean("has_diffractive_optics"), // also known as phase fresnel elements
+    // build or features
+    numberDiaphragmBlades: integer("number_diaphragm_blades"),
+    hasRoundedDiaphragmBlades: boolean("has_rounded_diaphragm_blades"),
+    hasInternalZoom: boolean("has_internal_zoom"),
+    hasInternalFocus: boolean("has_internal_focus"),
+    frontElementRotates: boolean("front_element_rotates"),
+    mountMaterial: mountMaterialEnum("mount_material"),
+    hasWeatherSealing: boolean("has_weather_sealing"),
+    hasApertureRing: boolean("has_aperture_ring"),
+    numberCustomControlRings: integer("number_custom_control_rings"),
+    numberFunctionButtons: integer("number_function_buttons"),
+    acceptsFilterTypes: lensFilterTypesEnum("accepts_filter_types").array(),
+    frontFilterThreadSizeMm: integer("front_filter_thread_size_mm"),
+    rearFilterThreadSizeMm: integer("rear_filter_thread_size_mm"),
+    dropInFilterSizeMm: integer("drop_in_filter_size_mm"),
+    hasBuiltInTeleconverter: boolean("has_built_in_teleconverter"),
+    hasLensHood: boolean("has_lens_hood"),
+    hasTripodCollar: boolean("has_tripod_collar"),
     extra: jsonb("extra"),
     createdAt,
     updatedAt,
