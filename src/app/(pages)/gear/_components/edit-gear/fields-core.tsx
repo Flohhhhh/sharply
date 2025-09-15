@@ -12,11 +12,18 @@ import {
 } from "~/components/ui/select";
 import { DateInput } from "~/components/custom-inputs";
 import CurrencyInput from "~/components/custom-inputs/currency-input";
+import { NumberInput } from "~/components/custom-inputs/number-input";
 import { MOUNTS } from "~/lib/constants";
 import MultiSelect from "~/components/ui/multi-select";
 import { GENRES } from "~/lib/constants";
 import { getMountLongName } from "~/lib/mapping/mounts-map";
 import { centsToUsd, usdToCents } from "~/lib/utils";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "~/components/ui/tooltip";
+import { InfoIcon } from "lucide-react";
 
 interface CoreFieldsProps {
   currentSpecs: {
@@ -62,13 +69,6 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
   const handlePriceChange = useCallback(
     (value: number | undefined) => {
       onChange("msrpUsdCents", usdToCents(value));
-    },
-    [onChange],
-  );
-
-  const handleWeightChange = useCallback(
-    (value: number) => {
-      onChange("weightGrams", value);
     },
     [onChange],
   );
@@ -121,21 +121,15 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
   }, [currentSpecs.weightGrams]);
 
   const formattedWidth = useMemo(() => {
-    if (currentSpecs.widthMm === null || currentSpecs.widthMm === undefined)
-      return "";
-    return String(currentSpecs.widthMm);
+    return currentSpecs.widthMm ?? null;
   }, [currentSpecs.widthMm]);
 
   const formattedHeight = useMemo(() => {
-    if (currentSpecs.heightMm === null || currentSpecs.heightMm === undefined)
-      return "";
-    return String(currentSpecs.heightMm);
+    return currentSpecs.heightMm ?? null;
   }, [currentSpecs.heightMm]);
 
   const formattedDepth = useMemo(() => {
-    if (currentSpecs.depthMm === null || currentSpecs.depthMm === undefined)
-      return "";
-    return String(currentSpecs.depthMm);
+    return currentSpecs.depthMm ?? null;
   }, [currentSpecs.depthMm]);
 
   // Safely format the mount value for the select
@@ -178,17 +172,16 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
             min={0}
           />
 
-          <div className="space-y-2">
-            <Label htmlFor="weight">Weight (grams)</Label>
-            <input
-              id="weight"
-              type="number"
-              value={formattedWeight || ""}
-              onChange={(e) => handleWeightChange(Number(e.target.value) || 0)}
-              className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              placeholder="Enter weight in grams"
-            />
-          </div>
+          <NumberInput
+            id="weight"
+            label="Weight with battery"
+            value={formattedWeight}
+            onChange={(v) => onChange("weightGrams", v)}
+            min={0}
+            placeholder="Enter weight w/ battery"
+            suffix="g"
+            prefix="≈"
+          />
 
           <div className="space-y-2">
             <Label htmlFor="mount">Mount</Label>
@@ -201,44 +194,50 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
           </div>
 
           {/* Dimensions */}
-          <div className="space-y-2">
-            <Label htmlFor="widthMm">Width (mm)</Label>
-            <input
-              id="widthMm"
-              type="number"
-              value={formattedWidth}
-              onChange={(e) => onChange("widthMm", Number(e.target.value) || 0)}
-              className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              placeholder="Enter width in mm"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="heightMm">Height (mm)</Label>
-            <input
-              id="heightMm"
-              type="number"
-              value={formattedHeight}
-              onChange={(e) =>
-                onChange("heightMm", Number(e.target.value) || 0)
-              }
-              className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              placeholder="Enter height in mm"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="depthMm">Depth (mm)</Label>
-            <input
-              id="depthMm"
-              type="number"
-              value={formattedDepth}
-              onChange={(e) => onChange("depthMm", Number(e.target.value) || 0)}
-              className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              placeholder="Enter depth in mm"
-            />
-          </div>
+          <NumberInput
+            id="widthMm"
+            label="Width"
+            value={formattedWidth}
+            onChange={(v) => onChange("widthMm", v)}
+            min={0}
+            placeholder="Enter width"
+            suffix="mm"
+          />
+          <NumberInput
+            id="heightMm"
+            label="Height"
+            value={formattedHeight}
+            onChange={(v) => onChange("heightMm", v)}
+            min={0}
+            placeholder="Enter height"
+            suffix="mm"
+          />
+          <NumberInput
+            id="depthMm"
+            label="Depth"
+            value={formattedDepth}
+            onChange={(v) => onChange("depthMm", v)}
+            min={0}
+            placeholder="Enter depth"
+            suffix="mm"
+          />
 
           <div className="space-y-2 md:col-span-2">
-            <Label>Use cases (genres)</Label>
+            <div className="flex items-center gap-2">
+              <Label>Best use cases</Label>
+              <Tooltip>
+                <TooltipTrigger>
+                  <InfoIcon className="h-4 w-4" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>
+                    Select use cases where this gear excels, not just the ones
+                    where it can satisfy a need.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+
             <MultiSelect
               options={genreOptions}
               value={formattedGenres}
@@ -257,7 +256,7 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
               onChange={(e) =>
                 handleLinkChange("linkManufacturer", e.target.value)
               }
-              className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               placeholder="https://manufacturer.example.com/product"
             />
           </div>
@@ -269,7 +268,7 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
               type="url"
               value={currentSpecs.linkMpb || ""}
               onChange={(e) => handleLinkChange("linkMpb", e.target.value)}
-              className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               placeholder="https://www.mpb.com/..."
             />
           </div>
@@ -281,7 +280,7 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
               type="url"
               value={currentSpecs.linkAmazon || ""}
               onChange={(e) => handleLinkChange("linkAmazon", e.target.value)}
-              className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               placeholder="https://amazon.com/..."
             />
           </div>
