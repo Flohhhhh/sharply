@@ -290,9 +290,16 @@ export async function hasViewEventForIdentityToday(params: {
     ),
   );
 
-  const identityFilter = params.userId
-    ? eq(popularityEvents.userId, params.userId)
-    : eq(popularityEvents.visitorId, params.visitorId!);
+  // Determine which identity to use for dedupe. If neither is present, we
+  // cannot attribute the event to an identity, so we skip dedupe (treat as no existing).
+  let identityFilter: SQL | undefined;
+  if (params.userId) {
+    identityFilter = eq(popularityEvents.userId, params.userId);
+  } else if (params.visitorId) {
+    identityFilter = eq(popularityEvents.visitorId, params.visitorId);
+  } else {
+    return false;
+  }
 
   const existing = await db
     .select({ id: popularityEvents.id })
@@ -303,7 +310,7 @@ export async function hasViewEventForIdentityToday(params: {
         eq(popularityEvents.eventType, "view"),
         gte(popularityEvents.createdAt, startUtc),
         lt(popularityEvents.createdAt, nextUtc),
-        identityFilter,
+        identityFilter!,
       ),
     )
     .limit(1);

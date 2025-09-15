@@ -8,6 +8,7 @@ import {
   insertViewEvent,
   getTrendingData,
 } from "./data";
+import { auth } from "~/server/auth";
 
 /**
  * recordGearView(slug, identity)
@@ -56,10 +57,19 @@ export async function recordGearView(params: {
   }
   const gearId = gearRow[0]!.id;
 
+  // Derive userId from server session if not provided by caller
+  let resolvedUserId = params.userId ?? null;
+  if (!resolvedUserId) {
+    try {
+      const session = await auth();
+      resolvedUserId = session?.user?.id ?? null;
+    } catch {}
+  }
+
   const already = await hasViewEventForIdentityToday({
     gearId,
-    userId: params.userId ?? null,
-    visitorId: params.userId ? null : (params.visitorId ?? null),
+    userId: resolvedUserId,
+    visitorId: resolvedUserId ? null : (params.visitorId ?? null),
   });
   if (already) {
     return { success: true, deduped: true } as const;
@@ -67,8 +77,8 @@ export async function recordGearView(params: {
 
   await insertViewEvent({
     gearId,
-    userId: params.userId ?? null,
-    visitorId: params.userId ? null : (params.visitorId ?? null),
+    userId: resolvedUserId,
+    visitorId: resolvedUserId ? null : (params.visitorId ?? null),
   });
   return { success: true, deduped: false } as const;
 }
