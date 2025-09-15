@@ -43,6 +43,8 @@ import { formatFocusDistance } from "~/lib/mapping/focus-distance-map";
 
 import { ENUMS } from "~/lib/constants";
 import { formatFilterType } from "~/lib/mapping/filter-types-map";
+import SpecsTable from "../_components/specs-table";
+import type { SpecsTableSection } from "../_components/specs-table";
 // Removed LensApertureDisplay in favor of standardized spec rows using mapping
 
 export const revalidate = 3600;
@@ -131,11 +133,557 @@ export default async function GearPage({ params }: GearPageProps) {
     );
   }
 
+  const coreSections: SpecsTableSection[] = [
+    {
+      title: "Basic Information",
+      data: [
+        { label: "Mount", value: item.mounts?.value },
+        { label: "Release Date", value: formatHumanDate(item.releaseDate) },
+        {
+          label: "MSRP",
+          value: item.msrpNowUsdCents
+            ? formatPrice(item.msrpNowUsdCents)
+            : undefined,
+        },
+        {
+          label: "Weight",
+          value: item.weightGrams ? `${item.weightGrams} grams` : undefined,
+        },
+        {
+          label: "Dimensions",
+          value:
+            item.widthMm != null ||
+            item.heightMm != null ||
+            item.depthMm != null
+              ? (() => {
+                  const dims = formatDimensions({
+                    widthMm:
+                      typeof item.widthMm === "number"
+                        ? item.widthMm
+                        : item.widthMm != null
+                          ? Number(item.widthMm)
+                          : null,
+                    heightMm:
+                      typeof item.heightMm === "number"
+                        ? item.heightMm
+                        : item.heightMm != null
+                          ? Number(item.heightMm)
+                          : null,
+                    depthMm:
+                      typeof item.depthMm === "number"
+                        ? item.depthMm
+                        : item.depthMm != null
+                          ? Number(item.depthMm)
+                          : null,
+                  });
+                  return dims || undefined;
+                })()
+              : undefined,
+        },
+      ],
+    },
+  ];
+
+  const specSections: SpecsTableSection[] =
+    item.gearType === "CAMERA"
+      ? [
+          ...coreSections,
+          {
+            title: "Sensor & Shutter",
+            data: [
+              {
+                label: "Resolution",
+                value: `${Number(cameraSpecsItem?.resolutionMp).toFixed(1)} megapixels`,
+              },
+              {
+                label: "Sensor Format",
+                value: sensorFormat.name,
+              },
+              {
+                label: "ISO Range",
+                value: `${cameraSpecsItem?.isoMin} - ${cameraSpecsItem?.isoMax}`,
+              },
+              {
+                label: "Max FPS (RAW)",
+                value: cameraSpecsItem?.maxFpsRaw?.toString() + " fps",
+              },
+              {
+                label: "Max FPS (JPEG)",
+                value: cameraSpecsItem?.maxFpsJpg?.toString() + " fps",
+              },
+              {
+                label: "Sensor Type",
+                value: cameraSpecsItem
+                  ? sensorTypeLabel(cameraSpecsItem)
+                  : undefined,
+              },
+              {
+                label: "Has IBIS",
+                value: cameraSpecsItem?.hasIbis ? "Yes" : "No",
+              },
+              {
+                label: "Has Electronic VR",
+                value: cameraSpecsItem?.hasElectronicVibrationReduction
+                  ? "Yes"
+                  : "No",
+              },
+              {
+                label: "CIPA Stabilization Rating Stops",
+                value:
+                  cameraSpecsItem?.cipaStabilizationRatingStops?.toString(),
+              },
+              {
+                label: "Has Pixel Shift Shooting",
+                value: cameraSpecsItem?.hasPixelShiftShooting ? "Yes" : "No",
+              },
+              {
+                label: "Has Anti Aliasing Filter",
+                value: cameraSpecsItem?.hasAntiAliasingFilter ? "Yes" : "No",
+              },
+              {
+                label: "Longest Shutter Speed",
+                value:
+                  cameraSpecsItem?.shutterSpeedMax?.toString() + " seconds",
+              },
+              {
+                label: "Fastest Shutter Speed",
+                value: `1/${cameraSpecsItem?.shutterSpeedMin?.toString()}s`,
+              },
+              {
+                label: "Flash Sync Speed",
+                value: `1/${cameraSpecsItem?.flashSyncSpeed?.toString()}s`,
+              },
+              {
+                label: "Has Silent Shooting Available",
+                value: cameraSpecsItem?.hasSilentShootingAvailable
+                  ? "Yes"
+                  : "No",
+              },
+              {
+                label: "Available Shutter Types",
+                value: cameraSpecsItem?.availableShutterTypes?.join(", "),
+              },
+            ],
+          },
+          {
+            title: "Hardware/Build",
+            data: [
+              {
+                label: "Card Slots",
+                value: (
+                  <div className="flex flex-col gap-1">
+                    {item.cameraCardSlots && item.cameraCardSlots.length > 0 ? (
+                      item.cameraCardSlots
+                        .sort((a, b) => (a.slotIndex ?? 0) - (b.slotIndex ?? 0))
+                        .map((s, i) => {
+                          const details = formatCardSlotDetails({
+                            slotIndex: s.slotIndex,
+                            supportedFormFactors: s.supportedFormFactors ?? [],
+                            supportedBuses: s.supportedBuses ?? [],
+                            supportedSpeedClasses:
+                              s.supportedSpeedClasses ?? [],
+                          });
+                          return (
+                            <div key={i} className="flex justify-between gap-6">
+                              <span className="text-muted-foreground">
+                                Slot {s.slotIndex}
+                              </span>
+                              <span className="font-medium">{details}</span>
+                            </div>
+                          );
+                        })
+                    ) : (
+                      <span className="text-muted-foreground">None</span>
+                    )}
+                  </div>
+                ),
+              },
+              {
+                label: "Processor Name",
+                value: cameraSpecsItem?.processorName ?? undefined,
+              },
+              {
+                label: "Weather Sealing",
+                value: cameraSpecsItem?.hasWeatherSealing ? "Yes" : "No",
+              },
+            ],
+          },
+          {
+            title: "Focus",
+            data: [
+              {
+                label: "Focus Points",
+                value: cameraSpecsItem?.focusPoints?.toString(),
+              },
+              {
+                label: "AF Subject Categories",
+                value: cameraSpecsItem?.afSubjectCategories?.join(", "),
+              },
+              {
+                label: "Has Focus Peaking",
+                value: cameraSpecsItem?.hasFocusPeaking ? "Yes" : "No",
+              },
+              {
+                label: "Has Focus Bracketing",
+                value: cameraSpecsItem?.hasFocusBracketing ? "Yes" : "No",
+              },
+            ],
+          },
+          {
+            title: "Battery & Charging",
+            data: [
+              {
+                label: "CIPA Battery Shots Per Charge",
+                value: cameraSpecsItem?.cipaBatteryShotsPerCharge?.toString(),
+              },
+              {
+                label: "Supported Batteries",
+                value: cameraSpecsItem?.supportedBatteries?.join(", "),
+              },
+              {
+                label: "Supports USB Charging",
+                value: cameraSpecsItem?.usbCharging ? "Yes" : "No",
+              },
+              {
+                label: "USB Power Delivery",
+                value: cameraSpecsItem?.usbPowerDelivery ? "Yes" : "No",
+              },
+            ],
+          },
+          {
+            title: "Video",
+            data: [
+              {
+                label: "Has Log Color Profile",
+                value: cameraSpecsItem?.hasLogColorProfile ? "Yes" : "No",
+              },
+              {
+                label: "Has 10 Bit Video",
+                value: cameraSpecsItem?.has10BitVideo ? "Yes" : "No",
+              },
+              {
+                label: "Has 12 Bit Video",
+                value: cameraSpecsItem?.has12BitVideo ? "Yes" : "No",
+              },
+            ],
+          },
+          {
+            title: "Misc",
+            data: [
+              {
+                label: "Has Intervalometer",
+                value: cameraSpecsItem?.hasIntervalometer ? "Yes" : "No",
+              },
+              {
+                label: "Has Self Timer",
+                value: cameraSpecsItem?.hasSelfTimer ? "Yes" : "No",
+              },
+              {
+                label: "Has Built In Flash",
+                value: cameraSpecsItem?.hasBuiltInFlash ? "Yes" : "No",
+              },
+              {
+                label: "Has Hot Shoe",
+                value: cameraSpecsItem?.hasHotShoe ? "Yes" : "No",
+              },
+            ],
+          },
+        ]
+      : [
+          ...coreSections,
+          {
+            title: "Tech Specs",
+            data: [
+              {
+                label: "Lens Type",
+                value: lensSpecsItem?.isPrime ? "Prime" : "Zoom",
+              },
+              {
+                label: "Focal Length",
+                value: lensSpecsItem?.isPrime
+                  ? `${lensSpecsItem?.focalLengthMinMm}mm`
+                  : `${lensSpecsItem?.focalLengthMinMm}mm - ${lensSpecsItem?.focalLengthMaxMm}mm`,
+              },
+              {
+                label: "Maximum Aperture",
+                value:
+                  lensSpecsItem?.maxApertureTele &&
+                  lensSpecsItem?.maxApertureTele !==
+                    lensSpecsItem?.maxApertureWide
+                    ? `f/${Number(lensSpecsItem?.maxApertureWide)} - f/${Number(lensSpecsItem?.maxApertureTele)}`
+                    : lensSpecsItem?.maxApertureWide != null
+                      ? `f/${Number(lensSpecsItem?.maxApertureWide)}`
+                      : undefined,
+              },
+              {
+                label: "Minimum Aperture",
+                value:
+                  lensSpecsItem?.minApertureTele &&
+                  lensSpecsItem?.minApertureTele !==
+                    lensSpecsItem?.minApertureWide
+                    ? `f/${Number(lensSpecsItem?.minApertureWide)} - f/${Number(lensSpecsItem?.minApertureTele)}`
+                    : lensSpecsItem?.minApertureWide != null
+                      ? `f/${Number(lensSpecsItem?.minApertureWide)}`
+                      : undefined,
+              },
+              {
+                label: "Has Image Stabilization",
+                value:
+                  lensSpecsItem?.hasStabilization != null
+                    ? lensSpecsItem?.hasStabilization
+                      ? "Yes"
+                      : "No"
+                    : undefined,
+              },
+              {
+                label: "Has Stabilization Switch",
+                value:
+                  lensSpecsItem?.hasStabilizationSwitch != null
+                    ? lensSpecsItem?.hasStabilizationSwitch
+                      ? "Yes"
+                      : "No"
+                    : undefined,
+              },
+              {
+                label: "CIPA Stabilization Rating Stops",
+                value:
+                  lensSpecsItem?.cipaStabilizationRatingStops != null
+                    ? `${lensSpecsItem?.cipaStabilizationRatingStops} stops`
+                    : undefined,
+              },
+              {
+                label: "Has Autofocus",
+                value:
+                  lensSpecsItem?.hasAutofocus != null
+                    ? lensSpecsItem?.hasAutofocus
+                      ? "Yes"
+                      : "No"
+                    : undefined,
+              },
+              {
+                label: "Is Macro",
+                value:
+                  lensSpecsItem?.isMacro != null
+                    ? lensSpecsItem?.isMacro
+                      ? "Yes"
+                      : "No"
+                    : undefined,
+              },
+              {
+                label: "Magnification",
+                value:
+                  lensSpecsItem?.magnification != null
+                    ? `${lensSpecsItem?.magnification}x`
+                    : undefined,
+              },
+              {
+                label: "Minimum Focus Distance",
+                value:
+                  lensSpecsItem?.minimumFocusDistanceMm != null
+                    ? formatFocusDistance(lensSpecsItem?.minimumFocusDistanceMm)
+                    : undefined,
+              },
+              {
+                label: "Has Focus Ring",
+                value:
+                  lensSpecsItem?.hasFocusRing != null
+                    ? lensSpecsItem?.hasFocusRing
+                      ? "Yes"
+                      : "No"
+                    : undefined,
+              },
+              {
+                label: "Focus Motor Type",
+                value: lensSpecsItem?.focusMotorType ?? undefined,
+              },
+              {
+                label: "Has AF/MF Switch",
+                value:
+                  lensSpecsItem?.hasAfMfSwitch != null
+                    ? lensSpecsItem?.hasAfMfSwitch
+                      ? "Yes"
+                      : "No"
+                    : undefined,
+              },
+              {
+                label: "Has Focus Limiter",
+                value:
+                  lensSpecsItem?.hasFocusLimiter != null
+                    ? lensSpecsItem?.hasFocusLimiter
+                      ? "Yes"
+                      : "No"
+                    : undefined,
+              },
+              {
+                label: "Has Focus Recall Button",
+                value:
+                  lensSpecsItem?.hasFocusRecallButton != null
+                    ? lensSpecsItem?.hasFocusRecallButton
+                      ? "Yes"
+                      : "No"
+                    : undefined,
+              },
+              {
+                label: "Number of Elements",
+                value: lensSpecsItem?.numberElements,
+              },
+              {
+                label: "Number of Element Groups",
+                value: lensSpecsItem?.numberElementGroups,
+              },
+              {
+                label: "Has Diffractive Optics",
+                value:
+                  lensSpecsItem?.hasDiffractiveOptics != null
+                    ? lensSpecsItem?.hasDiffractiveOptics
+                      ? "Yes"
+                      : "No"
+                    : undefined,
+              },
+              {
+                label: "Number of Diaphragm Blades",
+                value: lensSpecsItem?.numberDiaphragmBlades,
+              },
+              {
+                label: "Has Rounded Diaphragm Blades",
+                value:
+                  lensSpecsItem?.hasRoundedDiaphragmBlades != null
+                    ? lensSpecsItem?.hasRoundedDiaphragmBlades
+                      ? "Yes"
+                      : "No"
+                    : undefined,
+              },
+              {
+                label: "Has Internal Zoom",
+                value:
+                  lensSpecsItem?.hasInternalZoom != null
+                    ? lensSpecsItem?.hasInternalZoom
+                      ? "Yes"
+                      : "No"
+                    : undefined,
+              },
+              {
+                label: "Has Internal Focus",
+                value:
+                  lensSpecsItem?.hasInternalFocus != null
+                    ? lensSpecsItem?.hasInternalFocus
+                      ? "Yes"
+                      : "No"
+                    : undefined,
+              },
+              {
+                label: "Front Element Rotates",
+                value:
+                  lensSpecsItem?.frontElementRotates != null
+                    ? lensSpecsItem?.frontElementRotates
+                      ? "Yes"
+                      : "No"
+                    : undefined,
+              },
+              {
+                label: "Mount Material",
+                value:
+                  lensSpecsItem?.mountMaterial != null
+                    ? lensSpecsItem.mountMaterial.charAt(0).toUpperCase() +
+                      lensSpecsItem.mountMaterial.slice(1)
+                    : undefined,
+              },
+              {
+                label: "Has Weather Sealing",
+                value:
+                  lensSpecsItem?.hasWeatherSealing != null
+                    ? lensSpecsItem?.hasWeatherSealing
+                      ? "Yes"
+                      : "No"
+                    : undefined,
+              },
+              {
+                label: "Has Aperture Ring",
+                value:
+                  lensSpecsItem?.hasApertureRing != null
+                    ? lensSpecsItem?.hasApertureRing
+                      ? "Yes"
+                      : "No"
+                    : undefined,
+              },
+              {
+                label: "Number of Custom Control Rings",
+                value: lensSpecsItem?.numberCustomControlRings,
+              },
+              {
+                label: "Number of Function Buttons",
+                value: lensSpecsItem?.numberFunctionButtons,
+              },
+              {
+                label: "Accepts Filter Types",
+                value:
+                  Array.isArray(lensSpecsItem?.acceptsFilterTypes) &&
+                  lensSpecsItem.acceptsFilterTypes.length > 0
+                    ? lensSpecsItem.acceptsFilterTypes
+                        .map(formatFilterType)
+                        .join(", ")
+                    : undefined,
+              },
+              {
+                label: "Front Filter Thread Size",
+                value:
+                  lensSpecsItem?.frontFilterThreadSizeMm != null &&
+                  lensSpecsItem?.acceptsFilterTypes?.includes("front-screw-on")
+                    ? `${lensSpecsItem.frontFilterThreadSizeMm}mm`
+                    : undefined,
+              },
+              {
+                label: "Rear Filter Thread Size",
+                value:
+                  lensSpecsItem?.rearFilterThreadSizeMm != null &&
+                  lensSpecsItem?.acceptsFilterTypes?.includes("rear-screw-on")
+                    ? `${lensSpecsItem.rearFilterThreadSizeMm}mm`
+                    : undefined,
+              },
+              {
+                label: "Drop In Filter Size",
+                value:
+                  lensSpecsItem?.dropInFilterSizeMm != null &&
+                  lensSpecsItem?.acceptsFilterTypes?.includes("rear-drop-in")
+                    ? `${lensSpecsItem.dropInFilterSizeMm}mm`
+                    : undefined,
+              },
+              {
+                label: "Has Built In Teleconverter",
+                value:
+                  lensSpecsItem?.hasBuiltInTeleconverter != null
+                    ? lensSpecsItem?.hasBuiltInTeleconverter
+                      ? "Yes"
+                      : "No"
+                    : undefined,
+              },
+              {
+                label: "Has Lens Hood",
+                value:
+                  lensSpecsItem?.hasLensHood != null
+                    ? lensSpecsItem?.hasLensHood
+                      ? "Yes"
+                      : "No"
+                    : undefined,
+              },
+              {
+                label: "Has Tripod Collar/Lens Foot",
+                value:
+                  lensSpecsItem?.hasTripodCollar != null
+                    ? lensSpecsItem?.hasTripodCollar
+                      ? "Yes"
+                      : "No"
+                    : undefined,
+              },
+            ],
+          },
+        ];
+
   return (
     <main className="mx-auto max-w-4xl p-6 pt-20">
       {/* Track page visit for popularity */}
       <GearVisitTracker slug={slug} />
-
+      {/* TODO: replace with breadcrumbs */}
       <div className="mb-6">
         <Link
           href="/gear"
@@ -144,7 +692,6 @@ export default async function GearPage({ params }: GearPageProps) {
           ← Back to Gear
         </Link>
       </div>
-
       {/* Item Name and Brand */}
       <div className="mb-6">
         <div className="mb-3 flex items-center gap-3">
@@ -167,12 +714,10 @@ export default async function GearPage({ params }: GearPageProps) {
           </div>
         )}
       </div>
-
       {/* Badges */}
       <div className="mb-4">
         <GearBadges slug={slug} />
       </div>
-
       {/* Photo Placeholder */}
       <div className="mb-6">
         {item.thumbnailUrl ? (
@@ -191,15 +736,12 @@ export default async function GearPage({ params }: GearPageProps) {
           </div>
         )}
       </div>
-
       {/* Popularity Stats */}
       <div className="mb-8">
         <GearStatsCard slug={slug} />
       </div>
-
       {/* Pending submission banner (client, only for this user when pending) */}
       <UserPendingEditBanner slug={slug} />
-
       {/* Action Buttons */}
       <div className="mb-8">
         {(() => {
@@ -228,7 +770,6 @@ export default async function GearPage({ params }: GearPageProps) {
           return <ServerWrapper />;
         })()}
       </div>
-
       {/* Links */}
       <div className="mb-8">
         <GearLinks
@@ -238,7 +779,6 @@ export default async function GearPage({ params }: GearPageProps) {
           linkAmazon={item.linkAmazon ?? null}
         />
       </div>
-
       {/* Suggest Edit Button */}
       <div className="mb-6">
         <SuggestEditButton
@@ -248,884 +788,12 @@ export default async function GearPage({ params }: GearPageProps) {
       </div>
 
       {/* Specifications */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Specifications</h2>
-          <SuggestEditButton
-            slug={item.slug}
-            gearType={item.gearType as "CAMERA" | "LENS"}
-            variant="secondary"
-          />
-        </div>
-        <div className="border-border overflow-hidden rounded-md border">
-          <div className="divide-border divide-y">
-            {item.mounts && (
-              <div className="flex justify-between px-4 py-3">
-                <span className="text-muted-foreground">Mount</span>
-                <span className="font-medium">
-                  {getMountDisplayName(item.mounts.value)}
-                </span>
-              </div>
-            )}
-
-            {item.releaseDate && (
-              <div className="flex justify-between px-4 py-3">
-                <span className="text-muted-foreground">Release Date</span>
-                <span className="font-medium">
-                  {formatHumanDate(item.releaseDate)}
-                </span>
-              </div>
-            )}
-
-            {/* Camera-specific specifications */}
-            {item.gearType === "CAMERA" && cameraSpecsItem && (
-              <>
-                {cameraSpecsItem.resolutionMp && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">Resolution</span>
-                    <span className="font-medium">
-                      {Number(cameraSpecsItem.resolutionMp).toFixed(1)}{" "}
-                      megapixels
-                    </span>
-                  </div>
-                )}
-
-                {sensorFormat && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">Sensor Format</span>
-                    <span className="font-medium">{sensorFormat.name}</span>
-                  </div>
-                )}
-
-                {cameraSpecsItem.isoMin && cameraSpecsItem.isoMax && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">ISO Range</span>
-                    <span className="font-medium">
-                      {cameraSpecsItem.isoMin} - {cameraSpecsItem.isoMax}
-                    </span>
-                  </div>
-                )}
-
-                {cameraSpecsItem.maxFpsRaw && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">Max FPS (RAW)</span>
-                    <span className="font-medium">
-                      {cameraSpecsItem.maxFpsRaw} fps
-                    </span>
-                  </div>
-                )}
-
-                {cameraSpecsItem.maxFpsJpg && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Max FPS (JPEG)
-                    </span>
-                    <span className="font-medium">
-                      {cameraSpecsItem.maxFpsJpg} fps
-                    </span>
-                  </div>
-                )}
-
-                {sensorTypeLabel && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">Sensor Type</span>
-                    <span className="font-medium">
-                      {sensorTypeLabel(cameraSpecsItem)}
-                    </span>
-                  </div>
-                )}
-
-                {cameraSpecsItem.hasIbis !== null &&
-                  cameraSpecsItem.hasIbis !== undefined && (
-                    <div className="flex justify-between px-4 py-3">
-                      <span className="text-muted-foreground flex items-center gap-2">
-                        Has IBIS{" "}
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <InfoIcon className="text-muted-foreground h-4 w-4" />
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-xs">
-                            <p>In-body image stabilization</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </span>
-                      <span className="font-medium">
-                        {cameraSpecsItem.hasIbis ? "Yes" : "No"}
-                      </span>
-                    </div>
-                  )}
-
-                {cameraSpecsItem.hasElectronicVibrationReduction !== null &&
-                  cameraSpecsItem.hasElectronicVibrationReduction !==
-                    undefined && (
-                    <div className="flex justify-between px-4 py-3">
-                      <span className="text-muted-foreground flex items-center gap-2">
-                        Has Electronic VR{" "}
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <InfoIcon className="text-muted-foreground h-4 w-4" />
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-xs">
-                            <p>Digital image stabilization.</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </span>
-                      <span className="font-medium">
-                        {cameraSpecsItem.hasElectronicVibrationReduction
-                          ? "Yes"
-                          : "No"}
-                      </span>
-                    </div>
-                  )}
-
-                {cameraSpecsItem.cipaStabilizationRatingStops && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      CIPA Stabilization Rating Stops
-                    </span>
-                    <span className="font-medium">
-                      {cameraSpecsItem.cipaStabilizationRatingStops} stops
-                    </span>
-                  </div>
-                )}
-
-                {cameraSpecsItem.hasPixelShiftShooting !== null &&
-                  cameraSpecsItem.hasPixelShiftShooting !== undefined && (
-                    <div className="flex justify-between px-4 py-3">
-                      <span className="text-muted-foreground">
-                        Has Pixel Shift Shooting
-                      </span>
-                      <span className="font-medium">
-                        {cameraSpecsItem.hasPixelShiftShooting ? "Yes" : "No"}
-                      </span>
-                    </div>
-                  )}
-
-                {cameraSpecsItem.hasAntiAliasingFilter !== null &&
-                  cameraSpecsItem.hasAntiAliasingFilter !== undefined && (
-                    <div className="flex justify-between px-4 py-3">
-                      <span className="text-muted-foreground">
-                        Has Anti Aliasing Filter
-                      </span>
-                      <span className="font-medium">
-                        {cameraSpecsItem.hasAntiAliasingFilter ? "Yes" : "No"}
-                      </span>
-                    </div>
-                  )}
-
-                {Array.isArray(item.cameraCardSlots) &&
-                  item.cameraCardSlots.length > 0 && (
-                    <div className="px-4 py-3">
-                      <div className="mb-1 flex items-center justify-between">
-                        <span className="text-muted-foreground">
-                          Card Slots
-                        </span>
-                      </div>
-                      <div className="space-y-1">
-                        {item.cameraCardSlots
-                          .sort(
-                            (a, b) => (a.slotIndex ?? 0) - (b.slotIndex ?? 0),
-                          )
-                          .map((s, i) => {
-                            const details = formatCardSlotDetails({
-                              slotIndex: s.slotIndex,
-                              supportedFormFactors:
-                                s.supportedFormFactors ?? [],
-                              supportedBuses: s.supportedBuses ?? [],
-                              supportedSpeedClasses:
-                                s.supportedSpeedClasses ?? [],
-                            });
-                            return (
-                              <div key={i} className="flex justify-between">
-                                <span className="text-muted-foreground">
-                                  Slot {s.slotIndex}
-                                </span>
-                                <span className="font-medium">{details}</span>
-                              </div>
-                            );
-                          })}
-                      </div>
-                    </div>
-                  )}
-
-                {(item.widthMm != null ||
-                  item.heightMm != null ||
-                  item.depthMm != null) &&
-                  (() => {
-                    const dims = formatDimensions({
-                      widthMm:
-                        typeof item.widthMm === "number"
-                          ? item.widthMm
-                          : item.widthMm != null
-                            ? Number(item.widthMm)
-                            : null,
-                      heightMm:
-                        typeof item.heightMm === "number"
-                          ? item.heightMm
-                          : item.heightMm != null
-                            ? Number(item.heightMm)
-                            : null,
-                      depthMm:
-                        typeof item.depthMm === "number"
-                          ? item.depthMm
-                          : item.depthMm != null
-                            ? Number(item.depthMm)
-                            : null,
-                    });
-                    return dims ? (
-                      <div className="flex justify-between px-4 py-3">
-                        <span className="text-muted-foreground">
-                          Dimensions
-                        </span>
-                        <span className="font-medium">{dims}</span>
-                      </div>
-                    ) : null;
-                  })()}
-                {cameraSpecsItem.processorName && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Processor Name
-                    </span>
-                    <span className="font-medium">
-                      {cameraSpecsItem.processorName}
-                    </span>
-                  </div>
-                )}
-                {cameraSpecsItem.hasWeatherSealing !== null &&
-                  cameraSpecsItem.hasWeatherSealing !== undefined && (
-                    <div className="flex justify-between px-4 py-3">
-                      <span className="text-muted-foreground">
-                        Weather Sealed
-                      </span>
-                      <span className="font-medium">
-                        {cameraSpecsItem.hasWeatherSealing ? "Yes" : "No"}
-                      </span>
-                    </div>
-                  )}
-                {cameraSpecsItem.focusPoints && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">Focus Points</span>
-                    <span className="font-medium">
-                      {cameraSpecsItem.focusPoints}
-                    </span>
-                  </div>
-                )}
-                {cameraSpecsItem.afAreaModes && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">AF Area Modes</span>
-                    <ul className="list-disc pl-5 text-sm">
-                      {cameraSpecsItem.afAreaModes.map((mode) => (
-                        <li key={mode.id}>{mode.name}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {cameraSpecsItem.hasFocusPeaking !== null &&
-                  cameraSpecsItem.hasFocusPeaking !== undefined && (
-                    <div className="flex justify-between px-4 py-3">
-                      <span className="text-muted-foreground">
-                        Has Focus Peaking
-                      </span>
-                      <span className="font-medium">
-                        {cameraSpecsItem.hasFocusPeaking ? "Yes" : "No"}
-                      </span>
-                    </div>
-                  )}
-                {cameraSpecsItem.hasFocusBracketing !== null &&
-                  cameraSpecsItem.hasFocusBracketing !== undefined && (
-                    <div className="flex justify-between px-4 py-3">
-                      <span className="text-muted-foreground">
-                        Has Focus Bracketing
-                      </span>
-                      <span className="font-medium">
-                        {cameraSpecsItem.hasFocusBracketing ? "Yes" : "No"}
-                      </span>
-                    </div>
-                  )}
-                {cameraSpecsItem.shutterSpeedMax && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Longest Shutter Speed
-                    </span>
-                    <span className="font-medium">
-                      {cameraSpecsItem.shutterSpeedMax} sec.
-                    </span>
-                  </div>
-                )}
-                {/* TODO: should split this based on shutter types */}
-                {cameraSpecsItem.shutterSpeedMin && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Fastest Shutter Speed
-                    </span>
-                    <span className="font-medium">
-                      1/{cameraSpecsItem.shutterSpeedMin}s
-                    </span>
-                  </div>
-                )}
-                {cameraSpecsItem.flashSyncSpeed && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Flash Sync Speed
-                    </span>
-                    <span className="font-medium">
-                      1/{cameraSpecsItem.flashSyncSpeed}s
-                    </span>
-                  </div>
-                )}
-                {cameraSpecsItem.hasSilentShootingAvailable !== null &&
-                  cameraSpecsItem.hasSilentShootingAvailable !== undefined && (
-                    <div className="flex justify-between px-4 py-3">
-                      <span className="text-muted-foreground">
-                        Has Silent Shooting Available
-                      </span>
-                      <span className="font-medium">
-                        {cameraSpecsItem.hasSilentShootingAvailable
-                          ? "Yes"
-                          : "No"}
-                      </span>
-                    </div>
-                  )}
-                {cameraSpecsItem.availableShutterTypes && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Available Shutter Types
-                    </span>
-                    <ul className="list-disc pl-5 text-sm">
-                      {cameraSpecsItem.availableShutterTypes.map((type) => (
-                        <li key={type}>{type}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {cameraSpecsItem.cipaBatteryShotsPerCharge && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      CIPA Battery Shots Per Charge
-                    </span>
-                    <span className="font-medium">
-                      {cameraSpecsItem.cipaBatteryShotsPerCharge} shots
-                    </span>
-                  </div>
-                )}
-                {cameraSpecsItem.supportedBatteries && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Supported Batteries
-                    </span>
-                    <ul className="list-disc pl-5 text-sm">
-                      {cameraSpecsItem.supportedBatteries.map(
-                        (battery: string) => (
-                          <li key={battery}>{battery}</li>
-                        ),
-                      )}
-                    </ul>
-                  </div>
-                )}
-                {cameraSpecsItem.usbCharging !== null &&
-                  cameraSpecsItem.usbCharging !== undefined && (
-                    <div className="flex justify-between px-4 py-3">
-                      <span className="text-muted-foreground">
-                        USB Charging
-                      </span>
-                      <span className="font-medium">
-                        {cameraSpecsItem.usbCharging ? "Yes" : "No"}
-                      </span>
-                    </div>
-                  )}
-                {cameraSpecsItem.usbPowerDelivery !== null &&
-                  cameraSpecsItem.usbPowerDelivery !== undefined && (
-                    <div className="flex justify-between px-4 py-3">
-                      <span className="text-muted-foreground">
-                        USB Power Delivery
-                      </span>
-                      <span className="font-medium">
-                        {cameraSpecsItem.usbPowerDelivery ? "Yes" : "No"}
-                      </span>
-                    </div>
-                  )}
-                {cameraSpecsItem.hasLogColorProfile !== null &&
-                  cameraSpecsItem.hasLogColorProfile !== undefined && (
-                    <div className="flex justify-between px-4 py-3">
-                      <span className="text-muted-foreground">
-                        Log Color Profiles Available
-                      </span>
-                      <span className="font-medium">
-                        {cameraSpecsItem.hasLogColorProfile ? "Yes" : "No"}
-                      </span>
-                    </div>
-                  )}
-                {cameraSpecsItem.has10BitVideo !== null &&
-                  cameraSpecsItem.has10BitVideo !== undefined && (
-                    <div className="flex justify-between px-4 py-3">
-                      <span className="text-muted-foreground">
-                        Has 10 Bit Video
-                      </span>
-                      <span className="font-medium">
-                        {cameraSpecsItem.has10BitVideo ? "Yes" : "No"}
-                      </span>
-                    </div>
-                  )}
-                {cameraSpecsItem.has12BitVideo !== null &&
-                  cameraSpecsItem.has12BitVideo !== undefined && (
-                    <div className="flex justify-between px-4 py-3">
-                      <span className="text-muted-foreground">
-                        Has 12 Bit Video
-                      </span>
-                      <span className="font-medium">
-                        {cameraSpecsItem.has12BitVideo ? "Yes" : "No"}
-                      </span>
-                    </div>
-                  )}
-                {cameraSpecsItem.hasIntervalometer !== null &&
-                  cameraSpecsItem.hasIntervalometer !== undefined && (
-                    <div className="flex justify-between px-4 py-3">
-                      <span className="text-muted-foreground">
-                        Has Intervalometer
-                      </span>
-                      <span className="font-medium">
-                        {cameraSpecsItem.hasIntervalometer ? "Yes" : "No"}
-                      </span>
-                    </div>
-                  )}
-                {cameraSpecsItem.hasSelfTimer !== null &&
-                  cameraSpecsItem.hasSelfTimer !== undefined && (
-                    <div className="flex justify-between px-4 py-3">
-                      <span className="text-muted-foreground">
-                        Has Self Timer
-                      </span>
-                      <span className="font-medium">
-                        {cameraSpecsItem.hasSelfTimer ? "Yes" : "No"}
-                      </span>
-                    </div>
-                  )}
-                {cameraSpecsItem.hasBuiltInFlash !== null &&
-                  cameraSpecsItem.hasBuiltInFlash !== undefined && (
-                    <div className="flex justify-between px-4 py-3">
-                      <span className="text-muted-foreground">
-                        Has Built In Flash
-                      </span>
-                      <span className="font-medium">
-                        {cameraSpecsItem.hasBuiltInFlash ? "Yes" : "No"}
-                      </span>
-                    </div>
-                  )}
-                {cameraSpecsItem.hasHotShoe !== null &&
-                  cameraSpecsItem.hasHotShoe !== undefined && (
-                    <div className="flex justify-between px-4 py-3">
-                      <span className="text-muted-foreground">
-                        Has Hot Shoe
-                      </span>
-                      <span className="font-medium">
-                        {cameraSpecsItem.hasHotShoe ? "Yes" : "No"}
-                      </span>
-                    </div>
-                  )}
-              </>
-            )}
-
-            {/* Lens-specific specifications */}
-            {item.gearType === "LENS" && lensSpecsItem && (
-              <>
-                {lensSpecsItem.isPrime !== null &&
-                  lensSpecsItem.isPrime !== undefined && (
-                    <div className="flex justify-between px-4 py-3">
-                      <span className="text-muted-foreground">Prime/Zoom</span>
-                      <span className="font-medium">
-                        {lensSpecsItem.isPrime ? "Prime" : "Zoom"}
-                      </span>
-                    </div>
-                  )}
-                {lensSpecsItem.focalLengthMinMm &&
-                  lensSpecsItem.focalLengthMaxMm && (
-                    <div className="flex justify-between px-4 py-3">
-                      <span className="text-muted-foreground">
-                        Focal Length
-                      </span>
-                      <span className="font-medium">
-                        {lensSpecsItem.focalLengthMinMm ===
-                        lensSpecsItem.focalLengthMaxMm
-                          ? `${lensSpecsItem.focalLengthMinMm}mm (Prime)`
-                          : `${lensSpecsItem.focalLengthMinMm}mm - ${lensSpecsItem.focalLengthMaxMm}mm (Zoom)`}
-                      </span>
-                    </div>
-                  )}
-                {/* Aperture */}
-                {(() => {
-                  const toNum = (v: unknown): number | null =>
-                    typeof v === "number"
-                      ? v
-                      : v != null && !Number.isNaN(Number(v))
-                        ? Number(v)
-                        : null;
-                  const { maxText, minText } = formatLensApertureDisplay({
-                    maxApertureWide: toNum(lensSpecsItem.maxApertureWide),
-                    maxApertureTele: toNum(lensSpecsItem.maxApertureTele),
-                    minApertureWide: toNum(lensSpecsItem.minApertureWide),
-                    minApertureTele: toNum(lensSpecsItem.minApertureTele),
-                  });
-                  return (
-                    <>
-                      {maxText ? (
-                        <div className="flex justify-between px-4 py-3">
-                          <span className="text-muted-foreground">
-                            Maximum Aperture
-                          </span>
-                          <span className="font-medium">{maxText}</span>
-                        </div>
-                      ) : null}
-                      {minText ? (
-                        <div className="flex justify-between px-4 py-3">
-                          <span className="text-muted-foreground">
-                            Minimum Aperture
-                          </span>
-                          <span className="font-medium">{minText}</span>
-                        </div>
-                      ) : null}
-                    </>
-                  );
-                })()}
-                {lensSpecsItem.hasStabilization !== null &&
-                  lensSpecsItem.hasStabilization !== undefined && (
-                    <div className="flex justify-between px-4 py-3">
-                      <span className="text-muted-foreground">
-                        Image Stabilization
-                      </span>
-                      <span className="font-medium">
-                        {lensSpecsItem.hasStabilization ? "Yes" : "No"}
-                      </span>
-                    </div>
-                  )}{" "}
-                {lensSpecsItem.hasStabilizationSwitch && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Stabilization Switch
-                    </span>
-                    <span className="font-medium">
-                      {lensSpecsItem.hasStabilizationSwitch ? "Yes" : "No"}
-                    </span>
-                  </div>
-                )}
-                {lensSpecsItem.cipaStabilizationRatingStops && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      CIPA Stabilization Rating Stops
-                    </span>
-                    <span className="font-medium">
-                      {lensSpecsItem.cipaStabilizationRatingStops} stops
-                    </span>
-                  </div>
-                )}
-                {lensSpecsItem.hasAutofocus && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">Has Autofocus</span>
-                    <span className="font-medium">
-                      {lensSpecsItem.hasAutofocus ? "Yes" : "No"}
-                    </span>
-                  </div>
-                )}
-                {lensSpecsItem.isMacro && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">Is Macro</span>
-                    <span className="font-medium">
-                      {lensSpecsItem.isMacro ? "Yes" : "No"}
-                    </span>
-                  </div>
-                )}
-                {lensSpecsItem.magnification && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">Magnification</span>
-                    <span className="font-medium">
-                      {lensSpecsItem.magnification}
-                    </span>
-                  </div>
-                )}
-                {lensSpecsItem.minimumFocusDistanceMm && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Minimum Focus Distance
-                    </span>
-                    <span className="font-medium">
-                      {formatFocusDistance(
-                        lensSpecsItem.minimumFocusDistanceMm,
-                      )}
-                    </span>
-                  </div>
-                )}
-                {lensSpecsItem.hasFocusRing && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Has Focus Ring
-                    </span>
-                    <span className="font-medium">
-                      {lensSpecsItem.hasFocusRing ? "Yes" : "No"}
-                    </span>
-                  </div>
-                )}
-                {lensSpecsItem.focusMotorType && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Focus Motor Type
-                    </span>
-                    <span className="font-medium">
-                      {lensSpecsItem.focusMotorType}
-                    </span>
-                  </div>
-                )}
-                {lensSpecsItem.hasAfMfSwitch && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Has AF/MF Switch
-                    </span>
-                    <span className="font-medium">
-                      {lensSpecsItem.hasAfMfSwitch ? "Yes" : "No"}
-                    </span>
-                  </div>
-                )}
-                {lensSpecsItem.hasFocusLimiter && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Has Focus Limiter
-                    </span>
-                    <span className="font-medium">
-                      {lensSpecsItem.hasFocusLimiter ? "Yes" : "No"}
-                    </span>
-                  </div>
-                )}
-                {lensSpecsItem.hasFocusRecallButton && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Has Focus Recall Button
-                    </span>
-                    <span className="font-medium">
-                      {lensSpecsItem.hasFocusRecallButton ? "Yes" : "No"}
-                    </span>
-                  </div>
-                )}
-                {lensSpecsItem.numberElements && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Number of Elements
-                    </span>
-                    <span className="font-medium">
-                      {lensSpecsItem.numberElements}
-                    </span>
-                  </div>
-                )}
-                {lensSpecsItem.numberElementGroups && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Number of Element Groups
-                    </span>
-                    <span className="font-medium">
-                      {lensSpecsItem.numberElementGroups}
-                    </span>
-                  </div>
-                )}
-                {lensSpecsItem.hasDiffractiveOptics && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Has Diffractive Optics
-                    </span>
-                    <span className="font-medium">
-                      {lensSpecsItem.hasDiffractiveOptics ? "Yes" : "No"}
-                    </span>
-                  </div>
-                )}
-                {lensSpecsItem.numberDiaphragmBlades && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Number of Diaphragm Blades
-                    </span>
-                    <span className="font-medium">
-                      {lensSpecsItem.numberDiaphragmBlades}
-                    </span>
-                  </div>
-                )}
-                {lensSpecsItem.hasRoundedDiaphragmBlades && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Has Rounded Diaphragm Blades
-                    </span>
-                    <span className="font-medium">
-                      {lensSpecsItem.hasRoundedDiaphragmBlades ? "Yes" : "No"}
-                    </span>
-                  </div>
-                )}
-                {lensSpecsItem.hasInternalZoom && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Has Internal Zoom
-                    </span>
-                    <span className="font-medium">
-                      {lensSpecsItem.hasInternalZoom ? "Yes" : "No"}
-                    </span>
-                  </div>
-                )}
-                {lensSpecsItem.hasInternalFocus && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Has Internal Focus
-                    </span>
-                    <span className="font-medium">
-                      {lensSpecsItem.hasInternalFocus ? "Yes" : "No"}
-                    </span>
-                  </div>
-                )}
-                {lensSpecsItem.frontElementRotates && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Front Element Rotates
-                    </span>
-                    <span className="font-medium">
-                      {lensSpecsItem.frontElementRotates ? "Yes" : "No"}
-                    </span>
-                  </div>
-                )}
-                {lensSpecsItem.mountMaterial && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Mount Material
-                    </span>
-                    <span className="font-medium">
-                      {lensSpecsItem.mountMaterial.charAt(0).toUpperCase() +
-                        lensSpecsItem.mountMaterial.slice(1)}
-                    </span>
-                  </div>
-                )}
-                {lensSpecsItem.hasWeatherSealing && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Has Weather Sealing
-                    </span>
-                    <span className="font-medium">
-                      {lensSpecsItem.hasWeatherSealing ? "Yes" : "No"}
-                    </span>
-                  </div>
-                )}
-                {lensSpecsItem.hasApertureRing && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Has Aperture Ring
-                    </span>
-                    <span className="font-medium">
-                      {lensSpecsItem.hasApertureRing ? "Yes" : "No"}
-                    </span>
-                  </div>
-                )}
-                {lensSpecsItem.numberCustomControlRings && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Number of Custom Control Rings
-                    </span>
-                    <span className="font-medium">
-                      {lensSpecsItem.numberCustomControlRings}
-                    </span>
-                  </div>
-                )}
-                {lensSpecsItem.numberFunctionButtons && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Number of Function Buttons
-                    </span>
-                    <span className="font-medium">
-                      {lensSpecsItem.numberFunctionButtons}
-                    </span>
-                  </div>
-                )}
-                {lensSpecsItem.acceptsFilterTypes && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Accepts Filter Types
-                    </span>
-                    <span className="font-medium">
-                      {lensSpecsItem.acceptsFilterTypes
-                        .map(formatFilterType)
-                        .join(", ")}
-                    </span>
-                  </div>
-                )}
-                {lensSpecsItem.frontFilterThreadSizeMm &&
-                  lensSpecsItem.acceptsFilterTypes?.includes(
-                    "front-screw-on",
-                  ) && (
-                    <div className="flex justify-between px-4 py-3">
-                      <span className="text-muted-foreground">
-                        Front Filter Thread Size
-                      </span>
-                      <span className="font-medium">
-                        {lensSpecsItem.frontFilterThreadSizeMm}mm
-                      </span>
-                    </div>
-                  )}
-                {lensSpecsItem.rearFilterThreadSizeMm &&
-                  lensSpecsItem.acceptsFilterTypes?.includes(
-                    "rear-screw-on",
-                  ) && (
-                    <div className="flex justify-between px-4 py-3">
-                      <span className="text-muted-foreground">
-                        Rear Filter Thread Size
-                      </span>
-                      <span className="font-medium">
-                        {lensSpecsItem.rearFilterThreadSizeMm}mm
-                      </span>
-                    </div>
-                  )}
-                {lensSpecsItem.dropInFilterSizeMm &&
-                  lensSpecsItem.acceptsFilterTypes?.includes(
-                    "rear-drop-in",
-                  ) && (
-                    <div className="flex justify-between px-4 py-3">
-                      <span className="text-muted-foreground">
-                        Drop In Filter Size
-                      </span>
-                      <span className="font-medium">
-                        {lensSpecsItem.dropInFilterSizeMm}mm
-                      </span>
-                    </div>
-                  )}
-                {lensSpecsItem.hasBuiltInTeleconverter && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Has Built In Teleconverter
-                    </span>
-                    <span className="font-medium">
-                      {lensSpecsItem.hasBuiltInTeleconverter ? "Yes" : "No"}
-                    </span>
-                  </div>
-                )}
-                {lensSpecsItem.hasLensHood && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">Has Lens Hood</span>
-                    <span className="font-medium">
-                      {lensSpecsItem.hasLensHood ? "Yes" : "No"}
-                    </span>
-                  </div>
-                )}
-                {lensSpecsItem.hasTripodCollar && (
-                  <div className="flex justify-between px-4 py-3">
-                    <span className="text-muted-foreground">
-                      Has Tripod Collar
-                    </span>
-                    <span className="font-medium">
-                      {lensSpecsItem.hasTripodCollar ? "Yes" : "No"}
-                    </span>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-          {/* number of missing specs with inline "sign in to contribute" or "help improve this item" */}
-          <SpecsMissingNote item={item} />
-        </div>
-      </div>
-
+      <SpecsTable sections={specSections} item={item} />
       {/* Sign-in CTA banner for editing specs (client, only when signed out) */}
       <SignInToEditSpecsCta
         slug={item.slug}
         gearType={item.gearType as "CAMERA" | "LENS"}
       />
-
       {/* Use-case performance */}
       {ratings.length > 0 && (
         <div className="mt-12 space-y-4">
@@ -1161,7 +829,6 @@ export default async function GearPage({ params }: GearPageProps) {
           </div>
         </div>
       )}
-
       {/* Staff Verdict */}
       {verdict &&
         Boolean(
@@ -1264,13 +931,10 @@ export default async function GearPage({ params }: GearPageProps) {
             </div>
           </div>
         )}
-
       {/* Reviews */}
       <GearReviews slug={item.slug} />
-
       {/* Contributors */}
       <GearContributors gearId={item.id} />
-
       {/* Page Metadata */}
       <div className="mt-8 border-t pt-6">
         <div className="text-muted-foreground space-y-2 text-sm">
