@@ -1,10 +1,22 @@
 import { sql } from "drizzle-orm";
 import { db } from "~/server/db";
-import { popularityEvents } from "~/server/db/schema";
 import { env } from "~/env";
 import { rollupRuns } from "~/server/db/schema";
 
 type SqlClient = { execute: (q: any) => Promise<any> };
+
+/**
+ * Drizzle execute() result normalizer.
+ * - postgres-js returns an array of rows
+ * - node-postgres returns an object with a rows property
+ */
+function extractRows<T>(result: unknown): T[] {
+  if (Array.isArray(result)) return result as T[];
+  if (result && typeof result === "object" && "rows" in (result as any)) {
+    return ((result as any).rows ?? []) as T[];
+  }
+  return [] as T[];
+}
 
 /**
  * Format a Date (or ISO string) to YYYY-MM-DD in UTC.
@@ -71,9 +83,8 @@ export async function rollupDaily(
     )
     SELECT count(*)::int AS c FROM upsert;
   `);
-  return Number(
-    (res as unknown as { rows?: Array<{ c?: number }> })?.rows?.[0]?.c ?? 0,
-  );
+  const rows = extractRows<{ c?: number }>(res);
+  return Number(rows?.[0]?.c ?? 0);
 }
 
 /**
@@ -300,9 +311,7 @@ export async function runDailyPopularityRollup(
       WHERE (created_at AT TIME ZONE 'UTC')::date = ${correctedDate}
         AND created_at > now() - interval '24 hours';
     `);
-    lateArrivals = Number(
-      (late as unknown as { rows?: Array<{ c?: number }> })?.rows?.[0]?.c ?? 0,
-    );
+    lateArrivals = Number(extractRows<{ c?: number }>(late)[0]?.c ?? 0);
 
     // Aggregate stats for message
     const ev = await db.execute(sql`
@@ -310,9 +319,7 @@ export async function runDailyPopularityRollup(
       FROM app.popularity_events
       WHERE (created_at AT TIME ZONE 'UTC')::date = ${asOfDate};
     `);
-    eventsD1 = Number(
-      (ev as unknown as { rows?: Array<{ c?: number }> })?.rows?.[0]?.c ?? 0,
-    );
+    eventsD1 = Number(extractRows<{ c?: number }>(ev)[0]?.c ?? 0);
 
     type DailyAggRow = {
       items?: unknown;
@@ -336,7 +343,7 @@ export async function runDailyPopularityRollup(
       FROM app.gear_popularity_daily
       WHERE date = ${asOfDate};
     `);
-    const r = (agg as unknown as { rows?: DailyAggRow[] })?.rows?.[0] ?? {};
+    const r = extractRows<DailyAggRow>(agg)[0] ?? ({} as DailyAggRow);
     const num = (v: unknown) => Number(v ?? 0);
     dailyAgg = {
       items: num(r.items),
@@ -353,16 +360,12 @@ export async function runDailyPopularityRollup(
       FROM app.gear_popularity_windows
       WHERE as_of_date = ${asOfDate};
     `);
-    windowsRows = Number(
-      (win as unknown as { rows?: Array<{ c?: number }> })?.rows?.[0]?.c ?? 0,
-    );
+    windowsRows = Number(extractRows<{ c?: number }>(win)[0]?.c ?? 0);
 
     const lt = await db.execute(sql`
       SELECT count(*)::int AS c FROM app.gear_popularity_lifetime;
     `);
-    lifetimeTotalRows = Number(
-      (lt as unknown as { rows?: Array<{ c?: number }> })?.rows?.[0]?.c ?? 0,
-    );
+    lifetimeTotalRows = Number(extractRows<{ c?: number }>(lt)[0]?.c ?? 0);
     ok = true;
   } catch (err) {
     errorMessage = err instanceof Error ? err.message : String(err);
