@@ -19,6 +19,13 @@ export {
   summarizeCardSlots,
 } from "./card-slots-map";
 
+// Lens aperture formatting
+export {
+  formatApertureSingle,
+  formatApertureRange,
+  formatLensApertureDisplay,
+} from "./lens-aperture-map";
+
 // Import for use in this file
 import { getMountDisplayName } from "./mounts-map";
 

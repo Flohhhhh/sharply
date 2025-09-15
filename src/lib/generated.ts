@@ -884,6 +884,19 @@ export const ENUMS = {
     "CAMERA",
     "LENS"
   ],
+  "lens_filter_types_enum": [
+    "none",
+    "front-screw-on",
+    "rear-screw-on",
+    "rear-bayonet",
+    "rear-gel-slot",
+    "rear-drop-in",
+    "internal-rotary"
+  ],
+  "mount_material_enum": [
+    "metal",
+    "plastic"
+  ],
   "popularity_event_type": [
     "view",
     "wishlist_add",

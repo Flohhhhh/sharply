@@ -1,7 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Label } from "~/components/ui/label";
+import type { ReactNode } from "react";
+import { InfoIcon } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
 
 export interface NumberInputProps {
   id: string;
@@ -15,6 +22,8 @@ export interface NumberInputProps {
   className?: string;
   suffix?: string;
   prefix?: string;
+  tooltip?: ReactNode;
+  disabled?: boolean;
 }
 
 export const NumberInput = ({
@@ -29,11 +38,13 @@ export const NumberInput = ({
   className = "",
   suffix,
   prefix,
+  tooltip,
+  disabled,
 }: NumberInputProps) => {
   const decimalsAllowed =
     typeof step === "number" ? !Number.isInteger(step) : true;
 
-  const [text, setText] = useState<string>(value ? String(value) : "");
+  const [text, setText] = useState<string>(value == null ? "" : String(value));
   const [useNumberType, setUseNumberType] = useState<boolean>(false);
 
   const regex = useMemo(
@@ -44,18 +55,20 @@ export const NumberInput = ({
     [decimalsAllowed],
   );
 
+  const lastExternalRef = useRef<string>(value == null ? "" : String(value));
   useEffect(() => {
     const external = value == null ? "" : String(value);
-    // Only sync from external when our current text is a finalized number
-    // to avoid clobbering in-progress inputs like "1."
+    const externalChanged = lastExternalRef.current !== external;
+    // Only sync from external when our current text is a finalized number,
+    // or when the external value actually changed and our input is empty.
     if (regex.final.test(text)) {
       if (external !== text) {
         setText(external);
       }
-    } else if (text === "" && external !== "") {
-      // If input is empty and external has a value, sync it
+    } else if (externalChanged && text === "") {
       setText(external);
     }
+    lastExternalRef.current = external;
   }, [value, text, regex.final]);
 
   // Prefer type="number" on mobile to trigger numeric keyboard
@@ -74,7 +87,23 @@ export const NumberInput = ({
 
   return (
     <div className={`space-y-2 ${className}`}>
-      <Label htmlFor={id}>{label}</Label>
+      <div className="flex items-center gap-2">
+        <Label htmlFor={id}>{label}</Label>
+        {tooltip ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                aria-label="More info"
+                className="focus-visible:ring-ring rounded-sm outline-none focus-visible:ring-2"
+              >
+                <InfoIcon className="text-muted-foreground h-4 w-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">{tooltip}</TooltipContent>
+          </Tooltip>
+        ) : null}
+      </div>
       <div className="relative">
         <input
           id={id}
@@ -82,6 +111,7 @@ export const NumberInput = ({
           inputMode={decimalsAllowed ? "decimal" : "numeric"}
           pattern={decimalsAllowed ? "\\d+(?:\\.\\d*)?" : "\\d*"}
           value={text}
+          disabled={disabled}
           style={{
             ...(prefix ? { paddingLeft: "2.75rem" } : {}),
             ...(suffix ? { paddingRight: "2.25rem" } : {}),

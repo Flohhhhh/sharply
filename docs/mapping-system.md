@@ -10,6 +10,7 @@ The mapping system provides utilities to convert database values into human-read
 src/lib/mapping/
 ├── index.ts              # Main export file
 ├── mounts-map.ts         # Mount type transformations
+├── lens-aperture-map.ts  # Aperture formatting (new)
 └── price-map.ts          # Price formatting utilities
 ```
 
@@ -54,6 +55,8 @@ import {
   getMountDisplayName,
   getMountLongName,
   formatPrice,
+  formatApertureRange,
+  formatLensApertureDisplay,
 } from "~/lib/mapping";
 ```
 
@@ -73,6 +76,26 @@ import {
 // Simple price formatting
 <div>{formatPrice(item.priceUsdCents)}</div>
 ```
+
+### Lens Aperture Formatting (`lens-aperture-map.ts`)
+
+#### `formatApertureRange(wide: number | null | undefined, tele: number | null | undefined): string`
+
+- **Purpose**: Formats a single or variable aperture as `f/2.8` or `f/5.6 - 6.3`
+- **Logic**: Trims trailing `.00` and unnecessary zeros; collapses equal ends to single
+- **Examples**:
+  - `(2.8, null)` → `"f/2.8"`
+  - `(5.6, 6.3)` → `"f/5.6 - 6.3"`
+  - `(4, 4)` → `"f/4"`
+
+#### `formatLensApertureDisplay({ maxApertureWide, maxApertureTele, minApertureWide, minApertureTele })`
+
+- **Purpose**: Returns `{ maxText, minText }` for "Maximum Aperture" and "Minimum Aperture" lines
+- **Examples**:
+  - `{ maxApertureWide: 4.5, minApertureWide: 16 }`
+    → `{ maxText: "f/4.5", minText: "f/16" }`
+  - `{ maxApertureWide: 5.6, maxApertureTele: 6.3, minApertureWide: 16, minApertureTele: 22 }`
+    → `{ maxText: "f/5.6 - 6.3", minText: "f/16 - 22" }`
 
 ## Design Principles
 

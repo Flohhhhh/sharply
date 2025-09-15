@@ -478,7 +478,6 @@ export const lensSpecs = appSchema.table(
     gearId: varchar("gear_id", { length: 36 })
       .primaryKey()
       .references(() => gear.id, { onDelete: "cascade" }),
-    hasAutofocus: boolean("has_autofocus"),
     // focal length
     isPrime: boolean("is_prime"),
     focalLengthMinMm: integer("focal_length_min_mm"),
@@ -497,6 +496,7 @@ export const lensSpecs = appSchema.table(
     }),
     hasStabilizationSwitch: boolean("has_stabilization_switch"),
     // focus
+    hasAutofocus: boolean("has_autofocus"),
     isMacro: boolean("is_macro"),
     magnification: decimal("magnification", { precision: 4, scale: 2 }),
     minimumFocusDistanceMm: integer("minimum_focus_distance_mm"), // TODO: display this using mapping as feet/meters
@@ -504,6 +504,7 @@ export const lensSpecs = appSchema.table(
     focusMotorType: text("focus_motor_type"), //TODO: may want to make a relation for this eventually, brands have proprietary names for different types
     hasAfMfSwitch: boolean("has_af_mf_switch"),
     hasFocusLimiter: boolean("has_focus_limiter"),
+    hasFocusRecallButton: boolean("has_focus_recall_button"),
     // optics
     numberElements: integer("number_elements"),
     numberElementGroups: integer("number_element_groups"),

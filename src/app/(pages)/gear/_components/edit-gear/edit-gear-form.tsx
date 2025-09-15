@@ -70,6 +70,15 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
     if (a == null && b == null) return true;
     if (a == null || b == null) return false;
 
+    // Arrays: shallow, order-sensitive equality for primitives
+    if (Array.isArray(a) && Array.isArray(b)) {
+      if (a.length !== b.length) return false;
+      for (let i = 0; i < a.length; i++) {
+        if (!Object.is(a[i], b[i])) return false;
+      }
+      return true;
+    }
+
     const toMs = (v: unknown): number | null => {
       if (v instanceof Date) return v.getTime();
       if (typeof v === "string") {
@@ -188,10 +197,62 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
         "isPrime",
         "focalLengthMinMm",
         "focalLengthMaxMm",
+        "maxApertureWide",
+        "maxApertureTele",
+        "minApertureWide",
+        "minApertureTele",
         "hasStabilization",
+        "cipaStabilizationRatingStops",
+        "hasStabilizationSwitch",
+        "hasAutofocus",
+        "isMacro",
+        "magnification",
+        "minimumFocusDistanceMm",
+        "hasFocusRing",
+        "focusMotorType",
+        "hasAfMfSwitch",
+        "hasFocusLimiter",
+        "hasFocusRecallButton",
+        "numberElements",
+        "numberElementGroups",
+        "hasDiffractiveOptics",
+        "numberDiaphragmBlades",
+        "hasRoundedDiaphragmBlades",
+        "hasInternalZoom",
+        "hasInternalFocus",
+        "frontElementRotates",
+        "mountMaterial",
+        "hasWeatherSealing",
+        "hasApertureRing",
+        "numberCustomControlRings",
+        "numberFunctionButtons",
+        "acceptsFilterTypes",
+        "frontFilterThreadSizeMm",
+        "rearFilterThreadSizeMm",
+        "dropInFilterSizeMm",
+        "hasBuiltInTeleconverter",
+        "hasLensHood",
+        "hasTripodCollar",
       ] as const;
+
+      // Submit-time safeguard: if focal-length min and max are equal, treat as prime
+      const adjustedLensSpecs: Record<string, any> = {
+        ...(formData.lensSpecs as any),
+      };
+      const minVal = Number((adjustedLensSpecs as any)?.focalLengthMinMm);
+      const maxVal = Number((adjustedLensSpecs as any)?.focalLengthMaxMm);
+      if (
+        Number.isFinite(minVal) &&
+        Number.isFinite(maxVal) &&
+        minVal === maxVal
+      ) {
+        adjustedLensSpecs.isPrime = true;
+        adjustedLensSpecs.focalLengthMinMm = minVal;
+        adjustedLensSpecs.focalLengthMaxMm = maxVal;
+      }
+
       const orig = (gearData.lensSpecs ?? {}) as Record<string, any>;
-      const diffs = diffByKeys(orig, formData.lensSpecs as any, lensKeys);
+      const diffs = diffByKeys(orig, adjustedLensSpecs as any, lensKeys);
       if (Object.keys(diffs).length > 0) payload.lens = diffs;
     }
 
@@ -302,6 +363,13 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const preview = buildDiffPayload();
+    // Prevent opening confirmation when nothing actually changed
+    if (Object.keys(preview).length === 0) {
+      toast.info("No changes to submit", {
+        description: "Update a field before submitting.",
+      });
+      return;
+    }
     setDiffPreview(preview);
     setConfirmOpen(true);
   };

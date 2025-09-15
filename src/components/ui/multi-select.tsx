@@ -65,11 +65,33 @@ export function MultiSelect({
   }, [options, query]);
 
   const toggle = (id: string) => {
-    if (value.includes(id)) {
-      onChange(value.filter((v) => v !== id));
+    const isNone = id.toLowerCase() === "none";
+
+    // If selecting the special "none" option, make it exclusive
+    if (isNone) {
+      const first = value[0];
+      const currentlyOnlyNone =
+        value.length === 1 &&
+        typeof first === "string" &&
+        first.toLowerCase() === "none";
+      if (currentlyOnlyNone) {
+        // toggle off "none"
+        onChange([]);
+      } else {
+        // select only "none" and clear all others
+        onChange([id]);
+      }
+      return;
+    }
+
+    // For any non-"none" option, ensure "none" is cleared
+    const withoutNone = value.filter((v) => v.toLowerCase() !== "none");
+
+    if (withoutNone.includes(id)) {
+      onChange(withoutNone.filter((v) => v !== id));
     } else {
-      if (maxSelected && value.length >= maxSelected) return;
-      onChange([...value, id]);
+      if (maxSelected && withoutNone.length >= maxSelected) return;
+      onChange([...withoutNone, id]);
     }
   };
 

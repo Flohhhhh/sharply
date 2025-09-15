@@ -5,6 +5,7 @@ import {
   getMountDisplayName,
   formatDimensions,
   formatCardSlotDetails,
+  formatLensApertureDisplay,
 } from "~/lib/mapping";
 import { formatHumanDate, getConstructionState } from "~/lib/utils";
 import { GearActionButtons } from "~/app/(pages)/gear/_components/gear-action-buttons";
@@ -38,6 +39,11 @@ import {
 } from "~/components/ui/tooltip";
 import { InfoIcon } from "lucide-react";
 import { SpecsMissingNote } from "../_components/specs-missing-note";
+import { formatFocusDistance } from "~/lib/mapping/focus-distance-map";
+
+import { ENUMS } from "~/lib/constants";
+import { formatFilterType } from "~/lib/mapping/filter-types-map";
+// Removed LensApertureDisplay in favor of standardized spec rows using mapping
 
 export const revalidate = 3600;
 
@@ -744,7 +750,41 @@ export default async function GearPage({ params }: GearPageProps) {
                       </span>
                     </div>
                   )}
-
+                {/* Aperture */}
+                {(() => {
+                  const toNum = (v: unknown): number | null =>
+                    typeof v === "number"
+                      ? v
+                      : v != null && !Number.isNaN(Number(v))
+                        ? Number(v)
+                        : null;
+                  const { maxText, minText } = formatLensApertureDisplay({
+                    maxApertureWide: toNum(lensSpecsItem.maxApertureWide),
+                    maxApertureTele: toNum(lensSpecsItem.maxApertureTele),
+                    minApertureWide: toNum(lensSpecsItem.minApertureWide),
+                    minApertureTele: toNum(lensSpecsItem.minApertureTele),
+                  });
+                  return (
+                    <>
+                      {maxText ? (
+                        <div className="flex justify-between px-4 py-3">
+                          <span className="text-muted-foreground">
+                            Maximum Aperture
+                          </span>
+                          <span className="font-medium">{maxText}</span>
+                        </div>
+                      ) : null}
+                      {minText ? (
+                        <div className="flex justify-between px-4 py-3">
+                          <span className="text-muted-foreground">
+                            Minimum Aperture
+                          </span>
+                          <span className="font-medium">{minText}</span>
+                        </div>
+                      ) : null}
+                    </>
+                  );
+                })()}
                 {lensSpecsItem.hasStabilization !== null &&
                   lensSpecsItem.hasStabilization !== undefined && (
                     <div className="flex justify-between px-4 py-3">
@@ -755,7 +795,323 @@ export default async function GearPage({ params }: GearPageProps) {
                         {lensSpecsItem.hasStabilization ? "Yes" : "No"}
                       </span>
                     </div>
+                  )}{" "}
+                {lensSpecsItem.hasStabilizationSwitch && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Stabilization Switch
+                    </span>
+                    <span className="font-medium">
+                      {lensSpecsItem.hasStabilizationSwitch ? "Yes" : "No"}
+                    </span>
+                  </div>
+                )}
+                {lensSpecsItem.cipaStabilizationRatingStops && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      CIPA Stabilization Rating Stops
+                    </span>
+                    <span className="font-medium">
+                      {lensSpecsItem.cipaStabilizationRatingStops} stops
+                    </span>
+                  </div>
+                )}
+                {lensSpecsItem.hasAutofocus && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">Has Autofocus</span>
+                    <span className="font-medium">
+                      {lensSpecsItem.hasAutofocus ? "Yes" : "No"}
+                    </span>
+                  </div>
+                )}
+                {lensSpecsItem.isMacro && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">Is Macro</span>
+                    <span className="font-medium">
+                      {lensSpecsItem.isMacro ? "Yes" : "No"}
+                    </span>
+                  </div>
+                )}
+                {lensSpecsItem.magnification && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">Magnification</span>
+                    <span className="font-medium">
+                      {lensSpecsItem.magnification}
+                    </span>
+                  </div>
+                )}
+                {lensSpecsItem.minimumFocusDistanceMm && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Minimum Focus Distance
+                    </span>
+                    <span className="font-medium">
+                      {formatFocusDistance(
+                        lensSpecsItem.minimumFocusDistanceMm,
+                      )}
+                    </span>
+                  </div>
+                )}
+                {lensSpecsItem.hasFocusRing && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Has Focus Ring
+                    </span>
+                    <span className="font-medium">
+                      {lensSpecsItem.hasFocusRing ? "Yes" : "No"}
+                    </span>
+                  </div>
+                )}
+                {lensSpecsItem.focusMotorType && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Focus Motor Type
+                    </span>
+                    <span className="font-medium">
+                      {lensSpecsItem.focusMotorType}
+                    </span>
+                  </div>
+                )}
+                {lensSpecsItem.hasAfMfSwitch && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Has AF/MF Switch
+                    </span>
+                    <span className="font-medium">
+                      {lensSpecsItem.hasAfMfSwitch ? "Yes" : "No"}
+                    </span>
+                  </div>
+                )}
+                {lensSpecsItem.hasFocusLimiter && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Has Focus Limiter
+                    </span>
+                    <span className="font-medium">
+                      {lensSpecsItem.hasFocusLimiter ? "Yes" : "No"}
+                    </span>
+                  </div>
+                )}
+                {lensSpecsItem.hasFocusRecallButton && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Has Focus Recall Button
+                    </span>
+                    <span className="font-medium">
+                      {lensSpecsItem.hasFocusRecallButton ? "Yes" : "No"}
+                    </span>
+                  </div>
+                )}
+                {lensSpecsItem.numberElements && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Number of Elements
+                    </span>
+                    <span className="font-medium">
+                      {lensSpecsItem.numberElements}
+                    </span>
+                  </div>
+                )}
+                {lensSpecsItem.numberElementGroups && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Number of Element Groups
+                    </span>
+                    <span className="font-medium">
+                      {lensSpecsItem.numberElementGroups}
+                    </span>
+                  </div>
+                )}
+                {lensSpecsItem.hasDiffractiveOptics && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Has Diffractive Optics
+                    </span>
+                    <span className="font-medium">
+                      {lensSpecsItem.hasDiffractiveOptics ? "Yes" : "No"}
+                    </span>
+                  </div>
+                )}
+                {lensSpecsItem.numberDiaphragmBlades && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Number of Diaphragm Blades
+                    </span>
+                    <span className="font-medium">
+                      {lensSpecsItem.numberDiaphragmBlades}
+                    </span>
+                  </div>
+                )}
+                {lensSpecsItem.hasRoundedDiaphragmBlades && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Has Rounded Diaphragm Blades
+                    </span>
+                    <span className="font-medium">
+                      {lensSpecsItem.hasRoundedDiaphragmBlades ? "Yes" : "No"}
+                    </span>
+                  </div>
+                )}
+                {lensSpecsItem.hasInternalZoom && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Has Internal Zoom
+                    </span>
+                    <span className="font-medium">
+                      {lensSpecsItem.hasInternalZoom ? "Yes" : "No"}
+                    </span>
+                  </div>
+                )}
+                {lensSpecsItem.hasInternalFocus && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Has Internal Focus
+                    </span>
+                    <span className="font-medium">
+                      {lensSpecsItem.hasInternalFocus ? "Yes" : "No"}
+                    </span>
+                  </div>
+                )}
+                {lensSpecsItem.frontElementRotates && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Front Element Rotates
+                    </span>
+                    <span className="font-medium">
+                      {lensSpecsItem.frontElementRotates ? "Yes" : "No"}
+                    </span>
+                  </div>
+                )}
+                {lensSpecsItem.mountMaterial && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Mount Material
+                    </span>
+                    <span className="font-medium">
+                      {lensSpecsItem.mountMaterial.charAt(0).toUpperCase() +
+                        lensSpecsItem.mountMaterial.slice(1)}
+                    </span>
+                  </div>
+                )}
+                {lensSpecsItem.hasWeatherSealing && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Has Weather Sealing
+                    </span>
+                    <span className="font-medium">
+                      {lensSpecsItem.hasWeatherSealing ? "Yes" : "No"}
+                    </span>
+                  </div>
+                )}
+                {lensSpecsItem.hasApertureRing && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Has Aperture Ring
+                    </span>
+                    <span className="font-medium">
+                      {lensSpecsItem.hasApertureRing ? "Yes" : "No"}
+                    </span>
+                  </div>
+                )}
+                {lensSpecsItem.numberCustomControlRings && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Number of Custom Control Rings
+                    </span>
+                    <span className="font-medium">
+                      {lensSpecsItem.numberCustomControlRings}
+                    </span>
+                  </div>
+                )}
+                {lensSpecsItem.numberFunctionButtons && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Number of Function Buttons
+                    </span>
+                    <span className="font-medium">
+                      {lensSpecsItem.numberFunctionButtons}
+                    </span>
+                  </div>
+                )}
+                {lensSpecsItem.acceptsFilterTypes && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Accepts Filter Types
+                    </span>
+                    <span className="font-medium">
+                      {lensSpecsItem.acceptsFilterTypes
+                        .map(formatFilterType)
+                        .join(", ")}
+                    </span>
+                  </div>
+                )}
+                {lensSpecsItem.frontFilterThreadSizeMm &&
+                  lensSpecsItem.acceptsFilterTypes?.includes(
+                    "front-screw-on",
+                  ) && (
+                    <div className="flex justify-between px-4 py-3">
+                      <span className="text-muted-foreground">
+                        Front Filter Thread Size
+                      </span>
+                      <span className="font-medium">
+                        {lensSpecsItem.frontFilterThreadSizeMm}mm
+                      </span>
+                    </div>
                   )}
+                {lensSpecsItem.rearFilterThreadSizeMm &&
+                  lensSpecsItem.acceptsFilterTypes?.includes(
+                    "rear-screw-on",
+                  ) && (
+                    <div className="flex justify-between px-4 py-3">
+                      <span className="text-muted-foreground">
+                        Rear Filter Thread Size
+                      </span>
+                      <span className="font-medium">
+                        {lensSpecsItem.rearFilterThreadSizeMm}mm
+                      </span>
+                    </div>
+                  )}
+                {lensSpecsItem.dropInFilterSizeMm &&
+                  lensSpecsItem.acceptsFilterTypes?.includes(
+                    "rear-drop-in",
+                  ) && (
+                    <div className="flex justify-between px-4 py-3">
+                      <span className="text-muted-foreground">
+                        Drop In Filter Size
+                      </span>
+                      <span className="font-medium">
+                        {lensSpecsItem.dropInFilterSizeMm}mm
+                      </span>
+                    </div>
+                  )}
+                {lensSpecsItem.hasBuiltInTeleconverter && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Has Built In Teleconverter
+                    </span>
+                    <span className="font-medium">
+                      {lensSpecsItem.hasBuiltInTeleconverter ? "Yes" : "No"}
+                    </span>
+                  </div>
+                )}
+                {lensSpecsItem.hasLensHood && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">Has Lens Hood</span>
+                    <span className="font-medium">
+                      {lensSpecsItem.hasLensHood ? "Yes" : "No"}
+                    </span>
+                  </div>
+                )}
+                {lensSpecsItem.hasTripodCollar && (
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">
+                      Has Tripod Collar
+                    </span>
+                    <span className="font-medium">
+                      {lensSpecsItem.hasTripodCollar ? "Yes" : "No"}
+                    </span>
+                  </div>
+                )}
               </>
             )}
           </div>

@@ -120,13 +120,18 @@ const ApertureInput = ({
             }
           }}
           onBlur={() => {
-            // On blur, clean up and ensure we have a valid value
+            // On blur, if empty, keep it empty and emit undefined
+            if (inputValue.trim() === "") {
+              onChange(undefined);
+              setInputValue("");
+              return;
+            }
+            // Otherwise, try to normalize a valid number; if invalid, revert
             const val = parseFloat(inputValue);
             if (!isNaN(val) && val > 0) {
               onChange(val);
               setInputValue(val.toString());
             } else {
-              // If invalid, reset to current value
               setInputValue(value ? value.toString() : "");
             }
           }}

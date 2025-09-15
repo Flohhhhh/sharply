@@ -99,6 +99,13 @@
       "when": 1757934185010,
       "tag": "0013_calm_crystal",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1757951053391,
+      "tag": "0014_lucky_steel_serpent",
+      "breakpoints": true
     }
   ]
 }

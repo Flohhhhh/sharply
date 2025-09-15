@@ -62,41 +62,47 @@ export function normalizeProposalPayloadForDb(
     .object({
       releaseDate: z
         .preprocess((value) => {
+          if (value === null) return null; // allow explicit clearing
           if (value instanceof Date) return value;
           if (typeof value === "string")
             return parseDateUTC(value) ?? undefined;
           return undefined;
-        }, z.date().optional())
+        }, z.date().nullable().optional())
         .optional(),
       msrpUsdCents: z
         .preprocess((value) => {
+          if (value === null) return null; // explicit clear
           const num = coerceNumber(value);
           return num === null ? undefined : Math.trunc(num);
-        }, z.number().int().optional())
+        }, z.number().int().nullable().optional())
         .optional(),
       weightGrams: z
         .preprocess((value) => {
+          if (value === null) return null;
           const num = coerceNumber(value);
           return num === null ? undefined : Math.trunc(num);
-        }, z.number().int().optional())
+        }, z.number().int().nullable().optional())
         .optional(),
       widthMm: z
         .preprocess((value) => {
+          if (value === null) return null;
           const num = coerceNumber(value);
           return num === null ? undefined : Math.trunc(num);
-        }, z.number().int().optional())
+        }, z.number().int().nullable().optional())
         .optional(),
       heightMm: z
         .preprocess((value) => {
+          if (value === null) return null;
           const num = coerceNumber(value);
           return num === null ? undefined : Math.trunc(num);
-        }, z.number().int().optional())
+        }, z.number().int().nullable().optional())
         .optional(),
       depthMm: z
         .preprocess((value) => {
+          if (value === null) return null;
           const num = coerceNumber(value);
           return num === null ? undefined : Math.trunc(num);
-        }, z.number().int().optional())
+        }, z.number().int().nullable().optional())
         .optional(),
     })
     .catchall(z.unknown());
@@ -105,6 +111,7 @@ export function normalizeProposalPayloadForDb(
     .object({
       sensorFormatId: z
         .preprocess((value) => {
+          if (value === null) return null; // explicit clear
           if (typeof value !== "string") return undefined;
           if (isUuid(value)) return value;
           const match = SENSOR_FORMATS.find((f) =>
@@ -114,212 +121,255 @@ export function normalizeProposalPayloadForDb(
               : false,
           ) as { id?: string } | undefined;
           return match?.id ?? undefined;
-        }, z.string().uuid().optional())
+        }, z.string().uuid().nullable().optional())
         .optional(),
       resolutionMp: z
-        .preprocess(
-          (value) => coerceNumber(value) ?? undefined,
-          z.number().optional(),
-        )
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : num;
+        }, z.number().nullable().optional())
         .optional(),
       isoMin: z
         .preprocess((value) => {
+          if (value === null) return null;
           const num = coerceNumber(value);
           return num === null ? undefined : Math.trunc(num);
-        }, z.number().int().optional())
+        }, z.number().int().nullable().optional())
         .optional(),
       isoMax: z
         .preprocess((value) => {
+          if (value === null) return null;
           const num = coerceNumber(value);
           return num === null ? undefined : Math.trunc(num);
-        }, z.number().int().optional())
+        }, z.number().int().nullable().optional())
         .optional(),
       // enum-backed string with membership check
       sensorStackingType: z
         .preprocess((value) => {
+          if (value === null) return null;
           if (typeof value !== "string") return undefined;
           const allowed = ENUMS.sensor_stacking_types_enum as readonly string[];
           return allowed.includes(value) ? value : undefined;
-        }, z.string().optional())
+        }, z.string().nullable().optional())
         .optional(),
       sensorTechType: z
         .preprocess((value) => {
+          if (value === null) return null;
           if (typeof value !== "string") return undefined;
           const allowed = ENUMS.sensor_tech_types_enum as readonly string[];
           return allowed.includes(value) ? value : undefined;
-        }, z.string().optional())
+        }, z.string().nullable().optional())
         .optional(),
       isBackSideIlluminated: z
         .preprocess(
-          (value) => coerceBoolean(value) ?? undefined,
-          z.boolean().optional(),
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
         )
         .optional(),
       sensorReadoutSpeedMs: z
         .preprocess((value) => {
+          if (value === null) return null;
           const num = coerceNumber(value);
           return num === null ? undefined : Math.trunc(num);
-        }, z.number().int().optional())
+        }, z.number().int().nullable().optional())
         .optional(),
       maxRawBitDepth: z
         .preprocess((value) => {
+          if (value === null) return null;
           const num = coerceNumber(value);
           return num === null ? undefined : Math.trunc(num);
-        }, z.number().int().optional())
+        }, z.number().int().nullable().optional())
         .optional(),
       hasIbis: z
         .preprocess(
-          (value) => coerceBoolean(value) ?? undefined,
-          z.boolean().optional(),
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
         )
         .optional(),
       hasElectronicVibrationReduction: z
         .preprocess(
-          (value) => coerceBoolean(value) ?? undefined,
-          z.boolean().optional(),
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
         )
         .optional(),
       cipaStabilizationRatingStops: z
         .preprocess((value) => {
+          if (value === null) return null;
           const num = coerceNumber(value);
           return num === null ? undefined : Math.trunc(num);
-        }, z.number().optional())
+        }, z.number().nullable().optional())
         .optional(),
       hasPixelShiftShooting: z
         .preprocess(
-          (value) => coerceBoolean(value) ?? undefined,
-          z.boolean().optional(),
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
         )
         .optional(),
       hasAntiAliasingFilter: z
         .preprocess(
-          (value) => coerceBoolean(value) ?? undefined,
-          z.boolean().optional(),
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
         )
         .optional(),
 
-      processorName: z.string().optional(),
+      processorName: z
+        .preprocess(
+          (value) =>
+            value === null
+              ? null
+              : typeof value === "string"
+                ? value
+                : undefined,
+          z.string().nullable().optional(),
+        )
+        .optional(),
       hasWeatherSealing: z
         .preprocess(
-          (value) => coerceBoolean(value) ?? undefined,
-          z.boolean().optional(),
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
         )
         .optional(),
       focusPoints: z
         .preprocess((value) => {
+          if (value === null) return null;
           const num = coerceNumber(value);
           return num === null ? undefined : Math.trunc(num);
-        }, z.number().int().optional())
+        }, z.number().int().nullable().optional())
         .optional(),
       afAreaModes: z.array(z.string().uuid()).optional(),
       hasFocusPeaking: z
         .preprocess(
-          (value) => coerceBoolean(value) ?? undefined,
-          z.boolean().optional(),
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
         )
         .optional(),
       hasFocusBracketing: z
         .preprocess(
-          (value) => coerceBoolean(value) ?? undefined,
-          z.boolean().optional(),
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
         )
         .optional(),
       shutterSpeedMax: z
         .preprocess((value) => {
+          if (value === null) return null;
           const num = coerceNumber(value);
           return num === null ? undefined : Math.trunc(num);
-        }, z.number().int().optional())
+        }, z.number().int().nullable().optional())
         .optional(),
       shutterSpeedMin: z
         .preprocess((value) => {
+          if (value === null) return null;
           const num = coerceNumber(value);
           return num === null ? undefined : Math.trunc(num);
-        }, z.number().int().optional())
+        }, z.number().int().nullable().optional())
         .optional(),
       maxFpsRaw: z
         .preprocess((value) => {
+          if (value === null) return null;
           const num = coerceNumber(value);
           return num === null ? undefined : Math.trunc(num);
-        }, z.number().int().optional())
+        }, z.number().int().nullable().optional())
         .optional(),
       maxFpsJpg: z
         .preprocess((value) => {
+          if (value === null) return null;
           const num = coerceNumber(value);
           return num === null ? undefined : Math.trunc(num);
-        }, z.number().int().optional())
+        }, z.number().int().nullable().optional())
         .optional(),
       flashSyncSpeed: z
         .preprocess((value) => {
+          if (value === null) return null;
           const num = coerceNumber(value);
           return num === null ? undefined : Math.trunc(num);
-        }, z.number().int().optional())
+        }, z.number().int().nullable().optional())
         .optional(),
       hasSilentShootingAvailable: z
         .preprocess(
-          (value) => coerceBoolean(value) ?? undefined,
-          z.boolean().optional(),
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
         )
         .optional(),
       availableShutterTypes: z.array(z.string()).optional(),
       cipaBatteryShotsPerCharge: z
         .preprocess((value) => {
+          if (value === null) return null;
           const num = coerceNumber(value);
           return num === null ? undefined : Math.trunc(num);
-        }, z.number().int().optional())
+        }, z.number().int().nullable().optional())
         .optional(),
       supportedBatteries: z.array(z.string()).optional(),
       usbCharging: z
         .preprocess(
-          (value) => coerceBoolean(value) ?? undefined,
-          z.boolean().optional(),
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
         )
         .optional(),
       usbPowerDelivery: z
         .preprocess(
-          (value) => coerceBoolean(value) ?? undefined,
-          z.boolean().optional(),
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
         )
         .optional(),
       hasLogColorProfile: z
         .preprocess(
-          (value) => coerceBoolean(value) ?? undefined,
-          z.boolean().optional(),
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
         )
         .optional(),
       has10BitVideo: z
         .preprocess(
-          (value) => coerceBoolean(value) ?? undefined,
-          z.boolean().optional(),
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
         )
         .optional(),
       has12BitVideo: z
         .preprocess(
-          (value) => coerceBoolean(value) ?? undefined,
-          z.boolean().optional(),
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
         )
         .optional(),
       hasIntervalometer: z
         .preprocess(
-          (value) => coerceBoolean(value) ?? undefined,
-          z.boolean().optional(),
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
         )
         .optional(),
       hasSelfTimer: z
         .preprocess(
-          (value) => coerceBoolean(value) ?? undefined,
-          z.boolean().optional(),
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
         )
         .optional(),
       hasBuiltInFlash: z
         .preprocess(
-          (value) => coerceBoolean(value) ?? undefined,
-          z.boolean().optional(),
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
         )
         .optional(),
       hasHotShoe: z
         .preprocess(
-          (value) => coerceBoolean(value) ?? undefined,
-          z.boolean().optional(),
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
         )
         .optional(),
     })
@@ -329,30 +379,284 @@ export function normalizeProposalPayloadForDb(
     .object({
       isPrime: z
         .preprocess(
-          (value) => coerceBoolean(value) ?? undefined,
-          z.boolean().optional(),
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
         )
         .optional(),
       focalLengthMinMm: z
         .preprocess((value) => {
+          if (value === null) return null;
           const num = coerceNumber(value);
           return num === null ? undefined : Math.trunc(num);
-        }, z.number().int().optional())
+        }, z.number().int().nullable().optional())
         .optional(),
       focalLengthMaxMm: z
         .preprocess((value) => {
+          if (value === null) return null;
           const num = coerceNumber(value);
           return num === null ? undefined : Math.trunc(num);
-        }, z.number().int().optional())
+        }, z.number().int().nullable().optional())
+        .optional(),
+      // Aperture fields (decimals allowed)
+      maxApertureWide: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : num;
+        }, z.number().nullable().optional())
+        .optional(),
+      maxApertureTele: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : num;
+        }, z.number().nullable().optional())
+        .optional(),
+      minApertureWide: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : num;
+        }, z.number().nullable().optional())
+        .optional(),
+      minApertureTele: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : num;
+        }, z.number().nullable().optional())
         .optional(),
       hasStabilization: z
         .preprocess(
-          (value) => coerceBoolean(value) ?? undefined,
-          z.boolean().optional(),
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      cipaStabilizationRatingStops: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().nullable().optional())
+        .optional(),
+      hasStabilizationSwitch: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      hasAutofocus: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      isMacro: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      magnification: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().nullable().optional())
+        .optional(),
+      minimumFocusDistanceMm: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().nullable().optional())
+        .optional(),
+      hasFocusRing: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      focusMotorType: z
+        .preprocess(
+          (value) =>
+            value === null
+              ? null
+              : typeof value === "string"
+                ? value
+                : undefined,
+          z.string().nullable().optional(),
+        )
+        .optional(),
+      hasAfMfSwitch: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      hasFocusLimiter: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      hasFocusRecallButton: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      numberElements: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().nullable().optional())
+        .optional(),
+      numberElementGroups: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().nullable().optional())
+        .optional(),
+      hasDiffractiveOptics: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      numberDiaphragmBlades: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().nullable().optional())
+        .optional(),
+      hasRoundedDiaphragmBlades: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      hasInternalZoom: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      hasInternalFocus: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      frontElementRotates: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      mountMaterial: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          if (typeof value !== "string") return undefined;
+          const allowed = ENUMS.mount_material_enum as readonly string[];
+          return allowed.includes(value) ? value : undefined;
+        }, z.string().nullable().optional())
+        .optional(),
+      hasWeatherSealing: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      hasApertureRing: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      numberCustomControlRings: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().nullable().optional())
+        .optional(),
+      numberFunctionButtons: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().nullable().optional())
+        .optional(),
+      acceptsFilterTypes: z.array(z.string()).optional(),
+      frontFilterThreadSizeMm: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().nullable().optional())
+        .optional(),
+      rearFilterThreadSizeMm: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().nullable().optional())
+        .optional(),
+      dropInFilterSizeMm: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().nullable().optional())
+        .optional(),
+      hasBuiltInTeleconverter: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      hasLensHood: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      hasTripodCollar: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
         )
         .optional(),
     })
-    .catchall(z.unknown());
+    .catchall(z.unknown())
+    .transform((lens) => {
+      // Validate invariants without coercive adjustments. Leave values as-is so UI can guide user.
+      // We only ensure type coercion above; here we avoid mutating to keep nullability semantics.
+      return lens as any;
+    });
 
   const CardSlotsSchema = z
     .array(

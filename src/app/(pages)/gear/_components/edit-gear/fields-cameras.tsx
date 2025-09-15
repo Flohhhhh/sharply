@@ -97,6 +97,13 @@ function CameraFieldsComponent({
     [onChange],
   );
 
+  const numOrNull = (v: unknown): number | null => {
+    if (typeof v === "number" && Number.isFinite(v)) return v;
+    if (typeof v === "string" && v.trim() !== "" && !Number.isNaN(Number(v)))
+      return Number(v);
+    return null;
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -117,7 +124,7 @@ function CameraFieldsComponent({
             id="resolutionMp"
             label="Resolution (megapixels)"
             value={
-              currentSpecs?.resolutionMp
+              currentSpecs?.resolutionMp != null
                 ? parseFloat(currentSpecs.resolutionMp)
                 : null
             }
@@ -269,7 +276,7 @@ function CameraFieldsComponent({
           <NumberInput
             id="cipaStabilizationRatingStops"
             label="CIPA Stabilization Rating Stops"
-            value={Number(currentSpecs?.cipaStabilizationRatingStops ?? null)}
+            value={numOrNull(currentSpecs?.cipaStabilizationRatingStops)}
             onChange={(value) =>
               handleFieldChange("cipaStabilizationRatingStops", value)
             }
@@ -334,7 +341,7 @@ function CameraFieldsComponent({
           <NumberInput
             id="focusPoints"
             label="Focus Points"
-            value={Number(currentSpecs?.focusPoints ?? null)}
+            value={currentSpecs?.focusPoints ?? null}
             onChange={(value) => handleFieldChange("focusPoints", value)}
           />
 
@@ -374,7 +381,7 @@ function CameraFieldsComponent({
             id="shutterSpeedMax"
             label="Longest Shutter Speed"
             suffix="seconds"
-            value={Number(currentSpecs?.shutterSpeedMax ?? null)}
+            value={currentSpecs?.shutterSpeedMax ?? null}
             onChange={(value) => handleFieldChange("shutterSpeedMax", value)}
           />
 
@@ -383,7 +390,7 @@ function CameraFieldsComponent({
             id="shutterSpeedMin"
             label="Shortest Shutter Speed"
             prefix="1/"
-            value={Number(currentSpecs?.shutterSpeedMin ?? null)}
+            value={currentSpecs?.shutterSpeedMin ?? null}
             onChange={(value) => handleFieldChange("shutterSpeedMin", value)}
           />
 

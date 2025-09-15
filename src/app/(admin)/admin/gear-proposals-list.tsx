@@ -255,6 +255,8 @@ export function GearProposalsList({
         : {}),
     };
     const formatValue = (k: string, v: any): string => {
+      const isEmpty = v === null || v === undefined || v === "";
+      if (isEmpty) return "Empty";
       if (k === "msrpUsdCents") return formatPrice(v as number);
       if (k === "releaseDate") return formatHumanDate(v);
       if (k === "sensorFormatId") return sensorNameFromSlug(v as string);
@@ -505,6 +507,8 @@ export function GearProposalsList({
       ...(proposal.payload.lens || {}),
     };
     const formatValue = (k: string, v: any): string => {
+      const isEmpty = v === null || v === undefined || v === "";
+      if (isEmpty) return "Empty";
       if (k === "msrpUsdCents") return formatPrice(v as number);
       if (k === "releaseDate") return formatHumanDate(v as any);
       if (k === "sensorFormatId") return sensorNameFromSlug(v as string);

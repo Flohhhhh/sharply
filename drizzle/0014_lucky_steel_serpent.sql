@@ -1,0 +1,1 @@
+ALTER TABLE "app"."lens_specs" ADD COLUMN "has_focus_recall_button" boolean;

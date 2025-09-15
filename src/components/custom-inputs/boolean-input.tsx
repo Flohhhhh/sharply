@@ -1,5 +1,5 @@
 "use client";
-import { CircleSlash, InfoIcon } from "lucide-react";
+import { CircleQuestionMark, CircleSlash, InfoIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import {
   Tooltip,
@@ -166,7 +166,7 @@ export function BooleanInput({
               >
                 {opt.value === null ? (
                   <>
-                    <CircleSlash
+                    <CircleQuestionMark
                       className="text-muted-foreground/50 h-4 w-4"
                       aria-hidden="true"
                     />

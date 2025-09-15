@@ -3,6 +3,7 @@ import { fetchGearEditById } from "~/server/gear/service";
 import { formatPrice } from "~/lib/mapping";
 import { sensorNameFromSlug } from "~/lib/mapping/sensor-map";
 import { humanizeKey, formatHumanDate } from "~/lib/utils";
+import { auth, requireRole } from "~/server/auth";
 
 interface EditSuccessPageProps {
   searchParams: Promise<{ id?: string }>;
@@ -12,6 +13,8 @@ export default async function EditSuccessPage({
   searchParams,
 }: EditSuccessPageProps) {
   const { id } = await searchParams;
+  const session = await auth();
+  const isAdmin = requireRole(session, ["ADMIN"]);
 
   if (!id) {
     return (
@@ -25,6 +28,13 @@ export default async function EditSuccessPage({
           <Link href="/" className="text-primary text-sm">
             ← Back to home
           </Link>
+          {isAdmin ? (
+            <div className="mt-2">
+              <Link href="/admin" className="text-primary text-sm">
+                → Open admin
+              </Link>
+            </div>
+          ) : null}
         </div>
       </div>
     );
@@ -207,6 +217,13 @@ export default async function EditSuccessPage({
             </Link>
           </div>
         )}
+        {isAdmin ? (
+          <div className="pt-2">
+            <Link href="/admin" className="text-primary text-sm">
+              Open admin dashboard
+            </Link>
+          </div>
+        ) : null}
       </div>
     </div>
   );
