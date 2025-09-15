@@ -9,6 +9,7 @@ import { Button } from "~/components/ui/button";
 export interface FocalLengthInputChange {
   focalLengthMinMm: number | null;
   focalLengthMaxMm: number | null;
+  isPrime: boolean;
 }
 
 export interface FocalLengthInputProps {
@@ -57,10 +58,23 @@ const FocalLengthInput = ({
     }
   }, [minValue, maxValue]);
 
-  const emit = (nextMin: number | null, nextMax: number | null) => {
+  const emit = (
+    nextMin: number | null,
+    nextMax: number | null,
+    nextMode?: "PRIME" | "ZOOM",
+  ) => {
     // Debug: emit up
-    console.log("[FocalLengthInput] emit", { nextMin, nextMax, mode });
-    onChange({ focalLengthMinMm: nextMin, focalLengthMaxMm: nextMax });
+    const effectiveMode = nextMode ?? mode;
+    console.log("[FocalLengthInput] emit", {
+      nextMin,
+      nextMax,
+      mode: effectiveMode,
+    });
+    onChange({
+      focalLengthMinMm: nextMin,
+      focalLengthMaxMm: nextMax,
+      isPrime: effectiveMode === "PRIME",
+    });
   };
 
   const handleMinChange = (raw: string) => {
@@ -88,13 +102,13 @@ const FocalLengthInput = ({
       const locked = min ?? max ?? null;
       setMin(locked);
       setMax(locked);
-      emit(locked, locked);
+      emit(locked, locked, nextMode);
     } else {
       // ensure max is >= min when switching to zoom
       const base = min ?? 1;
       const ensuredMax = max == null || max < base ? base + 1 : max;
       setMax(ensuredMax);
-      emit(min ?? base, ensuredMax);
+      emit(min ?? base, ensuredMax, nextMode);
     }
   };
 
@@ -182,13 +196,13 @@ const FocalLengthInput = ({
                   switchTo("ZOOM");
                   setMin(pMin);
                   setMax(pMax);
-                  emit(pMin, pMax);
+                  emit(pMin, pMax, "ZOOM");
                 } else {
                   const p = Number(preset);
                   switchTo("PRIME");
                   setMin(p);
                   setMax(p);
-                  emit(p, p);
+                  emit(p, p, "PRIME");
                 }
               }}
             >

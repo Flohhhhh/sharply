@@ -721,6 +721,15 @@ export default async function GearPage({ params }: GearPageProps) {
             {/* Lens-specific specifications */}
             {item.gearType === "LENS" && lensSpecsItem && (
               <>
+                {lensSpecsItem.isPrime !== null &&
+                  lensSpecsItem.isPrime !== undefined && (
+                    <div className="flex justify-between px-4 py-3">
+                      <span className="text-muted-foreground">Prime/Zoom</span>
+                      <span className="font-medium">
+                        {lensSpecsItem.isPrime ? "Prime" : "Zoom"}
+                      </span>
+                    </div>
+                  )}
                 {lensSpecsItem.focalLengthMinMm &&
                   lensSpecsItem.focalLengthMaxMm && (
                     <div className="flex justify-between px-4 py-3">
@@ -831,7 +840,7 @@ export default async function GearPage({ params }: GearPageProps) {
                 <div className="mt-4 grid gap-4 md:grid-cols-2">
                   {Array.isArray(verdict.pros) && verdict.pros.length > 0 && (
                     <div>
-                      <div className="text-muted-foreground mb-1 text-xs font-semibold uppercase tracking-wide">
+                      <div className="text-muted-foreground mb-1 text-xs font-semibold tracking-wide uppercase">
                         Pros
                       </div>
                       <ul className="list-disc pl-5 text-sm">
@@ -845,7 +854,7 @@ export default async function GearPage({ params }: GearPageProps) {
                   )}
                   {Array.isArray(verdict.cons) && verdict.cons.length > 0 && (
                     <div>
-                      <div className="text-muted-foreground mb-1 text-xs font-semibold uppercase tracking-wide">
+                      <div className="text-muted-foreground mb-1 text-xs font-semibold tracking-wide uppercase">
                         Cons
                       </div>
                       <ul className="list-disc pl-5 text-sm">
@@ -864,7 +873,7 @@ export default async function GearPage({ params }: GearPageProps) {
                 <div className="mt-4 grid gap-4 md:grid-cols-2">
                   {verdict.whoFor && (
                     <div>
-                      <div className="text-muted-foreground mb-1 text-xs font-semibold uppercase tracking-wide">
+                      <div className="text-muted-foreground mb-1 text-xs font-semibold tracking-wide uppercase">
                         Who it's for
                       </div>
                       <p className="text-sm">{verdict.whoFor}</p>
@@ -872,7 +881,7 @@ export default async function GearPage({ params }: GearPageProps) {
                   )}
                   {verdict.notFor && (
                     <div>
-                      <div className="text-muted-foreground mb-1 text-xs font-semibold uppercase tracking-wide">
+                      <div className="text-muted-foreground mb-1 text-xs font-semibold tracking-wide uppercase">
                         Not for
                       </div>
                       <p className="text-sm">{verdict.notFor}</p>
@@ -884,7 +893,7 @@ export default async function GearPage({ params }: GearPageProps) {
               {Array.isArray(verdict.alternatives) &&
                 verdict.alternatives.length > 0 && (
                   <div className="mt-4">
-                    <div className="text-muted-foreground mb-1 text-xs font-semibold uppercase tracking-wide">
+                    <div className="text-muted-foreground mb-1 text-xs font-semibold tracking-wide uppercase">
                       Top alternatives
                     </div>
                     <ul className="list-disc pl-5 text-sm">

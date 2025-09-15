@@ -72,9 +72,10 @@ function LensFieldsComponent({ currentSpecs, onChange }: LensFieldsProps) {
             label="Focal Length (mm)"
             minValue={currentSpecs?.focalLengthMinMm ?? null}
             maxValue={currentSpecs?.focalLengthMaxMm ?? null}
-            onChange={({ focalLengthMinMm, focalLengthMaxMm }) => {
+            onChange={({ focalLengthMinMm, focalLengthMaxMm, isPrime }) => {
               handleFieldChange("focalLengthMinMm", focalLengthMinMm);
               handleFieldChange("focalLengthMaxMm", focalLengthMaxMm);
+              handleFieldChange("isPrime", isPrime);
             }}
           />
 

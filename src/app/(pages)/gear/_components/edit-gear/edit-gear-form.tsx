@@ -185,6 +185,7 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
 
     if (formData.lensSpecs) {
       const lensKeys = [
+        "isPrime",
         "focalLengthMinMm",
         "focalLengthMaxMm",
         "hasStabilization",

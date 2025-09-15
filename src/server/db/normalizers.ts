@@ -327,6 +327,12 @@ export function normalizeProposalPayloadForDb(
 
   const LensSchema = z
     .object({
+      isPrime: z
+        .preprocess(
+          (value) => coerceBoolean(value) ?? undefined,
+          z.boolean().optional(),
+        )
+        .optional(),
       focalLengthMinMm: z
         .preprocess((value) => {
           const num = coerceNumber(value);
