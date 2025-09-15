@@ -8,9 +8,9 @@ export async function RollupRunsList() {
   }
 
   return (
-    <div className="overflow-x-auto rounded-md border">
+    <div className="max-h-80 overflow-x-auto overflow-y-auto rounded-md border">
       <table className="w-full text-left text-sm">
-        <thead className="bg-muted/50">
+        <thead className="bg-muted sticky top-0 z-10">
           <tr>
             <th className="px-3 py-2">Created</th>
             <th className="px-3 py-2">asOf</th>

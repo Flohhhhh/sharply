@@ -46,9 +46,9 @@ export function AuditLogList() {
     );
 
   return (
-    <div className="overflow-x-auto">
+    <div className="max-h-80 overflow-x-auto overflow-y-auto">
       <table className="w-full text-sm">
-        <thead>
+        <thead className="bg-background sticky top-0 z-10">
           <tr className="text-muted-foreground text-left text-xs">
             <th className="py-2 pr-4">Time</th>
             <th className="py-2 pr-4">Action</th>

@@ -3,7 +3,7 @@ import { fetchRecentAwards } from "~/server/badges/service";
 export async function BadgesAwardsList() {
   const rows = await fetchRecentAwards(50);
   return (
-    <div className="space-y-2">
+    <div className="max-h-80 space-y-2 overflow-y-auto">
       {rows.map((r) => (
         <div
           key={r.id}
