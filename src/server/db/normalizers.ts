@@ -655,7 +655,7 @@ export function normalizeProposalPayloadForDb(
     .transform((lens) => {
       // Validate invariants without coercive adjustments. Leave values as-is so UI can guide user.
       // We only ensure type coercion above; here we avoid mutating to keep nullability semantics.
-      return lens as any;
+      return lens as Record<string, unknown>;
     });
 
   const CardSlotsSchema = z
