@@ -45,6 +45,7 @@ import { ENUMS } from "~/lib/constants";
 import { formatFilterType } from "~/lib/mapping/filter-types-map";
 import SpecsTable from "../_components/specs-table";
 import type { SpecsTableSection } from "../_components/specs-table";
+import { Button } from "~/components/ui/button";
 // Removed LensApertureDisplay in favor of standardized spec rows using mapping
 
 export const revalidate = 3600;
@@ -150,6 +151,12 @@ export default async function GearPage({ params }: GearPageProps) {
           label: "MSRP At Launch",
           value: item.msrpAtLaunchUsdCents
             ? formatPrice(item.msrpAtLaunchUsdCents)
+            : undefined,
+        },
+        {
+          label: "MPB Max Price",
+          value: item.mpbMaxPriceUsdCents
+            ? formatPrice(item.mpbMaxPriceUsdCents)
             : undefined,
         },
         {
@@ -786,6 +793,7 @@ export default async function GearPage({ params }: GearPageProps) {
           linkManufacturer={item.linkManufacturer ?? null}
           linkMpb={item.linkMpb ?? null}
           linkAmazon={item.linkAmazon ?? null}
+          mpbMaxPriceUsdCents={item.mpbMaxPriceUsdCents ?? null}
         />
       </div>
       {/* Suggest Edit Button */}

@@ -1,12 +1,15 @@
 "use client";
 
 import { Button } from "~/components/ui/button";
+import Link from "next/link";
+import { formatPrice } from "~/lib/mapping";
 
 interface GearLinksProps {
   slug: string;
   linkManufacturer: string | null;
   linkMpb: string | null;
   linkAmazon: string | null;
+  mpbMaxPriceUsdCents?: number | null;
 }
 
 export function GearLinks({
@@ -14,6 +17,7 @@ export function GearLinks({
   linkManufacturer,
   linkMpb,
   linkAmazon,
+  mpbMaxPriceUsdCents,
 }: GearLinksProps) {
   const hasAny = !!(linkManufacturer || linkMpb || linkAmazon);
 
@@ -56,25 +60,22 @@ export function GearLinks({
             </div>
           )}
           {linkMpb && (
-            <div className="flex items-center justify-between gap-4 px-4 py-3">
-              <div className="flex flex-col">
-                <span className="text-muted-foreground">MPB</span>
-                <a
-                  href={linkMpb}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary truncate font-medium hover:underline"
-                >
-                  {linkMpb}
-                </a>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => report("mpb", linkMpb)}
-              >
-                Report broken link
+            <div className="px-4 py-3">
+              <Button variant="outline" asChild>
+                <Link href={linkMpb} target="_blank" rel="noopener noreferrer">
+                  {typeof mpbMaxPriceUsdCents === "number" ? (
+                    <>
+                      <span className="font-bold text-[#FF006B]">MPB</span>
+                      {" - "}
+                      {formatPrice(mpbMaxPriceUsdCents)}
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-muted-foreground">MPB</span> See on
+                      MPB
+                    </>
+                  )}
+                </Link>
               </Button>
             </div>
           )}

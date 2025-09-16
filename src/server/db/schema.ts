@@ -317,6 +317,8 @@ export const gear = appSchema.table(
     releaseDate: timestamp("release_date", { withTimezone: true }),
     msrpNowUsdCents: integer("msrp_now_usd_cents"),
     msrpAtLaunchUsdCents: integer("msrp_at_launch_usd_cents"),
+    // Max observed price on MPB (USD cents), optional
+    mpbMaxPriceUsdCents: integer("mpb_max_price_usd_cents"),
     thumbnailUrl: text("thumbnail_url"),
     weightGrams: integer("weight_grams"),
     // Physical dimensions

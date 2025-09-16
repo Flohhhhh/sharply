@@ -135,6 +135,7 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
       "releaseDate",
       "msrpNowUsdCents",
       "msrpAtLaunchUsdCents",
+      "mpbMaxPriceUsdCents",
       "weightGrams",
       "widthMm",
       "heightMm",
@@ -383,6 +384,7 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
             ...(formData as any),
             // Prefill strictly from current schema keys
             msrpNowUsdCents: (formData as any).msrpNowUsdCents ?? null,
+            mpbMaxPriceUsdCents: (formData as any).mpbMaxPriceUsdCents ?? null,
             genres: Array.isArray((formData as any).genres)
               ? ((formData as any).genres as string[])
               : [],
@@ -453,9 +455,9 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
                         ).map(([k, v]) => {
                           let display: string = String(v);
                           if (
-                            k === "msrpUsdCents" ||
                             k === "msrpNowUsdCents" ||
-                            k === "msrpAtLaunchUsdCents"
+                            k === "msrpAtLaunchUsdCents" ||
+                            k === "mpbMaxPriceUsdCents"
                           )
                             display = formatPrice(v as number);
                           if (k === "releaseDate")

@@ -16,6 +16,7 @@ The central table that stores common gear information:
 - **Classification**: Gear type (CAMERA, LENS)
 - **Brand & Mount**: References to brands and mounts
 - **Metadata**: Release date, price, thumbnail URL
+- **Commerce**: `mpbMaxPriceUsdCents` — optional MPB max price (USD cents)
 - **Core Specs**: Physical dimensions (width, height, depth in mm), weight
 - **Timestamps**: Created/updated tracking
 

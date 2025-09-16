@@ -69,6 +69,31 @@ export function normalizeProposalPayloadForDb(
           return undefined;
         }, z.date().nullable().optional())
         .optional(),
+      // Normalize current MSRP in cents
+      msrpNowUsdCents: z
+        .preprocess((value) => {
+          if (value === null) return null; // explicit clear
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().nullable().optional())
+        .optional(),
+      // Normalize launch MSRP in cents
+      msrpAtLaunchUsdCents: z
+        .preprocess((value) => {
+          if (value === null) return null; // explicit clear
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().nullable().optional())
+        .optional(),
+      // Normalize MPB max price in cents
+      mpbMaxPriceUsdCents: z
+        .preprocess((value) => {
+          if (value === null) return null; // explicit clear
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().nullable().optional())
+        .optional(),
+      // Back-compat: legacy single MSRP field (maps to msrpNow on approve)
       msrpUsdCents: z
         .preprocess((value) => {
           if (value === null) return null; // explicit clear

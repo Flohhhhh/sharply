@@ -30,6 +30,7 @@ interface CoreFieldsProps {
     releaseDate: Date | null;
     msrpNowUsdCents?: number | null;
     msrpAtLaunchUsdCents?: number | null;
+    mpbMaxPriceUsdCents?: number | null;
     mountId: string | null;
     weightGrams: number | null;
     widthMm?: number | null;
@@ -81,6 +82,13 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
     [onChange],
   );
 
+  const handleMpbMaxPriceChange = useCallback(
+    (value: number | undefined) => {
+      onChange("mpbMaxPriceUsdCents", usdToCents(value));
+    },
+    [onChange],
+  );
+
   const handleLinkChange = useCallback(
     (field: "linkManufacturer" | "linkMpb" | "linkAmazon", value: string) => {
       const v = value.trim();
@@ -121,6 +129,10 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
   const formattedMsrpAtLaunch = useMemo(() => {
     return centsToUsd(currentSpecs.msrpAtLaunchUsdCents);
   }, [currentSpecs.msrpAtLaunchUsdCents]);
+
+  const formattedMpbMaxPrice = useMemo(() => {
+    return centsToUsd(currentSpecs.mpbMaxPriceUsdCents);
+  }, [currentSpecs.mpbMaxPriceUsdCents]);
 
   // Safely format the weight for the input
   const formattedWeight = useMemo(() => {
@@ -177,7 +189,7 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
 
           <CurrencyInput
             id="msrpNow"
-            label="MSRP (USD)"
+            label="MSRP now (USD)"
             value={formattedMsrpNow}
             onChange={handleMsrpNowChange}
             placeholder="0.00"
@@ -189,6 +201,15 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
             label="MSRP at launch (USD)"
             value={formattedMsrpAtLaunch}
             onChange={handleMsrpAtLaunchChange}
+            placeholder="0.00"
+            min={0}
+          />
+
+          <CurrencyInput
+            id="mpbMaxPrice"
+            label="MPB max price (USD)"
+            value={formattedMpbMaxPrice}
+            onChange={handleMpbMaxPriceChange}
             placeholder="0.00"
             min={0}
           />
