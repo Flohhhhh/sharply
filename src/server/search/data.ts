@@ -66,6 +66,25 @@ export function buildSearchWhereClause(query: string): SQL | undefined {
     sql`similarity(${gear.searchName}, ${normalizedQueryNoPunct}) > 0.5`,
   );
 
+  // Minimal numeric-combo support: if query contains at least two numeric tokens
+  // (integers with length >= 3 or decimals like 4.5), require ALL to appear
+  // somewhere in the raw search name. This helps queries like "400 4.5" match
+  // lenses named "400mm f/4.5" even when normalized concatenation breaks adjacency.
+  const numericMatches = Array.from(
+    normalizedQuery.matchAll(/\d+(?:\.\d+)?/g),
+  ).map((m) => m[0]);
+  const numericTokens = numericMatches.filter(
+    (t) => t.includes(".") || t.length >= 3,
+  );
+  if (numericTokens.length >= 2) {
+    const andClauses = numericTokens.map((t) =>
+      ilike(gear.searchName, `%${t}%`),
+    );
+    conditions.push(
+      sql`(${sql.join(andClauses as unknown as SQL[], sql` AND `)})`,
+    );
+  }
+
   return sql`(${sql.join(conditions, sql` OR `)})`;
 }
 

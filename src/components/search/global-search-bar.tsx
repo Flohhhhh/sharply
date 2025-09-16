@@ -7,6 +7,8 @@ import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { mergeSearchParams } from "@utils/url";
 import { cn } from "~/lib/utils";
+import { useSearchSuggestions } from "@hooks/useSearchSuggestions";
+import type { Suggestion } from "~/types/search";
 
 type GlobalSearchBarProps = {
   placeholder?: string;
@@ -62,10 +64,11 @@ export function GlobalSearchBar({
   const sp = useSearchParams();
   const [value, setValue] = useState<string>(sp.get("q") ?? "");
   const [showRecent, setShowRecent] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const sizes = sizeVariants[size];
 
@@ -109,11 +112,10 @@ export function GlobalSearchBar({
   // Handle click outside to close dropdown
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
+      if (!containerRef.current) return;
+      if (!containerRef.current.contains(event.target as Node)) {
         setShowRecent(false);
+        setIsFocused(false);
       }
     }
 
@@ -180,9 +182,26 @@ export function GlobalSearchBar({
     }
   }
 
+  // Suggestions hook (shared with command palette)
+  const {
+    results: suggestions,
+    loading: suggestLoading,
+    debouncing,
+    hasSearched,
+    fetchNow,
+  } = useSearchSuggestions(value, { debounceMs: 200, minLength: 2 });
+
+  // Kick an immediate fetch exactly when crossing threshold to reduce perceived lag
+  useEffect(() => {
+    if (!isFocused) return;
+    if (value.length === 2) {
+      void fetchNow();
+    }
+  }, [value, isFocused, fetchNow]);
+
   return (
     <div className={className}>
-      <div className="relative bg-white">
+      <div className="relative bg-white" ref={containerRef}>
         <SearchIcon
           className={cn(
             "text-muted-foreground pointer-events-none absolute top-1/2 left-3 -translate-y-1/2",
@@ -197,10 +216,16 @@ export function GlobalSearchBar({
             value={value}
             onChange={(e) => {
               setValue(e.target.value);
-              setShowRecent(e.target.value.length < 2);
+              const next = e.target.value;
+              setShowRecent(next.length < 2);
             }}
             onFocus={() => {
-              if (value.length < 2) setShowRecent(true);
+              setIsFocused(true);
+              if (value.length < 2) {
+                setShowRecent(true);
+              } else if (value.length >= 2) {
+                void fetchNow();
+              }
             }}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
@@ -234,10 +259,9 @@ export function GlobalSearchBar({
           {isMac ? "⌘K" : "Ctrl K"}
         </button>
 
-        {/* Recent searches dropdown - positioned outside the input wrapper */}
+        {/* Dropdown - recent or suggestions */}
         {showRecent && recentSearches.length > 0 && (
           <div
-            ref={dropdownRef}
             className={cn(
               "bg-background absolute top-full right-0 left-0 z-50 overflow-y-auto rounded-md border shadow-lg",
               sizes.dropdown,
@@ -294,6 +318,68 @@ export function GlobalSearchBar({
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {isFocused && value.length >= 2 && (
+          <div
+            className={cn(
+              "bg-background absolute top-full right-0 left-0 z-50 overflow-y-auto rounded-md border shadow-lg",
+              sizes.dropdown,
+            )}
+          >
+            <div className="border-b p-2">
+              <button
+                className={cn(
+                  "hover:bg-accent w-full cursor-pointer rounded px-3 py-2 text-left text-sm",
+                )}
+                onClick={() => submit(value)}
+              >
+                <div className="flex items-center">
+                  <SearchIcon className="mr-2 h-4 w-4" />
+                  See all results for "{value}"
+                </div>
+              </button>
+            </div>
+
+            {(suggestLoading || debouncing) && (
+              <div className="flex items-center justify-center py-3">
+                <Loader2 className="h-4 w-4 animate-spin" />
+              </div>
+            )}
+
+            {hasSearched && !suggestLoading && !debouncing && (
+              <div className="py-1">
+                {suggestions.length > 0 ? (
+                  suggestions.map((s) => (
+                    <button
+                      key={s.id}
+                      className={cn(
+                        "hover:bg-accent w-full cursor-pointer px-3 text-left",
+                        sizes.recentItem,
+                      )}
+                      onClick={() => {
+                        setIsFocused(false);
+                        router.push(s.href);
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="truncate">{s.label}</span>
+                        {s.relevance !== undefined && (
+                          <span className="text-muted-foreground ml-auto text-xs">
+                            {Math.round(s.relevance * 100)}%
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  ))
+                ) : (
+                  <div className="text-muted-foreground py-3 text-center text-sm">
+                    No suggestions.
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>

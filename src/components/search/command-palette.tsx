@@ -11,27 +11,16 @@ import {
   CommandList,
 } from "~/components/ui/command";
 import { Bird, Loader2, SearchIcon } from "lucide-react";
-import { useDebounce } from "@hooks/useDebounce";
-
-type Suggestion = {
-  id: string;
-  label: string;
-  href: string;
-  type: "gear" | "brand";
-  relevance?: number;
-};
+import { useSearchSuggestions } from "@hooks/useSearchSuggestions";
+import type { Suggestion } from "~/types/search";
 
 export function CommandPalette() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const debounced = useDebounce(query, 200);
-  const [results, setResults] = useState<Suggestion[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [debouncing, setDebouncing] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const { results, loading, debouncing, hasSearched, fetchNow } =
+    useSearchSuggestions(query, { debounceMs: 200, minLength: 2 });
 
   // Keyboard shortcut
   useEffect(() => {
@@ -58,9 +47,6 @@ export function CommandPalette() {
   // When opened, focus input and refresh results for current query
   useEffect(() => {
     if (!open) return;
-    // Clear stale results if query is empty
-    if (!query) setResults([]);
-
     // Focus input soon after dialog opens
     const t = setTimeout(() => {
       inputRef.current?.focus();
@@ -68,86 +54,21 @@ export function CommandPalette() {
 
     // If query already has enough chars, fetch immediately (not debounced)
     if (query && query.length >= 2) {
-      // Cancel any previous request
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-
-      abortControllerRef.current = new AbortController();
-      setLoading(true); // Set loading state
-
-      void fetch(`/api/search/suggest?q=${encodeURIComponent(query)}`, {
-        signal: abortControllerRef.current.signal,
-      })
-        .then((r) => (r.ok ? r.json() : null))
-        .then((data: { suggestions: Suggestion[] } | null) =>
-          setResults(data?.suggestions ?? []),
-        )
-        .catch(() => setResults([]))
-        .finally(() => setLoading(false)); // Clear loading state
+      void fetchNow();
     }
 
     return () => clearTimeout(t);
   }, [open]);
 
-  // Show debouncing state when user is typing
+  // Fire immediate fetch when the user crosses the length threshold upward (while open)
   useEffect(() => {
-    if (query && query.length >= 2) {
-      setDebouncing(true);
-      setHasSearched(false); // Reset search state when typing new query
-    } else {
-      setDebouncing(false);
-      setHasSearched(false);
+    if (!open) return;
+    if (query.length === 2) {
+      void fetchNow();
     }
-  }, [query]);
+  }, [query, open, fetchNow]);
 
-  // Fetch suggestions (debounced while typing)
-  useEffect(() => {
-    if (!debounced || debounced.length < 2) {
-      setResults([]);
-      setDebouncing(false);
-      setHasSearched(false);
-      return;
-    }
-
-    // Cancel any previous request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    abortControllerRef.current = new AbortController();
-    setDebouncing(false); // Stop debouncing, start actual loading
-    setLoading(true);
-
-    void fetch(`/api/search/suggest?q=${encodeURIComponent(debounced)}`, {
-      signal: abortControllerRef.current.signal,
-    })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data: { suggestions: Suggestion[] } | null) => {
-        setResults(data?.suggestions ?? []);
-        setHasSearched(true); // Mark that we've completed a search
-      })
-      .catch(() => {
-        setResults([]);
-        setHasSearched(true);
-      })
-      .finally(() => setLoading(false));
-
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, [debounced]);
-
-  // Cleanup abort controller on unmount
-  useEffect(() => {
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, []);
+  // Cleanup handled inside hook
 
   const handleSeeAllResults = () => {
     setOpen(false);
