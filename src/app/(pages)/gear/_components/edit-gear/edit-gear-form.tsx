@@ -133,7 +133,8 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
       "brandId",
       "mountId",
       "releaseDate",
-      "msrpUsdCents",
+      "msrpNowUsdCents",
+      "msrpAtLaunchUsdCents",
       "weightGrams",
       "widthMm",
       "heightMm",
@@ -380,6 +381,8 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
         currentSpecs={
           {
             ...(formData as any),
+            // Prefill strictly from current schema keys
+            msrpNowUsdCents: (formData as any).msrpNowUsdCents ?? null,
             genres: Array.isArray((formData as any).genres)
               ? ((formData as any).genres as string[])
               : [],
@@ -449,7 +452,11 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
                           diffPreview.core as Record<string, any>,
                         ).map(([k, v]) => {
                           let display: string = String(v);
-                          if (k === "msrpUsdCents")
+                          if (
+                            k === "msrpUsdCents" ||
+                            k === "msrpNowUsdCents" ||
+                            k === "msrpAtLaunchUsdCents"
+                          )
                             display = formatPrice(v as number);
                           if (k === "releaseDate")
                             display = formatHumanDate(v as any);

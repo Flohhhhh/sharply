@@ -3,6 +3,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@radix-ui/react-tooltip";
+import type { ReactNode } from "react";
 import { InfoIcon } from "lucide-react";
 import { SpecsMissingNote } from "./specs-missing-note";
 import type { GearItem } from "~/types/gear";
@@ -11,7 +12,7 @@ export type SpecsTableSection = {
   title: string;
   data: {
     label: string;
-    value: string | number | boolean | undefined;
+    value: ReactNode | undefined;
     tooltip?: string;
   }[];
 };
@@ -51,7 +52,7 @@ export default function SpecsTable({
                         </Tooltip>
                       )}
                     </div>
-                    <span className="">{item.value}</span>
+                    <div className="text-right">{item.value}</div>
                   </div>
                 ))}
             </div>

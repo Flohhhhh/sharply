@@ -104,7 +104,11 @@ export default async function EditSuccessPage({
                       {Object.entries((edit.payload as any).core).map(
                         ([k, v]) => {
                           let display: string = String(v as any);
-                          if (k === "msrpUsdCents")
+                          if (
+                            k === "msrpUsdCents" ||
+                            k === "msrpNowUsdCents" ||
+                            k === "msrpAtLaunchUsdCents"
+                          )
                             display = formatPrice(v as number);
                           if (k === "releaseDate")
                             display = formatHumanDate(v as any);

@@ -76,13 +76,18 @@ const CurrencyInput = ({
       return;
     }
 
-    // Only allow numbers and decimal points while typing
-    if (/^\d*\.?\d*$/.test(newValue)) {
+    // Allow numbers, decimals, and commas while typing; parse safely
+    const sanitized = newValue.replace(/,/g, "");
+    if (/^\d*\.?\d*$/.test(sanitized)) {
       setInputValue(newValue);
 
-      // Convert to number and update
-      const numValue = parseFloat(newValue);
-      if (!isNaN(numValue) && numValue >= min && (!max || numValue <= max)) {
+      // Convert to number and update using comma-safe parsing
+      const numValue = parseCurrency(newValue);
+      if (
+        numValue !== undefined &&
+        numValue >= min &&
+        (!max || numValue <= max)
+      ) {
         onChange(numValue);
       }
     }
@@ -95,8 +100,12 @@ const CurrencyInput = ({
       return;
     }
 
-    const numValue = parseFloat(inputValue);
-    if (!isNaN(numValue) && numValue >= min && (!max || numValue <= max)) {
+    const numValue = parseCurrency(inputValue);
+    if (
+      numValue !== undefined &&
+      numValue >= min &&
+      (!max || numValue <= max)
+    ) {
       onChange(numValue);
       // Format the final value nicely with commas and 2 decimals
       setInputValue(formatCurrency(numValue));

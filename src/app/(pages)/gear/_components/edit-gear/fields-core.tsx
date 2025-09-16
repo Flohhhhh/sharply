@@ -28,7 +28,8 @@ import { InfoIcon } from "lucide-react";
 interface CoreFieldsProps {
   currentSpecs: {
     releaseDate: Date | null;
-    msrpUsdCents: number | null;
+    msrpNowUsdCents?: number | null;
+    msrpAtLaunchUsdCents?: number | null;
     mountId: string | null;
     weightGrams: number | null;
     widthMm?: number | null;
@@ -66,9 +67,16 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
     [onChange],
   );
 
-  const handlePriceChange = useCallback(
+  const handleMsrpNowChange = useCallback(
     (value: number | undefined) => {
-      onChange("msrpUsdCents", usdToCents(value));
+      onChange("msrpNowUsdCents", usdToCents(value));
+    },
+    [onChange],
+  );
+
+  const handleMsrpAtLaunchChange = useCallback(
+    (value: number | undefined) => {
+      onChange("msrpAtLaunchUsdCents", usdToCents(value));
     },
     [onChange],
   );
@@ -105,10 +113,14 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
     }
   }, [currentSpecs.releaseDate]);
 
-  // Safely format the price for the input (convert cents to dollars)
-  const formattedPrice = useMemo(() => {
-    return centsToUsd(currentSpecs.msrpUsdCents);
-  }, [currentSpecs.msrpUsdCents]);
+  // Safely format the current MSRP and launch MSRP for the inputs (convert cents to dollars)
+  const formattedMsrpNow = useMemo(() => {
+    return centsToUsd(currentSpecs.msrpNowUsdCents);
+  }, [currentSpecs.msrpNowUsdCents]);
+
+  const formattedMsrpAtLaunch = useMemo(() => {
+    return centsToUsd(currentSpecs.msrpAtLaunchUsdCents);
+  }, [currentSpecs.msrpAtLaunchUsdCents]);
 
   // Safely format the weight for the input
   const formattedWeight = useMemo(() => {
@@ -164,10 +176,19 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
           />
 
           <CurrencyInput
-            id="msrp"
+            id="msrpNow"
             label="MSRP (USD)"
-            value={formattedPrice}
-            onChange={handlePriceChange}
+            value={formattedMsrpNow}
+            onChange={handleMsrpNowChange}
+            placeholder="0.00"
+            min={0}
+          />
+
+          <CurrencyInput
+            id="msrpAtLaunch"
+            label="MSRP at launch (USD)"
+            value={formattedMsrpAtLaunch}
+            onChange={handleMsrpAtLaunchChange}
             placeholder="0.00"
             min={0}
           />

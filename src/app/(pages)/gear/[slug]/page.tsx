@@ -31,7 +31,7 @@ import { SuggestEditButton } from "../_components/suggest-edit-button";
 import { GearLinks } from "~/app/(pages)/gear/_components/gear-links";
 import GearStatsCard from "../_components/gear-stats-card";
 import GearBadges from "../_components/gear-badges";
-import { sensorTypeLabel } from "~/lib/mapping/sensor-map";
+import { sensorNameFromId, sensorTypeLabel } from "~/lib/mapping/sensor-map";
 import {
   Tooltip,
   TooltipContent,
@@ -67,18 +67,19 @@ export default async function GearPage({ params }: GearPageProps) {
   const lensSpecsItem =
     item.gearType === "LENS" ? (item.lensSpecs ?? null) : null;
 
+  console.log("[GearPage] item", item);
   // console.log("[GearPage] cameraSpecsItem", cameraSpecsItem);
 
   // Get sensor format if camera specs exist
-  let sensorFormat = null;
-  // sensor format id available on camera specs; join for name elsewhere
-  if (cameraSpecsItem?.sensorFormatId) {
-    sensorFormat = {
-      id: cameraSpecsItem.sensorFormatId,
-      name: "",
-      slug: "",
-    } as any;
-  }
+  // let sensorFormat = null;
+  // // sensor format id available on camera specs; join for name elsewhere
+  // if (cameraSpecsItem?.sensorFormatId) {
+  //   sensorFormat = {
+  //     id: cameraSpecsItem.sensorFormatId,
+  //     name: sensorNameFromId(cameraSpecsItem.sensorFormatId),
+  //     slug: "",
+  //   } as any;
+  // }
 
   // Compute combined Sensor Type label (e.g., "Partially-Stacked BSI-CMOS")
   // const sensorTypeLabel = (() => {
@@ -140,14 +141,20 @@ export default async function GearPage({ params }: GearPageProps) {
         { label: "Mount", value: item.mounts?.value },
         { label: "Release Date", value: formatHumanDate(item.releaseDate) },
         {
-          label: "MSRP",
+          label: "MSRP Now",
           value: item.msrpNowUsdCents
             ? formatPrice(item.msrpNowUsdCents)
             : undefined,
         },
         {
+          label: "MSRP At Launch",
+          value: item.msrpAtLaunchUsdCents
+            ? formatPrice(item.msrpAtLaunchUsdCents)
+            : undefined,
+        },
+        {
           label: "Weight",
-          value: item.weightGrams ? `${item.weightGrams} grams` : undefined,
+          value: item.weightGrams ? `${item.weightGrams} g` : undefined,
         },
         {
           label: "Dimensions",
@@ -197,11 +204,13 @@ export default async function GearPage({ params }: GearPageProps) {
               },
               {
                 label: "Sensor Format",
-                value: sensorFormat.name,
+                value: cameraSpecsItem?.sensorFormatId
+                  ? sensorNameFromId(cameraSpecsItem?.sensorFormatId)
+                  : undefined,
               },
               {
                 label: "ISO Range",
-                value: `${cameraSpecsItem?.isoMin} - ${cameraSpecsItem?.isoMax}`,
+                value: `ISO ${cameraSpecsItem?.isoMin} - ${cameraSpecsItem?.isoMax}`,
               },
               {
                 label: "Max FPS (RAW)",
