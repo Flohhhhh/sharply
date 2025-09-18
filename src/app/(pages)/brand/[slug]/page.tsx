@@ -3,6 +3,7 @@ import { fetchGearForBrand } from "~/server/gear/service";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { formatPrice, getMountDisplayName } from "~/lib/mapping";
+import { GearCard } from "~/components/gear/gear-card";
 import BrandTrendingList from "./_components/brand-trending-list";
 
 interface BrandPageProps {
@@ -54,68 +55,24 @@ export default async function BrandPage({ params }: BrandPageProps) {
       ) : (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {brandGear.map((item) => (
-            <Link
+            <GearCard
               key={item.id}
               href={`/gear/${item.slug}`}
-              className="border-input bg-card hover:bg-accent block rounded-md border p-4"
-            >
-              <div className="space-y-3">
-                {/* Thumbnail */}
-                {item.thumbnailUrl ? (
-                  <div className="bg-muted aspect-video overflow-hidden rounded-md">
-                    <img
-                      src={item.thumbnailUrl}
-                      alt={item.name}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                ) : (
-                  <div className="bg-muted flex aspect-video items-center justify-center rounded-md">
-                    <div className="text-muted-foreground text-sm">
-                      No image
-                    </div>
-                  </div>
-                )}
-
-                {/* Gear Info */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="bg-secondary rounded-full px-2 py-1 text-xs font-medium">
-                      {item.gearType}
-                    </span>
-                    {(() => {
-                      const m = (item as any).mount as
-                        | { id: string; value: string }
-                        | null
-                        | undefined;
-                      return m ? (
-                        <span className="text-muted-foreground text-xs">
-                          {getMountDisplayName(m.value)}
-                        </span>
-                      ) : null;
-                    })()}
-                  </div>
-
-                  <h3 className="font-semibold">{item.name}</h3>
-
-                  {item.msrpNowUsdCents && (
-                    <p className="text-sm font-medium">
-                      {formatPrice(item.msrpNowUsdCents)}
-                    </p>
-                  )}
-
-                  {item.releaseDate && (
-                    <p className="text-muted-foreground text-xs">
-                      Released{" "}
-                      {new Date(item.releaseDate).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                      })}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </Link>
+              slug={item.slug}
+              name={item.name}
+              brandName={item.brandName}
+              thumbnailUrl={item.thumbnailUrl}
+              gearType={item.gearType}
+              dateText={
+                item.releaseDate
+                  ? new Date(item.releaseDate).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "short",
+                    })
+                  : null
+              }
+              mountText={(item as any).mount?.value ?? null}
+            />
           ))}
         </div>
       )}

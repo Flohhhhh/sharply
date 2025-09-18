@@ -11,6 +11,8 @@ import {
   CommandList,
 } from "~/components/ui/command";
 import { Bird, Loader2, SearchIcon } from "lucide-react";
+import { AddToCompareButton } from "~/components/compare/add-to-compare-button";
+import { useCompare } from "~/lib/hooks/useCompare";
 import { useSearchSuggestions } from "@hooks/useSearchSuggestions";
 import type { Suggestion } from "~/types/search";
 
@@ -120,17 +122,32 @@ export function CommandPalette() {
                     {results.map((s) => (
                       <CommandItem
                         key={s.id}
+                        className="group/item"
                         onSelect={() => {
                           setOpen(false);
                           router.push(s.href);
                         }}
                       >
-                        {s.label}
-                        {s.relevance !== undefined && (
-                          <span className="text-muted-foreground ml-auto text-xs">
-                            {Math.round(s.relevance * 100)}%
-                          </span>
-                        )}
+                        <div className="flex w-full items-center gap-2">
+                          <div className="flex-1 truncate">{s.label}</div>
+                          {s.relevance !== undefined && (
+                            <span className="text-muted-foreground ml-2 text-xs">
+                              {Math.round(s.relevance * 100)}%
+                            </span>
+                          )}
+                          {/* Add to compare on hover (gear suggestions only) */}
+                          {s.type === "gear" && (
+                            <div className="opacity-0 transition-opacity group-hover/item:opacity-100">
+                              <AddToCompareButton
+                                slug={s.href.replace("/gear/", "")}
+                                name={s.label}
+                                size="sm"
+                                className="px-2"
+                                iconStyle="scalePlus"
+                              />
+                            </div>
+                          )}
+                        </div>
                       </CommandItem>
                     ))}
                   </CommandGroup>

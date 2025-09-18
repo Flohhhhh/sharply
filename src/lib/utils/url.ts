@@ -45,3 +45,16 @@ export function mergeSearchParams(
   }
   return next.toString();
 }
+
+/**
+ * buildCompareHref
+ *
+ * Builds a canonical compare URL using exact gear slugs. Slugs are sorted
+ * alphabetically to ensure a stable URL for the same pair.
+ */
+export function buildCompareHref(slugs: string[]): string {
+  const unique = Array.from(new Set(slugs.filter(Boolean)));
+  if (unique.length === 0) return "/compare";
+  const sorted = [...unique].sort((a, b) => a.localeCompare(b));
+  return buildSearchHref("/compare", { i: sorted });
+}

@@ -8,6 +8,7 @@ import { Button } from "~/components/ui/button";
 import { mergeSearchParams } from "@utils/url";
 import { cn } from "~/lib/utils";
 import { useSearchSuggestions } from "@hooks/useSearchSuggestions";
+import { GlobalSearchSuggestion } from "~/components/search/global-search-suggestion";
 import type { Suggestion } from "~/types/search";
 
 type GlobalSearchBarProps = {
@@ -352,26 +353,19 @@ export function GlobalSearchBar({
               <div className="py-1">
                 {suggestions.length > 0 ? (
                   suggestions.map((s) => (
-                    <button
+                    <GlobalSearchSuggestion
                       key={s.id}
-                      className={cn(
-                        "hover:bg-accent w-full cursor-pointer px-3 text-left",
-                        sizes.recentItem,
-                      )}
+                      id={s.id}
+                      label={s.label}
+                      href={s.href}
+                      type={s.type}
+                      relevance={s.relevance}
+                      className={sizes.recentItem}
                       onClick={() => {
                         setIsFocused(false);
                         router.push(s.href);
                       }}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="truncate">{s.label}</span>
-                        {s.relevance !== undefined && (
-                          <span className="text-muted-foreground ml-auto text-xs">
-                            {Math.round(s.relevance * 100)}%
-                          </span>
-                        )}
-                      </div>
-                    </button>
+                    />
                   ))
                 ) : (
                   <div className="text-muted-foreground py-3 text-center text-sm">

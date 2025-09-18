@@ -11,6 +11,7 @@ import {
   popularityEvents,
 } from "~/server/db/schema";
 import { and, desc, eq, gte, lt, sql, type SQL } from "drizzle-orm";
+import type { PopularityEventType } from "~/server/validation/dedupe";
 
 /**
  * Popularity data access layer (server-only)
@@ -333,5 +334,83 @@ export async function insertViewEvent(params: {
     userId: params.userId ?? null,
     visitorId: params.userId ? null : (params.visitorId ?? null),
     eventType: "view",
+  });
+}
+
+/**
+ * hasEventForIdentityToday
+ *
+ * Generic identity-based dedupe across event types for the current UTC day.
+ */
+export async function hasEventForIdentityToday(params: {
+  gearId: string;
+  eventType: PopularityEventType;
+  userId?: string | null;
+  visitorId?: string | null;
+  now?: Date;
+}): Promise<boolean> {
+  const now = params.now ?? new Date();
+  const startUtc = new Date(
+    Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      0,
+      0,
+      0,
+      0,
+    ),
+  );
+  const nextUtc = new Date(
+    Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate() + 1,
+      0,
+      0,
+      0,
+      0,
+    ),
+  );
+
+  let identityFilter: SQL | undefined;
+  if (params.userId) {
+    identityFilter = eq(popularityEvents.userId, params.userId);
+  } else if (params.visitorId) {
+    identityFilter = eq(popularityEvents.visitorId, params.visitorId);
+  } else {
+    return false;
+  }
+
+  const existing = await db
+    .select({ id: popularityEvents.id })
+    .from(popularityEvents)
+    .where(
+      and(
+        eq(popularityEvents.gearId, params.gearId),
+        eq(popularityEvents.eventType, params.eventType),
+        gte(popularityEvents.createdAt, startUtc),
+        lt(popularityEvents.createdAt, nextUtc),
+        identityFilter!,
+      ),
+    )
+    .limit(1);
+
+  return existing.length > 0;
+}
+
+/**
+ * insertCompareAddEvent
+ */
+export async function insertCompareAddEvent(params: {
+  gearId: string;
+  userId?: string | null;
+  visitorId?: string | null;
+}) {
+  await db.insert(popularityEvents).values({
+    gearId: params.gearId,
+    userId: params.userId ?? null,
+    visitorId: params.userId ? null : (params.visitorId ?? null),
+    eventType: "compare_add",
   });
 }

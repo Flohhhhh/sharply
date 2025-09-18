@@ -6,6 +6,7 @@ import {
 import { FilterPills } from "~/components/search/filter-pills";
 import { FiltersModal } from "~/components/search/filters-modal";
 import { SortSelect } from "~/components/search/sort-select";
+import { GearCard } from "~/components/gear/gear-card";
 
 type SearchPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -102,25 +103,17 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                   {result.results
                     .filter((r: SearchResult) => (r.relevance ?? 0) > 0.8)
                     .map((r: SearchResult) => (
-                      <a
+                      <GearCard
                         key={r.id}
                         href={`/gear/${r.slug}`}
-                        className="border-border hover:bg-accent rounded-md border p-4 transition-colors"
-                      >
-                        <div className="bg-muted mb-2 h-32 w-full overflow-hidden rounded" />
-                        <div className="text-muted-foreground text-sm">
-                          {r.brandName ?? ""}
-                        </div>
-                        <div className="text-base font-medium">{r.name}</div>
-                        <div className="text-muted-foreground text-xs">
-                          {r.mountValue ?? ""} · {r.gearType}
-                          {r.relevance !== undefined && (
-                            <span className="ml-2 text-xs opacity-70">
-                              ({Math.round(r.relevance * 100)}%)
-                            </span>
-                          )}
-                        </div>
-                      </a>
+                        slug={r.slug}
+                        name={r.name}
+                        brandName={r.brandName}
+                        thumbnailUrl={r.thumbnailUrl}
+                        gearType={r.gearType}
+                        mountText={r.mountValue}
+                        dateText={null}
+                      />
                     ))}
                 </div>
               </div>
@@ -138,25 +131,17 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                   {result.results
                     .filter((r: SearchResult) => (r.relevance ?? 0) <= 0.8)
                     .map((r: SearchResult) => (
-                      <a
+                      <GearCard
                         key={r.id}
                         href={`/gear/${r.slug}`}
-                        className="border-border hover:bg-accent rounded-md border p-4 transition-colors"
-                      >
-                        <div className="bg-muted mb-2 h-32 w-full overflow-hidden rounded" />
-                        <div className="text-muted-foreground text-sm">
-                          {r.brandName ?? ""}
-                        </div>
-                        <div className="text-base font-medium">{r.name}</div>
-                        <div className="text-muted-foreground text-xs">
-                          {r.mountValue ?? ""} · {r.gearType}
-                          {r.relevance !== undefined && (
-                            <span className="ml-2 text-xs opacity-70">
-                              ({Math.round(r.relevance * 100)}%)
-                            </span>
-                          )}
-                        </div>
-                      </a>
+                        slug={r.slug}
+                        name={r.name}
+                        brandName={r.brandName}
+                        thumbnailUrl={r.thumbnailUrl}
+                        gearType={r.gearType}
+                        mountText={r.mountValue}
+                        dateText={null}
+                      />
                     ))}
                 </div>
               </div>
@@ -166,25 +151,17 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           /* Default grid for non-relevance sorting */
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {result.results.map((r: SearchResult) => (
-              <a
+              <GearCard
                 key={r.id}
                 href={`/gear/${r.slug}`}
-                className="border-border hover:bg-accent rounded-md border p-4 transition-colors"
-              >
-                <div className="bg-muted mb-2 h-32 w-full overflow-hidden rounded" />
-                <div className="text-muted-foreground text-sm">
-                  {r.brandName ?? ""}
-                </div>
-                <div className="text-base font-medium">{r.name}</div>
-                <div className="text-muted-foreground text-xs">
-                  {r.mountValue ?? ""} · {r.gearType}
-                  {r.relevance !== undefined && (
-                    <span className="ml-2 text-xs opacity-70">
-                      ({Math.round(r.relevance * 100)}%)
-                    </span>
-                  )}
-                </div>
-              </a>
+                slug={r.slug}
+                name={r.name}
+                brandName={r.brandName}
+                thumbnailUrl={r.thumbnailUrl}
+                gearType={r.gearType}
+                mountText={r.mountValue}
+                dateText={null}
+              />
             ))}
           </div>
         )}

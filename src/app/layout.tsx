@@ -4,6 +4,7 @@ import { type Metadata } from "next";
 // import { Geist } from "next/font/google";
 import { Providers } from "./providers";
 import { Toaster } from "~/components/ui/sonner";
+import { FloatingCompareButton } from "~/components/compare/floating-compare-button";
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -23,7 +24,10 @@ export default function RootLayout({
     // <html lang="en" className={`${geist.variable}`}>
     <html lang="en">
       <body>
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <FloatingCompareButton />
+        </Providers>
         <Toaster theme="light" />
       </body>
     </html>

@@ -7,6 +7,8 @@ import {
   hasViewEventForIdentityToday,
   insertViewEvent,
   getTrendingData,
+  hasEventForIdentityToday as hasEventForIdentityTodayGeneric,
+  insertCompareAddEvent,
 } from "./data";
 import { auth } from "~/server/auth";
 
@@ -96,4 +98,49 @@ export async function fetchTrending(params: {
   const limit = params.limit ?? 10;
   const filters = params.filters ?? {};
   return getTrendingData(timeframe, limit, filters);
+}
+
+/**
+ * recordCompareAdd(slug, identity)
+ *
+ * Appends a `compare_add` popularity event for this gear if not already
+ * recorded for the current identity (user or visitor) today.
+ */
+export async function recordCompareAdd(params: {
+  slug: string;
+  userId?: string | null;
+  visitorId?: string | null;
+}): Promise<{ success: true; deduped: boolean; skipped?: string }> {
+  const gearRow = await db
+    .select({ id: gear.id })
+    .from(gear)
+    .where(eq(gear.slug, params.slug))
+    .limit(1);
+  if (!gearRow.length) {
+    return { success: true, deduped: false, skipped: "gear_not_found" };
+  }
+  const gearId = gearRow[0]!.id;
+
+  let resolvedUserId = params.userId ?? null;
+  if (!resolvedUserId) {
+    try {
+      const session = await auth();
+      resolvedUserId = session?.user?.id ?? null;
+    } catch {}
+  }
+
+  const already = await hasEventForIdentityTodayGeneric({
+    gearId,
+    eventType: "compare_add",
+    userId: resolvedUserId ?? undefined,
+    visitorId: resolvedUserId ? null : (params.visitorId ?? null),
+  });
+  if (already) return { success: true, deduped: true } as const;
+
+  await insertCompareAddEvent({
+    gearId,
+    userId: resolvedUserId,
+    visitorId: resolvedUserId ? null : (params.visitorId ?? null),
+  });
+  return { success: true, deduped: false } as const;
 }

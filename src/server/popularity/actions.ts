@@ -1,7 +1,7 @@
 "use server";
 import "server-only";
 
-import { recordGearView } from "./service";
+import { recordGearView, recordCompareAdd } from "./service";
 import { cookies, headers } from "next/headers";
 
 /**
@@ -42,4 +42,30 @@ export async function actionRecordGearView(params: {
     userAgent: ua,
   });
   return res;
+}
+
+/**
+ * actionRecordCompareAdd
+ *
+ * Client calls this when a gear is added to compare (or replaced in).
+ * Accepts slug and optional visitorId for anonymous dedupe.
+ */
+export async function actionRecordCompareAdd(params: {
+  slug: string;
+  visitorId?: string | null;
+}) {
+  const cookieStore = await cookies();
+  let visitorId =
+    params.visitorId ?? cookieStore.get("visitorId")?.value ?? null;
+  if (!visitorId) {
+    visitorId = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    cookieStore.set("visitorId", visitorId, {
+      httpOnly: false,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 3,
+    });
+  }
+  return recordCompareAdd({ slug: params.slug, visitorId });
 }
