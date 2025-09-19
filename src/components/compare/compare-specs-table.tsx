@@ -8,6 +8,7 @@ import { SuggestEditButton } from "~/app/(pages)/gear/_components/suggest-edit-b
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
+import { getConstructionState } from "~/lib/utils";
 
 type Row = { label: string; a?: React.ReactNode; b?: React.ReactNode };
 
@@ -42,6 +43,8 @@ export function CompareSpecsTable({
   const missingA = countMissingSpecs(aSections);
   const missingB = countMissingSpecs(bSections);
   const { status } = useSession();
+  const aConstruction = getConstructionState(a);
+  const bConstruction = getConstructionState(b);
 
   // Align sections by title (assumes same registry for both types)
   const byTitle = new Map<string, { a?: any; b?: any }>();
@@ -68,7 +71,11 @@ export function CompareSpecsTable({
     totalVisibleRows += filterEmptyRows(rows).length;
   }
 
-  if (totalVisibleRows === 0) {
+  if (
+    totalVisibleRows === 0 ||
+    aConstruction.underConstruction ||
+    bConstruction.underConstruction
+  ) {
     return (
       <div className={cn("rounded-md border p-6 text-center", className)}>
         <p className="text-muted-foreground text-sm">
@@ -96,6 +103,14 @@ export function CompareSpecsTable({
               <div className="text-muted-foreground text-sm">
                 {missingA} specs missing
               </div>
+              {aConstruction.underConstruction &&
+              aConstruction.missing?.length ? (
+                <ul className="text-muted-foreground mt-1 list-inside list-disc text-xs">
+                  {aConstruction.missing.map((m) => (
+                    <li key={m}>{m}</li>
+                  ))}
+                </ul>
+              ) : null}
               <div className="mt-2">
                 <SuggestEditButton slug={a.slug} gearType={a.gearType} />
               </div>
@@ -105,6 +120,14 @@ export function CompareSpecsTable({
               <div className="text-muted-foreground text-sm">
                 {missingB} specs missing
               </div>
+              {bConstruction.underConstruction &&
+              bConstruction.missing?.length ? (
+                <ul className="text-muted-foreground mt-1 list-inside list-disc text-xs">
+                  {bConstruction.missing.map((m) => (
+                    <li key={m}>{m}</li>
+                  ))}
+                </ul>
+              ) : null}
               <div className="mt-2">
                 <SuggestEditButton slug={b.slug} gearType={b.gearType} />
               </div>

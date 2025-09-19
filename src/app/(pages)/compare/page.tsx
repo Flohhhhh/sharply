@@ -4,6 +4,7 @@ import { type Metadata } from "next";
 import { buildCompareHref } from "~/lib/utils/url";
 import { CompareClient } from "~/components/compare/compare-client";
 import { fetchGearBySlug } from "~/server/gear/service";
+import { getBrandNameById, stripLeadingBrand } from "~/lib/mapping/brand-map";
 
 export const metadata: Metadata = {
   title: "Compare | Sharply",
@@ -47,12 +48,24 @@ export default async function ComparePage({
     slugB ? fetchGearBySlug(slugB).catch(() => null) : null,
   ]);
 
+  const aBrand = (getBrandNameById(a?.brandId ?? "") ?? "").trim();
+  const bBrand = (getBrandNameById(b?.brandId ?? "") ?? "").trim();
+  const aName = stripLeadingBrand(a?.name ?? (slugA as string), aBrand);
+  const bName = stripLeadingBrand(b?.name ?? (slugB as string), bBrand);
+
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Compare</h1>
-        <span className="text-muted-foreground text-sm">{href}</span>
+    <div className="mx-auto mt-24 max-w-6xl space-y-8 px-4 py-8">
+      <div className="grid grid-cols-[1fr_auto_1fr] gap-4">
+        <h2 className="text-left text-4xl">
+          <span className="font-bold">{aBrand}</span> {aName}
+        </h2>
+        <span className="text-center">vs</span>
+        <h2 className="text-right text-4xl">
+          <span className="font-bold">{bBrand}</span> {bName}
+        </h2>
       </div>
+
+      {/* TODO: add a copy link or share button */}
 
       <CompareClient slugs={pair} a={a as any} b={b as any} />
     </div>
