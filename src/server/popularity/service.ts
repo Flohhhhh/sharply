@@ -10,6 +10,7 @@ import {
   hasEventForIdentityToday as hasEventForIdentityTodayGeneric,
   insertCompareAddEvent,
   incrementComparePairCountBySlugs,
+  fetchTopComparePairs as fetchTopComparePairsData,
 } from "./data";
 import { auth } from "~/server/auth";
 
@@ -95,6 +96,10 @@ export async function incrementComparePairCount(params: {
   slugs: [string, string];
 }): Promise<{ success: boolean; skipped?: string }> {
   return incrementComparePairCountBySlugs({ slugs: params.slugs });
+}
+
+export async function fetchTopComparePairs(limit = 20) {
+  return fetchTopComparePairsData(limit);
 }
 
 export async function fetchTrending(params: {

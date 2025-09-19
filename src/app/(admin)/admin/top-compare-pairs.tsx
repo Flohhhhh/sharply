@@ -1,4 +1,4 @@
-import { fetchTopComparePairs } from "~/server/popularity/data";
+import { fetchTopComparePairs } from "~/server/popularity/service";
 
 export async function TopComparePairs() {
   const rows = await fetchTopComparePairs(20);
