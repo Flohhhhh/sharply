@@ -5,6 +5,7 @@ import { buildCompareHref } from "~/lib/utils/url";
 import { CompareClient } from "~/components/compare/compare-client";
 import { fetchGearBySlug } from "~/server/gear/service";
 import { getBrandNameById, stripLeadingBrand } from "~/lib/mapping/brand-map";
+import { OpenSearchButton } from "~/components/search/open-search-button";
 
 export const metadata: Metadata = {
   title: "Compare | Sharply",
@@ -29,14 +30,19 @@ export default async function ComparePage({
 
   const pair = getPairFromParams(usp);
   if (pair.length === 0) {
-    // Empty state
+    // Guided empty state
     return (
-      <div className="mx-auto max-w-5xl px-4 py-12">
-        <h1 className="mb-2 text-3xl font-semibold">Compare</h1>
-        <p className="text-muted-foreground">
-          Add two items from anywhere using the button, then come back here to
-          see the comparison.
+      <div className="mx-auto min-h-screen max-w-5xl px-4 py-16 text-center">
+        <h1 className="mt-32 mb-3 text-3xl font-semibold md:text-4xl">
+          Nothing to compare yet
+        </h1>
+        <p className="text-muted-foreground mx-auto max-w-xl text-sm md:text-base">
+          Search for 2 items and add them to the comparison to see how they
+          stack up.
         </p>
+        <div className="mt-6 flex items-center justify-center">
+          <OpenSearchButton>Open search</OpenSearchButton>
+        </div>
       </div>
     );
   }
@@ -54,7 +60,7 @@ export default async function ComparePage({
   const bName = stripLeadingBrand(b?.name ?? slugB ?? "", bBrand);
 
   return (
-    <div className="mx-auto mt-24 max-w-6xl space-y-8 px-4 py-8">
+    <div className="mx-auto mt-24 min-h-screen max-w-6xl space-y-8 px-4 py-8">
       <div className="grid grid-cols-[1fr_auto_1fr] gap-4">
         <h2 className="text-left text-4xl">
           <span className="font-bold">{aBrand}</span> {aName}
