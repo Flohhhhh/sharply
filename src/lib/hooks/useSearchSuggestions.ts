@@ -18,7 +18,7 @@ type UseSearchSuggestionsReturn = {
   debouncing: boolean;
   hasSearched: boolean;
   fetchNow: () => Promise<void>;
-  error: unknown | null;
+  error: Error | null;
 };
 
 export function useSearchSuggestions(
@@ -37,7 +37,7 @@ export function useSearchSuggestions(
   const [loading, setLoading] = useState(false);
   const [debouncing, setDebouncing] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
-  const [error, setError] = useState<unknown | null>(null);
+  const [error, setError] = useState<Error | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const lastRawQueryRef = useRef<string>("");
   const debouncingGuardTimeoutRef = useRef<number | null>(null);
@@ -109,7 +109,7 @@ export function useSearchSuggestions(
       } catch (err) {
         setResults([]);
         setHasSearched(true);
-        setError(err);
+        setError(err instanceof Error ? err : new Error(String(err)));
       } finally {
         setLoading(false);
       }
@@ -124,7 +124,6 @@ export function useSearchSuggestions(
       return;
     }
     void doFetch(debounced, false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debounced, enabled, minLength]);
 
   // Immediate fetch when crossing threshold upward (reduces perceived lag)

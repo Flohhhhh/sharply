@@ -10,7 +10,7 @@ export type CompareItem = {
   slug: string;
   name?: string;
   thumbnailUrl?: string;
-  gearType?: "CAMERA" | "LENS" | string;
+  gearType?: string;
 };
 
 type CompareContextValue = {

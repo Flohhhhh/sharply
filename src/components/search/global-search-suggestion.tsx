@@ -7,7 +7,7 @@ type Props = {
   id: string;
   label: string;
   href: string;
-  type: "gear" | "brand" | string;
+  type: "gear" | "brand";
   relevance?: number;
   className?: string;
   onClick: () => void;

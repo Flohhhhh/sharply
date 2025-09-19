@@ -23,7 +23,7 @@ export default async function ComparePage({
 }) {
   const params = await searchParams;
   const usp = new URLSearchParams();
-  const raw = params["i"]; // string | string[] | undefined
+  const raw = params.i; // string | string[] | undefined
   if (typeof raw === "string") usp.append("i", raw);
   else if (Array.isArray(raw)) for (const v of raw) usp.append("i", v);
 
@@ -50,8 +50,8 @@ export default async function ComparePage({
 
   const aBrand = (getBrandNameById(a?.brandId ?? "") ?? "").trim();
   const bBrand = (getBrandNameById(b?.brandId ?? "") ?? "").trim();
-  const aName = stripLeadingBrand(a?.name ?? (slugA as string), aBrand);
-  const bName = stripLeadingBrand(b?.name ?? (slugB as string), bBrand);
+  const aName = stripLeadingBrand(a?.name ?? slugA ?? "", aBrand);
+  const bName = stripLeadingBrand(b?.name ?? slugB ?? "", bBrand);
 
   return (
     <div className="mx-auto mt-24 max-w-6xl space-y-8 px-4 py-8">
@@ -67,7 +67,7 @@ export default async function ComparePage({
 
       {/* TODO: add a copy link or share button */}
 
-      <CompareClient slugs={pair} a={a as any} b={b as any} />
+      <CompareClient slugs={pair} a={a} b={b} />
     </div>
   );
 }
