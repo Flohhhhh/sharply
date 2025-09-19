@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { CheckCircle2, Image as ImageIcon, Sparkles } from "lucide-react";
 import { Button } from "~/components/ui/button";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Welcome!",
+};
 
 export default function WelcomePage() {
   return (
@@ -16,8 +21,7 @@ export default function WelcomePage() {
             </h1>
           </div>
           <p className="text-muted-foreground mb-8 text-sm">
-            Your account is ready. Thanks for joining the community — were glad
-            youre here.
+            Your account is ready. Thanks for joining the community!
           </p>
 
           <div className="space-y-4">

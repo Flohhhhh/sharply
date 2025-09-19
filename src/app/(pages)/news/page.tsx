@@ -1,6 +1,11 @@
 import { getNewsPosts } from "@/lib/directus";
 import { Separator } from "~/components/ui/separator";
 import NewsListItem from "./_components/news-list-item";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "News",
+};
 
 export default async function NewsPage() {
   const posts = await getNewsPosts();

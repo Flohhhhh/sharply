@@ -4,6 +4,11 @@ import { BRANDS } from "~/lib/constants";
 import { fetchGearForBrand } from "~/server/gear/service";
 import { Button } from "~/components/ui/button";
 import { GearCard } from "~/components/gear/gear-card";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "All Gear",
+};
 
 export const revalidate = 3600; // ISR: re-generate every hour
 

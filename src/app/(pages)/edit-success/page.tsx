@@ -4,6 +4,11 @@ import { formatPrice } from "~/lib/mapping";
 import { sensorNameFromSlug } from "~/lib/mapping/sensor-map";
 import { humanizeKey, formatHumanDate } from "~/lib/utils";
 import { auth, requireRole } from "~/server/auth";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Edit Submitted",
+};
 
 interface EditSuccessPageProps {
   searchParams: Promise<{ id?: string }>;
@@ -18,7 +23,7 @@ export default async function EditSuccessPage({
 
   if (!id) {
     return (
-      <div className="container mx-auto max-w-3xl p-6">
+      <div className="container mx-auto mt-24 min-h-screen max-w-3xl p-6">
         <h1 className="text-2xl font-semibold">Submission received</h1>
         <p className="text-muted-foreground mt-2">
           Your suggestion was submitted. We couldn't find an edit id in the URL,
@@ -43,7 +48,7 @@ export default async function EditSuccessPage({
   const edit = await fetchGearEditById(id);
 
   return (
-    <div className="container mx-auto max-w-3xl p-6">
+    <div className="container mx-auto mt-24 min-h-screen max-w-3xl p-6">
       <div className="mb-6">
         {edit?.gearSlug ? (
           <Link

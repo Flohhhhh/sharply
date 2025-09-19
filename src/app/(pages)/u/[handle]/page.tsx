@@ -9,11 +9,22 @@ import {
   fetchUserWishlistItems,
 } from "~/server/users/service";
 // Note: page is a Server Component and reads from the service layer only.
+import type { Metadata } from "next";
 
 interface UserProfilePageProps {
   params: Promise<{
     handle: string;
   }>;
+}
+
+export async function generateMetadata({
+  params,
+}: UserProfilePageProps): Promise<Metadata> {
+  const { handle } = await params;
+  const user = await fetchUserById(handle);
+  return {
+    title: `${user?.name}'s Profile`,
+  };
 }
 
 export default async function UserProfilePage({

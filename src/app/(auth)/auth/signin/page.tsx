@@ -9,6 +9,11 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Log In",
+};
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");

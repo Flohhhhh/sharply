@@ -28,6 +28,7 @@ import GearStatsCard from "../_components/gear-stats-card";
 import GearBadges from "../_components/gear-badges";
 import SpecsTable from "../_components/specs-table";
 import { buildGearSpecsSections } from "~/lib/specs/registry";
+import type { Metadata } from "next";
 // Removed LensApertureDisplay in favor of standardized spec rows using mapping
 
 export const revalidate = 3600;
@@ -36,6 +37,16 @@ interface GearPageProps {
   params: Promise<{
     slug: string;
   }>;
+}
+
+export async function generateMetadata({
+  params,
+}: GearPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const item: GearItem = await fetchGearBySlug(slug);
+  return {
+    title: `${item.name}`,
+  };
 }
 
 export default async function GearPage({ params }: GearPageProps) {

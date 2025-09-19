@@ -4,12 +4,23 @@ import type { GearItem } from "~/types/gear";
 import { auth } from "~/server/auth";
 import { fetchPendingEditId } from "~/server/gear/service";
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 
 interface EditGearPageProps {
   params: Promise<{
     slug: string;
   }>;
   searchParams: Promise<{ type?: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: EditGearPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const item: GearItem = await fetchGearBySlug(slug);
+  return {
+    title: `Edit ${item.name}`,
+  };
 }
 
 export default async function EditGearPage({

@@ -7,6 +7,11 @@ import { Button } from "~/components/ui/button";
 import { Slider } from "~/components/ui/slider";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { cn } from "~/lib/utils";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Focal Length Simulator",
+};
 
 type Scene = {
   id: string;

@@ -5,6 +5,11 @@ import { Button } from "~/components/ui/button";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Verify Email",
+};
 
 export default function VerifyPage() {
   const searchParams = useSearchParams();

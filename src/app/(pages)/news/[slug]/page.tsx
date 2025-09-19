@@ -5,12 +5,25 @@ import Image from "next/image";
 import { Badge } from "~/components/ui/badge";
 import { Calendar } from "lucide-react";
 import { formatHumanDate } from "~/lib/utils";
+import type { Metadata } from "next";
 
 export const revalidate = 60;
 
 export async function generateStaticParams() {
   const posts = await getNewsPosts();
   return posts.map((post) => ({ slug: post.slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const page = await getNewsPostBySlug(slug);
+  return {
+    title: `${page.title}`,
+  };
 }
 
 export default async function DynamicPage({

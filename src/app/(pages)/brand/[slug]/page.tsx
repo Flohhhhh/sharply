@@ -2,7 +2,7 @@ import { fetchBrandBySlug } from "~/server/brands/service";
 import { fetchGearForBrand } from "~/server/gear/service";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { formatPrice, getMountDisplayName } from "~/lib/mapping";
+import type { Metadata } from "next";
 import { GearCard } from "~/components/gear/gear-card";
 import BrandTrendingList from "./_components/brand-trending-list";
 
@@ -10,6 +10,19 @@ interface BrandPageProps {
   params: Promise<{
     slug: string;
   }>;
+}
+
+export async function generateMetadata({
+  params,
+}: BrandPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const brand = await fetchBrandBySlug(slug);
+  if (!brand) {
+    return { title: "Brand Not Found" };
+  }
+  return {
+    title: `${brand.name} Gear`,
+  };
 }
 
 export default async function BrandPage({ params }: BrandPageProps) {
@@ -25,7 +38,7 @@ export default async function BrandPage({ params }: BrandPageProps) {
   const brandGear = await fetchGearForBrand(brand.id);
 
   return (
-    <main className="mx-auto max-w-6xl p-6">
+    <main className="mx-auto mt-24 max-w-6xl p-6">
       <div className="mb-6">
         <Link
           href="/gear"

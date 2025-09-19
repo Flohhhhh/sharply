@@ -1,0 +1,13 @@
+{
+  "name": "Sharply",
+  "short_name": "Sharply",
+  "description": "Real specs, real reviews, real fast. Sharply is the newest and most comprehensive photography gear database and review platform featuring expert reviews, real specs, and side-by-side comparisons in a modern, minimalist interface.",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

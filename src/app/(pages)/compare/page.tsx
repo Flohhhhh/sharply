@@ -8,9 +8,35 @@ import { fetchGearBySlug } from "~/server/gear/service";
 import { getBrandNameById, stripLeadingBrand } from "~/lib/mapping/brand-map";
 import { OpenSearchButton } from "~/components/search/open-search-button";
 
-export const metadata: Metadata = {
-  title: "Compare | Sharply",
-};
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}): Promise<Metadata> {
+  const params = await searchParams;
+  const usp = new URLSearchParams();
+  const raw = params.i; // string | string[] | undefined
+  if (typeof raw === "string") usp.append("i", raw);
+  else if (Array.isArray(raw)) for (const v of raw) usp.append("i", v);
+  const pair = getPairFromParams(usp);
+  if (pair.length === 0) {
+    return { title: "Compare Gear" };
+  }
+
+  const [slugA, slugB] = pair;
+  const [a, b] = await Promise.all([
+    slugA ? fetchGearBySlug(slugA).catch(() => null) : null,
+    slugB ? fetchGearBySlug(slugB).catch(() => null) : null,
+  ]);
+
+  const nameA = a?.name ?? slugA ?? "";
+  const nameB = b?.name ?? slugB ?? "";
+
+  return {
+    title:
+      pair.length === 1 ? `Compare ${nameA}` : `Compare ${nameA} vs ${nameB}`,
+  };
+}
 
 function getPairFromParams(searchParams: URLSearchParams): string[] {
   const values = searchParams.getAll("i");
@@ -34,7 +60,7 @@ export default async function ComparePage({
     // Guided empty state
     return (
       <div className="mx-auto min-h-screen max-w-5xl px-4 py-16 text-center">
-        <h1 className="mb-3 mt-32 text-3xl font-semibold md:text-4xl">
+        <h1 className="mt-32 mb-3 text-3xl font-semibold md:text-4xl">
           Nothing to compare yet
         </h1>
         <p className="text-muted-foreground mx-auto max-w-xl text-sm md:text-base">
