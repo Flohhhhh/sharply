@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { type Metadata } from "next";
 import { buildCompareHref } from "~/lib/utils/url";
 import { CompareClient } from "~/components/compare/compare-client";
+import { ComparePairTracker } from "./_components/compare-pair-tracker";
 import { fetchGearBySlug } from "~/server/gear/service";
 import { getBrandNameById, stripLeadingBrand } from "~/lib/mapping/brand-map";
 import { OpenSearchButton } from "~/components/search/open-search-button";
@@ -33,7 +34,7 @@ export default async function ComparePage({
     // Guided empty state
     return (
       <div className="mx-auto min-h-screen max-w-5xl px-4 py-16 text-center">
-        <h1 className="mt-32 mb-3 text-3xl font-semibold md:text-4xl">
+        <h1 className="mb-3 mt-32 text-3xl font-semibold md:text-4xl">
           Nothing to compare yet
         </h1>
         <p className="text-muted-foreground mx-auto max-w-xl text-sm md:text-base">
@@ -72,6 +73,9 @@ export default async function ComparePage({
       </div>
 
       {/* TODO: add a copy link or share button */}
+
+      {/* Increment pair counter once per page load when both sides resolve */}
+      {a && b ? <ComparePairTracker slugs={pair} /> : null}
 
       <CompareClient slugs={pair} a={a} b={b} />
     </div>

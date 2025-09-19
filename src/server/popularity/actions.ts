@@ -1,7 +1,11 @@
 "use server";
 import "server-only";
 
-import { recordGearView, recordCompareAdd } from "./service";
+import {
+  recordGearView,
+  recordCompareAdd,
+  incrementComparePairCount,
+} from "./service";
 import { cookies, headers } from "next/headers";
 
 /**
@@ -68,4 +72,40 @@ export async function actionRecordCompareAdd(params: {
     });
   }
   return recordCompareAdd({ slug: params.slug, visitorId });
+}
+
+/**
+ * actionIncrementComparePairCount
+ *
+ * Increments a per-pair counter with a short-lived cookie-based dedupe (30 minutes).
+ * We set a cookie `comparePair:<pairKey>` so subsequent page loads within 30 minutes
+ * do not increment again.
+ */
+export async function actionIncrementComparePairCount(params: {
+  slugs: [string, string];
+}) {
+  const sorted = params.slugs.slice().sort((a, b) => a.localeCompare(b));
+  const pairKey = `${sorted[0]}|${sorted[1]}`;
+
+  const cookieStore = await cookies();
+  const cookieName = `comparePair:${pairKey}`;
+  const existing = cookieStore.get(cookieName)?.value;
+  if (existing === "1") {
+    return { success: true, deduped: true as const } as const;
+  }
+
+  const res = await incrementComparePairCount({
+    slugs: [sorted[0]!, sorted[1]!],
+  });
+
+  // Optimistic dedupe cookie: 30 minutes
+  cookieStore.set(cookieName, "1", {
+    httpOnly: false,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 30,
+  });
+
+  return { ...res, deduped: false as const } as const;
 }

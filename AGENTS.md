@@ -44,6 +44,8 @@ NEVER RUN DB:PUSH OR drizzle-kit push
 
 ## Agent-Specific Instructions
 
+- **Always check linting** errors after significant changes using `npm run lint` and correct any errors related to changed/touched files in the scope of your task. (Errors only, not warnings)
+
 ### For Documentation Updates
 
 - **Monitor schema changes** in `src/server/db/schema.ts`

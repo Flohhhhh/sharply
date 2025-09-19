@@ -9,6 +9,7 @@ import {
   getTrendingData,
   hasEventForIdentityToday as hasEventForIdentityTodayGeneric,
   insertCompareAddEvent,
+  incrementComparePairCountBySlugs,
 } from "./data";
 import { auth } from "~/server/auth";
 
@@ -83,6 +84,17 @@ export async function recordGearView(params: {
     visitorId: resolvedUserId ? null : (params.visitorId ?? null),
   });
   return { success: true, deduped: false } as const;
+}
+
+/**
+ * incrementComparePairCount(slugs)
+ *
+ * Minimal per-pair counter with atomic upsert. Slugs are sorted in the data layer.
+ */
+export async function incrementComparePairCount(params: {
+  slugs: [string, string];
+}): Promise<{ success: boolean; skipped?: string }> {
+  return incrementComparePairCountBySlugs({ slugs: params.slugs });
 }
 
 export async function fetchTrending(params: {

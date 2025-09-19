@@ -21,6 +21,10 @@ This document describes the end‑to‑end popularity tracking in Sharply: inges
   - `app.gear_popularity_windows`: rolling snapshots (rows per `7d`/`30d`, `as_of_date` at D‑1).
   - `app.gear_popularity_lifetime`: cumulative monotonic totals by gear.
   - `app.rollup_runs`: persisted rollup run history (timestamps, counts, durations, status, error).
+  - `app.compare_pair_counts`: minimal per‑pair counter.
+    - Composite primary key: `(gear_a_id, gear_b_id)` with canonical ascending order by id.
+    - Denormalized `pair_key` stores the current sorted slugs (`slugA|slugB`) for convenience; updated on increment.
+    - Atomic upsert increments `count`.
 
 - **Rollups (UTC, nightly)**
   - Orchestrator: `runDailyPopularityRollup(date?)` in `src/server/popularity/rollup.ts`.
@@ -36,6 +40,7 @@ This document describes the end‑to‑end popularity tracking in Sharply: inges
 - **Caching & revalidation**
   - Trending API and UI cache ~12h; revalidated proactively after rollup via `revalidateTag('trending')`.
   - Gear stats endpoint caches ~1h with tags (`popularity`, `gear-stats:{slug}`).
+  - Pair counts are direct reads from `compare_pair_counts` and do not participate in nightly rollups.
 
 ## API Surface
 
@@ -54,6 +59,7 @@ This document describes the end‑to‑end popularity tracking in Sharply: inges
   - `POST /api/gear/[slug]/visit` → records `view` (anonymous allowed; deduped per visitor/day)
   - `POST /api/gear/[slug]/wishlist` → adds/removes truth row; emits `wishlist_add` event (same‑day dedupe)
   - `POST /api/gear/[slug]/ownership` → adds/removes truth row; emits `owner_add` event (same‑day dedupe)
+  - Pair counts (minimal): no public API route; compare page uses a server action `actionIncrementComparePairCount` to upsert+increment per pair with a 30‑minute cookie. Composite PK `(gear_a_id, gear_b_id)` ensures stability across slug changes; `pair_key` is refreshed on each increment.
 
 ## Example Usage (JavaScript)
 

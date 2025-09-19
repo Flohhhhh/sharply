@@ -879,6 +879,33 @@ export const gearPopularityLifetime = appSchema.table(
   (t) => [index("gpl_gear_idx").on(t.gearId)],
 );
 
+// --- Compare Pair Counters (minimal) ---
+export const comparePairCounts = appSchema.table(
+  "compare_pair_counts",
+  (d) => ({
+    // Denormalized convenience key derived from sorted slugs (e.g., "slugA|slugB").
+    // Not used for uniqueness; updated with current slugs on increment.
+    pairKey: d.varchar("pair_key", { length: 500 }).notNull(),
+    // Canonical pair ordering by gear ids; used for uniqueness and upsert target
+    gearAId: d
+      .varchar("gear_a_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    gearBId: d
+      .varchar("gear_b_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    count: d.integer("count").notNull().default(0),
+    updatedAt,
+  }),
+  (t) => [
+    primaryKey({ columns: [t.gearAId, t.gearBId] }),
+    index("pair_counts_gear_a_idx").on(t.gearAId),
+    index("pair_counts_gear_b_idx").on(t.gearBId),
+    index("pair_counts_count_idx").on(t.count),
+  ],
+);
+
 // Rollup run history
 export const rollupRuns = appSchema.table(
   "rollup_runs",

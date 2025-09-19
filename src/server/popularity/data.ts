@@ -9,8 +9,10 @@ import {
   gearPopularityDaily,
   gearPopularityLifetime,
   popularityEvents,
+  comparePairCounts,
 } from "~/server/db/schema";
-import { and, desc, eq, gte, lt, sql, type SQL } from "drizzle-orm";
+import { and, desc, eq, gte, lt, sql, inArray, type SQL } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import type { PopularityEventType } from "~/server/validation/dedupe";
 
 /**
@@ -413,4 +415,83 @@ export async function insertCompareAddEvent(params: {
     visitorId: params.userId ? null : (params.visitorId ?? null),
     eventType: "compare_add",
   });
+}
+
+/**
+ * incrementComparePairCountBySlugs(slugs)
+ *
+ * Minimal per-pair counter using an atomic upsert. Slugs are sorted to build a stable key.
+ */
+export async function incrementComparePairCountBySlugs(params: {
+  slugs: [string, string];
+}): Promise<{ success: boolean; skipped?: string }> {
+  const sorted = params.slugs.slice().sort((a, b) => a.localeCompare(b)) as [
+    string,
+    string,
+  ];
+  const pairKey = `${sorted[0]}|${sorted[1]}`;
+
+  const rows = await db
+    .select({ id: gear.id, slug: gear.slug })
+    .from(gear)
+    .where(inArray(gear.slug, sorted as string[]));
+
+  if (rows.length !== 2) {
+    return { success: false, skipped: "missing_gear" } as const;
+  }
+
+  // Canonicalize by IDs to ensure A|B and B|A coalesce regardless of slug order
+  const ids = rows.map((r) => r.id).sort((a, b) => a.localeCompare(b)) as [
+    string,
+    string,
+  ];
+  const [gearAId, gearBId] = ids;
+
+  await db
+    .insert(comparePairCounts)
+    .values({ pairKey, gearAId, gearBId, count: 1 })
+    .onConflictDoUpdate({
+      target: [comparePairCounts.gearAId, comparePairCounts.gearBId],
+      set: {
+        pairKey, // keep denormalized key fresh even if slugs change
+        count: sql`${comparePairCounts.count} + 1`,
+        updatedAt: sql`now()`,
+      },
+    });
+
+  return { success: true } as const;
+}
+
+/**
+ * fetchTopComparePairs(limit)
+ *
+ * Returns top-N pairs with joined gear names and slugs.
+ */
+export async function fetchTopComparePairs(limit = 20) {
+  const a = alias(gear, "ga");
+  const b = alias(gear, "gb");
+
+  const rows = await db
+    .select({
+      gearAId: comparePairCounts.gearAId,
+      gearBId: comparePairCounts.gearBId,
+      count: comparePairCounts.count,
+      aName: a.name,
+      aSlug: a.slug,
+      bName: b.name,
+      bSlug: b.slug,
+    })
+    .from(comparePairCounts)
+    .innerJoin(a, eq(comparePairCounts.gearAId, a.id))
+    .innerJoin(b, eq(comparePairCounts.gearBId, b.id))
+    .orderBy(desc(comparePairCounts.count))
+    .limit(limit);
+
+  return rows.map((r) => ({
+    gearAId: r.gearAId,
+    gearBId: r.gearBId,
+    count: Number(r.count),
+    a: { name: r.aName, slug: r.aSlug },
+    b: { name: r.bName, slug: r.bSlug },
+  }));
 }
