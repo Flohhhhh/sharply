@@ -1,0 +1,185 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import Image from "next/image";
+import { Label } from "~/components/ui/label";
+import { Button } from "~/components/ui/button";
+import { Slider } from "~/components/ui/slider";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { cn } from "~/lib/utils";
+import { SCENES } from "./scenes";
+
+function formatMm(value: number): string {
+  return `${Math.round(value)}mm`;
+}
+
+export default function FocalSimulatorClient() {
+  const defaultSceneId = SCENES[0]?.id ?? "scene-default";
+  const [selectedSceneId, setSelectedSceneId] =
+    useState<string>(defaultSceneId);
+  const selectedScene = useMemo(() => {
+    const fallback = SCENES[0] ?? {
+      id: "fallback",
+      label: "Scene",
+      src: "",
+      baseFocalMm: 35,
+      aspectHint: "3:2" as const,
+    };
+    return SCENES.find((s) => s.id === selectedSceneId) ?? fallback;
+  }, [selectedSceneId]);
+
+  const nextPresetAbove = (base: number) =>
+    [35, 50, 85, 105, 135, 200, 300, 400].find((p) => p > base) ?? base;
+  const [targetFocalMm, setTargetFocalMm] = useState<number>(
+    nextPresetAbove(selectedScene.baseFocalMm),
+  );
+
+  const onSelectScene = (id: string) => {
+    setSelectedSceneId(id);
+    const scene = SCENES.find((s) => s.id === id) ?? selectedScene;
+    setTargetFocalMm(nextPresetAbove(scene.baseFocalMm));
+  };
+
+  const baseFocalMm = selectedScene.baseFocalMm;
+  const baseUrl = selectedScene.src;
+
+  const k = useMemo(() => {
+    const numerator = targetFocalMm;
+    const denominator = baseFocalMm;
+    if (
+      !Number.isFinite(numerator) ||
+      !Number.isFinite(denominator) ||
+      denominator === 0
+    )
+      return 1;
+    return Math.max(1, numerator / denominator);
+  }, [baseFocalMm, targetFocalMm]);
+
+  const zoomScale = k;
+
+  return (
+    <div className="container mx-auto max-w-6xl space-y-8 px-4 py-8">
+      <div className="space-y-2">
+        <h1 className="text-2xl font-semibold">Focal Length Simulator</h1>
+        <p className="text-muted-foreground text-sm">
+          Pick a scene captured at a known focal length, then explore how
+          tighter focal lengths would frame the same scene.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <Card className="md:col-span-1">
+          <CardHeader>
+            <CardTitle>Controls</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label>Scene</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {SCENES.map((scene) => (
+                  <button
+                    key={scene.id}
+                    type="button"
+                    onClick={() => onSelectScene(scene.id)}
+                    className={cn(
+                      "group relative aspect-video overflow-hidden rounded border",
+                      selectedSceneId === scene.id
+                        ? "border-primary ring-primary/30 ring-2"
+                        : "border-border",
+                    )}
+                    aria-pressed={selectedSceneId === scene.id}
+                  >
+                    <Image
+                      src={scene.src}
+                      alt={scene.label}
+                      fill
+                      unoptimized
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                    <span className="absolute inset-x-0 bottom-0 bg-black/40 px-1 py-0.5 text-[10px] text-white">
+                      {scene.label} · Captured {formatMm(scene.baseFocalMm)}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Label>Tighter focal length</Label>
+              <div className="space-y-1">
+                <div className="text-muted-foreground text-xs">
+                  Captured at {formatMm(baseFocalMm)} · Showing{" "}
+                  {formatMm(targetFocalMm)}
+                </div>
+                <div className="px-1">
+                  <Slider
+                    min={baseFocalMm}
+                    max={400}
+                    step={1}
+                    value={[targetFocalMm]}
+                    onValueChange={(vals) =>
+                      setTargetFocalMm(
+                        Math.max(baseFocalMm, vals[0] ?? baseFocalMm),
+                      )
+                    }
+                  />
+                </div>
+                <div className="flex flex-wrap gap-1 pt-1">
+                  {[35, 50, 85, 105, 135, 200, 300, 400]
+                    .filter((p) => p > baseFocalMm)
+                    .map((p) => (
+                      <Button
+                        key={p}
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setTargetFocalMm(p)}
+                      >
+                        {p}
+                      </Button>
+                    ))}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle>Preview</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="relative w-full overflow-hidden rounded-md border bg-black">
+              <div
+                className={cn(
+                  "relative w-full",
+                  selectedScene.aspectHint === "4:3"
+                    ? "aspect-[4/3]"
+                    : selectedScene.aspectHint === "16:9"
+                      ? "aspect-video"
+                      : "aspect-[3/2]",
+                )}
+              >
+                <Image
+                  src={baseUrl}
+                  alt={selectedScene.label}
+                  fill
+                  unoptimized
+                  className="absolute inset-0 h-full w-full object-cover"
+                  style={{
+                    transform: `scale(${zoomScale})`,
+                    transformOrigin: "center center",
+                  }}
+                />
+              </div>
+            </div>
+            <div className="text-muted-foreground mt-3 text-xs">
+              Captured at {formatMm(baseFocalMm)} · Showing{" "}
+              {formatMm(targetFocalMm)} (tighter)
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
