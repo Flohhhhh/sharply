@@ -121,6 +121,45 @@ The `extra` field provides flexibility for storing additional specifications wit
 }
 ```
 
+## Spec Registry System
+
+### Overview
+
+The spec registry (`src/lib/specs/registry.tsx`) centralizes all gear specification display logic, providing a single source of truth for labels, formatting, and section organization.
+
+### Key Benefits
+
+- **Single Source of Truth**: All spec labels and formatting logic in one place
+- **Consistent Display**: Same formatting across gear pages, compare views, and future surfaces
+- **Easy Maintenance**: Adding new specs requires updating only the registry
+- **Type Safety**: Uses `GearItem` type for consistent data access
+
+### Registry Structure
+
+The registry exports `buildGearSpecsSections(item: GearItem)` which returns `SpecsTableSection[]`. Each section contains a `data` array with label-value pairs:
+
+```tsx
+// Example registry entry
+{
+  label: "Resolution",
+  value: cameraSpecsItem?.resolutionMp
+    ? `${Number(cameraSpecsItem.resolutionMp).toFixed(1)} megapixels`
+    : undefined,
+},
+```
+
+### Usage
+
+- **Gear Pages**: `buildGearSpecsSections(item)` replaces inline spec definitions
+- **Compare Views**: `CompareSpecsTable` component reuses the same registry
+- **Future Surfaces**: Any new spec display can import and use the registry
+
+### Adding New Specs
+
+1. Add field to database schema
+2. Add entry to spec registry with label and formatted value
+3. Field automatically appears in appropriate section
+
 ## Indexing Strategy
 
 ### Performance Indexes

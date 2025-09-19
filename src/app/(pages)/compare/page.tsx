@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { type Metadata } from "next";
 import { buildCompareHref } from "~/lib/utils/url";
+import { CompareClient } from "~/components/compare/compare-client";
+import { fetchGearBySlug } from "~/server/gear/service";
 
 export const metadata: Metadata = {
   title: "Compare | Sharply",
@@ -39,6 +41,11 @@ export default async function ComparePage({
   }
 
   const href = buildCompareHref(pair);
+  const [slugA, slugB] = pair;
+  const [a, b] = await Promise.all([
+    slugA ? fetchGearBySlug(slugA).catch(() => null) : null,
+    slugB ? fetchGearBySlug(slugB).catch(() => null) : null,
+  ]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -47,23 +54,7 @@ export default async function ComparePage({
         <span className="text-muted-foreground text-sm">{href}</span>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {pair.map((slug) => (
-          <div key={slug} className="rounded-lg border p-4">
-            <div className="mb-2 truncate text-lg font-medium">{slug}</div>
-            <Link
-              href={`/gear/${slug}`}
-              className="text-primary text-sm hover:underline"
-            >
-              View gear page
-            </Link>
-          </div>
-        ))}
-      </div>
-
-      <div className="text-muted-foreground mt-8 text-sm">
-        This is the quick view. Open on desktop for full tables.
-      </div>
+      <CompareClient slugs={pair} a={a as any} b={b as any} />
     </div>
   );
 }
