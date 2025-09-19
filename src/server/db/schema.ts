@@ -622,6 +622,20 @@ export const reviews = appSchema.table(
   ],
 );
 
+// --- AI Review Summaries (one row per gear) ---
+export const reviewSummaries = appSchema.table(
+  "review_summaries",
+  (d) => ({
+    gearId: d
+      .varchar("gear_id", { length: 36 })
+      .primaryKey()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    summaryText: d.text("summary_text"),
+    updatedAt,
+  }),
+  (t) => [index("review_summaries_updated_idx").on(t.updatedAt)],
+);
+
 // --- Editorial: Use-case Ratings ---
 export const useCaseRatings = appSchema.table(
   "use_case_ratings",

@@ -8,6 +8,10 @@ import {
   getReviewUserAndGear,
 } from "./data";
 import { evaluateForEvent } from "~/server/badges/service";
+import { maybeGenerateReviewSummary } from "~/server/reviews/summary/service";
+import { db } from "~/server/db";
+import { gear as gearTable } from "~/server/db/schema";
+import { eq } from "drizzle-orm";
 
 export async function fetchAdminReviews() {
   const session = await auth();
@@ -27,6 +31,17 @@ export async function approveReview(id: string) {
       { type: "review.approved", context: { gearId: ctx.gearId } },
       ctx.userId,
     );
+  }
+
+  // Fire-and-forget summary generation; don't block admin UX on LLM
+  if (ctx?.gearId) {
+    const rows = await db
+      .select({ name: gearTable.name })
+      .from(gearTable)
+      .where(eq(gearTable.id, ctx.gearId))
+      .limit(1);
+    const gearName = rows[0]?.name ?? "this gear";
+    void maybeGenerateReviewSummary({ gearId: ctx.gearId, gearName });
   }
 }
 

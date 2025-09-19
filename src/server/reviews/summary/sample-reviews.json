@@ -1,0 +1,52 @@
+[
+  {
+    "content": "Autofocus tracking for people and pets is seriously improved; face/eye detect locks quickly and stays sticky during bursts.",
+    "recommend": true,
+    "genres": ["portraits", "events"]
+  },
+  {
+    "content": "Autofocus is quick in daylight but hunts a bit in very low light.",
+    "recommend": true,
+    "genres": ["events", "street"]
+  },
+  {
+    "content": "Build quality feels solid with a grippy body and weather sealing. The camera is a bit heavy after long shoots, but the balance is good with most native lenses.",
+    "recommend": true,
+    "genres": ["studio", "travel"]
+  },
+  {
+    "content": "For video, oversampled 4K looks crisp and rolling shutter is controlled. In-body stabilization helps for handheld, though electronic modes can crop.",
+    "recommend": true,
+    "genres": ["video"]
+  },
+  {
+    "content": "The price is high for beginners; great for enthusiasts who can afford it. Battery life is decent but not class‑leading.",
+    "recommend": true,
+    "genres": ["general"]
+  },
+  {
+    "content": "JPEG colors are pleasing with natural skin tones, and RAW files have solid dynamic range for landscape edits.",
+    "recommend": true,
+    "genres": ["landscape", "portraits"]
+  },
+  {
+    "content": "Not the best choice for wildlife—AF tracking can miss erratic birds in flight, and the buffer fills quickly in RAW bursts.",
+    "recommend": false,
+    "genres": ["wildlife"]
+  },
+  {
+    "content": "Weather sealing held up in light rain and dusty trails. The shutter sounds refined and vibrations are minimal.",
+    "recommend": true,
+    "genres": ["travel"]
+  },
+  {
+    "content": "Menu system still feels cluttered and some settings are buried. The touchscreen is responsive but could be brighter in sunlight.",
+    "recommend": false,
+    "genres": ["general"]
+  },
+  {
+    "content": "Excellent low‑light performance; clean files up to ISO 6400 and usable above with noise reduction. Great for indoor events and available light street.",
+    "recommend": true,
+    "genres": ["events", "street"]
+  }
+]

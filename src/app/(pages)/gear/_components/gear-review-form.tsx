@@ -11,7 +11,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "~/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { GENRES } from "~/lib/constants";
@@ -113,32 +112,18 @@ export function GearReviewForm({
     }
   };
 
-  if (status === "loading" || hasSubmitted === null) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center">Loading...</div>
-        </CardContent>
-      </Card>
-    );
-  }
+  const isAuthLoading = status === "loading" || hasSubmitted === null;
 
-  if (!session) {
-    return (
-      <div className="mb-4">
-        <div className="flex flex-col items-start justify-between gap-2 rounded-md border p-3 sm:flex-row sm:items-center">
-          <div className="text-sm">Log in to leave a review.</div>
-          <Button asChild>
-            <a
-              href={`/api/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`}
-            >
-              Write a Review
-            </a>
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  const handleCtaClick = () => {
+    if (isAuthLoading) return;
+    if (session) {
+      setOpen(true);
+    } else {
+      window.location.href = `/api/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+    }
+  };
+
+  // Always render a single CTA; behavior changes based on auth state
 
   if (hasSubmitted) {
     return null;
@@ -151,10 +136,14 @@ export function GearReviewForm({
         <div className="text-sm">
           Share your experience to help others decide.
         </div>
+        <Button
+          onClick={handleCtaClick}
+          disabled={isAuthLoading}
+          loading={isAuthLoading}
+        >
+          Write a Review
+        </Button>
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button>Write a Review</Button>
-          </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>User Review</DialogTitle>

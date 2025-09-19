@@ -9,6 +9,7 @@ import {
 } from "~/server/gear/service";
 import { GearVisitTracker } from "~/app/(pages)/gear/_components/gear-visit-tracker";
 import { GearReviews } from "~/app/(pages)/gear/_components/gear-reviews";
+import { AiReviewBanner } from "../_components/ai-review-banner";
 import {
   fetchGearBySlug,
   fetchUseCaseRatings,
@@ -372,7 +373,10 @@ export default async function GearPage({ params }: GearPageProps) {
           </div>
         )}
       {/* Reviews */}
-      <GearReviews slug={item.slug} />
+      <GearReviews
+        slug={item.slug}
+        bannerSlot={<AiReviewBanner gearId={item.id} />}
+      />
       {/* Contributors */}
       <GearContributors gearId={item.id} />
       {/* Page Metadata */}
