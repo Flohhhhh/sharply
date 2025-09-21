@@ -38,20 +38,20 @@ export default function GearStatsClient(props: Props) {
   }, [props.slug]);
 
   return (
-    <div className="grid grid-cols-2 gap-4 text-sm">
-      <div>
+    <div className="divide-border divide-y text-sm">
+      <div className="flex items-center justify-between py-2">
         <div className="text-muted-foreground">Lifetime views</div>
         <div className="font-medium tabular-nums">{props.lifetimeViews}</div>
       </div>
-      <div>
+      <div className="flex items-center justify-between py-2">
         <div className="text-muted-foreground">Views (30d)</div>
         <div className="font-medium tabular-nums">{props.views30d}</div>
       </div>
-      <div>
+      <div className="flex items-center justify-between py-2">
         <div className="text-muted-foreground">Wishlists</div>
         <div className="font-medium tabular-nums">{wishlistTotal}</div>
       </div>
-      <div>
+      <div className="flex items-center justify-between py-2">
         <div className="text-muted-foreground">Owners</div>
         <div className="font-medium tabular-nums">{ownershipTotal}</div>
       </div>

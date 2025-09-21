@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "~/components/ui/button";
+import type { ButtonProps } from "~/components/ui/button";
 import { Plus, Check, Scale } from "lucide-react";
 import { useCompare } from "~/lib/hooks/useCompare";
 
@@ -13,6 +14,7 @@ export function AddToCompareButton({
   stopPropagation = true,
   iconStyle = "auto",
   showLabel = false,
+  variant = "secondary",
 }: {
   slug: string;
   name?: string;
@@ -22,9 +24,11 @@ export function AddToCompareButton({
   /** When rendered inside a link, prevent navigation */
   stopPropagation?: boolean;
   /** Force a specific icon style (e.g., search suggestions need Scale+Plus) */
-  iconStyle?: "auto" | "scalePlus";
+  iconStyle?: "auto" | "scalePlus" | "scaleOnly";
   /** Whether to show a visible text label next to the icon */
   showLabel?: boolean;
+  /** Button visual variant; defaults to current secondary style */
+  variant?: ButtonProps["variant"];
 }) {
   const { add, contains, isFull, acceptsType } = useCompare();
   const active = contains(slug);
@@ -33,13 +37,17 @@ export function AddToCompareButton({
 
   return (
     <Button
-      variant={active ? "secondary" : "secondary"}
+      variant={variant}
       size={size === "sm" ? "sm" : "default"}
       className={className}
       disabled={disabled}
       icon={
         active ? (
           <Check className="h-4 w-4" />
+        ) : iconStyle === "scaleOnly" ? (
+          <span className="inline-flex items-center gap-1">
+            <Scale className="h-4 w-4" />
+          </span>
         ) : iconStyle === "scalePlus" ? (
           <span className="inline-flex items-center gap-1">
             <Scale className="h-4 w-4" />
@@ -63,7 +71,7 @@ export function AddToCompareButton({
         ) : active ? (
           "Added"
         ) : (
-          "Add to compare"
+          "Add to Compare"
         )
       ) : (
         <span className="sr-only">

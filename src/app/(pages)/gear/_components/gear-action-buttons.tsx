@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { withBadgeToasts } from "~/components/badges/badge-toast";
 import Link from "next/link";
 import { MultiSelect } from "~/components/ui/multi-select";
+import { AddToCompareButton } from "~/components/compare/add-to-compare-button";
 
 interface GearActionButtonsProps {
   slug: string;
@@ -155,8 +156,18 @@ export function GearActionButtons({
         {ownedActive ? "Remove from Collection" : "Add to Collection"}
       </Button>
 
+      {/* compare button */}
+      <AddToCompareButton
+        slug={slug}
+        size="md"
+        variant="outline"
+        className="w-full"
+        showLabel
+        iconStyle="scaleOnly"
+      />
+
       {/* Profile Link */}
-      <Link href={`/u/${session.user.id}`} className="block">
+      {/* <Link href={`/u/${session.user.id}`} className="block">
         <Button
           variant="ghost"
           className="w-full"
@@ -164,7 +175,7 @@ export function GearActionButtons({
         >
           View My Collection
         </Button>
-      </Link>
+      </Link> */}
     </div>
   );
 }
