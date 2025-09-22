@@ -174,11 +174,11 @@ export default async function GearPage({ params }: GearPageProps) {
         {/* Photo Placeholder */}
         <div>
           {item.thumbnailUrl ? (
-            <div className="bg-muted aspect-video overflow-hidden rounded-md">
+            <div className="bg-muted h-[550px] overflow-hidden rounded-md py-12">
               <img
                 src={item.thumbnailUrl}
                 alt={item.name}
-                className="h-full w-full object-cover"
+                className="h-full w-full object-contain"
               />
             </div>
           ) : (

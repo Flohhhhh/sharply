@@ -11,6 +11,7 @@ import { BadgesCatalog } from "./badges-catalog";
 import { BadgesTestToastButton } from "./badges-test-toast";
 import { BadgesAwardsList } from "./badges-awards-list";
 import { TopComparePairs } from "./top-compare-pairs";
+import { AdminImageUploader } from "./admin-image-uploader";
 import { fetchGearProposals } from "~/server/admin/proposals/service";
 import { fetchAdminReviews } from "~/server/admin/reviews/service";
 import type { GearEditProposal } from "~/types/gear";
@@ -23,6 +24,16 @@ export default function AdminPage() {
         <p className="text-muted-foreground mt-2">
           Manage your platform's content and users.
         </p>
+      </div>
+
+      <div>
+        <h2 className="text-2xl font-bold">Image Uploader (Admin)</h2>
+        <p className="text-muted-foreground mt-2">
+          Temporary admin tool to upload images via UploadThing.
+        </p>
+        <div className="mt-4">
+          <AdminImageUploader />
+        </div>
       </div>
 
       <div>
