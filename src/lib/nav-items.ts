@@ -49,6 +49,7 @@ interface NavItem {
 }
 
 export const navItems: NavItem[] = [
+  { title: "About", type: "link", url: "/about" },
   {
     title: "News",
     type: "link",

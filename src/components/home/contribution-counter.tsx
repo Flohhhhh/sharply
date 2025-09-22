@@ -7,7 +7,7 @@ export async function ContributionCounter() {
   return (
     <div>
       <NumberTicker value={totalContributions} className="text-5xl font-bold" />
-      <p className="text-muted-foreground">Contributions by members</p>
+      <p className="text-muted-foreground text-sm">Contributions by members</p>
     </div>
   );
 }
