@@ -379,7 +379,7 @@ function BulkCreateRow({
                           </p>
                         )}
                       </div>
-                      {isSoftOnly && (
+                      {!v?.slugConflict && !v?.modelConflict && (
                         <div className="flex items-center gap-2">
                           <input
                             id={`proceed-${row.id}`}
@@ -398,8 +398,8 @@ function BulkCreateRow({
                             className="text-sm"
                           >
                             {row.proceedAnyway
-                              ? "Reviewed"
-                              : "Proceed anyway – I confirm the name format is intentional"}
+                              ? "Reviewed – not a duplicate"
+                              : "Proceed anyway – I confirm this isn’t a duplicate"}
                           </label>
                         </div>
                       )}
