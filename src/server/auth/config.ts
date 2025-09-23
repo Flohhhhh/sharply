@@ -59,7 +59,7 @@ export const authConfig = {
      */
   ],
   pages: {
-    signIn: "/auth/login",
+    signIn: "/auth/signin",
     verifyRequest: "/auth/verify",
     newUser: "/auth/welcome",
   },

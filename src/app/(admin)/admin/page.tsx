@@ -3,49 +3,38 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { FileText, Users, Settings } from "lucide-react";
 import { GearProposalsList } from "./gear-proposals-list";
-import { AuditLogList } from "./admin-audit-log-list";
 import { GearCreateCard } from "./gear-create";
 import { ReviewsApprovalQueue } from "./reviews-approval-queue";
-import { RollupRunsList } from "./rollup-runs-list";
 import { BadgesCatalog } from "./badges-catalog";
 import { BadgesTestToastButton } from "./badges-test-toast";
-import { BadgesAwardsList } from "./badges-awards-list";
 import { TopComparePairs } from "./top-compare-pairs";
 import { AdminImageUploader } from "./admin-image-uploader";
 import { fetchGearProposals } from "~/server/admin/proposals/service";
 import { fetchAdminReviews } from "~/server/admin/reviews/service";
 import type { GearEditProposal } from "~/types/gear";
+import { auth } from "~/server/auth";
 
-export default function AdminPage() {
+export default async function AdminPage() {
+  const session = await auth();
+  const user = session?.user;
+
+  if (!user) {
+    return <div>Unauthenticated</div>;
+  }
+
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <p className="text-muted-foreground mt-2">
-          Manage your platform's content and users.
-        </p>
-      </div>
-
-      <div>
-        <h2 className="text-2xl font-bold">Image Uploader (Admin)</h2>
-        <p className="text-muted-foreground mt-2">
-          Temporary admin tool to upload images via UploadThing.
-        </p>
-        <div className="mt-4">
-          <AdminImageUploader />
+    <div className="space-y-8 px-8">
+      {user.role === "ADMIN" && (
+        <div>
+          <h2 className="text-2xl font-bold">Create Gear</h2>
+          <p className="text-muted-foreground mt-2">
+            Quick-create a new gear item with name, brand and type.
+          </p>
+          <div className="mt-4">
+            <GearCreateCard />
+          </div>
         </div>
-      </div>
-
-      <div>
-        <h2 className="text-2xl font-bold">Create Gear</h2>
-        <p className="text-muted-foreground mt-2">
-          Quick-create a new gear item with name, brand and type.
-        </p>
-        <div className="mt-4">
-          <GearCreateCard />
-        </div>
-      </div>
-
+      )}
       {/* Quick Stats Cards */}
       {/* <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <Card>
@@ -96,19 +85,6 @@ export default function AdminPage() {
         </Card>
       </div> */}
 
-      {/* Audit Logs */}
-      <div className="space-y-3">
-        <div>
-          <h2 className="text-2xl font-bold">Audit Logs</h2>
-          <p className="text-muted-foreground mt-2">
-            Recent admin actions with links to affected items.
-          </p>
-        </div>
-        <Suspense fallback={<div>Loading audit logs...</div>}>
-          <AuditLogList />
-        </Suspense>
-      </div>
-
       {/* Gear Proposals Tool */}
       <div className="space-y-6">
         <div>
@@ -134,61 +110,6 @@ export default function AdminPage() {
         </div>
         <Suspense fallback={<div>Loading reviews...</div>}>
           <ReviewsApprovalWrapper />
-        </Suspense>
-      </div>
-
-      {/* Recent Badge Awards */}
-      <div className="space-y-3">
-        <div>
-          <h2 className="text-2xl font-bold">Recent Badge Awards</h2>
-          <p className="text-muted-foreground mt-2">
-            Latest awarded badges across the platform.
-          </p>
-        </div>
-        <Suspense fallback={<div>Loading awards...</div>}>
-          <BadgesAwardsList />
-        </Suspense>
-      </div>
-
-      {/* Badge Catalog */}
-      <div className="space-y-3">
-        <div>
-          <h2 className="text-2xl font-bold">Badge Catalog</h2>
-          <p className="text-muted-foreground mt-2">
-            All defined badges with triggers and sort metadata.
-          </p>
-        </div>
-        <div>
-          <BadgesTestToastButton />
-        </div>
-        <Suspense fallback={<div>Loading catalog...</div>}>
-          <BadgesCatalog />
-        </Suspense>
-      </div>
-
-      {/* Rollup Runs */}
-      <div className="space-y-3">
-        <div>
-          <h2 className="text-2xl font-bold">Popularity Rollup Runs</h2>
-          <p className="text-muted-foreground mt-2">
-            Recent rollup history and metrics.
-          </p>
-        </div>
-        <Suspense fallback={<div>Loading rollup runs...</div>}>
-          <RollupRunsList />
-        </Suspense>
-      </div>
-
-      {/* Top Compare Pairs */}
-      <div className="space-y-3">
-        <div>
-          <h2 className="text-2xl font-bold">Top Comparison Pairs</h2>
-          <p className="text-muted-foreground mt-2">
-            Most frequently compared gear pairs (lifetime counter).
-          </p>
-        </div>
-        <Suspense fallback={<div>Loading compare pairs...</div>}>
-          <TopComparePairs />
         </Suspense>
       </div>
     </div>

@@ -56,19 +56,20 @@ type RowState = {
   createdSlug?: string;
 };
 
+const FuzzyItemSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  slug: z.string(),
+});
 const CheckResponse = z.object({
-  slugPreview: z.string().optional(),
+  slugPreview: z.string().default(""),
   hard: z
     .object({
-      slugHit: z.boolean().optional(),
-      slug: z.string().optional(),
-      modelHit: z.boolean().optional(),
-      model: z.string().optional(),
+      slug: FuzzyItemSchema.nullable().default(null),
+      modelName: FuzzyItemSchema.nullable().default(null),
     })
-    .optional(),
-  fuzzy: z
-    .array(z.object({ id: z.string(), name: z.string(), slug: z.string() }))
-    .optional(),
+    .default({ slug: null, modelName: null }),
+  fuzzy: z.array(FuzzyItemSchema).default([]),
 });
 
 type BulkCreateRowProps = {
@@ -114,8 +115,8 @@ function BulkCreateRow({
       .then((data) => {
         const validation: RowValidation = {
           slugPreview: data.slugPreview ?? "",
-          slugConflict: Boolean(data.hard?.slugHit ?? data.hard?.slug),
-          modelConflict: Boolean(data.hard?.modelHit ?? data.hard?.model),
+          slugConflict: Boolean(data.hard?.slug),
+          modelConflict: Boolean(data.hard?.modelName),
           fuzzyMatches: data.fuzzy ?? [],
         };
         updateRow(row.id, { validation });
