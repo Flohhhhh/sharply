@@ -1,6 +1,7 @@
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
+import GoogleProvider from "next-auth/providers/google";
 import Resend from "next-auth/providers/resend";
 
 import { db } from "~/server/db";
@@ -43,6 +44,10 @@ export const authConfig = {
       apiKey: process.env.RESEND_API_KEY, // optional if you use AUTH_RESEND_KEY
     }),
     DiscordProvider,
+    GoogleProvider({
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET,
+    }),
     /**
      * ...add more providers here.
      *
@@ -54,7 +59,7 @@ export const authConfig = {
      */
   ],
   pages: {
-    signIn: "/auth/signin",
+    signIn: "/auth/login",
     verifyRequest: "/auth/verify",
     newUser: "/auth/welcome",
   },
@@ -64,6 +69,19 @@ export const authConfig = {
     sessionsTable: sessions,
     verificationTokensTable: verificationTokens,
   }),
+  // Suppress noisy console errors for expected auth flows (e.g. account-not-linked)
+  logger: {
+    error(error) {
+      // Ignore OAuthAccountNotLinked which is handled on the client UI
+      if (
+        error?.name === "OAuthAccountNotLinked" ||
+        error?.message?.toLowerCase().includes("accountnotlinked")
+      ) {
+        return;
+      }
+      console.error(error);
+    },
+  },
   callbacks: {
     session: ({ session, user }) => ({
       ...session,
