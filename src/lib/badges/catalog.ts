@@ -1,5 +1,5 @@
 import type { BadgeDefinition } from "~/types/badges";
-import { Star, Heart } from "lucide-react";
+import { Star, Heart, Telescope } from "lucide-react";
 import { createThresholdBadgeLadder, createTimeBadgeLadder } from "./generator";
 import { ALLOWED_TRIGGERS } from "./constants";
 
@@ -22,6 +22,28 @@ export function validateBadgeCatalog(catalog: BadgeDefinition[]) {
 import type { AllowedTrigger } from "./constants";
 
 export const BADGE_CATALOG: BadgeDefinition[] = [
+  // Temporary time-limited badge for early members
+  {
+    key: "pioneer",
+    family: "misc",
+    label: "Pioneer",
+    description:
+      "Early Sharply member, granted to all members who joined within the first 30 days of launch",
+    icon: "telescope",
+    color: "#181818",
+    iconComponent: Telescope,
+    sortScore: 1,
+    // Grant on login/signup and other common events for now. We'll remove later.
+    triggers: [
+      "review.approved",
+      "edit.approved",
+      "ownership.added",
+      "wishlist.added",
+      "compare.used",
+      "cron.anniversary",
+    ] as unknown as AllowedTrigger[],
+    test: () => true,
+  },
   ...createThresholdBadgeLadder({
     baseKey: "reviews",
     family: "reviews",

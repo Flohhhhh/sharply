@@ -10,6 +10,9 @@ import {
 } from "~/server/users/service";
 // Note: page is a Server Component and reads from the service layer only.
 import type { Metadata } from "next";
+import { auth } from "~/server/auth";
+import { Button } from "~/components/ui/button";
+import { UserPen } from "lucide-react";
 
 interface UserProfilePageProps {
   params: Promise<{
@@ -31,6 +34,7 @@ export default async function UserProfilePage({
   params,
 }: UserProfilePageProps) {
   const { handle } = await params;
+  const session = await auth();
 
   // Load user profile
   const user = await fetchUserById(handle);
@@ -44,23 +48,32 @@ export default async function UserProfilePage({
 
   // ownedItems loaded above
 
+  const myProfile = user.id === session?.user?.id;
+
   return (
     <main className="mx-auto min-h-screen max-w-6xl p-6 pt-32">
       {/* User Header */}
-      <div className="mb-8 flex items-center gap-4">
-        {user.image && (
-          <img
-            src={user.image}
-            alt={user.name || "User"}
-            className="h-16 w-16 rounded-full"
-          />
-        )}
-        <div>
-          <h1 className="text-3xl font-bold">
-            {user.name || "Anonymous User"}
-          </h1>
-          <p className="text-muted-foreground">Gear Collection & Wishlist</p>
+      <div className="mb-8 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          {user.image && (
+            <img
+              src={user.image}
+              alt={user.name || "User"}
+              className="h-16 w-16 rounded-full"
+            />
+          )}
+          <div>
+            <h1 className="text-3xl font-bold">
+              {user.name || "Anonymous User"}
+            </h1>
+            <p className="text-muted-foreground">Gear Collection & Wishlist</p>
+          </div>
         </div>
+        {myProfile && (
+          <Button asChild icon={<UserPen />} className="self-end">
+            <Link href="/profile/settings">Edit Profile</Link>
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">

@@ -1,6 +1,7 @@
 import "server-only";
 
-import { auth } from "~/server/auth";
+import { auth, requireUser } from "~/server/auth";
+import { z } from "zod";
 import { eq, sql } from "drizzle-orm";
 import { db } from "~/server/db";
 import {
@@ -130,4 +131,17 @@ export async function fetchUsersWithAnniversaryToday(): Promise<
       sql`to_char(${users.emailVerified}, 'MM-DD') = to_char(now(), 'MM-DD')`,
     );
   return rows;
+}
+
+const displayNameSchema = z
+  .string()
+  .trim()
+  .min(2, "Display name must be at least 2 characters")
+  .max(50, "Display name must be at most 50 characters");
+
+export async function updateDisplayName(rawName: string) {
+  const { user } = await requireUser();
+  const name = displayNameSchema.parse(rawName);
+  await db.update(users).set({ name }).where(eq(users.id, user.id));
+  return { ok: true as const, name };
 }

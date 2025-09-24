@@ -12,6 +12,7 @@ import {
   verificationTokens,
 } from "~/server/db/schema";
 import type { SessionRole } from ".";
+import { awardBadgeForce } from "~/server/badges/service";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -95,6 +96,21 @@ export const authConfig = {
           (user as { memberNumber?: number | null })?.memberNumber ?? null,
       },
     }),
+    async signIn({ user }) {
+      try {
+        // Temporarily grant Pioneer badge on every sign-in
+        if (user?.id) {
+          await awardBadgeForce({
+            userId: user.id,
+            badgeKey: "pioneer",
+            eventType: "auth.signin",
+          });
+        }
+      } catch (err) {
+        console.error("Failed to grant Pioneer badge on sign-in", err);
+      }
+      return true;
+    },
     async redirect({ url, baseUrl }) {
       try {
         // Allow relative callback paths

@@ -169,6 +169,15 @@
   --shadow-lg: var(--shadow-lg);
   --shadow-xl: var(--shadow-xl);
   --shadow-2xl: var(--shadow-2xl);
+  --animate-pulse: pulse var(--duration) ease-out infinite;
+  @keyframes pulse {
+  0%, 100% {
+    boxShadow: 0 0 0 0 var(--pulse-color);
+    }
+  50% {
+    boxShadow: 0 0 0 8px var(--pulse-color);
+    }
+  }
 }
 
 @layer base {
