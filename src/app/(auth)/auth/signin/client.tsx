@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 
 export default function SignInClient() {
   const [email, setEmail] = useState("");
@@ -189,10 +190,19 @@ export default function SignInClient() {
           </div>
         </div>
         <div className="bg-muted/40 relative hidden md:block">
-          <div className="absolute inset-0 grid place-items-center">
-            <div className="bg-background text-muted-foreground flex h-24 w-24 items-center justify-center rounded-full border">
-              <ImageIcon className="h-8 w-8" />
-            </div>
+          <Image
+            src="https://8v5lpkd4bi.ufs.sh/f/mJwI0W8NBfTnB3KMvJ7vikqlWn1GuLPstQJdMA7DVCZgzOTo"
+            alt="Sign in"
+            fill
+            className="object-cover"
+          />
+          {/* subtle bottom gradient for text readability */}
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 to-transparent"
+            aria-hidden
+          />
+          <div className="pointer-events-none absolute bottom-2 left-2 rounded bg-black/50 px-2 py-1 text-[10px] leading-none text-white/90">
+            Photo by Rohit Sharma on Unsplash
           </div>
         </div>
       </div>

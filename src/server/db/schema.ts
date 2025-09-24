@@ -981,6 +981,12 @@ export const users = appSchema.table("user", (d) => ({
     .default(sql`CURRENT_TIMESTAMP`),
   image: d.varchar({ length: 255 }),
   role: userRoleEnum("role").notNull().default("USER"),
+  // Sequential public member number, first user is 1, second is 2, etc.
+  memberNumber: integer("member_number")
+    .generatedByDefaultAsIdentity()
+    .notNull()
+    .unique(),
+  createdAt,
 }));
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -988,6 +994,9 @@ export const usersRelations = relations(users, ({ many }) => ({
   gearEdits: many(gearEdits),
   reviews: many(reviews),
 }));
+
+// Export the user type for use throughout the application
+export type User = typeof users.$inferSelect;
 
 export const accounts = appSchema.table(
   "account",

@@ -37,6 +37,8 @@ interface Session {
     name?: string | null;
     email?: string | null;
     image?: string | null;
+    role: "USER" | "EDITOR" | "ADMIN";
+    memberNumber?: number | null; // Sequential public member id
   };
   expires: string;
 }

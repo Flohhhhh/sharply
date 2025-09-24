@@ -48,7 +48,17 @@ export async function fetchUserById(userId: string) {
       name: users.name,
       email: users.email,
       image: users.image,
+      memberNumber: users.memberNumber,
     })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+  return row[0] ?? null;
+}
+
+export async function fetchFullUserById(userId: string) {
+  const row = await db
+    .select()
     .from(users)
     .where(eq(users.id, userId))
     .limit(1);

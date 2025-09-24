@@ -24,11 +24,13 @@ declare module "next-auth" {
     user: {
       id: string;
       role: "USER" | "EDITOR" | "ADMIN";
+      memberNumber?: number | null;
     } & DefaultSession["user"];
   }
 
   interface User {
     role?: "USER" | "EDITOR" | "ADMIN";
+    memberNumber?: number | null;
   }
 }
 
@@ -89,6 +91,8 @@ export const authConfig = {
         ...session.user,
         id: user.id,
         role: (user as { role?: SessionRole })?.role ?? "USER",
+        memberNumber:
+          (user as { memberNumber?: number | null })?.memberNumber ?? null,
       },
     }),
     async redirect({ url, baseUrl }) {
