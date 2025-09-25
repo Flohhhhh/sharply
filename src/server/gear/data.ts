@@ -347,6 +347,57 @@ export async function fetchStaffVerdictByGearIdData(gearId: string) {
   return rows[0] ?? null;
 }
 
+export async function upsertStaffVerdictByGearIdData(params: {
+  gearId: string;
+  content?: string | null;
+  pros?: string[] | null;
+  cons?: string[] | null;
+  whoFor?: string | null;
+  notFor?: string | null;
+  alternatives?: string[] | null;
+  authorUserId: string;
+}) {
+  const {
+    gearId,
+    content,
+    pros,
+    cons,
+    whoFor,
+    notFor,
+    alternatives,
+    authorUserId,
+  } = params;
+  const values = {
+    gearId,
+    content: content ?? null,
+    pros: (pros ?? null) as any,
+    cons: (cons ?? null) as any,
+    whoFor: whoFor ?? null,
+    notFor: notFor ?? null,
+    alternatives: (alternatives ?? null) as any,
+    authorUserId,
+  };
+
+  const rows = await db
+    .insert(staffVerdicts)
+    .values(values)
+    .onConflictDoUpdate({
+      target: staffVerdicts.gearId,
+      set: {
+        content: values.content,
+        pros: values.pros as any,
+        cons: values.cons as any,
+        whoFor: values.whoFor,
+        notFor: values.notFor,
+        alternatives: values.alternatives as any,
+        authorUserId: values.authorUserId,
+        updatedAt: sql`now()`,
+      },
+    })
+    .returning();
+  return rows[0] ?? null;
+}
+
 export async function fetchAllGearSlugsData() {
   const rows = await db.select({ slug: gear.slug }).from(gear);
   return rows.map((r) => r.slug);

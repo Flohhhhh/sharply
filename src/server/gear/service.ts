@@ -32,6 +32,7 @@ import {
   type ContributorRow,
   fetchUseCaseRatingsByGearIdData,
   fetchStaffVerdictByGearIdData,
+  upsertStaffVerdictByGearIdData,
   fetchAllGearSlugsData,
   fetchGearEditByIdData,
   type GearEditView,
@@ -217,6 +218,35 @@ export async function fetchUseCaseRatings(slug: string) {
 export async function fetchStaffVerdict(slug: string) {
   const gearId = await resolveGearIdOrThrow(slug);
   return fetchStaffVerdictByGearIdData(gearId);
+}
+
+const verdictInput = z.object({
+  content: z.string().max(5000).nullable().optional(),
+  pros: z.array(z.string().min(1)).max(50).nullable().optional(),
+  cons: z.array(z.string().min(1)).max(50).nullable().optional(),
+  whoFor: z.string().max(1000).nullable().optional(),
+  notFor: z.string().max(1000).nullable().optional(),
+  alternatives: z.array(z.string().min(1)).max(50).nullable().optional(),
+});
+
+export async function upsertStaffVerdict(slug: string, body: unknown) {
+  const { user } = await requireUser();
+  if (!user?.role || !["ADMIN"].includes(user.role)) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+  const gearId = await resolveGearIdOrThrow(slug);
+  const data = verdictInput.parse(body ?? {});
+  const row = await upsertStaffVerdictByGearIdData({
+    gearId,
+    content: data.content ?? null,
+    pros: data.pros ?? null,
+    cons: data.cons ?? null,
+    whoFor: data.whoFor ?? null,
+    notFor: data.notFor ?? null,
+    alternatives: data.alternatives ?? null,
+    authorUserId: user.id,
+  });
+  return { ok: true as const, verdict: row };
 }
 
 export async function fetchAllGearSlugs() {

@@ -7,6 +7,7 @@ import {
   submitGearEditProposal,
   toggleOwnership,
   toggleWishlist,
+  upsertStaffVerdict,
 } from "./service";
 
 /** Server actions for UI components */
@@ -48,5 +49,11 @@ export async function actionSubmitGearProposal(body: unknown) {
     }
   }
   // Revalidate pages that surface proposal counts if any in the future
+  return res;
+}
+
+export async function actionUpsertStaffVerdict(slug: string, body: unknown) {
+  const res = await upsertStaffVerdict(slug, body);
+  revalidatePath(`/gear/${slug}`);
   return res;
 }

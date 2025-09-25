@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Button } from "~/components/ui/button";
-import { Clock } from "lucide-react";
+import { Clock, Pencil } from "lucide-react";
 
 type GearType = "CAMERA" | "LENS";
 
@@ -59,15 +59,21 @@ export function SuggestEditButton({
 
   if (status === "authenticated" && hasPending) {
     return (
-      <Button disabled variant="secondary" icon={<Clock className="size-4" />}>
+      <Button
+        disabled
+        variant="secondary"
+        icon={<Clock className="size-4" size="sm" />}
+      >
         Edit Request Pending
       </Button>
     );
   }
 
   return (
-    <Link scroll={false} href={targetUrl} className={className}>
-      Suggest Edit
-    </Link>
+    <Button asChild size="sm" icon={<Pencil />}>
+      <Link scroll={false} href={targetUrl} className={className}>
+        Suggest Edit
+      </Link>
+    </Button>
   );
 }

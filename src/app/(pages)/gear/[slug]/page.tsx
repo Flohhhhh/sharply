@@ -26,6 +26,7 @@ import { GearLinks } from "~/app/(pages)/gear/_components/gear-links";
 import GearStatsCard from "../_components/gear-stats-card";
 import GearBadges from "../_components/gear-badges";
 import SpecsTable from "../_components/specs-table";
+import { ManageStaffVerdictModal } from "../_components/manage-staff-verdict-modal";
 import { buildGearSpecsSections } from "~/lib/specs/registry";
 import type { Metadata } from "next";
 import { Breadcrumbs, type CrumbItem } from "~/components/layout/breadcrumbs";
@@ -189,30 +190,31 @@ export default async function GearPage({ params }: GearPageProps) {
             </div>
           )}
         </div>
-        {/* Intra-page nav bar */}
-        <section className="bg-background sticky top-16 z-10 border-b py-2">
-          <div className="flex items-center justify-center gap-8">
-            {/* specs, reviews, contributors */}
-            <Link
-              href={`#specs`}
-              className="text-muted-foreground hover:text-primary transition-all hover:underline"
-            >
-              Specs
-            </Link>
-            <Link
-              href={`#reviews`}
-              className="text-muted-foreground hover:text-primary transition-all hover:underline"
-            >
-              Reviews
-            </Link>
-            <Link
-              href={`#staff-verdict`}
-              className="text-muted-foreground hover:text-primary transition-all hover:underline"
-            >
-              Staff Verdict
-            </Link>
-          </div>
-        </section>
+      </section>
+
+      {/* Intra-page nav bar */}
+      <section className="bg-background sticky top-16 z-10 border-b py-2">
+        <div className="flex items-center justify-center gap-8">
+          {/* specs, reviews, contributors */}
+          <Link
+            href={`#specs`}
+            className="text-muted-foreground hover:text-primary transition-all hover:underline"
+          >
+            Specs
+          </Link>
+          <Link
+            href={`#staff-verdict`}
+            className="text-muted-foreground hover:text-primary transition-all hover:underline"
+          >
+            Staff Verdict
+          </Link>
+          <Link
+            href={`#reviews`}
+            className="text-muted-foreground hover:text-primary transition-all hover:underline"
+          >
+            Reviews
+          </Link>
+        </div>
       </section>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-10">
@@ -221,7 +223,13 @@ export default async function GearPage({ params }: GearPageProps) {
           <UserPendingEditBanner slug={slug} />
           {/* Specifications */}
           <section className="scroll-mt-24" id="specs">
-            <h2 className="mb-2 text-lg font-semibold">Specifications</h2>
+            <div className="mb-2 flex items-center justify-between">
+              <h2 className="mb-2 text-lg font-semibold">Specifications</h2>
+              <SuggestEditButton
+                slug={item.slug}
+                gearType={item.gearType as "CAMERA" | "LENS"}
+              />
+            </div>
             <SpecsTable sections={specSections} item={item} />
           </section>
           {/* Sign-in CTA banner for editing specs (client, only when signed out) */}
@@ -229,58 +237,21 @@ export default async function GearPage({ params }: GearPageProps) {
             slug={item.slug}
             gearType={item.gearType as "CAMERA" | "LENS"}
           />
-          {/* Use-case performance */}
-          {ratings.length > 0 && (
-            <section className="mt-12 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Use‑case performance</h3>
-              </div>
-              <div className="border-border overflow-hidden rounded-md border">
-                <div className="divide-border divide-y">
-                  {ratings.map((r) => (
-                    <div key={r.genreId} className="px-4 py-3">
-                      <div className="mb-1 flex items-center justify-between">
-                        <span className="font-medium">{r.genreName}</span>
-                        <span className="text-muted-foreground text-sm">
-                          {r.score}/10
-                        </span>
-                      </div>
-                      <div className="bg-muted relative h-2 w-full overflow-hidden rounded">
-                        <div
-                          className="bg-primary h-2 rounded"
-                          style={{
-                            width: `${Math.max(0, Math.min(10, r.score)) * 10}%`,
-                          }}
-                        />
-                      </div>
-                      {r.note && (
-                        <div className="text-muted-foreground mt-2 text-sm">
-                          {r.note}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </section>
-          )}
           {/* Staff Verdict */}
-          {verdict &&
-            Boolean(
-              verdict.content ||
-                verdict.pros ||
-                verdict.cons ||
-                verdict.whoFor ||
-                verdict.notFor ||
-                verdict.alternatives,
-            ) && (
-              <section
-                id="staff-verdict"
-                className="mt-12 scroll-mt-24 space-y-4"
-              >
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">Staff Verdict</h3>
-                </div>
+          <section id="staff-verdict" className="mt-12 scroll-mt-24 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Staff Verdict</h3>
+              <ManageStaffVerdictModal slug={slug} />
+            </div>
+            {verdict &&
+              Boolean(
+                verdict.content ||
+                  verdict.pros ||
+                  verdict.cons ||
+                  verdict.whoFor ||
+                  verdict.notFor ||
+                  verdict.alternatives,
+              ) && (
                 <div className="border-border overflow-hidden rounded-md border p-4">
                   {verdict.content && (
                     <div className="space-y-3">
@@ -371,8 +342,8 @@ export default async function GearPage({ params }: GearPageProps) {
                       </div>
                     )}
                 </div>
-              </section>
-            )}
+              )}
+          </section>
         </div>
         {/* Right column */}
         <div className="col-span-3 space-y-8">
@@ -432,14 +403,6 @@ export default async function GearPage({ params }: GearPageProps) {
           </div>
         </div>
       </div>
-
-      {/* Suggest Edit Button */}
-      {/* <div className="mb-6">
-        <SuggestEditButton
-          slug={item.slug}
-          gearType={item.gearType as "CAMERA" | "LENS"}
-        />
-      </div> */}
 
       {/* Reviews */}
       <section id="reviews" className="scroll-mt-24">

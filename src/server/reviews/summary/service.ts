@@ -21,7 +21,7 @@ import {
 } from "./data";
 
 export const SUMMARY_CONFIG = {
-  minReviews: 10,
+  minReviews: 5, //TODO: increase to 10
   sampleSize: 40,
   maxCharsPerReview: 600,
   cooldownDays: 7,
