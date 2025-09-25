@@ -12,18 +12,21 @@ export const metadata: Metadata = {
   title: "Welcome!",
 };
 
+type WelcomeSearchParams = {
+  callbackUrl?: string;
+  inviteId?: string;
+  next?: string;
+};
+
 export default async function WelcomePage(props: {
-  searchParams: Promise<{
-    callbackUrl?: string;
-    inviteId?: string;
-  }>;
+  searchParams: Promise<WelcomeSearchParams>;
 }) {
   const session = await auth();
   const {
     callbackUrl,
     inviteId: inviteIdFromQuery,
     next,
-  } = (await props.searchParams) as any;
+  } = await props.searchParams;
   // Prefer explicit next (from accept route), else safe callbackUrl, else home
   const redirectUrl =
     typeof next === "string"
