@@ -2,6 +2,7 @@ import "~/styles/globals.css";
 
 import { type Metadata } from "next";
 // import { Geist } from "next/font/google";
+import { Archivo } from "next/font/google";
 import { Providers } from "./providers";
 import { Toaster } from "~/components/ui/sonner";
 import { FloatingCompareButton } from "~/components/compare/floating-compare-button";
@@ -37,12 +38,19 @@ export const metadata: Metadata = {
 //   variable: "--font-geist-sans",
 // });
 
+const archivo = Archivo({
+  subsets: ["latin"],
+  variable: "--font-archivo",
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
+});
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     // <html lang="en" className={`${geist.variable}`}>
-    <html lang="en">
+    <html lang="en" className={`${archivo.variable}`}>
       <body>
         <Providers>
           {children}

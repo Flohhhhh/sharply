@@ -47,7 +47,7 @@
   --sidebar-accent-foreground: oklch(0.2046 0 0);
   --sidebar-border: oklch(0.8699 0 0);
   --sidebar-ring: oklch(0.2046 0 0);
-  --font-sans: Archivo, ui-sans-serif, sans-serif, system-ui;
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
   --font-serif: serif;
   --font-mono: monospace;
   --radius: 0.35rem;
@@ -100,7 +100,7 @@
   --sidebar-accent-foreground: oklch(0.9851 0 0);
   --sidebar-border: oklch(0.3715 0 0);
   --sidebar-ring: oklch(0.9851 0 0);
-  --font-sans: Archivo, ui-sans-serif, sans-serif, system-ui;
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
   --font-serif: serif;
   --font-mono: monospace;
   --radius: 0.35rem;
@@ -171,11 +171,12 @@
   --shadow-2xl: var(--shadow-2xl);
   --animate-pulse: pulse var(--duration) ease-out infinite;
   @keyframes pulse {
-  0%, 100% {
-    boxShadow: 0 0 0 0 var(--pulse-color);
+    0%,
+    100% {
+      boxshadow: 0 0 0 0 var(--pulse-color);
     }
-  50% {
-    boxShadow: 0 0 0 8px var(--pulse-color);
+    50% {
+      boxshadow: 0 0 0 8px var(--pulse-color);
     }
   }
 }
@@ -185,6 +186,6 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
   }
 }

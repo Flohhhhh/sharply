@@ -19,7 +19,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly" as const,
       priority: 0.8,
     },
-
     {
       url: "https://sharplyphoto.com/learn",
       lastModified: new Date(),
@@ -32,8 +31,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly" as const,
       priority: 0.5,
     },
+    // {
+    //   url: "https://sharplyphoto.com/focal-simulator",
+    //   lastModified: new Date(),
+    //   changeFrequency: "weekly" as const,
+    //   priority: 0.5,
+    // },
     {
-      url: "https://sharplyphoto.com/focal-simulator",
+      url: "https://sharplyphoto.com/privacy-policy",
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.5,
+    },
+    {
+      url: "https://sharplyphoto.com/terms-of-service",
       lastModified: new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.5,

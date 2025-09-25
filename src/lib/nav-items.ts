@@ -107,24 +107,24 @@ export const navItems: NavItem[] = [
         description: "Find and compare gear side-by-side",
         iconKey: "search",
       },
-      {
-        title: "Focal Simulator",
-        url: "/focal-simulator",
-        description: "Visualize different focal lengths",
-        iconKey: "target",
-      },
-      {
-        title: "Construction Test",
-        url: "/construction-test",
-        description: "Test your gear knowledge",
-        iconKey: "zap",
-      },
-      {
-        title: "Price Tracking",
-        url: "/tools/price-tracking",
-        description: "Track gear prices over time",
-        iconKey: "trending",
-      },
+      // {
+      //   title: "Focal Simulator",
+      //   url: "/focal-simulator",
+      //   description: "Visualize different focal lengths",
+      //   iconKey: "target",
+      // },
+      // {
+      //   title: "Construction Test",
+      //   url: "/construction-test",
+      //   description: "Test your gear knowledge",
+      //   iconKey: "zap",
+      // },
+      // {
+      //   title: "Price Tracking",
+      //   url: "/tools/price-tracking",
+      //   description: "Track gear prices over time",
+      //   iconKey: "trending",
+      // },
     ],
   },
 
@@ -132,30 +132,30 @@ export const navItems: NavItem[] = [
     title: "Learn",
     type: "category",
     items: [
-      {
-        title: "Camera Guides",
-        url: "/learn/camera-guides",
-        description: "Master your camera settings",
-        iconKey: "book",
-      },
-      {
-        title: "Lens Selection",
-        url: "/learn/lens-selection",
-        description: "Choose the right lens for your needs",
-        iconKey: "target",
-      },
-      {
-        title: "Photography Tips",
-        url: "/learn/photography-tips",
-        description: "Improve your photography skills",
-        iconKey: "palette",
-      },
-      {
-        title: "Gear Maintenance",
-        url: "/learn/gear-maintenance",
-        description: "Keep your equipment in top shape",
-        iconKey: "settings",
-      },
+      // {
+      //   title: "Camera Guides",
+      //   url: "/learn/camera-guides",
+      //   description: "Master your camera settings",
+      //   iconKey: "book",
+      // },
+      // {
+      //   title: "Lens Selection",
+      //   url: "/learn/lens-selection",
+      //   description: "Choose the right lens for your needs",
+      //   iconKey: "target",
+      // },
+      // {
+      //   title: "Photography Tips",
+      //   url: "/learn/photography-tips",
+      //   description: "Improve your photography skills",
+      //   iconKey: "palette",
+      // },
+      // {
+      //   title: "Gear Maintenance",
+      //   url: "/learn/gear-maintenance",
+      //   description: "Keep your equipment in top shape",
+      //   iconKey: "settings",
+      // },
     ],
   },
   {

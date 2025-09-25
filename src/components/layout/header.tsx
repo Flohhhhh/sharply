@@ -10,6 +10,7 @@ import { NavMenuDesktop } from "./nav-menu-desktop";
 import { NavMenuMobile } from "./nav-menu-mobile";
 import { NavSheetDesktop } from "./nav-sheet-desktop";
 import { useSession, signOut } from "next-auth/react";
+import Logo from "public/logo";
 
 export default function Header() {
   const { data: session } = useSession();
@@ -65,7 +66,10 @@ export default function Header() {
                   <Link href="/">Sharply</Link>
                 </div>
               ) : (
-                <Link href="/">Sharply</Link>
+                <div className="flex items-center gap-2">
+                  <Logo className="h-4 w-4" />
+                  <Link href="/">Sharply</Link>
+                </div>
               )}
             </div>
           </div>
