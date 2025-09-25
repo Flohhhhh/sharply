@@ -41,6 +41,7 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authConfig = {
+  // debug: true,
   providers: [
     Resend({
       from: process.env.RESEND_EMAIL_FROM!,
@@ -91,6 +92,8 @@ export const authConfig = {
       user: {
         ...session.user,
         id: user.id,
+        // Ensure session reflects DB values for name and role
+        name: (user as { name?: string | null })?.name ?? session.user?.name,
         role: (user as { role?: SessionRole })?.role ?? "USER",
         memberNumber:
           (user as { memberNumber?: number | null })?.memberNumber ?? null,

@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { auth } from "~/server/auth";
 import { fetchFullUserById } from "~/server/users/service";
 import UserCard from "./user-card";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { claimInvite } from "~/server/invites/service";
 
 export const metadata: Metadata = {
   title: "Welcome!",
@@ -13,6 +15,7 @@ export const metadata: Metadata = {
 export default async function WelcomePage(props: {
   searchParams: {
     callbackUrl?: string;
+    inviteId?: string;
   };
 }) {
   const session = await auth();
@@ -28,6 +31,24 @@ export default async function WelcomePage(props: {
   }
 
   // Fetch the full user data from the database
+  const cookieStore = await cookies();
+  const inviteId = searchParams.inviteId ?? cookieStore.get("invite_id")?.value;
+  if (inviteId) {
+    console.info("[invites] welcome:claim_attempt", { inviteId });
+    const res = await claimInvite(inviteId).catch((err) => {
+      console.error("[invites] welcome:claim_error", { inviteId, err });
+      return null;
+    });
+    if (res?.ok) {
+      console.info("[invites] welcome:claim_success", { inviteId });
+    } else if (res && !res.ok) {
+      console.info("[invites] welcome:claim_failure", {
+        inviteId,
+        reason: res.reason,
+      });
+    }
+    // Note: cannot modify cookies in a server component; leave cleanup to accept route expiry
+  }
   const user = await fetchFullUserById(session.user.id);
 
   if (!user) {

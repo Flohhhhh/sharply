@@ -986,6 +986,8 @@ export const users = appSchema.table("user", (d) => ({
     .generatedByDefaultAsIdentity()
     .notNull()
     .unique(),
+  // Invite used to join (if applicable). Stored for audit, no FK to avoid cycle.
+  inviteId: varchar("invite_id", { length: 36 }),
   createdAt,
 }));
 
@@ -1097,5 +1099,34 @@ export const badgeAwardsLog = appSchema.table(
     index("badge_awards_log_user_idx").on(t.userId),
     index("badge_awards_log_awarded_idx").on(t.awardedAt),
     index("badge_awards_log_badge_idx").on(t.badgeKey),
+  ],
+);
+
+// --- Invites ---
+export const invites = appSchema.table(
+  "invites",
+  (d) => ({
+    id: d
+      .varchar({ length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    inviteeName: d.varchar({ length: 255 }).notNull(),
+    role: userRoleEnum("role").notNull().default("USER"),
+    createdById: d
+      .varchar({ length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    isUsed: d.boolean("is_used").notNull().default(false),
+    usedByUserId: d
+      .varchar({ length: 255 })
+      .references(() => users.id, { onDelete: "set null" }),
+    usedAt: d.timestamp({ mode: "date", withTimezone: true }),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    index("invites_created_by_idx").on(t.createdById),
+    index("invites_is_used_idx").on(t.isUsed),
+    index("invites_used_by_idx").on(t.usedByUserId),
   ],
 );
