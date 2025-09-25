@@ -198,19 +198,19 @@ export default async function GearPage({ params }: GearPageProps) {
           {/* specs, reviews, contributors */}
           <Link
             href={`#specs`}
-            className="text-muted-foreground hover:text-primary transition-all hover:underline"
+            className="text-muted-foreground hover:text-primary text-sm transition-all hover:underline"
           >
             Specs
           </Link>
           <Link
             href={`#staff-verdict`}
-            className="text-muted-foreground hover:text-primary transition-all hover:underline"
+            className="text-muted-foreground hover:text-primary text-sm transition-all hover:underline"
           >
             Staff Verdict
           </Link>
           <Link
             href={`#reviews`}
-            className="text-muted-foreground hover:text-primary transition-all hover:underline"
+            className="text-muted-foreground hover:text-primary text-sm transition-all hover:underline"
           >
             Reviews
           </Link>
@@ -346,7 +346,7 @@ export default async function GearPage({ params }: GearPageProps) {
           </section>
         </div>
         {/* Right column */}
-        <div className="col-span-3 space-y-8">
+        <div className="sticky top-28 col-span-3 -mt-4 space-y-8 self-start">
           {/* Action Buttons */}
           <div className="">
             {(() => {

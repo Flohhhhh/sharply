@@ -48,8 +48,8 @@ function parseLines(value: string | undefined): string[] | null {
 export function ManageStaffVerdictModal({ slug }: { slug: string }) {
   const { data: session } = useSession();
   const isAdmin = useMemo(
-    () => (session?.user as any)?.role === "ADMIN",
-    [session?.user],
+    () => session?.user?.role === "ADMIN",
+    [session?.user?.role],
   );
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -76,7 +76,7 @@ export function ManageStaffVerdictModal({ slug }: { slug: string }) {
   useEffect(() => {
     if (!open) return;
     let mounted = true;
-    (async () => {
+    void (async () => {
       setLoading(true);
       try {
         const res = await fetch(`/api/gear/${slug}/staff-verdict`, {
@@ -150,7 +150,9 @@ export function ManageStaffVerdictModal({ slug }: { slug: string }) {
         notFor: formData.notFor?.trim() || null,
         alternatives: parseLines(formData.alternatives),
       });
-      if ((res as any)?.ok) {
+      const ok =
+        ((res as { ok?: boolean } | null | undefined)?.ok ?? false) === true;
+      if (ok) {
         toast.success("Staff verdict updated.");
         setOpen(false);
       } else {

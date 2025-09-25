@@ -57,8 +57,8 @@ export default async function InvitePage({
           Welcome, {invite.inviteeName}
         </h1>
         <p className="text-muted-foreground mt-3 max-w-prose text-base sm:text-lg">
-          You’ve been invited to join Sharply as a {invite.role}. Enjoy early
-          access and all‑access privileges.
+          You’ve been invited to join Sharply as an {invite.role}. Enjoy early
+          access and help us shape the future of the app.
         </p>
 
         <div className="mt-10 flex w-full flex-col items-center gap-3 sm:flex-row sm:justify-center">
