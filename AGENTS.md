@@ -11,6 +11,10 @@ Sharply is a photography gear database and cataloging application built with Nex
 - **Documentation**: Stored in `/docs` folder
 - **Migrations**: Stored in `/drizzle` folder
 
+### UI Components
+
+- **ShadcnUI** Components can be found in /app/components/ui
+
 ## Next JS Notes
 
 - **Server actions** should never be used for fetching, only for mutations or other client > server actions

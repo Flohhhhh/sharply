@@ -61,6 +61,8 @@ async function main() {
     { name: "Yongnuo", slug: "yongnuo" },
     { name: "ARRI", slug: "arri" },
     { name: "Red", slug: "red" },
+    { name: "SongRAW", slug: "songraw" },
+    { name: "Practika", slug: "practika" },
   ];
 
   // Insert all brands and get references for mounts

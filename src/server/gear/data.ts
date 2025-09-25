@@ -193,6 +193,28 @@ export async function fetchBrandGearData(
   return rows as unknown as BrandGearCard[];
 }
 
+export async function hasPendingEditsForGear(gearId: string): Promise<boolean> {
+  const row = await db
+    .select({ id: gearEdits.id })
+    .from(gearEdits)
+    .where(and(eq(gearEdits.gearId, gearId), eq(gearEdits.status, "PENDING")))
+    .limit(1);
+  return row.length > 0;
+}
+
+export async function fetchPendingEditForGear(gearId: string) {
+  const rows = await db
+    .select({
+      id: gearEdits.id,
+      status: gearEdits.status,
+      createdById: gearEdits.createdById,
+    })
+    .from(gearEdits)
+    .where(and(eq(gearEdits.gearId, gearId), eq(gearEdits.status, "PENDING")))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
 export async function isInWishlist(
   gearId: string,
   userId: string,

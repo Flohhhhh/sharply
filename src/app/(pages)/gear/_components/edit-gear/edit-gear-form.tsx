@@ -343,10 +343,20 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
       if (res?.ok) {
         setIsDirty(false);
         const createdId = (res as any)?.proposal?.id;
-        toast.success("Suggestion submitted", {
-          description: "Thanks! We'll review it shortly.",
-        });
-        router.replace(`/edit-success?id=${createdId ?? ""}`);
+        const autoApproved = Boolean((res as any)?.autoApproved);
+        toast.success(
+          autoApproved ? "Changes applied" : "Suggestion submitted",
+          {
+            description: autoApproved
+              ? "Your update is live now."
+              : "Thanks! We'll review it shortly.",
+          },
+        );
+        router.replace(
+          autoApproved
+            ? `/gear/${gearSlug}?editApplied=1`
+            : `/edit-success?id=${createdId ?? ""}`,
+        );
       } else {
         toast.error("Failed to submit suggestion", {
           description: "Please try again in a moment.",

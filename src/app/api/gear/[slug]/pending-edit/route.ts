@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "~/server/auth";
-import { fetchPendingEditId } from "~/server/gear/service";
+import { fetchPendingEdit } from "~/server/gear/service";
 
 export async function GET(
   _req: Request,
@@ -13,9 +13,9 @@ export async function GET(
     }
 
     const { slug } = await params;
-    const id = await fetchPendingEditId(slug);
-    return NextResponse.json({ pendingEditId: id });
+    const pendingEdit = await fetchPendingEdit(slug);
+    return NextResponse.json({ pendingEdit });
   } catch (error) {
-    return NextResponse.json({ pendingEditId: null });
+    return NextResponse.json({ pendingEdit: null });
   }
 }

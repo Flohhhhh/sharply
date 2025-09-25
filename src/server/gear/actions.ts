@@ -38,6 +38,15 @@ export async function actionSubmitReview(slug: string, body: unknown) {
 
 export async function actionSubmitGearProposal(body: unknown) {
   const res = await submitGearEditProposal(body);
+  if (res?.autoApproved) {
+    const slug =
+      body && typeof body === "object" && body !== null && "slug" in body
+        ? (body as { slug?: string }).slug
+        : undefined;
+    if (slug) {
+      revalidatePath(`/gear/${slug}`);
+    }
+  }
   // Revalidate pages that surface proposal counts if any in the future
   return res;
 }

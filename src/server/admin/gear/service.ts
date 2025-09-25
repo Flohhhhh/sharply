@@ -5,6 +5,9 @@ import {
   performFuzzySearch as performFuzzySearchData,
   checkGearCreationData,
   createGearData,
+  fetchAdminGearItemsData,
+  type FetchAdminGearItemsParams,
+  type FetchAdminGearItemsResult,
   type GearCreationCheckParams,
   type GearCreationCheckResult,
   type GearCreationParams,
@@ -78,4 +81,14 @@ export async function createGearAdmin(
   });
 
   return created;
+}
+
+export async function fetchAdminGearItems(
+  params: FetchAdminGearItemsParams,
+): Promise<FetchAdminGearItemsResult> {
+  const session = await requireUser();
+  if (!requireRole(session, ["ADMIN", "EDITOR"] as SessionRole[])) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+  return fetchAdminGearItemsData(params);
 }

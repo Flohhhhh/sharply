@@ -17,10 +17,13 @@ import {
   createReview as createReviewData,
   insertAuditLog as insertAuditLogData,
   getPendingEditIdData,
+  hasPendingEditsForGear,
+  fetchPendingEditForGear,
 } from "./data";
 import type { GearItem } from "~/types/gear";
 import { normalizeProposalPayloadForDb } from "~/server/db/normalizers";
 import { evaluateForEvent } from "~/server/badges/service";
+import { approveProposal } from "~/server/admin/proposals/service";
 import {
   createGearEditProposal,
   fetchLatestGearCardsData,
@@ -245,19 +248,32 @@ const proposalInput = z
 export async function submitGearEditProposal(body: unknown) {
   const { user } = await requireUser();
   const userId = user.id;
+  const role = user.role ?? "USER";
   const data = proposalInput.parse(body);
-  const normalizedPayload = normalizeProposalPayloadForDb(data.payload as any);
+  const normalizedPayload = normalizeProposalPayloadForDb(
+    data.payload as Record<string, unknown>,
+  );
   const gearId =
     data.gearId ??
     (data.slug ? await resolveGearIdOrThrow(data.slug) : undefined);
   if (!gearId)
     throw Object.assign(new Error("Missing gear reference"), { status: 400 });
+  const hasPending = await hasPendingEditsForGear(gearId);
   const proposal = await createGearEditProposal({
     gearId,
     userId,
     payload: normalizedPayload,
     note: data.note ?? null,
   });
+  let autoApproved = false;
+  if (!hasPending && (role === "ADMIN" || role === "EDITOR")) {
+    try {
+      await approveProposal(proposal.id, normalizedPayload);
+      autoApproved = true;
+    } catch (error) {
+      console.error("[submitGearEditProposal] auto-approve failed", error);
+    }
+  }
   // Audit log
   try {
     await insertAuditLogData({
@@ -267,13 +283,25 @@ export async function submitGearEditProposal(body: unknown) {
       gearEditId: proposal.id,
     });
   } catch {}
-  return { ok: true as const, proposal };
+  const resultProposal = autoApproved
+    ? { ...proposal, status: "APPROVED" as const }
+    : proposal;
+  return { ok: true as const, proposal: resultProposal, autoApproved };
 }
 
 export async function fetchPendingEditId(slug: string) {
   const { user } = await requireUser();
   const gearId = await resolveGearIdOrThrow(slug);
   return getPendingEditIdData(gearId, user.id);
+}
+
+export async function fetchPendingEdit(slug: string) {
+  const { user } = await requireUser();
+  const gearId = await resolveGearIdOrThrow(slug);
+  const pending = await fetchPendingEditForGear(gearId);
+  if (!pending) return null;
+  if (pending.createdById !== user.id) return null;
+  return pending;
 }
 
 // counts moved to metrics service

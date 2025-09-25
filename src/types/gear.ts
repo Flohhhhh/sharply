@@ -39,3 +39,5 @@ export type GearItem = Gear & {
 
 export type PopularityEventType =
   (typeof popularityEventTypeEnum.enumValues)[number];
+
+export type { AdminGearTableRow } from "~/server/admin/gear/data";

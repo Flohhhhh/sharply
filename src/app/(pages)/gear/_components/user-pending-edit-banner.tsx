@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useSession } from "next-auth/react";
 
 export function UserPendingEditBanner({ slug }: { slug: string }) {
   const { data: session, status } = useSession();
-  const [pendingEditId, setPendingEditId] = useState<string | null>(null);
+  const [pendingEdit, setPendingEdit] = useState<{
+    id: string;
+    status: "PENDING" | "APPROVED" | "REJECTED" | "MERGED";
+  } | null>(null);
 
   useEffect(() => {
     if (status !== "authenticated" || !session?.user) return;
@@ -16,7 +18,11 @@ export function UserPendingEditBanner({ slug }: { slug: string }) {
         const res = await fetch(`/api/gear/${slug}/pending-edit`);
         if (!res.ok) return;
         const data = await res.json();
-        setPendingEditId(data?.pendingEditId ?? null);
+        if (data?.pendingEdit) {
+          setPendingEdit(data.pendingEdit);
+        } else {
+          setPendingEdit(null);
+        }
       } catch {}
     };
 
@@ -25,17 +31,22 @@ export function UserPendingEditBanner({ slug }: { slug: string }) {
     });
   }, [session, status, slug]);
 
-  if (status !== "authenticated" || !pendingEditId) return null;
+  if (status !== "authenticated" || !pendingEdit) return null;
+
+  if (pendingEdit.status !== "PENDING") return null;
 
   return (
     <div className="border-border bg-muted/50 text-muted-foreground mb-6 rounded-md border px-4 py-3 text-sm">
       You have a recent suggestion pending review.{" "}
-      <Link
-        href={`/edit-success?id=${pendingEditId}`}
+      <button
+        type="button"
+        onClick={() => {
+          window.location.href = `/edit-success?id=${pendingEdit.id}`;
+        }}
         className="text-primary underline"
       >
         View submission
-      </Link>
+      </button>
       .
     </div>
   );

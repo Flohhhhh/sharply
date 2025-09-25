@@ -1,29 +1,121 @@
-# Create T3 App
+# Sharply
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+Sharply is a photography gear database and cataloging application. It combines authoritative gear specs, editorial reviews, and contributor tools so the community can keep data accurate while discovering new equipment.
 
-## What's next? How do I make an app with this?
+## Tech Stack
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+- **Framework**: Next.js 15 (App Router) with React 19
+- **Language**: TypeScript
+- **UI**: Tailwind CSS 4, shadcn/ui, Radix primitives
+- **Database**: PostgreSQL with Drizzle ORM
+- **Auth**: NextAuth.js v5 with Discord & Google providers
+- **AI & Integrations**: OpenAI API, Directus SDK for asset ingestion
+- **Tooling**: ESLint, Prettier, TypeScript, Drizzle Kit
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+## Prerequisites
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+- Node.js 20 (LTS) and npm 10
+- PostgreSQL 15+ (local or containerized)
+- pnpm or yarn are not officially supported; use npm
+- Docker or Podman (optional) if you want the provided database script
+- An `.env` file configured from `.env.template`
 
-## Learn More
+## Getting Started
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+Clone the repository and install dependencies:
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+```bash
+git clone https://github.com/<org>/sharply.git
+cd sharply
+npm install
+```
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+Copy the template environment file and fill in required secrets:
 
-## How do I deploy this?
+```bash
+cp .env.example .env
+```
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+Required environment variables (see `src/env.js` for validation):
+
+- `AUTH_SECRET` (generate your own)
+- `AUTH_DISCORD_ID` & `AUTH_DISCORD_SECRET`
+- `AUTH_GOOGLE_ID` & `AUTH_GOOGLE_SECRET`
+- `DATABASE_URL` (Postgres connection string)
+- `CRON_SECRET` (generate your own)
+- `DISCORD_ROLLUP_WEBHOOK_URL` (optional locally)
+- `OPENAI_API_KEY`
+
+> Use the template comments as guidance; keep secrets out of version control.
+
+### Database
+
+You can run Postgres however you prefer. Two common options:
+
+1. **Local installation**: create a database and ensure the URL in `.env` points to it.
+2. **Docker/Podman**: run the helper script:
+
+   ```bash
+   ./start-database.sh
+   ```
+
+   The script reads `DATABASE_URL` from `.env`, creates a matching container, and warns if ports are in use.
+
+After Postgres is running:
+
+```bash
+npm run db:generate   # create SQL migrations from the Drizzle schema
+npm run db:migrate    # apply migrations to your local database
+npm run db:seed       # (optional) populate sample data
+npm run db:push
+```
+
+### Development Server
+
+```bash
+npm run dev
+```
+
+This starts Next.js on `http://localhost:3000`. The first build will also run `npm run constants:generate` via `prebuild`.
+
+### Code Quality
+
+- `npm run lint` – ESLint (required after significant changes)
+- `npm run typecheck` – TypeScript with `--noEmit`
+- `npm run check` – Combined lint + typecheck
+
+### Useful Scripts
+
+- `npm run db:seed` – Seeds the database with initial data (`scripts/seed.ts`)
+- `npm run constants:generate` – Builds static gear constants
+- `npm run preview` – Builds then starts Next.js in production mode
+
+## Project Structure
+
+- `src/app` – Next.js App Router routes, layouts, and pages
+- `src/components` – Shared UI components (shadcn/ui lives in `src/components/ui`)
+- `src/server` – Server-only code
+  - `db` – Drizzle client and schema definitions
+  - `gear`, `admin`, `auth`, etc. – Service layers following `data → service → actions`
+- `src/lib` – Utilities, constants, mapping logic
+- `docs` – Architecture and feature documentation (keep docs updated when code changes)
+- `drizzle` – Generated SQL migrations
+- `scripts` – Node scripts for seeding and maintenance
+
+## Contributing
+
+1. Fork or create a feature branch.
+2. Keep schema changes in `src/server/db/schema.ts`; do not edit migrations manually.
+3. Generate migrations with `npm run db:generate` and apply with `npm run db:migrate`.
+4. Update relevant docs in `/docs` alongside code changes.
+5. Run `npm run lint` and fix any errors in touched files.
+6. Open a pull request with context on the changes and testing performed.
+
+## Deployment
+
+Sharply targets Vercel for hosting. Set environment variables in the Vercel dashboard and provision a managed Postgres instance. Build uses the standard Next.js pipeline (`npm run build`).
+
+## Support
+
+- Review documentation in `/docs` for deeper architecture details.
+- For questions, open an issue or reach out to the maintainers listed in `AGENTS.md`.

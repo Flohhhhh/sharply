@@ -31,11 +31,13 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSkeleton,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import {
   BarChart3,
   Camera,
+  Lock,
   LayoutDashboard,
   ListCheck,
   LogOut,
@@ -43,6 +45,7 @@ import {
   Wrench,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
+import { Skeleton } from "~/components/ui/skeleton";
 import { GlobalSearchBar } from "~/components/search/global-search-bar";
 import { useSession } from "next-auth/react";
 
@@ -77,22 +80,30 @@ const sidebarItems = [
     icon: <ListCheck className="size-5" />,
     allowed: ["ADMIN", "EDITOR"],
   },
+  {
+    label: "Private",
+    href: "/admin/private",
+    icon: <Lock className="size-5" />,
+    allowed: [],
+  },
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const user = useSession();
-
-  if (user.status === "loading") {
-    return <div>Loading...</div>;
-  }
+  const isLoading = user.status === "loading";
 
   if (user.status === "unauthenticated") {
     return <div>Unauthenticated</div>;
   }
 
+  const superAdmins = ["bf34c0d0-bdff-477d-9c19-7211ed62c586"];
+
   const isLinkAllowed = (href: string) => {
     const item = sidebarItems.find((item) => item.href === href);
-    return item?.allowed.includes(user.data?.user?.role ?? "USER");
+    return (
+      item?.allowed.includes(user.data?.user?.role ?? "USER") ||
+      superAdmins.includes(user.data?.user?.id ?? "")
+    );
   };
 
   return (
@@ -112,24 +123,37 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent className="list-none px-4">
-        <Button size="sm" icon={<Plus className="size-5" />}>
-          Create Gear Item
-        </Button>
-        {/* Only show links the user is allowed to see */}
-        {sidebarItems
-          .filter((item) => isLinkAllowed(item.href))
-          .map((item) => (
-            <SidebarMenuItem key={item.href}>
-              <SidebarMenuButton
-                asChild
-                className="data-[slot=sidebar-menu-item]:!p-1.5"
-              >
-                <Link href={item.href}>
-                  {item.icon} {item.label}
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+        {isLoading ? (
+          <>
+            <Skeleton className="h-8 w-40 rounded-md" />
+            {Array.from({ length: sidebarItems.length }).map((_, idx) => (
+              <SidebarMenuItem key={`skeleton-${idx}`}>
+                <SidebarMenuSkeleton showIcon />
+              </SidebarMenuItem>
+            ))}
+          </>
+        ) : (
+          <>
+            <Button size="sm" icon={<Plus className="size-5" />}>
+              Create Gear Item
+            </Button>
+            {/* Only show links the user is allowed to see */}
+            {sidebarItems
+              .filter((item) => isLinkAllowed(item.href))
+              .map((item) => (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton
+                    asChild
+                    className="data-[slot=sidebar-menu-item]:!p-1.5"
+                  >
+                    <Link href={item.href}>
+                      {item.icon} {item.label}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+          </>
+        )}
       </SidebarContent>
       <SidebarFooter></SidebarFooter>
     </Sidebar>

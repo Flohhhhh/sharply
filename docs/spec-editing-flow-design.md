@@ -204,7 +204,59 @@ type ComponentName = keyof typeof SPEC_INPUT_COMPONENTS;
 
 - **Review Changes**: Summary of all proposed modifications
 - **Notes**: Optional explanation of why changes are needed
-- **Submit**: Creates gear proposal for admin review
+- **Role-Aware Submit**:
+  - Editors/Admins: If there are no existing change requests, their submission applies immediately—no review queue, preventing stale merges
+  - Everyone else (or staff when another request is open): Submission enters the proposal queue (`status: PENDING`) for review
+- **Completion Handling**: Confirmation page for queued submissions; instant redirect back to the gear page with a success banner when changes are auto-applied
+
+## Admin Approval Workflow (Grouped by Gear Item)
+
+The admin approval queue groups pending edit proposals by gear item and lets editors resolve all requests for a gear in one pass.
+
+### Grouped UI
+
+- **One card per gear item**: All pending requests for a given gear are shown together, with a count of pending requests.
+- **Conflicts section**: For any field where multiple proposals suggest different values, the UI renders a radio group to select exactly one value to apply.
+  - Options are labeled with contributor name and submission date.
+  - A dedicated "Skip (do not apply this field)" option is available to intentionally exclude a conflicting field.
+  - The Approve button remains disabled until every conflicting field has a selection (including an explicit Skip).
+- **Additional changes (no conflicts)**: Fields proposed by only one request are listed below conflicts.
+  - Each non-conflicting field has an "Apply this field" checkbox (checked by default). Unchecking excludes the field from application.
+- **Processing state**: The Approve button reflects `loading=true` while the approval action runs.
+
+### What gets applied
+
+On approval, the UI builds a merged, filtered payload composed of only the selected fields:
+
+- Namespaces supported: `core`, `camera`, `lens`, and `cameraCardSlots`.
+- For conflicts, the chosen option (or Skip) determines inclusion.
+- For non-conflicts, inclusion depends on the checkbox state (default included).
+- `cameraCardSlots` is treated as a replace-set operation; if included, the provided array replaces existing slots for the gear.
+
+### Resolved list
+
+- Resolved items are still listed per request (ungrouped) in a collapsible section.
+
+### Backend behavior and consistency
+
+- Service entry points:
+  - Proposals fetch and grouping: `src/server/admin/proposals/service.ts` (`fetchGearProposals`)
+  - Approvals: `src/server/admin/proposals/actions.ts` → `approveProposal` service → `approveProposalData`
+- On approval, the system:
+  - Normalizes the filtered payload to DB types.
+  - Applies updates across `core`, `camera`, `lens`, and `cameraCardSlots` (replace set) as provided.
+  - Marks all other pending proposals for the same gear as `MERGED` to prevent stale follow-up conflicts.
+
+### Guardrails
+
+- Approve button disabled until all conflicts have an explicit selection.
+- Button label is "Approve Selected" to reflect that the payload only includes chosen fields.
+- Non-conflicting fields can be individually toggled on/off before approval.
+
+### Notes on display
+
+- Before/after values are rendered consistently with gear pages (e.g., currency formatting, dates, sensor/mount display names).
+- For `cameraCardSlots`, the UI shows slot details in a normalized format like `S1: SD UHS-II; S2: CFexpress Type B`.
 
 ## Technical Considerations
 

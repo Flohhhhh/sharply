@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, ilike, eq, sql } from "drizzle-orm";
+import { and, ilike, eq, sql, desc, count } from "drizzle-orm";
 import { db } from "~/server/db";
 import {
   gear,
@@ -10,7 +10,6 @@ import {
   auditLogs,
 } from "~/server/db/schema";
 import { normalizeSearchName } from "~/lib/utils";
-
 export interface FuzzySearchResult {
   id: string;
   name: string;
@@ -280,3 +279,46 @@ function buildSlug(brandName: string, name: string) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)+/g, "");
 }
+
+export interface FetchAdminGearItemsParams {
+  limit: number;
+  offset: number;
+}
+
+const adminGearSelect = {
+  id: gear.id,
+  name: gear.name,
+  slug: gear.slug,
+  gearType: gear.gearType,
+  brandId: gear.brandId,
+  brandName: brands.name,
+  createdAt: gear.createdAt,
+};
+
+export async function fetchAdminGearItemsData(
+  params: FetchAdminGearItemsParams,
+) {
+  const { limit, offset } = params;
+
+  const [items, totalResult] = await Promise.all([
+    db
+      .select(adminGearSelect)
+      .from(gear)
+      .innerJoin(brands, eq(brands.id, gear.brandId))
+      .orderBy(desc(gear.createdAt))
+      .limit(limit)
+      .offset(offset),
+    db.select({ count: count() }).from(gear),
+  ]);
+
+  return {
+    items,
+    totalCount: Number(totalResult[0]?.count ?? 0),
+  };
+}
+
+export type FetchAdminGearItemsResult = Awaited<
+  ReturnType<typeof fetchAdminGearItemsData>
+>;
+
+export type AdminGearTableRow = FetchAdminGearItemsResult["items"][number];
