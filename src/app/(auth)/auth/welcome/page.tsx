@@ -13,14 +13,24 @@ export const metadata: Metadata = {
 };
 
 export default async function WelcomePage(props: {
-  searchParams: {
+  searchParams: Promise<{
     callbackUrl?: string;
     inviteId?: string;
-  };
+  }>;
 }) {
   const session = await auth();
-  const searchParams = props.searchParams;
-  const redirectUrl = searchParams.callbackUrl;
+  const {
+    callbackUrl,
+    inviteId: inviteIdFromQuery,
+    next,
+  } = (await props.searchParams) as any;
+  // Prefer explicit next (from accept route), else safe callbackUrl, else home
+  const redirectUrl =
+    typeof next === "string"
+      ? next
+      : callbackUrl && !callbackUrl.includes("/auth/welcome")
+        ? callbackUrl
+        : "/";
 
   if (!session?.user?.id) {
     return (
@@ -32,7 +42,7 @@ export default async function WelcomePage(props: {
 
   // Fetch the full user data from the database
   const cookieStore = await cookies();
-  const inviteId = searchParams.inviteId ?? cookieStore.get("invite_id")?.value;
+  const inviteId = inviteIdFromQuery ?? cookieStore.get("invite_id")?.value;
   if (inviteId) {
     console.info("[invites] welcome:claim_attempt", { inviteId });
     const res = await claimInvite(inviteId).catch((err) => {
@@ -79,7 +89,7 @@ export default async function WelcomePage(props: {
         icon={<ArrowRight />}
         iconPosition="right"
       >
-        <Link href={redirectUrl ?? "/"}>Continue to Sharply</Link>
+        <Link href={redirectUrl}>Continue to Sharply</Link>
       </Button>
     </div>
   );

@@ -53,6 +53,13 @@ export async function listInvites(): Promise<InviteRow[]> {
   return rows;
 }
 
+/** Public-safe read: used by invite landing page */
+export async function fetchInviteById(
+  inviteId: string,
+): Promise<InviteRow | null> {
+  return findInviteById(inviteId);
+}
+
 export async function claimInvite(
   inviteId: string,
 ): Promise<

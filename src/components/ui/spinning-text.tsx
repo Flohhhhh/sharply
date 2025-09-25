@@ -1,26 +1,28 @@
-"use client"
+"use client";
 
-import React, { ComponentPropsWithoutRef } from "react"
-import { motion, Transition, Variants } from "motion/react"
+import React from "react";
+import type { ComponentPropsWithoutRef } from "react";
+import { motion } from "motion/react";
+import type { Transition, Variants } from "motion/react";
 
-import { cn } from "~/lib/utils"
+import { cn } from "~/lib/utils";
 
 interface SpinningTextProps extends ComponentPropsWithoutRef<"div"> {
-  children: string | string[]
-  duration?: number
-  reverse?: boolean
-  radius?: number
-  transition?: Transition
+  children: string | string[];
+  duration?: number;
+  reverse?: boolean;
+  radius?: number;
+  transition?: Transition;
   variants?: {
-    container?: Variants
-    item?: Variants
-  }
+    container?: Variants;
+    item?: Variants;
+  };
 }
 
 const BASE_TRANSITION: Transition = {
   repeat: Infinity,
   ease: "linear",
-}
+};
 
 const BASE_ITEM_VARIANTS: Variants = {
   hidden: {
@@ -29,7 +31,7 @@ const BASE_ITEM_VARIANTS: Variants = {
   visible: {
     opacity: 1,
   },
-}
+};
 
 export function SpinningText({
   children,
@@ -42,35 +44,35 @@ export function SpinningText({
   style,
 }: SpinningTextProps) {
   if (typeof children !== "string" && !Array.isArray(children)) {
-    throw new Error("children must be a string or an array of strings")
+    throw new Error("children must be a string or an array of strings");
   }
 
   if (Array.isArray(children)) {
     // Validate all elements are strings
     if (!children.every((child) => typeof child === "string")) {
-      throw new Error("all elements in children array must be strings")
+      throw new Error("all elements in children array must be strings");
     }
-    children = children.join("")
+    children = children.join("");
   }
 
-  const letters = children.split("")
-  letters.push(" ")
+  const letters = children.split("");
+  letters.push(" ");
 
   const finalTransition: Transition = {
     ...BASE_TRANSITION,
     ...transition,
     duration: (transition as { duration?: number })?.duration ?? duration,
-  }
+  };
 
   const containerVariants: Variants = {
     visible: { rotate: reverse ? -360 : 360 },
     ...variants?.container,
-  }
+  };
 
   const itemVariants: Variants = {
     ...BASE_ITEM_VARIANTS,
     ...variants?.item,
-  }
+  };
 
   return (
     <motion.div
@@ -108,5 +110,5 @@ export function SpinningText({
       ))}
       <span className="sr-only">{children}</span>
     </motion.div>
-  )
+  );
 }

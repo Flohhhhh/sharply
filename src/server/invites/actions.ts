@@ -11,8 +11,11 @@ const createInviteSchema = z.object({
 });
 
 export async function actionCreateInvite(formData: FormData): Promise<void> {
-  const inviteeName = String(formData.get("inviteeName") ?? "");
-  const role = String(formData.get("role") ?? "USER");
+  const inviteeNameEntry = formData.get("inviteeName");
+  const roleEntry = formData.get("role");
+  const inviteeName =
+    typeof inviteeNameEntry === "string" ? inviteeNameEntry : "";
+  const role = typeof roleEntry === "string" ? roleEntry : "USER";
   console.info("[invites] actionCreateInvite:start", { inviteeName, role });
   const parsed = createInviteSchema.safeParse({ inviteeName, role });
   if (!parsed.success) {

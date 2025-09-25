@@ -242,15 +242,24 @@ export function GearProposalsList({
       add("lens", p.payload.lens);
       if (Array.isArray(p.payload.cameraCardSlots)) {
         const fieldKey = "cameraCardSlots";
-        const rec =
-          map.get(fieldKey) ?? ({ area: "cameraCardSlots", items: [] } as any);
-        rec.items.push({
+        const rec:
+          | {
+              area: NonConflictEntry["area"];
+              key?: string;
+              items: ConflictEntry["options"];
+            }
+          | undefined = map.get(fieldKey);
+        const nextRec = rec ?? {
+          area: "cameraCardSlots",
+          items: [] as ConflictEntry["options"],
+        };
+        nextRec.items.push({
           proposalId: p.id,
           createdByName: p.createdByName ?? null,
           createdAt: p.createdAt,
           value: p.payload.cameraCardSlots,
         });
-        map.set(fieldKey, rec);
+        map.set(fieldKey, nextRec);
       }
     }
     const results: NonConflictEntry[] = [];
@@ -291,7 +300,10 @@ export function GearProposalsList({
     >();
 
     for (const p of group.proposals.filter((x) => x.status === "PENDING")) {
-      const add = (area: ConflictEntry["area"], obj?: Record<string, any>) => {
+      const add = (
+        area: ConflictEntry["area"],
+        obj?: Record<string, unknown>,
+      ) => {
         if (!obj) return;
         Object.entries(obj).forEach(([k, v]) => {
           const fieldKey = `${area}.${k}`;
@@ -304,7 +316,7 @@ export function GearProposalsList({
             proposalId: p.id,
             createdByName: p.createdByName ?? null,
             createdAt: p.createdAt,
-            value: v,
+            value: v as unknown,
           });
           map.set(fieldKey, rec);
         });
@@ -753,18 +765,15 @@ export function GearProposalsList({
                     beforeVal === "";
                   const beforeDisplay = beforeIsEmpty
                     ? "Empty"
-                    : formatBeforeValueForKey(key as string, beforeVal);
-                  const afterDisplay = formatValueForKey(
-                    key as string,
-                    n.value,
-                  );
+                    : formatBeforeValueForKey(key!, beforeVal);
+                  const afterDisplay = formatValueForKey(key!, n.value);
                   return (
                     <div
                       key={n.fieldKey}
                       className="border-input rounded border p-2"
                     >
                       <div className="text-muted-foreground mb-1 text-[11px]">
-                        {humanizeKey(key as string)}
+                        {humanizeKey(key!)}
                       </div>
                       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                         <span
