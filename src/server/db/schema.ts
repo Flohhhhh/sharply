@@ -379,7 +379,10 @@ export const cameraSpecs = appSchema.table(
     isBackSideIlluminated: boolean("is_back_side_illuminated"),
     isoMin: integer("iso_min"),
     isoMax: integer("iso_max"),
-    sensorReadoutSpeedMs: integer("sensor_readout_speed_ms"), // we will provide a checkbox for global shutter which sets this to 0ms
+    sensorReadoutSpeedMs: decimal("sensor_readout_speed_ms", {
+      precision: 4,
+      scale: 1,
+    }), // we will provide a checkbox for global shutter which sets this to 0ms
     maxRawBitDepth: rawBitDepthEnum("max_raw_bit_depth"),
     hasIbis: boolean("has_ibis"),
     hasElectronicVibrationReduction: boolean(
