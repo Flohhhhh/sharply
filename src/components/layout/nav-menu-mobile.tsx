@@ -20,7 +20,7 @@ import {
 import { Button } from "~/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { getNavItems, iconMap } from "~/lib/nav-items";
-import { UserMenuUser } from "./user-menu";
+import type { UserMenuUser } from "./user-menu";
 import { LogOut, Settings, User as UserIcon } from "lucide-react";
 import { signOut } from "next-auth/react";
 
