@@ -1,6 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
-import { Badge } from "~/components/ui/badge";
 import { GlobalSearchBar } from "~/components/search/global-search-bar";
 import { GearCounter } from "~/components/home/gear-counter";
 import { ContributionCounter } from "~/components/home/contribution-counter";
@@ -11,75 +9,20 @@ import { Suspense } from "react";
 import { NewsCard as HomeNewsCard } from "~/components/home/news-card";
 import { ReviewCard, type ReviewPost } from "~/components/home/review-card";
 import TrendingList from "~/components/trending-list";
+import { getNewsPosts } from "@/lib/directus";
+import { formatHumanDate } from "~/lib/utils";
 
-type NewsItem = {
-  id: number;
-  title: string;
-  excerpt: string;
-  href: string;
-  image: string;
-  date: string;
-  readMinutes: number;
-};
+export const revalidate = 60;
 
-const NEWS_ITEMS: NewsItem[] = [
-  {
-    id: 1,
-    title: "Canon teases next-gen RF lens roadmap",
-    excerpt:
-      "A sneak peek at upcoming fast primes and zooms expected later this year.",
-    href: "#",
-    image: "/image-temp.png",
-    date: "2025-08-20",
-    readMinutes: 8,
-  },
-  {
-    id: 2,
-    title: "Nikon firmware adds subject detect upgrades",
-    excerpt: "Improved AF tracking and bug fixes roll out to Z series bodies.",
-    href: "#",
-    image: "/image-temp.png",
-    date: "2025-08-21",
-    readMinutes: 6,
-  },
-  {
-    id: 3,
-    title: "Sony announces compact wide-angle prime",
-    excerpt: "Lightweight build with weather sealing aimed at travel shooters.",
-    href: "#",
-    image: "/image-temp.png",
-    date: "2025-08-22",
-    readMinutes: 5,
-  },
-  {
-    id: 4,
-    title: "Fujifilm pushes major X-H3 video update",
-    excerpt: "New codecs and improved thermal management highlighted in patch.",
-    href: "#",
-    image: "/image-temp.png",
-    date: "2025-08-19",
-    readMinutes: 7,
-  },
-  {
-    id: 5,
-    title: "Sigma releases roadmap for mirrorless trio",
-    excerpt: "Fast apertures and compact sizes target hybrid creators.",
-    href: "#",
-    image: "/image-temp.png",
-    date: "2025-08-18",
-    readMinutes: 9,
-  },
-  {
-    id: 6,
-    title: "Leica firmware brings refined color profiles",
-    excerpt:
-      "Subtle tonal shifts and quality-of-life tweaks arrive across M line.",
-    href: "#",
-    image: "/image-temp.png",
-    date: "2025-08-17",
-    readMinutes: 4,
-  },
-];
+function stripHtml(html: string | null | undefined, maxLength = 160) {
+  if (!html) return "";
+  const text = html
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength - 1).trimEnd() + "…";
+}
 
 const REVIEW_ITEMS: ReviewPost[] = [
   {
@@ -111,6 +54,37 @@ const REVIEW_ITEMS: ReviewPost[] = [
 // Using reusable HomeNewsCard component from ~/components/home/news-card
 
 export default async function Home() {
+  const posts = await getNewsPosts();
+  const published = posts
+    .filter((p) => p.status === "published")
+    .sort((a, b) => {
+      const da = new Date(
+        (a as any).date_created as unknown as string,
+      ).getTime();
+      const db = new Date(
+        (b as any).date_created as unknown as string,
+      ).getTime();
+      return db - da;
+    });
+
+  const toHomePost = (p: (typeof posts)[number]) => {
+    const thumbId = (p as any).thumbnail as unknown as string | undefined;
+    const image = thumbId
+      ? `https://sharply-directus.onrender.com/assets/${thumbId}`
+      : "/image-temp.png";
+    const date = formatHumanDate((p as any).date_created as unknown as string);
+    return {
+      id: (p as any).id,
+      title: (p as any).title as string,
+      excerpt: stripHtml((p as any).news_content_wysiwyg as string),
+      href: `/news/${(p as any).slug as string}`,
+      image,
+      date,
+    };
+  };
+
+  const featuredPost = published[0] ? toHomePost(published[0]!) : null;
+  const otherPosts = published.slice(1, 7).map(toHomePost);
   return (
     <div className="min-h-screen">
       {/* HERO */}
@@ -189,23 +163,13 @@ export default async function Home() {
           </div>
           {/* Center column featured post */}
           <div className="xl:col-span-5">
-            <HomeNewsCard
-              badge="Featured"
-              post={{
-                id: "featured-1",
-                title: "Nikon Releases Mark II version of the 24-70 f/2.8 S",
-                excerpt:
-                  "Nikon has released the Mark II version of the 24-70 f/2.8 S lens. This is the second version of the lens, which was originally released in 2014. The new version is said to be faster and more accurate.",
-                href: "#",
-                image: "/image-temp.png",
-                date: "2025-08-22",
-                readMinutes: 8,
-              }}
-            />
+            {featuredPost ? (
+              <HomeNewsCard badge="Featured" post={featuredPost} />
+            ) : null}
 
             {/* News feed continuing below the featured article */}
             <div className="mt-4 flex flex-col gap-4">
-              {NEWS_ITEMS.map((item) => (
+              {otherPosts.map((item) => (
                 <HomeNewsCard key={item.id} post={item} />
               ))}
             </div>

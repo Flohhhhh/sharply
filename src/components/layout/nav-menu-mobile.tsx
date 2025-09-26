@@ -20,12 +20,16 @@ import {
 import { Button } from "~/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { getNavItems, iconMap } from "~/lib/nav-items";
+import { UserMenuUser } from "./user-menu";
+import { LogOut, Settings, User as UserIcon } from "lucide-react";
+import { signOut } from "next-auth/react";
 
 interface NavMenuMobileProps {
   children: React.ReactNode;
+  user?: UserMenuUser;
 }
 
-export function NavMenuMobile({ children }: NavMenuMobileProps) {
+export function NavMenuMobile({ children, user = null }: NavMenuMobileProps) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const navItems = getNavItems();
@@ -38,12 +42,44 @@ export function NavMenuMobile({ children }: NavMenuMobileProps) {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+      <SheetContent side="right" className="w-[320px] sm:w-[380px]">
         <SheetHeader>
           <SheetTitle className="text-left">Sharply</SheetTitle>
         </SheetHeader>
 
-        <div className="space-y-4 p-4">
+        {/* Top user section */}
+        {user && (
+          <div className="bg-muted/30 border-b px-4 py-3 text-sm">
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => handleNavigation(`/u/${user.id}`)}
+                className="hover:bg-accent hover:text-accent-foreground flex w-full items-center gap-3 rounded-md p-3 text-left transition-colors"
+              >
+                <UserIcon className="text-muted-foreground h-4 w-4" />
+                <span>Profile</span>
+              </button>
+              <button
+                onClick={() => handleNavigation("/profile/settings")}
+                className="hover:bg-accent hover:text-accent-foreground flex w-full items-center gap-3 rounded-md p-3 text-left transition-colors"
+              >
+                <Settings className="text-muted-foreground h-4 w-4" />
+                <span>Account</span>
+              </button>
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  void signOut();
+                }}
+                className="hover:bg-accent hover:text-accent-foreground flex w-full items-center gap-3 rounded-md p-3 text-left text-red-600 transition-colors"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Log out</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-1 px-4 py-2">
           <Accordion type="single" collapsible className="w-full">
             {navItems.map((item) => {
               if (item.items && item.items.length > 0) {
@@ -54,13 +90,13 @@ export function NavMenuMobile({ children }: NavMenuMobileProps) {
                     value={item.title}
                     className="border-b"
                   >
-                    <AccordionTrigger className="py-3 text-left hover:no-underline">
+                    <AccordionTrigger className="px-0 py-3 text-left hover:no-underline">
                       <span className="text-foreground font-semibold">
                         {item.title}
                       </span>
                     </AccordionTrigger>
                     <AccordionContent>
-                      <div className="space-y-2 px-4 pt-2 pb-2">
+                      <div className="space-y-1 px-4 pt-1 pb-2">
                         {item.items.map((subItem) => {
                           const Icon = subItem.iconKey
                             ? iconMap[subItem.iconKey]
@@ -98,7 +134,7 @@ export function NavMenuMobile({ children }: NavMenuMobileProps) {
                   <button
                     key={item.title}
                     onClick={() => handleNavigation(item.url)}
-                    className="hover:bg-accent hover:text-accent-foreground mx-4 flex w-full items-center rounded-md p-3 text-left text-sm font-medium transition-colors"
+                    className="hover:bg-accent hover:text-accent-foreground flex w-full items-center rounded-md px-0 py-3 text-left text-sm font-medium transition-colors"
                   >
                     {item.title}
                   </button>
@@ -108,15 +144,8 @@ export function NavMenuMobile({ children }: NavMenuMobileProps) {
           </Accordion>
         </div>
 
-        {/* Bottom section with auth buttons */}
-        <SheetFooter>
-          <div className="flex flex-col gap-2">
-            <Button variant="outline" className="w-full justify-start">
-              Login
-            </Button>
-            <Button className="w-full justify-start">Sign up</Button>
-          </div>
-        </SheetFooter>
+        {/* Bottom spacer */}
+        <SheetFooter />
       </SheetContent>
     </Sheet>
   );

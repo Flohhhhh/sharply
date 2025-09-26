@@ -6,15 +6,8 @@ import type { Metadata } from "next";
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div>
-      <Suspense
-        fallback={
-          <div className="border-border bg-card border-b px-6 py-4">
-            Loading...
-          </div>
-        }
-      >
-        <Header />
-      </Suspense>
+      {/* Header is a server component; suspense no longer needed for session */}
+      <Header />
       {children}
       <Footer />
     </div>
