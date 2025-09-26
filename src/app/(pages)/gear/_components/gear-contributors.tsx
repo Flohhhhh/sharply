@@ -37,7 +37,7 @@ export async function GearContributors({ gearId }: GearContributorsProps) {
     contributions.set(r.userId, prev);
   }
 
-  let contributors = Array.from(contributions.values());
+  const contributors = Array.from(contributions.values());
 
   // TODO: remove this once we have real contributors
   // TEMP: add two test contributors with counts
