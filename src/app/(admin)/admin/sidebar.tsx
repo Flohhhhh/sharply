@@ -43,6 +43,7 @@ import {
   ListCheck,
   LogOut,
   Plus,
+  HelpCircle,
   Wrench,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
@@ -81,6 +82,12 @@ const sidebarItems = [
     label: "Logs",
     href: "/admin/logs",
     icon: <ListCheck className="size-5" />,
+    allowed: ["ADMIN", "EDITOR"],
+  },
+  {
+    label: "Help",
+    href: "/admin/help",
+    icon: <HelpCircle className="size-5" />,
     allowed: ["ADMIN", "EDITOR"],
   },
   {
