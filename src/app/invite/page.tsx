@@ -1,8 +1,15 @@
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import { SpinningText } from "~/components/ui/spinning-text";
-import { ArrowRight, BookOpen, UserPlus } from "lucide-react";
+import { BookOpen, UserPlus } from "lucide-react";
+import { type Metadata } from "next";
 import Logo from "public/logo";
+
+export const metadata: Metadata = {
+  title: "You're invited!",
+  description:
+    "You've been invited to join Sharply. Sign in to get early access and explore.",
+};
 
 export default function GenericInvitePage() {
   const signInHref = "/api/auth/signin?callbackUrl=%2Fauth%2Fwelcome";
