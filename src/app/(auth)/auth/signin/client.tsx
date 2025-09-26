@@ -121,7 +121,7 @@ export default function SignInClient() {
   return (
     <div className="mx-auto flex min-h-screen max-w-5xl flex-col justify-center px-4 py-12 md:py-20">
       <div className="overflow-hidden rounded-xl border md:grid md:min-h-[560px] md:grid-cols-2">
-        <div className="bg-white p-8 md:border-r md:p-10">
+        <div className="dark:bg-accent/50 bg-white p-8 md:border-r md:p-10">
           <div className="mb-8 text-center md:text-left">
             <h1 className="text-2xl font-semibold tracking-tight">
               Welcome back

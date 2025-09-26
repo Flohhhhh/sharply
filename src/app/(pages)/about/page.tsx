@@ -5,6 +5,7 @@ import {
   Flame,
   Heart,
   ScanHeart,
+  Search,
   UserPlus,
 } from "lucide-react";
 import Image from "next/image";
@@ -13,8 +14,11 @@ import Timeline from "./timeline";
 import { Badge } from "~/components/ui/badge";
 import { ContributionCounter } from "~/components/home/contribution-counter";
 import { GearCounter } from "~/components/home/gear-counter";
+import { auth } from "~/server/auth";
 
-export default function About() {
+export default async function About() {
+  const session = await auth();
+
   return (
     <div className="mt-36 min-h-screen space-y-16">
       <h1 className="sr-only text-2xl font-bold">About</h1>
@@ -203,7 +207,7 @@ export default function About() {
         </div>
       </section>
 
-      <section className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 rounded-xl bg-white px-8 py-24 sm:grid-cols-2 sm:px-12">
+      <section className="dark:bg-accent/50 mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 rounded-xl bg-white px-8 py-24 sm:grid-cols-2 sm:px-12">
         <div className="space-y-4">
           <h2 className="text-3xl font-bold">Let's Get Started</h2>
           <p className="text-muted-foreground">
@@ -211,14 +215,26 @@ export default function About() {
             Whether you are a reviewer, developer, or simply passionate about
             photography, you can be a part of the future of photography.
           </p>
-          <Button
-            asChild
-            icon={<UserPlus className="size-4" />}
-            iconPosition="right"
-            className="mt-4"
-          >
-            <Link href="/auth/signup">Create an account</Link>
-          </Button>
+
+          {session ? (
+            <Button
+              asChild
+              icon={<Search className="size-4" />}
+              iconPosition="right"
+              className="mt-4"
+            >
+              <Link href="/gear">Browse gear</Link>
+            </Button>
+          ) : (
+            <Button
+              asChild
+              icon={<UserPlus className="size-4" />}
+              iconPosition="right"
+              className="mt-4"
+            >
+              <Link href="/auth/signup">Create an account</Link>
+            </Button>
+          )}
         </div>
         <div className="hidden max-w-md space-y-4 sm:block">
           <ul className="list-inside list-none space-y-4 pl-12">
