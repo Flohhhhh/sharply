@@ -1,6 +1,8 @@
 import { GearDataTable } from "./data-table";
 import { columns } from "./columns";
 import { fetchAdminGearItems } from "~/server/admin/gear/service";
+import GearBulkCreate from "../gear-bulk-create";
+import { auth } from "~/server/auth";
 
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 100;
@@ -13,6 +15,8 @@ type AdminGearPageProps = {
 export default async function AdminGearPage({
   searchParams,
 }: AdminGearPageProps) {
+  const session = await auth();
+  const userRole = session?.user?.role ?? "USER";
   const resolvedSearchParams = (await searchParams) ?? {};
 
   const pageParam = Array.isArray(resolvedSearchParams.page)
@@ -44,14 +48,28 @@ export default async function AdminGearPage({
   const clampedPage = Math.min(pageNumber - 1, Math.max(pageCount - 1, 0));
 
   return (
-    <GearDataTable
-      columns={columns}
-      data={items}
-      pageCount={pageCount}
-      currentPage={clampedPage}
-      pageSize={pageSize}
-      totalCount={totalCount}
-      pageSizeOptions={PAGE_SIZE_OPTIONS}
-    />
+    <div className="space-y-8">
+      {userRole === "ADMIN" && (
+        <div>
+          <h2 className="text-2xl font-bold">Bulk Create</h2>
+          <p className="text-muted-foreground mt-2">
+            Create many gear items for a brand and type with validation.
+          </p>
+          <div className="mt-4">
+            <GearBulkCreate />
+          </div>
+        </div>
+      )}
+
+      <GearDataTable
+        columns={columns}
+        data={items}
+        pageCount={pageCount}
+        currentPage={clampedPage}
+        pageSize={pageSize}
+        totalCount={totalCount}
+        pageSizeOptions={PAGE_SIZE_OPTIONS}
+      />
+    </div>
   );
 }

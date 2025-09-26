@@ -2,7 +2,7 @@
 
 import { useScrollState } from "@/lib/hooks/useScrollState";
 import { Button } from "../ui/button";
-import { LayoutDashboard, Menu } from "lucide-react";
+import { LayoutDashboard, LogIn, Menu } from "lucide-react";
 import { GlobalSearchBar } from "../search/global-search-bar";
 import { usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -123,18 +123,11 @@ export default function HeaderClient({ user }: { user: HeaderUser }) {
                 </>
               ) : (
                 <>
-                  <Button variant="ghost" size="sm" asChild>
+                  <Button size="sm" asChild icon={<LogIn />}>
                     <Link
                       href={`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`}
                     >
-                      Login
-                    </Link>
-                  </Button>
-                  <Button size="sm" asChild>
-                    <Link
-                      href={`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}&mode=signup`}
-                    >
-                      Sign up
+                      Sign In
                     </Link>
                   </Button>
                 </>

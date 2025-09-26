@@ -41,10 +41,10 @@ export async function GearContributors({ gearId }: GearContributorsProps) {
 
   // TODO: remove this once we have real contributors
   // TEMP: add two test contributors with counts
-  contributors = contributors.concat([
-    { id: "test_user_1", name: "Test User One", image: null, count: 7 },
-    { id: "test_user_2", name: "Test User Two", image: null, count: 5 },
-  ]);
+  // contributors = contributors.concat([
+  //   { id: "test_user_1", name: "Test User One", image: null, count: 7 },
+  //   { id: "test_user_2", name: "Test User Two", image: null, count: 5 },
+  // ]);
 
   // Sort by total fields contributed (desc)
   contributors.sort((a, b) => b.count - a.count);
