@@ -6,6 +6,7 @@ import { Archivo } from "next/font/google";
 import { Providers } from "./providers";
 import { Toaster } from "~/components/ui/sonner";
 import { FloatingCompareButton } from "~/components/compare/floating-compare-button";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: {
@@ -51,6 +52,7 @@ export default function RootLayout({
   return (
     // <html lang="en" className={`${geist.variable}`}>
     <html lang="en" className={`${archivo.variable}`}>
+      <Analytics />
       <body>
         <Providers>
           {children}
