@@ -202,13 +202,17 @@ function CameraFieldsComponent({
           <NumberInput
             id="sensorReadoutSpeedMs"
             label="Sensor Readout Speed (ms)"
-            value={currentSpecs?.sensorReadoutSpeedMs ?? null}
+            value={
+              currentSpecs?.sensorReadoutSpeedMs != null
+                ? parseFloat(currentSpecs.sensorReadoutSpeedMs)
+                : null
+            }
             onChange={(value) =>
               handleFieldChange("sensorReadoutSpeedMs", value)
             }
             suffix="ms"
-            placeholder="e.g., 10ms"
-            min={1}
+            placeholder="e.g., 10.5"
+            min={0}
             step={0.1}
           />
 
