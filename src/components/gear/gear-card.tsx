@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { cn } from "~/lib/utils";
 import { AddToCompareButton } from "~/components/compare/add-to-compare-button";
+import Image from "next/image";
+import { ImageOff } from "lucide-react";
 
 export type GearCardProps = {
   href: string;
@@ -11,7 +13,6 @@ export type GearCardProps = {
   brandName?: string | null;
   thumbnailUrl?: string | null;
   gearType?: string | null;
-  mountText?: string | null;
   dateText?: string | null;
   topLeftLabel?: string | null;
   metaRight?: React.ReactNode;
@@ -29,7 +30,6 @@ export function GearCard(props: GearCardProps) {
     brandName,
     thumbnailUrl,
     gearType,
-    mountText,
     dateText,
     topLeftLabel,
     metaRight,
@@ -50,7 +50,7 @@ export function GearCard(props: GearCardProps) {
         {/* Inset surface (border removed) */}
         <div className="bg-background rounded-2xl p-2">
           {/* Image area */}
-          <div className="bg-muted relative aspect-video overflow-hidden rounded-md">
+          <div className="bg-muted relative aspect-video overflow-hidden rounded-xl p-4">
             {topLeftLabel ? (
               <div className="absolute top-2 left-2 rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
                 {topLeftLabel}
@@ -58,15 +58,17 @@ export function GearCard(props: GearCardProps) {
             ) : null}
             {thumbnailUrl ? (
               // Transparent gear on gray background expected
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={thumbnailUrl}
                 alt={name}
-                className="h-full w-full object-cover"
+                width={560}
+                height={320}
+                className="h-full w-full object-cover transition-opacity group-hover:opacity-50"
+                unoptimized
               />
             ) : (
-              <div className="text-muted-foreground flex h-full w-full items-center justify-center text-xs">
-                No image
+              <div className="text-muted-foreground/50 flex h-full w-full items-center justify-center text-xl font-bold">
+                {name}
               </div>
             )}
 
@@ -86,26 +88,19 @@ export function GearCard(props: GearCardProps) {
           </div>
 
           {/* Content below image */}
-          <div className="mt-3 space-y-2 px-1 transition-opacity group-hover:opacity-50">
+          <div className="mt-3 space-y-2 px-1.5 pb-1 transition-opacity group-hover:opacity-50">
             <div className="flex items-center justify-between">
               <div className="text-muted-foreground flex items-center gap-2 text-sm">
                 {brandName ? <span>{brandName}</span> : null}
-                {mountText ? (
-                  <span className="hidden text-xs md:inline">
-                    • {mountText}
-                  </span>
-                ) : null}
               </div>
-              {gearType ? (
+              {metaRight ? (
                 <span className="bg-secondary rounded-full px-2 py-1 text-xs">
-                  {gearType}
+                  {metaRight}
                 </span>
-              ) : (
-                (metaRight ?? null)
-              )}
+              ) : null}
             </div>
 
-            <div className="text-foreground truncate text-base font-semibold">
+            <div className="text-foreground truncate text-lg font-semibold">
               {name}
             </div>
 
