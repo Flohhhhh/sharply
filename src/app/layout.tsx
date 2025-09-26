@@ -16,16 +16,16 @@ export const metadata: Metadata = {
   description:
     "Real specs, real reviews, real fast. Sharply is the newest and most comprehensive photography gear database and review platform featuring expert reviews, real specs, and side-by-side comparisons in a modern, minimalist interface.",
   openGraph: {
+    siteName: "Sharply",
     title: "Sharply",
+    url: "https://www.sharplyphoto.com",
     description:
       "Real specs, real reviews, real fast. Sharply is the newest and most comprehensive photography gear database and review platform featuring expert reviews, real specs, and side-by-side comparisons in a modern, minimalist interface.",
-    images: [{ url: "/og-image.png" }],
   },
   twitter: {
     title: "Sharply",
     description:
       "Real specs, real reviews, real fast. Sharply is the newest and most comprehensive photography gear database and review platform featuring expert reviews, real specs, and side-by-side comparisons in a modern, minimalist interface.",
-    images: [{ url: "/og-image.png" }],
   },
   robots: {
     index: true,
