@@ -49,17 +49,17 @@ export default async function AdminGearPage({
 
   return (
     <div className="space-y-8">
-      {userRole === "ADMIN" && (
-        <div>
-          <h2 className="text-2xl font-bold">Bulk Create</h2>
-          <p className="text-muted-foreground mt-2">
-            Create many gear items for a brand and type with validation.
-          </p>
-          <div className="mt-4">
-            <GearBulkCreate />
-          </div>
+      {/* {userRole === "ADMIN" && ( */}
+      <div>
+        <h2 className="text-2xl font-bold">Bulk Create</h2>
+        <p className="text-muted-foreground mt-2">
+          Create many gear items for a brand and type with validation.
+        </p>
+        <div className="mt-4">
+          <GearBulkCreate />
         </div>
-      )}
+      </div>
+      {/* )} */}
 
       <GearDataTable
         columns={columns}
