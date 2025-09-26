@@ -49,11 +49,7 @@ import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
 import { GlobalSearchBar } from "~/components/search/global-search-bar";
 import { useSession } from "next-auth/react";
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-} from "~/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import { GearCreateCard } from "./gear-create";
 
 const sidebarItems = [
@@ -147,7 +143,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   Create Gear Item
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-3xl bg-transparent p-0 border-none shadow-none">
+              <DialogContent className="border-none bg-transparent p-0 shadow-none sm:max-w-3xl">
                 <GearCreateCard />
               </DialogContent>
             </Dialog>
