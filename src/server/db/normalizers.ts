@@ -197,8 +197,9 @@ export function normalizeProposalPayloadForDb(
         .preprocess((value) => {
           if (value === null) return null;
           const num = coerceNumber(value);
-          return num === null ? undefined : Math.trunc(num);
-        }, z.number().int().nullable().optional())
+          // Allow up to 1 decimal place
+          return num === null ? undefined : Math.round(num * 10) / 10;
+        }, z.number().nullable().optional())
         .optional(),
       maxRawBitDepth: z
         .preprocess((value) => {

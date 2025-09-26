@@ -209,7 +209,7 @@ function CameraFieldsComponent({
             suffix="ms"
             placeholder="e.g., 10ms"
             min={1}
-            step={1}
+            step={0.1}
           />
 
           {/* ISO Min */}

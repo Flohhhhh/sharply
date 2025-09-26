@@ -131,6 +131,10 @@ export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
             : undefined,
         },
         {
+          label: "Sensor Readout Speed",
+          value: cameraSpecsItem?.sensorReadoutSpeedMs?.toString(),
+        },
+        {
           label: "Has IBIS",
           value: yesNoNull(cameraSpecsItem?.hasIbis ?? null),
         },
