@@ -142,27 +142,28 @@ export default async function AdminHelpPage() {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>Bulk creator</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          <p>
+            A bulk creator for adding many items at once is available on{" "}
+            <Link href="/admin/gear" className="underline">
+              /admin/gear
+            </Link>
+            .
+          </p>
+          <p className="text-muted-foreground">
+            Note: Bulk create is visible to admins. It uses the same pre‑check
+            logic for each row (hard conflicts, fuzzy matches, soft warnings)
+            and supports batch submission.
+          </p>
+        </CardContent>
+      </Card>
+
       {role === "ADMIN" && (
         <>
-          <Card>
-            <CardHeader>
-              <CardTitle>Bulk creator</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <p>
-                A bulk creator for adding many items at once is available on{" "}
-                <Link href="/admin/gear" className="underline">
-                  /admin/gear
-                </Link>
-                .
-              </p>
-              <p className="text-muted-foreground">
-                Note: Bulk create is visible to admins. It uses the same
-                pre‑check logic for each row (hard conflicts, fuzzy matches,
-                soft warnings) and supports batch submission.
-              </p>
-            </CardContent>
-          </Card>
           <Card>
             <CardHeader>
               <CardTitle>Admin‑only notes</CardTitle>
