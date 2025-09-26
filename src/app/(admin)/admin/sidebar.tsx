@@ -63,7 +63,7 @@ const sidebarItems = [
     label: "Gear",
     href: "/admin/gear",
     icon: <Camera className="size-5" />,
-    allowed: ["ADMIN"],
+    allowed: ["EDITOR", "ADMIN"],
   },
   {
     label: "Analytics",
