@@ -203,7 +203,7 @@ export default function About() {
         </div>
       </section>
 
-      <section className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 rounded-xl bg-white px-8 py-24 sm:grid-cols-2 sm:px-12">
+      <section className="dark:bg-accent/50 mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 rounded-xl bg-white px-8 py-24 sm:grid-cols-2 sm:px-12">
         <div className="space-y-4">
           <h2 className="text-3xl font-bold">Let's Get Started</h2>
           <p className="text-muted-foreground">
