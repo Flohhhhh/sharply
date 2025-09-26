@@ -323,7 +323,9 @@ function CameraFieldsComponent({
             <Input
               id="processorName"
               value={currentSpecs?.processorName ?? ""}
-              onChange={(value) => handleFieldChange("processorName", value)}
+              onChange={(e) =>
+                handleFieldChange("processorName", e.target.value)
+              }
             />
           </div>
 
