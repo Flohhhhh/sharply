@@ -116,7 +116,7 @@ export default function UserCard(props: { user: User }) {
   if (!props.user) return null;
 
   return (
-    <div className="hidden flex-col items-center gap-8 sm:flex">
+    <div className="light hidden flex-col items-center gap-8 sm:flex">
       <Tilt
         tiltReverse
         transitionSpeed={1800}
