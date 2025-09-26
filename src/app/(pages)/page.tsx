@@ -180,7 +180,7 @@ export default async function Home() {
               {/* Banner link: New to Photography? */}
               <Link
                 href="/beginners-guide"
-                className="flex flex-col gap-2 overflow-hidden rounded-xl border bg-white p-5 transition-colors"
+                className="dark:bg-accent/50 flex flex-col gap-2 overflow-hidden rounded-xl border bg-white p-5 transition-colors"
               >
                 <h3 className="text-2xl font-semibold">New to Photography?</h3>
                 <p className="text-muted-foreground mt-1 mb-8 text-sm">

@@ -202,7 +202,7 @@ export function GlobalSearchBar({
 
   return (
     <div className={className}>
-      <div className="relative bg-white" ref={containerRef}>
+      <div className="dark:bg-background relative bg-white" ref={containerRef}>
         <SearchIcon
           className={cn(
             "text-muted-foreground pointer-events-none absolute top-1/2 left-3 -translate-y-1/2",
