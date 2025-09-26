@@ -211,7 +211,7 @@ function CameraFieldsComponent({
               handleFieldChange("sensorReadoutSpeedMs", value)
             }
             suffix="ms"
-            placeholder="e.g., 10.5"
+            placeholder="e.g., 10"
             min={0}
             step={0.1}
           />
