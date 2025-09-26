@@ -145,15 +145,21 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
   }, [currentSpecs.weightGrams]);
 
   const formattedWidth = useMemo(() => {
-    return currentSpecs.widthMm ?? null;
+    return currentSpecs.widthMm != null
+      ? parseFloat(currentSpecs.widthMm)
+      : null;
   }, [currentSpecs.widthMm]);
 
   const formattedHeight = useMemo(() => {
-    return currentSpecs.heightMm ?? null;
+    return currentSpecs.heightMm != null
+      ? parseFloat(currentSpecs.heightMm)
+      : null;
   }, [currentSpecs.heightMm]);
 
   const formattedDepth = useMemo(() => {
-    return currentSpecs.depthMm ?? null;
+    return currentSpecs.depthMm != null
+      ? parseFloat(currentSpecs.depthMm)
+      : null;
   }, [currentSpecs.depthMm]);
 
   // Safely format the mount value for the select
@@ -242,7 +248,8 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
             value={formattedWidth}
             onChange={(v) => onChange("widthMm", v)}
             min={0}
-            placeholder="Enter width"
+            step={0.1}
+            placeholder="e.g., 135.5"
             suffix="mm"
           />
           <NumberInput
@@ -251,7 +258,8 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
             value={formattedHeight}
             onChange={(v) => onChange("heightMm", v)}
             min={0}
-            placeholder="Enter height"
+            step={0.1}
+            placeholder="e.g., 98.2"
             suffix="mm"
           />
           <NumberInput
@@ -260,7 +268,8 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
             value={formattedDepth}
             onChange={(v) => onChange("depthMm", v)}
             min={0}
-            placeholder="Enter depth"
+            step={0.1}
+            placeholder="e.g., 75.8"
             suffix="mm"
           />
 

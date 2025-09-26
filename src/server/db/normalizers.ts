@@ -112,22 +112,22 @@ export function normalizeProposalPayloadForDb(
         .preprocess((value) => {
           if (value === null) return null;
           const num = coerceNumber(value);
-          return num === null ? undefined : Math.trunc(num);
-        }, z.number().int().nullable().optional())
+          return num === null ? undefined : num;
+        }, z.number().nullable().optional())
         .optional(),
       heightMm: z
         .preprocess((value) => {
           if (value === null) return null;
           const num = coerceNumber(value);
-          return num === null ? undefined : Math.trunc(num);
-        }, z.number().int().nullable().optional())
+          return num === null ? undefined : num;
+        }, z.number().nullable().optional())
         .optional(),
       depthMm: z
         .preprocess((value) => {
           if (value === null) return null;
           const num = coerceNumber(value);
-          return num === null ? undefined : Math.trunc(num);
-        }, z.number().int().nullable().optional())
+          return num === null ? undefined : num;
+        }, z.number().nullable().optional())
         .optional(),
     })
     .catchall(z.unknown());
