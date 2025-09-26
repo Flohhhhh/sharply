@@ -28,7 +28,7 @@ function getInitials(name: string) {
 
 export function ReviewCard({ post }: { post: ReviewPost }) {
   return (
-    <article className="group flex flex-col overflow-hidden rounded-xl border bg-white shadow-sm">
+    <article className="group dark:bg-accent/50 flex flex-col overflow-hidden rounded-xl border bg-white shadow-sm">
       <div className="flex flex-1 flex-col px-3 pt-3 pb-3">
         <Link href={post.href} className="font-semibold hover:underline">
           {post.title}

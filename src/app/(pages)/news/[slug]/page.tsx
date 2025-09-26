@@ -62,7 +62,7 @@ export default async function DynamicPage({
           className="aspect-video w-full rounded-lg object-cover"
         />
       )}
-      <article className="prose mx-auto w-full max-w-3xl">
+      <article className="prose prose-zinc dark:prose-invert mx-auto w-full max-w-3xl">
         <div
           dangerouslySetInnerHTML={{ __html: page.news_content_wysiwyg }}
         ></div>

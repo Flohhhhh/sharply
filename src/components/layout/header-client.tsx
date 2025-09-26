@@ -11,6 +11,7 @@ import { NavMenuMobile } from "./nav-menu-mobile";
 import { NavSheetDesktop } from "./nav-sheet-desktop";
 import Logo from "public/logo";
 import { UserMenu } from "./user-menu";
+import { ThemeSwitcher } from "../theme-switcher";
 
 export type HeaderUser = {
   id: string;
@@ -76,7 +77,7 @@ export default function HeaderClient({ user }: { user: HeaderUser }) {
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <Logo className="h-4 w-4" />
+                  <Logo className="fill-foreground h-4 w-4" />
                   <Link href="/">Sharply</Link>
                 </div>
               )}
@@ -107,6 +108,7 @@ export default function HeaderClient({ user }: { user: HeaderUser }) {
 
             {/* Desktop auth buttons - only visible on desktop */}
             <div className="hidden items-center gap-3 md:flex">
+              <ThemeSwitcher />
               {user ? (
                 <>
                   {isAdminOrEditor && (

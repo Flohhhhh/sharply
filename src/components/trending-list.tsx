@@ -92,7 +92,7 @@ export default async function TrendingList({
           as of {items[0]!.asOfDate}
         </span>
       </div>
-      <ol className="divide-border divide-y rounded-xl border bg-white">
+      <ol className="divide-border dark:bg-accent/50 divide-y rounded-xl border bg-white">
         {items.map((item, idx) => {
           const filled = calcFilled(item.score);
           return (

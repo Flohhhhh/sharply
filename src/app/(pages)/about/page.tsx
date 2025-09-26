@@ -128,7 +128,7 @@ export default function About() {
         </div>
       </section>
 
-      <section className="w-full space-y-8 bg-white">
+      <section className="dark:bg-accent/50 w-full space-y-8 bg-white">
         <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 px-4 py-24 sm:grid-cols-2 sm:px-8">
           <div className="max-w-lg space-y-4">
             <Badge>The Problem</Badge>

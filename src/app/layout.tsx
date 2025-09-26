@@ -51,14 +51,14 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     // <html lang="en" className={`${geist.variable}`}>
-    <html lang="en" className={`${archivo.variable}`}>
+    <html suppressHydrationWarning lang="en" className={`${archivo.variable}`}>
       <Analytics />
       <body>
         <Providers>
           {children}
           <FloatingCompareButton />
+          <Toaster />
         </Providers>
-        <Toaster theme="light" />
       </body>
     </html>
   );
