@@ -36,6 +36,7 @@ import {
 import Link from "next/link";
 import {
   BarChart3,
+  CombineIcon,
   Camera,
   Lock,
   LayoutDashboard,
@@ -48,12 +49,18 @@ import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
 import { GlobalSearchBar } from "~/components/search/global-search-bar";
 import { useSession } from "next-auth/react";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "~/components/ui/dialog";
+import { GearCreateCard } from "./gear-create";
 
 const sidebarItems = [
   {
-    label: "Dashboard",
+    label: "Approvals",
     href: "/admin",
-    icon: <LayoutDashboard className="size-5" />,
+    icon: <CombineIcon className="size-5" />,
     allowed: ["ADMIN", "EDITOR"],
   },
   {
@@ -134,9 +141,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </>
         ) : (
           <>
-            <Button size="sm" icon={<Plus className="size-5" />}>
-              Create Gear Item
-            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button size="sm" icon={<Plus className="size-5" />}>
+                  Create Gear Item
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-3xl bg-transparent p-0 border-none shadow-none">
+                <GearCreateCard />
+              </DialogContent>
+            </Dialog>
             {/* Only show links the user is allowed to see */}
             {sidebarItems
               .filter((item) => isLinkAllowed(item.href))

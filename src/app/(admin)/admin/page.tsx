@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { FileText, Users, Settings } from "lucide-react";
 import { GearProposalsList } from "./gear-proposals-list";
-import { GearCreateCard } from "./gear-create";
 import { ReviewsApprovalQueue } from "./reviews-approval-queue";
 import { BadgesCatalog } from "./badges-catalog";
 import { BadgesTestToastButton } from "./badges-test-toast";
@@ -24,17 +23,7 @@ export default async function AdminPage() {
 
   return (
     <div className="space-y-8 px-8">
-      {user.role === "ADMIN" && (
-        <div>
-          <h2 className="text-2xl font-bold">Create Gear</h2>
-          <p className="text-muted-foreground mt-2">
-            Quick-create a new gear item with name, brand and type.
-          </p>
-          <div className="mt-4">
-            <GearCreateCard />
-          </div>
-        </div>
-      )}
+      {/* Single-gear creation moved to modal trigger in the sidebar */}
       {/* Quick Stats Cards */}
       {/* <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <Card>
