@@ -16,6 +16,7 @@ import {
   Target,
   Palette,
   Film,
+  Scale,
 } from "lucide-react";
 
 interface NavItem {
@@ -42,7 +43,8 @@ interface NavItem {
       | "zap"
       | "target"
       | "palette"
-      | "film";
+      | "film"
+      | "scale";
   }[];
   hideFromNavbar?: boolean;
   hideFromFooter?: boolean;
@@ -102,10 +104,16 @@ export const navItems: NavItem[] = [
     type: "category",
     items: [
       {
-        title: "Search & Compare",
+        title: "Search",
         url: "/search",
-        description: "Find and compare gear side-by-side",
+        description: "Search for gear by name, brand, or type",
         iconKey: "search",
+      },
+      {
+        title: "Compare",
+        url: "/compare",
+        description: "Compare gear side-by-side",
+        iconKey: "scale",
       },
       // {
       //   title: "Focal Simulator",
@@ -204,6 +212,7 @@ export const iconMap = {
   target: Target,
   palette: Palette,
   film: Film,
+  scale: Scale,
 };
 
 // Get nav items filtered by hideFromNavbar and format for the navbar component

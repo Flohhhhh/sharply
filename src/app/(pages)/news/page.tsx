@@ -16,12 +16,15 @@ export default async function NewsPage() {
       </h1>
       <Separator className="mb-2" />
       <div>
-        {posts.map((post, idx) => (
-          <div key={post.id}>
-            <NewsListItem post={post} />
-            {idx < posts.length - 1 && <Separator />}
-          </div>
-        ))}
+        {posts.map((post, idx) => {
+          if (post.status !== "published") return null;
+          return (
+            <div key={post.id}>
+              <NewsListItem post={post} />
+              {idx < posts.length - 1 && <Separator />}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
