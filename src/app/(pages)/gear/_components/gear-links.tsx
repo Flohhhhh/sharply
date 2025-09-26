@@ -10,22 +10,18 @@ interface GearLinksProps {
   linkMpb: string | null;
   linkAmazon: string | null;
   mpbMaxPriceUsdCents?: number | null;
+  brandName: string | null;
 }
 
 export function GearLinks({
   slug,
+  brandName,
   linkManufacturer,
   linkMpb,
   linkAmazon,
   mpbMaxPriceUsdCents,
 }: GearLinksProps) {
   const hasAny = !!(linkManufacturer || linkMpb || linkAmazon);
-
-  const report = (kind: string, url: string) => {
-    // Placeholder until we wire this up to an API/event
-    // eslint-disable-next-line no-console
-    console.log("[report-broken-link]", { slug, kind, url });
-  };
 
   if (!hasAny) return null;
 
@@ -36,27 +32,15 @@ export function GearLinks({
       </div>
 
       {linkManufacturer && (
-        <div className="flex items-center justify-between gap-4 px-4 py-3">
-          <div className="flex flex-col">
-            <span className="text-muted-foreground">Manufacturer</span>
-            <a
-              href={linkManufacturer}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary truncate font-medium hover:underline"
-            >
-              {linkManufacturer}
-            </a>
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => report("manufacturer", linkManufacturer)}
+        <Button variant="outline" asChild className="w-full">
+          <Link
+            href={linkManufacturer}
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            Report broken link
-          </Button>
-        </div>
+            <span className="text-primary font-bold">{brandName}</span>
+          </Link>
+        </Button>
       )}
       {linkMpb && (
         <Button variant="outline" asChild className="w-full">
@@ -76,27 +60,11 @@ export function GearLinks({
         </Button>
       )}
       {linkAmazon && (
-        <div className="flex items-center justify-between gap-4 px-4 py-3">
-          <div className="flex flex-col">
-            <span className="text-muted-foreground">Amazon</span>
-            <a
-              href={linkAmazon}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary truncate font-medium hover:underline"
-            >
-              {linkAmazon}
-            </a>
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => report("amazon", linkAmazon)}
-          >
-            Report broken link
-          </Button>
-        </div>
+        <Button variant="outline" asChild className="w-full">
+          <Link href={linkAmazon} target="_blank" rel="noopener noreferrer">
+            <span className="font-bold text-[#FF9900]">Amazon</span>
+          </Link>
+        </Button>
       )}
     </div>
   );

@@ -29,15 +29,17 @@ export default function SpecsTable({
         {sections.map((section) => (
           <div key={section.title} className="text-sm">
             <div className="divide-border divide-y">
-              <h3 className="border-border border-t bg-white px-4 py-2">
+              <h3 className="border-border dark:bg-foreground/10 border-t bg-white px-4 py-2">
                 {section.title}
               </h3>
               {section.data
                 .filter((item) => item.value !== undefined)
-                .map((item) => (
+                .map((item, index) => (
                   <div
                     key={item.label}
-                    className="hover:bg-accent/50 flex h-full items-center justify-between px-4 py-2 transition-colors duration-200"
+                    className={`hover:bg-secondary/50 flex h-full items-center justify-between px-4 py-2 transition-colors duration-200 ${
+                      index % 2 === 0 ? "bg-background" : "bg-accent/60"
+                    }`}
                   >
                     <div className="space-x-3">
                       <span className="text-muted-foreground">
