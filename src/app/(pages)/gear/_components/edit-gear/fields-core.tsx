@@ -145,21 +145,15 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
   }, [currentSpecs.weightGrams]);
 
   const formattedWidth = useMemo(() => {
-    return currentSpecs.widthMm != null
-      ? parseFloat(currentSpecs.widthMm)
-      : null;
+    return currentSpecs.widthMm != null ? currentSpecs.widthMm : null;
   }, [currentSpecs.widthMm]);
 
   const formattedHeight = useMemo(() => {
-    return currentSpecs.heightMm != null
-      ? parseFloat(currentSpecs.heightMm)
-      : null;
+    return currentSpecs.heightMm != null ? currentSpecs.heightMm : null;
   }, [currentSpecs.heightMm]);
 
   const formattedDepth = useMemo(() => {
-    return currentSpecs.depthMm != null
-      ? parseFloat(currentSpecs.depthMm)
-      : null;
+    return currentSpecs.depthMm != null ? currentSpecs.depthMm : null;
   }, [currentSpecs.depthMm]);
 
   // Safely format the mount value for the select
