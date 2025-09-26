@@ -21,6 +21,14 @@ export function sensorNameFromId(id: string | null | undefined): string {
   return match?.name;
 }
 
+export function sensorSlugFromId(
+  id: string | null | undefined,
+): string | undefined {
+  if (!id) return undefined;
+  const match = SENSOR_FORMATS.find((f) => f.id === id);
+  return match?.slug;
+}
+
 export function sensorTypeLabel(cameraSpecs: CameraSpecs): string {
   if (!cameraSpecs) {
     console.log("[sensorTypeLabel] cameraSpecs is null");
