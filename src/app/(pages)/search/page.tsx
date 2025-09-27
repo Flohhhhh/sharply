@@ -116,7 +116,6 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                         brandName={r.brandName}
                         thumbnailUrl={r.thumbnailUrl}
                         gearType={r.gearType}
-                        mountText={r.mountValue}
                         dateText={null}
                       />
                     ))}
@@ -144,7 +143,6 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                         brandName={r.brandName}
                         thumbnailUrl={r.thumbnailUrl}
                         gearType={r.gearType}
-                        mountText={r.mountValue}
                         dateText={null}
                       />
                     ))}
@@ -164,7 +162,6 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 brandName={r.brandName}
                 thumbnailUrl={r.thumbnailUrl}
                 gearType={r.gearType}
-                mountText={r.mountValue}
                 dateText={null}
               />
             ))}

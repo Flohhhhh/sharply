@@ -5,6 +5,7 @@ import { fetchGearForBrand } from "~/server/gear/service";
 import { Button } from "~/components/ui/button";
 import { GearCard } from "~/components/gear/gear-card";
 import type { Metadata } from "next";
+import { getMountDisplayName } from "~/lib/mapping";
 
 export const metadata: Metadata = {
   title: "All Gear",
@@ -45,7 +46,6 @@ export default async function GearIndex() {
                         ? `Released ${new Date(g.releaseDate).getFullYear()}`
                         : null
                     }
-                    mountText={(g as any).mount?.value ?? null}
                   />
                 </li>
               ))}
