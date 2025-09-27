@@ -28,9 +28,17 @@ interface EditGearFormProps {
     cameraSpecs?: typeof cameraSpecs.$inferSelect | null;
     lensSpecs?: typeof lensSpecs.$inferSelect | null;
   };
+  onDirtyChange?: (dirty: boolean) => void;
+  onRequestClose?: () => void;
 }
 
-function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
+function EditGearForm({
+  gearType,
+  gearData,
+  gearSlug,
+  onDirtyChange,
+  onRequestClose,
+}: EditGearFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -60,6 +68,7 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
       }
       // Mark form dirty on any change
       setIsDirty(true);
+      onDirtyChange?.(true);
     },
     [],
   );
@@ -342,6 +351,7 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
       console.timeEnd(`[EditGearForm] submit ${gearSlug}`);
       if (res?.ok) {
         setIsDirty(false);
+        onDirtyChange?.(false);
         const createdId = (res as any)?.proposal?.id;
         const autoApproved = Boolean((res as any)?.autoApproved);
         toast.success(
@@ -425,7 +435,9 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
         <Button
           type="button"
           variant="outline"
-          onClick={() => window.history.back()}
+          onClick={() =>
+            onRequestClose ? onRequestClose() : window.history.back()
+          }
         >
           Cancel
         </Button>

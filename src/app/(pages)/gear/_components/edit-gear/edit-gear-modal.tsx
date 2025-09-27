@@ -1,13 +1,23 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "~/components/ui/alert-dialog";
 import { EditGearForm } from "./edit-gear-form";
 import type { GearItem } from "~/types/gear";
 
@@ -25,13 +35,28 @@ export function EditGearModal({
   gearName,
 }: EditGearModalProps) {
   const router = useRouter();
+  const [isDirty, setIsDirty] = useState(false);
+  const [confirmExitOpen, setConfirmExitOpen] = useState(false);
 
-  const handleClose = useCallback(() => {
+  const requestClose = useCallback(() => {
+    if (isDirty) {
+      setConfirmExitOpen(true);
+      return;
+    }
     router.back();
-  }, [router]);
+  }, [isDirty, router]);
+
+  const handleOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open) {
+        requestClose();
+      }
+    },
+    [requestClose],
+  );
 
   return (
-    <Dialog defaultOpen open onOpenChange={handleClose}>
+    <Dialog defaultOpen open onOpenChange={handleOpenChange}>
       <DialogContent className="max-h-[90vh] w-full overflow-y-auto sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>Edit Gear: {gearName}</DialogTitle>
@@ -40,8 +65,35 @@ export function EditGearModal({
           gearType={gearType}
           gearData={gearData}
           gearSlug={gearSlug}
+          onDirtyChange={setIsDirty}
+          onRequestClose={requestClose}
         />
       </DialogContent>
+      {/* Unsaved changes confirmation */}
+      <AlertDialog open={confirmExitOpen} onOpenChange={setConfirmExitOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Discard unsaved changes?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have unsaved changes. If you exit now, your edits will be
+              lost.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setConfirmExitOpen(false)}>
+              Stay
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setConfirmExitOpen(false);
+                router.back();
+              }}
+            >
+              Discard & Exit
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }
