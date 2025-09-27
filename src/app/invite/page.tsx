@@ -30,7 +30,7 @@ export default function GenericInvitePage() {
       {/* Middle content */}
       <div className="flex flex-col items-center px-4 text-center sm:px-8">
         <div className="relative mb-36">
-          <Logo className="absolute top-0 left-0 h-16 w-16 -translate-x-1/2 -translate-y-1/2" />
+          <Logo className="dark:fill-foreground absolute top-0 left-0 h-16 w-16 -translate-x-1/2 -translate-y-1/2" />
           <SpinningText
             className="absolute top-3/7 left-1/2 -translate-x-1/2 -translate-y-1/2 text-neutral-600 dark:text-neutral-400"
             radius={8}
