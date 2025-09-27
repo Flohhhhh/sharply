@@ -28,9 +28,23 @@ interface EditGearFormProps {
     cameraSpecs?: typeof cameraSpecs.$inferSelect | null;
     lensSpecs?: typeof lensSpecs.$inferSelect | null;
   };
+  onDirtyChange?: (dirty: boolean) => void;
+  onRequestClose?: () => void;
+  onSubmittingChange?: (submitting: boolean) => void;
+  showActions?: boolean;
+  formId?: string;
 }
 
-function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
+function EditGearForm({
+  gearType,
+  gearData,
+  gearSlug,
+  onDirtyChange,
+  onRequestClose,
+  onSubmittingChange,
+  showActions = true,
+  formId,
+}: EditGearFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -60,6 +74,7 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
       }
       // Mark form dirty on any change
       setIsDirty(true);
+      onDirtyChange?.(true);
     },
     [],
   );
@@ -316,6 +331,7 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
 
   const doSubmit = async () => {
     setIsSubmitting(true);
+    onSubmittingChange?.(true);
 
     // Build diff-only payload: include only changed fields, and include nulls
     // when a value is explicitly cleared.
@@ -327,6 +343,7 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
         description: "Update a field before submitting.",
       });
       setIsSubmitting(false);
+      onSubmittingChange?.(false);
       return;
     }
 
@@ -342,6 +359,7 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
       console.timeEnd(`[EditGearForm] submit ${gearSlug}`);
       if (res?.ok) {
         setIsDirty(false);
+        onDirtyChange?.(false);
         const createdId = (res as any)?.proposal?.id;
         const autoApproved = Boolean((res as any)?.autoApproved);
         toast.success(
@@ -370,6 +388,7 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
     }
 
     setIsSubmitting(false);
+    onSubmittingChange?.(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -387,7 +406,7 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form id={formId} onSubmit={handleSubmit} className="space-y-6">
       <CoreFields
         currentSpecs={
           {
@@ -420,23 +439,26 @@ function EditGearForm({ gearType, gearData, gearSlug }: EditGearFormProps) {
         />
       )}
 
-      {/* Submit Button */}
-      <div className="flex justify-end space-x-4">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => window.history.back()}
-        >
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          disabled={isSubmitting || !isDirty}
-          loading={isSubmitting}
-        >
-          Continue
-        </Button>
-      </div>
+      {showActions && (
+        <div className="flex justify-end space-x-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() =>
+              onRequestClose ? onRequestClose() : window.history.back()
+            }
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={isSubmitting || !isDirty}
+            loading={isSubmitting}
+          >
+            Continue
+          </Button>
+        </div>
+      )}
 
       {/* Confirmation Dialog */}
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
