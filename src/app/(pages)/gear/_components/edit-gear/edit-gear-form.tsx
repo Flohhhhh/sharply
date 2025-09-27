@@ -462,7 +462,7 @@ function EditGearForm({
 
       {/* Confirmation Dialog */}
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <DialogContent>
+        <DialogContent className="grid max-h-[calc(100vh-2rem)] grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden">
           <DialogHeader>
             <DialogTitle>Submit suggestion?</DialogTitle>
             <DialogDescription>
@@ -473,7 +473,7 @@ function EditGearForm({
           </DialogHeader>
           {/* Diff preview */}
           {diffPreview && (
-            <div className="bg-muted/40 border-border mb-4 space-y-2 rounded-md border p-3 text-sm">
+            <div className="bg-muted/40 border-border mb-4 space-y-2 overflow-y-auto rounded-md border p-3 text-sm">
               {Object.keys(diffPreview).length === 0 ? (
                 <p className="text-muted-foreground">No changes detected.</p>
               ) : (
