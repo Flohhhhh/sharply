@@ -287,7 +287,8 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
               options={genreOptions}
               value={formattedGenres}
               onChange={(ids) => onChange("genres", ids)}
-              placeholder="Select use cases..."
+              maxSelected={3}
+              placeholder="Select top 3 use cases..."
               searchPlaceholder="Search genres..."
             />
           </div>

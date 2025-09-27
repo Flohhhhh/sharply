@@ -30,6 +30,9 @@ interface EditGearFormProps {
   };
   onDirtyChange?: (dirty: boolean) => void;
   onRequestClose?: () => void;
+  onSubmittingChange?: (submitting: boolean) => void;
+  showActions?: boolean;
+  formId?: string;
 }
 
 function EditGearForm({
@@ -38,6 +41,9 @@ function EditGearForm({
   gearSlug,
   onDirtyChange,
   onRequestClose,
+  onSubmittingChange,
+  showActions = true,
+  formId,
 }: EditGearFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -325,6 +331,7 @@ function EditGearForm({
 
   const doSubmit = async () => {
     setIsSubmitting(true);
+    onSubmittingChange?.(true);
 
     // Build diff-only payload: include only changed fields, and include nulls
     // when a value is explicitly cleared.
@@ -336,6 +343,7 @@ function EditGearForm({
         description: "Update a field before submitting.",
       });
       setIsSubmitting(false);
+      onSubmittingChange?.(false);
       return;
     }
 
@@ -380,6 +388,7 @@ function EditGearForm({
     }
 
     setIsSubmitting(false);
+    onSubmittingChange?.(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -397,7 +406,7 @@ function EditGearForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form id={formId} onSubmit={handleSubmit} className="space-y-6">
       <CoreFields
         currentSpecs={
           {
@@ -430,25 +439,26 @@ function EditGearForm({
         />
       )}
 
-      {/* Submit Button */}
-      <div className="flex justify-end space-x-4">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() =>
-            onRequestClose ? onRequestClose() : window.history.back()
-          }
-        >
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          disabled={isSubmitting || !isDirty}
-          loading={isSubmitting}
-        >
-          Continue
-        </Button>
-      </div>
+      {showActions && (
+        <div className="flex justify-end space-x-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() =>
+              onRequestClose ? onRequestClose() : window.history.back()
+            }
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={isSubmitting || !isDirty}
+            loading={isSubmitting}
+          >
+            Continue
+          </Button>
+        </div>
+      )}
 
       {/* Confirmation Dialog */}
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
