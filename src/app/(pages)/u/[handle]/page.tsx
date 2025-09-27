@@ -7,12 +7,14 @@ import {
   fetchUserById,
   fetchUserOwnedItems,
   fetchUserWishlistItems,
+  fetchFullUserById,
 } from "~/server/users/service";
 // Note: page is a Server Component and reads from the service layer only.
 import type { Metadata } from "next";
 import { auth } from "~/server/auth";
 import { Button } from "~/components/ui/button";
 import { UserPen } from "lucide-react";
+import { ShowUserCardButton } from "~/app/(pages)/u/_components/ShowUserCardButton";
 
 interface UserProfilePageProps {
   params: Promise<{
@@ -37,7 +39,7 @@ export default async function UserProfilePage({
   const session = await auth();
 
   // Load user profile
-  const user = await fetchUserById(handle);
+  const user = await fetchFullUserById(handle);
   if (!user) notFound();
 
   // Wishlist and owned items via service layer
@@ -70,9 +72,12 @@ export default async function UserProfilePage({
           </div>
         </div>
         {myProfile && (
-          <Button asChild icon={<UserPen />} className="self-end">
-            <Link href="/profile/settings">Edit Profile</Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button asChild icon={<UserPen />} className="self-end">
+              <Link href="/profile/settings">Edit Profile</Link>
+            </Button>
+            <ShowUserCardButton user={user} />
+          </div>
         )}
       </div>
 

@@ -4,7 +4,7 @@ import Tilt from "react-parallax-tilt";
 import { useIsMobile } from "~/hooks/use-mobile";
 import { Avatar, AvatarImage, AvatarFallback } from "~/components/ui/avatar";
 import type { User } from "~/server/db/schema";
-import { formatHumanDate } from "~/lib/utils";
+import { formatHumanDate, cn } from "~/lib/utils";
 import { useCallback, useMemo, useRef } from "react";
 import QrCode from "~/components/qr-code";
 import { HyperText } from "~/components/ui/hyper-text";
@@ -25,11 +25,16 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function UserCard(props: { user: User }) {
+export default function UserCard(props: {
+  user: User;
+  className?: string;
+  showActions?: boolean;
+}) {
   const cardRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const router = useRouter();
   const [displayName, setDisplayName] = useState(props.user.name ?? "");
+  const { showActions = true } = props;
 
   const joinedDate = props.user?.createdAt
     ? formatHumanDate(props.user.createdAt)
@@ -116,7 +121,12 @@ export default function UserCard(props: { user: User }) {
   if (!props.user) return null;
 
   return (
-    <div className="hidden flex-col items-center gap-8 sm:flex">
+    <div
+      className={cn(
+        "hidden flex-col items-center gap-8 sm:flex",
+        props.className,
+      )}
+    >
       <Tilt
         tiltReverse
         transitionSpeed={1800}
@@ -233,48 +243,50 @@ export default function UserCard(props: { user: User }) {
           </div>
         </div>
       </Tilt>
-      <div className="flex flex-col items-center gap-2">
-        <div className="mt-2 flex justify-center">
-          <div className="flex flex-col items-center gap-2 sm:flex-row">
-            <Button
-              variant="outline"
-              type="button"
-              onClick={handleCopy}
-              icon={<ClipboardCopy />}
-            >
-              Copy Card to Clipboard
-            </Button>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button type="button" icon={<UserPen />}>
-                  Update Display Name
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Update display name</DialogTitle>
-                  <DialogDescription>
-                    This is the name other users see on your profile and
-                    reviews.
-                  </DialogDescription>
-                </DialogHeader>
-                <SettingsForm
-                  defaultName={displayName}
-                  onSuccess={(name) => {
-                    setDisplayName(name);
-                    router.refresh();
-                    toast.success("Display name updated");
-                  }}
-                />
-              </DialogContent>
-            </Dialog>
+      {showActions ? (
+        <div className="flex flex-col items-center gap-2">
+          <div className="mt-2 flex justify-center">
+            <div className="flex flex-col items-center gap-2 sm:flex-row">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={handleCopy}
+                icon={<ClipboardCopy />}
+              >
+                Copy Card to Clipboard
+              </Button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button type="button" icon={<UserPen />}>
+                    Update Display Name
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Update display name</DialogTitle>
+                    <DialogDescription>
+                      This is the name other users see on your profile and
+                      reviews.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <SettingsForm
+                    defaultName={displayName}
+                    onSuccess={(name) => {
+                      setDisplayName(name);
+                      router.refresh();
+                      toast.success("Display name updated");
+                    }}
+                  />
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
+          <p className="text-muted-foreground text-xs">
+            You can view your card again or change your display name later in
+            your profile.
+          </p>
         </div>
-        <p className="text-muted-foreground text-xs">
-          You can view your card again or change your display name later in your
-          profile.
-        </p>
-      </div>
+      ) : null}
     </div>
   );
 }
