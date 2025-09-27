@@ -116,7 +116,7 @@ export default function UserCard(props: { user: User }) {
   if (!props.user) return null;
 
   return (
-    <div className="light hidden flex-col items-center gap-8 sm:flex">
+    <div className="hidden flex-col items-center gap-8 sm:flex">
       <Tilt
         tiltReverse
         transitionSpeed={1800}
@@ -134,7 +134,7 @@ export default function UserCard(props: { user: User }) {
       >
         <div
           ref={cardRef}
-          className="border-muted bg-card relative aspect-[3/2] w-72 overflow-hidden rounded-3xl border-2 p-6 shadow-md sm:w-[500px]"
+          className="relative aspect-[3/2] w-72 overflow-hidden rounded-3xl border-2 border-zinc-300 bg-white p-6 shadow-md sm:w-[500px]"
         >
           {/* Liquid gradient accent (bottom-right) */}
           {/* <div
@@ -149,15 +149,13 @@ export default function UserCard(props: { user: User }) {
             {/* Lanyard cutout (just a centered full rounded rectangle) */}
             <div className="absolute top-0 -z-10 h-3 w-full rounded-3xl">
               <div className="flex h-full w-full items-center justify-center">
-                <div className="bg-background border-border h-full w-16 rounded-3xl border" />
+                <div className="bg-background h-full w-16 rounded-3xl border border-zinc-300" />
               </div>
             </div>
             {/* Top: Logo + All-Access */}
             <div className="flex items-start justify-between">
-              <div className="text-foreground text-sm font-semibold">
-                Sharply
-              </div>
-              <div className="text-muted-foreground text-xs tracking-[0.25em]">
+              <div className="text-sm font-semibold text-zinc-900">Sharply</div>
+              <div className="text-xs tracking-[0.25em] text-zinc-900">
                 ALL-ACCESS
               </div>
             </div>
@@ -176,10 +174,8 @@ export default function UserCard(props: { user: User }) {
                       </AvatarFallback>
                     </Avatar> */}
                     <div className="space-y-1">
-                      <div className="text-muted-foreground text-xs">
-                        {roleName}
-                      </div>
-                      <h1 className="text-foreground text-2xl leading-tight font-bold sm:text-4xl">
+                      <div className="text-xs text-zinc-900">{roleName}</div>
+                      <h1 className="text-2xl leading-tight font-bold text-zinc-900 sm:text-4xl">
                         {displayName}
                       </h1>
                     </div>
@@ -193,17 +189,17 @@ export default function UserCard(props: { user: User }) {
                     </div>
                   ) : null}
                   <div className="space-y-1">
-                    <div className="text-muted-foreground text-xs">
+                    <div className="text-xs text-zinc-900">
                       Sharply Founding Member
                     </div>
-                    <div className="text-muted-foreground text-xs">
+                    <div className="text-xs text-zinc-900">
                       Joined {joinedDate}
                     </div>
                   </div>
                 </div>
               </div>
               <div className="flex items-center justify-end">
-                <QrCode className="text-foreground h-24 w-24 sm:h-32 sm:w-32" />
+                <QrCode className="h-24 w-24 text-zinc-900 sm:h-32 sm:w-32" />
               </div>
             </div>
 
@@ -211,12 +207,12 @@ export default function UserCard(props: { user: User }) {
 
             {/* Bottom: Member Id */}
             <div className="flex items-center justify-between">
-              <div className="text-muted-foreground text-xs tracking-widest uppercase">
+              <div className="text-xs tracking-widest text-zinc-900 uppercase">
                 Member Id
               </div>
 
               <HyperText
-                className="text-foreground font-mono text-sm"
+                className="font-mono text-sm text-zinc-900"
                 duration={2000}
                 characterSet={[
                   "0",
