@@ -3,6 +3,13 @@ import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import { SpinningText } from "~/components/ui/spinning-text";
 import { BookOpen, TicketCheck } from "lucide-react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "You're Invited! | Sharply",
+  description:
+    "You've been invited to join Sharply. Sign in to get early access and explore.",
+};
 
 export default async function InvitePage({
   params,

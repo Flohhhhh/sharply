@@ -3,6 +3,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "~/components/ui/avatar";
 import { Separator } from "~/components/ui/separator";
 import { Progress } from "~/components/ui/progress";
 
+// TODO: Replace this with directus type
 export type ReviewPost = {
   id: number | string;
   title: string;

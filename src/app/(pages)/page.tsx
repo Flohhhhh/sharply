@@ -24,32 +24,32 @@ function stripHtml(html: string | null | undefined, maxLength = 160) {
   return text.slice(0, maxLength - 1).trimEnd() + "…";
 }
 
-const REVIEW_ITEMS: ReviewPost[] = [
-  {
-    id: 1,
-    title: "Nikon Z 24-70mm f/2.8 S: Long-term review",
-    href: "#",
-    author: { name: "Alex Johnson", avatar: "/image-temp.png" },
-    date: "2025-08-22",
-    ratingPercent: 86,
-  },
-  {
-    id: 2,
-    title: "Sony a7 IV: The hybrid king in 2025?",
-    href: "#",
-    author: { name: "Sam Rivera" },
-    date: "2025-08-21",
-    ratingPercent: 91,
-  },
-  {
-    id: 3,
-    title: "Fujifilm X100VI: Street shooter’s dream",
-    href: "#",
-    author: { name: "Jamie Lee" },
-    date: "2025-08-20",
-    ratingPercent: 88,
-  },
-];
+// const REVIEW_ITEMS: ReviewPost[] = [
+//   {
+//     id: 1,
+//     title: "Nikon Z 24-70mm f/2.8 S: Long-term review",
+//     href: "#",
+//     author: { name: "Alex Johnson", avatar: "/image-temp.png" },
+//     date: "2025-08-22",
+//     ratingPercent: 86,
+//   },
+//   {
+//     id: 2,
+//     title: "Sony a7 IV: The hybrid king in 2025?",
+//     href: "#",
+//     author: { name: "Sam Rivera" },
+//     date: "2025-08-21",
+//     ratingPercent: 91,
+//   },
+//   {
+//     id: 3,
+//     title: "Fujifilm X100VI: Street shooter’s dream",
+//     href: "#",
+//     author: { name: "Jamie Lee" },
+//     date: "2025-08-20",
+//     ratingPercent: 88,
+//   },
+// ];
 
 // Using reusable HomeNewsCard component from ~/components/home/news-card
 
@@ -85,6 +85,10 @@ export default async function Home() {
 
   const featuredPost = published[0] ? toHomePost(published[0]!) : null;
   const otherPosts = published.slice(1, 7).map(toHomePost);
+
+  // TODO: Add editorial reviews from directus once we have some
+  const reviewItems = [] as ReviewPost[];
+
   return (
     <div className="min-h-screen">
       {/* HERO */}
@@ -203,9 +207,10 @@ export default async function Home() {
                 </Suspense>
                 <Separator className="my-8" />
                 <h2 className="text-2xl font-semibold">Latest Reviews</h2>
-                {REVIEW_ITEMS.map((post) => (
-                  <ReviewCard key={post.id} post={post} />
-                ))}
+                {reviewItems &&
+                  reviewItems.map((post) => (
+                    <ReviewCard key={post.id} post={post} />
+                  ))}
               </div>
             </div>
           </div>

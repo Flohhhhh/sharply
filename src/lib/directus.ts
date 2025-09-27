@@ -35,6 +35,6 @@ export const getNewsPostBySlug = async (slug: string): Promise<NewsPost> => {
   if (posts.length > 1) {
     throw new Error(`Multiple news posts with slug ${slug} found`);
   }
-  console.log("getNewsPostBySlug", posts[0]);
+  // console.log("getNewsPostBySlug", posts[0]);
   return posts[0]!;
 };
