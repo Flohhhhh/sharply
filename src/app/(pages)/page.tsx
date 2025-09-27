@@ -207,10 +207,9 @@ export default async function Home() {
                 </Suspense>
                 <Separator className="my-8" />
                 <h2 className="text-2xl font-semibold">Latest Reviews</h2>
-                {reviewItems &&
-                  reviewItems.map((post) => (
-                    <ReviewCard key={post.id} post={post} />
-                  ))}
+                {reviewItems?.map((post) => (
+                  <ReviewCard key={post.id} post={post} />
+                ))}
               </div>
             </div>
           </div>
