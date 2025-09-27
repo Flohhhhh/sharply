@@ -84,7 +84,6 @@ export default async function BrandPage({ params }: BrandPageProps) {
                     })
                   : null
               }
-              mountText={(item as any).mount?.value ?? null}
             />
           ))}
         </div>
