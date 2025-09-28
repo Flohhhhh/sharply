@@ -47,7 +47,7 @@ export default async function BrandTrendingList({
           as of {items[0]!.asOfDate}
         </span>
       </div>
-      <ol className="divide-border divide-y rounded-md border bg-white">
+      <ol className="divide-border bg-accent/50 divide-y rounded-md border">
         {items.map((it, idx) => {
           const filled = filledFor(it.score);
           return (
