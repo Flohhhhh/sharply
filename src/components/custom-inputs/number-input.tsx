@@ -210,7 +210,7 @@ export const NumberInput = ({
           onBlur={(e) => {
             const raw = e.currentTarget.value.trim();
             if (showInlinePrefix) {
-              e.currentTarget.style.caretColor = "";
+              e.currentTarget.style.caretColor = "auto";
             }
             if (raw === "") {
               onChange(null);
