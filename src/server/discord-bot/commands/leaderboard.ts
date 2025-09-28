@@ -10,26 +10,53 @@ export const leaderboardCommand = {
     try {
       const { db } = await import("~/server/db");
       const { users, reviews, gearEdits } = await import("~/server/db/schema");
-      const { sql } = await import("drizzle-orm");
+      const { sql, count, inArray } = await import("drizzle-orm");
 
-      // Compute contribution score = total reviews + total edits (all statuses)
-      // Note: we do not LIMIT in SQL so we can sort by computed score in app and then slice top 10
-      const rows = await db
-        .select({
-          userId: users.id,
-          name: users.name,
-          reviewCount: sql<number>`COALESCE((SELECT count(*) FROM ${reviews} r WHERE r.created_by_id = ${users.id}), 0)`,
-          editCount: sql<number>`COALESCE((SELECT count(*) FROM ${gearEdits} e WHERE e.created_by_id = ${users.id}), 0)`,
+      // Aggregate reviews and edits by user separately and merge in app layer
+      const [reviewsByUser, editsByUser] = await Promise.all([
+        db
+          .select({ userId: reviews.createdById, c: count() })
+          .from(reviews)
+          .groupBy(reviews.createdById),
+        db
+          .select({ userId: gearEdits.createdById, c: count() })
+          .from(gearEdits)
+          .groupBy(gearEdits.createdById),
+      ]);
+
+      const userIds = new Set<string>();
+      for (const r of reviewsByUser) if (r.userId) userIds.add(r.userId);
+      for (const e of editsByUser) if (e.userId) userIds.add(e.userId);
+
+      const idList = Array.from(userIds);
+      const usersRows = idList.length
+        ? await db
+            .select({ id: users.id, name: users.name })
+            .from(users)
+            .where(inArray(users.id, idList))
+        : [];
+
+      const idToName = new Map<string, string | null>(
+        usersRows.map((u) => [u.id, u.name]),
+      );
+      const reviewMap = new Map<string, number>(
+        reviewsByUser.map((r) => [r.userId, Number(r.c ?? 0)]),
+      );
+      const editMap = new Map<string, number>(
+        editsByUser.map((e) => [e.userId, Number(e.c ?? 0)]),
+      );
+
+      const scored = idList
+        .map((id) => {
+          const reviewsCount = reviewMap.get(id) ?? 0;
+          const editsCount = editMap.get(id) ?? 0;
+          return {
+            name: idToName.get(id) ?? "(anonymous)",
+            score: reviewsCount + editsCount,
+            reviews: reviewsCount,
+            edits: editsCount,
+          };
         })
-        .from(users);
-
-      const scored = rows
-        .map((r) => ({
-          name: r.name ?? "(anonymous)",
-          score: Number(r.reviewCount ?? 0) + Number(r.editCount ?? 0),
-          reviews: Number(r.reviewCount ?? 0),
-          edits: Number(r.editCount ?? 0),
-        }))
         .filter((r) => r.score > 0)
         .sort((a, b) => b.score - a.score)
         .slice(0, 10);
@@ -39,7 +66,7 @@ export const leaderboardCommand = {
         db.select({ c: sql<number>`count(*)` }).from(reviews),
         db.select({ c: sql<number>`count(*)` }).from(gearEdits),
       ]);
-      const debugLine = `debug — users:${rows.length} reviews:${Number(
+      const debugLine = `debug — users:${usersRows.length} reviews:${Number(
         reviewsAgg?.c ?? 0,
       )} edits:${Number(editsAgg?.c ?? 0)} nonZero:${scored.length}`;
 
