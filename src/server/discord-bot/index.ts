@@ -2,8 +2,19 @@ import type { RESTPostAPIChatInputApplicationCommandsJSONBody } from "discord-ap
 
 import { pingCommand } from "./commands/ping";
 import { getGearCommand } from "./commands/gear";
+import { leaderboardCommand } from "./commands/leaderboard";
+import { compareCommand } from "./commands/compare";
+import { totalsCommand } from "./commands/totals";
+import { trendingCommand } from "./commands/trending";
 
-const commands = { ping: pingCommand, gear: getGearCommand };
+const commands = {
+  ping: pingCommand,
+  gear: getGearCommand,
+  leaderboard: leaderboardCommand,
+  compare: compareCommand,
+  totals: totalsCommand,
+  trending: trendingCommand,
+};
 
 // Runtime dispatcher
 export const commandHandlers: Record<
