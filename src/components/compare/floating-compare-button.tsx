@@ -1,12 +1,30 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Button } from "~/components/ui/button";
 import { X, ArrowRight, Shuffle, Trash, Scale } from "lucide-react";
 import { useCompare } from "~/lib/hooks/useCompare";
 
+const blockedRoutes = ["/compare", "/admin*"] as const;
+
+const blockedRoutePatterns = blockedRoutes.map((pattern) =>
+  new RegExp(
+    "^" + pattern.replace(/[-/\\^$+?.()|[\]{}]/g, "\\$&").replace(/\*/g, ".*") + "$"
+  )
+);
+
 export function FloatingCompareButton() {
+  const pathname = usePathname();
   const { items, remove, clear, href, isFull } = useCompare();
+
+  const isBlockedRoute = pathname
+    ? blockedRoutePatterns.some((regex) => regex.test(pathname))
+    : false;
+
+  if (isBlockedRoute) {
+    return null;
+  }
 
   function openCommandPalette() {
     try {
