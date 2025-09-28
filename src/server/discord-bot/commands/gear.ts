@@ -8,10 +8,17 @@ export const getGearCommand = {
     description: "Search or fetch details about a gear item",
     options: [
       {
+        type: 1, // SUB_COMMAND
         name: "search",
-        description: "Search text for gear",
-        type: 3, // STRING
-        required: false,
+        description: "Search for gear",
+        options: [
+          {
+            name: "query",
+            description: "Gear search text",
+            type: 3, // STRING
+            required: true,
+          },
+        ],
       },
       {
         type: 1, // SUB_COMMAND
@@ -45,6 +52,12 @@ export const getGearCommand = {
     const rootSearch = options.find((o) => o.name === "search")?.value as
       | string
       | undefined;
+    const searchQueryFromSub =
+      sub?.name === "search"
+        ? (sub.options?.find((o) => o.name === "query")?.value as
+            | string
+            | undefined)
+        : undefined;
 
     try {
       // Handle subcommands first
@@ -112,13 +125,15 @@ export const getGearCommand = {
         });
       }
 
-      const searchText = rootSearch as string | undefined;
+      const searchText = (searchQueryFromSub ?? rootSearch) as
+        | string
+        | undefined;
       if (!searchText || String(searchText).trim().length === 0) {
         return NextResponse.json({
           type: 4,
           data: {
             content:
-              "Provide search text: /gear search:[text] or use /gear price query:[text]",
+              "Provide search text: /gear search query:[text] or use /gear price query:[text]",
             flags: InteractionResponseFlags.EPHEMERAL,
           },
         });
