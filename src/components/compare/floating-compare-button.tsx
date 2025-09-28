@@ -6,12 +6,15 @@ import { Button } from "~/components/ui/button";
 import { X, ArrowRight, Shuffle, Trash, Scale } from "lucide-react";
 import { useCompare } from "~/lib/hooks/useCompare";
 
-const blockedRoutes = ["/compare", "/admin*"] as const;
+const blockedRoutes = ["/auth*", "/compare", "/admin*"] as const;
 
-const blockedRoutePatterns = blockedRoutes.map((pattern) =>
-  new RegExp(
-    "^" + pattern.replace(/[-/\\^$+?.()|[\]{}]/g, "\\$&").replace(/\*/g, ".*") + "$"
-  )
+const blockedRoutePatterns = blockedRoutes.map(
+  (pattern) =>
+    new RegExp(
+      "^" +
+        pattern.replace(/[-/\\^$+?.()|[\]{}]/g, "\\$&").replace(/\*/g, ".*") +
+        "$",
+    ),
 );
 
 export function FloatingCompareButton() {
