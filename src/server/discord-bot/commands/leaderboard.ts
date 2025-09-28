@@ -66,15 +66,15 @@ export const leaderboardCommand = {
         db.select({ c: sql<number>`count(*)` }).from(reviews),
         db.select({ c: sql<number>`count(*)` }).from(gearEdits),
       ]);
-      const debugLine = `debug — users:${usersRows.length} reviews:${Number(
-        reviewsAgg?.c ?? 0,
-      )} edits:${Number(editsAgg?.c ?? 0)} nonZero:${scored.length}`;
+      // const debugLine = `debug — users:${usersRows.length} reviews:${Number(
+      //   reviewsAgg?.c ?? 0,
+      // )} edits:${Number(editsAgg?.c ?? 0)} nonZero:${scored.length}`;
 
       if (scored.length === 0) {
         return NextResponse.json({
           type: 4,
           data: {
-            content: `No contributions yet.\n${debugLine}`,
+            content: `No contributions yet.`,
             flags: InteractionResponseFlags.EPHEMERAL,
           },
         });
@@ -88,7 +88,7 @@ export const leaderboardCommand = {
       return NextResponse.json({
         type: 4,
         data: {
-          content: `Top contributors:\n${lines.join("\n")}\n\n${debugLine}`,
+          content: `Top contributors:\n${lines.join("\n")}`,
         },
       });
     } catch (err) {
