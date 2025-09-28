@@ -178,7 +178,7 @@ export async function queryGearSuggestions(
     .from(gear)
     .leftJoin(brands, sql`${gear.brandId} = ${brands.id}`)
     .where(whereClause)
-    .orderBy(relevanceExpr)
+    .orderBy(desc(relevanceExpr), asc(gear.name))
     .limit(5);
 }
 
