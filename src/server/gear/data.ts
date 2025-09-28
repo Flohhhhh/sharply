@@ -215,6 +215,16 @@ export async function fetchPendingEditForGear(gearId: string) {
   return rows[0] ?? null;
 }
 
+export async function countPendingEditsForGear(
+  gearId: string,
+): Promise<number> {
+  const rows = await db
+    .select({ c: sql<number>`count(*)` })
+    .from(gearEdits)
+    .where(and(eq(gearEdits.gearId, gearId), eq(gearEdits.status, "PENDING")));
+  return Number(rows[0]?.c ?? 0);
+}
+
 export async function isInWishlist(
   gearId: string,
   userId: string,

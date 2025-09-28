@@ -4,7 +4,71 @@ import Link from "next/link";
 import { cn } from "~/lib/utils";
 import { AddToCompareButton } from "~/components/compare/add-to-compare-button";
 import Image from "next/image";
-import { ImageOff } from "lucide-react";
+import { BRANDS } from "~/lib/constants";
+
+const BASE_BRAND_NAMES = uniqueCaseInsensitive(
+  BRANDS.flatMap((brand) => splitBrandNameVariants(brand.name)),
+).sort((a, b) => b.length - a.length);
+
+function splitBrandNameVariants(brandName: string) {
+  const normalized = brandName?.trim();
+  if (!normalized) return [] as string[];
+
+  const parts = normalized
+    .split(/[\\/]/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  return uniqueCaseInsensitive([normalized, ...parts]);
+}
+
+function uniqueCaseInsensitive(values: string[]) {
+  const seen = new Set<string>();
+  const result: string[] = [];
+
+  for (const value of values) {
+    const normalized = value.trim();
+    if (!normalized) continue;
+
+    const key = normalized.toLowerCase();
+    if (seen.has(key)) continue;
+
+    seen.add(key);
+    result.push(normalized);
+  }
+
+  return result;
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function stripBrandFromName(name: string, brandName?: string | null) {
+  const normalizedName = name.trim();
+  if (!normalizedName) return normalizedName;
+
+  const candidateBrands = uniqueCaseInsensitive([
+    ...(brandName ? splitBrandNameVariants(brandName) : []),
+    ...BASE_BRAND_NAMES,
+  ]).sort((a, b) => b.length - a.length);
+
+  for (const candidate of candidateBrands) {
+    const pattern = new RegExp(
+      `^${escapeRegExp(candidate)}(?:\\s+|[-–—:]\\s*)`,
+      "i",
+    );
+
+    if (pattern.test(normalizedName)) {
+      const stripped = normalizedName.replace(pattern, "").trim();
+      if (stripped) {
+        return stripped;
+      }
+    }
+  }
+
+  return normalizedName;
+}
 
 export type GearCardProps = {
   href: string;
@@ -37,6 +101,8 @@ export function GearCard(props: GearCardProps) {
     className,
   } = props;
 
+  const trimmedName = stripBrandFromName(name, brandName);
+
   return (
     <div className={cn("group relative", className)}>
       {/* Outer card with hover-thicker border */}
@@ -68,7 +134,7 @@ export function GearCard(props: GearCardProps) {
               />
             ) : (
               <div className="text-muted-foreground/50 flex h-full w-full items-center justify-center text-xl font-bold">
-                {name}
+                {trimmedName}
               </div>
             )}
 
@@ -101,7 +167,7 @@ export function GearCard(props: GearCardProps) {
             </div>
 
             <div className="text-foreground truncate text-lg font-semibold">
-              {name}
+              {trimmedName}
             </div>
 
             {badges}
