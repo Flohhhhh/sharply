@@ -19,6 +19,7 @@ import {
   getPendingEditIdData,
   hasPendingEditsForGear,
   fetchPendingEditForGear,
+  countPendingEditsForGear,
 } from "./data";
 import type { GearItem } from "~/types/gear";
 import { normalizeProposalPayloadForDb } from "~/server/db/normalizers";
@@ -335,3 +336,7 @@ export async function fetchPendingEdit(slug: string) {
 }
 
 // counts moved to metrics service
+
+export async function fetchPendingEditCountForGear(gearId: string) {
+  return countPendingEditsForGear(gearId);
+}
