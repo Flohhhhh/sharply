@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       interaction as APIApplicationCommandInteraction
     ).data;
     const handler = commandHandlers[commandName];
-    if (handler) return handler();
+    if (handler) return handler(interaction);
 
     return NextResponse.json({
       type: 4,

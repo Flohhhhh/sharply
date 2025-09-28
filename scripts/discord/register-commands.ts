@@ -16,7 +16,7 @@ async function registerCommands() {
   );
 
   // Guild registration is instant, global takes ~1 hour
-  const guildIds = process.env.DISCORD_GUILD_IDS?.split(",") ?? [];
+  const guildIds = process.env.DISCORD_BOT_GUILD_IDS?.split(",") ?? [];
 
   if (guildIds.length > 0) {
     for (const guildId of guildIds) {

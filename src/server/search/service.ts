@@ -1,4 +1,9 @@
-import "server-only";
+// In Next.js runtime, enforce server-only import. In scripts (Node), skip.
+if (process.env.NEXT_RUNTIME) {
+  import("server-only").catch(() => {
+    console.warn("[search:service] server-only import failed, skipping.");
+  });
+}
 
 import { gear, brands, mounts } from "~/server/db/schema";
 import { asc, desc, sql, and, type SQL } from "drizzle-orm";
