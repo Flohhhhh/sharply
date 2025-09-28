@@ -3,6 +3,26 @@ import { commandDefinitions } from "~/server/discord-bot";
 
 const { DISCORD_BOT_TOKEN, DISCORD_BOT_CLIENT_ID } = process.env;
 
+async function logDiscordApiResponse(res: Response, context: string) {
+  const contentType = res.headers.get("content-type") ?? "";
+  let body: unknown;
+  try {
+    if (contentType.includes("application/json")) {
+      body = await res.json();
+    } else {
+      body = await res.text();
+    }
+  } catch (error) {
+    console.warn(`⚠️ Failed to parse response body for ${context}`, error);
+  }
+  console.log(`📦 Discord API response for ${context}`, {
+    ok: res.ok,
+    status: res.status,
+    statusText: res.statusText,
+    body,
+  });
+}
+
 async function registerCommands() {
   if (!DISCORD_BOT_TOKEN || !DISCORD_BOT_CLIENT_ID) {
     throw new Error(
@@ -22,7 +42,7 @@ async function registerCommands() {
     for (const guildId of guildIds) {
       console.log(`🔄 Registering commands for guild ${guildId}`);
       const url = `https://discord.com/api/v10/applications/${DISCORD_BOT_CLIENT_ID}/guilds/${guildId}/commands`;
-      await fetch(url, {
+      const res = await fetch(url, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -30,12 +50,19 @@ async function registerCommands() {
         },
         body: JSON.stringify(commandDefinitions),
       });
-      console.log(`✅ Commands registered for guild ${guildId}`);
+      await logDiscordApiResponse(res, `guild ${guildId}`);
+      if (res.ok) {
+        console.log(`✅ Commands registered for guild ${guildId}`);
+      } else {
+        throw new Error(
+          `Failed to register commands for guild ${guildId}: ${res.status} ${res.statusText}`,
+        );
+      }
     }
   } else {
     console.log("🔄 Registering commands globally");
     const url = `https://discord.com/api/v10/applications/${DISCORD_BOT_CLIENT_ID}/commands`;
-    await fetch(url, {
+    const res = await fetch(url, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -43,7 +70,14 @@ async function registerCommands() {
       },
       body: JSON.stringify(commandDefinitions),
     });
-    console.log("✅ Commands registered globally");
+    await logDiscordApiResponse(res, "global");
+    if (res.ok) {
+      console.log("✅ Commands registered globally");
+    } else {
+      throw new Error(
+        `Failed to register commands globally: ${res.status} ${res.statusText}`,
+      );
+    }
   }
 }
 

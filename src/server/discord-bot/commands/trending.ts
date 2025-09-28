@@ -44,10 +44,17 @@ export const trendingCommand = {
       }
 
       const base = process.env.NEXT_PUBLIC_BASE_URL ?? "";
-      const lines = items.map(
-        (g, i) =>
-          `${i + 1}. ${g.brandName} ${g.name} — ${base ? `${base}/gear/${g.slug}` : `/gear/${g.slug}`}`,
-      );
+      const lines = items.map((g, i) => {
+        const brand = (g.brandName ?? "").trim();
+        const name = (g.name ?? "").trim();
+        const startsWithBrand =
+          brand.length > 0 &&
+          name.toLowerCase().startsWith(brand.toLowerCase());
+        const displayName =
+          startsWithBrand || brand.length === 0 ? name : `${brand} ${name}`;
+        const url = base ? `${base}/gear/${g.slug}` : `/gear/${g.slug}`;
+        return `${i + 1}. ${displayName} — ${url}`;
+      });
 
       return NextResponse.json({
         type: 4,
