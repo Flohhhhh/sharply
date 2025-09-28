@@ -104,14 +104,15 @@ export default async function GearPage({ params }: GearPageProps) {
   // })();
 
   // Fetch editorial content
-  const [ratingsRows, staffVerdictRows, pendingChangeRequests] = await Promise.all([
-    fetchUseCaseRatings(slug),
-    (async () => {
-      const v = await fetchStaffVerdict(slug);
-      return v ? [v] : [];
-    })(),
-    fetchPendingEditCountForGear(item.id),
-  ]);
+  const [ratingsRows, staffVerdictRows, pendingChangeRequests] =
+    await Promise.all([
+      fetchUseCaseRatings(slug),
+      (async () => {
+        const v = await fetchStaffVerdict(slug);
+        return v ? [v] : [];
+      })(),
+      fetchPendingEditCountForGear(item.id),
+    ]);
 
   const ratings = (ratingsRows ?? []).filter((r) => r.genreId != null);
   ratings.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
@@ -394,9 +395,9 @@ export default async function GearPage({ params }: GearPageProps) {
           {/* Page Metadata */}
           <div className="mt-8 border-t pt-6">
             <div className="text-muted-foreground space-y-2 text-sm">
-              <div>
-                This item has {pendingChangeRequests} open change{" "}
-                request{pendingChangeRequests === 1 ? "" : "s"}
+              <div className="flex justify-between">
+                Open Change Requests
+                <span>{pendingChangeRequests}</span>
               </div>
               <div className="flex justify-between">
                 <span>Item Created</span>
