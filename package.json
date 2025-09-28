@@ -57,6 +57,8 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "directus-typeforge": "^0.16.3",
+    "discord-api-types": "^0.38.26",
+    "discord-interactions": "^4.3.0",
     "drizzle-orm": "^0.41.0",
     "html-to-image": "^1.11.13",
     "lucide-react": "^0.539.0",
