@@ -100,7 +100,7 @@ export default async function PrivateAdminPage() {
                     </Link>
                     <CopyButton
                       // remove last / from base url if needed
-                      text={`${process.env.NEXT_PUBLIC_BASE_URL?.replace(/\/$/, "") ?? ""}${link}`}
+                      text={`${process.env.NEXT_PUBLIC_BASE_URL}/${link}`}
                     />
                   </div>
                 </div>
