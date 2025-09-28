@@ -34,11 +34,20 @@ export const leaderboardCommand = {
         .sort((a, b) => b.score - a.score)
         .slice(0, 10);
 
+      // Debug aggregates to reconcile with homepage counter
+      const [[reviewsAgg], [editsAgg]] = await Promise.all([
+        db.select({ c: sql<number>`count(*)` }).from(reviews),
+        db.select({ c: sql<number>`count(*)` }).from(gearEdits),
+      ]);
+      const debugLine = `debug — users:${rows.length} reviews:${Number(
+        reviewsAgg?.c ?? 0,
+      )} edits:${Number(editsAgg?.c ?? 0)} nonZero:${scored.length}`;
+
       if (scored.length === 0) {
         return NextResponse.json({
           type: 4,
           data: {
-            content: "No contributions yet.",
+            content: `No contributions yet.\n${debugLine}`,
             flags: InteractionResponseFlags.EPHEMERAL,
           },
         });
@@ -51,7 +60,9 @@ export const leaderboardCommand = {
 
       return NextResponse.json({
         type: 4,
-        data: { content: `Top contributors:\n${lines.join("\n")}` },
+        data: {
+          content: `Top contributors:\n${lines.join("\n")}\n\n${debugLine}`,
+        },
       });
     } catch (err) {
       console.error("/leaderboard error", err);
