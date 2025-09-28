@@ -48,7 +48,7 @@ export const getGearCommand = {
       }
 
       const topResult = searchResults.results[0]!;
-      const gearUrl = `https://sharply.app/gear/${topResult.slug}`;
+      const gearUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/gear/${topResult.slug}`;
 
       return NextResponse.json({
         type: 4,
