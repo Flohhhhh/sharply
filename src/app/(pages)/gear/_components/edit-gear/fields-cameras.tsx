@@ -17,7 +17,7 @@ import SensorFormatInput from "~/components/custom-inputs/sensor-format-input";
 import { NumberInput, MultiTextInput } from "~/components/custom-inputs";
 import { Switch } from "~/components/ui/switch";
 import { BooleanInput } from "~/components/custom-inputs";
-import { InfoIcon } from "lucide-react";
+import { BatteryFullIcon, BatteryIcon, InfoIcon, ZapIcon } from "lucide-react";
 import { Input } from "~/components/ui/input";
 import { MultiSelect } from "~/components/ui/multi-select";
 import type { EnrichedCameraSpecs, GearItem } from "~/types/gear";
@@ -386,7 +386,7 @@ function CameraFieldsComponent({
           <NumberInput
             id="shutterSpeedMax"
             label="Longest Shutter Speed"
-            suffix="seconds"
+            suffix="sec."
             value={currentSpecs?.shutterSpeedMax ?? null}
             onChange={(value) => handleFieldChange("shutterSpeedMax", value)}
           />
@@ -430,6 +430,7 @@ function CameraFieldsComponent({
           <NumberInput
             id="flashSyncSpeed"
             label="Flash Sync Speed"
+            icon={<ZapIcon />}
             prefix="1/"
             value={currentSpecs?.flashSyncSpeed}
             onChange={(value) => handleFieldChange("flashSyncSpeed", value)}
@@ -470,6 +471,7 @@ function CameraFieldsComponent({
           <NumberInput
             id="cipaBatteryShotsPerCharge"
             label="CIPA Battery Shots Per Charge"
+            icon={<BatteryFullIcon />}
             value={currentSpecs?.cipaBatteryShotsPerCharge}
             onChange={(value) =>
               handleFieldChange("cipaBatteryShotsPerCharge", value)
