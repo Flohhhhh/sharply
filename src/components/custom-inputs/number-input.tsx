@@ -2,13 +2,17 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Label } from "~/components/ui/label";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { InfoIcon } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
+
+const SUFFIX_SLOT_REM = 3.75;
+const SUFFIX_GAP_REM = 0.75;
+const FLOATING_PREFIX_PADDING_REM = 2.75;
 
 export interface NumberInputProps {
   id: string;
@@ -22,6 +26,7 @@ export interface NumberInputProps {
   className?: string;
   suffix?: string;
   prefix?: string;
+  prefixInline?: boolean;
   tooltip?: ReactNode;
   disabled?: boolean;
 }
@@ -38,6 +43,7 @@ export const NumberInput = ({
   className = "",
   suffix,
   prefix,
+  prefixInline,
   tooltip,
   disabled,
 }: NumberInputProps) => {
@@ -46,6 +52,23 @@ export const NumberInput = ({
 
   const [text, setText] = useState<string>(value == null ? "" : String(value));
   const [useNumberType, setUseNumberType] = useState<boolean>(false);
+
+  const showFloatingPrefix = Boolean(prefix && !prefixInline);
+  const showInlinePrefix = Boolean(prefix && prefixInline);
+
+  const inputStyle: CSSProperties = {
+    ...(showFloatingPrefix ? { paddingLeft: `${FLOATING_PREFIX_PADDING_REM}rem` } : {}),
+    ...(suffix
+      ? { paddingRight: `${SUFFIX_SLOT_REM + SUFFIX_GAP_REM}rem` }
+      : {}),
+  };
+
+  const suffixStyle: CSSProperties | undefined = suffix
+    ? {
+        right: `${SUFFIX_GAP_REM}rem`,
+        width: `${SUFFIX_SLOT_REM}rem`,
+      }
+    : undefined;
 
   const regex = useMemo(
     () => ({
@@ -112,10 +135,7 @@ export const NumberInput = ({
           pattern={decimalsAllowed ? "\\d+(?:\\.\\d*)?" : "\\d*"}
           value={text}
           disabled={disabled}
-          style={{
-            ...(prefix ? { paddingLeft: "2.75rem" } : {}),
-            ...(suffix ? { paddingRight: "2.25rem" } : {}),
-          }}
+          style={inputStyle}
           placeholder={placeholder}
           onBeforeInput={(e) => {
             const ne: any = e.nativeEvent as any;
@@ -189,6 +209,9 @@ export const NumberInput = ({
           }}
           onBlur={(e) => {
             const raw = e.currentTarget.value.trim();
+            if (showInlinePrefix) {
+              e.currentTarget.style.caretColor = "";
+            }
             if (raw === "") {
               onChange(null);
               setText("");
@@ -205,16 +228,51 @@ export const NumberInput = ({
             onChange(num);
             setText(String(num));
           }}
-          className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+          className={`border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-right text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50${
+            showInlinePrefix ? " text-transparent caret-foreground" : ""
+          }`}
+          onFocus={(e) => {
+            if (showInlinePrefix) {
+              // Ensure caret remains visible even though text is transparent
+              e.currentTarget.style.caretColor = "currentColor";
+            }
+          }}
         />
-        {prefix ? (
+        {showInlinePrefix ? (
+          <div className="pointer-events-none absolute inset-0 flex items-center">
+            <div
+              className="w-full px-3"
+              style={{
+                paddingLeft: inputStyle.paddingLeft,
+                paddingRight: inputStyle.paddingRight,
+              }}
+            >
+              <div className="flex items-center justify-end gap-1 whitespace-nowrap text-right text-sm">
+                <span className="text-muted-foreground">{prefix}</span>
+                <span
+                  className={
+                    text === ""
+                      ? "text-muted-foreground"
+                      : "text-foreground"
+                  }
+                >
+                  {text === "" ? placeholder ?? "" : text}
+                </span>
+              </div>
+            </div>
+          </div>
+        ) : null}
+        {showFloatingPrefix ? (
           <div className="text-muted-foreground pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm">
             {prefix}
           </div>
         ) : null}
         {suffix ? (
-          <div className="text-muted-foreground pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-sm">
-            {suffix}
+          <div
+            className="text-muted-foreground pointer-events-none absolute inset-y-0 flex items-center justify-end text-sm"
+            style={suffixStyle}
+          >
+            <span className="truncate">{suffix}</span>
           </div>
         ) : null}
       </div>

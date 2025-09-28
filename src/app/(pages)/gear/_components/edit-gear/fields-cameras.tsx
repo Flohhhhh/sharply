@@ -396,6 +396,7 @@ function CameraFieldsComponent({
             id="shutterSpeedMin"
             label="Shortest Shutter Speed"
             prefix="1/"
+            prefixInline
             value={currentSpecs?.shutterSpeedMin ?? null}
             onChange={(value) => handleFieldChange("shutterSpeedMin", value)}
           />
@@ -431,6 +432,7 @@ function CameraFieldsComponent({
             id="flashSyncSpeed"
             label="Flash Sync Speed"
             prefix="1/"
+            prefixInline
             value={currentSpecs?.flashSyncSpeed}
             onChange={(value) => handleFieldChange("flashSyncSpeed", value)}
           />
