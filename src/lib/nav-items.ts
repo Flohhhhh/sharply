@@ -167,12 +167,6 @@ export const navItems: NavItem[] = [
     ],
   },
   {
-    title: "About",
-    type: "link",
-    url: "/about",
-    hideFromNavbar: true,
-  },
-  {
     title: "Contact",
     type: "link",
     url: "/contact",
