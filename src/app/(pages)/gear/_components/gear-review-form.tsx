@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { Textarea } from "~/components/ui/textarea";
+import { TextareaWithCounter } from "~/components/ui/textarea-with-counter";
 import { Card, CardContent } from "~/components/ui/card";
 import {
   Dialog,
@@ -224,13 +224,14 @@ export function GearReviewForm({
                 >
                   Your Review
                 </label>
-                <Textarea
+                <TextareaWithCounter
                   id="content"
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   placeholder="Share your experience..."
                   rows={6}
                   required
+                  maxLength={600}
                 />
               </div>
 
