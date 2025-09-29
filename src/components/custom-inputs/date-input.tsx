@@ -24,8 +24,8 @@ export function DateInput({
       // If already YYYY-MM-DD, return as is
       if (/^\d{4}-\d{2}-\d{2}$/.test(date)) return date;
       // If it's an ISO datetime (e.g., 2025-09-29T00:00:00Z), take the date part only
-      const match = date.match(/^(\d{4}-\d{2}-\d{2})/);
-      if (match) return match[1];
+      const match = date.match(/^\d{4}-\d{2}-\d{2}/);
+      if (match) return match[0];
       // Otherwise, avoid coercing user input (prevents 19xx while typing)
       return "";
     },
