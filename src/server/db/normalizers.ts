@@ -464,7 +464,8 @@ export function normalizeProposalPayloadForDb(
         .preprocess((value) => {
           if (value === null) return null;
           const num = coerceNumber(value);
-          return num === null ? undefined : Math.trunc(num);
+          // Round to 1 decimal place
+          return num === null ? undefined : Math.round(num * 10) / 10;
         }, z.number().nullable().optional())
         .optional(),
       hasStabilizationSwitch: z
@@ -492,7 +493,8 @@ export function normalizeProposalPayloadForDb(
         .preprocess((value) => {
           if (value === null) return null;
           const num = coerceNumber(value);
-          return num === null ? undefined : Math.trunc(num);
+          // Preserve up to 2 decimal places as per schema decimal(4,2)
+          return num === null ? undefined : Math.round(num * 100) / 100;
         }, z.number().nullable().optional())
         .optional(),
       minimumFocusDistanceMm: z
