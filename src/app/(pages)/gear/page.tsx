@@ -9,6 +9,9 @@ import { getMountDisplayName } from "~/lib/mapping";
 
 export const metadata: Metadata = {
   title: "All Gear",
+  openGraph: {
+    title: "All Gear",
+  },
 };
 
 export const revalidate = 3600; // ISR: re-generate every hour

@@ -8,6 +8,9 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Edit Submitted",
+  openGraph: {
+    title: "Edit Submitted",
+  },
 };
 
 interface EditSuccessPageProps {

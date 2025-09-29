@@ -29,6 +29,9 @@ export async function generateMetadata({
   const user = await fetchUserById(handle);
   return {
     title: `${user?.name}'s Profile`,
+    openGraph: {
+      title: `${user?.name}'s Profile`,
+    },
   };
 }
 

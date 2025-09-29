@@ -20,6 +20,9 @@ export async function generateMetadata({
   const item: GearItem = await fetchGearBySlug(slug);
   return {
     title: `Edit ${item.name}`,
+    openGraph: {
+      title: `Edit ${item.name}`,
+    },
   };
 }
 

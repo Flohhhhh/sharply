@@ -18,10 +18,14 @@ export async function generateMetadata({
   const { slug } = await params;
   const brand = await fetchBrandBySlug(slug);
   if (!brand) {
-    return { title: "Brand Not Found" };
+    return {
+      title: "Brand Not Found",
+      openGraph: { title: "Brand Not Found" },
+    };
   }
   return {
     title: `${brand.name} Gear`,
+    openGraph: { title: `${brand.name} Gear` },
   };
 }
 

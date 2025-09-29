@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
+  openGraph: {
+    title: "Terms of Service",
+  },
 };
 
 export default function TermsOfServicePage() {

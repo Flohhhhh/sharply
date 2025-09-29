@@ -2,7 +2,12 @@ import Link from "next/link";
 import { auth } from "~/server/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 
-export const metadata = { title: "Help • Admin" } as const;
+export const metadata = {
+  title: "Help",
+  openGraph: {
+    title: "Help",
+  },
+} as const;
 
 export default async function AdminHelpPage() {
   const session = await auth();

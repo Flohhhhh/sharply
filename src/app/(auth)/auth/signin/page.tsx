@@ -3,6 +3,9 @@ import SignInClient from "./client";
 
 export const metadata: Metadata = {
   title: "Log In",
+  openGraph: {
+    title: "Log In",
+  },
 };
 
 export default function Page() {

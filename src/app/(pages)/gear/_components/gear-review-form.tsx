@@ -4,11 +4,12 @@ import { useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { Textarea } from "~/components/ui/textarea";
+import { TextareaWithCounter } from "~/components/ui/textarea-with-counter";
 import { Card, CardContent } from "~/components/ui/card";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
@@ -147,6 +148,11 @@ export function GearReviewForm({
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>User Review</DialogTitle>
+              <DialogDescription>
+                Write a short review of your personal experience with this gear,
+                address how its performance compares to your expectations, what
+                you like about it, and what you wish could be improved.
+              </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Genres (simple checkbox list, max 3) */}
@@ -224,13 +230,14 @@ export function GearReviewForm({
                 >
                   Your Review
                 </label>
-                <Textarea
+                <TextareaWithCounter
                   id="content"
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   placeholder="Share your experience..."
                   rows={6}
                   required
+                  maxLength={600}
                 />
               </div>
 

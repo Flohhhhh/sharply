@@ -9,6 +9,11 @@ export const metadata: Metadata = {
   title: "You're invited!",
   description:
     "You've been invited to join Sharply. Sign in to get early access and explore.",
+  openGraph: {
+    title: "You're invited!",
+    description:
+      "You've been invited to join Sharply. Sign in to get early access and explore.",
+  },
 };
 
 export default function GenericInvitePage() {

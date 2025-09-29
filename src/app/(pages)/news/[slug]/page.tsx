@@ -23,6 +23,9 @@ export async function generateMetadata({
   const page = await getNewsPostBySlug(slug);
   return {
     title: `${page.title}`,
+    openGraph: {
+      title: `${page.title}`,
+    },
   };
 }
 

@@ -35,6 +35,10 @@ export async function generateMetadata({
   return {
     title:
       pair.length === 1 ? `Compare ${nameA}` : `Compare ${nameA} vs ${nameB}`,
+    openGraph: {
+      title:
+        pair.length === 1 ? `Compare ${nameA}` : `Compare ${nameA} vs ${nameB}`,
+    },
   };
 }
 
