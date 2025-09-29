@@ -61,7 +61,7 @@ export async function UserBadges({ userId }: { userId: string }) {
                       <Icon fill="currentColor" className="size-5 text-white" />
                     </div>
                   </TooltipTrigger>
-                  <TooltipContent className="border-border text-primary-foreground mb-2 border bg-white">
+                  <TooltipContent className="border-border text-primary-foreground dark:bg-background mb-2 border bg-white">
                     <div className="space-y-1">
                       <div className="text-primary text-sm font-semibold">
                         {meta?.label ?? r.badgeKey}
