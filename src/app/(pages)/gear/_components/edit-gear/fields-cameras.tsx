@@ -219,7 +219,7 @@ function CameraFieldsComponent({
           {/* ISO Min */}
           <IsoInput
             id="isoMin"
-            label="ISO Min"
+            label="ISO Min (Native)"
             value={currentSpecs?.isoMin}
             onChange={(value) => handleFieldChange("isoMin", value)}
           />
@@ -227,7 +227,7 @@ function CameraFieldsComponent({
           {/* ISO Max */}
           <IsoInput
             id="isoMax"
-            label="ISO Max"
+            label="ISO Max (Native)"
             value={currentSpecs?.isoMax}
             onChange={(value) => handleFieldChange("isoMax", value)}
           />
