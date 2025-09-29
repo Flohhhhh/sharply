@@ -404,12 +404,16 @@ function CameraFieldsComponent({
           <NumberInput
             id="maxFpsRaw"
             label="Max FPS (RAW)"
-            value={currentSpecs?.maxFpsRaw}
+            value={
+              currentSpecs?.maxFpsRaw != null
+                ? parseFloat(currentSpecs.maxFpsRaw)
+                : null
+            }
             onChange={(value) => handleFieldChange("maxFpsRaw", value)}
-            placeholder="e.g., 20"
-            min={1}
+            placeholder="e.g., 20.0"
+            min={0}
             max={120}
-            step={1}
+            step={0.1}
             suffix="fps"
           />
 
@@ -417,12 +421,16 @@ function CameraFieldsComponent({
           <NumberInput
             id="maxFpsJpg"
             label="Max FPS (JPEG)"
-            value={currentSpecs?.maxFpsJpg}
+            value={
+              currentSpecs?.maxFpsJpg != null
+                ? parseFloat(currentSpecs.maxFpsJpg)
+                : null
+            }
             onChange={(value) => handleFieldChange("maxFpsJpg", value)}
-            placeholder="e.g., 20"
-            min={1}
+            placeholder="e.g., 20.0"
+            min={0}
             max={120}
-            step={1}
+            step={0.1}
             suffix="fps"
           />
 

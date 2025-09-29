@@ -407,8 +407,8 @@ export const cameraSpecs = appSchema.table(
     // shutter
     shutterSpeedMax: integer("shutter_speed_max"),
     shutterSpeedMin: integer("shutter_speed_min"),
-    maxFpsRaw: integer("max_fps_raw"),
-    maxFpsJpg: integer("max_fps_jpg"),
+    maxFpsRaw: decimal("max_fps_raw", { precision: 4, scale: 1 }),
+    maxFpsJpg: decimal("max_fps_jpg", { precision: 4, scale: 1 }),
     flashSyncSpeed: integer("flash_sync_speed"),
     hasSilentShootingAvailable: boolean("has_silent_shooting_available"),
     availableShutterTypes: shutterTypesEnum("available_shutter_types").array(),
