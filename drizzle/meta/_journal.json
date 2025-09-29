@@ -162,6 +162,13 @@
       "when": 1759164548473,
       "tag": "0022_common_shaman",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1759165879475,
+      "tag": "0023_sweet_mandarin",
+      "breakpoints": true
     }
   ]
 }

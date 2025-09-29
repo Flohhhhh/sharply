@@ -15,6 +15,15 @@ function yesNoNull(value: boolean | null | undefined): string | undefined {
   return value ? "Yes" : "No";
 }
 
+function formatDecimalCompact(
+  value: number | string | null | undefined,
+): string | undefined {
+  if (value == null) return undefined;
+  const n = typeof value === "number" ? value : Number(value);
+  if (Number.isNaN(n)) return undefined;
+  return String(n);
+}
+
 export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
   const cameraSpecsItem =
     item.gearType === "CAMERA" ? (item.cameraSpecs ?? null) : null;
@@ -111,14 +120,14 @@ export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
           label: "Max FPS (RAW)",
           value:
             cameraSpecsItem?.maxFpsRaw != null
-              ? `${cameraSpecsItem.maxFpsRaw} fps`
+              ? `${formatDecimalCompact(cameraSpecsItem.maxFpsRaw)} fps`
               : undefined,
         },
         {
           label: "Max FPS (JPEG)",
           value:
             cameraSpecsItem?.maxFpsJpg != null
-              ? `${cameraSpecsItem.maxFpsJpg} fps`
+              ? `${formatDecimalCompact(cameraSpecsItem.maxFpsJpg)} fps`
               : undefined,
         },
         {

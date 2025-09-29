@@ -134,6 +134,13 @@ export const MOUNTS = [
     "brand_id": "77e0235b-19c3-4c14-b5e0-39a50f59ed50",
     "created_at": "2025-08-19 01:55:26.928686+00",
     "updated_at": "2025-08-19 01:55:26.928686+00"
+  },
+  {
+    "id": "ff3753a6-6172-4e9a-bb1d-5575d7eaf76d",
+    "value": "fixed-lens",
+    "brand_id": null,
+    "created_at": "2025-09-29 17:11:43.506685+00",
+    "updated_at": "2025-09-29 17:11:43.506685+00"
   }
 ];
 export const SENSOR_FORMATS = [

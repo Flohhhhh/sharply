@@ -17,19 +17,17 @@ export function DateInput({
   onChange,
   placeholder,
 }: DateInputProps) {
-  // Convert ISO date string (or Date) to YYYY-MM-DD without timezone shifts
+  // Normalize to YYYY-MM-DD for ISO-like strings without coercing partial input
   const formatDateForInput = useCallback(
     (date: string | null | undefined): string => {
       if (!date) return "";
       // If already YYYY-MM-DD, return as is
       if (/^\d{4}-\d{2}-\d{2}$/.test(date)) return date;
-      // Fallback: parse and extract UTC date component
-      const d = new Date(date);
-      if (Number.isNaN(d.getTime())) return "";
-      const y = d.getUTCFullYear();
-      const m = String(d.getUTCMonth() + 1).padStart(2, "0");
-      const dd = String(d.getUTCDate()).padStart(2, "0");
-      return `${y}-${m}-${dd}`;
+      // If it's an ISO datetime (e.g., 2025-09-29T00:00:00Z), take the date part only
+      const match = date.match(/^\d{4}-\d{2}-\d{2}/);
+      if (match) return match[0];
+      // Otherwise, avoid coercing user input (prevents 19xx while typing)
+      return "";
     },
     [],
   );
