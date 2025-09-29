@@ -9,6 +9,7 @@ import { Card, CardContent } from "~/components/ui/card";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
@@ -147,6 +148,11 @@ export function GearReviewForm({
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>User Review</DialogTitle>
+              <DialogDescription>
+                Write a short review of your personal experience with this gear,
+                address how its performance compares to your expectations, what
+                you like about it, and what you wish could be improved.
+              </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Genres (simple checkbox list, max 3) */}
