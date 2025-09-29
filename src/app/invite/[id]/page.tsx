@@ -6,9 +6,14 @@ import { BookOpen, TicketCheck } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "You're Invited! | Sharply",
+  title: "You're Invited!",
   description:
     "You've been invited to join Sharply. Sign in to get early access and explore.",
+  openGraph: {
+    title: "You're Invited!",
+    description:
+      "You've been invited to join Sharply. Sign in to get early access and explore.",
+  },
 };
 
 export default async function InvitePage({

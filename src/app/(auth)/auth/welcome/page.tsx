@@ -10,6 +10,9 @@ import { claimInvite } from "~/server/invites/service";
 
 export const metadata: Metadata = {
   title: "Welcome!",
+  openGraph: {
+    title: "Welcome!",
+  },
 };
 
 type WelcomeSearchParams = {

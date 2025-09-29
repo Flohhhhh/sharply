@@ -7,7 +7,7 @@ import { FilterPills } from "~/components/search/filter-pills";
 import { FiltersModal } from "~/components/search/filters-modal";
 import { SortSelect } from "~/components/search/sort-select";
 import { GearCard } from "~/components/gear/gear-card";
-import type { Metadata } from "openai/resources/shared.mjs";
+import type { Metadata } from "next";
 
 type SearchPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -15,6 +15,9 @@ type SearchPageProps = {
 
 export const metadata: Metadata = {
   title: "Search",
+  openGraph: {
+    title: "Search",
+  },
 };
 
 function toStringParam(

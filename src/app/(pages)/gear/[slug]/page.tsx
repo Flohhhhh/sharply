@@ -49,6 +49,9 @@ export async function generateMetadata({
   const item: GearItem = await fetchGearBySlug(slug);
   return {
     title: `${item.name}`,
+    openGraph: {
+      title: `${item.name}`,
+    },
   };
 }
 

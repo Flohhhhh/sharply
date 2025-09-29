@@ -17,7 +17,10 @@ export const metadata: Metadata = {
     "Real specs, real reviews, real fast. Sharply is the newest and most comprehensive photography gear database and review platform featuring expert reviews, real specs, and side-by-side comparisons in a modern, minimalist interface.",
   openGraph: {
     siteName: "Sharply",
-    title: "Sharply",
+    title: {
+      default: "Sharply",
+      template: "%s | Sharply",
+    },
     url: "https://www.sharplyphoto.com",
     description:
       "Real specs, real reviews, real fast. Sharply is the newest and most comprehensive photography gear database and review platform featuring expert reviews, real specs, and side-by-side comparisons in a modern, minimalist interface.",

@@ -7,7 +7,16 @@ import { AppSidebar } from "./sidebar";
 import { SiteHeader } from "./admin-header";
 
 export const metadata: Metadata = {
-  title: "Admin Dashboard",
+  title: {
+    default: "Admin | Sharply",
+    template: "%s | Admin | Sharply",
+  },
+  openGraph: {
+    title: {
+      default: "Admin | Sharply",
+      template: "%s | Admin | Sharply",
+    },
+  },
 };
 
 export default async function AdminLayout({

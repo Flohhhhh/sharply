@@ -5,6 +5,9 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "News",
+  openGraph: {
+    title: "News",
+  },
 };
 
 export default async function NewsPage() {
