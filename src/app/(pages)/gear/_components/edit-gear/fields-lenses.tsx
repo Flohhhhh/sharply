@@ -165,7 +165,7 @@ function LensFieldsComponent({ currentSpecs, onChange }: LensFieldsProps) {
             <NumberInput
               id="minimumFocusDistanceMm"
               label="Minimum Focus Distance"
-              tooltip="Enter in cm. Stored as mm. Examples: 25 cm = 250 mm; 1 m = 100 cm = 1000 mm."
+              // tooltip="Enter in cm. Stored as mm. Examples: 25 cm = 250 mm; 1 m = 100 cm = 1000 mm."
               suffix="cm"
               step={0.1}
               min={0}
