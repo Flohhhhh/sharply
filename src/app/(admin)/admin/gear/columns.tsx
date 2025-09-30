@@ -5,6 +5,9 @@ import type { ColumnDef } from "@tanstack/react-table";
 import type { AdminGearTableRow } from "~/types/gear";
 import Link from "next/link";
 import { formatHumanDate } from "~/lib/utils";
+import { RenameGearDialog } from "~/components/gear/rename-gear-dialog";
+import { Button } from "~/components/ui/button";
+import { Pencil } from "lucide-react";
 
 // TO ADD A COLUMN:
 // 1. Add the field to `adminGearSelect` in `~/server/admin/gear/data.ts`.
@@ -40,6 +43,24 @@ export const columns: ColumnDef<AdminGearTableRow>[] = [
     accessorKey: "createdAt",
     cell: ({ row }) => {
       return <div>{formatHumanDate(row.original.createdAt)}</div>;
+    },
+  },
+  {
+    id: "actions",
+    header: "Actions",
+    cell: ({ row }) => {
+      return (
+        <RenameGearDialog
+          gearId={row.original.id}
+          currentName={row.original.name}
+          currentSlug={row.original.slug}
+          trigger={
+            <Button variant="ghost" size="sm">
+              <Pencil className="h-4 w-4" />
+            </Button>
+          }
+        />
+      );
     },
   },
 ];

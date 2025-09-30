@@ -1,0 +1,1 @@
+ALTER TYPE "public"."audit_action" ADD VALUE 'GEAR_RENAME' BEFORE 'GEAR_EDIT_PROPOSE';

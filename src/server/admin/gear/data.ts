@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, ilike, eq, sql, desc, count } from "drizzle-orm";
+import { and, ilike, eq, sql, desc, count, ne } from "drizzle-orm";
 import { db } from "~/server/db";
 import {
   gear,
@@ -322,3 +322,101 @@ export type FetchAdminGearItemsResult = Awaited<
 >;
 
 export type AdminGearTableRow = FetchAdminGearItemsResult["items"][number];
+
+export interface RenameGearParams {
+  gearId: string;
+  newName: string;
+}
+
+export interface RenameGearResult {
+  id: string;
+  name: string;
+  slug: string;
+  searchName: string;
+}
+
+/**
+ * Rename an existing gear item by id.
+ * - Computes display name with brand prefix if missing
+ * - Rebuilds slug (brand + name, kebab) and searchName (normalized)
+ * - Validates slug uniqueness
+ * - Updates in a single transaction and returns updated core fields
+ */
+export async function renameGearData(
+  params: RenameGearParams,
+): Promise<RenameGearResult> {
+  const { gearId, newName } = params;
+
+  const input = (newName ?? "").trim();
+  if (!gearId || !input) {
+    throw Object.assign(new Error("Invalid input"), { status: 400 });
+  }
+
+  return db.transaction(async (tx) => {
+    // Load existing gear with brand for normalization
+    const existing = await tx
+      .select({ id: gear.id, brandId: gear.brandId })
+      .from(gear)
+      .where(eq(gear.id, gearId))
+      .limit(1);
+    if (existing.length === 0) {
+      throw Object.assign(new Error("Gear not found"), { status: 404 });
+    }
+
+    const brandRow = await tx
+      .select({ name: brands.name })
+      .from(brands)
+      .where(eq(brands.id, existing[0]!.brandId))
+      .limit(1);
+    if (brandRow.length === 0) {
+      throw Object.assign(new Error("Brand not found for gear"), {
+        status: 500,
+      });
+    }
+    const brandName = brandRow[0]!.name;
+
+    // Ensure display name is brand-prefixed
+    const hasBrandPrefix = input
+      .toLowerCase()
+      .startsWith(brandName.toLowerCase());
+    const displayName = hasBrandPrefix ? input : `${brandName} ${input}`;
+
+    // Build slug from display name
+    const nextSlug = displayName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)+/g, "");
+
+    // Enforce slug uniqueness (exclude current row by id)
+    const slugHit = await tx
+      .select({ id: gear.id })
+      .from(gear)
+      .where(and(eq(gear.slug, nextSlug), ne(gear.id, gearId)))
+      .limit(1);
+    if (slugHit.length > 0) {
+      throw Object.assign(new Error("Slug already exists"), { status: 409 });
+    }
+
+    // Compute normalized search name
+    const search = normalizeSearchName(displayName, brandName);
+
+    const updated = await tx
+      .update(gear)
+      .set({ name: displayName, slug: nextSlug, searchName: search })
+      .where(eq(gear.id, gearId))
+      .returning({
+        id: gear.id,
+        name: gear.name,
+        slug: gear.slug,
+        searchName: gear.searchName,
+      });
+
+    const row = updated[0]!;
+    return {
+      id: row.id,
+      name: row.name,
+      slug: row.slug,
+      searchName: row.searchName as unknown as string,
+    };
+  });
+}

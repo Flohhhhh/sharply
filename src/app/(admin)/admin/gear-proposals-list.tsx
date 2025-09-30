@@ -173,6 +173,11 @@ export function GearProposalsList({
     if (k === "releaseDate") return formatHumanDate(v);
     if (k === "sensorFormatId") return sensorNameFromSlug(v as string);
     if (k === "mountId") return getMountLongNameById(v as string);
+    if (k === "mountIds") {
+      return Array.isArray(v)
+        ? v.map((id) => getMountLongNameById(id as string)).join(", ")
+        : getMountLongNameById(v as string);
+    }
     return String(v);
   };
   const formatBeforeValueForKey = (k: string, v: any): string => {
@@ -185,6 +190,11 @@ export function GearProposalsList({
     if (k === "releaseDate") return formatHumanDate(v);
     if (k === "sensorFormatId") return sensorNameFromId(v as string);
     if (k === "mountId") return getMountLongNameById(v as string);
+    if (k === "mountIds") {
+      return Array.isArray(v)
+        ? v.map((id) => getMountLongNameById(id as string)).join(", ")
+        : getMountLongNameById(v as string);
+    }
     return String(v ?? "Empty");
   };
 
@@ -858,6 +868,11 @@ export function GearProposalsList({
       if (k === "releaseDate") return formatHumanDate(v);
       if (k === "sensorFormatId") return sensorNameFromSlug(v as string);
       if (k === "mountId") return getMountLongNameById(v as string);
+      if (k === "mountIds") {
+        return Array.isArray(v)
+          ? v.map((id) => getMountLongNameById(id as string)).join(", ")
+          : getMountLongNameById(v as string);
+      }
       return String(v);
     };
     const formatBeforeValue = (k: string, v: any): string => {
@@ -870,6 +885,11 @@ export function GearProposalsList({
       if (k === "releaseDate") return formatHumanDate(v);
       if (k === "sensorFormatId") return sensorNameFromId(v as string);
       if (k === "mountId") return getMountLongNameById(v as string);
+      if (k === "mountIds") {
+        return Array.isArray(v)
+          ? v.map((id) => getMountLongNameById(id as string)).join(", ")
+          : getMountLongNameById(v as string);
+      }
       return String(v);
     };
     const renderFieldDiffs = (
@@ -1120,6 +1140,11 @@ export function GearProposalsList({
       if (k === "releaseDate") return formatHumanDate(v as any);
       if (k === "sensorFormatId") return sensorNameFromSlug(v as string);
       if (k === "mountId") return getMountLongNameById(v as string);
+      if (k === "mountIds") {
+        return Array.isArray(v)
+          ? v.map((id) => getMountLongNameById(id as string)).join(", ")
+          : getMountLongNameById(v as string);
+      }
       return String(v);
     };
     const formatBeforeValue = (k: string, v: any): string => {
@@ -1127,6 +1152,11 @@ export function GearProposalsList({
       if (k === "releaseDate") return formatHumanDate(v as any);
       if (k === "sensorFormatId") return sensorNameFromId(v as string);
       if (k === "mountId") return getMountLongNameById(v as string);
+      if (k === "mountIds") {
+        return Array.isArray(v)
+          ? v.map((id) => getMountLongNameById(id as string)).join(", ")
+          : getMountLongNameById(v as string);
+      }
       return String(v);
     };
     const renderStaticDiffs = (

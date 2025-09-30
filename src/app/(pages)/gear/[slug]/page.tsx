@@ -32,6 +32,7 @@ import { buildGearSpecsSections } from "~/lib/specs/registry";
 import type { Metadata } from "next";
 import { Breadcrumbs, type CrumbItem } from "~/components/layout/breadcrumbs";
 import { getBrandNameById } from "~/lib/mapping/brand-map";
+import { RenameGearButton } from "~/components/gear/rename-gear-button";
 // Removed LensApertureDisplay in favor of standardized spec rows using mapping
 
 export const revalidate = 3600;
@@ -167,7 +168,14 @@ export default async function GearPage({ params }: GearPageProps) {
               </Link>
             )}
           </div>
-          <h1 className="text-5xl font-bold">{item.name}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-5xl font-bold">{item.name}</h1>
+            <RenameGearButton
+              gearId={item.id}
+              currentName={item.name}
+              currentSlug={item.slug}
+            />
+          </div>
           {item.msrpNowUsdCents && (
             <div className="mt-2 text-2xl font-semibold">
               {formatPrice(item.msrpNowUsdCents)}

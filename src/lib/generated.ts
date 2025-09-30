@@ -815,6 +815,7 @@ export const AF_AREA_MODES = [
 export const ENUMS = {
   "audit_action": [
     "GEAR_CREATE",
+    "GEAR_RENAME",
     "GEAR_EDIT_PROPOSE",
     "GEAR_EDIT_APPROVE",
     "GEAR_EDIT_REJECT",

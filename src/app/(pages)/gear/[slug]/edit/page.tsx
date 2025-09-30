@@ -50,6 +50,19 @@ export default async function EditGearPage({
   // Fetch current gear data
   const gearData: GearItem = await fetchGearBySlug(slug);
 
+  // Initialize mountIds for the edit form (prefer new mountIds, fallback to legacy)
+  const gearDataWithMountIds = {
+    ...gearData,
+    mountIds:
+      Array.isArray(gearData.mountIds) && gearData.mountIds.length > 0
+        ? gearData.mountIds
+        : gearData.mountId
+          ? [gearData.mountId]
+          : [],
+    // Ensure mountId is set when only array exists so single-select can prefill for cameras
+    mountId: gearData.mountId ?? gearData.mountIds?.[0] ?? null,
+  };
+
   // Debug: log incoming data for the edit page
   console.log("[EditGearPage] params", { slug, type });
   console.log("[EditGearPage] gearData summary", {
@@ -57,6 +70,7 @@ export default async function EditGearPage({
     name: gearData?.name,
     gearType: gearData?.gearType,
     mountId: gearData?.mountId,
+    mountIds: gearDataWithMountIds.mountIds,
     lensSpecs: gearData?.lensSpecs,
     cameraSpecs: gearData?.cameraSpecs,
   });
@@ -71,7 +85,7 @@ export default async function EditGearPage({
       </div>
       <EditGearForm
         gearType={type as "CAMERA" | "LENS"}
-        gearData={gearData}
+        gearData={gearDataWithMountIds}
         gearSlug={slug}
       />
     </div>

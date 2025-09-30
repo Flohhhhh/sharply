@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { formatPrice, formatCardSlotDetails } from "~/lib/mapping";
 import { sensorNameFromSlug } from "~/lib/mapping/sensor-map";
 import { humanizeKey, formatHumanDate } from "~/lib/utils";
+import { getMountLongNamesById } from "~/lib/mapping/mounts-map";
 import { actionSubmitGearProposal } from "~/server/gear/actions";
 
 interface EditGearFormProps {
@@ -29,7 +30,7 @@ interface EditGearFormProps {
     lensSpecs?: typeof lensSpecs.$inferSelect | null;
   };
   onDirtyChange?: (dirty: boolean) => void;
-  onRequestClose?: () => void;
+  onRequestClose?: (opts?: { force?: boolean }) => void;
   onSubmittingChange?: (submitting: boolean) => void;
   showActions?: boolean;
   formId?: string;
@@ -53,6 +54,8 @@ function EditGearForm({
   const [diffPreview, setDiffPreview] = useState<Record<string, any> | null>(
     null,
   );
+
+  // console.log("[EditGearForm] formData", formData);
 
   const handleChange = useCallback(
     (field: string, value: any, section?: string) => {
@@ -147,6 +150,7 @@ function EditGearForm({
       "name",
       "brandId",
       "mountId",
+      "mountIds",
       "releaseDate",
       "msrpNowUsdCents",
       "msrpAtLaunchUsdCents",
@@ -370,11 +374,17 @@ function EditGearForm({
               : "Thanks! We'll review it shortly.",
           },
         );
-        router.replace(
-          autoApproved
-            ? `/gear/${gearSlug}?editApplied=1`
-            : `/edit-success?id=${createdId ?? ""}`,
-        );
+        if (autoApproved) {
+          // In modal/intercept context, close the modal via onRequestClose (router.back()).
+          // Fallback to replacing the URL to the gear page when no modal context is present.
+          if (onRequestClose) {
+            onRequestClose({ force: true });
+          } else {
+            router.replace(`/gear/${gearSlug}?editApplied=1`);
+          }
+        } else {
+          router.replace(`/edit-success?id=${createdId ?? ""}`);
+        }
       } else {
         toast.error("Failed to submit suggestion", {
           description: "Please try again in a moment.",
@@ -419,6 +429,7 @@ function EditGearForm({
               : [],
           } as any
         }
+        gearType={gearType}
         onChange={handleChange}
       />
 
@@ -494,10 +505,20 @@ function EditGearForm({
                             display = formatPrice(v as number);
                           if (k === "releaseDate")
                             display = formatHumanDate(v as any);
+                          if (k === "mountIds") {
+                            const ids = Array.isArray(v) ? (v as string[]) : [];
+                            display = getMountLongNamesById(ids);
+                          }
+                          if (k === "mountId") {
+                            const ids = v ? [String(v)] : [];
+                            display = getMountLongNamesById(ids);
+                          }
+                          const label =
+                            k === "mountIds" ? "Mounts" : humanizeKey(k);
                           return (
                             <li key={k}>
                               <span className="text-muted-foreground">
-                                {humanizeKey(k)}:
+                                {label}:
                               </span>{" "}
                               <span className="font-medium">{display}</span>
                             </li>

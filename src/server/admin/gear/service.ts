@@ -14,6 +14,9 @@ import {
   type GearCreationResult,
 } from "./data";
 import { shouldBlockFuzzyResults } from "~/lib/utils/gear-creation";
+import { renameGearData } from "./data";
+import { db } from "~/server/db";
+import { auditLogs } from "~/server/db/schema";
 
 export async function performFuzzySearchAdmin(params: {
   inputName: string;
@@ -91,4 +94,29 @@ export async function fetchAdminGearItems(
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
   return fetchAdminGearItemsData(params);
+}
+
+export async function renameGearService(params: {
+  gearId: string;
+  newName: string;
+}): Promise<{ id: string; name: string; slug: string; searchName: string }> {
+  const session = await requireUser();
+  if (!requireRole(session, ["ADMIN", "EDITOR"] as SessionRole[])) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+
+  const updated = await renameGearData({
+    gearId: params.gearId,
+    newName: params.newName,
+  });
+
+  try {
+    await db.insert(auditLogs).values({
+      action: "GEAR_RENAME",
+      actorUserId: session.user.id,
+      gearId: updated.id,
+    });
+  } catch {}
+
+  return updated;
 }

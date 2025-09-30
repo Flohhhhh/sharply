@@ -38,13 +38,16 @@ export function EditGearModal({
   const [isDirty, setIsDirty] = useState(false);
   const [confirmExitOpen, setConfirmExitOpen] = useState(false);
 
-  const requestClose = useCallback(() => {
-    if (isDirty) {
-      setConfirmExitOpen(true);
-      return;
-    }
-    router.back();
-  }, [isDirty, router]);
+  const requestClose = useCallback(
+    (opts?: { force?: boolean }) => {
+      if (isDirty && !opts?.force) {
+        setConfirmExitOpen(true);
+        return;
+      }
+      router.back();
+    },
+    [isDirty, router],
+  );
 
   const handleOpenChange = useCallback(
     (open: boolean) => {
@@ -54,6 +57,8 @@ export function EditGearModal({
     },
     [requestClose],
   );
+
+  // console.log("[EditGearModal] gearData", gearData);
 
   return (
     <Dialog defaultOpen open onOpenChange={handleOpenChange}>
@@ -67,7 +72,17 @@ export function EditGearModal({
           <div className="overflow-y-auto p-6">
             <EditGearForm
               gearType={gearType}
-              gearData={gearData}
+              gearData={
+                {
+                  ...gearData,
+                  // Provide mountIds for prefill in modal if missing
+                  ...(typeof (gearData as any).mountIds === "undefined" && {
+                    mountIds: (gearData as any).mountId
+                      ? [(gearData as any).mountId]
+                      : [],
+                  }),
+                } as any
+              }
               gearSlug={gearSlug}
               onDirtyChange={setIsDirty}
               onRequestClose={requestClose}
@@ -80,7 +95,7 @@ export function EditGearModal({
               <button
                 type="button"
                 className="border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md border px-4 text-sm"
-                onClick={requestClose}
+                onClick={() => requestClose()}
               >
                 Cancel
               </button>
