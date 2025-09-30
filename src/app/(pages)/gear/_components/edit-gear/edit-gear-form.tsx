@@ -30,7 +30,7 @@ interface EditGearFormProps {
     lensSpecs?: typeof lensSpecs.$inferSelect | null;
   };
   onDirtyChange?: (dirty: boolean) => void;
-  onRequestClose?: () => void;
+  onRequestClose?: (opts?: { force?: boolean }) => void;
   onSubmittingChange?: (submitting: boolean) => void;
   showActions?: boolean;
   formId?: string;
@@ -374,11 +374,17 @@ function EditGearForm({
               : "Thanks! We'll review it shortly.",
           },
         );
-        router.replace(
-          autoApproved
-            ? `/gear/${gearSlug}?editApplied=1`
-            : `/edit-success?id=${createdId ?? ""}`,
-        );
+        if (autoApproved) {
+          // In modal/intercept context, close the modal via onRequestClose (router.back()).
+          // Fallback to replacing the URL to the gear page when no modal context is present.
+          if (onRequestClose) {
+            onRequestClose({ force: true });
+          } else {
+            router.replace(`/gear/${gearSlug}?editApplied=1`);
+          }
+        } else {
+          router.replace(`/edit-success?id=${createdId ?? ""}`);
+        }
       } else {
         toast.error("Failed to submit suggestion", {
           description: "Please try again in a moment.",
