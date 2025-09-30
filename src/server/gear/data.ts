@@ -6,6 +6,7 @@ import {
   brands,
   gear,
   mounts,
+  gearMounts,
   gearPopularityDaily,
   gearPopularityLifetime,
   gearPopularityWindows,
@@ -49,7 +50,6 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
     .select()
     .from(gear)
     .leftJoin(brands, eq(gear.brandId, brands.id))
-    .leftJoin(mounts, eq(gear.mountId, mounts.id))
     .where(eq(gear.slug, slug))
     .limit(1);
 
@@ -58,10 +58,17 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
     throw Object.assign(new Error("Not Found"), { status: 404 });
   }
 
+  // Fetch all mount IDs for this gear from junction table
+  const mountIdRows = await db
+    .select({ mountId: gearMounts.mountId })
+    .from(gearMounts)
+    .where(eq(gearMounts.gearId, gearItem[0]!.gear.id));
+
   const base: GearItem = {
     ...gearItem[0]!.gear,
     cameraSpecs: null,
     lensSpecs: null,
+    mountIds: mountIdRows.map((r) => r.mountId),
   };
 
   // CAMERA SPECS
@@ -181,16 +188,52 @@ export async function fetchBrandGearData(
       resolutionMp: cameraSpecs.resolutionMp,
       focalLengthMinMm: lensSpecs.focalLengthMinMm,
       focalLengthMaxMm: lensSpecs.focalLengthMaxMm,
-      mount: { id: mounts.id, value: mounts.value },
     })
     .from(gear)
     .leftJoin(brands, eq(gear.brandId, brands.id))
     .leftJoin(cameraSpecs, eq(gear.id, cameraSpecs.gearId))
     .leftJoin(lensSpecs, eq(gear.id, lensSpecs.gearId))
-    .leftJoin(mounts, eq(gear.mountId, mounts.id))
     .where(eq(gear.brandId, brandId))
     .orderBy(desc(gear.createdAt));
-  return rows as unknown as BrandGearCard[];
+
+  // Fetch mounts for all gear items in one query
+  const gearIds = rows.map((r) => r.id);
+  const mountsForGear = gearIds.length
+    ? await db
+        .select({
+          gearId: gearMounts.gearId,
+          mountId: mounts.id,
+          mountValue: mounts.value,
+        })
+        .from(gearMounts)
+        .innerJoin(mounts, eq(gearMounts.mountId, mounts.id))
+        .where(
+          sql`${gearMounts.gearId} IN (${sql.join(
+            gearIds.map((id) => sql`${id}`),
+            sql`, `,
+          )})`,
+        )
+    : [];
+
+  // Group mounts by gear ID
+  const mountsByGearId = new Map<
+    string,
+    Array<{ id: string; value: string }>
+  >();
+  for (const m of mountsForGear) {
+    if (!mountsByGearId.has(m.gearId)) {
+      mountsByGearId.set(m.gearId, []);
+    }
+    mountsByGearId
+      .get(m.gearId)!
+      .push({ id: m.mountId!, value: m.mountValue! });
+  }
+
+  // Attach mounts array to each gear item
+  return rows.map((row) => ({
+    ...row,
+    mounts: mountsByGearId.get(row.id) || [],
+  })) as unknown as BrandGearCard[];
 }
 
 export async function hasPendingEditsForGear(gearId: string): Promise<boolean> {

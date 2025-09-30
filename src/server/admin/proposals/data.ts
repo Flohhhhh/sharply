@@ -5,6 +5,7 @@ import { normalizeProposalPayloadForDb } from "~/server/db/normalizers";
 import {
   gearEdits,
   gear,
+  gearMounts,
   users,
   cameraSpecs,
   cameraAfAreaSpecs,
@@ -182,6 +183,29 @@ export async function approveProposalData(
           coreUpdate.msrpNowUsdCents = coreUpdate.msrpUsdCents as unknown;
           delete (coreUpdate as any).msrpUsdCents;
         }
+
+        // Handle mountIds array (many-to-many junction table)
+        if (Array.isArray(coreUpdate.mountIds)) {
+          const mountIds = coreUpdate.mountIds as string[];
+          // Delete existing mount mappings
+          await tx.delete(gearMounts).where(eq(gearMounts.gearId, gearId));
+          // Insert new mappings
+          if (mountIds.length > 0) {
+            const rows = mountIds.map((mountId: string) => ({
+              gearId,
+              mountId,
+            }));
+            await tx.insert(gearMounts).values(rows);
+          }
+          // Also update gear.mountId to first mount for backward compatibility
+          if (mountIds.length > 0) {
+            coreUpdate.mountId = mountIds[0];
+          } else {
+            coreUpdate.mountId = null;
+          }
+          delete (coreUpdate as any).mountIds; // Don't try to update gear.mountIds (doesn't exist)
+        }
+
         if (Object.keys(coreUpdate).length > 0) {
           await tx.update(gear).set(coreUpdate).where(eq(gear.id, gearId));
         }

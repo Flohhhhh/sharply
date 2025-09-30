@@ -54,6 +54,8 @@ function EditGearForm({
     null,
   );
 
+  // console.log("[EditGearForm] formData", formData);
+
   const handleChange = useCallback(
     (field: string, value: any, section?: string) => {
       if (section) {
@@ -147,6 +149,7 @@ function EditGearForm({
       "name",
       "brandId",
       "mountId",
+      "mountIds",
       "releaseDate",
       "msrpNowUsdCents",
       "msrpAtLaunchUsdCents",
@@ -419,6 +422,7 @@ function EditGearForm({
               : [],
           } as any
         }
+        gearType={gearType}
         onChange={handleChange}
       />
 

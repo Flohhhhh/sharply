@@ -31,6 +31,7 @@ export type CameraCardSlot = typeof cameraCardSlots.$inferSelect;
 export type GearItem = Gear & {
   brands?: Brand | null;
   mounts?: Mount | null;
+  mountIds?: string[] | null; // Canonical multi-mount list
   cameraSpecs?: EnrichedCameraSpecs | null;
   lensSpecs?: LensSpecs | null;
   afAreaModes?: AfAreaMode[] | null;

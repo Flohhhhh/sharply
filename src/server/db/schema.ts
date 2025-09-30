@@ -362,6 +362,28 @@ export const gearGenres = appSchema.table(
   ],
 );
 
+// Many-to-many: Gear x Mounts (new table for multi-mount support, e.g., Sigma lenses)
+// Note: gear.mountId is kept for backward compatibility and will contain the "primary" mount
+export const gearMounts = appSchema.table(
+  "gear_mounts",
+  (d) => ({
+    gearId: d
+      .varchar("gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    mountId: d
+      .varchar("mount_id", { length: 36 })
+      .notNull()
+      .references(() => mounts.id, { onDelete: "restrict" }),
+    createdAt,
+  }),
+  (t) => [
+    primaryKey({ columns: [t.gearId, t.mountId] }),
+    index("gear_mounts_gear_idx").on(t.gearId),
+    index("gear_mounts_mount_idx").on(t.mountId),
+  ],
+);
+
 // --- Gear Specification Tables ---
 export const cameraSpecs = appSchema.table(
   "camera_specs",
@@ -700,10 +722,22 @@ export const gearRelations = relations(gear, ({ one, many }) => ({
   edits: many(gearEdits),
   reviews: many(reviews),
   genres: many(gearGenres),
+  mounts: many(gearMounts),
   useCaseRatings: many(useCaseRatings),
   staffVerdict: one(staffVerdicts, {
     fields: [gear.id],
     references: [staffVerdicts.gearId],
+  }),
+}));
+
+export const gearMountsRelations = relations(gearMounts, ({ one }) => ({
+  gear: one(gear, {
+    fields: [gearMounts.gearId],
+    references: [gear.id],
+  }),
+  mount: one(mounts, {
+    fields: [gearMounts.mountId],
+    references: [mounts.id],
   }),
 }));
 

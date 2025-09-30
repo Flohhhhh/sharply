@@ -15,10 +15,24 @@ The central table that stores common gear information:
 - **Basic Info**: ID, slug, name, search name
 - **Classification**: Gear type (CAMERA, LENS)
 - **Brand & Mount**: References to brands and mounts
+  - `mountId`: Single mount reference (kept for backward compatibility, stores "primary" mount)
+  - Mount relationships managed via `gear_mounts` junction table for multi-mount support
 - **Metadata**: Release date, price, thumbnail URL
 - **Commerce**: `mpbMaxPriceUsdCents` — optional MPB max price (USD cents)
 - **Core Specs**: Physical dimensions (width, height, depth in mm), weight
 - **Timestamps**: Created/updated tracking
+
+#### `gear_mounts` - Gear-Mount Junction Table
+
+Many-to-many relationship table for gear that supports multiple mounts (e.g., third-party lenses available in multiple mounts):
+
+- **Primary Key**: Composite (`gearId`, `mountId`)
+- **Gear Reference**: Foreign key to `gear.id` (cascade on delete)
+- **Mount Reference**: Foreign key to `mounts.id` (restrict on delete)
+- **Use Cases**:
+  - Lenses: Can have multiple compatible mounts (e.g., Sigma lenses in Canon RF, Nikon Z, Sony E)
+  - Cameras: Typically have single mount (use `gear.mountId` for backward compatibility)
+- **Indexes**: Indexed on both `gearId` and `mountId` for efficient lookups
 
 #### `cameraSpecs` - Camera Specifications
 

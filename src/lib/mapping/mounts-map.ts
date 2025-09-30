@@ -67,3 +67,29 @@ export function getMountLongNameById(
   if (!m) return mountId;
   return getMountLongName(m.value);
 }
+
+/**
+ * Get display names for multiple mount IDs (comma-separated)
+ */
+export function getMountNamesById(
+  mountIds: string[] | null | undefined,
+): string {
+  if (!mountIds || mountIds.length === 0) return "Unknown";
+  return mountIds
+    .map((id) => getMountNameById(id))
+    .filter((n) => n !== "Unknown")
+    .join(", ");
+}
+
+/**
+ * Get long display names for multiple mount IDs (comma-separated)
+ */
+export function getMountLongNamesById(
+  mountIds: string[] | null | undefined,
+): string {
+  if (!mountIds || mountIds.length === 0) return "Unknown";
+  return mountIds
+    .map((id) => getMountLongNameById(id))
+    .filter((n) => n !== "Unknown")
+    .join(", ");
+}

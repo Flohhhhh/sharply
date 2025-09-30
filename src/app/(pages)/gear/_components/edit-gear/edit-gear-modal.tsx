@@ -55,6 +55,8 @@ export function EditGearModal({
     [requestClose],
   );
 
+  // console.log("[EditGearModal] gearData", gearData);
+
   return (
     <Dialog defaultOpen open onOpenChange={handleOpenChange}>
       <DialogContent className="p-0 sm:max-w-4xl">
@@ -67,7 +69,17 @@ export function EditGearModal({
           <div className="overflow-y-auto p-6">
             <EditGearForm
               gearType={gearType}
-              gearData={gearData}
+              gearData={
+                {
+                  ...gearData,
+                  // Provide mountIds for prefill in modal if missing
+                  ...(typeof (gearData as any).mountIds === "undefined" && {
+                    mountIds: (gearData as any).mountId
+                      ? [(gearData as any).mountId]
+                      : [],
+                  }),
+                } as any
+              }
               gearSlug={gearSlug}
               onDirtyChange={setIsDirty}
               onRequestClose={requestClose}

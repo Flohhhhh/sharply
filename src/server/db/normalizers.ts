@@ -69,6 +69,28 @@ export function normalizeProposalPayloadForDb(
           return undefined;
         }, z.date().nullable().optional())
         .optional(),
+      // Mount support: single mountId for cameras, array mountIds for lenses
+      mountId: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          if (typeof value === "string" && isUuid(value)) return value;
+          return undefined;
+        }, z.string().uuid().nullable().optional())
+        .optional(),
+      mountIds: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          if (Array.isArray(value)) {
+            const filtered = value.filter(
+              (id) => typeof id === "string" && isUuid(id),
+            );
+            return filtered.length > 0 ? filtered : undefined;
+          }
+          // Legacy: single mountId converted to array
+          if (typeof value === "string" && isUuid(value)) return [value];
+          return undefined;
+        }, z.array(z.string().uuid()).nullable().optional())
+        .optional(),
       // Normalize current MSRP in cents
       msrpNowUsdCents: z
         .preprocess((value) => {

@@ -3,20 +3,12 @@
 import { useCallback, memo, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
 import { DateInput } from "~/components/custom-inputs";
 import CurrencyInput from "~/components/custom-inputs/currency-input";
 import { NumberInput } from "~/components/custom-inputs/number-input";
-import { MOUNTS } from "~/lib/constants";
+import { MountSelect } from "~/components/custom-inputs/mount-select";
 import MultiSelect from "~/components/ui/multi-select";
 import { GENRES } from "~/lib/constants";
-import { getMountLongName } from "~/lib/mapping/mounts-map";
 import { centsToUsd, usdToCents } from "~/lib/utils";
 import {
   Tooltip,
@@ -31,7 +23,8 @@ interface CoreFieldsProps {
     msrpNowUsdCents?: number | null;
     msrpAtLaunchUsdCents?: number | null;
     mpbMaxPriceUsdCents?: number | null;
-    mountId: string | null;
+    mountId?: string | null; // Legacy single mount (cameras)
+    mountIds?: string[] | null; // New multi-mount support (lenses)
     weightGrams: number | null;
     widthMm?: number | null;
     heightMm?: number | null;
@@ -41,15 +34,29 @@ interface CoreFieldsProps {
     linkAmazon?: string | null;
     genres?: string[] | null;
   };
+  gearType?: "CAMERA" | "LENS";
   onChange: (field: string, value: any) => void;
 }
 
-function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
+function CoreFieldsComponent({
+  currentSpecs,
+  gearType,
+  onChange,
+}: CoreFieldsProps) {
   const handleMountChange = useCallback(
-    (value: string) => {
-      onChange("mountId", value);
+    (value: string | string[]) => {
+      // For cameras (single), store in mountId
+      // For lenses (multi), store in mountIds
+      if (gearType === "CAMERA") {
+        onChange(
+          "mountId",
+          typeof value === "string" ? value : value[0] || null,
+        );
+      } else {
+        onChange("mountIds", Array.isArray(value) ? value : [value]);
+      }
     },
-    [onChange],
+    [onChange, gearType],
   );
 
   const handleReleaseDateChange = useCallback(
@@ -95,16 +102,6 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
       onChange(field, v.length ? v : null);
     },
     [onChange],
-  );
-
-  const mountOptions = useMemo(
-    () =>
-      MOUNTS.map((mount) => (
-        <SelectItem key={mount.id} value={mount.id}>
-          {getMountLongName(mount.value)}
-        </SelectItem>
-      )),
-    [],
   );
 
   // Safely format the date for the input
@@ -156,10 +153,19 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
     return currentSpecs.depthMm != null ? currentSpecs.depthMm : null;
   }, [currentSpecs.depthMm]);
 
-  // Safely format the mount value for the select
-  const formattedMountId = useMemo(() => {
-    return currentSpecs.mountId || "";
-  }, [currentSpecs.mountId]);
+  // Safely format the mount value(s) for the select
+  const formattedMountValue = useMemo(() => {
+    const fromArray = Array.isArray(currentSpecs.mountIds)
+      ? currentSpecs.mountIds
+      : [];
+    const fromLegacy = currentSpecs.mountId ? [currentSpecs.mountId] : [];
+    const merged = Array.from(new Set<string>([...fromArray, ...fromLegacy]));
+
+    if (gearType === "CAMERA") {
+      return merged[0] || "";
+    }
+    return merged;
+  }, [currentSpecs.mountIds, currentSpecs.mountId, gearType]);
 
   // Genres options and values
   const genreOptions = useMemo(
@@ -225,15 +231,17 @@ function CoreFieldsComponent({ currentSpecs, onChange }: CoreFieldsProps) {
             prefix="≈"
           />
 
-          <div className="space-y-2">
-            <Label htmlFor="mount">Mount</Label>
-            <Select value={formattedMountId} onValueChange={handleMountChange}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select mount" />
-              </SelectTrigger>
-              <SelectContent>{mountOptions}</SelectContent>
-            </Select>
-          </div>
+          <MountSelect
+            value={formattedMountValue}
+            onChange={handleMountChange}
+            mode={gearType === "CAMERA" ? "single" : "multiple"}
+            label="Mount"
+            placeholder={
+              gearType === "CAMERA"
+                ? "Select mount"
+                : "Select compatible mounts"
+            }
+          />
 
           {/* Dimensions */}
           <NumberInput

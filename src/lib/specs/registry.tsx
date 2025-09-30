@@ -6,6 +6,10 @@ import {
   formatDimensions,
   formatCardSlotDetails,
 } from "~/lib/mapping";
+import {
+  getMountLongNameById,
+  getMountLongNamesById,
+} from "~/lib/mapping/mounts-map";
 import { sensorNameFromId, sensorTypeLabel } from "~/lib/mapping/sensor-map";
 import { formatFocusDistance } from "~/lib/mapping/focus-distance-map";
 import { formatFilterType } from "~/lib/mapping/filter-types-map";
@@ -33,7 +37,36 @@ export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
   const core: SpecsTableSection = {
     title: "Basic Information",
     data: [
-      { label: "Mount", value: item.mounts?.value },
+      // Lenses: show only Available Mounts (junction array or fallback)
+      ...(item.gearType === "LENS"
+        ? [
+            {
+              label: "Available Mounts",
+              value: (() => {
+                const ids =
+                  (Array.isArray(item.mountIds) && item.mountIds.length > 0
+                    ? item.mountIds
+                    : []) || (item.mountId ? [item.mountId] : []);
+                return ids.length ? getMountLongNamesById(ids) : undefined;
+              })(),
+            },
+          ]
+        : []),
+      // Cameras: show Mount (single) from array or fallback to primary
+      ...(item.gearType === "CAMERA"
+        ? [
+            {
+              label: "Mount",
+              value: (() => {
+                const ids =
+                  (Array.isArray(item.mountIds) && item.mountIds.length > 0
+                    ? item.mountIds
+                    : []) || (item.mountId ? [item.mountId] : []);
+                return ids.length ? getMountLongNameById(ids[0]!) : undefined;
+              })(),
+            },
+          ]
+        : []),
       {
         label: "Release Date",
         value: item.releaseDate ? formatHumanDate(item.releaseDate) : undefined,
