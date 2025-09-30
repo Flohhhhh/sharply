@@ -924,6 +924,7 @@ export const ENUMS = {
     "MERGED"
   ],
   "raw_bit_depth_enum": [
+    "10",
     "12",
     "14",
     "16"

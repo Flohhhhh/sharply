@@ -12,7 +12,7 @@ import { reviews, reviewSummaries } from "~/server/db/schema";
 export async function countApprovedReviewsForGear(
   gearId: string,
 ): Promise<number> {
-  console.log("[ai-summary:data] countApprovedReviewsForGear", { gearId });
+  // console.log("[ai-summary:data] countApprovedReviewsForGear", { gearId });
   const row = await db
     .select({ c: sql<number>`count(*)` })
     .from(reviews)
@@ -26,10 +26,10 @@ export async function fetchRecentApprovedReviews(
 ): Promise<
   { content: string; recommend: boolean | null; genres: string[] | null }[]
 > {
-  console.log("[ai-summary:data] fetchRecentApprovedReviews", {
-    gearId,
-    limit,
-  });
+  // console.log("[ai-summary:data] fetchRecentApprovedReviews", {
+  //   gearId,
+  //   limit,
+  // });
   const rows = await db
     .select({
       content: reviews.content,
@@ -48,7 +48,7 @@ export async function fetchRecentApprovedReviews(
 }
 
 export async function getReviewSummaryRow(gearId: string) {
-  console.log("[ai-summary:data] getReviewSummaryRow", { gearId });
+  // console.log("[ai-summary:data] getReviewSummaryRow", { gearId });
   const rows = await db
     .select({
       gearId: reviewSummaries.gearId,
@@ -66,10 +66,10 @@ export async function upsertReviewSummary(params: {
   summaryText: string;
 }) {
   const { gearId, summaryText } = params;
-  console.log("[ai-summary:data] upsertReviewSummary", {
-    gearId,
-    chars: summaryText.length,
-  });
+  // console.log("[ai-summary:data] upsertReviewSummary", {
+  //   gearId,
+  //   chars: summaryText.length,
+  // });
   await db
     .insert(reviewSummaries)
     .values({ gearId, summaryText })
@@ -83,7 +83,7 @@ export async function isSummaryOlderThanDays(
   gearId: string,
   days: number,
 ): Promise<boolean> {
-  console.log("[ai-summary:data] isSummaryOlderThanDays", { gearId, days });
+  // console.log("[ai-summary:data] isSummaryOlderThanDays", { gearId, days });
   const rows = await db
     .select({
       fresh: gt(
@@ -103,10 +103,10 @@ export async function backdateSummaryTimestamp(
   gearId: string,
   daysAgo: number,
 ) {
-  console.log("[ai-summary:data] backdateSummaryTimestamp", {
-    gearId,
-    daysAgo,
-  });
+  // console.log("[ai-summary:data] backdateSummaryTimestamp", {
+  //   gearId,
+  //   daysAgo,
+  // });
   await db
     .update(reviewSummaries)
     .set({
