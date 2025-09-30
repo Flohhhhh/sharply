@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { formatPrice, formatCardSlotDetails } from "~/lib/mapping";
 import { sensorNameFromSlug } from "~/lib/mapping/sensor-map";
 import { humanizeKey, formatHumanDate } from "~/lib/utils";
+import { getMountLongNamesById } from "~/lib/mapping/mounts-map";
 import { actionSubmitGearProposal } from "~/server/gear/actions";
 
 interface EditGearFormProps {
@@ -498,10 +499,20 @@ function EditGearForm({
                             display = formatPrice(v as number);
                           if (k === "releaseDate")
                             display = formatHumanDate(v as any);
+                          if (k === "mountIds") {
+                            const ids = Array.isArray(v) ? (v as string[]) : [];
+                            display = getMountLongNamesById(ids);
+                          }
+                          if (k === "mountId") {
+                            const ids = v ? [String(v)] : [];
+                            display = getMountLongNamesById(ids);
+                          }
+                          const label =
+                            k === "mountIds" ? "Mounts" : humanizeKey(k);
                           return (
                             <li key={k}>
                               <span className="text-muted-foreground">
-                                {humanizeKey(k)}:
+                                {label}:
                               </span>{" "}
                               <span className="font-medium">{display}</span>
                             </li>
