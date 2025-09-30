@@ -193,7 +193,12 @@ export const afSubjectCategoriesEnum = pgEnum(
   ["people", "animals", "vehicles", "birds", "aircraft"],
 );
 
-export const rawBitDepthEnum = pgEnum("raw_bit_depth_enum", ["12", "14", "16"]);
+export const rawBitDepthEnum = pgEnum("raw_bit_depth_enum", [
+  "10",
+  "12",
+  "14",
+  "16",
+]);
 
 export const mountMaterialEnum = pgEnum("mount_material_enum", [
   "metal",
