@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, ilike, eq, sql, desc, count, ne } from "drizzle-orm";
+import { and, ilike, eq, sql, desc, count, ne, or } from "drizzle-orm";
 import { db } from "~/server/db";
 import {
   gear,
@@ -10,6 +10,7 @@ import {
   auditLogs,
 } from "~/server/db/schema";
 import { normalizeSearchName } from "~/lib/utils";
+import { normalizeFuzzyTokens } from "~/lib/utils/fuzzy";
 export interface FuzzySearchResult {
   id: string;
   name: string;
@@ -283,6 +284,7 @@ function buildSlug(brandName: string, name: string) {
 export interface FetchAdminGearItemsParams {
   limit: number;
   offset: number;
+  q?: string;
 }
 
 const adminGearSelect = {
@@ -298,17 +300,35 @@ const adminGearSelect = {
 export async function fetchAdminGearItemsData(
   params: FetchAdminGearItemsParams,
 ) {
-  const { limit, offset } = params;
+  const { limit, offset, q } = params;
+
+  // Build optional where filter using tokenized search across searchName and slug
+  const trimmed = (q ?? "").trim();
+  const tokens = trimmed ? normalizeFuzzyTokens(trimmed) : [];
+  const whereFilter =
+    tokens.length > 0
+      ? and(
+          ...tokens.map((t) =>
+            or(ilike(gear.searchName, `%${t}%`), ilike(gear.slug, `%${t}%`)),
+          ),
+        )
+      : undefined;
+
+  const itemsQuery = db
+    .select(adminGearSelect)
+    .from(gear)
+    .innerJoin(brands, eq(brands.id, gear.brandId));
+  const countQuery = db
+    .select({ count: count() })
+    .from(gear)
+    .innerJoin(brands, eq(brands.id, gear.brandId));
 
   const [items, totalResult] = await Promise.all([
-    db
-      .select(adminGearSelect)
-      .from(gear)
-      .innerJoin(brands, eq(brands.id, gear.brandId))
+    (whereFilter ? itemsQuery.where(whereFilter) : itemsQuery)
       .orderBy(desc(gear.createdAt))
       .limit(limit)
       .offset(offset),
-    db.select({ count: count() }).from(gear),
+    whereFilter ? countQuery.where(whereFilter) : countQuery,
   ]);
 
   return {
