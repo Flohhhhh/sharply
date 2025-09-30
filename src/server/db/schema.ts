@@ -193,7 +193,12 @@ export const afSubjectCategoriesEnum = pgEnum(
   ["people", "animals", "vehicles", "birds", "aircraft"],
 );
 
-export const rawBitDepthEnum = pgEnum("raw_bit_depth_enum", ["12", "14", "16"]);
+export const rawBitDepthEnum = pgEnum("raw_bit_depth_enum", [
+  "10",
+  "12",
+  "14",
+  "16",
+]);
 
 export const mountMaterialEnum = pgEnum("mount_material_enum", [
   "metal",
@@ -311,6 +316,14 @@ export const gear = appSchema.table(
     brandId: varchar("brand_id", { length: 36 })
       .notNull()
       .references(() => brands.id, { onDelete: "restrict" }),
+    /**
+     * @deprecated Legacy single-mount pointer.
+     * Use the gear_mounts junction table instead (multi-mount via many-to-many).
+     * This column remains temporarily for a short buffer period to support
+     * rollout and rollback safety. New code MUST NOT read or write this field.
+     * Scheduled for removal after deprecation buffer once all reads/writes
+     * have been fully migrated.
+     */
     mountId: varchar("mount_id", { length: 36 }).references(() => mounts.id, {
       onDelete: "set null",
     }),

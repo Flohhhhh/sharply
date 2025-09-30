@@ -37,7 +37,7 @@ import type { PopularityEventType } from "~/server/validation/dedupe";
  */
 export type TrendingFilters = {
   brandId?: string;
-  mountId?: string;
+  mountId?: string; // deprecated; TODO: replace with mountIds?: string[]
   gearType?: "CAMERA" | "LENS";
 };
 
@@ -94,7 +94,7 @@ export async function getTrendingData(
       ];
       // Optional scoping filters
       if (filters.brandId) conditions.push(eq(gear.brandId, filters.brandId));
-      if (filters.mountId) conditions.push(eq(gear.mountId, filters.mountId));
+      // TODO: mountId filter will be migrated to junction-based in Phase 2
       if (filters.gearType)
         conditions.push(eq(gear.gearType, filters.gearType));
 

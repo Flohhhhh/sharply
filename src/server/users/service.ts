@@ -11,7 +11,6 @@ import {
   users,
   wishlists,
   ownerships,
-  mounts,
 } from "~/server/db/schema";
 
 export async function getUserReviews(userId: string) {
@@ -74,7 +73,7 @@ type GearListItem = {
   msrpNowUsdCents: number | null;
   thumbnailUrl: string | null;
   brand: { id: string; name: string; slug: string } | null;
-  mount: { id: string; value: string } | null;
+  // mount removed from here; UI should resolve mounts separately if needed
 };
 
 export async function fetchUserWishlistItems(
@@ -89,12 +88,10 @@ export async function fetchUserWishlistItems(
       msrpNowUsdCents: gear.msrpNowUsdCents,
       thumbnailUrl: gear.thumbnailUrl,
       brand: { id: brands.id, name: brands.name, slug: brands.slug },
-      mount: { id: mounts.id, value: mounts.value },
     })
     .from(wishlists)
     .innerJoin(gear, eq(wishlists.gearId, gear.id))
     .leftJoin(brands, eq(gear.brandId, brands.id))
-    .leftJoin(mounts, eq(gear.mountId, mounts.id))
     .where(eq(wishlists.userId, userId));
   return rows as unknown as GearListItem[];
 }
@@ -111,12 +108,10 @@ export async function fetchUserOwnedItems(
       msrpNowUsdCents: gear.msrpNowUsdCents,
       thumbnailUrl: gear.thumbnailUrl,
       brand: { id: brands.id, name: brands.name, slug: brands.slug },
-      mount: { id: mounts.id, value: mounts.value },
     })
     .from(ownerships)
     .innerJoin(gear, eq(ownerships.gearId, gear.id))
     .leftJoin(brands, eq(gear.brandId, brands.id))
-    .leftJoin(mounts, eq(gear.mountId, mounts.id))
     .where(eq(ownerships.userId, userId));
   return rows as unknown as GearListItem[];
 }

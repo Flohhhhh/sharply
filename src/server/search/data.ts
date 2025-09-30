@@ -21,7 +21,7 @@ if (process.env.NEXT_RUNTIME) {
  */
 
 import { db } from "~/server/db";
-import { gear, brands, mounts } from "~/server/db/schema";
+import { gear, brands, mounts, gearMounts } from "~/server/db/schema";
 import { asc, desc, ilike, sql, and, type SQL } from "drizzle-orm";
 
 /**
@@ -127,20 +127,19 @@ export async function querySearchRows(options: {
   offset: number;
   relevanceExpr?: any;
 }) {
+  // Return only core gear fields; callers shouldn't rely on single mount anymore.
   return db
     .select({
       id: gear.id,
       name: gear.name,
       slug: gear.slug,
       brandName: brands.name,
-      mountValue: mounts.value,
       gearType: gear.gearType,
       thumbnailUrl: gear.thumbnailUrl,
       ...(options.relevanceExpr && { relevance: options.relevanceExpr }),
     })
     .from(gear)
     .leftJoin(brands, sql`${gear.brandId} = ${brands.id}`)
-    .leftJoin(mounts, sql`${gear.mountId} = ${mounts.id}`)
     .where(options.whereClause)
     .orderBy(...options.orderBy)
     .limit(options.pageSize)
@@ -155,7 +154,6 @@ export async function querySearchTotal(whereClause?: SQL) {
     .select({ count: sql<number>`count(*)` })
     .from(gear)
     .leftJoin(brands, sql`${gear.brandId} = ${brands.id}`)
-    .leftJoin(mounts, sql`${gear.mountId} = ${mounts.id}`)
     .where(whereClause);
   return Number(rows[0]?.count ?? 0);
 }

@@ -119,7 +119,7 @@ export async function maybeGenerateReviewSummary(params: {
 }
 
 export async function fetchReviewSummary(gearId: string) {
-  console.log("[ai-summary] fetchReviewSummary", { gearId });
+  // console.log("[ai-summary] fetchReviewSummary", { gearId });
   const row = await getReviewSummaryRow(gearId);
   return row?.summaryText ?? null;
 }

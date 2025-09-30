@@ -183,6 +183,13 @@
       "when": 1759249089273,
       "tag": "0025_tired_dreadnoughts",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1759258891823,
+      "tag": "0026_worthless_tombstone",
+      "breakpoints": true
     }
   ]
 }

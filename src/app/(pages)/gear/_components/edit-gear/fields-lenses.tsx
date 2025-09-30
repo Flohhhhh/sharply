@@ -20,6 +20,7 @@ import { Input } from "~/components/ui/input";
 import { ENUMS } from "~/lib/constants";
 import { MultiSelect } from "~/components/ui/multi-select";
 import { formatFilterType } from "~/lib/mapping/filter-types-map";
+import { formatFocusDistance } from "~/lib/mapping/focus-distance-map";
 
 interface LensFieldsProps {
   currentSpecs: typeof lensSpecs.$inferSelect | null | undefined;
@@ -42,6 +43,16 @@ function LensFieldsComponent({ currentSpecs, onChange }: LensFieldsProps) {
     if (typeof v === "string" && v.trim() !== "" && !Number.isNaN(Number(v)))
       return Number(v);
     return null;
+  };
+
+  // helpers for unit conversion (display cm, store mm)
+  const cmFromMm = (mm: number | null): number | null => {
+    if (mm == null) return null;
+    return mm / 10;
+  };
+  const mmFromCm = (cm: number | null): number | null => {
+    if (cm == null) return null;
+    return Math.round(cm * 10);
   };
 
   return (
@@ -150,16 +161,25 @@ function LensFieldsComponent({ currentSpecs, onChange }: LensFieldsProps) {
           />
 
           {/* Minimum Focus Distance */}
-          <NumberInput
-            id="minimumFocusDistanceMm"
-            label="Minimum Focus Distance"
-            tooltip="1m = 1000mm (eg. 2.5m = 2500mm)"
-            suffix="mm"
-            value={numOrNull(currentSpecs?.minimumFocusDistanceMm)}
-            onChange={(value) =>
-              handleFieldChange("minimumFocusDistanceMm", value)
-            }
-          />
+          <div className="space-y-1">
+            <NumberInput
+              id="minimumFocusDistanceMm"
+              label="Minimum Focus Distance"
+              // tooltip="Enter in cm. Stored as mm. Examples: 25 cm = 250 mm; 1 m = 100 cm = 1000 mm."
+              suffix="cm"
+              step={0.1}
+              min={0}
+              value={cmFromMm(numOrNull(currentSpecs?.minimumFocusDistanceMm))}
+              onChange={(value) =>
+                handleFieldChange("minimumFocusDistanceMm", mmFromCm(value))
+              }
+            />
+            {currentSpecs?.minimumFocusDistanceMm != null ? (
+              <div className="text-muted-foreground pr-2 text-right text-xs">
+                {formatFocusDistance(currentSpecs.minimumFocusDistanceMm)}
+              </div>
+            ) : null}
+          </div>
           {/* Focus Motor Type */}
           <div className="space-y-2">
             <Label htmlFor="focusMotorType">Focus Motor Type</Label>

@@ -31,10 +31,10 @@ export function sensorSlugFromId(
 
 export function sensorTypeLabel(cameraSpecs: CameraSpecs): string {
   if (!cameraSpecs) {
-    console.log("[sensorTypeLabel] cameraSpecs is null");
+    console.warn("[sensorTypeLabel] cameraSpecs is null");
     return "";
   }
-  console.log("[sensorTypeLabel] generating label for cameraSpecs");
+  // console.log("[sensorTypeLabel] generating label for cameraSpecs");
   const parts: string[] = [];
   const stacking = cameraSpecs.sensorStackingType as
     | "unstacked"
@@ -43,7 +43,7 @@ export function sensorTypeLabel(cameraSpecs: CameraSpecs): string {
     | null
     | undefined;
   if (stacking && stacking !== "unstacked") {
-    console.log("[sensorTypeLabel] is stacked");
+    // console.log("[sensorTypeLabel] is stacked");
     let stackingLabel: string | null = null;
     if (stacking === "partially-stacked") stackingLabel = "Partially-Stacked";
     if (stacking === "fully-stacked") stackingLabel = "Stacked";
@@ -55,6 +55,6 @@ export function sensorTypeLabel(cameraSpecs: CameraSpecs): string {
   const bsi = cameraSpecs.isBackSideIlluminated ? "BSI" : null;
   const techSegment = [bsi, tech].filter(Boolean).join("-");
   if (techSegment) parts.push(techSegment);
-  console.log("[sensorTypeLabel] parts", parts);
+  // console.log("[sensorTypeLabel] parts", parts);
   return parts.length ? parts.join(" ") : "";
 }
