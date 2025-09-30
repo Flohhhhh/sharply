@@ -48,6 +48,7 @@ export const proposalStatusEnum = pgEnum("proposal_status", [
 ]);
 export const auditActionEnum = pgEnum("audit_action", [
   "GEAR_CREATE",
+  "GEAR_RENAME",
   "GEAR_EDIT_PROPOSE",
   "GEAR_EDIT_APPROVE",
   "GEAR_EDIT_REJECT",

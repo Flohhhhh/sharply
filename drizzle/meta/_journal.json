@@ -169,6 +169,13 @@
       "when": 1759165879475,
       "tag": "0023_sweet_mandarin",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1759246304826,
+      "tag": "0024_mushy_iron_patriot",
+      "breakpoints": true
     }
   ]
 }
