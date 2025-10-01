@@ -28,6 +28,14 @@ function formatDecimalCompact(
   return String(n);
 }
 
+// Centralized visibility check for registry values
+function hasDisplayValue(value: unknown): boolean {
+  if (value == null) return false; // null/undefined
+  if (typeof value === "string") return value.trim().length > 0; // empty strings
+  if (Array.isArray(value)) return value.length > 0; // empty arrays
+  return true; // keep 0, false->mapped to Yes/No earlier, and React nodes
+}
+
 export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
   const cameraSpecsItem =
     item.gearType === "CAMERA" ? (item.cameraSpecs ?? null) : null;
@@ -638,7 +646,14 @@ export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
     },
   ];
 
-  return item.gearType === "CAMERA"
-    ? [core, ...cameraSections]
-    : [core, ...lensSections];
+  const sections =
+    item.gearType === "CAMERA"
+      ? [core, ...cameraSections]
+      : [core, ...lensSections];
+
+  // Filter out rows with non-displayable values at registry level
+  return sections.map((section) => ({
+    ...section,
+    data: section.data.filter((row) => hasDisplayValue(row.value)),
+  }));
 }
