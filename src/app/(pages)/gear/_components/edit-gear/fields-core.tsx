@@ -19,6 +19,7 @@ import { InfoIcon } from "lucide-react";
 
 interface CoreFieldsProps {
   currentSpecs: {
+    announcedDate: Date | null;
     releaseDate: Date | null;
     msrpNowUsdCents?: number | null;
     msrpAtLaunchUsdCents?: number | null;
@@ -75,6 +76,22 @@ function CoreFieldsComponent({
     [onChange],
   );
 
+  const handleAnnouncedDateChange = useCallback(
+    (value: string) => {
+      if (!value) {
+        onChange("announcedDate", null);
+        return;
+      }
+      const [yStr, mStr, dStr] = value.split("-");
+      const y = Number(yStr);
+      const m = Number(mStr);
+      const d = Number(dStr);
+      const utcDate = new Date(Date.UTC(y, m - 1, d));
+      onChange("announcedDate", utcDate);
+    },
+    [onChange],
+  );
+
   const handleMsrpNowChange = useCallback(
     (value: number | undefined) => {
       onChange("msrpNowUsdCents", usdToCents(value));
@@ -105,6 +122,19 @@ function CoreFieldsComponent({
   );
 
   // Safely format the date for the input
+  const formattedAnnouncedDate = useMemo(() => {
+    if (!currentSpecs.announcedDate) return "";
+    try {
+      const d = currentSpecs.announcedDate;
+      const y = d.getUTCFullYear();
+      const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+      const day = String(d.getUTCDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    } catch {
+      return "";
+    }
+  }, [currentSpecs.announcedDate]);
+
   const formattedReleaseDate = useMemo(() => {
     if (!currentSpecs.releaseDate) return "";
     try {
@@ -187,6 +217,12 @@ function CoreFieldsComponent({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <DateInput
+            label="Announced Date"
+            value={formattedAnnouncedDate}
+            onChange={handleAnnouncedDateChange}
+          />
+
           <DateInput
             label="Release Date"
             value={formattedReleaseDate}

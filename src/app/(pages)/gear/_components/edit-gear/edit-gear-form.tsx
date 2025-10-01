@@ -151,6 +151,7 @@ function EditGearForm({
       "brandId",
       "mountId",
       "mountIds",
+      "announcedDate",
       "releaseDate",
       "msrpNowUsdCents",
       "msrpAtLaunchUsdCents",
@@ -422,6 +423,7 @@ function EditGearForm({
           {
             ...(formData as any),
             // Prefill strictly from current schema keys
+            announcedDate: (formData as any).announcedDate ?? null,
             msrpNowUsdCents: (formData as any).msrpNowUsdCents ?? null,
             mpbMaxPriceUsdCents: (formData as any).mpbMaxPriceUsdCents ?? null,
             genres: Array.isArray((formData as any).genres)
@@ -503,7 +505,7 @@ function EditGearForm({
                             k === "mpbMaxPriceUsdCents"
                           )
                             display = formatPrice(v as number);
-                          if (k === "releaseDate")
+                          if (k === "releaseDate" || k === "announcedDate")
                             display = formatHumanDate(v as any);
                           if (k === "mountIds") {
                             const ids = Array.isArray(v) ? (v as string[]) : [];

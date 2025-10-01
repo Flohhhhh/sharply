@@ -60,6 +60,15 @@ export function normalizeProposalPayloadForDb(
 ): ProposalPayload {
   const CoreSchema = z
     .object({
+      announcedDate: z
+        .preprocess((value) => {
+          if (value === null) return null; // allow explicit clearing
+          if (value instanceof Date) return value;
+          if (typeof value === "string")
+            return parseDateUTC(value) ?? undefined;
+          return undefined;
+        }, z.date().nullable().optional())
+        .optional(),
       releaseDate: z
         .preprocess((value) => {
           if (value === null) return null; // allow explicit clearing
