@@ -84,6 +84,13 @@ export const popularityTimeframeEnum = pgEnum("popularity_timeframe", [
   "30d",
 ]);
 
+// Date precision for partial dates shown to users
+export const datePrecisionEnum = pgEnum("date_precision_enum", [
+  "YEAR",
+  "MONTH",
+  "DAY",
+]);
+
 /** 1) Card form factor (aka format/shape) */
 export const cardFormFactorEnum = pgEnum("card_form_factor_enum", [
   // Modern / current
@@ -328,7 +335,13 @@ export const gear = appSchema.table(
       onDelete: "set null",
     }),
     announcedDate: timestamp("announced_date", { withTimezone: true }),
+    announceDatePrecision: datePrecisionEnum("announce_date_precision").default(
+      "DAY",
+    ),
     releaseDate: timestamp("release_date", { withTimezone: true }),
+    releaseDatePrecision: datePrecisionEnum("release_date_precision").default(
+      "DAY",
+    ),
     msrpNowUsdCents: integer("msrp_now_usd_cents"),
     msrpAtLaunchUsdCents: integer("msrp_at_launch_usd_cents"),
     // Max observed price on MPB (USD cents), optional

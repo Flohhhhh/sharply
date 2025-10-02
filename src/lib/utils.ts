@@ -146,6 +146,55 @@ export function formatHumanDate(
   return `${month} ${day}${suffix}, ${year}`;
 }
 
+/**
+ * Precision-aware date formatter.
+ * precision: 'YEAR' | 'MONTH' | 'DAY'. Defaults to DAY when unspecified.
+ */
+export function formatHumanDateWithPrecision(
+  input: Date | string | number | null | undefined,
+  precision: "YEAR" | "MONTH" | "DAY" | null | undefined,
+): string {
+  if (!input) return "";
+  const base = formatHumanDate(input);
+  if (!base) return "";
+
+  // Derive components in UTC
+  let y = 0,
+    m = 0,
+    d = 0;
+  if (input instanceof Date) {
+    const iso = input.toISOString().split("T")[0] || "";
+    const parts = iso.split("-").map((n) => Number(n));
+    if (parts.length === 3) {
+      y = parts[0]!;
+      m = parts[1]!;
+      d = parts[2]!;
+    }
+  } else if (typeof input === "string" && /^\d{4}-\d{2}-\d{2}$/.test(input)) {
+    const parts = input.split("-").map((n) => Number(n));
+    y = parts[0]!;
+    m = parts[1]!;
+    d = parts[2]!;
+  } else {
+    const date = new Date(input);
+    if (!Number.isNaN(date.getTime())) {
+      y = date.getUTCFullYear();
+      m = date.getUTCMonth() + 1;
+      d = date.getUTCDate();
+    }
+  }
+
+  const month = new Date(Date.UTC(y, m - 1, 1)).toLocaleString("en-US", {
+    month: "long",
+    timeZone: "UTC",
+  });
+
+  const p = (precision || "DAY").toUpperCase();
+  if (p === "YEAR") return String(y || "");
+  if (p === "MONTH") return `${month} ${y}`.trim();
+  return base;
+}
+
 // Under construction state for gear pages
 export function getConstructionState(gearItem: GearItem) {
   const missing: string[] = [];

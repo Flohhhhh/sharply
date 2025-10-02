@@ -1,6 +1,6 @@
 import type { SpecsTableSection } from "~/app/(pages)/gear/_components/specs-table";
 import type { GearItem } from "~/types/gear";
-import { formatHumanDate } from "~/lib/utils";
+import { formatHumanDateWithPrecision } from "~/lib/utils";
 import {
   formatPrice,
   formatDimensions,
@@ -26,6 +26,14 @@ function formatDecimalCompact(
   const n = typeof value === "number" ? value : Number(value);
   if (Number.isNaN(n)) return undefined;
   return String(n);
+}
+
+// Centralized visibility check for registry values
+function hasDisplayValue(value: unknown): boolean {
+  if (value == null) return false; // null/undefined
+  if (typeof value === "string") return value.trim().length > 0; // empty strings
+  if (Array.isArray(value)) return value.length > 0; // empty arrays
+  return true; // keep 0, false->mapped to Yes/No earlier, and React nodes
 }
 
 export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
@@ -68,8 +76,22 @@ export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
           ]
         : []),
       {
+        label: "Announced",
+        value: item.announcedDate
+          ? formatHumanDateWithPrecision(
+              item.announcedDate,
+              (item as any).announceDatePrecision ?? "DAY",
+            )
+          : undefined,
+      },
+      {
         label: "Release Date",
-        value: item.releaseDate ? formatHumanDate(item.releaseDate) : undefined,
+        value: item.releaseDate
+          ? formatHumanDateWithPrecision(
+              item.releaseDate,
+              (item as any).releaseDatePrecision ?? "DAY",
+            )
+          : undefined,
       },
       {
         label: "MSRP Now",
@@ -638,7 +660,14 @@ export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
     },
   ];
 
-  return item.gearType === "CAMERA"
-    ? [core, ...cameraSections]
-    : [core, ...lensSections];
+  const sections =
+    item.gearType === "CAMERA"
+      ? [core, ...cameraSections]
+      : [core, ...lensSections];
+
+  // Filter out rows with non-displayable values at registry level
+  return sections.map((section) => ({
+    ...section,
+    data: section.data.filter((row) => hasDisplayValue(row.value)),
+  }));
 }

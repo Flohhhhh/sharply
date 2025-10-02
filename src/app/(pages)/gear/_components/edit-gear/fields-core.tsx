@@ -4,6 +4,7 @@ import { useCallback, memo, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
 import { DateInput } from "~/components/custom-inputs";
+import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import CurrencyInput from "~/components/custom-inputs/currency-input";
 import { NumberInput } from "~/components/custom-inputs/number-input";
 import { MountSelect } from "~/components/custom-inputs/mount-select";
@@ -19,6 +20,7 @@ import { InfoIcon } from "lucide-react";
 
 interface CoreFieldsProps {
   currentSpecs: {
+    announcedDate: Date | null;
     releaseDate: Date | null;
     msrpNowUsdCents?: number | null;
     msrpAtLaunchUsdCents?: number | null;
@@ -75,6 +77,22 @@ function CoreFieldsComponent({
     [onChange],
   );
 
+  const handleAnnouncedDateChange = useCallback(
+    (value: string) => {
+      if (!value) {
+        onChange("announcedDate", null);
+        return;
+      }
+      const [yStr, mStr, dStr] = value.split("-");
+      const y = Number(yStr);
+      const m = Number(mStr);
+      const d = Number(dStr);
+      const utcDate = new Date(Date.UTC(y, m - 1, d));
+      onChange("announcedDate", utcDate);
+    },
+    [onChange],
+  );
+
   const handleMsrpNowChange = useCallback(
     (value: number | undefined) => {
       onChange("msrpNowUsdCents", usdToCents(value));
@@ -105,6 +123,19 @@ function CoreFieldsComponent({
   );
 
   // Safely format the date for the input
+  const formattedAnnouncedDate = useMemo(() => {
+    if (!currentSpecs.announcedDate) return "";
+    try {
+      const d = currentSpecs.announcedDate;
+      const y = d.getUTCFullYear();
+      const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+      const day = String(d.getUTCDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    } catch {
+      return "";
+    }
+  }, [currentSpecs.announcedDate]);
+
   const formattedReleaseDate = useMemo(() => {
     if (!currentSpecs.releaseDate) return "";
     try {
@@ -187,6 +218,103 @@ function CoreFieldsComponent({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {/* Announced Date Precision (left column) */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Label>Announced Date Precision</Label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <InfoIcon className="text-muted-foreground h-4 w-4" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-md">
+                  Select a precision level for the date. For example, selecting
+                  "Month" will display the date as "September 2025" instead of
+                  "September 5th 2025". Selecting"Year" would only show the
+                  year. Day shows Year month and day.
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <ToggleGroup
+              type="single"
+              value={(currentSpecs as any).announceDatePrecision ?? "DAY"}
+              onValueChange={(v) => v && onChange("announceDatePrecision", v)}
+              variant="outline"
+              className="w-full"
+            >
+              <ToggleGroupItem
+                className="data-[state=on]:bg-secondary"
+                value="YEAR"
+              >
+                Year
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                className="data-[state=on]:bg-secondary"
+                value="MONTH"
+              >
+                Month
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                className="data-[state=on]:bg-secondary"
+                value="DAY"
+              >
+                Day
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </div>
+
+          {/* Announced Date (right column) */}
+          <DateInput
+            label="Announced Date"
+            value={formattedAnnouncedDate}
+            onChange={handleAnnouncedDateChange}
+          />
+
+          {/* Release Date Precision (left column) */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Label>Release Date Precision</Label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <InfoIcon className="text-muted-foreground h-4 w-4" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-md">
+                  Select a precision level for the date. For example, selecting
+                  "Month" will display the date as "September 2025" instead of
+                  "September 5th 2025". Selecting"Year" would only show the
+                  year. Day shows year, month and day. Use when the full date is
+                  not available.
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <ToggleGroup
+              type="single"
+              value={(currentSpecs as any).releaseDatePrecision ?? "DAY"}
+              onValueChange={(v) => v && onChange("releaseDatePrecision", v)}
+              variant="outline"
+              className="w-full"
+            >
+              <ToggleGroupItem
+                className="data-[state=on]:bg-secondary"
+                value="YEAR"
+              >
+                Year
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                className="data-[state=on]:bg-secondary"
+                value="MONTH"
+              >
+                Month
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                className="data-[state=on]:bg-secondary"
+                value="DAY"
+              >
+                Day
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </div>
+
+          {/* Release Date (right column) */}
           <DateInput
             label="Release Date"
             value={formattedReleaseDate}
