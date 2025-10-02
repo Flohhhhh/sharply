@@ -69,6 +69,17 @@ export function normalizeProposalPayloadForDb(
           return undefined;
         }, z.date().nullable().optional())
         .optional(),
+      announcedDatePrecision: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          if (typeof value !== "string") return undefined;
+          const v = value.toUpperCase();
+          const allowed =
+            ((ENUMS as any).date_precision_enum as readonly string[]) ??
+            (["YEAR", "MONTH", "DAY"] as const);
+          return allowed.includes(v) ? v : undefined;
+        }, z.string().nullable().optional())
+        .optional(),
       releaseDate: z
         .preprocess((value) => {
           if (value === null) return null; // allow explicit clearing
@@ -77,6 +88,17 @@ export function normalizeProposalPayloadForDb(
             return parseDateUTC(value) ?? undefined;
           return undefined;
         }, z.date().nullable().optional())
+        .optional(),
+      releaseDatePrecision: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          if (typeof value !== "string") return undefined;
+          const v = value.toUpperCase();
+          const allowed =
+            ((ENUMS as any).date_precision_enum as readonly string[]) ??
+            (["YEAR", "MONTH", "DAY"] as const);
+          return allowed.includes(v) ? v : undefined;
+        }, z.string().nullable().optional())
         .optional(),
       // Mount support: single mountId for cameras, array mountIds for lenses
       mountId: z

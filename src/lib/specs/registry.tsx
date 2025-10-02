@@ -1,6 +1,6 @@
 import type { SpecsTableSection } from "~/app/(pages)/gear/_components/specs-table";
 import type { GearItem } from "~/types/gear";
-import { formatHumanDate } from "~/lib/utils";
+import { formatHumanDateWithPrecision } from "~/lib/utils";
 import {
   formatPrice,
   formatDimensions,
@@ -76,8 +76,22 @@ export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
           ]
         : []),
       {
+        label: "Announced",
+        value: item.announcedDate
+          ? formatHumanDateWithPrecision(
+              item.announcedDate,
+              (item as any).announceDatePrecision ?? "DAY",
+            )
+          : undefined,
+      },
+      {
         label: "Release Date",
-        value: item.releaseDate ? formatHumanDate(item.releaseDate) : undefined,
+        value: item.releaseDate
+          ? formatHumanDateWithPrecision(
+              item.releaseDate,
+              (item as any).releaseDatePrecision ?? "DAY",
+            )
+          : undefined,
       },
       {
         label: "MSRP Now",
