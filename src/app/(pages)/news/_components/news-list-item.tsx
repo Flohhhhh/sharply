@@ -7,12 +7,31 @@ type NewsListItemProps = {
   post: NewsPost;
 };
 
+function getOrdinalSuffix(day: number) {
+  const mod100 = day % 100;
+  if (mod100 >= 11 && mod100 <= 13) return "th";
+  switch (day % 10) {
+    case 1:
+      return "st";
+    case 2:
+      return "nd";
+    case 3:
+      return "rd";
+    default:
+      return "th";
+  }
+}
+
 function formatDotDate(input: string | Date) {
   const d = new Date(input);
-  const day = String(d.getUTCDate()).padStart(2, "0");
-  const month = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const dayNumber = d.getUTCDate();
+  const monthName = d.toLocaleString("en-US", {
+    month: "long",
+    timeZone: "UTC",
+  });
   const year = d.getUTCFullYear();
-  return `${day}.${month}.${year}`;
+  const suffix = getOrdinalSuffix(dayNumber);
+  return `${monthName} ${dayNumber}${suffix}, ${year}`;
 }
 
 function stripHtml(html: string | null | undefined, maxLength = 160) {

@@ -61,6 +61,60 @@ export function DateInput({
     return new Date(y, m - 1, d);
   }, [value]);
 
+  // Build an overlay mask that shows a dynamic placeholder while typing.
+  // Example: after typing "2025/0" -> overlay shows "2025/0_/DD".
+  const overlayChars = useMemo(() => {
+    const d = display ?? "";
+    const digitsOnly = d.replace(/\D/g, "");
+    const yearCount = Math.min(4, digitsOnly.length);
+    const monthCount = Math.max(0, Math.min(2, digitsOnly.length - 4));
+    const dayCount = Math.max(0, Math.min(2, digitsOnly.length - 6));
+
+    const result: { char: string; visible: boolean }[] = [];
+    // Positions: 0..3 Y, 4 '/', 5..6 M, 7 '/', 8..9 D
+    for (let i = 0; i < 10; i++) {
+      if (i === 4 || i === 7) {
+        // Show slash when input doesn't have it yet at that index
+        const hasSlashHere = d.length > i && d[i] === "/";
+        result.push({ char: "/", visible: !hasSlashHere });
+        continue;
+      }
+
+      if (i < 4) {
+        // Year positions
+        if (i < yearCount && d.length > i) {
+          result.push({ char: d[i] ?? " ", visible: false });
+        } else {
+          result.push({ char: yearCount > 0 ? "_" : "Y", visible: true });
+        }
+        continue;
+      }
+
+      if (i > 4 && i < 7) {
+        // Month positions (5,6)
+        const monthIndex = i - 5;
+        if (monthIndex < monthCount && d.length > i) {
+          result.push({ char: d[i] ?? " ", visible: false });
+        } else {
+          result.push({ char: monthCount > 0 ? "_" : "M", visible: true });
+        }
+        continue;
+      }
+
+      // Day positions (8,9)
+      const dayIndex = i - 8;
+      if (dayIndex < dayCount && d.length > i) {
+        result.push({ char: d[i] ?? " ", visible: false });
+      } else {
+        result.push({ char: dayCount > 0 ? "_" : "D", visible: true });
+      }
+    }
+    return result;
+  }, [display]);
+
+  // Only show the overlay when user has started typing but not completed
+  const showOverlay = display.length > 0 && display.length < 10;
+
   // When typing, accept only digits, format as YYYY/MM/DD, and emit
   // normalized value (YYYY-MM-DD) only when complete and valid
   const handleChange = useCallback(
@@ -129,8 +183,24 @@ export function DateInput({
           value={display}
           onChange={handleChange}
           placeholder={placeholder || "YYYY/MM/DD"}
-          className="pr-10"
+          className="pr-10 font-mono"
         />
+
+        {/* Dynamic placeholder overlay; hidden when empty to avoid doubling native placeholder */}
+        {showOverlay && (
+          <div
+            aria-hidden="true"
+            className="text-muted-foreground pointer-events-none absolute inset-0 flex items-center px-3 font-mono text-sm select-none"
+          >
+            <div>
+              {overlayChars.map((part, idx) => (
+                <span key={idx} className={part.visible ? "" : "invisible"}>
+                  {part.char}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
