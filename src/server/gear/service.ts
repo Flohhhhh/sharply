@@ -5,6 +5,7 @@ import { auth, requireUser } from "~/server/auth";
 import {
   getGearIdBySlug as getGearIdBySlugData,
   fetchGearBySlug as fetchGearBySlugData,
+  fetchGearMetadataById as fetchGearMetadataByIdData,
   isInWishlist as isInWishlistData,
   isOwned as isOwnedData,
   getApprovedReviewsByGearId as getApprovedReviewsByGearIdData,
@@ -102,6 +103,11 @@ export async function resolveGearIdOrThrow(slug: string) {
 // Service-level helper: fetch core gear by slug via data layer
 export async function fetchGearBySlug(slug: string): Promise<GearItem> {
   return fetchGearBySlugData(slug);
+}
+
+// Fetch minimal gear metadata by id via data layer
+export async function fetchGearMetadataById(id: string) {
+  return fetchGearMetadataByIdData(id);
 }
 
 export async function toggleWishlist(slug: string, action: "add" | "remove") {

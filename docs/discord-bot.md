@@ -14,7 +14,7 @@ This document outlines the basics of Sharply's Discord bot system: directory str
   - Examples:
     - `commands/ping.ts` — simple health check
     - `commands/gear.ts` — `/gear [search]` returns the top gear match
-- `src/app/api/discord/route.ts`
+- `src/app/(app)/api/discord/route.ts`
   - Public interaction endpoint that Discord calls (POST)
   - Verifies signatures and dispatches to the correct command handler
 - `scripts/discord/register-commands.ts`
@@ -61,7 +61,7 @@ Notes:
 
 ## Interaction Endpoint
 
-File: `src/app/api/discord/route.ts`
+File: `src/app/(app)/api/discord/route.ts`
 
 Responsibilities:
 

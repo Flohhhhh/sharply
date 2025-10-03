@@ -1,4 +1,4 @@
-import type { SpecsTableSection } from "~/app/(pages)/gear/_components/specs-table";
+import type { SpecsTableSection } from "~/app/(app)/(pages)/gear/_components/specs-table";
 import type { GearItem } from "~/types/gear";
 import { formatHumanDateWithPrecision } from "~/lib/utils";
 import {

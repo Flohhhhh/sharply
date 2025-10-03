@@ -888,6 +888,11 @@ export const ENUMS = {
     "vpg_65",
     "vpg_130"
   ],
+  "date_precision_enum": [
+    "YEAR",
+    "MONTH",
+    "DAY"
+  ],
   "gear_type": [
     "CAMERA",
     "LENS"
