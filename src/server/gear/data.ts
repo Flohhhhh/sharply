@@ -27,7 +27,7 @@ import {
   auditLogs,
 } from "~/server/db/schema";
 import { hasEventForUserOnUtcDay } from "~/server/validation/dedupe";
-import type { GearItem } from "~/types/gear";
+import type { Gear, GearItem } from "~/types/gear";
 
 // Reads
 export async function getGearIdBySlug(slug: string): Promise<string | null> {
@@ -39,8 +39,34 @@ export async function getGearIdBySlug(slug: string): Promise<string | null> {
   return row[0]?.id ?? null;
 }
 
-/** Count all gear items */
-// moved counts to server/metrics
+/** Fetch full gearItem  by id */
+export async function fetchGearMetadataById(id: string): Promise<Gear> {
+  const result = await db
+    .select()
+    .from(gear)
+    .leftJoin(brands, eq(gear.brandId, brands.id))
+    .where(eq(gear.id, id))
+    .limit(1);
+
+  if (!result.length) {
+    throw Object.assign(new Error("Not Found"), { status: 404 });
+  }
+
+  if (!result[0]?.gear) {
+    throw Object.assign(new Error("Not Found"), { status: 404 });
+  }
+
+  // // fetch all mount ids
+  // const mountIdRows = await db
+  //   .select({ mountId: gearMounts.mountId })
+  //   .from(gearMounts)
+  //   .where(eq(gearMounts.gearId, gearItem[0]!.gear.id));
+
+  // return the gear item
+  return {
+    ...result[0].gear,
+  };
+}
 
 /**
  * Fetch comprehensive gear item with related specs by slug. Used by lib proxy.

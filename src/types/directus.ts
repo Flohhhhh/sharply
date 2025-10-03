@@ -1,4 +1,4 @@
-/** * Generated TypeScript types for Directus Schema * Generated on: 2025-08-23T19:43:17.258Z */
+/** * Generated TypeScript types for Directus Schema * Generated on: 2025-10-03T14:12:18.629Z */
 export interface AllPost {
   id: string;
 }
@@ -11,8 +11,8 @@ export interface Brand {
   id: string;
   name: string;
   slug: string;
-  created_at: "datetime";
-  updated_at: "datetime";
+  created_at: 'datetime';
+  updated_at: 'datetime';
 }
 
 export interface Gear {
@@ -24,17 +24,15 @@ export interface Gear {
   gear_type: string;
   brand_id: string;
   mount_id: string;
-  release_date: "datetime";
-  msrp_now_usd_cents: number;
-  msrp_at_launch_usd_cents: number;
+  release_date: 'datetime';
   thumbnail_url: string;
   weight_grams: number;
   link_manufacturer: string;
   link_mpb: string;
   link_amazon: string;
   genres: Record<string, unknown>;
-  created_at: "datetime";
-  updated_at: "datetime";
+  created_at: 'datetime';
+  updated_at: 'datetime';
 }
 
 export interface Genre {
@@ -42,8 +40,8 @@ export interface Genre {
   name: string;
   slug: string;
   description: string;
-  created_at: "datetime";
-  updated_at: "datetime";
+  created_at: 'datetime';
+  updated_at: 'datetime';
 }
 
 export interface Mount {
@@ -55,9 +53,9 @@ export interface Post {
   status: string;
   sort: number;
   user_created: string | DirectusUser;
-  date_created: "datetime";
+  date_created: 'datetime';
   user_updated: string | DirectusUser;
-  date_updated: "datetime";
+  date_updated: 'datetime';
   post_type: string;
   title: string;
   /** Slug will be auto generated */
@@ -69,6 +67,16 @@ export interface Post {
   thumbnail_credit: string;
   review_gear_item: string | Gear;
   news_content_wysiwyg: string;
+  review_summary: string;
+  /** Add some good things you discovered/experienced with the item. */
+  the_good: Record<string, unknown>;
+  /** Add some bad things you discovered/experienced with the item. */
+  the_bad: Record<string, unknown>;
+  /** This is where you can add a detailed explaination of how you used the item, your experience, and specific perks and flaws you found. Recommended structure: Start with a description of what you used it for, your first impression of the build quality and performance, and an explaination of how it worked for your needs/use case. Then discuss whether you would recommend this item to others, who you would recommended it to, and who it might not be right for.  */
+  review_content_wysiwyg: string;
+  sports_rating: number;
+  date_override: 'datetime';
+  source_links: Record<string, unknown>;
 }
 
 export interface PostsGear {
@@ -89,8 +97,8 @@ export interface SensorFormat {
   name: string;
   crop_factor: number;
   description: string;
-  updated_at: "datetime";
-  created_at: "datetime";
+  updated_at: 'datetime';
+  created_at: 'datetime';
 }
 
 export interface DirectusUser {
@@ -185,3 +193,4 @@ export interface ApiCollections {
   directus_users: DirectusUser[];
   directus_files: DirectusFile[];
 }
+
