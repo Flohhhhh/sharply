@@ -129,14 +129,14 @@ npm run db:migrate
 
 Add the new field to the relevant editor component.
 
-- Core gear: `src/app/(pages)/gear/_components/edit-gear/fields-core.tsx`
-- Cameras: `src/app/(pages)/gear/_components/edit-gear/fields-cameras.tsx`
-- Lenses: `src/app/(pages)/gear/_components/edit-gear/fields-lenses.tsx`
+- Core gear: `src/app/(app)/(pages)/gear/_components/edit-gear/fields-core.tsx`
+- Cameras: `src/app/(app)/(pages)/gear/_components/edit-gear/fields-cameras.tsx`
+- Lenses: `src/app/(app)/(pages)/gear/_components/edit-gear/fields-lenses.tsx`
 
 Example – camera spec using `NumberInput` wrapper:
 
 ```tsx
-// src/app/(pages)/gear/_components/edit-gear/fields-cameras.tsx
+// src/app/(app)/(pages)/gear/_components/edit-gear/fields-cameras.tsx
 <NumberInput
   id="widthInches"
   label="Width (inches)"
@@ -158,7 +158,7 @@ To include your new field in the confirmation dialog and proposal payload, you m
 Whitelist example – allow `sensorStackingType` to flow through:
 
 ```ts
-// src/app/(pages)/gear/_components/edit-gear/edit-gear-form.tsx
+// src/app/(app)/(pages)/gear/_components/edit-gear/edit-gear-form.tsx
 const cameraKeys = [
   "sensorFormatId",
   "resolutionMp",
@@ -211,7 +211,7 @@ Recommended checks:
 - Lint: `npm run lint`
 - Build: `npm run build`
 - Manually verify the edit page (open a camera/lens edit screen)
-- Optionally add a quick demo in `src/app/(pages)/ui-demo/page.tsx`
+- Optionally add a quick demo in `src/app/(app)/(pages)/ui-demo/page.tsx`
 
 ## Additional steps for complete integration
 

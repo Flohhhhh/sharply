@@ -44,12 +44,12 @@ This document describes the implemented AI review summary system for gear pages.
     - After approval, calls `maybeGenerateReviewSummary` in the background.
 
 - UI integration:
-  - Banner (server component): `src/app/(pages)/gear/_components/ai-review-banner.tsx`
+  - Banner (server component): `src/app/(app)/(pages)/gear/_components/ai-review-banner.tsx`
     - Fetches summary via service and renders immediately on the server
-  - Reviews section (client component): `src/app/(pages)/gear/_components/gear-reviews.tsx`
+  - Reviews section (client component): `src/app/(app)/(pages)/gear/_components/gear-reviews.tsx`
     - Accepts `bannerSlot` so the server banner is shown instantly
     - Only the reviews list is fetched on the client (skeletons shown while loading)
-  - Page composition: `src/app/(pages)/gear/[slug]/page.tsx`
+  - Page composition: `src/app/(app)/(pages)/gear/[slug]/page.tsx`
     - Renders `<AiReviewBanner />` and passes it into `<GearReviews bannerSlot={...} />`
 
 ---
@@ -158,6 +158,6 @@ E2E Test Strategy
 - Generation service: `src/server/reviews/summary/service.ts`
 - Data helpers: `src/server/reviews/summary/data.ts`
 - Admin review hook: `src/server/admin/reviews/service.ts`
-- UI banner: `src/app/(pages)/gear/_components/ai-review-banner.tsx`
-- Reviews wrapper: `src/app/(pages)/gear/_components/gear-reviews.tsx`
+- UI banner: `src/app/(app)/(pages)/gear/_components/ai-review-banner.tsx`
+- Reviews wrapper: `src/app/(app)/(pages)/gear/_components/gear-reviews.tsx`
 - Seeding script: `scripts/generate-fake-review-summary.ts`

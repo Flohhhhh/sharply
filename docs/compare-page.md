@@ -16,7 +16,7 @@ Enable a fast, two-item comparison experience with clean URLs, local-only persis
 
 ### Data Fetch & Composition
 
-- Server page at `src/app/(pages)/compare/page.tsx`:
+- Server page at `src/app/(app)/(pages)/compare/page.tsx`:
   - Reads up to two `i` query params and sorts them.
   - Fetches both `GearItem`s via service: `fetchGearBySlug`.
   - Renders a large heading: “Brand Model vs Brand Model”. Brand is bolded; brand tokens are stripped out of the model name using helpers in `src/lib/mapping/brand-map.ts`.
@@ -73,7 +73,7 @@ Enable a fast, two-item comparison experience with clean URLs, local-only persis
     - Composite PK `(gear_a_id, gear_b_id)` with canonical ascending order by id.
     - Denormalized `pair_key` retains current sorted slugs; refreshed on increment.
   - Trigger: `ComparePairTracker` client component increments a per-pair counter on page view when both items resolve.
-    - Renders in `src/app/(pages)/compare/page.tsx` only when both `a` and `b` exist.
+    - Renders in `src/app/(app)/(pages)/compare/page.tsx` only when both `a` and `b` exist.
     - Calls server action `actionIncrementComparePairCount(slugs)`.
     - Uses a short-lived cookie `comparePair:<slugA|slugB>` (30 minutes) for optimistic dedupe per browser.
   - Service/data: `incrementComparePairCount` → `incrementComparePairCountBySlugs` performs atomic upsert with `ON CONFLICT (gear_a_id, gear_b_id) DO UPDATE SET count = count + 1` and refreshes `pair_key`.
@@ -104,7 +104,7 @@ Enable a fast, two-item comparison experience with clean URLs, local-only persis
 
 ### Components Inventory
 
-- ComparePage (server): `src/app/(pages)/compare/page.tsx`
+- ComparePage (server): `src/app/(app)/(pages)/compare/page.tsx`
 - CompareClient (client): `src/components/compare/compare-client.tsx`
 - CompareSpecsTable (client): `src/components/compare/compare-specs-table.tsx`
 - OpenSearchButton (client): `src/components/search/open-search-button.tsx`

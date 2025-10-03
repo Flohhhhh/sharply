@@ -62,7 +62,7 @@ A flexible component that supports both single and multi-select modes:
 
 ### Edit Form Integration
 
-Location: `src/app/(pages)/gear/_components/edit-gear/fields-core.tsx`
+Location: `src/app/(app)/(pages)/gear/_components/edit-gear/fields-core.tsx`
 
 The `CoreFields` component now accepts `gearType` prop to determine mount input behavior:
 

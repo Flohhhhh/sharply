@@ -98,7 +98,7 @@ All endpoints require role `EDITOR` or `ADMIN`.
 - POST `/api/admin/reviews/[id]/approve` – sets status to `APPROVED`
 - POST `/api/admin/reviews/[id]/reject` – sets status to `REJECTED`
 
-Admin UI: `ReviewsApprovalQueue` (`src/app/(admin)/admin/reviews-approval-queue.tsx`)
+Admin UI: `ReviewsApprovalQueue` (`src/app/(app)/(admin)/admin/reviews-approval-queue.tsx`)
 
 - Shows pending cards with Approve/Reject actions
 - Shows resolved section below
@@ -107,7 +107,7 @@ Admin UI: `ReviewsApprovalQueue` (`src/app/(admin)/admin/reviews-approval-queue.
 
 ### Gear page integration
 
-Unified component: `GearReviews` (`src/app/(pages)/gear/_components/gear-reviews.tsx`)
+Unified component: `GearReviews` (`src/app/(app)/(pages)/gear/_components/gear-reviews.tsx`)
 
 - On mount, performs two requests in parallel:
   - Fetch approved reviews for display
@@ -137,7 +137,7 @@ List: `GearReviewsList`
 
 ### Profile page integration
 
-Component: `UserReviewsList` (`src/app/(pages)/u/_components/user-reviews-list.tsx`)
+Component: `UserReviewsList` (`src/app/(app)/(pages)/u/_components/user-reviews-list.tsx`)
 
 - Accepts `userId` prop
 - Fetches via `/api/user/reviews?userId=…`

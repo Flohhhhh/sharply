@@ -202,7 +202,7 @@ import { signOut } from "next-auth/react";
 ### Route Protection Pattern
 
 ```tsx
-// src/app/(protected)/layout.tsx
+// src/app/(app)/(protected)/layout.tsx
 import { redirect } from "next/navigation";
 import { auth } from "~/server/auth";
 

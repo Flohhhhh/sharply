@@ -38,14 +38,14 @@ Note: `users.inviteId` does not have an FK to avoid a circular dependency.
 
 ## UI
 
-- Admin page: `src/app/(admin)/admin/private/page.tsx`
+- Admin page: `src/app/(app)/(admin)/admin/private/page.tsx`
   - Form to create invites; list invites with status and shareable link `/invite/:id`.
   - Sidebar updated to show Private to `ADMIN` only.
-- Invite landing: `src/app/invite/[id]/page.tsx`
+- Invite landing: `src/app/(app)/invite/[id]/page.tsx`
   - Shows the invitee name/role and a button to Accept (`/invite/:id/accept`).
-- Accept route: `src/app/invite/[id]/accept/route.ts`
+- Accept route: `src/app/(app)/invite/[id]/accept/route.ts`
   - Sets `invite_id` cookie server-side and redirects to `/api/auth/signin?callbackUrl=/auth/welcome`.
-- Welcome flow: `src/app/(auth)/auth/welcome/page.tsx`
+- Welcome flow: `src/app/(app)/(auth)/auth/welcome/page.tsx`
   - Reads `inviteId` from query OR `invite_id` cookie; claims, assigns name and role.
 
 ## Flow

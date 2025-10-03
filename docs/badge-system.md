@@ -24,8 +24,8 @@ A lightweight, event-driven badge system with a single catalog, small generators
 - UI
   - `src/components/badges/badge-tile.tsx` — the small badge tile with roman level chip.
   - `src/components/badges/badge-toast.tsx` — `BadgeToast`, `showBadgeToast`, `showBadgeToastByKey`, `announceAwards`, `withBadgeToasts` (Sonner-based helpers).
-  - `src/app/(pages)/u/_components/user-badges.tsx` — profile layout with sorting and tooltips.
-  - Admin: `src/app/(admin)/admin/badges-catalog.tsx` (viewer), `badges-test-toast.tsx` (test button), and `badges-awards-list.tsx` (recent awards).
+  - `src/app/(app)/(pages)/u/_components/user-badges.tsx` — profile layout with sorting and tooltips.
+  - Admin: `src/app/(app)/(admin)/admin/badges-catalog.tsx` (viewer), `badges-test-toast.tsx` (test button), and `badges-awards-list.tsx` (recent awards).
 - Cron
   - `GET /api/admin/badges/anniversary` (secured by `CRON_SECRET`) emits `cron.anniversary` for users whose join month/day is today, passing `{ now }` in context.
 
