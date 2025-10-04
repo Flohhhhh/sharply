@@ -148,6 +148,7 @@ export interface User {
 export interface Media {
   id: number;
   alt: string;
+  _key?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -170,6 +171,10 @@ export interface News {
    * The title of the news article.
    */
   title: string;
+  /**
+   * The thumbnail of the news article.
+   */
+  thumbnail: number | Media;
   /**
    * Auto-generated from title, can be overridden
    */
@@ -234,6 +239,10 @@ export interface Review {
    * The title of the review.
    */
   title: string;
+  /**
+   * The thumbnail of the review.
+   */
+  thumbnail: number | Media;
   /**
    * Auto-generated from title, can be overridden
    */
@@ -443,6 +452,7 @@ export interface UsersSelect<T extends boolean = true> {
  */
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
+  _key?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -461,6 +471,7 @@ export interface MediaSelect<T extends boolean = true> {
  */
 export interface NewsSelect<T extends boolean = true> {
   title?: T;
+  thumbnail?: T;
   slug?: T;
   override_date?: T;
   content?: T;
@@ -484,6 +495,7 @@ export interface NewsSelect<T extends boolean = true> {
  */
 export interface ReviewSelect<T extends boolean = true> {
   title?: T;
+  thumbnail?: T;
   slug?: T;
   review_gear_item?: T;
   review_summary?: T;

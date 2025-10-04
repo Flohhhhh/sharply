@@ -26,6 +26,16 @@ export const Review: CollectionConfig = {
       },
     },
     {
+      name: "thumbnail",
+      type: "upload",
+      relationTo: "media",
+      required: true,
+      admin: {
+        position: "sidebar",
+        description: "The thumbnail of the review.",
+      },
+    },
+    {
       name: "slug",
       type: "text",
       unique: true,

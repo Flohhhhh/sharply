@@ -28,6 +28,16 @@ export const News: CollectionConfig = {
       },
     },
     {
+      name: "thumbnail",
+      type: "upload",
+      relationTo: "media",
+      required: true,
+      admin: {
+        position: "sidebar",
+        description: "The thumbnail of the news article.",
+      },
+    },
+    {
       name: "slug",
       type: "text",
       unique: true,
