@@ -1,0 +1,1 @@
+ALTER TABLE "app"."genres" ADD COLUMN "applies_to" text[];

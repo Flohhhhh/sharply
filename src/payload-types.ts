@@ -69,6 +69,8 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    news: News;
+    review: Review;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -77,6 +79,8 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    news: NewsSelect<false> | NewsSelect<true>;
+    review: ReviewSelect<false> | ReviewSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -158,6 +162,196 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "news".
+ */
+export interface News {
+  id: number;
+  /**
+   * The title of the news article.
+   */
+  title: string;
+  /**
+   * Auto-generated from title, can be overridden
+   */
+  slug?: string | null;
+  /**
+   * Override the date of the news article. Defaults to creation date if not set.
+   */
+  override_date?: string | null;
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * Select the brand associated with this article
+   */
+  related_brand?: string | null;
+  /**
+   * Indicate which gear items have been mentioned in this news article.
+   */
+  related_gear_items?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Add any source links to the news article.
+   */
+  sourceLinks?:
+    | {
+        name?: string | null;
+        link?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+  deletedAt?: string | null;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "review".
+ */
+export interface Review {
+  id: number;
+  /**
+   * The title of the review.
+   */
+  title: string;
+  /**
+   * Auto-generated from title, can be overridden
+   */
+  slug?: string | null;
+  review_gear_item: string;
+  /**
+   * A relatively short overview/summary/conclusion based on your experience and findings. You will go more in depth below about specific features. Keep this surface level, and focus on how it compares to both the competition and other relevant items from the same manufacturer. This will be shown as the description/excerpt of the review.
+   */
+  review_summary: string;
+  /**
+   * Add some good things you discovered/experienced with the item.
+   */
+  goodPoints: {
+    goodNote: string;
+    id?: string | null;
+  }[];
+  /**
+   * Add some bad things you discovered/experienced with the item.
+   */
+  badPoints: {
+    badNote: string;
+    id?: string | null;
+  }[];
+  /**
+   * This is where you can add a detailed explanation of how you used the item, your experience, and specific perks and flaws you found. Recommended structure: Start with a description of what you used it for, your first impression of the build quality and performance, and an explanation of how it worked for your needs/use case. Then discuss whether you would recommend this item to others, who you would recommended it to, and who it might not be right for.
+   */
+  reviewContent: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * Provide ratings only for the genres that apply. Leave unselected when not applicable.
+   */
+  genreRatings?: {
+    /**
+     * Wedding photography
+     */
+    weddings?: ('0' | '1' | '2' | '3') | null;
+    /**
+     * Fast action and sports
+     */
+    sports?: ('0' | '1' | '2' | '3') | null;
+    /**
+     * Animals, birds, and other creatures.
+     */
+    wildlife?: ('0' | '1' | '2' | '3') | null;
+    /**
+     * Street and candid
+     */
+    street?: ('0' | '1' | '2' | '3') | null;
+    /**
+     * Travel and documentary
+     */
+    travel?: ('0' | '1' | '2' | '3') | null;
+    /**
+     * Landscapes and nature
+     */
+    landscape?: ('0' | '1' | '2' | '3') | null;
+    /**
+     * Video and filmmaking
+     */
+    video?: ('0' | '1' | '2' | '3') | null;
+    /**
+     * Products and food photography
+     */
+    'product-food'?: ('0' | '1' | '2' | '3') | null;
+    /**
+     * Events and concerts
+     */
+    events?: ('0' | '1' | '2' | '3') | null;
+    /**
+     * Portraits of people; senior portraits, engagement shoots, models, fashion photography, etc.
+     */
+    portraits?: ('0' | '1' | '2' | '3') | null;
+    /**
+     * Photos of the milky way, stars, the moon, or other celestial bodies
+     */
+    astro?: ('0' | '1' | '2' | '3') | null;
+    architecture?: ('0' | '1' | '2' | '3') | null;
+    fashion?: ('0' | '1' | '2' | '3') | null;
+  };
+  genreRatingsMap?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Add any source links to the review.
+   */
+  sourceLinks?:
+    | {
+        name?: string | null;
+        link?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+  deletedAt?: string | null;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -170,6 +364,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'news';
+        value: number | News;
+      } | null)
+    | ({
+        relationTo: 'review';
+        value: number | Review;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -252,6 +454,81 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "news_select".
+ */
+export interface NewsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  override_date?: T;
+  content?: T;
+  related_brand?: T;
+  related_gear_items?: T;
+  sourceLinks?:
+    | T
+    | {
+        name?: T;
+        link?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  deletedAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "review_select".
+ */
+export interface ReviewSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  review_gear_item?: T;
+  review_summary?: T;
+  goodPoints?:
+    | T
+    | {
+        goodNote?: T;
+        id?: T;
+      };
+  badPoints?:
+    | T
+    | {
+        badNote?: T;
+        id?: T;
+      };
+  reviewContent?: T;
+  genreRatings?:
+    | T
+    | {
+        weddings?: T;
+        sports?: T;
+        wildlife?: T;
+        street?: T;
+        travel?: T;
+        landscape?: T;
+        video?: T;
+        'product-food'?: T;
+        events?: T;
+        portraits?: T;
+        astro?: T;
+        architecture?: T;
+        fashion?: T;
+      };
+  genreRatingsMap?: T;
+  sourceLinks?:
+    | T
+    | {
+        name?: T;
+        link?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  deletedAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

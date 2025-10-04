@@ -24,10 +24,20 @@ Table: `sharply_reviews` (Drizzle: `reviews`)
 - `recommend` (boolean)
 - `created_at`, `updated_at`
 
+Related taxonomy: `app.genres` (Drizzle: `genres`)
+
+- `id` (uuid)
+- `name` (text, unique)
+- `slug` (text, unique)
+- `description` (text)
+- `applies_to` (string[]; optional) – values may include "camera" and/or "lens". When null/empty, the genre is considered broadly applicable.
+- `created_at`, `updated_at`
+
 Migrations
 
 - 0011: base reviews table + status enum
 - 0018: add `genres` jsonb and `recommend` boolean
+- 0028+: add `genres.applies_to` string[]
 
 Constants
 

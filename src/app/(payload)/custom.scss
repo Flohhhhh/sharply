@@ -1,0 +1,15 @@
+/* Custom admin overrides for Payload */
+
+/* Use a stable class from our field components for reliable targeting */
+.sharply-field {
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+}
+
+.sharply-field .field-label {
+  margin-bottom: 6px !important;
+}
+
+.sharply-field .field-description {
+  margin-top: 6px !important;
+}
