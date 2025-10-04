@@ -9,8 +9,9 @@ import { Suspense } from "react";
 import { NewsCard as HomeNewsCard } from "~/components/home/news-card";
 import { ReviewCard, type ReviewPost } from "~/components/home/review-card";
 import TrendingList from "~/components/trending-list";
-import { getNewsPosts } from "@/lib/directus";
+import { getNewsPosts } from "~/server/payload/service";
 import { formatHumanDate } from "~/lib/utils";
+import type { News } from "~/payload-types";
 
 export const revalidate = 60;
 
@@ -54,37 +55,27 @@ function stripHtml(html: string | null | undefined, maxLength = 160) {
 // Using reusable HomeNewsCard component from ~/components/home/news-card
 
 export default async function Home() {
-  const posts = await getNewsPosts();
-  const published = posts
-    .filter((p) => p.status === "published")
-    .sort((a, b) => {
-      const da = new Date(
-        (a as any).date_created as unknown as string,
-      ).getTime();
-      const db = new Date(
-        (b as any).date_created as unknown as string,
-      ).getTime();
-      return db - da;
-    });
+  const posts: News[] = await getNewsPosts();
 
   const toHomePost = (p: (typeof posts)[number]) => {
-    const thumbId = (p as any).thumbnail as unknown as string | undefined;
-    const image = thumbId
-      ? `https://sharply-directus.onrender.com/assets/${thumbId}`
-      : "/image-temp.png";
-    const date = formatHumanDate((p as any).date_created as unknown as string);
+    const thumbId =
+      p.thumbnail && typeof p.thumbnail === "object"
+        ? (p.thumbnail.url ?? undefined)
+        : undefined;
+    const image = thumbId ? (thumbId ?? undefined) : "/image-temp.png";
+    const date = formatHumanDate(p.createdAt);
     return {
-      id: (p as any).id,
-      title: (p as any).title as string,
-      excerpt: stripHtml((p as any).news_content_wysiwyg as string),
-      href: `/news/${(p as any).slug as string}`,
+      id: p.id,
+      title: p.title,
+      excerpt: stripHtml(p.excerpt),
+      href: `/news/${p.slug}`,
       image,
       date,
     };
   };
 
-  const featuredPost = published[0] ? toHomePost(published[0]!) : null;
-  const otherPosts = published.slice(1, 7).map(toHomePost);
+  const featuredPost = posts[0] ? toHomePost(posts[0]!) : null;
+  const otherPosts = posts.slice(1, 7).map(toHomePost);
 
   // TODO: Add editorial reviews from directus once we have some
   const reviewItems = [] as ReviewPost[];

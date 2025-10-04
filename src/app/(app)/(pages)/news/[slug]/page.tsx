@@ -1,11 +1,14 @@
-import { getNewsPosts } from "@/lib/directus";
+import { getNewsPosts } from "~/server/payload/service";
 import { notFound } from "next/navigation";
-import { getNewsPostBySlug } from "@/lib/directus";
+import { getNewsPostBySlug } from "~/server/payload/service";
 import Image from "next/image";
 import { Badge } from "~/components/ui/badge";
 import { Calendar } from "lucide-react";
 import { formatHumanDate } from "~/lib/utils";
 import type { Metadata } from "next";
+import type { News } from "~/payload-types";
+import { RichText } from "~/components/rich-text";
+import { TableOfContents } from "~/components/rich-text/table-of-contents";
 
 export const revalidate = 60;
 
@@ -38,9 +41,12 @@ export default async function DynamicPage({
   const page = await getNewsPostBySlug(slug);
   if (!page) return notFound();
 
-  const category = page.post_type === "news" ? "News" : "Article";
+  const category = "News";
   // Add a timestamp to the image src to ensure it's revalidated when page is rebuilt
-  const imageSrc = `https://sharply-directus.onrender.com/assets/${page.thumbnail}?v=${Date.now()}`;
+  const imageSrc =
+    page.thumbnail && typeof page.thumbnail === "object"
+      ? (page.thumbnail.url ?? undefined)
+      : undefined;
   // console.log(page);
 
   return (
@@ -51,25 +57,30 @@ export default async function DynamicPage({
         <div className="text-muted-foreground -mt-1 flex items-center gap-2 text-sm">
           <Calendar className="h-4 w-4" />
           <span className="pt-1">
-            {formatHumanDate(new Date(page.date_created))}
+            {formatHumanDate(new Date(page.override_date || page.createdAt))}
           </span>
         </div>
       </div>
 
       {page.thumbnail && (
         <Image
-          src={imageSrc}
+          src={imageSrc ?? ""}
           alt={page.title}
           width={1280}
           height={720}
           className="aspect-video w-full rounded-lg object-cover"
         />
       )}
-      <article className="prose prose-zinc dark:prose-invert mx-auto w-full max-w-3xl">
-        <div
-          dangerouslySetInnerHTML={{ __html: page.news_content_wysiwyg }}
-        ></div>
-      </article>
+      <div className="mx-auto grid w-full max-w-5xl gap-8">
+        <RichText
+          data={page.content}
+          className="prose prose-zinc dark:prose-invert mx-auto w-full max-w-3xl dark:opacity-90"
+        />
+
+        {/* <aside className="hidden lg:block">
+          <TableOfContents />
+        </aside> */}
+      </div>
     </div>
   );
 }

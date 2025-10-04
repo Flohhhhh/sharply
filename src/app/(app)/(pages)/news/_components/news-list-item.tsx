@@ -1,10 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { News } from "~/payload-types";
 import { ArrowRight } from "lucide-react";
-import type { NewsPost } from "@/lib/directus";
 
 type NewsListItemProps = {
-  post: NewsPost;
+  post: News;
 };
 
 function getOrdinalSuffix(day: number) {
@@ -46,17 +46,24 @@ function stripHtml(html: string | null | undefined, maxLength = 160) {
 
 export function NewsListItem({ post }: NewsListItemProps) {
   const href = `/news/${post.slug}`;
-  const imgSrc = post.thumbnail
-    ? `https://sharply-directus.onrender.com/assets/${post.thumbnail}`
-    : undefined;
+
+  console.log(post);
+  // const imgSrc = post.thumbnail
+  //   ? `https://sharply-directus.onrender.com/assets/${post.thumbnail}`
+  //   : undefined;
+  const date = post.override_date || post.createdAt;
+  const imageUrl =
+    post.thumbnail && typeof post.thumbnail === "object"
+      ? (post.thumbnail.url ?? undefined)
+      : undefined;
 
   return (
     <Link href={href} className="group">
       <div className="grid grid-cols-[280px_1fr_40px] items-stretch gap-6 py-6">
         <div className="bg-muted relative hidden overflow-hidden rounded-md sm:block">
-          {imgSrc ? (
+          {imageUrl ? (
             <Image
-              src={imgSrc}
+              src={imageUrl}
               alt={post.title}
               width={560}
               height={320}
@@ -69,14 +76,14 @@ export function NewsListItem({ post }: NewsListItemProps) {
 
         <div className="flex h-full flex-col">
           <span className="text-muted-foreground mb-4 text-xs sm:mt-0">
-            {formatDotDate(post.date_created as unknown as string)}
+            {formatDotDate(date)}
           </span>
           <div className="mt-auto flex flex-col gap-2">
             <h3 className="line-clamp-2 text-lg leading-snug font-semibold tracking-tight group-hover:underline sm:text-2xl">
               {post.title}
             </h3>
             <p className="text-muted-foreground line-clamp-2 text-xs sm:text-sm">
-              {stripHtml(post.news_content_wysiwyg)}
+              {stripHtml(post.excerpt)}
             </p>
           </div>
         </div>

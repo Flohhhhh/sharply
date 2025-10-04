@@ -4,6 +4,7 @@ import {
   relatedGearItemsField,
   relatedBrandField,
 } from "~/payload-fields/custom-fields";
+import { lexicalToPlainText } from "~/server/payload/richtext";
 
 export const News: CollectionConfig = {
   slug: "news",
@@ -38,15 +39,6 @@ export const News: CollectionConfig = {
       },
     },
     {
-      name: "slug",
-      type: "text",
-      unique: true,
-      admin: {
-        position: "sidebar",
-        description: "Auto-generated from title, can be overridden",
-      },
-    },
-    {
       name: "override_date",
       label: "Override Date (Optional)",
       type: "date",
@@ -54,6 +46,34 @@ export const News: CollectionConfig = {
         position: "sidebar",
         description:
           "Override the date of the news article. Defaults to creation date if not set.",
+      },
+    },
+    {
+      name: "slug",
+      type: "text",
+      unique: true,
+      access: {
+        read: () => true,
+        update: () => false,
+      },
+      admin: {
+        position: "sidebar",
+        description: "Auto-generated from title.",
+      },
+    },
+
+    // auto generating excerpt from content
+    {
+      name: "excerpt",
+      type: "textarea",
+      access: {
+        read: () => true,
+        update: () => false,
+      },
+      admin: {
+        position: "sidebar",
+        description:
+          "The excerpt of the news article. Auto-generated from content.",
       },
     },
     {
@@ -91,6 +111,15 @@ export const News: CollectionConfig = {
             strict: true, // remove special chars
             trim: true,
           });
+        }
+        if (data?.content) {
+          try {
+            const text = lexicalToPlainText(data.content, { maxLength: 160 });
+            data.excerpt = text;
+          } catch {
+            const contentString = JSON.stringify(data.content);
+            data.excerpt = `${contentString.slice(0, 160)}...`;
+          }
         }
         return data;
       },
