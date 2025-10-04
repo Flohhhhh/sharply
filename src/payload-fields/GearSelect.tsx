@@ -30,11 +30,15 @@ function extractSlugFromHref(href: string): string | null {
   try {
     const parts = href.split("/").filter(Boolean);
     const idx = parts.indexOf("gear");
-    if (idx >= 0 && parts[idx + 1]) return parts[idx + 1] as string;
+    if (idx >= 0 && parts[idx + 1]) return parts[idx + 1] ?? null;
     return null;
   } catch {
     return null;
   }
+}
+
+function isAbortError(e: unknown): e is DOMException {
+  return e instanceof DOMException && e.name === "AbortError";
 }
 
 const GearSelect: React.FC<{
@@ -105,8 +109,8 @@ const GearSelect: React.FC<{
         setResults(list.filter((s) => s.type === "gear"));
         setHasSearched(true);
       })
-      .catch((err) => {
-        if (err?.name === "AbortError") return;
+      .catch((err: unknown) => {
+        if (isAbortError(err)) return;
         setResults([]);
         setHasSearched(true);
         setError(err instanceof Error ? err : new Error(String(err)));
@@ -137,8 +141,14 @@ const GearSelect: React.FC<{
           setLabelBySlug((prev) => ({ ...prev, [current]: candidate.label }));
         }
       })
-      .catch(() => {})
-      .finally(() => {});
+      .catch(() => {
+        /* ignore */
+        return;
+      })
+      .finally(() => {
+        /* ignore */
+        return;
+      });
     return () => ac.abort();
   }, [value, labelBySlug]);
 

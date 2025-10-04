@@ -28,11 +28,21 @@ function extractSlugFromHref(href: string): string | null {
   try {
     const parts = href.split("/").filter(Boolean);
     const idx = parts.indexOf("gear");
-    if (idx >= 0 && parts[idx + 1]) return parts[idx + 1] as string;
+    if (idx >= 0 && parts[idx + 1]) return parts[idx + 1] ?? null;
     return null;
   } catch {
     return null;
   }
+}
+
+function isAbortError(e: unknown): e is DOMException {
+  return e instanceof DOMException && e.name === "AbortError";
+}
+
+function isOptionLike(
+  value: unknown,
+): value is { value?: unknown; label?: unknown } {
+  return typeof value === "object" && value !== null;
 }
 
 const GearMultiSelect: React.FC<{
@@ -103,8 +113,8 @@ const GearMultiSelect: React.FC<{
         setResults(list.filter((s) => s.type === "gear"));
         setHasSearched(true);
       })
-      .catch((err) => {
-        if (err?.name === "AbortError") return;
+      .catch((err: unknown) => {
+        if (isAbortError(err)) return;
         setResults([]);
         setHasSearched(true);
         setError(err instanceof Error ? err : new Error(String(err)));
@@ -122,7 +132,7 @@ const GearMultiSelect: React.FC<{
     if (slugs.length === 0) return;
 
     const ac = new AbortController();
-    const q = slugs[0] as string; // simple heuristic: fetch by first missing
+    const q = slugs[0]!; // simple heuristic: fetch by first missing
     fetch(`/api/search/suggest?q=${encodeURIComponent(q)}&limit=10`, {
       signal: ac.signal,
     })
@@ -142,8 +152,14 @@ const GearMultiSelect: React.FC<{
           setLabelBySlug((prev) => ({ ...prev, ...next }));
         }
       })
-      .catch(() => {})
-      .finally(() => {});
+      .catch(() => {
+        /* ignore */
+        return;
+      })
+      .finally(() => {
+        /* ignore */
+        return;
+      });
     return () => ac.abort();
   }, [value, labelBySlug]);
 
@@ -200,20 +216,21 @@ const GearMultiSelect: React.FC<{
         onInputChange={(inputValue: string) => {
           setQuery(inputValue ?? "");
         }}
-        onChange={(selected: any) => {
+        onChange={(selected: unknown) => {
           const arr = Array.isArray(selected)
             ? selected
             : selected
               ? [selected]
               : [];
-          const slugs = arr
-            .map((opt: any) => opt?.value)
-            .filter((v: unknown) => typeof v === "string") as string[];
+          const optionArr = arr.filter(isOptionLike);
+          const slugs = optionArr
+            .map((opt) => opt.value)
+            .filter((v): v is string => typeof v === "string");
           const filtered = slugs.filter(
             (v) => v !== "__loading__" && v !== "__empty__",
           );
           // Remember labels
-          for (const opt of arr) {
+          for (const opt of optionArr) {
             const v = opt?.value;
             const l = opt?.label;
             if (typeof v === "string" && typeof l === "string") {
