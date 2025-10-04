@@ -176,13 +176,17 @@ export interface News {
    */
   thumbnail: number | Media;
   /**
-   * Auto-generated from title, can be overridden
-   */
-  slug?: string | null;
-  /**
    * Override the date of the news article. Defaults to creation date if not set.
    */
   override_date?: string | null;
+  /**
+   * Auto-generated from title.
+   */
+  slug?: string | null;
+  /**
+   * The excerpt of the news article. Auto-generated from content.
+   */
+  excerpt?: string | null;
   content: {
     root: {
       type: string;
@@ -472,8 +476,9 @@ export interface MediaSelect<T extends boolean = true> {
 export interface NewsSelect<T extends boolean = true> {
   title?: T;
   thumbnail?: T;
-  slug?: T;
   override_date?: T;
+  slug?: T;
+  excerpt?: T;
   content?: T;
   related_brand?: T;
   related_gear_items?: T;
