@@ -6,9 +6,13 @@ import path from "path";
 import { buildConfig } from "payload";
 import { fileURLToPath } from "url";
 import sharp from "sharp";
+import { uploadthingStorage } from "@payloadcms/storage-uploadthing";
+import { resendAdapter } from "@payloadcms/email-resend";
 
 import { Users } from "./collections/Users";
 import { Media } from "./collections/Media";
+import { News } from "./collections/News";
+import { Review } from "./collections/Review";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -20,7 +24,11 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media],
+
+  collections: [Users, Media, News, Review],
+  routes: {
+    admin: "/cms",
+  },
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || "",
   typescript: {
@@ -36,8 +44,19 @@ export default buildConfig({
   plugins: [
     payloadCloudPlugin(),
     // storage-adapter-placeholder
+    uploadthingStorage({
+      collections: {
+        media: true,
+      },
+      options: {
+        token: process.env.UPLOADTHING_TOKEN || "",
+        acl: "public-read",
+      },
+    }),
   ],
-  routes: {
-    admin: "/cms",
-  },
+  email: resendAdapter({
+    defaultFromAddress: process.env.RESEND_EMAIL_FROM || "",
+    defaultFromName: "Sharply Team",
+    apiKey: process.env.RESEND_API_KEY || "",
+  }),
 });

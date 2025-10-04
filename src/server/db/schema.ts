@@ -273,6 +273,9 @@ export const genres = appSchema.table("genres", (d) => ({
   name: varchar("name", { length: 200 }).notNull().unique(),
   slug: varchar("slug", { length: 200 }).notNull().unique(),
   description: varchar("description", { length: 500 }),
+  // Optional scoping for where this genre applies in the catalog UI
+  // Values: "camera" and/or "lens"; array may be empty or null to mean "applies broadly"
+  appliesTo: text("applies_to").array(),
   createdAt,
   updatedAt,
 }));

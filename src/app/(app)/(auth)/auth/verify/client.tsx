@@ -47,6 +47,7 @@ export default function VerifyClient() {
                       email,
                       callbackUrl,
                       redirect: false,
+                      replyTo: "admin@sharplyphoto.com",
                     });
                     toast("Magic link resent.");
                   }}

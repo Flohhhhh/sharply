@@ -401,20 +401,13 @@ export const BRANDS = [
 ];
 export const GENRES = [
   {
-    "id": "7805cec3-7848-415c-bac0-d9c5136e3fdf",
-    "name": "Portraits",
-    "slug": "portraits",
-    "description": "Portraits of people; senior portraits, engagement shoots, models, fashion photography, etc.",
-    "created_at": "2025-08-19 01:55:28.858516+00",
-    "updated_at": "2025-08-19 01:55:28.858516+00"
-  },
-  {
     "id": "6d7d1d86-4494-4c3e-8196-6144719f6b9d",
     "name": "Weddings",
     "slug": "weddings",
     "description": "Wedding photography",
     "created_at": "2025-08-19 01:55:29.097751+00",
-    "updated_at": "2025-08-19 01:55:29.097751+00"
+    "updated_at": "2025-08-19 01:55:29.097751+00",
+    "applies_to": null
   },
   {
     "id": "beb25ddb-a63a-42c5-887a-27062f482f57",
@@ -422,7 +415,8 @@ export const GENRES = [
     "slug": "sports",
     "description": "Fast action and sports",
     "created_at": "2025-08-19 01:55:29.324312+00",
-    "updated_at": "2025-08-19 01:55:29.324312+00"
+    "updated_at": "2025-08-19 01:55:29.324312+00",
+    "applies_to": null
   },
   {
     "id": "67d6b9b2-0699-4149-b441-91ec0f28e8b3",
@@ -430,7 +424,8 @@ export const GENRES = [
     "slug": "wildlife",
     "description": "Animals, birds, and other creatures.",
     "created_at": "2025-08-19 01:55:29.567005+00",
-    "updated_at": "2025-08-19 01:55:29.567005+00"
+    "updated_at": "2025-08-19 01:55:29.567005+00",
+    "applies_to": null
   },
   {
     "id": "b998ecab-2959-4a85-b8a1-187a64510818",
@@ -438,7 +433,8 @@ export const GENRES = [
     "slug": "street",
     "description": "Street and candid",
     "created_at": "2025-08-19 01:55:29.799277+00",
-    "updated_at": "2025-08-19 01:55:29.799277+00"
+    "updated_at": "2025-08-19 01:55:29.799277+00",
+    "applies_to": null
   },
   {
     "id": "b9a48e20-6cd5-4ee3-bfdf-2cb414474d6d",
@@ -446,7 +442,8 @@ export const GENRES = [
     "slug": "travel",
     "description": "Travel and documentary",
     "created_at": "2025-08-19 01:55:30.221296+00",
-    "updated_at": "2025-08-19 01:55:30.221296+00"
+    "updated_at": "2025-08-19 01:55:30.221296+00",
+    "applies_to": null
   },
   {
     "id": "07da9a38-bb2a-4fea-8bda-0a93d706baa2",
@@ -454,31 +451,8 @@ export const GENRES = [
     "slug": "landscape",
     "description": "Landscapes and nature",
     "created_at": "2025-08-19 01:55:30.455344+00",
-    "updated_at": "2025-08-19 01:55:30.455344+00"
-  },
-  {
-    "id": "552d809e-7c72-46d0-8cad-4a577dd357d0",
-    "name": "Macro",
-    "slug": "macro",
-    "description": "Close-up and macro",
-    "created_at": "2025-08-19 01:55:30.693676+00",
-    "updated_at": "2025-08-19 01:55:30.693676+00"
-  },
-  {
-    "id": "6d77e7c2-e713-46ce-9a83-d180ee9bed44",
-    "name": "Product",
-    "slug": "product",
-    "description": "Product and studio",
-    "created_at": "2025-08-19 01:55:30.922536+00",
-    "updated_at": "2025-08-19 01:55:30.922536+00"
-  },
-  {
-    "id": "4b6709ad-8b7a-422a-a52c-35c348b6fbac",
-    "name": "Events",
-    "slug": "events",
-    "description": "Events and concerts",
-    "created_at": "2025-08-19 01:55:31.148578+00",
-    "updated_at": "2025-08-19 01:55:31.148578+00"
+    "updated_at": "2025-08-19 01:55:30.455344+00",
+    "applies_to": null
   },
   {
     "id": "2f5e6a05-f595-4596-a696-58231e38baf0",
@@ -486,7 +460,68 @@ export const GENRES = [
     "slug": "video",
     "description": "Video and filmmaking",
     "created_at": "2025-08-19 01:55:31.374829+00",
-    "updated_at": "2025-08-19 01:55:31.374829+00"
+    "updated_at": "2025-08-19 01:55:31.374829+00",
+    "applies_to": null
+  },
+  {
+    "id": "c9e3aa19-7894-40cf-976f-4366dd285d99",
+    "name": "Product & Food",
+    "slug": "product-food",
+    "description": "Products and food photography",
+    "created_at": "2025-10-04 11:43:38.584541+00",
+    "updated_at": "2025-10-04 11:43:38.584541+00",
+    "applies_to": [
+      "lens"
+    ]
+  },
+  {
+    "id": "4b6709ad-8b7a-422a-a52c-35c348b6fbac",
+    "name": "Events",
+    "slug": "events",
+    "description": "Events and concerts",
+    "created_at": "2025-08-19 01:55:31.148578+00",
+    "updated_at": "2025-08-19 01:55:31.148578+00",
+    "applies_to": [
+      "lens"
+    ]
+  },
+  {
+    "id": "7805cec3-7848-415c-bac0-d9c5136e3fdf",
+    "name": "Portraits",
+    "slug": "portraits",
+    "description": "Portraits of people; senior portraits, engagement shoots, models, fashion photography, etc.",
+    "created_at": "2025-08-19 01:55:28.858516+00",
+    "updated_at": "2025-08-19 01:55:28.858516+00",
+    "applies_to": [
+      "lens"
+    ]
+  },
+  {
+    "id": "e6036358-b6b5-4f7a-93d7-ed523ce773ff",
+    "name": "Astro",
+    "slug": "astro",
+    "description": "Photos of the milky way, stars, the moon, or other celestial bodies",
+    "created_at": "2025-10-04 13:54:12.673496+00",
+    "updated_at": "2025-10-04 13:54:12.673496+00",
+    "applies_to": null
+  },
+  {
+    "id": "742762e2-c7ef-4f5e-a7f9-1fc5c32b2242",
+    "name": "Architecture & Real Estate",
+    "slug": "architecture",
+    "description": null,
+    "created_at": "2025-10-04 13:55:00.428601+00",
+    "updated_at": "2025-10-04 13:55:00.428601+00",
+    "applies_to": null
+  },
+  {
+    "id": "1fd979d7-6a95-4ea3-b3e8-a4aff62a8f0c",
+    "name": "Fashion",
+    "slug": "fashion",
+    "description": null,
+    "created_at": "2025-10-04 13:58:40.320681+00",
+    "updated_at": "2025-10-04 13:58:40.320681+00",
+    "applies_to": null
   }
 ];
 export const AF_AREA_MODES = [

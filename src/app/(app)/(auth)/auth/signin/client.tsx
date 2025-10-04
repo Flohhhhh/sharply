@@ -107,7 +107,12 @@ export default function SignInClient() {
     if (!canSubmit || sending) return;
     try {
       setSending(true);
-      await signIn("resend", { email, callbackUrl, redirect: false });
+      await signIn("resend", {
+        email,
+        callbackUrl,
+        redirect: false,
+        replyTo: "admin@sharplyphoto.com",
+      });
       router.push(
         `/auth/verify?email=${encodeURIComponent(email)}&callbackUrl=${encodeURIComponent(callbackUrl)}`,
       );
