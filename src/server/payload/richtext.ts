@@ -62,14 +62,26 @@ export function lexicalToPlainText(
     }
   }
 
-  const root: any = (value as any)?.root ?? value;
-  if (root && Array.isArray(root.children)) {
-    root.children.forEach(walk);
+  function isRecord(input: unknown): input is Record<string, unknown> {
+    return typeof input === "object" && input !== null;
+  }
+
+  const root: unknown =
+    isRecord(value) && "root" in value
+      ? ((value as { root?: unknown }).root ?? value)
+      : value;
+
+  if (
+    isRecord(root) &&
+    Array.isArray((root as { children?: unknown }).children)
+  ) {
+    const children = (root as { children: unknown[] }).children;
+    children.forEach(walk);
   } else {
     walk(root);
   }
 
-  let text = fragments.join(" ").replace(/\s+/g, " ").trim();
+  const text = fragments.join(" ").replace(/\s+/g, " ").trim();
 
   if (
     typeof maxLength === "number" &&
