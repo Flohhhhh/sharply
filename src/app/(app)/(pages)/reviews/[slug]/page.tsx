@@ -3,6 +3,8 @@ import { fetchGearBySlug } from "~/server/gear/service";
 import { RichText } from "~/components/rich-text";
 import { GearCardHorizontal } from "~/components/gear/gear-card-horizontal";
 import { getBrandNameById } from "~/lib/mapping/brand-map";
+import { notFound } from "next/navigation";
+import { GenreRatings } from "../_components/genre-ratings";
 
 export default async function ReviewPage({
   params,
@@ -11,12 +13,17 @@ export default async function ReviewPage({
 }) {
   const { slug } = await params;
   const review = await getReviewBySlug(slug);
+
+  if (!review) {
+    return notFound();
+  }
+
   const gearItem = await fetchGearBySlug(review.review_gear_item);
   const brandName = getBrandNameById(gearItem.brandId ?? "");
 
   return (
     <div className="mt-24 min-h-screen w-full px-4 sm:px-8">
-      <div className="mx-auto w-full max-w-5xl px-4 sm:px-8">
+      <div className="mx-auto w-full max-w-5xl space-y-4 px-4 sm:px-8">
         <h1 className="text-4xl font-semibold">{review.title}</h1>
         <p className="text-muted-foreground">{gearItem.name}</p>
         {/* Image */}
@@ -38,11 +45,12 @@ export default async function ReviewPage({
           )}
         </div>
         {/* Review Summary */}
-        <div className="mt-4">
+        <div className="mx-auto mt-4 mt-8 max-w-3xl space-y-2">
+          <h2 className="text-lg font-semibold">Summary</h2>
           <p className="text-muted-foreground">{review.review_summary}</p>
         </div>
         {/* Gear Card */}
-        <div className="mt-4 space-y-2">
+        <div className="mx-auto mt-4 max-w-3xl space-y-2">
           <h3 className="text-lg font-semibold">View {gearItem.name} specs</h3>
           <GearCardHorizontal
             slug={gearItem.slug}
@@ -53,51 +61,39 @@ export default async function ReviewPage({
             href={`/gear/${gearItem.slug}`}
           />
         </div>
-        {/* Review Content */}
-        <div className="mt-4">
-          <RichText data={review.reviewContent} />
-        </div>
         {/* Pros/Cons */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <h3 className="text-lg font-semibold">The Good</h3>
-            <ul className="list-disc pl-5 text-sm">
-              {review.goodPoints.map((point) => (
-                <li key={point.id}>{point.goodNote}</li>
-              ))}
-            </ul>
+        <div className="mx-auto mt-4 max-w-3xl space-y-4">
+          <h2 className="text-lg font-semibold">Pros & Cons</h2>
+          <div className="mx-auto grid max-w-3xl grid-cols-2 gap-3">
+            <div className="rounded border border-emerald-400/50 bg-emerald-400/5 p-3">
+              <h3 className="text-lg font-semibold">The Good</h3>
+              <ul className="my-4 list-disc space-y-3 pl-5 text-sm text-emerald-600 dark:text-emerald-400">
+                {review.goodPoints.map((point) => (
+                  <li key={point.id}>{point.goodNote}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="rounded border border-red-400/50 bg-red-400/5 p-3">
+              <h3 className="text-lg font-semibold">The Bad</h3>
+              <ul className="my-4 list-disc space-y-3 pl-5 text-sm text-red-600 dark:text-red-400">
+                {review.badPoints.map((point) => (
+                  <li key={point.id}>{point.badNote}</li>
+                ))}
+              </ul>
+            </div>
           </div>
-          <div>
-            <h3 className="text-lg font-semibold">The Bad</h3>
-            <ul className="list-disc pl-5 text-sm">
-              {review.badPoints.map((point) => (
-                <li key={point.id}>{point.badNote}</li>
-              ))}
-            </ul>
-          </div>
+        </div>
+        {/* Review Content */}
+        <div className="mx-auto mt-4 max-w-3xl space-y-4">
+          <h2 className="text-lg font-semibold">My Experience</h2>
+          <RichText data={review.reviewContent} className="w-full max-w-none" />
         </div>
         {/* Genre Ratings */}
-        <div className="mt-4">
-          <h3 className="text-lg font-semibold">Genre Ratings</h3>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {/* genreRatings is a JSON object, not an array, so we need to iterate over its entries */}
-            {review.genreRatings &&
-              Object.entries(review.genreRatings).map(([genre, value]) => {
-                let ratingLabel = "N/A";
-                if (value === "1") ratingLabel = "Underperforms";
-                else if (value === "2") ratingLabel = "Acceptable";
-                else if (value === "3") ratingLabel = "Excels";
-                return (
-                  <div key={genre}>
-                    <span className="font-medium">
-                      {genre.charAt(0).toUpperCase() + genre.slice(1)}:
-                    </span>{" "}
-                    <span>{ratingLabel}</span>
-                  </div>
-                );
-              })}
-          </div>
-        </div>
+        <GenreRatings
+          genreRatings={review.genreRatings ?? {}}
+          gearName={gearItem.name}
+        />
       </div>
     </div>
   );

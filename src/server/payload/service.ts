@@ -43,23 +43,23 @@ export const getReviews = async (): Promise<Review[]> => {
   return sorted;
 };
 
-export const getReviewBySlug = async (slug: string): Promise<Review> => {
+export const getReviewBySlug = async (slug: string): Promise<Review | null> => {
   const review = await getReviewBySlugData(slug);
   if (review._status !== "published") {
-    throw new Error("Review is not published");
+    return null;
   }
   return review;
 };
 
 export const getReviewByGearSlug = async (
   gearSlug: string,
-): Promise<Review> => {
+): Promise<Review | null> => {
   const review = await getReviewByGearSlugData(gearSlug);
   if (!review) {
-    throw new Error("Review not found");
+    return null;
   }
   if (review._status !== "published") {
-    throw new Error("Review is not published");
+    return null;
   }
   return review;
 };

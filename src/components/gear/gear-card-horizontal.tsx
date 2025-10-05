@@ -95,14 +95,14 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
       <Link
         href={href}
         className={cn(
-          "border-input bg-card/50 hover:border-foreground/40 block rounded-2xl border transition-all",
+          "border-input bg-card/50 hover:border-foreground/40 block rounded-lg border transition-all",
           "shadow-sm hover:shadow-md",
         )}
       >
-        <div className="bg-background rounded-2xl p-2">
+        <div className="bg-background rounded-lg p-2">
           <div className="flex gap-3">
             {/* Image / left side */}
-            <div className="bg-muted relative w-44 flex-shrink-0 overflow-hidden rounded-xl">
+            <div className="bg-muted relative w-44 flex-shrink-0 overflow-hidden rounded">
               <div className="relative aspect-[16/10]">
                 {topLeftLabel ? (
                   <div className="absolute top-2 left-2 rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
@@ -116,7 +116,7 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
                     alt={name}
                     fill
                     sizes="(max-width: 768px) 176px, 176px"
-                    className="h-full w-full object-cover transition-opacity group-hover:opacity-50"
+                    className="h-full w-full object-contain transition-opacity group-hover:opacity-50"
                     unoptimized
                   />
                 ) : (

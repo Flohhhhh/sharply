@@ -2,10 +2,22 @@ import { Suspense } from "react";
 import { BadgesTestToastButton } from "../badges-test-toast";
 import { BadgesCatalog } from "../badges-catalog";
 import { AdminImageUploader } from "../admin-image-uploader";
+import { GradientImageTool } from "../gradient-image-tool";
 
 export default function ToolsPage() {
   return (
     <div className="space-y-8 px-8">
+      {/* Thumbnail Background Export Tool */}
+      <div>
+        <h2 className="text-2xl font-bold">Thumbnail Background Export</h2>
+        <p className="text-muted-foreground mt-2">
+          Place a transparent image over the default thumbnail background and
+          export to PNG.
+        </p>
+        <div className="mt-4">
+          <GradientImageTool />
+        </div>
+      </div>
       <div>
         <h2 className="text-2xl font-bold">Image Uploader (Admin)</h2>
         <p className="text-muted-foreground mt-2">
