@@ -7,6 +7,7 @@ type ProposalPayload = {
   camera?: ProposalPayloadSection;
   lens?: ProposalPayloadSection;
   cameraCardSlots?: unknown;
+  fixedLens?: ProposalPayloadSection;
 };
 
 function isUuid(value: string): boolean {
@@ -801,6 +802,102 @@ export function normalizeProposalPayloadForDb(
     const parsed = LensSchema.parse(payload.lens);
     const pruned = pruneUndefined(parsed as Record<string, unknown>);
     if (Object.keys(pruned).length) normalized.lens = pruned;
+  }
+
+  // Fixed-lens (subset of lens fields)
+  if (payload.fixedLens) {
+    const FixedLensSchema = z
+      .object({
+        isPrime: z
+          .preprocess(
+            (value) =>
+              value === null ? null : (coerceBoolean(value) ?? undefined),
+            z.boolean().nullable().optional(),
+          )
+          .optional(),
+        focalLengthMinMm: z
+          .preprocess((value) => {
+            if (value === null) return null;
+            const num = coerceNumber(value);
+            return num === null ? undefined : Math.trunc(num);
+          }, z.number().int().nullable().optional())
+          .optional(),
+        focalLengthMaxMm: z
+          .preprocess((value) => {
+            if (value === null) return null;
+            const num = coerceNumber(value);
+            return num === null ? undefined : Math.trunc(num);
+          }, z.number().int().nullable().optional())
+          .optional(),
+        maxApertureWide: z
+          .preprocess((value) => {
+            if (value === null) return null;
+            const num = coerceNumber(value);
+            return num === null ? undefined : num;
+          }, z.number().nullable().optional())
+          .optional(),
+        maxApertureTele: z
+          .preprocess((value) => {
+            if (value === null) return null;
+            const num = coerceNumber(value);
+            return num === null ? undefined : num;
+          }, z.number().nullable().optional())
+          .optional(),
+        minApertureWide: z
+          .preprocess((value) => {
+            if (value === null) return null;
+            const num = coerceNumber(value);
+            return num === null ? undefined : num;
+          }, z.number().nullable().optional())
+          .optional(),
+        minApertureTele: z
+          .preprocess((value) => {
+            if (value === null) return null;
+            const num = coerceNumber(value);
+            return num === null ? undefined : num;
+          }, z.number().nullable().optional())
+          .optional(),
+        hasAutofocus: z
+          .preprocess(
+            (value) =>
+              value === null ? null : (coerceBoolean(value) ?? undefined),
+            z.boolean().nullable().optional(),
+          )
+          .optional(),
+        minimumFocusDistanceMm: z
+          .preprocess((value) => {
+            if (value === null) return null;
+            const num = coerceNumber(value);
+            return num === null ? undefined : Math.trunc(num);
+          }, z.number().nullable().optional())
+          .optional(),
+        frontElementRotates: z
+          .preprocess(
+            (value) =>
+              value === null ? null : (coerceBoolean(value) ?? undefined),
+            z.boolean().nullable().optional(),
+          )
+          .optional(),
+        frontFilterThreadSizeMm: z
+          .preprocess((value) => {
+            if (value === null) return null;
+            const num = coerceNumber(value);
+            return num === null ? undefined : Math.trunc(num);
+          }, z.number().int().nullable().optional())
+          .optional(),
+        hasLensHood: z
+          .preprocess(
+            (value) =>
+              value === null ? null : (coerceBoolean(value) ?? undefined),
+            z.boolean().nullable().optional(),
+          )
+          .optional(),
+      })
+      .catchall(z.unknown());
+
+    const parsed = FixedLensSchema.parse(payload.fixedLens);
+    const pruned = pruneUndefined(parsed as Record<string, unknown>);
+    if (Object.keys(pruned).length) (normalized as any).fixedLens = pruned;
   }
 
   if (payload.cameraCardSlots) {

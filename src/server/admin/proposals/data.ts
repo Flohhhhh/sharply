@@ -12,6 +12,7 @@ import {
   cameraCardSlots,
   lensSpecs,
   auditLogs,
+  fixedLensSpecs,
 } from "~/server/db/schema";
 import type { GearEditProposal } from "~/types/gear";
 import { eq, desc, and, ne } from "drizzle-orm";
@@ -173,6 +174,7 @@ export async function approveProposalData(
         core?: any;
         camera?: any;
         lens?: any;
+        fixedLens?: any;
       };
       if (normalizedPayload.core) {
         // Map legacy keys to current column names and avoid empty UPDATE SET
@@ -254,6 +256,23 @@ export async function approveProposalData(
             .update(lensSpecs)
             .set(lensUpdate)
             .where(eq(lensSpecs.gearId, gearId));
+        }
+      }
+
+      // Apply fixed-lens specs if provided (upsert by gearId)
+      if (normalizedPayload.fixedLens) {
+        const fixedUpdate = { ...normalizedPayload.fixedLens } as Record<
+          string,
+          unknown
+        >;
+        if (Object.keys(fixedUpdate).length > 0) {
+          await tx
+            .insert(fixedLensSpecs)
+            .values({ gearId, ...(fixedUpdate as any) })
+            .onConflictDoUpdate({
+              target: fixedLensSpecs.gearId,
+              set: fixedUpdate as any,
+            });
         }
       }
 

@@ -22,6 +22,7 @@ import { Input } from "~/components/ui/input";
 import { MultiSelect } from "~/components/ui/multi-select";
 import type { EnrichedCameraSpecs, GearItem } from "~/types/gear";
 import CardSlotsManager, { type CardSlot } from "./card-slots-manager";
+// Integrated lens UI moved to edit form level
 
 interface CameraFieldsProps {
   gearItem: GearItem;
