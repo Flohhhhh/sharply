@@ -1,5 +1,6 @@
 "use client";
 
+import { TableOfContentsIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type HeadingItem = {
@@ -79,7 +80,11 @@ export function TableOfContents(props: {
       className={["text-sm", className].filter(Boolean).join(" ")}
       aria-label="Table of contents"
     >
-      <div className="mb-2 font-semibold">On this page</div>
+      <div className="mb-2 flex items-center gap-2">
+        <TableOfContentsIcon className="text-muted-foreground size-4" />
+        <span className="text-muted-foreground">On this page</span>
+      </div>
+
       <ul className="space-y-1">
         {items.map((h) => (
           <li
