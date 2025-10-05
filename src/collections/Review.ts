@@ -14,7 +14,6 @@ export const Review: CollectionConfig = {
     },
     maxPerDoc: 4,
   },
-
   trash: true,
   fields: [
     {

@@ -40,3 +40,14 @@ export const getReviewBySlugData = async (slug: string): Promise<Review> => {
   });
   return review.docs[0]!;
 };
+
+export const getReviewByGearSlugData = async (
+  gearSlug: string,
+): Promise<Review> => {
+  const payload = await getPayload({ config });
+  const review = await payload.find({
+    collection: "review",
+    where: { review_gear_item: { equals: gearSlug } },
+  });
+  return review.docs[0]!;
+};

@@ -3,6 +3,7 @@ import {
   getReviewsData,
   getNewsPostBySlugData,
   getReviewBySlugData,
+  getReviewByGearSlugData,
 } from "./data";
 import type { News, Review } from "~/payload-types";
 
@@ -44,6 +45,19 @@ export const getReviews = async (): Promise<Review[]> => {
 
 export const getReviewBySlug = async (slug: string): Promise<Review> => {
   const review = await getReviewBySlugData(slug);
+  if (review._status !== "published") {
+    throw new Error("Review is not published");
+  }
+  return review;
+};
+
+export const getReviewByGearSlug = async (
+  gearSlug: string,
+): Promise<Review> => {
+  const review = await getReviewByGearSlugData(gearSlug);
+  if (!review) {
+    throw new Error("Review not found");
+  }
   if (review._status !== "published") {
     throw new Error("Review is not published");
   }

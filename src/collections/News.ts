@@ -28,6 +28,7 @@ export const News: CollectionConfig = {
         description: "The title of the news article.",
       },
     },
+
     {
       name: "thumbnail",
       type: "upload",
