@@ -54,7 +54,7 @@ export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
   };
   const primaryMountId = (() => {
     const arr = Array.isArray(item.mountIds) ? item.mountIds : [];
-    if (arr.length > 0) return arr[0] as string;
+    if (arr.length > 0) return arr[0]!;
     return (item.mountId as string | null | undefined) ?? null;
   })();
   const isFixedLensMount = mountValueById(primaryMountId) === "fixed-lens";
