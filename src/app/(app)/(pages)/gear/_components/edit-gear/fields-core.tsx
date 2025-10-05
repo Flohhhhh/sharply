@@ -47,6 +47,7 @@ function CoreFieldsComponent({
 }: CoreFieldsProps) {
   const handleMountChange = useCallback(
     (value: string | string[]) => {
+      console.log("handleMountChange", value);
       // For cameras (single), store in mountId
       // For lenses (multi), store in mountIds
       if (gearType === "CAMERA") {
@@ -186,16 +187,24 @@ function CoreFieldsComponent({
 
   // Safely format the mount value(s) for the select
   const formattedMountValue = useMemo(() => {
+    // For cameras (single select), prefer the explicit mountId if present.
+    // Fallback to the first of mountIds only if mountId is not set.
+    if (gearType === "CAMERA") {
+      if (currentSpecs.mountId && typeof currentSpecs.mountId === "string") {
+        return currentSpecs.mountId;
+      }
+      const firstFromArray = Array.isArray(currentSpecs.mountIds)
+        ? currentSpecs.mountIds[0]
+        : undefined;
+      return firstFromArray || "";
+    }
+
+    // For lenses (multi select), merge legacy single value with array, de-duped
     const fromArray = Array.isArray(currentSpecs.mountIds)
       ? currentSpecs.mountIds
       : [];
     const fromLegacy = currentSpecs.mountId ? [currentSpecs.mountId] : [];
-    const merged = Array.from(new Set<string>([...fromArray, ...fromLegacy]));
-
-    if (gearType === "CAMERA") {
-      return merged[0] || "";
-    }
-    return merged;
+    return Array.from(new Set<string>([...fromArray, ...fromLegacy]));
   }, [currentSpecs.mountIds, currentSpecs.mountId, gearType]);
 
   // Genres options and values
