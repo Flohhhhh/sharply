@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import type { GearItem } from "~/types/gear";
 import { twMerge } from "tailwind-merge";
+import { MOUNTS } from "~/lib/generated";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -223,6 +224,20 @@ export function getConstructionState(gearItem: GearItem) {
       Number(gearItem.cameraSpecs?.resolutionMp ?? null) || null;
     if (!sensorFormatId) missing.push("Sensor type");
     if (!resolution) missing.push("Sensor resolution");
+
+    // Integrated lens cameras: if mount = fixed-lens and focal length is missing, mark under construction
+    const primaryMountId = Array.isArray(gearItem.mountIds)
+      ? (gearItem.mountIds[0] ?? gearItem.mountId)
+      : gearItem.mountId;
+    const mountValue = (MOUNTS as any[]).find((m) => m.id === primaryMountId)
+      ?.value as string | undefined;
+    if (mountValue === "fixed-lens") {
+      const fmin = gearItem.fixedLensSpecs?.focalLengthMinMm ?? null;
+      const fmax = gearItem.fixedLensSpecs?.focalLengthMaxMm ?? null;
+      if (fmin == null && fmax == null) {
+        missing.push("Integrated lens focal length");
+      }
+    }
   }
 
   return {

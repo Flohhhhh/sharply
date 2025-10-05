@@ -54,6 +54,26 @@ Stores detailed lens-specific specifications:
 - **Stabilization**: Whether the lens has stabilization
 - **Flexibility**: JSONB extra field for additional specs
 
+#### `fixed_lens_specs` - Integrated Lens Specifications (Cameras)
+
+For cameras that use the `fixed-lens` mount, a simplified lens spec table stores the integrated lens details:
+
+- Primary Key: `gearId` (1:1 with `gear`)
+- Fields:
+  - `isPrime` (boolean)
+  - `focalLengthMinMm` (int), `focalLengthMaxMm` (int)
+  - `maxApertureWide` (decimal), `maxApertureTele` (decimal)
+  - `minApertureWide` (decimal), `minApertureTele` (decimal)
+  - `hasAutofocus` (boolean)
+  - `minimumFocusDistanceMm` (int)
+  - `frontElementRotates` (boolean)
+  - `frontFilterThreadSizeMm` (int)
+  - `hasLensHood` (boolean)
+
+UI: On the edit form, when the Mount is `fixed-lens` (via `mountIds[0]` or `mountId`), an "Integrated Lens" section appears, reusing the same focal length and aperture inputs as standalone lens editing.
+
+Rendering: On gear pages for cameras with `fixed-lens`, a dedicated "Integrated Lens" specs section is displayed.
+
 ## Database Schema
 
 The system uses three main tables with the following structure:

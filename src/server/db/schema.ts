@@ -593,6 +593,39 @@ export const lensSpecs = appSchema.table(
   ],
 );
 
+// Fixed-lens specs (for cameras with integrated lenses)
+export const fixedLensSpecs = appSchema.table(
+  "fixed_lens_specs",
+  (d) => ({
+    gearId: varchar("gear_id", { length: 36 })
+      .primaryKey()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    // focal length
+    isPrime: boolean("is_prime"),
+    focalLengthMinMm: integer("focal_length_min_mm"),
+    focalLengthMaxMm: integer("focal_length_max_mm"),
+    // aperture
+    maxApertureWide: decimal("max_aperture_wide", { precision: 4, scale: 2 }),
+    maxApertureTele: decimal("max_aperture_tele", { precision: 4, scale: 2 }),
+    minApertureWide: decimal("min_aperture_wide", { precision: 4, scale: 2 }),
+    minApertureTele: decimal("min_aperture_tele", { precision: 4, scale: 2 }),
+    // focus & build (simplified)
+    hasAutofocus: boolean("has_autofocus"),
+    minimumFocusDistanceMm: integer("minimum_focus_distance_mm"),
+    frontElementRotates: boolean("front_element_rotates"),
+    frontFilterThreadSizeMm: integer("front_filter_thread_size_mm"),
+    hasLensHood: boolean("has_lens_hood"),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    index("fixed_lens_specs_focal_idx").on(
+      t.focalLengthMinMm,
+      t.focalLengthMaxMm,
+    ),
+  ],
+);
+
 // --- Gear Edits ---
 export const gearEdits = appSchema.table(
   "gear_edits",
@@ -747,6 +780,10 @@ export const gearRelations = relations(gear, ({ one, many }) => ({
   lensSpecs: one(lensSpecs, {
     fields: [gear.id],
     references: [lensSpecs.gearId],
+  }),
+  fixedLensSpecs: one(fixedLensSpecs, {
+    fields: [gear.id],
+    references: [fixedLensSpecs.gearId],
   }),
   edits: many(gearEdits),
   reviews: many(reviews),

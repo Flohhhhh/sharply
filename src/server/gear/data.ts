@@ -20,6 +20,7 @@ import {
   afAreaModes,
   cameraCardSlots,
   lensSpecs,
+  fixedLensSpecs,
   gearEdits,
   useCaseRatings,
   staffVerdicts,
@@ -94,6 +95,7 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
     ...gearItem[0]!.gear,
     cameraSpecs: null,
     lensSpecs: null,
+    fixedLensSpecs: null,
     mountIds: mountIdRows.map((r) => r.mountId),
   };
 
@@ -127,10 +129,18 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
       .from(cameraCardSlots)
       .where(eq(cameraCardSlots.gearId, gearItem[0]!.gear.id as any));
 
+    // fixed-lens specs (for integrated lens cameras)
+    const fixed = await db
+      .select()
+      .from(fixedLensSpecs)
+      .where(eq(fixedLensSpecs.gearId, gearItem[0]!.gear.id))
+      .limit(1);
+
     return {
       ...base,
       cameraSpecs: camera[0] ? { ...camera[0], afAreaModes: modes } : null,
       cameraCardSlots: slots.length ? (slots as any) : [],
+      fixedLensSpecs: fixed[0] ?? null,
     };
     // LENS SPECS
   } else if (gearItem[0]!.gear.gearType === "LENS") {

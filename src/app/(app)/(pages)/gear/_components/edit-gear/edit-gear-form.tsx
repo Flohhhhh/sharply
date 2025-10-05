@@ -13,6 +13,8 @@ import {
 import { CoreFields } from "./fields-core";
 import { LensFields } from "./fields-lenses";
 import CameraFields from "./fields-cameras";
+import { FixedLensFields } from "./fields-fixed-lens";
+import { MOUNTS } from "~/lib/generated";
 import type { gear, cameraSpecs, lensSpecs } from "~/server/db/schema";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -280,6 +282,34 @@ function EditGearForm({
       if (Object.keys(diffs).length > 0) payload.lens = diffs;
     }
 
+    // Fixed-lens diffs (subset) for cameras
+    if ((formData as any).fixedLensSpecs) {
+      const fixedKeys = [
+        "isPrime",
+        "focalLengthMinMm",
+        "focalLengthMaxMm",
+        "maxApertureWide",
+        "maxApertureTele",
+        "minApertureWide",
+        "minApertureTele",
+        "hasAutofocus",
+        "minimumFocusDistanceMm",
+        "frontElementRotates",
+        "frontFilterThreadSizeMm",
+        "hasLensHood",
+      ] as const;
+      const orig = ((gearData as any).fixedLensSpecs ?? {}) as Record<
+        string,
+        any
+      >;
+      const diffs = diffByKeys(
+        orig,
+        (formData as any).fixedLensSpecs as any,
+        fixedKeys,
+      );
+      if (Object.keys(diffs).length > 0) (payload as any).fixedLens = diffs;
+    }
+
     // Top-level cameraCardSlots (first-class section)
     type NormalizedSlot = {
       slotIndex: number;
@@ -447,6 +477,33 @@ function EditGearForm({
         />
       )}
 
+      {/* Integrated Lens section (separate card), only when mount is fixed-lens */}
+      {gearType === "CAMERA" &&
+        (() => {
+          const primaryMountId = Array.isArray((formData as any).mountIds)
+            ? ((formData as any).mountIds[0] ?? (formData as any).mountId)
+            : (formData as any).mountId;
+          const mv = (MOUNTS as any[]).find(
+            (m) => m.id === primaryMountId,
+          )?.value;
+          const isFixed = mv === "fixed-lens";
+          if (!isFixed) return null;
+          return (
+            <FixedLensFields
+              currentSpecs={(formData as any).fixedLensSpecs ?? null}
+              onChange={(field, value) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  fixedLensSpecs: {
+                    ...((prev as any).fixedLensSpecs ?? {}),
+                    [field]: value,
+                  },
+                }))
+              }
+            />
+          );
+        })()}
+
       {gearType === "LENS" && (
         <LensFields
           currentSpecs={formData.lensSpecs}
@@ -559,6 +616,23 @@ function EditGearForm({
                       <ul className="list-disc pl-5">
                         {Object.entries(
                           diffPreview.lens as Record<string, any>,
+                        ).map(([k, v]) => (
+                          <li key={k}>
+                            <span className="text-muted-foreground">
+                              {humanizeKey(k)}:
+                            </span>{" "}
+                            <span className="font-medium">{String(v)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {(diffPreview as any).fixedLens && (
+                    <div>
+                      <div className="mb-1 font-medium">Integrated Lens</div>
+                      <ul className="list-disc pl-5">
+                        {Object.entries(
+                          (diffPreview as any).fixedLens as Record<string, any>,
                         ).map(([k, v]) => (
                           <li key={k}>
                             <span className="text-muted-foreground">

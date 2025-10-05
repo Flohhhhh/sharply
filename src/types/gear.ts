@@ -2,6 +2,7 @@ import type {
   gear,
   cameraSpecs,
   lensSpecs,
+  fixedLensSpecs,
   brands,
   mounts,
   sensorFormats,
@@ -15,6 +16,7 @@ import type {
 export type Gear = typeof gear.$inferSelect;
 export type CameraSpecs = typeof cameraSpecs.$inferSelect;
 export type LensSpecs = typeof lensSpecs.$inferSelect;
+export type FixedLensSpecs = typeof fixedLensSpecs.$inferSelect;
 export type Brand = typeof brands.$inferSelect;
 export type Mount = typeof mounts.$inferSelect;
 export type SensorFormat = typeof sensorFormats.$inferSelect;
@@ -34,6 +36,7 @@ export type GearItem = Gear & {
   mountIds?: string[] | null; // Canonical multi-mount list
   cameraSpecs?: EnrichedCameraSpecs | null;
   lensSpecs?: LensSpecs | null;
+  fixedLensSpecs?: FixedLensSpecs | null;
   afAreaModes?: AfAreaMode[] | null;
   cameraCardSlots?: CameraCardSlot[] | null;
 };

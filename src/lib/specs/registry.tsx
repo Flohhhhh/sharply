@@ -13,6 +13,7 @@ import {
 import { sensorNameFromId, sensorTypeLabel } from "~/lib/mapping/sensor-map";
 import { formatFocusDistance } from "~/lib/mapping/focus-distance-map";
 import { formatFilterType } from "~/lib/mapping/filter-types-map";
+import { MOUNTS } from "~/lib/generated";
 
 function yesNoNull(value: boolean | null | undefined): string | undefined {
   if (value == null) return undefined;
@@ -41,6 +42,22 @@ export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
     item.gearType === "CAMERA" ? (item.cameraSpecs ?? null) : null;
   const lensSpecsItem =
     item.gearType === "LENS" ? (item.lensSpecs ?? null) : null;
+  const fixedLensSpecsItem =
+    item.gearType === "CAMERA" ? (item.fixedLensSpecs ?? null) : null;
+
+  const mountValueById = (id: string | null | undefined): string | null => {
+    if (!id) return null;
+    const m = (MOUNTS as any[]).find((x) => x.id === id) as
+      | { value?: string }
+      | undefined;
+    return m?.value ?? null;
+  };
+  const primaryMountId = (() => {
+    const arr = Array.isArray(item.mountIds) ? item.mountIds : [];
+    if (arr.length > 0) return arr[0]!;
+    return (item.mountId as string | null | undefined) ?? null;
+  })();
+  const isFixedLensMount = mountValueById(primaryMountId) === "fixed-lens";
 
   const core: SpecsTableSection = {
     title: "Basic Information",
@@ -662,7 +679,102 @@ export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
 
   const sections =
     item.gearType === "CAMERA"
-      ? [core, ...cameraSections]
+      ? [
+          core,
+          ...cameraSections,
+          // Integrated lens section when applicable
+          ...(isFixedLensMount && fixedLensSpecsItem
+            ? [
+                {
+                  title: "Integrated Lens",
+                  data: [
+                    {
+                      label: "Lens Type",
+                      value:
+                        fixedLensSpecsItem?.isPrime == null
+                          ? undefined
+                          : fixedLensSpecsItem.isPrime
+                            ? "Prime"
+                            : "Zoom",
+                    },
+                    {
+                      label: "Focal Length",
+                      value:
+                        fixedLensSpecsItem?.focalLengthMinMm == null &&
+                        fixedLensSpecsItem?.focalLengthMaxMm == null
+                          ? undefined
+                          : fixedLensSpecsItem?.isPrime
+                            ? `${fixedLensSpecsItem?.focalLengthMinMm}mm`
+                            : `${fixedLensSpecsItem?.focalLengthMinMm ?? ""}${
+                                fixedLensSpecsItem?.focalLengthMinMm != null &&
+                                fixedLensSpecsItem?.focalLengthMaxMm != null
+                                  ? "mm - "
+                                  : ""
+                              }${
+                                fixedLensSpecsItem?.focalLengthMaxMm != null
+                                  ? `${fixedLensSpecsItem?.focalLengthMaxMm}mm`
+                                  : ""
+                              }`,
+                    },
+                    {
+                      label: "Maximum Aperture",
+                      value:
+                        fixedLensSpecsItem?.maxApertureTele &&
+                        fixedLensSpecsItem?.maxApertureTele !==
+                          fixedLensSpecsItem?.maxApertureWide
+                          ? `f/${Number(fixedLensSpecsItem?.maxApertureWide)} - f/${Number(fixedLensSpecsItem?.maxApertureTele)}`
+                          : fixedLensSpecsItem?.maxApertureWide != null
+                            ? `f/${Number(fixedLensSpecsItem?.maxApertureWide)}`
+                            : undefined,
+                    },
+                    {
+                      label: "Minimum Aperture",
+                      value:
+                        fixedLensSpecsItem?.minApertureTele &&
+                        fixedLensSpecsItem?.minApertureTele !==
+                          fixedLensSpecsItem?.minApertureWide
+                          ? `f/${Number(fixedLensSpecsItem?.minApertureWide)} - f/${Number(fixedLensSpecsItem?.minApertureTele)}`
+                          : fixedLensSpecsItem?.minApertureWide != null
+                            ? `f/${Number(fixedLensSpecsItem?.minApertureWide)}`
+                            : undefined,
+                    },
+                    {
+                      label: "Has Autofocus",
+                      value: yesNoNull(
+                        fixedLensSpecsItem?.hasAutofocus ?? null,
+                      ),
+                    },
+                    {
+                      label: "Minimum Focus Distance",
+                      value:
+                        fixedLensSpecsItem?.minimumFocusDistanceMm != null
+                          ? formatFocusDistance(
+                              fixedLensSpecsItem?.minimumFocusDistanceMm,
+                            )
+                          : undefined,
+                    },
+                    {
+                      label: "Front Element Rotates",
+                      value: yesNoNull(
+                        fixedLensSpecsItem?.frontElementRotates ?? null,
+                      ),
+                    },
+                    {
+                      label: "Front Filter Thread Size",
+                      value:
+                        fixedLensSpecsItem?.frontFilterThreadSizeMm != null
+                          ? `${fixedLensSpecsItem.frontFilterThreadSizeMm}mm`
+                          : undefined,
+                    },
+                    {
+                      label: "Has Lens Hood",
+                      value: yesNoNull(fixedLensSpecsItem?.hasLensHood ?? null),
+                    },
+                  ],
+                },
+              ]
+            : []),
+        ]
       : [core, ...lensSections];
 
   // Filter out rows with non-displayable values at registry level
