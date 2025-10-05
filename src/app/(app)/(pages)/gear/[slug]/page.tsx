@@ -33,6 +33,9 @@ import type { Metadata } from "next";
 import { Breadcrumbs, type CrumbItem } from "~/components/layout/breadcrumbs";
 import { getBrandNameById } from "~/lib/mapping/brand-map";
 import { RenameGearButton } from "~/components/gear/rename-gear-button";
+import { getReviewByGearSlug } from "~/server/payload/service";
+import { Card, CardContent } from "~/components/ui/card";
+import { Button } from "~/components/ui/button";
 // Removed LensApertureDisplay in favor of standardized spec rows using mapping
 
 export const revalidate = 3600;
@@ -121,6 +124,8 @@ export default async function GearPage({ params }: GearPageProps) {
   const ratings = (ratingsRows ?? []).filter((r) => r.genreId != null);
   ratings.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
   const verdict = staffVerdictRows?.[0] ?? null;
+
+  const review = await getReviewByGearSlug(item.slug);
 
   // Under construction state
   const construction = getConstructionState(item);
@@ -235,6 +240,25 @@ export default async function GearPage({ params }: GearPageProps) {
         <div className="col-span-7 space-y-4">
           {/* Pending submission banner (client, only for this user when pending) */}
           <UserPendingEditBanner slug={slug} />
+          {/* Editorial Reviews*/}
+          {review && (
+            <section id="reviews" className="scroll-mt-24">
+              {/* <h2 className="mb-2 text-lg font-semibold">Our Review</h2> */}
+              <Link href={`/reviews/${review.slug}`}>
+                <div className="flex flex-col gap-2 rounded-md border p-4">
+                  <span className="text-lg font-bold">{review.title}</span>
+                  <p className="text-muted-foreground text-sm">
+                    {review.review_summary}
+                  </p>
+                  <div className="mt-2">
+                    <Button variant="outline" className="hover:cursor-pointer">
+                      Read Full Review
+                    </Button>
+                  </div>
+                </div>
+              </Link>
+            </section>
+          )}
           {/* Specifications */}
           <section className="scroll-mt-24" id="specs">
             <div className="mb-2 flex items-center justify-between">

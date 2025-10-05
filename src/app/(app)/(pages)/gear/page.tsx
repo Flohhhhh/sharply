@@ -21,7 +21,12 @@ export default async function GearIndex() {
   const brandSections = await Promise.all(
     BRANDS.map(async (b) => {
       const items = await fetchGearForBrand(b.id);
-      return { brand: b, items: items.slice(0, 12) };
+      // Temporarily prioritize items that have a thumbnail, preserving existing sort within each group
+      const prioritized = [
+        ...items.filter((i) => i.thumbnailUrl != null),
+        ...items.filter((i) => i.thumbnailUrl == null),
+      ];
+      return { brand: b, items: prioritized.slice(0, 12) };
     }),
   );
 

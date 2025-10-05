@@ -13,6 +13,15 @@ export const getNewsPostsData = async (): Promise<News[]> => {
   return newsPosts.docs;
 };
 
+export const getNewsPostBySlugData = async (slug: string): Promise<News> => {
+  const payload = await getPayload({ config });
+  const newsPost = await payload.find({
+    collection: "news",
+    where: { slug: { equals: slug } },
+  });
+  return newsPost.docs[0]!;
+};
+
 export const getReviewsData = async (): Promise<Review[]> => {
   const payload = await getPayload({ config });
   const reviews = await payload.find({
@@ -23,11 +32,22 @@ export const getReviewsData = async (): Promise<Review[]> => {
   return reviews.docs;
 };
 
-export const getNewsPostBySlugData = async (slug: string): Promise<News> => {
+export const getReviewBySlugData = async (slug: string): Promise<Review> => {
   const payload = await getPayload({ config });
-  const newsPost = await payload.find({
-    collection: "news",
+  const review = await payload.find({
+    collection: "review",
     where: { slug: { equals: slug } },
   });
-  return newsPost.docs[0]!;
+  return review.docs[0]!;
+};
+
+export const getReviewByGearSlugData = async (
+  gearSlug: string,
+): Promise<Review> => {
+  const payload = await getPayload({ config });
+  const review = await payload.find({
+    collection: "review",
+    where: { review_gear_item: { equals: gearSlug } },
+  });
+  return review.docs[0]!;
 };

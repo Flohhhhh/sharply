@@ -40,6 +40,7 @@ import {
   Camera,
   Lock,
   LayoutDashboard,
+  Users,
   ListCheck,
   LogOut,
   Plus,
@@ -77,6 +78,12 @@ const sidebarItems = [
     href: "/admin/tools",
     icon: <Wrench className="size-5" />,
     allowed: ["ADMIN"],
+  },
+  {
+    label: "Leaderboard",
+    href: "/admin/leaderboard",
+    icon: <Users className="size-5" />,
+    allowed: ["ADMIN", "EDITOR"],
   },
   {
     label: "Logs",

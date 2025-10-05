@@ -16,6 +16,9 @@ export function titleizeCardEnum(value: string): string {
       if (lower === "xqd") return "XQD";
       if (lower === "cfast") return "CFast";
       if (lower === "vpg") return "VPG";
+      if (lower === "pcie") return "PCIe";
+      // Uppercase standalone roman numerals (e.g., "ii" -> "II")
+      if (/^(i|ii|iii|iv|v|vi|vii|viii|ix|x)$/i.test(w)) return w.toUpperCase();
       if (/^gen\d+x\d+$/i.test(w)) return w.toUpperCase();
       return w.charAt(0).toUpperCase() + w.slice(1);
     })
