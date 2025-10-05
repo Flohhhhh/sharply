@@ -145,7 +145,7 @@ export function GradientImageTool() {
                 min={0}
                 max={20}
                 step={1}
-                onValueChange={([v]) => setPaddingPct(v)}
+                onValueChange={(vals) => setPaddingPct(vals[0] ?? paddingPct)}
               />
             </div>
 

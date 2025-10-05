@@ -45,7 +45,7 @@ export default async function ReviewPage({
           )}
         </div>
         {/* Review Summary */}
-        <div className="mx-auto mt-4 mt-8 max-w-3xl space-y-2">
+        <div className="mx-auto mt-8 max-w-3xl space-y-2">
           <h2 className="text-lg font-semibold">Summary</h2>
           <p className="text-muted-foreground">{review.review_summary}</p>
         </div>
@@ -65,9 +65,9 @@ export default async function ReviewPage({
         <div className="mx-auto mt-4 max-w-3xl space-y-4">
           <h2 className="text-lg font-semibold">Pros & Cons</h2>
           <div className="mx-auto grid max-w-3xl grid-cols-2 gap-3">
-            <div className="rounded border border-emerald-400/50 bg-emerald-400/5 p-3">
+            <div className="rounded border border-green-400/50 bg-green-400/5 p-3">
               <h3 className="text-lg font-semibold">The Good</h3>
-              <ul className="my-4 list-disc space-y-3 pl-5 text-sm text-emerald-600 dark:text-emerald-400">
+              <ul className="my-4 list-disc space-y-3 pl-5 text-sm text-green-600 dark:text-green-400">
                 {review.goodPoints.map((point) => (
                   <li key={point.id}>{point.goodNote}</li>
                 ))}
