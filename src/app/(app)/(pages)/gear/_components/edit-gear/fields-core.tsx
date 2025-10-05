@@ -48,18 +48,11 @@ function CoreFieldsComponent({
   const handleMountChange = useCallback(
     (value: string | string[]) => {
       console.log("handleMountChange", value);
-      // For cameras (single), store in mountId
-      // For lenses (multi), store in mountIds
-      if (gearType === "CAMERA") {
-        onChange(
-          "mountId",
-          typeof value === "string" ? value : value[0] || null,
-        );
-      } else {
-        onChange("mountIds", Array.isArray(value) ? value : [value]);
-      }
+      // Always update canonical mountIds (array). Legacy mountId is derived server-side.
+      const ids = Array.isArray(value) ? value : value ? [value] : [];
+      onChange("mountIds", ids.length ? ids : null);
     },
-    [onChange, gearType],
+    [onChange],
   );
 
   const handleReleaseDateChange = useCallback(
@@ -187,19 +180,17 @@ function CoreFieldsComponent({
 
   // Safely format the mount value(s) for the select
   const formattedMountValue = useMemo(() => {
-    // For cameras (single select), prefer the explicit mountId if present.
-    // Fallback to the first of mountIds only if mountId is not set.
     if (gearType === "CAMERA") {
-      if (currentSpecs.mountId && typeof currentSpecs.mountId === "string") {
-        return currentSpecs.mountId;
-      }
+      // Single-select expects a single id string
       const firstFromArray = Array.isArray(currentSpecs.mountIds)
         ? currentSpecs.mountIds[0]
         : undefined;
-      return firstFromArray || "";
+      if (firstFromArray) return firstFromArray;
+      // Fallback to legacy mountId for existing records
+      return (currentSpecs.mountId as string | undefined) || "";
     }
 
-    // For lenses (multi select), merge legacy single value with array, de-duped
+    // For lenses (multi select), prefer mountIds and include legacy as fallback for display
     const fromArray = Array.isArray(currentSpecs.mountIds)
       ? currentSpecs.mountIds
       : [];
