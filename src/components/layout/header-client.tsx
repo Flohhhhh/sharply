@@ -62,13 +62,13 @@ export default function HeaderClient({ user }: { user: HeaderUser }) {
               }`}
             >
               {hasScrolled || !isHomePage ? (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-0 sm:gap-2">
                   {/* Desktop nav sheet trigger - hidden on mobile when scrolled */}
                   <NavSheetDesktop topClass={sheetTopClass}>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="hidden h-8 w-8 p-2 md:inline-flex"
+                      className="-ml-2 hidden h-8 w-8 p-2 md:inline-flex"
                     >
                       <Menu className="size-4" />
                     </Button>

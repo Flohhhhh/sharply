@@ -50,7 +50,7 @@ export default async function DynamicPage({
   // console.log(page);
 
   return (
-    <div className="mx-auto my-24 flex min-h-screen max-w-5xl flex-col items-center gap-12 p-6">
+    <div className="mx-auto my-24 flex min-h-screen flex-col items-center gap-12 px-4 sm:px-8">
       <div className="flex flex-col items-center gap-4">
         <Badge className="bg-accent text-accent-foreground">{category}</Badge>
         <h1 className="text-center text-5xl font-semibold sm:text-6xl">
@@ -70,7 +70,7 @@ export default async function DynamicPage({
           alt={page.title}
           width={1280}
           height={720}
-          className="aspect-video w-full rounded-lg object-cover"
+          className="aspect-video w-full max-w-5xl rounded-lg object-cover"
         />
       )}
       <div className="mx-auto grid w-full max-w-5xl grid-cols-1 gap-8 lg:grid-cols-7">
