@@ -8,12 +8,12 @@ import { SiteHeader } from "./admin-header";
 
 export const metadata: Metadata = {
   title: {
-    default: "Admin | Sharply",
+    default: "Admin",
     template: "%s | Admin | Sharply",
   },
   openGraph: {
     title: {
-      default: "Admin | Sharply",
+      default: "Admin",
       template: "%s | Admin | Sharply",
     },
   },
