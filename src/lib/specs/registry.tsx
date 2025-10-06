@@ -288,6 +288,7 @@ export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
         },
       ],
     },
+
     {
       title: "Hardware/Build",
       data: [
@@ -324,6 +325,102 @@ export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
         {
           label: "Weather Sealing",
           value: yesNoNull(cameraSpecsItem?.hasWeatherSealing ?? null),
+        },
+        {
+          label: "Rear Display Type",
+          value: (() => {
+            const t = (cameraSpecsItem as any)?.rearDisplayType as
+              | string
+              | undefined;
+            if (!t) return undefined;
+            const map: Record<string, string> = {
+              none: "None",
+              fixed: "Fixed",
+              single_axis_tilt: "Single-axis tilt",
+              dual_axis_tilt: "Dual-axis tilt",
+              fully_articulated: "Fully articulated",
+            };
+            return map[t] ?? t;
+          })(),
+        },
+        {
+          label: "Rear Display Size",
+          value: (() => {
+            const raw = (cameraSpecsItem as any)?.rearDisplaySizeInches as
+              | number
+              | string
+              | undefined;
+            const n = raw == null ? NaN : Number(raw);
+            return Number.isFinite(n) ? `${n.toFixed(2)} inches` : undefined;
+          })(),
+        },
+        {
+          label: "Rear Display Resolution",
+          value: (() => {
+            const raw = (cameraSpecsItem as any)
+              ?.rearDisplayResolutionMillionDots as number | string | undefined;
+            const n = raw == null ? NaN : Number(raw);
+            return Number.isFinite(n)
+              ? `${n.toFixed(2)} million dots`
+              : undefined;
+          })(),
+        },
+        {
+          label: "Viewfinder Type",
+          value: (() => {
+            const t = (cameraSpecsItem as any)?.viewfinderType as
+              | string
+              | undefined;
+            if (!t) return undefined;
+            const map: Record<string, string> = {
+              none: "None",
+              optical: "OVF",
+              electronic: "EVF",
+            };
+            return map[t] ?? t;
+          })(),
+        },
+        {
+          label: "Viewfinder Magnification",
+          value: (() => {
+            const t = (cameraSpecsItem as any)?.viewfinderType as
+              | string
+              | undefined;
+            if (!t || t === "none") return undefined;
+            const raw = (cameraSpecsItem as any)?.viewfinderMagnification as
+              | number
+              | string
+              | undefined;
+            const n = raw == null ? NaN : Number(raw);
+            return Number.isFinite(n) ? `${n.toFixed(2)}x` : undefined;
+          })(),
+        },
+        {
+          label: "Viewfinder Resolution",
+          value: (() => {
+            const t = (cameraSpecsItem as any)?.viewfinderType as
+              | string
+              | undefined;
+            if (t !== "electronic") return undefined;
+            const raw = (cameraSpecsItem as any)
+              ?.viewfinderResolutionMillionDots as number | string | undefined;
+            const n = raw == null ? NaN : Number(raw);
+            return Number.isFinite(n)
+              ? `${n.toFixed(2)} million dots`
+              : undefined;
+          })(),
+        },
+        {
+          label: "Has Top Display",
+          value: yesNoNull(
+            ((cameraSpecsItem as any)?.hasTopDisplay ?? null) as any,
+          ),
+        },
+        {
+          label: "Has Rear Touchscreen",
+          value: yesNoNull(
+            ((cameraSpecsItem as any)?.hasRearTouchscreen ?? null) as any,
+          ),
         },
       ],
     },

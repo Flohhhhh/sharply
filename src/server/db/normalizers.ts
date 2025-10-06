@@ -485,6 +485,72 @@ export function normalizeProposalPayloadForDb(
           z.boolean().nullable().optional(),
         )
         .optional(),
+      // Displays & Viewfinder
+      rearDisplayType: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          if (typeof value !== "string") return undefined;
+          const allowed = (ENUMS as any)
+            .rear_display_types_enum as readonly string[];
+          return allowed.includes(value) ? value : undefined;
+        }, z.string().nullable().optional())
+        .optional(),
+      rearDisplayResolutionMillionDots: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          // keep two decimals
+          return num === null ? undefined : Math.round(num * 100) / 100;
+        }, z.number().nullable().optional())
+        .optional(),
+      rearDisplaySizeInches: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.round(num * 100) / 100;
+        }, z.number().nullable().optional())
+        .optional(),
+      viewfinderType: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          if (typeof value !== "string") return undefined;
+          // accept friendly shorthand
+          const v = value.toLowerCase();
+          const mapped =
+            v === "ovf" ? "optical" : v === "evf" ? "electronic" : v;
+          const allowed = (ENUMS as any)
+            .viewfinder_types_enum as readonly string[];
+          return allowed.includes(mapped) ? mapped : undefined;
+        }, z.string().nullable().optional())
+        .optional(),
+      viewfinderMagnification: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.round(num * 100) / 100;
+        }, z.number().nullable().optional())
+        .optional(),
+      viewfinderResolutionMillionDots: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.round(num * 100) / 100;
+        }, z.number().nullable().optional())
+        .optional(),
+      hasTopDisplay: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      hasRearTouchscreen: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
     })
     .catchall(z.unknown());
 

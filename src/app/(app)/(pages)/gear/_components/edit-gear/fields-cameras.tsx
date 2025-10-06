@@ -264,6 +264,148 @@ function CameraFieldsComponent({
             onChange={(value) => handleFieldChange("isoMax", value)}
           />
 
+          {/* Rear Display Type */}
+          <div className="space-y-2">
+            <Label htmlFor="rearDisplayType">Rear Display Type</Label>
+            <Select
+              value={currentSpecs?.rearDisplayType ?? ""}
+              onValueChange={(value) =>
+                handleFieldChange("rearDisplayType", value)
+              }
+            >
+              <SelectTrigger id="rearDisplayType" className="w-full">
+                <SelectValue placeholder="Select display type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">None</SelectItem>
+                <SelectItem value="fixed">Fixed</SelectItem>
+                <SelectItem value="single_axis_tilt">
+                  Single-axis tilt
+                </SelectItem>
+                <SelectItem value="dual_axis_tilt">Dual-axis tilt</SelectItem>
+                <SelectItem value="fully_articulated">
+                  Fully articulated
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Rear Display Resolution (million dots) */}
+          <NumberInput
+            id="rearDisplayResolutionMillionDots"
+            label="Rear Display Resolution"
+            suffix="million dots"
+            value={
+              currentSpecs?.rearDisplayResolutionMillionDots != null
+                ? Number(currentSpecs.rearDisplayResolutionMillionDots)
+                : null
+            }
+            onChange={(value) =>
+              handleFieldChange("rearDisplayResolutionMillionDots", value)
+            }
+            placeholder="e.g., 1.62"
+            step={0.01}
+            min={0}
+          />
+
+          {/* Rear Display Size (inches) */}
+          <NumberInput
+            id="rearDisplaySizeInches"
+            label="Rear Display Size"
+            suffix="inches"
+            value={
+              currentSpecs?.rearDisplaySizeInches != null
+                ? Number(currentSpecs.rearDisplaySizeInches)
+                : null
+            }
+            onChange={(value) =>
+              handleFieldChange("rearDisplaySizeInches", value)
+            }
+            placeholder="e.g., 3.2"
+            step={0.01}
+            min={0}
+          />
+
+          {/* Viewfinder Type */}
+          <div className="space-y-2">
+            <Label htmlFor="viewfinderType">Viewfinder Type</Label>
+            <Select
+              value={currentSpecs?.viewfinderType ?? ""}
+              onValueChange={(value) =>
+                handleFieldChange("viewfinderType", value)
+              }
+            >
+              <SelectTrigger id="viewfinderType" className="w-full">
+                <SelectValue placeholder="Select viewfinder type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">None</SelectItem>
+                <SelectItem value="optical">OVF (Optical)</SelectItem>
+                <SelectItem value="electronic">EVF (Electronic)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Viewfinder Magnification (x) */}
+          {(currentSpecs?.viewfinderType ?? "") !== "none" && (
+            <NumberInput
+              id="viewfinderMagnification"
+              label="Viewfinder Magnification"
+              suffix="x"
+              value={
+                currentSpecs?.viewfinderMagnification != null
+                  ? Number(currentSpecs.viewfinderMagnification)
+                  : null
+              }
+              onChange={(value) =>
+                handleFieldChange("viewfinderMagnification", value)
+              }
+              placeholder="e.g., 0.80"
+              step={0.01}
+              min={0}
+            />
+          )}
+
+          {/* Viewfinder Resolution (million dots) */}
+          {(currentSpecs?.viewfinderType ?? "") === "electronic" && (
+            <NumberInput
+              id="viewfinderResolutionMillionDots"
+              label="Viewfinder Resolution"
+              suffix="million dots"
+              value={
+                currentSpecs?.viewfinderResolutionMillionDots != null
+                  ? Number(currentSpecs.viewfinderResolutionMillionDots)
+                  : null
+              }
+              onChange={(value) =>
+                handleFieldChange("viewfinderResolutionMillionDots", value)
+              }
+              placeholder="e.g., 5.76"
+              step={0.01}
+              min={0}
+            />
+          )}
+
+          {/* Has Top Display */}
+          <BooleanInput
+            id="hasTopDisplay"
+            label="Has Top Display"
+            allowNull
+            showStateText
+            checked={currentSpecs?.hasTopDisplay ?? null}
+            onChange={(value) => handleFieldChange("hasTopDisplay", value)}
+          />
+
+          {/* Has Rear Touchscreen */}
+          <BooleanInput
+            id="hasRearTouchscreen"
+            label="Has Rear Touchscreen"
+            allowNull
+            showStateText
+            checked={currentSpecs?.hasRearTouchscreen ?? null}
+            onChange={(value) => handleFieldChange("hasRearTouchscreen", value)}
+          />
+
           {/* Max Raw Bit Depth */}
           <div className="space-y-2">
             <Label htmlFor="maxRawBitDepth">Max Raw Bit Depth</Label>

@@ -900,6 +900,7 @@ export const ENUMS = {
   ],
   "card_form_factor_enum": [
     "sd",
+    "micro_sd",
     "cfexpress_type_a",
     "cfexpress_type_b",
     "cfexpress_type_c",
@@ -975,6 +976,13 @@ export const ENUMS = {
     "12",
     "14",
     "16"
+  ],
+  "rear_display_types_enum": [
+    "none",
+    "fixed",
+    "single_axis_tilt",
+    "dual_axis_tilt",
+    "fully_articulated"
   ],
   "review_status": [
     "PENDING",

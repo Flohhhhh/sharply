@@ -188,6 +188,15 @@ export const viewfinderTypesEnum = pgEnum("viewfinder_types_enum", [
   "electronic",
 ]);
 
+// Rear display articulation types
+export const rearDisplayTypesEnum = pgEnum("rear_display_types_enum", [
+  "none", // no rear display
+  "fixed", // non-articulating
+  "single_axis_tilt", // tilts up/down only
+  "dual_axis_tilt", // up/down + side tilt (2-axis)
+  "fully_articulated", // side-hinged vari-angle
+]);
+
 export const shutterTypesEnum = pgEnum("shutter_types_enum", [
   "mechanical",
   "efc",
@@ -491,6 +500,27 @@ export const cameraSpecs = appSchema.table(
     hasSelfTimer: boolean("has_self_timer"),
     hasBuiltInFlash: boolean("has_built_in_flash"),
     hasHotShoe: boolean("has_hot_shoe"),
+    // displays & viewfinder
+    rearDisplayType: rearDisplayTypesEnum("rear_display_type"),
+    rearDisplayResolutionMillionDots: decimal(
+      "rear_display_resolution_million_dots",
+      { precision: 6, scale: 2 },
+    ),
+    rearDisplaySizeInches: decimal("rear_display_size_inches", {
+      precision: 4,
+      scale: 2,
+    }),
+    hasRearTouchscreen: boolean("has_rear_touchscreen"),
+    viewfinderType: viewfinderTypesEnum("viewfinder_type"),
+    viewfinderMagnification: decimal("viewfinder_magnification", {
+      precision: 4,
+      scale: 2,
+    }),
+    viewfinderResolutionMillionDots: decimal(
+      "viewfinder_resolution_million_dots",
+      { precision: 6, scale: 2 },
+    ),
+    hasTopDisplay: boolean("has_top_display"),
     extra: jsonb("extra"),
     createdAt,
     updatedAt,
