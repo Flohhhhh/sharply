@@ -91,6 +91,16 @@ function CameraFieldsComponent({
     return ids;
   }, [currentSpecs?.afAreaModes]);
 
+  // Safe, typed list of camera type enum values with a fallback
+  const cameraTypeEnumList: readonly string[] = useMemo(() => {
+    const maybe = (ENUMS as unknown as { camera_type_enum?: unknown })
+      .camera_type_enum;
+    if (Array.isArray(maybe) && maybe.every((x) => typeof x === "string")) {
+      return maybe as readonly string[];
+    }
+    return ["dslr", "mirrorless", "slr", "action", "cinema"] as const;
+  }, []);
+
   const handleFieldChange = useCallback(
     (fieldId: string, value: any) => {
       console.log("handleFieldChange called:", { fieldId, value });
@@ -197,15 +207,7 @@ function CameraFieldsComponent({
                 <SelectValue placeholder="Camera Type" />
               </SelectTrigger>
               <SelectContent>
-                {(
-                  (ENUMS as any).camera_type_enum ?? [
-                    "dslr",
-                    "mirrorless",
-                    "slr",
-                    "action",
-                    "cinema",
-                  ]
-                ).map((type: string) => (
+                {cameraTypeEnumList.map((type) => (
                   <SelectItem key={type} value={type}>
                     {formatCameraType(type) ?? type}
                   </SelectItem>
