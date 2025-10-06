@@ -14,6 +14,7 @@ import { CoreFields } from "./fields-core";
 import { LensFields } from "./fields-lenses";
 import CameraFields from "./fields-cameras";
 import { FixedLensFields } from "./fields-fixed-lens";
+import { NotesFields } from "~/app/(app)/(pages)/gear/_components/edit-gear/fields-notes";
 import { MOUNTS } from "~/lib/generated";
 import type { gear, cameraSpecs, lensSpecs } from "~/server/db/schema";
 import { useRouter } from "next/navigation";
@@ -168,6 +169,7 @@ function EditGearForm({
       "linkMpb",
       "linkAmazon",
       "genres",
+      "notes",
     ] as const;
     const coreDiff = diffByKeys(gearData as any, formData as any, coreKeys);
     if (Object.keys(coreDiff).length > 0) payload.core = coreDiff;
@@ -511,6 +513,16 @@ function EditGearForm({
         />
       )}
 
+      {/* Notes (appears last) */}
+      <NotesFields
+        notes={
+          Array.isArray((formData as any).notes)
+            ? ((formData as any).notes as string[])
+            : []
+        }
+        onChange={(next: string[]) => handleChange("notes", next)}
+      />
+
       {showActions && (
         <div className="flex justify-end space-x-4">
           <Button
@@ -573,6 +585,10 @@ function EditGearForm({
                           if (k === "mountId") {
                             const ids = v ? [String(v)] : [];
                             display = getMountLongNamesById(ids);
+                          }
+                          if (k === "notes") {
+                            const arr = Array.isArray(v) ? (v as string[]) : [];
+                            display = arr.join("; ");
                           }
                           const label =
                             k === "mountIds" ? "Mounts" : humanizeKey(k);

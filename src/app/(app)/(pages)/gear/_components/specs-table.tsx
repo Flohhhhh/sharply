@@ -14,6 +14,7 @@ export type SpecsTableSection = {
     label: string;
     value: ReactNode | undefined;
     tooltip?: string;
+    fullWidth?: boolean;
   }[];
 };
 export default function SpecsTable({
@@ -33,30 +34,43 @@ export default function SpecsTable({
                 {section.title}
               </h3>
               {section.data
-                .filter((item) => item.value !== undefined)
-                .map((item, index) => (
-                  <div
-                    key={item.label}
-                    className={`hover:bg-secondary/50 flex h-full items-center justify-between px-4 py-2 transition-colors duration-200 ${
-                      index % 2 === 0 ? "bg-background" : "bg-accent/60"
-                    }`}
-                  >
-                    <div className="space-x-3">
-                      <span className="text-muted-foreground">
-                        {item.label}
-                      </span>
-                      {item.tooltip && (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <InfoIcon className="text-muted-foreground h-4 w-4" />
-                          </TooltipTrigger>
-                          <TooltipContent>{item.tooltip}</TooltipContent>
-                        </Tooltip>
-                      )}
+                .filter((row) => row.value !== undefined)
+                .map((row, index) => {
+                  const baseClass = `hover:bg-secondary/50 px-4 py-2 transition-colors duration-200 ${
+                    index % 2 === 0 ? "bg-background" : "bg-accent/60"
+                  }`;
+                  if (row.fullWidth) {
+                    return (
+                      <div
+                        key={`${section.title}-full-${index}`}
+                        className={baseClass}
+                      >
+                        {row.value}
+                      </div>
+                    );
+                  }
+                  return (
+                    <div
+                      key={row.label}
+                      className={`flex h-full items-center justify-between ${baseClass}`}
+                    >
+                      <div className="space-x-3">
+                        <span className="text-muted-foreground">
+                          {row.label}
+                        </span>
+                        {row.tooltip && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <InfoIcon className="text-muted-foreground h-4 w-4" />
+                            </TooltipTrigger>
+                            <TooltipContent>{row.tooltip}</TooltipContent>
+                          </Tooltip>
+                        )}
+                      </div>
+                      <div className="text-right">{row.value}</div>
                     </div>
-                    <div className="text-right">{item.value}</div>
-                  </div>
-                ))}
+                  );
+                })}
             </div>
           </div>
         ))}
