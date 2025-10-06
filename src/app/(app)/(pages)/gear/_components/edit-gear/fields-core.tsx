@@ -350,11 +350,13 @@ function CoreFieldsComponent({
 
           <NumberInput
             id="weight"
-            label="Weight with battery"
+            label={gearType === "CAMERA" ? "Weight with battery" : "Weight"}
             value={formattedWeight}
             onChange={(v) => onChange("weightGrams", v)}
             min={0}
-            placeholder="Enter weight w/ battery"
+            placeholder={
+              gearType === "CAMERA" ? "Enter weight w/ battery" : "Enter weight"
+            }
             suffix="g"
             prefix="≈"
           />

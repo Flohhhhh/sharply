@@ -152,6 +152,8 @@ export default async function GearPage({ params }: GearPageProps) {
   const specSections = buildGearSpecsSections(item);
   const brand = getBrandNameById(item.brandId ?? "");
 
+  console.log("[GearPage] item", item);
+
   const breadCrumbItems = [
     { label: "Gear", href: "/gear" },
     brand ? { label: brand, href: `/brand/${brand.toLowerCase()}` } : null,

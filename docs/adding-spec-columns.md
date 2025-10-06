@@ -142,6 +142,7 @@ export const cameraSpecs = createTable(
 // schema.ts (inside cameraSpecs)
 availableShutterTypes: shutterTypesEnum("available_shutter_types").array(),
 viewfinderType: viewfinderTypesEnum("viewfinder_type"),
+rearDisplayType: rearDisplayTypesEnum("rear_display_type"),
 ```
 
 Notes
