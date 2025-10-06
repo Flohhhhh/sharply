@@ -104,6 +104,7 @@ export const cameraTypeEnum = pgEnum("camera_type_enum", [
 export const cardFormFactorEnum = pgEnum("card_form_factor_enum", [
   // Modern / current
   "sd",
+  "micro_sd",
   "cfexpress_type_a",
   "cfexpress_type_b",
   "cfexpress_type_c",
