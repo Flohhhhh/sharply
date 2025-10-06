@@ -12,6 +12,7 @@ import {
 } from "~/components/ui/select";
 import type { cameraSpecs, sensorFormats } from "~/server/db/schema";
 import { SENSOR_FORMATS, ENUMS, AF_AREA_MODES } from "~/lib/constants";
+import { formatCameraType } from "~/lib/mapping";
 import IsoInput from "~/components/custom-inputs/iso-input";
 import SensorFormatInput from "~/components/custom-inputs/sensor-format-input";
 import { NumberInput, MultiTextInput } from "~/components/custom-inputs";
@@ -179,6 +180,34 @@ function CameraFieldsComponent({
                 {ENUMS.sensor_tech_types_enum.map((type) => (
                   <SelectItem key={type} value={type}>
                     {type.toUpperCase()}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Camera Type */}
+          <div className="space-y-2">
+            <Label htmlFor="cameraType">Camera Type</Label>
+            <Select
+              value={currentSpecs?.cameraType ?? ""}
+              onValueChange={(value) => handleFieldChange("cameraType", value)}
+            >
+              <SelectTrigger id="cameraType" className="w-full">
+                <SelectValue placeholder="Camera Type" />
+              </SelectTrigger>
+              <SelectContent>
+                {(
+                  (ENUMS as any).camera_type_enum ?? [
+                    "dslr",
+                    "mirrorless",
+                    "slr",
+                    "action",
+                    "cinema",
+                  ]
+                ).map((type: string) => (
+                  <SelectItem key={type} value={type}>
+                    {formatCameraType(type) ?? type}
                   </SelectItem>
                 ))}
               </SelectContent>

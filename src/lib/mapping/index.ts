@@ -19,6 +19,9 @@ export {
   summarizeCardSlots,
 } from "./card-slots-map";
 
+// Camera type formatter
+export { formatCameraType } from "./camera-type-map";
+
 // Lens aperture formatting
 export {
   formatApertureSingle,

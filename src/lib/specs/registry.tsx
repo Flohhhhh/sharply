@@ -5,6 +5,7 @@ import {
   formatPrice,
   formatDimensions,
   formatCardSlotDetails,
+  formatCameraType,
 } from "~/lib/mapping";
 import {
   getMountLongNameById,
@@ -62,6 +63,21 @@ export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
   const core: SpecsTableSection = {
     title: "Basic Information",
     data: [
+      // Camera Type (for cameras)
+      ...(item.gearType === "CAMERA"
+        ? [
+            {
+              label: "Camera Type",
+              value: (() => {
+                const t = (item as any)?.cameraSpecs?.cameraType as
+                  | string
+                  | undefined;
+                if (!t) return undefined;
+                return formatCameraType(t);
+              })(),
+            },
+          ]
+        : []),
       // Lenses: show only Available Mounts (junction array or fallback)
       ...(item.gearType === "LENS"
         ? [

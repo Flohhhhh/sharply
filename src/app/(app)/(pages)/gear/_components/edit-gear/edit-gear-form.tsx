@@ -180,6 +180,7 @@ function EditGearForm({
         "resolutionMp",
         "sensorStackingType",
         "sensorTechType",
+        "cameraType",
         "isBackSideIlluminated",
         "sensorReadoutSpeedMs",
         "maxRawBitDepth",
