@@ -1,0 +1,1 @@
+ALTER TYPE "public"."card_form_factor_enum" ADD VALUE 'micro_sd' BEFORE 'cfexpress_type_a';
