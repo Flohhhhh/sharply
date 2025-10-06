@@ -55,6 +55,7 @@ export async function generateMetadata({
     title: `${item.name}: Specs & Reviews`,
     openGraph: {
       title: `${item.name}: Specs & Reviews`,
+      images: [item.thumbnailUrl ?? ""],
     },
   };
 }
