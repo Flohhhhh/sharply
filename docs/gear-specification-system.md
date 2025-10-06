@@ -18,6 +18,7 @@ The central table that stores common gear information:
   - `mountId`: Single mount reference (kept for backward compatibility, stores "primary" mount)
   - Mount relationships managed via `gear_mounts` junction table for multi-mount support
 - **Metadata**: Release date, price, thumbnail URL
+- **User Notes**: `notes` — `text[]` for unstructured notes
 - **Commerce**: `mpbMaxPriceUsdCents` — optional MPB max price (USD cents)
 - **Core Specs**: Physical dimensions (width, height, depth in mm), weight
 - **Timestamps**: Created/updated tracking
@@ -193,6 +194,13 @@ The registry exports `buildGearSpecsSections(item: GearItem)` which returns `Spe
 1. Add field to database schema
 2. Add entry to spec registry with label and formatted value
 3. Field automatically appears in appropriate section
+
+### Notes Field
+
+- Schema: `gear.notes` (`text[]`), stores an array of strings
+- Normalization: Input via edit form is validated and trimmed to `string[]` (`null` clears notes)
+- UI: A "Notes" section appears at the bottom of the edit form with a repeater allowing users to add/remove note items. Each item is a textarea. Users click "+ Add note" to create a new note.
+- Submission Preview: Notes are included in the confirmation modal; items are summarized inline.
 
 ## Indexing Strategy
 

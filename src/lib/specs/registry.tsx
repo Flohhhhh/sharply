@@ -777,8 +777,38 @@ export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
         ]
       : [core, ...lensSections];
 
+  // Append Notes at the very bottom for both gear types
+  const notesSection = Array.isArray((item as any).notes)
+    ? {
+        title: "Notes",
+        data: [
+          {
+            label: "",
+            fullWidth: true,
+            value: (() => {
+              const list = ((item as any).notes as string[]).filter(
+                (n) => typeof n === "string" && n.trim().length > 0,
+              );
+              return list.length ? (
+                <ul className="text-muted-foreground list-disc space-y-1 pl-4 text-sm">
+                  {list.map((note, idx) => (
+                    <li key={idx}>{note}</li>
+                  ))}
+                </ul>
+              ) : undefined;
+            })(),
+          },
+        ],
+      }
+    : null;
+
   // Filter out rows with non-displayable values at registry level
-  return sections.map((section) => ({
+  const sectionsWithNotes =
+    notesSection && notesSection.data.length > 0
+      ? [...sections, notesSection]
+      : sections;
+
+  return sectionsWithNotes.map((section) => ({
     ...section,
     data: section.data.filter((row) => hasDisplayValue(row.value)),
   }));

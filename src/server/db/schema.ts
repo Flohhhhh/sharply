@@ -360,6 +360,8 @@ export const gear = appSchema.table(
     linkAmazon: text("link_amazon"),
     // Denormalized shortlist of genre slugs for quick reads (authoritative list via join table)
     genres: jsonb("genres"),
+    // Unstructured user notes for the gear item (array of strings)
+    notes: text("notes").array(),
     createdAt,
     updatedAt,
   }),

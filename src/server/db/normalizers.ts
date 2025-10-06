@@ -183,6 +183,23 @@ export function normalizeProposalPayloadForDb(
           return num === null ? undefined : num;
         }, z.number().nullable().optional())
         .optional(),
+      // Free-form notes: normalize to array of trimmed non-empty strings
+      notes: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          if (Array.isArray(value)) {
+            const strings = value
+              .map((v) => (typeof v === "string" ? v.trim() : ""))
+              .filter((s) => s.length > 0);
+            return strings.length > 0 ? strings : [];
+          }
+          if (typeof value === "string") {
+            const s = value.trim();
+            return s.length > 0 ? [s] : [];
+          }
+          return undefined;
+        }, z.array(z.string()).nullable().optional())
+        .optional(),
     })
     .catchall(z.unknown());
 
