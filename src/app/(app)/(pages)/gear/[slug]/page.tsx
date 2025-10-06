@@ -56,10 +56,10 @@ export async function generateMetadata({
     ? `${item.name} specs and reviews. ${verdict?.content ?? ""}`
     : `${item.name} specs and reviews. Sharply is the newest and most comprehensive photography gear database and review platform featuring expert reviews, real specs, and side-by-side comparisons in a modern, minimalist interface.`;
   return {
-    title: `${item.name}: Specs & Reviews`,
+    title: `${item.name} | Specs & Reviews`,
     description,
     openGraph: {
-      title: `${item.name}: Specs & Reviews`,
+      title: `${item.name} | Specs & Reviews`,
       images: [item.thumbnailUrl ?? ""],
       description,
     },
