@@ -51,11 +51,17 @@ export async function generateMetadata({
 }: GearPageProps): Promise<Metadata> {
   const { slug } = await params;
   const item: GearItem = await fetchGearBySlug(slug);
+  const verdict = await fetchStaffVerdict(slug);
+  const description = verdict
+    ? `${item.name} specs and reviews. ${verdict?.content ?? ""}`
+    : `${item.name} specs and reviews. Sharply is the newest and most comprehensive photography gear database and review platform featuring expert reviews, real specs, and side-by-side comparisons in a modern, minimalist interface.`;
   return {
     title: `${item.name}: Specs & Reviews`,
+    description,
     openGraph: {
       title: `${item.name}: Specs & Reviews`,
       images: [item.thumbnailUrl ?? ""],
+      description,
     },
   };
 }
