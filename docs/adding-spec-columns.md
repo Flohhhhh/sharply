@@ -16,7 +16,45 @@ The project uses Drizzle ORM for schema, and we manage changes via generated SQL
    - Add the key to the diff whitelist in `edit-gear-form.tsx` (`cameraKeys`, `lensKeys`, or `coreKeys`).
 4. Normalize on submit in `src/server/db/normalizers.ts` (coerce to DB-safe types; enums as string pass‑through or enum-check).
 5. Add the spec to the registry: update `src/lib/specs/registry.tsx` to include the new field with proper label, formatting, and section grouping.
-6. Test: `npm run typecheck && npm run lint && npm run build`, then verify edit and detail pages.
+
+#### Example – add Camera Type enum to camera specs
+
+1. Schema (`src/server/db/schema.ts`):
+
+```ts
+// define enum
+export const cameraTypeEnum = pgEnum("camera_type_enum", [
+  "dslr",
+  "mirrorless",
+  "slr",
+  "action",
+  "cinema",
+]);
+
+// add column on camera_specs
+cameraType: cameraTypeEnum("camera_type"),
+```
+
+2. Normalizer (`src/server/db/normalizers.ts`):
+
+```ts
+cameraType: z
+  .preprocess((value) => {
+    if (value === null) return null;
+    if (typeof value !== "string") return undefined;
+    const allowed = (ENUMS as any).camera_type_enum;
+    return (allowed as readonly string[]).includes(value) ? value : undefined;
+  }, z.string().nullable().optional())
+  .optional(),
+```
+
+3. Submit whitelist (`edit-gear-form.tsx`): add `"cameraType"` to `cameraKeys`.
+
+4. UI (`fields-cameras.tsx`): add a `Select` bound to `cameraType` using `ENUMS.camera_type_enum`.
+
+5. Display (`src/lib/specs/registry.tsx`): add "Camera Type" under Basic Information when `gearType === "CAMERA"`.
+
+6) Test: `npm run typecheck && npm run lint && npm run build`, then verify edit and detail pages.
 
 Optional (as needed):
 

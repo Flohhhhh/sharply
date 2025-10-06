@@ -257,6 +257,22 @@ export function normalizeProposalPayloadForDb(
           return allowed.includes(value) ? value : undefined;
         }, z.string().nullable().optional())
         .optional(),
+      cameraType: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          if (typeof value !== "string") return undefined;
+          const allowed = (ENUMS as any).camera_type_enum ?? [
+            "dslr",
+            "mirrorless",
+            "slr",
+            "action",
+            "cinema",
+          ];
+          return (allowed as readonly string[]).includes(value)
+            ? value
+            : undefined;
+        }, z.string().nullable().optional())
+        .optional(),
       isBackSideIlluminated: z
         .preprocess(
           (value) =>

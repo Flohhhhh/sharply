@@ -91,6 +91,15 @@ export const datePrecisionEnum = pgEnum("date_precision_enum", [
   "DAY",
 ]);
 
+// Camera classification
+export const cameraTypeEnum = pgEnum("camera_type_enum", [
+  "dslr",
+  "mirrorless",
+  "slr",
+  "action",
+  "cinema",
+]);
+
 /** 1) Card form factor (aka format/shape) */
 export const cardFormFactorEnum = pgEnum("card_form_factor_enum", [
   // Modern / current
@@ -449,6 +458,7 @@ export const cameraSpecs = appSchema.table(
     hasPixelShiftShooting: boolean("has_pixel_shift_shooting"),
     hasAntiAliasingFilter: boolean("has_anti_aliasing_filter"),
     // hardware
+    cameraType: cameraTypeEnum("camera_type"),
     processorName: varchar("processor_name", { length: 200 }),
     hasWeatherSealing: boolean("has_weather_sealing"),
     // focus

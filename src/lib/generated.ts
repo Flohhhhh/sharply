@@ -869,6 +869,13 @@ export const ENUMS = {
     "birds",
     "aircraft"
   ],
+  "camera_type_enum": [
+    "dslr",
+    "mirrorless",
+    "slr",
+    "action",
+    "cinema"
+  ],
   "card_bus_enum": [
     "sd_default",
     "uhs_i",
