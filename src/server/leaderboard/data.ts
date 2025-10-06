@@ -14,18 +14,20 @@ export interface LeaderboardRow {
 }
 
 /**
- * Fetch top contributors by simple score = edits (count) + gear creations (count).
- * Optionally filter edits by status in the future; today we count all edits to
- * match the homepage/global contribution semantics.
+ * Fetch top contributors by score = edits (field count) + gear creations (count).
+ * Edits are weighted by the number of fields changed in the payload, matching
+ * the gear page contributor logic.
  */
 export async function fetchContributorLeaderboardData(
   limit = 10,
 ): Promise<LeaderboardRow[]> {
-  const [editsByUser, createsByUser] = await Promise.all([
+  const [editRows, createsByUser] = await Promise.all([
     db
-      .select({ userId: gearEdits.createdById, c: count() })
-      .from(gearEdits)
-      .groupBy(gearEdits.createdById),
+      .select({
+        userId: gearEdits.createdById,
+        payload: gearEdits.payload,
+      })
+      .from(gearEdits),
     db
       .select({ userId: auditLogs.actorUserId, c: count() })
       .from(auditLogs)
@@ -33,8 +35,30 @@ export async function fetchContributorLeaderboardData(
       .groupBy(auditLogs.actorUserId),
   ]);
 
+  // Count fields per user (matching gear page logic)
+  const editsByUser = new Map<string, number>();
+  const countFields = (payload: any): number => {
+    if (!payload || typeof payload !== "object") return 0;
+    let total = 0;
+    const sections = ["core", "camera", "lens"] as const;
+    for (const key of sections) {
+      const section = (payload as any)[key];
+      if (section && typeof section === "object") {
+        total += Object.keys(section).length;
+      }
+    }
+    return total;
+  };
+
+  for (const row of editRows) {
+    if (!row.userId) continue;
+    const fieldCount = countFields(row.payload);
+    const current = editsByUser.get(row.userId) ?? 0;
+    editsByUser.set(row.userId, current + fieldCount);
+  }
+
   const userIds = new Set<string>();
-  for (const e of editsByUser) if (e.userId) userIds.add(e.userId);
+  for (const userId of editsByUser.keys()) userIds.add(userId);
   for (const c of createsByUser) if (c.userId) userIds.add(c.userId);
 
   const ids = Array.from(userIds);
@@ -46,7 +70,6 @@ export async function fetchContributorLeaderboardData(
     : [];
 
   const idToUser = new Map(userRows.map((u) => [u.id, u]));
-  const editMap = new Map(editsByUser.map((r) => [r.userId, Number(r.c ?? 0)]));
   const createMap = new Map(
     createsByUser.map((r) => [r.userId, Number(r.c ?? 0)]),
   );
@@ -54,7 +77,7 @@ export async function fetchContributorLeaderboardData(
   const rows: LeaderboardRow[] = ids
     .map((id) => {
       const u = idToUser.get(id);
-      const edits = editMap.get(id) ?? 0;
+      const edits = editsByUser.get(id) ?? 0;
       const creations = createMap.get(id) ?? 0;
       const score = edits + creations;
       return {
