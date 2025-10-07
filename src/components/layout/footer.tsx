@@ -116,7 +116,15 @@ export default function Footer({
       </div>
       <div className="border-border mt-8 border-t py-8">
         <div className="text-muted-foreground flex flex-col justify-between gap-4 px-4 text-xs font-medium sm:px-8 md:flex-row md:items-center md:text-left">
-          <p className="order-2 lg:order-1">{copyright}</p>
+          <div className="flex max-w-sm flex-col gap-4">
+            <p className="order-2 lg:order-1">
+              Product images © respective manufacturers. Used for editorial and
+              informational purposes only. This site is independent and not
+              affiliated with Nikon, Canon, Sony, or other brands.
+            </p>
+            <p className="order-2 lg:order-1">{copyright}</p>
+          </div>
+
           <ul className="order-1 flex flex-col gap-3 md:order-2 md:flex-row">
             <li className="hover:text-primary transition-colors">
               <Link href="/privacy-policy">Privacy</Link>
