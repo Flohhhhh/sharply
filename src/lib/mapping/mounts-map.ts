@@ -18,6 +18,7 @@ export function getMountDisplayName(
   mountValue: string | null | undefined,
 ): string {
   if (!mountValue) return "Unknown";
+  if (mountValue === "ef-m-canon") return "EF-M - Canon";
 
   // Remove everything after the dash and uppercase
   const displayName = mountValue.split("-")[0]?.toUpperCase();
@@ -33,7 +34,7 @@ export function getMountLongName(
   mountValue: string | null | undefined,
 ): string {
   if (!mountValue) return "Unknown";
-
+  if (mountValue === "ef-m-canon") return "EF-M - Canon";
   const parts = mountValue.split("-");
   if (parts.length < 2) return mountValue;
 
@@ -51,6 +52,7 @@ export function getMountLongName(
  */
 export function getMountNameById(mountId: string | null | undefined): string {
   if (!mountId) return "Unknown";
+  if (mountId === "424f0a4b-66f1-4c41-b276-07e8eb59fc2d") return "EF-M - Canon";
   const m = MOUNT_LIST.find((x) => x.id === mountId);
   if (!m) return mountId;
   return getMountDisplayName(m.value);
@@ -63,6 +65,7 @@ export function getMountLongNameById(
   mountId: string | null | undefined,
 ): string {
   if (!mountId) return "Unknown";
+  if (mountId === "424f0a4b-66f1-4c41-b276-07e8eb59fc2d") return "EF-M - Canon";
   const m = MOUNT_LIST.find((x) => x.id === mountId);
   if (!m) return mountId;
   return getMountLongName(m.value);
@@ -75,6 +78,8 @@ export function getMountNamesById(
   mountIds: string[] | null | undefined,
 ): string {
   if (!mountIds || mountIds.length === 0) return "Unknown";
+  if (mountIds.includes("424f0a4b-66f1-4c41-b276-07e8eb59fc2d"))
+    return "EF-M - Canon";
   return mountIds
     .map((id) => getMountNameById(id))
     .filter((n) => n !== "Unknown")
@@ -88,6 +93,8 @@ export function getMountLongNamesById(
   mountIds: string[] | null | undefined,
 ): string {
   if (!mountIds || mountIds.length === 0) return "Unknown";
+  if (mountIds.includes("424f0a4b-66f1-4c41-b276-07e8eb59fc2d"))
+    return "EF-M - Canon";
   return mountIds
     .map((id) => getMountLongNameById(id))
     .filter((n) => n !== "Unknown")

@@ -93,6 +93,7 @@ async function main() {
   const mountData = [
     { id: crypto.randomUUID(), value: "rf-canon", brandId: canon!.id },
     { id: crypto.randomUUID(), value: "ef-canon", brandId: canon!.id },
+    { id: crypto.randomUUID(), value: "ef-m-canon", brandId: canon!.id },
     { id: crypto.randomUUID(), value: "z-nikon", brandId: nikon!.id },
     { id: crypto.randomUUID(), value: "f-nikon", brandId: nikon!.id },
     { id: crypto.randomUUID(), value: "nikon1-nikon", brandId: nikon!.id },

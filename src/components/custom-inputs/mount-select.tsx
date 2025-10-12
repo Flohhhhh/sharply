@@ -8,9 +8,10 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectSeparator,
 } from "~/components/ui/select";
 import MultiSelect from "~/components/ui/multi-select";
-import { MOUNTS } from "~/lib/constants";
+import { MOUNTS, BRANDS } from "~/lib/constants";
 import { getMountLongName } from "~/lib/mapping/mounts-map";
 
 interface MountSelectProps {
@@ -28,14 +29,87 @@ export function MountSelect({
   label = "Mount",
   placeholder,
 }: MountSelectProps) {
-  const mountOptions = useMemo(
+  const brandIdToName = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const b of BRANDS as any[]) {
+      map.set((b as any).id as string, (b as any).name as string);
+    }
+    return map;
+  }, []);
+
+  const optionsWithBrand = useMemo(
     () =>
-      MOUNTS.map((mount) => ({
-        id: mount.id,
-        name: getMountLongName(mount.value),
-      })),
+      (MOUNTS as any[]).map((mount: any) => {
+        const brandId = (mount as any).brand_id as string | undefined;
+        const brandName = (brandId && brandIdToName.get(brandId)) || "Other";
+        const createdAtStr = (mount as any).created_at as string | undefined;
+        const createdAtMs = createdAtStr ? new Date(createdAtStr).getTime() : 0;
+        return {
+          id: (mount as any).id as string,
+          name: getMountLongName((mount as any).value as string),
+          brandName,
+          createdAtMs,
+        } as {
+          id: string;
+          name: string;
+          brandName: string;
+          createdAtMs: number;
+        };
+      }),
+    [brandIdToName],
+  );
+
+  // Custom brand priority order, then alphabetical for the rest
+  const brandPriority = useMemo(
+    () => ["Canon", "Nikon", "Sony", "Fujifilm", "Leica", "Hasselblad"],
     [],
   );
+
+  const groupedForSingle = useMemo(() => {
+    const map = new Map<
+      string,
+      { id: string; name: string; createdAtMs: number }[]
+    >();
+    for (const o of optionsWithBrand) {
+      const list = map.get(o.brandName) || [];
+      list.push({ id: o.id, name: o.name, createdAtMs: o.createdAtMs });
+      map.set(o.brandName, list);
+    }
+    const presentBrands = Array.from(map.keys());
+    const prioritized = brandPriority.filter((b) => presentBrands.includes(b));
+    const rest = presentBrands
+      .filter((b) => !brandPriority.includes(b))
+      .sort((a, b) => a.localeCompare(b));
+    const restWithoutOther = rest.filter((b) => b !== "Other");
+    const hasOther = presentBrands.includes("Other");
+    const brandOrder = [
+      ...prioritized,
+      ...restWithoutOther,
+      ...(hasOther ? ["Other"] : []),
+    ];
+
+    return brandOrder.map((brandName) => ({
+      brandName,
+      items: (map.get(brandName) || [])
+        .slice()
+        .sort((a, b) => a.createdAtMs - b.createdAtMs)
+        .map(({ id, name }) => ({ id, name })),
+    }));
+  }, [optionsWithBrand, brandPriority]);
+
+  const orderedOptions = useMemo(() => {
+    return groupedForSingle.flatMap((g, idx, arr) => {
+      const items = g.items.map(({ id, name }) => ({ id, name }));
+      const isLast = idx === arr.length - 1;
+      // Insert a separator marker after each group except the last
+      return isLast
+        ? items
+        : [
+            ...items,
+            { id: `sep-${idx}`, name: "", type: "separator" as const },
+          ];
+    });
+  }, [groupedForSingle]);
 
   // Single select mode
   if (mode === "single") {
@@ -49,11 +123,16 @@ export function MountSelect({
             <SelectValue placeholder={placeholder || "Select mount"} />
           </SelectTrigger>
           <SelectContent>
-            {mountOptions.map((mount) => (
-              <SelectItem key={mount.id} value={mount.id}>
-                {mount.name}
-              </SelectItem>
-            ))}
+            {orderedOptions.map((opt) => {
+              if ((opt as any).type === "separator") {
+                return <SelectSeparator key={(opt as any).id} />;
+              }
+              return (
+                <SelectItem key={opt.id} value={opt.id}>
+                  {opt.name}
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
       </div>
@@ -67,7 +146,7 @@ export function MountSelect({
     <div className="space-y-2">
       <Label>{label}</Label>
       <MultiSelect
-        options={mountOptions}
+        options={orderedOptions as any}
         value={multiValue}
         onChange={(ids) => onChange(ids)}
         placeholder={placeholder || "Select compatible mounts..."}

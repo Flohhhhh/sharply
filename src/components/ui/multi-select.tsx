@@ -8,7 +8,11 @@ import * as PopoverBase from "~/components/ui/popover";
 import * as PopoverInDialog from "~/components/ui/popover-in-dialog";
 import { Input } from "~/components/ui/input";
 
-export type MultiSelectOption = { id: string; name: string };
+export type MultiSelectOption = {
+  id: string;
+  name: string;
+  type?: "option" | "separator";
+};
 
 type MultiSelectProps = {
   options: MultiSelectOption[];
@@ -53,14 +57,17 @@ export function MultiSelect({
   const P = useDialog ? PopoverInDialog : PopoverBase;
 
   const selected = React.useMemo(
-    () => options.filter((o) => value.includes(o.id)),
+    () => options.filter((o) => o.type !== "separator" && value.includes(o.id)),
     [options, value],
   );
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return options;
+    // When searching, hide separators to show only matched options
     return options.filter(
-      (o) => o.name.toLowerCase().includes(q) || o.id.toLowerCase().includes(q),
+      (o) =>
+        o.type !== "separator" &&
+        (o.name.toLowerCase().includes(q) || o.id.toLowerCase().includes(q)),
     );
   }, [options, query]);
 
@@ -170,6 +177,15 @@ export function MultiSelect({
           </div>
           <div className="max-h-56 space-y-1 overflow-auto">
             {filtered.map((opt) => {
+              if (opt.type === "separator") {
+                return (
+                  <div
+                    key={opt.id}
+                    role="separator"
+                    className="bg-border my-1 h-px w-full"
+                  />
+                );
+              }
               const isSelected = value.includes(opt.id);
               const disabled =
                 !!maxSelected && !isSelected && value.length >= maxSelected;
