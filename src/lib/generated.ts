@@ -141,6 +141,13 @@ export const MOUNTS = [
     "brand_id": null,
     "created_at": "2025-09-29 17:11:43.506685+00",
     "updated_at": "2025-09-29 17:11:43.506685+00"
+  },
+  {
+    "id": "424f0a4b-66f1-4c41-b276-07e8eb59fc2d",
+    "value": "ef-m-canon",
+    "brand_id": "7df18188-0939-4241-9ca7-6561c6e233e1",
+    "created_at": "2025-10-11 17:08:20.69577+00",
+    "updated_at": "2025-10-11 17:08:20.69577+00"
   }
 ];
 export const SENSOR_FORMATS = [

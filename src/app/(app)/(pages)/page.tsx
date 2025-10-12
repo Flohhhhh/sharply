@@ -194,7 +194,7 @@ export default async function Home() {
               {/* Latest Reviews */}
               <div className="space-y-4">
                 <Suspense fallback={<TrendingList loading rows={10} />}>
-                  <TrendingList timeframe="30d" limit={10} />
+                  <TrendingList timeframe="7d" limit={10} />
                 </Suspense>
                 <Separator className="my-8" />
                 <h2 className="text-2xl font-semibold">Latest Reviews</h2>
