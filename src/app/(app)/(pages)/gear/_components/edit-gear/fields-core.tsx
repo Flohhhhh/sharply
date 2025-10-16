@@ -267,6 +267,14 @@ function CoreFieldsComponent({
             label="Announced Date"
             value={formattedAnnouncedDate}
             onChange={handleAnnouncedDateChange}
+            granularity={
+              ((currentSpecs as any).announceDatePrecision as any) === "YEAR"
+                ? "year"
+                : ((currentSpecs as any).announceDatePrecision as any) ===
+                    "MONTH"
+                  ? "month"
+                  : "day"
+            }
           />
 
           {/* Release Date Precision (left column) */}
@@ -319,6 +327,14 @@ function CoreFieldsComponent({
             label="Release Date"
             value={formattedReleaseDate}
             onChange={handleReleaseDateChange}
+            granularity={
+              ((currentSpecs as any).releaseDatePrecision as any) === "YEAR"
+                ? "year"
+                : ((currentSpecs as any).releaseDatePrecision as any) ===
+                    "MONTH"
+                  ? "month"
+                  : "day"
+            }
           />
 
           <CurrencyInput

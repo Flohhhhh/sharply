@@ -4,7 +4,11 @@ import { useMemo, useCallback, useEffect, useState } from "react";
 import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
-import { Calendar as CalendarIcon } from "lucide-react";
+import {
+  Calendar as CalendarIcon,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -12,11 +16,14 @@ import {
 } from "~/components/ui/popover";
 import { Calendar } from "~/components/ui/calendar";
 
+type Granularity = "day" | "month" | "year";
+
 interface DateInputProps {
   label: string;
   value: string | null | undefined;
   onChange: (value: string) => void;
   placeholder?: string;
+  granularity?: Granularity; // default: "day". Controls typing/display behavior only
 }
 
 export function DateInput({
@@ -24,6 +31,7 @@ export function DateInput({
   value,
   onChange,
   placeholder,
+  granularity = "day",
 }: DateInputProps) {
   // Local display state in format: "YYYY/MM/DD" (slashes)
   const [display, setDisplay] = useState<string>("");
@@ -39,9 +47,11 @@ export function DateInput({
       const y = digits.slice(0, 4);
       const m = digits.slice(4, 6);
       const d = digits.slice(6, 8);
+      if (granularity === "year") return [y].filter(Boolean).join("");
+      if (granularity === "month") return [y, m].filter(Boolean).join("/");
       return [y, m, d].filter(Boolean).join("/");
     },
-    [],
+    [granularity],
   );
 
   // Keep local display in sync with external value
@@ -62,60 +72,67 @@ export function DateInput({
   }, [value]);
 
   // Build an overlay mask that shows a dynamic placeholder while typing.
-  // Example: after typing "2025/0" -> overlay shows "2025/0_/DD".
+  // Example: after typing "2025/0" in day mode -> overlay shows "2025/0_/DD".
   const overlayChars = useMemo(() => {
     const d = display ?? "";
     const digitsOnly = d.replace(/\D/g, "");
+    const isMonth = granularity === "month";
+    const isYear = granularity === "year";
+
     const yearCount = Math.min(4, digitsOnly.length);
-    const monthCount = Math.max(0, Math.min(2, digitsOnly.length - 4));
-    const dayCount = Math.max(0, Math.min(2, digitsOnly.length - 6));
+    const monthCount = isYear
+      ? 0
+      : Math.max(0, Math.min(2, digitsOnly.length - 4));
+    const dayCount =
+      isYear || isMonth ? 0 : Math.max(0, Math.min(2, digitsOnly.length - 6));
 
     const result: { char: string; visible: boolean }[] = [];
-    // Positions: 0..3 Y, 4 '/', 5..6 M, 7 '/', 8..9 D
-    for (let i = 0; i < 10; i++) {
-      if (i === 4 || i === 7) {
-        // Show slash when input doesn't have it yet at that index
+
+    // Construct pattern per granularity
+    const pattern = isYear ? "YYYY" : isMonth ? "YYYY/MM" : "YYYY/MM/DD";
+
+    for (let i = 0, yIdx = 0, mIdx = 0, dIdx = 0; i < pattern.length; i++) {
+      const ch = pattern[i];
+      if (ch === "/") {
         const hasSlashHere = d.length > i && d[i] === "/";
         result.push({ char: "/", visible: !hasSlashHere });
         continue;
       }
-
-      if (i < 4) {
-        // Year positions
-        if (i < yearCount && d.length > i) {
+      if (ch === "Y") {
+        if (yIdx < yearCount && d.length > i) {
           result.push({ char: d[i] ?? " ", visible: false });
         } else {
           result.push({ char: yearCount > 0 ? "_" : "Y", visible: true });
         }
+        yIdx++;
         continue;
       }
-
-      if (i > 4 && i < 7) {
-        // Month positions (5,6)
-        const monthIndex = i - 5;
-        if (monthIndex < monthCount && d.length > i) {
+      if (ch === "M") {
+        if (mIdx < monthCount && d.length > i) {
           result.push({ char: d[i] ?? " ", visible: false });
         } else {
           result.push({ char: monthCount > 0 ? "_" : "M", visible: true });
         }
+        mIdx++;
         continue;
       }
-
-      // Day positions (8,9)
-      const dayIndex = i - 8;
-      if (dayIndex < dayCount && d.length > i) {
+      // ch === 'D'
+      if (dIdx < dayCount && d.length > i) {
         result.push({ char: d[i] ?? " ", visible: false });
       } else {
         result.push({ char: dayCount > 0 ? "_" : "D", visible: true });
       }
+      dIdx++;
     }
     return result;
-  }, [display]);
+  }, [display, granularity]);
 
   // Only show the overlay when user has started typing but not completed
-  const showOverlay = display.length > 0 && display.length < 10;
+  const overlayLength =
+    granularity === "year" ? 4 : granularity === "month" ? 7 : 10;
+  const showOverlay = display.length > 0 && display.length < overlayLength;
 
-  // When typing, accept only digits, format as YYYY/MM/DD, and emit
+  // When typing, accept only digits, format per granularity, and emit
   // normalized value (YYYY-MM-DD) only when complete and valid
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -125,7 +142,12 @@ export function DateInput({
       const y = digits.slice(0, 4);
       const m = digits.slice(4, 6);
       const d = digits.slice(6, 8);
-      const nextDisplay = [y, m, d].filter(Boolean).join("/");
+      const nextDisplay =
+        granularity === "year"
+          ? [y].filter(Boolean).join("")
+          : granularity === "month"
+            ? [y, m].filter(Boolean).join("/")
+            : [y, m, d].filter(Boolean).join("/");
       setDisplay(nextDisplay);
 
       if (digits.length === 0) {
@@ -134,13 +156,22 @@ export function DateInput({
         return;
       }
 
-      if (digits.length === 8) {
+      const needed =
+        granularity === "year" ? 4 : granularity === "month" ? 6 : 8;
+      if (digits.length >= needed) {
         const year = Number(y);
         let month = Number(m);
         let day = Number(d);
         // Auto-correct zero month/day to the first valid value
         if (month === 0) month = 1;
         if (day === 0) day = 1;
+        // Clamp based on granularity
+        if (granularity === "year") {
+          month = 1;
+          day = 1;
+        } else if (granularity === "month") {
+          day = 1;
+        }
 
         const utc = new Date(Date.UTC(year, month - 1, day));
         const isValid =
@@ -149,14 +180,19 @@ export function DateInput({
           utc.getUTCDate() === day;
         if (isValid) {
           const normalized = `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-          // If we corrected 00 to 01, reflect it in the visible input immediately
-          const correctedDisplay = `${String(year).padStart(4, "0")}/${String(month).padStart(2, "0")}/${String(day).padStart(2, "0")}`;
+          // If we corrected values or clamped for granularity, reflect it
+          const correctedDisplay =
+            granularity === "year"
+              ? `${String(year).padStart(4, "0")}`
+              : granularity === "month"
+                ? `${String(year).padStart(4, "0")}/${String(month).padStart(2, "0")}`
+                : `${String(year).padStart(4, "0")}/${String(month).padStart(2, "0")}/${String(day).padStart(2, "0")}`;
           if (correctedDisplay !== nextDisplay) setDisplay(correctedDisplay);
           onChange(normalized);
         }
       }
     },
-    [onChange],
+    [onChange, granularity],
   );
 
   const handleCalendarSelect = useCallback(
@@ -166,15 +202,24 @@ export function DateInput({
         setDisplay("");
         return;
       }
-      const y = String(date.getFullYear()).padStart(4, "0");
-      const m = String(date.getMonth() + 1).padStart(2, "0");
-      const d = String(date.getDate()).padStart(2, "0");
+      const year = date.getFullYear();
+      const month = granularity === "year" ? 1 : date.getMonth() + 1;
+      const day = granularity === "day" ? date.getDate() : 1;
+      const y = String(year).padStart(4, "0");
+      const m = String(month).padStart(2, "0");
+      const d = String(day).padStart(2, "0");
       const normalized = `${y}-${m}-${d}`;
       onChange(normalized);
-      setDisplay(`${y}/${m}/${d}`);
+      const nextDisplay =
+        granularity === "year"
+          ? y
+          : granularity === "month"
+            ? `${y}/${m}`
+            : `${y}/${m}/${d}`;
+      setDisplay(nextDisplay);
       setOpen(false);
     },
-    [onChange],
+    [onChange, granularity],
   );
 
   return (
@@ -189,7 +234,14 @@ export function DateInput({
           autoComplete="off"
           value={display}
           onChange={handleChange}
-          placeholder={placeholder || "YYYY/MM/DD"}
+          placeholder={
+            placeholder ||
+            (granularity === "year"
+              ? "YYYY"
+              : granularity === "month"
+                ? "YYYY/MM"
+                : "YYYY/MM/DD")
+          }
           className="pr-10 font-mono"
         />
 
@@ -222,13 +274,150 @@ export function DateInput({
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="end">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={handleCalendarSelect}
-            />
+            {granularity === "day" && (
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={handleCalendarSelect}
+              />
+            )}
+            {granularity === "month" && (
+              <MonthPickerContent
+                selected={selectedDate}
+                onPick={(y, m) => handleCalendarSelect(new Date(y, m - 1, 1))}
+              />
+            )}
+            {granularity === "year" && (
+              <YearPickerContent
+                selected={selectedDate}
+                onPick={(y) => handleCalendarSelect(new Date(y, 0, 1))}
+              />
+            )}
           </PopoverContent>
         </Popover>
+      </div>
+    </div>
+  );
+}
+
+function MonthPickerContent({
+  selected,
+  onPick,
+}: {
+  selected?: Date;
+  onPick: (year: number, month: number) => void; // month 1-12
+}) {
+  const initialYear = selected?.getFullYear() ?? new Date().getFullYear();
+  const [year, setYear] = useState<number>(initialYear);
+  const selectedMonth = selected ? selected.getMonth() + 1 : null;
+
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  return (
+    <div className="w-[260px] p-2">
+      <div className="flex items-center justify-between px-1 py-1.5">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setYear((y) => y - 1)}
+          aria-label="Previous year"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <div className="text-sm font-medium">{year}</div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setYear((y) => y + 1)}
+          aria-label="Next year"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+      <div className="grid grid-cols-3 gap-1 p-1">
+        {months.map((label, idx) => {
+          const m = idx + 1;
+          const isSelected =
+            selectedMonth === m && (selected?.getFullYear() ?? 0) === year;
+          return (
+            <Button
+              key={m}
+              type="button"
+              variant={isSelected ? "secondary" : "ghost"}
+              className="h-8"
+              onClick={() => onPick(year, m)}
+            >
+              {label}
+            </Button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function YearPickerContent({
+  selected,
+  onPick,
+}: {
+  selected?: Date;
+  onPick: (year: number) => void;
+}) {
+  const currentYear = selected?.getFullYear() ?? new Date().getFullYear();
+  const pageBase = Math.floor(currentYear / 20) * 20;
+  const [startYear, setStartYear] = useState<number>(pageBase);
+
+  const years = Array.from({ length: 20 }, (_, i) => startYear + i);
+  const selYear = selected?.getFullYear() ?? null;
+
+  return (
+    <div className="w-[260px] p-2">
+      <div className="flex items-center justify-between px-1 py-1.5">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setStartYear((y) => y - 20)}
+          aria-label="Previous 20 years"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <div className="text-sm font-medium">
+          {startYear}–{startYear + 19}
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setStartYear((y) => y + 20)}
+          aria-label="Next 20 years"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+      <div className="grid grid-cols-4 gap-1 p-1">
+        {years.map((y) => (
+          <Button
+            key={y}
+            type="button"
+            variant={selYear === y ? "secondary" : "ghost"}
+            className="h-8"
+            onClick={() => onPick(y)}
+          >
+            {y}
+          </Button>
+        ))}
       </div>
     </div>
   );
