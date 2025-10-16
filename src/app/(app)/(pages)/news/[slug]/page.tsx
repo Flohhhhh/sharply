@@ -24,10 +24,17 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const page = await getNewsPostBySlug(slug);
+  const imageSrc =
+    page.thumbnail && typeof page.thumbnail === "object"
+      ? (page.thumbnail.url ?? undefined)
+      : undefined;
   return {
     title: `${page.title}`,
+    description: page.excerpt ?? "",
     openGraph: {
       title: `${page.title}`,
+      description: page.excerpt ?? "",
+      images: [imageSrc ?? ""],
     },
   };
 }
@@ -53,7 +60,7 @@ export default async function DynamicPage({
     <div className="mx-auto my-24 flex min-h-screen flex-col items-center gap-12 px-4 sm:px-8">
       <div className="flex flex-col items-center gap-4">
         <Badge className="bg-accent text-accent-foreground">{category}</Badge>
-        <h1 className="text-center text-5xl font-semibold sm:text-6xl">
+        <h1 className="max-w-3xl text-center text-5xl font-semibold sm:max-w-5xl sm:text-6xl">
           {page.title}
         </h1>
         <div className="text-muted-foreground -mt-1 flex items-center gap-2 text-sm">
