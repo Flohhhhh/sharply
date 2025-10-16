@@ -136,8 +136,12 @@ export function DateInput({
 
       if (digits.length === 8) {
         const year = Number(y);
-        const month = Number(m);
-        const day = Number(d);
+        let month = Number(m);
+        let day = Number(d);
+        // Auto-correct zero month/day to the first valid value
+        if (month === 0) month = 1;
+        if (day === 0) day = 1;
+
         const utc = new Date(Date.UTC(year, month - 1, day));
         const isValid =
           utc.getUTCFullYear() === year &&
@@ -145,6 +149,9 @@ export function DateInput({
           utc.getUTCDate() === day;
         if (isValid) {
           const normalized = `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+          // If we corrected 00 to 01, reflect it in the visible input immediately
+          const correctedDisplay = `${String(year).padStart(4, "0")}/${String(month).padStart(2, "0")}/${String(day).padStart(2, "0")}`;
+          if (correctedDisplay !== nextDisplay) setDisplay(correctedDisplay);
           onChange(normalized);
         }
       }
