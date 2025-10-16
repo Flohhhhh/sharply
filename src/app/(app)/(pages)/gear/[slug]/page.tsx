@@ -152,7 +152,7 @@ export default async function GearPage({ params }: GearPageProps) {
   const specSections = buildGearSpecsSections(item);
   const brand = getBrandNameById(item.brandId ?? "");
 
-  console.log("[GearPage] item", item);
+  // console.log("[GearPage] item", item);
 
   const breadCrumbItems = [
     { label: "Gear", href: "/gear" },
@@ -161,7 +161,7 @@ export default async function GearPage({ params }: GearPageProps) {
   ].filter(Boolean) as CrumbItem[];
 
   return (
-    <main className="mx-auto max-w-7xl space-y-8 p-6 pt-20">
+    <main className="mx-auto max-w-7xl space-y-8 px-4 pt-20 sm:px-6">
       {/* Track page visit for popularity */}
       <GearVisitTracker slug={slug} />
 
@@ -183,7 +183,7 @@ export default async function GearPage({ params }: GearPageProps) {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <h1 className="text-5xl font-bold">{item.name}</h1>
+            <h1 className="text-3xl font-bold sm:text-5xl">{item.name}</h1>
             <RenameGearButton
               gearId={item.id}
               currentName={item.name}
@@ -191,7 +191,7 @@ export default async function GearPage({ params }: GearPageProps) {
             />
           </div>
           {item.msrpNowUsdCents && (
-            <div className="mt-2 text-2xl font-semibold">
+            <div className="mt-2 text-lg font-semibold sm:text-2xl">
               {formatPrice(item.msrpNowUsdCents)}
             </div>
           )}
@@ -203,11 +203,11 @@ export default async function GearPage({ params }: GearPageProps) {
         {/* Photo Placeholder */}
         <div>
           {item.thumbnailUrl ? (
-            <div className="bg-muted h-[550px] overflow-hidden rounded-md py-12">
+            <div className="bg-muted overflow-hidden rounded-md py-12">
               <img
                 src={item.thumbnailUrl}
                 alt={item.name}
-                className="h-full w-full object-contain"
+                className="h-full max-h-[300px] w-full object-contain sm:max-h-[550px]"
               />
             </div>
           ) : (
@@ -246,7 +246,7 @@ export default async function GearPage({ params }: GearPageProps) {
       </section>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-10">
-        <div className="col-span-7 space-y-4">
+        <div className="col-span-1 space-y-4 md:col-span-7">
           {/* Pending submission banner (client, only for this user when pending) */}
           <UserPendingEditBanner slug={slug} />
           {/* Editorial Reviews*/}
@@ -393,9 +393,9 @@ export default async function GearPage({ params }: GearPageProps) {
           </section>
         </div>
         {/* Right column */}
-        <div className="sticky top-28 col-span-3 -mt-4 space-y-8 self-start">
+        <div className="static top-28 col-span-1 -mt-4 w-full space-y-8 self-start sm:sticky md:col-span-3">
           {/* Action Buttons */}
-          <div className="">
+          <div className="w-full">
             {(() => {
               // Compute initial flags on the server and render client component with props
               // Note: this closure is immediately invoked synchronously with awaited calls inside
