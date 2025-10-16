@@ -24,10 +24,17 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const page = await getNewsPostBySlug(slug);
+  const imageSrc =
+    page.thumbnail && typeof page.thumbnail === "object"
+      ? (page.thumbnail.url ?? undefined)
+      : undefined;
   return {
     title: `${page.title}`,
+    description: page.excerpt ?? "",
     openGraph: {
       title: `${page.title}`,
+      description: page.excerpt ?? "",
+      images: [imageSrc ?? ""],
     },
   };
 }
