@@ -178,6 +178,13 @@ export default async function About() {
               is clear, replicable, and available to the entire community.
             </p>
             <p className="text-muted-foreground">
+              Our goal is consistent and in-depth technical analysis with clear
+              charts across the catalog. Building this requires careful
+              standards, reliable tooling, and a lot of real-world data, so we
+              will roll it out steadily over time. You will see coverage deepen
+              as we publish new tests and visualizations.
+            </p>
+            <p className="text-muted-foreground">
               This future is about clarity, accessibility, and collaboration. By
               working together with like-minded photographers, contributors, and
               brands, we believe Sharply can not only provide the modern

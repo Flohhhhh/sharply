@@ -51,3 +51,18 @@ export const getReviewByGearSlugData = async (
   });
   return review.docs[0]!;
 };
+
+export const getNewsByRelatedGearSlugData = async (
+  gearSlug: string,
+  limit: number = 12,
+): Promise<News[]> => {
+  const payload = await getPayload({ config });
+  // Fetch all and filter locally (JSON field cannot be filtered with ILIKE)
+  const all = await payload.find({ collection: "news", limit: -1 });
+  const filtered = all.docs.filter((n) => {
+    const v = (n as any)?.related_gear_items;
+    if (Array.isArray(v)) return v.includes(gearSlug);
+    return false;
+  });
+  return filtered.slice(0, limit < 0 ? filtered.length : limit);
+};

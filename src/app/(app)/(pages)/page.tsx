@@ -165,7 +165,7 @@ export default async function Home() {
             {/* News feed continuing below the featured article */}
             <div className="mt-4 flex flex-col gap-4">
               {otherPosts.map((item) => (
-                <HomeNewsCard key={item.id} post={item} />
+                <HomeNewsCard key={item.id} post={item} size="md" />
               ))}
             </div>
           </div>

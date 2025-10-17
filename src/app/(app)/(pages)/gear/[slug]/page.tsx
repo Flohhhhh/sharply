@@ -33,7 +33,11 @@ import type { Metadata } from "next";
 import { Breadcrumbs, type CrumbItem } from "~/components/layout/breadcrumbs";
 import { getBrandNameById } from "~/lib/mapping/brand-map";
 import { RenameGearButton } from "~/components/gear/rename-gear-button";
-import { getReviewByGearSlug } from "~/server/payload/service";
+import {
+  getReviewByGearSlug,
+  getNewsByRelatedGearSlug,
+} from "~/server/payload/service";
+import { NewsCard } from "~/components/home/news-card";
 import { Card, CardContent } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 // Removed LensApertureDisplay in favor of standardized spec rows using mapping
@@ -133,6 +137,7 @@ export default async function GearPage({ params }: GearPageProps) {
   const verdict = staffVerdictRows?.[0] ?? null;
 
   const review = await getReviewByGearSlug(item.slug);
+  const relatedNews = await getNewsByRelatedGearSlug(item.slug, 9);
 
   // Under construction state
   const construction = getConstructionState(item);
@@ -284,6 +289,38 @@ export default async function GearPage({ params }: GearPageProps) {
             slug={item.slug}
             gearType={item.gearType as "CAMERA" | "LENS"}
           />
+          {/* Articles about this item (below specs) */}
+          {relatedNews.length > 0 && (
+            <section id="related-articles" className="scroll-mt-24">
+              <h2 className="mb-2 text-lg font-semibold">
+                Articles about this item
+              </h2>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {relatedNews.map((post) => {
+                  const image =
+                    post.thumbnail && typeof post.thumbnail === "object"
+                      ? (post.thumbnail.url ?? "/image-temp.png")
+                      : "/image-temp.png";
+                  return (
+                    <NewsCard
+                      key={post.id}
+                      post={{
+                        id: post.id,
+                        title: post.title,
+                        excerpt: (post.excerpt as any) ?? undefined,
+                        href: `/news/${post.slug}`,
+                        image,
+                        date: new Date(
+                          post.override_date || post.createdAt,
+                        ).toLocaleDateString(),
+                      }}
+                      size="sm"
+                    />
+                  );
+                })}
+              </div>
+            </section>
+          )}
           {/* Staff Verdict */}
           <section id="staff-verdict" className="mt-12 scroll-mt-24 space-y-4">
             <div className="flex items-center justify-between">

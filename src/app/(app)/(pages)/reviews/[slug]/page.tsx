@@ -49,18 +49,6 @@ export default async function ReviewPage({
           <h2 className="text-lg font-semibold">Summary</h2>
           <p className="text-muted-foreground">{review.review_summary}</p>
         </div>
-        {/* Gear Card */}
-        <div className="mx-auto mt-4 max-w-3xl space-y-2">
-          <h3 className="text-lg font-semibold">View {gearItem.name} specs</h3>
-          <GearCardHorizontal
-            slug={gearItem.slug}
-            name={gearItem.name}
-            thumbnailUrl={gearItem.thumbnailUrl}
-            brandName={brandName ?? ""}
-            gearType={gearItem.gearType}
-            href={`/gear/${gearItem.slug}`}
-          />
-        </div>
         {/* Pros/Cons */}
         <div className="mx-auto mt-4 max-w-3xl space-y-4">
           <h2 className="text-lg font-semibold">Pros & Cons</h2>
@@ -83,6 +71,18 @@ export default async function ReviewPage({
               </ul>
             </div>
           </div>
+        </div>
+        {/* Gear Card - above content */}
+        <div className="mx-auto mt-4 max-w-3xl space-y-2">
+          <h3 className="text-lg font-semibold">View {gearItem.name} specs</h3>
+          <GearCardHorizontal
+            slug={gearItem.slug}
+            name={gearItem.name}
+            thumbnailUrl={gearItem.thumbnailUrl}
+            brandName={brandName ?? ""}
+            gearType={gearItem.gearType}
+            href={`/gear/${gearItem.slug}`}
+          />
         </div>
         {/* Review Content */}
         <div className="mx-auto mt-4 max-w-3xl space-y-4">
