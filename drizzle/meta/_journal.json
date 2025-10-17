@@ -253,6 +253,13 @@
       "when": 1760736459656,
       "tag": "0035_exotic_sabretooth",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1760736526132,
+      "tag": "0036_little_giant_man",
+      "breakpoints": true
     }
   ]
 }

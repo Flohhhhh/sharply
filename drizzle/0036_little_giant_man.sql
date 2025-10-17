@@ -1,0 +1,1 @@
+ALTER TABLE "app"."mounts" ALTER COLUMN "short_name" SET DATA TYPE varchar(10);
