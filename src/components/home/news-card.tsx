@@ -13,14 +13,30 @@ export type HomePost = {
   readMinutes?: number;
 };
 
-export function NewsCard({ post, badge }: { post: HomePost; badge?: string }) {
+export type NewsCardSize = "lg" | "md" | "sm";
+
+export function NewsCard({
+  post,
+  badge,
+  size = "md",
+}: {
+  post: HomePost;
+  badge?: string;
+  size?: NewsCardSize;
+}) {
+  const titleClass =
+    size === "lg" ? "text-2xl" : size === "sm" ? "text-base" : "text-lg";
+  const excerptClass = size === "sm" ? "text-xs" : "text-sm";
+  const imageAspect = size === "sm" ? "aspect-[16/10]" : "aspect-[16/9]";
+  const containerPadding = size === "sm" ? "p-2" : "p-3";
+  const gapClass = size === "sm" ? "my-3" : "my-5";
   return (
     <Link
       href={post.href}
       className="group bg-background flex flex-col overflow-hidden rounded-xl border shadow-sm"
     >
-      <div className="shrink-0 p-2">
-        <div className="relative aspect-[16/9] w-full">
+      <div className={`shrink-0 ${containerPadding}`}>
+        <div className={`relative ${imageAspect} w-full`}>
           <Image
             src={post.image}
             alt={post.title}
@@ -35,16 +51,18 @@ export function NewsCard({ post, badge }: { post: HomePost; badge?: string }) {
         </div>
       </div>
       <div className="flex flex-1 flex-col px-3 pt-2 pb-4">
-        <h2 className="mb-1 text-lg font-bold group-hover:underline">
+        <h2 className={`mb-1 font-bold group-hover:underline ${titleClass}`}>
           {post.title}
         </h2>
         {post.excerpt ? (
-          <p className="text-muted-foreground line-clamp-2 text-sm group-hover:underline">
+          <p
+            className={`text-muted-foreground line-clamp-2 group-hover:underline ${excerptClass}`}
+          >
             {post.excerpt}
           </p>
         ) : null}
         <div className="mt-auto">
-          <Separator className="my-5" />
+          <Separator className={gapClass} />
           <div className="flex items-center justify-between gap-4">
             <span className="text-muted-foreground text-sm group-hover:underline">
               {post.date ?? ""}

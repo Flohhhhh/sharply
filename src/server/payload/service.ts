@@ -4,6 +4,7 @@ import {
   getNewsPostBySlugData,
   getReviewBySlugData,
   getReviewByGearSlugData,
+  getNewsByRelatedGearSlugData,
 } from "./data";
 import type { News, Review } from "~/payload-types";
 
@@ -62,4 +63,12 @@ export const getReviewByGearSlug = async (
     return null;
   }
   return review;
+};
+
+export const getNewsByRelatedGearSlug = async (
+  gearSlug: string,
+  limit: number = 12,
+): Promise<News[]> => {
+  const list = await getNewsByRelatedGearSlugData(gearSlug, limit);
+  return list.filter((p) => p._status === "published");
 };
