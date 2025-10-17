@@ -9,6 +9,9 @@ import type { Metadata } from "next";
 import type { News } from "~/payload-types";
 import { RichText } from "~/components/rich-text";
 import { TableOfContents } from "~/components/rich-text/table-of-contents";
+import { GearCardHorizontal } from "~/components/gear/gear-card-horizontal";
+import { fetchGearBySlug } from "~/server/gear/service";
+import { getBrandNameById } from "~/lib/mapping/brand-map";
 
 export const revalidate = 60;
 
@@ -56,6 +59,23 @@ export default async function DynamicPage({
       : undefined;
   // console.log(page);
 
+  // Fetch related gear (array of slugs stored in JSON field)
+  const relatedGearItems = Array.isArray(page.related_gear_items)
+    ? (
+        await Promise.all(
+          (page.related_gear_items as unknown[])
+            .filter((v): v is string => typeof v === "string")
+            .map(async (gearSlug) => {
+              try {
+                return await fetchGearBySlug(gearSlug);
+              } catch {
+                return null;
+              }
+            }),
+        )
+      ).filter(Boolean)
+    : [];
+
   return (
     <div className="mx-auto my-24 flex min-h-screen flex-col items-center gap-12 px-4 sm:px-8">
       <div className="flex flex-col items-center gap-4">
@@ -81,14 +101,37 @@ export default async function DynamicPage({
         />
       )}
       <div className="mx-auto grid w-full max-w-5xl grid-cols-1 gap-8 lg:grid-cols-7">
-        <RichText
-          data={page.content}
-          demoteHeadingsBy={1}
-          className="col-span-5 mx-auto w-full max-w-3xl"
-        />
+        <div id="news-content" className="col-span-5 mx-auto w-full max-w-3xl">
+          <RichText
+            data={page.content}
+            demoteHeadingsBy={1}
+            className="w-full max-w-none"
+          />
+
+          {relatedGearItems.length > 0 ? (
+            <div className="mt-6">
+              <h2 className="mb-3 py-8 text-2xl font-semibold opacity-90 sm:text-4xl">
+                Gear in This Article
+              </h2>
+              <div className="grid grid-cols-1 gap-3">
+                {relatedGearItems.map((item: any) => (
+                  <GearCardHorizontal
+                    key={item.id}
+                    slug={item.slug}
+                    name={item.name}
+                    thumbnailUrl={item.thumbnailUrl}
+                    brandName={getBrandNameById(item.brandId ?? "") ?? ""}
+                    gearType={item.gearType}
+                    href={`/gear/${item.slug}`}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
 
         <aside className="sticky top-24 col-span-2 hidden h-fit self-start lg:block">
-          <TableOfContents />
+          <TableOfContents contentSelector="#news-content" />
         </aside>
       </div>
     </div>
