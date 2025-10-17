@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function TermsOfServicePage() {
   return (
     <div className="mx-auto mt-24 min-h-screen max-w-3xl px-6 pb-24">
-      <article className="prose prose-sm">
+      <article className="prose prose-sm dark:prose-invert">
         <h1>Terms of Service</h1>
         <p>
           <em>Last updated: September 25, 2025</em>
