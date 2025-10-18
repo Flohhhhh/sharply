@@ -42,7 +42,7 @@ export default async function MountButtons({
       .map((m) => ({
         ...m,
         _r: rank.has((m.shortName ?? "").toLowerCase())
-          ? (rank.get((m.shortName ?? "").toLowerCase()) as number)
+          ? rank.get((m.shortName ?? "").toLowerCase())!
           : Number.MAX_SAFE_INTEGER,
       }))
       .sort((a, b) => a._r - b._r || a.value.localeCompare(b.value))
