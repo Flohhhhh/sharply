@@ -47,7 +47,7 @@ function stripHtml(html: string | null | undefined, maxLength = 160) {
 export function NewsListItem({ post }: NewsListItemProps) {
   const href = `/news/${post.slug}`;
 
-  console.log(post);
+  // console.log(post);
   // const imgSrc = post.thumbnail
   //   ? `https://sharply-directus.onrender.com/assets/${post.thumbnail}`
   //   : undefined;

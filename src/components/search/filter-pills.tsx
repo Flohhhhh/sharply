@@ -1,21 +1,26 @@
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { X } from "lucide-react";
 import { mergeSearchParams } from "@utils/url";
 
 export function FilterPills() {
   const sp = useSearchParams();
   const router = useRouter();
+  const pathname = usePathname();
 
   const entries: { key: string; label: string; value: string }[] = [];
   const q = sp.get("q") ?? "";
   const brand = sp.get("brand") ?? "";
   const gearType = sp.get("gearType") ?? "";
   const mount = sp.get("mount") ?? "";
-  const sensor = sp.get("sensorFormat") ?? "";
-  const priceMin = sp.get("priceMin") ?? "";
-  const priceMax = sp.get("priceMax") ?? "";
+  const isBrowse = pathname.startsWith("/browse");
+  const sensorParamKey = isBrowse ? "sensor" : "sensorFormat";
+  const sensor = sp.get(sensorParamKey) ?? "";
+  const priceMin =
+    sp.get(pathname.startsWith("/browse") ? "minPrice" : "priceMin") ?? "";
+  const priceMax =
+    sp.get(pathname.startsWith("/browse") ? "maxPrice" : "priceMax") ?? "";
 
   if (brand) entries.push({ key: "brand", label: "Brand", value: brand });
   if (gearType)
@@ -27,7 +32,7 @@ export function FilterPills() {
       value: mount.split("-")[0]?.toUpperCase() || mount,
     });
   if (sensor)
-    entries.push({ key: "sensorFormat", label: "Sensor", value: sensor });
+    entries.push({ key: sensorParamKey, label: "Sensor", value: sensor });
   if (priceMin || priceMax) {
     const v = `${priceMin ? "$" + priceMin : "Any"} – ${priceMax ? "$" + priceMax : "No max"}`;
     entries.push({ key: "price", label: "Price", value: v });
@@ -38,10 +43,12 @@ export function FilterPills() {
     const qs = mergeSearchParams(
       existing,
       key === "price"
-        ? { priceMin: null, priceMax: null, page: 1 }
+        ? isBrowse
+          ? { minPrice: null, maxPrice: null, page: 1 }
+          : { priceMin: null, priceMax: null, page: 1 }
         : { [key]: null, page: 1 },
     );
-    const href = qs ? `/search?${qs}` : "/search";
+    const href = qs ? `${pathname}?${qs}` : pathname;
     router.replace(href);
   }
 

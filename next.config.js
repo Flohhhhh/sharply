@@ -7,6 +7,25 @@ import "./src/env.js";
 
 /** @type {import("next").NextConfig} */
 const config = {
+  async redirects() {
+    return [
+      {
+        source: "/gear",
+        destination: "/browse",
+        permanent: true,
+      },
+      {
+        source: "/gear/",
+        destination: "/browse",
+        permanent: true,
+      },
+      {
+        source: "/brand/:slug",
+        destination: "/browse/:slug",
+        permanent: true,
+      },
+    ];
+  },
   eslint: {
     ignoreDuringBuilds: false,
   },

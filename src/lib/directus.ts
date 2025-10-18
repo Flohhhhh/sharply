@@ -19,7 +19,7 @@ export const getNewsPosts = async () => {
     }),
   );
 
-  console.log("getNewsPosts", posts);
+  // console.log("getNewsPosts", posts);
   return posts;
 };
 export type NewsPost = Awaited<ReturnType<typeof getNewsPosts>>[number];

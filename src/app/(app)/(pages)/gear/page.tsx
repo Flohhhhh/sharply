@@ -8,15 +8,13 @@ import type { Metadata } from "next";
 import { getMountDisplayName } from "~/lib/mapping";
 
 export const metadata: Metadata = {
-  title: "All Gear",
-  openGraph: {
-    title: "All Gear",
-  },
+  title: "Gear",
 };
 
 export const revalidate = 3600; // ISR: re-generate every hour
 
 export default async function GearIndex() {
+  // This page is legacy. It will be redirected to /browse
   // Use statically generated brand constants; fetch latest gear per brand
   const brandSections = await Promise.all(
     BRANDS.map(async (b) => {

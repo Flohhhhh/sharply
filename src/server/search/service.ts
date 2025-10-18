@@ -24,7 +24,12 @@ import {
  * - Shapes return types for API/server components.
  * - Leaves low-level SQL/DB details to data.ts.
  */
-export type SearchSort = "relevance" | "name" | "newest";
+export type SearchSort =
+  | "relevance"
+  | "name"
+  | "newest"
+  | "price_asc"
+  | "price_desc";
 
 export type SearchFilters = {
   brand?: string;
@@ -126,7 +131,11 @@ export async function searchGear(
   if (query && sort === "relevance") {
     orderBy = [desc(relevanceExpr), asc(gear.name)];
   } else if (sort === "newest") {
-    orderBy = [desc(gear.releaseDate), asc(gear.name)];
+    orderBy = [sql`${gear.releaseDate} DESC NULLS LAST`, asc(gear.name)];
+  } else if (sort === "price_asc") {
+    orderBy = [asc(gear.msrpNowUsdCents), asc(gear.name)];
+  } else if (sort === "price_desc") {
+    orderBy = [sql`${gear.msrpNowUsdCents} DESC NULLS LAST`, asc(gear.name)];
   } else {
     orderBy = [asc(gear.name)];
   }

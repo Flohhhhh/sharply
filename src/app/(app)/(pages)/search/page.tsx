@@ -6,6 +6,7 @@ import {
 import { FilterPills } from "~/components/search/filter-pills";
 import { FiltersModal } from "~/components/search/filters-modal";
 import { SortSelect } from "~/components/search/sort-select";
+import FilterSidebar from "~/components/layout/FilterSidebar";
 import { GearCard } from "~/components/gear/gear-card";
 import type { Metadata } from "next";
 
@@ -79,124 +80,125 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       nextParams.set("page", String(result.page + 1));
 
     return (
-      <div className="0 mx-auto h-screen px-4 py-8 sm:px-8">
-        <h1 className="mb-4 text-2xl font-semibold">Search</h1>
-        <p className="text-muted-foreground mb-6 text-sm">
-          {q ? `Results for "${q}"` : "Browse all gear"} — {result.total} item
-          {result.total === 1 ? "" : "s"}
-        </p>
-
-        {/* Controls row */}
-        <div className="mb-2 flex items-center justify-end gap-2">
-          <SortSelect />
-          <FiltersModal />
-        </div>
-        {/* Active filter pills row */}
-        <div className="mb-6">
-          <FilterPills />
-        </div>
-
-        {/* Results grouped by relevance */}
-        {sort === "relevance" && result.results.length > 0 ? (
-          <>
-            {/* Best Matches - High relevance results */}
-            {result.results.filter(
-              (r: SearchResult) => (r.relevance ?? 0) > 0.8,
-            ).length > 0 && (
-              <div className="mb-8">
-                <h2 className="text-foreground mb-4 text-lg font-semibold">
-                  Best Matches
-                </h2>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {result.results
-                    .filter((r: SearchResult) => (r.relevance ?? 0) > 0.8)
-                    .map((r: SearchResult) => (
-                      <GearCard
-                        key={r.id}
-                        href={`/gear/${r.slug}`}
-                        slug={r.slug}
-                        name={r.name}
-                        brandName={r.brandName}
-                        thumbnailUrl={r.thumbnailUrl}
-                        gearType={r.gearType}
-                        dateText={null}
-                      />
-                    ))}
-                </div>
-              </div>
-            )}
-
-            {/* Other Results - Lower relevance results */}
-            {result.results.filter(
-              (r: SearchResult) => (r.relevance ?? 0) <= 0.8,
-            ).length > 0 && (
-              <div>
-                <h2 className="text-muted-foreground mb-4 text-lg font-semibold">
-                  Other Results
-                </h2>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {result.results
-                    .filter((r: SearchResult) => (r.relevance ?? 0) <= 0.8)
-                    .map((r: SearchResult) => (
-                      <GearCard
-                        key={r.id}
-                        href={`/gear/${r.slug}`}
-                        slug={r.slug}
-                        name={r.name}
-                        brandName={r.brandName}
-                        thumbnailUrl={r.thumbnailUrl}
-                        gearType={r.gearType}
-                        dateText={null}
-                      />
-                    ))}
-                </div>
-              </div>
-            )}
-          </>
-        ) : (
-          /* Default grid for non-relevance sorting */
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {result.results.map((r: SearchResult) => (
-              <GearCard
-                key={r.id}
-                href={`/gear/${r.slug}`}
-                slug={r.slug}
-                name={r.name}
-                brandName={r.brandName}
-                thumbnailUrl={r.thumbnailUrl}
-                gearType={r.gearType}
-                dateText={null}
-              />
-            ))}
+      <main className="mx-auto min-h-screen max-w-7xl space-y-6 px-4 pt-20 sm:px-6">
+        <>
+          <h1 className="text-3xl font-semibold">
+            {q ? `Search results for "${q}"` : "Search"}
+          </h1>
+          <div className="mb-2 flex items-center justify-end gap-2">
+            <SortSelect />
+            <FiltersModal />
           </div>
-        )}
-
-        <div className="mt-6 flex items-center justify-between">
-          <span className="text-muted-foreground text-sm">
-            Page {result.page} of {result.totalPages}
-          </span>
-          <div className="flex gap-2">
-            <a
-              className="border-input hover:bg-accent rounded-md border px-3 py-1.5 text-sm aria-disabled:opacity-50"
-              aria-disabled={result.page <= 1}
-              href={result.page <= 1 ? "#" : `/search?${prevParams.toString()}`}
-            >
-              Previous
-            </a>
-            <a
-              className="border-input hover:bg-accent rounded-md border px-3 py-1.5 text-sm aria-disabled:opacity-50"
-              aria-disabled={result.page >= result.totalPages}
-              href={
-                result.page >= result.totalPages
-                  ? "#"
-                  : `/search?${nextParams.toString()}`
-              }
-            >
-              Next
-            </a>
+          <div className="mb-6">
+            <FilterPills />
           </div>
-        </div>
-      </div>
+          <p className="text-muted-foreground text-sm">
+            Showing {result.total} result{result.total === 1 ? "" : "s"}
+          </p>
+          {/* Results grouped by relevance */}
+          {sort === "relevance" && result.results.length > 0 ? (
+            <>
+              {/* Best Matches - High relevance results */}
+              {result.results.filter(
+                (r: SearchResult) => (r.relevance ?? 0) > 0.8,
+              ).length > 0 && (
+                <div className="mb-8">
+                  <h2 className="text-foreground mb-4 text-lg font-semibold">
+                    Best Matches
+                  </h2>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {result.results
+                      .filter((r: SearchResult) => (r.relevance ?? 0) > 0.8)
+                      .map((r: SearchResult) => (
+                        <GearCard
+                          key={r.id}
+                          href={`/gear/${r.slug}`}
+                          slug={r.slug}
+                          name={r.name}
+                          brandName={r.brandName}
+                          thumbnailUrl={r.thumbnailUrl}
+                          gearType={r.gearType}
+                          dateText={null}
+                        />
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Other Results - Lower relevance results */}
+              {result.results.filter(
+                (r: SearchResult) => (r.relevance ?? 0) <= 0.8,
+              ).length > 0 && (
+                <div>
+                  <h2 className="text-muted-foreground mb-4 text-lg font-semibold">
+                    Other Results
+                  </h2>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {result.results
+                      .filter((r: SearchResult) => (r.relevance ?? 0) <= 0.8)
+                      .map((r: SearchResult) => (
+                        <GearCard
+                          key={r.id}
+                          href={`/gear/${r.slug}`}
+                          slug={r.slug}
+                          name={r.name}
+                          brandName={r.brandName}
+                          thumbnailUrl={r.thumbnailUrl}
+                          gearType={r.gearType}
+                          dateText={null}
+                        />
+                      ))}
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            /* Default grid for non-relevance sorting */
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {result.results.map((r: SearchResult) => (
+                <GearCard
+                  key={r.id}
+                  href={`/gear/${r.slug}`}
+                  slug={r.slug}
+                  name={r.name}
+                  brandName={r.brandName}
+                  thumbnailUrl={r.thumbnailUrl}
+                  gearType={r.gearType}
+                  dateText={null}
+                />
+              ))}
+            </div>
+          )}
+
+          <div className="mt-6 flex items-center justify-between">
+            <span className="text-muted-foreground text-sm">
+              Page {result.page} of {result.totalPages}
+            </span>
+            <div className="flex gap-2">
+              <a
+                className="border-input hover:bg-accent rounded-md border px-3 py-1.5 text-sm aria-disabled:opacity-50"
+                aria-disabled={result.page <= 1}
+                href={
+                  result.page <= 1 ? "#" : `/search?${prevParams.toString()}`
+                }
+              >
+                Previous
+              </a>
+              <a
+                className="border-input hover:bg-accent rounded-md border px-3 py-1.5 text-sm aria-disabled:opacity-50"
+                aria-disabled={result.page >= result.totalPages}
+                href={
+                  result.page >= result.totalPages
+                    ? "#"
+                    : `/search?${nextParams.toString()}`
+                }
+              >
+                Next
+              </a>
+            </div>
+          </div>
+        </>
+      </main>
     );
   } catch (error) {
     console.error("Search error:", error);
