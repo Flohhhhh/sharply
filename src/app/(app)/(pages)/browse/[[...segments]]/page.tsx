@@ -119,12 +119,17 @@ export default async function BrowseCatchAll({
               href={`/gear/${g.slug}`}
               slug={g.slug}
               name={g.name}
-              brandName={undefined}
+              brandName={brand!.name}
               thumbnailUrl={g.thumbnailUrl}
               gearType={g.gearType}
               dateText={
                 g.releaseDate
                   ? `Released ${new Date(g.releaseDate).getFullYear()}`
+                  : null
+              }
+              priceText={
+                g.msrpNowUsdCents != null
+                  ? `$${(g.msrpNowUsdCents / 100).toLocaleString()}`
                   : null
               }
             />
@@ -162,12 +167,17 @@ export default async function BrowseCatchAll({
             href={`/gear/${g.slug}`}
             slug={g.slug}
             name={g.name}
-            brandName={undefined}
+            brandName={brand!.name}
             thumbnailUrl={g.thumbnailUrl}
             gearType={g.gearType}
             dateText={
               g.releaseDate
                 ? `Released ${new Date(g.releaseDate).getFullYear()}`
+                : null
+            }
+            priceText={
+              g.msrpNowUsdCents != null
+                ? `$${(g.msrpNowUsdCents / 100).toLocaleString()}`
                 : null
             }
           />

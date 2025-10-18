@@ -87,6 +87,11 @@ export default async function AllGearContent({
                   ? `Released ${new Date(g.releaseDate as any).getFullYear()}`
                   : null
               }
+              priceText={
+                g.msrpNowUsdCents != null
+                  ? `$${(g.msrpNowUsdCents / 100).toLocaleString()}`
+                  : null
+              }
             />
           ))}
         </div>
@@ -114,6 +119,11 @@ export default async function AllGearContent({
               name={g.name}
               brandName={g.brandName}
               gearType={g.gearType}
+              priceText={
+                (g as any).msrpNowUsdCents != null
+                  ? `$${(((g as any).msrpNowUsdCents as number) / 100).toLocaleString()}`
+                  : null
+              }
             />
           ))}
         </div>

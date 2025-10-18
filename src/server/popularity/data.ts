@@ -114,6 +114,7 @@ export async function getTrendingData(
           gearType: gear.gearType,
           brandId: gear.brandId,
           brandName: brands.name,
+          msrpNowUsdCents: gear.msrpNowUsdCents,
         })
         .from(gearPopularityWindows)
         .innerJoin(gear, eq(gearPopularityWindows.gearId, gear.id))
@@ -129,6 +130,7 @@ export async function getTrendingData(
         name: r.name,
         brandName: r.brandName,
         gearType: r.gearType,
+        msrpNowUsdCents: r.msrpNowUsdCents,
         score: Number(r.score),
         stats: {
           views: Number(r.viewsSum),

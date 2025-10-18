@@ -78,6 +78,7 @@ export type GearCardProps = {
   thumbnailUrl?: string | null;
   gearType?: string | null;
   dateText?: string | null;
+  priceText?: string | null;
   topLeftLabel?: string | null;
   metaRight?: React.ReactNode;
   badges?: React.ReactNode;
@@ -95,6 +96,7 @@ export function GearCard(props: GearCardProps) {
     thumbnailUrl,
     gearType,
     dateText,
+    priceText,
     topLeftLabel,
     metaRight,
     badges,
@@ -171,9 +173,18 @@ export function GearCard(props: GearCardProps) {
 
             {badges}
 
-            {dateText ? (
-              <div className="text-muted-foreground text-xs">{dateText}</div>
-            ) : null}
+            <div className="flex items-center justify-between">
+              {dateText ? (
+                <div className="text-muted-foreground text-xs">{dateText}</div>
+              ) : (
+                <span />
+              )}
+              {priceText ? (
+                <span className="text-foreground text-sm font-semibold">
+                  {priceText}
+                </span>
+              ) : null}
+            </div>
           </div>
         </div>
       </Link>
