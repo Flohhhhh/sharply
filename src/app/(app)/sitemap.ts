@@ -10,7 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     {
       url: "https://sharplyphoto.com",
       lastModified: new Date(),
-      changeFrequency: "hourly" as const,
+      changeFrequency: "daily" as const,
       priority: 1,
     },
     {
