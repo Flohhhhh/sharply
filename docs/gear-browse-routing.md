@@ -17,10 +17,12 @@ Notes:
 - `src/app/(app)/(pages)/browse/layout.tsx` — shared layout
 - `src/app/(app)/(pages)/browse/[[...segments]]/page.tsx` — catch-all route
 - `src/app/(app)/(pages)/browse/_components/*` — depth-specific view components
+- `src/app/(app)/(pages)/browse/_components/mount-buttons.tsx` — brand/type mount buttons
 - `src/lib/browse/routing.ts` — parsing and depth logic
 - `src/lib/browse/filters.ts` — query params → filters
 - `src/server/gear/browse/data.ts` — data helpers (brands/mounts derived from constants)
 - `src/server/gear/browse/service.ts` — orchestration, SEO builders
+- `src/lib/browse/mount-ui.ts` — UI config for mount ordering/visibility
 - `src/app/(app)/sitemap.ts` — generates browse URLs for sitemap
 - `next.config.js` — redirects for legacy `/gear` and `/brand/[slug]` paths
 
@@ -61,10 +63,25 @@ Notes:
 
 - Routing uses `MOUNTS.short_name` for the `[mount]` segment (e.g., `z` vs `z-nikon`). See `docs/mapping-system.md` for relationship considerations.
 
+### Mount button ordering/visibility
+
+- Rules come from `src/lib/browse/mount-ui.ts` per `brandSlug` and category (`"cameras" | "lenses"`).
+- Config supports `order` (desired short_name sequence) and `hide` (short_names to hide).
+- Auto-hide: mounts with null/empty `short_name` are hidden from the main grid but included in "Other mounts".
+- Current defaults:
+  - Nikon: show `z`, `f` (in that order); hide `nikon1`, `s`.
+  - Canon: show `rf`, `ef`, `efm` (in that order).
+
 ## UI Notes
 
 - Depth 0 (`/browse`): Featured brand buttons, Latest Gear, Trending Gear; no breadcrumbs.
 - Depth 1: Large buttons for Cameras/Lenses.
 - Depth 2: Large buttons for mounts; filter dialog + pills; "showing X results".
+  - Mount layout (after filtering/auto-hide):
+    - 1 mount → hidden
+    - 2 mounts → 2 full-width buttons
+    - 3 mounts → 3 full-width buttons
+    - 4+ mounts → 2 columns (rows of two)
+  - Hidden mounts appear in a centered "Other mounts" popover.
 - Depth 3: No mount buttons; filter dialog + pills; "showing X results".
 - Breadcrumbs render for depths ≥ 1.
