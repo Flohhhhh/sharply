@@ -116,7 +116,7 @@ export function GearCard(props: GearCardProps) {
         {/* Inset surface (border removed) */}
         <div className="bg-background rounded-2xl p-2">
           {/* Image area */}
-          <div className="bg-muted relative aspect-video overflow-hidden rounded-xl p-4">
+          <div className="bg-muted dark:bg-card relative aspect-video overflow-hidden rounded-xl p-4">
             {topLeftLabel ? (
               <div className="absolute top-2 left-2 rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
                 {topLeftLabel}

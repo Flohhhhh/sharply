@@ -3,6 +3,7 @@ import Link from "next/link";
 import { GearCard } from "~/components/gear/gear-card";
 import { Button } from "~/components/ui/button";
 import { BRANDS } from "~/lib/constants";
+import { OtherBrandsSelect } from "./other-brands-select";
 import { getLatestGear } from "~/server/gear/browse/data";
 import { fetchTrending } from "~/server/popularity/service";
 
@@ -12,6 +13,9 @@ export default async function AllGearContent({
   const featured = BRANDS.filter((b) =>
     ["Canon", "Nikon", "Sony"].includes(b.name),
   );
+  const otherBrands = BRANDS.filter(
+    (b) => !["Canon", "Nikon", "Sony"].includes(b.name),
+  );
   const recentlyReleasedGear = await getLatestGear(
     3,
     brandSlug ? { brandSlug } : undefined,
@@ -20,23 +24,32 @@ export default async function AllGearContent({
   return (
     <main className="space-y-6">
       {/* Featured brands buttons */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {/* TODO: should add a secondary way to access any brand (maybe a dropdown or something) */}
-        {featured.map((b) => (
-          <Link
-            key={b.id}
-            href={`/browse/${b.slug}`}
-            className="border-border hover:bg-accent/40 group block rounded-lg border p-6 text-center"
-          >
-            <div className="text-2xl font-semibold group-hover:underline">
-              {b.name}
-            </div>
-            <div className="text-muted-foreground mt-1 text-sm">
-              Browse {b.name}
-            </div>
-          </Link>
-        ))}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-semibold">Browse by Brand</h2>
+          {otherBrands.length ? (
+            <OtherBrandsSelect brands={otherBrands as any} />
+          ) : null}
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {/* TODO: should add a secondary way to access any brand (maybe a dropdown or something) */}
+          {featured.map((b) => (
+            <Link
+              key={b.id}
+              href={`/browse/${b.slug}`}
+              className="border-border hover:bg-accent/40 group block rounded-lg border p-6 text-center"
+            >
+              <div className="text-2xl font-semibold group-hover:underline">
+                {b.name}
+              </div>
+              <div className="text-muted-foreground mt-1 text-sm">
+                Browse {b.name}
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
+
       {/* most recently released gear items (all brands) */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
