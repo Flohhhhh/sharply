@@ -103,12 +103,12 @@ export const navItems: NavItem[] = [
     title: "Tools",
     type: "category",
     items: [
-      {
-        title: "Search",
-        url: "/search",
-        description: "Search for gear by name, brand, or type",
-        iconKey: "search",
-      },
+      // {
+      //   title: "Search",
+      //   url: "/search",
+      //   description: "Search for gear by name, brand, or type",
+      //   iconKey: "search",
+      // },
       {
         title: "Compare",
         url: "/compare",

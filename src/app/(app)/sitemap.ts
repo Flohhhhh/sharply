@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { fetchAllGearSlugs } from "~/server/gear/service";
-import { BRANDS } from "~/lib/generated";
+import { BRANDS, MOUNTS } from "~/lib/generated";
 import { getNewsPosts } from "~/lib/directus";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -10,7 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     {
       url: "https://sharplyphoto.com",
       lastModified: new Date(),
-      changeFrequency: "yearly" as const,
+      changeFrequency: "daily" as const,
       priority: 1,
     },
     {
@@ -82,5 +82,41 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly" as const,
       priority: 0.5,
     })),
+    // generate browse page urls
+    {
+      url: `https://sharplyphoto.com/browse`,
+      lastModified: new Date(),
+      changeFrequency: "hourly" as const,
+      priority: 0.6,
+    },
+    // /browse/[brand]
+    ...BRANDS.map((b) => ({
+      url: `https://sharplyphoto.com/browse/${b.slug}`,
+      lastModified: new Date(),
+      changeFrequency: "hourly" as const,
+      priority: 0.6,
+    })),
+    // /browse/[brand]/[category] and /browse/[brand]/[category]/[mount]
+    ...BRANDS.flatMap((b) => {
+      const categories: Array<"cameras" | "lenses"> = ["cameras", "lenses"];
+      const brandMounts = MOUNTS.filter(
+        (m) => m.brand_id === b.id && !!m.short_name,
+      );
+      const brandCategoryUrls = categories.map((c) => ({
+        url: `https://sharplyphoto.com/browse/${b.slug}/${c}`,
+        lastModified: new Date(),
+        changeFrequency: "hourly" as const,
+        priority: 0.6,
+      }));
+      const mountUrls = categories.flatMap((c) =>
+        brandMounts.map((m) => ({
+          url: `https://sharplyphoto.com/browse/${b.slug}/${c}/${String(m.short_name)}`,
+          lastModified: new Date(),
+          changeFrequency: "hourly" as const,
+          priority: 0.6,
+        })),
+      );
+      return [...brandCategoryUrls, ...mountUrls];
+    }),
   ];
 }

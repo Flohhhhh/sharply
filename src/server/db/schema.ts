@@ -265,6 +265,7 @@ export const mounts = appSchema.table("mounts", (d) => ({
     .primaryKey()
     .default(sql`gen_random_uuid()::text`),
   value: varchar("value", { length: 200 }).notNull().unique(),
+  shortName: varchar("short_name", { length: 10 }),
   brandId: varchar("brand_id", { length: 36 }).references(() => brands.id, {
     onDelete: "restrict",
   }),

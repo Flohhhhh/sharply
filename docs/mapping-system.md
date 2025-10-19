@@ -125,3 +125,7 @@ To add new mapping types:
 - **Lightweight**: Simple string operations, no complex lookups
 - **No caching**: Functions are pure and stateless
 - **Minimal dependencies**: Only uses built-in JavaScript methods
+
+## Routing note: Mount shortName
+
+The browse routing uses `mounts.short_name` as the URL segment for mount-level pages (e.g., `/browse/nikon/lenses/z`). Ensure `short_name` is unique per brand for clean URLs.

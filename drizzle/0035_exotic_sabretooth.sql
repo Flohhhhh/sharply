@@ -1,0 +1,1 @@
+ALTER TABLE "app"."mounts" ADD COLUMN "short_name" varchar(1);

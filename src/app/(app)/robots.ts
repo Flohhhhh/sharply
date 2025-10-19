@@ -4,6 +4,7 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
+      // TODO: update to allow robots to crawl the site
       disallow: "/",
     },
     // rules: {

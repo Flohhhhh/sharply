@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Filter as FilterIcon } from "lucide-react";
 import {
   Dialog,
@@ -46,6 +46,7 @@ function useSyncedParam(key: string, fallback: string | undefined = undefined) {
 export function FiltersModal() {
   const router = useRouter();
   const sp = useSearchParams();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
   // Controlled filter values synced from URL
@@ -79,7 +80,7 @@ export function FiltersModal() {
   ) {
     const existing = new URLSearchParams(sp.toString());
     const qs = mergeSearchParams(existing, { ...updates, page: 1 });
-    const href = qs ? `/search?${qs}` : "/search";
+    const href = qs ? `${pathname}?${qs}` : pathname;
     router.replace(href);
   }
 
@@ -96,7 +97,9 @@ export function FiltersModal() {
   function onChangeSensor(next: string) {
     const v = next === "__any__" ? "" : next;
     setSensorFormat(v);
-    pushParams({ sensorFormat: v || null });
+    // Support both /search (sensorFormat) and /browse (sensor)
+    if (pathname.startsWith("/browse")) pushParams({ sensor: v || null });
+    else pushParams({ sensorFormat: v || null });
   }
   function onChangeBrand(next: string) {
     setBrand(next);
@@ -220,10 +223,17 @@ export function FiltersModal() {
             }}
             onValueCommit={(v: number[]) => {
               const [min = 0, max = PRICE_MAX] = v;
-              pushParams({
-                priceMin: min > 0 ? min : null,
-                priceMax: max && max < PRICE_MAX ? max : null,
-              });
+              if (pathname.startsWith("/browse")) {
+                pushParams({
+                  minPrice: min > 0 ? min : null,
+                  maxPrice: max && max < PRICE_MAX ? max : null,
+                });
+              } else {
+                pushParams({
+                  priceMin: min > 0 ? min : null,
+                  priceMax: max && max < PRICE_MAX ? max : null,
+                });
+              }
             }}
           />
           <div className="text-muted-foreground flex items-center justify-between text-sm">
@@ -236,14 +246,25 @@ export function FiltersModal() {
           <Button
             variant="ghost"
             onClick={() => {
-              pushParams({
-                brand: null,
-                mount: null,
-                gearType: null,
-                priceMin: null,
-                priceMax: null,
-                sensorFormat: null,
-              });
+              if (pathname.startsWith("/browse")) {
+                pushParams({
+                  brand: null,
+                  mount: null,
+                  gearType: null,
+                  minPrice: null,
+                  maxPrice: null,
+                  sensor: null,
+                });
+              } else {
+                pushParams({
+                  brand: null,
+                  mount: null,
+                  gearType: null,
+                  priceMin: null,
+                  priceMax: null,
+                  sensorFormat: null,
+                });
+              }
               setGearType("");
               setMount("");
               setSensorFormat("");
