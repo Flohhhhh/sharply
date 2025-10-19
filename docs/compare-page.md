@@ -81,7 +81,7 @@ Enable a fast, two-item comparison experience with clean URLs, local-only persis
 
 ### Editorial Comparisons (planned)
 
-- CMS (Directus) content type linking two gear items by slug or ID, plus verdict and rationale bullets.
+- CMS (Payload) content type linking two gear items by slug or ID, plus verdict and rationale bullets.
 - Delivery model:
   - Statically generate selected editorial pairs.
   - Dynamic compare remains on the canonical query URL.

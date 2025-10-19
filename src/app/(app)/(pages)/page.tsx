@@ -77,7 +77,7 @@ export default async function Home() {
   const featuredPost = posts[0] ? toHomePost(posts[0]!) : null;
   const otherPosts = posts.slice(1, 7).map(toHomePost);
 
-  // TODO: Add editorial reviews from directus once we have some
+  // TODO: Add editorial reviews from Payload once we have some
   const reviewItems = [] as ReviewPost[];
 
   return (

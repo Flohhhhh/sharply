@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { fetchAllGearSlugs } from "~/server/gear/service";
 import { BRANDS, MOUNTS } from "~/lib/generated";
-import { getNewsPosts } from "~/lib/directus";
+import { getNewsPosts } from "~/server/payload/service";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const slugs = await fetchAllGearSlugs();

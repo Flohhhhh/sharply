@@ -49,7 +49,7 @@ export function NewsListItem({ post }: NewsListItemProps) {
 
   // console.log(post);
   // const imgSrc = post.thumbnail
-  //   ? `https://sharply-directus.onrender.com/assets/${post.thumbnail}`
+  //   ? (typeof post.thumbnail === "object" ? post.thumbnail.url ?? undefined : undefined)
   //   : undefined;
   const date = post.override_date || post.createdAt;
   const imageUrl =

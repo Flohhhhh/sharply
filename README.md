@@ -9,7 +9,7 @@ Sharply is a photography gear database and cataloging application. It combines a
 - **UI**: Tailwind CSS 4, shadcn/ui, Radix primitives
 - **Database**: PostgreSQL with Drizzle ORM
 - **Auth**: NextAuth.js v5 with Discord & Google providers
-- **AI & Integrations**: OpenAI API, Directus SDK for asset ingestion
+- **AI & Integrations**: OpenAI API, Payload CMS for editorial content
 - **Tooling**: ESLint, Prettier, TypeScript, Drizzle Kit
 
 ## Prerequisites
