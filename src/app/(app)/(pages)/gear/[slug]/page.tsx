@@ -208,7 +208,7 @@ export default async function GearPage({ params }: GearPageProps) {
         {/* Photo Placeholder */}
         <div>
           {item.thumbnailUrl ? (
-            <div className="bg-muted overflow-hidden rounded-md py-12">
+            <div className="bg-muted dark:bg-cardoverflow-hidden rounded-md py-12">
               <img
                 src={item.thumbnailUrl}
                 alt={item.name}
@@ -216,7 +216,7 @@ export default async function GearPage({ params }: GearPageProps) {
               />
             </div>
           ) : (
-            <div className="bg-muted flex aspect-video items-center justify-center rounded-md">
+            <div className="bg-muted dark:bg-card flex aspect-video items-center justify-center rounded-md">
               <div className="text-muted-foreground text-lg">
                 No image available
               </div>
