@@ -4,11 +4,35 @@ import {
   serviceListChartParams,
 } from "~/server/recommendations/service";
 import { ChartView } from "../../_components/ChartView";
+import type { Metadata } from "next";
 
 export const revalidate = 86400;
 
 export async function generateStaticParams() {
   return serviceListChartParams();
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ brand: string; slug: string }>;
+}): Promise<Metadata> {
+  const { brand, slug } = await params;
+  const result = await serviceGetChart(brand, slug);
+  if (!result) {
+    return {
+      title: "Chart Not Found",
+      openGraph: {
+        title: "Chart Not Found",
+      },
+    };
+  }
+  return {
+    title: result.title,
+    openGraph: {
+      title: result.title,
+    },
+  };
 }
 
 export default async function Page(props: {
