@@ -7,7 +7,13 @@ import Link from "next/link";
 import { formatHumanDate } from "~/lib/utils";
 import { RenameGearDialog } from "~/components/gear/rename-gear-dialog";
 import { Button } from "~/components/ui/button";
-import { Pencil } from "lucide-react";
+import { Pencil, Copy } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
+import { toast } from "sonner";
 
 // TO ADD A COLUMN:
 // 1. Add the field to `adminGearSelect` in `~/server/admin/gear/data.ts`.
@@ -50,16 +56,39 @@ export const columns: ColumnDef<AdminGearTableRow>[] = [
     header: "Actions",
     cell: ({ row }) => {
       return (
-        <RenameGearDialog
-          gearId={row.original.id}
-          currentName={row.original.name}
-          currentSlug={row.original.slug}
-          trigger={
-            <Button variant="ghost" size="sm">
-              <Pencil className="h-4 w-4" />
-            </Button>
-          }
-        />
+        <div className="flex items-center gap-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                aria-label="Copy ID"
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(row.original.id);
+                    toast("Copied gear ID", { description: row.original.id });
+                  } catch {
+                    toast("Failed to copy ID");
+                  }
+                }}
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Copy ID</TooltipContent>
+          </Tooltip>
+
+          <RenameGearDialog
+            gearId={row.original.id}
+            currentName={row.original.name}
+            currentSlug={row.original.slug}
+            trigger={
+              <Button variant="ghost" size="sm">
+                <Pencil className="h-4 w-4" />
+              </Button>
+            }
+          />
+        </div>
       );
     },
   },

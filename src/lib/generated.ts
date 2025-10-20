@@ -1012,6 +1012,16 @@ export const ENUMS = {
     "dual_axis_tilt",
     "fully_articulated"
   ],
+  "rec_group": [
+    "prime",
+    "zoom"
+  ],
+  "rec_rating": [
+    "best value",
+    "best performance",
+    "situational",
+    "balanced"
+  ],
   "review_status": [
     "PENDING",
     "APPROVED",

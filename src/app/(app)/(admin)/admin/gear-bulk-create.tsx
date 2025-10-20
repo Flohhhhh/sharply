@@ -34,6 +34,15 @@ import {
 } from "~/components/ui/collapsible";
 import { useState, useEffect } from "react";
 import { z } from "zod";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog";
+import { Textarea } from "~/components/ui/textarea";
+import { parseSingleColumnCsv } from "~/lib/utils/csv";
 
 type Brand = { id: string; name: string };
 type GearType = "CAMERA" | "LENS";
@@ -231,7 +240,7 @@ function BulkCreateRow({
               variant="outline"
               size="sm"
               onClick={() => removeRow(row.id)}
-              disabled={row.status === "creating"}
+              disabled={!canEditRows || row.status === "creating"}
             >
               Remove
             </Button>
@@ -433,12 +442,17 @@ export default function GearBulkCreate(): React.JSX.Element {
   const [gearType, setGearType] = React.useState<GearType | "">("");
   const [rows, setRows] = React.useState<RowState[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [successCount, setSuccessCount] = useState(0);
+  const [isCsvOpen, setIsCsvOpen] = useState(false);
+  const [csvText, setCsvText] = useState("");
 
   // Brands come from generated constants
 
   const canEditRows = Boolean(brandId && gearType);
+  const canInteractRows =
+    canEditRows && !isSubmitting && !isImporting && !isSuccess;
   const validRows = rows.filter((r) => {
     const v = r.validation;
     const brandName = BRANDS.find((b) => b.id === brandId)?.name;
@@ -477,6 +491,53 @@ export default function GearBulkCreate(): React.JSX.Element {
       status: "pending",
     };
     setRows((prev) => [...prev, newRow]);
+  };
+
+  const handleImportCsv = async () => {
+    if (!canEditRows) return;
+    const parsed = parseSingleColumnCsv(csvText);
+    if (parsed.length === 0) {
+      setIsCsvOpen(false);
+      setCsvText("");
+      return;
+    }
+    const existing = new Set(
+      rows.map((r) => r.name.trim().toLowerCase()).filter((n) => n.length > 0),
+    );
+    const uniqueNames: string[] = [];
+    for (const raw of parsed) {
+      const t = raw.trim();
+      if (!t) continue;
+      const key = t.toLowerCase();
+      if (existing.has(key)) continue;
+      existing.add(key);
+      uniqueNames.push(t);
+    }
+    if (uniqueNames.length === 0) {
+      setIsCsvOpen(false);
+      setCsvText("");
+      return;
+    }
+    setIsImporting(true);
+    try {
+      for (const name of uniqueNames) {
+        const newRow: RowState = {
+          id: crypto.randomUUID(),
+          name,
+          modelNumber: "",
+          validation: null,
+          proceedAnyway: false,
+          status: "pending",
+        };
+        setRows((prev) => [...prev, newRow]);
+        // Stagger additions slightly so validations fire in sequence
+        await new Promise((r) => setTimeout(r, 50));
+      }
+      setIsCsvOpen(false);
+      setCsvText("");
+    } finally {
+      setIsImporting(false);
+    }
   };
 
   const updateRow = (id: string, patch: Partial<RowState>) => {
@@ -607,7 +668,7 @@ export default function GearBulkCreate(): React.JSX.Element {
             <div className="space-y-1">
               <label className="text-sm font-medium">Brand</label>
               <Select value={brandId} onValueChange={(v) => setBrandId(v)}>
-                <SelectTrigger>
+                <SelectTrigger disabled={isImporting || isSubmitting}>
                   <SelectValue placeholder="Select a brand" />
                 </SelectTrigger>
                 <SelectContent>
@@ -625,7 +686,7 @@ export default function GearBulkCreate(): React.JSX.Element {
                 value={gearType}
                 onValueChange={(v) => setGearType(v as GearType)}
               >
-                <SelectTrigger>
+                <SelectTrigger disabled={isImporting || isSubmitting}>
                   <SelectValue placeholder="Select a type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -674,16 +735,96 @@ export default function GearBulkCreate(): React.JSX.Element {
                 )}
               </TableBody>
             </Table>
-            <div className="bg-muted/30 border-t p-3">
+            <div className="bg-muted/30 flex items-center gap-2 border-t p-3">
               <Button
                 type="button"
                 onClick={addRow}
-                disabled={!canEditRows || isSuccess}
+                disabled={!canInteractRows}
                 variant="outline"
                 size="sm"
               >
                 + Add Row
               </Button>
+              <Dialog open={isCsvOpen} onOpenChange={setIsCsvOpen}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsCsvOpen(true)}
+                  disabled={
+                    !canEditRows || isImporting || isSubmitting || isSuccess
+                  }
+                >
+                  Import with CSV
+                </Button>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Import from CSV</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-2">
+                    <p className="text-muted-foreground text-sm">
+                      Paste a single column of names. The first column will be
+                      used.
+                    </p>
+                    <Textarea
+                      value={csvText}
+                      onChange={(e) => setCsvText(e.target.value)}
+                      placeholder="One name per line or first column of CSV"
+                      rows={10}
+                    />
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsCsvOpen(false)}
+                      disabled={isImporting}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={handleImportCsv}
+                      disabled={
+                        isImporting ||
+                        !canEditRows ||
+                        csvText.trim().length === 0
+                      }
+                    >
+                      {isImporting ? (
+                        <>
+                          <svg
+                            className="mr-2 h-4 w-4 animate-spin"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 0 018-8v4a4 4 0 00-4 4H4z"
+                            ></path>
+                          </svg>
+                          Importing…
+                        </>
+                      ) : (
+                        "Import"
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
 
@@ -721,6 +862,7 @@ export default function GearBulkCreate(): React.JSX.Element {
                   !canEditRows ||
                   validRows.length === 0 ||
                   isSubmitting ||
+                  isImporting ||
                   anyFailing ||
                   isSuccess
                 }

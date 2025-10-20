@@ -35,6 +35,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     | "relevance"
     | "name"
     | "newest";
+  const showDebugScores = process.env.NODE_ENV !== "production";
   const page = parseInt(toStringParam(params.page) ?? "1", 10) || 1;
   const pageSize = 20;
 
@@ -119,6 +120,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                           thumbnailUrl={r.thumbnailUrl}
                           gearType={r.gearType}
                           dateText={null}
+                          metaRight={
+                            showDebugScores
+                              ? (r.relevance ?? 0).toFixed(3)
+                              : undefined
+                          }
                         />
                       ))}
                   </div>
@@ -146,6 +152,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                           thumbnailUrl={r.thumbnailUrl}
                           gearType={r.gearType}
                           dateText={null}
+                          metaRight={
+                            showDebugScores
+                              ? (r.relevance ?? 0).toFixed(3)
+                              : undefined
+                          }
                         />
                       ))}
                   </div>

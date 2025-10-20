@@ -260,6 +260,13 @@
       "when": 1760736526132,
       "tag": "0036_little_giant_man",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1760885736449,
+      "tag": "0037_open_jubilee",
+      "breakpoints": true
     }
   ]
 }

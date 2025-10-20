@@ -95,9 +95,10 @@ Sort order: `DESC(relevance), ASC(name)` for `relevance`; otherwise `ASC(name)` 
 
 Optional ANDed filters for brand/mount/gearType/price range/sensor format. These are layered on top of the text matching WHERE clause.
 
-### Numeric combos
+### Numeric tokens
 
-For queries containing at least two numeric tokens (e.g., integers with ≥3 digits like `400` or decimals like `4.5`), the search requires that all numeric tokens appear in the item name. This minimally improves cases like `"400 4.5"` matching lenses named `"400mm f/4.5"` without broadening other matches.
+- If a query contains two or more significant numeric tokens (integers with ≥3 digits like `400` or decimals like `4.5`), the search additionally requires that all numeric tokens appear in the item’s `search_name`.
+- If a query contains exactly one significant numeric token and at least one alphabetic “strong token” (e.g., `nikon z 400`), the match is gated on that numeric token appearing in the item’s `search_name`. This makes mixed queries surface the expected lenses (e.g., `400mm`) without broadly relaxing other matches.
 
 ## Command palette specifics
 

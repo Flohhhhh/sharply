@@ -32,7 +32,7 @@ import { asc, desc, ilike, sql, and, type SQL } from "drizzle-orm";
  */
 export function buildSearchWhereClause(query: string): SQL | undefined {
   const normalizedQuery = query.toLowerCase().trim();
-  const normalizedQueryNoPunct = normalizedQuery.replace(/[\s\-_.]+/g, "");
+  const normalizedQueryNoPunct = normalizedQuery.replace(/[\s\-_.\/]+/g, "");
 
   const parts = normalizedQuery
     .split(/[\s_]+/)
@@ -43,10 +43,28 @@ export function buildSearchWhereClause(query: string): SQL | undefined {
   const strongParts = parts.filter((p) => /[a-z]/i.test(p) && p.length >= 3);
 
   const searchLower = sql`lower(${gear.searchName})`;
-  const normalizedCol = sql`regexp_replace(${searchLower}, '[[:space:]_.-]+', '', 'g')`;
+  const normalizedCol = sql`regexp_replace(${searchLower}, '[[:space:]_.\/-]+', '', 'g')`;
   const brandLower = sql`lower(${brands.name})`;
   const noBrand = sql`replace(${searchLower}, ${brandLower}, '')`;
-  const normalizedNoBrand = sql`regexp_replace(${noBrand}, '[[:space:]_.-]+', '', 'g')`;
+  // For Nikon items, also strip a leading "nikkor" word to avoid penalizing
+  // users who search without it (common behavior: they type "nikon z 400 4.5").
+  const noBrandWithSynonyms = sql`CASE WHEN ${brandLower} = 'nikon' THEN regexp_replace(${noBrand}, '^\\s*nikkor\\s+', '', 'g') ELSE ${noBrand} END`;
+  const normalizedNoBrand = sql`regexp_replace(${noBrandWithSynonyms}, '[[:space:]_.\/-]+', '', 'g')`;
+
+  // Also remove the detected brand (and Nikon's "nikkor") from the QUERY side
+  // when matching against brand-stripped columns, so queries that omit
+  // product-line terms don't get penalized.
+  const queryNormSql = sql`${normalizedQueryNoPunct}`;
+  const queryNoBrand = sql`regexp_replace(${queryNormSql}, ${brandLower}, '', 'gi')`;
+  const queryNoBrandWithSynonyms = sql`CASE WHEN ${brandLower} = 'nikon' THEN regexp_replace(${queryNoBrand}, 'nikkor', '', 'gi') ELSE ${queryNoBrand} END`;
+
+  // Lens-relaxed normalization: remove domain-specific glue between numbers
+  // - "mm" after a digit (e.g., 400mm -> 400)
+  // - leading "f" before a digit (e.g., f4.5 -> 4.5)
+  const normalizedNoBrandRelaxedStep1 = sql`regexp_replace(${normalizedNoBrand}, '([0-9])mm', '\\1', 'gi')`;
+  const normalizedNoBrandRelaxed = sql`regexp_replace(${normalizedNoBrandRelaxedStep1}, 'f([0-9])', '\\1', 'gi')`;
+  const normalizedColRelaxedStep1 = sql`regexp_replace(${normalizedCol}, '([0-9])mm', '\\1', 'gi')`;
+  const normalizedColRelaxed = sql`regexp_replace(${normalizedColRelaxedStep1}, 'f([0-9])', '\\1', 'gi')`;
 
   const conditions: SQL[] = [];
   if (strongParts.length >= 2) {
@@ -62,7 +80,14 @@ export function buildSearchWhereClause(query: string): SQL | undefined {
 
   conditions.push(sql`${normalizedCol} ILIKE ${`%${normalizedQueryNoPunct}%`}`);
   conditions.push(
-    sql`${normalizedNoBrand} ILIKE ${`%${normalizedQueryNoPunct}%`}`,
+    sql`${normalizedNoBrand} ILIKE ('%' || ${queryNoBrandWithSynonyms} || '%')`,
+  );
+  // Relaxed contains to tolerate omitted "mm"/"f" in user queries
+  conditions.push(
+    sql`${normalizedNoBrandRelaxed} ILIKE ('%' || ${queryNoBrandWithSynonyms} || '%')`,
+  );
+  conditions.push(
+    sql`${normalizedColRelaxed} ILIKE ${`%${normalizedQueryNoPunct}%`}`,
   );
   conditions.push(
     sql`similarity(${normalizedNoBrand}, ${normalizedQueryNoPunct}) > 0.4`,
@@ -71,26 +96,51 @@ export function buildSearchWhereClause(query: string): SQL | undefined {
     sql`similarity(${gear.searchName}, ${normalizedQueryNoPunct}) > 0.5`,
   );
 
-  // Minimal numeric-combo support: if query contains at least two numeric tokens
-  // (integers with length >= 3 or decimals like 4.5), require ALL to appear
-  // somewhere in the raw search name. This helps queries like "400 4.5" match
-  // lenses named "400mm f/4.5" even when normalized concatenation breaks adjacency.
+  // Numeric token handling
+  // - If there are 2+ numeric tokens (e.g., "400 4.5"), require ALL of them
+  //   to appear in the raw search name (AND). This is appended to the OR set
+  //   to avoid over-broad fuzzy matches.
+  // - If there is exactly 1 significant numeric token (e.g., "400") AND the
+  //   query also contains at least one alphabetic "strong" token (e.g., "nikon"),
+  //   gate the whole match on that numeric token appearing as well. This helps
+  //   queries like "nikon z 400" surface the corresponding 400mm lenses instead
+  //   of only camera bodies.
   const numericMatches = Array.from(
     normalizedQuery.matchAll(/\d+(?:\.\d+)?/g),
   ).map((m) => m[0]);
   const numericTokens = numericMatches.filter(
     (t) => t.includes(".") || t.length >= 3,
   );
+
+  // Make numeric tokens contribute positively to OR conditions as well.
+  // This helps lens queries like "50 1.8" where punctuation/letters (e.g., "f/")
+  // in names would otherwise break contiguous substring matches.
   if (numericTokens.length >= 2) {
     const andClauses = numericTokens.map((t) =>
       ilike(gear.searchName, `%${t}%`),
     );
-    conditions.push(
-      sql`(${sql.join(andClauses as unknown as SQL[], sql` AND `)})`,
-    );
+    const numericAndForOr = sql`(${sql.join(andClauses as unknown as SQL[], sql` AND `)})`;
+    conditions.push(numericAndForOr);
+  } else if (numericTokens.length === 1) {
+    conditions.push(ilike(gear.searchName, `%${numericTokens[0]}%`));
   }
 
-  return sql`(${sql.join(conditions, sql` OR `)})`;
+  const baseOr = sql`(${sql.join(conditions, sql` OR `)})`;
+
+  if (numericTokens.length >= 2) {
+    const andClauses = numericTokens.map((t) =>
+      ilike(gear.searchName, `%${t}%`),
+    );
+    const numericAnd = sql`(${sql.join(andClauses as unknown as SQL[], sql` AND `)})`;
+    return sql`(${baseOr}) AND (${numericAnd})`;
+  }
+
+  if (numericTokens.length === 1 && strongParts.length >= 1) {
+    const singleNumeric = ilike(gear.searchName, `%${numericTokens[0]}%`);
+    return sql`(${baseOr}) AND (${singleNumeric})`;
+  }
+
+  return baseOr;
 }
 
 /**
@@ -102,14 +152,28 @@ export function buildRelevanceExpr(
   normalizedQueryNoPunct: string,
 ) {
   const searchLower = sql`lower(${gear.searchName})`;
-  const normalizedCol = sql`regexp_replace(${searchLower}, '[[:space:]_.-]+', '', 'g')`;
+  const normalizedCol = sql`regexp_replace(${searchLower}, '[[:space:]_.\/-]+', '', 'g')`;
   const brandLower = sql`lower(${brands.name})`;
   const noBrand = sql`replace(${searchLower}, ${brandLower}, '')`;
-  const normalizedNoBrand = sql`regexp_replace(${noBrand}, '[[:space:]_.-]+', '', 'g')`;
+  const noBrandWithSynonyms = sql`CASE WHEN ${brandLower} = 'nikon' THEN regexp_replace(${noBrand}, '^\\s*nikkor\\s+', '', 'g') ELSE ${noBrand} END`;
+  const normalizedNoBrand = sql`regexp_replace(${noBrandWithSynonyms}, '[[:space:]_.\/-]+', '', 'g')`;
+
+  const normalizedNoBrandRelaxedStep1 = sql`regexp_replace(${normalizedNoBrand}, '([0-9])mm', '\\1', 'gi')`;
+  const normalizedNoBrandRelaxed = sql`regexp_replace(${normalizedNoBrandRelaxedStep1}, 'f([0-9])', '\\1', 'gi')`;
+  const normalizedColRelaxedStep1 = sql`regexp_replace(${normalizedCol}, '([0-9])mm', '\\1', 'gi')`;
+  const normalizedColRelaxed = sql`regexp_replace(${normalizedColRelaxedStep1}, 'f([0-9])', '\\1', 'gi')`;
+
+  // Query-side brand and Nikon synonym stripping for ranking, mirroring WHERE
+  const queryNormSql = sql`${normalizedQueryNoPunct}`;
+  const queryNoBrand = sql`regexp_replace(${queryNormSql}, ${brandLower}, '', 'gi')`;
+  const queryNoBrandWithSynonyms = sql`CASE WHEN ${brandLower} = 'nikon' THEN regexp_replace(${queryNoBrand}, 'nikkor', '', 'gi') ELSE ${queryNoBrand} END`;
+
   return sql<number>`GREATEST(
     CASE WHEN ${searchLower} ILIKE ${`%${query.toLowerCase().trim()}%`} THEN 2.0 ELSE 0 END,
     CASE WHEN ${normalizedCol} ILIKE ${`%${normalizedQueryNoPunct}%`} THEN 1.8 ELSE 0 END,
-    CASE WHEN ${normalizedNoBrand} ILIKE ${`%${normalizedQueryNoPunct}%`} THEN 1.0 ELSE 0 END,
+    CASE WHEN ${normalizedNoBrand} ILIKE ('%' || ${queryNoBrandWithSynonyms} || '%') THEN 1.0 ELSE 0 END,
+    CASE WHEN ${normalizedNoBrandRelaxed} ILIKE ('%' || ${queryNoBrandWithSynonyms} || '%') THEN 1.0 ELSE 0 END,
+    CASE WHEN ${normalizedColRelaxed} ILIKE ${`%${normalizedQueryNoPunct}%`} THEN 1.0 ELSE 0 END,
     similarity(${normalizedNoBrand}, ${normalizedQueryNoPunct}) * 0.6,
     similarity(${normalizedCol}, ${normalizedQueryNoPunct}) * 0.4,
     similarity(${gear.searchName}, ${normalizedQueryNoPunct}) * 0.3
