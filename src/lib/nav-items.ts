@@ -121,18 +121,6 @@ export const navItems: NavItem[] = [
       //   description: "Visualize different focal lengths",
       //   iconKey: "target",
       // },
-      // {
-      //   title: "Construction Test",
-      //   url: "/construction-test",
-      //   description: "Test your gear knowledge",
-      //   iconKey: "zap",
-      // },
-      // {
-      //   title: "Price Tracking",
-      //   url: "/tools/price-tracking",
-      //   description: "Track gear prices over time",
-      //   iconKey: "trending",
-      // },
     ],
   },
 

@@ -241,6 +241,15 @@ export const lensFilterTypesEnum = pgEnum("lens_filter_types_enum", [
   "internal-rotary",
 ]);
 
+// --- Recommendations (Enums) ---
+export const recommendationRatingEnum = pgEnum("rec_rating", [
+  "best value",
+  "best performance",
+  "situational",
+  "balanced",
+]);
+export const recommendationGroupEnum = pgEnum("rec_group", ["prime", "zoom"]);
+
 // --- Base helpers ---
 const createdAt = timestamp("created_at", { withTimezone: true })
   .defaultNow()
@@ -889,6 +898,82 @@ export const staffVerdictsRelations = relations(staffVerdicts, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+// Relations declared AFTER table declarations below
+
+// --- Recommendations ---
+export const recommendationCharts = appSchema.table(
+  "recommendation_charts",
+  (d) => ({
+    id: d
+      .varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    brand: d.varchar("brand", { length: 120 }).notNull(),
+    slug: d.varchar("slug", { length: 200 }).notNull(),
+    title: d.varchar("title", { length: 300 }).notNull(),
+    description: d.varchar("description", { length: 800 }),
+    updatedDate: dateCol("updated_date").notNull(),
+    isPublished: d.boolean("is_published").notNull().default(true),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [uniqueIndex("rec_brand_slug").on(t.brand, t.slug)],
+);
+
+export const recommendationItems = appSchema.table(
+  "recommendation_items",
+  (d) => ({
+    id: d
+      .varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    chartId: d
+      .varchar("chart_id", { length: 36 })
+      .notNull()
+      .references(() => recommendationCharts.id, { onDelete: "cascade" }),
+    gearId: d
+      .varchar("gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "restrict" }),
+    rating: recommendationRatingEnum("rating").notNull(),
+    note: d.text("note"),
+    // Optional overrides controlling grouping
+    groupOverride: recommendationGroupEnum("group_override"),
+    customColumn: d.varchar("custom_column", { length: 120 }),
+    // Per-item price range override (display only)
+    priceMinOverride: d.integer("price_min_override"),
+    priceMaxOverride: d.integer("price_max_override"),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    index("rec_items_chart_idx").on(t.chartId),
+    index("rec_items_gear_idx").on(t.gearId),
+  ],
+);
+
+// --- Recommendation Relations ---
+export const recommendationChartsRelations = relations(
+  recommendationCharts,
+  ({ many }) => ({
+    items: many(recommendationItems),
+  }),
+);
+
+export const recommendationItemsRelations = relations(
+  recommendationItems,
+  ({ one }) => ({
+    chart: one(recommendationCharts, {
+      fields: [recommendationItems.chartId],
+      references: [recommendationCharts.id],
+    }),
+    gear: one(gear, {
+      fields: [recommendationItems.gearId],
+      references: [gear.id],
+    }),
+  }),
+);
 
 export const gearGenresRelations = relations(gearGenres, ({ one }) => ({
   gear: one(gear, { fields: [gearGenres.gearId], references: [gear.id] }),

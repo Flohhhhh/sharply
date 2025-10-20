@@ -13,10 +13,6 @@ const config = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "sharply-directus.onrender.com",
-      },
-      {
-        protocol: "https",
         hostname: "8v5lpkd4bi.ufs.sh",
       },
     ],

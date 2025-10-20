@@ -11,7 +11,6 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx scripts/seed.ts",
-    "directus:types": "directus-typeforge --host https://sharply-directus.onrender.com --token $DIRECTUS_ADMIN_TOKEN -o ./src/types/directus.ts",
     "reviews:generate-fake-summary": "tsx scripts/generate-fake-review-summary.ts",
     "gear:list-missing-links": "tsx scripts/list-missing-links.ts",
     "constants:generate": "tsx scripts/generate-constants.ts",
@@ -28,7 +27,6 @@
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.7.2",
-    "@directus/sdk": "^20.0.2",
     "@hookform/resolvers": "^5.2.2",
     "@payloadcms/db-postgres": "^3.58.0",
     "@payloadcms/email-resend": "^3.58.0",
@@ -64,7 +62,6 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^4.1.0",
-    "directus-typeforge": "^0.16.3",
     "discord-api-types": "^0.38.26",
     "discord-interactions": "^4.3.0",
     "drizzle-orm": "^0.41.0",
