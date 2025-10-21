@@ -15,6 +15,14 @@ import { Badge } from "~/components/ui/badge";
 import { ContributionCounter } from "~/components/home/contribution-counter";
 import { GearCounter } from "~/components/home/gear-counter";
 import { auth } from "~/server/auth";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "About",
+  openGraph: {
+    title: "About",
+  },
+};
 
 export default async function About() {
   const session = await auth();

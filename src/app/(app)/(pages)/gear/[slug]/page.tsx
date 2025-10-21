@@ -72,7 +72,7 @@ export async function generateMetadata({
 
 export default async function GearPage({ params }: GearPageProps) {
   const { slug } = await params;
-  console.log("[gear/[slug]] Generating static page (build/ISR)", { slug });
+  // console.log("[gear/[slug]] Generating static page (build/ISR)", { slug });
 
   // Fetch core gear data
   const item: GearItem = await fetchGearBySlug(slug);
