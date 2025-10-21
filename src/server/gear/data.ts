@@ -547,6 +547,89 @@ export async function fetchContributorsByGearIdData(
   return rows as unknown as ContributorRow[];
 }
 
+/** Minimal fields across ALL gear needed to evaluate construction state */
+export type ConstructionMinimalRow = {
+  id: string;
+  slug: string;
+  name: string;
+  gearType: string;
+  brandId: string | null;
+  brandName: string | null;
+  mountId: string | null; // legacy single-mount pointer
+  createdAt: Date;
+  // Camera bits
+  camera_sensorFormatId: string | null;
+  camera_resolutionMp: number | string | null;
+  fixed_focalMin: number | null;
+  fixed_focalMax: number | null;
+  // Lens bits
+  lens_focalMin: number | null;
+  lens_focalMax: number | null;
+  lens_isPrime: boolean | null;
+  lens_maxApertureWide: number | string | null;
+  // Full spec rows (optional, for completion computation)
+  cameraAll?: Record<string, unknown> | null;
+  lensAll?: Record<string, unknown> | null;
+  fixedAll?: Record<string, unknown> | null;
+};
+
+export async function fetchAllGearForConstructionData(): Promise<
+  Array<ConstructionMinimalRow & { mountIds: string[] }>
+> {
+  // Base rows with minimal joins
+  const rows = await db
+    .select({
+      id: gear.id,
+      slug: gear.slug,
+      name: gear.name,
+      gearType: gear.gearType,
+      brandId: gear.brandId,
+      brandName: brands.name,
+      mountId: gear.mountId,
+      createdAt: gear.createdAt,
+      camera_sensorFormatId: cameraSpecs.sensorFormatId,
+      camera_resolutionMp: cameraSpecs.resolutionMp,
+      fixed_focalMin: fixedLensSpecs.focalLengthMinMm,
+      fixed_focalMax: fixedLensSpecs.focalLengthMaxMm,
+      lens_focalMin: lensSpecs.focalLengthMinMm,
+      lens_focalMax: lensSpecs.focalLengthMaxMm,
+      lens_isPrime: lensSpecs.isPrime,
+      lens_maxApertureWide: lensSpecs.maxApertureWide,
+      cameraAll: cameraSpecs,
+      lensAll: lensSpecs,
+      fixedAll: fixedLensSpecs,
+    })
+    .from(gear)
+    .leftJoin(brands, eq(gear.brandId, brands.id))
+    .leftJoin(cameraSpecs, eq(gear.id, cameraSpecs.gearId))
+    .leftJoin(fixedLensSpecs, eq(gear.id, fixedLensSpecs.gearId))
+    .leftJoin(lensSpecs, eq(gear.id, lensSpecs.gearId));
+
+  const gearIds = rows.map((r) => r.id);
+  const mountsRows = gearIds.length
+    ? await db
+        .select({ gearId: gearMounts.gearId, mountId: gearMounts.mountId })
+        .from(gearMounts)
+        .where(
+          sql`${gearMounts.gearId} IN (${sql.join(
+            gearIds.map((id) => sql`${id}`),
+            sql`, `,
+          )})`,
+        )
+    : [];
+
+  const mountIdsByGearId = new Map<string, string[]>();
+  for (const mr of mountsRows) {
+    if (!mountIdsByGearId.has(mr.gearId!)) mountIdsByGearId.set(mr.gearId!, []);
+    mountIdsByGearId.get(mr.gearId!)!.push(mr.mountId!);
+  }
+
+  return rows.map((r) => ({
+    ...r,
+    mountIds: mountIdsByGearId.get(r.id) ?? [],
+  }));
+}
+
 // Writes
 export async function addToWishlist(gearId: string, userId: string) {
   const exists = await db

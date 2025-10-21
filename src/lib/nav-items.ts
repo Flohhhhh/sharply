@@ -17,6 +17,7 @@ import {
   Palette,
   Film,
   Scale,
+  PencilRuler,
 } from "lucide-react";
 
 interface NavItem {
@@ -44,7 +45,8 @@ interface NavItem {
       | "target"
       | "palette"
       | "film"
-      | "scale";
+      | "scale"
+      | "pencilRuler";
   }[];
   hideFromNavbar?: boolean;
   hideFromFooter?: boolean;
@@ -68,35 +70,41 @@ export const navItems: NavItem[] = [
         iconKey: "camera",
       },
       {
-        title: "Canon",
-        url: "/brand/canon",
-        description: "DSLR and mirrorless cameras, lenses",
-        iconKey: "camera",
+        title: "Contribute",
+        url: "/lists/under-construction",
+        description: "Items with missing key specs",
+        iconKey: "pencilRuler",
       },
-      {
-        title: "Nikon",
-        url: "/brand/nikon",
-        description: "Professional cameras and optics",
-        iconKey: "camera",
-      },
-      {
-        title: "Sony",
-        url: "/brand/sony",
-        description: "Mirrorless cameras and lenses",
-        iconKey: "camera",
-      },
-      {
-        title: "Fujifilm",
-        url: "/brand/fujifilm",
-        description: "Film and digital cameras, lenses",
-        iconKey: "camera",
-      },
-      {
-        title: "Leica",
-        url: "/brand/leica",
-        description: "Premium cameras and optics",
-        iconKey: "camera",
-      },
+      // {
+      //   title: "Canon",
+      //   url: "/brand/canon",
+      //   description: "DSLR and mirrorless cameras, lenses",
+      //   iconKey: "camera",
+      // },
+      // {
+      //   title: "Nikon",
+      //   url: "/brand/nikon",
+      //   description: "Professional cameras and optics",
+      //   iconKey: "camera",
+      // },
+      // {
+      //   title: "Sony",
+      //   url: "/brand/sony",
+      //   description: "Mirrorless cameras and lenses",
+      //   iconKey: "camera",
+      // },
+      // {
+      //   title: "Fujifilm",
+      //   url: "/brand/fujifilm",
+      //   description: "Film and digital cameras, lenses",
+      //   iconKey: "camera",
+      // },
+      // {
+      //   title: "Leica",
+      //   url: "/brand/leica",
+      //   description: "Premium cameras and optics",
+      //   iconKey: "camera",
+      // },
     ],
   },
   {
@@ -195,6 +203,7 @@ export const iconMap = {
   palette: Palette,
   film: Film,
   scale: Scale,
+  pencilRuler: PencilRuler,
 };
 
 // Get nav items filtered by hideFromNavbar and format for the navbar component

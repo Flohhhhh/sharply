@@ -39,7 +39,10 @@ import {
   fetchGearEditByIdData,
   type GearEditView,
   fetchBrandGearData,
+  fetchAllGearForConstructionData,
+  type ConstructionMinimalRow,
 } from "./data";
+import { getConstructionState } from "~/lib/utils";
 
 // Internal low-level reads moved to data.ts
 
@@ -177,7 +180,8 @@ export async function fetchApprovedReviews(slug: string) {
 
 export async function fetchMyReviewStatus(slug: string) {
   const session = await auth();
-  if (!session?.user?.id) return { hasReview: false, status: null as any };
+  if (!session?.user?.id)
+    return { hasReview: false, status: null as unknown as string | null };
   const gearId = await resolveGearIdOrThrow(slug);
   const my = await getMyReviewStatus(gearId, session.user.id);
   return { hasReview: Boolean(my), status: my?.status ?? null };
@@ -345,4 +349,153 @@ export async function fetchPendingEdit(slug: string) {
 
 export async function fetchPendingEditCountForGear(gearId: string) {
   return countPendingEditsForGear(gearId);
+}
+
+export type UnderConstructionRow = {
+  id: string;
+  slug: string;
+  name: string;
+  brandName: string | null;
+  gearType: string;
+  missingCount: number;
+  missing: string[];
+  completionPercent: number; // 0..100
+  createdAt: Date;
+  underConstruction: boolean;
+  brandId?: string | null;
+};
+
+/**
+ * Compute under-construction items with a threshold.
+ * thresholdMissing: minimum number of missing key specs to include (default 1)
+ */
+export async function listUnderConstruction(
+  thresholdMissing = 1,
+  minCompletionPercent?: number,
+): Promise<UnderConstructionRow[]> {
+  const rows = await fetchAllGearForConstructionData();
+
+  // Map to a minimal GearItem-like object only for getConstructionState
+  type MinimalForConstruction = {
+    id: string;
+    slug: string;
+    name: string;
+    gearType: string;
+    brandId: string | null;
+    mountId: string | null;
+    mountIds: string[];
+    cameraSpecs: {
+      sensorFormatId: string | null;
+      resolutionMp: number | string | null;
+    } | null;
+    lensSpecs: {
+      isPrime: boolean | null;
+      focalLengthMinMm: number | null;
+      focalLengthMaxMm: number | null;
+      maxApertureWide: number | string | null;
+    } | null;
+    fixedLensSpecs: {
+      focalLengthMinMm: number | null;
+      focalLengthMaxMm: number | null;
+    } | null;
+  };
+
+  const items: MinimalForConstruction[] = rows.map((r) => {
+    const cameraSpecs =
+      r.gearType === "CAMERA"
+        ? {
+            sensorFormatId: r.camera_sensorFormatId,
+            resolutionMp: r.camera_resolutionMp,
+          }
+        : null;
+    const lensSpecs =
+      r.gearType === "LENS"
+        ? {
+            isPrime: r.lens_isPrime,
+            focalLengthMinMm: r.lens_focalMin,
+            focalLengthMaxMm: r.lens_focalMax,
+            maxApertureWide: r.lens_maxApertureWide,
+          }
+        : null;
+    const fixedLensSpecs =
+      r.gearType === "CAMERA"
+        ? {
+            focalLengthMinMm: r.fixed_focalMin,
+            focalLengthMaxMm: r.fixed_focalMax,
+          }
+        : null;
+    return {
+      id: r.id,
+      slug: r.slug,
+      name: r.name,
+      gearType: r.gearType,
+      brandId: r.brandId,
+      mountId: r.mountId,
+      mountIds: r.mountIds,
+      cameraSpecs,
+      lensSpecs,
+      fixedLensSpecs,
+    };
+  });
+
+  const enriched = items.map((it, idx) => {
+    const construction = getConstructionState(it as unknown as GearItem);
+    const missing = construction.missing;
+    // True completion based on presence of fields in spec objects + core fields
+    const src = rows[idx]!;
+    let totalFields = 0;
+    let filledFields = 0;
+    const countObject = (obj: Record<string, unknown> | null | undefined) => {
+      if (!obj) return;
+      for (const [, v] of Object.entries(obj)) {
+        totalFields++;
+        if (v != null && !(typeof v === "string" && v.trim() === "")) {
+          filledFields++;
+        }
+      }
+    };
+    if (src.cameraAll && it.gearType === "CAMERA") countObject(src.cameraAll);
+    if (src.lensAll && it.gearType === "LENS") countObject(src.lensAll);
+    if (src.fixedAll && it.gearType === "CAMERA") countObject(src.fixedAll);
+    // include brand/mount core
+    const coreValues = [it.brandId, it.mountId];
+    totalFields += coreValues.length;
+    for (const v of coreValues) if (v) filledFields++;
+
+    const completionPercent =
+      totalFields > 0 ? Math.round((filledFields / totalFields) * 100) : 0;
+
+    const base = rows[idx]!;
+    return {
+      id: base.id,
+      slug: base.slug,
+      name: base.name,
+      brandName: base.brandName,
+      gearType: base.gearType,
+      missingCount: missing.length,
+      missing,
+      completionPercent,
+      createdAt: base.createdAt,
+      underConstruction: construction.underConstruction,
+      brandId: rows[idx]!.brandId ?? null,
+    } satisfies UnderConstructionRow;
+  });
+
+  return enriched
+    .filter((r) => {
+      const meetsMissing = r.missingCount >= thresholdMissing;
+      const meetsLowCompletion =
+        typeof minCompletionPercent === "number"
+          ? r.completionPercent < minCompletionPercent
+          : false;
+      return meetsMissing || meetsLowCompletion;
+    })
+    .sort((a, b) => {
+      // Most missing first, then lowest completion, then newest
+      if (b.missingCount !== a.missingCount)
+        return b.missingCount - a.missingCount;
+      if (a.completionPercent !== b.completionPercent)
+        return a.completionPercent - b.completionPercent;
+      return b.createdAt.getTime() - a.createdAt.getTime();
+    });
 }
