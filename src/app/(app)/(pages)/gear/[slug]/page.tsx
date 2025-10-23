@@ -40,6 +40,7 @@ import {
 import { NewsCard } from "~/components/home/news-card";
 import { Card, CardContent } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
+import { notFound } from "next/navigation";
 // Removed LensApertureDisplay in favor of standardized spec rows using mapping
 
 export const revalidate = 3600;
@@ -54,20 +55,36 @@ export async function generateMetadata({
   params,
 }: GearPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const item: GearItem = await fetchGearBySlug(slug);
-  const verdict = await fetchStaffVerdict(slug);
-  const description = verdict
-    ? (verdict?.content ?? "")
-    : `Sharply is the newest and most comprehensive photography gear database and review platform featuring expert reviews, real specs, and side-by-side comparisons in a modern, minimalist interface.`;
-  return {
-    title: `${item.name} | Specs & Reviews`,
-    description,
-    openGraph: {
+  try {
+    const item: GearItem = await fetchGearBySlug(slug);
+    const verdict = await fetchStaffVerdict(slug).catch(() => null);
+    const description = verdict
+      ? (verdict?.content ?? "")
+      : `Sharply is the newest and most comprehensive photography gear database and review platform featuring expert reviews, real specs, and side-by-side comparisons in a modern, minimalist interface.`;
+    return {
       title: `${item.name} | Specs & Reviews`,
-      images: [item.thumbnailUrl ?? ""],
       description,
-    },
-  };
+      openGraph: {
+        title: `${item.name} | Specs & Reviews`,
+        images: [item.thumbnailUrl ?? ""],
+        description,
+      },
+    };
+  } catch (err: any) {
+    if (err?.status === 404) {
+      return {
+        title: "Item not found",
+        description: "The requested gear could not be found.",
+        robots: { index: false, follow: false },
+        openGraph: {
+          title: "Item not found",
+          images: [],
+          description: "The requested gear could not be found.",
+        },
+      };
+    }
+    throw err;
+  }
 }
 
 export default async function GearPage({ params }: GearPageProps) {
@@ -75,51 +92,12 @@ export default async function GearPage({ params }: GearPageProps) {
   // console.log("[gear/[slug]] Generating static page (build/ISR)", { slug });
 
   // Fetch core gear data
-  const item: GearItem = await fetchGearBySlug(slug);
-  // Specs (strongly typed via schema); avoid manual field mapping
-  // const cameraSpecsItem =
-  //   item.gearType === "CAMERA" ? (item.cameraSpecs ?? null) : null;
-  // const lensSpecsItem =
-  //   item.gearType === "LENS" ? (item.lensSpecs ?? null) : null;
+  const item = await fetchGearBySlug(slug).catch((err: any) => {
+    if ((err as any)?.status === 404) return null;
+    throw err;
+  });
 
-  // console.log("[GearPage] item", item);
-  // console.log("[GearPage] cameraSpecsItem", cameraSpecsItem);
-
-  // Get sensor format if camera specs exist
-  // let sensorFormat = null;
-  // // sensor format id available on camera specs; join for name elsewhere
-  // if (cameraSpecsItem?.sensorFormatId) {
-  //   sensorFormat = {
-  //     id: cameraSpecsItem.sensorFormatId,
-  //     name: sensorNameFromId(cameraSpecsItem.sensorFormatId),
-  //     slug: "",
-  //   } as any;
-  // }
-
-  // Compute combined Sensor Type label (e.g., "Partially-Stacked BSI-CMOS")
-  // const sensorTypeLabel = (() => {
-  //   if (!cameraSpecsItem) return null;
-  //   const parts: string[] = [];
-  //   const stacking = cameraSpecsItem.sensorStackingType as
-  //     | "unstacked"
-  //     | "partially-stacked"
-  //     | "fully-stacked"
-  //     | null
-  //     | undefined;
-  //   if (stacking && stacking !== "unstacked") {
-  //     let stackingLabel: string | null = null;
-  //     if (stacking === "partially-stacked") stackingLabel = "Partially-Stacked";
-  //     if (stacking === "fully-stacked") stackingLabel = "Stacked";
-  //     if (stackingLabel) parts.push(stackingLabel);
-  //   }
-  //   const tech = cameraSpecsItem.sensorTechType
-  //     ? String(cameraSpecsItem.sensorTechType).toUpperCase()
-  //     : null;
-  //   const bsi = cameraSpecsItem.isBackSideIlluminated ? "BSI" : null;
-  //   const techSegment = [bsi, tech].filter(Boolean).join("-");
-  //   if (techSegment) parts.push(techSegment);
-  //   return parts.length ? parts.join(" ") : null;
-  // })();
+  if (!item) return notFound();
 
   // Fetch editorial content
   const [ratingsRows, staffVerdictRows, pendingChangeRequests] =
