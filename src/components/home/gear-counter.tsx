@@ -6,7 +6,7 @@ export async function GearCounter() {
 
   return (
     <div>
-      <NumberTicker value={totalGearItems} className="text-5xl font-bold" />
+      <NumberTicker value={totalGearItems} className="text-6xl font-bold" />
       <p className="text-muted-foreground text-sm">Items in our database</p>
     </div>
   );
