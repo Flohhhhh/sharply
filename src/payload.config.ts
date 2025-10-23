@@ -46,7 +46,9 @@ export default buildConfig({
     // storage-adapter-placeholder
     uploadthingStorage({
       collections: {
-        media: true,
+        media: {
+          disablePayloadAccessControl: true,
+        },
       },
       options: {
         token: process.env.UPLOADTHING_TOKEN || "",
