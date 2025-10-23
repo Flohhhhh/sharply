@@ -19,10 +19,12 @@ export function NewsCard({
   post,
   badge,
   size = "md",
+  imagePriority = false,
 }: {
   post: HomePost;
   badge?: string;
   size?: NewsCardSize;
+  imagePriority?: boolean;
 }) {
   const titleClass =
     size === "lg" ? "text-2xl" : size === "sm" ? "text-base" : "text-lg";
@@ -40,8 +42,10 @@ export function NewsCard({
           <Image
             src={post.image}
             alt={post.title}
-            fill
-            className="rounded-lg object-cover"
+            priority={imagePriority}
+            width={512}
+            height={320}
+            className="h-full w-full rounded-lg object-cover"
           />
           {badge ? (
             <div className="absolute top-3 left-3">

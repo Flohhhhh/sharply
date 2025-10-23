@@ -130,7 +130,7 @@ export default async function Home() {
           {/* Center column featured post */}
           <div className="col-span-full md:col-span-3 xl:col-span-4">
             {featuredPost ? (
-              <HomeNewsCard badge="Featured" post={featuredPost} />
+              <HomeNewsCard badge="Featured" post={featuredPost} imagePriority />
             ) : null}
 
             {/* News feed continuing below the featured article */}
