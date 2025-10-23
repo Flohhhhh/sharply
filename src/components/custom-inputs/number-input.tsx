@@ -105,10 +105,6 @@ export const NumberInput = ({
       const inputType: string | undefined = ne?.inputType;
       if (inputType?.startsWith("delete")) return;
       const data: string = ne?.data ?? "";
-      if (!/^[0-9.]$/.test(data)) {
-        e.preventDefault();
-        return;
-      }
       const el = e.currentTarget as HTMLInputElement;
       const start = el.selectionStart ?? el.value.length;
       const end = el.selectionEnd ?? start;
