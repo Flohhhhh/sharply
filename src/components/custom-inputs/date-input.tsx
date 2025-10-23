@@ -13,7 +13,7 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "~/components/ui/popover";
+} from "~/components/ui/popover-in-dialog";
 import { Calendar } from "~/components/ui/calendar";
 
 type Granularity = "day" | "month" | "year";
@@ -275,11 +275,24 @@ export function DateInput({
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="end">
             {granularity === "day" && (
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={handleCalendarSelect}
-              />
+              <div className="p-2">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={handleCalendarSelect}
+                />
+                <div className="mt-2 border-t pt-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="w-full"
+                    onClick={() => handleCalendarSelect(new Date())}
+                  >
+                    Today
+                  </Button>
+                </div>
+              </div>
             )}
             {granularity === "month" && (
               <MonthPickerContent

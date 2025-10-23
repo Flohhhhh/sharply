@@ -7,6 +7,8 @@ import ApertureInput from "~/components/custom-inputs/aperture-input";
 import IsoInput from "~/components/custom-inputs/iso-input";
 import SensorFormatInput from "~/components/custom-inputs/sensor-format-input";
 import CurrencyInput from "~/components/custom-inputs/currency-input";
+import { DateInput } from "~/components/custom-inputs/date-input";
+import { NumberInput } from "~/components/custom-inputs/number-input";
 
 export default function UIDemoPage() {
   const [apertureValue, setApertureValue] = useState<number | undefined>(
@@ -20,6 +22,8 @@ export default function UIDemoPage() {
   const [currencyValue, setCurrencyValue] = useState<number | undefined>(
     undefined,
   );
+  const [dateValue, setDateValue] = useState<string | null>(null);
+  const [numberValue, setNumberValue] = useState<number | null>(null);
 
   return (
     <div className="container mx-auto space-y-8 p-6">
@@ -131,6 +135,37 @@ export default function UIDemoPage() {
         </CardHeader>
         <CardContent>
           <ExampleUsage />
+        </CardContent>
+      </Card>
+
+      {/* date input component */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Date Input Component</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <DateInput label="Date" value={dateValue} onChange={setDateValue} />
+        </CardContent>
+      </Card>
+
+      {/* number inputs */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Number Input Component</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <NumberInput
+            step={0.1}
+            min={0}
+            max={100}
+            placeholder="0.0"
+            prefix="£"
+            suffix="%"
+            id="demo-number"
+            label="Number"
+            value={numberValue}
+            onChange={setNumberValue}
+          />
         </CardContent>
       </Card>
     </div>

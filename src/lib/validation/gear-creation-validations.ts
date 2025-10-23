@@ -16,6 +16,26 @@ function normalize(value?: string): string {
   return (value || "").trim().toLowerCase();
 }
 
+/**
+ * Returns true if the provided, normalized name string appears to contain
+ * an aperture token. Brands use different conventions:
+ * - f/2.8, f2.8, F2.8, f 2.8
+ * - 1:2.8, 1:2.8-4
+ * - T2.9, T/2.9 (cine lenses)
+ * - Unicode \u0192 slash style:
+ */
+function hasApertureIndicator(normalizedName: string): boolean {
+  if (!normalizedName) return false;
+  const patterns: RegExp[] = [
+    /\bf\s*\/\s*\d+(?:\.\d+)?/i, // f/2.8
+    /\bf\s*\d+(?:\.\d+)?/i, // f2.8 or F4-6.3 (range still matches f4)
+    /\b1:\s*\d+(?:\.\d+)?/i, // 1:2.8
+    /\bt\s*\/?\s*\d+(?:\.\d+)?/i, // T2.9 or T/2.9
+    /ƒ\s*\/\s*\d+(?:\.\d+)?/i, // unicode f with slash
+  ];
+  return patterns.some((re) => re.test(normalizedName));
+}
+
 export function isBrandNameOnly(params: {
   name: string;
   brandName?: string;
@@ -52,7 +72,7 @@ export function getNameSoftWarnings(params: {
           'Lens names typically include "mm" after the focal length (e.g., "24-70mm").',
       });
     }
-    if (n && !n.includes("f/")) {
+    if (n && !hasApertureIndicator(n)) {
       warnings.push({
         id: "missing-aperture",
         title: "Suggestion: add f-stop indicator (f/)",

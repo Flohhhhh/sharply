@@ -27,7 +27,8 @@ export async function fetchContributorLeaderboardData(
         userId: gearEdits.createdById,
         payload: gearEdits.payload,
       })
-      .from(gearEdits),
+      .from(gearEdits)
+      .where(eq(gearEdits.status, "APPROVED")),
     db
       .select({ userId: auditLogs.actorUserId, c: count() })
       .from(auditLogs)
