@@ -144,7 +144,7 @@ export default async function GearPage({ params }: GearPageProps) {
 
   if (construction.underConstruction) {
     return (
-      <main className="mx-auto max-w-4xl p-6">
+      <main className="mx-auto mt-24 min-h-screen max-w-4xl p-6">
         <ConstructionFullPage
           gearName={item.name}
           missing={construction.missing}
@@ -208,7 +208,7 @@ export default async function GearPage({ params }: GearPageProps) {
         {/* Photo Placeholder */}
         <div>
           {item.thumbnailUrl ? (
-            <div className="bg-muted dark:bg-cardoverflow-hidden rounded-md py-12">
+            <div className="bg-muted dark:bg-card overflow-hidden rounded-md py-12">
               <img
                 src={item.thumbnailUrl}
                 alt={item.name}
