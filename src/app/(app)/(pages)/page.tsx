@@ -81,7 +81,7 @@ export default async function Home() {
   const reviewItems = [] as ReviewPost[];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen px-4 sm:px-6">
       {/* HERO */}
       <section className="w-full pt-20">
         <div className="mx-auto max-w-7xl px-4 py-8 md:py-10">
@@ -125,39 +125,10 @@ export default async function Home() {
       </section>
 
       {/* FEATURED */}
-      <section className="mt-6 w-full px-4 sm:px-8">
-        <div className="mx-auto grid max-w-[96rem] grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-10">
-          {/* Left column */}
-          <div className="hidden xl:col-span-2 xl:block">
-            <div className="sticky top-24 space-y-3">
-              <h2 className="text-3xl font-bold">About Sharply</h2>
-              <p className="text-muted-foreground">
-                Sharply is a contributor-driven photography platform for
-                personalized comparisons, powered by the web's most
-                comprehensive crowd-sourced specs.
-              </p>
-              <div className="mt-4 flex flex-col gap-2">
-                <GearCounter />
-                <ContributionCounter />
-              </div>
-              <div className="mt-8 flex items-center gap-4">
-                <Button asChild>
-                  <Link href="/about">View all gear</Link>
-                </Button>
-                <Button
-                  variant="link"
-                  asChild
-                  icon={<ArrowRightIcon className="h-4 w-4" />}
-                  iconPosition="right"
-                  className="-ml-4"
-                >
-                  <Link href="/about">Learn more</Link>
-                </Button>
-              </div>
-            </div>
-          </div>
+      <section className="mx-auto mt-6 w-full max-w-7xl">
+        <div className="mx-auto grid max-w-[96rem] grid-cols-1 gap-4 md:grid-cols-5 xl:grid-cols-6">
           {/* Center column featured post */}
-          <div className="xl:col-span-5">
+          <div className="col-span-full md:col-span-3 xl:col-span-4">
             {featuredPost ? (
               <HomeNewsCard badge="Featured" post={featuredPost} />
             ) : null}
@@ -170,8 +141,38 @@ export default async function Home() {
             </div>
           </div>
           {/* Right column smaller links/posts */}
-          <div className="xl:col-span-3">
+          <div className="col-span-full md:col-span-2 xl:col-span-2">
             <div className="flex h-full flex-col gap-4">
+              {/* About + actions */}
+              <div className="space-y-3 px-4">
+                <h2 className="text-3xl font-bold">About Sharply</h2>
+                <p className="text-muted-foreground">
+                  Sharply is a contributor-driven photography platform for
+                  personalized comparisons, powered by the web's most
+                  comprehensive crowd-sourced specs.
+                </p>
+                <div className="flex flex-col items-start gap-4 py-2">
+                  <GearCounter />
+                  <ContributionCounter />
+                </div>
+                <div className="mt-4 flex items-center gap-4">
+                  <Button asChild>
+                    <Link href="/about">View all gear</Link>
+                  </Button>
+                  <Button
+                    variant="link"
+                    asChild
+                    icon={<ArrowRightIcon className="h-4 w-4" />}
+                    iconPosition="right"
+                    className="-ml-4"
+                  >
+                    <Link href="/about">Learn more</Link>
+                  </Button>
+                </div>
+              </div>
+              {/* Stats */}
+              <div className="flex flex-col gap-2 px-4"></div>
+              <Separator className="my-4" />
               {/* Banner link: New to Photography? */}
               <Link
                 href="/beginners-guide"
