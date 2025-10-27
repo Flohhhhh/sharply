@@ -5,9 +5,11 @@ export async function ContributionCounter() {
   const totalContributions = await fetchContributionCount();
 
   return (
-    <div>
-      <NumberTicker value={totalContributions} className="text-6xl font-bold" />
-      <p className="text-muted-foreground text-sm">Contributions by members</p>
+    <div className="space-y-2">
+      <NumberTicker value={totalContributions} className="text-5xl font-bold" />
+      <p className="text-muted-foreground py-0 text-sm leading-0">
+        Contributions by members
+      </p>
     </div>
   );
 }

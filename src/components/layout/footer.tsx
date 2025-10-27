@@ -1,5 +1,11 @@
 import React from "react";
-import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter } from "react-icons/fa";
+import {
+  FaDiscord,
+  FaFacebook,
+  FaInstagram,
+  FaLinkedin,
+  FaTwitter,
+} from "react-icons/fa";
 import { getFooterItems } from "~/lib/nav-items";
 import Link from "next/link";
 
@@ -22,10 +28,15 @@ interface Footer7Props {
 // Footer sections will be dynamically generated from nav-items.ts
 
 const defaultSocialLinks = [
-  { icon: <FaInstagram className="size-5" />, href: "#", label: "Instagram" },
-  { icon: <FaFacebook className="size-5" />, href: "#", label: "Facebook" },
-  { icon: <FaTwitter className="size-5" />, href: "#", label: "Twitter" },
-  { icon: <FaLinkedin className="size-5" />, href: "#", label: "LinkedIn" },
+  {
+    icon: <FaDiscord className="size-5" />,
+    href: "/discord/invite",
+    label: "Join Discord",
+  },
+  // { icon: <FaInstagram className="size-5" />, href: "#", label: "Instagram" },
+  // { icon: <FaFacebook className="size-5" />, href: "#", label: "Facebook" },
+  // { icon: <FaTwitter className="size-5" />, href: "#", label: "Twitter" },
+  // { icon: <FaLinkedin className="size-5" />, href: "#", label: "LinkedIn" },
 ];
 
 // Legal links will be dynamically generated from nav-items.ts

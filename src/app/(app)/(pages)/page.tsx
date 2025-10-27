@@ -3,7 +3,7 @@ import { GlobalSearchBar } from "~/components/search/global-search-bar";
 import { GearCounter } from "~/components/home/gear-counter";
 import { ContributionCounter } from "~/components/home/contribution-counter";
 import { Button } from "~/components/ui/button";
-import { ArrowRightIcon, BookOpenIcon, Loader } from "lucide-react";
+import { ArrowRightIcon, BookOpenIcon, Library, Loader } from "lucide-react";
 import { Separator } from "~/components/ui/separator";
 import { Suspense } from "react";
 import { NewsCard as HomeNewsCard } from "~/components/home/news-card";
@@ -12,6 +12,7 @@ import TrendingList from "~/components/trending-list";
 import { getNewsPosts } from "~/server/payload/service";
 import { formatHumanDate } from "~/lib/utils";
 import type { News } from "~/payload-types";
+import DiscordBanner from "~/components/discord-banner";
 
 export const revalidate = 60;
 
@@ -130,7 +131,11 @@ export default async function Home() {
           {/* Center column featured post */}
           <div className="col-span-full md:col-span-3 xl:col-span-4">
             {featuredPost ? (
-              <HomeNewsCard badge="Featured" post={featuredPost} imagePriority />
+              <HomeNewsCard
+                badge="Featured"
+                post={featuredPost}
+                imagePriority
+              />
             ) : null}
 
             {/* News feed continuing below the featured article */}
@@ -142,21 +147,21 @@ export default async function Home() {
           </div>
           {/* Right column smaller links/posts */}
           <div className="col-span-full md:col-span-2 xl:col-span-2">
-            <div className="flex h-full flex-col gap-4">
+            <div className="flex h-full flex-col gap-2">
               {/* About + actions */}
-              <div className="space-y-3 px-4">
+              <div className="space-y-2 px-2">
                 <h2 className="text-3xl font-bold">About Sharply</h2>
                 <p className="text-muted-foreground">
                   Sharply is a contributor-driven photography platform for
                   personalized comparisons, powered by the web's most
                   comprehensive crowd-sourced specs.
                 </p>
-                <div className="flex flex-col items-start gap-4 py-2">
+                <div className="flex flex-col items-start gap-3 py-2">
                   <GearCounter />
                   <ContributionCounter />
                 </div>
                 <div className="mt-4 flex items-center gap-4">
-                  <Button asChild>
+                  <Button asChild icon={<Library className="h-4 w-4" />}>
                     <Link href="/about">View all gear</Link>
                   </Button>
                   <Button
@@ -172,33 +177,33 @@ export default async function Home() {
               </div>
               {/* Stats */}
               <div className="flex flex-col gap-2 px-4"></div>
-              <Separator className="my-4" />
+              <Separator className="my-2" />
+              <Suspense fallback={<TrendingList loading rows={10} />}>
+                <TrendingList timeframe="7d" limit={10} />
+              </Suspense>
+              <Separator className="my-2" />
               {/* Banner link: New to Photography? */}
-              <Link
-                href="/beginners-guide"
-                className="dark:bg-accent/50 flex flex-col gap-2 overflow-hidden rounded-xl border bg-white p-5 transition-colors"
-              >
-                <h3 className="text-2xl font-semibold">New to Photography?</h3>
-                <p className="text-muted-foreground mt-1 mb-8 text-sm">
-                  We've put together a beginners guide to everything you need to
-                  know to get started! View our step-by-step guide series.
-                </p>
+              <div className="border-border flex flex-col gap-4 rounded-md border p-4">
+                <div className="flex flex-col gap-1">
+                  <h3 className="text-lg font-bold">New to Photography?</h3>
+                  <p className="text-muted-foreground max-w-lg text-sm">
+                    We've put together a beginners guide to everything you need
+                    to know to get started! View our step-by-step guide series.
+                  </p>
+                </div>
                 <Button
-                  variant="secondary"
-                  className="mt-auto hover:cursor-pointer"
+                  asChild
+                  className="w-full"
                   icon={<BookOpenIcon className="h-4 w-4" />}
                 >
-                  Get Started
+                  <Link href="/beginners-guide">Get Started</Link>
                 </Button>
-              </Link>
-              <Separator className="my-4" />
+              </div>
+              <DiscordBanner vertical />
+              <Separator className="my-2" />
               {/* Latest Reviews */}
               <div className="space-y-4">
-                <Suspense fallback={<TrendingList loading rows={10} />}>
-                  <TrendingList timeframe="7d" limit={10} />
-                </Suspense>
-                <Separator className="my-8" />
-                <h2 className="text-2xl font-semibold">Latest Reviews</h2>
+                <h2 className="text-lg font-bold">Latest Reviews</h2>
                 {reviewItems?.map((post) => (
                   <ReviewCard key={post.id} post={post} />
                 ))}

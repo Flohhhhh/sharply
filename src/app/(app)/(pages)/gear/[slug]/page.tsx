@@ -44,6 +44,8 @@ import { Button } from "~/components/ui/button";
 import { notFound } from "next/navigation";
 import { auth } from "~/server/auth";
 import { requireRole } from "~/server/auth/index";
+import DiscordLink from "~/components/discord-link";
+import DiscordBanner from "~/components/discord-banner";
 // Removed LensApertureDisplay in favor of standardized spec rows using mapping
 
 export const revalidate = 3600;
@@ -382,6 +384,8 @@ export default async function GearPage({ params }: GearPageProps) {
           bannerSlot={<AiReviewBanner gearId={item.id} />}
         />
       </section>
+
+      <DiscordBanner />
     </main>
   );
 }

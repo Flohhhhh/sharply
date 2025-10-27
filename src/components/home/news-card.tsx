@@ -43,8 +43,8 @@ export function NewsCard({
             src={post.image}
             alt={post.title}
             priority={imagePriority}
-            width={512}
-            height={320}
+            width={720}
+            height={480}
             className="h-full w-full rounded-lg object-cover"
           />
           {badge ? (

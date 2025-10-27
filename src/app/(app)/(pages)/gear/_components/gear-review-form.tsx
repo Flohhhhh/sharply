@@ -16,6 +16,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { GENRES } from "~/lib/constants";
 import React from "react";
+import { Pencil } from "lucide-react";
 
 interface GearReviewFormProps {
   gearSlug: string;
@@ -141,6 +142,7 @@ export function GearReviewForm({
           onClick={handleCtaClick}
           disabled={isAuthLoading}
           loading={isAuthLoading}
+          icon={<Pencil className="h-4 w-4" />}
         >
           Write a Review
         </Button>
