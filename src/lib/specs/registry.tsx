@@ -508,7 +508,7 @@ export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
 
   const lensSections: SpecsTableSection[] = [
     {
-      title: "Tech Specs",
+      title: "Optics",
       data: [
         {
           label: "Lens Type",
@@ -519,60 +519,6 @@ export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
           value: lensSpecsItem?.isPrime
             ? `${lensSpecsItem?.focalLengthMinMm}mm`
             : `${lensSpecsItem?.focalLengthMinMm}mm - ${lensSpecsItem?.focalLengthMaxMm}mm`,
-        },
-        {
-          label: "Maximum Aperture",
-          value:
-            lensSpecsItem?.maxApertureTele &&
-            lensSpecsItem?.maxApertureTele !== lensSpecsItem?.maxApertureWide
-              ? `f/${Number(lensSpecsItem?.maxApertureWide)} - f/${Number(lensSpecsItem?.maxApertureTele)}`
-              : lensSpecsItem?.maxApertureWide != null
-                ? `f/${Number(lensSpecsItem?.maxApertureWide)}`
-                : undefined,
-        },
-        {
-          label: "Minimum Aperture",
-          value:
-            lensSpecsItem?.minApertureTele &&
-            lensSpecsItem?.minApertureTele !== lensSpecsItem?.minApertureWide
-              ? `f/${Number(lensSpecsItem?.minApertureWide)} - f/${Number(lensSpecsItem?.minApertureTele)}`
-              : lensSpecsItem?.minApertureWide != null
-                ? `f/${Number(lensSpecsItem?.minApertureWide)}`
-                : undefined,
-        },
-        {
-          label: "Has Image Stabilization",
-          value:
-            lensSpecsItem?.hasStabilization != null
-              ? lensSpecsItem?.hasStabilization
-                ? "Yes"
-                : "No"
-              : undefined,
-        },
-        {
-          label: "Has Stabilization Switch",
-          value:
-            lensSpecsItem?.hasStabilizationSwitch != null
-              ? lensSpecsItem?.hasStabilizationSwitch
-                ? "Yes"
-                : "No"
-              : undefined,
-        },
-        {
-          label: "CIPA Stabilization Rating Stops",
-          value:
-            lensSpecsItem?.cipaStabilizationRatingStops != null
-              ? `${lensSpecsItem?.cipaStabilizationRatingStops} stops`
-              : undefined,
-        },
-        {
-          label: "Has Autofocus",
-          value:
-            lensSpecsItem?.hasAutofocus != null
-              ? lensSpecsItem?.hasAutofocus
-                ? "Yes"
-                : "No"
-              : undefined,
         },
         {
           label: "Is Macro",
@@ -597,11 +543,77 @@ export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
               ? formatFocusDistance(lensSpecsItem?.minimumFocusDistanceMm)
               : undefined,
         },
+        { label: "Number of Elements", value: lensSpecsItem?.numberElements },
         {
-          label: "Has Focus Ring",
+          label: "Number of Element Groups",
+          value: lensSpecsItem?.numberElementGroups,
+        },
+        {
+          label: "Has Diffractive Optics",
           value:
-            lensSpecsItem?.hasFocusRing != null
-              ? lensSpecsItem?.hasFocusRing
+            lensSpecsItem?.hasDiffractiveOptics != null
+              ? lensSpecsItem?.hasDiffractiveOptics
+                ? "Yes"
+                : "No"
+              : undefined,
+        },
+      ],
+    },
+    {
+      title: "Aperture",
+      data: [
+        {
+          label: "Maximum Aperture",
+          value:
+            lensSpecsItem?.maxApertureTele &&
+            lensSpecsItem?.maxApertureTele !== lensSpecsItem?.maxApertureWide
+              ? `f/${Number(lensSpecsItem?.maxApertureWide)} - f/${Number(lensSpecsItem?.maxApertureTele)}`
+              : lensSpecsItem?.maxApertureWide != null
+                ? `f/${Number(lensSpecsItem?.maxApertureWide)}`
+                : undefined,
+        },
+        {
+          label: "Minimum Aperture",
+          value:
+            lensSpecsItem?.minApertureTele &&
+            lensSpecsItem?.minApertureTele !== lensSpecsItem?.minApertureWide
+              ? `f/${Number(lensSpecsItem?.minApertureWide)} - f/${Number(lensSpecsItem?.minApertureTele)}`
+              : lensSpecsItem?.minApertureWide != null
+                ? `f/${Number(lensSpecsItem?.minApertureWide)}`
+                : undefined,
+        },
+        {
+          label: "Number of Diaphragm Blades",
+          value: lensSpecsItem?.numberDiaphragmBlades,
+        },
+        {
+          label: "Has Rounded Diaphragm Blades",
+          value:
+            lensSpecsItem?.hasRoundedDiaphragmBlades != null
+              ? lensSpecsItem?.hasRoundedDiaphragmBlades
+                ? "Yes"
+                : "No"
+              : undefined,
+        },
+        {
+          label: "Has Aperture Ring",
+          value:
+            lensSpecsItem?.hasApertureRing != null
+              ? lensSpecsItem?.hasApertureRing
+                ? "Yes"
+                : "No"
+              : undefined,
+        },
+      ],
+    },
+    {
+      title: "Focus",
+      data: [
+        {
+          label: "Has Autofocus",
+          value:
+            lensSpecsItem?.hasAutofocus != null
+              ? lensSpecsItem?.hasAutofocus
                 ? "Yes"
                 : "No"
               : undefined,
@@ -637,38 +649,11 @@ export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
                 : "No"
               : undefined,
         },
-        { label: "Number of Elements", value: lensSpecsItem?.numberElements },
         {
-          label: "Number of Element Groups",
-          value: lensSpecsItem?.numberElementGroups,
-        },
-        {
-          label: "Has Diffractive Optics",
+          label: "Has Focus Ring",
           value:
-            lensSpecsItem?.hasDiffractiveOptics != null
-              ? lensSpecsItem?.hasDiffractiveOptics
-                ? "Yes"
-                : "No"
-              : undefined,
-        },
-        {
-          label: "Number of Diaphragm Blades",
-          value: lensSpecsItem?.numberDiaphragmBlades,
-        },
-        {
-          label: "Has Rounded Diaphragm Blades",
-          value:
-            lensSpecsItem?.hasRoundedDiaphragmBlades != null
-              ? lensSpecsItem?.hasRoundedDiaphragmBlades
-                ? "Yes"
-                : "No"
-              : undefined,
-        },
-        {
-          label: "Has Internal Zoom",
-          value:
-            lensSpecsItem?.hasInternalZoom != null
-              ? lensSpecsItem?.hasInternalZoom
+            lensSpecsItem?.hasFocusRing != null
+              ? lensSpecsItem?.hasFocusRing
                 ? "Yes"
                 : "No"
               : undefined,
@@ -691,6 +676,50 @@ export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
                 : "No"
               : undefined,
         },
+      ],
+    },
+    {
+      title: "Stabilization",
+      data: [
+        {
+          label: "Has Image Stabilization",
+          value:
+            lensSpecsItem?.hasStabilization != null
+              ? lensSpecsItem?.hasStabilization
+                ? "Yes"
+                : "No"
+              : undefined,
+        },
+        {
+          label: "Has Stabilization Switch",
+          value:
+            lensSpecsItem?.hasStabilizationSwitch != null
+              ? lensSpecsItem?.hasStabilizationSwitch
+                ? "Yes"
+                : "No"
+              : undefined,
+        },
+        {
+          label: "CIPA Stabilization Rating Stops",
+          value:
+            lensSpecsItem?.cipaStabilizationRatingStops != null
+              ? `${lensSpecsItem?.cipaStabilizationRatingStops} stops`
+              : undefined,
+        },
+      ],
+    },
+    {
+      title: "Build & Controls",
+      data: [
+        {
+          label: "Has Internal Zoom",
+          value:
+            lensSpecsItem?.hasInternalZoom != null
+              ? lensSpecsItem?.hasInternalZoom
+                ? "Yes"
+                : "No"
+              : undefined,
+        },
         {
           label: "Mount Material",
           value:
@@ -709,15 +738,6 @@ export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
               : undefined,
         },
         {
-          label: "Has Aperture Ring",
-          value:
-            lensSpecsItem?.hasApertureRing != null
-              ? lensSpecsItem?.hasApertureRing
-                ? "Yes"
-                : "No"
-              : undefined,
-        },
-        {
           label: "Number of Custom Control Rings",
           value: lensSpecsItem?.numberCustomControlRings,
         },
@@ -725,6 +745,11 @@ export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
           label: "Number of Function Buttons",
           value: lensSpecsItem?.numberFunctionButtons,
         },
+      ],
+    },
+    {
+      title: "Filters",
+      data: [
         {
           label: "Accepts Filter Types",
           value:
@@ -759,6 +784,11 @@ export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
               ? `${lensSpecsItem.dropInFilterSizeMm}mm`
               : undefined,
         },
+      ],
+    },
+    {
+      title: "Accessories",
+      data: [
         {
           label: "Has Built In Teleconverter",
           value:
