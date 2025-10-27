@@ -8,14 +8,17 @@ interface EditGearModalPageProps {
   params: Promise<{
     slug: string;
   }>;
-  searchParams: Promise<{ type?: string }>;
+  searchParams: Promise<{ type?: string; showMissingOnly?: string }>;
 }
 
 export default async function EditGearModalPage({
   params,
   searchParams,
 }: EditGearModalPageProps) {
-  const [{ slug }, { type }] = await Promise.all([params, searchParams]);
+  const [{ slug }, { type, showMissingOnly }] = await Promise.all([
+    params,
+    searchParams,
+  ]);
 
   // Require authentication: if not signed in, send to login and return here
   const session = await auth();
@@ -54,6 +57,10 @@ export default async function EditGearModalPage({
       gearData={gearData}
       gearSlug={slug}
       gearName={gearData.name || ""}
+      initialShowMissingOnly={(() => {
+        const v = showMissingOnly?.toLowerCase();
+        return v === "1" || v === "true" || v === "yes";
+      })()}
     />
   );
 }

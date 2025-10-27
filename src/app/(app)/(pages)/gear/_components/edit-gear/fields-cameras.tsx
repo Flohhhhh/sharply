@@ -28,6 +28,9 @@ import CardSlotsManager, { type CardSlot } from "./card-slots-manager";
 interface CameraFieldsProps {
   gearItem: GearItem;
   currentSpecs: EnrichedCameraSpecs | null | undefined;
+  initialSpecs?: EnrichedCameraSpecs | null | undefined;
+  initialGearItem?: GearItem | null;
+  showMissingOnly?: boolean;
   onChange: (field: string, value: any) => void;
   onChangeTopLevel?: (field: string, value: any) => void; // for cameraCardSlots
 }
@@ -37,6 +40,9 @@ interface CameraFieldsProps {
 function CameraFieldsComponent({
   gearItem,
   currentSpecs,
+  initialSpecs,
+  initialGearItem,
+  showMissingOnly,
   onChange,
   onChangeTopLevel,
 }: CameraFieldsProps) {
@@ -116,6 +122,15 @@ function CameraFieldsComponent({
     return null;
   };
 
+  const isMissing = (v: unknown): boolean => {
+    if (v == null) return true;
+    if (typeof v === "string") return v.trim().length === 0;
+    if (Array.isArray(v)) return v.length === 0;
+    return false;
+  };
+  const showWhenMissing = (v: unknown): boolean =>
+    !showMissingOnly || isMissing(v);
+
   return (
     <Card className="rounded-md bg-transparent px-4 py-4">
       <CardHeader className="px-0">
@@ -124,648 +139,782 @@ function CameraFieldsComponent({
       <CardContent className="space-y-4 px-0">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {/* Sensor Format */}
-          <SensorFormatInput
-            id="sensorFormatId"
-            label="Sensor Format"
-            value={currentSpecs?.sensorFormatId}
-            onChange={(value) => handleFieldChange("sensorFormatId", value)}
-          />
+          {showWhenMissing((initialSpecs as any)?.sensorFormatId) && (
+            <SensorFormatInput
+              id="sensorFormatId"
+              label="Sensor Format"
+              value={currentSpecs?.sensorFormatId}
+              onChange={(value) => handleFieldChange("sensorFormatId", value)}
+            />
+          )}
 
           {/* Resolution - Standard Number Input */}
-          <NumberInput
-            id="resolutionMp"
-            label="Resolution (megapixels)"
-            value={
-              currentSpecs?.resolutionMp != null
-                ? parseFloat(currentSpecs.resolutionMp)
-                : null
-            }
-            onChange={(value) => handleFieldChange("resolutionMp", value)}
-            placeholder="e.g., 45.0"
-            step={0.1}
-            min={0}
-          />
+          {showWhenMissing((initialSpecs as any)?.resolutionMp) && (
+            <NumberInput
+              id="resolutionMp"
+              label="Resolution (megapixels)"
+              value={
+                currentSpecs?.resolutionMp != null
+                  ? parseFloat(currentSpecs.resolutionMp)
+                  : null
+              }
+              onChange={(value) => handleFieldChange("resolutionMp", value)}
+              placeholder="e.g., 45.0"
+              step={0.1}
+              min={0}
+            />
+          )}
 
           {/* Sensor Stacking Type */}
-          <div className="space-y-2">
-            <Label htmlFor="sensorStackingType">Sensor Stacking Type</Label>
-            <Select
-              value={currentSpecs?.sensorStackingType ?? ""}
-              onValueChange={(value) =>
-                handleFieldChange("sensorStackingType", value)
-              }
-            >
-              <SelectTrigger id="sensorStackingType" className="w-full">
-                <SelectValue placeholder="Sensor Stacking Type" />
-              </SelectTrigger>
-              <SelectContent>
-                {ENUMS.sensor_stacking_types_enum.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type
-                      .replace("-", " ")
-                      .split(" ")
-                      .map(
-                        (word) => word.charAt(0).toUpperCase() + word.slice(1),
-                      )
-                      .join(" ")}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {showWhenMissing((initialSpecs as any)?.sensorStackingType) && (
+            <div className="space-y-2">
+              <Label htmlFor="sensorStackingType">Sensor Stacking Type</Label>
+              <Select
+                value={currentSpecs?.sensorStackingType ?? ""}
+                onValueChange={(value) =>
+                  handleFieldChange("sensorStackingType", value)
+                }
+              >
+                <SelectTrigger id="sensorStackingType" className="w-full">
+                  <SelectValue placeholder="Sensor Stacking Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {ENUMS.sensor_stacking_types_enum.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type
+                        .replace("-", " ")
+                        .split(" ")
+                        .map(
+                          (word) =>
+                            word.charAt(0).toUpperCase() + word.slice(1),
+                        )
+                        .join(" ")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Sensor Tech Type */}
-          <div className="space-y-2">
-            <Label htmlFor="sensorTechType">Sensor Tech Type</Label>
-            <Select
-              value={currentSpecs?.sensorTechType ?? ""}
-              onValueChange={(value) =>
-                handleFieldChange("sensorTechType", value)
-              }
-            >
-              <SelectTrigger id="sensorTechType" className="w-full">
-                <SelectValue placeholder="Sensor Tech Type" />
-              </SelectTrigger>
-              <SelectContent>
-                {ENUMS.sensor_tech_types_enum.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type.toUpperCase()}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {showWhenMissing((initialSpecs as any)?.sensorTechType) && (
+            <div className="space-y-2">
+              <Label htmlFor="sensorTechType">Sensor Tech Type</Label>
+              <Select
+                value={currentSpecs?.sensorTechType ?? ""}
+                onValueChange={(value) =>
+                  handleFieldChange("sensorTechType", value)
+                }
+              >
+                <SelectTrigger id="sensorTechType" className="w-full">
+                  <SelectValue placeholder="Sensor Tech Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {ENUMS.sensor_tech_types_enum.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type.toUpperCase()}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Camera Type */}
-          <div className="space-y-2">
-            <Label htmlFor="cameraType">Camera Type</Label>
-            <Select
-              value={currentSpecs?.cameraType ?? ""}
-              onValueChange={(value) => handleFieldChange("cameraType", value)}
-            >
-              <SelectTrigger id="cameraType" className="w-full">
-                <SelectValue placeholder="Camera Type" />
-              </SelectTrigger>
-              <SelectContent>
-                {cameraTypeEnumList.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {formatCameraType(type) ?? type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {showWhenMissing((initialSpecs as any)?.cameraType) && (
+            <div className="space-y-2">
+              <Label htmlFor="cameraType">Camera Type</Label>
+              <Select
+                value={currentSpecs?.cameraType ?? ""}
+                onValueChange={(value) =>
+                  handleFieldChange("cameraType", value)
+                }
+              >
+                <SelectTrigger id="cameraType" className="w-full">
+                  <SelectValue placeholder="Camera Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {cameraTypeEnumList.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {formatCameraType(type) ?? type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Is Back Side Illuminated */}
 
-          <BooleanInput
-            id="isBackSideIlluminated"
-            label="Back Side Illuminated"
-            checked={currentSpecs?.isBackSideIlluminated ?? null}
-            allowNull
-            showStateText
-            onChange={(value) =>
-              handleFieldChange("isBackSideIlluminated", value)
-            }
-          />
+          {showWhenMissing((initialSpecs as any)?.isBackSideIlluminated) && (
+            <BooleanInput
+              id="isBackSideIlluminated"
+              label="Back Side Illuminated"
+              checked={currentSpecs?.isBackSideIlluminated ?? null}
+              allowNull
+              showStateText
+              onChange={(value) =>
+                handleFieldChange("isBackSideIlluminated", value)
+              }
+            />
+          )}
 
           {/* Sensor Readout Speed */}
 
-          <NumberInput
-            id="sensorReadoutSpeedMs"
-            label="Sensor Readout Speed (ms)"
-            value={
-              currentSpecs?.sensorReadoutSpeedMs != null
-                ? parseFloat(currentSpecs.sensorReadoutSpeedMs)
-                : null
-            }
-            onChange={(value) =>
-              handleFieldChange("sensorReadoutSpeedMs", value)
-            }
-            suffix="ms"
-            placeholder="e.g., 10"
-            min={0}
-            step={0.1}
-          />
+          {showWhenMissing((initialSpecs as any)?.sensorReadoutSpeedMs) && (
+            <NumberInput
+              id="sensorReadoutSpeedMs"
+              label="Sensor Readout Speed (ms)"
+              value={
+                currentSpecs?.sensorReadoutSpeedMs != null
+                  ? parseFloat(currentSpecs.sensorReadoutSpeedMs)
+                  : null
+              }
+              onChange={(value) =>
+                handleFieldChange("sensorReadoutSpeedMs", value)
+              }
+              suffix="ms"
+              placeholder="e.g., 10"
+              min={0}
+              step={0.1}
+            />
+          )}
 
           {/* ISO Min */}
-          <IsoInput
-            id="isoMin"
-            label="ISO Min (Native)"
-            value={currentSpecs?.isoMin}
-            onChange={(value) => handleFieldChange("isoMin", value)}
-          />
+          {showWhenMissing((initialSpecs as any)?.isoMin) && (
+            <IsoInput
+              id="isoMin"
+              label="ISO Min (Native)"
+              value={currentSpecs?.isoMin}
+              onChange={(value) => handleFieldChange("isoMin", value)}
+            />
+          )}
 
           {/* ISO Max */}
-          <IsoInput
-            id="isoMax"
-            label="ISO Max (Native)"
-            value={currentSpecs?.isoMax}
-            onChange={(value) => handleFieldChange("isoMax", value)}
-          />
+          {showWhenMissing((initialSpecs as any)?.isoMax) && (
+            <IsoInput
+              id="isoMax"
+              label="ISO Max (Native)"
+              value={currentSpecs?.isoMax}
+              onChange={(value) => handleFieldChange("isoMax", value)}
+            />
+          )}
 
           {/* Rear Display Type */}
-          <div className="space-y-2">
-            <Label htmlFor="rearDisplayType">Rear Display Type</Label>
-            <Select
-              value={currentSpecs?.rearDisplayType ?? ""}
-              onValueChange={(value) =>
-                handleFieldChange("rearDisplayType", value)
-              }
-            >
-              <SelectTrigger id="rearDisplayType" className="w-full">
-                <SelectValue placeholder="Select display type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">None</SelectItem>
-                <SelectItem value="fixed">Fixed</SelectItem>
-                <SelectItem value="single_axis_tilt">
-                  Single-axis tilt
-                </SelectItem>
-                <SelectItem value="dual_axis_tilt">Dual-axis tilt</SelectItem>
-                <SelectItem value="fully_articulated">
-                  Fully articulated
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {showWhenMissing((initialSpecs as any)?.rearDisplayType) && (
+            <div className="space-y-2">
+              <Label htmlFor="rearDisplayType">Rear Display Type</Label>
+              <Select
+                value={currentSpecs?.rearDisplayType ?? ""}
+                onValueChange={(value) =>
+                  handleFieldChange("rearDisplayType", value)
+                }
+              >
+                <SelectTrigger id="rearDisplayType" className="w-full">
+                  <SelectValue placeholder="Select display type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="fixed">Fixed</SelectItem>
+                  <SelectItem value="single_axis_tilt">
+                    Single-axis tilt
+                  </SelectItem>
+                  <SelectItem value="dual_axis_tilt">Dual-axis tilt</SelectItem>
+                  <SelectItem value="fully_articulated">
+                    Fully articulated
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Rear Display Resolution (million dots) */}
-          <NumberInput
-            id="rearDisplayResolutionMillionDots"
-            label="Rear Display Resolution"
-            suffix="million dots"
-            value={
-              currentSpecs?.rearDisplayResolutionMillionDots != null
-                ? Number(currentSpecs.rearDisplayResolutionMillionDots)
-                : null
-            }
-            onChange={(value) =>
-              handleFieldChange("rearDisplayResolutionMillionDots", value)
-            }
-            placeholder="e.g., 1.62"
-            step={0.01}
-            min={0}
-          />
-
-          {/* Rear Display Size (inches) */}
-          <NumberInput
-            id="rearDisplaySizeInches"
-            label="Rear Display Size"
-            suffix="inches"
-            value={
-              currentSpecs?.rearDisplaySizeInches != null
-                ? Number(currentSpecs.rearDisplaySizeInches)
-                : null
-            }
-            onChange={(value) =>
-              handleFieldChange("rearDisplaySizeInches", value)
-            }
-            placeholder="e.g., 3.2"
-            step={0.01}
-            min={0}
-          />
-
-          {/* Viewfinder Type */}
-          <div className="space-y-2">
-            <Label htmlFor="viewfinderType">Viewfinder Type</Label>
-            <Select
-              value={currentSpecs?.viewfinderType ?? ""}
-              onValueChange={(value) =>
-                handleFieldChange("viewfinderType", value)
-              }
-            >
-              <SelectTrigger id="viewfinderType" className="w-full">
-                <SelectValue placeholder="Select viewfinder type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">None</SelectItem>
-                <SelectItem value="optical">OVF (Optical)</SelectItem>
-                <SelectItem value="electronic">EVF (Electronic)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Viewfinder Magnification (x) */}
-          {(currentSpecs?.viewfinderType ?? "") !== "none" && (
+          {showWhenMissing(
+            (initialSpecs as any)?.rearDisplayResolutionMillionDots,
+          ) && (
             <NumberInput
-              id="viewfinderMagnification"
-              label="Viewfinder Magnification"
-              suffix="x"
-              value={
-                currentSpecs?.viewfinderMagnification != null
-                  ? Number(currentSpecs.viewfinderMagnification)
-                  : null
-              }
-              onChange={(value) =>
-                handleFieldChange("viewfinderMagnification", value)
-              }
-              placeholder="e.g., 0.80"
-              step={0.01}
-              min={0}
-            />
-          )}
-
-          {/* Viewfinder Resolution (million dots) */}
-          {(currentSpecs?.viewfinderType ?? "") === "electronic" && (
-            <NumberInput
-              id="viewfinderResolutionMillionDots"
-              label="Viewfinder Resolution"
+              id="rearDisplayResolutionMillionDots"
+              label="Rear Display Resolution"
               suffix="million dots"
               value={
-                currentSpecs?.viewfinderResolutionMillionDots != null
-                  ? Number(currentSpecs.viewfinderResolutionMillionDots)
+                currentSpecs?.rearDisplayResolutionMillionDots != null
+                  ? Number(currentSpecs.rearDisplayResolutionMillionDots)
                   : null
               }
               onChange={(value) =>
-                handleFieldChange("viewfinderResolutionMillionDots", value)
+                handleFieldChange("rearDisplayResolutionMillionDots", value)
               }
-              placeholder="e.g., 5.76"
+              placeholder="e.g., 1.62"
               step={0.01}
               min={0}
             />
           )}
 
+          {/* Rear Display Size (inches) */}
+          {showWhenMissing((initialSpecs as any)?.rearDisplaySizeInches) && (
+            <NumberInput
+              id="rearDisplaySizeInches"
+              label="Rear Display Size"
+              suffix="inches"
+              value={
+                currentSpecs?.rearDisplaySizeInches != null
+                  ? Number(currentSpecs.rearDisplaySizeInches)
+                  : null
+              }
+              onChange={(value) =>
+                handleFieldChange("rearDisplaySizeInches", value)
+              }
+              placeholder="e.g., 3.2"
+              step={0.01}
+              min={0}
+            />
+          )}
+
+          {/* Viewfinder Type */}
+          {showWhenMissing((initialSpecs as any)?.viewfinderType) && (
+            <div className="space-y-2">
+              <Label htmlFor="viewfinderType">Viewfinder Type</Label>
+              <Select
+                value={currentSpecs?.viewfinderType ?? ""}
+                onValueChange={(value) =>
+                  handleFieldChange("viewfinderType", value)
+                }
+              >
+                <SelectTrigger id="viewfinderType" className="w-full">
+                  <SelectValue placeholder="Select viewfinder type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="optical">OVF (Optical)</SelectItem>
+                  <SelectItem value="electronic">EVF (Electronic)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Viewfinder Magnification (x) */}
+          {(currentSpecs?.viewfinderType ?? "") !== "none" &&
+            showWhenMissing((initialSpecs as any)?.viewfinderMagnification) && (
+              <NumberInput
+                id="viewfinderMagnification"
+                label="Viewfinder Magnification"
+                suffix="x"
+                value={
+                  currentSpecs?.viewfinderMagnification != null
+                    ? Number(currentSpecs.viewfinderMagnification)
+                    : null
+                }
+                onChange={(value) =>
+                  handleFieldChange("viewfinderMagnification", value)
+                }
+                placeholder="e.g., 0.80"
+                step={0.01}
+                min={0}
+              />
+            )}
+
+          {/* Viewfinder Resolution (million dots) */}
+          {(currentSpecs?.viewfinderType ?? "") === "electronic" &&
+            showWhenMissing(
+              (initialSpecs as any)?.viewfinderResolutionMillionDots,
+            ) && (
+              <NumberInput
+                id="viewfinderResolutionMillionDots"
+                label="Viewfinder Resolution"
+                suffix="million dots"
+                value={
+                  currentSpecs?.viewfinderResolutionMillionDots != null
+                    ? Number(currentSpecs.viewfinderResolutionMillionDots)
+                    : null
+                }
+                onChange={(value) =>
+                  handleFieldChange("viewfinderResolutionMillionDots", value)
+                }
+                placeholder="e.g., 5.76"
+                step={0.01}
+                min={0}
+              />
+            )}
+
           {/* Has Top Display */}
-          <BooleanInput
-            id="hasTopDisplay"
-            label="Has Top Display"
-            allowNull
-            showStateText
-            checked={currentSpecs?.hasTopDisplay ?? null}
-            onChange={(value) => handleFieldChange("hasTopDisplay", value)}
-          />
+          {showWhenMissing((initialSpecs as any)?.hasTopDisplay) && (
+            <BooleanInput
+              id="hasTopDisplay"
+              label="Has Top Display"
+              allowNull
+              showStateText
+              checked={currentSpecs?.hasTopDisplay ?? null}
+              onChange={(value) => handleFieldChange("hasTopDisplay", value)}
+            />
+          )}
 
           {/* Has Rear Touchscreen */}
-          <BooleanInput
-            id="hasRearTouchscreen"
-            label="Has Rear Touchscreen"
-            allowNull
-            showStateText
-            checked={currentSpecs?.hasRearTouchscreen ?? null}
-            onChange={(value) => handleFieldChange("hasRearTouchscreen", value)}
-          />
-
-          {/* Max Raw Bit Depth */}
-          <div className="space-y-2">
-            <Label htmlFor="maxRawBitDepth">Max Raw Bit Depth</Label>
-            <Select
-              value={currentSpecs?.maxRawBitDepth ?? ""}
-              onValueChange={(value) =>
-                handleFieldChange("maxRawBitDepth", value)
-              }
-            >
-              <SelectTrigger id="maxRawBitDepth" className="w-full">
-                <SelectValue placeholder="Max Raw Bit Depth" />
-              </SelectTrigger>
-              <SelectContent>
-                {ENUMS.raw_bit_depth_enum.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type} bit
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Has Ibis */}
-          <BooleanInput
-            id="hasIbis"
-            label="Has IBIS (Physical)"
-            checked={currentSpecs?.hasIbis ?? null}
-            allowNull
-            showStateText
-            onChange={(value) => handleFieldChange("hasIbis", value)}
-          />
-
-          {/* Has Electronic Vibration Reduction */}
-          <BooleanInput
-            id="hasElectronicVibrationReduction"
-            label="Has Electronic VR (Digital)"
-            checked={currentSpecs?.hasElectronicVibrationReduction ?? null}
-            allowNull
-            showStateText
-            onChange={(value) =>
-              handleFieldChange("hasElectronicVibrationReduction", value)
-            }
-          />
-
-          {/* CIPA Stabilization Rating Stops */}
-          <NumberInput
-            id="cipaStabilizationRatingStops"
-            label="CIPA Stabilization Rating Stops"
-            value={numOrNull(currentSpecs?.cipaStabilizationRatingStops)}
-            onChange={(value) =>
-              handleFieldChange("cipaStabilizationRatingStops", value)
-            }
-            placeholder="e.g., 3.0"
-            min={0}
-            max={10}
-            step={0.1}
-            suffix="stops"
-          />
-
-          {/* Has Pixel Shift Shooting */}
-          <BooleanInput
-            id="hasPixelShiftShooting"
-            label="Has Pixel Shift Shooting"
-            checked={currentSpecs?.hasPixelShiftShooting ?? null}
-            allowNull
-            showStateText
-            onChange={(value) =>
-              handleFieldChange("hasPixelShiftShooting", value)
-            }
-          />
-
-          {/* Has Anti Aliasing Filter */}
-          <BooleanInput
-            id="hasAntiAliasingFilter"
-            label="Has Anti Aliasing Filter"
-            checked={currentSpecs?.hasAntiAliasingFilter ?? null}
-            allowNull
-            showStateText
-            onChange={(value) =>
-              handleFieldChange("hasAntiAliasingFilter", value)
-            }
-          />
-
-          {/* Card Slots Manager */}
-          <CardSlotsManager
-            value={(gearItem as any)?.cameraCardSlots as CardSlot[] | undefined}
-            onChange={(slots) => onChangeTopLevel?.("cameraCardSlots", slots)}
-          />
-
-          {/* Processor Name */}
-          <div className="space-y-2">
-            <Label htmlFor="processorName">Processor Name</Label>
-            <Input
-              id="processorName"
-              value={currentSpecs?.processorName ?? ""}
-              onChange={(e) =>
-                handleFieldChange("processorName", e.target.value)
+          {showWhenMissing((initialSpecs as any)?.hasRearTouchscreen) && (
+            <BooleanInput
+              id="hasRearTouchscreen"
+              label="Has Rear Touchscreen"
+              allowNull
+              showStateText
+              checked={currentSpecs?.hasRearTouchscreen ?? null}
+              onChange={(value) =>
+                handleFieldChange("hasRearTouchscreen", value)
               }
             />
-          </div>
+          )}
+
+          {/* Max Raw Bit Depth */}
+          {showWhenMissing((initialSpecs as any)?.maxRawBitDepth) && (
+            <div className="space-y-2">
+              <Label htmlFor="maxRawBitDepth">Max Raw Bit Depth</Label>
+              <Select
+                value={currentSpecs?.maxRawBitDepth ?? ""}
+                onValueChange={(value) =>
+                  handleFieldChange("maxRawBitDepth", value)
+                }
+              >
+                <SelectTrigger id="maxRawBitDepth" className="w-full">
+                  <SelectValue placeholder="Max Raw Bit Depth" />
+                </SelectTrigger>
+                <SelectContent>
+                  {ENUMS.raw_bit_depth_enum.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type} bit
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Has Ibis */}
+          {showWhenMissing((initialSpecs as any)?.hasIbis) && (
+            <BooleanInput
+              id="hasIbis"
+              label="Has IBIS (Physical)"
+              checked={currentSpecs?.hasIbis ?? null}
+              allowNull
+              showStateText
+              onChange={(value) => handleFieldChange("hasIbis", value)}
+            />
+          )}
+
+          {/* Has Electronic Vibration Reduction */}
+          {showWhenMissing(
+            (initialSpecs as any)?.hasElectronicVibrationReduction,
+          ) && (
+            <BooleanInput
+              id="hasElectronicVibrationReduction"
+              label="Has Electronic VR (Digital)"
+              checked={currentSpecs?.hasElectronicVibrationReduction ?? null}
+              allowNull
+              showStateText
+              onChange={(value) =>
+                handleFieldChange("hasElectronicVibrationReduction", value)
+              }
+            />
+          )}
+
+          {/* CIPA Stabilization Rating Stops */}
+          {showWhenMissing(
+            (initialSpecs as any)?.cipaStabilizationRatingStops,
+          ) && (
+            <NumberInput
+              id="cipaStabilizationRatingStops"
+              label="CIPA Stabilization Rating Stops"
+              value={numOrNull(currentSpecs?.cipaStabilizationRatingStops)}
+              onChange={(value) =>
+                handleFieldChange("cipaStabilizationRatingStops", value)
+              }
+              placeholder="e.g., 3.0"
+              min={0}
+              max={10}
+              step={0.1}
+              suffix="stops"
+            />
+          )}
+
+          {/* Has Pixel Shift Shooting */}
+          {showWhenMissing((initialSpecs as any)?.hasPixelShiftShooting) && (
+            <BooleanInput
+              id="hasPixelShiftShooting"
+              label="Has Pixel Shift Shooting"
+              checked={currentSpecs?.hasPixelShiftShooting ?? null}
+              allowNull
+              showStateText
+              onChange={(value) =>
+                handleFieldChange("hasPixelShiftShooting", value)
+              }
+            />
+          )}
+
+          {/* Has Anti Aliasing Filter */}
+          {showWhenMissing((initialSpecs as any)?.hasAntiAliasingFilter) && (
+            <BooleanInput
+              id="hasAntiAliasingFilter"
+              label="Has Anti Aliasing Filter"
+              checked={currentSpecs?.hasAntiAliasingFilter ?? null}
+              allowNull
+              showStateText
+              onChange={(value) =>
+                handleFieldChange("hasAntiAliasingFilter", value)
+              }
+            />
+          )}
+
+          {/* Card Slots Manager */}
+          {(() => {
+            const hadSlots = Array.isArray(
+              (initialGearItem as any)?.cameraCardSlots,
+            )
+              ? (((initialGearItem as any)?.cameraCardSlots as unknown[]) ?? [])
+                  .length > 0
+              : false;
+            if (showMissingOnly && hadSlots) return null;
+            return (
+              <CardSlotsManager
+                value={
+                  (gearItem as any)?.cameraCardSlots as CardSlot[] | undefined
+                }
+                onChange={(slots) =>
+                  onChangeTopLevel?.("cameraCardSlots", slots)
+                }
+              />
+            );
+          })()}
+
+          {/* Processor Name */}
+          {showWhenMissing((initialSpecs as any)?.processorName) && (
+            <div className="space-y-2">
+              <Label htmlFor="processorName">Processor Name</Label>
+              <Input
+                id="processorName"
+                value={currentSpecs?.processorName ?? ""}
+                onChange={(e) =>
+                  handleFieldChange("processorName", e.target.value)
+                }
+              />
+            </div>
+          )}
 
           {/* Has Weather Sealing */}
-          <BooleanInput
-            id="hasWeatherSealing"
-            label="Has Weather Sealing"
-            checked={currentSpecs?.hasWeatherSealing ?? null}
-            allowNull
-            showStateText
-            onChange={(value) => handleFieldChange("hasWeatherSealing", value)}
-          />
+          {showWhenMissing((initialSpecs as any)?.hasWeatherSealing) && (
+            <BooleanInput
+              id="hasWeatherSealing"
+              label="Has Weather Sealing"
+              checked={currentSpecs?.hasWeatherSealing ?? null}
+              allowNull
+              showStateText
+              onChange={(value) =>
+                handleFieldChange("hasWeatherSealing", value)
+              }
+            />
+          )}
 
           {/* Focus Points */}
-          <NumberInput
-            id="focusPoints"
-            label="Focus Points"
-            value={currentSpecs?.focusPoints ?? null}
-            onChange={(value) => handleFieldChange("focusPoints", value)}
-          />
+          {showWhenMissing((initialSpecs as any)?.focusPoints) && (
+            <NumberInput
+              id="focusPoints"
+              label="Focus Points"
+              value={currentSpecs?.focusPoints ?? null}
+              onChange={(value) => handleFieldChange("focusPoints", value)}
+            />
+          )}
 
           {/* AF Area Modes */}
           {/* TODO: add a way for creating new af area modes (review plan)*/}
-          <div className="space-y-2">
-            <Label htmlFor="afAreaModes">AF Area Modes</Label>
-            <MultiSelect
-              options={afAreaModeOptions}
-              value={selectedAfAreaModeIds}
-              onChange={(value) => handleFieldChange("afAreaModes", value)}
-            />
-          </div>
+          {showWhenMissing((initialSpecs as any)?.afAreaModes) && (
+            <div className="space-y-2">
+              <Label htmlFor="afAreaModes">AF Area Modes</Label>
+              <MultiSelect
+                options={afAreaModeOptions}
+                value={selectedAfAreaModeIds}
+                onChange={(value) => handleFieldChange("afAreaModes", value)}
+              />
+            </div>
+          )}
 
           {/* Has Focus Peaking */}
-          <BooleanInput
-            id="hasFocusPeaking"
-            label="Has Focus Peaking"
-            checked={currentSpecs?.hasFocusPeaking ?? null}
-            allowNull
-            showStateText
-            onChange={(value) => handleFieldChange("hasFocusPeaking", value)}
-          />
+          {showWhenMissing((initialSpecs as any)?.hasFocusPeaking) && (
+            <BooleanInput
+              id="hasFocusPeaking"
+              label="Has Focus Peaking"
+              checked={currentSpecs?.hasFocusPeaking ?? null}
+              allowNull
+              showStateText
+              onChange={(value) => handleFieldChange("hasFocusPeaking", value)}
+            />
+          )}
 
           {/* Has Focus Bracketing */}
-          <BooleanInput
-            id="hasFocusBracketing"
-            label="Has Focus Bracketing"
-            checked={currentSpecs?.hasFocusBracketing ?? null}
-            allowNull
-            showStateText
-            onChange={(value) => handleFieldChange("hasFocusBracketing", value)}
-          />
-
-          {/* Shutter Speed Max */}
-          <NumberInput
-            id="shutterSpeedMax"
-            label="Longest Shutter Speed"
-            suffix="sec."
-            value={currentSpecs?.shutterSpeedMax ?? null}
-            onChange={(value) => handleFieldChange("shutterSpeedMax", value)}
-          />
-
-          {/* Shutter Speed Min */}
-          <NumberInput
-            id="shutterSpeedMin"
-            label="Shortest Shutter Speed"
-            prefix="1/"
-            value={currentSpecs?.shutterSpeedMin ?? null}
-            onChange={(value) => handleFieldChange("shutterSpeedMin", value)}
-          />
-
-          {/* Max FPS RAW */}
-          <NumberInput
-            id="maxFpsRaw"
-            label="Max FPS (RAW)"
-            value={
-              currentSpecs?.maxFpsRaw != null
-                ? parseFloat(currentSpecs.maxFpsRaw)
-                : null
-            }
-            onChange={(value) => handleFieldChange("maxFpsRaw", value)}
-            placeholder="e.g., 20.0"
-            min={0}
-            max={120}
-            step={0.1}
-            suffix="fps"
-          />
-
-          {/* Max FPS JPEG */}
-          <NumberInput
-            id="maxFpsJpg"
-            label="Max FPS (JPEG)"
-            value={
-              currentSpecs?.maxFpsJpg != null
-                ? parseFloat(currentSpecs.maxFpsJpg)
-                : null
-            }
-            onChange={(value) => handleFieldChange("maxFpsJpg", value)}
-            placeholder="e.g., 20.0"
-            min={0}
-            max={120}
-            step={0.1}
-            suffix="fps"
-          />
-
-          {/* Flash Sync Speed */}
-          <NumberInput
-            id="flashSyncSpeed"
-            label="Flash Sync Speed"
-            icon={<ZapIcon />}
-            prefix="1/"
-            value={currentSpecs?.flashSyncSpeed}
-            onChange={(value) => handleFieldChange("flashSyncSpeed", value)}
-          />
-
-          {/* Has Silent Shooting Available */}
-          <BooleanInput
-            id="hasSilentShootingAvailable"
-            label="Has Silent Shooting Available"
-            checked={currentSpecs?.hasSilentShootingAvailable ?? null}
-            allowNull
-            showStateText
-            onChange={(value) =>
-              handleFieldChange("hasSilentShootingAvailable", value)
-            }
-          />
-
-          {/* Available Shutter Types */}
-          <div className="space-y-2">
-            <Label htmlFor="availableShutterTypes">
-              Available Shutter Types
-            </Label>
-            <MultiSelect
-              inDialog
-              options={ENUMS.shutter_types_enum.map((type) => ({
-                id: type,
-                // TODO map these proper formatted names
-                name: type,
-              }))}
-              value={currentSpecs?.availableShutterTypes ?? []}
-              onChange={(value: string[]) =>
-                handleFieldChange("availableShutterTypes", value)
+          {showWhenMissing((initialSpecs as any)?.hasFocusBracketing) && (
+            <BooleanInput
+              id="hasFocusBracketing"
+              label="Has Focus Bracketing"
+              checked={currentSpecs?.hasFocusBracketing ?? null}
+              allowNull
+              showStateText
+              onChange={(value) =>
+                handleFieldChange("hasFocusBracketing", value)
               }
             />
-          </div>
+          )}
+
+          {/* Shutter Speed Max */}
+          {showWhenMissing((initialSpecs as any)?.shutterSpeedMax) && (
+            <NumberInput
+              id="shutterSpeedMax"
+              label="Longest Shutter Speed"
+              suffix="sec."
+              value={currentSpecs?.shutterSpeedMax ?? null}
+              onChange={(value) => handleFieldChange("shutterSpeedMax", value)}
+            />
+          )}
+
+          {/* Shutter Speed Min */}
+          {showWhenMissing((initialSpecs as any)?.shutterSpeedMin) && (
+            <NumberInput
+              id="shutterSpeedMin"
+              label="Shortest Shutter Speed"
+              prefix="1/"
+              value={currentSpecs?.shutterSpeedMin ?? null}
+              onChange={(value) => handleFieldChange("shutterSpeedMin", value)}
+            />
+          )}
+
+          {/* Max FPS RAW */}
+          {showWhenMissing((initialSpecs as any)?.maxFpsRaw) && (
+            <NumberInput
+              id="maxFpsRaw"
+              label="Max FPS (RAW)"
+              value={
+                currentSpecs?.maxFpsRaw != null
+                  ? parseFloat(currentSpecs.maxFpsRaw)
+                  : null
+              }
+              onChange={(value) => handleFieldChange("maxFpsRaw", value)}
+              placeholder="e.g., 20.0"
+              min={0}
+              max={120}
+              step={0.1}
+              suffix="fps"
+            />
+          )}
+
+          {/* Max FPS JPEG */}
+          {showWhenMissing((initialSpecs as any)?.maxFpsJpg) && (
+            <NumberInput
+              id="maxFpsJpg"
+              label="Max FPS (JPEG)"
+              value={
+                currentSpecs?.maxFpsJpg != null
+                  ? parseFloat(currentSpecs.maxFpsJpg)
+                  : null
+              }
+              onChange={(value) => handleFieldChange("maxFpsJpg", value)}
+              placeholder="e.g., 20.0"
+              min={0}
+              max={120}
+              step={0.1}
+              suffix="fps"
+            />
+          )}
+
+          {/* Flash Sync Speed */}
+          {showWhenMissing((initialSpecs as any)?.flashSyncSpeed) && (
+            <NumberInput
+              id="flashSyncSpeed"
+              label="Flash Sync Speed"
+              icon={<ZapIcon />}
+              prefix="1/"
+              value={currentSpecs?.flashSyncSpeed}
+              onChange={(value) => handleFieldChange("flashSyncSpeed", value)}
+            />
+          )}
+
+          {/* Has Silent Shooting Available */}
+          {showWhenMissing(
+            (initialSpecs as any)?.hasSilentShootingAvailable,
+          ) && (
+            <BooleanInput
+              id="hasSilentShootingAvailable"
+              label="Has Silent Shooting Available"
+              checked={currentSpecs?.hasSilentShootingAvailable ?? null}
+              allowNull
+              showStateText
+              onChange={(value) =>
+                handleFieldChange("hasSilentShootingAvailable", value)
+              }
+            />
+          )}
+
+          {/* Available Shutter Types */}
+          {showWhenMissing((initialSpecs as any)?.availableShutterTypes) && (
+            <div className="space-y-2">
+              <Label htmlFor="availableShutterTypes">
+                Available Shutter Types
+              </Label>
+              <MultiSelect
+                inDialog
+                options={ENUMS.shutter_types_enum.map((type) => ({
+                  id: type,
+                  // TODO map these proper formatted names
+                  name: type,
+                }))}
+                value={currentSpecs?.availableShutterTypes ?? []}
+                onChange={(value: string[]) =>
+                  handleFieldChange("availableShutterTypes", value)
+                }
+              />
+            </div>
+          )}
 
           {/* CIPA Battery Shots Per Charge */}
-          <NumberInput
-            id="cipaBatteryShotsPerCharge"
-            label="CIPA Battery Shots Per Charge"
-            icon={<BatteryFullIcon />}
-            value={currentSpecs?.cipaBatteryShotsPerCharge}
-            onChange={(value) =>
-              handleFieldChange("cipaBatteryShotsPerCharge", value)
-            }
-          />
+          {showWhenMissing(
+            (initialSpecs as any)?.cipaBatteryShotsPerCharge,
+          ) && (
+            <NumberInput
+              id="cipaBatteryShotsPerCharge"
+              label="CIPA Battery Shots Per Charge"
+              icon={<BatteryFullIcon />}
+              value={currentSpecs?.cipaBatteryShotsPerCharge}
+              onChange={(value) =>
+                handleFieldChange("cipaBatteryShotsPerCharge", value)
+              }
+            />
+          )}
 
           {/* Supported Batteries */}
-          <MultiTextInput
-            id="supportedBatteries"
-            label="Supported Batteries"
-            values={
-              Array.isArray((currentSpecs as any)?.supportedBatteries)
-                ? (
-                    (currentSpecs as any).supportedBatteries as unknown[]
-                  ).filter((x): x is string => typeof x === "string")
-                : []
-            }
-            onChange={(value) => handleFieldChange("supportedBatteries", value)}
-            placeholder="e.g., NP-FZ100"
-          />
+          {showWhenMissing((initialSpecs as any)?.supportedBatteries) && (
+            <MultiTextInput
+              id="supportedBatteries"
+              label="Supported Batteries"
+              values={
+                Array.isArray((currentSpecs as any)?.supportedBatteries)
+                  ? (
+                      (currentSpecs as any).supportedBatteries as unknown[]
+                    ).filter((x): x is string => typeof x === "string")
+                  : []
+              }
+              onChange={(value) =>
+                handleFieldChange("supportedBatteries", value)
+              }
+              placeholder="e.g., NP-FZ100"
+            />
+          )}
 
           {/* USB Charging */}
-          <BooleanInput
-            id="usbCharging"
-            label="USB Charging"
-            checked={currentSpecs?.usbCharging ?? null}
-            allowNull
-            showStateText
-            tooltip="Camera is able to charge its inserted batteries via USB"
-            onChange={(value) => handleFieldChange("usbCharging", value)}
-          />
+          {showWhenMissing((initialSpecs as any)?.usbCharging) && (
+            <BooleanInput
+              id="usbCharging"
+              label="USB Charging"
+              checked={currentSpecs?.usbCharging ?? null}
+              allowNull
+              showStateText
+              tooltip="Camera is able to charge its inserted batteries via USB"
+              onChange={(value) => handleFieldChange("usbCharging", value)}
+            />
+          )}
 
           {/* USB Power Delivery */}
-          <BooleanInput
-            id="usbPowerDelivery"
-            label="USB Power Delivery"
-            checked={currentSpecs?.usbPowerDelivery ?? null}
-            allowNull
-            showStateText
-            tooltip="Camera is able to operate while plugged into USB and will draw less or no power from the battery"
-            onChange={(value) => handleFieldChange("usbPowerDelivery", value)}
-          />
+          {showWhenMissing((initialSpecs as any)?.usbPowerDelivery) && (
+            <BooleanInput
+              id="usbPowerDelivery"
+              label="USB Power Delivery"
+              checked={currentSpecs?.usbPowerDelivery ?? null}
+              allowNull
+              showStateText
+              tooltip="Camera is able to operate while plugged into USB and will draw less or no power from the battery"
+              onChange={(value) => handleFieldChange("usbPowerDelivery", value)}
+            />
+          )}
 
           {/* Has Log Color Profile */}
-          <BooleanInput
-            id="hasLogColorProfile"
-            label="Has Log Color Profile"
-            checked={currentSpecs?.hasLogColorProfile ?? null}
-            allowNull
-            showStateText
-            onChange={(value) => handleFieldChange("hasLogColorProfile", value)}
-          />
+          {showWhenMissing((initialSpecs as any)?.hasLogColorProfile) && (
+            <BooleanInput
+              id="hasLogColorProfile"
+              label="Has Log Color Profile"
+              checked={currentSpecs?.hasLogColorProfile ?? null}
+              allowNull
+              showStateText
+              onChange={(value) =>
+                handleFieldChange("hasLogColorProfile", value)
+              }
+            />
+          )}
 
           {/* Has 10 Bit Video */}
-          <BooleanInput
-            id="has10BitVideo"
-            label="Has 10 Bit Video"
-            checked={currentSpecs?.has10BitVideo ?? null}
-            allowNull
-            showStateText
-            onChange={(value) => handleFieldChange("has10BitVideo", value)}
-          />
+          {showWhenMissing((initialSpecs as any)?.has10BitVideo) && (
+            <BooleanInput
+              id="has10BitVideo"
+              label="Has 10 Bit Video"
+              checked={currentSpecs?.has10BitVideo ?? null}
+              allowNull
+              showStateText
+              onChange={(value) => handleFieldChange("has10BitVideo", value)}
+            />
+          )}
 
           {/* Has 12 Bit Video */}
-          <BooleanInput
-            id="has12BitVideo"
-            label="Has 12 Bit Video"
-            checked={currentSpecs?.has12BitVideo ?? null}
-            allowNull
-            showStateText
-            onChange={(value) => handleFieldChange("has12BitVideo", value)}
-          />
+          {showWhenMissing((initialSpecs as any)?.has12BitVideo) && (
+            <BooleanInput
+              id="has12BitVideo"
+              label="Has 12 Bit Video"
+              checked={currentSpecs?.has12BitVideo ?? null}
+              allowNull
+              showStateText
+              onChange={(value) => handleFieldChange("has12BitVideo", value)}
+            />
+          )}
 
           {/* Has Intervalometer */}
-          <BooleanInput
-            id="hasIntervalometer"
-            label="Has Intervalometer"
-            checked={currentSpecs?.hasIntervalometer ?? null}
-            allowNull
-            showStateText
-            onChange={(value) => handleFieldChange("hasIntervalometer", value)}
-          />
+          {showWhenMissing((initialSpecs as any)?.hasIntervalometer) && (
+            <BooleanInput
+              id="hasIntervalometer"
+              label="Has Intervalometer"
+              checked={currentSpecs?.hasIntervalometer ?? null}
+              allowNull
+              showStateText
+              onChange={(value) =>
+                handleFieldChange("hasIntervalometer", value)
+              }
+            />
+          )}
 
           {/* Has Self Timer */}
-          <BooleanInput
-            id="hasSelfTimer"
-            label="Has Self Timer"
-            checked={currentSpecs?.hasSelfTimer ?? null}
-            allowNull
-            showStateText
-            onChange={(value) => handleFieldChange("hasSelfTimer", value)}
-          />
+          {showWhenMissing((initialSpecs as any)?.hasSelfTimer) && (
+            <BooleanInput
+              id="hasSelfTimer"
+              label="Has Self Timer"
+              checked={currentSpecs?.hasSelfTimer ?? null}
+              allowNull
+              showStateText
+              onChange={(value) => handleFieldChange("hasSelfTimer", value)}
+            />
+          )}
 
           {/* Has Built In Flash */}
-          <BooleanInput
-            id="hasBuiltInFlash"
-            label="Has Built In Flash"
-            checked={currentSpecs?.hasBuiltInFlash ?? null}
-            allowNull
-            showStateText
-            onChange={(value) => handleFieldChange("hasBuiltInFlash", value)}
-          />
+          {showWhenMissing((initialSpecs as any)?.hasBuiltInFlash) && (
+            <BooleanInput
+              id="hasBuiltInFlash"
+              label="Has Built In Flash"
+              checked={currentSpecs?.hasBuiltInFlash ?? null}
+              allowNull
+              showStateText
+              onChange={(value) => handleFieldChange("hasBuiltInFlash", value)}
+            />
+          )}
 
           {/* Has Hot Shoe */}
-          <BooleanInput
-            id="hasHotShoe"
-            label="Has Hot Shoe"
-            checked={currentSpecs?.hasHotShoe ?? null}
-            allowNull
-            showStateText
-            onChange={(value) => handleFieldChange("hasHotShoe", value)}
-          />
+          {showWhenMissing((initialSpecs as any)?.hasHotShoe) && (
+            <BooleanInput
+              id="hasHotShoe"
+              label="Has Hot Shoe"
+              checked={currentSpecs?.hasHotShoe ?? null}
+              allowNull
+              showStateText
+              onChange={(value) => handleFieldChange("hasHotShoe", value)}
+            />
+          )}
         </div>
       </CardContent>
     </Card>

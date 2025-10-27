@@ -56,7 +56,7 @@ export function SpecsMissingNote({ item }: { item: GearItem }) {
   const missingCount = countMissingForItem(item);
   if (missingCount <= 0) return null;
 
-  const editPath = `/gear/${item.slug}/edit?type=${item.gearType}`;
+  const editPath = `/gear/${item.slug}/edit?type=${item.gearType}&showMissingOnly=true`;
 
   return (
     <div className="space-x-2 border-t px-4 py-3 text-sm">

@@ -27,8 +27,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
-import EditGearForm from "~/app/(app)/(pages)/gear/_components/edit-gear/edit-gear-form";
+import EditModalContent from "~/app/(app)/(pages)/gear/_components/edit-gear/edit-modal-content";
 import type { GearItem } from "~/types/gear";
+import { Label } from "~/components/ui/label";
+import { Switch } from "~/components/ui/switch";
+import { Loader2 } from "lucide-react";
 
 type Row = {
   id: string;
@@ -53,6 +56,7 @@ export function UnderConstructionTable({ items }: { items: Row[] }) {
   const [gearData, setGearData] = useState<GearItem | null>(null);
   const [isDirty, setIsDirty] = useState(false);
   const [confirmExitOpen, setConfirmExitOpen] = useState(false);
+  const [showMissingOnly, setShowMissingOnly] = useState(true);
 
   const requestClose = useCallback(
     (opts?: { force?: boolean }) => {
@@ -61,12 +65,15 @@ export function UnderConstructionTable({ items }: { items: Row[] }) {
         return;
       }
       setOpen(false);
+      setIsDirty(false);
     },
     [isDirty],
   );
 
   const handleOpen = useCallback((slug: string, type: "CAMERA" | "LENS") => {
     setSelected({ slug, type });
+    setIsDirty(false);
+    setShowMissingOnly(true); // default to missing-only when launched from this page
     setOpen(true);
   }, []);
 
@@ -75,6 +82,8 @@ export function UnderConstructionTable({ items }: { items: Row[] }) {
     async function load() {
       if (!open || !selected) return;
       setLoading(true);
+      // Reset dirty when loading a fresh item/session
+      setIsDirty(false);
       try {
         const res = await fetch(`/api/gear/${selected.slug}/edit-data`, {
           method: "GET",
@@ -180,54 +189,62 @@ export function UnderConstructionTable({ items }: { items: Row[] }) {
       >
         <DialogContent className="p-0 sm:max-w-4xl">
           <div className="flex max-h-[90vh] flex-col">
-            <div className="px-6 pt-6 pb-4">
-              <DialogHeader>
-                <DialogTitle>Edit {selected?.slug}</DialogTitle>
-              </DialogHeader>
-            </div>
-            <div className="overflow-y-auto p-6">
-              {selected && !loading && gearData && (
-                <EditGearForm
-                  gearType={selected.type as any}
-                  gearSlug={selected.slug}
-                  gearData={
-                    {
-                      ...gearData,
-                      ...(typeof (gearData as any).mountIds === "undefined" && {
-                        mountIds: (gearData as any).mountId
-                          ? [(gearData as any).mountId]
-                          : [],
-                      }),
-                    } as any
-                  }
-                  onDirtyChange={setIsDirty}
-                  onRequestClose={requestClose}
-                  showActions={false}
-                  formId="edit-gear-form"
-                />
-              )}
-              {selected && loading && (
-                <div className="text-muted-foreground text-sm">Loading…</div>
-              )}
-            </div>
-            <div className="bg-background border-t px-6 py-4">
-              <div className="flex justify-end gap-3">
-                <button
-                  type="button"
-                  className="border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md border px-4 text-sm"
-                  onClick={() => requestClose()}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  form="edit-gear-form"
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-4 text-sm"
-                >
-                  Continue
-                </button>
+            {selected && !loading && gearData && (
+              <EditModalContent
+                gearType={selected.type as any}
+                gearSlug={selected.slug}
+                gearData={gearData}
+                onDirtyChange={setIsDirty}
+                onRequestClose={requestClose}
+                initialShowMissingOnly={showMissingOnly}
+                formId="edit-gear-form"
+              />
+            )}
+            {selected && loading && (
+              <div className="flex max-h-[90vh] flex-col">
+                <div className="px-6 pt-6 pb-4">
+                  <DialogHeader>
+                    <DialogTitle>Edit {selected?.slug}</DialogTitle>
+                  </DialogHeader>
+                </div>
+                <div className="flex min-h-[400px] flex-1 items-center justify-center p-6">
+                  <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
+                  <span className="text-muted-foreground ml-2 text-sm">
+                    Loading…
+                  </span>
+                </div>
+                <div className="bg-background border-t px-6 py-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="uc-loading-missing-only">
+                        Show missing only
+                      </Label>
+                      <Switch
+                        id="uc-loading-missing-only"
+                        checked={showMissingOnly}
+                        onCheckedChange={setShowMissingOnly}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        className="border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md border px-4 text-sm"
+                        onClick={() => requestClose()}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        disabled
+                        className="bg-primary text-primary-foreground/60 h-9 cursor-not-allowed rounded-md px-4 text-sm"
+                      >
+                        Continue
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>

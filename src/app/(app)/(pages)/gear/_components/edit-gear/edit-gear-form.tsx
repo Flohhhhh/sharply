@@ -37,6 +37,7 @@ interface EditGearFormProps {
   onSubmittingChange?: (submitting: boolean) => void;
   showActions?: boolean;
   formId?: string;
+  showMissingOnly?: boolean; // Controls filtering of fields based on initial values
 }
 
 function EditGearForm({
@@ -48,6 +49,7 @@ function EditGearForm({
   onSubmittingChange,
   showActions = true,
   formId,
+  showMissingOnly,
 }: EditGearFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -476,6 +478,18 @@ function EditGearForm({
           } as any
         }
         gearType={gearType}
+        showMissingOnly={Boolean(showMissingOnly)}
+        initialSpecs={
+          {
+            ...(gearData as any),
+            announcedDate: (gearData as any).announcedDate ?? null,
+            msrpNowUsdCents: (gearData as any).msrpNowUsdCents ?? null,
+            mpbMaxPriceUsdCents: (gearData as any).mpbMaxPriceUsdCents ?? null,
+            genres: Array.isArray((gearData as any).genres)
+              ? ((gearData as any).genres as string[])
+              : [],
+          } as any
+        }
         onChange={handleChange}
       />
 
@@ -484,6 +498,9 @@ function EditGearForm({
         <CameraFields
           gearItem={formData}
           currentSpecs={formData.cameraSpecs}
+          showMissingOnly={Boolean(showMissingOnly)}
+          initialSpecs={(gearData as any).cameraSpecs as any}
+          initialGearItem={gearData as any}
           onChange={(field, value) => handleChange(field, value, "cameraSpecs")}
           onChangeTopLevel={(field, value) => handleChange(field, value)}
         />
@@ -503,6 +520,8 @@ function EditGearForm({
           return (
             <FixedLensFields
               currentSpecs={(formData as any).fixedLensSpecs ?? null}
+              showMissingOnly={Boolean(showMissingOnly)}
+              initialSpecs={(gearData as any).fixedLensSpecs as any}
               onChange={(field, value) =>
                 setFormData((prev) => ({
                   ...prev,
@@ -519,6 +538,8 @@ function EditGearForm({
       {gearType === "LENS" && (
         <LensFields
           currentSpecs={formData.lensSpecs}
+          showMissingOnly={Boolean(showMissingOnly)}
+          initialSpecs={(gearData as any).lensSpecs as any}
           onChange={(field, value) => handleChange(field, value, "lensSpecs")}
         />
       )}
