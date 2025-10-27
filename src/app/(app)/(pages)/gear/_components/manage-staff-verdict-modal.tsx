@@ -267,7 +267,8 @@ export function ManageStaffVerdictModal({ slug }: { slug: string }) {
                 )}
               />
 
-              <FormField
+              {/* TODO: Set this up with a real gear selector */}
+              {/* <FormField
                 control={form.control}
                 name="alternatives"
                 render={({ field }) => (
@@ -279,7 +280,7 @@ export function ManageStaffVerdictModal({ slug }: { slug: string }) {
                     <FormMessage />
                   </FormItem>
                 )}
-              />
+              /> */}
 
               <div className="flex justify-end gap-2">
                 <Button

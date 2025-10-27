@@ -28,6 +28,7 @@ import GearStatsCard from "../_components/gear-stats-card";
 import GearBadges from "../_components/gear-badges";
 import SpecsTable from "../_components/specs-table";
 import { ManageStaffVerdictModal } from "../_components/manage-staff-verdict-modal";
+import { StaffVerdictSection } from "../_components/staff-verdict-section";
 import { buildGearSpecsSections } from "~/lib/specs/registry";
 import type { Metadata } from "next";
 import { Breadcrumbs, type CrumbItem } from "~/components/layout/breadcrumbs";
@@ -41,6 +42,8 @@ import { NewsCard } from "~/components/home/news-card";
 import { Card, CardContent } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { notFound } from "next/navigation";
+import { auth } from "~/server/auth";
+import { requireRole } from "~/server/auth/index";
 // Removed LensApertureDisplay in favor of standardized spec rows using mapping
 
 export const revalidate = 3600;
@@ -55,6 +58,7 @@ export async function generateMetadata({
   params,
 }: GearPageProps): Promise<Metadata> {
   const { slug } = await params;
+
   try {
     const item: GearItem = await fetchGearBySlug(slug);
     const verdict = await fetchStaffVerdict(slug).catch(() => null);
@@ -89,6 +93,8 @@ export async function generateMetadata({
 
 export default async function GearPage({ params }: GearPageProps) {
   const { slug } = await params;
+  const session = await auth();
+  const isAdmin = requireRole(session, ["ADMIN"]);
   // console.log("[gear/[slug]] Generating static page (build/ISR)", { slug });
 
   // Fetch core gear data
@@ -232,6 +238,27 @@ export default async function GearPage({ params }: GearPageProps) {
         <div className="col-span-1 space-y-4 md:col-span-7">
           {/* Pending submission banner (client, only for this user when pending) */}
           <UserPendingEditBanner slug={slug} />
+          {/* Staff Verdict */}
+          {(staffVerdictRows.length > 0 || isAdmin) && (
+            <StaffVerdictSection slug={slug} verdict={verdict} />
+          )}
+
+          {/* Specifications */}
+          <section className="scroll-mt-24" id="specs">
+            <div className="mb-2 flex items-center justify-between">
+              <h2 className="mb-2 text-lg font-semibold">Specifications</h2>
+              <SuggestEditButton
+                slug={item.slug}
+                gearType={item.gearType as "CAMERA" | "LENS"}
+              />
+            </div>
+            <SpecsTable sections={specSections} item={item} />
+          </section>
+          {/* Sign-in CTA banner for editing specs (client, only when signed out) */}
+          <SignInToEditSpecsCta
+            slug={item.slug}
+            gearType={item.gearType as "CAMERA" | "LENS"}
+          />
           {/* Editorial Reviews*/}
           {review && (
             <section id="reviews" className="scroll-mt-24">
@@ -251,22 +278,6 @@ export default async function GearPage({ params }: GearPageProps) {
               </Link>
             </section>
           )}
-          {/* Specifications */}
-          <section className="scroll-mt-24" id="specs">
-            <div className="mb-2 flex items-center justify-between">
-              <h2 className="mb-2 text-lg font-semibold">Specifications</h2>
-              <SuggestEditButton
-                slug={item.slug}
-                gearType={item.gearType as "CAMERA" | "LENS"}
-              />
-            </div>
-            <SpecsTable sections={specSections} item={item} />
-          </section>
-          {/* Sign-in CTA banner for editing specs (client, only when signed out) */}
-          <SignInToEditSpecsCta
-            slug={item.slug}
-            gearType={item.gearType as "CAMERA" | "LENS"}
-          />
           {/* Articles about this item (below specs) */}
           {relatedNews.length > 0 && (
             <section id="related-articles" className="scroll-mt-24">
@@ -299,113 +310,6 @@ export default async function GearPage({ params }: GearPageProps) {
               </div>
             </section>
           )}
-          {/* Staff Verdict */}
-          <section id="staff-verdict" className="mt-12 scroll-mt-24 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Staff Verdict</h3>
-              <ManageStaffVerdictModal slug={slug} />
-            </div>
-            {verdict &&
-              Boolean(
-                verdict.content ||
-                  verdict.pros ||
-                  verdict.cons ||
-                  verdict.whoFor ||
-                  verdict.notFor ||
-                  verdict.alternatives,
-              ) && (
-                <div className="border-border overflow-hidden rounded-md border p-4">
-                  {verdict.content && (
-                    <div className="space-y-3">
-                      {verdict.content
-                        .split("\n")
-                        .map((p: string, i: number) =>
-                          p.trim() ? (
-                            <p key={i} className="text-sm">
-                              {p}
-                            </p>
-                          ) : (
-                            <br key={i} />
-                          ),
-                        )}
-                    </div>
-                  )}
-
-                  {(Array.isArray(verdict.pros) && verdict.pros.length > 0) ||
-                  (Array.isArray(verdict.cons) && verdict.cons.length > 0) ? (
-                    <div className="mt-4 grid gap-4 md:grid-cols-2">
-                      {Array.isArray(verdict.pros) &&
-                        verdict.pros.length > 0 && (
-                          <div>
-                            <div className="text-muted-foreground mb-1 text-xs font-semibold tracking-wide uppercase">
-                              Pros
-                            </div>
-                            <ul className="list-disc pl-5 text-sm">
-                              {(verdict.pros as string[]).map(
-                                (p: string, i: number) => (
-                                  <li key={i}>{p}</li>
-                                ),
-                              )}
-                            </ul>
-                          </div>
-                        )}
-                      {Array.isArray(verdict.cons) &&
-                        verdict.cons.length > 0 && (
-                          <div>
-                            <div className="text-muted-foreground mb-1 text-xs font-semibold tracking-wide uppercase">
-                              Cons
-                            </div>
-                            <ul className="list-disc pl-5 text-sm">
-                              {(verdict.cons as string[]).map(
-                                (c: string, i: number) => (
-                                  <li key={i}>{c}</li>
-                                ),
-                              )}
-                            </ul>
-                          </div>
-                        )}
-                    </div>
-                  ) : null}
-
-                  {(verdict.whoFor || verdict.notFor) && (
-                    <div className="mt-4 grid gap-4 md:grid-cols-2">
-                      {verdict.whoFor && (
-                        <div>
-                          <div className="text-muted-foreground mb-1 text-xs font-semibold tracking-wide uppercase">
-                            Who it's for
-                          </div>
-                          <p className="text-sm">{verdict.whoFor}</p>
-                        </div>
-                      )}
-                      {verdict.notFor && (
-                        <div>
-                          <div className="text-muted-foreground mb-1 text-xs font-semibold tracking-wide uppercase">
-                            Not for
-                          </div>
-                          <p className="text-sm">{verdict.notFor}</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {Array.isArray(verdict.alternatives) &&
-                    verdict.alternatives.length > 0 && (
-                      <div className="mt-4">
-                        <div className="text-muted-foreground mb-1 text-xs font-semibold tracking-wide uppercase">
-                          Top alternatives
-                        </div>
-                        <ul className="list-disc pl-5 text-sm">
-                          {(verdict.alternatives as string[]).map(
-                            (a: string, i: number) => (
-                              <li key={i}>{a}</li>
-                            ),
-                          )}
-                        </ul>
-                      </div>
-                    )}
-                </div>
-              )}
-          </section>
         </div>
         {/* Right column */}
         <div className="static top-28 col-span-1 -mt-4 w-full space-y-8 self-start sm:sticky md:col-span-3">
