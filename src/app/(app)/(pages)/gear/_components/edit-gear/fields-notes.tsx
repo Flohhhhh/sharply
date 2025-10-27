@@ -15,11 +15,11 @@ export function NotesFields({ notes, onChange }: NotesFieldsProps) {
   const values = useMemo(() => (Array.isArray(notes) ? notes : []), [notes]);
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="rounded-md bg-transparent px-4 py-4">
+      <CardHeader className="px-0">
         <CardTitle>Notes</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-4 px-0">
         <div className="space-y-2">
           <Label className="text-muted-foreground text-sm">
             Add unstructured notes about this gear. Keep each thought as a
