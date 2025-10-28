@@ -14,8 +14,9 @@ import {
   X,
   ArrowLeft,
 } from "lucide-react";
-import type { GearItem } from "~/types/gear";
+import type { GearItem, CameraSpecs } from "~/types/gear";
 import { buildEditSidebarSections } from "~/lib/specs/registry";
+import { sensorTypeLabel } from "~/lib/mapping/sensor-map";
 import { Button } from "~/components/ui/button";
 
 interface EditModalContentProps {
@@ -44,28 +45,133 @@ export function EditModalContent({
   );
   const [isDirty, setIsDirty] = useState(false);
 
-  const preparedData = useMemo(() => {
-    const base = gearData as any;
+  const preparedData: GearItem = useMemo(() => {
+    const hasMountIds = Array.isArray(gearData.mountIds);
+    const legacyMountId = gearData.mountId;
     return {
-      ...base,
-      ...(typeof base.mountIds === "undefined" && {
-        mountIds: base.mountId ? [base.mountId] : [],
-      }),
-    } as GearItem;
+      ...gearData,
+      ...(!hasMountIds && { mountIds: legacyMountId ? [legacyMountId] : [] }),
+    };
   }, [gearData]);
 
-  // Helper to check if a field is filled
-  const isFilled = (v: unknown): boolean => {
+  // Live form snapshot to drive sidebar state
+  const [liveItem, setLiveItem] = useState<GearItem>(preparedData);
+  // Keep in sync if the underlying item changes (route change or server refresh)
+  if (liveItem !== preparedData) {
+    // noop runtime check to avoid unused var; actual sync handled below in memo usage
+  }
+
+  // Helpers to check if a field is filled (supports aggregated registry values)
+  const isValueFilled = (v: unknown): boolean => {
     if (v == null) return false;
     if (typeof v === "string") return v.trim().length > 0;
+    if (typeof v === "number") return Number.isFinite(v);
+    if (typeof v === "boolean") return true;
+    if (v instanceof Date) return !Number.isNaN(v.getTime());
     if (Array.isArray(v)) return v.length > 0;
-    return true;
+    if (typeof v === "object") {
+      for (const val of Object.values(v as Record<string, unknown>)) {
+        if (isValueFilled(val)) return true;
+      }
+      return false;
+    }
+    return false;
+  };
+
+  const isFieldFilled = (key: string, rawValue: unknown): boolean => {
+    if (key === "dimensions") {
+      const obj = (rawValue || {}) as Record<string, unknown>;
+      const isNumLike = (x: unknown) =>
+        x != null && !Number.isNaN(Number(x as any));
+      return (
+        isNumLike(obj.widthMm) &&
+        isNumLike(obj.heightMm) &&
+        isNumLike(obj.depthMm)
+      );
+    }
+    if (key === "sensorType") {
+      const rec =
+        rawValue && typeof rawValue === "object"
+          ? (rawValue as Partial<
+              Pick<
+                CameraSpecs,
+                | "sensorStackingType"
+                | "sensorTechType"
+                | "isBackSideIlluminated"
+              >
+            >)
+          : {};
+      const stacking =
+        typeof rec.sensorStackingType === "string"
+          ? rec.sensorStackingType
+          : undefined;
+      const tech =
+        typeof rec.sensorTechType === "string" ? rec.sensorTechType : undefined;
+      const bsi =
+        typeof rec.isBackSideIlluminated === "boolean"
+          ? rec.isBackSideIlluminated
+          : undefined;
+      const label = sensorTypeLabel({
+        sensorStackingType: stacking,
+        sensorTechType: tech,
+        isBackSideIlluminated: bsi,
+      } as unknown as CameraSpecs);
+      return label.trim().length > 0;
+    }
+    return isValueFilled(rawValue);
+  };
+
+  type Completion = "empty" | "partial" | "complete";
+  const getFieldCompletion = (key: string, rawValue: unknown): Completion => {
+    if (key === "dimensions") {
+      const obj = (rawValue || {}) as Record<string, unknown>;
+      const isNumLike = (x: unknown) =>
+        x != null && !Number.isNaN(Number(x as any));
+      const count = [obj.widthMm, obj.heightMm, obj.depthMm].filter((v) =>
+        isNumLike(v),
+      ).length;
+      if (count === 0) return "empty";
+      if (count === 3) return "complete";
+      return "partial";
+    }
+    if (key === "isoRange") {
+      const obj = (rawValue || {}) as Record<string, unknown>;
+      const isNumLike = (x: unknown) =>
+        x != null && !Number.isNaN(Number(x as any));
+      const hasMin = isNumLike(obj.min);
+      const hasMax = isNumLike(obj.max);
+      if (!hasMin && !hasMax) return "empty";
+      if (hasMin && hasMax) return "complete";
+      return "partial";
+    }
+    if (key === "sensorType") {
+      const rec =
+        rawValue && typeof rawValue === "object"
+          ? (rawValue as Partial<
+              Pick<
+                CameraSpecs,
+                | "sensorStackingType"
+                | "sensorTechType"
+                | "isBackSideIlluminated"
+              >
+            >)
+          : {};
+      const hasStacking = rec.sensorStackingType != null;
+      const techVal = rec.sensorTechType;
+      const hasTech = typeof techVal === "string" && techVal.trim().length > 0;
+      const hasBsi = typeof rec.isBackSideIlluminated === "boolean";
+      const count = [hasStacking, hasTech, hasBsi].filter(Boolean).length;
+      if (count === 0) return "empty";
+      if (count === 3) return "complete";
+      return "partial";
+    }
+    return isValueFilled(rawValue) ? "complete" : "empty";
   };
 
   // Build sidebar sections from centralized spec dictionary
   const sidebarSections = useMemo(
-    () => buildEditSidebarSections(preparedData),
-    [preparedData],
+    () => buildEditSidebarSections(liveItem),
+    [liveItem],
   );
   // Hide Notes from the sidebar entirely
   const sidebarSectionsFiltered = useMemo(
@@ -80,7 +186,8 @@ export function EditModalContent({
       const hasFields =
         Array.isArray(section.fields) && section.fields.length > 0;
       const allFilled =
-        hasFields && section.fields.every((f) => isFilled(f.rawValue));
+        hasFields &&
+        section.fields.every((f) => isFieldFilled(f.key, f.rawValue));
       initial[section.id] = hasFields ? !allFilled : true; // collapse if all filled
     });
     return initial;
@@ -89,124 +196,65 @@ export function EditModalContent({
 
   // Scroll handling inside the form container (so anchors work in modal)
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-  const fieldKeyToElementId = useMemo((): Record<string, string> => {
-    const core: Record<string, string> = {
-      msrpNowUsdCents: "msrpNow",
-      msrpAtLaunchUsdCents: "msrpAtLaunch",
-      mpbMaxPriceUsdCents: "mpbMaxPrice",
-      widthMm: "widthMm",
-      heightMm: "heightMm",
-      depthMm: "depthMm",
-      linkManufacturer: "linkManufacturer",
-      linkMpb: "linkMpb",
-      linkAmazon: "linkAmazon",
-    };
-    if (gearType === "CAMERA") {
-      return {
-        ...core,
-        sensorFormatId: "sensorFormatId",
-        resolutionMp: "resolutionMp",
-        sensorReadoutSpeedMs: "sensorReadoutSpeedMs",
-        isoMin: "isoMin",
-        isoMax: "isoMax",
-        rearDisplayResolutionMillionDots: "rearDisplayResolutionMillionDots",
-        rearDisplaySizeInches: "rearDisplaySizeInches",
-        viewfinderMagnification: "viewfinderMagnification",
-        viewfinderResolutionMillionDots: "viewfinderResolutionMillionDots",
-        hasTopDisplay: "hasTopDisplay",
-        hasRearTouchscreen: "hasRearTouchscreen",
-        maxRawBitDepth: "maxRawBitDepth",
-        hasIbis: "hasIbis",
-        hasElectronicVibrationReduction: "hasElectronicVibrationReduction",
-        cipaStabilizationRatingStops: "cipaStabilizationRatingStops",
-        hasPixelShiftShooting: "hasPixelShiftShooting",
-        hasAntiAliasingFilter: "hasAntiAliasingFilter",
-        processorName: "processorName",
-        focusPoints: "focusPoints",
-        afAreaModes: "afAreaModes",
-        hasFocusPeaking: "hasFocusPeaking",
-        hasFocusBracketing: "hasFocusBracketing",
-        shutterSpeedMax: "shutterSpeedMax",
-        shutterSpeedMin: "shutterSpeedMin",
-        maxFpsRaw: "maxFpsRaw",
-        maxFpsJpg: "maxFpsJpg",
-        flashSyncSpeed: "flashSyncSpeed",
-        hasSilentShootingAvailable: "hasSilentShootingAvailable",
-        availableShutterTypes: "availableShutterTypes",
-        cipaBatteryShotsPerCharge: "cipaBatteryShotsPerCharge",
-        supportedBatteries: "supportedBatteries",
-        usbCharging: "usbCharging",
-        usbPowerDelivery: "usbPowerDelivery",
-        hasLogColorProfile: "hasLogColorProfile",
-        has10BitVideo: "has10BitVideo",
-        has12BitVideo: "has12BitVideo",
-        hasIntervalometer: "hasIntervalometer",
-        hasSelfTimer: "hasSelfTimer",
-        hasBuiltInFlash: "hasBuiltInFlash",
-        hasHotShoe: "hasHotShoe",
-      };
-    }
-    // LENS
-    return {
-      ...core,
-      focalLength: "focalLength",
-      maxApertureWide: "aperture",
-      maxApertureTele: "aperture",
-      minApertureWide: "aperture",
-      minApertureTele: "aperture",
-      hasStabilization: "hasStabilization",
-      cipaStabilizationRatingStops: "cipaStabilizationRatingStops",
-      hasStabilizationSwitch: "hasStabilizationSwitch",
-      hasAutofocus: "hasAutofocus",
-      isMacro: "isMacro",
-      magnification: "magnification",
-      minimumFocusDistanceMm: "minimumFocusDistanceMm",
-      hasFocusRing: "hasFocusRing",
-      focusMotorType: "focusMotorType",
-      hasAfMfSwitch: "hasAfMfSwitch",
-      hasFocusLimiter: "hasFocusLimiter",
-      hasFocusRecallButton: "hasFocusRecallButton",
-      numberElements: "numberElements",
-      numberElementGroups: "numberElementGroups",
-      hasDiffractiveOptics: "hasDiffractiveOptics",
-      numberDiaphragmBlades: "numberDiaphragmBlades",
-      hasRoundedDiaphragmBlades: "hasRoundedDiaphragmBlades",
-      hasInternalZoom: "hasInternalZoom",
-      hasInternalFocus: "hasInternalFocus",
-      frontElementRotates: "frontElementRotates",
-      mountMaterial: "mountMaterial",
-      hasWeatherSealing: "hasWeatherSealing",
-      numberCustomControlRings: "numberCustomControlRings",
-      numberFunctionButtons: "numberFunctionButtons",
-      acceptsFilterTypes: "acceptsFilterTypes",
-      frontFilterThreadSizeMm: "frontFilterThreadSizeMm",
-      rearFilterThreadSizeMm: "rearFilterThreadSizeMm",
-      dropInFilterSizeMm: "dropInFilterSizeMm",
-      hasBuiltInTeleconverter: "hasBuiltInTeleconverter",
-      hasLensHood: "hasLensHood",
-      hasTripodCollar: "hasTripodCollar",
-    };
-  }, [gearType]);
 
-  const scrollToFieldOrSection = (sectionAnchor: string, fieldKey: string) => {
+  const scrollToFieldOrSection = (
+    sectionAnchor: string,
+    targetId: string,
+    fieldKey?: string,
+  ) => {
     const container = scrollContainerRef.current;
     const sectionId = sectionAnchor; // already a bare id like "core-section"
-    const candidateId = fieldKeyToElementId[fieldKey] ?? fieldKey;
-    const el = (document.getElementById(candidateId) ||
+    const candidates: string[] = (() => {
+      if (fieldKey === "isoRange") return [targetId, "isoMin", "isoMax"];
+      if (fieldKey === "dimensions")
+        return [targetId, "widthMm", "heightMm", "depthMm"];
+      if (fieldKey === "sensorType")
+        return [
+          targetId,
+          "sensorStackingType",
+          "sensorTechType",
+          "isBackSideIlluminated",
+        ];
+      if (fieldKey === "viewfinderResolutionMillionDots")
+        return [targetId, "viewfinderType"];
+      if (fieldKey === "viewfinderMagnification")
+        return [targetId, "viewfinderType"];
+      return [targetId];
+    })();
+    const el = (candidates
+      .map((id) => document.getElementById(id))
+      .find((n) => n) ||
       document.getElementById(sectionId)) as HTMLElement | null;
     if (!el) return;
+    // Prefer inputs/selects/comboboxes; fallback to any focusable
+    const primarySelector =
+      "input,select,textarea,[role='combobox'],[data-sidebar-focus-target='true']";
+    const fallbackSelector =
+      "button,[role='switch'],[role='slider'],[contenteditable='true'],[tabindex]:not([tabindex='-1'])";
     const focusEl: HTMLElement | null =
-      (el.matches(
-        "input,select,textarea,button,[tabindex]:not([tabindex='-1'])",
-      )
+      (el.matches(primarySelector)
         ? el
-        : (el.querySelector(
-            "input,select,textarea,button,[role='switch'],[role='slider'],[contenteditable='true'],[tabindex]:not([tabindex='-1'])",
-          ) as HTMLElement | null)) || el;
+        : (el.querySelector(primarySelector) as HTMLElement | null)) ||
+      (el.matches(fallbackSelector)
+        ? el
+        : (el.querySelector(fallbackSelector) as HTMLElement | null)) ||
+      el;
     const doFocus = () => {
       try {
         if (focusEl && typeof focusEl.focus === "function") {
           focusEl.focus({ preventScroll: true } as any);
+          if (focusEl.getAttribute("data-sidebar-focus-target") === "true") {
+            focusEl.classList.add("force-focus");
+            const ringContainer =
+              (focusEl.closest(
+                "[data-force-ring-container]",
+              ) as HTMLElement | null) || null;
+            if (ringContainer) ringContainer.classList.add("force-focus");
+            setTimeout(() => {
+              focusEl.classList.remove("force-focus");
+              if (ringContainer) ringContainer.classList.remove("force-focus");
+            }, 1200);
+          }
         }
       } catch {}
     };
@@ -269,14 +317,19 @@ export function EditModalContent({
                 const allFilled =
                   Array.isArray(section.fields) &&
                   section.fields.length > 0 &&
-                  section.fields.every((f) => isFilled(f.rawValue));
+                  section.fields.every(
+                    (f) => getFieldCompletion(f.key, f.rawValue) === "complete",
+                  );
                 const fieldsSorted = Array.isArray(section.fields)
                   ? [...section.fields].sort((a, b) =>
                       String(a.label).localeCompare(String(b.label)),
                     )
                   : [];
                 const fieldsToRender = showMissingOnly
-                  ? fieldsSorted.filter((f) => !isFilled(f.rawValue))
+                  ? fieldsSorted.filter(
+                      (f) =>
+                        getFieldCompletion(f.key, f.rawValue) !== "complete",
+                    )
                   : fieldsSorted;
                 if (showMissingOnly && fieldsToRender.length === 0) {
                   return null;
@@ -306,16 +359,37 @@ export function EditModalContent({
                             key={field.key}
                             type="button"
                             onClick={() =>
-                              scrollToFieldOrSection(section.anchor, field.key)
+                              scrollToFieldOrSection(
+                                section.anchor,
+                                (field as any).targetId || field.key,
+                                field.key,
+                              )
                             }
                             className="text-muted-foreground hover:text-foreground flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-xs"
                             tabIndex={-1}
                           >
-                            {isFilled(field.rawValue) ? (
-                              <CheckCircle className="h-3.5 w-3.5 text-green-500" />
-                            ) : (
-                              <Circle className="text-muted-foreground h-3.5 w-3.5" />
-                            )}
+                            {(() => {
+                              const status = getFieldCompletion(
+                                field.key,
+                                field.rawValue,
+                              );
+                              if (status === "complete") {
+                                return (
+                                  <CheckCircle className="h-3.5 w-3.5 text-green-500" />
+                                );
+                              }
+                              if (status === "partial") {
+                                return (
+                                  <span
+                                    aria-hidden
+                                    className="h-3.5 w-3.5 rounded-full border border-[#f59e0b] bg-[conic-gradient(#f59e0b_0_50%,transparent_50%_100%)]"
+                                  />
+                                );
+                              }
+                              return (
+                                <Circle className="text-muted-foreground h-3.5 w-3.5" />
+                              );
+                            })()}
                             <span className="truncate">{field.label}</span>
                           </button>
                         ))}
@@ -333,7 +407,7 @@ export function EditModalContent({
         >
           <EditGearForm
             gearType={gearType}
-            gearData={preparedData as any}
+            gearData={preparedData}
             gearSlug={gearSlug}
             onDirtyChange={(dirty) => {
               setIsDirty(dirty);
@@ -343,6 +417,7 @@ export function EditModalContent({
             showActions={false}
             formId={formId}
             showMissingOnly={showMissingOnly}
+            onFormDataChange={(d) => setLiveItem(d as any)}
           />
         </div>
       </div>

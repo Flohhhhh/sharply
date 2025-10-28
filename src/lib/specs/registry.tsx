@@ -14,7 +14,7 @@ import {
 import { sensorNameFromId, sensorTypeLabel } from "~/lib/mapping/sensor-map";
 import { formatFocusDistance } from "~/lib/mapping/focus-distance-map";
 import { formatFilterType } from "~/lib/mapping/filter-types-map";
-import { MOUNTS } from "~/lib/generated";
+import { MOUNTS, AF_AREA_MODES } from "~/lib/generated";
 
 function yesNoNull(value: boolean | null | undefined): string | undefined {
   if (value == null) return undefined;
@@ -47,6 +47,7 @@ export type SpecFieldDef = {
   label: string; // Human-readable label for display
   getRawValue: (item: GearItem) => unknown; // Extract raw value from GearItem
   formatDisplay?: (raw: unknown, item: GearItem) => React.ReactNode; // Format for display (table, etc.)
+  editElementId?: string; // DOM id to focus in the edit UI when navigating from sidebar
 };
 
 export type SpecSectionDef = {
@@ -96,10 +97,11 @@ export const specDictionary: SpecSectionDef[] = [
             ? getMountLongNamesById(ids)
             : getMountLongNameById(ids[0]);
         },
+        editElementId: "mount",
       },
       {
         key: "announcedDate",
-        label: "Announced",
+        label: "Announced Date",
         getRawValue: (item) => item.announcedDate,
         formatDisplay: (_, item) =>
           item.announcedDate
@@ -126,18 +128,21 @@ export const specDictionary: SpecSectionDef[] = [
         label: "MSRP Now",
         getRawValue: (item) => item.msrpNowUsdCents,
         formatDisplay: (raw) => (raw ? formatPrice(raw as number) : undefined),
+        editElementId: "msrpNow",
       },
       {
         key: "msrpAtLaunchUsdCents",
         label: "MSRP At Launch",
         getRawValue: (item) => item.msrpAtLaunchUsdCents,
         formatDisplay: (raw) => (raw ? formatPrice(raw as number) : undefined),
+        editElementId: "msrpAtLaunch",
       },
       {
         key: "mpbMaxPriceUsdCents",
         label: "MPB Max Price",
         getRawValue: (item) => item.mpbMaxPriceUsdCents,
         formatDisplay: (raw) => (raw ? formatPrice(raw as number) : undefined),
+        editElementId: "mpbMaxPrice",
       },
       {
         key: "weightGrams",
@@ -147,6 +152,7 @@ export const specDictionary: SpecSectionDef[] = [
           const n = raw == null ? NaN : Number(raw);
           return Number.isFinite(n) ? `${n} g` : undefined;
         },
+        editElementId: "weight",
       },
       {
         key: "dimensions",
@@ -185,6 +191,7 @@ export const specDictionary: SpecSectionDef[] = [
           });
           return dims || undefined;
         },
+        editElementId: "widthMm",
       },
     ],
   },
@@ -211,6 +218,7 @@ export const specDictionary: SpecSectionDef[] = [
         getRawValue: (item) => item.cameraSpecs?.sensorFormatId,
         formatDisplay: (raw) =>
           raw ? sensorNameFromId(raw as string) : undefined,
+        editElementId: "sensorFormatId",
       },
       {
         key: "isoRange",
@@ -223,6 +231,7 @@ export const specDictionary: SpecSectionDef[] = [
           item.cameraSpecs?.isoMin != null && item.cameraSpecs?.isoMax != null
             ? `ISO ${item.cameraSpecs.isoMin} - ${item.cameraSpecs.isoMax}`
             : undefined,
+        editElementId: "isoRange",
       },
       {
         key: "maxFpsRaw",
@@ -247,6 +256,7 @@ export const specDictionary: SpecSectionDef[] = [
           const label = sensorTypeLabel(raw as any);
           return label && label.trim().length > 0 ? label : undefined;
         },
+        editElementId: "sensorStackingType",
       },
       {
         key: "sensorReadoutSpeedMs",
@@ -335,6 +345,7 @@ export const specDictionary: SpecSectionDef[] = [
         getRawValue: (item) => item.cameraSpecs?.availableShutterTypes,
         formatDisplay: (raw) =>
           Array.isArray(raw) && raw.length > 0 ? raw.join(", ") : undefined,
+        editElementId: "availableShutterTypes",
       },
     ],
   },
@@ -502,11 +513,48 @@ export const specDictionary: SpecSectionDef[] = [
             : undefined,
       },
       {
+        key: "afAreaModes",
+        label: "AF Area Modes",
+        getRawValue: (item) => item.cameraSpecs?.afAreaModes,
+        formatDisplay: (raw) => {
+          if (!Array.isArray(raw) || raw.length === 0) return undefined;
+          const toName = (
+            v:
+              | string
+              | { id?: string | null; name?: string | null }
+              | null
+              | undefined,
+          ): string | undefined => {
+            if (typeof v === "string") {
+              const found = AF_AREA_MODES.find((m) => m.id === v);
+              return typeof found?.name === "string" ? found.name : v;
+            }
+            if (v && typeof v === "object") {
+              if (typeof v.name === "string" && v.name.trim().length > 0)
+                return v.name;
+              if (typeof v.id === "string") {
+                const found = AF_AREA_MODES.find((m) => m.id === v.id);
+                return typeof found?.name === "string" ? found.name : v.id;
+              }
+            }
+            return undefined;
+          };
+          const names = (
+            raw as Array<string | { id?: string | null; name?: string | null }>
+          )
+            .map(toName)
+            .filter((s): s is string => typeof s === "string" && s.length > 0);
+          return names.length > 0 ? names.join(", ") : undefined;
+        },
+        editElementId: "afAreaModes",
+      },
+      {
         key: "afSubjectCategories",
         label: "AF Subject Categories",
         getRawValue: (item) => item.cameraSpecs?.afSubjectCategories,
         formatDisplay: (raw) =>
           Array.isArray(raw) ? raw.join(", ") : undefined,
+        editElementId: "afSubjectCategories",
       },
       {
         key: "hasFocusPeaking",
@@ -549,6 +597,7 @@ export const specDictionary: SpecSectionDef[] = [
         getRawValue: (item) => item.cameraSpecs?.supportedBatteries,
         formatDisplay: (raw) =>
           Array.isArray(raw) ? raw.join(", ") : undefined,
+        editElementId: "supportedBatteries",
       },
       {
         key: "usbCharging",
@@ -1013,7 +1062,7 @@ export const specDictionary: SpecSectionDef[] = [
       type MountGenerated = (typeof MOUNTS)[number];
       const mountValueById = (id: string | null | undefined): string | null => {
         if (!id) return null;
-        const m = (MOUNTS as MountGenerated[]).find((x) => x.id === id);
+        const m = MOUNTS.find((x) => x.id === id);
         return m && typeof m.value === "string" ? m.value : null;
       };
       const primaryMountId = (() => {
@@ -1198,6 +1247,7 @@ export type SidebarSection = {
     key: string;
     label: string;
     rawValue: unknown;
+    targetId: string;
   }[];
 };
 
@@ -1214,6 +1264,7 @@ export function buildEditSidebarSections(item: GearItem): SidebarSection[] {
           key: field.key,
           label: field.label,
           rawValue: field.getRawValue(item),
+          targetId: field.editElementId ?? field.key,
         })),
     }));
 }

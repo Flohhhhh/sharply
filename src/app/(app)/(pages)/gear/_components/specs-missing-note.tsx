@@ -1,6 +1,6 @@
-import Link from "next/link";
 import type { GearItem } from "~/types/gear";
 import { getConstructionState } from "~/lib/utils";
+import { SuggestEditButton } from "./suggest-edit-button";
 
 function isUnfilled(value: unknown): boolean {
   if (value == null) return true;
@@ -56,19 +56,21 @@ export function SpecsMissingNote({ item }: { item: GearItem }) {
   const missingCount = countMissingForItem(item);
   if (missingCount <= 0) return null;
 
-  const editPath = `/gear/${item.slug}/edit?type=${item.gearType}&showMissingOnly=true`;
-
   return (
     <div className="space-x-2 border-t px-4 py-3 text-sm">
       <span className="text-muted-foreground">
         {missingCount} {missingCount === 1 ? "item" : "items"} missing.
       </span>
-      <Link
-        href={editPath}
-        className="text-primary font-medium hover:cursor-pointer hover:underline"
-      >
-        Contribute missing data.
-      </Link>
+      <span>
+        <SuggestEditButton
+          slug={item.slug}
+          gearType={item.gearType as any}
+          variant="link"
+          label="Contribute missing data."
+          searchParams={{ showMissingOnly: true }}
+          compact
+        />
+      </span>
     </div>
   );
 }

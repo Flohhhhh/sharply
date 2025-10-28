@@ -105,6 +105,24 @@ function CameraFieldsComponent({
     return ids;
   }, [currentSpecs?.afAreaModes]);
 
+  // AF Subject Categories (enum-backed)
+  const afSubjectCategoryOptions = useMemo(() => {
+    const list = (ENUMS as any)?.camera_af_subject_categories_enum as
+      | string[]
+      | undefined;
+    if (!Array.isArray(list)) return [] as { id: string; name: string }[];
+    return list.map((v) => ({
+      id: v,
+      name: v.charAt(0).toUpperCase() + v.slice(1),
+    }));
+  }, []);
+
+  const selectedAfSubjectCategories: string[] = useMemo(() => {
+    const v: unknown = currentSpecs?.afSubjectCategories;
+    if (!Array.isArray(v) || v.length === 0) return [];
+    return v.filter((x): x is string => typeof x === "string");
+  }, [currentSpecs?.afSubjectCategories]);
+
   // Safe, typed list of camera type enum values with a fallback
   const cameraTypeEnumList: readonly string[] = useMemo(() => {
     const maybe = (ENUMS as unknown as { camera_type_enum?: unknown })
@@ -292,6 +310,9 @@ function CameraFieldsComponent({
               step={0.1}
             />
           )}
+
+          {/* ISO Range anchor (always present for sidebar scrolling) */}
+          <div id="isoRange" className="h-0" aria-hidden />
 
           {/* ISO Min */}
           {showWhenMissing((initialSpecs as any)?.isoMin) && (
@@ -636,12 +657,26 @@ function CameraFieldsComponent({
           {/* AF Area Modes */}
           {/* TODO: add a way for creating new af area modes (review plan)*/}
           {showWhenMissing((initialSpecs as any)?.afAreaModes) && (
-            <div className="space-y-2">
+            <div id="afAreaModes" className="space-y-2">
               <Label htmlFor="afAreaModes">AF Area Modes</Label>
               <MultiSelect
                 options={afAreaModeOptions}
                 value={selectedAfAreaModeIds}
                 onChange={(value) => handleFieldChange("afAreaModes", value)}
+              />
+            </div>
+          )}
+
+          {/* AF Subject Categories */}
+          {showWhenMissing((initialSpecs as any)?.afSubjectCategories) && (
+            <div id="afSubjectCategories" className="space-y-2">
+              <Label htmlFor="afSubjectCategories">AF Subject Categories</Label>
+              <MultiSelect
+                options={afSubjectCategoryOptions}
+                value={selectedAfSubjectCategories}
+                onChange={(ids) =>
+                  handleFieldChange("afSubjectCategories", ids)
+                }
               />
             </div>
           )}
@@ -762,7 +797,7 @@ function CameraFieldsComponent({
 
           {/* Available Shutter Types */}
           {showWhenMissing((initialSpecs as any)?.availableShutterTypes) && (
-            <div className="space-y-2">
+            <div id="availableShutterTypes" className="space-y-2">
               <Label htmlFor="availableShutterTypes">
                 Available Shutter Types
               </Label>
@@ -798,21 +833,27 @@ function CameraFieldsComponent({
 
           {/* Supported Batteries */}
           {showWhenMissing((initialSpecs as any)?.supportedBatteries) && (
-            <MultiTextInput
+            <div
               id="supportedBatteries"
-              label="Supported Batteries"
-              values={
-                Array.isArray((currentSpecs as any)?.supportedBatteries)
-                  ? (
-                      (currentSpecs as any).supportedBatteries as unknown[]
-                    ).filter((x): x is string => typeof x === "string")
-                  : []
-              }
-              onChange={(value) =>
-                handleFieldChange("supportedBatteries", value)
-              }
-              placeholder="e.g., NP-FZ100"
-            />
+              data-force-ring-container
+              className="space-y-2"
+            >
+              <MultiTextInput
+                id="supportedBatteries"
+                label="Supported Batteries"
+                values={
+                  Array.isArray((currentSpecs as any)?.supportedBatteries)
+                    ? (
+                        (currentSpecs as any).supportedBatteries as unknown[]
+                      ).filter((x): x is string => typeof x === "string")
+                    : []
+                }
+                onChange={(value) =>
+                  handleFieldChange("supportedBatteries", value)
+                }
+                placeholder="e.g., NP-FZ100"
+              />
+            </div>
           )}
 
           {/* USB Charging */}

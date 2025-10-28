@@ -135,6 +135,8 @@ export default async function GearPage({ params }: GearPageProps) {
           gearName={item.name}
           missing={construction.missing}
           editHref={`/gear/${item.slug}/edit?type=${item.gearType}`}
+          slug={item.slug}
+          gearType={item.gearType as "CAMERA" | "LENS"}
         />
       </main>
     );

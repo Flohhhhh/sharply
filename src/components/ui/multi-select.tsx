@@ -111,6 +111,7 @@ export function MultiSelect({
           <Button
             variant="outline"
             role="combobox"
+            data-sidebar-focus-target="true"
             aria-expanded={open}
             className="h-auto min-h-9 w-full items-start justify-between"
           >

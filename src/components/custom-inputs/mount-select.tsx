@@ -116,10 +116,10 @@ export function MountSelect({
     const singleValue = Array.isArray(value) ? value[0] || "" : value || "";
 
     return (
-      <div className="space-y-2">
+      <div id="mount" className="space-y-2">
         <Label htmlFor="mount">{label}</Label>
         <Select value={singleValue} onValueChange={(val) => onChange(val)}>
-          <SelectTrigger className="w-full">
+          <SelectTrigger id="mount" className="w-full">
             <SelectValue placeholder={placeholder || "Select mount"} />
           </SelectTrigger>
           <SelectContent>
@@ -143,7 +143,7 @@ export function MountSelect({
   const multiValue = Array.isArray(value) ? value : value ? [value] : [];
 
   return (
-    <div className="space-y-2">
+    <div id="mount" className="space-y-2">
       <Label>{label}</Label>
       <MultiSelect
         options={orderedOptions as any}

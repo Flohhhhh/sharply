@@ -187,7 +187,7 @@ export function UnderConstructionTable({ items }: { items: Row[] }) {
           else setOpen(true);
         }}
       >
-        <DialogContent className="p-0 sm:max-w-4xl">
+        <DialogContent className="p-0 sm:max-w-4xl" showCloseButton={false}>
           <div className="flex max-h-[90vh] flex-col">
             {selected && !loading && gearData && (
               <EditModalContent
