@@ -89,17 +89,17 @@ export async function fetchRecommendationChartByBrandSlug(
     .where(eq(recommendationItems.chartId, c.id));
 
   // Debug logging: ensure slug and joins are present
-  try {
-    console.info("[recs:data] items fetched", {
-      count: items.length,
-      sample: items.slice(0, 3).map((i) => ({
-        gearId: i.gearId,
-        name: i.gearName,
-        slug: (i as any).gearSlug,
-        thumb: (i as any).gearThumb,
-      })),
-    });
-  } catch {}
+  // try {
+  //   console.info("[recs:data] items fetched", {
+  //     count: items.length,
+  //     sample: items.slice(0, 3).map((i) => ({
+  //       gearId: i.gearId,
+  //       name: i.gearName,
+  //       slug: (i as any).gearSlug,
+  //       thumb: (i as any).gearThumb,
+  //     })),
+  //   });
+  // } catch {}
 
   return { chart: c, items };
 }
