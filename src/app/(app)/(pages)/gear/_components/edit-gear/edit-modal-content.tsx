@@ -195,7 +195,7 @@ export function EditModalContent({
     const el = (document.getElementById(candidateId) ||
       document.getElementById(sectionId)) as HTMLElement | null;
     if (!el) return;
-    const focusEl =
+    const focusEl: HTMLElement | null =
       (el.matches(
         "input,select,textarea,button,[tabindex]:not([tabindex='-1'])",
       )
@@ -205,7 +205,9 @@ export function EditModalContent({
           ) as HTMLElement | null)) || el;
     const doFocus = () => {
       try {
-        (focusEl as any)?.focus?.({ preventScroll: true });
+        if (focusEl && typeof focusEl.focus === "function") {
+          focusEl.focus({ preventScroll: true } as any);
+        }
       } catch {}
     };
     const headerOffset = 64; // compensate for modal header height and padding

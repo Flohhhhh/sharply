@@ -74,9 +74,7 @@ export const specDictionary: SpecSectionDef[] = [
         key: "cameraType",
         label: "Camera Type",
         getRawValue: (item) =>
-          item.gearType === "CAMERA"
-            ? (item as any)?.cameraSpecs?.cameraType
-            : undefined,
+          item.gearType === "CAMERA" ? item.cameraSpecs?.cameraType : undefined,
         formatDisplay: (raw) =>
           typeof raw === "string" ? formatCameraType(raw) : undefined,
       },
@@ -96,7 +94,7 @@ export const specDictionary: SpecSectionDef[] = [
           // Lenses show all mounts, cameras show first mount only
           return item.gearType === "LENS"
             ? getMountLongNamesById(ids)
-            : getMountLongNameById(ids[0]!);
+            : getMountLongNameById(ids[0]);
         },
       },
       {
@@ -107,7 +105,7 @@ export const specDictionary: SpecSectionDef[] = [
           item.announcedDate
             ? formatHumanDateWithPrecision(
                 item.announcedDate,
-                (item as any).announceDatePrecision ?? "DAY",
+                item.announceDatePrecision ?? "DAY",
               )
             : undefined,
       },
@@ -119,7 +117,7 @@ export const specDictionary: SpecSectionDef[] = [
           item.releaseDate
             ? formatHumanDateWithPrecision(
                 item.releaseDate,
-                (item as any).releaseDatePrecision ?? "DAY",
+                item.releaseDatePrecision ?? "DAY",
               )
             : undefined,
       },
@@ -145,7 +143,10 @@ export const specDictionary: SpecSectionDef[] = [
         key: "weightGrams",
         label: "Weight",
         getRawValue: (item) => item.weightGrams,
-        formatDisplay: (raw) => (raw != null ? `${raw} g` : undefined),
+        formatDisplay: (raw) => {
+          const n = raw == null ? NaN : Number(raw);
+          return Number.isFinite(n) ? `${n} g` : undefined;
+        },
       },
       {
         key: "dimensions",
@@ -251,62 +252,82 @@ export const specDictionary: SpecSectionDef[] = [
         key: "sensorReadoutSpeedMs",
         label: "Sensor Readout Speed",
         getRawValue: (item) => item.cameraSpecs?.sensorReadoutSpeedMs,
-        formatDisplay: (raw) => raw?.toString(),
+        formatDisplay: (raw) =>
+          typeof raw === "number" || typeof raw === "string"
+            ? String(raw)
+            : undefined,
       },
       {
         key: "hasIbis",
         label: "Has IBIS",
         getRawValue: (item) => item.cameraSpecs?.hasIbis,
-        formatDisplay: (raw) => yesNoNull(raw as any),
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
       {
         key: "hasElectronicVibrationReduction",
         label: "Has Electronic VR",
         getRawValue: (item) =>
           item.cameraSpecs?.hasElectronicVibrationReduction,
-        formatDisplay: (raw) => yesNoNull(raw as any),
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
       {
         key: "cipaStabilizationRatingStops",
         label: "CIPA Stabilization Rating Stops",
         getRawValue: (item) => item.cameraSpecs?.cipaStabilizationRatingStops,
-        formatDisplay: (raw) => raw?.toString(),
+        formatDisplay: (raw) =>
+          typeof raw === "number" || typeof raw === "string"
+            ? String(raw)
+            : undefined,
       },
       {
         key: "hasPixelShiftShooting",
         label: "Has Pixel Shift Shooting",
         getRawValue: (item) => item.cameraSpecs?.hasPixelShiftShooting,
-        formatDisplay: (raw) => yesNoNull(raw as any),
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
       {
         key: "hasAntiAliasingFilter",
         label: "Has Anti Aliasing Filter",
         getRawValue: (item) => item.cameraSpecs?.hasAntiAliasingFilter,
-        formatDisplay: (raw) => yesNoNull(raw as any),
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
       {
         key: "shutterSpeedMax",
         label: "Longest Shutter Speed",
         getRawValue: (item) => item.cameraSpecs?.shutterSpeedMax,
-        formatDisplay: (raw) => (raw != null ? `${raw} seconds` : undefined),
+        formatDisplay: (raw) => {
+          const n = raw == null ? NaN : Number(raw);
+          return Number.isFinite(n) ? `${n} seconds` : undefined;
+        },
       },
       {
         key: "shutterSpeedMin",
         label: "Fastest Shutter Speed",
         getRawValue: (item) => item.cameraSpecs?.shutterSpeedMin,
-        formatDisplay: (raw) => (raw != null ? `1/${raw}s` : undefined),
+        formatDisplay: (raw) => {
+          const n = raw == null ? NaN : Number(raw);
+          return Number.isFinite(n) ? `1/${n}s` : undefined;
+        },
       },
       {
         key: "flashSyncSpeed",
         label: "Flash Sync Speed",
         getRawValue: (item) => item.cameraSpecs?.flashSyncSpeed,
-        formatDisplay: (raw) => (raw != null ? `1/${raw}s` : undefined),
+        formatDisplay: (raw) => {
+          const n = raw == null ? NaN : Number(raw);
+          return Number.isFinite(n) ? `1/${n}s` : undefined;
+        },
       },
       {
         key: "hasSilentShootingAvailable",
         label: "Has Silent Shooting Available",
         getRawValue: (item) => item.cameraSpecs?.hasSilentShootingAvailable,
-        formatDisplay: (raw) => yesNoNull(raw as any),
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
       {
         key: "availableShutterTypes",
@@ -359,20 +380,22 @@ export const specDictionary: SpecSectionDef[] = [
         key: "processorName",
         label: "Processor Name",
         getRawValue: (item) => item.cameraSpecs?.processorName,
-        formatDisplay: (raw) => (raw as string) ?? undefined,
+        formatDisplay: (raw) =>
+          typeof raw === "string" && raw.trim().length > 0 ? raw : undefined,
       },
       {
         key: "hasWeatherSealing",
         label: "Weather Sealing",
         getRawValue: (item) => item.cameraSpecs?.hasWeatherSealing,
-        formatDisplay: (raw) => yesNoNull(raw as any),
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
       {
         key: "rearDisplayType",
         label: "Rear Display Type",
-        getRawValue: (item) => (item.cameraSpecs as any)?.rearDisplayType,
+        getRawValue: (item) => item.cameraSpecs?.rearDisplayType,
         formatDisplay: (raw) => {
-          if (!raw) return undefined;
+          if (typeof raw !== "string") return undefined;
           const map: Record<string, string> = {
             none: "None",
             fixed: "Fixed",
@@ -380,13 +403,13 @@ export const specDictionary: SpecSectionDef[] = [
             dual_axis_tilt: "Dual-axis tilt",
             fully_articulated: "Fully articulated",
           };
-          return map[raw as string] ?? (raw as string);
+          return map[raw] ?? raw;
         },
       },
       {
         key: "rearDisplaySizeInches",
         label: "Rear Display Size",
-        getRawValue: (item) => (item.cameraSpecs as any)?.rearDisplaySizeInches,
+        getRawValue: (item) => item.cameraSpecs?.rearDisplaySizeInches,
         formatDisplay: (raw) => {
           const n = raw == null ? NaN : Number(raw);
           return Number.isFinite(n) ? `${n.toFixed(2)} inches` : undefined;
@@ -396,7 +419,7 @@ export const specDictionary: SpecSectionDef[] = [
         key: "rearDisplayResolutionMillionDots",
         label: "Rear Display Resolution",
         getRawValue: (item) =>
-          (item.cameraSpecs as any)?.rearDisplayResolutionMillionDots,
+          item.cameraSpecs?.rearDisplayResolutionMillionDots,
         formatDisplay: (raw) => {
           const n = raw == null ? NaN : Number(raw);
           return Number.isFinite(n)
@@ -407,24 +430,23 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "viewfinderType",
         label: "Viewfinder Type",
-        getRawValue: (item) => (item.cameraSpecs as any)?.viewfinderType,
+        getRawValue: (item) => item.cameraSpecs?.viewfinderType,
         formatDisplay: (raw) => {
-          if (!raw) return undefined;
+          if (typeof raw !== "string") return undefined;
           const map: Record<string, string> = {
             none: "None",
             optical: "OVF",
             electronic: "EVF",
           };
-          return map[raw as string] ?? (raw as string);
+          return map[raw] ?? raw;
         },
       },
       {
         key: "viewfinderMagnification",
         label: "Viewfinder Magnification",
-        getRawValue: (item) =>
-          (item.cameraSpecs as any)?.viewfinderMagnification,
+        getRawValue: (item) => item.cameraSpecs?.viewfinderMagnification,
         formatDisplay: (raw, item) => {
-          const vfType = (item.cameraSpecs as any)?.viewfinderType;
+          const vfType = item.cameraSpecs?.viewfinderType;
           if (!vfType || vfType === "none") return undefined;
           const n = raw == null ? NaN : Number(raw);
           return Number.isFinite(n) ? `${n.toFixed(2)}x` : undefined;
@@ -434,9 +456,9 @@ export const specDictionary: SpecSectionDef[] = [
         key: "viewfinderResolutionMillionDots",
         label: "Viewfinder Resolution",
         getRawValue: (item) =>
-          (item.cameraSpecs as any)?.viewfinderResolutionMillionDots,
+          item.cameraSpecs?.viewfinderResolutionMillionDots,
         formatDisplay: (raw, item) => {
-          const vfType = (item.cameraSpecs as any)?.viewfinderType;
+          const vfType = item.cameraSpecs?.viewfinderType;
           if (vfType !== "electronic") return undefined;
           const n = raw == null ? NaN : Number(raw);
           return Number.isFinite(n)
@@ -447,14 +469,16 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "hasTopDisplay",
         label: "Has Top Display",
-        getRawValue: (item) => (item.cameraSpecs as any)?.hasTopDisplay,
-        formatDisplay: (raw) => yesNoNull(raw as any),
+        getRawValue: (item) => item.cameraSpecs?.hasTopDisplay,
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
       {
         key: "hasRearTouchscreen",
         label: "Has Rear Touchscreen",
-        getRawValue: (item) => (item.cameraSpecs as any)?.hasRearTouchscreen,
-        formatDisplay: (raw) => yesNoNull(raw as any),
+        getRawValue: (item) => item.cameraSpecs?.hasRearTouchscreen,
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
     ],
   },
@@ -472,7 +496,10 @@ export const specDictionary: SpecSectionDef[] = [
         key: "focusPoints",
         label: "Focus Points",
         getRawValue: (item) => item.cameraSpecs?.focusPoints,
-        formatDisplay: (raw) => raw?.toString(),
+        formatDisplay: (raw) =>
+          typeof raw === "number" || typeof raw === "string"
+            ? String(raw)
+            : undefined,
       },
       {
         key: "afSubjectCategories",
@@ -485,13 +512,15 @@ export const specDictionary: SpecSectionDef[] = [
         key: "hasFocusPeaking",
         label: "Has Focus Peaking",
         getRawValue: (item) => item.cameraSpecs?.hasFocusPeaking,
-        formatDisplay: (raw) => yesNoNull(raw as any),
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
       {
         key: "hasFocusBracketing",
         label: "Has Focus Bracketing",
         getRawValue: (item) => item.cameraSpecs?.hasFocusBracketing,
-        formatDisplay: (raw) => yesNoNull(raw as any),
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
     ],
   },
@@ -509,7 +538,10 @@ export const specDictionary: SpecSectionDef[] = [
         key: "cipaBatteryShotsPerCharge",
         label: "CIPA Battery Shots Per Charge",
         getRawValue: (item) => item.cameraSpecs?.cipaBatteryShotsPerCharge,
-        formatDisplay: (raw) => raw?.toString(),
+        formatDisplay: (raw) =>
+          typeof raw === "number" || typeof raw === "string"
+            ? String(raw)
+            : undefined,
       },
       {
         key: "supportedBatteries",
@@ -522,13 +554,15 @@ export const specDictionary: SpecSectionDef[] = [
         key: "usbCharging",
         label: "Supports USB Charging",
         getRawValue: (item) => item.cameraSpecs?.usbCharging,
-        formatDisplay: (raw) => yesNoNull(raw as any),
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
       {
         key: "usbPowerDelivery",
         label: "USB Power Delivery",
         getRawValue: (item) => item.cameraSpecs?.usbPowerDelivery,
-        formatDisplay: (raw) => yesNoNull(raw as any),
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
     ],
   },
@@ -546,19 +580,22 @@ export const specDictionary: SpecSectionDef[] = [
         key: "hasLogColorProfile",
         label: "Has Log Color Profile",
         getRawValue: (item) => item.cameraSpecs?.hasLogColorProfile,
-        formatDisplay: (raw) => yesNoNull(raw as any),
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
       {
         key: "has10BitVideo",
         label: "Has 10 Bit Video",
         getRawValue: (item) => item.cameraSpecs?.has10BitVideo,
-        formatDisplay: (raw) => yesNoNull(raw as any),
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
       {
         key: "has12BitVideo",
         label: "Has 12 Bit Video",
         getRawValue: (item) => item.cameraSpecs?.has12BitVideo,
-        formatDisplay: (raw) => yesNoNull(raw as any),
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
     ],
   },
@@ -576,13 +613,15 @@ export const specDictionary: SpecSectionDef[] = [
         key: "hasIntervalometer",
         label: "Has Intervalometer",
         getRawValue: (item) => item.cameraSpecs?.hasIntervalometer,
-        formatDisplay: (raw) => yesNoNull(raw as any),
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
       {
         key: "hasSelfTimer",
         label: "Has Self Timer",
         getRawValue: (item) => item.cameraSpecs?.hasSelfTimer,
-        formatDisplay: (raw) => yesNoNull(raw as any),
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
       {
         key: "hasBuiltInFlash",
@@ -638,7 +677,10 @@ export const specDictionary: SpecSectionDef[] = [
         key: "magnification",
         label: "Magnification",
         getRawValue: (item) => item.lensSpecs?.magnification,
-        formatDisplay: (raw) => (raw != null ? `${raw}x` : undefined),
+        formatDisplay: (raw) => {
+          const n = raw == null ? NaN : Number(raw);
+          return Number.isFinite(n) ? `${n}x` : undefined;
+        },
       },
       {
         key: "minimumFocusDistanceMm",
@@ -822,7 +864,10 @@ export const specDictionary: SpecSectionDef[] = [
         key: "cipaStabilizationRatingStops",
         label: "CIPA Stabilization Rating Stops",
         getRawValue: (item) => item.lensSpecs?.cipaStabilizationRatingStops,
-        formatDisplay: (raw) => (raw != null ? `${raw} stops` : undefined),
+        formatDisplay: (raw) => {
+          const n = raw == null ? NaN : Number(raw);
+          return Number.isFinite(n) ? `${n} stops` : undefined;
+        },
       },
     ],
   },
@@ -897,7 +942,7 @@ export const specDictionary: SpecSectionDef[] = [
         formatDisplay: (raw, item) =>
           raw != null &&
           item.lensSpecs?.acceptsFilterTypes?.includes("front-screw-on")
-            ? `${raw}mm`
+            ? `${Number(raw)}mm`
             : undefined,
       },
       {
@@ -907,7 +952,7 @@ export const specDictionary: SpecSectionDef[] = [
         formatDisplay: (raw, item) =>
           raw != null &&
           item.lensSpecs?.acceptsFilterTypes?.includes("rear-screw-on")
-            ? `${raw}mm`
+            ? `${Number(raw)}mm`
             : undefined,
       },
       {
@@ -917,7 +962,7 @@ export const specDictionary: SpecSectionDef[] = [
         formatDisplay: (raw, item) =>
           raw != null &&
           item.lensSpecs?.acceptsFilterTypes?.includes("rear-drop-in")
-            ? `${raw}mm`
+            ? `${Number(raw)}mm`
             : undefined,
       },
     ],
@@ -965,12 +1010,11 @@ export const specDictionary: SpecSectionDef[] = [
     sectionAnchor: "fixed-lens-section",
     condition: (item) => {
       if (item.gearType !== "CAMERA") return false;
+      type MountGenerated = (typeof MOUNTS)[number];
       const mountValueById = (id: string | null | undefined): string | null => {
         if (!id) return null;
-        const m = (MOUNTS as any[]).find((x) => x.id === id) as
-          | { value?: string }
-          | undefined;
-        return m?.value ?? null;
+        const m = (MOUNTS as MountGenerated[]).find((x) => x.id === id);
+        return m && typeof m.value === "string" ? m.value : null;
       };
       const primaryMountId = (() => {
         const arr = Array.isArray(item.mountIds) ? item.mountIds : [];
@@ -1070,7 +1114,10 @@ export const specDictionary: SpecSectionDef[] = [
         key: "frontFilterThreadSizeMm",
         label: "Front Filter Thread Size",
         getRawValue: (item) => item.fixedLensSpecs?.frontFilterThreadSizeMm,
-        formatDisplay: (raw) => (raw != null ? `${raw}mm` : undefined),
+        formatDisplay: (raw) => {
+          const n = raw == null ? NaN : Number(raw);
+          return Number.isFinite(n) ? `${n}mm` : undefined;
+        },
       },
       {
         key: "hasLensHood",
@@ -1092,7 +1139,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "notes",
         label: "",
-        getRawValue: (item) => (item as any).notes,
+        getRawValue: (item) => item.notes,
         formatDisplay: (raw) => {
           if (!Array.isArray(raw)) return undefined;
           const list = raw.filter(
@@ -1131,7 +1178,7 @@ export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
             : (raw as React.ReactNode);
           return {
             label: field.label,
-            value: value as React.ReactNode,
+            value: value,
             fullWidth: !field.label,
           };
         })
