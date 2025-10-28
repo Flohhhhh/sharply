@@ -18,7 +18,13 @@ import SensorFormatInput from "~/components/custom-inputs/sensor-format-input";
 import { NumberInput, MultiTextInput } from "~/components/custom-inputs";
 import { Switch } from "~/components/ui/switch";
 import { BooleanInput } from "~/components/custom-inputs";
-import { BatteryFullIcon, BatteryIcon, InfoIcon, ZapIcon } from "lucide-react";
+import {
+  BatteryFullIcon,
+  BatteryIcon,
+  Grid3X3,
+  InfoIcon,
+  ZapIcon,
+} from "lucide-react";
 import { Input } from "~/components/ui/input";
 import { MultiSelect } from "~/components/ui/multi-select";
 import type { EnrichedCameraSpecs, GearItem } from "~/types/gear";
@@ -33,6 +39,7 @@ interface CameraFieldsProps {
   showMissingOnly?: boolean;
   onChange: (field: string, value: any) => void;
   onChangeTopLevel?: (field: string, value: any) => void; // for cameraCardSlots
+  sectionId?: string;
 }
 
 // Using shared NumberInput from custom-inputs
@@ -45,6 +52,7 @@ function CameraFieldsComponent({
   showMissingOnly,
   onChange,
   onChangeTopLevel,
+  sectionId,
 }: CameraFieldsProps) {
   // Debug logging
   // console.log("CameraFieldsComponent - currentSpecs:", currentSpecs);
@@ -132,12 +140,15 @@ function CameraFieldsComponent({
     !showMissingOnly || isMissing(v);
 
   return (
-    <Card className="rounded-md bg-transparent px-4 py-4">
+    <Card
+      id={sectionId}
+      className="rounded-md border-0 bg-transparent px-0 py-0"
+    >
       <CardHeader className="px-0">
-        <CardTitle>Camera Specifications</CardTitle>
+        <CardTitle className="text-2xl">Camera Specifications</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 px-0">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="flex flex-col gap-3">
           {/* Sensor Format */}
           {showWhenMissing((initialSpecs as any)?.sensorFormatId) && (
             <SensorFormatInput
@@ -160,6 +171,8 @@ function CameraFieldsComponent({
               }
               onChange={(value) => handleFieldChange("resolutionMp", value)}
               placeholder="e.g., 45.0"
+              icon={<Grid3X3 className="size-4" />}
+              suffix="MP"
               step={0.1}
               min={0}
             />

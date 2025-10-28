@@ -463,8 +463,9 @@ function EditGearForm({
   };
 
   return (
-    <form id={formId} onSubmit={handleSubmit} className="space-y-6">
+    <form id={formId} onSubmit={handleSubmit} className="space-y-12">
       <CoreFields
+        sectionId="core-section"
         currentSpecs={
           {
             ...(formData as any),
@@ -496,6 +497,7 @@ function EditGearForm({
       {/* TODO: Add gear-type-specific fields */}
       {gearType === "CAMERA" && (
         <CameraFields
+          sectionId="camera-section"
           gearItem={formData}
           currentSpecs={formData.cameraSpecs}
           showMissingOnly={Boolean(showMissingOnly)}
@@ -519,6 +521,7 @@ function EditGearForm({
           if (!isFixed) return null;
           return (
             <FixedLensFields
+              sectionId="fixed-lens-section"
               currentSpecs={(formData as any).fixedLensSpecs ?? null}
               showMissingOnly={Boolean(showMissingOnly)}
               initialSpecs={(gearData as any).fixedLensSpecs as any}
@@ -537,6 +540,7 @@ function EditGearForm({
 
       {gearType === "LENS" && (
         <LensFields
+          sectionId="lens-section"
           currentSpecs={formData.lensSpecs}
           showMissingOnly={Boolean(showMissingOnly)}
           initialSpecs={(gearData as any).lensSpecs as any}
@@ -546,6 +550,7 @@ function EditGearForm({
 
       {/* Notes (appears last) */}
       <NotesFields
+        sectionId="notes-section"
         notes={
           Array.isArray((formData as any).notes)
             ? ((formData as any).notes as string[])

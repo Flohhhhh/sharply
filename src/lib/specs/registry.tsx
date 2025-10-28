@@ -38,921 +38,1135 @@ function hasDisplayValue(value: unknown): boolean {
   return true; // keep 0, false->mapped to Yes/No earlier, and React nodes
 }
 
-export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
-  const cameraSpecsItem =
-    item.gearType === "CAMERA" ? (item.cameraSpecs ?? null) : null;
-  const lensSpecsItem =
-    item.gearType === "LENS" ? (item.lensSpecs ?? null) : null;
-  const fixedLensSpecsItem =
-    item.gearType === "CAMERA" ? (item.fixedLensSpecs ?? null) : null;
+// ============================================================================
+// TYPES
+// ============================================================================
 
-  const mountValueById = (id: string | null | undefined): string | null => {
-    if (!id) return null;
-    const m = (MOUNTS as any[]).find((x) => x.id === id) as
-      | { value?: string }
-      | undefined;
-    return m?.value ?? null;
-  };
-  const primaryMountId = (() => {
-    const arr = Array.isArray(item.mountIds) ? item.mountIds : [];
-    if (arr.length > 0) return arr[0]!;
-    return (item.mountId as string | null | undefined) ?? null;
-  })();
-  const isFixedLensMount = mountValueById(primaryMountId) === "fixed-lens";
+export type SpecFieldDef = {
+  key: string; // Stable identifier (e.g., "announcedDate", "resolutionMp")
+  label: string; // Human-readable label for display
+  getRawValue: (item: GearItem) => unknown; // Extract raw value from GearItem
+  formatDisplay?: (raw: unknown, item: GearItem) => React.ReactNode; // Format for display (table, etc.)
+};
 
-  const core: SpecsTableSection = {
+export type SpecSectionDef = {
+  id: string; // Section identifier (e.g., "core", "camera-sensor", etc.)
+  title: string; // Display title
+  sectionAnchor: string; // ID for scrolling (e.g., "core-section")
+  condition?: (item: GearItem) => boolean; // Optional: when to show this section
+  fields: SpecFieldDef[];
+};
+
+// ============================================================================
+// CENTRALIZED SPEC DICTIONARY
+// ============================================================================
+
+export const specDictionary: SpecSectionDef[] = [
+  // ==========================================================================
+  // CORE / BASIC INFORMATION
+  // ==========================================================================
+  {
+    id: "core",
     title: "Basic Information",
-    data: [
-      // Camera Type (for cameras)
-      ...(item.gearType === "CAMERA"
-        ? [
-            {
-              label: "Camera Type",
-              value: (() => {
-                const t = (item as any)?.cameraSpecs?.cameraType as
-                  | string
-                  | undefined;
-                if (!t) return undefined;
-                return formatCameraType(t);
-              })(),
-            },
-          ]
-        : []),
-      // Lenses: show only Available Mounts (junction array or fallback)
-      ...(item.gearType === "LENS"
-        ? [
-            {
-              label: "Available Mounts",
-              value: (() => {
-                const ids =
-                  (Array.isArray(item.mountIds) && item.mountIds.length > 0
-                    ? item.mountIds
-                    : []) || (item.mountId ? [item.mountId] : []);
-                return ids.length ? getMountLongNamesById(ids) : undefined;
-              })(),
-            },
-          ]
-        : []),
-      // Cameras: show Mount (single) from array or fallback to primary
-      ...(item.gearType === "CAMERA"
-        ? [
-            {
-              label: "Mount",
-              value: (() => {
-                const ids =
-                  (Array.isArray(item.mountIds) && item.mountIds.length > 0
-                    ? item.mountIds
-                    : []) || (item.mountId ? [item.mountId] : []);
-                return ids.length ? getMountLongNameById(ids[0]!) : undefined;
-              })(),
-            },
-          ]
-        : []),
+    sectionAnchor: "core-section",
+    fields: [
       {
+        key: "cameraType",
+        label: "Camera Type",
+        getRawValue: (item) =>
+          item.gearType === "CAMERA"
+            ? (item as any)?.cameraSpecs?.cameraType
+            : undefined,
+        formatDisplay: (raw) =>
+          typeof raw === "string" ? formatCameraType(raw) : undefined,
+      },
+      {
+        key: "mounts",
+        label: "Mount", // Will be overridden based on gear type
+        getRawValue: (item) => {
+          const ids =
+            (Array.isArray(item.mountIds) && item.mountIds.length > 0
+              ? item.mountIds
+              : []) || (item.mountId ? [item.mountId] : []);
+          return ids;
+        },
+        formatDisplay: (raw, item) => {
+          const ids = Array.isArray(raw) ? (raw as string[]) : [];
+          if (!ids.length) return undefined;
+          // Lenses show all mounts, cameras show first mount only
+          return item.gearType === "LENS"
+            ? getMountLongNamesById(ids)
+            : getMountLongNameById(ids[0]!);
+        },
+      },
+      {
+        key: "announcedDate",
         label: "Announced",
-        value: item.announcedDate
-          ? formatHumanDateWithPrecision(
-              item.announcedDate,
-              (item as any).announceDatePrecision ?? "DAY",
-            )
-          : undefined,
+        getRawValue: (item) => item.announcedDate,
+        formatDisplay: (_, item) =>
+          item.announcedDate
+            ? formatHumanDateWithPrecision(
+                item.announcedDate,
+                (item as any).announceDatePrecision ?? "DAY",
+              )
+            : undefined,
       },
       {
+        key: "releaseDate",
         label: "Release Date",
-        value: item.releaseDate
-          ? formatHumanDateWithPrecision(
-              item.releaseDate,
-              (item as any).releaseDatePrecision ?? "DAY",
-            )
-          : undefined,
+        getRawValue: (item) => item.releaseDate,
+        formatDisplay: (_, item) =>
+          item.releaseDate
+            ? formatHumanDateWithPrecision(
+                item.releaseDate,
+                (item as any).releaseDatePrecision ?? "DAY",
+              )
+            : undefined,
       },
       {
+        key: "msrpNowUsdCents",
         label: "MSRP Now",
-        value: item.msrpNowUsdCents
-          ? formatPrice(item.msrpNowUsdCents)
-          : undefined,
+        getRawValue: (item) => item.msrpNowUsdCents,
+        formatDisplay: (raw) => (raw ? formatPrice(raw as number) : undefined),
       },
       {
+        key: "msrpAtLaunchUsdCents",
         label: "MSRP At Launch",
-        value: item.msrpAtLaunchUsdCents
-          ? formatPrice(item.msrpAtLaunchUsdCents)
-          : undefined,
+        getRawValue: (item) => item.msrpAtLaunchUsdCents,
+        formatDisplay: (raw) => (raw ? formatPrice(raw as number) : undefined),
       },
       {
+        key: "mpbMaxPriceUsdCents",
         label: "MPB Max Price",
-        value: item.mpbMaxPriceUsdCents
-          ? formatPrice(item.mpbMaxPriceUsdCents)
-          : undefined,
+        getRawValue: (item) => item.mpbMaxPriceUsdCents,
+        formatDisplay: (raw) => (raw ? formatPrice(raw as number) : undefined),
       },
       {
+        key: "weightGrams",
         label: "Weight",
-        value: item.weightGrams ? `${item.weightGrams} g` : undefined,
+        getRawValue: (item) => item.weightGrams,
+        formatDisplay: (raw) => (raw != null ? `${raw} g` : undefined),
       },
       {
+        key: "dimensions",
         label: "Dimensions",
-        value:
-          item.widthMm != null || item.heightMm != null || item.depthMm != null
-            ? (() => {
-                const dims = formatDimensions({
-                  widthMm:
-                    typeof item.widthMm === "number"
-                      ? item.widthMm
-                      : item.widthMm != null
-                        ? Number(item.widthMm)
-                        : null,
-                  heightMm:
-                    typeof item.heightMm === "number"
-                      ? item.heightMm
-                      : item.heightMm != null
-                        ? Number(item.heightMm)
-                        : null,
-                  depthMm:
-                    typeof item.depthMm === "number"
-                      ? item.depthMm
-                      : item.depthMm != null
-                        ? Number(item.depthMm)
-                        : null,
-                });
-                return dims || undefined;
-              })()
+        getRawValue: (item) => ({
+          widthMm: item.widthMm,
+          heightMm: item.heightMm,
+          depthMm: item.depthMm,
+        }),
+        formatDisplay: (_, item) => {
+          if (
+            item.widthMm == null &&
+            item.heightMm == null &&
+            item.depthMm == null
+          )
+            return undefined;
+          const dims = formatDimensions({
+            widthMm:
+              typeof item.widthMm === "number"
+                ? item.widthMm
+                : item.widthMm != null
+                  ? Number(item.widthMm)
+                  : null,
+            heightMm:
+              typeof item.heightMm === "number"
+                ? item.heightMm
+                : item.heightMm != null
+                  ? Number(item.heightMm)
+                  : null,
+            depthMm:
+              typeof item.depthMm === "number"
+                ? item.depthMm
+                : item.depthMm != null
+                  ? Number(item.depthMm)
+                  : null,
+          });
+          return dims || undefined;
+        },
+      },
+    ],
+  },
+
+  // ==========================================================================
+  // CAMERA: SENSOR & SHUTTER
+  // ==========================================================================
+  {
+    id: "camera-sensor-shutter",
+    title: "Sensor & Shutter",
+    sectionAnchor: "camera-section",
+    condition: (item) => item.gearType === "CAMERA",
+    fields: [
+      {
+        key: "resolutionMp",
+        label: "Resolution",
+        getRawValue: (item) => item.cameraSpecs?.resolutionMp,
+        formatDisplay: (raw) =>
+          raw != null ? `${Number(raw).toFixed(1)} megapixels` : undefined,
+      },
+      {
+        key: "sensorFormatId",
+        label: "Sensor Format",
+        getRawValue: (item) => item.cameraSpecs?.sensorFormatId,
+        formatDisplay: (raw) =>
+          raw ? sensorNameFromId(raw as string) : undefined,
+      },
+      {
+        key: "isoRange",
+        label: "ISO Range",
+        getRawValue: (item) => ({
+          min: item.cameraSpecs?.isoMin,
+          max: item.cameraSpecs?.isoMax,
+        }),
+        formatDisplay: (_, item) =>
+          item.cameraSpecs?.isoMin != null && item.cameraSpecs?.isoMax != null
+            ? `ISO ${item.cameraSpecs.isoMin} - ${item.cameraSpecs.isoMax}`
+            : undefined,
+      },
+      {
+        key: "maxFpsRaw",
+        label: "Max FPS (RAW)",
+        getRawValue: (item) => item.cameraSpecs?.maxFpsRaw,
+        formatDisplay: (raw) =>
+          raw != null ? `${formatDecimalCompact(raw as any)} fps` : undefined,
+      },
+      {
+        key: "maxFpsJpg",
+        label: "Max FPS (JPEG)",
+        getRawValue: (item) => item.cameraSpecs?.maxFpsJpg,
+        formatDisplay: (raw) =>
+          raw != null ? `${formatDecimalCompact(raw as any)} fps` : undefined,
+      },
+      {
+        key: "sensorType",
+        label: "Sensor Type",
+        getRawValue: (item) => item.cameraSpecs,
+        formatDisplay: (raw) => {
+          if (!raw) return undefined;
+          const label = sensorTypeLabel(raw as any);
+          return label && label.trim().length > 0 ? label : undefined;
+        },
+      },
+      {
+        key: "sensorReadoutSpeedMs",
+        label: "Sensor Readout Speed",
+        getRawValue: (item) => item.cameraSpecs?.sensorReadoutSpeedMs,
+        formatDisplay: (raw) => raw?.toString(),
+      },
+      {
+        key: "hasIbis",
+        label: "Has IBIS",
+        getRawValue: (item) => item.cameraSpecs?.hasIbis,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+      {
+        key: "hasElectronicVibrationReduction",
+        label: "Has Electronic VR",
+        getRawValue: (item) =>
+          item.cameraSpecs?.hasElectronicVibrationReduction,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+      {
+        key: "cipaStabilizationRatingStops",
+        label: "CIPA Stabilization Rating Stops",
+        getRawValue: (item) => item.cameraSpecs?.cipaStabilizationRatingStops,
+        formatDisplay: (raw) => raw?.toString(),
+      },
+      {
+        key: "hasPixelShiftShooting",
+        label: "Has Pixel Shift Shooting",
+        getRawValue: (item) => item.cameraSpecs?.hasPixelShiftShooting,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+      {
+        key: "hasAntiAliasingFilter",
+        label: "Has Anti Aliasing Filter",
+        getRawValue: (item) => item.cameraSpecs?.hasAntiAliasingFilter,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+      {
+        key: "shutterSpeedMax",
+        label: "Longest Shutter Speed",
+        getRawValue: (item) => item.cameraSpecs?.shutterSpeedMax,
+        formatDisplay: (raw) => (raw != null ? `${raw} seconds` : undefined),
+      },
+      {
+        key: "shutterSpeedMin",
+        label: "Fastest Shutter Speed",
+        getRawValue: (item) => item.cameraSpecs?.shutterSpeedMin,
+        formatDisplay: (raw) => (raw != null ? `1/${raw}s` : undefined),
+      },
+      {
+        key: "flashSyncSpeed",
+        label: "Flash Sync Speed",
+        getRawValue: (item) => item.cameraSpecs?.flashSyncSpeed,
+        formatDisplay: (raw) => (raw != null ? `1/${raw}s` : undefined),
+      },
+      {
+        key: "hasSilentShootingAvailable",
+        label: "Has Silent Shooting Available",
+        getRawValue: (item) => item.cameraSpecs?.hasSilentShootingAvailable,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+      {
+        key: "availableShutterTypes",
+        label: "Available Shutter Types",
+        getRawValue: (item) => item.cameraSpecs?.availableShutterTypes,
+        formatDisplay: (raw) =>
+          Array.isArray(raw) && raw.length > 0 ? raw.join(", ") : undefined,
+      },
+    ],
+  },
+
+  // ==========================================================================
+  // CAMERA: HARDWARE/BUILD
+  // ==========================================================================
+  {
+    id: "camera-hardware",
+    title: "Hardware/Build",
+    sectionAnchor: "camera-section",
+    condition: (item) => item.gearType === "CAMERA",
+    fields: [
+      {
+        key: "cardSlots",
+        label: "Card Slots",
+        getRawValue: (item) => item.cameraCardSlots,
+        formatDisplay: (_, item) =>
+          item.cameraCardSlots && item.cameraCardSlots.length > 0 ? (
+            <div className="flex flex-col gap-1">
+              {item.cameraCardSlots
+                .sort((a, b) => (a.slotIndex ?? 0) - (b.slotIndex ?? 0))
+                .map((s, i) => {
+                  const details = formatCardSlotDetails({
+                    slotIndex: s.slotIndex,
+                    supportedFormFactors: s.supportedFormFactors ?? [],
+                    supportedBuses: s.supportedBuses ?? [],
+                    supportedSpeedClasses: s.supportedSpeedClasses ?? [],
+                  });
+                  return (
+                    <div key={i} className="flex justify-between gap-6">
+                      <span className="text-muted-foreground">
+                        Slot {s.slotIndex}
+                      </span>
+                      <span className="font-medium">{details}</span>
+                    </div>
+                  );
+                })}
+            </div>
+          ) : undefined,
+      },
+      {
+        key: "processorName",
+        label: "Processor Name",
+        getRawValue: (item) => item.cameraSpecs?.processorName,
+        formatDisplay: (raw) => (raw as string) ?? undefined,
+      },
+      {
+        key: "hasWeatherSealing",
+        label: "Weather Sealing",
+        getRawValue: (item) => item.cameraSpecs?.hasWeatherSealing,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+      {
+        key: "rearDisplayType",
+        label: "Rear Display Type",
+        getRawValue: (item) => (item.cameraSpecs as any)?.rearDisplayType,
+        formatDisplay: (raw) => {
+          if (!raw) return undefined;
+          const map: Record<string, string> = {
+            none: "None",
+            fixed: "Fixed",
+            single_axis_tilt: "Single-axis tilt",
+            dual_axis_tilt: "Dual-axis tilt",
+            fully_articulated: "Fully articulated",
+          };
+          return map[raw as string] ?? (raw as string);
+        },
+      },
+      {
+        key: "rearDisplaySizeInches",
+        label: "Rear Display Size",
+        getRawValue: (item) => (item.cameraSpecs as any)?.rearDisplaySizeInches,
+        formatDisplay: (raw) => {
+          const n = raw == null ? NaN : Number(raw);
+          return Number.isFinite(n) ? `${n.toFixed(2)} inches` : undefined;
+        },
+      },
+      {
+        key: "rearDisplayResolutionMillionDots",
+        label: "Rear Display Resolution",
+        getRawValue: (item) =>
+          (item.cameraSpecs as any)?.rearDisplayResolutionMillionDots,
+        formatDisplay: (raw) => {
+          const n = raw == null ? NaN : Number(raw);
+          return Number.isFinite(n)
+            ? `${n.toFixed(2)} million dots`
+            : undefined;
+        },
+      },
+      {
+        key: "viewfinderType",
+        label: "Viewfinder Type",
+        getRawValue: (item) => (item.cameraSpecs as any)?.viewfinderType,
+        formatDisplay: (raw) => {
+          if (!raw) return undefined;
+          const map: Record<string, string> = {
+            none: "None",
+            optical: "OVF",
+            electronic: "EVF",
+          };
+          return map[raw as string] ?? (raw as string);
+        },
+      },
+      {
+        key: "viewfinderMagnification",
+        label: "Viewfinder Magnification",
+        getRawValue: (item) =>
+          (item.cameraSpecs as any)?.viewfinderMagnification,
+        formatDisplay: (raw, item) => {
+          const vfType = (item.cameraSpecs as any)?.viewfinderType;
+          if (!vfType || vfType === "none") return undefined;
+          const n = raw == null ? NaN : Number(raw);
+          return Number.isFinite(n) ? `${n.toFixed(2)}x` : undefined;
+        },
+      },
+      {
+        key: "viewfinderResolutionMillionDots",
+        label: "Viewfinder Resolution",
+        getRawValue: (item) =>
+          (item.cameraSpecs as any)?.viewfinderResolutionMillionDots,
+        formatDisplay: (raw, item) => {
+          const vfType = (item.cameraSpecs as any)?.viewfinderType;
+          if (vfType !== "electronic") return undefined;
+          const n = raw == null ? NaN : Number(raw);
+          return Number.isFinite(n)
+            ? `${n.toFixed(2)} million dots`
+            : undefined;
+        },
+      },
+      {
+        key: "hasTopDisplay",
+        label: "Has Top Display",
+        getRawValue: (item) => (item.cameraSpecs as any)?.hasTopDisplay,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+      {
+        key: "hasRearTouchscreen",
+        label: "Has Rear Touchscreen",
+        getRawValue: (item) => (item.cameraSpecs as any)?.hasRearTouchscreen,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+    ],
+  },
+
+  // ==========================================================================
+  // CAMERA: FOCUS
+  // ==========================================================================
+  {
+    id: "camera-focus",
+    title: "Focus",
+    sectionAnchor: "camera-section",
+    condition: (item) => item.gearType === "CAMERA",
+    fields: [
+      {
+        key: "focusPoints",
+        label: "Focus Points",
+        getRawValue: (item) => item.cameraSpecs?.focusPoints,
+        formatDisplay: (raw) => raw?.toString(),
+      },
+      {
+        key: "afSubjectCategories",
+        label: "AF Subject Categories",
+        getRawValue: (item) => item.cameraSpecs?.afSubjectCategories,
+        formatDisplay: (raw) =>
+          Array.isArray(raw) ? raw.join(", ") : undefined,
+      },
+      {
+        key: "hasFocusPeaking",
+        label: "Has Focus Peaking",
+        getRawValue: (item) => item.cameraSpecs?.hasFocusPeaking,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+      {
+        key: "hasFocusBracketing",
+        label: "Has Focus Bracketing",
+        getRawValue: (item) => item.cameraSpecs?.hasFocusBracketing,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+    ],
+  },
+
+  // ==========================================================================
+  // CAMERA: BATTERY & CHARGING
+  // ==========================================================================
+  {
+    id: "camera-battery",
+    title: "Battery & Charging",
+    sectionAnchor: "camera-section",
+    condition: (item) => item.gearType === "CAMERA",
+    fields: [
+      {
+        key: "cipaBatteryShotsPerCharge",
+        label: "CIPA Battery Shots Per Charge",
+        getRawValue: (item) => item.cameraSpecs?.cipaBatteryShotsPerCharge,
+        formatDisplay: (raw) => raw?.toString(),
+      },
+      {
+        key: "supportedBatteries",
+        label: "Supported Batteries",
+        getRawValue: (item) => item.cameraSpecs?.supportedBatteries,
+        formatDisplay: (raw) =>
+          Array.isArray(raw) ? raw.join(", ") : undefined,
+      },
+      {
+        key: "usbCharging",
+        label: "Supports USB Charging",
+        getRawValue: (item) => item.cameraSpecs?.usbCharging,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+      {
+        key: "usbPowerDelivery",
+        label: "USB Power Delivery",
+        getRawValue: (item) => item.cameraSpecs?.usbPowerDelivery,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+    ],
+  },
+
+  // ==========================================================================
+  // CAMERA: VIDEO
+  // ==========================================================================
+  {
+    id: "camera-video",
+    title: "Video",
+    sectionAnchor: "camera-section",
+    condition: (item) => item.gearType === "CAMERA",
+    fields: [
+      {
+        key: "hasLogColorProfile",
+        label: "Has Log Color Profile",
+        getRawValue: (item) => item.cameraSpecs?.hasLogColorProfile,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+      {
+        key: "has10BitVideo",
+        label: "Has 10 Bit Video",
+        getRawValue: (item) => item.cameraSpecs?.has10BitVideo,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+      {
+        key: "has12BitVideo",
+        label: "Has 12 Bit Video",
+        getRawValue: (item) => item.cameraSpecs?.has12BitVideo,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+    ],
+  },
+
+  // ==========================================================================
+  // CAMERA: MISC
+  // ==========================================================================
+  {
+    id: "camera-misc",
+    title: "Misc",
+    sectionAnchor: "camera-section",
+    condition: (item) => item.gearType === "CAMERA",
+    fields: [
+      {
+        key: "hasIntervalometer",
+        label: "Has Intervalometer",
+        getRawValue: (item) => item.cameraSpecs?.hasIntervalometer,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+      {
+        key: "hasSelfTimer",
+        label: "Has Self Timer",
+        getRawValue: (item) => item.cameraSpecs?.hasSelfTimer,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+      {
+        key: "hasBuiltInFlash",
+        label: "Has Built In Flash",
+        getRawValue: (item) => item.cameraSpecs?.hasBuiltInFlash,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+      {
+        key: "hasHotShoe",
+        label: "Has Hot Shoe",
+        getRawValue: (item) => item.cameraSpecs?.hasHotShoe,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+    ],
+  },
+
+  // ==========================================================================
+  // LENS: OPTICS
+  // ==========================================================================
+  {
+    id: "lens-optics",
+    title: "Optics",
+    sectionAnchor: "lens-section",
+    condition: (item) => item.gearType === "LENS",
+    fields: [
+      {
+        key: "isPrime",
+        label: "Lens Type",
+        getRawValue: (item) => item.lensSpecs?.isPrime,
+        formatDisplay: (raw) => (raw ? "Prime" : "Zoom"),
+      },
+      {
+        key: "focalLength",
+        label: "Focal Length",
+        getRawValue: (item) => ({
+          isPrime: item.lensSpecs?.isPrime,
+          min: item.lensSpecs?.focalLengthMinMm,
+          max: item.lensSpecs?.focalLengthMaxMm,
+        }),
+        formatDisplay: (_, item) =>
+          item.lensSpecs?.isPrime
+            ? `${item.lensSpecs?.focalLengthMinMm}mm`
+            : `${item.lensSpecs?.focalLengthMinMm}mm - ${item.lensSpecs?.focalLengthMaxMm}mm`,
+      },
+      {
+        key: "isMacro",
+        label: "Is Macro",
+        getRawValue: (item) => item.lensSpecs?.isMacro,
+        formatDisplay: (raw) =>
+          raw != null ? (raw ? "Yes" : "No") : undefined,
+      },
+      {
+        key: "magnification",
+        label: "Magnification",
+        getRawValue: (item) => item.lensSpecs?.magnification,
+        formatDisplay: (raw) => (raw != null ? `${raw}x` : undefined),
+      },
+      {
+        key: "minimumFocusDistanceMm",
+        label: "Minimum Focus Distance",
+        getRawValue: (item) => item.lensSpecs?.minimumFocusDistanceMm,
+        formatDisplay: (raw) =>
+          raw != null ? formatFocusDistance(raw as number) : undefined,
+      },
+      {
+        key: "numberElements",
+        label: "Number of Elements",
+        getRawValue: (item) => item.lensSpecs?.numberElements,
+      },
+      {
+        key: "numberElementGroups",
+        label: "Number of Element Groups",
+        getRawValue: (item) => item.lensSpecs?.numberElementGroups,
+      },
+      {
+        key: "hasDiffractiveOptics",
+        label: "Has Diffractive Optics",
+        getRawValue: (item) => item.lensSpecs?.hasDiffractiveOptics,
+        formatDisplay: (raw) =>
+          raw != null ? (raw ? "Yes" : "No") : undefined,
+      },
+    ],
+  },
+
+  // ==========================================================================
+  // LENS: APERTURE
+  // ==========================================================================
+  {
+    id: "lens-aperture",
+    title: "Aperture",
+    sectionAnchor: "lens-section",
+    condition: (item) => item.gearType === "LENS",
+    fields: [
+      {
+        key: "maxAperture",
+        label: "Maximum Aperture",
+        getRawValue: (item) => ({
+          wide: item.lensSpecs?.maxApertureWide,
+          tele: item.lensSpecs?.maxApertureTele,
+        }),
+        formatDisplay: (_, item) =>
+          item.lensSpecs?.maxApertureTele &&
+          item.lensSpecs?.maxApertureTele !== item.lensSpecs?.maxApertureWide
+            ? `f/${Number(item.lensSpecs?.maxApertureWide)} - f/${Number(item.lensSpecs?.maxApertureTele)}`
+            : item.lensSpecs?.maxApertureWide != null
+              ? `f/${Number(item.lensSpecs?.maxApertureWide)}`
+              : undefined,
+      },
+      {
+        key: "minAperture",
+        label: "Minimum Aperture",
+        getRawValue: (item) => ({
+          wide: item.lensSpecs?.minApertureWide,
+          tele: item.lensSpecs?.minApertureTele,
+        }),
+        formatDisplay: (_, item) =>
+          item.lensSpecs?.minApertureTele &&
+          item.lensSpecs?.minApertureTele !== item.lensSpecs?.minApertureWide
+            ? `f/${Number(item.lensSpecs?.minApertureWide)} - f/${Number(item.lensSpecs?.minApertureTele)}`
+            : item.lensSpecs?.minApertureWide != null
+              ? `f/${Number(item.lensSpecs?.minApertureWide)}`
+              : undefined,
+      },
+      {
+        key: "numberDiaphragmBlades",
+        label: "Number of Diaphragm Blades",
+        getRawValue: (item) => item.lensSpecs?.numberDiaphragmBlades,
+      },
+      {
+        key: "hasRoundedDiaphragmBlades",
+        label: "Has Rounded Diaphragm Blades",
+        getRawValue: (item) => item.lensSpecs?.hasRoundedDiaphragmBlades,
+        formatDisplay: (raw) =>
+          raw != null ? (raw ? "Yes" : "No") : undefined,
+      },
+      {
+        key: "hasApertureRing",
+        label: "Has Aperture Ring",
+        getRawValue: (item) => item.lensSpecs?.hasApertureRing,
+        formatDisplay: (raw) =>
+          raw != null ? (raw ? "Yes" : "No") : undefined,
+      },
+    ],
+  },
+
+  // ==========================================================================
+  // LENS: FOCUS
+  // ==========================================================================
+  {
+    id: "lens-focus",
+    title: "Focus",
+    sectionAnchor: "lens-section",
+    condition: (item) => item.gearType === "LENS",
+    fields: [
+      {
+        key: "hasAutofocus",
+        label: "Has Autofocus",
+        getRawValue: (item) => item.lensSpecs?.hasAutofocus,
+        formatDisplay: (raw) =>
+          raw != null ? (raw ? "Yes" : "No") : undefined,
+      },
+      {
+        key: "focusMotorType",
+        label: "Focus Motor Type",
+        getRawValue: (item) => item.lensSpecs?.focusMotorType,
+        formatDisplay: (raw) => (raw as string) ?? undefined,
+      },
+      {
+        key: "hasAfMfSwitch",
+        label: "Has AF/MF Switch",
+        getRawValue: (item) => item.lensSpecs?.hasAfMfSwitch,
+        formatDisplay: (raw) =>
+          raw != null ? (raw ? "Yes" : "No") : undefined,
+      },
+      {
+        key: "hasFocusLimiter",
+        label: "Has Focus Limiter",
+        getRawValue: (item) => item.lensSpecs?.hasFocusLimiter,
+        formatDisplay: (raw) =>
+          raw != null ? (raw ? "Yes" : "No") : undefined,
+      },
+      {
+        key: "hasFocusRecallButton",
+        label: "Has Focus Recall Button",
+        getRawValue: (item) => item.lensSpecs?.hasFocusRecallButton,
+        formatDisplay: (raw) =>
+          raw != null ? (raw ? "Yes" : "No") : undefined,
+      },
+      {
+        key: "hasFocusRing",
+        label: "Has Focus Ring",
+        getRawValue: (item) => item.lensSpecs?.hasFocusRing,
+        formatDisplay: (raw) =>
+          raw != null ? (raw ? "Yes" : "No") : undefined,
+      },
+      {
+        key: "hasInternalFocus",
+        label: "Has Internal Focus",
+        getRawValue: (item) => item.lensSpecs?.hasInternalFocus,
+        formatDisplay: (raw) =>
+          raw != null ? (raw ? "Yes" : "No") : undefined,
+      },
+      {
+        key: "frontElementRotates",
+        label: "Front Element Rotates",
+        getRawValue: (item) => item.lensSpecs?.frontElementRotates,
+        formatDisplay: (raw) =>
+          raw != null ? (raw ? "Yes" : "No") : undefined,
+      },
+    ],
+  },
+
+  // ==========================================================================
+  // LENS: STABILIZATION
+  // ==========================================================================
+  {
+    id: "lens-stabilization",
+    title: "Stabilization",
+    sectionAnchor: "lens-section",
+    condition: (item) => item.gearType === "LENS",
+    fields: [
+      {
+        key: "hasStabilization",
+        label: "Has Image Stabilization",
+        getRawValue: (item) => item.lensSpecs?.hasStabilization,
+        formatDisplay: (raw) =>
+          raw != null ? (raw ? "Yes" : "No") : undefined,
+      },
+      {
+        key: "hasStabilizationSwitch",
+        label: "Has Stabilization Switch",
+        getRawValue: (item) => item.lensSpecs?.hasStabilizationSwitch,
+        formatDisplay: (raw) =>
+          raw != null ? (raw ? "Yes" : "No") : undefined,
+      },
+      {
+        key: "cipaStabilizationRatingStops",
+        label: "CIPA Stabilization Rating Stops",
+        getRawValue: (item) => item.lensSpecs?.cipaStabilizationRatingStops,
+        formatDisplay: (raw) => (raw != null ? `${raw} stops` : undefined),
+      },
+    ],
+  },
+
+  // ==========================================================================
+  // LENS: BUILD & CONTROLS
+  // ==========================================================================
+  {
+    id: "lens-build",
+    title: "Build & Controls",
+    sectionAnchor: "lens-section",
+    condition: (item) => item.gearType === "LENS",
+    fields: [
+      {
+        key: "hasInternalZoom",
+        label: "Has Internal Zoom",
+        getRawValue: (item) => item.lensSpecs?.hasInternalZoom,
+        formatDisplay: (raw) =>
+          raw != null ? (raw ? "Yes" : "No") : undefined,
+      },
+      {
+        key: "mountMaterial",
+        label: "Mount Material",
+        getRawValue: (item) => item.lensSpecs?.mountMaterial,
+        formatDisplay: (raw) =>
+          raw != null
+            ? (raw as string).charAt(0).toUpperCase() + (raw as string).slice(1)
+            : undefined,
+      },
+      {
+        key: "hasWeatherSealing",
+        label: "Has Weather Sealing",
+        getRawValue: (item) => item.lensSpecs?.hasWeatherSealing,
+        formatDisplay: (raw) =>
+          raw != null ? (raw ? "Yes" : "No") : undefined,
+      },
+      {
+        key: "numberCustomControlRings",
+        label: "Number of Custom Control Rings",
+        getRawValue: (item) => item.lensSpecs?.numberCustomControlRings,
+      },
+      {
+        key: "numberFunctionButtons",
+        label: "Number of Function Buttons",
+        getRawValue: (item) => item.lensSpecs?.numberFunctionButtons,
+      },
+    ],
+  },
+
+  // ==========================================================================
+  // LENS: FILTERS
+  // ==========================================================================
+  {
+    id: "lens-filters",
+    title: "Filters",
+    sectionAnchor: "lens-section",
+    condition: (item) => item.gearType === "LENS",
+    fields: [
+      {
+        key: "acceptsFilterTypes",
+        label: "Accepts Filter Types",
+        getRawValue: (item) => item.lensSpecs?.acceptsFilterTypes,
+        formatDisplay: (raw) =>
+          Array.isArray(raw) && raw.length > 0
+            ? raw.map(formatFilterType).join(", ")
+            : undefined,
+      },
+      {
+        key: "frontFilterThreadSizeMm",
+        label: "Front Filter Thread Size",
+        getRawValue: (item) => item.lensSpecs?.frontFilterThreadSizeMm,
+        formatDisplay: (raw, item) =>
+          raw != null &&
+          item.lensSpecs?.acceptsFilterTypes?.includes("front-screw-on")
+            ? `${raw}mm`
+            : undefined,
+      },
+      {
+        key: "rearFilterThreadSizeMm",
+        label: "Rear Filter Thread Size",
+        getRawValue: (item) => item.lensSpecs?.rearFilterThreadSizeMm,
+        formatDisplay: (raw, item) =>
+          raw != null &&
+          item.lensSpecs?.acceptsFilterTypes?.includes("rear-screw-on")
+            ? `${raw}mm`
+            : undefined,
+      },
+      {
+        key: "dropInFilterSizeMm",
+        label: "Drop In Filter Size",
+        getRawValue: (item) => item.lensSpecs?.dropInFilterSizeMm,
+        formatDisplay: (raw, item) =>
+          raw != null &&
+          item.lensSpecs?.acceptsFilterTypes?.includes("rear-drop-in")
+            ? `${raw}mm`
             : undefined,
       },
     ],
-  };
+  },
 
-  const cameraSections: SpecsTableSection[] = [
-    {
-      title: "Sensor & Shutter",
-      data: [
-        {
-          label: "Resolution",
-          value:
-            cameraSpecsItem?.resolutionMp != null
-              ? `${Number(cameraSpecsItem.resolutionMp).toFixed(1)} megapixels`
-              : undefined,
-        },
-        {
-          label: "Sensor Format",
-          value: cameraSpecsItem?.sensorFormatId
-            ? sensorNameFromId(cameraSpecsItem?.sensorFormatId)
-            : undefined,
-        },
-        {
-          label: "ISO Range",
-          value:
-            cameraSpecsItem?.isoMin != null && cameraSpecsItem?.isoMax != null
-              ? `ISO ${cameraSpecsItem.isoMin} - ${cameraSpecsItem.isoMax}`
-              : undefined,
-        },
-        {
-          label: "Max FPS (RAW)",
-          value:
-            cameraSpecsItem?.maxFpsRaw != null
-              ? `${formatDecimalCompact(cameraSpecsItem.maxFpsRaw)} fps`
-              : undefined,
-        },
-        {
-          label: "Max FPS (JPEG)",
-          value:
-            cameraSpecsItem?.maxFpsJpg != null
-              ? `${formatDecimalCompact(cameraSpecsItem.maxFpsJpg)} fps`
-              : undefined,
-        },
-        {
-          label: "Sensor Type",
-          value: cameraSpecsItem
-            ? (() => {
-                const label = sensorTypeLabel(cameraSpecsItem);
-                return label && label.trim().length > 0 ? label : undefined;
-              })()
-            : undefined,
-        },
-        {
-          label: "Sensor Readout Speed",
-          value: cameraSpecsItem?.sensorReadoutSpeedMs?.toString(),
-        },
-        {
-          label: "Has IBIS",
-          value: yesNoNull(cameraSpecsItem?.hasIbis ?? null),
-        },
-        {
-          label: "Has Electronic VR",
-          value: yesNoNull(
-            cameraSpecsItem?.hasElectronicVibrationReduction ?? null,
-          ),
-        },
-        {
-          label: "CIPA Stabilization Rating Stops",
-          value: cameraSpecsItem?.cipaStabilizationRatingStops?.toString(),
-        },
-        {
-          label: "Has Pixel Shift Shooting",
-          value: yesNoNull(cameraSpecsItem?.hasPixelShiftShooting ?? null),
-        },
-        {
-          label: "Has Anti Aliasing Filter",
-          value: yesNoNull(cameraSpecsItem?.hasAntiAliasingFilter ?? null),
-        },
-        {
-          label: "Longest Shutter Speed",
-          value:
-            cameraSpecsItem?.shutterSpeedMax != null
-              ? `${cameraSpecsItem.shutterSpeedMax} seconds`
-              : undefined,
-        },
-        {
-          label: "Fastest Shutter Speed",
-          value:
-            cameraSpecsItem?.shutterSpeedMin != null
-              ? `1/${cameraSpecsItem.shutterSpeedMin}s`
-              : undefined,
-        },
-        {
-          label: "Flash Sync Speed",
-          value:
-            cameraSpecsItem?.flashSyncSpeed != null
-              ? `1/${cameraSpecsItem.flashSyncSpeed}s`
-              : undefined,
-        },
-        {
-          label: "Has Silent Shooting Available",
-          value: yesNoNull(cameraSpecsItem?.hasSilentShootingAvailable ?? null),
-        },
-        {
-          label: "Available Shutter Types",
-          value:
-            Array.isArray(cameraSpecsItem?.availableShutterTypes) &&
-            cameraSpecsItem.availableShutterTypes.length > 0
-              ? cameraSpecsItem.availableShutterTypes.join(", ")
-              : undefined,
-        },
-      ],
-    },
+  // ==========================================================================
+  // LENS: ACCESSORIES
+  // ==========================================================================
+  {
+    id: "lens-accessories",
+    title: "Accessories",
+    sectionAnchor: "lens-section",
+    condition: (item) => item.gearType === "LENS",
+    fields: [
+      {
+        key: "hasBuiltInTeleconverter",
+        label: "Has Built In Teleconverter",
+        getRawValue: (item) => item.lensSpecs?.hasBuiltInTeleconverter,
+        formatDisplay: (raw) =>
+          raw != null ? (raw ? "Yes" : "No") : undefined,
+      },
+      {
+        key: "hasLensHood",
+        label: "Has Lens Hood",
+        getRawValue: (item) => item.lensSpecs?.hasLensHood,
+        formatDisplay: (raw) =>
+          raw != null ? (raw ? "Yes" : "No") : undefined,
+      },
+      {
+        key: "hasTripodCollar",
+        label: "Has Tripod Collar/Lens Foot",
+        getRawValue: (item) => item.lensSpecs?.hasTripodCollar,
+        formatDisplay: (raw) =>
+          raw != null ? (raw ? "Yes" : "No") : undefined,
+      },
+    ],
+  },
 
-    {
-      title: "Hardware/Build",
-      data: [
-        {
-          label: "Card Slots",
-          value:
-            item.cameraCardSlots && item.cameraCardSlots.length > 0 ? (
-              <div className="flex flex-col gap-1">
-                {item.cameraCardSlots
-                  .sort((a, b) => (a.slotIndex ?? 0) - (b.slotIndex ?? 0))
-                  .map((s, i) => {
-                    const details = formatCardSlotDetails({
-                      slotIndex: s.slotIndex,
-                      supportedFormFactors: s.supportedFormFactors ?? [],
-                      supportedBuses: s.supportedBuses ?? [],
-                      supportedSpeedClasses: s.supportedSpeedClasses ?? [],
-                    });
-                    return (
-                      <div key={i} className="flex justify-between gap-6">
-                        <span className="text-muted-foreground">
-                          Slot {s.slotIndex}
-                        </span>
-                        <span className="font-medium">{details}</span>
-                      </div>
-                    );
-                  })}
-              </div>
-            ) : undefined,
-        },
-        {
-          label: "Processor Name",
-          value: cameraSpecsItem?.processorName ?? undefined,
-        },
-        {
-          label: "Weather Sealing",
-          value: yesNoNull(cameraSpecsItem?.hasWeatherSealing ?? null),
-        },
-        {
-          label: "Rear Display Type",
-          value: (() => {
-            const t = (cameraSpecsItem as any)?.rearDisplayType as
-              | string
-              | undefined;
-            if (!t) return undefined;
-            const map: Record<string, string> = {
-              none: "None",
-              fixed: "Fixed",
-              single_axis_tilt: "Single-axis tilt",
-              dual_axis_tilt: "Dual-axis tilt",
-              fully_articulated: "Fully articulated",
-            };
-            return map[t] ?? t;
-          })(),
-        },
-        {
-          label: "Rear Display Size",
-          value: (() => {
-            const raw = (cameraSpecsItem as any)?.rearDisplaySizeInches as
-              | number
-              | string
-              | undefined;
-            const n = raw == null ? NaN : Number(raw);
-            return Number.isFinite(n) ? `${n.toFixed(2)} inches` : undefined;
-          })(),
-        },
-        {
-          label: "Rear Display Resolution",
-          value: (() => {
-            const raw = (cameraSpecsItem as any)
-              ?.rearDisplayResolutionMillionDots as number | string | undefined;
-            const n = raw == null ? NaN : Number(raw);
-            return Number.isFinite(n)
-              ? `${n.toFixed(2)} million dots`
-              : undefined;
-          })(),
-        },
-        {
-          label: "Viewfinder Type",
-          value: (() => {
-            const t = (cameraSpecsItem as any)?.viewfinderType as
-              | string
-              | undefined;
-            if (!t) return undefined;
-            const map: Record<string, string> = {
-              none: "None",
-              optical: "OVF",
-              electronic: "EVF",
-            };
-            return map[t] ?? t;
-          })(),
-        },
-        {
-          label: "Viewfinder Magnification",
-          value: (() => {
-            const t = (cameraSpecsItem as any)?.viewfinderType as
-              | string
-              | undefined;
-            if (!t || t === "none") return undefined;
-            const raw = (cameraSpecsItem as any)?.viewfinderMagnification as
-              | number
-              | string
-              | undefined;
-            const n = raw == null ? NaN : Number(raw);
-            return Number.isFinite(n) ? `${n.toFixed(2)}x` : undefined;
-          })(),
-        },
-        {
-          label: "Viewfinder Resolution",
-          value: (() => {
-            const t = (cameraSpecsItem as any)?.viewfinderType as
-              | string
-              | undefined;
-            if (t !== "electronic") return undefined;
-            const raw = (cameraSpecsItem as any)
-              ?.viewfinderResolutionMillionDots as number | string | undefined;
-            const n = raw == null ? NaN : Number(raw);
-            return Number.isFinite(n)
-              ? `${n.toFixed(2)} million dots`
-              : undefined;
-          })(),
-        },
-        {
-          label: "Has Top Display",
-          value: yesNoNull(
-            ((cameraSpecsItem as any)?.hasTopDisplay ?? null) as any,
-          ),
-        },
-        {
-          label: "Has Rear Touchscreen",
-          value: yesNoNull(
-            ((cameraSpecsItem as any)?.hasRearTouchscreen ?? null) as any,
-          ),
-        },
-      ],
+  // ==========================================================================
+  // INTEGRATED LENS (for fixed-lens cameras)
+  // ==========================================================================
+  {
+    id: "fixed-lens",
+    title: "Integrated Lens",
+    sectionAnchor: "fixed-lens-section",
+    condition: (item) => {
+      if (item.gearType !== "CAMERA") return false;
+      const mountValueById = (id: string | null | undefined): string | null => {
+        if (!id) return null;
+        const m = (MOUNTS as any[]).find((x) => x.id === id) as
+          | { value?: string }
+          | undefined;
+        return m?.value ?? null;
+      };
+      const primaryMountId = (() => {
+        const arr = Array.isArray(item.mountIds) ? item.mountIds : [];
+        if (arr.length > 0) return arr[0]!;
+        return (item.mountId as string | null | undefined) ?? null;
+      })();
+      return mountValueById(primaryMountId) === "fixed-lens";
     },
-    {
-      title: "Focus",
-      data: [
-        {
-          label: "Focus Points",
-          value: cameraSpecsItem?.focusPoints?.toString(),
+    fields: [
+      {
+        key: "isPrime",
+        label: "Lens Type",
+        getRawValue: (item) => item.fixedLensSpecs?.isPrime,
+        formatDisplay: (raw) =>
+          raw == null ? undefined : raw ? "Prime" : "Zoom",
+      },
+      {
+        key: "focalLength",
+        label: "Focal Length",
+        getRawValue: (item) => ({
+          isPrime: item.fixedLensSpecs?.isPrime,
+          min: item.fixedLensSpecs?.focalLengthMinMm,
+          max: item.fixedLensSpecs?.focalLengthMaxMm,
+        }),
+        formatDisplay: (_, item) => {
+          if (
+            item.fixedLensSpecs?.focalLengthMinMm == null &&
+            item.fixedLensSpecs?.focalLengthMaxMm == null
+          )
+            return undefined;
+          return item.fixedLensSpecs?.isPrime
+            ? `${item.fixedLensSpecs?.focalLengthMinMm}mm`
+            : `${item.fixedLensSpecs?.focalLengthMinMm ?? ""}${
+                item.fixedLensSpecs?.focalLengthMinMm != null &&
+                item.fixedLensSpecs?.focalLengthMaxMm != null
+                  ? "mm - "
+                  : ""
+              }${
+                item.fixedLensSpecs?.focalLengthMaxMm != null
+                  ? `${item.fixedLensSpecs?.focalLengthMaxMm}mm`
+                  : ""
+              }`;
         },
-        {
-          label: "AF Subject Categories",
-          value: cameraSpecsItem?.afSubjectCategories?.join(", "),
-        },
-        {
-          label: "Has Focus Peaking",
-          value: yesNoNull(cameraSpecsItem?.hasFocusPeaking ?? null),
-        },
-        {
-          label: "Has Focus Bracketing",
-          value: yesNoNull(cameraSpecsItem?.hasFocusBracketing ?? null),
-        },
-      ],
-    },
-    {
-      title: "Battery & Charging",
-      data: [
-        {
-          label: "CIPA Battery Shots Per Charge",
-          value: cameraSpecsItem?.cipaBatteryShotsPerCharge?.toString(),
-        },
-        {
-          label: "Supported Batteries",
-          value: cameraSpecsItem?.supportedBatteries?.join(", "),
-        },
-        {
-          label: "Supports USB Charging",
-          value: yesNoNull(cameraSpecsItem?.usbCharging ?? null),
-        },
-        {
-          label: "USB Power Delivery",
-          value: yesNoNull(cameraSpecsItem?.usbPowerDelivery ?? null),
-        },
-      ],
-    },
-    {
-      title: "Video",
-      data: [
-        {
-          label: "Has Log Color Profile",
-          value: yesNoNull(cameraSpecsItem?.hasLogColorProfile ?? null),
-        },
-        {
-          label: "Has 10 Bit Video",
-          value: yesNoNull(cameraSpecsItem?.has10BitVideo ?? null),
-        },
-        {
-          label: "Has 12 Bit Video",
-          value: yesNoNull(cameraSpecsItem?.has12BitVideo ?? null),
-        },
-      ],
-    },
-    {
-      title: "Misc",
-      data: [
-        {
-          label: "Has Intervalometer",
-          value: yesNoNull(cameraSpecsItem?.hasIntervalometer ?? null),
-        },
-        {
-          label: "Has Self Timer",
-          value: yesNoNull(cameraSpecsItem?.hasSelfTimer ?? null),
-        },
-        {
-          label: "Has Built In Flash",
-          value: yesNoNull(cameraSpecsItem?.hasBuiltInFlash ?? null),
-        },
-        {
-          label: "Has Hot Shoe",
-          value: yesNoNull(cameraSpecsItem?.hasHotShoe ?? null),
-        },
-      ],
-    },
-  ];
+      },
+      {
+        key: "maxAperture",
+        label: "Maximum Aperture",
+        getRawValue: (item) => ({
+          wide: item.fixedLensSpecs?.maxApertureWide,
+          tele: item.fixedLensSpecs?.maxApertureTele,
+        }),
+        formatDisplay: (_, item) =>
+          item.fixedLensSpecs?.maxApertureTele &&
+          item.fixedLensSpecs?.maxApertureTele !==
+            item.fixedLensSpecs?.maxApertureWide
+            ? `f/${Number(item.fixedLensSpecs?.maxApertureWide)} - f/${Number(item.fixedLensSpecs?.maxApertureTele)}`
+            : item.fixedLensSpecs?.maxApertureWide != null
+              ? `f/${Number(item.fixedLensSpecs?.maxApertureWide)}`
+              : undefined,
+      },
+      {
+        key: "minAperture",
+        label: "Minimum Aperture",
+        getRawValue: (item) => ({
+          wide: item.fixedLensSpecs?.minApertureWide,
+          tele: item.fixedLensSpecs?.minApertureTele,
+        }),
+        formatDisplay: (_, item) =>
+          item.fixedLensSpecs?.minApertureTele &&
+          item.fixedLensSpecs?.minApertureTele !==
+            item.fixedLensSpecs?.minApertureWide
+            ? `f/${Number(item.fixedLensSpecs?.minApertureWide)} - f/${Number(item.fixedLensSpecs?.minApertureTele)}`
+            : item.fixedLensSpecs?.minApertureWide != null
+              ? `f/${Number(item.fixedLensSpecs?.minApertureWide)}`
+              : undefined,
+      },
+      {
+        key: "hasAutofocus",
+        label: "Has Autofocus",
+        getRawValue: (item) => item.fixedLensSpecs?.hasAutofocus,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+      {
+        key: "minimumFocusDistanceMm",
+        label: "Minimum Focus Distance",
+        getRawValue: (item) => item.fixedLensSpecs?.minimumFocusDistanceMm,
+        formatDisplay: (raw) =>
+          raw != null ? formatFocusDistance(raw as number) : undefined,
+      },
+      {
+        key: "frontElementRotates",
+        label: "Front Element Rotates",
+        getRawValue: (item) => item.fixedLensSpecs?.frontElementRotates,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+      {
+        key: "frontFilterThreadSizeMm",
+        label: "Front Filter Thread Size",
+        getRawValue: (item) => item.fixedLensSpecs?.frontFilterThreadSizeMm,
+        formatDisplay: (raw) => (raw != null ? `${raw}mm` : undefined),
+      },
+      {
+        key: "hasLensHood",
+        label: "Has Lens Hood",
+        getRawValue: (item) => item.fixedLensSpecs?.hasLensHood,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+    ],
+  },
 
-  const lensSections: SpecsTableSection[] = [
-    {
-      title: "Optics",
-      data: [
-        {
-          label: "Lens Type",
-          value: lensSpecsItem?.isPrime ? "Prime" : "Zoom",
+  // ==========================================================================
+  // NOTES
+  // ==========================================================================
+  {
+    id: "notes",
+    title: "Notes",
+    sectionAnchor: "notes-section",
+    fields: [
+      {
+        key: "notes",
+        label: "",
+        getRawValue: (item) => (item as any).notes,
+        formatDisplay: (raw) => {
+          if (!Array.isArray(raw)) return undefined;
+          const list = raw.filter(
+            (n) => typeof n === "string" && n.trim().length > 0,
+          );
+          return list.length ? (
+            <ul className="text-muted-foreground list-disc space-y-1 pl-4 text-sm">
+              {list.map((note, idx) => (
+                <li key={idx}>{note}</li>
+              ))}
+            </ul>
+          ) : undefined;
         },
-        {
-          label: "Focal Length",
-          value: lensSpecsItem?.isPrime
-            ? `${lensSpecsItem?.focalLengthMinMm}mm`
-            : `${lensSpecsItem?.focalLengthMinMm}mm - ${lensSpecsItem?.focalLengthMaxMm}mm`,
-        },
-        {
-          label: "Is Macro",
-          value:
-            lensSpecsItem?.isMacro != null
-              ? lensSpecsItem?.isMacro
-                ? "Yes"
-                : "No"
-              : undefined,
-        },
-        {
-          label: "Magnification",
-          value:
-            lensSpecsItem?.magnification != null
-              ? `${lensSpecsItem?.magnification}x`
-              : undefined,
-        },
-        {
-          label: "Minimum Focus Distance",
-          value:
-            lensSpecsItem?.minimumFocusDistanceMm != null
-              ? formatFocusDistance(lensSpecsItem?.minimumFocusDistanceMm)
-              : undefined,
-        },
-        { label: "Number of Elements", value: lensSpecsItem?.numberElements },
-        {
-          label: "Number of Element Groups",
-          value: lensSpecsItem?.numberElementGroups,
-        },
-        {
-          label: "Has Diffractive Optics",
-          value:
-            lensSpecsItem?.hasDiffractiveOptics != null
-              ? lensSpecsItem?.hasDiffractiveOptics
-                ? "Yes"
-                : "No"
-              : undefined,
-        },
-      ],
-    },
-    {
-      title: "Aperture",
-      data: [
-        {
-          label: "Maximum Aperture",
-          value:
-            lensSpecsItem?.maxApertureTele &&
-            lensSpecsItem?.maxApertureTele !== lensSpecsItem?.maxApertureWide
-              ? `f/${Number(lensSpecsItem?.maxApertureWide)} - f/${Number(lensSpecsItem?.maxApertureTele)}`
-              : lensSpecsItem?.maxApertureWide != null
-                ? `f/${Number(lensSpecsItem?.maxApertureWide)}`
-                : undefined,
-        },
-        {
-          label: "Minimum Aperture",
-          value:
-            lensSpecsItem?.minApertureTele &&
-            lensSpecsItem?.minApertureTele !== lensSpecsItem?.minApertureWide
-              ? `f/${Number(lensSpecsItem?.minApertureWide)} - f/${Number(lensSpecsItem?.minApertureTele)}`
-              : lensSpecsItem?.minApertureWide != null
-                ? `f/${Number(lensSpecsItem?.minApertureWide)}`
-                : undefined,
-        },
-        {
-          label: "Number of Diaphragm Blades",
-          value: lensSpecsItem?.numberDiaphragmBlades,
-        },
-        {
-          label: "Has Rounded Diaphragm Blades",
-          value:
-            lensSpecsItem?.hasRoundedDiaphragmBlades != null
-              ? lensSpecsItem?.hasRoundedDiaphragmBlades
-                ? "Yes"
-                : "No"
-              : undefined,
-        },
-        {
-          label: "Has Aperture Ring",
-          value:
-            lensSpecsItem?.hasApertureRing != null
-              ? lensSpecsItem?.hasApertureRing
-                ? "Yes"
-                : "No"
-              : undefined,
-        },
-      ],
-    },
-    {
-      title: "Focus",
-      data: [
-        {
-          label: "Has Autofocus",
-          value:
-            lensSpecsItem?.hasAutofocus != null
-              ? lensSpecsItem?.hasAutofocus
-                ? "Yes"
-                : "No"
-              : undefined,
-        },
-        {
-          label: "Focus Motor Type",
-          value: lensSpecsItem?.focusMotorType ?? undefined,
-        },
-        {
-          label: "Has AF/MF Switch",
-          value:
-            lensSpecsItem?.hasAfMfSwitch != null
-              ? lensSpecsItem?.hasAfMfSwitch
-                ? "Yes"
-                : "No"
-              : undefined,
-        },
-        {
-          label: "Has Focus Limiter",
-          value:
-            lensSpecsItem?.hasFocusLimiter != null
-              ? lensSpecsItem?.hasFocusLimiter
-                ? "Yes"
-                : "No"
-              : undefined,
-        },
-        {
-          label: "Has Focus Recall Button",
-          value:
-            lensSpecsItem?.hasFocusRecallButton != null
-              ? lensSpecsItem?.hasFocusRecallButton
-                ? "Yes"
-                : "No"
-              : undefined,
-        },
-        {
-          label: "Has Focus Ring",
-          value:
-            lensSpecsItem?.hasFocusRing != null
-              ? lensSpecsItem?.hasFocusRing
-                ? "Yes"
-                : "No"
-              : undefined,
-        },
-        {
-          label: "Has Internal Focus",
-          value:
-            lensSpecsItem?.hasInternalFocus != null
-              ? lensSpecsItem?.hasInternalFocus
-                ? "Yes"
-                : "No"
-              : undefined,
-        },
-        {
-          label: "Front Element Rotates",
-          value:
-            lensSpecsItem?.frontElementRotates != null
-              ? lensSpecsItem?.frontElementRotates
-                ? "Yes"
-                : "No"
-              : undefined,
-        },
-      ],
-    },
-    {
-      title: "Stabilization",
-      data: [
-        {
-          label: "Has Image Stabilization",
-          value:
-            lensSpecsItem?.hasStabilization != null
-              ? lensSpecsItem?.hasStabilization
-                ? "Yes"
-                : "No"
-              : undefined,
-        },
-        {
-          label: "Has Stabilization Switch",
-          value:
-            lensSpecsItem?.hasStabilizationSwitch != null
-              ? lensSpecsItem?.hasStabilizationSwitch
-                ? "Yes"
-                : "No"
-              : undefined,
-        },
-        {
-          label: "CIPA Stabilization Rating Stops",
-          value:
-            lensSpecsItem?.cipaStabilizationRatingStops != null
-              ? `${lensSpecsItem?.cipaStabilizationRatingStops} stops`
-              : undefined,
-        },
-      ],
-    },
-    {
-      title: "Build & Controls",
-      data: [
-        {
-          label: "Has Internal Zoom",
-          value:
-            lensSpecsItem?.hasInternalZoom != null
-              ? lensSpecsItem?.hasInternalZoom
-                ? "Yes"
-                : "No"
-              : undefined,
-        },
-        {
-          label: "Mount Material",
-          value:
-            lensSpecsItem?.mountMaterial != null
-              ? lensSpecsItem.mountMaterial.charAt(0).toUpperCase() +
-                lensSpecsItem.mountMaterial.slice(1)
-              : undefined,
-        },
-        {
-          label: "Has Weather Sealing",
-          value:
-            lensSpecsItem?.hasWeatherSealing != null
-              ? lensSpecsItem?.hasWeatherSealing
-                ? "Yes"
-                : "No"
-              : undefined,
-        },
-        {
-          label: "Number of Custom Control Rings",
-          value: lensSpecsItem?.numberCustomControlRings,
-        },
-        {
-          label: "Number of Function Buttons",
-          value: lensSpecsItem?.numberFunctionButtons,
-        },
-      ],
-    },
-    {
-      title: "Filters",
-      data: [
-        {
-          label: "Accepts Filter Types",
-          value:
-            Array.isArray(lensSpecsItem?.acceptsFilterTypes) &&
-            lensSpecsItem.acceptsFilterTypes.length > 0
-              ? lensSpecsItem.acceptsFilterTypes
-                  .map(formatFilterType)
-                  .join(", ")
-              : undefined,
-        },
-        {
-          label: "Front Filter Thread Size",
-          value:
-            lensSpecsItem?.frontFilterThreadSizeMm != null &&
-            lensSpecsItem?.acceptsFilterTypes?.includes("front-screw-on")
-              ? `${lensSpecsItem.frontFilterThreadSizeMm}mm`
-              : undefined,
-        },
-        {
-          label: "Rear Filter Thread Size",
-          value:
-            lensSpecsItem?.rearFilterThreadSizeMm != null &&
-            lensSpecsItem?.acceptsFilterTypes?.includes("rear-screw-on")
-              ? `${lensSpecsItem.rearFilterThreadSizeMm}mm`
-              : undefined,
-        },
-        {
-          label: "Drop In Filter Size",
-          value:
-            lensSpecsItem?.dropInFilterSizeMm != null &&
-            lensSpecsItem?.acceptsFilterTypes?.includes("rear-drop-in")
-              ? `${lensSpecsItem.dropInFilterSizeMm}mm`
-              : undefined,
-        },
-      ],
-    },
-    {
-      title: "Accessories",
-      data: [
-        {
-          label: "Has Built In Teleconverter",
-          value:
-            lensSpecsItem?.hasBuiltInTeleconverter != null
-              ? lensSpecsItem?.hasBuiltInTeleconverter
-                ? "Yes"
-                : "No"
-              : undefined,
-        },
-        {
-          label: "Has Lens Hood",
-          value:
-            lensSpecsItem?.hasLensHood != null
-              ? lensSpecsItem?.hasLensHood
-                ? "Yes"
-                : "No"
-              : undefined,
-        },
-        {
-          label: "Has Tripod Collar/Lens Foot",
-          value:
-            lensSpecsItem?.hasTripodCollar != null
-              ? lensSpecsItem?.hasTripodCollar
-                ? "Yes"
-                : "No"
-              : undefined,
-        },
-      ],
-    },
-  ];
+      },
+    ],
+  },
+];
 
-  const sections =
-    item.gearType === "CAMERA"
-      ? [
-          core,
-          ...cameraSections,
-          // Integrated lens section when applicable
-          ...(isFixedLensMount && fixedLensSpecsItem
-            ? [
-                {
-                  title: "Integrated Lens",
-                  data: [
-                    {
-                      label: "Lens Type",
-                      value:
-                        fixedLensSpecsItem?.isPrime == null
-                          ? undefined
-                          : fixedLensSpecsItem.isPrime
-                            ? "Prime"
-                            : "Zoom",
-                    },
-                    {
-                      label: "Focal Length",
-                      value:
-                        fixedLensSpecsItem?.focalLengthMinMm == null &&
-                        fixedLensSpecsItem?.focalLengthMaxMm == null
-                          ? undefined
-                          : fixedLensSpecsItem?.isPrime
-                            ? `${fixedLensSpecsItem?.focalLengthMinMm}mm`
-                            : `${fixedLensSpecsItem?.focalLengthMinMm ?? ""}${
-                                fixedLensSpecsItem?.focalLengthMinMm != null &&
-                                fixedLensSpecsItem?.focalLengthMaxMm != null
-                                  ? "mm - "
-                                  : ""
-                              }${
-                                fixedLensSpecsItem?.focalLengthMaxMm != null
-                                  ? `${fixedLensSpecsItem?.focalLengthMaxMm}mm`
-                                  : ""
-                              }`,
-                    },
-                    {
-                      label: "Maximum Aperture",
-                      value:
-                        fixedLensSpecsItem?.maxApertureTele &&
-                        fixedLensSpecsItem?.maxApertureTele !==
-                          fixedLensSpecsItem?.maxApertureWide
-                          ? `f/${Number(fixedLensSpecsItem?.maxApertureWide)} - f/${Number(fixedLensSpecsItem?.maxApertureTele)}`
-                          : fixedLensSpecsItem?.maxApertureWide != null
-                            ? `f/${Number(fixedLensSpecsItem?.maxApertureWide)}`
-                            : undefined,
-                    },
-                    {
-                      label: "Minimum Aperture",
-                      value:
-                        fixedLensSpecsItem?.minApertureTele &&
-                        fixedLensSpecsItem?.minApertureTele !==
-                          fixedLensSpecsItem?.minApertureWide
-                          ? `f/${Number(fixedLensSpecsItem?.minApertureWide)} - f/${Number(fixedLensSpecsItem?.minApertureTele)}`
-                          : fixedLensSpecsItem?.minApertureWide != null
-                            ? `f/${Number(fixedLensSpecsItem?.minApertureWide)}`
-                            : undefined,
-                    },
-                    {
-                      label: "Has Autofocus",
-                      value: yesNoNull(
-                        fixedLensSpecsItem?.hasAutofocus ?? null,
-                      ),
-                    },
-                    {
-                      label: "Minimum Focus Distance",
-                      value:
-                        fixedLensSpecsItem?.minimumFocusDistanceMm != null
-                          ? formatFocusDistance(
-                              fixedLensSpecsItem?.minimumFocusDistanceMm,
-                            )
-                          : undefined,
-                    },
-                    {
-                      label: "Front Element Rotates",
-                      value: yesNoNull(
-                        fixedLensSpecsItem?.frontElementRotates ?? null,
-                      ),
-                    },
-                    {
-                      label: "Front Filter Thread Size",
-                      value:
-                        fixedLensSpecsItem?.frontFilterThreadSizeMm != null
-                          ? `${fixedLensSpecsItem.frontFilterThreadSizeMm}mm`
-                          : undefined,
-                    },
-                    {
-                      label: "Has Lens Hood",
-                      value: yesNoNull(fixedLensSpecsItem?.hasLensHood ?? null),
-                    },
-                  ],
-                },
-              ]
-            : []),
-        ]
-      : [core, ...lensSections];
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
 
-  // Append Notes at the very bottom for both gear types
-  const notesSection = Array.isArray((item as any).notes)
-    ? {
-        title: "Notes",
-        data: [
-          {
-            label: "",
-            fullWidth: true,
-            value: (() => {
-              const list = ((item as any).notes as string[]).filter(
-                (n) => typeof n === "string" && n.trim().length > 0,
-              );
-              return list.length ? (
-                <ul className="text-muted-foreground list-disc space-y-1 pl-4 text-sm">
-                  {list.map((note, idx) => (
-                    <li key={idx}>{note}</li>
-                  ))}
-                </ul>
-              ) : undefined;
-            })(),
-          },
-        ],
-      }
-    : null;
+/**
+ * Build sections for the specs table display
+ */
+export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
+  return specDictionary
+    .filter((section) => !section.condition || section.condition(item))
+    .map((section) => ({
+      title: section.title,
+      data: section.fields
+        .map((field) => {
+          const raw = field.getRawValue(item);
+          const value = field.formatDisplay
+            ? field.formatDisplay(raw, item)
+            : (raw as React.ReactNode);
+          return {
+            label: field.label,
+            value: value as React.ReactNode,
+            fullWidth: !field.label,
+          };
+        })
+        .filter((row) => hasDisplayValue(row.value)),
+    }))
+    .filter((section) => section.data.length > 0);
+}
 
-  // Filter out rows with non-displayable values at registry level
-  const sectionsWithNotes =
-    notesSection && notesSection.data.length > 0
-      ? [...sections, notesSection]
-      : sections;
+/**
+ * Build sections for the edit sidebar (tree view)
+ */
+export type SidebarSection = {
+  id: string;
+  title: string;
+  anchor: string;
+  fields: {
+    key: string;
+    label: string;
+    rawValue: unknown;
+  }[];
+};
 
-  return sectionsWithNotes.map((section) => ({
-    ...section,
-    data: section.data.filter((row) => hasDisplayValue(row.value)),
-  }));
+export function buildEditSidebarSections(item: GearItem): SidebarSection[] {
+  return specDictionary
+    .filter((section) => !section.condition || section.condition(item))
+    .map((section) => ({
+      id: section.id,
+      title: section.title,
+      anchor: section.sectionAnchor,
+      fields: section.fields
+        .filter((f) => f.label) // Skip fields without labels (like notes header)
+        .map((field) => ({
+          key: field.key,
+          label: field.label,
+          rawValue: field.getRawValue(item),
+        })),
+    }));
 }

@@ -27,6 +27,7 @@ interface LensFieldsProps {
   initialSpecs?: typeof lensSpecs.$inferSelect | null | undefined;
   showMissingOnly?: boolean;
   onChange: (field: string, value: any) => void;
+  sectionId?: string;
 }
 
 // Simple wrapper for standard number inputs (template)
@@ -36,6 +37,7 @@ function LensFieldsComponent({
   initialSpecs,
   showMissingOnly,
   onChange,
+  sectionId,
 }: LensFieldsProps) {
   const handleFieldChange = useCallback(
     (fieldId: string, value: any) => {
@@ -72,12 +74,15 @@ function LensFieldsComponent({
     !showMissingOnly || isMissing(v);
 
   return (
-    <Card className="rounded-md bg-transparent px-4 py-4">
+    <Card
+      id={sectionId}
+      className="rounded-md border-0 bg-transparent px-0 py-0"
+    >
       <CardHeader className="px-0">
-        <CardTitle>Lens Specifications</CardTitle>
+        <CardTitle className="text-2xl">Lens Specifications</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 px-0">
-        <div className="grid grid-cols-1 gap-4 space-y-4 md:grid-cols-2">
+        <div className="flex flex-col gap-3">
           {showWhenMissing(
             (initialSpecs as any)?.focalLengthMinMm ??
               (initialSpecs as any)?.focalLengthMaxMm,

@@ -69,7 +69,7 @@ export function EditGearModal({
 
   return (
     <Dialog defaultOpen open onOpenChange={handleOpenChange}>
-      <DialogContent className="p-0 sm:max-w-4xl">
+      <DialogContent className="p-0 sm:max-w-4xl" showCloseButton={false}>
         <EditModalContent
           gearType={gearType}
           gearData={gearData}

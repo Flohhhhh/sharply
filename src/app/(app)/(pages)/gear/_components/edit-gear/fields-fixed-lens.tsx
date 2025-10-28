@@ -12,6 +12,7 @@ interface FixedLensFieldsProps {
   initialSpecs?: typeof fixedLensSpecs.$inferSelect | null | undefined;
   showMissingOnly?: boolean;
   onChange: (field: string, value: any) => void;
+  sectionId?: string;
 }
 
 function FixedLensFieldsComponent({
@@ -19,6 +20,7 @@ function FixedLensFieldsComponent({
   initialSpecs,
   showMissingOnly,
   onChange,
+  sectionId,
 }: FixedLensFieldsProps) {
   const handleFieldChange = useCallback(
     (fieldId: string, value: any) => {
@@ -53,18 +55,20 @@ function FixedLensFieldsComponent({
     !showMissingOnly || isMissing(v);
 
   return (
-    <Card className="rounded-md bg-transparent px-4 py-4">
+    <Card
+      id={sectionId}
+      className="rounded-md border-0 bg-transparent px-0 py-0"
+    >
       <CardHeader className="px-0">
-        <CardTitle>Integrated Lens</CardTitle>
+        <CardTitle className="text-2xl">Integrated Lens</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 px-0">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="flex flex-col gap-3">
           {showWhenMissing(
             (initialSpecs as any)?.focalLengthMinMm ??
               (initialSpecs as any)?.focalLengthMaxMm,
           ) && (
             <FocalLengthInput
-              className="col-span-2"
               id="fixed-focal-length"
               label="Focal Length (mm)"
               minValue={currentSpecs?.focalLengthMinMm ?? null}
