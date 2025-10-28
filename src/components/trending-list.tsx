@@ -32,9 +32,9 @@ function Skeleton({
         <h2 className="text-2xl font-semibold">{title}</h2>
         <span className="text-muted-foreground text-xs">loading…</span>
       </div>
-      <ol className="divide-border divide-y rounded-xl border bg-white">
+      <ol className="divide-border divide-y rounded-md border">
         {Array.from({ length: rows }).map((_, idx) => (
-          <li key={idx} className="flex items-center gap-3 p-3">
+          <li key={idx} className="flex items-center gap-3 p-2">
             <div className="text-muted-foreground w-6 text-right text-sm tabular-nums">
               {idx + 1}
             </div>
@@ -87,25 +87,25 @@ export default async function TrendingList({
   return (
     <div className="space-y-3">
       <div className="flex items-baseline justify-between">
-        <h2 className="text-2xl font-semibold">{title}</h2>
+        <h2 className="text-lg font-bold">{title}</h2>
         <span className="text-muted-foreground text-xs">
           as of {items[0]!.asOfDate}
         </span>
       </div>
-      <ol className="divide-border dark:bg-accent/50 divide-y rounded-xl border bg-white">
+      <ol className="divide-border divide-y rounded-md border">
         {items.map((item, idx) => {
           const filled = calcFilled(item.score);
           return (
             <li key={item.gearId} className="p-0">
               <Link
                 href={`/gear/${item.slug}`}
-                className="group flex items-center gap-3 p-3"
+                className="group flex items-center gap-3 p-2"
               >
-                <div className="text-muted-foreground w-6 text-right text-sm tabular-nums">
+                <div className="text-muted-foreground tabular w-6 text-right text-sm">
                   {idx + 1}
                 </div>
                 <div className="flex min-w-0 flex-1">
-                  <span className="truncate font-medium group-hover:underline">
+                  <span className="truncate text-sm font-medium group-hover:underline">
                     {item.name}
                   </span>
                 </div>

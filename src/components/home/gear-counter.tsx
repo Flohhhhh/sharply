@@ -5,9 +5,11 @@ export async function GearCounter() {
   const totalGearItems = await fetchGearCount();
 
   return (
-    <div>
-      <NumberTicker value={totalGearItems} className="text-6xl font-bold" />
-      <p className="text-muted-foreground text-sm">Items in our database</p>
+    <div className="space-y-2">
+      <NumberTicker value={totalGearItems} className="text-5xl font-bold" />
+      <p className="text-muted-foreground py-0 text-sm leading-0">
+        Items in our database
+      </p>
     </div>
   );
 }

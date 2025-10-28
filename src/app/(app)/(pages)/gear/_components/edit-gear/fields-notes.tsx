@@ -5,21 +5,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
 import { Button } from "~/components/ui/button";
 import { Textarea } from "~/components/ui/textarea";
+import { Plus } from "lucide-react";
 
 interface NotesFieldsProps {
   notes: string[];
   onChange: (next: string[]) => void;
+  sectionId?: string;
 }
 
-export function NotesFields({ notes, onChange }: NotesFieldsProps) {
+export function NotesFields({ notes, onChange, sectionId }: NotesFieldsProps) {
   const values = useMemo(() => (Array.isArray(notes) ? notes : []), [notes]);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Notes</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
+    <Card
+      id={sectionId}
+      className="gap-2 rounded-md border-0 bg-transparent px-0 py-0"
+    >
+      <CardTitle className="text-2xl">Notes</CardTitle>
+      <CardContent className="space-y-4 px-0">
         <div className="space-y-2">
           <Label className="text-muted-foreground text-sm">
             Add unstructured notes about this gear. Keep each thought as a
@@ -57,11 +60,13 @@ export function NotesFields({ notes, onChange }: NotesFieldsProps) {
 
           <div>
             <Button
+              size="sm"
               type="button"
-              variant="secondary"
+              variant="outline"
               onClick={() => onChange([...values, ""])}
+              icon={<Plus className="size-4" />}
             >
-              + Add note
+              Add note
             </Button>
           </div>
         </div>

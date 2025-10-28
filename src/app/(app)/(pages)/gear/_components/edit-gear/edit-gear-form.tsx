@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -16,7 +16,12 @@ import CameraFields from "./fields-cameras";
 import { FixedLensFields } from "./fields-fixed-lens";
 import { NotesFields } from "~/app/(app)/(pages)/gear/_components/edit-gear/fields-notes";
 import { MOUNTS } from "~/lib/generated";
-import type { gear, cameraSpecs, lensSpecs } from "~/server/db/schema";
+import type {
+  gear,
+  cameraSpecs,
+  lensSpecs,
+  fixedLensSpecs,
+} from "~/server/db/schema";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { formatPrice, formatCardSlotDetails } from "~/lib/mapping";
@@ -37,6 +42,14 @@ interface EditGearFormProps {
   onSubmittingChange?: (submitting: boolean) => void;
   showActions?: boolean;
   formId?: string;
+  showMissingOnly?: boolean; // Controls filtering of fields based on initial values
+  onFormDataChange?: (
+    data: typeof gear.$inferSelect & {
+      cameraSpecs?: typeof cameraSpecs.$inferSelect | null;
+      lensSpecs?: typeof lensSpecs.$inferSelect | null;
+      fixedLensSpecs?: typeof fixedLensSpecs.$inferSelect | null;
+    },
+  ) => void;
 }
 
 function EditGearForm({
@@ -48,6 +61,8 @@ function EditGearForm({
   onSubmittingChange,
   showActions = true,
   formId,
+  showMissingOnly,
+  onFormDataChange,
 }: EditGearFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -58,25 +73,42 @@ function EditGearForm({
     null,
   );
 
+  // Emit live form data changes to parent after state updates (avoids render-phase updates)
+  React.useEffect(() => {
+    onFormDataChange?.(formData as any);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData]);
+
   // console.log("[EditGearForm] formData", formData);
 
   const handleChange = useCallback(
     (field: string, value: any, section?: string) => {
+      const applyUpdate = (
+        updater: (prev: typeof formData) => typeof formData,
+      ) => {
+        setFormData((prev) => updater(prev));
+      };
       if (section) {
         // Handle nested updates (e.g., cameraSpecs, lensSpecs)
-        setFormData((prev) => ({
-          ...prev,
-          [section]: {
-            ...(prev[section as keyof typeof prev] as Record<string, any>),
-            [field]: value,
-          },
-        }));
+        applyUpdate(
+          (prev) =>
+            ({
+              ...prev,
+              [section]: {
+                ...(prev[section as keyof typeof prev] as Record<string, any>),
+                [field]: value,
+              },
+            }) as typeof formData,
+        );
       } else {
         // Handle direct gear field updates
-        setFormData((prev) => ({
-          ...prev,
-          [field]: value,
-        }));
+        applyUpdate(
+          (prev) =>
+            ({
+              ...prev,
+              [field]: value,
+            }) as typeof formData,
+        );
       }
       // Mark form dirty on any change
       setIsDirty(true);
@@ -461,8 +493,9 @@ function EditGearForm({
   };
 
   return (
-    <form id={formId} onSubmit={handleSubmit} className="space-y-6">
+    <form id={formId} onSubmit={handleSubmit} className="space-y-12">
       <CoreFields
+        sectionId="core-section"
         currentSpecs={
           {
             ...(formData as any),
@@ -476,14 +509,30 @@ function EditGearForm({
           } as any
         }
         gearType={gearType}
+        showMissingOnly={Boolean(showMissingOnly)}
+        initialSpecs={
+          {
+            ...(gearData as any),
+            announcedDate: (gearData as any).announcedDate ?? null,
+            msrpNowUsdCents: (gearData as any).msrpNowUsdCents ?? null,
+            mpbMaxPriceUsdCents: (gearData as any).mpbMaxPriceUsdCents ?? null,
+            genres: Array.isArray((gearData as any).genres)
+              ? ((gearData as any).genres as string[])
+              : [],
+          } as any
+        }
         onChange={handleChange}
       />
 
       {/* TODO: Add gear-type-specific fields */}
       {gearType === "CAMERA" && (
         <CameraFields
+          sectionId="camera-section"
           gearItem={formData}
           currentSpecs={formData.cameraSpecs}
+          showMissingOnly={Boolean(showMissingOnly)}
+          initialSpecs={(gearData as any).cameraSpecs as any}
+          initialGearItem={gearData as any}
           onChange={(field, value) => handleChange(field, value, "cameraSpecs")}
           onChangeTopLevel={(field, value) => handleChange(field, value)}
         />
@@ -502,29 +551,39 @@ function EditGearForm({
           if (!isFixed) return null;
           return (
             <FixedLensFields
+              sectionId="fixed-lens-section"
               currentSpecs={(formData as any).fixedLensSpecs ?? null}
-              onChange={(field, value) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  fixedLensSpecs: {
-                    ...((prev as any).fixedLensSpecs ?? {}),
-                    [field]: value,
-                  },
-                }))
-              }
+              showMissingOnly={Boolean(showMissingOnly)}
+              initialSpecs={(gearData as any).fixedLensSpecs as any}
+              onChange={(field, value) => {
+                setFormData(
+                  (prev) =>
+                    ({
+                      ...prev,
+                      fixedLensSpecs: {
+                        ...((prev as any).fixedLensSpecs ?? {}),
+                        [field]: value,
+                      },
+                    }) as typeof formData,
+                );
+              }}
             />
           );
         })()}
 
       {gearType === "LENS" && (
         <LensFields
+          sectionId="lens-section"
           currentSpecs={formData.lensSpecs}
+          showMissingOnly={Boolean(showMissingOnly)}
+          initialSpecs={(gearData as any).lensSpecs as any}
           onChange={(field, value) => handleChange(field, value, "lensSpecs")}
         />
       )}
 
       {/* Notes (appears last) */}
       <NotesFields
+        sectionId="notes-section"
         notes={
           Array.isArray((formData as any).notes)
             ? ((formData as any).notes as string[])

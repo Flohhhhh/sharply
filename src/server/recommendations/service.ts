@@ -74,21 +74,21 @@ export async function serviceGetChart(brand: string, slug: string) {
   if (!data) return null;
   const { chart, items } = data;
 
-  try {
-    console.info("[recs:service] fetched chart", {
-      brand,
-      slug,
-      itemCount: items.length,
-      sample: items.slice(0, 3).map((i) => ({
-        id: i.gearId,
-        name: i.gearName,
-        slug:
-          "gearSlug" in i && typeof i.gearSlug === "string"
-            ? i.gearSlug
-            : undefined,
-      })),
-    });
-  } catch {}
+  // try {
+  //   console.info("[recs:service] fetched chart", {
+  //     brand,
+  //     slug,
+  //     itemCount: items.length,
+  //     sample: items.slice(0, 3).map((i) => ({
+  //       id: i.gearId,
+  //       name: i.gearName,
+  //       slug:
+  //         "gearSlug" in i && typeof i.gearSlug === "string"
+  //           ? i.gearSlug
+  //           : undefined,
+  //     })),
+  //   });
+  // } catch {}
 
   // Gather custom columns from items
   const customCols = items

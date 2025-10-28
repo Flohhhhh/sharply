@@ -18,14 +18,17 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "~/components/ui/alert-dialog";
-import { EditGearForm } from "./edit-gear-form";
+import EditModalContent from "./edit-modal-content";
 import type { GearItem } from "~/types/gear";
+import { Label } from "~/components/ui/label";
+import { Switch } from "~/components/ui/switch";
 
 interface EditGearModalProps {
   gearType?: "CAMERA" | "LENS";
   gearData: GearItem;
   gearSlug: string;
   gearName: string;
+  initialShowMissingOnly?: boolean;
 }
 
 export function EditGearModal({
@@ -33,10 +36,14 @@ export function EditGearModal({
   gearData,
   gearSlug,
   gearName,
+  initialShowMissingOnly,
 }: EditGearModalProps) {
   const router = useRouter();
   const [isDirty, setIsDirty] = useState(false);
   const [confirmExitOpen, setConfirmExitOpen] = useState(false);
+  const [showMissingOnly, setShowMissingOnly] = useState(
+    Boolean(initialShowMissingOnly),
+  );
 
   const requestClose = useCallback(
     (opts?: { force?: boolean }) => {
@@ -62,53 +69,17 @@ export function EditGearModal({
 
   return (
     <Dialog defaultOpen open onOpenChange={handleOpenChange}>
-      <DialogContent className="p-0 sm:max-w-4xl">
-        <div className="flex max-h-[90vh] flex-col">
-          <div className="px-6 pt-6 pb-4">
-            <DialogHeader>
-              <DialogTitle>Edit Gear: {gearName}</DialogTitle>
-            </DialogHeader>
-          </div>
-          <div className="overflow-y-auto p-6">
-            <EditGearForm
-              gearType={gearType}
-              gearData={
-                {
-                  ...gearData,
-                  // Provide mountIds for prefill in modal if missing
-                  ...(typeof (gearData as any).mountIds === "undefined" && {
-                    mountIds: (gearData as any).mountId
-                      ? [(gearData as any).mountId]
-                      : [],
-                  }),
-                } as any
-              }
-              gearSlug={gearSlug}
-              onDirtyChange={setIsDirty}
-              onRequestClose={requestClose}
-              showActions={false}
-              formId="edit-gear-form"
-            />
-          </div>
-          <div className="bg-background border-t px-6 py-4">
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                className="border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md border px-4 text-sm"
-                onClick={() => requestClose()}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                form="edit-gear-form"
-                className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-4 text-sm"
-              >
-                Continue
-              </button>
-            </div>
-          </div>
-        </div>
+      <DialogContent className="p-0 sm:max-w-4xl" showCloseButton={false}>
+        <EditModalContent
+          gearType={gearType}
+          gearData={gearData}
+          gearSlug={gearSlug}
+          gearName={gearName}
+          onDirtyChange={setIsDirty}
+          onRequestClose={requestClose}
+          initialShowMissingOnly={showMissingOnly}
+          formId="edit-gear-form"
+        />
       </DialogContent>
       {/* Unsaved changes confirmation */}
       <AlertDialog open={confirmExitOpen} onOpenChange={setConfirmExitOpen}>

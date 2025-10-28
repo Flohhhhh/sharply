@@ -24,6 +24,11 @@ const config = {
         destination: "/browse/:slug",
         permanent: true,
       },
+      {
+        source: "/discord/invite",
+        destination: "https://discord.gg/8qSXVurbw6",
+        permanent: false,
+      },
     ];
   },
   eslint: {

@@ -134,7 +134,11 @@ export default function CardSlotsManager({
   }
 
   return (
-    <div className="col-span-2 rounded-md border p-3">
+    <div
+      id="cardSlots"
+      data-force-ring-container
+      className="col-span-2 rounded-md border p-3"
+    >
       <div className="mb-2 text-sm font-medium">Card Slots</div>
       <div className="space-y-1">
         {summarizedLines(value as CardSlot[] | undefined).map((line, i) => (

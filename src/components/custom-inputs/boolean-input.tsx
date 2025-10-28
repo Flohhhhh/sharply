@@ -123,6 +123,7 @@ export function BooleanInput({
         <div
           id={id}
           role="radiogroup"
+          data-sidebar-focus-target="true"
           aria-labelledby={labelId}
           tabIndex={disabled ? -1 : 0}
           onKeyDown={(e) => {
@@ -185,8 +186,10 @@ export function BooleanInput({
 
   return (
     <div
+      id={id}
       className={`my-auto flex h-fit cursor-pointer items-center justify-between rounded-md border p-3 ${checked === null ? "opacity-20" : ""} ${className}`}
       role="switch"
+      data-sidebar-focus-target="true"
       aria-checked={ariaChecked as any}
       tabIndex={disabled ? -1 : 0}
       aria-disabled={disabled}
@@ -222,7 +225,6 @@ export function BooleanInput({
         ) : null}
       </div>
       <div
-        id={id}
         aria-hidden="true"
         className={`inline-flex h-[1.15rem] w-8 shrink-0 items-center rounded-full border transition-colors ${trackBgClass} ${disabled ? "opacity-50" : ""}`}
         title={
