@@ -108,7 +108,7 @@ export async function buildSeo(params: {
   // Special-case the browse index for clearer SEO
   if (!scope.brandSlug && !scope.categorySlug && !scope.mountShort) {
     const base = process.env.NEXT_PUBLIC_BASE_URL!;
-    const title = "All Gear | Sharply";
+    const title = "All Gear";
     const description =
       "Explore the latest and trending cameras and lenses from Canon, Nikon, Sony, and more, as well as curated lists of gear.";
     const canonical = `${base}/browse`;
@@ -121,7 +121,7 @@ export async function buildSeo(params: {
     category: scope.categorySlug ?? null,
     mountShort: mount?.shortName ?? null,
   });
-  const title = `${plainTitle} | Sharply`;
+  const title = `${plainTitle}`;
   const description = `Explore all ${lists.total} ${plainTitle}`;
   const canonical = buildCanonical(scope, parseFilters(params.searchParams));
   const openGraph = { title, description, url: canonical };
