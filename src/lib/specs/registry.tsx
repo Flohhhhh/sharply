@@ -48,6 +48,7 @@ export type SpecFieldDef = {
   getRawValue: (item: GearItem) => unknown; // Extract raw value from GearItem
   formatDisplay?: (raw: unknown, item: GearItem) => React.ReactNode; // Format for display (table, etc.)
   editElementId?: string; // DOM id to focus in the edit UI when navigating from sidebar
+  condition?: (item: GearItem) => boolean; // Optional: when to show this field
 };
 
 export type SpecSectionDef = {
@@ -78,6 +79,7 @@ export const specDictionary: SpecSectionDef[] = [
           item.gearType === "CAMERA" ? item.cameraSpecs?.cameraType : undefined,
         formatDisplay: (raw) =>
           typeof raw === "string" ? formatCameraType(raw) : undefined,
+        condition: (item) => item.gearType === "CAMERA",
       },
       {
         key: "mounts",
@@ -110,6 +112,7 @@ export const specDictionary: SpecSectionDef[] = [
                 item.announceDatePrecision ?? "DAY",
               )
             : undefined,
+        editElementId: "announced-date",
       },
       {
         key: "releaseDate",
@@ -122,6 +125,7 @@ export const specDictionary: SpecSectionDef[] = [
                 item.releaseDatePrecision ?? "DAY",
               )
             : undefined,
+        editElementId: "release-date",
       },
       {
         key: "msrpNowUsdCents",
@@ -781,6 +785,7 @@ export const specDictionary: SpecSectionDef[] = [
             : item.lensSpecs?.maxApertureWide != null
               ? `f/${Number(item.lensSpecs?.maxApertureWide)}`
               : undefined,
+        editElementId: "aperture-max-wide",
       },
       {
         key: "minAperture",
@@ -796,6 +801,7 @@ export const specDictionary: SpecSectionDef[] = [
             : item.lensSpecs?.minApertureWide != null
               ? `f/${Number(item.lensSpecs?.minApertureWide)}`
               : undefined,
+        editElementId: "aperture-min-wide",
       },
       {
         key: "numberDiaphragmBlades",
@@ -908,6 +914,7 @@ export const specDictionary: SpecSectionDef[] = [
         getRawValue: (item) => item.lensSpecs?.hasStabilizationSwitch,
         formatDisplay: (raw) =>
           raw != null ? (raw ? "Yes" : "No") : undefined,
+        condition: (item) => item.lensSpecs?.hasStabilization === true,
       },
       {
         key: "cipaStabilizationRatingStops",
@@ -917,6 +924,7 @@ export const specDictionary: SpecSectionDef[] = [
           const n = raw == null ? NaN : Number(raw);
           return Number.isFinite(n) ? `${n} stops` : undefined;
         },
+        condition: (item) => item.lensSpecs?.hasStabilization === true,
       },
     ],
   },
@@ -983,6 +991,7 @@ export const specDictionary: SpecSectionDef[] = [
           Array.isArray(raw) && raw.length > 0
             ? raw.map(formatFilterType).join(", ")
             : undefined,
+        editElementId: "acceptsFilterTypes",
       },
       {
         key: "frontFilterThreadSizeMm",
@@ -993,6 +1002,9 @@ export const specDictionary: SpecSectionDef[] = [
           item.lensSpecs?.acceptsFilterTypes?.includes("front-screw-on")
             ? `${Number(raw)}mm`
             : undefined,
+        condition: (item) =>
+          Array.isArray(item.lensSpecs?.acceptsFilterTypes) &&
+          item.lensSpecs!.acceptsFilterTypes!.includes("front-screw-on"),
       },
       {
         key: "rearFilterThreadSizeMm",
@@ -1003,6 +1015,9 @@ export const specDictionary: SpecSectionDef[] = [
           item.lensSpecs?.acceptsFilterTypes?.includes("rear-screw-on")
             ? `${Number(raw)}mm`
             : undefined,
+        condition: (item) =>
+          Array.isArray(item.lensSpecs?.acceptsFilterTypes) &&
+          item.lensSpecs!.acceptsFilterTypes!.includes("rear-screw-on"),
       },
       {
         key: "dropInFilterSizeMm",
@@ -1013,6 +1028,9 @@ export const specDictionary: SpecSectionDef[] = [
           item.lensSpecs?.acceptsFilterTypes?.includes("rear-drop-in")
             ? `${Number(raw)}mm`
             : undefined,
+        condition: (item) =>
+          Array.isArray(item.lensSpecs?.acceptsFilterTypes) &&
+          item.lensSpecs!.acceptsFilterTypes!.includes("rear-drop-in"),
       },
     ],
   },
@@ -1123,6 +1141,7 @@ export const specDictionary: SpecSectionDef[] = [
             : item.fixedLensSpecs?.maxApertureWide != null
               ? `f/${Number(item.fixedLensSpecs?.maxApertureWide)}`
               : undefined,
+        editElementId: "fixed-lens-aperture-max-wide",
       },
       {
         key: "minAperture",
@@ -1139,6 +1158,7 @@ export const specDictionary: SpecSectionDef[] = [
             : item.fixedLensSpecs?.minApertureWide != null
               ? `f/${Number(item.fixedLensSpecs?.minApertureWide)}`
               : undefined,
+        editElementId: "fixed-lens-aperture-min-wide",
       },
       {
         key: "hasAutofocus",
@@ -1259,7 +1279,7 @@ export function buildEditSidebarSections(item: GearItem): SidebarSection[] {
       title: section.title,
       anchor: section.sectionAnchor,
       fields: section.fields
-        .filter((f) => f.label) // Skip fields without labels (like notes header)
+        .filter((f) => (!f.condition || f.condition(item)) && f.label) // Skip fields without labels or failing condition
         .map((field) => ({
           key: field.key,
           label: field.label,

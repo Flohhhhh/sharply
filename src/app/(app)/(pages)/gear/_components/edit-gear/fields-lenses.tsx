@@ -138,7 +138,14 @@ function LensFieldsComponent({
               checked={currentSpecs?.hasStabilization ?? null}
               allowNull
               showStateText
-              onChange={(value) => handleFieldChange("hasStabilization", value)}
+              onChange={(value) => {
+                handleFieldChange("hasStabilization", value);
+                if (value !== true) {
+                  // Clear dependent fields when stabilization is not enabled
+                  handleFieldChange("hasStabilizationSwitch", undefined);
+                  handleFieldChange("cipaStabilizationRatingStops", undefined);
+                }
+              }}
             />
           )}
 
@@ -148,6 +155,7 @@ function LensFieldsComponent({
               id="hasStabilizationSwitch"
               label="Has Stabilization Switch"
               checked={currentSpecs?.hasStabilizationSwitch ?? null}
+              disabled={currentSpecs?.hasStabilization !== true}
               allowNull
               showStateText
               onChange={(value) =>
@@ -165,6 +173,7 @@ function LensFieldsComponent({
               id="cipaStabilizationRatingStops"
               label="CIPA Stabilization Rating Stops"
               suffix="stops"
+              disabled={currentSpecs?.hasStabilization !== true}
               value={numOrNull(currentSpecs?.cipaStabilizationRatingStops)}
               onChange={(value) =>
                 handleFieldChange("cipaStabilizationRatingStops", value)
@@ -477,7 +486,11 @@ function LensFieldsComponent({
 
           {/* Accepts Filter Types */}
           {showWhenMissing((initialSpecs as any)?.acceptsFilterTypes) && (
-            <div className="space-y-2 md:col-span-2">
+            <div
+              id="acceptsFilterTypes"
+              data-force-ring-container
+              className="space-y-2 md:col-span-2"
+            >
               <Label htmlFor="acceptsFilterTypes">Accepts Filter Types</Label>
               <MultiSelect
                 inDialog

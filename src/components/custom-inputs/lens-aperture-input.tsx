@@ -120,7 +120,7 @@ export default function LensApertureInput({
       : null;
 
   return (
-    <div className={`w-full ${className}`}>
+    <div id={id} data-force-ring-container className={`w-full ${className}`}>
       <div className="space-y-2">
         <Label htmlFor={id}>{label}</Label>
       </div>
