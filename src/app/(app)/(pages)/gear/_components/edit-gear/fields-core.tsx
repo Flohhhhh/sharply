@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, memo, useMemo } from "react";
+import { useCallback, memo, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
 import { DateInput } from "~/components/custom-inputs";
@@ -17,6 +17,10 @@ import {
   TooltipContent,
 } from "~/components/ui/tooltip";
 import { InfoIcon } from "lucide-react";
+import {
+  normalizeAmazonProductLink,
+  toDisplayAmazonProductLink,
+} from "~/lib/validation/amazon";
 
 interface CoreFieldsProps {
   currentSpecs: {
@@ -130,6 +134,46 @@ function CoreFieldsComponent({
     (field: "linkManufacturer" | "linkMpb" | "linkAmazon", value: string) => {
       const v = value.trim();
       onChange(field, v.length ? v : null);
+    },
+    [onChange],
+  );
+
+  const [amazonNoticeUrl, setAmazonNoticeUrl] = useState<string | null>(null);
+  const [amazonPreviewUrl, setAmazonPreviewUrl] = useState<string | null>(null);
+
+  const handleAmazonLinkInputChange = useCallback(
+    (value: string) => {
+      const trimmed = value.trim();
+      onChange("linkAmazon", trimmed.length ? trimmed : null);
+      // While typing, show a preview if we can canonicalize and it's different
+      const canonical = normalizeAmazonProductLink(value);
+      if (canonical && canonical !== trimmed) {
+        const display = toDisplayAmazonProductLink(canonical) || canonical;
+        setAmazonPreviewUrl(display);
+      } else {
+        setAmazonPreviewUrl(null);
+      }
+      // Clear any prior post-blur notice while user edits
+      setAmazonNoticeUrl(null);
+    },
+    [onChange],
+  );
+
+  const handleAmazonLinkBlur = useCallback(
+    (value: string) => {
+      const trimmed = value.trim();
+      const canonical = normalizeAmazonProductLink(value);
+      if (canonical) {
+        onChange("linkAmazon", canonical);
+        // Only show the post-blur notice if we actually changed it
+        setAmazonNoticeUrl(canonical !== trimmed ? canonical : null);
+        setAmazonPreviewUrl(null);
+        return;
+      }
+      // Fallback to standard trim/null behavior if not canonicalizable
+      onChange("linkAmazon", trimmed.length ? trimmed : null);
+      setAmazonNoticeUrl(null);
+      setAmazonPreviewUrl(null);
     },
     [onChange],
   );
@@ -559,10 +603,41 @@ function CoreFieldsComponent({
                 id="linkAmazon"
                 type="url"
                 value={currentSpecs.linkAmazon || ""}
-                onChange={(e) => handleLinkChange("linkAmazon", e.target.value)}
+                onChange={(e) => handleAmazonLinkInputChange(e.target.value)}
+                onBlur={(e) => handleAmazonLinkBlur(e.target.value)}
                 className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder="https://amazon.com/..."
               />
+              {amazonNoticeUrl ? (
+                <p className="text-muted-foreground mt-1 text-xs">
+                  This link was automatically changed to{" "}
+                  <a
+                    href={amazonNoticeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline"
+                  >
+                    {toDisplayAmazonProductLink(amazonNoticeUrl) ||
+                      amazonNoticeUrl}
+                  </a>
+                  . Please verify it still works.
+                </p>
+              ) : (
+                amazonPreviewUrl && (
+                  <p className="text-muted-foreground mt-1 text-xs">
+                    This link will be saved as{" "}
+                    <a
+                      href={amazonPreviewUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline"
+                    >
+                      {amazonPreviewUrl}
+                    </a>
+                    . Please verify it will work.
+                  </p>
+                )
+              )}
             </div>
           )}
         </div>
