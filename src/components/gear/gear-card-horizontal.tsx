@@ -114,10 +114,10 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
                   <Image
                     src={thumbnailUrl}
                     alt={name}
-                    fill
+                    width={240}
+                    height={160}
                     sizes="(max-width: 768px) 176px, 176px"
-                    className="h-full w-full object-contain transition-opacity group-hover:opacity-50"
-                    unoptimized
+                    className="h-full w-full object-contain p-3 transition-opacity group-hover:opacity-50"
                   />
                 ) : (
                   <div className="text-muted-foreground/50 flex h-full w-full items-center justify-center px-2 text-center text-sm font-bold">
