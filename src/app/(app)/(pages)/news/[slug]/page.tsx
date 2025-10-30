@@ -12,6 +12,8 @@ import { TableOfContents } from "~/components/rich-text/table-of-contents";
 import { GearCardHorizontal } from "~/components/gear/gear-card-horizontal";
 import { fetchGearBySlug } from "~/server/gear/service";
 import { getBrandNameById } from "~/lib/mapping/brand-map";
+import Discord from "next-auth/providers/discord";
+import DiscordBanner from "~/components/discord-banner";
 
 export const revalidate = 60;
 
@@ -130,10 +132,11 @@ export default async function DynamicPage({
           ) : null}
         </div>
 
-        <aside className="sticky top-24 col-span-2 hidden h-fit self-start lg:block">
+        <aside className="sticky top-24 col-span-2 hidden h-fit space-y-8 self-start lg:block">
           <TableOfContents contentSelector="#news-content" />
         </aside>
       </div>
+      <DiscordBanner label="Join the Discussion" className="w-full max-w-5xl" />
     </div>
   );
 }
