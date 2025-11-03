@@ -46,6 +46,7 @@ import { auth } from "~/server/auth";
 import { requireRole } from "~/server/auth/index";
 import DiscordLink from "~/components/discord-link";
 import DiscordBanner from "~/components/discord-banner";
+import Image from "next/image";
 // Removed LensApertureDisplay in favor of standardized spec rows using mapping
 
 export const revalidate = 3600;
@@ -197,10 +198,13 @@ export default async function GearPage({ params }: GearPageProps) {
         <div>
           {item.thumbnailUrl ? (
             <div className="bg-muted dark:bg-card overflow-hidden rounded-md py-12">
-              <img
+              <Image
                 src={item.thumbnailUrl}
                 alt={item.name}
                 className="h-full max-h-[300px] w-full object-contain sm:max-h-[550px]"
+                width={720}
+                height={480}
+                priority
               />
             </div>
           ) : (
@@ -339,6 +343,7 @@ export default async function GearPage({ params }: GearPageProps) {
                     slug={slug}
                     initialInWishlist={initialInWishlist}
                     initialIsOwned={initialIsOwned}
+                    currentThumbnailUrl={item.thumbnailUrl ?? null}
                   />
                 );
               };

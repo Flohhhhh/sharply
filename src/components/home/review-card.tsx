@@ -29,11 +29,12 @@ function getInitials(name: string) {
 
 export function ReviewCard({ post }: { post: ReviewPost }) {
   return (
-    <article className="group dark:bg-accent/50 flex flex-col overflow-hidden rounded-xl border bg-white shadow-sm">
+    <Link
+      href={post.href}
+      className="group bg-background flex flex-col overflow-hidden rounded-xl border shadow-sm"
+    >
       <div className="flex flex-1 flex-col px-3 pt-3 pb-3">
-        <Link href={post.href} className="font-semibold hover:underline">
-          {post.title}
-        </Link>
+        <h3 className="font-semibold group-hover:underline">{post.title}</h3>
 
         <div className="text-muted-foreground mt-2 flex items-center gap-2 text-sm">
           <Avatar className="size-6">
@@ -49,16 +50,16 @@ export function ReviewCard({ post }: { post: ReviewPost }) {
           <span>{post.date}</span>
         </div>
 
-        <div className="mt-3">
+        <div className="mt-2">
           <Separator className="my-3" />
           <div className="flex items-center gap-3">
-            <Progress value={post.ratingPercent} className="h-2" />
-            <span className="text-muted-foreground w-10 text-right text-xs">
+            <Progress value={post.ratingPercent} className="h-1.5" />
+            <span className="text-muted-foreground w-12 text-right text-xs">
               {post.ratingPercent}%
             </span>
           </div>
         </div>
       </div>
-    </article>
+    </Link>
   );
 }

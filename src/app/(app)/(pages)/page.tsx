@@ -9,9 +9,9 @@ import { Suspense } from "react";
 import { NewsCard as HomeNewsCard } from "~/components/home/news-card";
 import { ReviewCard, type ReviewPost } from "~/components/home/review-card";
 import TrendingList from "~/components/trending-list";
-import { getNewsPosts } from "~/server/payload/service";
+import { getNewsPosts, getReviews } from "~/server/payload/service";
 import { formatHumanDate } from "~/lib/utils";
-import type { News } from "~/payload-types";
+import type { News, Review } from "~/payload-types";
 import DiscordBanner from "~/components/discord-banner";
 
 export const revalidate = 60;
@@ -78,8 +78,34 @@ export default async function Home() {
   const featuredPost = posts[0] ? toHomePost(posts[0]!) : null;
   const otherPosts = posts.slice(1, 7).map(toHomePost);
 
-  // TODO: Add editorial reviews from Payload once we have some
-  const reviewItems = [] as ReviewPost[];
+  // Editorial reviews from Payload
+  const payloadReviews: Review[] = await getReviews();
+
+  const calculateRatingPercent = (
+    genreRatings: Review["genreRatings"] | undefined,
+  ): number => {
+    if (!genreRatings) return 0;
+    // Treat "0" as N/A (ignore), map "1" → 0, "2" → 1, "3" → 2
+    const transformed: number[] = Object.values(genreRatings)
+      .map((v) => (v === null || v === undefined ? null : Number(v)))
+      .filter(
+        (v): v is number => typeof v === "number" && !Number.isNaN(v) && v >= 1,
+      )
+      .map((v) => v - 1);
+    if (transformed.length === 0) return 0;
+    const average =
+      transformed.reduce((acc, n) => acc + n, 0) / transformed.length;
+    return Math.round((average / 2) * 100);
+  };
+
+  const reviewItems: ReviewPost[] = payloadReviews.slice(0, 5).map((r) => ({
+    id: r.id,
+    title: r.title,
+    href: `/reviews/${r.slug}`,
+    author: { name: "Sharply Editorial" },
+    date: formatHumanDate(r.createdAt),
+    ratingPercent: calculateRatingPercent(r.genreRatings),
+  }));
 
   return (
     <div className="min-h-screen px-4 sm:px-6">
