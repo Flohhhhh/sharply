@@ -17,6 +17,8 @@ import { shouldBlockFuzzyResults } from "~/lib/utils/gear-creation";
 import { renameGearData } from "./data";
 import { db } from "~/server/db";
 import { auditLogs } from "~/server/db/schema";
+import { updateGearThumbnailData } from "./data";
+import { getGearIdBySlug } from "~/server/gear/data";
 
 export async function performFuzzySearchAdmin(params: {
   inputName: string;
@@ -119,4 +121,43 @@ export async function renameGearService(params: {
   } catch {}
 
   return updated;
+}
+
+export async function setGearThumbnailService(params: {
+  gearId?: string;
+  slug?: string;
+  thumbnailUrl: string | null;
+}): Promise<{ id: string; slug: string; thumbnailUrl: string | null }> {
+  const session = await requireUser();
+  if (!requireRole(session, ["ADMIN"] as SessionRole[])) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+
+  const { gearId: maybeId, slug, thumbnailUrl } = params;
+  let gearId = maybeId;
+  if (!gearId) {
+    if (!slug) throw Object.assign(new Error("Missing gear reference"), { status: 400 });
+    const id = await getGearIdBySlug(slug);
+    if (!id) throw Object.assign(new Error("Gear not found"), { status: 404 });
+    gearId = id;
+  }
+
+  const updated = await updateGearThumbnailData({ gearId, thumbnailUrl });
+
+  try {
+    await db.insert(auditLogs).values({
+      action: "GEAR_EDIT_APPROVE", // closest available action for now
+      actorUserId: session.user.id,
+      gearId: updated.id,
+    });
+  } catch {}
+
+  return updated;
+}
+
+export async function clearGearThumbnailService(params: {
+  gearId?: string;
+  slug?: string;
+}): Promise<{ id: string; slug: string; thumbnailUrl: string | null }> {
+  return setGearThumbnailService({ ...params, thumbnailUrl: null });
 }

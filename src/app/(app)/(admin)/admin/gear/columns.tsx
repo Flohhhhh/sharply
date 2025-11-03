@@ -7,13 +7,14 @@ import Link from "next/link";
 import { formatHumanDate } from "~/lib/utils";
 import { RenameGearDialog } from "~/components/gear/rename-gear-dialog";
 import { Button } from "~/components/ui/button";
-import { Pencil, Copy } from "lucide-react";
+import { Pencil, Copy, Image as ImageIcon } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
 import { toast } from "sonner";
+import { GearImageModal } from "~/components/modals/gear-image-modal";
 
 // TO ADD A COLUMN:
 // 1. Add the field to `adminGearSelect` in `~/server/admin/gear/data.ts`.
@@ -85,6 +86,16 @@ export const columns: ColumnDef<AdminGearTableRow>[] = [
             trigger={
               <Button variant="ghost" size="sm">
                 <Pencil className="h-4 w-4" />
+              </Button>
+            }
+          />
+
+          <GearImageModal
+            gearId={row.original.id}
+            currentThumbnailUrl={row.original.thumbnailUrl ?? undefined}
+            trigger={
+              <Button variant="ghost" size="sm" aria-label="Upload Thumbnail">
+                <ImageIcon className="h-4 w-4" />
               </Button>
             }
           />

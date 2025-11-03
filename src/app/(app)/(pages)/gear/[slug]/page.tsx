@@ -343,6 +343,7 @@ export default async function GearPage({ params }: GearPageProps) {
                     slug={slug}
                     initialInWishlist={initialInWishlist}
                     initialIsOwned={initialIsOwned}
+                    currentThumbnailUrl={item.thumbnailUrl ?? null}
                   />
                 );
               };

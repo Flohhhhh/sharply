@@ -11,9 +11,10 @@ export function GradientImageTool() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [bg, setBg] = useState<HTMLImageElement | null>(null);
-  const [width, setWidth] = useState<number>(1600);
-  const [height, setHeight] = useState<number>(1200);
-  const [paddingPct, setPaddingPct] = useState<number>(5);
+  const [width, setWidth] = useState<number>(1000);
+  const [height, setHeight] = useState<number>(750);
+  const [paddingPct, setPaddingPct] = useState<number>(20);
+  const [format, setFormat] = useState<"png" | "webp">("webp");
 
   const onFile = useCallback((file: File) => {
     const url = URL.createObjectURL(file);
@@ -82,10 +83,11 @@ export function GradientImageTool() {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const link = document.createElement("a");
-    link.download = `image-${width}x${height}.png`;
-    link.href = canvas.toDataURL("image/png");
+    const mime = format === "png" ? "image/png" : "image/webp";
+    link.download = `image-${width}x${height}.${format}`;
+    link.href = canvas.toDataURL(mime);
     link.click();
-  }, [width, height]);
+  }, [width, height, format]);
 
   // Redraw on control changes
   useEffect(() => {
@@ -139,10 +141,23 @@ export function GradientImageTool() {
             {/* Gradient controls removed in favor of thumbnail background */}
 
             <div className="space-y-2">
+              <Label htmlFor="format">Format</Label>
+              <select
+                id="format"
+                className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                value={format}
+                onChange={(e) => setFormat(e.target.value as "png" | "webp")}
+              >
+                <option value="webp">WEBP (default)</option>
+                <option value="png">PNG</option>
+              </select>
+            </div>
+
+            <div className="space-y-2">
               <Label>Padding ({paddingPct}%)</Label>
               <Slider
                 value={[paddingPct]}
-                min={0}
+                min={10}
                 max={20}
                 step={1}
                 onValueChange={(vals) => setPaddingPct(vals[0] ?? paddingPct)}
@@ -159,7 +174,7 @@ export function GradientImageTool() {
                 onClick={onDownload}
                 disabled={!image}
               >
-                Download PNG
+                {`Download ${format.toUpperCase()}`}
               </Button>
             </div>
           </div>

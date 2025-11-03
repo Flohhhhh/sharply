@@ -10,17 +10,20 @@ import {
   User,
   PackageOpen,
   Package,
+  ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { withBadgeToasts } from "~/components/badges/badge-toast";
 import Link from "next/link";
 import { MultiSelect } from "~/components/ui/multi-select";
 import { AddToCompareButton } from "~/components/compare/add-to-compare-button";
+import { GearImageModal } from "~/components/modals/gear-image-modal";
 
 interface GearActionButtonsProps {
   slug: string;
   initialInWishlist?: boolean | null;
   initialIsOwned?: boolean | null;
+  currentThumbnailUrl?: string | null;
 }
 
 import {
@@ -32,8 +35,10 @@ export function GearActionButtons({
   slug,
   initialInWishlist = null,
   initialIsOwned = null,
+  currentThumbnailUrl = null,
 }: GearActionButtonsProps) {
   const { data: session, status } = useSession();
+  const isAdmin = session?.user?.role === "ADMIN";
   const [inWishlist, setInWishlist] = useState<boolean | null>(
     initialInWishlist,
   );
@@ -176,6 +181,22 @@ export function GearActionButtons({
           View My Collection
         </Button>
       </Link> */}
+
+      {isAdmin && (
+        <GearImageModal
+          slug={slug}
+          currentThumbnailUrl={currentThumbnailUrl ?? undefined}
+          trigger={
+            <Button
+              icon={<ImageIcon className="h-4 w-4" />}
+              variant="outline"
+              className="w-full"
+            >
+              Manage Image
+            </Button>
+          }
+        />
+      )}
     </div>
   );
 }

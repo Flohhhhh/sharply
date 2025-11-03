@@ -294,6 +294,7 @@ const adminGearSelect = {
   gearType: gear.gearType,
   brandId: gear.brandId,
   brandName: brands.name,
+  thumbnailUrl: gear.thumbnailUrl,
   createdAt: gear.createdAt,
 };
 
@@ -439,4 +440,33 @@ export async function renameGearData(
       searchName: row.searchName as unknown as string,
     };
   });
+}
+
+export interface UpdateGearThumbnailParams {
+  gearId: string;
+  thumbnailUrl: string | null;
+}
+
+export interface UpdateGearThumbnailResult {
+  id: string;
+  slug: string;
+  thumbnailUrl: string | null;
+}
+
+/**
+ * Update a gear item's thumbnail URL by id.
+ */
+export async function updateGearThumbnailData(
+  params: UpdateGearThumbnailParams,
+): Promise<UpdateGearThumbnailResult> {
+  const { gearId, thumbnailUrl } = params;
+  const updated = await db
+    .update(gear)
+    .set({ thumbnailUrl })
+    .where(eq(gear.id, gearId))
+    .returning({ id: gear.id, slug: gear.slug, thumbnailUrl: gear.thumbnailUrl });
+  if (!updated[0]) {
+    throw Object.assign(new Error("Gear not found"), { status: 404 });
+  }
+  return updated[0]!;
 }
