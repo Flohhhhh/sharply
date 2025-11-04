@@ -70,7 +70,7 @@ export default async function BrowseCatchAll({
 
   if (depth === 0) {
     return (
-      <main>
+      <main className="space-y-6 pb-24">
         <AllGearContent />
       </main>
     );
@@ -78,7 +78,7 @@ export default async function BrowseCatchAll({
 
   if (depth === 1) {
     return (
-      <main className="space-y-6">
+      <main className="space-y-6 pb-24">
         <Breadcrumbs brand={{ name: brand!.name, slug: brand!.slug }} />
         <h1 className="text-3xl font-semibold">{brand!.name}</h1>
         <BrandContent brandSlug={brand!.slug} />
@@ -88,7 +88,7 @@ export default async function BrowseCatchAll({
 
   if (depth === 2) {
     return (
-      <main className="space-y-6">
+      <main className="space-y-6 pb-24">
         <Breadcrumbs
           brand={{ name: brand!.name, slug: brand!.slug }}
           category={scope.categorySlug!}
@@ -140,7 +140,7 @@ export default async function BrowseCatchAll({
   }
 
   return (
-    <main className="space-y-6">
+    <main className="space-y-6 pb-24">
       <Breadcrumbs
         brand={{ name: brand!.name, slug: brand!.slug }}
         category={scope.categorySlug!}
