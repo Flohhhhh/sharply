@@ -15,7 +15,7 @@ export default async function NewsPage() {
   const posts: News[] = await getNewsPosts();
 
   return (
-    <div className="mx-auto min-h-screen max-w-5xl p-6 pt-24">
+    <div className="mx-auto min-h-screen max-w-5xl p-6 pt-36">
       <h1 className="mb-6 text-4xl font-semibold tracking-tight">
         News & Updates
       </h1>
