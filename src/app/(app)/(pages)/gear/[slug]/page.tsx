@@ -201,7 +201,7 @@ export default async function GearPage({ params }: GearPageProps) {
               <Image
                 src={item.thumbnailUrl}
                 alt={item.name}
-                className="h-full max-h-[300px] w-full object-contain sm:max-h-[550px]"
+                className="h-full max-h-[300px] w-full object-contain sm:max-h-[475px]"
                 width={720}
                 height={480}
                 priority
