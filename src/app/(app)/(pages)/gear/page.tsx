@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatPrice } from "~/lib/mapping";
+import { formatPreferredPrice } from "~/lib/mapping";
 import { BRANDS } from "~/lib/constants";
 import { fetchGearForBrand } from "~/server/gear/service";
 import { Button } from "~/components/ui/button";
@@ -51,6 +51,12 @@ export default async function GearIndex() {
                       g.releaseDate
                         ? `Released ${new Date(g.releaseDate).getFullYear()}`
                         : null
+                    }
+                    priceText={
+                      formatPreferredPrice({
+                        mpbMaxPriceUsdCents: g.mpbMaxPriceUsdCents,
+                        msrpNowUsdCents: g.msrpNowUsdCents,
+                      }).displayText
                     }
                   />
                 </li>

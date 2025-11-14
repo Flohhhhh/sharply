@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatPrice } from "~/lib/mapping";
+import { formatPreferredPrice } from "~/lib/mapping";
 import { formatHumanDate, getConstructionState } from "~/lib/utils";
 import { GearActionButtons } from "~/app/(app)/(pages)/gear/_components/gear-action-buttons";
 import {
@@ -154,6 +154,14 @@ export default async function GearPage({ params }: GearPageProps) {
     { label: item.name },
   ].filter(Boolean) as CrumbItem[];
 
+  const heroPrice = formatPreferredPrice({
+    mpbMaxPriceUsdCents: item.mpbMaxPriceUsdCents,
+    msrpNowUsdCents: item.msrpNowUsdCents,
+  });
+  const heroPriceText = heroPrice.hasPrice
+    ? heroPrice.amountText
+    : heroPrice.displayText;
+
   return (
     <main className="mx-auto max-w-7xl space-y-8 px-4 pt-20 sm:px-6">
       {/* Track page visit for popularity */}
@@ -184,11 +192,15 @@ export default async function GearPage({ params }: GearPageProps) {
               currentSlug={item.slug}
             />
           </div>
-          {item.msrpNowUsdCents && (
-            <div className="mt-2 text-lg font-semibold sm:text-2xl">
-              {formatPrice(item.msrpNowUsdCents)}
-            </div>
-          )}
+          <div
+            className={
+              heroPrice.hasPrice
+                ? "mt-2 text-lg font-semibold sm:text-2xl"
+                : "mt-2 text-base font-medium text-muted-foreground"
+            }
+          >
+            {heroPriceText}
+          </div>
         </div>
         {/* Badges */}
         <div>
