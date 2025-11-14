@@ -350,12 +350,13 @@ export const specDictionary: SpecSectionDef[] = [
         getRawValue: (item) => item.cameraSpecs?.availableShutterTypes,
         formatDisplay: (raw: unknown): React.ReactNode | undefined => {
           if (!Array.isArray(raw)) return undefined;
-          const entries = raw
-            .map((value) => (typeof value === "string" ? value.trim() : value))
-            .filter(
-              (value): value is string =>
-                typeof value === "string" && value.length > 0,
-            );
+          const entries = raw.reduce<string[]>((acc, value) => {
+            if (typeof value !== "string") return acc;
+            const trimmed = value.trim();
+            if (trimmed.length === 0) return acc;
+            acc.push(trimmed);
+            return acc;
+          }, []);
           if (entries.length === 0) return undefined;
           return (
             <ul className="list-disc pl-4 space-y-1 text-left">
