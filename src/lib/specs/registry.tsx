@@ -348,7 +348,7 @@ export const specDictionary: SpecSectionDef[] = [
         key: "availableShutterTypes",
         label: "Available Shutter Types",
         getRawValue: (item) => item.cameraSpecs?.availableShutterTypes,
-        formatDisplay: (raw) => {
+        formatDisplay: (raw: unknown): React.ReactNode | undefined => {
           if (!Array.isArray(raw)) return undefined;
           const entries = raw
             .map((value) => (typeof value === "string" ? value.trim() : value))
