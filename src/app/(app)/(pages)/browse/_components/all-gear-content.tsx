@@ -3,6 +3,7 @@ import Link from "next/link";
 import { GearCard } from "~/components/gear/gear-card";
 import { Button } from "~/components/ui/button";
 import { BRANDS } from "~/lib/constants";
+import { formatPreferredPrice } from "~/lib/mapping";
 import { OtherBrandsSelect } from "./other-brands-select";
 import { getLatestGear } from "~/server/gear/browse/data";
 import { fetchTrending } from "~/server/popularity/service";
@@ -88,9 +89,10 @@ export default async function AllGearContent({
                   : null
               }
               priceText={
-                g.msrpNowUsdCents != null
-                  ? `$${(g.msrpNowUsdCents / 100).toLocaleString()}`
-                  : null
+                formatPreferredPrice({
+                  mpbMaxPriceUsdCents: g.mpbMaxPriceUsdCents,
+                  msrpNowUsdCents: g.msrpNowUsdCents,
+                }).displayText
               }
             />
           ))}
@@ -120,9 +122,10 @@ export default async function AllGearContent({
               brandName={g.brandName}
               gearType={g.gearType}
               priceText={
-                (g as any).msrpNowUsdCents != null
-                  ? `$${(((g as any).msrpNowUsdCents as number) / 100).toLocaleString()}`
-                  : null
+                formatPreferredPrice({
+                  mpbMaxPriceUsdCents: (g as any).mpbMaxPriceUsdCents,
+                  msrpNowUsdCents: (g as any).msrpNowUsdCents,
+                }).displayText
               }
             />
           ))}

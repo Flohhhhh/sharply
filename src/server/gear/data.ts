@@ -165,6 +165,7 @@ export type GearCardRow = {
   brandSlug: string | null;
   thumbnailUrl: string | null;
   msrpNowUsdCents: number | null;
+  mpbMaxPriceUsdCents: number | null;
   msrpAtLaunchUsdCents: number | null;
   releaseDate: Date | null;
   createdAt: Date;
@@ -187,6 +188,7 @@ export async function fetchLatestGearCardsData(
       brandSlug: brands.slug,
       thumbnailUrl: gear.thumbnailUrl,
       msrpNowUsdCents: gear.msrpNowUsdCents,
+      mpbMaxPriceUsdCents: gear.mpbMaxPriceUsdCents,
       msrpAtLaunchUsdCents: gear.msrpAtLaunchUsdCents,
       releaseDate: gear.releaseDate,
       createdAt: gear.createdAt,
@@ -218,7 +220,8 @@ export async function fetchBrandGearData(
       brandName: brands.name,
       brandSlug: brands.slug,
       thumbnailUrl: gear.thumbnailUrl,
-      msrpUsdCents: gear.msrpNowUsdCents,
+      msrpNowUsdCents: gear.msrpNowUsdCents,
+      mpbMaxPriceUsdCents: gear.mpbMaxPriceUsdCents,
       releaseDate: gear.releaseDate,
       createdAt: gear.createdAt,
       resolutionMp: cameraSpecs.resolutionMp,
