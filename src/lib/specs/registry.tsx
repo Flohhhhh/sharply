@@ -1,6 +1,6 @@
 import type { SpecsTableSection } from "~/app/(app)/(pages)/gear/_components/specs-table";
 import type { GearItem } from "~/types/gear";
-import { formatHumanDateWithPrecision } from "~/lib/utils";
+import { capitalize, formatHumanDateWithPrecision } from "~/lib/utils";
 import {
   formatPrice,
   formatDimensions,
@@ -347,8 +347,20 @@ export const specDictionary: SpecSectionDef[] = [
         key: "availableShutterTypes",
         label: "Available Shutter Types",
         getRawValue: (item) => item.cameraSpecs?.availableShutterTypes,
-        formatDisplay: (raw) =>
-          Array.isArray(raw) && raw.length > 0 ? raw.join(", ") : undefined,
+        formatDisplay: (raw) => {
+          if (!Array.isArray(raw)) return undefined;
+          const entries = raw.filter(
+            (value): value is string => typeof value === "string" && value.length,
+          );
+          if (entries.length === 0) return undefined;
+          return (
+            <ul className="list-disc list-inside space-y-1">
+              {entries.map((type) => (
+                <li key={type}>{capitalize(type)}</li>
+              ))}
+            </ul>
+          );
+        },
         editElementId: "availableShutterTypes",
       },
     ],
