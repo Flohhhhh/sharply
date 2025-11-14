@@ -1,11 +1,12 @@
 import type { SpecsTableSection } from "~/app/(app)/(pages)/gear/_components/specs-table";
 import type { GearItem } from "~/types/gear";
-import { capitalize, formatHumanDateWithPrecision } from "~/lib/utils";
+import { formatHumanDateWithPrecision } from "~/lib/utils";
 import {
   formatPrice,
   formatDimensions,
   formatCardSlotDetails,
   formatCameraType,
+  formatShutterType,
 } from "~/lib/mapping";
 import {
   getMountLongNameById,
@@ -349,15 +350,17 @@ export const specDictionary: SpecSectionDef[] = [
         getRawValue: (item) => item.cameraSpecs?.availableShutterTypes,
         formatDisplay: (raw) => {
           if (!Array.isArray(raw)) return undefined;
-          const entries = raw.filter(
-            (value): value is string =>
-              typeof value === "string" && value.length > 0,
-          );
+          const entries = raw
+            .map((value) => (typeof value === "string" ? value.trim() : value))
+            .filter(
+              (value): value is string =>
+                typeof value === "string" && value.length > 0,
+            );
           if (entries.length === 0) return undefined;
           return (
-            <ul className="list-disc list-inside space-y-1">
+            <ul className="list-disc pl-4 space-y-1 text-left">
               {entries.map((type) => (
-                <li key={type}>{capitalize(type)}</li>
+                <li key={type}>{formatShutterType(type)}</li>
               ))}
             </ul>
           );

@@ -22,6 +22,9 @@ export {
 // Camera type formatter
 export { formatCameraType } from "./camera-type-map";
 
+// Shutter type formatter
+export { formatShutterType } from "./shutter-types-map";
+
 // Lens aperture formatting
 export {
   formatApertureSingle,
