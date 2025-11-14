@@ -9,6 +9,7 @@ import { FilterPills } from "~/components/search/filter-pills";
 import { SortSelect } from "~/components/search/sort-select";
 import MountButtons from "../_components/mount-buttons";
 import Breadcrumbs from "../_components/breadcrumbs";
+import { getItemDisplayPrice } from "~/lib/mapping";
 
 export const dynamicParams = true;
 
@@ -127,11 +128,7 @@ export default async function BrowseCatchAll({
                   ? `Released ${new Date(g.releaseDate).getFullYear()}`
                   : null
               }
-              priceText={
-                g.msrpNowUsdCents != null
-                  ? `$${(g.msrpNowUsdCents / 100).toLocaleString()}`
-                  : null
-              }
+              priceText={getItemDisplayPrice(g, { style: "short" })}
             />
           ))}
         </div>
@@ -175,11 +172,7 @@ export default async function BrowseCatchAll({
                 ? `Released ${new Date(g.releaseDate).getFullYear()}`
                 : null
             }
-            priceText={
-              g.msrpNowUsdCents != null
-                ? `$${(g.msrpNowUsdCents / 100).toLocaleString()}`
-                : null
-            }
+            priceText={getItemDisplayPrice(g, { style: "short" })}
           />
         ))}
       </div>
