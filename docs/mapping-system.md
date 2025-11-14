@@ -11,6 +11,7 @@ src/lib/mapping/
 ├── index.ts              # Main export file
 ├── mounts-map.ts         # Mount type transformations
 ├── lens-aperture-map.ts  # Aperture formatting (new)
+├── shutter-types-map.ts  # Shutter type labels/formatting
 └── price-map.ts          # Price formatting utilities
 ```
 
@@ -96,6 +97,17 @@ import {
     → `{ maxText: "f/4.5", minText: "f/16" }`
   - `{ maxApertureWide: 5.6, maxApertureTele: 6.3, minApertureWide: 16, minApertureTele: 22 }`
     → `{ maxText: "f/5.6 - 6.3", minText: "f/16 - 22" }`
+
+### Shutter Type Formatting (`shutter-types-map.ts`)
+
+#### `formatShutterType(shutterType: string | null | undefined): string`
+
+- **Purpose**: Converts shutter type identifiers (e.g., `"efc"`) into human-readable labels.
+- **Logic**: Looks up identifiers in `SHUTTER_TYPE_LABELS` (mapping `"efc"` → `"Electronic Front-Curtain"`), falling back to simple capitalization when a label isn't present.
+- **Examples**:
+  - `"mechanical"` → `"Mechanical"`
+  - `"efc"` → `"Electronic Front-Curtain"`
+  - `"electronic"` → `"Electronic"`
 
 ## Design Principles
 

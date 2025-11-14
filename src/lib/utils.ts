@@ -7,6 +7,12 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/** Capitalizes the first letter of a string (safe for empty/undefined inputs). */
+export function capitalize(value: string | null | undefined): string {
+  if (!value) return "";
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
 export function normalizeSearchName(name: string, brandName?: string) {
   // If no brand name provided, just normalize the gear name
   if (!brandName) {

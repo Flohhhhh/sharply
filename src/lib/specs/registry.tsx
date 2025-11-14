@@ -7,6 +7,7 @@ import {
   formatLensDimensions,
   formatCardSlotDetails,
   formatCameraType,
+  formatShutterType,
 } from "~/lib/mapping";
 import {
   getMountLongNameById,
@@ -352,8 +353,24 @@ export const specDictionary: SpecSectionDef[] = [
         key: "availableShutterTypes",
         label: "Available Shutter Types",
         getRawValue: (item) => item.cameraSpecs?.availableShutterTypes,
-        formatDisplay: (raw) =>
-          Array.isArray(raw) && raw.length > 0 ? raw.join(", ") : undefined,
+        formatDisplay: (raw: unknown): React.ReactNode | undefined => {
+          if (!Array.isArray(raw)) return undefined;
+          const entries = raw.reduce<string[]>((acc, value) => {
+            if (typeof value !== "string") return acc;
+            const trimmed = value.trim();
+            if (trimmed.length === 0) return acc;
+            acc.push(trimmed);
+            return acc;
+          }, []);
+          if (entries.length === 0) return undefined;
+          return (
+            <ul className="list-disc pl-4 space-y-1 text-left">
+              {entries.map((type) => (
+                <li key={type}>{formatShutterType(type)}</li>
+              ))}
+            </ul>
+          );
+        },
         editElementId: "availableShutterTypes",
       },
     ],
