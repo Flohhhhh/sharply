@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, memo } from "react";
+import { useCallback, useEffect, memo } from "react";
 import type { lensSpecs } from "~/server/db/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
@@ -73,6 +73,30 @@ function LensFieldsComponent({
   const showWhenMissing = (v: unknown): boolean =>
     !showMissingOnly || isMissing(v);
 
+  const isPrimeLens = currentSpecs?.isPrime === true;
+  const hasStabilization = currentSpecs?.hasStabilization === true;
+
+  useEffect(() => {
+    if (!isPrimeLens) return;
+    if (currentSpecs?.hasInternalZoom === null) return;
+    handleFieldChange("hasInternalZoom", null);
+  }, [currentSpecs?.hasInternalZoom, handleFieldChange, isPrimeLens]);
+
+  useEffect(() => {
+    if (hasStabilization) return;
+    if (currentSpecs?.hasStabilizationSwitch !== undefined) {
+      handleFieldChange("hasStabilizationSwitch", undefined);
+    }
+    if (currentSpecs?.cipaStabilizationRatingStops !== undefined) {
+      handleFieldChange("cipaStabilizationRatingStops", undefined);
+    }
+  }, [
+    currentSpecs?.cipaStabilizationRatingStops,
+    currentSpecs?.hasStabilizationSwitch,
+    handleFieldChange,
+    hasStabilization,
+  ]);
+
   return (
     <Card
       id={sectionId}
@@ -138,14 +162,7 @@ function LensFieldsComponent({
               checked={currentSpecs?.hasStabilization ?? null}
               allowNull
               showStateText
-              onChange={(value) => {
-                handleFieldChange("hasStabilization", value);
-                if (value !== true) {
-                  // Clear dependent fields when stabilization is not enabled
-                  handleFieldChange("hasStabilizationSwitch", undefined);
-                  handleFieldChange("cipaStabilizationRatingStops", undefined);
-                }
-              }}
+              onChange={(value) => handleFieldChange("hasStabilization", value)}
             />
           )}
 
@@ -155,7 +172,7 @@ function LensFieldsComponent({
               id="hasStabilizationSwitch"
               label="Has Stabilization Switch"
               checked={currentSpecs?.hasStabilizationSwitch ?? null}
-              disabled={currentSpecs?.hasStabilization !== true}
+              disabled={!hasStabilization}
               allowNull
               showStateText
               onChange={(value) =>
@@ -173,7 +190,7 @@ function LensFieldsComponent({
               id="cipaStabilizationRatingStops"
               label="CIPA Stabilization Rating Stops"
               suffix="stops"
-              disabled={currentSpecs?.hasStabilization !== true}
+              disabled={!hasStabilization}
               value={numOrNull(currentSpecs?.cipaStabilizationRatingStops)}
               onChange={(value) =>
                 handleFieldChange("cipaStabilizationRatingStops", value)
@@ -377,6 +394,7 @@ function LensFieldsComponent({
               id="hasInternalZoom"
               label="Has Internal Zoom"
               checked={currentSpecs?.hasInternalZoom ?? null}
+              disabled={isPrimeLens}
               allowNull
               showStateText
               onChange={(value) => handleFieldChange("hasInternalZoom", value)}
