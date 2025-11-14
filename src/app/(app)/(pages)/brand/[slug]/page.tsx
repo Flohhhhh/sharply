@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { GearCard } from "~/components/gear/gear-card";
 import BrandTrendingList from "./_components/brand-trending-list";
+import { formatPreferredPrice } from "~/lib/mapping";
 
 interface BrandPageProps {
   params: Promise<{
@@ -87,6 +88,12 @@ export default async function BrandPage({ params }: BrandPageProps) {
                       month: "short",
                     })
                   : null
+              }
+              priceText={
+                formatPreferredPrice({
+                  mpbMaxPriceUsdCents: item.mpbMaxPriceUsdCents,
+                  msrpNowUsdCents: item.msrpNowUsdCents,
+                }).displayText
               }
             />
           ))}

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { loadHubData, buildSeo } from "~/server/gear/browse/service";
 import { BRANDS, MOUNTS } from "~/lib/constants";
+import { formatPreferredPrice } from "~/lib/mapping";
 import AllGearContent from "../_components/all-gear-content";
 import BrandContent from "../_components/brand-content";
 import { GearCard } from "~/components/gear/gear-card";
@@ -128,9 +129,10 @@ export default async function BrowseCatchAll({
                   : null
               }
               priceText={
-                g.msrpNowUsdCents != null
-                  ? `$${(g.msrpNowUsdCents / 100).toLocaleString()}`
-                  : null
+                formatPreferredPrice({
+                  mpbMaxPriceUsdCents: g.mpbMaxPriceUsdCents,
+                  msrpNowUsdCents: g.msrpNowUsdCents,
+                }).displayText
               }
             />
           ))}
@@ -176,9 +178,10 @@ export default async function BrowseCatchAll({
                 : null
             }
             priceText={
-              g.msrpNowUsdCents != null
-                ? `$${(g.msrpNowUsdCents / 100).toLocaleString()}`
-                : null
+              formatPreferredPrice({
+                mpbMaxPriceUsdCents: g.mpbMaxPriceUsdCents,
+                msrpNowUsdCents: g.msrpNowUsdCents,
+              }).displayText
             }
           />
         ))}
