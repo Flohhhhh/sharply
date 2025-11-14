@@ -12,7 +12,7 @@ export { getMountDisplayName, getMountLongName } from "./mounts-map";
 export { formatPrice } from "./price-map";
 
 // Dimensions formatting utilities
-export { formatDimensions } from "./dimensions-map";
+export { formatDimensions, formatLensDimensions } from "./dimensions-map";
 export {
   titleizeCardEnum,
   formatCardSlotDetails,

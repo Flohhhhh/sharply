@@ -28,6 +28,35 @@ export function formatDimensions(params: {
     .join(" × ");
 }
 
+/**
+ * Specialized formatter for cylindrical lens dimensions.
+ * Displays "Diameter" (from width/height) and "Length" (from depth).
+ */
+export function formatLensDimensions(params: {
+  widthMm?: number | null | undefined;
+  heightMm?: number | null | undefined;
+  depthMm?: number | null | undefined;
+}): string | null {
+  const { widthMm, heightMm, depthMm } = params;
+  const diameterSource =
+    typeof widthMm === "number"
+      ? widthMm
+      : typeof heightMm === "number"
+        ? heightMm
+        : null;
+  const lengthValue = typeof depthMm === "number" ? depthMm : null;
+
+  if (diameterSource == null && lengthValue == null) return null;
+
+  const parts: string[] = [];
+  if (diameterSource != null)
+    parts.push(`Diameter ${formatNumber(diameterSource)}mm`);
+  if (lengthValue != null)
+    parts.push(`Length ${formatNumber(lengthValue)}mm`);
+
+  return parts.join(" × ");
+}
+
 function formatNumber(n: number): string {
   if (Number.isInteger(n)) return String(n);
   return Number(n.toFixed(1)).toString();
