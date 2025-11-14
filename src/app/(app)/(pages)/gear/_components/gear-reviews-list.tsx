@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardTitle,
+} from "~/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import { GENRES } from "~/lib/constants";
@@ -103,13 +108,25 @@ export function GearReviewsList({
         </div>
       )}
 
-      {reviews.map((review) => (
-        <Card key={review.id} className="rounded-md shadow-none">
-          <CardHeader className="pb-3">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <Avatar className="size-6">
+      {reviews.map((review) => {
+        const createdAt = new Date(review.createdAt);
+        const formattedDate = Number.isNaN(createdAt.getTime())
+          ? review.createdAt
+          : createdAt.toLocaleDateString(undefined, {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            });
+        const hasGenres = Array.isArray(review.genres) && review.genres.length > 0;
+        return (
+          <Card
+            key={review.id}
+            className="rounded-xl border border-border bg-background shadow-none"
+          >
+            <CardContent className="space-y-4 px-6 py-5">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="flex min-w-0 items-center gap-3">
+                  <Avatar className="size-9">
                     <AvatarImage
                       src={review.createdBy.image ?? undefined}
                       alt={review.createdBy.name ?? "User"}
@@ -118,24 +135,37 @@ export function GearReviewsList({
                       {(review.createdBy.name || "U").slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <CardTitle className="truncate text-base">
-                    {review.createdBy.name || "Anonymous"}
-                  </CardTitle>
+                  <div className="min-w-0">
+                    <CardTitle className="truncate text-base">
+                      {review.createdBy.name || "Anonymous"}
+                    </CardTitle>
+                    {hasGenres ? null : (
+                      <p className="text-muted-foreground text-xs">
+                        Shared a review
+                      </p>
+                    )}
+                  </div>
                 </div>
                 {review.recommend != null && (
-                  <div className="mt-1 text-xs font-medium">
-                    <span
-                      className={
-                        review.recommend ? "text-emerald-600" : "text-red-600"
-                      }
-                    >
-                      {review.recommend ? "Recommended" : "Not Recommended"}
-                    </span>
-                  </div>
+                  <span
+                    className={`text-xs font-semibold uppercase tracking-wide ${
+                      review.recommend
+                        ? "text-emerald-600"
+                        : "text-red-500"
+                    }`}
+                  >
+                    {review.recommend ? "Recommended" : "Not Recommended"}
+                  </span>
                 )}
-                {Array.isArray(review.genres) && review.genres.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {review.genres.map((gid) => {
+              </div>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                {review.content}
+              </p>
+            </CardContent>
+            <CardFooter className="border-t flex-wrap justify-between gap-3 px-6 py-4 text-xs text-muted-foreground">
+              <div className="flex flex-wrap gap-2">
+                {hasGenres
+                  ? review.genres!.map((gid) => {
                       const match = (GENRES as any[]).find(
                         (g) =>
                           (g.slug as string) === gid ||
@@ -151,20 +181,16 @@ export function GearReviewsList({
                           {label}
                         </Badge>
                       );
-                    })}
-                  </div>
-                )}
+                    })
+                  : (
+                      <span>No genres noted</span>
+                    )}
               </div>
-              <div className="text-muted-foreground flex-shrink-0 text-sm">
-                {new Date(review.createdAt).toLocaleDateString()}
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <p className="text-muted-foreground text-sm">{review.content}</p>
-          </CardContent>
-        </Card>
-      ))}
+              <span className="whitespace-nowrap">{formattedDate}</span>
+            </CardFooter>
+          </Card>
+        );
+      })}
     </div>
   );
 }
