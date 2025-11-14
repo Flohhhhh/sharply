@@ -88,7 +88,7 @@ export const columns: ColumnDef<AdminGearTableRow>[] = [
             onSuccess={(res) => {
               // Optimistically update any cached admin gear list pages where this row exists,
               // then revalidate to ensure freshness.
-              mutate(
+              void mutate(
                 (key) =>
                   typeof key === "string" &&
                   key.startsWith("/api/admin/gear/list?"),
