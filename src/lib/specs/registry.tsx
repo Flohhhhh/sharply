@@ -4,6 +4,7 @@ import { formatHumanDateWithPrecision } from "~/lib/utils";
 import {
   formatPrice,
   formatDimensions,
+  formatLensDimensions,
   formatCardSlotDetails,
   formatCameraType,
 } from "~/lib/mapping";
@@ -173,7 +174,7 @@ export const specDictionary: SpecSectionDef[] = [
             item.depthMm == null
           )
             return undefined;
-          const dims = formatDimensions({
+          const dimensionsInput = {
             widthMm:
               typeof item.widthMm === "number"
                 ? item.widthMm
@@ -192,7 +193,11 @@ export const specDictionary: SpecSectionDef[] = [
                 : item.depthMm != null
                   ? Number(item.depthMm)
                   : null,
-          });
+          };
+          const dims =
+            item.gearType === "LENS"
+              ? formatLensDimensions(dimensionsInput)
+              : formatDimensions(dimensionsInput);
           return dims || undefined;
         },
         editElementId: "widthMm",
