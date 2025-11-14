@@ -7,7 +7,6 @@ import { OtherBrandsSelect } from "./other-brands-select";
 import { getLatestGear } from "~/server/gear/browse/data";
 import { fetchTrending } from "~/server/popularity/service";
 import { getItemDisplayPrice } from "~/lib/mapping";
-import type { GearItem } from "~/types/gear";
 
 export default async function AllGearContent({
   brandSlug,
@@ -89,7 +88,7 @@ export default async function AllGearContent({
                   ? `Released ${new Date(g.releaseDate as any).getFullYear()}`
                   : null
               }
-              priceText={getItemDisplayPrice(g as GearItem, { style: "short" })}
+              priceText={getItemDisplayPrice(g, { style: "short" })}
             />
           ))}
         </div>
@@ -117,7 +116,7 @@ export default async function AllGearContent({
               name={g.name}
               brandName={g.brandName}
               gearType={g.gearType}
-              priceText={getItemDisplayPrice(g as GearItem, { style: "short" })}
+              priceText={getItemDisplayPrice(g, { style: "short" })}
             />
           ))}
         </div>

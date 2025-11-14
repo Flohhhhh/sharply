@@ -14,6 +14,11 @@ type FormatPriceOptions = {
   style?: "long" | "short";
 };
 
+type PriceableGear = Pick<
+  GearItem,
+  "msrpNowUsdCents" | "mpbMaxPriceUsdCents"
+>;
+
 /**
  * Format price from cents to readable currency string
  * @param priceCents - Price in cents (e.g., 324900 for $3,249.00)
@@ -36,7 +41,7 @@ export function formatPrice(
  * MSRP as a fallback. When no values exist we render a helpful empty state.
  */
 export function getItemDisplayPrice(
-  item: GearItem | null | undefined,
+  item: PriceableGear | null | undefined,
   { style = "long" }: FormatPriceOptions = {},
 ): string {
   const cents =
