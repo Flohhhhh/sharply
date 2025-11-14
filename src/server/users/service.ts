@@ -71,6 +71,7 @@ type GearListItem = {
   name: string;
   gearType: string;
   msrpNowUsdCents: number | null;
+  mpbMaxPriceUsdCents: number | null;
   thumbnailUrl: string | null;
   brand: { id: string; name: string; slug: string } | null;
   // mount removed from here; UI should resolve mounts separately if needed
@@ -86,6 +87,7 @@ export async function fetchUserWishlistItems(
       name: gear.name,
       gearType: gear.gearType,
       msrpNowUsdCents: gear.msrpNowUsdCents,
+      mpbMaxPriceUsdCents: gear.mpbMaxPriceUsdCents,
       thumbnailUrl: gear.thumbnailUrl,
       brand: { id: brands.id, name: brands.name, slug: brands.slug },
     })
@@ -106,6 +108,7 @@ export async function fetchUserOwnedItems(
       name: gear.name,
       gearType: gear.gearType,
       msrpNowUsdCents: gear.msrpNowUsdCents,
+      mpbMaxPriceUsdCents: gear.mpbMaxPriceUsdCents,
       thumbnailUrl: gear.thumbnailUrl,
       brand: { id: brands.id, name: brands.name, slug: brands.slug },
     })

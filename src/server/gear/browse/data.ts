@@ -79,6 +79,7 @@ export async function getLatestGear(
       releaseDate: gear.releaseDate,
       createdAt: gear.createdAt,
       msrpNowUsdCents: gear.msrpNowUsdCents,
+      mpbMaxPriceUsdCents: gear.mpbMaxPriceUsdCents,
     })
     .from(gear)
     .leftJoin(brands, eq(gear.brandId, brands.id))
@@ -113,6 +114,7 @@ export async function searchGear(input: SearchInput) {
           thumbnailUrl: gear.thumbnailUrl,
           releaseDate: gear.releaseDate,
           msrpNowUsdCents: gear.msrpNowUsdCents,
+          mpbMaxPriceUsdCents: gear.mpbMaxPriceUsdCents,
         })
         .from(gear)
         .leftJoin(gearMounts, sql`${gear.id} = ${gearMounts.gearId}`)
@@ -126,6 +128,7 @@ export async function searchGear(input: SearchInput) {
           thumbnailUrl: gear.thumbnailUrl,
           releaseDate: gear.releaseDate,
           msrpNowUsdCents: gear.msrpNowUsdCents,
+          mpbMaxPriceUsdCents: gear.mpbMaxPriceUsdCents,
         })
         .from(gear);
 
