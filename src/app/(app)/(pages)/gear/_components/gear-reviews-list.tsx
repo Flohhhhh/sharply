@@ -1,12 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardTitle,
-} from "~/components/ui/card";
+import { Card, CardContent } from "~/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import { GENRES } from "~/lib/constants";
@@ -119,12 +114,12 @@ export function GearReviewsList({
             });
         const hasGenres = Array.isArray(review.genres) && review.genres.length > 0;
         return (
-          <Card
+          <div
             key={review.id}
-            className="rounded-xl border border-border bg-background shadow-none"
+            className="rounded-xl border border-border bg-background/95 shadow-sm"
           >
-            <CardContent className="space-y-4 px-6 py-5">
-              <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="space-y-3 px-5 py-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3">
                   <Avatar className="size-9">
                     <AvatarImage
@@ -136,36 +131,40 @@ export function GearReviewsList({
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">
-                    <CardTitle className="truncate text-base">
+                    <p className="truncate text-sm font-semibold">
                       {review.createdBy.name || "Anonymous"}
-                    </CardTitle>
+                    </p>
                     {hasGenres ? null : (
-                      <p className="text-muted-foreground text-xs">
-                        Shared a review
-                      </p>
+                      <p className="text-xs text-muted-foreground">Shared a review</p>
                     )}
                   </div>
                 </div>
                 {review.recommend != null && (
-                  <span
-                    className={`text-xs font-semibold uppercase tracking-wide ${
+                  <Badge
+                    variant="secondary"
+                    className={`border-0 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide ${
                       review.recommend
-                        ? "text-emerald-600"
-                        : "text-red-500"
+                        ? "bg-emerald-500/15 text-emerald-500 hover:bg-emerald-500/20"
+                        : "bg-red-500/15 text-red-500 hover:bg-red-500/20"
                     }`}
                   >
                     {review.recommend ? "Recommended" : "Not Recommended"}
-                  </span>
+                  </Badge>
                 )}
               </div>
-              <p className="text-muted-foreground text-sm leading-relaxed">
+              <p className="text-sm leading-relaxed text-muted-foreground">
                 {review.content}
               </p>
-            </CardContent>
-            <CardFooter className="border-t flex-wrap justify-between gap-3 px-6 py-4 text-xs text-muted-foreground">
-              <div className="flex flex-wrap gap-2">
-                {hasGenres
-                  ? review.genres!.map((gid) => {
+            </div>
+            <div className="border-t px-5 py-3 text-xs text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-medium text-foreground/80">
+                  {formattedDate}
+                </span>
+                <span className="text-muted-foreground/60">-</span>
+                {hasGenres ? (
+                  <div className="flex flex-wrap gap-1">
+                    {review.genres!.map((gid) => {
                       const match = (GENRES as any[]).find(
                         (g) =>
                           (g.slug as string) === gid ||
@@ -181,14 +180,14 @@ export function GearReviewsList({
                           {label}
                         </Badge>
                       );
-                    })
-                  : (
-                      <span>No genres noted</span>
-                    )}
+                    })}
+                  </div>
+                ) : (
+                  <span>No genres noted</span>
+                )}
               </div>
-              <span className="whitespace-nowrap">{formattedDate}</span>
-            </CardFooter>
-          </Card>
+            </div>
+          </div>
         );
       })}
     </div>
