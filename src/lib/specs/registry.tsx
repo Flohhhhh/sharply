@@ -350,7 +350,8 @@ export const specDictionary: SpecSectionDef[] = [
         formatDisplay: (raw) => {
           if (!Array.isArray(raw)) return undefined;
           const entries = raw.filter(
-            (value): value is string => typeof value === "string" && value.length,
+            (value): value is string =>
+              typeof value === "string" && value.length > 0,
           );
           if (entries.length === 0) return undefined;
           return (
