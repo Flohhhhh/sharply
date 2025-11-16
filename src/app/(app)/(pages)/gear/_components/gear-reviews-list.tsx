@@ -112,11 +112,12 @@ export function GearReviewsList({
               day: "numeric",
               year: "numeric",
             });
-        const hasGenres = Array.isArray(review.genres) && review.genres.length > 0;
+        const hasGenres =
+          Array.isArray(review.genres) && review.genres.length > 0;
         return (
           <div
             key={review.id}
-            className="rounded-xl border border-border bg-background/95 shadow-sm"
+            className="border-border bg-background/95 rounded-xl border shadow-sm"
           >
             <div className="space-y-3 px-5 py-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -135,14 +136,16 @@ export function GearReviewsList({
                       {review.createdBy.name || "Anonymous"}
                     </p>
                     {hasGenres ? null : (
-                      <p className="text-xs text-muted-foreground">Shared a review</p>
+                      <p className="text-muted-foreground text-xs">
+                        Shared a review
+                      </p>
                     )}
                   </div>
                 </div>
                 {review.recommend != null && (
                   <Badge
                     variant="secondary"
-                    className={`border-0 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide ${
+                    className={`border-0 px-3 py-1 text-[11px] font-semibold tracking-wide uppercase ${
                       review.recommend
                         ? "bg-emerald-500/15 text-emerald-500 hover:bg-emerald-500/20"
                         : "bg-red-500/15 text-red-500 hover:bg-red-500/20"
@@ -152,13 +155,13 @@ export function GearReviewsList({
                   </Badge>
                 )}
               </div>
-              <p className="text-sm leading-relaxed text-muted-foreground">
+              <p className="text-muted-foreground text-sm leading-relaxed">
                 {review.content}
               </p>
             </div>
-            <div className="border-t px-5 py-3 text-xs text-muted-foreground">
+            <div className="text-muted-foreground border-t px-5 py-3 text-xs">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-medium text-foreground/80">
+                <span className="text-foreground/80 font-medium">
                   {formattedDate}
                 </span>
                 <span className="text-muted-foreground/60">-</span>
@@ -172,11 +175,7 @@ export function GearReviewsList({
                       );
                       const label = (match?.name as string) ?? gid;
                       return (
-                        <Badge
-                          key={gid}
-                          variant="secondary"
-                          className="text-[10px]"
-                        >
+                        <Badge key={gid} className="text-[10px]">
                           {label}
                         </Badge>
                       );
