@@ -9,7 +9,11 @@
 export { getMountDisplayName, getMountLongName } from "./mounts-map";
 
 // Price formatting utilities
-export { formatPrice, getItemDisplayPrice } from "./price-map";
+export {
+  formatPrice,
+  getItemDisplayPrice,
+  PRICE_FALLBACK_TEXT,
+} from "./price-map";
 
 // Dimensions formatting utilities
 export { formatDimensions, formatLensDimensions } from "./dimensions-map";

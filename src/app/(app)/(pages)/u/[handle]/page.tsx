@@ -1,6 +1,10 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getItemDisplayPrice, getMountDisplayName } from "~/lib/mapping";
+import {
+  getItemDisplayPrice,
+  getMountDisplayName,
+  PRICE_FALLBACK_TEXT,
+} from "~/lib/mapping";
 import { UserReviewsList } from "~/app/(app)/(pages)/u/_components/user-reviews-list";
 import { UserBadges } from "~/app/(app)/(pages)/u/_components/user-badges";
 import {
