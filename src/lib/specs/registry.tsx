@@ -808,13 +808,6 @@ export const specDictionary: SpecSectionDef[] = [
             : `${item.lensSpecs?.focalLengthMinMm}mm - ${item.lensSpecs?.focalLengthMaxMm}mm`,
       },
       {
-        key: "isMacro",
-        label: "Is Macro",
-        getRawValue: (item) => item.lensSpecs?.isMacro,
-        formatDisplay: (raw) =>
-          raw != null ? (raw ? "Yes" : "No") : undefined,
-      },
-      {
         key: "magnification",
         label: "Magnification",
         getRawValue: (item) => item.lensSpecs?.magnification,
