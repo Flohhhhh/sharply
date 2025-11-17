@@ -8,10 +8,13 @@ export const Users: CollectionConfig = {
   auth: true,
   access: {
     create: ({ req: { user } }) => user?.role === "superadmin",
-    read: ({ req: { user } }) =>
-      user?.role === "superadmin" || user?.role === "admin",
-    update: ({ req: { user } }) =>
-      user?.role === "superadmin" || user?.role === "admin",
+    read: ({ req: { user }, id }) => {
+      return (
+        user?.id === id || user?.role === "superadmin" || user?.role === "admin"
+      );
+    },
+    update: ({ req: { user }, id }) =>
+      user?.id === id || user?.role === "superadmin" || user?.role === "admin",
     delete: ({ req: { user } }) => user?.role === "superadmin",
   },
   fields: [
@@ -40,16 +43,6 @@ export const Users: CollectionConfig = {
     {
       name: "displayName",
       type: "text",
-      access: {
-        create: ({ req: { user } }) =>
-          user?.role === "superadmin" ||
-          user?.role === "admin" ||
-          user?.role === "editor",
-        update: ({ req: { user } }) =>
-          user?.role === "superadmin" ||
-          user?.role === "admin" ||
-          user?.role === "editor",
-      },
       admin: {
         description: "The display name of the user.",
       },
