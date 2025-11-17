@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatPrice } from "~/lib/mapping";
+import { getItemDisplayPrice } from "~/lib/mapping";
 import { formatHumanDate, getConstructionState } from "~/lib/utils";
 import { GearActionButtons } from "~/app/(app)/(pages)/gear/_components/gear-action-buttons";
 import {
@@ -108,6 +108,8 @@ export default async function GearPage({ params }: GearPageProps) {
 
   if (!item) return notFound();
 
+  const priceDisplay = getItemDisplayPrice(item);
+
   // Fetch editorial content
   const [ratingsRows, staffVerdictRows, pendingChangeRequests] =
     await Promise.all([
@@ -184,11 +186,9 @@ export default async function GearPage({ params }: GearPageProps) {
               currentSlug={item.slug}
             />
           </div>
-          {item.msrpNowUsdCents && (
-            <div className="mt-2 text-lg font-semibold sm:text-2xl">
-              {formatPrice(item.msrpNowUsdCents)}
-            </div>
-          )}
+          <div className="mt-2 text-lg font-semibold sm:text-2xl">
+            {priceDisplay}
+          </div>
         </div>
         {/* Badges */}
         <div>
@@ -197,11 +197,11 @@ export default async function GearPage({ params }: GearPageProps) {
         {/* Photo Placeholder */}
         <div>
           {item.thumbnailUrl ? (
-            <div className="bg-muted dark:bg-card overflow-hidden rounded-md py-12">
+            <div className="bg-muted dark:bg-card overflow-hidden rounded-md p-12 sm:p-24">
               <Image
                 src={item.thumbnailUrl}
                 alt={item.name}
-                className="h-full max-h-[300px] w-full object-contain sm:max-h-[550px]"
+                className="h-full max-h-[300px] w-full object-contain sm:max-h-[475px]"
                 width={720}
                 height={480}
                 priority

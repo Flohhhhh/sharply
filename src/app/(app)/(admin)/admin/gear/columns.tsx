@@ -15,6 +15,7 @@ import {
 } from "~/components/ui/tooltip";
 import { toast } from "sonner";
 import { GearImageModal } from "~/components/modals/gear-image-modal";
+import { mutate } from "swr";
 
 // TO ADD A COLUMN:
 // 1. Add the field to `adminGearSelect` in `~/server/admin/gear/data.ts`.
@@ -83,6 +84,30 @@ export const columns: ColumnDef<AdminGearTableRow>[] = [
             gearId={row.original.id}
             currentName={row.original.name}
             currentSlug={row.original.slug}
+            showNavigateOption
+            onSuccess={(res) => {
+              // Optimistically update any cached admin gear list pages where this row exists,
+              // then revalidate to ensure freshness.
+              void mutate(
+                (key) =>
+                  typeof key === "string" &&
+                  key.startsWith("/api/admin/gear/list?"),
+                (current:
+                  | { items: AdminGearTableRow[]; totalCount: number }
+                  | undefined) => {
+                  if (!current) return current;
+                  return {
+                    ...current,
+                    items: current.items.map((it) =>
+                      it.id === res.id
+                        ? { ...it, name: res.name, slug: res.slug }
+                        : it,
+                    ),
+                  };
+                },
+                { revalidate: true },
+              );
+            }}
             trigger={
               <Button variant="ghost" size="sm">
                 <Pencil className="h-4 w-4" />

@@ -13,6 +13,7 @@ import { Users } from "./collections/Users";
 import { Media } from "./collections/Media";
 import { News } from "./collections/News";
 import { Review } from "./collections/Review";
+import { LearnPages } from "./collections/LearnPages";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -25,7 +26,7 @@ export default buildConfig({
     },
   },
 
-  collections: [Users, Media, News, Review],
+  collections: [Users, Media, News, Review, LearnPages],
   routes: {
     admin: "/cms",
   },

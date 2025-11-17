@@ -4,7 +4,7 @@ import {
   relatedGearItemsField,
   relatedBrandField,
 } from "~/payload-fields/custom-fields";
-import { lexicalToPlainText } from "~/server/payload/richtext";
+import { lexicalFirstParagraphText } from "~/server/payload/richtext";
 
 export const News: CollectionConfig = {
   slug: "news",
@@ -106,16 +106,20 @@ export const News: CollectionConfig = {
   hooks: {
     beforeValidate: [
       ({ data }) => {
-        if (data?.title && !data?.slug) {
+        // generate slug from title
+        if (data?.title) {
           data.slug = slugify(data.title, {
             lower: true,
             strict: true, // remove special chars
             trim: true,
           });
         }
+        // generate excerpt from content
         if (data?.content) {
           try {
-            const text = lexicalToPlainText(data.content, { maxLength: 160 });
+            const text = lexicalFirstParagraphText(data.content, {
+              maxLength: 160,
+            });
             data.excerpt = text;
           } catch {
             const contentString = JSON.stringify(data.content);

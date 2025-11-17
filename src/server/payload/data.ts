@@ -1,7 +1,7 @@
 import "server-only";
 import { getPayload } from "payload";
 import config from "~/payload.config";
-import type { News, Review } from "~/payload-types";
+import type { LearnPage, News, Review } from "~/payload-types";
 
 export const getNewsPostsData = async (): Promise<News[]> => {
   const payload = await getPayload({ config });
@@ -58,11 +58,41 @@ export const getNewsByRelatedGearSlugData = async (
 ): Promise<News[]> => {
   const payload = await getPayload({ config });
   // Fetch all and filter locally (JSON field cannot be filtered with ILIKE)
-  const all = await payload.find({ collection: "news", limit: -1 });
+  const all: { docs: News[] } = (await payload.find({
+    collection: "news",
+    limit: -1,
+  })) as unknown as { docs: News[] };
   const filtered = all.docs.filter((n) => {
-    const v = (n as any)?.related_gear_items;
-    if (Array.isArray(v)) return v.includes(gearSlug);
-    return false;
+    const v = n.related_gear_items;
+    if (!Array.isArray(v)) return false;
+    return v.some((x) => typeof x === "string" && x === gearSlug);
   });
   return filtered.slice(0, limit < 0 ? filtered.length : limit);
+};
+
+export const getLearnPagesData = async (): Promise<LearnPage[]> => {
+  const payload = await getPayload({ config });
+  const learnPages = await payload.find({
+    collection: "learn-pages",
+    limit: -1,
+    depth: 1,
+  });
+  console.log(
+    "[payload:data] getLearnPagesData fetched",
+    learnPages.docs.length,
+  );
+  return learnPages.docs;
+};
+
+export const getLearnPageBySlugData = async (
+  slug: string,
+): Promise<LearnPage | null> => {
+  const payload = await getPayload({ config });
+  const res = (await payload.find({
+    collection: "learn-pages",
+    where: { slug: { equals: slug } },
+    limit: 1,
+    depth: 1,
+  })) as unknown as { docs: LearnPage[] };
+  return res.docs[0] ?? null;
 };

@@ -71,6 +71,7 @@ export interface Config {
     media: Media;
     news: News;
     review: Review;
+    'learn-pages': LearnPage;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -81,6 +82,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     news: NewsSelect<false> | NewsSelect<true>;
     review: ReviewSelect<false> | ReviewSelect<true>;
+    'learn-pages': LearnPagesSelect<false> | LearnPagesSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -365,6 +367,90 @@ export interface Review {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "learn-pages".
+ */
+export interface LearnPage {
+  id: number;
+  /**
+   * The category of the page.
+   */
+  category: 'basics' | 'unassigned';
+  /**
+   * The complexity level of the content.
+   */
+  skill_level: 'beginner' | 'intermediate' | 'advanced';
+  /**
+   * Whether to unlist the page from the learn pages list (will still be accessible via its link).
+   */
+  unlisted?: boolean | null;
+  /**
+   * The title of the page.
+   */
+  title: string;
+  /**
+   * The thumbnail for the page. Ratio should be around 5:2 (3:1 and 2:1 are also acceptable with some cropping).
+   */
+  thumbnail: number | Media;
+  /**
+   * The credit for the thumbnail.
+   */
+  thumbnail_credit?: string | null;
+  /**
+   * The link to the credit for the thumbnail.
+   */
+  thumbnail_credit_link?: string | null;
+  /**
+   * Auto-generated from title.
+   */
+  slug?: string | null;
+  /**
+   * The excerpt of the page. Auto-generated from content.
+   */
+  excerpt?: string | null;
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * These aliases can be used in /learn [alias or slug] command to access this page from Discord bot quickly. Include at least one.
+   */
+  command_aliases: {
+    /**
+     * Lowercase letters and hyphens only (no spaces or numbers), e.g. 'cleaning' or 'nikon-gear'
+     */
+    alias: string;
+    id?: string | null;
+  }[];
+  /**
+   * Indicate which gear items have been mentioned in this news article.
+   */
+  related_gear_items?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+  deletedAt?: string | null;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -385,6 +471,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'review';
         value: number | Review;
+      } | null)
+    | ({
+        relationTo: 'learn-pages';
+        value: number | LearnPage;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -542,6 +632,33 @@ export interface ReviewSelect<T extends boolean = true> {
         link?: T;
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  deletedAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "learn-pages_select".
+ */
+export interface LearnPagesSelect<T extends boolean = true> {
+  category?: T;
+  skill_level?: T;
+  unlisted?: T;
+  title?: T;
+  thumbnail?: T;
+  thumbnail_credit?: T;
+  thumbnail_credit_link?: T;
+  slug?: T;
+  excerpt?: T;
+  content?: T;
+  command_aliases?:
+    | T
+    | {
+        alias?: T;
+        id?: T;
+      };
+  related_gear_items?: T;
   updatedAt?: T;
   createdAt?: T;
   deletedAt?: T;

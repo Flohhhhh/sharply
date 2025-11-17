@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { formatPrice, getMountDisplayName } from "~/lib/mapping";
+import { getItemDisplayPrice, getMountDisplayName } from "~/lib/mapping";
 import { UserReviewsList } from "~/app/(app)/(pages)/u/_components/user-reviews-list";
 import { UserBadges } from "~/app/(app)/(pages)/u/_components/user-badges";
 import {
@@ -154,6 +154,13 @@ export default async function UserProfilePage({
 
 // Gear card component for displaying individual items
 function GearCard({ item }: { item: any }) {
+  const preferredPriceCents =
+    typeof item.mpbMaxPriceUsdCents === "number"
+      ? item.mpbMaxPriceUsdCents
+      : typeof item.msrpNowUsdCents === "number"
+        ? item.msrpNowUsdCents
+        : null;
+  const priceDisplay = getItemDisplayPrice(item);
   return (
     <Link
       href={`/gear/${item.slug}`}
@@ -191,13 +198,17 @@ function GearCard({ item }: { item: any }) {
               )}
             </div>
 
-            {item.msrpNowUsdCents && (
-              <div className="text-right">
-                <p className="font-medium">
-                  {formatPrice(item.msrpNowUsdCents)}
-                </p>
-              </div>
-            )}
+            <div className="text-right">
+              <p
+                className={
+                  preferredPriceCents != null
+                    ? "font-medium"
+                    : "text-muted-foreground"
+                }
+              >
+                {priceDisplay}
+              </p>
+            </div>
           </div>
         </div>
       </div>

@@ -16,6 +16,7 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { actionRenameGear } from "~/server/admin/gear/actions";
 import { toast } from "sonner";
+import { Checkbox } from "~/components/ui/checkbox";
 
 interface RenameGearDialogProps {
   gearId: string;
@@ -23,6 +24,16 @@ interface RenameGearDialogProps {
   currentSlug: string;
   trigger?: React.ReactNode;
   onSuccess?: (result: { id: string; name: string; slug: string }) => void;
+  /**
+   * When true, show a checkbox that lets the user choose whether to navigate
+   * to the gear page after a successful rename (useful in admin table).
+   */
+  showNavigateOption?: boolean;
+  /**
+   * Initial checked state for navigate-after-rename when the option is shown.
+   * Defaults to false (stay on the current page).
+   */
+  defaultNavigateAfterRename?: boolean;
 }
 
 export function RenameGearDialog({
@@ -31,9 +42,14 @@ export function RenameGearDialog({
   currentSlug,
   trigger,
   onSuccess,
+  showNavigateOption = false,
+  defaultNavigateAfterRename = false,
 }: RenameGearDialogProps) {
   const [open, setOpen] = useState(false);
   const [newName, setNewName] = useState(currentName);
+  const [navigateAfterRename, setNavigateAfterRename] = useState(
+    defaultNavigateAfterRename,
+  );
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -41,8 +57,9 @@ export function RenameGearDialog({
   useEffect(() => {
     if (open) {
       setNewName(currentName);
+      setNavigateAfterRename(defaultNavigateAfterRename);
     }
-  }, [open, currentName]);
+  }, [open, currentName, defaultNavigateAfterRename]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,8 +88,14 @@ export function RenameGearDialog({
         setOpen(false);
         setNewName(result.name);
 
-        // If slug changed, navigate to new URL
-        if (result.slug !== currentSlug) {
+        // Decide whether to navigate after rename.
+        // If the navigate option is shown, respect the checkbox.
+        // If not shown (e.g., on gear page), preserve original behavior:
+        // navigate when slug changes.
+        const shouldNavigate = showNavigateOption
+          ? navigateAfterRename
+          : result.slug !== currentSlug;
+        if (shouldNavigate && result.slug !== currentSlug) {
           router.push(`/gear/${result.slug}`);
         } else {
           router.refresh();
@@ -127,6 +150,21 @@ export function RenameGearDialog({
                 Brand prefix will be added automatically if not present.
               </p>
             </div>
+            {showNavigateOption ? (
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="navigate-after-rename"
+                  checked={navigateAfterRename}
+                  onCheckedChange={(next) =>
+                    setNavigateAfterRename(Boolean(next))
+                  }
+                  disabled={isPending}
+                />
+                <Label htmlFor="navigate-after-rename">
+                  Go to item page after renaming
+                </Label>
+              </div>
+            ) : null}
           </div>
           <DialogFooter>
             <Button

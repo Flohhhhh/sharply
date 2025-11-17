@@ -188,7 +188,7 @@ export default async function Home() {
                 </div>
                 <div className="mt-4 flex items-center gap-4">
                   <Button asChild icon={<Library className="h-4 w-4" />}>
-                    <Link href="/about">View all gear</Link>
+                    <Link href="/browse">View all gear</Link>
                   </Button>
                   <Button
                     variant="link"

@@ -9,10 +9,10 @@
 export { getMountDisplayName, getMountLongName } from "./mounts-map";
 
 // Price formatting utilities
-export { formatPrice } from "./price-map";
+export { formatPrice, getItemDisplayPrice } from "./price-map";
 
 // Dimensions formatting utilities
-export { formatDimensions } from "./dimensions-map";
+export { formatDimensions, formatLensDimensions } from "./dimensions-map";
 export {
   titleizeCardEnum,
   formatCardSlotDetails,
@@ -21,6 +21,9 @@ export {
 
 // Camera type formatter
 export { formatCameraType } from "./camera-type-map";
+
+// Shutter type formatter
+export { formatShutterType } from "./shutter-types-map";
 
 // Lens aperture formatting
 export {

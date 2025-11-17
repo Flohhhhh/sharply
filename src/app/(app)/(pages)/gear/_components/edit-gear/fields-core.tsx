@@ -77,6 +77,22 @@ function CoreFieldsComponent({
     [onChange],
   );
 
+  const handleLensDiameterChange = useCallback(
+    (value: number | null) => {
+      const nextValue = value ?? null;
+      onChange("widthMm", nextValue);
+      onChange("heightMm", nextValue);
+    },
+    [onChange],
+  );
+
+  const handleLensLengthChange = useCallback(
+    (value: number | null) => {
+      onChange("depthMm", value ?? null);
+    },
+    [onChange],
+  );
+
   const handleReleaseDateChange = useCallback(
     (value: string) => {
       if (!value) {
@@ -239,6 +255,18 @@ function CoreFieldsComponent({
   const formattedDepth = useMemo(() => {
     return currentSpecs.depthMm != null ? currentSpecs.depthMm : null;
   }, [currentSpecs.depthMm]);
+
+  const formattedLensDiameter = useMemo(() => {
+    if (gearType !== "LENS") return null;
+    if (currentSpecs.widthMm != null) return currentSpecs.widthMm;
+    if (currentSpecs.heightMm != null) return currentSpecs.heightMm;
+    return null;
+  }, [gearType, currentSpecs.widthMm, currentSpecs.heightMm]);
+
+  const formattedLensLength = useMemo(() => {
+    if (gearType !== "LENS") return null;
+    return currentSpecs.depthMm != null ? currentSpecs.depthMm : null;
+  }, [gearType, currentSpecs.depthMm]);
 
   // Safely format the mount value(s) for the select
   const formattedMountValue = useMemo(() => {
@@ -501,41 +529,75 @@ function CoreFieldsComponent({
           })()}
 
           {/* Dimensions */}
-          {showWhenMissing((initialSpecs as any)?.widthMm) && (
-            <NumberInput
-              id="widthMm"
-              label="Width"
-              value={formattedWidth}
-              onChange={(v) => onChange("widthMm", v)}
-              min={0}
-              step={0.1}
-              placeholder="e.g., 135.5"
-              suffix="mm"
-            />
-          )}
-          {showWhenMissing((initialSpecs as any)?.heightMm) && (
-            <NumberInput
-              id="heightMm"
-              label="Height"
-              value={formattedHeight}
-              onChange={(v) => onChange("heightMm", v)}
-              min={0}
-              step={0.1}
-              placeholder="e.g., 98.2"
-              suffix="mm"
-            />
-          )}
-          {showWhenMissing((initialSpecs as any)?.depthMm) && (
-            <NumberInput
-              id="depthMm"
-              label="Depth"
-              value={formattedDepth}
-              onChange={(v) => onChange("depthMm", v)}
-              min={0}
-              step={0.1}
-              placeholder="e.g., 75.8"
-              suffix="mm"
-            />
+          {gearType === "LENS" ? (
+            <>
+              {(
+                showWhenMissing((initialSpecs as any)?.widthMm) ||
+                showWhenMissing((initialSpecs as any)?.heightMm)
+              ) && (
+                <NumberInput
+                  id="diameterMm"
+                  label="Diameter"
+                  value={formattedLensDiameter}
+                  onChange={handleLensDiameterChange}
+                  min={0}
+                  step={0.1}
+                  placeholder="e.g., 90.5"
+                  suffix="mm"
+                />
+              )}
+              {showWhenMissing((initialSpecs as any)?.depthMm) && (
+                <NumberInput
+                  id="lengthMm"
+                  label="Length"
+                  value={formattedLensLength}
+                  onChange={handleLensLengthChange}
+                  min={0}
+                  step={0.1}
+                  placeholder="e.g., 150"
+                  suffix="mm"
+                />
+              )}
+            </>
+          ) : (
+            <>
+              {showWhenMissing((initialSpecs as any)?.widthMm) && (
+                <NumberInput
+                  id="widthMm"
+                  label="Width"
+                  value={formattedWidth}
+                  onChange={(v) => onChange("widthMm", v)}
+                  min={0}
+                  step={0.1}
+                  placeholder="e.g., 135.5"
+                  suffix="mm"
+                />
+              )}
+              {showWhenMissing((initialSpecs as any)?.heightMm) && (
+                <NumberInput
+                  id="heightMm"
+                  label="Height"
+                  value={formattedHeight}
+                  onChange={(v) => onChange("heightMm", v)}
+                  min={0}
+                  step={0.1}
+                  placeholder="e.g., 98.2"
+                  suffix="mm"
+                />
+              )}
+              {showWhenMissing((initialSpecs as any)?.depthMm) && (
+                <NumberInput
+                  id="depthMm"
+                  label="Depth"
+                  value={formattedDepth}
+                  onChange={(v) => onChange("depthMm", v)}
+                  min={0}
+                  step={0.1}
+                  placeholder="e.g., 75.8"
+                  suffix="mm"
+                />
+              )}
+            </>
           )}
 
           <div className="space-y-2 md:col-span-2">

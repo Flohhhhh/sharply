@@ -136,6 +136,24 @@ export const navItems: NavItem[] = [
     title: "Learn",
     type: "category",
     items: [
+      {
+        title: "Basics",
+        url: "/learn/basics",
+        description: "Learn about the basics of photography",
+        iconKey: "book",
+      },
+      {
+        title: "All About Gear",
+        url: "/learn/all-about-gear",
+        description: "Learn about all about gear",
+        iconKey: "camera",
+      },
+      {
+        title: "View All Learn Content",
+        url: "/learn",
+        description: "View all learn content",
+        iconKey: "book",
+      },
       // {
       //   title: "Camera Guides",
       //   url: "/learn/camera-guides",

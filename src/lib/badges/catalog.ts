@@ -81,7 +81,7 @@ export const BADGE_CATALOG: BadgeDefinition[] = [
     color: "#EDB554",
     iconComponent: Star,
     trigger: "edit.approved",
-    levels: [1, 5, 10, 25, 50],
+    levels: [1, 5, 10, 25, 50, 100, 200, 500],
     metric: "approvedEdits",
     labelBase: "Spec Scribe",
     descriptionFor: (n: number) =>
