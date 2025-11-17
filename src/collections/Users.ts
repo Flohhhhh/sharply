@@ -21,6 +21,7 @@ export const Users: CollectionConfig = {
       access: {
         create: ({ req: { user } }) => user?.role === "superadmin",
         update: ({ req: { user } }) => user?.role === "superadmin",
+        read: () => true,
       },
       options: [
         {
@@ -49,6 +50,7 @@ export const Users: CollectionConfig = {
           user?.role === "superadmin" ||
           user?.role === "admin" ||
           user?.role === "editor",
+        read: () => true,
       },
       admin: {
         description: "The display name of the user.",
