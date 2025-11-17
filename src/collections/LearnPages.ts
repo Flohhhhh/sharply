@@ -11,6 +11,20 @@ export const LearnPages: CollectionConfig = {
   admin: {
     useAsTitle: "title",
   },
+  access: {
+    create: ({ req: { user } }) =>
+      user?.role === "superadmin" || user?.role === "admin",
+    read: ({ req: { user } }) =>
+      user?.role === "superadmin" ||
+      user?.role === "admin" ||
+      user?.role === "editor",
+    update: ({ req: { user } }) =>
+      user?.role === "superadmin" ||
+      user?.role === "admin" ||
+      user?.role === "editor",
+    delete: ({ req: { user } }) =>
+      user?.role === "superadmin" || user?.role === "admin",
+  },
   versions: {
     drafts: {
       autosave: true,
@@ -79,6 +93,14 @@ export const LearnPages: CollectionConfig = {
       required: true,
       admin: {
         description: "The title of the page.",
+      },
+      access: {
+        create: ({ req: { user } }) =>
+          user?.role === "superadmin" ||
+          user?.role === "admin" ||
+          user?.role === "editor",
+        update: ({ req: { user } }) =>
+          user?.role === "superadmin" || user?.role === "admin",
       },
     },
     {

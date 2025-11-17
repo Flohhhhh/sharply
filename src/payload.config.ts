@@ -24,6 +24,19 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(dirname),
     },
+    meta: {
+      titleSuffix: " | Sharply CMS",
+      description:
+        "Sharply Content Management system. Create, edit, and manage content for Sharply.",
+      icons: [
+        {
+          rel: "icon",
+          type: "image/x-icon",
+          url: "/favicon.ico",
+        },
+      ],
+      robots: "noindex, nofollow",
+    },
   },
 
   collections: [Users, Media, News, Review, LearnPages],
