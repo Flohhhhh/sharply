@@ -18,6 +18,10 @@ export const Users: CollectionConfig = {
     {
       name: "role",
       type: "select",
+      access: {
+        create: ({ req: { user } }) => user?.role === "superadmin",
+        update: ({ req: { user } }) => user?.role === "superadmin",
+      },
       options: [
         {
           label: "Super Admin",
@@ -36,6 +40,16 @@ export const Users: CollectionConfig = {
     {
       name: "displayName",
       type: "text",
+      access: {
+        create: ({ req: { user } }) =>
+          user?.role === "superadmin" ||
+          user?.role === "admin" ||
+          user?.role === "editor",
+        update: ({ req: { user } }) =>
+          user?.role === "superadmin" ||
+          user?.role === "admin" ||
+          user?.role === "editor",
+      },
       admin: {
         description: "The display name of the user.",
       },
