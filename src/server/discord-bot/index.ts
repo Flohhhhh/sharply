@@ -24,7 +24,7 @@ export const commandHandlers: Record<
   string,
   (interaction: any) => Response | Promise<Response>
 > = Object.fromEntries(
-  Object.entries(commands).map(([name, cmd]) => [name, cmd.handler]),
+  Object.values(commands).map((cmd) => [cmd.definition.name, cmd.handler]),
 );
 
 // Registration definitions
