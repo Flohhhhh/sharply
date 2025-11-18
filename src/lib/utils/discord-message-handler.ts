@@ -1,5 +1,3 @@
-"use client";
-
 import { BRANDS } from "~/lib/generated";
 
 export const DEFAULT_STOPWORDS = new Set<string>([
