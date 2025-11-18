@@ -205,18 +205,6 @@ function LensFieldsComponent({
             />
           )}
 
-          {/* Is Macro */}
-          {showWhenMissing((initialSpecs as any)?.isMacro) && (
-            <BooleanInput
-              id="isMacro"
-              label="Is Macro"
-              checked={currentSpecs?.isMacro ?? null}
-              allowNull
-              showStateText
-              onChange={(value) => handleFieldChange("isMacro", value)}
-            />
-          )}
-
           {/* Magnification */}
           {showWhenMissing((initialSpecs as any)?.magnification) && (
             <NumberInput

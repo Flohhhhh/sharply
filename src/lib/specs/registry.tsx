@@ -169,37 +169,83 @@ export const specDictionary: SpecSectionDef[] = [
           depthMm: item.depthMm,
         }),
         formatDisplay: (_, item) => {
-          if (
-            item.widthMm == null &&
-            item.heightMm == null &&
-            item.depthMm == null
-          )
-            return undefined;
-          const dimensionsInput = {
-            widthMm:
-              typeof item.widthMm === "number"
-                ? item.widthMm
-                : item.widthMm != null
-                  ? Number(item.widthMm)
-                  : null,
-            heightMm:
-              typeof item.heightMm === "number"
-                ? item.heightMm
-                : item.heightMm != null
-                  ? Number(item.heightMm)
-                  : null,
-            depthMm:
-              typeof item.depthMm === "number"
-                ? item.depthMm
-                : item.depthMm != null
-                  ? Number(item.depthMm)
-                  : null,
+          // Helper to coerce to number (or null) and format with up to 1 decimal
+          const toNumber = (v: unknown): number | null => {
+            if (typeof v === "number") return v;
+            if (v == null) return null;
+            const n = Number(v);
+            return Number.isFinite(n) ? n : null;
           };
-          const dims =
-            item.gearType === "LENS"
-              ? formatLensDimensions(dimensionsInput)
-              : formatDimensions(dimensionsInput);
-          return dims || undefined;
+          const fmt = (n: number): string =>
+            Number.isInteger(n) ? String(n) : String(Number(n.toFixed(1)));
+
+          const width = toNumber(item.widthMm);
+          const height = toNumber(item.heightMm);
+          const depth = toNumber(item.depthMm);
+
+          if (width == null && height == null && depth == null)
+            return undefined;
+
+          // Lenses: show Diameter (from width or height) and Length (from depth)
+          if (item.gearType === "LENS") {
+            const diameter = width ?? height;
+            const length = depth;
+            return (
+              <div className="flex w-full flex-col text-left">
+                {length != null && (
+                  <div className="flex w-full items-center justify-between gap-4">
+                    <span className="text-muted-foreground">Length</span>
+                    <span className="text-right font-medium">
+                      {fmt(length)}
+                      <span className="text-muted-foreground ml-1">mm</span>
+                    </span>
+                  </div>
+                )}
+                {diameter != null && (
+                  <div className="flex w-full items-center justify-between gap-4">
+                    <span className="text-muted-foreground">Diameter</span>
+                    <span className="text-right font-medium">
+                      {fmt(diameter)}
+                      <span className="text-muted-foreground ml-1">mm</span>
+                    </span>
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          // Cameras/others: show Length (depth), Width, Height as a simple column
+          return (
+            <div className="flex w-full flex-col text-left">
+              {depth != null && (
+                <div className="flex w-full items-center justify-between gap-4">
+                  <span className="text-muted-foreground">Length</span>
+                  <span className="text-right font-medium">
+                    {fmt(depth)}
+                    <span className="text-muted-foreground ml-1">mm</span>
+                  </span>
+                </div>
+              )}
+              {width != null && (
+                <div className="flex w-full items-center justify-between gap-4">
+                  <span className="text-muted-foreground">Width</span>
+                  <span className="text-right font-medium">
+                    {fmt(width)}
+                    <span className="text-muted-foreground ml-1">mm</span>
+                  </span>
+                </div>
+              )}
+              {height != null && (
+                <div className="flex w-full items-center justify-between gap-4">
+                  <span className="text-muted-foreground">Height</span>
+                  <span className="text-right font-medium">
+                    {fmt(height)}
+                    <span className="text-muted-foreground ml-1">mm</span>
+                  </span>
+                </div>
+              )}
+            </div>
+          );
         },
         editElementId: "widthMm",
       },
@@ -364,7 +410,7 @@ export const specDictionary: SpecSectionDef[] = [
           }, []);
           if (entries.length === 0) return undefined;
           return (
-            <ul className="list-disc pl-4 space-y-1 text-left">
+            <ul className="list-none space-y-1 text-left">
               {entries.map((type) => (
                 <li key={type}>{formatShutterType(type)}</li>
               ))}
@@ -385,34 +431,6 @@ export const specDictionary: SpecSectionDef[] = [
     sectionAnchor: "camera-section",
     condition: (item) => item.gearType === "CAMERA",
     fields: [
-      {
-        key: "cardSlots",
-        label: "Card Slots",
-        getRawValue: (item) => item.cameraCardSlots,
-        formatDisplay: (_, item) =>
-          item.cameraCardSlots && item.cameraCardSlots.length > 0 ? (
-            <div className="flex flex-col gap-1">
-              {item.cameraCardSlots
-                .sort((a, b) => (a.slotIndex ?? 0) - (b.slotIndex ?? 0))
-                .map((s, i) => {
-                  const details = formatCardSlotDetails({
-                    slotIndex: s.slotIndex,
-                    supportedFormFactors: s.supportedFormFactors ?? [],
-                    supportedBuses: s.supportedBuses ?? [],
-                    supportedSpeedClasses: s.supportedSpeedClasses ?? [],
-                  });
-                  return (
-                    <div key={i} className="flex justify-between gap-6">
-                      <span className="text-muted-foreground">
-                        Slot {s.slotIndex}
-                      </span>
-                      <span className="font-medium">{details}</span>
-                    </div>
-                  );
-                })}
-            </div>
-          ) : undefined,
-      },
       {
         key: "processorName",
         label: "Processor Name",
@@ -517,6 +535,34 @@ export const specDictionary: SpecSectionDef[] = [
         formatDisplay: (raw) =>
           typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
+      {
+        key: "cardSlots",
+        label: "Card Slots",
+        getRawValue: (item) => item.cameraCardSlots,
+        formatDisplay: (_, item) =>
+          item.cameraCardSlots && item.cameraCardSlots.length > 0 ? (
+            <div className="flex flex-col gap-1">
+              {item.cameraCardSlots
+                .sort((a, b) => (a.slotIndex ?? 0) - (b.slotIndex ?? 0))
+                .map((s, i) => {
+                  const details = formatCardSlotDetails({
+                    slotIndex: s.slotIndex,
+                    supportedFormFactors: s.supportedFormFactors ?? [],
+                    supportedBuses: s.supportedBuses ?? [],
+                    supportedSpeedClasses: s.supportedSpeedClasses ?? [],
+                  });
+                  return (
+                    <div key={i} className="flex justify-between gap-6">
+                      <span className="text-muted-foreground">
+                        Slot {s.slotIndex}
+                      </span>
+                      <span className="font-medium">{details}</span>
+                    </div>
+                  );
+                })}
+            </div>
+          ) : undefined,
+      },
     ],
   },
 
@@ -537,6 +583,20 @@ export const specDictionary: SpecSectionDef[] = [
           typeof raw === "number" || typeof raw === "string"
             ? String(raw)
             : undefined,
+      },
+      {
+        key: "hasFocusPeaking",
+        label: "Has Focus Peaking",
+        getRawValue: (item) => item.cameraSpecs?.hasFocusPeaking,
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+      },
+      {
+        key: "hasFocusBracketing",
+        label: "Has Focus Bracketing",
+        getRawValue: (item) => item.cameraSpecs?.hasFocusBracketing,
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
       {
         key: "afAreaModes",
@@ -570,7 +630,14 @@ export const specDictionary: SpecSectionDef[] = [
           )
             .map(toName)
             .filter((s): s is string => typeof s === "string" && s.length > 0);
-          return names.length > 0 ? names.join(", ") : undefined;
+          if (names.length === 0) return undefined;
+          return (
+            <ul className="list-none space-y-1 text-left">
+              {names.map((name) => (
+                <li key={name}>{name}</li>
+              ))}
+            </ul>
+          );
         },
         editElementId: "afAreaModes",
       },
@@ -581,20 +648,6 @@ export const specDictionary: SpecSectionDef[] = [
         formatDisplay: (raw) =>
           Array.isArray(raw) ? raw.join(", ") : undefined,
         editElementId: "afSubjectCategories",
-      },
-      {
-        key: "hasFocusPeaking",
-        label: "Has Focus Peaking",
-        getRawValue: (item) => item.cameraSpecs?.hasFocusPeaking,
-        formatDisplay: (raw) =>
-          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
-      },
-      {
-        key: "hasFocusBracketing",
-        label: "Has Focus Bracketing",
-        getRawValue: (item) => item.cameraSpecs?.hasFocusBracketing,
-        formatDisplay: (raw) =>
-          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
     ],
   },
@@ -617,14 +670,7 @@ export const specDictionary: SpecSectionDef[] = [
             ? String(raw)
             : undefined,
       },
-      {
-        key: "supportedBatteries",
-        label: "Supported Batteries",
-        getRawValue: (item) => item.cameraSpecs?.supportedBatteries,
-        formatDisplay: (raw) =>
-          Array.isArray(raw) ? raw.join(", ") : undefined,
-        editElementId: "supportedBatteries",
-      },
+
       {
         key: "usbCharging",
         label: "Supports USB Charging",
@@ -638,6 +684,26 @@ export const specDictionary: SpecSectionDef[] = [
         getRawValue: (item) => item.cameraSpecs?.usbPowerDelivery,
         formatDisplay: (raw) =>
           typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+      },
+      {
+        key: "supportedBatteries",
+        label: "Supported Batteries",
+        getRawValue: (item) => item.cameraSpecs?.supportedBatteries,
+        formatDisplay: (raw) => {
+          if (!Array.isArray(raw) || raw.length === 0) return undefined;
+          const list = raw
+            .map((v) => (typeof v === "string" ? v.trim() : ""))
+            .filter((s) => s.length > 0);
+          if (list.length === 0) return undefined;
+          return (
+            <ul className="list-none space-y-1 text-left">
+              {list.map((battery) => (
+                <li key={battery}>{battery}</li>
+              ))}
+            </ul>
+          );
+        },
+        editElementId: "supportedBatteries",
       },
     ],
   },
@@ -740,13 +806,6 @@ export const specDictionary: SpecSectionDef[] = [
           item.lensSpecs?.isPrime
             ? `${item.lensSpecs?.focalLengthMinMm}mm`
             : `${item.lensSpecs?.focalLengthMinMm}mm - ${item.lensSpecs?.focalLengthMaxMm}mm`,
-      },
-      {
-        key: "isMacro",
-        label: "Is Macro",
-        getRawValue: (item) => item.lensSpecs?.isMacro,
-        formatDisplay: (raw) =>
-          raw != null ? (raw ? "Yes" : "No") : undefined,
       },
       {
         key: "magnification",
@@ -1237,7 +1296,7 @@ export const specDictionary: SpecSectionDef[] = [
             (n) => typeof n === "string" && n.trim().length > 0,
           );
           return list.length ? (
-            <ul className="text-muted-foreground list-disc space-y-1 pl-4 text-sm">
+            <ul className="text-muted-foreground list-none space-y-1 text-sm">
               {list.map((note, idx) => (
                 <li key={idx}>{note}</li>
               ))}

@@ -9,6 +9,7 @@ import SensorFormatInput from "~/components/custom-inputs/sensor-format-input";
 import CurrencyInput from "~/components/custom-inputs/currency-input";
 import { DateInput } from "~/components/custom-inputs/date-input";
 import { NumberInput } from "~/components/custom-inputs/number-input";
+import ExtractorDemo from "./extractor-demo";
 
 export default function UIDemoPage() {
   const [apertureValue, setApertureValue] = useState<number | undefined>(
@@ -28,6 +29,16 @@ export default function UIDemoPage() {
   return (
     <div className="container mx-auto space-y-8 p-6">
       <h1 className="text-3xl font-bold">UI Demo Page</h1>
+
+      {/* @ui-demo: Message → Gear Extractor */}
+      <Card>
+        <CardHeader>
+          <CardTitle>@ui-demo: Message to Gear Extractor</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ExtractorDemo />
+        </CardContent>
+      </Card>
 
       {/* Aperture Input Demo */}
       <Card>

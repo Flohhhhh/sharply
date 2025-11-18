@@ -5,6 +5,7 @@ import { cn } from "~/lib/utils";
 import { AddToCompareButton } from "~/components/compare/add-to-compare-button";
 import Image from "next/image";
 import { BRANDS } from "~/lib/constants";
+import { PRICE_FALLBACK_TEXT } from "~/lib/mapping";
 
 const BASE_BRAND_NAMES = uniqueCaseInsensitive(
   BRANDS.flatMap((brand) => splitBrandNameVariants(brand.name)),
@@ -180,7 +181,14 @@ export function GearCard(props: GearCardProps) {
                 <span />
               )}
               {priceText ? (
-                <span className="text-foreground text-sm font-semibold">
+                <span
+                  className={cn(
+                    "text-sm font-semibold",
+                    priceText === PRICE_FALLBACK_TEXT
+                      ? "text-muted-foreground"
+                      : "text-foreground",
+                  )}
+                >
                   {priceText}
                 </span>
               ) : null}

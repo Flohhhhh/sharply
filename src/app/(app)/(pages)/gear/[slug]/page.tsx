@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getItemDisplayPrice } from "~/lib/mapping";
+import { getItemDisplayPrice, PRICE_FALLBACK_TEXT } from "~/lib/mapping";
 import { formatHumanDate, getConstructionState } from "~/lib/utils";
 import { GearActionButtons } from "~/app/(app)/(pages)/gear/_components/gear-action-buttons";
 import {
@@ -48,6 +48,7 @@ import DiscordLink from "~/components/discord-link";
 import DiscordBanner from "~/components/discord-banner";
 import Image from "next/image";
 // Removed LensApertureDisplay in favor of standardized spec rows using mapping
+import { ExtractorDemo } from "../_components/extractor-demo";
 
 export const revalidate = 3600;
 
@@ -187,7 +188,11 @@ export default async function GearPage({ params }: GearPageProps) {
             />
           </div>
           <div className="mt-2 text-lg font-semibold sm:text-2xl">
-            {priceDisplay}
+            {priceDisplay === PRICE_FALLBACK_TEXT ? (
+              <span className="text-muted-foreground">{priceDisplay}</span>
+            ) : (
+              priceDisplay
+            )}
           </div>
         </div>
         {/* Badges */}
@@ -201,7 +206,7 @@ export default async function GearPage({ params }: GearPageProps) {
               <Image
                 src={item.thumbnailUrl}
                 alt={item.name}
-                className="h-full max-h-[300px] w-full object-contain sm:max-h-[475px]"
+                className="mx-auto h-full max-h-[300px] w-full max-w-[600px] object-contain sm:max-h-[475px]"
                 width={720}
                 height={480}
                 priority

@@ -21,6 +21,7 @@ import {
   normalizeAmazonProductLink,
   toDisplayAmazonProductLink,
 } from "~/lib/validation/amazon";
+import { useSession } from "next-auth/react";
 
 interface CoreFieldsProps {
   currentSpecs: {
@@ -55,6 +56,9 @@ function CoreFieldsComponent({
   onChange,
   sectionId,
 }: CoreFieldsProps) {
+  const { data: session } = useSession();
+  const isAdmin = (session?.user as any)?.role === "ADMIN";
+
   const isMissing = useCallback((v: unknown): boolean => {
     if (v == null) return true;
     if (typeof v === "string") return v.trim().length === 0;
@@ -531,10 +535,8 @@ function CoreFieldsComponent({
           {/* Dimensions */}
           {gearType === "LENS" ? (
             <>
-              {(
-                showWhenMissing((initialSpecs as any)?.widthMm) ||
-                showWhenMissing((initialSpecs as any)?.heightMm)
-              ) && (
+              {(showWhenMissing((initialSpecs as any)?.widthMm) ||
+                showWhenMissing((initialSpecs as any)?.heightMm)) && (
                 <NumberInput
                   id="diameterMm"
                   label="Diameter"
@@ -620,7 +622,12 @@ function CoreFieldsComponent({
               <MultiSelect
                 options={genreOptions}
                 value={formattedGenres}
-                onChange={(ids) => onChange("genres", ids)}
+                onChange={(ids) => {
+                  if (isAdmin) onChange("genres", ids);
+                }}
+                className={
+                  !isAdmin ? "pointer-events-none opacity-60" : undefined
+                }
                 maxSelected={3}
                 placeholder="Select top 3 use cases..."
                 searchPlaceholder="Search genres..."

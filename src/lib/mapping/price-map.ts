@@ -4,7 +4,7 @@
 
 import type { GearItem } from "~/types/gear";
 
-const PRICE_FALLBACK_TEXT = "Price not available";
+export const PRICE_FALLBACK_TEXT = "$ ---";
 
 type FormatPriceOptions = {
   /**
@@ -14,10 +14,7 @@ type FormatPriceOptions = {
   style?: "long" | "short";
 };
 
-type PriceableGear = Pick<
-  GearItem,
-  "msrpNowUsdCents" | "mpbMaxPriceUsdCents"
->;
+type PriceableGear = Pick<GearItem, "msrpNowUsdCents" | "mpbMaxPriceUsdCents">;
 
 /**
  * Format price from cents to readable currency string
