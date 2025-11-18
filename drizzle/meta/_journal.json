@@ -267,6 +267,13 @@
       "when": 1760885736449,
       "tag": "0037_open_jubilee",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1763477437609,
+      "tag": "0038_perfect_alice",
+      "breakpoints": true
     }
   ]
 }

@@ -419,3 +419,71 @@ npm run db:migrate
 ```
 
 That’s it—types flow automatically from `schema.ts`, and the form will carry the new value through the existing `onChange` pipeline.
+
+### Examples: Added camera booleans (USB File Transfer, Open Gate Video)
+
+Schema (`src/server/db/schema.ts`):
+
+```ts
+// camera_specs (video)
+hasOpenGateVideo: boolean("has_open_gate_video"),
+// camera_specs (misc)
+hasUsbFileTransfer: boolean("has_usb_file_transfer"),
+```
+
+Normalizer (`src/server/db/normalizers.ts`):
+
+```ts
+hasOpenGateVideo: z
+  .preprocess((v) => (v === null ? null : coerceBoolean(v) ?? undefined), z.boolean().nullable().optional())
+  .optional(),
+hasUsbFileTransfer: z
+  .preprocess((v) => (v === null ? null : coerceBoolean(v) ?? undefined), z.boolean().nullable().optional())
+  .optional(),
+```
+
+UI (`fields-cameras.tsx`):
+
+```tsx
+<BooleanInput
+  id="hasOpenGateVideo"
+  label="Has Open Gate Video"
+  checked={currentSpecs?.hasOpenGateVideo ?? null}
+  allowNull
+  showStateText
+  onChange={(v) => handleFieldChange("hasOpenGateVideo", v)}
+/>
+<BooleanInput
+  id="hasUsbFileTransfer"
+  label="Has USB File Transfer"
+  checked={currentSpecs?.hasUsbFileTransfer ?? null}
+  allowNull
+  showStateText
+  onChange={(v) => handleFieldChange("hasUsbFileTransfer", v)}
+/>
+```
+
+Display (`src/lib/specs/registry.tsx`):
+
+```tsx
+{ key: "hasOpenGateVideo", label: "Has Open Gate Video", getRawValue: (i) => i.cameraSpecs?.hasOpenGateVideo, formatDisplay: (raw) => typeof raw === "boolean" ? (raw ? "Yes" : "No") : undefined }
+{ key: "hasUsbFileTransfer", label: "Has USB File Transfer", getRawValue: (i) => i.cameraSpecs?.hasUsbFileTransfer, formatDisplay: (raw) => typeof raw === "boolean" ? (raw ? "Yes" : "No") : undefined }
+```
+
+Submit whitelist (`src/app/(app)/(pages)/gear/_components/edit-gear/edit-gear-form.tsx`):
+
+```ts
+// Add both new keys to the camera whitelist so the diff detects and submits them
+const cameraKeys = [
+  "sensorFormatId",
+  "resolutionMp",
+  // ...
+  "has10BitVideo",
+  "has12BitVideo",
+  "hasOpenGateVideo", // <= add
+  // ...
+  "hasBuiltInFlash",
+  "hasHotShoe",
+  "hasUsbFileTransfer", // <= add
+] as const;
+```
