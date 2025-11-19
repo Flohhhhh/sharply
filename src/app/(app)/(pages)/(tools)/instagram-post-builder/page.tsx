@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import {
   Download,
   Image as ImageIcon,
@@ -14,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import JSZip from "jszip";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type FrameImage = {
   id: number;
@@ -129,6 +131,7 @@ const getNextFrameId = (frames: Frame[]) =>
   frames.length === 0 ? 1 : Math.max(...frames.map((frame) => frame.id)) + 1;
 
 const InstagramPostBuilderPage = () => {
+  const isMobile = useIsMobile();
   const [frames, setFrames] = useState<Frame[]>([{ id: 1, images: [] }]);
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [activeFrameId, setActiveFrameId] = useState<number | null>(null);
@@ -497,6 +500,23 @@ const InstagramPostBuilderPage = () => {
       </div>
     ));
   };
+
+  if (isMobile) {
+    return (
+      <div className="bg-background text-foreground flex h-screen flex-col items-center justify-center px-6 text-center">
+        <div className="max-w-sm space-y-4">
+          <h1 className="text-2xl font-semibold">Desktop Only</h1>
+          <p className="text-muted-foreground">
+            The Instagram post builder is currently optimized for desktop.
+            Switch to a larger screen to craft your carousel.
+          </p>
+          <Button asChild>
+            <Link href="/">Back to Home</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-background text-foreground flex h-screen flex-col font-sans">
