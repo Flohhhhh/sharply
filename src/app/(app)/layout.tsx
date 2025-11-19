@@ -2,7 +2,7 @@ import "~/styles/globals.css";
 
 import { type Metadata } from "next";
 // import { Geist } from "next/font/google";
-import { Archivo } from "next/font/google";
+import { Archivo, Crimson_Text } from "next/font/google";
 import { Providers } from "./providers";
 import { Toaster } from "~/components/ui/sonner";
 import { FloatingCompareButton } from "~/components/compare/floating-compare-button";
@@ -49,12 +49,24 @@ const archivo = Archivo({
   weight: ["400", "500", "600", "700"],
 });
 
+const crimsonText = Crimson_Text({
+  subsets: ["latin"],
+  variable: "--font-fancy",
+  display: "swap",
+  weight: ["400"],
+  style: ["normal", "italic"],
+});
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     // <html lang="en" className={`${geist.variable}`}>
-    <html suppressHydrationWarning lang="en" className={`${archivo.variable}`}>
+    <html
+      suppressHydrationWarning
+      lang="en"
+      className={`${archivo.variable} ${crimsonText.variable}`}
+    >
       <Analytics />
       <body>
         <Providers>

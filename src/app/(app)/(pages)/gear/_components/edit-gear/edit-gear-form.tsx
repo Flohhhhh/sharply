@@ -252,10 +252,12 @@ function EditGearForm({
         "hasLogColorProfile",
         "has10BitVideo",
         "has12BitVideo",
+        "hasOpenGateVideo",
         "hasIntervalometer",
         "hasSelfTimer",
         "hasBuiltInFlash",
         "hasHotShoe",
+        "hasUsbFileTransfer",
       ] as const;
       const orig = (gearData.cameraSpecs ?? {}) as Record<string, any>;
       const diffs = diffByKeys(orig, formData.cameraSpecs as any, cameraKeys);

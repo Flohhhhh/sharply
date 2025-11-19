@@ -505,11 +505,13 @@ export const cameraSpecs = appSchema.table(
     hasLogColorProfile: boolean("has_log_color_profile"),
     has10BitVideo: boolean("has_10_bit_video"),
     has12BitVideo: boolean("has_12_bit_video"),
+    hasOpenGateVideo: boolean("has_open_gate_video"),
     // misc
     hasIntervalometer: boolean("has_intervalometer"),
     hasSelfTimer: boolean("has_self_timer"),
     hasBuiltInFlash: boolean("has_built_in_flash"),
     hasHotShoe: boolean("has_hot_shoe"),
+    hasUsbFileTransfer: boolean("has_usb_file_transfer"),
     // displays & viewfinder
     rearDisplayType: rearDisplayTypesEnum("rear_display_type"),
     rearDisplayResolutionMillionDots: decimal(

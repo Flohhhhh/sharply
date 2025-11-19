@@ -920,6 +920,20 @@ function CameraFieldsComponent({
             />
           )}
 
+          {/* Has Open Gate Video */}
+          {showWhenMissing((initialSpecs as any)?.hasOpenGateVideo) && (
+            <BooleanInput
+              id="hasOpenGateVideo"
+              label="Has Open Gate Video"
+              checked={currentSpecs?.hasOpenGateVideo ?? null}
+              allowNull
+              showStateText
+              onChange={(value) =>
+                handleFieldChange("hasOpenGateVideo", value)
+              }
+            />
+          )}
+
           {/* Has Intervalometer */}
           {showWhenMissing((initialSpecs as any)?.hasIntervalometer) && (
             <BooleanInput
@@ -967,6 +981,20 @@ function CameraFieldsComponent({
               allowNull
               showStateText
               onChange={(value) => handleFieldChange("hasHotShoe", value)}
+            />
+          )}
+
+          {/* Has USB File Transfer */}
+          {showWhenMissing((initialSpecs as any)?.hasUsbFileTransfer) && (
+            <BooleanInput
+              id="hasUsbFileTransfer"
+              label="Has USB File Transfer"
+              checked={currentSpecs?.hasUsbFileTransfer ?? null}
+              allowNull
+              showStateText
+              onChange={(value) =>
+                handleFieldChange("hasUsbFileTransfer", value)
+              }
             />
           )}
         </div>

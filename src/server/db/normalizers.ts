@@ -457,6 +457,13 @@ export function normalizeProposalPayloadForDb(
           z.boolean().nullable().optional(),
         )
         .optional(),
+      hasOpenGateVideo: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
       hasIntervalometer: z
         .preprocess(
           (value) =>
@@ -479,6 +486,13 @@ export function normalizeProposalPayloadForDb(
         )
         .optional(),
       hasHotShoe: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      hasUsbFileTransfer: z
         .preprocess(
           (value) =>
             value === null ? null : (coerceBoolean(value) ?? undefined),

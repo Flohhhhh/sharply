@@ -738,6 +738,13 @@ export const specDictionary: SpecSectionDef[] = [
         formatDisplay: (raw) =>
           typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
+      {
+        key: "hasOpenGateVideo",
+        label: "Has Open Gate Video",
+        getRawValue: (item) => item.cameraSpecs?.hasOpenGateVideo,
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+      },
     ],
   },
 
@@ -775,6 +782,13 @@ export const specDictionary: SpecSectionDef[] = [
         label: "Has Hot Shoe",
         getRawValue: (item) => item.cameraSpecs?.hasHotShoe,
         formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+      {
+        key: "hasUsbFileTransfer",
+        label: "Has USB File Transfer",
+        getRawValue: (item) => item.cameraSpecs?.hasUsbFileTransfer,
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
     ],
   },
