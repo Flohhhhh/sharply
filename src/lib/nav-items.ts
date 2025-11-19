@@ -19,6 +19,7 @@ import {
   Scale,
   PencilRuler,
 } from "lucide-react";
+import { TbLaurelWreath } from "react-icons/tb";
 
 interface NavItem {
   title: string;
@@ -42,6 +43,7 @@ interface NavItem {
       | "star"
       | "trending"
       | "zap"
+      | "wreath"
       | "target"
       | "palette"
       | "film"
@@ -74,6 +76,13 @@ export const navItems: NavItem[] = [
         url: "/lists/under-construction",
         description: "Items with missing key specs",
         iconKey: "pencilRuler",
+      },
+      {
+        title: "Hall of Fame",
+        url: "/lists/hall-of-fame",
+        description:
+          "The most iconic and influential gear in the history of photography",
+        iconKey: "wreath",
       },
       // {
       //   title: "Canon",
@@ -141,12 +150,6 @@ export const navItems: NavItem[] = [
         url: "/learn/basics",
         description: "Learn about the basics of photography",
         iconKey: "book",
-      },
-      {
-        title: "All About Gear",
-        url: "/learn/all-about-gear",
-        description: "Learn about all about gear",
-        iconKey: "camera",
       },
       {
         title: "View All Learn Content",
@@ -222,6 +225,7 @@ export const iconMap = {
   film: Film,
   scale: Scale,
   pencilRuler: PencilRuler,
+  wreath: TbLaurelWreath,
 };
 
 // Get nav items filtered by hideFromNavbar and format for the navbar component
