@@ -541,6 +541,28 @@ export const cameraSpecs = appSchema.table(
   (t) => [index("camera_specs_sensor_idx").on(t.sensorFormatId)],
 );
 
+export const cameraVideoModes = appSchema.table(
+  "camera_video_modes",
+  (d) => ({
+    id: uuid("id").defaultRandom().primaryKey(),
+    gearId: varchar("gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    resolutionKey: varchar("resolution_key", { length: 64 }).notNull(),
+    resolutionLabel: varchar("resolution_label", { length: 120 }).notNull(),
+    resolutionHorizontal: integer("resolution_horizontal"),
+    resolutionVertical: integer("resolution_vertical"),
+    fps: integer("fps").notNull(),
+    codecLabel: varchar("codec_label", { length: 120 }).notNull(),
+    bitDepth: integer("bit_depth").notNull(),
+    cropFactor: boolean("crop_factor").notNull().default(false),
+    notes: text("notes"),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [index("camera_video_modes_gear_idx").on(t.gearId)],
+);
+
 // --- Camera AF Area Specs ---
 // Which AF area modes are assigned to which camera (gear_type = CAMERA)
 export const cameraAfAreaSpecs = appSchema.table(

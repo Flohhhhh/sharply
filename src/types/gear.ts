@@ -10,6 +10,7 @@ import type {
   gearEdits,
   afAreaModes,
   cameraCardSlots,
+  cameraVideoModes,
 } from "~/server/db/schema";
 
 // Base types from schema
@@ -28,6 +29,7 @@ export type EnrichedCameraSpecs = CameraSpecs & {
 };
 
 export type CameraCardSlot = typeof cameraCardSlots.$inferSelect;
+export type CameraVideoMode = typeof cameraVideoModes.$inferSelect;
 
 // Unified gear item types
 export type GearItem = Gear & {
@@ -39,6 +41,7 @@ export type GearItem = Gear & {
   fixedLensSpecs?: FixedLensSpecs | null;
   afAreaModes?: AfAreaMode[] | null;
   cameraCardSlots?: CameraCardSlot[] | null;
+  videoModes?: CameraVideoMode[] | null;
 };
 
 export type PopularityEventType =

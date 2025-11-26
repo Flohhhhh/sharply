@@ -29,6 +29,7 @@ import { Input } from "~/components/ui/input";
 import { MultiSelect } from "~/components/ui/multi-select";
 import type { EnrichedCameraSpecs, GearItem } from "~/types/gear";
 import CardSlotsManager, { type CardSlot } from "./card-slots-manager";
+import { VideoModesManager } from "./video-modes-manager";
 // Integrated lens UI moved to edit form level
 
 interface CameraFieldsProps {
@@ -933,6 +934,11 @@ function CameraFieldsComponent({
               }
             />
           )}
+
+          <VideoModesManager
+            gearSlug={gearItem.slug}
+            initialModes={gearItem.videoModes ?? []}
+          />
 
           {/* Has Intervalometer */}
           {showWhenMissing((initialSpecs as any)?.hasIntervalometer) && (
