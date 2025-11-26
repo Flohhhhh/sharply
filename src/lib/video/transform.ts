@@ -161,23 +161,32 @@ function parseResolutionLabelValue(label: string): number {
   const normalized = label.trim().toLowerCase();
   const kMatch = normalized.match(/(\d+(?:\.\d+)?)\s*k/);
   if (kMatch) {
-    const value = parseFloat(kMatch[1]);
-    if (!Number.isNaN(value)) {
-      return Math.round(value * 1000);
+    const matchValue = kMatch[1];
+    if (matchValue?.length) {
+      const value = parseFloat(matchValue);
+      if (!Number.isNaN(value)) {
+        return Math.round(value * 1000);
+      }
     }
   }
   const pMatch = normalized.match(/(\d+)\s*p/);
   if (pMatch) {
-    const value = parseInt(pMatch[1], 10);
-    if (!Number.isNaN(value)) {
-      return value;
+    const matchValue = pMatch[1];
+    if (matchValue?.length) {
+      const value = parseInt(matchValue, 10);
+      if (!Number.isNaN(value)) {
+        return value;
+      }
     }
   }
   const genericMatch = normalized.match(/(\d+(\.\d+)?)/);
   if (genericMatch) {
-    const value = parseFloat(genericMatch[1] ?? "");
-    if (!Number.isNaN(value)) {
-      return value;
+    const matchValue = genericMatch[1];
+    if (matchValue?.length) {
+      const value = parseFloat(matchValue);
+      if (!Number.isNaN(value)) {
+        return value;
+      }
     }
   }
   return Number.MAX_SAFE_INTEGER;

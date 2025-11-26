@@ -22,16 +22,17 @@ The video specs system stores every advertised capture mode as an individual row
 ### Derived Surfaces
 
 - **Specs Table Summary** – Groups rows by `resolution_key` and renders `resolution_label – up to {max fps} fps – {bit depth}-bit`.
-- **Detail Modal** – Builds a static matrix with resolution columns and FPS rows. Each cell prints the codec label, bit depth, and whether a forced crop flag is set (a crop icon appears when `crop_factor` is `true`).
-- **Guided Editor** – Walks contributors through selecting resolutions, fps ranges per resolution, codec/bit-depth combos, per-fps crop toggles, and finally previews the generated mode list before saving.
-- **Advanced Editor** – Exposes a raw table where each mode row can be edited directly (resolution label/key, fps, codec, bit depth, crop flag, notes).
+- **Detail Modal** – Builds a static matrix with resolution columns (sorted ascending using pixel dimensions or parsed “K/P” labels) and FPS rows (sorted descending). Each cell is filled with a shared bit-depth color (`src/lib/video/colors.ts`), prints `{bit depth}-bit`, and shows a Lucide `Crop` icon when `crop_factor` is `true`.
+- **Guided Editor** – Walks contributors through (1) selecting resolutions via the custom multi-select, (2) choosing FPS sets per resolution, (3) painting bit depth and forced-crop states on the matrix-style editor, and (4) previewing the auto-generated per-mode list before saving. Clicking a cell toggles the current brush value, ensuring every resolution × FPS combo expands into the right number of mode rows.
+- **Matrix Editor** – The painting grid replaces the old “advanced table.” It mirrors the display matrix so contributors can rapidly assign bit depths and crop flags with brush controls (mutually exclusive bit-depth vs crop brushes, clear toggles, drag-to-fill).
 
 ### Code Map
 
-- **Helpers** – `src/lib/video/transform.ts` builds summary strings and the matrix data consumed by the UI.
+- **Color Config** – `src/lib/video/colors.ts` centralizes the bit-depth buckets for both the editor and public detail modal.
+- **Helpers** – `src/lib/video/transform.ts` builds summary strings and the matrix data consumed by the UI, including resolution sorting heuristics.
 - **Specs Table** – `src/lib/specs/registry.tsx` injects `<VideoSpecsSummary>` so every camera gear page shows the summary lines and modal launcher.
 - **Detail Modal** – `src/app/(app)/(pages)/gear/_components/video/video-matrix-modal.tsx` renders the static matrix, legend, and `camera_specs.extra.videoNotes` copy.
-- **Editors** – `src/app/(app)/(pages)/gear/_components/edit-gear/video-modes-manager.tsx` implements the guided flow and advanced table. It saves through `actionSaveVideoModes`.
+- **Editors** – `src/app/(app)/(pages)/gear/_components/edit-gear/video-modes-manager.tsx` implements the guided flow plus the shared `VideoBitDepthMatrix` painter that replaces the old advanced table. It saves through `actionSaveVideoModes`.
 - **Server Layer** – `src/server/video-modes/data.ts` + `service.ts` provide CRUD helpers, while `src/server/video-modes/actions.ts` expose read/save/regenerate actions to client components.
 
 ### Saving & Regeneration

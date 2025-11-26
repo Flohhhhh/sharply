@@ -63,7 +63,7 @@ const videoModeInput = z.object({
     .trim()
     .max(500)
     .optional()
-    .transform((value) => (value && value.length ? value : null)),
+    .transform((value) => (value?.length ? value : null)),
 });
 
 const videoModesPayload = z.object({
@@ -112,9 +112,7 @@ export async function saveVideoModesForGearSlug(
   const normalized = parsed.modes.map((mode) => ({
     gearId,
     resolutionKey: slugifyResolutionKey(
-      mode.resolutionKey && mode.resolutionKey.length
-        ? mode.resolutionKey
-        : mode.resolutionLabel,
+      mode.resolutionKey?.length ? mode.resolutionKey : mode.resolutionLabel,
     ),
     resolutionLabel: mode.resolutionLabel,
     resolutionHorizontal:

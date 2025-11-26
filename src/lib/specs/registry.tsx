@@ -785,7 +785,6 @@ export const specDictionary: SpecSectionDef[] = [
             />
           );
         },
-        fullWidth: true,
       },
       {
         key: "videoAvailableCodecs",
