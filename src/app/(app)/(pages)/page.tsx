@@ -113,7 +113,7 @@ export default async function Home() {
       <section className="w-full pt-20">
         <div className="mx-auto max-w-7xl px-4 py-8 md:py-10">
           <div className="mx-auto max-w-3xl space-y-4 text-center">
-            <h1 className="text-3xl font-bold tracking-tight md:text-6xl">
+            <h1 className="mb-12 text-3xl font-bold tracking-tight md:text-6xl">
               Real specs, real reviews, real fast.
             </h1>
 
