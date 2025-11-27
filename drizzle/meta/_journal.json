@@ -274,6 +274,20 @@
       "when": 1763477437609,
       "tag": "0038_perfect_alice",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1764166742912,
+      "tag": "0039_slim_norrin_radd",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1764196198764,
+      "tag": "0040_lumpy_cannonball",
+      "breakpoints": true
     }
   ]
 }

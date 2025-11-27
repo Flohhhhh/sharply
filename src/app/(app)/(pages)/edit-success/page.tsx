@@ -5,6 +5,12 @@ import { sensorNameFromSlug } from "~/lib/mapping/sensor-map";
 import { humanizeKey, formatHumanDate } from "~/lib/utils";
 import { auth, requireRole } from "~/server/auth";
 import type { Metadata } from "next";
+import { VideoSpecsSummary } from "~/app/(app)/(pages)/gear/_components/video/video-summary";
+import { buildVideoDisplayBundle } from "~/lib/video/transform";
+import {
+  type VideoModeNormalized,
+  normalizedToCameraVideoModes,
+} from "~/lib/video/mode-schema";
 
 export const metadata: Metadata = {
   title: "Edit Submitted",
@@ -49,6 +55,15 @@ export default async function EditSuccessPage({
   }
 
   const edit = await fetchGearEditById(id);
+  const videoModesPayload = Array.isArray((edit?.payload as any)?.videoModes)
+    ? ((edit?.payload as any).videoModes as VideoModeNormalized[])
+    : [];
+  const videoSummaryBundle =
+    videoModesPayload.length > 0
+      ? buildVideoDisplayBundle(
+          normalizedToCameraVideoModes(videoModesPayload),
+        )
+      : null;
 
   return (
     <div className="container mx-auto mt-24 min-h-screen max-w-3xl p-6">
@@ -100,11 +115,22 @@ export default async function EditSuccessPage({
 
         {/* Payload preview */}
         {!!edit?.payload && (
-          <div className="bg-muted/40 border-border space-y-2 rounded-md border p-3 text-sm">
+          <div className="bg-muted/40 border-border space-y-4 rounded-md border p-3 text-sm">
             {Object.keys(edit.payload as any).length === 0 ? (
               <p className="text-muted-foreground">No changes detected.</p>
             ) : (
               <>
+                {videoSummaryBundle && (
+                  <div>
+                    <div className="mb-1 font-medium">Video Summary</div>
+                    <VideoSpecsSummary
+                      summaryLines={videoSummaryBundle.summaryLines}
+                      matrix={videoSummaryBundle.matrix}
+                      codecLabels={videoSummaryBundle.codecLabels}
+                      enableDetailHover
+                    />
+                  </div>
+                )}
                 {(edit.payload as any).core && (
                   <div>
                     <div className="mb-1 font-medium">Core</div>

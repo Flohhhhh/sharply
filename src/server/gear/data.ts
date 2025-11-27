@@ -29,6 +29,7 @@ import {
 } from "~/server/db/schema";
 import { hasEventForUserOnUtcDay } from "~/server/validation/dedupe";
 import type { Gear, GearItem } from "~/types/gear";
+import { fetchVideoModesByGearId } from "~/server/video-modes/data";
 
 // Reads
 export async function getGearIdBySlug(slug: string): Promise<string | null> {
@@ -135,12 +136,14 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
       .from(fixedLensSpecs)
       .where(eq(fixedLensSpecs.gearId, gearItem[0]!.gear.id))
       .limit(1);
+    const videoModes = await fetchVideoModesByGearId(gearItem[0]!.gear.id);
 
     return {
       ...base,
       cameraSpecs: camera[0] ? { ...camera[0], afAreaModes: modes } : null,
       cameraCardSlots: slots.length ? (slots as any) : [],
       fixedLensSpecs: fixed[0] ?? null,
+      videoModes: videoModes.length ? videoModes : [],
     };
     // LENS SPECS
   } else if (gearItem[0]!.gear.gearType === "LENS") {

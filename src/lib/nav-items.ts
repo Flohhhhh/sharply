@@ -20,6 +20,7 @@ import {
   PencilRuler,
 } from "lucide-react";
 import { TbLaurelWreath } from "react-icons/tb";
+import { FaInstagram } from "react-icons/fa";
 
 interface NavItem {
   title: string;
@@ -48,7 +49,8 @@ interface NavItem {
       | "palette"
       | "film"
       | "scale"
-      | "pencilRuler";
+      | "pencilRuler"
+      | "instagram";
   }[];
   hideFromNavbar?: boolean;
   hideFromFooter?: boolean;
@@ -131,6 +133,12 @@ export const navItems: NavItem[] = [
         url: "/compare",
         description: "Compare gear side-by-side",
         iconKey: "scale",
+      },
+      {
+        title: "Instagram Post Builder",
+        url: "/instagram-post-builder",
+        description: "Create Instagram posts with multiple images",
+        iconKey: "instagram",
       },
       // {
       //   title: "Focal Simulator",
@@ -226,6 +234,7 @@ export const iconMap = {
   scale: Scale,
   pencilRuler: PencilRuler,
   wreath: TbLaurelWreath,
+  instagram: FaInstagram,
 };
 
 // Get nav items filtered by hideFromNavbar and format for the navbar component

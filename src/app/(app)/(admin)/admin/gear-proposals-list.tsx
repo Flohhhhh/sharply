@@ -17,6 +17,12 @@ import { sensorNameFromSlug, sensorNameFromId } from "~/lib/mapping/sensor-map";
 import { getMountLongNameById } from "~/lib/mapping/mounts-map";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { Label } from "~/components/ui/label";
+import { VideoSpecsSummary } from "~/app/(app)/(pages)/gear/_components/video/video-summary";
+import {
+  normalizedToCameraVideoModes,
+  type VideoModeNormalized,
+} from "~/lib/video/mode-schema";
+import { buildVideoDisplayBundle } from "~/lib/video/transform";
 
 interface GearProposal {
   id: string;
@@ -36,6 +42,7 @@ interface GearProposal {
       supportedBuses: string[];
       supportedSpeedClasses?: string[];
     }>;
+    videoModes?: VideoModeNormalized[];
   };
   beforeCore?: Record<string, any>;
   beforeCamera?: Record<string, any>;
@@ -104,6 +111,15 @@ export function GearProposalsList({
       })),
     );
   });
+
+  const getVideoBundle = (modes?: VideoModeNormalized[] | null) => {
+    if (!Array.isArray(modes) || modes.length === 0) return null;
+    try {
+      return buildVideoDisplayBundle(normalizedToCameraVideoModes(modes));
+    } catch {
+      return null;
+    }
+  };
   const [selectedByProposal, setSelectedByProposal] = useState<
     Record<string, Record<string, boolean>>
   >({});
@@ -200,7 +216,7 @@ export function GearProposalsList({
 
   type ConflictEntry = {
     fieldKey: string; // e.g. core.name or cameraCardSlots
-    area: "core" | "camera" | "lens" | "cameraCardSlots";
+    area: "core" | "camera" | "lens" | "cameraCardSlots" | "videoModes";
     key?: string; // inner key when area != cameraCardSlots
     options: Array<{
       proposalId: string;
@@ -211,7 +227,7 @@ export function GearProposalsList({
   };
   type NonConflictEntry = {
     fieldKey: string;
-    area: "core" | "camera" | "lens" | "cameraCardSlots";
+    area: "core" | "camera" | "lens" | "cameraCardSlots" | "videoModes";
     key?: string;
     provider: {
       proposalId: string;
@@ -270,6 +286,21 @@ export function GearProposalsList({
           value: p.payload.cameraCardSlots,
         });
         map.set(fieldKey, nextRec);
+      }
+      if (Array.isArray((p.payload as any).videoModes)) {
+        const fieldKey = "videoModes";
+        const rec =
+          map.get(fieldKey) ?? {
+            area: "videoModes" as NonConflictEntry["area"],
+            items: [] as ConflictEntry["options"],
+          };
+        rec.items.push({
+          proposalId: p.id,
+          createdByName: p.createdByName ?? null,
+          createdAt: p.createdAt,
+          value: (p.payload as any).videoModes,
+        });
+        map.set(fieldKey, rec);
       }
     }
     const results: NonConflictEntry[] = [];
@@ -342,6 +373,18 @@ export function GearProposalsList({
           createdByName: p.createdByName ?? null,
           createdAt: p.createdAt,
           value: p.payload.cameraCardSlots,
+        });
+        map.set(fieldKey, rec as any);
+      }
+      if (Array.isArray((p.payload as any).videoModes)) {
+        const fieldKey = "videoModes";
+        const rec =
+          map.get(fieldKey) ?? { area: "videoModes" as ConflictEntry["area"], items: [] };
+        rec.items.push({
+          proposalId: p.id,
+          createdByName: p.createdByName ?? null,
+          createdAt: p.createdAt,
+          value: (p.payload as any).videoModes,
         });
         map.set(fieldKey, rec as any);
       }
@@ -528,6 +571,7 @@ export function GearProposalsList({
       camera?: Record<string, any>;
       lens?: Record<string, any>;
       cameraCardSlots?: any;
+      videoModes?: VideoModeNormalized[];
     } = {};
 
     const getProposalById = (id: string) =>
@@ -538,6 +582,13 @@ export function GearProposalsList({
         const p = getProposalById(providerId);
         if (p && Array.isArray(p.payload.cameraCardSlots)) {
           out.cameraCardSlots = p.payload.cameraCardSlots;
+        }
+        continue;
+      }
+      if (fieldKey === "videoModes") {
+        const p = getProposalById(providerId);
+        if (p && Array.isArray(p.payload.videoModes)) {
+          out.videoModes = p.payload.videoModes;
         }
         continue;
       }
@@ -609,7 +660,6 @@ export function GearProposalsList({
     const nonConflicts = computeNonConflictsForGroup(group);
     const selections = selectedByGroup[group.gearId] || {};
     const hasUnresolved = conflicts.some((c) => selections[c.fieldKey] == null);
-
     return (
       <Card key={group.gearId}>
         <CardContent className="p-4">
@@ -702,6 +752,7 @@ export function GearProposalsList({
               </div>
             )}
 
+
             {nonConflicts.length > 0 && (
               <div className="space-y-3">
                 <div className="text-muted-foreground text-xs font-medium">
@@ -734,6 +785,53 @@ export function GearProposalsList({
                               .join("; ")}
                           </div>
                         </div>
+                        <div className="flex items-center justify-end pt-2">
+                          <label className="flex cursor-pointer items-center gap-2 text-xs">
+                            <input
+                              type="checkbox"
+                              checked={included}
+                              onChange={() =>
+                                setIncludedByGroup((prev) => ({
+                                  ...prev,
+                                  [group.gearId]: {
+                                    ...(prev[group.gearId] || {}),
+                                    [n.fieldKey]: !included,
+                                  },
+                                }))
+                              }
+                              className="h-3.5 w-3.5"
+                            />
+                            Apply this field
+                          </label>
+                        </div>
+                      </div>
+                    );
+                  }
+                  if (n.fieldKey === "videoModes") {
+                    const bundle = getVideoBundle(
+                      Array.isArray(n.value)
+                        ? (n.value as VideoModeNormalized[])
+                        : [],
+                    );
+                    return (
+                      <div
+                        key={n.fieldKey}
+                        className="border-input rounded border p-3"
+                      >
+                        <div className="text-muted-foreground mb-2 text-[11px]">
+                          Video Modes
+                        </div>
+                        {bundle ? (
+                          <VideoSpecsSummary
+                            summaryLines={bundle.summaryLines}
+                            matrix={bundle.matrix}
+                            codecLabels={bundle.codecLabels}
+                          />
+                        ) : (
+                          <div className="text-muted-foreground text-xs">
+                            No video modes provided.
+                          </div>
+                        )}
                         <div className="flex items-center justify-end pt-2">
                           <label className="flex cursor-pointer items-center gap-2 text-xs">
                             <input
@@ -1093,7 +1191,33 @@ export function GearProposalsList({
               </div>
             )}
 
-            {renderFieldDiffs(beforeMerged, afterMerged)}
+          {renderFieldDiffs(beforeMerged, afterMerged)}
+
+          {Array.isArray(proposal.payload.videoModes) &&
+            proposal.payload.videoModes.length > 0 && (
+              <div className="space-y-2">
+                <div className="text-muted-foreground text-xs font-medium uppercase">
+                  Video Modes
+                </div>
+                {(() => {
+                  const bundle = getVideoBundle(proposal.payload.videoModes);
+                  if (!bundle) {
+                    return (
+                      <div className="text-muted-foreground text-xs">
+                        No video summary available.
+                      </div>
+                    );
+                  }
+                  return (
+                    <VideoSpecsSummary
+                      summaryLines={bundle.summaryLines}
+                      matrix={bundle.matrix}
+                      codecLabels={bundle.codecLabels}
+                    />
+                  );
+                })()}
+              </div>
+            )}
 
             {proposal.status === "PENDING" && (
               <div className="flex items-center justify-end space-x-2 pt-1">

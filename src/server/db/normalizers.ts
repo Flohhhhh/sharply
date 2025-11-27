@@ -1,4 +1,9 @@
 import { SENSOR_FORMATS, ENUMS } from "~/lib/constants";
+import {
+  videoModeInputSchema,
+  normalizeVideoModes,
+  MAX_VIDEO_MODES,
+} from "~/lib/video/mode-schema";
 import { z } from "zod";
 
 type ProposalPayloadSection = Record<string, unknown>;
@@ -8,6 +13,7 @@ type ProposalPayload = {
   lens?: ProposalPayloadSection;
   cameraCardSlots?: unknown;
   fixedLens?: ProposalPayloadSection;
+  videoModes?: unknown;
 };
 
 function isUuid(value: string): boolean {
@@ -1039,6 +1045,25 @@ export function normalizeProposalPayloadForDb(
       .slice(0, 2)
       .map((s, i) => ({ ...s, slotIndex: i + 1 }));
     if (capped.length) normalized.cameraCardSlots = capped as unknown[];
+  }
+
+  if (payload.videoModes) {
+    if (!Array.isArray(payload.videoModes)) {
+      throw new Error("videoModes must be an array");
+    }
+    if (payload.videoModes.length > MAX_VIDEO_MODES) {
+      throw new Error(
+        `videoModes exceeds maximum of ${MAX_VIDEO_MODES} entries`,
+      );
+    }
+    const parsed = payload.videoModes.map((mode, index) => {
+      try {
+        return videoModeInputSchema.parse(mode ?? {});
+      } catch (error) {
+        throw new Error(`Invalid video mode at index ${index}`);
+      }
+    });
+    (normalized as any).videoModes = normalizeVideoModes(parsed);
   }
 
   return normalized;

@@ -69,6 +69,14 @@ export const VIDEO_FRAME_RATES = [
     id: "7",
     value: "120",
   },
+  {
+    id: "8",
+    value: "200",
+  },
+  {
+    id: "9",
+    value: "240",
+  },
 ];
 export type VideoFrameRate = (typeof VIDEO_FRAME_RATES)[number];
 

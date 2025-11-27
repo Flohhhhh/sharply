@@ -10,12 +10,14 @@ import {
   cameraSpecs,
   cameraAfAreaSpecs,
   cameraCardSlots,
+  cameraVideoModes,
   lensSpecs,
   auditLogs,
   fixedLensSpecs,
 } from "~/server/db/schema";
 import type { GearEditProposal } from "~/types/gear";
 import { eq, desc, and, ne } from "drizzle-orm";
+import type { VideoModeNormalized } from "~/lib/video/mode-schema";
 
 type ProposalSelect = {
   id: string;
@@ -299,6 +301,30 @@ export async function approveProposalData(
             supportedSpeedClasses: s.supportedSpeedClasses ?? [],
           }));
           await tx.insert(cameraCardSlots).values(rows as any);
+        }
+      }
+
+      if (Array.isArray((normalized as any).videoModes)) {
+        const modes = (normalized as any)
+          .videoModes as VideoModeNormalized[];
+        await tx
+          .delete(cameraVideoModes)
+          .where(eq(cameraVideoModes.gearId, gearId));
+        if (modes.length > 0) {
+          await tx.insert(cameraVideoModes).values(
+            modes.map((mode) => ({
+              gearId,
+              resolutionKey: mode.resolutionKey,
+              resolutionLabel: mode.resolutionLabel,
+              resolutionHorizontal: mode.resolutionHorizontal,
+              resolutionVertical: mode.resolutionVertical,
+              fps: mode.fps,
+              codecLabel: mode.codecLabel,
+              bitDepth: mode.bitDepth,
+              cropFactor: mode.cropFactor,
+              notes: mode.notes ?? null,
+            })) as any,
+          );
         }
       }
     }

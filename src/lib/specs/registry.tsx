@@ -17,6 +17,25 @@ import { sensorNameFromId, sensorTypeLabel } from "~/lib/mapping/sensor-map";
 import { formatFocusDistance } from "~/lib/mapping/focus-distance-map";
 import { formatFilterType } from "~/lib/mapping/filter-types-map";
 import { MOUNTS, AF_AREA_MODES } from "~/lib/generated";
+import { buildVideoDisplayBundle } from "~/lib/video/transform";
+import { VideoSpecsSummary } from "~/app/(app)/(pages)/gear/_components/video/video-summary";
+import { Badge } from "~/components/ui/badge";
+import {
+  normalizedToCameraVideoModes,
+  type VideoModeNormalized,
+} from "~/lib/video/mode-schema";
+import type { CameraVideoMode } from "~/types/gear";
+
+function coerceCameraVideoModes(
+  modes?: GearItem["videoModes"],
+): CameraVideoMode[] {
+  if (!modes?.length) return [];
+  const first = modes[0] as CameraVideoMode | VideoModeNormalized | undefined;
+  if (first && "id" in first) {
+    return modes as CameraVideoMode[];
+  }
+  return normalizedToCameraVideoModes((modes ?? []) as VideoModeNormalized[]);
+}
 
 function yesNoNull(value: boolean | null | undefined): string | undefined {
   if (value == null) return undefined;
@@ -38,6 +57,23 @@ function hasDisplayValue(value: unknown): boolean {
   if (typeof value === "string") return value.trim().length > 0; // empty strings
   if (Array.isArray(value)) return value.length > 0; // empty arrays
   return true; // keep 0, false->mapped to Yes/No earlier, and React nodes
+}
+
+function getVideoNotes(item: GearItem): string | null {
+  const extra = item.cameraSpecs?.extra;
+  if (
+    extra &&
+    typeof extra === "object" &&
+    extra !== null &&
+    "videoNotes" in extra &&
+    typeof (extra as Record<string, unknown>).videoNotes === "string"
+  ) {
+    const value = (
+      (extra as Record<string, unknown>).videoNotes as string
+    ).trim();
+    return value.length ? value : null;
+  }
+  return null;
 }
 
 // ============================================================================
@@ -541,7 +577,7 @@ export const specDictionary: SpecSectionDef[] = [
         getRawValue: (item) => item.cameraCardSlots,
         formatDisplay: (_, item) =>
           item.cameraCardSlots && item.cameraCardSlots.length > 0 ? (
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col items-end gap-2">
               {item.cameraCardSlots
                 .sort((a, b) => (a.slotIndex ?? 0) - (b.slotIndex ?? 0))
                 .map((s, i) => {
@@ -551,13 +587,45 @@ export const specDictionary: SpecSectionDef[] = [
                     supportedBuses: s.supportedBuses ?? [],
                     supportedSpeedClasses: s.supportedSpeedClasses ?? [],
                   });
+                  const label = details.length > 0 ? details : "Not specified";
+                  const tokens = details
+                    .split("|")
+                    .map((part) => part.trim())
+                    .filter((part) => part.length > 0);
+                  const parts: React.ReactNode[] = [];
+                  if (tokens.length > 0) {
+                    tokens.forEach((token, idx) => {
+                      parts.push(
+                        <span key={`token-${idx}`} className="inline-block">
+                          {token}
+                        </span>,
+                      );
+                      if (idx < tokens.length - 1) {
+                        parts.push(
+                          <span
+                            key={`divider-${idx}`}
+                            className="text-muted-foreground mx-2"
+                          >
+                            |
+                          </span>,
+                        );
+                      }
+                    });
+                  }
                   return (
-                    <div key={i} className="flex justify-between gap-6">
-                      <span className="text-muted-foreground">
-                        Slot {s.slotIndex}
-                      </span>
-                      <span className="font-medium">{details}</span>
-                    </div>
+                    <Badge
+                      key={`${s.slotIndex ?? i}-${label}`}
+                      variant="outline"
+                      className="w-fit justify-end text-right"
+                    >
+                      {parts.length > 0 ? (
+                        <span className="inline-flex flex-wrap items-center">
+                          {parts}
+                        </span>
+                      ) : (
+                        "Not specified"
+                      )}
+                    </Badge>
                   );
                 })}
             </div>
@@ -717,6 +785,54 @@ export const specDictionary: SpecSectionDef[] = [
     sectionAnchor: "camera-section",
     condition: (item) => item.gearType === "CAMERA",
     fields: [
+      {
+        key: "videoSummary",
+        label: "Video Summary",
+        editElementId: "video-modes-manager",
+        getRawValue: (item) => item.videoModes,
+        formatDisplay: (_, item) => {
+          const modes = coerceCameraVideoModes(item.videoModes);
+          if (!modes.length) return undefined;
+          const bundle = buildVideoDisplayBundle(modes);
+          if (!bundle.summaryLines.length) return undefined;
+          return (
+            <VideoSpecsSummary
+              summaryLines={bundle.summaryLines}
+              matrix={bundle.matrix}
+              codecLabels={bundle.codecLabels}
+              videoNotes={getVideoNotes(item)}
+            />
+          );
+        },
+      },
+      {
+        key: "videoAvailableCodecs",
+        label: "Available Codecs",
+        getRawValue: (item) => item.videoModes,
+        formatDisplay: (_, item) => {
+          const list = Array.from(
+            new Set(
+              (item.videoModes ?? [])
+                .map((mode) =>
+                  typeof mode.codecLabel === "string"
+                    ? mode.codecLabel.trim()
+                    : "",
+                )
+                .filter((label) => label.length > 0),
+            ),
+          );
+          if (!list.length) return undefined;
+          return (
+            <div className="flex flex-wrap gap-2">
+              {list.map((label) => (
+                <Badge key={label} variant="outline">
+                  {label}
+                </Badge>
+              ))}
+            </div>
+          );
+        },
+      },
       {
         key: "hasLogColorProfile",
         label: "Has Log Color Profile",
