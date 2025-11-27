@@ -69,7 +69,13 @@ function groupByResolution(modes: CameraVideoMode[]): ResolutionGroup[] {
 export function buildVideoSummaryLines(modes: CameraVideoMode[]): string[] {
   if (!modes || modes.length === 0) return [];
   const groups = groupByResolution(modes);
-  return groups.map((group) => {
+  const ordered = [...groups].sort((a, b) => {
+    const aSort = getResolutionSortValue(a);
+    const bSort = getResolutionSortValue(b);
+    if (aSort !== bSort) return aSort - bSort;
+    return a.label.localeCompare(b.label);
+  });
+  return ordered.map((group) => {
     const maxFps = group.modes.reduce(
       (acc, mode) => Math.max(acc, mode.fps ?? 0),
       0,

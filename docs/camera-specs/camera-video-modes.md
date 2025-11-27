@@ -32,14 +32,17 @@ The video specs system stores every advertised capture mode as an individual row
 - **Helpers** – `src/lib/video/transform.ts` builds summary strings and the matrix data consumed by the UI, including resolution sorting heuristics.
 - **Specs Table** – `src/lib/specs/registry.tsx` injects `<VideoSpecsSummary>` so every camera gear page shows the summary lines and modal launcher.
 - **Detail Modal** – `src/app/(app)/(pages)/gear/_components/video/video-matrix-modal.tsx` renders the static matrix, legend, and `camera_specs.extra.videoNotes` copy.
-- **Editors** – `src/app/(app)/(pages)/gear/_components/edit-gear/video-modes-manager.tsx` implements the guided flow plus the shared `VideoBitDepthMatrix` painter that replaces the old advanced table. It saves through `actionSaveVideoModes`.
+- **Editors** – `src/app/(app)/(pages)/gear/_components/edit-gear/video-modes-manager.tsx` implements the guided flow plus the shared `VideoBitDepthMatrix` painter that replaces the old advanced table. The manager now stages modes in the main gear edit form instead of writing directly to the database.
+- **Form Integration** – `src/app/(app)/(pages)/gear/_components/edit-gear/edit-gear-form.tsx` normalizes staged modes, includes them in the diff payload, and previews the pending rows in the confirmation dialog.
+- **Proposal Pipeline** – `src/server/db/normalizers.ts` validates and normalizes the `videoModes` payload, while `src/server/admin/proposals/data.ts` applies the rows during approval by replacing `camera_video_modes`.
 - **Server Layer** – `src/server/video-modes/data.ts` + `service.ts` provide CRUD helpers, while `src/server/video-modes/actions.ts` expose read/save/regenerate actions to client components.
 
 ### Saving & Regeneration
 
-1. Editors call the video mode save action, which replaces all existing rows for the gear inside a transaction.
-2. The service returns the freshly normalized rows so the client can update its local view. The public page revalidates via `revalidatePath("/gear/[slug]")`.
-3. No separate JSON cache (`camera_specs.video_matrix`) is written for now. The helper in `src/lib/video/transform.ts` recomputes line + matrix data on demand wherever it's needed. This keeps the pipeline simple while we validate the feature.
+1. Contributors stage their matrix edits inside the gear form. When the main form is submitted, `videoModes` is included in the proposal payload (diff-only).
+2. `normalizeProposalPayloadForDb` parses the array, enforces the shared constraints, and stores the normalized rows on the proposal.
+3. When the proposal is approved (either auto-approved for admins/editors or via the review UI), the approval data layer replaces every row in `camera_video_modes` for that gear before revalidating the public routes.
+4. No separate JSON cache (`camera_specs.video_matrix`) is written for now. The helper in `src/lib/video/transform.ts` recomputes line + matrix data on demand wherever it's needed. This keeps the pipeline simple while we validate the feature.
 
 ### Notes Field
 

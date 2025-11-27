@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -22,15 +22,22 @@ import {
   VIDEO_FRAME_RATES,
   VIDEO_COLOR_DEPTHS,
 } from "~/lib/constants/video-constants";
-import type { CameraVideoMode } from "~/types/gear";
-import {
-  actionLoadVideoModes,
-  actionSaveVideoModes,
-} from "~/server/video-modes/actions";
-import { Loader, RefreshCw, Trash2, Plus, Crop } from "lucide-react";
+import { Loader, Trash2, Plus, Crop } from "lucide-react";
 import { toast } from "sonner";
 import { MultiSelect } from "~/components/ui/multi-select";
 import { VideoBitDepthMatrix } from "./video-bit-depth-matrix";
+import {
+  videoModeInputSchema,
+  normalizeVideoModes,
+  slugifyResolutionKey,
+  type VideoModeNormalized,
+  type VideoModeInput,
+  videoModesEqual,
+  normalizedToCameraVideoModes,
+} from "~/lib/video/mode-schema";
+import { buildVideoDisplayBundle } from "~/lib/video/transform";
+import { VideoSpecsSummary } from "../video/video-summary";
+import type { CameraVideoMode } from "~/types/gear";
 
 type EditableVideoMode = {
   id: string;
@@ -70,7 +77,7 @@ const COLOR_DEPTH_VALUES = VIDEO_COLOR_DEPTHS.map((depth) =>
 
 const PRESET_RESOLUTIONS: GuidedResolution[] = COMMON_VIDEO_RESOLUTIONS.map(
   (resolution) => ({
-    key: slugify(resolution.label),
+    key: slugifyResolutionKey(resolution.label),
     label: resolution.label,
     horizontal: resolution.horizontalPixels ?? null,
     vertical: resolution.verticalPixels ?? null,
@@ -98,34 +105,143 @@ function createId() {
   return Math.random().toString(36).slice(2, 9);
 }
 
-function slugify(value: string) {
-  const normalized = value.trim().toLowerCase();
-  const slug = normalized
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 64);
-  return slug.length ? slug : `custom-${createId()}`;
+type VideoModeLike = {
+  id?: string;
+  gearId?: string;
+  resolutionKey?: string | null;
+  resolutionLabel?: string | null;
+  resolutionHorizontal?: number | null;
+  resolutionVertical?: number | null;
+  fps?: number | string | null;
+  codecLabel?: string | null;
+  bitDepth?: number | string | null;
+  cropFactor?: boolean | string | number | null;
+  notes?: string | null;
+  createdAt?: Date | null;
+  updatedAt?: Date | null;
+};
+
+function toSchemaInput(mode: VideoModeLike) {
+  return {
+    resolutionKey: mode.resolutionKey ?? undefined,
+    resolutionLabel: mode.resolutionLabel?.trim().length
+      ? mode.resolutionLabel
+      : (mode.resolutionKey ?? "Custom"),
+    resolutionHorizontal:
+      mode.resolutionHorizontal === undefined
+        ? null
+        : mode.resolutionHorizontal,
+    resolutionVertical:
+      mode.resolutionVertical === undefined ? null : mode.resolutionVertical,
+    fps: mode.fps ?? 0,
+    codecLabel: mode.codecLabel ?? "",
+    bitDepth: mode.bitDepth ?? 0,
+    cropFactor: mode.cropFactor ?? false,
+    notes: mode.notes ?? null,
+  };
+}
+
+function normalizeVideoModesFromLike(
+  list: VideoModeLike[],
+): VideoModeNormalized[] {
+  const parsed: VideoModeInput[] = [];
+  list.forEach((mode) => {
+    const result = videoModeInputSchema.safeParse(toSchemaInput(mode));
+    if (result.success) {
+      parsed.push(result.data);
+    }
+  });
+  return normalizeVideoModes(parsed);
+}
+
+function coerceCameraVideoModes(list: VideoModeLike[]): CameraVideoMode[] {
+  return list.map((mode, index) => {
+    if (
+      typeof mode.gearId === "string" &&
+      typeof mode.codecLabel === "string" &&
+      typeof mode.bitDepth === "number" &&
+      typeof mode.fps === "number"
+    ) {
+      return mode as CameraVideoMode;
+    }
+    return {
+      id: mode.id ?? `preview-${index}`,
+      gearId: mode.gearId ?? "preview",
+      resolutionKey:
+        mode.resolutionKey ??
+        slugifyResolutionKey(mode.resolutionLabel ?? "custom"),
+      resolutionLabel:
+        mode.resolutionLabel ??
+        mode.resolutionKey ??
+        slugifyResolutionKey("custom"),
+      resolutionHorizontal:
+        mode.resolutionHorizontal != null
+          ? Number(mode.resolutionHorizontal)
+          : null,
+      resolutionVertical:
+        mode.resolutionVertical != null
+          ? Number(mode.resolutionVertical)
+          : null,
+      fps: Number(mode.fps ?? 0),
+      codecLabel: mode.codecLabel ?? "Unknown",
+      bitDepth: Number(mode.bitDepth ?? 0),
+      cropFactor: Boolean(mode.cropFactor),
+      notes: mode.notes ?? null,
+      createdAt: mode.createdAt instanceof Date ? mode.createdAt : new Date(0),
+      updatedAt: mode.updatedAt instanceof Date ? mode.updatedAt : new Date(0),
+    } as CameraVideoMode;
+  });
+}
+
+function serializeGuidedModes(
+  modes: EditableVideoMode[],
+): VideoModeNormalized[] {
+  const parsed: VideoModeInput[] = [];
+  modes.forEach((mode) => {
+    const result = videoModeInputSchema.safeParse({
+      resolutionKey: mode.resolutionKey,
+      resolutionLabel: mode.resolutionLabel,
+      resolutionHorizontal: mode.resolutionHorizontal,
+      resolutionVertical: mode.resolutionVertical,
+      fps: mode.fps,
+      codecLabel: mode.codecLabel,
+      bitDepth: mode.bitDepth,
+      cropFactor: mode.cropFactor,
+      notes: mode.notes,
+    });
+    if (result.success) {
+      parsed.push(result.data);
+    }
+  });
+  return normalizeVideoModes(parsed);
 }
 
 function normalizeInitialRows(
-  initialModes?: CameraVideoMode[] | null,
+  initialModes?: VideoModeLike[] | null,
 ): EditableVideoMode[] {
   if (!initialModes?.length) return [];
   return initialModes.map((mode) => ({
     id: createId(),
     resolutionKey:
-      mode.resolutionKey ?? slugify(mode.resolutionLabel ?? "mode"),
-    resolutionLabel: mode.resolutionLabel ?? mode.resolutionKey ?? "Custom",
-    resolutionHorizontal: mode.resolutionHorizontal
-      ? Number(mode.resolutionHorizontal)
-      : null,
-    resolutionVertical: mode.resolutionVertical
-      ? Number(mode.resolutionVertical)
-      : null,
+      mode.resolutionKey ??
+      slugifyResolutionKey(mode.resolutionLabel ?? "mode"),
+    resolutionLabel:
+      mode.resolutionLabel ??
+      mode.resolutionKey ??
+      slugifyResolutionKey("custom"),
+    resolutionHorizontal:
+      mode.resolutionHorizontal != null
+        ? Number(mode.resolutionHorizontal)
+        : null,
+    resolutionVertical:
+      mode.resolutionVertical != null ? Number(mode.resolutionVertical) : null,
     fps: Number(mode.fps ?? 0),
     codecLabel: mode.codecLabel ?? "",
     bitDepth: Number(mode.bitDepth ?? 0),
-    cropFactor: Boolean(mode.cropFactor),
+    cropFactor:
+      typeof mode.cropFactor === "boolean"
+        ? mode.cropFactor
+        : Boolean(mode.cropFactor),
     notes: mode.notes ?? "",
   }));
 }
@@ -188,11 +304,11 @@ function deriveInitialAssignments(
   for (const row of rows) {
     const resolutionKey = row.resolutionKey;
     assignments[resolutionKey] = assignments[resolutionKey] ?? {};
+    const bucket = assignments[resolutionKey]!;
     const fpsKey = String(row.fps);
     const bitDepth = Number(row.bitDepth) || 0;
-    const current = assignments[resolutionKey]![fpsKey];
-    assignments[resolutionKey]![fpsKey] =
-      current == null ? bitDepth : Math.max(current, bitDepth);
+    const current = bucket[fpsKey];
+    bucket[fpsKey] = current == null ? bitDepth : Math.max(current, bitDepth);
   }
   return assignments;
 }
@@ -205,7 +321,8 @@ function deriveInitialCropFactors(
     if (!row.cropFactor) continue;
     const key = row.resolutionKey;
     crop[key] = crop[key] ?? {};
-    crop[key]![String(row.fps)] = true;
+    const bucket = crop[key]!;
+    bucket[String(row.fps)] = true;
   }
   return crop;
 }
@@ -231,8 +348,7 @@ function generateGuidedPreview(
   cropFactors: GuidedCropFactors,
 ): EditableVideoMode[] {
   if (!resolutions.length || !codecPairs.length) return [];
-  const codecMap = new Map<string, CodecPair>();
-  for (const pair of codecPairs) codecMap.set(pair.id, pair);
+  const codecMap = new Map(codecPairs.map((pair) => [pair.id, pair]));
 
   const preview: EditableVideoMode[] = [];
   const maxBitDepth =
@@ -260,8 +376,7 @@ function generateGuidedPreview(
       }
       const codec = bestCodec ?? codecMap.get(codecPairs[0]!.id ?? "");
       if (!codec) continue;
-      const isCropped =
-        cropFactors[resolution.key]?.[String(fps)] === true;
+      const isCropped = cropFactors[resolution.key]?.[String(fps)] === true;
       preview.push({
         id: createId(),
         resolutionKey: resolution.key,
@@ -308,8 +423,7 @@ function generateGuidedModesDetailed(
       for (const codecId of assignedList) {
         const codec = codecMap.get(codecId);
         if (!codec) continue;
-        const isCropped =
-          cropFactors[resolution.key]?.[String(fps)] === true;
+        const isCropped = cropFactors[resolution.key]?.[String(fps)] === true;
         modes.push({
           id: createId(),
           resolutionKey: resolution.key,
@@ -328,40 +442,101 @@ function generateGuidedModesDetailed(
   return modes;
 }
 
+interface VideoModesManagerProps {
+  value?: VideoModeLike[] | null;
+  initialModes?: VideoModeLike[] | null;
+  onChange: (modes: VideoModeNormalized[]) => void;
+}
+
 export function VideoModesManager({
-  gearSlug,
+  value,
   initialModes,
-}: {
-  gearSlug: string;
-  initialModes?: CameraVideoMode[] | null;
-}) {
+  onChange,
+}: VideoModesManagerProps) {
   const [open, setOpen] = useState(false);
-  const [rows, setRows] = useState<EditableVideoMode[]>(() =>
-    normalizeInitialRows(initialModes),
+
+  const seedRows = useMemo(
+    () => normalizeInitialRows(value?.length ? value : (initialModes ?? [])),
+    [initialModes, value],
   );
+  const seedCodecPairs = useMemo(() => {
+    const derived = deriveInitialCodecPairs(seedRows);
+    return derived.length ? derived : [DEFAULT_CODEC_PAIR];
+  }, [seedRows]);
 
   const [guidedResolutions, setGuidedResolutions] = useState<
     GuidedResolution[]
-  >(() => deriveInitialGuidedResolutions(rows));
+  >(() => deriveInitialGuidedResolutions(seedRows));
   const [fpsSelections, setFpsSelections] = useState<GuidedFpsSelections>(() =>
-    deriveInitialFpsSelections(rows),
+    deriveInitialFpsSelections(seedRows),
   );
   const [codecPairs, setCodecPairs] = useState<CodecPair[]>(() =>
-    sortCodecPairsDesc(deriveInitialCodecPairs(rows)),
+    sortCodecPairsDesc(seedCodecPairs),
   );
   const [codecAssignments, setCodecAssignments] = useState<GuidedAssignments>(
-    () => deriveInitialAssignments(rows, deriveInitialCodecPairs(rows)),
+    () => deriveInitialAssignments(seedRows, seedCodecPairs),
   );
   const [cropAssignments, setCropAssignments] = useState<GuidedCropFactors>(
-    () => deriveInitialCropFactors(rows),
+    () => deriveInitialCropFactors(seedRows),
   );
   const [customResolution, setCustomResolution] = useState<{
     label: string;
     horizontal: string;
     vertical: string;
   }>({ label: "", horizontal: "", vertical: "" });
-  const [isSaving, setIsSaving] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isApplying, setIsApplying] = useState(false);
+  const baselineRawRef = useRef<VideoModeLike[]>([]);
+  const baselineNormalizedRef = useRef<VideoModeNormalized[]>([]);
+
+  const stagedNormalized = useMemo(() => {
+    const source = value?.length
+      ? value
+      : initialModes?.length
+        ? initialModes
+        : [];
+    return normalizeVideoModesFromLike(source);
+  }, [initialModes, value]);
+
+  const stagedBundle = useMemo(() => {
+    if (!stagedNormalized.length) return null;
+    return buildVideoDisplayBundle(
+      normalizedToCameraVideoModes(stagedNormalized),
+    );
+  }, [stagedNormalized]);
+
+  const hydrateFromValue = useCallback((source?: VideoModeLike[] | null) => {
+    const safeSource = [...(source ?? [])];
+    baselineRawRef.current = safeSource;
+    baselineNormalizedRef.current = normalizeVideoModesFromLike(safeSource);
+    const normalizedRows = normalizeInitialRows(safeSource);
+    const derivedPairs = deriveInitialCodecPairs(normalizedRows);
+    const safePairs = derivedPairs.length ? derivedPairs : [DEFAULT_CODEC_PAIR];
+    setGuidedResolutions(deriveInitialGuidedResolutions(normalizedRows));
+    setFpsSelections(deriveInitialFpsSelections(normalizedRows));
+    setCodecPairs(sortCodecPairsDesc(safePairs));
+    setCodecAssignments(deriveInitialAssignments(normalizedRows, safePairs));
+    setCropAssignments(deriveInitialCropFactors(normalizedRows));
+  }, []);
+
+  const prevOpenRef = useRef(false);
+  useEffect(() => {
+    if (open && !prevOpenRef.current) {
+      const source = value?.length
+        ? value
+        : initialModes?.length
+          ? initialModes
+          : [];
+      hydrateFromValue(source);
+    }
+    prevOpenRef.current = open;
+  }, [open, value, initialModes, hydrateFromValue]);
+
+  const stagedModesCount = useMemo(() => {
+    if (Array.isArray(value) && value.length) return value.length;
+    if (Array.isArray(initialModes) && initialModes.length)
+      return initialModes.length;
+    return 0;
+  }, [initialModes, value]);
 
   const applyResolutionState = (
     nextResolutions: GuidedResolution[],
@@ -450,6 +625,16 @@ export function VideoModesManager({
     ],
   );
 
+  const currentNormalized = useMemo(
+    () => serializeGuidedModes(guidedDetailedModes),
+    [guidedDetailedModes],
+  );
+
+  const hasLocalChanges = useMemo(
+    () => !videoModesEqual(currentNormalized, baselineNormalizedRef.current),
+    [currentNormalized],
+  );
+
   const presetOptions = useMemo(
     () =>
       PRESET_RESOLUTIONS.map((resolution) => ({
@@ -513,7 +698,7 @@ export function VideoModesManager({
 
   const addCustomResolution = () => {
     if (!customResolution.label.trim()) return;
-    const key = slugify(customResolution.label);
+    const key = slugifyResolutionKey(customResolution.label);
     const numericWidth = Number(customResolution.horizontal);
     const numericHeight = Number(customResolution.vertical);
     const resolution: GuidedResolution = {
@@ -659,124 +844,28 @@ export function VideoModesManager({
     );
   };
 
-  const handleRowChange = (
-    id: string,
-    field: keyof EditableVideoMode,
-    value: string,
-  ) => {
-    setRows((prev) =>
-      prev.map((row) =>
-        row.id === id
-          ? {
-              ...row,
-              [field]:
-                field === "fps" ||
-                field === "bitDepth" ||
-                field === "resolutionHorizontal" ||
-                field === "resolutionVertical"
-                  ? value === ""
-                    ? null
-                    : Number(value)
-                  : field === "cropFactor"
-                    ? value === "true" ||
-                      value === "1" ||
-                      value === "on"
-                    : value,
-            }
-          : row,
-      ),
-    );
-  };
-
-  const removeRow = (id: string) => {
-    setRows((prev) => prev.filter((row) => row.id !== id));
-  };
-
-  const saveModes = async () => {
+  const applyModesToForm = async () => {
     try {
-      setIsSaving(true);
-      const sourceModes = guidedDetailedModes;
-      if (!sourceModes.length) {
-        toast.info("No video modes to save");
-        setIsSaving(false);
+      setIsApplying(true);
+      if (!currentNormalized.length) {
+        toast.info("Add at least one resolution/FPS pairing to continue");
         return;
       }
-      const payload = {
-        modes: sourceModes.map((row) => ({
-          resolutionKey: row.resolutionKey
-            ? slugify(row.resolutionKey)
-            : slugify(row.resolutionLabel),
-          resolutionLabel: row.resolutionLabel,
-          resolutionHorizontal: row.resolutionHorizontal,
-          resolutionVertical: row.resolutionVertical,
-          fps: Number(row.fps) || 0,
-          codecLabel: row.codecLabel,
-          bitDepth: Number(row.bitDepth) || 0,
-          cropFactor: Boolean(row.cropFactor),
-          notes: row.notes ? row.notes.trim() : "",
-        })),
-      };
-      await actionSaveVideoModes(gearSlug, payload);
-      const normalizedRows: EditableVideoMode[] = payload.modes.map((mode) => ({
-        id: createId(),
-        resolutionKey: mode.resolutionKey,
-        resolutionLabel: mode.resolutionLabel,
-        resolutionHorizontal: mode.resolutionHorizontal ?? null,
-        resolutionVertical: mode.resolutionVertical ?? null,
-        fps: mode.fps,
-        codecLabel: mode.codecLabel,
-        bitDepth: mode.bitDepth,
-        cropFactor: Boolean(mode.cropFactor),
-        notes: mode.notes ?? "",
-      }));
-      setRows(normalizedRows);
-      const derivedPairs = deriveInitialCodecPairs(normalizedRows);
-      const safePairs = derivedPairs.length
-        ? derivedPairs
-        : [DEFAULT_CODEC_PAIR];
-      setGuidedResolutions(deriveInitialGuidedResolutions(normalizedRows));
-      setCodecPairs(sortCodecPairsDesc(safePairs));
-      setFpsSelections(deriveInitialFpsSelections(normalizedRows));
-      setCodecAssignments(deriveInitialAssignments(normalizedRows, safePairs));
-      setCropAssignments(deriveInitialCropFactors(normalizedRows));
-      toast.success("Video modes saved");
+      onChange(currentNormalized);
+      toast.success("Video modes staged. Submit the gear form to apply.");
       setOpen(false);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to save video modes");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to stage video modes",
+      );
     } finally {
-      setIsSaving(false);
+      setIsApplying(false);
     }
   };
 
-  const refreshFromServer = async () => {
-    try {
-      setIsRefreshing(true);
-      const latest = await actionLoadVideoModes(gearSlug);
-      const normalized = normalizeInitialRows(latest.modes);
-      setRows(normalized);
-      setGuidedResolutions(deriveInitialGuidedResolutions(normalized));
-      const derivedPairs = deriveInitialCodecPairs(normalized);
-      setCodecPairs(
-        sortCodecPairsDesc(
-          derivedPairs.length ? derivedPairs : [DEFAULT_CODEC_PAIR],
-        ),
-      );
-      setFpsSelections(deriveInitialFpsSelections(normalized));
-      setCodecAssignments(
-        deriveInitialAssignments(
-          normalized,
-          derivedPairs.length ? derivedPairs : [DEFAULT_CODEC_PAIR],
-        ),
-      );
-      setCropAssignments(deriveInitialCropFactors(normalized));
-      toast.success("Video modes reloaded");
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to reload video modes");
-    } finally {
-      setIsRefreshing(false);
-    }
+  const handleReset = () => {
+    hydrateFromValue(baselineRawRef.current);
   };
 
   return (
@@ -785,43 +874,52 @@ export function VideoModesManager({
         id="video-modes-manager"
         data-sidebar-focus-target="true"
         tabIndex={-1}
-        className="flex flex-col gap-3 rounded-md border p-3"
+        className="flex flex-col gap-4 rounded-md border p-3"
       >
         <div className="flex items-center justify-between">
           <div>
             <div className="text-sm font-medium">Video Modes</div>
             <div className="text-muted-foreground text-xs">
-              {rows.length
-                ? `${rows.length} mode${rows.length === 1 ? "" : "s"} configured`
+              {stagedModesCount
+                ? `${stagedModesCount} mode${stagedModesCount === 1 ? "" : "s"} configured`
                 : "No modes configured"}
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={refreshFromServer}
-              disabled={isRefreshing}
-            >
-              {isRefreshing ? (
-                <Loader className="h-4 w-4 animate-spin" />
-              ) : (
-                <RefreshCw className="h-4 w-4" />
-              )}
-            </Button>
-            <Button type="button" onClick={() => setOpen(true)}>
-              Open Video Modes Manager
-            </Button>
-          </div>
+          <Button type="button" onClick={() => setOpen(true)}>
+            Open Video Modes Manager
+          </Button>
         </div>
+        {stagedBundle ? (
+          <div className="bg-muted/40 rounded-md border p-3">
+            <VideoSpecsSummary
+              summaryLines={stagedBundle.summaryLines}
+              matrix={stagedBundle.matrix}
+              codecLabels={stagedBundle.codecLabels}
+              enableDetailHover={false}
+              showDetailModal={false}
+            />
+          </div>
+        ) : (
+          <div className="text-muted-foreground text-xs">
+            Add resolutions and frame rates to generate a summary preview.
+          </div>
+        )}
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-6xl">
+        <DialogContent className="sm:max-w-5xl">
           <div className="max-h-[80vh] overflow-y-auto pr-1">
-            <DialogHeader>
+            <DialogHeader className="flex flex-row items-center justify-between space-y-0">
               <DialogTitle>Video Modes Manager</DialogTitle>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleReset}
+                disabled={!hasLocalChanges}
+              >
+                Reset
+              </Button>
             </DialogHeader>
             <div className="space-y-6">
               <section className="space-y-3 rounded-md border p-3">
@@ -1148,11 +1246,16 @@ export function VideoModesManager({
             </div>
             <DialogFooter className="flex items-center justify-between space-y-2 sm:space-y-0">
               <div className="text-muted-foreground text-xs">
-                Saving replaces all existing modes for this gear.
+                Applied modes stay in your pending change until you submit the
+                gear form.
               </div>
-              <Button type="button" onClick={saveModes} disabled={isSaving}>
-                {isSaving && <Loader className="mr-2 h-4 w-4 animate-spin" />}
-                Save modes
+              <Button
+                type="button"
+                onClick={applyModesToForm}
+                disabled={isApplying}
+              >
+                {isApplying && <Loader className="mr-2 h-4 w-4 animate-spin" />}
+                Apply to form
               </Button>
             </DialogFooter>
           </div>

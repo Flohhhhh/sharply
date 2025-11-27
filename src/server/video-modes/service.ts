@@ -1,6 +1,5 @@
 import "server-only";
 
-import { z } from "zod";
 import { requireUser, type SessionRole } from "~/server/auth";
 import { getGearIdBySlug as getGearIdBySlugData } from "~/server/gear/data";
 import {
@@ -8,81 +7,17 @@ import {
   replaceVideoModesForGear,
   type CameraVideoModeRow,
 } from "./data";
-
-const MAX_VIDEO_MODES = 200;
+import {
+  videoModesPayloadSchema,
+  normalizeVideoModes,
+  slugifyResolutionKey,
+} from "~/lib/video/mode-schema";
 const EDIT_ROLES: SessionRole[] = ["ADMIN", "EDITOR"];
-
-const nullableNumber = z.preprocess(
-  (value) => {
-    if (value === "" || value === null || value === undefined) return null;
-    if (typeof value === "number") return value;
-    if (typeof value === "string") {
-      const parsed = Number(value);
-      return Number.isNaN(parsed) ? value : parsed;
-    }
-    return value;
-  },
-  z.number().finite().nullable(),
-);
-
-const booleanLike = z.preprocess(
-  (value) => {
-    if (value === true || value === false) return value;
-    if (value === "" || value === null || value === undefined) return false;
-    if (value === "true" || value === "1" || value === 1) return true;
-    if (value === "false" || value === "0" || value === 0) return false;
-    return value;
-  },
-  z.boolean(),
-);
-
-const videoModeInput = z.object({
-  resolutionKey: z
-    .string()
-    .max(64)
-    .optional()
-    .transform((value) => value?.trim())
-    .pipe(z.string().max(64).optional()),
-  resolutionLabel: z
-    .string()
-    .min(1)
-    .max(120)
-    .transform((value) => value.trim()),
-  resolutionHorizontal: nullableNumber,
-  resolutionVertical: nullableNumber,
-  fps: z.coerce.number().int().min(1).max(960),
-  codecLabel: z
-    .string()
-    .min(1)
-    .max(120)
-    .transform((value) => value.trim()),
-  bitDepth: z.coerce.number().int().min(1).max(32),
-  cropFactor: booleanLike,
-  notes: z
-    .string()
-    .trim()
-    .max(500)
-    .optional()
-    .transform((value) => (value?.length ? value : null)),
-});
-
-const videoModesPayload = z.object({
-  modes: z.array(videoModeInput).max(MAX_VIDEO_MODES),
-});
 
 function assertCanEdit(role: SessionRole | undefined) {
   if (!role || !EDIT_ROLES.includes(role)) {
     throw Object.assign(new Error("Forbidden"), { status: 403 });
   }
-}
-
-function slugifyResolutionKey(raw: string) {
-  const fallback = raw.trim().toLowerCase();
-  const slug = fallback
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 64);
-  return slug.length ? slug : "custom";
 }
 
 async function resolveGearIdOrThrow(slug: string) {
@@ -107,30 +42,18 @@ export async function saveVideoModesForGearSlug(
   assertCanEdit(user.role);
 
   const gearId = await resolveGearIdOrThrow(slug);
-  const parsed = videoModesPayload.parse(payload ?? {});
-
-  const normalized = parsed.modes.map((mode) => ({
+  const parsed = videoModesPayloadSchema.parse(payload ?? {});
+  const normalizedModes = normalizeVideoModes(parsed.modes);
+  const normalized = normalizedModes.map((mode) => ({
     gearId,
-    resolutionKey: slugifyResolutionKey(
-      mode.resolutionKey?.length ? mode.resolutionKey : mode.resolutionLabel,
-    ),
+    resolutionKey: slugifyResolutionKey(mode.resolutionKey),
     resolutionLabel: mode.resolutionLabel,
-    resolutionHorizontal:
-      mode.resolutionHorizontal &&
-      Number.isFinite(mode.resolutionHorizontal) &&
-      mode.resolutionHorizontal > 0
-        ? Math.trunc(mode.resolutionHorizontal)
-        : null,
-    resolutionVertical:
-      mode.resolutionVertical &&
-      Number.isFinite(mode.resolutionVertical) &&
-      mode.resolutionVertical > 0
-        ? Math.trunc(mode.resolutionVertical)
-        : null,
+    resolutionHorizontal: mode.resolutionHorizontal,
+    resolutionVertical: mode.resolutionVertical,
     fps: mode.fps,
     codecLabel: mode.codecLabel,
     bitDepth: mode.bitDepth,
-    cropFactor: Boolean(mode.cropFactor),
+    cropFactor: mode.cropFactor,
     notes: mode.notes ?? null,
   }));
 

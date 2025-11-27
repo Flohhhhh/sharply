@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
+import { Crop } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -16,12 +17,6 @@ import CameraFields from "./fields-cameras";
 import { FixedLensFields } from "./fields-fixed-lens";
 import { NotesFields } from "~/app/(app)/(pages)/gear/_components/edit-gear/fields-notes";
 import { MOUNTS } from "~/lib/generated";
-import type {
-  gear,
-  cameraSpecs,
-  lensSpecs,
-  fixedLensSpecs,
-} from "~/server/db/schema";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { formatPrice, formatCardSlotDetails } from "~/lib/mapping";
@@ -29,27 +24,26 @@ import { sensorNameFromSlug } from "~/lib/mapping/sensor-map";
 import { humanizeKey, formatHumanDate } from "~/lib/utils";
 import { getMountLongNamesById } from "~/lib/mapping/mounts-map";
 import { actionSubmitGearProposal } from "~/server/gear/actions";
+import {
+  videoModeInputSchema,
+  normalizeVideoModes,
+  type VideoModeInput,
+  type VideoModeNormalized,
+  videoModesEqual,
+} from "~/lib/video/mode-schema";
+import type { GearItem } from "~/types/gear";
 
 interface EditGearFormProps {
   gearType?: "CAMERA" | "LENS";
   gearSlug: string;
-  gearData: typeof gear.$inferSelect & {
-    cameraSpecs?: typeof cameraSpecs.$inferSelect | null;
-    lensSpecs?: typeof lensSpecs.$inferSelect | null;
-  };
+  gearData: GearItem;
   onDirtyChange?: (dirty: boolean) => void;
   onRequestClose?: (opts?: { force?: boolean }) => void;
   onSubmittingChange?: (submitting: boolean) => void;
   showActions?: boolean;
   formId?: string;
   showMissingOnly?: boolean; // Controls filtering of fields based on initial values
-  onFormDataChange?: (
-    data: typeof gear.$inferSelect & {
-      cameraSpecs?: typeof cameraSpecs.$inferSelect | null;
-      lensSpecs?: typeof lensSpecs.$inferSelect | null;
-      fixedLensSpecs?: typeof fixedLensSpecs.$inferSelect | null;
-    },
-  ) => void;
+  onFormDataChange?: (data: GearItem) => void;
 }
 
 function EditGearForm({
@@ -68,16 +62,25 @@ function EditGearForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
-  const [formData, setFormData] = useState(gearData);
+  const [formData, setFormData] = useState<GearItem>(gearData);
   const [diffPreview, setDiffPreview] = useState<Record<string, any> | null>(
     null,
   );
+  type VideoModesDiff = {
+    added: VideoModeNormalized[];
+    removed: VideoModeNormalized[];
+    changed: Array<{ prev: VideoModeNormalized; next: VideoModeNormalized }>;
+  };
+  const videoModesDiffRef = React.useRef<VideoModesDiff>({
+    added: [],
+    removed: [],
+    changed: [],
+  });
 
   // Emit live form data changes to parent after state updates (avoids render-phase updates)
   React.useEffect(() => {
     onFormDataChange?.(formData as any);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData]);
+  }, [formData, onFormDataChange]);
 
   // console.log("[EditGearForm] formData", formData);
 
@@ -363,6 +366,72 @@ function EditGearForm({
       supportedBuses: string[];
       supportedSpeedClasses: string[];
     };
+    const normalizeVideoModesFromUnknown = (
+      value: unknown,
+    ): VideoModeNormalized[] => {
+      if (!Array.isArray(value)) return [];
+      const parsed: VideoModeInput[] = [];
+      value.forEach((mode) => {
+        const result = videoModeInputSchema.safeParse(mode ?? {});
+        if (result.success) {
+          parsed.push(result.data);
+        }
+      });
+      return normalizeVideoModes(parsed);
+    };
+
+    type VideoModesDiff = {
+      added: VideoModeNormalized[];
+      removed: VideoModeNormalized[];
+      changed: Array<{ prev: VideoModeNormalized; next: VideoModeNormalized }>;
+    };
+
+    const diffVideoModes = (
+      prev: VideoModeNormalized[],
+      next: VideoModeNormalized[],
+    ): VideoModesDiff => {
+      const keyFor = (mode: VideoModeNormalized) =>
+        [
+          mode.resolutionKey,
+          mode.resolutionLabel,
+          mode.fps,
+          mode.codecLabel,
+        ].join("|");
+
+      const prevMap = new Map<string, VideoModeNormalized>();
+      prev.forEach((mode) => prevMap.set(keyFor(mode), mode));
+
+      const nextMap = new Map<string, VideoModeNormalized>();
+      next.forEach((mode) => nextMap.set(keyFor(mode), mode));
+
+      const added: VideoModeNormalized[] = [];
+      const removed: VideoModeNormalized[] = [];
+      const changed: Array<{
+        prev: VideoModeNormalized;
+        next: VideoModeNormalized;
+      }> = [];
+
+      nextMap.forEach((nextMode, key) => {
+        const previous = prevMap.get(key);
+        if (!previous) {
+          added.push(nextMode);
+          return;
+        }
+        const cleanedPrev = { ...previous, notes: previous.notes ?? "" };
+        const cleanedNext = { ...nextMode, notes: nextMode.notes ?? "" };
+        if (JSON.stringify(cleanedPrev) !== JSON.stringify(cleanedNext)) {
+          changed.push({ prev: previous, next: nextMode });
+        }
+        prevMap.delete(key);
+      });
+
+      prevMap.forEach((mode) => {
+        removed.push(mode);
+      });
+
+      return { added, removed, changed };
+    };
+
     const normalizeSlots = (slots: unknown): NormalizedSlot[] => {
       if (!Array.isArray(slots)) return [] as NormalizedSlot[];
       const out: NormalizedSlot[] = slots
@@ -408,6 +477,17 @@ function EditGearForm({
       JSON.stringify(prevSlots) !== JSON.stringify(nextSlots);
     if (slotsChanged) {
       payload.cameraCardSlots = nextSlots;
+    }
+
+    const prevVideoModes = normalizeVideoModesFromUnknown(
+      (gearData as any).videoModes,
+    );
+    const nextVideoModes = normalizeVideoModesFromUnknown(
+      (formData as any).videoModes,
+    );
+    videoModesDiffRef.current = diffVideoModes(prevVideoModes, nextVideoModes);
+    if (!videoModesEqual(prevVideoModes, nextVideoModes)) {
+      payload.videoModes = nextVideoModes;
     }
     return payload;
   };
@@ -490,7 +570,10 @@ function EditGearForm({
       });
       return;
     }
-    setDiffPreview(preview);
+    setDiffPreview({
+      ...preview,
+      __videoModesDiff: videoModesDiffRef.current,
+    });
     setConfirmOpen(true);
   };
 
@@ -767,6 +850,105 @@ function EditGearForm({
                       </ul>
                     </div>
                   )}
+                  {(() => {
+                    const diffEntryResult = (
+                      diffPreview as { __videoModesDiff?: VideoModesDiff }
+                    ).__videoModesDiff;
+                    if (!diffEntryResult) return null;
+                    const { added, removed, changed } = diffEntryResult;
+                    if (
+                      added.length === 0 &&
+                      removed.length === 0 &&
+                      changed.length === 0
+                    ) {
+                      return null;
+                    }
+                    const renderMode = (
+                      mode: VideoModeNormalized,
+                      action: "add" | "remove" | "change",
+                      prevMode?: VideoModeNormalized,
+                    ) => (
+                      <div
+                        key={`${action}-${mode.resolutionKey}-${mode.fps}-${mode.bitDepth}`}
+                        className="flex items-center justify-between rounded border px-3 py-2 text-xs"
+                      >
+                        <div>
+                          <div className="font-semibold">
+                            {mode.resolutionLabel}
+                          </div>
+                          <div className="text-muted-foreground">
+                            {mode.fps} fps • {mode.bitDepth}-bit •{" "}
+                            {mode.codecLabel}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 text-right">
+                          {mode.cropFactor && (
+                            <Crop className="text-muted-foreground h-3.5 w-3.5" />
+                          )}
+                          {action === "change" ? (
+                            <span className="text-amber-500">Updated</span>
+                          ) : (
+                            <span
+                              className={
+                                action === "add"
+                                  ? "text-emerald-600"
+                                  : "text-red-500"
+                              }
+                            >
+                              {action === "add" ? "+ Added" : "− Removed"}
+                            </span>
+                          )}
+                        </div>
+                        {action === "change" && prevMode && (
+                          <div className="text-muted-foreground mt-2 w-full text-left text-[11px]">
+                            <div>
+                              Old: {prevMode.fps} fps • {prevMode.bitDepth}-bit
+                              • {prevMode.codecLabel}
+                            </div>
+                            <div>
+                              New: {mode.fps} fps • {mode.bitDepth}-bit •{" "}
+                              {mode.codecLabel}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                    return (
+                      <div>
+                        <div className="mb-1 font-medium">Video Modes</div>
+                        <div className="space-y-3">
+                          {added.length > 0 && (
+                            <div className="space-y-2">
+                              <div className="text-xs font-semibold text-emerald-600 uppercase">
+                                Added
+                              </div>
+                              {added.map((mode) => renderMode(mode, "add"))}
+                            </div>
+                          )}
+                          {removed.length > 0 && (
+                            <div className="space-y-2">
+                              <div className="text-xs font-semibold text-red-500 uppercase">
+                                Removed
+                              </div>
+                              {removed.map((mode) =>
+                                renderMode(mode, "remove"),
+                              )}
+                            </div>
+                          )}
+                          {changed.length > 0 && (
+                            <div className="space-y-2">
+                              <div className="text-xs font-semibold text-amber-500 uppercase">
+                                Updated
+                              </div>
+                              {changed.map(({ prev, next }) =>
+                                renderMode(next, "change", prev),
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </>
               )}
             </div>

@@ -12,6 +12,7 @@ import type {
   cameraCardSlots,
   cameraVideoModes,
 } from "~/server/db/schema";
+import type { VideoModeNormalized } from "~/lib/video/mode-schema";
 
 // Base types from schema
 export type Gear = typeof gear.$inferSelect;
@@ -41,7 +42,7 @@ export type GearItem = Gear & {
   fixedLensSpecs?: FixedLensSpecs | null;
   afAreaModes?: AfAreaMode[] | null;
   cameraCardSlots?: CameraCardSlot[] | null;
-  videoModes?: CameraVideoMode[] | null;
+  videoModes?: (CameraVideoMode | VideoModeNormalized)[] | null;
 };
 
 export type PopularityEventType =

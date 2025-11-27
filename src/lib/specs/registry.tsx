@@ -20,6 +20,22 @@ import { MOUNTS, AF_AREA_MODES } from "~/lib/generated";
 import { buildVideoDisplayBundle } from "~/lib/video/transform";
 import { VideoSpecsSummary } from "~/app/(app)/(pages)/gear/_components/video/video-summary";
 import { Badge } from "~/components/ui/badge";
+import {
+  normalizedToCameraVideoModes,
+  type VideoModeNormalized,
+} from "~/lib/video/mode-schema";
+import type { CameraVideoMode } from "~/types/gear";
+
+function coerceCameraVideoModes(
+  modes?: GearItem["videoModes"],
+): CameraVideoMode[] {
+  if (!modes?.length) return [];
+  const first = modes[0] as CameraVideoMode | VideoModeNormalized | undefined;
+  if (first && "id" in first) {
+    return modes as CameraVideoMode[];
+  }
+  return normalizedToCameraVideoModes((modes ?? []) as VideoModeNormalized[]);
+}
 
 function yesNoNull(value: boolean | null | undefined): string | undefined {
   if (value == null) return undefined;
@@ -52,7 +68,9 @@ function getVideoNotes(item: GearItem): string | null {
     "videoNotes" in extra &&
     typeof (extra as Record<string, unknown>).videoNotes === "string"
   ) {
-    const value = ((extra as Record<string, unknown>).videoNotes as string).trim();
+    const value = (
+      (extra as Record<string, unknown>).videoNotes as string
+    ).trim();
     return value.length ? value : null;
   }
   return null;
@@ -586,7 +604,7 @@ export const specDictionary: SpecSectionDef[] = [
                         parts.push(
                           <span
                             key={`divider-${idx}`}
-                        className="text-muted-foreground mx-2"
+                            className="text-muted-foreground mx-2"
                           >
                             |
                           </span>,
@@ -773,8 +791,9 @@ export const specDictionary: SpecSectionDef[] = [
         editElementId: "video-modes-manager",
         getRawValue: (item) => item.videoModes,
         formatDisplay: (_, item) => {
-          if (!item.videoModes || item.videoModes.length === 0) return undefined;
-          const bundle = buildVideoDisplayBundle(item.videoModes);
+          const modes = coerceCameraVideoModes(item.videoModes);
+          if (!modes.length) return undefined;
+          const bundle = buildVideoDisplayBundle(modes);
           if (!bundle.summaryLines.length) return undefined;
           return (
             <VideoSpecsSummary

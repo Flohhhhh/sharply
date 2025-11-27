@@ -936,8 +936,9 @@ function CameraFieldsComponent({
           )}
 
           <VideoModesManager
-            gearSlug={gearItem.slug}
-            initialModes={gearItem.videoModes ?? []}
+            value={gearItem.videoModes ?? []}
+            initialModes={initialGearItem?.videoModes ?? []}
+            onChange={(modes) => onChangeTopLevel?.("videoModes", modes)}
           />
 
           {/* Has Intervalometer */}
