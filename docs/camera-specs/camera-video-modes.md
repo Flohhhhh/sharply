@@ -23,8 +23,12 @@ The video specs system stores every advertised capture mode as an individual row
 
 - **Specs Table Summary** – Groups rows by `resolution_key` and renders `resolution_label – up to {max fps} fps – {bit depth}-bit`.
 - **Detail Modal** – Builds a static matrix with resolution columns (sorted ascending using pixel dimensions or parsed “K/P” labels) and FPS rows (sorted descending). Each cell is filled with a shared bit-depth color (`src/lib/video/colors.ts`), prints `{bit depth}-bit`, and shows a Lucide `Crop` icon when `crop_factor` is `true`.
-- **Guided Editor** – Walks contributors through (1) selecting resolutions via the custom multi-select, (2) choosing FPS sets per resolution, (3) painting bit depth and forced-crop states on the matrix-style editor, and (4) previewing the auto-generated per-mode list before saving. Clicking a cell toggles the current brush value, ensuring every resolution × FPS combo expands into the right number of mode rows.
+- **Guided Editor** – Walks contributors through (1) selecting resolutions via the custom multi-select, (2) choosing FPS sets per resolution, and (3) painting bit depth and forced-crop states on the matrix-style editor. Clicking a cell toggles the current brush value, ensuring every resolution × FPS combo expands into the right number of mode rows before staging the changes in the gear form.
 - **Matrix Editor** – The painting grid replaces the old “advanced table.” It mirrors the display matrix so contributors can rapidly assign bit depths and crop flags with brush controls (mutually exclusive bit-depth vs crop brushes, clear toggles, drag-to-fill).
+
+### Codec granularity
+
+The database still stores one row per codec (contributors set `codec_label` when authoring modes), which keeps the door open for very specific codec-level differences. The current UI, however, only exposes bit-depth brushes and “max bit rate” assignments; it automatically fans out the implied codec rows behind the scenes. If we later need per-codec editing again, we can extend the manager to surface those labels while preserving the existing rows, so no migration is required.
 
 ### Code Map
 
