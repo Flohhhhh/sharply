@@ -531,13 +531,6 @@ export function VideoModesManager({
     prevOpenRef.current = open;
   }, [open, value, initialModes, hydrateFromValue]);
 
-  const stagedModesCount = useMemo(() => {
-    if (Array.isArray(value) && value.length) return value.length;
-    if (Array.isArray(initialModes) && initialModes.length)
-      return initialModes.length;
-    return 0;
-  }, [initialModes, value]);
-
   const applyResolutionState = (
     nextResolutions: GuidedResolution[],
     newlyAddedKeys: string[] = [],
@@ -879,11 +872,6 @@ export function VideoModesManager({
         <div className="flex items-center justify-between">
           <div>
             <div className="text-sm font-medium">Video Modes</div>
-            <div className="text-muted-foreground text-xs">
-              {stagedModesCount
-                ? `${stagedModesCount} mode${stagedModesCount === 1 ? "" : "s"} configured`
-                : "No modes configured"}
-            </div>
           </div>
           <Button type="button" onClick={() => setOpen(true)}>
             Open Video Modes Manager
@@ -1195,52 +1183,6 @@ export function VideoModesManager({
                       })
                     }
                   />
-                )}
-              </section>
-
-              <section className="space-y-3 rounded-md border p-3">
-                <h4 className="text-sm font-semibold">
-                  Step 5: Preview generated modes
-                </h4>
-                {guidedPreview.length === 0 ? (
-                  <div className="text-muted-foreground text-xs">
-                    Complete the steps above to see a preview.
-                  </div>
-                ) : (
-                  <div className="overflow-auto rounded-md border">
-                    <table className="min-w-full border-collapse text-sm">
-                      <thead>
-                        <tr className="bg-muted/30 text-muted-foreground text-xs tracking-wide uppercase">
-                          <th className="px-3 py-2 text-left">Resolution</th>
-                          <th className="px-3 py-2 text-left">FPS</th>
-                          <th className="px-3 py-2 text-left">
-                            Codec (max available)
-                          </th>
-                          <th className="px-3 py-2 text-left">Bit depth</th>
-                          <th className="px-3 py-2 text-left">Crop</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {guidedPreview.map((mode) => (
-                          <tr key={mode.id} className="border-t">
-                            <td className="px-3 py-2">
-                              {mode.resolutionLabel}
-                            </td>
-                            <td className="px-3 py-2">{mode.fps}</td>
-                            <td className="px-3 py-2">{mode.codecLabel}</td>
-                            <td className="px-3 py-2">{mode.bitDepth}-bit</td>
-                            <td className="px-3 py-2">
-                              {mode.cropFactor ? (
-                                <Crop className="text-muted-foreground h-4 w-4" />
-                              ) : (
-                                "—"
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
                 )}
               </section>
             </div>
