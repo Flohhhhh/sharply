@@ -59,6 +59,26 @@ function hasDisplayValue(value: unknown): boolean {
   return true; // keep 0, false->mapped to Yes/No earlier, and React nodes
 }
 
+function renderBadgeColumn(values: string[]): React.ReactNode | undefined {
+  const cleaned = values
+    .map((value) => value.trim())
+    .filter((value) => value.length > 0);
+  if (!cleaned.length) return undefined;
+  return (
+    <div className="flex w-full max-w-[640px] flex-wrap items-center justify-end gap-2 text-right">
+      {cleaned.map((value, index) => (
+        <Badge
+          key={`${value}-${index}`}
+          variant="outline"
+          className="justify-end text-right"
+        >
+          {value}
+        </Badge>
+      ))}
+    </div>
+  );
+}
+
 function getVideoNotes(item: GearItem): string | null {
   const extra = item.cameraSpecs?.extra;
   if (
@@ -222,29 +242,33 @@ export const specDictionary: SpecSectionDef[] = [
           if (width == null && height == null && depth == null)
             return undefined;
 
+          const DimensionRow = ({
+            label,
+            value,
+          }: {
+            label: string;
+            value: number;
+          }) => (
+            <div className="flex min-w-[160px] items-center justify-between gap-2">
+              <span className="text-muted-foreground">{label}</span>
+              <span className="text-right font-medium">
+                {fmt(value)}
+                <span className="text-muted-foreground ml-1">mm</span>
+              </span>
+            </div>
+          );
+
           // Lenses: show Diameter (from width or height) and Length (from depth)
           if (item.gearType === "LENS") {
             const diameter = width ?? height;
             const length = depth;
             return (
-              <div className="flex w-full flex-col text-left">
+              <div className="ml-auto flex flex-col items-end gap-1.5 text-right">
                 {length != null && (
-                  <div className="flex w-full items-center justify-between gap-4">
-                    <span className="text-muted-foreground">Length</span>
-                    <span className="text-right font-medium">
-                      {fmt(length)}
-                      <span className="text-muted-foreground ml-1">mm</span>
-                    </span>
-                  </div>
+                  <DimensionRow label="Length" value={length} />
                 )}
                 {diameter != null && (
-                  <div className="flex w-full items-center justify-between gap-4">
-                    <span className="text-muted-foreground">Diameter</span>
-                    <span className="text-right font-medium">
-                      {fmt(diameter)}
-                      <span className="text-muted-foreground ml-1">mm</span>
-                    </span>
-                  </div>
+                  <DimensionRow label="Diameter" value={diameter} />
                 )}
               </div>
             );
@@ -252,34 +276,10 @@ export const specDictionary: SpecSectionDef[] = [
 
           // Cameras/others: show Length (depth), Width, Height as a simple column
           return (
-            <div className="flex w-full flex-col text-left">
-              {depth != null && (
-                <div className="flex w-full items-center justify-between gap-4">
-                  <span className="text-muted-foreground">Length</span>
-                  <span className="text-right font-medium">
-                    {fmt(depth)}
-                    <span className="text-muted-foreground ml-1">mm</span>
-                  </span>
-                </div>
-              )}
-              {width != null && (
-                <div className="flex w-full items-center justify-between gap-4">
-                  <span className="text-muted-foreground">Width</span>
-                  <span className="text-right font-medium">
-                    {fmt(width)}
-                    <span className="text-muted-foreground ml-1">mm</span>
-                  </span>
-                </div>
-              )}
-              {height != null && (
-                <div className="flex w-full items-center justify-between gap-4">
-                  <span className="text-muted-foreground">Height</span>
-                  <span className="text-right font-medium">
-                    {fmt(height)}
-                    <span className="text-muted-foreground ml-1">mm</span>
-                  </span>
-                </div>
-              )}
+            <div className="ml-auto flex flex-col items-end gap-1.5 text-right">
+              {depth != null && <DimensionRow label="Length" value={depth} />}
+              {width != null && <DimensionRow label="Width" value={width} />}
+              {height != null && <DimensionRow label="Height" value={height} />}
             </div>
           );
         },
@@ -440,18 +440,12 @@ export const specDictionary: SpecSectionDef[] = [
           const entries = raw.reduce<string[]>((acc, value) => {
             if (typeof value !== "string") return acc;
             const trimmed = value.trim();
-            if (trimmed.length === 0) return acc;
-            acc.push(trimmed);
+            if (!trimmed.length) return acc;
+            const label = formatShutterType(trimmed) ?? trimmed;
+            acc.push(label);
             return acc;
           }, []);
-          if (entries.length === 0) return undefined;
-          return (
-            <ul className="list-none space-y-1 text-left">
-              {entries.map((type) => (
-                <li key={type}>{formatShutterType(type)}</li>
-              ))}
-            </ul>
-          );
+          return renderBadgeColumn(entries);
         },
         editElementId: "availableShutterTypes",
       },
@@ -698,14 +692,7 @@ export const specDictionary: SpecSectionDef[] = [
           )
             .map(toName)
             .filter((s): s is string => typeof s === "string" && s.length > 0);
-          if (names.length === 0) return undefined;
-          return (
-            <ul className="list-none space-y-1 text-left">
-              {names.map((name) => (
-                <li key={name}>{name}</li>
-              ))}
-            </ul>
-          );
+          return renderBadgeColumn(names);
         },
         editElementId: "afAreaModes",
       },
@@ -713,8 +700,14 @@ export const specDictionary: SpecSectionDef[] = [
         key: "afSubjectCategories",
         label: "AF Subject Categories",
         getRawValue: (item) => item.cameraSpecs?.afSubjectCategories,
-        formatDisplay: (raw) =>
-          Array.isArray(raw) ? raw.join(", ") : undefined,
+        formatDisplay: (raw) => {
+          if (!Array.isArray(raw)) return undefined;
+          const categories = raw
+            .map((value) => (typeof value === "string" ? value.trim() : ""))
+            .filter((value) => value.length > 0)
+            .map((value) => value.charAt(0).toUpperCase() + value.slice(1));
+          return renderBadgeColumn(categories);
+        },
         editElementId: "afSubjectCategories",
       },
     ],
