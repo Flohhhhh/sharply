@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { fetchGearEditById } from "~/server/gear/service";
-import { formatPrice } from "~/lib/mapping";
+import { formatPrice, formatPrecaptureSupport } from "~/lib/mapping";
 import { sensorNameFromSlug } from "~/lib/mapping/sensor-map";
 import { humanizeKey, formatHumanDate } from "~/lib/utils";
 import { auth, requireRole } from "~/server/auth";
@@ -168,6 +168,10 @@ export default async function EditSuccessPage({
                           let display: string = String(v as any);
                           if (k === "sensorFormatId")
                             display = sensorNameFromSlug(v as string);
+                          if (k === "precaptureSupportLevel") {
+                            display =
+                              formatPrecaptureSupport(v) ?? String(v ?? "Empty");
+                          }
                           return (
                             <li key={String(k)}>
                               <span className="text-muted-foreground">

@@ -8,6 +8,7 @@ import {
   formatCardSlotDetails,
   formatCameraType,
   formatShutterType,
+  formatPrecaptureSupport,
 } from "~/lib/mapping";
 import {
   getMountLongNameById,
@@ -396,6 +397,12 @@ export const specDictionary: SpecSectionDef[] = [
         getRawValue: (item) => item.cameraSpecs?.hasAntiAliasingFilter,
         formatDisplay: (raw) =>
           typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+      },
+      {
+        key: "precaptureSupportLevel",
+        label: "Precapture Buffer",
+        getRawValue: (item) => item.cameraSpecs?.precaptureSupportLevel,
+        formatDisplay: (raw) => formatPrecaptureSupport(raw),
       },
       {
         key: "shutterSpeedMax",

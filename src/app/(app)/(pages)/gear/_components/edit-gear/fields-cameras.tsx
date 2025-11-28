@@ -12,7 +12,7 @@ import {
 } from "~/components/ui/select";
 import type { cameraSpecs, sensorFormats } from "~/server/db/schema";
 import { SENSOR_FORMATS, ENUMS, AF_AREA_MODES } from "~/lib/constants";
-import { formatCameraType } from "~/lib/mapping";
+import { formatCameraType, PRECAPTURE_SUPPORT_OPTIONS } from "~/lib/mapping";
 import IsoInput from "~/components/custom-inputs/iso-input";
 import SensorFormatInput from "~/components/custom-inputs/sensor-format-input";
 import { NumberInput, MultiTextInput } from "~/components/custom-inputs";
@@ -157,6 +157,11 @@ function CameraFieldsComponent({
   };
   const showWhenMissing = (v: unknown): boolean =>
     !showMissingOnly || isMissing(v);
+  const initialVideoModes = Array.isArray(initialGearItem?.videoModes)
+    ? initialGearItem?.videoModes
+    : [];
+  const shouldShowVideoModes =
+    !showMissingOnly || initialVideoModes.length === 0;
 
   return (
     <Card
@@ -310,6 +315,45 @@ function CameraFieldsComponent({
               min={0}
               step={0.1}
             />
+          )}
+
+          {/* Precapture Support */}
+          {showWhenMissing((initialSpecs as any)?.precaptureSupportLevel) && (
+            <div className="space-y-2">
+              <Label htmlFor="precaptureSupportLevel">
+                Precapture Buffer Support
+              </Label>
+              <Select
+                value={
+                  currentSpecs?.precaptureSupportLevel != null
+                    ? String(currentSpecs.precaptureSupportLevel)
+                    : ""
+                }
+                onValueChange={(value) =>
+                  handleFieldChange(
+                    "precaptureSupportLevel",
+                    value === "" ? null : Number(value),
+                  )
+                }
+              >
+                <SelectTrigger
+                  id="precaptureSupportLevel"
+                  className="w-full"
+                >
+                  <SelectValue placeholder="Select support level" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PRECAPTURE_SUPPORT_OPTIONS.map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      value={String(option.value)}
+                    >
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           )}
 
           {/* ISO Range anchor (always present for sidebar scrolling) */}
@@ -935,11 +979,13 @@ function CameraFieldsComponent({
             />
           )}
 
-          <VideoModesManager
-            value={gearItem.videoModes ?? []}
-            initialModes={initialGearItem?.videoModes ?? []}
-            onChange={(modes) => onChangeTopLevel?.("videoModes", modes)}
-          />
+          {shouldShowVideoModes && (
+            <VideoModesManager
+              value={gearItem.videoModes ?? []}
+              initialModes={initialGearItem?.videoModes ?? []}
+              onChange={(modes) => onChangeTopLevel?.("videoModes", modes)}
+            />
+          )}
 
           {/* Has Intervalometer */}
           {showWhenMissing((initialSpecs as any)?.hasIntervalometer) && (

@@ -288,6 +288,13 @@
       "when": 1764196198764,
       "tag": "0040_lumpy_cannonball",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1764364215034,
+      "tag": "0041_plain_mojo",
+      "breakpoints": true
     }
   ]
 }

@@ -602,23 +602,23 @@ function CoreFieldsComponent({
             </>
           )}
 
-          <div className="space-y-2 md:col-span-2">
-            <div className="flex items-center gap-2">
-              <Label>Best use cases</Label>
-              <Tooltip>
-                <TooltipTrigger>
-                  <InfoIcon className="h-4 w-4" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>
-                    Select use cases where this gear excels, not just the ones
-                    where it can satisfy a need.
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
+          {showWhenMissing((initialSpecs as any)?.genres) && (
+            <div className="space-y-2 md:col-span-2">
+              <div className="flex items-center gap-2">
+                <Label>Best use cases</Label>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <InfoIcon className="h-4 w-4" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>
+                      Select use cases where this gear excels, not just the ones
+                      where it can satisfy a need.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
 
-            {showWhenMissing((initialSpecs as any)?.genres) && (
               <MultiSelect
                 options={genreOptions}
                 value={formattedGenres}
@@ -632,8 +632,8 @@ function CoreFieldsComponent({
                 placeholder="Select top 3 use cases..."
                 searchPlaceholder="Search genres..."
               />
-            )}
-          </div>
+            </div>
+          )}
 
           {showWhenMissing((initialSpecs as any)?.linkManufacturer) && (
             <div className="space-y-2 md:col-span-2">
