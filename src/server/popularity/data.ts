@@ -14,6 +14,10 @@ import {
 import { and, desc, eq, gte, lt, sql, inArray, type SQL } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import type { PopularityEventType } from "~/server/validation/dedupe";
+import type {
+  TrendingEntry,
+  TrendingFiltersInput,
+} from "~/types/popularity";
 
 /**
  * Popularity data access layer (server-only)
@@ -28,18 +32,6 @@ import type { PopularityEventType } from "~/server/validation/dedupe";
  * - Keep queries transparent and documented; prefer straightforward SQL aggregation
  * - Match tag names used by rollup revalidation (e.g., 'trending')
  */
-
-/**
- * Optional filters used to scope trending results.
- * - brandId: restrict to a specific brand
- * - mountId: restrict to a specific mount (if populated on gear)
- * - gearType: camera or lens
- */
-export type TrendingFilters = {
-  brandId?: string;
-  mountId?: string; // deprecated; TODO: replace with mountIds?: string[]
-  gearType?: "CAMERA" | "LENS";
-};
 
 /**
  * getTrendingData(timeframe, limit, filters)
@@ -59,7 +51,8 @@ export type TrendingFilters = {
 export async function getTrendingData(
   timeframe: "7d" | "30d",
   limit: number,
-  filters: TrendingFilters = {},
+  filters: TrendingFiltersInput = {},
+  offset = 0,
 ) {
   // Stable cache key across inputs (kept small and deterministic)
   const key = [
@@ -69,6 +62,7 @@ export async function getTrendingData(
     filters.brandId ?? "-",
     filters.mountId ?? "-",
     filters.gearType ?? "-",
+    String(offset ?? 0),
   ];
 
   // Wrap the resolver with unstable_cache to enable ISR-style caching and tag invalidation
@@ -116,23 +110,32 @@ export async function getTrendingData(
           brandName: brands.name,
           msrpNowUsdCents: gear.msrpNowUsdCents,
           mpbMaxPriceUsdCents: gear.mpbMaxPriceUsdCents,
+          thumbnailUrl: gear.thumbnailUrl,
+          lifetimeViews: gearPopularityLifetime.viewsLifetime,
         })
         .from(gearPopularityWindows)
         .innerJoin(gear, eq(gearPopularityWindows.gearId, gear.id))
         .innerJoin(brands, eq(gear.brandId, brands.id))
+        .leftJoin(
+          gearPopularityLifetime,
+          eq(gearPopularityLifetime.gearId, gear.id),
+        )
         .where(and(...conditions))
         .orderBy(desc(scoreFormula))
-        .limit(limit);
+        .limit(limit)
+        .offset(Math.max(0, offset));
 
       // Map to a render-ready shape
-      return rows.map((r) => ({
+      const items: TrendingEntry[] = rows.map((r) => ({
         gearId: r.gearId,
         slug: r.slug,
         name: r.name,
         brandName: r.brandName,
         gearType: r.gearType,
+        thumbnailUrl: r.thumbnailUrl ?? null,
         msrpNowUsdCents: r.msrpNowUsdCents,
         mpbMaxPriceUsdCents: r.mpbMaxPriceUsdCents,
+        lifetimeViews: Number(r.lifetimeViews ?? 0),
         score: Number(r.score),
         stats: {
           views: Number(r.viewsSum),
@@ -143,6 +146,51 @@ export async function getTrendingData(
         },
         asOfDate: String(r.asOfDate),
       }));
+
+      return items;
+    },
+    key,
+    { revalidate: 60 * 60 * 12, tags: ["trending"] },
+  );
+
+  return run();
+}
+
+export async function getTrendingTotalCount(
+  timeframe: "7d" | "30d",
+  filters: TrendingFiltersInput = {},
+) {
+  const key = [
+    "pop-trending-count",
+    timeframe,
+    filters.brandId ?? "-",
+    filters.mountId ?? "-",
+    filters.gearType ?? "-",
+  ];
+
+  const run = unstable_cache(
+    async () => {
+      const conditions: SQL[] = [
+        eq(gearPopularityWindows.timeframe, timeframe),
+        sql`${gearPopularityWindows.asOfDate} = (
+          SELECT MAX(as_of_date)
+          FROM app.gear_popularity_windows
+          WHERE timeframe = ${timeframe}::popularity_timeframe
+        )`,
+      ];
+      if (filters.brandId) conditions.push(eq(gear.brandId, filters.brandId));
+      if (filters.gearType)
+        conditions.push(eq(gear.gearType, filters.gearType));
+
+      const [{ count }] = await db
+        .select({
+          count: sql<number>`count(*)`,
+        })
+        .from(gearPopularityWindows)
+        .innerJoin(gear, eq(gearPopularityWindows.gearId, gear.id))
+        .where(and(...conditions));
+
+      return Number(count);
     },
     key,
     { revalidate: 60 * 60 * 12, tags: ["trending"] },

@@ -1,23 +1,9 @@
 import Link from "next/link";
 import { Flame } from "lucide-react";
 import { fetchTrending } from "~/server/popularity/service";
+import type { TrendingEntry } from "~/types/popularity";
 
-export type TrendingItem = {
-  gearId: string;
-  slug: string;
-  name: string;
-  brandName: string;
-  gearType: "CAMERA" | "LENS";
-  score: number;
-  stats: {
-    views: number;
-    wishlistAdds: number;
-    ownerAdds: number;
-    compareAdds: number;
-    reviewSubmits: number;
-  };
-  asOfDate: string;
-};
+export type TrendingItem = TrendingEntry;
 
 function Skeleton({
   rows = 10,
