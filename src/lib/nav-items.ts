@@ -94,36 +94,6 @@ export const navItems: NavItem[] = [
         description: "The most popular gear based on activity.",
         iconKey: "flame",
       },
-      // {
-      //   title: "Canon",
-      //   url: "/brand/canon",
-      //   description: "DSLR and mirrorless cameras, lenses",
-      //   iconKey: "camera",
-      // },
-      // {
-      //   title: "Nikon",
-      //   url: "/brand/nikon",
-      //   description: "Professional cameras and optics",
-      //   iconKey: "camera",
-      // },
-      // {
-      //   title: "Sony",
-      //   url: "/brand/sony",
-      //   description: "Mirrorless cameras and lenses",
-      //   iconKey: "camera",
-      // },
-      // {
-      //   title: "Fujifilm",
-      //   url: "/brand/fujifilm",
-      //   description: "Film and digital cameras, lenses",
-      //   iconKey: "camera",
-      // },
-      // {
-      //   title: "Leica",
-      //   url: "/brand/leica",
-      //   description: "Premium cameras and optics",
-      //   iconKey: "camera",
-      // },
     ],
   },
   {
