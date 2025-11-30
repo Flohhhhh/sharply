@@ -182,7 +182,7 @@ export async function getTrendingTotalCount(
       if (filters.gearType)
         conditions.push(eq(gear.gearType, filters.gearType));
 
-      const [{ count }] = await db
+      const countRows = await db
         .select({
           count: sql<number>`count(*)`,
         })
@@ -190,7 +190,7 @@ export async function getTrendingTotalCount(
         .innerJoin(gear, eq(gearPopularityWindows.gearId, gear.id))
         .where(and(...conditions));
 
-      return Number(count);
+      return Number(countRows[0]?.count ?? 0);
     },
     key,
     { revalidate: 60 * 60 * 12, tags: ["trending"] },
