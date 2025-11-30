@@ -1,5 +1,6 @@
 import type { SpecsTableSection } from "~/app/(app)/(pages)/gear/_components/specs-table";
 import type { GearItem } from "~/types/gear";
+import { cn } from "~/lib/utils";
 import { formatHumanDateWithPrecision } from "~/lib/utils";
 import {
   formatPrice,
@@ -8,6 +9,7 @@ import {
   formatCardSlotDetails,
   formatCameraType,
   formatShutterType,
+  formatPrecaptureSupport,
 } from "~/lib/mapping";
 import {
   getMountLongNameById,
@@ -59,6 +61,38 @@ function hasDisplayValue(value: unknown): boolean {
   return true; // keep 0, false->mapped to Yes/No earlier, and React nodes
 }
 
+function renderBadgeColumn(
+  values: string[],
+  forceLeftAlign?: boolean,
+  singleItemPerRow?: boolean,
+): React.ReactNode | undefined {
+  const cleaned = values
+    .map((value) => value.trim())
+    .filter((value) => value.length > 0);
+  if (!cleaned.length) return undefined;
+  return (
+    <div
+      className={cn(
+        "flex max-w-[320px] flex-wrap items-end gap-2",
+        forceLeftAlign
+          ? "items-start justify-start text-left"
+          : "justify-end text-right",
+        singleItemPerRow ? "flex-col" : "",
+      )}
+    >
+      {cleaned.map((value, index) => (
+        <Badge
+          key={`${value}-${index}`}
+          variant="outline"
+          className={cn("", forceLeftAlign ? "text-left" : "text-right")}
+        >
+          {value}
+        </Badge>
+      ))}
+    </div>
+  );
+}
+
 function getVideoNotes(item: GearItem): string | null {
   const extra = item.cameraSpecs?.extra;
   if (
@@ -84,7 +118,11 @@ export type SpecFieldDef = {
   key: string; // Stable identifier (e.g., "announcedDate", "resolutionMp")
   label: string; // Human-readable label for display
   getRawValue: (item: GearItem) => unknown; // Extract raw value from GearItem
-  formatDisplay?: (raw: unknown, item: GearItem) => React.ReactNode; // Format for display (table, etc.)
+  formatDisplay?: (
+    raw: unknown,
+    item: GearItem,
+    forceLeftAlign?: boolean,
+  ) => React.ReactNode; // Format for display (table, etc.)
   editElementId?: string; // DOM id to focus in the edit UI when navigating from sidebar
   condition?: (item: GearItem) => boolean; // Optional: when to show this field
 };
@@ -222,29 +260,33 @@ export const specDictionary: SpecSectionDef[] = [
           if (width == null && height == null && depth == null)
             return undefined;
 
+          const DimensionRow = ({
+            label,
+            value,
+          }: {
+            label: string;
+            value: number;
+          }) => (
+            <div className="flex min-w-[160px] items-center justify-between gap-2">
+              <span className="text-muted-foreground">{label}</span>
+              <span className="text-right font-medium">
+                {fmt(value)}
+                <span className="text-muted-foreground ml-1">mm</span>
+              </span>
+            </div>
+          );
+
           // Lenses: show Diameter (from width or height) and Length (from depth)
           if (item.gearType === "LENS") {
             const diameter = width ?? height;
             const length = depth;
             return (
-              <div className="flex w-full flex-col text-left">
+              <div className="flex w-fit flex-col items-end gap-1.5 text-right">
                 {length != null && (
-                  <div className="flex w-full items-center justify-between gap-4">
-                    <span className="text-muted-foreground">Length</span>
-                    <span className="text-right font-medium">
-                      {fmt(length)}
-                      <span className="text-muted-foreground ml-1">mm</span>
-                    </span>
-                  </div>
+                  <DimensionRow label="Length" value={length} />
                 )}
                 {diameter != null && (
-                  <div className="flex w-full items-center justify-between gap-4">
-                    <span className="text-muted-foreground">Diameter</span>
-                    <span className="text-right font-medium">
-                      {fmt(diameter)}
-                      <span className="text-muted-foreground ml-1">mm</span>
-                    </span>
-                  </div>
+                  <DimensionRow label="Diameter" value={diameter} />
                 )}
               </div>
             );
@@ -252,34 +294,10 @@ export const specDictionary: SpecSectionDef[] = [
 
           // Cameras/others: show Length (depth), Width, Height as a simple column
           return (
-            <div className="flex w-full flex-col text-left">
-              {depth != null && (
-                <div className="flex w-full items-center justify-between gap-4">
-                  <span className="text-muted-foreground">Length</span>
-                  <span className="text-right font-medium">
-                    {fmt(depth)}
-                    <span className="text-muted-foreground ml-1">mm</span>
-                  </span>
-                </div>
-              )}
-              {width != null && (
-                <div className="flex w-full items-center justify-between gap-4">
-                  <span className="text-muted-foreground">Width</span>
-                  <span className="text-right font-medium">
-                    {fmt(width)}
-                    <span className="text-muted-foreground ml-1">mm</span>
-                  </span>
-                </div>
-              )}
-              {height != null && (
-                <div className="flex w-full items-center justify-between gap-4">
-                  <span className="text-muted-foreground">Height</span>
-                  <span className="text-right font-medium">
-                    {fmt(height)}
-                    <span className="text-muted-foreground ml-1">mm</span>
-                  </span>
-                </div>
-              )}
+            <div className="flex w-fit flex-col items-end gap-1.5 text-right">
+              {depth != null && <DimensionRow label="Length" value={depth} />}
+              {width != null && <DimensionRow label="Width" value={width} />}
+              {height != null && <DimensionRow label="Height" value={height} />}
             </div>
           );
         },
@@ -398,6 +416,12 @@ export const specDictionary: SpecSectionDef[] = [
           typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
       {
+        key: "precaptureSupportLevel",
+        label: "Precapture Buffer",
+        getRawValue: (item) => item.cameraSpecs?.precaptureSupportLevel,
+        formatDisplay: (raw) => formatPrecaptureSupport(raw),
+      },
+      {
         key: "shutterSpeedMax",
         label: "Longest Shutter Speed",
         getRawValue: (item) => item.cameraSpecs?.shutterSpeedMax,
@@ -435,23 +459,21 @@ export const specDictionary: SpecSectionDef[] = [
         key: "availableShutterTypes",
         label: "Available Shutter Types",
         getRawValue: (item) => item.cameraSpecs?.availableShutterTypes,
-        formatDisplay: (raw: unknown): React.ReactNode | undefined => {
+        formatDisplay: (
+          raw: unknown,
+          _,
+          forceLeftAlign,
+        ): React.ReactNode | undefined => {
           if (!Array.isArray(raw)) return undefined;
           const entries = raw.reduce<string[]>((acc, value) => {
             if (typeof value !== "string") return acc;
             const trimmed = value.trim();
-            if (trimmed.length === 0) return acc;
-            acc.push(trimmed);
+            if (!trimmed.length) return acc;
+            const label = formatShutterType(trimmed) ?? trimmed;
+            acc.push(label);
             return acc;
           }, []);
-          if (entries.length === 0) return undefined;
-          return (
-            <ul className="list-none space-y-1 text-left">
-              {entries.map((type) => (
-                <li key={type}>{formatShutterType(type)}</li>
-              ))}
-            </ul>
-          );
+          return renderBadgeColumn(entries, forceLeftAlign);
         },
         editElementId: "availableShutterTypes",
       },
@@ -575,61 +597,28 @@ export const specDictionary: SpecSectionDef[] = [
         key: "cardSlots",
         label: "Card Slots",
         getRawValue: (item) => item.cameraCardSlots,
-        formatDisplay: (_, item) =>
-          item.cameraCardSlots && item.cameraCardSlots.length > 0 ? (
-            <div className="flex flex-col items-end gap-2">
-              {item.cameraCardSlots
-                .sort((a, b) => (a.slotIndex ?? 0) - (b.slotIndex ?? 0))
-                .map((s, i) => {
-                  const details = formatCardSlotDetails({
-                    slotIndex: s.slotIndex,
-                    supportedFormFactors: s.supportedFormFactors ?? [],
-                    supportedBuses: s.supportedBuses ?? [],
-                    supportedSpeedClasses: s.supportedSpeedClasses ?? [],
-                  });
-                  const label = details.length > 0 ? details : "Not specified";
-                  const tokens = details
-                    .split("|")
-                    .map((part) => part.trim())
-                    .filter((part) => part.length > 0);
-                  const parts: React.ReactNode[] = [];
-                  if (tokens.length > 0) {
-                    tokens.forEach((token, idx) => {
-                      parts.push(
-                        <span key={`token-${idx}`} className="inline-block">
-                          {token}
-                        </span>,
-                      );
-                      if (idx < tokens.length - 1) {
-                        parts.push(
-                          <span
-                            key={`divider-${idx}`}
-                            className="text-muted-foreground mx-2"
-                          >
-                            |
-                          </span>,
-                        );
-                      }
-                    });
-                  }
-                  return (
-                    <Badge
-                      key={`${s.slotIndex ?? i}-${label}`}
-                      variant="outline"
-                      className="w-fit justify-end text-right"
-                    >
-                      {parts.length > 0 ? (
-                        <span className="inline-flex flex-wrap items-center">
-                          {parts}
-                        </span>
-                      ) : (
-                        "Not specified"
-                      )}
-                    </Badge>
-                  );
-                })}
-            </div>
-          ) : undefined,
+        formatDisplay: (_, item, forceLeftAlign) => {
+          if (!item.cameraCardSlots || item.cameraCardSlots.length === 0)
+            return undefined;
+
+          // Sort slots as in original
+          const sortedCardSlots = item.cameraCardSlots
+            .slice() // guard: don't mutate original
+            .sort((a, b) => (a.slotIndex ?? 0) - (b.slotIndex ?? 0));
+
+          // Each card slot becomes one badge, label uses '|' separated "details".
+          const badgeLabels = sortedCardSlots.map((s) => {
+            const details = formatCardSlotDetails({
+              slotIndex: s.slotIndex,
+              supportedFormFactors: s.supportedFormFactors ?? [],
+              supportedBuses: s.supportedBuses ?? [],
+              supportedSpeedClasses: s.supportedSpeedClasses ?? [],
+            });
+            return details.length > 0 ? details : "Not specified";
+          });
+
+          return renderBadgeColumn(badgeLabels, forceLeftAlign, true);
+        },
       },
     ],
   },
@@ -670,7 +659,7 @@ export const specDictionary: SpecSectionDef[] = [
         key: "afAreaModes",
         label: "AF Area Modes",
         getRawValue: (item) => item.cameraSpecs?.afAreaModes,
-        formatDisplay: (raw) => {
+        formatDisplay: (raw, _, forceLeftAlign) => {
           if (!Array.isArray(raw) || raw.length === 0) return undefined;
           const toName = (
             v:
@@ -698,14 +687,7 @@ export const specDictionary: SpecSectionDef[] = [
           )
             .map(toName)
             .filter((s): s is string => typeof s === "string" && s.length > 0);
-          if (names.length === 0) return undefined;
-          return (
-            <ul className="list-none space-y-1 text-left">
-              {names.map((name) => (
-                <li key={name}>{name}</li>
-              ))}
-            </ul>
-          );
+          return renderBadgeColumn(names, forceLeftAlign);
         },
         editElementId: "afAreaModes",
       },
@@ -713,8 +695,14 @@ export const specDictionary: SpecSectionDef[] = [
         key: "afSubjectCategories",
         label: "AF Subject Categories",
         getRawValue: (item) => item.cameraSpecs?.afSubjectCategories,
-        formatDisplay: (raw) =>
-          Array.isArray(raw) ? raw.join(", ") : undefined,
+        formatDisplay: (raw, _, forceLeftAlign) => {
+          if (!Array.isArray(raw)) return undefined;
+          const categories = raw
+            .map((value) => (typeof value === "string" ? value.trim() : ""))
+            .filter((value) => value.length > 0)
+            .map((value) => value.charAt(0).toUpperCase() + value.slice(1));
+          return renderBadgeColumn(categories, forceLeftAlign);
+        },
         editElementId: "afSubjectCategories",
       },
     ],
@@ -1445,7 +1433,10 @@ export const specDictionary: SpecSectionDef[] = [
 /**
  * Build sections for the specs table display
  */
-export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
+export function buildGearSpecsSections(
+  item: GearItem,
+  forceLeftAlign?: boolean,
+): SpecsTableSection[] {
   return specDictionary
     .filter((section) => !section.condition || section.condition(item))
     .map((section) => ({
@@ -1454,7 +1445,7 @@ export function buildGearSpecsSections(item: GearItem): SpecsTableSection[] {
         .map((field) => {
           const raw = field.getRawValue(item);
           const value = field.formatDisplay
-            ? field.formatDisplay(raw, item)
+            ? field.formatDisplay(raw, item, forceLeftAlign)
             : (raw as React.ReactNode);
           return {
             label: field.label,

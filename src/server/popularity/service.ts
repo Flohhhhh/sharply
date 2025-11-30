@@ -7,12 +7,17 @@ import {
   hasViewEventForIdentityToday,
   insertViewEvent,
   getTrendingData,
+  getTrendingTotalCount,
   hasEventForIdentityToday as hasEventForIdentityTodayGeneric,
   insertCompareAddEvent,
   incrementComparePairCountBySlugs,
   fetchTopComparePairs as fetchTopComparePairsData,
 } from "./data";
 import { auth } from "~/server/auth";
+import type {
+  TrendingFiltersInput,
+  TrendingPageResult,
+} from "~/types/popularity";
 
 /**
  * recordGearView(slug, identity)
@@ -105,16 +110,41 @@ export async function fetchTopComparePairs(limit = 20) {
 export async function fetchTrending(params: {
   timeframe?: "7d" | "30d";
   limit?: number;
-  filters?: {
-    brandId?: string;
-    mountId?: string;
-    gearType?: "CAMERA" | "LENS";
-  };
+  offset?: number;
+  filters?: TrendingFiltersInput;
 }) {
   const timeframe = params.timeframe ?? "30d";
   const limit = params.limit ?? 10;
   const filters = params.filters ?? {};
-  return getTrendingData(timeframe, limit, filters);
+  const offset = params.offset ?? 0;
+  return getTrendingData(timeframe, limit, filters, offset);
+}
+
+export async function fetchTrendingPage(params: {
+  timeframe?: "7d" | "30d";
+  page?: number;
+  perPage?: number;
+  filters?: TrendingFiltersInput;
+}): Promise<TrendingPageResult> {
+  const timeframe = params.timeframe ?? "30d";
+  const page = Math.max(1, params.page ?? 1);
+  const perPage = Math.min(50, Math.max(5, params.perPage ?? 10));
+  const filters = params.filters ?? {};
+  const offset = (page - 1) * perPage;
+
+  const [items, total] = await Promise.all([
+    getTrendingData(timeframe, perPage, filters, offset),
+    getTrendingTotalCount(timeframe, filters),
+  ]);
+
+  return {
+    items,
+    total,
+    page,
+    perPage,
+    timeframe,
+    filters,
+  };
 }
 
 /**

@@ -75,23 +75,23 @@ export function GearReviewsList({
 
   if (error) {
     return (
-      <Card>
-        <CardContent className="p-6">
+      <div className="mt-4 rounded border py-12 text-sm">
+        <div className="p-6">
           <div className="text-center text-red-600">Error: {error}</div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
   if (reviews.length === 0) {
     return (
-      <Card className="mt-4">
-        <CardContent className="p-6">
+      <div className="mt-4 rounded border py-12 text-sm">
+        <div className="p-6">
           <div className="text-muted-foreground text-center">
             No reviews yet. Be the first to review this gear!
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 

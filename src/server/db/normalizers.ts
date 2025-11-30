@@ -336,6 +336,15 @@ export function normalizeProposalPayloadForDb(
           z.boolean().nullable().optional(),
         )
         .optional(),
+      precaptureSupportLevel: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          if (num === null) return undefined;
+          const intVal = Math.trunc(num);
+          return [0, 1, 2].includes(intVal) ? intVal : undefined;
+        }, z.number().int().nullable().optional())
+        .optional(),
 
       processorName: z
         .preprocess(

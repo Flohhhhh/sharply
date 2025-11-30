@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { fetchGearEditById } from "~/server/gear/service";
-import { formatPrice } from "~/lib/mapping";
+import { formatPrice, formatPrecaptureSupport } from "~/lib/mapping";
 import { sensorNameFromSlug } from "~/lib/mapping/sensor-map";
 import { humanizeKey, formatHumanDate } from "~/lib/utils";
 import { auth, requireRole } from "~/server/auth";
@@ -11,6 +11,22 @@ import {
   type VideoModeNormalized,
   normalizedToCameraVideoModes,
 } from "~/lib/video/mode-schema";
+
+const describeUnknownValue = (value: unknown): string => {
+  if (value == null) return "Empty";
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  if (Array.isArray(value)) {
+    return value.map(describeUnknownValue).join(", ");
+  }
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return "[unserializable value]";
+  }
+};
 
 export const metadata: Metadata = {
   title: "Edit Submitted",
@@ -60,9 +76,7 @@ export default async function EditSuccessPage({
     : [];
   const videoSummaryBundle =
     videoModesPayload.length > 0
-      ? buildVideoDisplayBundle(
-          normalizedToCameraVideoModes(videoModesPayload),
-        )
+      ? buildVideoDisplayBundle(normalizedToCameraVideoModes(videoModesPayload))
       : null;
 
   return (
@@ -168,6 +182,11 @@ export default async function EditSuccessPage({
                           let display: string = String(v as any);
                           if (k === "sensorFormatId")
                             display = sensorNameFromSlug(v as string);
+                          if (k === "precaptureSupportLevel") {
+                            display =
+                              formatPrecaptureSupport(v) ??
+                              describeUnknownValue(v);
+                          }
                           return (
                             <li key={String(k)}>
                               <span className="text-muted-foreground">

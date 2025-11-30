@@ -12,7 +12,11 @@ import {
   CollapsibleTrigger,
 } from "~/components/ui/collapsible";
 import { humanizeKey, formatHumanDate } from "~/lib/utils";
-import { formatPrice, formatCardSlotDetails } from "~/lib/mapping";
+import {
+  formatPrice,
+  formatCardSlotDetails,
+  formatPrecaptureSupport,
+} from "~/lib/mapping";
 import { sensorNameFromSlug, sensorNameFromId } from "~/lib/mapping/sensor-map";
 import { getMountLongNameById } from "~/lib/mapping/mounts-map";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
@@ -194,6 +198,9 @@ export function GearProposalsList({
         ? v.map((id) => getMountLongNameById(id as string)).join(", ")
         : getMountLongNameById(v as string);
     }
+    if (k === "precaptureSupportLevel") {
+      return formatPrecaptureSupport(v) ?? String(v);
+    }
     return String(v);
   };
   const formatBeforeValueForKey = (k: string, v: any): string => {
@@ -210,6 +217,9 @@ export function GearProposalsList({
       return Array.isArray(v)
         ? v.map((id) => getMountLongNameById(id as string)).join(", ")
         : getMountLongNameById(v as string);
+    }
+    if (k === "precaptureSupportLevel") {
+      return formatPrecaptureSupport(v) ?? String(v ?? "Empty");
     }
     return String(v ?? "Empty");
   };

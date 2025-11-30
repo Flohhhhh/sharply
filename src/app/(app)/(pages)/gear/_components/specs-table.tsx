@@ -58,12 +58,10 @@ export default function SpecsTable({
                   return (
                     <div
                       key={row.label}
-                      className={`flex h-full items-start justify-between ${baseClass}`}
+                      className={`flex h-full items-start gap-6 ${baseClass}`}
                     >
-                      <div className="space-x-3">
-                        <span className="text-muted-foreground">
-                          {row.label}
-                        </span>
+                      <div className="flex min-w-[180px] shrink-0 items-center gap-2 whitespace-nowrap text-muted-foreground">
+                        <span>{row.label}</span>
                         {row.tooltip && (
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -73,7 +71,9 @@ export default function SpecsTable({
                           </Tooltip>
                         )}
                       </div>
-                      <div className="text-right">{row.value}</div>
+                      <div className="flex flex-1 justify-end text-right">
+                        {row.value}
+                      </div>
                     </div>
                   );
                 })}

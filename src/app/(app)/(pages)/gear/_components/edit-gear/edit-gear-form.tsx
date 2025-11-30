@@ -226,6 +226,7 @@ function EditGearForm({
         "cipaStabilizationRatingStops",
         "hasPixelShiftShooting",
         "hasAntiAliasingFilter",
+        "precaptureSupportLevel",
         // Displays & viewfinder
         "rearDisplayType",
         "rearDisplayResolutionMillionDots",

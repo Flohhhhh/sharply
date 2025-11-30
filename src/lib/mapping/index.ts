@@ -36,6 +36,11 @@ export {
   formatLensApertureDisplay,
 } from "./lens-aperture-map";
 
+export {
+  PRECAPTURE_SUPPORT_OPTIONS,
+  formatPrecaptureSupport,
+} from "./precapture-map";
+
 // Import for use in this file
 import { getMountDisplayName } from "./mounts-map";
 

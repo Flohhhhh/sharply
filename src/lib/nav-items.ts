@@ -18,6 +18,7 @@ import {
   Film,
   Scale,
   PencilRuler,
+  Flame,
 } from "lucide-react";
 import { TbLaurelWreath } from "react-icons/tb";
 import { FaInstagram } from "react-icons/fa";
@@ -50,7 +51,8 @@ interface NavItem {
       | "film"
       | "scale"
       | "pencilRuler"
-      | "instagram";
+      | "instagram"
+      | "flame";
   }[];
   hideFromNavbar?: boolean;
   hideFromFooter?: boolean;
@@ -68,7 +70,7 @@ export const navItems: NavItem[] = [
     type: "category",
     items: [
       {
-        title: "Browse Database",
+        title: "Browse",
         url: "/gear",
         description: "Explore all cameras, lenses, and accessories",
         iconKey: "camera",
@@ -76,7 +78,7 @@ export const navItems: NavItem[] = [
       {
         title: "Contribute",
         url: "/lists/under-construction",
-        description: "Items with missing key specs",
+        description: "View items that need contributions",
         iconKey: "pencilRuler",
       },
       {
@@ -86,36 +88,12 @@ export const navItems: NavItem[] = [
           "The most iconic and influential gear in the history of photography",
         iconKey: "wreath",
       },
-      // {
-      //   title: "Canon",
-      //   url: "/brand/canon",
-      //   description: "DSLR and mirrorless cameras, lenses",
-      //   iconKey: "camera",
-      // },
-      // {
-      //   title: "Nikon",
-      //   url: "/brand/nikon",
-      //   description: "Professional cameras and optics",
-      //   iconKey: "camera",
-      // },
-      // {
-      //   title: "Sony",
-      //   url: "/brand/sony",
-      //   description: "Mirrorless cameras and lenses",
-      //   iconKey: "camera",
-      // },
-      // {
-      //   title: "Fujifilm",
-      //   url: "/brand/fujifilm",
-      //   description: "Film and digital cameras, lenses",
-      //   iconKey: "camera",
-      // },
-      // {
-      //   title: "Leica",
-      //   url: "/brand/leica",
-      //   description: "Premium cameras and optics",
-      //   iconKey: "camera",
-      // },
+      {
+        title: "Trending",
+        url: "/lists/trending",
+        description: "The most popular gear based on activity.",
+        iconKey: "flame",
+      },
     ],
   },
   {
@@ -235,6 +213,7 @@ export const iconMap = {
   pencilRuler: PencilRuler,
   wreath: TbLaurelWreath,
   instagram: FaInstagram,
+  flame: Flame,
 };
 
 // Get nav items filtered by hideFromNavbar and format for the navbar component

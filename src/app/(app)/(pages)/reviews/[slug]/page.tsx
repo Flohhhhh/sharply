@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { getReviewBySlug } from "~/server/payload/service";
 import { fetchGearBySlug } from "~/server/gear/service";
 import { RichText } from "~/components/rich-text";
@@ -29,15 +30,18 @@ export default async function ReviewPage({
         {/* Image */}
         <div>
           {gearItem.thumbnailUrl ? (
-            <div className="bg-muted h-[550px] overflow-hidden rounded-md py-12">
-              <img
+            <div className="bg-muted dark:bg-card overflow-hidden rounded-md p-12 sm:p-24">
+              <Image
                 src={gearItem.thumbnailUrl}
                 alt={gearItem.name}
-                className="h-full w-full object-contain"
+                className="mx-auto h-full max-h-[300px] w-full max-w-[600px] object-contain sm:max-h-[475px]"
+                width={720}
+                height={480}
+                priority
               />
             </div>
           ) : (
-            <div className="bg-muted flex aspect-video items-center justify-center rounded-md">
+            <div className="bg-muted dark:bg-card flex aspect-video items-center justify-center rounded-md">
               <div className="text-muted-foreground text-lg">
                 No image available
               </div>
