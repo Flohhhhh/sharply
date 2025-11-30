@@ -1,10 +1,10 @@
 import { type Metadata } from "next";
 import Image from "next/image";
 import { CompareClient } from "~/components/compare/compare-client";
+import { CompareEmptyState } from "~/components/compare/compare-empty-state";
 import { ComparePairTracker } from "./_components/compare-pair-tracker";
 import { fetchGearBySlug } from "~/server/gear/service";
 import { getBrandNameById, stripLeadingBrand } from "~/lib/mapping/brand-map";
-import { OpenSearchButton } from "~/components/search/open-search-button";
 import { cn } from "~/lib/utils";
 import type { GearItem } from "~/types/gear";
 
@@ -61,21 +61,7 @@ export default async function ComparePage({
 
   const pair = getPairFromParams(usp);
   if (pair.length === 0) {
-    // Guided empty state
-    return (
-      <div className="mx-auto min-h-screen max-w-5xl px-4 py-16 text-center">
-        <h1 className="mt-32 mb-3 text-3xl font-semibold md:text-4xl">
-          Nothing to compare yet
-        </h1>
-        <p className="text-muted-foreground mx-auto max-w-xl text-sm md:text-base">
-          Search for 2 items and add them to the comparison to see how they
-          stack up.
-        </p>
-        <div className="mt-6 flex items-center justify-center">
-          <OpenSearchButton>Open search</OpenSearchButton>
-        </div>
-      </div>
-    );
+    return <CompareEmptyState />;
   }
 
   const [slugA, slugB] = pair;

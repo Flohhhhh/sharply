@@ -9,6 +9,10 @@ import SensorFormatInput from "~/components/custom-inputs/sensor-format-input";
 import CurrencyInput from "~/components/custom-inputs/currency-input";
 import { DateInput } from "~/components/custom-inputs/date-input";
 import { NumberInput } from "~/components/custom-inputs/number-input";
+import {
+  GearSearchCombobox,
+  type GearOption,
+} from "~/components/gear/gear-search-combobox";
 import ExtractorDemo from "./extractor-demo";
 
 export default function UIDemoPage() {
@@ -25,6 +29,7 @@ export default function UIDemoPage() {
   );
   const [dateValue, setDateValue] = useState<string | null>(null);
   const [numberValue, setNumberValue] = useState<number | null>(null);
+  const [selectedGear, setSelectedGear] = useState<GearOption | null>(null);
 
   return (
     <div className="container mx-auto space-y-8 p-6">
@@ -59,6 +64,44 @@ export default function UIDemoPage() {
               Current value:{" "}
               {apertureValue ? `f/${apertureValue}` : "None selected"}
             </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Gear Search Combobox Demo */}
+      <Card>
+        <CardHeader>
+          <CardTitle>@gear: Gear Search Combobox</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <GearSearchCombobox
+            value={selectedGear}
+            setValue={setSelectedGear}
+            placeholder="Pick any gear item"
+            searchPlaceholder="Search the catalog…"
+            filters={{ gearType: "LENS" }}
+            allowClear
+            name="demo-gear-slug"
+          />
+          <div className="text-muted-foreground text-sm">
+            {selectedGear ? (
+              <dl className="space-y-1">
+                <div className="flex items-center justify-between gap-2">
+                  <dt className="font-medium">Name</dt>
+                  <dd>{selectedGear.name}</dd>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <dt className="font-medium">Brand</dt>
+                  <dd>{selectedGear.brandName ?? "Unknown"}</dd>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <dt className="font-medium">Slug</dt>
+                  <dd className="font-mono text-xs">{selectedGear.slug}</dd>
+                </div>
+              </dl>
+            ) : (
+              <p>No gear selected.</p>
+            )}
           </div>
         </CardContent>
       </Card>

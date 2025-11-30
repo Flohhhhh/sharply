@@ -46,15 +46,17 @@ Enable a fast, two-item comparison experience with clean URLs, local-only persis
 
 ### Guided Empty State (no query params)
 
-- When no `i=` params are provided, the page renders a centered empty state with:
-  - Header: “Nothing to compare yet”.
-  - CTA copy: “Search for 2 items and add them to the comparison to see how they stack up.”
-  - Button: opens the global Command Palette (via `OpenSearchButton`).
+- When no `i=` params are provided, the page renders the `CompareEmptyState` client component:
+  - Two bordered columns, each showing a `GearSearchCombobox` wired to the compare slots.
+  - Copy nudging the user to add matching gear, plus thumbnails that preview any selected items.
+  - Primary CTA (“Compare selected gear”) that links to the canonical compare URL derived from the current queue and enables only when both slots are filled.
 
 ### Global Compare UX
 
 - State: `useCompare` context in `src/lib/hooks/useCompare.tsx` (localStorage only).
-  - Actions: `add`, `remove`, `clear`, `replaceAt`, `addOrReplace`.
+  - Maintains two persistent slots (`[CompareItem | null, CompareItem | null]`) so each column can be controlled independently.
+  - Derived `items` array filters the filled slots for legacy consumers (floating compare button, add buttons, etc.).
+  - Actions: `add`, `remove`, `clear`, `replaceAt`.
   - Enforces same-type comparisons (cameras with cameras, lenses with lenses).
   - Integrates toasts for feedback.
 - FCB (Floating Compare Button): `src/components/compare/floating-compare-button.tsx`
@@ -107,6 +109,7 @@ Enable a fast, two-item comparison experience with clean URLs, local-only persis
 
 - ComparePage (server): `src/app/(app)/(pages)/compare/page.tsx`
 - CompareClient (client): `src/components/compare/compare-client.tsx`
+- CompareEmptyState (client): `src/components/compare/compare-empty-state.tsx`
 - CompareSpecsTable (client): `src/components/compare/compare-specs-table.tsx`
 - OpenSearchButton (client): `src/components/search/open-search-button.tsx`
 - FloatingCompareButton (client): `src/components/compare/floating-compare-button.tsx`
