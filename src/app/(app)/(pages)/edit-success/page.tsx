@@ -76,9 +76,7 @@ export default async function EditSuccessPage({
     : [];
   const videoSummaryBundle =
     videoModesPayload.length > 0
-      ? buildVideoDisplayBundle(
-          normalizedToCameraVideoModes(videoModesPayload),
-        )
+      ? buildVideoDisplayBundle(normalizedToCameraVideoModes(videoModesPayload))
       : null;
 
   return (
