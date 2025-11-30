@@ -12,6 +12,22 @@ import {
   normalizedToCameraVideoModes,
 } from "~/lib/video/mode-schema";
 
+const describeUnknownValue = (value: unknown): string => {
+  if (value == null) return "Empty";
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  if (Array.isArray(value)) {
+    return value.map(describeUnknownValue).join(", ");
+  }
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return "[unserializable value]";
+  }
+};
+
 export const metadata: Metadata = {
   title: "Edit Submitted",
   openGraph: {
@@ -170,7 +186,8 @@ export default async function EditSuccessPage({
                             display = sensorNameFromSlug(v as string);
                           if (k === "precaptureSupportLevel") {
                             display =
-                              formatPrecaptureSupport(v) ?? String(v ?? "Empty");
+                              formatPrecaptureSupport(v) ??
+                              describeUnknownValue(v);
                           }
                           return (
                             <li key={String(k)}>
