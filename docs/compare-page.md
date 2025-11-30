@@ -32,7 +32,8 @@ Enable a fast, two-item comparison experience with clean URLs, local-only persis
 
 - `src/components/compare/compare-specs-table.tsx`
   - Builds both sides through `buildGearSpecsSections` (`src/lib/specs/registry.tsx`).
-  - Rows are only shown when both sides have a non-null value.
+  - Rows are aligned by spec label (not array index) to prevent mismatched values when one side is missing data.
+  - Default view only renders rows where both items have a value; the “Show rows with missing info” checkbox reveals partial rows for debugging/incomplete data.
   - Booleans are consistently formatted with `yesNoNull`, which returns undefined for nulls so empty rows are dropped.
   - Special-case guards:
     - Release Date only renders if present.
