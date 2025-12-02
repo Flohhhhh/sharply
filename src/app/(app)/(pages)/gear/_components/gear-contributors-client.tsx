@@ -47,19 +47,17 @@ export function GearContributorsClient({
           title="View all contributors"
           className="hover:cursor-pointer"
         >
-          <button className="hover:bg-muted/50 flex items-center gap-3 rounded-md border px-3 py-2 text-left">
+          <button className="hover:bg-muted/50 flex w-full items-center justify-center gap-3 rounded-md border px-3 py-2 text-left">
             <ul className="flex items-center -space-x-2">
               {topFive.map((u) => (
                 <li key={u.id} className="min-w-0">
-                  <span className="inline-flex items-center justify-center">
-                    <Avatar className="ring-background size-8 ring-2">
-                      <AvatarImage
-                        src={u.image ?? undefined}
-                        alt={u.name ?? "User"}
-                      />
-                      <AvatarFallback>{getInitials(u.name)}</AvatarFallback>
-                    </Avatar>
-                  </span>
+                  <Avatar className="ring-background size-8 ring-2">
+                    <AvatarImage
+                      src={u.image ?? undefined}
+                      alt={u.name ?? "User"}
+                    />
+                    <AvatarFallback>{getInitials(u.name)}</AvatarFallback>
+                  </Avatar>
                 </li>
               ))}
               {remaining > 0 && (
