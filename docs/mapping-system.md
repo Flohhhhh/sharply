@@ -39,13 +39,17 @@ src/lib/mapping/
 
 ### Price Formatting (`price-map.ts`)
 
-#### `formatPrice(priceCents: number | null | undefined): string`
+#### `formatPrice(priceCents: number | null | undefined, options?): string`
 
 - **Purpose**: Converts price in cents to readable currency string
+- **Options**:
+  - `style` (`"long"` | `"short"`): `"long"` appends `USD` (detail views), `"short"` omits the suffix (cards/badges).
+  - `padWholeAmounts` (`boolean`): Forces trailing `.00` for whole-dollar values so lists/tables stay aligned.
 - **Logic**: Divides by 100, formats with dollar sign and locale-aware number formatting
 - **Examples**:
-  - `324900` → `"$3,249.00"`
-  - `159695` → `"$1,596.95"`
+  - `formatPrice(324900)` → `"$3,249 USD"`
+  - `formatPrice(159695, { style: "short" })` → `"$1,596.95"`
+  - `formatPrice(249900, { style: "short", padWholeAmounts: true })` → `"$2,499.00"`
 
 ## Usage Patterns
 

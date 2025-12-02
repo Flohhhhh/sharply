@@ -164,7 +164,7 @@ function GearCard({ item }: { item: any }) {
       : typeof item.msrpNowUsdCents === "number"
         ? item.msrpNowUsdCents
         : null;
-  const priceDisplay = getItemDisplayPrice(item);
+  const priceDisplay = getItemDisplayPrice(item, { padWholeAmounts: true });
   return (
     <Link
       href={`/gear/${item.slug}`}
