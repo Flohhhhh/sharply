@@ -99,14 +99,10 @@ This starts Next.js on `http://localhost:3000`. The first build will also run `n
 
 1. Fork or create a feature branch.
 2. Keep schema changes in `src/server/db/schema.ts`; do not edit migrations manually.
-3. Generate migrations with `npm run db:generate` and apply with `npm run db:migrate`.
+3. Generate migrations with `npm run db:generate`, they will be applied during CI.
 4. Update relevant docs in `/docs` alongside code changes.
-5. Run `npm run lint` and fix any errors in touched files.
+5. Run `npm run lint` and and `npm run typecheck` or `npm run build` and fix any errors in touched files.
 6. Open a pull request with context on the changes and testing performed.
-
-## Deployment
-
-Sharply targets Vercel for hosting. Set environment variables in the Vercel dashboard and provision a managed Postgres instance. Build uses the standard Next.js pipeline (`npm run build`).
 
 ## Support
 
