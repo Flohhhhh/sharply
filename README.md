@@ -83,12 +83,6 @@ This starts Next.js on `http://localhost:3000`. The first build will also run `n
 - `npm run typecheck` – TypeScript with `--noEmit`
 - `npm run check` – Combined lint + typecheck
 
-### Useful Scripts
-
-- `npm run db:seed` – Seeds the database with initial data (`scripts/seed.ts`)
-- `npm run constants:generate` – Builds static gear constants
-- `npm run preview` – Builds then starts Next.js in production mode
-
 ## Project Structure
 
 - `src/app` – Next.js App Router routes, layouts, and pages
