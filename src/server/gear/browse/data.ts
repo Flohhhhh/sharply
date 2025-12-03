@@ -77,6 +77,7 @@ export async function getLatestGear(
       thumbnailUrl: gear.thumbnailUrl,
       gearType: gear.gearType,
       releaseDate: gear.releaseDate,
+      announcedDate: gear.announcedDate,
       createdAt: gear.createdAt,
       msrpNowUsdCents: gear.msrpNowUsdCents,
       mpbMaxPriceUsdCents: gear.mpbMaxPriceUsdCents,
@@ -84,7 +85,10 @@ export async function getLatestGear(
     .from(gear)
     .leftJoin(brands, eq(gear.brandId, brands.id))
     .where(where.length ? and(...where) : undefined)
-    .orderBy(sql`${gear.releaseDate} DESC NULLS LAST`, desc(gear.createdAt))
+    .orderBy(
+      sql`coalesce(${gear.releaseDate}, ${gear.announcedDate}) DESC NULLS LAST`,
+      desc(gear.createdAt),
+    )
     .limit(limit);
   return rows;
 }
