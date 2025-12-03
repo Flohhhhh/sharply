@@ -18,7 +18,7 @@ Sharply is a photography gear database and cataloging application. It combines a
 - PostgreSQL 15+ (local or containerized)
 - pnpm or yarn are not officially supported; use npm
 - Docker or Podman (optional) if you want the provided database script
-- An `.env` file configured from `.env.template`
+- An `.env` file configured from `.env.example`
 
 ## Getting Started
 
@@ -64,10 +64,9 @@ You can run Postgres however you prefer. Two common options:
 After Postgres is running:
 
 ```bash
-npm run db:generate   # create SQL migrations from the Drizzle schema
-npm run db:migrate    # apply migrations to your local database
-npm run db:seed       # (optional) populate sample data
-npm run db:push
+npm run db:migrate        # apply migrations to your local database to setup the schema
+npm run db:seed           # (optional) populate sample data
+npx drizzle-kit studio    # (optional) view the database in Drizzle studio (or use your own viewer)
 ```
 
 ### Development Server
