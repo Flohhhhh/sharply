@@ -18,7 +18,7 @@ Sharply is a photography gear database and cataloging application. It combines a
 - PostgreSQL 15+ (local or containerized)
 - pnpm or yarn are not officially supported; use npm
 - Docker or Podman (optional) if you want the provided database script
-- An `.env` file configured from `.env.template`
+- An `.env` file configured from `.env.example`
 
 ## Getting Started
 
@@ -64,10 +64,9 @@ You can run Postgres however you prefer. Two common options:
 After Postgres is running:
 
 ```bash
-npm run db:generate   # create SQL migrations from the Drizzle schema
-npm run db:migrate    # apply migrations to your local database
-npm run db:seed       # (optional) populate sample data
-npm run db:push
+npm run db:migrate        # apply migrations to your local database to setup the schema
+npm run db:seed           # (optional) populate sample data
+npx drizzle-kit studio    # (optional) view the database in Drizzle studio (or use your own viewer)
 ```
 
 ### Development Server
@@ -83,12 +82,6 @@ This starts Next.js on `http://localhost:3000`. The first build will also run `n
 - `npm run lint` – ESLint (required after significant changes)
 - `npm run typecheck` – TypeScript with `--noEmit`
 - `npm run check` – Combined lint + typecheck
-
-### Useful Scripts
-
-- `npm run db:seed` – Seeds the database with initial data (`scripts/seed.ts`)
-- `npm run constants:generate` – Builds static gear constants
-- `npm run preview` – Builds then starts Next.js in production mode
 
 ## Project Structure
 
@@ -106,14 +99,10 @@ This starts Next.js on `http://localhost:3000`. The first build will also run `n
 
 1. Fork or create a feature branch.
 2. Keep schema changes in `src/server/db/schema.ts`; do not edit migrations manually.
-3. Generate migrations with `npm run db:generate` and apply with `npm run db:migrate`.
+3. Generate migrations with `npm run db:generate`, they will be applied during CI.
 4. Update relevant docs in `/docs` alongside code changes.
-5. Run `npm run lint` and fix any errors in touched files.
+5. Run `npm run lint` and and `npm run typecheck` or `npm run build` and fix any errors in touched files.
 6. Open a pull request with context on the changes and testing performed.
-
-## Deployment
-
-Sharply targets Vercel for hosting. Set environment variables in the Vercel dashboard and provision a managed Postgres instance. Build uses the standard Next.js pipeline (`npm run build`).
 
 ## Support
 
