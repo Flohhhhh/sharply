@@ -7,6 +7,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type ReactNode,
 } from "react";
 import { ChevronsUpDown, Check, Loader, X } from "lucide-react";
 import { cn } from "~/lib/utils";
@@ -59,6 +60,12 @@ export type GearSearchComboboxProps = {
   name?: string;
   serializeValue?: (value: GearOption | null) => string;
   onSelectionChange?: (value: GearOption | null) => void;
+  fullWidth?: boolean;
+  renderTrigger?: (details: {
+    open: boolean;
+    selection: GearOption | null;
+    canClear: boolean;
+  }) => ReactNode;
 };
 
 type SearchApiResult = {
@@ -91,6 +98,8 @@ export function GearSearchCombobox({
   name,
   serializeValue = defaultSerialize,
   onSelectionChange,
+  fullWidth = true,
+  renderTrigger,
 }: GearSearchComboboxProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -101,6 +110,7 @@ export function GearSearchCombobox({
   const debouncedQuery = useDebounce(query, 200);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const [triggerWidth, setTriggerWidth] = useState<number | undefined>(undefined);
+  const shouldMeasureTrigger = !renderTrigger;
 
   const brandFilter = filters?.brand;
   const mountFilter = filters?.mount;
@@ -201,6 +211,7 @@ export function GearSearchCombobox({
   }, []);
 
   useLayoutEffect(() => {
+    if (!shouldMeasureTrigger) return;
     const node = triggerRef.current;
     if (!node) return;
 
@@ -219,7 +230,7 @@ export function GearSearchCombobox({
     resizeObserver.observe(node);
 
     return () => resizeObserver.disconnect();
-  }, [value, buttonClassName, open]);
+  }, [value, buttonClassName, open, shouldMeasureTrigger]);
 
   const updateSelection = useCallback(
     (option: GearOption | null, { closePopover = true } = {}) => {
@@ -273,8 +284,63 @@ export function GearSearchCombobox({
     return emptyText;
   }, [belowThreshold, emptyText, error, minChars, showLoading]);
 
+  const triggerContent = renderTrigger
+    ? renderTrigger({
+        open,
+        selection: value,
+        canClear: canClearSelection,
+      })
+    : (
+        <Button
+          type="button"
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          disabled={disabled}
+          ref={triggerRef}
+          className={cn(
+            fullWidth ? "w-full justify-between text-left" : "justify-between text-left",
+            buttonClassName,
+          )}
+        >
+          <span
+            className={cn(
+              "truncate",
+              value ? "text-foreground" : "text-muted-foreground",
+            )}
+          >
+            {buttonLabel}
+          </span>
+          <span className="flex items-center">
+            {canClearSelection ? (
+              <span
+                role="button"
+                tabIndex={-1}
+                aria-label="Clear selection"
+                className="text-muted-foreground hover:text-foreground rounded-sm p-1 transition"
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  handleClear({ closePopover: false });
+                }}
+              >
+                <X className="size-4" />
+              </span>
+            ) : (
+              <ChevronsUpDown className="size-4 opacity-50" />
+            )}
+          </span>
+        </Button>
+      );
+
   return (
-    <div className={cn("flex w-full flex-col gap-2", className)}>
+    <div
+      className={cn(
+        "flex flex-col gap-2",
+        fullWidth ? "w-full" : "w-auto",
+        className,
+      )}
+    >
       {name ? (
         <input
           type="hidden"
@@ -283,54 +349,18 @@ export function GearSearchCombobox({
           readOnly
         />
       ) : null}
-      <div className="flex w-full items-center gap-2">
+      <div
+        className={cn(
+          "flex items-center gap-2",
+          fullWidth ? "w-full" : "w-auto",
+        )}
+      >
         <Popover open={open} onOpenChange={handleOpenChange}>
-          <PopoverTrigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              role="combobox"
-              aria-expanded={open}
-              disabled={disabled}
-              ref={triggerRef}
-              className={cn(
-                "w-full justify-between text-left",
-                buttonClassName,
-              )}
-            >
-              <span
-                className={cn(
-                  "truncate",
-                  value ? "text-foreground" : "text-muted-foreground",
-                )}
-              >
-                {buttonLabel}
-              </span>
-              <span className="flex items-center">
-                {canClearSelection ? (
-                  <span
-                    role="button"
-                    tabIndex={-1}
-                    aria-label="Clear selection"
-                    className="text-muted-foreground hover:text-foreground rounded-sm p-1 transition"
-                    onClick={(event) => {
-                      event.preventDefault();
-                      event.stopPropagation();
-                      handleClear({ closePopover: false });
-                    }}
-                  >
-                    <X className="size-4" />
-                  </span>
-                ) : (
-                  <ChevronsUpDown className="size-4 opacity-50" />
-                )}
-              </span>
-            </Button>
-          </PopoverTrigger>
+          <PopoverTrigger asChild>{triggerContent}</PopoverTrigger>
           <PopoverContent
             className="p-0"
             align="start"
-            style={{ width: triggerWidth }}
+            style={shouldMeasureTrigger ? { width: triggerWidth } : undefined}
           >
             <Command shouldFilter={false}>
               <CommandInput

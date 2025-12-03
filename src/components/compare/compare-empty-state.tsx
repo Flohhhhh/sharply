@@ -10,10 +10,12 @@ import {
   type GearOption,
 } from "~/components/gear/gear-search-combobox";
 import { Button } from "~/components/ui/button";
+import { useCompareLoadingOverlay } from "~/components/compare/compare-loading-overlay";
 
 export function CompareEmptyState() {
   const { slots, replaceAt, remove, clear, href, isFull } = useCompare();
   const selectionCount = slots.filter(Boolean).length;
+  const { show } = useCompareLoadingOverlay();
 
   const slotOptions = useMemo(
     () => slots.map((slot) => slotToOption(slot)),
@@ -77,7 +79,14 @@ export function CompareEmptyState() {
 
       <div className="flex flex-wrap items-center justify-center gap-3">
         <Link href={href}>
-          <Button size="lg" disabled={!isFull}>
+          <Button
+            size="lg"
+            disabled={!isFull}
+            onClick={() => {
+              if (!isFull) return;
+              show();
+            }}
+          >
             Compare selected gear
           </Button>
         </Link>

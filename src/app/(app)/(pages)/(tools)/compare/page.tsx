@@ -3,6 +3,8 @@ import Image from "next/image";
 import { CompareClient } from "~/components/compare/compare-client";
 import { CompareEmptyState } from "~/components/compare/compare-empty-state";
 import { ComparePairTracker } from "./_components/compare-pair-tracker";
+import { CompareReplaceButton } from "~/components/compare/compare-replace-button";
+import { CompareLoadingOverlayProvider } from "~/components/compare/compare-loading-overlay";
 import { fetchGearBySlug } from "~/server/gear/service";
 import { getBrandNameById, stripLeadingBrand } from "~/lib/mapping/brand-map";
 import { cn } from "~/lib/utils";
@@ -44,8 +46,16 @@ export async function generateMetadata({
 
 function getPairFromParams(searchParams: URLSearchParams): string[] {
   const values = searchParams.getAll("i");
-  const slugs = Array.from(new Set(values.filter(Boolean)));
-  return slugs.slice(0, 2).sort((a, b) => a.localeCompare(b));
+  const seen = new Set<string>();
+  const ordered: string[] = [];
+  for (const raw of values) {
+    const slug = raw?.trim();
+    if (!slug || seen.has(slug)) continue;
+    seen.add(slug);
+    ordered.push(slug);
+    if (ordered.length === 2) break;
+  }
+  return ordered;
 }
 
 export default async function ComparePage({
@@ -61,7 +71,11 @@ export default async function ComparePage({
 
   const pair = getPairFromParams(usp);
   if (pair.length === 0) {
-    return <CompareEmptyState />;
+    return (
+      <CompareLoadingOverlayProvider>
+        <CompareEmptyState />
+      </CompareLoadingOverlayProvider>
+    );
   }
 
   const [slugA, slugB] = pair;
@@ -76,20 +90,27 @@ export default async function ComparePage({
   const bName = stripLeadingBrand(b?.name ?? slugB ?? "", bBrand);
 
   return (
-    <div className="mx-auto mt-24 min-h-screen max-w-6xl space-y-0 px-4 py-8">
-      <section className="space-y-6">
-        <div className="grid grid-cols-2 gap-6 text-4xl font-semibold md:text-5xl">
-          <div className="text-right">
+    <CompareLoadingOverlayProvider>
+      <div className="mx-auto mt-24 min-h-screen max-w-6xl space-y-0 px-4 py-8">
+        <section className="space-y-6">
+        <div className="grid grid-cols-2 gap-8 text-4xl font-semibold md:text-5xl">
+          <div className="flex flex-col items-end text-right">
             <p className="text-muted-foreground text-sm tracking-wide uppercase">
               {aBrand || "Unknown brand"}
             </p>
-            <p className="leading-tight">{aName || slugA}</p>
+            <div className="flex w-full items-center justify-between gap-5">
+              <CompareReplaceButton slug={slugA} fallbackIndex={0} />
+              <p className="leading-tight">{aName || slugA}</p>
+            </div>
           </div>
-          <div className="text-left">
+          <div className="flex flex-col items-start text-left">
             <p className="text-muted-foreground text-sm tracking-wide uppercase">
               {bBrand || "Unknown brand"}
             </p>
-            <p className="leading-tight">{bName || slugB}</p>
+            <div className="flex w-full items-center justify-between gap-5">
+              <p className="leading-tight">{bName || slugB}</p>
+              <CompareReplaceButton slug={slugB} fallbackIndex={1} />
+            </div>
           </div>
         </div>
         <div className="space-y-0">
@@ -105,13 +126,14 @@ export default async function ComparePage({
         </div>
       </section>
 
-      <section className="bg-background border-border -mt-20 border-t-2 py-8 shadow-sm">
-        {/* Increment pair counter once per page load when both sides resolve */}
-        {a && b ? <ComparePairTracker slugs={pair} /> : null}
+        <section className="bg-background border-border -mt-20 border-t-2 py-8 shadow-sm">
+          {/* Increment pair counter once per page load when both sides resolve */}
+          {a && b ? <ComparePairTracker slugs={pair} /> : null}
 
-        <CompareClient slugs={pair} a={a} b={b} />
-      </section>
-    </div>
+          <CompareClient slugs={pair} a={a} b={b} />
+        </section>
+      </div>
+    </CompareLoadingOverlayProvider>
   );
 }
 
