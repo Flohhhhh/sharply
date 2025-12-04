@@ -12,6 +12,11 @@ type FormatPriceOptions = {
    * keeps the value compact for cards and badges.
    */
   style?: "long" | "short";
+  /**
+   * Forces two decimal places even for whole-dollar amounts. Helpful for tables
+   * and cards so prices stay aligned with ".00".
+   */
+  padWholeAmounts?: boolean;
 };
 
 type PriceableGear = Pick<GearItem, "msrpNowUsdCents" | "mpbMaxPriceUsdCents">;
@@ -23,13 +28,16 @@ type PriceableGear = Pick<GearItem, "msrpNowUsdCents" | "mpbMaxPriceUsdCents">;
  */
 export function formatPrice(
   priceCents: number | null | undefined,
-  { style = "long" }: FormatPriceOptions = {},
+  { style = "long", padWholeAmounts = false }: FormatPriceOptions = {},
 ): string {
   if (priceCents === null || priceCents === undefined)
     return PRICE_FALLBACK_TEXT;
 
   const dollars = priceCents / 100;
-  const formatted = dollars.toLocaleString();
+  const formatted = dollars.toLocaleString("en-US", {
+    minimumFractionDigits: padWholeAmounts ? 2 : 0,
+    maximumFractionDigits: 2,
+  });
   return style === "short" ? `$${formatted}` : `$${formatted} USD`;
 }
 
@@ -39,7 +47,7 @@ export function formatPrice(
  */
 export function getItemDisplayPrice(
   item: PriceableGear | null | undefined,
-  { style = "long" }: FormatPriceOptions = {},
+  { style = "long", padWholeAmounts = false }: FormatPriceOptions = {},
 ): string {
   const cents =
     typeof item?.mpbMaxPriceUsdCents === "number"
@@ -47,5 +55,5 @@ export function getItemDisplayPrice(
       : typeof item?.msrpNowUsdCents === "number"
         ? item.msrpNowUsdCents
         : null;
-  return formatPrice(cents, { style });
+  return formatPrice(cents, { style, padWholeAmounts });
 }

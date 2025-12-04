@@ -25,7 +25,7 @@ export function NavMenuDesktop() {
               <NavigationMenuItem key={item.title}>
                 <NavigationMenuTrigger>{item.title}</NavigationMenuTrigger>
                 <NavigationMenuContent>
-                  <div className="grid w-[400px] gap-3 p-4 md:w-[500px] lg:w-[600px] lg:grid-cols-2">
+                  <div className="grid w-[400px] gap-2 p-1 md:w-[500px] lg:w-[600px] lg:grid-cols-2">
                     {item.items.map((subItem) => {
                       const Icon = subItem.iconKey
                         ? iconMap[subItem.iconKey]
@@ -35,7 +35,7 @@ export function NavMenuDesktop() {
                         <Link
                           key={subItem.title}
                           href={subItem.url}
-                          className="group hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground block space-y-1 rounded-md p-3 leading-none no-underline transition-colors outline-none select-none"
+                          className="group hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground block space-y-1 rounded-md p-3 leading-none no-underline outline-none select-none"
                         >
                           <div className="flex items-center gap-2">
                             {Icon && (

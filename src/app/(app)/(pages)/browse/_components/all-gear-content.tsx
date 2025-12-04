@@ -88,7 +88,10 @@ export default async function AllGearContent({
                   ? `Released ${new Date(g.releaseDate as any).getFullYear()}`
                   : null
               }
-              priceText={getItemDisplayPrice(g, { style: "short" })}
+              priceText={getItemDisplayPrice(g, {
+                style: "short",
+                padWholeAmounts: true,
+              })}
             />
           ))}
         </div>
@@ -116,7 +119,10 @@ export default async function AllGearContent({
               name={g.name}
               brandName={g.brandName}
               gearType={g.gearType}
-              priceText={getItemDisplayPrice(g, { style: "short" })}
+              priceText={getItemDisplayPrice(g, {
+                style: "short",
+                padWholeAmounts: true,
+              })}
             />
           ))}
         </div>

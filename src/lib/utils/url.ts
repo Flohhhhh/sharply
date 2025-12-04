@@ -52,9 +52,23 @@ export function mergeSearchParams(
  * Builds a canonical compare URL using exact gear slugs. Slugs are sorted
  * alphabetically to ensure a stable URL for the same pair.
  */
-export function buildCompareHref(slugs: string[]): string {
-  const unique = Array.from(new Set(slugs.filter(Boolean)));
-  if (unique.length === 0) return "/compare";
-  const sorted = [...unique].sort((a, b) => a.localeCompare(b));
-  return buildSearchHref("/compare", { i: sorted });
+export function buildCompareHref(
+  slugs: string[],
+  options?: { preserveOrder?: boolean },
+): string {
+  const seen = new Set<string>();
+  const deduped: string[] = [];
+  for (const slug of slugs) {
+    if (!slug) continue;
+    const normalized = String(slug);
+    if (seen.has(normalized)) continue;
+    seen.add(normalized);
+    deduped.push(normalized);
+    if (deduped.length === 2) break;
+  }
+  if (deduped.length === 0) return "/compare";
+  const list = options?.preserveOrder
+    ? deduped
+    : [...deduped].sort((a, b) => a.localeCompare(b));
+  return buildSearchHref("/compare", { i: list });
 }

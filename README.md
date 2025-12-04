@@ -36,15 +36,30 @@ Copy the template environment file and fill in required secrets:
 cp .env.example .env
 ```
 
-Required environment variables (see `src/env.js` for validation):
+### Environment variables
 
-- `AUTH_SECRET` (generate your own)
-- `AUTH_DISCORD_ID` & `AUTH_DISCORD_SECRET`
-- `AUTH_GOOGLE_ID` & `AUTH_GOOGLE_SECRET`
-- `DATABASE_URL` (Postgres connection string)
-- `CRON_SECRET` (generate your own)
-- `DISCORD_ROLLUP_WEBHOOK_URL` (optional locally)
-- `OPENAI_API_KEY`
+Sharply validates configuration through `src/env.js`. For onboarding you only need to set the values that power the features you plan to exercise:
+
+**Core minimum (the app will crash without these)**
+
+- `AUTH_SECRET` – used by NextAuth for session encryption (`src/server/auth/index.ts`)
+- `DATABASE_URL` – establishes the Drizzle/Postgres connection (`src/server/db/index.ts`)
+- `NEXT_PUBLIC_BASE_URL` – required when building canonical URLs and Discord bot links (`src/server/gear/browse/service.ts`)
+
+**Sign-in providers (pick whichever providers you keep enabled in `src/server/auth/config.ts`)**
+
+- Discord OAuth: `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`
+- Google OAuth: `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`
+- Email magic links: `RESEND_API_KEY`, `RESEND_EMAIL_FROM` (also used by `payload.config.ts` for Resend email delivery)
+
+If you do not plan to use a provider locally, comment it out in `src/server/auth/config.ts` and you can skip its credentials.
+
+**Feature-specific values (optional until you need the feature)**
+
+- `CRON_SECRET` – only required when hitting the secured cron routes such as `/api/admin/popularity/rollup`
+- `DISCORD_ROLLUP_WEBHOOK_URL` – used to post rollup status messages to Discord; rollups still run without it
+- `OPENAI_API_KEY` – enables AI review summaries; `src/server/reviews/summary/service.ts` safely no-ops if it is missing
+- `PAYLOAD_SECRET` & `UPLOADTHING_TOKEN` – used exclusively by the Payload CMS instance (`src/payload.config.ts`); the main Next.js app does not import them
 
 > Use the template comments as guidance; keep secrets out of version control.
 
@@ -68,6 +83,8 @@ npm run db:migrate        # apply migrations to your local database to setup the
 npm run db:seed           # (optional) populate sample data
 npx drizzle-kit studio    # (optional) view the database in Drizzle studio (or use your own viewer)
 ```
+
+> `npm run db:seed` requires you to append `-- --confirm-seed` (for example `npm run db:seed -- --confirm-seed`). This keeps the safeguard in place so the script only runs when you explicitly acknowledge it and target a dev database. It will not overwrite existing gear unless you also pass `--allow-gear-overwrite`.
 
 ### Development Server
 

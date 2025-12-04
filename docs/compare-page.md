@@ -8,16 +8,18 @@ Enable a fast, two-item comparison experience with clean URLs, local-only persis
 
 ### Routing and URLs
 
-- Canonical query URL: `/compare?i=slugA&i=slugB`
+- Query URL: `/compare?i=slugA&i=slugB`
   - Uses exact `gear.slug` values; no re-slugging.
-  - Slugs are sorted alphabetically to produce a stable link.
-  - Helper: `buildCompareHref(slugs)` in `src/lib/utils/url.ts`.
+  - Slugs preserve the user-facing left/right column order so replacements never shuffle the layout.
+  - Helper: `buildCompareHref(slugs, options)` in `src/lib/utils/url.ts`.
+    - Pass `{ preserveOrder: true }` for queue-driven links (empty state CTA, replace buttons, floating compare button) so the order is respected.
+    - Omit the options object to emit a sorted/canonical pair when a stable share link is preferred.
 - Future (planned): pretty editorial URLs like `/compare/slug-a-vs-slug-b` with a redirect to the canonical query URL when no staff editorial exists.
 
 ### Data Fetch & Composition
 
 - Server page at `src/app/(app)/(pages)/compare/page.tsx`:
-  - Reads up to two `i` query params and sorts them.
+  - Reads up to two `i` query params and preserves their insertion order (first param renders on the left).
   - Fetches both `GearItem`s via service: `fetchGearBySlug`.
   - Renders a large heading: “Brand Model vs Brand Model”. Brand is bolded; brand tokens are stripped out of the model name using helpers in `src/lib/mapping/brand-map.ts`.
   - Delegates client-side presentation to `CompareClient`.
@@ -27,6 +29,10 @@ Enable a fast, two-item comparison experience with clean URLs, local-only persis
 - `src/components/compare/compare-client.tsx`
   - Mobile: simplified two-card list (links to gear pages) when on small screens or when either item is missing.
   - Desktop: renders `CompareSpecsTable` with both items.
+- Header controls on the main page now render `CompareReplaceButton` next to each gear name:
+  - Tapping “Replace” opens the same `GearSearchCombobox` used in the empty state, scoped per slot.
+  - Successful selection updates the local compare queue via `replaceAt` and navigates to a `/compare` URL that preserves the current left/right assignment.
+- `CompareLoadingOverlayProvider` (`src/components/compare/compare-loading-overlay.tsx`) wraps the page to display a full-screen dimmer with a spinner whenever compare-specific navigations (replace flow, empty-state CTA) initiate a route transition.
 
 ### Spec Table Behavior
 
@@ -46,15 +52,17 @@ Enable a fast, two-item comparison experience with clean URLs, local-only persis
 
 ### Guided Empty State (no query params)
 
-- When no `i=` params are provided, the page renders a centered empty state with:
-  - Header: “Nothing to compare yet”.
-  - CTA copy: “Search for 2 items and add them to the comparison to see how they stack up.”
-  - Button: opens the global Command Palette (via `OpenSearchButton`).
+- When no `i=` params are provided, the page renders the `CompareEmptyState` client component:
+  - Two bordered columns, each showing a `GearSearchCombobox` wired to the compare slots.
+  - Copy nudging the user to add matching gear, plus thumbnails that preview any selected items.
+  - Primary CTA (“Compare selected gear”) that links to the compare URL derived from the current queue (order preserved) and enables only when both slots are filled.
 
 ### Global Compare UX
 
 - State: `useCompare` context in `src/lib/hooks/useCompare.tsx` (localStorage only).
-  - Actions: `add`, `remove`, `clear`, `replaceAt`, `addOrReplace`.
+  - Maintains two persistent slots (`[CompareItem | null, CompareItem | null]`) so each column can be controlled independently.
+  - Derived `items` array filters the filled slots for legacy consumers (floating compare button, add buttons, etc.).
+  - Actions: `add`, `remove`, `clear`, `replaceAt`.
   - Enforces same-type comparisons (cameras with cameras, lenses with lenses).
   - Integrates toasts for feedback.
 - FCB (Floating Compare Button): `src/components/compare/floating-compare-button.tsx`
@@ -107,6 +115,8 @@ Enable a fast, two-item comparison experience with clean URLs, local-only persis
 
 - ComparePage (server): `src/app/(app)/(pages)/compare/page.tsx`
 - CompareClient (client): `src/components/compare/compare-client.tsx`
+- CompareEmptyState (client): `src/components/compare/compare-empty-state.tsx`
+- CompareReplaceButton (client): `src/components/compare/compare-replace-button.tsx`
 - CompareSpecsTable (client): `src/components/compare/compare-specs-table.tsx`
 - OpenSearchButton (client): `src/components/search/open-search-button.tsx`
 - FloatingCompareButton (client): `src/components/compare/floating-compare-button.tsx`
@@ -132,7 +142,7 @@ Enable a fast, two-item comparison experience with clean URLs, local-only persis
 ### QA Snapshot (MVP)
 
 - Two-item limit enforced across surfaces; replace flow guarded with toasts.
-- Canonical compare URL always sorted and shareable.
+- Compare URLs now preserve left/right order to avoid layout shuffling while still supporting canonical (sorted) links when needed.
 - Signed-out guided empty state appears with functional “Open search” button.
 - Signed-in missing-data view lists spec gaps and offers edit CTAs.
 - Table hides rows correctly when either side lacks a value; boolean nulls do not display “No”.

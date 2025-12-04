@@ -1,661 +1,1132 @@
 import "dotenv/config";
-import { eq } from "drizzle-orm";
+
 import slugify from "slugify";
+import { and, eq, isNull } from "drizzle-orm";
+
 import { db } from "../src/server/db";
 import {
-  brands,
-  gear,
-  mounts,
-  sensorFormats,
-  genres as genresTable,
-  gearGenres,
   afAreaModes,
+  brands,
+  cameraAfAreaSpecs,
+  cameraSpecs,
+  gear,
+  gearGenres,
+  gearMounts,
+  genres as genresTable,
+  mounts,
+  lensSpecs,
+  reviewSummaries,
+  reviews,
+  sensorFormats,
+  staffVerdicts,
+  useCaseRatings,
+  users,
 } from "../src/server/db/schema";
 import { normalizeSearchName } from "../src/lib/utils";
+import {
+  AF_AREA_MODES,
+  BRANDS,
+  GENRES,
+  MOUNTS,
+  SENSOR_FORMATS,
+} from "../src/lib/generated";
 
-const s = (v: string) => slugify(v, { lower: true, strict: true });
+type BrandRow = typeof brands.$inferSelect;
+type MountRow = typeof mounts.$inferSelect;
+type SensorFormatRow = typeof sensorFormats.$inferSelect;
+type GenreRow = typeof genresTable.$inferSelect;
+type AfAreaModeRow = typeof afAreaModes.$inferSelect;
 
-async function upsertBySlug<T extends { slug: string }>(table: any, row: T) {
-  const existing = await db
-    .select()
-    .from(table)
-    .where(eq(table.slug, row.slug))
-    .limit(1);
-  if (existing.length) return existing[0];
-  await db.insert(table).values(row);
-  const [inserted] = await db
-    .select()
-    .from(table)
-    .where(eq(table.slug, row.slug))
-    .limit(1);
-  return inserted;
+type SeedContext = {
+  brandBySlug: Map<string, BrandRow>;
+  brandByConstantId: Map<string, BrandRow>;
+  mountsByValue: Map<string, MountRow>;
+  sensorFormatsBySlug: Map<string, SensorFormatRow>;
+  genresBySlug: Map<string, GenreRow>;
+  afAreaModesByKey: Map<string, AfAreaModeRow>;
+};
+
+type ReviewSeed = {
+  user: {
+    name: string;
+    email: string;
+  };
+  review: {
+    content: string;
+    recommend: boolean | null;
+    genres?: string[];
+  };
+};
+
+type SeedOptions = {
+  skipTaxonomy?: boolean;
+  skipEditorial?: boolean;
+  skipReviews?: boolean;
+  confirmSeed?: boolean;
+  allowGearOverwrite?: boolean;
+};
+
+function parseCliOptions(argv: string[]): SeedOptions {
+  const args: Record<string, string | boolean> = {};
+  for (let i = 2; i < argv.length; i++) {
+    const value = argv[i];
+    if (!value?.startsWith("--")) continue;
+    const body = value.slice(2);
+    if (!body) continue;
+    if (body.includes("=")) {
+      const [kRaw, raw] = body.split("=", 2);
+      const key = kRaw ?? "";
+      args[key] = raw ?? "";
+    } else {
+      const next = argv[i + 1];
+      if (next && !next.startsWith("--")) {
+        args[body] = next;
+        i++;
+      } else {
+        args[body] = true;
+      }
+    }
+  }
+
+  const toBool = (input: unknown) => {
+    if (input === undefined) return false;
+    if (typeof input === "boolean") return input;
+    if (typeof input === "number") return input !== 0;
+    const normalized = String(input).toLowerCase();
+    return ["1", "true", "yes", "y"].includes(normalized);
+  };
+
+  return {
+    skipTaxonomy: toBool(args["skip-taxonomy"] ?? args["skipTaxonomy"]),
+    skipEditorial: toBool(args["skip-editorial"] ?? args["skipEditorial"]),
+    skipReviews: toBool(args["skip-reviews"] ?? args["skipReviews"]),
+    confirmSeed: toBool(args["confirm-seed"] ?? args["confirmSeed"]),
+    allowGearOverwrite: toBool(
+      args["allow-gear-overwrite"] ?? args["allowGearOverwrite"],
+    ),
+  };
 }
+
+const log = (message: string, payload?: Record<string, unknown>) => {
+  if (payload) {
+    console.log(`[seed] ${message}`, payload);
+    return;
+  }
+  console.log(`[seed] ${message}`);
+};
+
+const slugifyStrict = (value: string) =>
+  slugify(value, { lower: true, strict: true });
+
+const afModeKey = (brandId: string | null, name: string) =>
+  `${brandId ?? "unscoped"}::${name.toLowerCase()}`;
 
 async function main() {
-  // Seed brands from CSV data
-  const brandData = [
-    { name: "Nikon", slug: "nikon" },
-    { name: "Canon", slug: "canon" },
-    { name: "Sony", slug: "sony" },
-    { name: "Fujifilm", slug: "fujifilm" },
-    { name: "Leica", slug: "leica" },
-    { name: "Pentax", slug: "pentax" },
-    { name: "Sigma", slug: "sigma" },
-    { name: "Tamron", slug: "tamron" },
-    { name: "Minolta", slug: "minolta" },
-    { name: "Panasonic", slug: "panasonic" },
-    { name: "Hasselblad", slug: "hasselblad" },
-    { name: "Olympus", slug: "olympus" },
-    { name: "PhaseOne", slug: "phase-one" },
-    { name: "Viltrox", slug: "viltrox" },
-    { name: "Samsung", slug: "samsung" },
-    { name: "Lensbaby", slug: "lensbaby" },
-    { name: "Tokina", slug: "tokina" },
-    { name: "TTAritsan", slug: "ttartisan" },
-    { name: "Meike", slug: "meike" },
-    { name: "Samyang/Rokinon", slug: "samyang" },
-    { name: "Voigtlander", slug: "voigtlander" },
-    { name: "Zeiss", slug: "zeiss" },
-    { name: "7Artisans", slug: "svn-artisans" },
-    { name: "SIRUI", slug: "sirui" },
-    { name: "Yongnuo", slug: "yongnuo" },
-    { name: "ARRI", slug: "arri" },
-    { name: "Red", slug: "red" },
-    { name: "SongRAW", slug: "songraw" },
-    { name: "Practika", slug: "practika" },
-  ];
-
-  // Insert all brands and get references for mounts
-  const brandMap = new Map<string, any>();
-  for (const brand of brandData) {
-    try {
-      console.log(`Processing brand: ${brand.name} (${brand.slug})`);
-      const result = await upsertBySlug(brands, brand);
-      brandMap.set(brand.slug, result);
-      console.log(`Brand ${brand.name} processed successfully`);
-    } catch (error) {
-      console.error(`Error with brand ${brand.name}:`, error);
-      throw error;
-    }
+  const options = parseCliOptions(process.argv);
+  if (!options.confirmSeed) {
+    console.error(
+      "[seed] Missing --confirm-seed flag. Aborting to prevent accidental production writes.",
+    );
+    process.exit(1);
   }
-
-  // Get specific brands for mount references
-  const canon = brandMap.get("canon");
-  const nikon = brandMap.get("nikon");
-  const sony = brandMap.get("sony");
-  const fujifilm = brandMap.get("fujifilm");
-  const leica = brandMap.get("leica");
-  const pentax = brandMap.get("pentax");
-  const sigma = brandMap.get("sigma");
-  const panasonic = brandMap.get("panasonic");
-
-  // Seed mounts with generated UUIDs
-  const mountData = [
-    { id: crypto.randomUUID(), value: "rf-canon", brandId: canon!.id },
-    { id: crypto.randomUUID(), value: "ef-canon", brandId: canon!.id },
-    { id: crypto.randomUUID(), value: "ef-m-canon", brandId: canon!.id },
-    { id: crypto.randomUUID(), value: "z-nikon", brandId: nikon!.id },
-    { id: crypto.randomUUID(), value: "f-nikon", brandId: nikon!.id },
-    { id: crypto.randomUUID(), value: "nikon1-nikon", brandId: nikon!.id },
-    { id: crypto.randomUUID(), value: "s-nikon", brandId: nikon!.id },
-    { id: crypto.randomUUID(), value: "e-sony", brandId: sony!.id },
-    { id: crypto.randomUUID(), value: "a-sony", brandId: sony!.id },
-    { id: crypto.randomUUID(), value: "x-fujifilm", brandId: fujifilm!.id },
-    { id: crypto.randomUUID(), value: "g-fujifilm", brandId: fujifilm!.id },
-    { id: crypto.randomUUID(), value: "l-leica", brandId: leica!.id },
-    { id: crypto.randomUUID(), value: "m-leica", brandId: leica!.id },
-    { id: crypto.randomUUID(), value: "s-leica", brandId: leica!.id },
-    { id: crypto.randomUUID(), value: "k-pentax", brandId: pentax!.id },
-    { id: crypto.randomUUID(), value: "q-pentax", brandId: pentax!.id },
-    { id: crypto.randomUUID(), value: "sa-sigma", brandId: sigma!.id },
-    { id: crypto.randomUUID(), value: "h-sigma", brandId: sigma!.id },
-    { id: crypto.randomUUID(), value: "v-sigma", brandId: sigma!.id },
-    { id: crypto.randomUUID(), value: "m43-panasonic", brandId: panasonic!.id },
-  ];
-
-  for (const mount of mountData) {
-    try {
-      // Check if mount already exists by value
-      const existing = await db
-        .select()
-        .from(mounts)
-        .where(eq(mounts.value, mount.value))
-        .limit(1);
-
-      if (!existing.length) {
-        // Only insert if it doesn't exist
-        console.log(
-          `Inserting mount: ${mount.value} for brand: ${mount.brandId}`,
-        );
-        await db.insert(mounts).values(mount);
-      } else {
-        console.log(`Mount ${mount.value} already exists`);
-      }
-    } catch (error) {
-      console.error(`Error with mount ${mount.value}:`, error);
-      throw error;
-    }
-  }
-
-  // Get all mounts and create a simple lookup object
-  const allMounts = await db.select().from(mounts);
-  const mountLookup = allMounts.reduce(
-    (acc: Record<string, string>, mount: any) => {
-      acc[mount.value] = mount.id;
-      return acc;
-    },
-    {},
-  );
-
-  console.log("Available mounts:", Object.keys(mountLookup));
-
-  // Seed sensor formats
-  const sensorFormatData = [
-    {
-      name: "Full-frame",
-      slug: "full-frame",
-      cropFactor: "1.00",
-      description: "35mm equivalent",
-    },
-    {
-      name: "APS-C",
-      slug: "aps-c",
-      cropFactor: "1.50",
-      description: "Nikon, Sony, Fujifilm",
-    },
-    {
-      name: "Canon APS-C",
-      slug: "canon-aps-c",
-      cropFactor: "1.60",
-      description: "Canon specific",
-    },
-    {
-      name: "Medium Format",
-      slug: "medium-format",
-      cropFactor: "0.79",
-      description: "Larger than full frame",
-    },
-    {
-      name: "Micro 4/3",
-      slug: "micro-4-3",
-      cropFactor: "2.00",
-      description: "Panasonic, Olympus",
-    },
-    {
-      name: '1"',
-      slug: "1-inch",
-      cropFactor: "2.70",
-      description: "Compact cameras",
-    },
-    {
-      name: "Canon APS-H",
-      slug: "canon-aps-h",
-      cropFactor: "1.30",
-      description: "Canon intermediate format",
-    },
-  ];
-
-  const sensorFormatMap = new Map<string, any>();
-  for (const format of sensorFormatData) {
-    const result = await upsertBySlug(sensorFormats, format);
-    sensorFormatMap.set(format.slug, result);
-  }
-
-  // Seed genres (use-cases)
-  const defaultGenres = [
-    {
-      name: "Portraits",
-      slug: "portraits",
-      description:
-        "Portraits of people; senior portraits, engagement shoots, models, fashion photography, etc.",
-    },
-    { name: "Weddings", slug: "weddings", description: "Wedding photography" },
-    { name: "Sports", slug: "sports", description: "Fast action and sports" },
-    {
-      name: "Wildlife",
-      slug: "wildlife",
-      description: "Animals, birds, and other creatures.",
-    },
-    { name: "Street", slug: "street", description: "Street and candid" },
-    { name: "Travel", slug: "travel", description: "Travel and documentary" },
-    {
-      name: "Landscape",
-      slug: "landscape",
-      description: "Landscapes and nature",
-    },
-    { name: "Macro", slug: "macro", description: "Close-up and macro" },
-    { name: "Product", slug: "product", description: "Product and studio" },
-    { name: "Events", slug: "events", description: "Events and concerts" },
-    { name: "Video", slug: "video", description: "Video and filmmaking" },
-  ];
-  const genreMap = new Map<string, any>();
-  for (const g of defaultGenres) {
-    const result = await upsertBySlug(genresTable, g);
-    genreMap.set(g.slug, result);
-  }
-
-  const rawAfAreaModeData = [
-    { name: "Spot AF", brandId: canon!.id, description: "Spot AF" },
-    { name: "1-point AF", brandId: canon!.id, description: "1-point AF" },
-    {
-      name: "Single-point AF",
-      brandId: canon!.id,
-      description: "Single-point AF available on Canon DSLRs",
-    },
-    {
-      name: "Zone AF",
-      brandId: canon!.id,
-      description: "Zone AF available on Canon DSLRs",
-    },
-    {
-      name: "Large-zone AF",
-      brandId: canon!.id,
-      description: "Large-zone AF available on Canon DSLRs",
-    },
-    {
-      name: "Expanded AF Area",
-      brandId: canon!.id,
-      description: "Expanded AF area: Above, below, left, right, around, etc.",
-    },
-    {
-      name: "Flexible Zone AF",
-      brandId: canon!.id,
-      description: "Flexible Zone AF",
-    },
-    {
-      name: "Automatic-selection AF",
-      brandId: canon!.id,
-      description:
-        "The Area AF frame (entire AF area) is used to focus. Available on Canon DSLRs",
-    },
-    {
-      name: "Dynamic-area AF",
-      brandId: canon!.id,
-      description: "Dynamic-area AF",
-    },
-    { name: "Whole area AF", brandId: canon!.id, description: "Whole area AF" },
-    { name: "Pinpoint AF", brandId: nikon!.id, description: "Pinpoint AF" },
-    {
-      name: "Single Point AF",
-      brandId: nikon!.id,
-      description: "Single Point AF",
-    },
-    {
-      name: "Dynamic Area AF (Small)",
-      brandId: nikon!.id,
-      description: "Small version of Dynamic Area AF, sometimes called 9-point",
-    },
-    {
-      name: "Dynamic Area AF (Medium)",
-      brandId: nikon!.id,
-      description:
-        "Medium version of Dynamic Area AF, sometimes called 21-point",
-    },
-    {
-      name: "Dynamic Area AF (Large)",
-      brandId: nikon!.id,
-      description:
-        "Large version of Dynamic Area AF, sometimes called 39 or 51 point",
-    },
-    {
-      name: "Dynamic Area AF",
-      brandId: nikon!.id,
-      description:
-        "Standalone version of Dynamic Area AF for cameras without Small, Medium, or Large options",
-    },
-    {
-      name: "Wide Area AF (Small)",
-      brandId: nikon!.id,
-      description: "Wide Area AF (Small)",
-    },
-    {
-      name: "Wide Area AF (Large)",
-      brandId: nikon!.id,
-      description: "Wide Area AF (Large)",
-    },
-    {
-      name: "Subject Tracking AF",
-      brandId: nikon!.id,
-      description:
-        "Similar to 3D Tracking, but usually available as a function while using Auto-area AF",
-    },
-    { name: "Group-area AF", brandId: nikon!.id, description: "Group-area AF" },
-    { name: "3D Tracking", brandId: nikon!.id, description: "3D Tracking" },
-    { name: "Auto-area AF", brandId: nikon!.id, description: "Auto-area AF" },
-    {
-      name: "Wide",
-      brandId: sony!.id,
-      description:
-        "Focuses on subjects across the entire monitor. Effective for erratic subjects such as children, animals, or athletes.",
-    },
-    {
-      name: "Local",
-      brandId: sony!.id,
-      description:
-        "Choose the area for which you want to activate the focus from among nine areas. Usually available on older DSLRs",
-    },
-    {
-      name: "Zone",
-      brandId: sony!.id,
-      description:
-        "Automatically focuses on the area within your selected focusing zone on the monitor. [Zone] is divided into nine focusing areas, which makes it effective for focusing on moving subjects within these specific areas.",
-    },
-    {
-      name: "Center Fix",
-      brandId: sony!.id,
-      description:
-        "Focuses on subjects centered on the monitor. When used with focus-lock, effective for shots with your preferred composition.",
-    },
-    {
-      name: "Spot",
-      brandId: sony!.id,
-      description:
-        "Focuses on very small subjects or narrow areas in a frame that you can move freely on the monitor. Choose a small, medium, or large focusing frame. Called 'Flexible Spot' on some cameras.",
-    },
-    {
-      name: "Expanded Spot",
-      brandId: sony!.id,
-      description:
-        "Expands the focus area around [Spot] if focusing is not possible within your selected spot. Called 'Flexible Expanded Spot' on some cameras.",
-    },
-    {
-      name: "Tracking",
-      brandId: sony!.id,
-      description:
-        "Available addition to all other area modes, only available in AF-C, tracks subjects across the frame.",
-    },
-    {
-      name: "Single Point",
-      brandId: fujifilm!.id,
-      description: "Fujifilm Single Point AF",
-    },
-    { name: "Zone", brandId: fujifilm!.id, description: "Fujifilm Zone AF" },
-    {
-      name: "Wide/Tracking",
-      brandId: fujifilm!.id,
-      description: "Fujifilm Wide/Tracking AF",
-    },
-  ];
-
-  const afAreaModeData: (typeof afAreaModes.$inferInsert)[] =
-    rawAfAreaModeData.map((m) => ({
-      ...m,
-      searchName: m.name.toLowerCase(),
-    }));
-  const afAreaModeMap = new Map<string, any>();
-  for (const mode of afAreaModeData) {
-    const result = await db.insert(afAreaModes).values(mode).returning();
-    afAreaModeMap.set(mode.name, result);
-  }
-
-  // Sample gear rows with normalized search names
-  // The normalizeSearchName function combines brand name and gear name for better searchability
-  const items: (typeof gear.$inferInsert)[] = [
-    {
-      name: "Nikon Z 400mm f/4.5 VR S",
-      slug: s("Nikon Z 400mm f/4.5 VR S"),
-      searchName: normalizeSearchName("Nikon Z 400mm f/4.5 VR S", "Nikon"),
-      gearType: "LENS" as const,
-      brandId: nikon!.id,
-      mountId: mountLookup["z-nikon"] || null,
-      msrpNowUsdCents: 324900,
-      msrpAtLaunchUsdCents: 324900,
-      releaseDate: new Date("2023-01-01"),
-      thumbnailUrl: null,
-    },
-    {
-      name: "Nikon Z6 III",
-      slug: s("Nikon Z6 III"),
-      searchName: normalizeSearchName("Nikon Z6 III", "Nikon"),
-      gearType: "CAMERA" as const,
-      brandId: nikon!.id,
-      mountId: mountLookup["z-nikon"] || null,
-      msrpNowUsdCents: 159695,
-      msrpAtLaunchUsdCents: 159695,
-      releaseDate: new Date("2023-01-01"),
-      thumbnailUrl: null,
-    },
-  ];
-
-  // Mount IDs will be set directly in the gear items below
-  console.log("Mounts available for assignment:", mountLookup);
-
-  // Clear existing gear items first
-  await db.delete(gear);
-  console.log("Cleared existing gear items");
-
-  // Insert gear items with correct mount IDs
-  const insertedGear: any[] = [];
-  for (const g of items) {
-    console.log(`Inserting gear: ${g.name} with mountId: ${g.mountId}`);
-    const [inserted] = await db.insert(gear).values(g).returning();
-    insertedGear.push(inserted);
-  }
-
-  // Seed camera and lens specifications
-  console.log("Seeding gear specifications...");
-
-  // Import the specs tables
-  const { cameraSpecs, lensSpecs } = await import("../src/server/db/schema");
-
-  // Clear existing specs
-  await db.delete(cameraSpecs);
-  await db.delete(lensSpecs);
-
-  // Add camera specifications
-  for (const item of insertedGear) {
-    if (item.gearType === "CAMERA") {
-      // Determine specs based on the camera name
-      let specs: any = {
-        gearId: item.id,
-        extra: {},
-      };
-
-      if (item.name.includes("Z6 III")) {
-        specs = {
-          ...specs,
-          sensorFormatId: sensorFormatMap.get("full-frame")!.id,
-          resolutionMp: "24.5",
-          isoMin: 100,
-          isoMax: 204800,
-          maxFpsRaw: 20,
-          maxFpsJpg: 120,
-          maxRawBitDepth: "14",
-          hasElectronicVibrationReduction: true,
-          hasPixelShiftShooting: true,
-          hasFocusPeaking: true,
-          hasFocusBracketing: true,
-          hasIbis: true,
-          hasWeatherSealing: true,
-          afSubjectCategories: [
-            "people",
-            "animals",
-            "vehicles",
-            "birds",
-            "aircraft",
-          ],
-        };
-      } else if (item.name.includes("EOS R5ii")) {
-        specs = {
-          ...specs,
-          sensorFormatId: sensorFormatMap.get("full-frame")!.id,
-          resolutionMp: "45.0",
-          isoMin: 100,
-          isoMax: 102400,
-          maxFpsRaw: 20,
-          maxFpsJpg: 60,
-        };
-      } else if (item.name.includes("Alpha A7 IV")) {
-        specs = {
-          ...specs,
-          sensorFormatId: sensorFormatMap.get("full-frame")!.id,
-          resolutionMp: "33.0",
-          isoMin: 100,
-          isoMax: 51200,
-          maxFpsRaw: 10,
-          maxFpsJpg: 120,
-        };
-      } else if (item.name.includes("X-T5")) {
-        specs = {
-          ...specs,
-          sensorFormatId: sensorFormatMap.get("aps-c")!.id,
-          resolutionMp: "40.2",
-          isoMin: 160,
-          isoMax: 12800,
-          maxFpsRaw: 15,
-          maxFpsJpg: 20,
-        };
-      } else {
-        // Default specs for other cameras
-        specs = {
-          ...specs,
-          sensorFormatId: sensorFormatMap.get("full-frame")!.id,
-          resolutionMp: "24.0",
-          isoMin: 100,
-          isoMax: 51200,
-          maxFpsRaw: 30,
-          maxFpsJpg: 120,
-        };
-      }
-
-      await db.insert(cameraSpecs).values(specs);
-      console.log(`Added camera specs for: ${item.name}`);
-    } else if (item.gearType === "LENS") {
-      // Determine specs based on the lens name
-      let specs: any = {
-        gearId: item.id,
-        extra: {},
-      };
-
-      if (item.name.includes("400mm")) {
-        specs = {
-          ...specs,
-          focalLengthMinMm: 400,
-          focalLengthMaxMm: 400,
-          hasStabilization: true,
-        };
-      } else {
-        // Default specs for other lenses
-        specs = {
-          ...specs,
-          focalLengthMinMm: 50,
-          focalLengthMaxMm: 50,
-          hasStabilization: false,
-        };
-      }
-
-      await db.insert(lensSpecs).values(specs);
-      console.log(`Added lens specs for: ${item.name}`);
-    }
-  }
-
-  // Link some genres to gear via join table (demonstration)
-  console.log("Linking genres to gear...");
-  const link = async (gearId: string, slugs: string[]) => {
-    for (const slug of slugs) {
-      const g = genreMap.get(slug);
-      if (!g) continue;
-      await db
-        .insert(gearGenres)
-        .values({ gearId, genreId: g.id, createdAt: new Date() });
-    }
-  };
-  for (const item of insertedGear) {
-    if (item.gearType === "CAMERA") {
-      await link(item.id, ["travel", "street", "landscape"]);
-    } else {
-      // lenses: pick a couple based on name heuristics
-      if (item.name.includes("400mm") || item.name.includes("70-200mm")) {
-        await link(item.id, ["sports", "wildlife"]);
-      } else {
-        await link(item.id, ["product", "macro"]);
-      }
-    }
-  }
-
-  // Seed editorial content
-  console.log("Seeding editorial content...");
-  const { useCaseRatings, staffVerdicts } = await import(
-    "../src/server/db/schema"
-  );
-
-  // Clear existing editorial data
-  await db.delete(useCaseRatings);
-  await db.delete(staffVerdicts);
-
-  // Add use-case ratings for the Nikon Z6 III
-  const nikonZ6III = insertedGear.find((item) => item.name === "Nikon Z6 III");
-  if (nikonZ6III) {
-    const ratingsData = [
-      {
-        gearId: nikonZ6III.id,
-        genreId: genreMap.get("sports")!.id,
-        score: 9,
-        note: "Excellent AF tracking and high FPS make this ideal for fast-moving subjects.",
-      },
-      {
-        gearId: nikonZ6III.id,
-        genreId: genreMap.get("wildlife")!.id,
-        score: 9,
-        note: "Great for wildlife with fast AF and high burst rates.",
-      },
-      {
-        gearId: nikonZ6III.id,
-        genreId: genreMap.get("landscape")!.id,
-        score: 8,
-        note: "Great low-light performance and dynamic range for landscape work.",
-      },
-      {
-        gearId: nikonZ6III.id,
-        genreId: genreMap.get("portraits")!.id,
-        score: 7,
-        note: "Good for portraits but not the best choice for studio work.",
-      },
-    ];
-
-    for (const rating of ratingsData) {
-      await db.insert(useCaseRatings).values(rating);
-      console.log(`✅ Added rating for ${rating.genreId}: ${rating.score}/10`);
-    }
-
-    // Add staff verdict
-    const verdictData = {
-      gearId: nikonZ6III.id,
-      content: `The Nikon Z6 III represents a significant step forward for Nikon's mid-range mirrorless lineup. With its 24.5MP sensor, improved autofocus system, and enhanced video capabilities, it's a versatile camera that excels in multiple shooting scenarios.
-
-The new stacked sensor design provides excellent readout speeds, enabling high-speed continuous shooting and reducing rolling shutter in video mode. The improved AF system with subject detection makes it much more capable for action photography compared to its predecessor.`,
-      pros: [
-        "Excellent autofocus performance with subject detection",
-        "High-speed continuous shooting at 20fps",
-        "Great low-light performance with ISO up to 204,800",
-        "4K video with minimal rolling shutter",
-        "Robust weather-sealed build quality",
-      ],
-      cons: [
-        "Single card slot (CFexpress Type B)",
-        "No built-in flash",
-        "Battery life could be better for video",
-        "Limited buffer depth in RAW at highest speeds",
-      ],
-      whoFor:
-        "Photographers who need a versatile camera for sports, wildlife, and general photography with occasional video work.",
-      notFor:
-        "Professional videographers who need extensive video features, or photographers who require dual card slots for backup.",
-      alternatives: [
-        "Sony A7 IV - Better video features and dual card slots",
-        "Canon R6 Mark II - Superior AF and faster burst rates",
-        "Nikon Z7 II - Higher resolution for landscape work",
-      ],
-    };
-
-    await db.insert(staffVerdicts).values(verdictData);
-    console.log("✅ Added staff verdict for Nikon Z6 III");
-  }
-
-  console.log("Seed complete.");
+  log("starting seed (constants + Nikon Z6 III)", options);
+  const context = await seedTaxonomyFromGenerated({
+    skipWrites: options.skipTaxonomy,
+  });
+  await seedNikonZ6III(context, options);
+  await seedAdditionalCameras(context, options);
+  log("seed complete");
 }
 
-main().catch((e) => {
-  console.error(e);
+async function seedTaxonomyFromGenerated(opts?: {
+  skipWrites?: boolean;
+}): Promise<SeedContext> {
+  const skipWrites = Boolean(opts?.skipWrites);
+  const brandBySlug = new Map<string, BrandRow>();
+  const brandByConstantId = new Map<string, BrandRow>();
+  for (const brandSeed of BRANDS) {
+    const row = {
+      id: brandSeed.id,
+      name: brandSeed.name,
+      slug: brandSeed.slug,
+    };
+    const existing = await db
+      .select()
+      .from(brands)
+      .where(eq(brands.slug, row.slug))
+      .limit(1);
+    let record: BrandRow;
+    if (skipWrites) {
+      if (!existing[0]) {
+        throw new Error(
+          `Brand ${row.slug} missing while --skip-taxonomy flag is active.`,
+        );
+      }
+      record = existing[0]!;
+    } else if (existing[0]) {
+      record = existing[0]!;
+    } else {
+      await db
+        .insert(brands)
+        .values(row)
+        .onConflictDoNothing({ target: brands.slug });
+      const [inserted] = await db
+        .select()
+        .from(brands)
+        .where(eq(brands.slug, row.slug))
+        .limit(1);
+      record = inserted!;
+    }
+    brandBySlug.set(record.slug, record);
+    brandByConstantId.set(brandSeed.id, record);
+  }
+  log("brands ready", { count: brandBySlug.size });
+
+  const mountsByValue = new Map<string, MountRow>();
+  for (const mountSeed of MOUNTS) {
+    const mappedBrand =
+      mountSeed.brand_id === null
+        ? null
+        : (brandByConstantId.get(mountSeed.brand_id) ?? null);
+    const row = {
+      id: mountSeed.id,
+      value: mountSeed.value,
+      brandId: mappedBrand?.id ?? mountSeed.brand_id ?? null,
+      shortName: mountSeed.short_name ?? null,
+    };
+    const existing = await db
+      .select()
+      .from(mounts)
+      .where(eq(mounts.value, row.value))
+      .limit(1);
+    let record: MountRow;
+    if (skipWrites) {
+      if (!existing[0]) {
+        throw new Error(
+          `Mount ${row.value} missing while --skip-taxonomy flag is active.`,
+        );
+      }
+      record = existing[0]!;
+    } else if (existing[0]) {
+      record = existing[0]!;
+    } else {
+      await db
+        .insert(mounts)
+        .values(row)
+        .onConflictDoNothing({ target: mounts.value });
+      const [inserted] = await db
+        .select()
+        .from(mounts)
+        .where(eq(mounts.value, row.value))
+        .limit(1);
+      record = inserted!;
+    }
+    mountsByValue.set(record.value, record);
+  }
+  log("mounts ready", { count: mountsByValue.size });
+
+  const sensorFormatsBySlug = new Map<string, SensorFormatRow>();
+  for (const format of SENSOR_FORMATS) {
+    const row = {
+      id: format.id,
+      name: format.name,
+      slug: format.slug,
+      cropFactor: format.crop_factor,
+      description: format.description ?? null,
+    };
+    const existing = await db
+      .select()
+      .from(sensorFormats)
+      .where(eq(sensorFormats.slug, row.slug))
+      .limit(1);
+    let record: SensorFormatRow;
+    if (skipWrites) {
+      if (!existing[0]) {
+        throw new Error(
+          `Sensor format ${row.slug} missing while --skip-taxonomy flag is active.`,
+        );
+      }
+      record = existing[0]!;
+    } else if (existing[0]) {
+      record = existing[0]!;
+    } else {
+      await db
+        .insert(sensorFormats)
+        .values(row)
+        .onConflictDoNothing({ target: sensorFormats.slug });
+      const [inserted] = await db
+        .select()
+        .from(sensorFormats)
+        .where(eq(sensorFormats.slug, row.slug))
+        .limit(1);
+      record = inserted!;
+    }
+    sensorFormatsBySlug.set(record.slug, record);
+  }
+  log("sensor formats ready", { count: sensorFormatsBySlug.size });
+
+  const genresBySlug = new Map<string, GenreRow>();
+  for (const genreSeed of GENRES) {
+    const row = {
+      id: genreSeed.id,
+      name: genreSeed.name,
+      slug: genreSeed.slug,
+      description: genreSeed.description ?? null,
+      appliesTo:
+        genreSeed.applies_to && genreSeed.applies_to.length > 0
+          ? genreSeed.applies_to
+          : null,
+    };
+    const existing = await db
+      .select()
+      .from(genresTable)
+      .where(eq(genresTable.slug, row.slug))
+      .limit(1);
+    let record: GenreRow;
+    if (skipWrites) {
+      if (!existing[0]) {
+        throw new Error(
+          `Genre ${row.slug} missing while --skip-taxonomy flag is active.`,
+        );
+      }
+      record = existing[0]!;
+    } else if (existing[0]) {
+      record = existing[0]!;
+    } else {
+      await db
+        .insert(genresTable)
+        .values(row)
+        .onConflictDoNothing({ target: genresTable.slug });
+      const [inserted] = await db
+        .select()
+        .from(genresTable)
+        .where(eq(genresTable.slug, row.slug))
+        .limit(1);
+      record = inserted!;
+    }
+    genresBySlug.set(record.slug, record);
+  }
+  log("genres ready", { count: genresBySlug.size });
+
+  const afAreaModesByKey = new Map<string, AfAreaModeRow>();
+  for (const modeSeed of AF_AREA_MODES) {
+    const mappedBrand =
+      modeSeed.brand_id === null
+        ? null
+        : (brandByConstantId.get(modeSeed.brand_id) ?? null);
+    const row = {
+      id: modeSeed.id,
+      name: modeSeed.name,
+      searchName: (modeSeed.search_name ?? modeSeed.name).toLowerCase(),
+      description: modeSeed.description ?? null,
+      brandId: mappedBrand?.id ?? modeSeed.brand_id ?? null,
+      aliases: Array.isArray(modeSeed.aliases) ? modeSeed.aliases : null,
+    };
+    let record: AfAreaModeRow | undefined;
+    const existing = await db
+      .select()
+      .from(afAreaModes)
+      .where(
+        row.brandId
+          ? and(
+              eq(afAreaModes.name, row.name),
+              eq(afAreaModes.brandId, row.brandId),
+            )
+          : and(eq(afAreaModes.name, row.name), isNull(afAreaModes.brandId)),
+      )
+      .limit(1);
+    if (skipWrites) {
+      if (!existing[0]) {
+        throw new Error(
+          `AF area mode ${row.name} (${row.brandId ?? "unscoped"}) missing while --skip-taxonomy flag is active.`,
+        );
+      }
+      record = existing[0]!;
+    } else if (existing[0]) {
+      record = existing[0]!;
+    } else {
+      const [inserted] = await db.insert(afAreaModes).values(row).returning();
+      record = inserted!;
+    }
+    afAreaModesByKey.set(
+      afModeKey(record.brandId ?? null, record.name),
+      record,
+    );
+  }
+  log("AF area modes ready", { count: afAreaModesByKey.size });
+
+  return {
+    brandBySlug,
+    brandByConstantId,
+    mountsByValue,
+    sensorFormatsBySlug,
+    genresBySlug,
+    afAreaModesByKey,
+  };
+}
+
+async function seedNikonZ6III(context: SeedContext, options: SeedOptions = {}) {
+  const brand = context.brandBySlug.get("nikon");
+  if (!brand)
+    throw new Error("Nikon brand missing. Run generated constant sync.");
+
+  const zMount = context.mountsByValue.get("z-nikon");
+  if (!zMount)
+    throw new Error("Mount z-nikon missing. Run generated constant sync.");
+
+  const fullFrame = context.sensorFormatsBySlug.get("full-frame");
+  if (!fullFrame) {
+    throw new Error(
+      "Sensor format full-frame missing. Run generated constant sync.",
+    );
+  }
+
+  const liveZ6iii = {
+    id: "ec11113e-ae24-44cb-871f-4eb763d2d378",
+    slug: "nikon-z6iii",
+    searchName: "nikon z6iii",
+    name: "Nikon Z6III",
+    releaseDateIso: "2024-06-24T00:00:00.000Z",
+    announcedDateIso: "2024-06-17T00:00:00.000Z",
+    msrpNowUsdCents: 239_995,
+    msrpAtLaunchUsdCents: 249_995,
+    thumbnailUrl:
+      "https://8v5lpkd4bi.ufs.sh/f/mJwI0W8NBfTn2SorD1z6O32XrPx7o8HylnZ4eJQftjDF6dG0",
+    weightGrams: 760,
+    widthMm: 138.5,
+    heightMm: 101.0,
+    depthMm: 74.0,
+    mpbMaxPriceUsdCents: 219_900,
+    linkManufacturer:
+      "https://imaging.nikon.com/imaging/lineup/mirrorless/z6_3/",
+    linkMpb: "https://www.mpb.com/en-us/product/nikon-z6-iii",
+    linkAmazon:
+      "https://www.amazon.com/Nikon-Full-Frame-mirrorless-Internal-Recording/dp/B0D77SL8CY?psc=1",
+    genres: ["video", "sports", "wildlife"],
+  } as const;
+
+  const gearName = liveZ6iii.name;
+  const gearSlug = liveZ6iii.slug || slugifyStrict(gearName);
+  const gearGenreSlugs = liveZ6iii.genres;
+
+  const { record: gearRow, mutated: gearMutated } = await upsertGearRow(
+    {
+      id: liveZ6iii.id,
+      slug: gearSlug,
+      name: gearName,
+      searchName:
+        liveZ6iii.searchName || normalizeSearchName(gearName, brand.name),
+      gearType: "CAMERA",
+      brandId: brand.id,
+      mountId: zMount.id,
+      announcedDate: new Date(liveZ6iii.announcedDateIso),
+      releaseDate: new Date(liveZ6iii.releaseDateIso),
+      releaseDatePrecision: "DAY",
+      announceDatePrecision: "DAY",
+      msrpNowUsdCents: liveZ6iii.msrpNowUsdCents,
+      msrpAtLaunchUsdCents: liveZ6iii.msrpAtLaunchUsdCents,
+      weightGrams: liveZ6iii.weightGrams,
+      widthMm: String(liveZ6iii.widthMm),
+      heightMm: String(liveZ6iii.heightMm),
+      depthMm: String(liveZ6iii.depthMm),
+      mpbMaxPriceUsdCents: liveZ6iii.mpbMaxPriceUsdCents,
+      linkManufacturer: liveZ6iii.linkManufacturer,
+      linkMpb: liveZ6iii.linkMpb,
+      linkAmazon: liveZ6iii.linkAmazon,
+      thumbnailUrl: liveZ6iii.thumbnailUrl,
+      notes: [],
+      genres: gearGenreSlugs,
+    },
+    options.allowGearOverwrite ?? false,
+  );
+
+  if (!gearMutated) {
+    log(
+      "Gear already exists and --allow-gear-overwrite not set; skipping dependent seeds to avoid destructive changes.",
+    );
+    return;
+  }
+
+  await db.delete(gearMounts).where(eq(gearMounts.gearId, gearRow.id));
+  await db
+    .insert(gearMounts)
+    .values({ gearId: gearRow.id, mountId: zMount.id });
+
+  await db.delete(gearGenres).where(eq(gearGenres.gearId, gearRow.id));
+  const genreJoins = gearGenreSlugs
+    .map((slug) => context.genresBySlug.get(slug))
+    .filter((g): g is GenreRow => Boolean(g))
+    .map((genre) => ({
+      gearId: gearRow.id,
+      genreId: genre.id,
+    }));
+  if (genreJoins.length) {
+    await db.insert(gearGenres).values(genreJoins);
+  }
+
+  await db.delete(cameraSpecs).where(eq(cameraSpecs.gearId, gearRow.id));
+  const cameraSpecPayload: typeof cameraSpecs.$inferInsert = {
+    gearId: gearRow.id,
+    sensorFormatId: fullFrame.id,
+    resolutionMp: "24.5",
+    sensorStackingType: "partially-stacked",
+    sensorTechType: "cmos",
+    isBackSideIlluminated: true,
+    isoMin: 100,
+    isoMax: 204800,
+    maxRawBitDepth: "14",
+    hasIbis: true,
+    hasElectronicVibrationReduction: true,
+    cipaStabilizationRatingStops: "8.0",
+    hasPixelShiftShooting: true,
+    cameraType: "mirrorless",
+    processorName: "Expeed 7",
+    hasWeatherSealing: true,
+    focusPoints: 273,
+    afSubjectCategories: ["people", "animals", "vehicles", "birds"],
+    hasFocusPeaking: true,
+    hasFocusBracketing: true,
+    shutterSpeedMax: 8000,
+    shutterSpeedMin: 30,
+    maxFpsRaw: "20",
+    maxFpsJpg: "120",
+    hasSilentShootingAvailable: true,
+    availableShutterTypes: ["mechanical", "electronic"],
+    cipaBatteryShotsPerCharge: 390,
+    supportedBatteries: ["EN-EL15c"],
+    usbPowerDelivery: true,
+    usbCharging: true,
+    hasLogColorProfile: true,
+    has10BitVideo: true,
+    hasOpenGateVideo: false,
+    hasIntervalometer: true,
+    hasSelfTimer: true,
+    hasBuiltInFlash: false,
+    hasHotShoe: true,
+    hasUsbFileTransfer: true,
+    rearDisplayType: "dual_axis_tilt",
+    rearDisplayResolutionMillionDots: "2.1",
+    rearDisplaySizeInches: "3.2",
+    hasRearTouchscreen: true,
+    viewfinderType: "electronic",
+    viewfinderMagnification: "0.8",
+    viewfinderResolutionMillionDots: "5.76",
+    hasTopDisplay: false,
+    extra: {
+      burstModes: ["High-Speed Capture 60 fps JPEG", "20 fps RAW"],
+      subjectDetection: "People / animals / vehicles with eye detection",
+    },
+  };
+  await db.insert(cameraSpecs).values(cameraSpecPayload);
+
+  const nikonAfModes = [
+    "Pinpoint AF",
+    "Single Point AF",
+    "Dynamic Area AF (Small)",
+    "Dynamic Area AF (Large)",
+    "Wide Area AF (Small)",
+    "Wide Area AF (Large)",
+    "Subject Tracking AF",
+    "Auto-area AF",
+  ];
+  await db
+    .delete(cameraAfAreaSpecs)
+    .where(eq(cameraAfAreaSpecs.gearId, gearRow.id));
+  const afRecords = nikonAfModes
+    .map((name) => {
+      const key = afModeKey(brand.id, name);
+      return (
+        context.afAreaModesByKey.get(key) ??
+        context.afAreaModesByKey.get(afModeKey(null, name))
+      );
+    })
+    .filter((mode): mode is AfAreaModeRow => Boolean(mode))
+    .map((mode) => ({ gearId: gearRow.id, afAreaModeId: mode.id }));
+  if (afRecords.length) {
+    await db.insert(cameraAfAreaSpecs).values(afRecords);
+  }
+
+  if (options.skipEditorial) {
+    log("skip-editorial flag detected; skipping staff verdict + ratings.");
+  } else {
+    await seedEditorialData(gearRow.id, context);
+  }
+
+  if (options.skipReviews) {
+    log("skip-reviews flag detected; skipping sample reviews + summary.");
+  } else {
+    await seedReviewsAndSummary(gearRow.id, gearRow.name);
+  }
+
+  log("Nikon Z6 III seeded", {
+    gearId: gearRow.id,
+    slug: gearRow.slug,
+  });
+}
+
+type CameraFixture = {
+  key: string;
+  brandSlug: string;
+  mountValue: string;
+  data: Omit<typeof gear.$inferInsert, "brandId" | "mountId"> & {
+    genres?: string[];
+  };
+  specs?: Partial<typeof cameraSpecs.$inferInsert>;
+};
+
+type LensFixture = {
+  key: string;
+  brandSlug: string;
+  mountValue: string;
+  data: Omit<typeof gear.$inferInsert, "brandId" | "mountId"> & {
+    genres?: string[];
+  };
+  lensSpecs?: Partial<typeof lensSpecs.$inferInsert>;
+};
+
+async function seedAdditionalCameras(
+  context: SeedContext,
+  options: SeedOptions,
+) {
+  const fixtures: CameraFixture[] = [
+    {
+      key: "canon-eos-r6-mark-iii",
+      brandSlug: "canon",
+      mountValue: "rf-canon",
+      data: {
+        id: "63db1ed1-374e-475b-a6fd-297a54c07ebc",
+        slug: "canon-eos-r6-mark-iii",
+        name: "Canon EOS R6 Mark III",
+        searchName: "canon eos r6 mark iii",
+        gearType: "CAMERA",
+        announcedDate: new Date("2025-11-06T00:00:00.000Z"),
+        releaseDate: new Date("2025-11-25T00:00:00.000Z"),
+        announceDatePrecision: "DAY",
+        releaseDatePrecision: "DAY",
+        msrpNowUsdCents: 279900,
+        msrpAtLaunchUsdCents: 279900,
+        thumbnailUrl:
+          "https://8v5lpkd4bi.ufs.sh/f/mJwI0W8NBfTnmI55Kb8NBfTn68UzcGl7jKdovRxmIyCpLMVq",
+        weightGrams: 699,
+        widthMm: "138.4",
+        heightMm: "98.4",
+        depthMm: "88.4",
+        linkManufacturer: "https://www.usa.canon.com/shop/p/eos-r6-mark-iii",
+        linkMpb: null,
+        linkAmazon: null,
+        genres: ["weddings", "video", "events"],
+        notes: [
+          "LP-E6N and LP-E6NH batteries are supported but with performance limitations.",
+        ],
+      },
+      specs: {
+        sensorFormatId: context.sensorFormatsBySlug.get("full-frame")?.id,
+        resolutionMp: "24.2",
+        isoMin: 100,
+        isoMax: 102400,
+        maxFpsRaw: "12",
+        maxFpsJpg: "40",
+        hasIbis: true,
+        hasLogColorProfile: true,
+        cameraType: "mirrorless",
+        hasRearTouchscreen: true,
+        rearDisplayType: "fully_articulated",
+        usbCharging: true,
+        hasWeatherSealing: true,
+        availableShutterTypes: ["mechanical", "electronic"],
+      },
+    },
+    {
+      key: "nikon-zr",
+      brandSlug: "nikon",
+      mountValue: "z-nikon",
+      data: {
+        id: "0dbea6f8-d5f3-4cc2-9f8b-a638f0bc11f1",
+        slug: "nikon-zr",
+        name: "Nikon Zr",
+        searchName: "nikon zr",
+        gearType: "CAMERA",
+        announcedDate: new Date("2025-09-10T00:00:00.000Z"),
+        releaseDate: new Date("2025-10-03T00:00:00.000Z"),
+        announceDatePrecision: "DAY",
+        releaseDatePrecision: "DAY",
+        msrpNowUsdCents: 219995,
+        msrpAtLaunchUsdCents: 219995,
+        thumbnailUrl:
+          "https://8v5lpkd4bi.ufs.sh/f/mJwI0W8NBfTniGQCYXd0sEY4jOWCMLxAhc2V3foDgvXF9SKp",
+        weightGrams: 630,
+        widthMm: "133",
+        heightMm: "80.5",
+        depthMm: "48.7",
+        linkManufacturer: "https://www.nikonusa.com/p/zr/2006/overview",
+        linkMpb: "https://www.mpb.com/en-us/product/nikon-zr",
+        linkAmazon: null,
+        genres: ["video", "travel", "weddings"],
+        notes: [
+          "9.4ms sensor readout speed in 6k25 video recording, 6.3ms in 4k120 (Source: Cined)",
+          "5.4k video replaces 6k video for less-than-raw codecs",
+        ],
+      },
+      specs: {
+        sensorFormatId: context.sensorFormatsBySlug.get("full-frame")?.id,
+        resolutionMp: "30.3",
+        isoMin: 64,
+        isoMax: 204800,
+        maxFpsRaw: "15",
+        maxFpsJpg: "60",
+        hasIbis: true,
+        hasLogColorProfile: true,
+        has10BitVideo: true,
+        cameraType: "mirrorless",
+        hasRearTouchscreen: true,
+        rearDisplayType: "dual_axis_tilt",
+        usbCharging: true,
+        hasWeatherSealing: true,
+        availableShutterTypes: ["mechanical", "electronic"],
+      },
+    },
+  ];
+
+  for (const fixture of fixtures) {
+    const brand = context.brandBySlug.get(fixture.brandSlug);
+    if (!brand) {
+      log(`Skipping ${fixture.key}; brand ${fixture.brandSlug} missing.`);
+      continue;
+    }
+    const mount = context.mountsByValue.get(fixture.mountValue);
+    if (!mount) {
+      log(`Skipping ${fixture.key}; mount ${fixture.mountValue} missing.`);
+      continue;
+    }
+
+    const gearInput: typeof gear.$inferInsert = {
+      ...fixture.data,
+      brandId: brand.id,
+      mountId: mount.id,
+    };
+
+    const { record: gearRow, mutated } = await upsertGearRow(
+      gearInput,
+      options.allowGearOverwrite ?? false,
+    );
+
+    if (!mutated) {
+      log(
+        `Fixture ${fixture.key} already present; rerun with --allow-gear-overwrite to refresh.`,
+      );
+      continue;
+    }
+
+    // Ensure mount relationship
+    await db
+      .insert(gearMounts)
+      .values({ gearId: gearRow.id, mountId: mount.id })
+      .onConflictDoNothing({ target: [gearMounts.gearId, gearMounts.mountId] });
+
+    // Ensure genre relationships
+    const genreSlugs = fixture.data.genres ?? [];
+    if (genreSlugs.length) {
+      const rows = genreSlugs
+        .map((slug) => context.genresBySlug.get(slug))
+        .filter((g): g is GenreRow => Boolean(g))
+        .map((genre) => ({ gearId: gearRow.id, genreId: genre.id }));
+      if (rows.length) {
+        await db
+          .insert(gearGenres)
+          .values(rows)
+          .onConflictDoNothing({
+            target: [gearGenres.gearId, gearGenres.genreId],
+          });
+      }
+    }
+
+    if (fixture.specs) {
+      await db
+        .insert(cameraSpecs)
+        .values({
+          gearId: gearRow.id,
+          ...fixture.specs,
+        })
+        .onConflictDoNothing({ target: cameraSpecs.gearId });
+    }
+
+    log(`Seeded fixture ${fixture.key}`, { gearId: gearRow.id });
+  }
+
+  const lensFixtures: LensFixture[] = [
+    {
+      key: "nikon-af-s-dx-35mm-f18",
+      brandSlug: "nikon",
+      mountValue: "f-nikon",
+      data: {
+        id: "1b98e69a-8ea3-496a-882f-b39b2563058a",
+        slug: "nikon-af-s-dx-nikkor-35mm-f-1-8g",
+        name: "Nikon AF-S DX NIKKOR 35mm f/1.8G",
+        searchName: "nikon af-s dx nikkor 35mm f/1.8g",
+        gearType: "LENS",
+        announcedDate: new Date("2009-02-01T00:00:00.000Z"),
+        announceDatePrecision: "MONTH",
+        releaseDate: null,
+        releaseDatePrecision: "DAY",
+        msrpNowUsdCents: 24995,
+        msrpAtLaunchUsdCents: null,
+        thumbnailUrl:
+          "https://8v5lpkd4bi.ufs.sh/f/mJwI0W8NBfTn689D2vFpyoO0kbELQneSjX5xBv3H7sKI6quh",
+        weightGrams: 200,
+        widthMm: "70",
+        heightMm: "70",
+        depthMm: "52.5",
+        linkManufacturer:
+          "https://www.nikonusa.com/p/af-s-dx-nikkor-35mm-f18g/2183/overview",
+        linkMpb:
+          "https://www.mpb.com/en-us/product/nikon-af-s-dx-nikkor-35mm-f-1-8g",
+        linkAmazon: null,
+        genres: ["street", "video", "events"],
+        notes: [],
+      },
+      lensSpecs: {
+        isPrime: true,
+        focalLengthMinMm: 35,
+        focalLengthMaxMm: 35,
+        maxApertureWide: "1.8",
+        minApertureWide: "16",
+        hasAutofocus: true,
+        hasStabilization: false,
+        frontFilterThreadSizeMm: 52,
+      },
+    },
+    {
+      key: "nikon-af-s-50mm-f18",
+      brandSlug: "nikon",
+      mountValue: "f-nikon",
+      data: {
+        id: "571e9a3f-8ca0-472c-b9b4-8c43acbef4a9",
+        slug: "nikon-af-s-nikkor-50mm-f-1-8g",
+        name: "Nikon AF-S NIKKOR 50mm f/1.8G",
+        searchName: "nikon af-s nikkor 50mm f/1.8g",
+        gearType: "LENS",
+        announcedDate: null,
+        releaseDate: null,
+        announceDatePrecision: "DAY",
+        releaseDatePrecision: "DAY",
+        msrpNowUsdCents: 26995,
+        thumbnailUrl:
+          "https://8v5lpkd4bi.ufs.sh/f/mJwI0W8NBfTn8umDG3oIBeFGP6HCUDoAXSKYlv9mWg7bOu2J",
+        weightGrams: 185,
+        widthMm: "72.1",
+        heightMm: "72.1",
+        depthMm: "52.4",
+        linkManufacturer:
+          "https://www.nikonusa.com/p/af-s-nikkor-50mm-f18g/2199/overview",
+        linkMpb:
+          "https://www.mpb.com/en-us/product/nikon-af-s-nikkor-50mm-f-1-8g",
+        linkAmazon: null,
+        genres: ["street", "portraits"],
+        notes: [],
+      },
+      lensSpecs: {
+        isPrime: true,
+        focalLengthMinMm: 50,
+        focalLengthMaxMm: 50,
+        maxApertureWide: "1.8",
+        minApertureWide: "16",
+        hasAutofocus: true,
+        hasStabilization: false,
+        frontFilterThreadSizeMm: 58,
+      },
+    },
+  ];
+
+  for (const fixture of lensFixtures) {
+    const brand = context.brandBySlug.get(fixture.brandSlug);
+    if (!brand) continue;
+    const mount = context.mountsByValue.get(fixture.mountValue);
+    if (!mount) continue;
+
+    const gearInput: typeof gear.$inferInsert = {
+      ...fixture.data,
+      brandId: brand.id,
+      mountId: mount.id,
+    };
+
+    const { record: gearRow, mutated } = await upsertGearRow(
+      gearInput,
+      options.allowGearOverwrite ?? false,
+    );
+
+    if (!mutated) {
+      log(
+        `Fixture ${fixture.key} already present; rerun with --allow-gear-overwrite to refresh.`,
+      );
+      continue;
+    }
+
+    await db
+      .insert(gearMounts)
+      .values({ gearId: gearRow.id, mountId: mount.id })
+      .onConflictDoNothing({ target: [gearMounts.gearId, gearMounts.mountId] });
+
+    const genreSlugs = fixture.data.genres ?? [];
+    if (genreSlugs.length) {
+      const rows = genreSlugs
+        .map((slug) => context.genresBySlug.get(slug))
+        .filter((g): g is GenreRow => Boolean(g))
+        .map((genre) => ({ gearId: gearRow.id, genreId: genre.id }));
+      if (rows.length) {
+        await db
+          .insert(gearGenres)
+          .values(rows)
+          .onConflictDoNothing({
+            target: [gearGenres.gearId, gearGenres.genreId],
+          });
+      }
+    }
+
+    if (fixture.lensSpecs) {
+      await db
+        .insert(lensSpecs)
+        .values({
+          gearId: gearRow.id,
+          ...fixture.lensSpecs,
+        })
+        .onConflictDoNothing({ target: lensSpecs.gearId });
+    }
+
+    log(`Seeded lens fixture ${fixture.key}`, { gearId: gearRow.id });
+  }
+}
+
+async function upsertGearRow(
+  values: typeof gear.$inferInsert,
+  allowOverwrite: boolean,
+): Promise<{ record: typeof gear.$inferSelect; mutated: boolean }> {
+  const existing = await db
+    .select()
+    .from(gear)
+    .where(eq(gear.slug, values.slug))
+    .limit(1);
+  if (existing[0]) {
+    if (!allowOverwrite) {
+      return { record: existing[0]!, mutated: false };
+    }
+    const [updated] = await db
+      .update(gear)
+      .set({ ...values })
+      .where(eq(gear.id, existing[0]!.id))
+      .returning();
+    return { record: updated ?? { ...existing[0]!, ...values }, mutated: true };
+  }
+  const insertQuery = db
+    .insert(gear)
+    .values(values)
+    .onConflictDoNothing({ target: gear.slug })
+    .returning();
+  const [inserted] = await insertQuery;
+  if (inserted) {
+    return { record: inserted, mutated: true };
+  }
+  const [fetched] = await db
+    .select()
+    .from(gear)
+    .where(eq(gear.slug, values.slug))
+    .limit(1);
+  return { record: fetched!, mutated: false };
+}
+
+async function seedEditorialData(gearId: string, context: SeedContext) {
+  const ratingSeeds = [
+    {
+      genre: "sports",
+      score: 9,
+      note: "Excellent AF tracking and 20 fps RAW bursts make it a reliable sideline camera.",
+    },
+    {
+      genre: "wildlife",
+      score: 9,
+      note: "Silent shooting, subject recognition, and long battery life keep up with wildlife trips.",
+    },
+    {
+      genre: "landscape",
+      score: 8,
+      note: "Great dynamic range and pixel-shift composites provide flexible landscape output.",
+    },
+    {
+      genre: "portraits",
+      score: 7,
+      note: "Color science is pleasing though single card slot limits redundancy.",
+    },
+  ];
+
+  await db.delete(useCaseRatings).where(eq(useCaseRatings.gearId, gearId));
+  const ratingRows = ratingSeeds
+    .map((seed) => {
+      const genreRow = context.genresBySlug.get(seed.genre);
+      if (!genreRow) {
+        log("missing genre for use-case rating; skipping", {
+          slug: seed.genre,
+        });
+        return null;
+      }
+      return {
+        gearId,
+        genreId: genreRow.id,
+        score: seed.score,
+        note: seed.note,
+      };
+    })
+    .filter(
+      (
+        row,
+      ): row is {
+        gearId: string;
+        genreId: string;
+        score: number;
+        note: string;
+      } => Boolean(row),
+    );
+  if (ratingRows.length) {
+    await db.insert(useCaseRatings).values(ratingRows);
+  }
+
+  const verdictContent = {
+    content: `The Nikon Z6 III represents a major leap for Nikon's mid-range mirrorless line. Its stacked 24.5MP sensor delivers clean files, fast readout speeds, and excellent autofocus coverage that rivals flagship bodies.
+
+With subject detection improvements, dual CFexpress/SD card slots, and 6K oversampled video, it is a true hybrid camera that can move from photo to video work without compromise.`,
+    pros: [
+      "20 fps RAW and 60 fps JPEG capture modes",
+      "Reliable subject detection across people, vehicles, and wildlife",
+      "Robust weather sealing and deep grip",
+      "Internal 10-bit N-Log and HLG video profiles",
+      "Pixel-shift for 60MP composites",
+    ],
+    cons: [
+      "Buffer clears slower when using SD slot only",
+      "No fully articulating display (dual-axis tilt only)",
+      "Menu system still dense for newcomers",
+    ],
+    whoFor:
+      "Photographers who split time between action, wildlife, and documentary projects while needing strong video tools.",
+    notFor:
+      "Users who demand 8K video workflows or prefer the simplicity of a single exposure mode dial.",
+    alternatives: [
+      "Sony A7 IV – more mature lens ecosystem and 4K60 across the lineup",
+      "Canon R6 Mark II – faster burst with a deeper buffer for sports",
+      "Nikon Z7 II – higher resolution for landscape-first shooters",
+    ],
+  };
+
+  await db
+    .insert(staffVerdicts)
+    .values({
+      gearId,
+      content: verdictContent.content,
+      pros: verdictContent.pros,
+      cons: verdictContent.cons,
+      whoFor: verdictContent.whoFor,
+      notFor: verdictContent.notFor,
+      alternatives: verdictContent.alternatives,
+    })
+    .onConflictDoUpdate({
+      target: staffVerdicts.gearId,
+      set: {
+        content: verdictContent.content,
+        pros: verdictContent.pros,
+        cons: verdictContent.cons,
+        whoFor: verdictContent.whoFor,
+        notFor: verdictContent.notFor,
+        alternatives: verdictContent.alternatives,
+        updatedAt: new Date(),
+      },
+    });
+}
+
+async function seedReviewsAndSummary(gearId: string, gearName: string) {
+  const reviewSeeds: ReviewSeed[] = [
+    {
+      user: {
+        name: "Sharply Seed Reviewer",
+        email: "seed.reviewer+1@sharply.dev",
+      },
+      review: {
+        content:
+          "I took the Z6 III to Yellowstone for a week and the combo of subject tracking plus the lightweight Z 400/4.5 made wildlife work effortless. The new tilt screen is handy for low angles, and high ISO files are clean through 12800.",
+        recommend: true,
+        genres: ["wildlife", "travel"],
+      },
+    },
+    {
+      user: {
+        name: "Sharply Hybrid Shooter",
+        email: "seed.reviewer+2@sharply.dev",
+      },
+      review: {
+        content:
+          "As a wedding + doc shooter I appreciate the internal 10-bit profiles and ability to switch between 6K oversampled and 4K60. Buffer slows a bit in RAW bursts when you rely on SD cards, but overall it feels like a mini Z8.",
+        recommend: true,
+        genres: ["weddings", "video"],
+      },
+    },
+  ];
+
+  for (const seed of reviewSeeds) {
+    const user = await ensureUser(seed.user);
+    await db
+      .delete(reviews)
+      .where(and(eq(reviews.gearId, gearId), eq(reviews.createdById, user.id)));
+
+    await db.insert(reviews).values({
+      gearId,
+      createdById: user.id,
+      status: "APPROVED",
+      content: seed.review.content,
+      recommend: seed.review.recommend,
+      genres: seed.review.genres ?? null,
+    });
+  }
+
+  const summaryText = `Across the first wave of field reports, Nikon's Z6 III earns praise for dependable autofocus, strong low-light files, and hybrid-friendly video specs. Reviewers highlight its 20 fps RAW bursts, subject tracking that keeps up with erratic wildlife, and 6K oversampled video with internal 10-bit recording. The dual card slots (CFexpress Type B + SD) provide flexibility, though the buffer slows when limited to SD media. Overall it balances speed, image quality, and ergonomics in a body that travels lighter than the Z8.`;
+
+  await db
+    .insert(reviewSummaries)
+    .values({
+      gearId,
+      summaryText,
+    })
+    .onConflictDoUpdate({
+      target: reviewSummaries.gearId,
+      set: { summaryText, updatedAt: new Date() },
+    });
+}
+
+async function ensureUser(userSeed: ReviewSeed["user"]) {
+  const existing = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, userSeed.email))
+    .limit(1);
+  if (existing[0]) {
+    if (existing[0]!.name !== userSeed.name) {
+      const [updated] = await db
+        .update(users)
+        .set({ name: userSeed.name })
+        .where(eq(users.id, existing[0]!.id))
+        .returning();
+      return updated ?? existing[0]!;
+    }
+    return existing[0]!;
+  }
+  const [inserted] = await db
+    .insert(users)
+    .values({
+      name: userSeed.name,
+      email: userSeed.email,
+      role: "EDITOR",
+    })
+    .returning();
+  return inserted!;
+}
+
+main().catch((error) => {
+  console.error("[seed] failed", error);
   process.exit(1);
 });

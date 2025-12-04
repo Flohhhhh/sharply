@@ -25,9 +25,13 @@ export const env = createEnv({
         ? z.string().url()
         : z.string().url().optional(),
     OPENAI_API_KEY: z.string(),
+    PAYLOAD_SECRET: z.string(),
+    RESEND_API_KEY: z.string(),
+    RESEND_EMAIL_FROM: z.string().email(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
+    UPLOADTHING_TOKEN: z.string(),
   },
 
   /**
@@ -37,6 +41,7 @@ export const env = createEnv({
    */
   client: {
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
+    NEXT_PUBLIC_BASE_URL: z.string().url(),
   },
 
   /**
@@ -54,6 +59,11 @@ export const env = createEnv({
     DISCORD_ROLLUP_WEBHOOK_URL: process.env.DISCORD_ROLLUP_WEBHOOK_URL,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     NODE_ENV: process.env.NODE_ENV,
+    PAYLOAD_SECRET: process.env.PAYLOAD_SECRET,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+    RESEND_EMAIL_FROM: process.env.RESEND_EMAIL_FROM,
+    UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN,
+    NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

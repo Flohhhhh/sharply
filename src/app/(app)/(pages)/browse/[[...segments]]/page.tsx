@@ -128,7 +128,10 @@ export default async function BrowseCatchAll({
                   ? `Released ${new Date(g.releaseDate).getFullYear()}`
                   : null
               }
-              priceText={getItemDisplayPrice(g, { style: "short" })}
+              priceText={getItemDisplayPrice(g, {
+                style: "short",
+                padWholeAmounts: true,
+              })}
             />
           ))}
         </div>
@@ -172,7 +175,10 @@ export default async function BrowseCatchAll({
                 ? `Released ${new Date(g.releaseDate).getFullYear()}`
                 : null
             }
-            priceText={getItemDisplayPrice(g, { style: "short" })}
+            priceText={getItemDisplayPrice(g, {
+              style: "short",
+              padWholeAmounts: true,
+            })}
           />
         ))}
       </div>

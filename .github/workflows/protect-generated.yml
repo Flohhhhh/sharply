@@ -1,0 +1,42 @@
+name: Protect generated constants
+
+on:
+  pull_request:
+    branches:
+      - development
+
+jobs:
+  protect-generated-file:
+    # Skip this job when the PR actor is a trusted maintainer
+    if: |
+      github.actor != 'Flohhhhh'
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changes in generated.ts
+        run: |
+          # Compare the PR branch against the base branch
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }} ${{ github.sha }} || true)
+
+          echo "Changed files:"
+          echo "$CHANGED"
+
+          if echo "$CHANGED" | grep -q "^src/generated.ts$"; then
+            echo "❌ src/generated.ts has been modified in this PR."
+            echo ""
+            echo "This file is generated automatically from the canonical (production) database."
+            echo "It should not be edited or regenerated locally."
+            echo ""
+            echo "You most likely ran a local generate-constants script or a build process"
+            echo "that overwrote this file using your local development database."
+            echo ""
+            echo "➡️  To fix:"
+            echo "   - Revert src/generated.ts to the version in the repository."
+            echo "   - Do not commit locally generated changes."
+            exit 1
+          fi
