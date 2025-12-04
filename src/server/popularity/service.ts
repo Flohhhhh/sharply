@@ -111,6 +111,19 @@ export async function fetchTopComparePairs(limit = 20) {
   return fetchTopComparePairsData(limit);
 }
 
+export async function fetchLiveBoosts(params?: {
+  limit?: number;
+  filters?: TrendingFiltersInput;
+  offset?: number;
+}) {
+  const limit = params?.limit ?? 50;
+  const filters = params?.filters ?? {};
+  const offset = params?.offset ?? 0;
+  const snapshot = await getLiveTrendingSnapshot(limit, filters, offset);
+  // Only show items with a positive live score
+  return snapshot.items.filter((i) => (i.liveScore ?? 0) > 0);
+}
+
 export async function fetchTrending(params: {
   timeframe?: "7d" | "30d";
   limit?: number;

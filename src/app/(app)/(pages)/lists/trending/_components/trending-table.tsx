@@ -379,11 +379,6 @@ function TrendingRow({
           )}
           <div className="min-w-0">
             <p className="text-foreground truncate font-medium">{row.name}</p>
-            {liveDelta > 0 ? (
-              <span className="text-xs font-semibold text-amber-600 dark:text-amber-300">
-                +{liveDeltaFormatter.format(liveDelta)} live today
-              </span>
-            ) : null}
           </div>
         </Link>
       </TableCell>

@@ -23,14 +23,6 @@ export default async function GearBadges({ slug }: { slug: string }) {
       icon: <Flame className="h-3.5 w-3.5" />,
       variant: "default",
     });
-    if (match.liveBoost && match.liveBoost > 0) {
-      badges.push({
-        key: "live-today",
-        label: `+${match.liveBoost.toFixed(1)} live today`,
-        icon: <Flame className="h-3.5 w-3.5 text-orange-500" />,
-        variant: "secondary",
-      });
-    }
   }
 
   if (badges.length === 0) return null;

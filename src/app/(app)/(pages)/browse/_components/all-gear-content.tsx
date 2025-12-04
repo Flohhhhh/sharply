@@ -123,12 +123,7 @@ export default async function AllGearContent({
               name={g.name}
               brandName={g.brandName}
               gearType={g.gearType}
-              topLeftLabel={g.liveOnly ? "Live spike" : null}
-              metaRight={
-                g.liveBoost && g.liveBoost > 0
-                  ? `+${liveFormatter.format(g.liveBoost)} live`
-                  : undefined
-              }
+              topLeftLabel={null}
               priceText={getItemDisplayPrice(g, {
                 style: "short",
                 padWholeAmounts: true,

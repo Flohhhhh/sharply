@@ -101,11 +101,6 @@ export default async function TrendingList({
                   </span>
                 </div>
                 <div className="ml-auto flex items-center gap-2">
-                  {item.liveBoost && item.liveBoost > 0 ? (
-                    <span className="bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200 rounded-full px-2 py-0.5 text-xs font-semibold">
-                      +{numberFormatter.format(item.liveBoost)} live
-                    </span>
-                  ) : null}
                   {[0, 1, 2].map((n) => (
                     <Flame
                       key={n}
