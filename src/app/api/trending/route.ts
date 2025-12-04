@@ -43,6 +43,11 @@ export async function GET(request: NextRequest) {
   const gearType =
     gearTypeParam && isGearType(gearTypeParam) ? gearTypeParam : undefined;
 
+  const liveOverlayParam = searchParams.get("liveOverlay");
+  const includeLiveOverlay =
+    liveOverlayParam === "1" ||
+    liveOverlayParam?.toLowerCase() === "true";
+
   const data = await fetchTrendingPage({
     timeframe,
     page: Math.floor(pageParam),
@@ -50,6 +55,7 @@ export async function GET(request: NextRequest) {
     filters: {
       gearType,
     },
+    includeLiveOverlay,
   });
 
   return NextResponse.json(data, {

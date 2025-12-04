@@ -5,7 +5,7 @@ import { Button } from "~/components/ui/button";
 import { BRANDS } from "~/lib/constants";
 import { OtherBrandsSelect } from "./other-brands-select";
 import { getLatestGear } from "~/server/gear/browse/data";
-import { fetchTrending } from "~/server/popularity/service";
+import { fetchTrendingWithLive } from "~/server/popularity/service";
 import { getItemDisplayPrice } from "~/lib/mapping";
 
 export default async function AllGearContent({
@@ -25,10 +25,14 @@ export default async function AllGearContent({
   const brand = brandSlug
     ? BRANDS.find((b) => b.slug === brandSlug)
     : undefined;
-  const trendingGear = await fetchTrending({
+  const trendingResult = await fetchTrendingWithLive({
     timeframe: "7d",
     limit: 3,
     filters: brand ? { brandId: brand.id } : undefined,
+  });
+  const liveFormatter = new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 0,
   });
   return (
     <main className="space-y-6">
@@ -111,7 +115,7 @@ export default async function AllGearContent({
           </Button>
         </div>
         <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {trendingGear.map((g) => (
+          {trendingResult.items.map((g) => (
             <GearCard
               key={g.slug}
               href={`/gear/${g.slug}`}
@@ -119,6 +123,12 @@ export default async function AllGearContent({
               name={g.name}
               brandName={g.brandName}
               gearType={g.gearType}
+              topLeftLabel={g.liveOnly ? "Live spike" : null}
+              metaRight={
+                g.liveScore && g.liveScore > 0
+                  ? `+${liveFormatter.format(g.liveScore)} live`
+                  : undefined
+              }
               priceText={getItemDisplayPrice(g, {
                 style: "short",
                 padWholeAmounts: true,

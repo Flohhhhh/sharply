@@ -1080,6 +1080,31 @@ export const popularityEvents = appSchema.table(
   ],
 );
 
+// Live intraday counters (UTC date scoped, reset nightly by rollup)
+export const gearPopularityIntraday = appSchema.table(
+  "gear_popularity_intraday",
+  (d) => ({
+    date: dateCol("date").notNull(),
+    gearId: d
+      .varchar("gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    views: integer("views").notNull().default(0),
+    wishlistAdds: integer("wishlist_adds").notNull().default(0),
+    ownerAdds: integer("owner_adds").notNull().default(0),
+    compareAdds: integer("compare_adds").notNull().default(0),
+    reviewSubmits: integer("review_submits").notNull().default(0),
+    apiFetches: integer("api_fetches").notNull().default(0),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    primaryKey({ columns: [t.date, t.gearId] }),
+    index("gpi_gear_idx").on(t.gearId),
+    index("gpi_date_idx").on(t.date),
+  ],
+);
+
 // --- Popularity Rollup Tables ---
 export const gearPopularityDaily = appSchema.table(
   "gear_popularity_daily",

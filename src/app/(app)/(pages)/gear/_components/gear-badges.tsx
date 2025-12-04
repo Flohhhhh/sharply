@@ -1,6 +1,6 @@
 import { Badge } from "~/components/ui/badge";
 import { Flame } from "lucide-react";
-import { fetchTrending } from "~/server/popularity/service";
+import { fetchTrendingWithLive } from "~/server/popularity/service";
 
 export default async function GearBadges({ slug }: { slug: string }) {
   const badges: {
@@ -11,15 +11,27 @@ export default async function GearBadges({ slug }: { slug: string }) {
   }[] = [];
 
   // Live badge: Trending (30d) — check if slug appears in top N
-  const trendingItems = await fetchTrending({ timeframe: "30d", limit: 50 });
-  const trending = trendingItems.some((i) => i.slug === slug);
-  if (trending)
+  const trendingResult = await fetchTrendingWithLive({
+    timeframe: "30d",
+    limit: 25,
+  });
+  const match = trendingResult.items.find((i) => i.slug === slug);
+  if (match) {
     badges.push({
       key: "trending",
       label: "Trending",
       icon: <Flame className="h-3.5 w-3.5" />,
       variant: "default",
     });
+    if (match.liveScore && match.liveScore > 0) {
+      badges.push({
+        key: "live-today",
+        label: `+${match.liveScore.toFixed(1)} live today`,
+        icon: <Flame className="h-3.5 w-3.5 text-orange-500" />,
+        variant: "secondary",
+      });
+    }
+  }
 
   if (badges.length === 0) return null;
 

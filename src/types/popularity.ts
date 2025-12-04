@@ -34,4 +34,21 @@ export type TrendingPageResult = {
   perPage: number;
   timeframe: "7d" | "30d";
   filters: TrendingFiltersInput;
+  liveOverlay?: LiveTrendingOverlay | null;
+};
+
+export type LiveTrendingOverlayItem = Omit<TrendingEntry, "score"> & {
+  liveScoreDelta: number;
+};
+
+export type LiveTrendingOverlay = {
+  generatedAt: string;
+  items: LiveTrendingOverlayItem[];
+};
+
+export type TrendingEntryWithLive = TrendingEntry & {
+  combinedScore: number;
+  liveScore: number;
+  liveStats?: TrendingEntry["stats"];
+  liveOnly?: boolean;
 };

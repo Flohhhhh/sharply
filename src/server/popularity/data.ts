@@ -10,6 +10,7 @@ import {
   gearPopularityLifetime,
   popularityEvents,
   comparePairCounts,
+  gearPopularityIntraday,
 } from "~/server/db/schema";
 import { and, desc, eq, gte, lt, sql, inArray, type SQL } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
@@ -17,6 +18,7 @@ import type { PopularityEventType } from "~/server/validation/dedupe";
 import type {
   TrendingEntry,
   TrendingFiltersInput,
+  LiveTrendingOverlay,
 } from "~/types/popularity";
 
 /**
@@ -126,7 +128,7 @@ export async function getTrendingData(
         .offset(Math.max(0, offset));
 
       // Map to a render-ready shape
-      const items: TrendingEntry[] = rows.map((r) => ({
+      const items: LiveTrendingOverlay["items"] = rows.map((r) => ({
         gearId: r.gearId,
         slug: r.slug,
         name: r.name,
@@ -151,6 +153,99 @@ export async function getTrendingData(
     },
     key,
     { revalidate: 60 * 60 * 12, tags: ["trending"] },
+  );
+
+  return run();
+}
+
+export async function getLiveTrendingOverlay(
+  limit: number,
+  filters: TrendingFiltersInput = {},
+  offset = 0,
+): Promise<LiveTrendingOverlay> {
+  const key = [
+    "pop-trending-live",
+    String(limit),
+    filters.brandId ?? "-",
+    filters.mountId ?? "-",
+    filters.gearType ?? "-",
+    String(offset ?? 0),
+  ];
+
+  const run = unstable_cache(
+    async () => {
+      const scoreFormula = sql<number>`(
+        ${gearPopularityIntraday.views} * 0.1 +
+        ${gearPopularityIntraday.wishlistAdds} * 2 +
+        ${gearPopularityIntraday.ownerAdds} * 3 +
+        ${gearPopularityIntraday.compareAdds} * 1.5 +
+        ${gearPopularityIntraday.reviewSubmits} * 2.5
+      )`;
+
+      const conditions: SQL[] = [sql`${gearPopularityIntraday.date} = CURRENT_DATE`];
+      if (filters.brandId) conditions.push(eq(gear.brandId, filters.brandId));
+      if (filters.gearType)
+        conditions.push(eq(gear.gearType, filters.gearType));
+
+      const rows = await db
+        .select({
+          gearId: gearPopularityIntraday.gearId,
+          score: scoreFormula.as("score"),
+          views: gearPopularityIntraday.views,
+          wishlistAdds: gearPopularityIntraday.wishlistAdds,
+          ownerAdds: gearPopularityIntraday.ownerAdds,
+          compareAdds: gearPopularityIntraday.compareAdds,
+          reviewSubmits: gearPopularityIntraday.reviewSubmits,
+          asOfDate: gearPopularityIntraday.date,
+          slug: gear.slug,
+          name: gear.name,
+          gearType: gear.gearType,
+          brandName: brands.name,
+          msrpNowUsdCents: gear.msrpNowUsdCents,
+          mpbMaxPriceUsdCents: gear.mpbMaxPriceUsdCents,
+          thumbnailUrl: gear.thumbnailUrl,
+          lifetimeViews: gearPopularityLifetime.viewsLifetime,
+        })
+        .from(gearPopularityIntraday)
+        .innerJoin(gear, eq(gearPopularityIntraday.gearId, gear.id))
+        .innerJoin(brands, eq(gear.brandId, brands.id))
+        .leftJoin(
+          gearPopularityLifetime,
+          eq(gearPopularityLifetime.gearId, gear.id),
+        )
+        .where(and(...conditions))
+        .orderBy(desc(scoreFormula))
+        .limit(limit)
+        .offset(Math.max(0, offset));
+
+      const items: TrendingEntry[] = rows.map((r) => ({
+        gearId: r.gearId,
+        slug: r.slug,
+        name: r.name,
+        brandName: r.brandName,
+        gearType: r.gearType,
+        thumbnailUrl: r.thumbnailUrl ?? null,
+        msrpNowUsdCents: r.msrpNowUsdCents,
+        mpbMaxPriceUsdCents: r.mpbMaxPriceUsdCents,
+        lifetimeViews: Number(r.lifetimeViews ?? 0),
+        stats: {
+          views: Number(r.views),
+          wishlistAdds: Number(r.wishlistAdds),
+          ownerAdds: Number(r.ownerAdds),
+          compareAdds: Number(r.compareAdds),
+          reviewSubmits: Number(r.reviewSubmits),
+        },
+        asOfDate: String(r.asOfDate),
+        liveScoreDelta: Number(r.score),
+      }));
+
+      return {
+        generatedAt: new Date().toISOString(),
+        items,
+      };
+    },
+    key,
+    { revalidate: 60 * 2, tags: ["trending-live"] },
   );
 
   return run();
@@ -309,6 +404,80 @@ export async function getGearStats(slug: string) {
   return run();
 }
 
+type GearPopularityIntradayInsert = typeof gearPopularityIntraday.$inferInsert;
+
+const intradayColumnConfig: Record<
+  PopularityEventType,
+  | {
+      key: keyof GearPopularityIntradayInsert;
+      column:
+        | typeof gearPopularityIntraday.views
+        | typeof gearPopularityIntraday.wishlistAdds
+        | typeof gearPopularityIntraday.ownerAdds
+        | typeof gearPopularityIntraday.compareAdds
+        | typeof gearPopularityIntraday.reviewSubmits
+        | typeof gearPopularityIntraday.apiFetches;
+    }
+  | null
+> = {
+  view: { key: "views", column: gearPopularityIntraday.views },
+  wishlist_add: {
+    key: "wishlistAdds",
+    column: gearPopularityIntraday.wishlistAdds,
+  },
+  owner_add: { key: "ownerAdds", column: gearPopularityIntraday.ownerAdds },
+  compare_add: {
+    key: "compareAdds",
+    column: gearPopularityIntraday.compareAdds,
+  },
+  review_submit: {
+    key: "reviewSubmits",
+    column: gearPopularityIntraday.reviewSubmits,
+  },
+  api_fetch: {
+    key: "apiFetches",
+    column: gearPopularityIntraday.apiFetches,
+  },
+};
+
+export async function incrementGearPopularityIntraday(params: {
+  gearId: string;
+  eventType: PopularityEventType;
+  count?: number;
+}) {
+  const config = intradayColumnConfig[params.eventType];
+  if (!config) return;
+
+  const incrementBy = params.count ?? 1;
+  if (incrementBy <= 0) return;
+
+  const values: Partial<GearPopularityIntradayInsert> = {
+    date: sql`CURRENT_DATE`,
+    gearId: params.gearId,
+  };
+  (values as Record<string, unknown>)[config.key as string] = incrementBy;
+
+  const setPayload: Partial<GearPopularityIntradayInsert> &
+    Record<string, unknown> = {
+    updatedAt: sql`now()`,
+  };
+  setPayload[config.key as string] = sql`${config.column} + ${incrementBy}`;
+
+  await db
+    .insert(gearPopularityIntraday)
+    .values(values as GearPopularityIntradayInsert)
+    .onConflictDoUpdate({
+      target: [gearPopularityIntraday.date, gearPopularityIntraday.gearId],
+      set: setPayload,
+    });
+
+  console.info("live_popularity_increment", {
+    gearId: params.gearId,
+    eventType: params.eventType,
+    count: incrementBy,
+  });
+}
+
 /**
  * hasViewEventForIdentityToday
  *
@@ -389,6 +558,11 @@ export async function insertViewEvent(params: {
     visitorId: params.userId ? null : (params.visitorId ?? null),
     eventType: "view",
   });
+
+  await incrementGearPopularityIntraday({
+    gearId: params.gearId,
+    eventType: "view",
+  });
 }
 
 /**
@@ -465,6 +639,11 @@ export async function insertCompareAddEvent(params: {
     gearId: params.gearId,
     userId: params.userId ?? null,
     visitorId: params.userId ? null : (params.visitorId ?? null),
+    eventType: "compare_add",
+  });
+
+  await incrementGearPopularityIntraday({
+    gearId: params.gearId,
     eventType: "compare_add",
   });
 }

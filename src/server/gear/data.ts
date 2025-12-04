@@ -28,6 +28,7 @@ import {
   auditLogs,
 } from "~/server/db/schema";
 import { hasEventForUserOnUtcDay } from "~/server/validation/dedupe";
+import { incrementGearPopularityIntraday } from "~/server/popularity/data";
 import type { Gear, GearItem } from "~/types/gear";
 import { fetchVideoModesByGearId } from "~/server/video-modes/data";
 
@@ -655,6 +656,11 @@ export async function addToWishlist(gearId: string, userId: string) {
       userId,
       eventType: "wishlist_add",
     });
+
+    await incrementGearPopularityIntraday({
+      gearId,
+      eventType: "wishlist_add",
+    });
   }
   return { added: true, alreadyExists: false } as const;
 }
@@ -685,6 +691,11 @@ export async function addOwnership(gearId: string, userId: string) {
     await db.insert(popularityEvents).values({
       gearId,
       userId,
+      eventType: "owner_add",
+    });
+
+    await incrementGearPopularityIntraday({
+      gearId,
       eventType: "owner_add",
     });
   }
@@ -732,6 +743,11 @@ export async function createReview(params: {
   await db.insert(popularityEvents).values({
     gearId: params.gearId,
     userId: params.userId,
+    eventType: "review_submit",
+  });
+
+  await incrementGearPopularityIntraday({
+    gearId: params.gearId,
     eventType: "review_submit",
   });
 

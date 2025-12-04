@@ -8,15 +8,21 @@ import {
   insertViewEvent,
   getTrendingData,
   getTrendingTotalCount,
+  getLiveTrendingOverlay,
   hasEventForIdentityToday as hasEventForIdentityTodayGeneric,
   insertCompareAddEvent,
   incrementComparePairCountBySlugs,
   fetchTopComparePairs as fetchTopComparePairsData,
 } from "./data";
+import { mergeTrendingWithLiveOverlay } from "./live";
+export { mergeTrendingWithLiveOverlay } from "./live";
 import { auth } from "~/server/auth";
 import type {
   TrendingFiltersInput,
   TrendingPageResult,
+  TrendingEntry,
+  TrendingEntryWithLive,
+  LiveTrendingOverlay,
 } from "~/types/popularity";
 
 /**
@@ -120,11 +126,47 @@ export async function fetchTrending(params: {
   return getTrendingData(timeframe, limit, filters, offset);
 }
 
+export async function fetchTrendingWithLive(params: {
+  timeframe?: "7d" | "30d";
+  limit?: number;
+  filters?: TrendingFiltersInput;
+}) {
+  const timeframe = params.timeframe ?? "30d";
+  const limit = params.limit ?? 10;
+  const filters = params.filters ?? {};
+
+  const [baseline, liveOverlay] = await Promise.all([
+    getTrendingData(timeframe, limit, filters, 0),
+    getLiveTrendingOverlay(limit, filters, 0),
+  ]);
+
+  return {
+    items: mergeTrendingWithLiveOverlay({
+      baseline,
+      liveOverlay,
+      limit,
+    }),
+    liveOverlay,
+  };
+}
+
+export async function fetchLiveTrendingOverlay(params: {
+  limit?: number;
+  offset?: number;
+  filters?: TrendingFiltersInput;
+}) {
+  const limit = params.limit ?? 10;
+  const filters = params.filters ?? {};
+  const offset = params.offset ?? 0;
+  return getLiveTrendingOverlay(limit, filters, offset);
+}
+
 export async function fetchTrendingPage(params: {
   timeframe?: "7d" | "30d";
   page?: number;
   perPage?: number;
   filters?: TrendingFiltersInput;
+  includeLiveOverlay?: boolean;
 }): Promise<TrendingPageResult> {
   const timeframe = params.timeframe ?? "30d";
   const page = Math.max(1, params.page ?? 1);
@@ -132,9 +174,12 @@ export async function fetchTrendingPage(params: {
   const filters = params.filters ?? {};
   const offset = (page - 1) * perPage;
 
-  const [items, total] = await Promise.all([
+  const [items, total, liveOverlay] = await Promise.all([
     getTrendingData(timeframe, perPage, filters, offset),
     getTrendingTotalCount(timeframe, filters),
+    params.includeLiveOverlay
+      ? getLiveTrendingOverlay(perPage, filters, offset)
+      : Promise.resolve<LiveTrendingOverlay | null>(null),
   ]);
 
   return {
@@ -144,6 +189,7 @@ export async function fetchTrendingPage(params: {
     perPage,
     timeframe,
     filters,
+    liveOverlay,
   };
 }
 
