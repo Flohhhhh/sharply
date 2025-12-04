@@ -13,6 +13,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 async function generateConstants() {
+  // Skip constants generation if the environment variable is not set
+  // only production build and those with live database access should generate constants
+  if (process.env.GENERATE_CONSTANTS !== "true") {
+    console.log("Skipping constants generation...");
+    return;
+  }
+
   console.log("Generating constants from database...");
   // console.log(
   //   "Environment variables loaded:",

@@ -51,7 +51,7 @@ export default buildConfig({
   db: postgresAdapter({
     schemaName: "payload",
     pool: {
-      connectionString: process.env.DATABASE_URI || "",
+      connectionString: process.env.DATABASE_URL || "",
     },
   }),
   sharp,

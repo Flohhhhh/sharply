@@ -1,62 +1,60 @@
 # Constants Generation
 
-This system automatically generates TypeScript constants from database tables, providing type-safe access to static data without runtime database calls.
+The constants generator snapshots light-weight reference data (brands, mounts, sensor formats, genres, AF area modes, enums) into `src/lib/generated.ts`. The app then imports those arrays directly instead of hitting the database for values that rarely change.
 
 ## How It Works
 
-1. **Database Source**: Constants are pulled from tables like `mounts`, `sensorFormats`, and `brands`
-2. **Build-time Generation**: The `generate-constants` script runs during development/build
-3. **Type Safety**: Generated constants include full TypeScript types
-4. **Performance**: No runtime database queries for static data
+1. `scripts/generate-constants.ts` connects to the database specified by `DATABASE_URL`.
+2. The script **only runs** when `GENERATE_CONSTANTS=true` exists in the environment. Otherwise it logs `Skipping constants generation...` and returns without touching the DB or filesystem.
+3. On success it writes `src/lib/generated.ts`, exporting `MOUNTS`, `SENSOR_FORMATS`, `BRANDS`, `GENRES`, `AF_AREA_MODES`, and an `ENUMS` map plus the helper type `EnumValues`.
+4. `package.json` wires `npm run prebuild` to execute `npm run constants:generate`, so CI (Vercel, etc.) can regenerate before a build simply by setting `GENERATE_CONSTANTS=true`.
 
 ## Usage
 
-### Generate Constants
+### 1. Configure Environment
+
+> ⚠️ **Contributors generally do not need to run this script.** `src/lib/generated.ts` is checked into the repo and kept up to date by maintainers with access to the canonical database. Running the generator without live DB access will produce empty/default data and wipe your copy of the constants file. If you are new to the project, leave `GENERATE_CONSTANTS=false` (the default) and treat `generated.ts` as a read-only artifact.
+
+For maintainers who need to regenerate:
 
 ```bash
+export DATABASE_URL=postgres://postgres:postgres@localhost:5432/sharply-dev
+export GENERATE_CONSTANTS=true
 npm run constants:generate
 ```
 
-This will create:
+This creates/updates `src/lib/generated.ts`. Always review and commit the file so contributors inherit the latest snapshot.
 
-- `src/lib/constants/generated.ts` - Single file with all constants and types
+### 3. Import
 
-### Import Constants
+```ts
+import { MOUNTS, SENSOR_FORMATS, BRANDS, ENUMS } from "~/lib/generated";
 
-```typescript
-import { MOUNTS, SENSOR_FORMATS, BRANDS } from "~/lib/constants";
-
-// Type-safe access
-const rfMount = MOUNTS.find((m) => m.id === "rf-mount");
-const mountIds: MountId[] = MOUNTS.map((m) => m.id);
+const rfMount = MOUNTS.find((m) => m.value === "rf-canon");
+type MountValue = (typeof MOUNTS)[number]["value"];
 ```
-
-### Available Types
-
-- `MountId` - Union type of all mount IDs
-- `Mount` - Full mount object type
-- `SensorFormatId` - Union type of all sensor format IDs
-- `SensorFormat` - Full sensor format object type
-- `BrandId` - Union type of all brand IDs
-- `Brand` - Full brand object type
 
 ## When to Regenerate
 
-- After database migrations that change these tables
-- When adding new mounts, sensor formats, or brands
-- Before deploying to ensure constants are up-to-date
+- After any migration or manual change that touches the source tables/enums.
+- Before deployments to ensure `generated.ts` reflects the canonical data.
+- Whenever CI (or the `protect-generated` workflow) reports that `src/lib/generated.ts` is out of sync.
 
 ## Benefits
 
-- **Type Safety**: Compile-time validation of IDs and values
-- **Performance**: No runtime database calls for static data
-- **Developer Experience**: Autocomplete and IntelliSense
-- **Consistency**: Single source of truth in database
-- **Maintainability**: Automatic updates when database changes
-- **Simplicity**: Single generated file instead of multiple files
+- **Type safety** – compile-time validation of IDs and enum values.
+- **Performance** – no runtime database queries for reference data.
+- **Consistency** – a single generated file shared by client and server code.
+- **Developer experience** – IntelliSense/autocomplete when accessing constants.
+
+## Safety Tips
+
+- Keep `GENERATE_CONSTANTS=false` in `.env` unless you are a maintainer regenerating intentionally.
+- Use a read-only or dev credential when running the script locally.
+- Treat `src/lib/generated.ts` as source-controlled output—review diffs just like any other code change.
 
 ## Future Enhancements
 
-- Add to build pipeline for automatic generation
-- Support for more table types (gear categories, etc.)
-- Validation that generated constants match schema
+- Automatically verify during CI that `generated.ts` matches the database schema.
+- Expand coverage to additional reference tables (gear categories, badges, etc.).
+- Provide a checksum so the build can assert whether regeneration is required.
