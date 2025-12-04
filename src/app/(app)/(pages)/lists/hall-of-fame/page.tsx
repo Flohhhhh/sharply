@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { hallOfFameItems, type HallOfFameItem } from "./data";
+import { hallOfFameItems } from "./data";
 import { fetchGearBySlug } from "~/server/gear/service";
 import { TbLaurelWreath } from "react-icons/tb";
 import { WreathIcon } from "./WreathIcon";
@@ -62,11 +62,30 @@ function formatForDisplay(date: Date, precision: DatePrecision): string {
   return date.toLocaleDateString(undefined, { year: "numeric" });
 }
 
+function isNotFoundError(error: unknown): error is { status?: number } {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const status = (error as { status?: unknown }).status;
+  return typeof status === "number" && status === 404;
+}
+
 export default async function HallOfFamePage() {
   // Fetch gear for each entry at build time
   const rawEntries = await Promise.all(
     hallOfFameItems.map(async (item) => {
-      const gear = await fetchGearBySlug(item.slug);
+      const gear = await fetchGearBySlug(item.slug).catch((error) => {
+        if (isNotFoundError(error)) {
+          return null;
+        }
+        throw error;
+      });
+
+      if (!gear) {
+        return null;
+      }
+
       const best = pickBestDate(gear);
       return best
         ? {
@@ -125,75 +144,92 @@ export default async function HallOfFamePage() {
           <BlurFade delay={0.3} className="mb-16">
             <Separator />
           </BlurFade>
-          {entries.map((entry, index) => {
-            const title = entry.gear.brands?.name
-              ? `${entry.gear.brands.name} ${entry.gear.name}`
-              : entry.gear.name;
-            const formattedDate = formatForDisplay(
-              entry.bestDate,
-              entry.bestPrecision,
-            );
-            return (
-              <BlurFade
-                inView
-                delay={index === 0 ? 0.3 : 0}
-                key={entry.slug}
-                className="relative"
-              >
-                <div className="flex flex-col gap-y-6 md:flex-row">
-                  {/* Left column - sticky date + dot */}
-                  <div className="relative flex-shrink-0 self-start pb-10 md:sticky md:top-24 md:z-20 md:w-48">
-                    <time className="text-muted-foreground mb-3 block text-sm font-medium">
-                      {formattedDate}
-                    </time>
-                    {/* Sticky timeline dot aligned to the divider */}
-                    <span className="bg-primary ring-background absolute top-2 right-0 z-20 hidden h-3 w-3 translate-x-1/2 rounded-full ring-2 md:block" />
-                  </div>
+          {entries.length === 0 ? (
+            <BlurFade delay={0.3}>
+              <div className="text-muted-foreground flex flex-col items-center gap-4 rounded-lg border border-dashed px-6 py-12 text-center">
+                <TbLaurelWreath className="text-primary size-12" />
+                <p className="text-lg font-medium">
+                  No hall of fame entries are available yet.
+                </p>
+                <p className="text-sm">
+                  Add gear data to your local database and reload this page to
+                  celebrate legendary equipment.
+                </p>
+              </div>
+            </BlurFade>
+          ) : (
+            entries.map((entry, index) => {
+              const title = entry.gear.brands?.name
+                ? `${entry.gear.brands.name} ${entry.gear.name}`
+                : entry.gear.name;
+              const formattedDate = formatForDisplay(
+                entry.bestDate,
+                entry.bestPrecision,
+              );
+              return (
+                <BlurFade
+                  inView
+                  delay={index === 0 ? 0.3 : 0}
+                  key={entry.slug}
+                  className="relative"
+                >
+                  <div className="flex flex-col gap-y-6 md:flex-row">
+                    {/* Left column - sticky date + dot */}
+                    <div className="relative flex-shrink-0 self-start pb-10 md:sticky md:top-24 md:z-20 md:w-48">
+                      <time className="text-muted-foreground mb-3 block text-sm font-medium">
+                        {formattedDate}
+                      </time>
+                      {/* Sticky timeline dot aligned to the divider */}
+                      <span className="bg-primary ring-background absolute top-2 right-0 z-20 hidden h-3 w-3 translate-x-1/2 rounded-full ring-2 md:block" />
+                    </div>
 
-                  {/* Right column - content with timeline line + dot */}
-                  <div className="relative flex-1 pb-10 md:pl-8">
-                    {/* Vertical timeline line */}
-                    <div className="bg-border pointer-events-none absolute top-2 left-0 z-0 hidden h-full w-px md:block" />
+                    {/* Right column - content with timeline line + dot */}
+                    <div className="relative flex-1 pb-10 md:pl-8">
+                      {/* Vertical timeline line */}
+                      <div className="bg-border pointer-events-none absolute top-2 left-0 z-0 hidden h-full w-px md:block" />
 
-                    <div className="space-y-6">
-                      <div className="relative z-10 flex flex-col gap-2">
-                        <Link
-                          href={`/gear/${entry.gear.slug}`}
-                          className="hover:underline"
-                        >
-                          <h2 className="text-3xl font-semibold tracking-tight text-balance">
-                            {title}
-                          </h2>
-                        </Link>
-                      </div>
+                      <div className="space-y-6">
+                        <div className="relative z-10 flex flex-col gap-2">
+                          <Link
+                            href={`/gear/${entry.gear.slug}`}
+                            className="hover:underline"
+                          >
+                            <h2 className="text-3xl font-semibold tracking-tight text-balance">
+                              {title}
+                            </h2>
+                          </Link>
+                        </div>
 
-                      {/* Gear image with background styling like gear page */}
-                      <div className="bg-muted dark:bg-card overflow-hidden rounded-md p-12 sm:p-24">
-                        {entry.gear.thumbnailUrl ? (
-                          <Image
-                            src={entry.gear.thumbnailUrl}
-                            alt={title}
-                            className="mx-auto h-full max-h-[300px] w-full max-w-[600px] object-contain sm:max-h-[475px]"
-                            width={720}
-                            height={480}
-                            priority
-                          />
-                        ) : (
-                          <div className="flex aspect-video items-center justify-center">
-                            <div className="text-muted-foreground text-lg">
-                              No image available
+                        {/* Gear image with background styling like gear page */}
+                        <div className="bg-muted dark:bg-card overflow-hidden rounded-md p-12 sm:p-24">
+                          {entry.gear.thumbnailUrl ? (
+                            <Image
+                              src={entry.gear.thumbnailUrl}
+                              alt={title}
+                              className="mx-auto h-full max-h-[300px] w-full max-w-[600px] object-contain sm:max-h-[475px]"
+                              width={720}
+                              height={480}
+                              priority
+                            />
+                          ) : (
+                            <div className="flex aspect-video items-center justify-center">
+                              <div className="text-muted-foreground text-lg">
+                                No image available
+                              </div>
                             </div>
-                          </div>
-                        )}
-                      </div>
+                          )}
+                        </div>
 
-                      <p className="text-muted-foreground py-4">{entry.text}</p>
+                        <p className="text-muted-foreground py-4">
+                          {entry.text}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </BlurFade>
-            );
-          })}
+                </BlurFade>
+              );
+            })
+          )}
         </div>
       </div>
     </div>
