@@ -8,21 +8,19 @@ import {
   insertViewEvent,
   getTrendingData,
   getTrendingTotalCount,
-  getLiveTrendingOverlay,
+  getLiveTrendingSnapshot,
   hasEventForIdentityToday as hasEventForIdentityTodayGeneric,
   insertCompareAddEvent,
   incrementComparePairCountBySlugs,
   fetchTopComparePairs as fetchTopComparePairsData,
 } from "./data";
-import { mergeTrendingWithLiveOverlay } from "./live";
-export { mergeTrendingWithLiveOverlay } from "./live";
+import { applyLiveBoostToTrending } from "./live";
+export { applyLiveBoostToTrending } from "./live";
 import { auth } from "~/server/auth";
 import type {
   TrendingFiltersInput,
   TrendingPageResult,
   TrendingEntry,
-  TrendingEntryWithLive,
-  LiveTrendingOverlay,
 } from "~/types/popularity";
 
 /**
@@ -123,42 +121,13 @@ export async function fetchTrending(params: {
   const limit = params.limit ?? 10;
   const filters = params.filters ?? {};
   const offset = params.offset ?? 0;
-  return getTrendingData(timeframe, limit, filters, offset);
-}
 
-export async function fetchTrendingWithLive(params: {
-  timeframe?: "7d" | "30d";
-  limit?: number;
-  filters?: TrendingFiltersInput;
-}) {
-  const timeframe = params.timeframe ?? "30d";
-  const limit = params.limit ?? 10;
-  const filters = params.filters ?? {};
-
-  const [baseline, liveOverlay] = await Promise.all([
-    getTrendingData(timeframe, limit, filters, 0),
-    getLiveTrendingOverlay(limit, filters, 0),
+  const [baseline, liveSnapshot] = await Promise.all([
+    getTrendingData(timeframe, limit, filters, offset),
+    getLiveTrendingSnapshot(limit, filters, offset),
   ]);
 
-  return {
-    items: mergeTrendingWithLiveOverlay({
-      baseline,
-      liveOverlay,
-      limit,
-    }),
-    liveOverlay,
-  };
-}
-
-export async function fetchLiveTrendingOverlay(params: {
-  limit?: number;
-  offset?: number;
-  filters?: TrendingFiltersInput;
-}) {
-  const limit = params.limit ?? 10;
-  const filters = params.filters ?? {};
-  const offset = params.offset ?? 0;
-  return getLiveTrendingOverlay(limit, filters, offset);
+  return applyLiveBoostToTrending({ baseline, liveSnapshot, limit });
 }
 
 export async function fetchTrendingPage(params: {
@@ -166,7 +135,6 @@ export async function fetchTrendingPage(params: {
   page?: number;
   perPage?: number;
   filters?: TrendingFiltersInput;
-  includeLiveOverlay?: boolean;
 }): Promise<TrendingPageResult> {
   const timeframe = params.timeframe ?? "30d";
   const page = Math.max(1, params.page ?? 1);
@@ -174,22 +142,23 @@ export async function fetchTrendingPage(params: {
   const filters = params.filters ?? {};
   const offset = (page - 1) * perPage;
 
-  const [items, total, liveOverlay] = await Promise.all([
+  const [baseline, total, liveSnapshot] = await Promise.all([
     getTrendingData(timeframe, perPage, filters, offset),
     getTrendingTotalCount(timeframe, filters),
-    params.includeLiveOverlay
-      ? getLiveTrendingOverlay(perPage, filters, offset)
-      : Promise.resolve<LiveTrendingOverlay | null>(null),
+    getLiveTrendingSnapshot(perPage, filters, offset),
   ]);
 
   return {
-    items,
+    items: applyLiveBoostToTrending({
+      baseline,
+      liveSnapshot,
+      limit: perPage,
+    }),
     total,
     page,
     perPage,
     timeframe,
     filters,
-    liveOverlay,
   };
 }
 

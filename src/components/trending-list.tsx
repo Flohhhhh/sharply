@@ -1,12 +1,9 @@
 import Link from "next/link";
 import { Flame } from "lucide-react";
-import {
-  fetchTrending,
-  fetchTrendingWithLive,
-} from "~/server/popularity/service";
-import type { TrendingEntry, TrendingEntryWithLive } from "~/types/popularity";
+import { fetchTrending } from "~/server/popularity/service";
+import type { TrendingEntry } from "~/types/popularity";
 
-export type TrendingItem = TrendingEntryWithLive;
+export type TrendingItem = TrendingEntry;
 
 function Skeleton({
   rows = 10,
@@ -49,7 +46,6 @@ export default async function TrendingList({
   title = "Trending",
   loading = false,
   rows,
-  liveOverlay = true,
 }: {
   timeframe?: "7d" | "30d";
   limit?: number;
@@ -61,44 +57,19 @@ export default async function TrendingList({
   title?: string;
   loading?: boolean;
   rows?: number;
-  liveOverlay?: boolean;
 }) {
   if (loading) return <Skeleton rows={rows} title={title} />;
 
-  let items: TrendingEntryWithLive[] = [];
-  let liveGeneratedAt: string | null = null;
-
-  if (liveOverlay) {
-    const result = await fetchTrendingWithLive({ timeframe, limit, filters });
-    items = result.items;
-    liveGeneratedAt = result.liveOverlay?.generatedAt ?? null;
-  } else {
-    const baseline = await fetchTrending({ timeframe, limit, filters });
-    items = baseline.map((entry) => ({
-      ...entry,
-      combinedScore: entry.score,
-      liveScore: 0,
-      liveStats: undefined,
-      liveOnly: false,
-    }));
-  }
+  const items = await fetchTrending({ timeframe, limit, filters });
 
   if (!items.length) return null;
 
-  const topScore = items[0]?.combinedScore ?? items[0]?.score ?? 0;
+  const topScore = items[0]?.score ?? 0;
   const calcFilled = (score: number) => {
     if (topScore <= 0) return 0;
     const scaled = (score / topScore) * 3;
     return Math.max(0, Math.min(3, Math.round(scaled)));
   };
-  const liveTime =
-    liveGeneratedAt && liveOverlay
-      ? new Intl.DateTimeFormat("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-          timeZone: "UTC",
-        }).format(new Date(liveGeneratedAt))
-      : null;
   const numberFormatter = new Intl.NumberFormat("en-US", {
     maximumFractionDigits: 1,
     minimumFractionDigits: 0,
@@ -108,14 +79,13 @@ export default async function TrendingList({
     <div className="space-y-3">
       <div className="flex items-baseline justify-between">
         <h2 className="text-lg font-bold">{title}</h2>
-        <div className="text-muted-foreground flex flex-col text-right text-xs">
-          <span>as of {items[0]!.asOfDate}</span>
-          {liveTime ? <span>live spike {liveTime} UTC</span> : null}
-        </div>
+        <span className="text-muted-foreground text-xs">
+          as of {items[0]!.asOfDate}
+        </span>
       </div>
       <ol className="divide-border divide-y rounded-md border">
         {items.map((item, idx) => {
-          const filled = calcFilled(item.combinedScore ?? item.score);
+          const filled = calcFilled(item.score);
           return (
             <li key={item.gearId} className="p-0">
               <Link
@@ -131,9 +101,9 @@ export default async function TrendingList({
                   </span>
                 </div>
                 <div className="ml-auto flex items-center gap-2">
-                  {item.liveScore && item.liveScore > 0 ? (
+                  {item.liveBoost && item.liveBoost > 0 ? (
                     <span className="bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200 rounded-full px-2 py-0.5 text-xs font-semibold">
-                      +{numberFormatter.format(item.liveScore)} live
+                      +{numberFormatter.format(item.liveBoost)} live
                     </span>
                   ) : null}
                   {[0, 1, 2].map((n) => (

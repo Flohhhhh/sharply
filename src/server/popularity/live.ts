@@ -1,28 +1,27 @@
 import type {
-  LiveTrendingOverlay,
+  LiveTrendingSnapshot,
   TrendingEntry,
-  TrendingEntryWithLive,
 } from "~/types/popularity";
 
-export function mergeTrendingWithLiveOverlay(params: {
+export function applyLiveBoostToTrending(params: {
   baseline: TrendingEntry[];
-  liveOverlay?: LiveTrendingOverlay | null;
+  liveSnapshot?: LiveTrendingSnapshot | null;
   limit?: number;
-}): TrendingEntryWithLive[] {
-  const liveItems = params.liveOverlay?.items ?? [];
+}): TrendingEntry[] {
+  const liveItems = params.liveSnapshot?.items ?? [];
   const liveMap = new Map<string, (typeof liveItems)[number]>();
   for (const item of liveItems) {
     liveMap.set(item.gearId, item);
   }
   const baselineIds = new Set(params.baseline.map((item) => item.gearId));
 
-  const merged: TrendingEntryWithLive[] = params.baseline.map((item) => {
+  const merged: TrendingEntry[] = params.baseline.map((item) => {
     const live = liveMap.get(item.gearId);
-    const liveScore = live?.liveScoreDelta ?? 0;
+    const liveBoost = live?.liveScore ?? 0;
     return {
       ...item,
-      combinedScore: item.score + liveScore,
-      liveScore,
+      score: item.score + liveBoost,
+      liveBoost: liveBoost || undefined,
       liveStats: live?.stats,
       liveOnly: false,
     };
@@ -31,24 +30,27 @@ export function mergeTrendingWithLiveOverlay(params: {
   for (const live of liveItems) {
     if (baselineIds.has(live.gearId)) continue;
     merged.push({
-      ...live,
-      score: live.liveScoreDelta,
-      combinedScore: live.liveScoreDelta,
-      liveScore: live.liveScoreDelta,
+      gearId: live.gearId,
+      slug: live.slug,
+      name: live.name,
+      brandName: live.brandName,
+      gearType: live.gearType,
+      thumbnailUrl: live.thumbnailUrl,
+      msrpNowUsdCents: live.msrpNowUsdCents,
+      mpbMaxPriceUsdCents: live.mpbMaxPriceUsdCents,
+      lifetimeViews: live.lifetimeViews,
+      score: live.liveScore,
+      liveBoost: live.liveScore,
       liveStats: live.stats,
       liveOnly: true,
+      stats: live.stats,
+      asOfDate: live.asOfDate,
     });
   }
 
-  merged.sort((a, b) => {
-    if (b.combinedScore !== a.combinedScore) {
-      return b.combinedScore - a.combinedScore;
-    }
-    return b.score - a.score;
-  });
+  merged.sort((a, b) => b.score - a.score);
 
   const limit = params.limit ?? merged.length;
   return merged.slice(0, limit);
 }
-
 

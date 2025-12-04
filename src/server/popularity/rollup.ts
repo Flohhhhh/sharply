@@ -268,7 +268,7 @@ export async function runDailyPopularityRollup(
   let windowsRows = 0;
   let lifetimeTotalRows = 0;
   let intradayRowsCleared = 0;
-  let liveOverlaySummary: Array<{
+  let liveBoostSummary: Array<{
     date: string;
     slug: string;
     name: string;
@@ -298,7 +298,7 @@ export async function runDailyPopularityRollup(
     await rollupLifetime();
     durations.lifetimeMs = Date.now() - tLife;
 
-    // Live overlay summary & cleanup
+    // Live boost summary & cleanup
     type LiveSummaryRow = {
       date?: string;
       slug?: string;
@@ -326,17 +326,17 @@ export async function runDailyPopularityRollup(
       LIMIT 5;
     `);
     const liveSummaryRows = extractRows<LiveSummaryRow>(liveSummaryRes);
-    liveOverlaySummary = liveSummaryRows.map((row) => ({
+    liveBoostSummary = liveSummaryRows.map((row) => ({
       date: row.date ?? asOfDate,
       slug: row.slug ?? "",
       name: row.name ?? "",
       liveScore: Number(row.live_score ?? 0),
       views: Number(row.views ?? 0),
     }));
-    if (liveOverlaySummary.length) {
-      console.info("popularity_rollup: live overlay summary", {
-        date: liveOverlaySummary[0]?.date,
-        top: liveOverlaySummary,
+    if (liveBoostSummary.length) {
+      console.info("popularity_rollup: live boost summary", {
+        date: liveBoostSummary[0]?.date,
+        top: liveBoostSummary,
       });
     }
     const intradayDelete = await db.execute(sql`
@@ -483,8 +483,8 @@ export async function runDailyPopularityRollup(
         `- **Intraday rows cleared**: ${intradayRowsCleared}`,
         `\nDurations (ms):\n- D-2 daily: ${durations.d2DailyMs}\n- D-1 daily: ${durations.d1DailyMs}\n- Windows: ${durations.windowsMs}\n- Lifetime: ${durations.lifetimeMs}\n- Purge D-2: ${durations.purgeMs}\n- Total: ${durations.totalMs}`,
       ];
-      if (liveOverlaySummary.length) {
-        const liveLines = liveOverlaySummary
+      if (liveBoostSummary.length) {
+        const liveLines = liveBoostSummary
           .map(
             (item, idx) =>
               `  ${idx + 1}. ${item.slug} (${item.name}) +${item.liveScore.toFixed(
@@ -492,7 +492,7 @@ export async function runDailyPopularityRollup(
               )} live`,
           )
           .join("\n");
-        lines.push(`- **Live overlay top movers**:\n${liveLines}`);
+        lines.push(`- **Live boost top movers**:\n${liveLines}`);
       }
       fetch(webhook, {
         method: "POST",

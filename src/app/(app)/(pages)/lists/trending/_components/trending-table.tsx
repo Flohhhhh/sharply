@@ -80,7 +80,6 @@ function buildKey(params: {
     timeframe: params.timeframe,
     page: String(params.page),
     perPage: String(params.perPage),
-    liveOverlay: "true",
   });
   if (params.gearType) {
     search.set("gearType", params.gearType);
@@ -92,11 +91,6 @@ const numberFormatter = new Intl.NumberFormat("en-US");
 const liveDeltaFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 1,
   minimumFractionDigits: 0,
-});
-const liveTimeFormatter = new Intl.DateTimeFormat("en-US", {
-  hour: "2-digit",
-  minute: "2-digit",
-  timeZone: "UTC",
 });
 export function TrendingTable({ initialData }: Props) {
   const [timeframe, setTimeframe] = useState<"7d" | "30d">(
@@ -148,15 +142,7 @@ export function TrendingTable({ initialData }: Props) {
   const totalPages =
     data && data.perPage > 0 ? Math.max(1, Math.ceil(total / data.perPage)) : 1;
   const topScore = rows[0]?.score ?? 0;
-  const liveLookup = useMemo(() => {
-    if (!data?.liveOverlay?.items?.length) return new Map<string, number>();
-    return new Map(
-      data.liveOverlay.items.map((item) => [item.gearId, item.liveScoreDelta]),
-    );
-  }, [data?.liveOverlay?.items]);
-  const liveTimeLabel = data?.liveOverlay?.generatedAt
-    ? `${liveTimeFormatter.format(new Date(data.liveOverlay.generatedAt))} UTC`
-    : null;
+  const showLiveBoostBanner = data?.items?.some((row) => row.liveBoost);
 
   const handlePageChange = useCallback(
     (direction: "prev" | "next") => {
@@ -239,9 +225,9 @@ export function TrendingTable({ initialData }: Props) {
         </div>
       ) : (
         <>
-          {liveTimeLabel ? (
+          {showLiveBoostBanner ? (
             <div className="text-muted-foreground mb-2 text-xs">
-              Live overlay updated {liveTimeLabel}
+              Includes same-day live boosts
             </div>
           ) : null}
           <div className="bg-background overflow-hidden rounded-md border">
@@ -268,7 +254,7 @@ export function TrendingTable({ initialData }: Props) {
                     row={row}
                     index={(page - 1) * perPage + idx + 1}
                     filledCount={getFlameFill(row.score, topScore)}
-                    liveDelta={liveLookup.get(row.gearId) ?? 0}
+                    liveDelta={row.liveBoost ?? 0}
                   />
                 ))}
                 {!rows.length && (

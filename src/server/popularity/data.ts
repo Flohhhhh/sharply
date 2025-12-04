@@ -18,7 +18,7 @@ import type { PopularityEventType } from "~/server/validation/dedupe";
 import type {
   TrendingEntry,
   TrendingFiltersInput,
-  LiveTrendingOverlay,
+  LiveTrendingSnapshot,
 } from "~/types/popularity";
 
 /**
@@ -158,11 +158,11 @@ export async function getTrendingData(
   return run();
 }
 
-export async function getLiveTrendingOverlay(
+export async function getLiveTrendingSnapshot(
   limit: number,
   filters: TrendingFiltersInput = {},
   offset = 0,
-): Promise<LiveTrendingOverlay> {
+): Promise<LiveTrendingSnapshot> {
   const key = [
     "pop-trending-live",
     String(limit),
@@ -182,7 +182,9 @@ export async function getLiveTrendingOverlay(
         ${gearPopularityIntraday.reviewSubmits} * 2.5
       )`;
 
-      const conditions: SQL[] = [sql`${gearPopularityIntraday.date} = CURRENT_DATE`];
+      const conditions: SQL[] = [
+        sql`${gearPopularityIntraday.date} = CURRENT_DATE`,
+      ];
       if (filters.brandId) conditions.push(eq(gear.brandId, filters.brandId));
       if (filters.gearType)
         conditions.push(eq(gear.gearType, filters.gearType));
@@ -218,7 +220,7 @@ export async function getLiveTrendingOverlay(
         .limit(limit)
         .offset(Math.max(0, offset));
 
-      const items: TrendingEntry[] = rows.map((r) => ({
+      const items = rows.map((r) => ({
         gearId: r.gearId,
         slug: r.slug,
         name: r.name,
@@ -236,7 +238,7 @@ export async function getLiveTrendingOverlay(
           reviewSubmits: Number(r.reviewSubmits),
         },
         asOfDate: String(r.asOfDate),
-        liveScoreDelta: Number(r.score),
+        liveScore: Number(r.score),
       }));
 
       return {
@@ -408,17 +410,16 @@ type GearPopularityIntradayInsert = typeof gearPopularityIntraday.$inferInsert;
 
 const intradayColumnConfig: Record<
   PopularityEventType,
-  | {
-      key: keyof GearPopularityIntradayInsert;
-      column:
-        | typeof gearPopularityIntraday.views
-        | typeof gearPopularityIntraday.wishlistAdds
-        | typeof gearPopularityIntraday.ownerAdds
-        | typeof gearPopularityIntraday.compareAdds
-        | typeof gearPopularityIntraday.reviewSubmits
-        | typeof gearPopularityIntraday.apiFetches;
-    }
-  | null
+  {
+    key: keyof GearPopularityIntradayInsert;
+    column:
+      | typeof gearPopularityIntraday.views
+      | typeof gearPopularityIntraday.wishlistAdds
+      | typeof gearPopularityIntraday.ownerAdds
+      | typeof gearPopularityIntraday.compareAdds
+      | typeof gearPopularityIntraday.reviewSubmits
+      | typeof gearPopularityIntraday.apiFetches;
+  } | null
 > = {
   view: { key: "views", column: gearPopularityIntraday.views },
   wishlist_add: {
@@ -451,15 +452,16 @@ export async function incrementGearPopularityIntraday(params: {
   const incrementBy = params.count ?? 1;
   if (incrementBy <= 0) return;
 
+  const todayUtc = new Date().toISOString().slice(0, 10);
   const values: Partial<GearPopularityIntradayInsert> = {
-    date: sql`CURRENT_DATE`,
+    date: todayUtc,
     gearId: params.gearId,
   };
   (values as Record<string, unknown>)[config.key as string] = incrementBy;
 
   const setPayload: Partial<GearPopularityIntradayInsert> &
     Record<string, unknown> = {
-    updatedAt: sql`now()`,
+    updatedAt: new Date(),
   };
   setPayload[config.key as string] = sql`${config.column} + ${incrementBy}`;
 
