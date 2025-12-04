@@ -18,6 +18,23 @@ import { LearnPages } from "./collections/LearnPages";
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
+const plugins: any[] = [payloadCloudPlugin()];
+if (process.env.UPLOADTHING_TOKEN) {
+  plugins.push(
+    uploadthingStorage({
+      collections: {
+        media: {
+          disablePayloadAccessControl: true,
+        },
+      },
+      options: {
+        token: process.env.UPLOADTHING_TOKEN,
+        acl: "public-read",
+      },
+    }),
+  );
+}
+
 export default buildConfig({
   admin: {
     user: Users.slug,
@@ -55,24 +72,13 @@ export default buildConfig({
     },
   }),
   sharp,
-  plugins: [
-    payloadCloudPlugin(),
-    // storage-adapter-placeholder
-    uploadthingStorage({
-      collections: {
-        media: {
-          disablePayloadAccessControl: true,
-        },
-      },
-      options: {
-        token: process.env.UPLOADTHING_TOKEN || "",
-        acl: "public-read",
-      },
-    }),
-  ],
-  email: resendAdapter({
-    defaultFromAddress: process.env.RESEND_EMAIL_FROM || "",
-    defaultFromName: "Sharply Team",
-    apiKey: process.env.RESEND_API_KEY || "",
-  }),
+  plugins,
+  email:
+    process.env.RESEND_EMAIL_FROM && process.env.RESEND_API_KEY
+      ? resendAdapter({
+          defaultFromAddress: process.env.RESEND_EMAIL_FROM,
+          defaultFromName: "Sharply Team",
+          apiKey: process.env.RESEND_API_KEY,
+        })
+      : undefined,
 });
