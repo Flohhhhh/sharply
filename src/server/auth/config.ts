@@ -40,28 +40,39 @@ declare module "next-auth" {
  *
  * @see https://next-auth.js.org/configuration/options
  */
-export const authConfig = {
-  // debug: true,
-  providers: [
+// Build providers list conditionally so missing credentials in dev simply disable a provider
+const providers: NextAuthConfig["providers"] = [];
+
+if (process.env.RESEND_EMAIL_FROM && process.env.RESEND_API_KEY) {
+  providers.push(
     Resend({
-      from: process.env.RESEND_EMAIL_FROM!,
-      apiKey: process.env.RESEND_API_KEY, // optional if you use AUTH_RESEND_KEY
+      from: process.env.RESEND_EMAIL_FROM,
+      apiKey: process.env.RESEND_API_KEY,
     }),
-    DiscordProvider,
+  );
+}
+
+if (process.env.AUTH_DISCORD_ID && process.env.AUTH_DISCORD_SECRET) {
+  providers.push(
+    DiscordProvider({
+      clientId: process.env.AUTH_DISCORD_ID,
+      clientSecret: process.env.AUTH_DISCORD_SECRET,
+    }),
+  );
+}
+
+if (process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET) {
+  providers.push(
     GoogleProvider({
       clientId: process.env.AUTH_GOOGLE_ID,
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
     }),
-    /**
-     * ...add more providers here.
-     *
-     * Most other providers require a bit more work than the Discord provider. For example, the
-     * GitHub provider requires you to add the `refresh_token_expires_in` field to the Account
-     * model. Refer to the NextAuth.js docs for the provider you want to use. Example:
-     *
-     * @see https://next-auth.js.org/providers/github
-     */
-  ],
+  );
+}
+
+export const authConfig = {
+  // debug: true,
+  providers,
   pages: {
     signIn: "/auth/signin",
     verifyRequest: "/auth/verify",

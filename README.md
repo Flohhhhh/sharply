@@ -86,6 +86,33 @@ npx drizzle-kit studio    # (optional) view the database in Drizzle studio (or u
 
 > `npm run db:seed` requires you to append `-- --confirm-seed` (for example `npm run db:seed -- --confirm-seed`). This keeps the safeguard in place so the script only runs when you explicitly acknowledge it and target a dev database. It will not overwrite existing gear unless you also pass `--allow-gear-overwrite`.
 
+### Seed Data
+
+The seed script (`scripts/seed.ts`) is non-destructive by default and populates:
+
+- Brands, mounts, sensor formats, genres, AF area modes
+- Nikon Z6 III (fully hydrated: specs, mounts, AF areas, genres, editorial, reviews, review summaries)
+- Canon EOS R6 Mark III
+- Nikon Zf/Zr
+- Nikon AF-S DX NIKKOR 35mm f/1.8G
+- Nikon AF-S NIKKOR 50mm f/1.8G
+
+Flags:
+
+- `--confirm-seed` (required): safety gate to prevent accidental production writes
+- `--allow-gear-overwrite`: allow updating existing gear rows; without this, existing gear is left untouched
+- `--skip-taxonomy`: skip brands/mounts/formats/genres/AF area modes
+- `--skip-editorial`: skip editorial content (use-case ratings, staff verdicts)
+- `--skip-reviews`: skip reviews and AI summaries
+
+Examples:
+
+```bash
+npm run db:seed -- --confirm-seed
+npm run db:seed -- --confirm-seed --skip-reviews
+npm run db:seed -- --confirm-seed --allow-gear-overwrite
+```
+
 ### Development Server
 
 ```bash
@@ -125,3 +152,9 @@ This starts Next.js on `http://localhost:3000`. The first build will also run `n
 
 - Review documentation in `/docs` for deeper architecture details.
 - For questions, open an issue or reach out to the maintainers listed in `AGENTS.md`.
+
+## License
+
+Code is licensed under the MIT License. See `LICENSE` for details.
+
+Note: This project does not include production database contents. Any live/production data (editorial, user content, or other proprietary datasets) is not included or licensed as part of this repository.
