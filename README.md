@@ -153,8 +153,4 @@ This starts Next.js on `http://localhost:3000`. The first build will also run `n
 - Review documentation in `/docs` for deeper architecture details.
 - For questions, open an issue or reach out to the maintainers listed in `AGENTS.md`.
 
-## License
-
-Code is licensed under the MIT License. See `LICENSE` for details.
-
 Note: This project does not include production database contents. Any live/production data (editorial, user content, or other proprietary datasets) is not included or licensed as part of this repository.
