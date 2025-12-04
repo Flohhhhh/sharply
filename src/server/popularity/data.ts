@@ -128,7 +128,7 @@ export async function getTrendingData(
         .offset(Math.max(0, offset));
 
       // Map to a render-ready shape
-      const items: LiveTrendingOverlay["items"] = rows.map((r) => ({
+      const items: TrendingEntry[] = rows.map((r) => ({
         gearId: r.gearId,
         slug: r.slug,
         name: r.name,
