@@ -61,6 +61,7 @@ export default async function TrendingList({
   if (loading) return <Skeleton rows={rows} title={title} />;
 
   const items = await fetchTrending({ timeframe, limit, filters });
+
   if (!items.length) return null;
 
   const topScore = items[0]?.score ?? 0;
@@ -69,6 +70,10 @@ export default async function TrendingList({
     const scaled = (score / topScore) * 3;
     return Math.max(0, Math.min(3, Math.round(scaled)));
   };
+  const numberFormatter = new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 0,
+  });
 
   return (
     <div className="space-y-3">
@@ -95,7 +100,12 @@ export default async function TrendingList({
                     {item.name}
                   </span>
                 </div>
-                <div className="ml-auto flex items-center gap-1">
+                <div className="ml-auto flex items-center gap-2">
+                  {item.liveBoost && item.liveBoost > 0 ? (
+                    <span className="bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200 rounded-full px-2 py-0.5 text-xs font-semibold">
+                      +{numberFormatter.format(item.liveBoost)} live
+                    </span>
+                  ) : null}
                   {[0, 1, 2].map((n) => (
                     <Flame
                       key={n}
