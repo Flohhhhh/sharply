@@ -119,7 +119,7 @@ npm run db:seed -- --confirm-seed --allow-gear-overwrite
 npm run dev
 ```
 
-This starts Next.js on `http://localhost:3000`. The first build will also run `npm run constants:generate` via `prebuild`.
+This starts Next.js on `http://localhost:3000`.
 
 ### Code Quality
 
