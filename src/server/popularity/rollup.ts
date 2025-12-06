@@ -267,6 +267,14 @@ export async function runDailyPopularityRollup(
   };
   let windowsRows = 0;
   let lifetimeTotalRows = 0;
+  let intradayRowsCleared = 0;
+  let liveBoostSummary: Array<{
+    date: string;
+    slug: string;
+    name: string;
+    liveScore: number;
+    views: number;
+  }> = [];
   let ok = false;
   let errorMessage: string | null = null;
   try {
@@ -290,11 +298,73 @@ export async function runDailyPopularityRollup(
     await rollupLifetime();
     durations.lifetimeMs = Date.now() - tLife;
 
+    // Live boost summary & cleanup
+    type LiveSummaryRow = {
+      date?: string;
+      slug?: string;
+      name?: string;
+      live_score?: unknown;
+      views?: unknown;
+    };
+    const liveSummaryRes = await db.execute(sql<LiveSummaryRow>`
+      SELECT
+        gpi.date,
+        g.slug,
+        g.name,
+        (
+          gpi.views * 0.1 +
+          gpi.wishlist_adds * 2 +
+          gpi.owner_adds * 3 +
+          gpi.compare_adds * 1.5 +
+          gpi.review_submits * 2.5
+        ) AS live_score,
+        gpi.views
+      FROM app.gear_popularity_intraday gpi
+      JOIN app.gear g ON gpi.gear_id = g.id
+      WHERE gpi.date < CURRENT_DATE
+      ORDER BY live_score DESC
+      LIMIT 5;
+    `);
+    const liveSummaryRows = extractRows<LiveSummaryRow>(liveSummaryRes);
+    liveBoostSummary = liveSummaryRows.map((row) => ({
+      date: row.date ?? asOfDate,
+      slug: row.slug ?? "",
+      name: row.name ?? "",
+      liveScore: Number(row.live_score ?? 0),
+      views: Number(row.views ?? 0),
+    }));
+    if (liveBoostSummary.length) {
+      console.info("popularity_rollup: live boost summary", {
+        date: liveBoostSummary[0]?.date,
+        top: liveBoostSummary,
+      });
+    }
+    const intradayDelete = await db.execute(sql`
+      WITH removed AS (
+        DELETE FROM app.gear_popularity_intraday
+        WHERE date < CURRENT_DATE
+        RETURNING 1
+      )
+      SELECT count(*)::int AS c FROM removed;
+    `);
+    intradayRowsCleared = Number(
+      extractRows<{ c?: number }>(intradayDelete)[0]?.c ?? 0,
+    );
+    if (intradayRowsCleared) {
+      console.info("popularity_rollup: intraday reset", {
+        rows: intradayRowsCleared,
+      });
+    }
+
     // Invalidate cached trending endpoints since windows/lifetime changed
     try {
       const { revalidateTag } = await import("next/cache");
       revalidateTag("trending");
       console.info("popularity_rollup: revalidated tag", { tag: "trending" });
+      revalidateTag("trending-live");
+      console.info("popularity_rollup: revalidated tag", {
+        tag: "trending-live",
+      });
     } catch (e) {
       console.warn("popularity_rollup: failed to revalidate tag", { error: e });
     }
@@ -410,8 +480,20 @@ export async function runDailyPopularityRollup(
         `- **Review submits (D-1)**: ${dailyAgg.review_submits}`,
         `- **Windows rows (D-1)**: ${windowsRows}`,
         `- **Lifetime rows (total)**: ${lifetimeTotalRows}`,
+        `- **Intraday rows cleared**: ${intradayRowsCleared}`,
         `\nDurations (ms):\n- D-2 daily: ${durations.d2DailyMs}\n- D-1 daily: ${durations.d1DailyMs}\n- Windows: ${durations.windowsMs}\n- Lifetime: ${durations.lifetimeMs}\n- Purge D-2: ${durations.purgeMs}\n- Total: ${durations.totalMs}`,
       ];
+      if (liveBoostSummary.length) {
+        const liveLines = liveBoostSummary
+          .map(
+            (item, idx) =>
+              `  ${idx + 1}. ${item.slug} (${item.name}) +${item.liveScore.toFixed(
+                1,
+              )} live`,
+          )
+          .join("\n");
+        lines.push(`- **Live boost top movers**:\n${liveLines}`);
+      }
       fetch(webhook, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

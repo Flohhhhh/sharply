@@ -71,10 +71,18 @@ export const VIDEO_FRAME_RATES = [
   },
   {
     id: "8",
-    value: "200",
+    value: "150",
   },
   {
     id: "9",
+    value: "180",
+  },
+  {
+    id: "10",
+    value: "200",
+  },
+  {
+    id: "11",
     value: "240",
   },
 ];

@@ -88,6 +88,10 @@ function buildKey(params: {
 }
 
 const numberFormatter = new Intl.NumberFormat("en-US");
+const liveDeltaFormatter = new Intl.NumberFormat("en-US", {
+  maximumFractionDigits: 1,
+  minimumFractionDigits: 0,
+});
 export function TrendingTable({ initialData }: Props) {
   const [timeframe, setTimeframe] = useState<"7d" | "30d">(
     initialData.timeframe,
@@ -138,6 +142,7 @@ export function TrendingTable({ initialData }: Props) {
   const totalPages =
     data && data.perPage > 0 ? Math.max(1, Math.ceil(total / data.perPage)) : 1;
   const topScore = rows[0]?.score ?? 0;
+  const showLiveBoostBanner = data?.items?.some((row) => row.liveBoost);
 
   const handlePageChange = useCallback(
     (direction: "prev" | "next") => {
@@ -219,100 +224,110 @@ export function TrendingTable({ initialData }: Props) {
           Failed to load trending data. Please try again in a moment.
         </div>
       ) : (
-        <div className="bg-background overflow-hidden rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-muted-foreground w-12">#</TableHead>
-                <TableHead className="text-muted-foreground">Gear</TableHead>
-                <TableHead className="text-muted-foreground">Heat</TableHead>
-                <TableHead className="text-muted-foreground">
-                  Views ({timeframe})
-                </TableHead>
-                <TableHead className="text-muted-foreground">
-                  Views (lifetime)
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((row, idx) => (
-                <TrendingRow
-                  key={row.gearId}
-                  row={row}
-                  index={(page - 1) * perPage + idx + 1}
-                  filledCount={getFlameFill(row.score, topScore)}
-                />
-              ))}
-              {!rows.length && (
+        <>
+          {showLiveBoostBanner ? (
+            <div className="text-muted-foreground mb-2 text-xs">
+              Includes same-day live boosts
+            </div>
+          ) : null}
+          <div className="bg-background overflow-hidden rounded-md border">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="text-muted-foreground py-16 text-center"
-                  >
-                    No gear matches this filter yet.
-                  </TableCell>
+                  <TableHead className="text-muted-foreground w-12">
+                    #
+                  </TableHead>
+                  <TableHead className="text-muted-foreground">Gear</TableHead>
+                  <TableHead className="text-muted-foreground">Heat</TableHead>
+                  <TableHead className="text-muted-foreground">
+                    Views ({timeframe})
+                  </TableHead>
+                  <TableHead className="text-muted-foreground">
+                    Views (lifetime)
+                  </TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-          <div className="border-border flex items-center justify-center border-t px-4 py-4">
-            <Pagination className="mx-0 w-auto">
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    href="#"
-                    onClick={(event) => {
-                      event.preventDefault();
-                      if (!prevDisabled) handlePageChange("prev");
-                    }}
-                    className={
-                      prevDisabled ? "pointer-events-none opacity-40" : ""
-                    }
+              </TableHeader>
+              <TableBody>
+                {rows.map((row, idx) => (
+                  <TrendingRow
+                    key={row.gearId}
+                    row={row}
+                    index={(page - 1) * perPage + idx + 1}
+                    filledCount={getFlameFill(row.score, topScore)}
+                    liveDelta={row.liveBoost ?? 0}
                   />
-                </PaginationItem>
-                {paginationItems.map((item, idx) => {
-                  if (item === "ellipsis") {
+                ))}
+                {!rows.length && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={6}
+                      className="text-muted-foreground py-16 text-center"
+                    >
+                      No gear matches this filter yet.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+            <div className="border-border flex items-center justify-center border-t px-4 py-4">
+              <Pagination className="mx-0 w-auto">
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      href="#"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        if (!prevDisabled) handlePageChange("prev");
+                      }}
+                      className={
+                        prevDisabled ? "pointer-events-none opacity-40" : ""
+                      }
+                    />
+                  </PaginationItem>
+                  {paginationItems.map((item, idx) => {
+                    if (item === "ellipsis") {
+                      return (
+                        <PaginationItem key={`ellipsis-${idx}`}>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      );
+                    }
+                    const pageNumber = item;
                     return (
-                      <PaginationItem key={`ellipsis-${idx}`}>
-                        <PaginationEllipsis />
+                      <PaginationItem key={pageNumber}>
+                        <PaginationLink
+                          href="#"
+                          size="default"
+                          isActive={pageNumber === page}
+                          onClick={(event) => {
+                            event.preventDefault();
+                            if (pageNumber !== page) {
+                              setPage(pageNumber);
+                            }
+                          }}
+                        >
+                          {pageNumber}
+                        </PaginationLink>
                       </PaginationItem>
                     );
-                  }
-                  const pageNumber = item;
-                  return (
-                    <PaginationItem key={pageNumber}>
-                      <PaginationLink
-                        href="#"
-                        size="default"
-                        isActive={pageNumber === page}
-                        onClick={(event) => {
-                          event.preventDefault();
-                          if (pageNumber !== page) {
-                            setPage(pageNumber);
-                          }
-                        }}
-                      >
-                        {pageNumber}
-                      </PaginationLink>
-                    </PaginationItem>
-                  );
-                })}
-                <PaginationItem>
-                  <PaginationNext
-                    href="#"
-                    onClick={(event) => {
-                      event.preventDefault();
-                      if (!nextDisabled) handlePageChange("next");
-                    }}
-                    className={
-                      nextDisabled ? "pointer-events-none opacity-40" : ""
-                    }
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
+                  })}
+                  <PaginationItem>
+                    <PaginationNext
+                      href="#"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        if (!nextDisabled) handlePageChange("next");
+                      }}
+                      className={
+                        nextDisabled ? "pointer-events-none opacity-40" : ""
+                      }
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
           </div>
-        </div>
+        </>
       )}
     </section>
   );
@@ -322,10 +337,12 @@ function TrendingRow({
   row,
   index,
   filledCount,
+  liveDelta = 0,
 }: {
   row: TrendingEntry;
   index: number;
   filledCount: number;
+  liveDelta?: number;
 }) {
   const zebraClass =
     "group border-border/50 bg-background px-4 py-2 transition-colors hover:bg-zinc-200/70 dark:hover:bg-accent/50 even:bg-accent/20";

@@ -11,15 +11,19 @@ export default async function GearBadges({ slug }: { slug: string }) {
   }[] = [];
 
   // Live badge: Trending (30d) — check if slug appears in top N
-  const trendingItems = await fetchTrending({ timeframe: "30d", limit: 50 });
-  const trending = trendingItems.some((i) => i.slug === slug);
-  if (trending)
+  const trendingItems = await fetchTrending({
+    timeframe: "30d",
+    limit: 25,
+  });
+  const match = trendingItems.find((i) => i.slug === slug);
+  if (match) {
     badges.push({
       key: "trending",
       label: "Trending",
       icon: <Flame className="h-3.5 w-3.5" />,
       variant: "default",
     });
+  }
 
   if (badges.length === 0) return null;
 

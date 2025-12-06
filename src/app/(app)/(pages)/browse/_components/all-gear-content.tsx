@@ -25,10 +25,14 @@ export default async function AllGearContent({
   const brand = brandSlug
     ? BRANDS.find((b) => b.slug === brandSlug)
     : undefined;
-  const trendingGear = await fetchTrending({
+  const trendingResult = await fetchTrending({
     timeframe: "7d",
     limit: 3,
     filters: brand ? { brandId: brand.id } : undefined,
+  });
+  const liveFormatter = new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 0,
   });
   return (
     <main className="space-y-6">
@@ -111,7 +115,7 @@ export default async function AllGearContent({
           </Button>
         </div>
         <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {trendingGear.map((g) => (
+          {trendingResult.map((g) => (
             <GearCard
               key={g.slug}
               href={`/gear/${g.slug}`}
@@ -119,6 +123,7 @@ export default async function AllGearContent({
               name={g.name}
               brandName={g.brandName}
               gearType={g.gearType}
+              topLeftLabel={null}
               priceText={getItemDisplayPrice(g, {
                 style: "short",
                 padWholeAmounts: true,

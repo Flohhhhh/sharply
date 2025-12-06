@@ -8,15 +8,19 @@ import {
   insertViewEvent,
   getTrendingData,
   getTrendingTotalCount,
+  getLiveTrendingSnapshot,
   hasEventForIdentityToday as hasEventForIdentityTodayGeneric,
   insertCompareAddEvent,
   incrementComparePairCountBySlugs,
   fetchTopComparePairs as fetchTopComparePairsData,
 } from "./data";
+import { applyLiveBoostToTrending } from "./live";
+export { applyLiveBoostToTrending } from "./live";
 import { auth } from "~/server/auth";
 import type {
   TrendingFiltersInput,
   TrendingPageResult,
+  TrendingEntry,
 } from "~/types/popularity";
 
 /**
@@ -107,6 +111,19 @@ export async function fetchTopComparePairs(limit = 20) {
   return fetchTopComparePairsData(limit);
 }
 
+export async function fetchLiveBoosts(params?: {
+  limit?: number;
+  filters?: TrendingFiltersInput;
+  offset?: number;
+}) {
+  const limit = params?.limit ?? 50;
+  const filters = params?.filters ?? {};
+  const offset = params?.offset ?? 0;
+  const snapshot = await getLiveTrendingSnapshot(limit, filters, offset);
+  // Only show items with a positive live score
+  return snapshot.items.filter((i) => (i.liveScore ?? 0) > 0);
+}
+
 export async function fetchTrending(params: {
   timeframe?: "7d" | "30d";
   limit?: number;
@@ -117,7 +134,13 @@ export async function fetchTrending(params: {
   const limit = params.limit ?? 10;
   const filters = params.filters ?? {};
   const offset = params.offset ?? 0;
-  return getTrendingData(timeframe, limit, filters, offset);
+
+  const [baseline, liveSnapshot] = await Promise.all([
+    getTrendingData(timeframe, limit, filters, offset),
+    getLiveTrendingSnapshot(limit, filters, offset),
+  ]);
+
+  return applyLiveBoostToTrending({ baseline, liveSnapshot, limit });
 }
 
 export async function fetchTrendingPage(params: {
@@ -132,13 +155,18 @@ export async function fetchTrendingPage(params: {
   const filters = params.filters ?? {};
   const offset = (page - 1) * perPage;
 
-  const [items, total] = await Promise.all([
+  const [baseline, total, liveSnapshot] = await Promise.all([
     getTrendingData(timeframe, perPage, filters, offset),
     getTrendingTotalCount(timeframe, filters),
+    getLiveTrendingSnapshot(perPage, filters, offset),
   ]);
 
   return {
-    items,
+    items: applyLiveBoostToTrending({
+      baseline,
+      liveSnapshot,
+      limit: perPage,
+    }),
     total,
     page,
     perPage,
