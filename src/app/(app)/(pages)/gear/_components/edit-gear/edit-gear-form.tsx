@@ -240,6 +240,7 @@ function EditGearForm({
         "hasWeatherSealing",
         "focusPoints",
         "afAreaModes",
+        "afSubjectCategories",
         "hasFocusPeaking",
         "hasFocusBracketing",
         "shutterSpeedMax",
