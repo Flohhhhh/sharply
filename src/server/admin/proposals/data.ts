@@ -16,8 +16,9 @@ import {
   fixedLensSpecs,
 } from "~/server/db/schema";
 import type { GearEditProposal } from "~/types/gear";
-import { eq, desc, and, ne } from "drizzle-orm";
+import { eq, desc, and, ne, gte } from "drizzle-orm";
 import type { VideoModeNormalized } from "~/lib/video/mode-schema";
+import { sql } from "drizzle-orm";
 
 type ProposalSelect = {
   id: string;
@@ -54,9 +55,11 @@ function pickSubset(
   return Object.keys(out).length > 0 ? out : undefined;
 }
 
-export async function fetchGearProposalsData(): Promise<EnrichedProposal[]> {
-  // Fetch all gear edits with related data
-  const proposals: ProposalSelect[] = await db
+async function fetchEnrichedProposals(
+  whereClause?: unknown,
+): Promise<EnrichedProposal[]> {
+  // Fetch gear edits with related data, filtered as needed
+  const query = db
     .select({
       id: gearEdits.id,
       gearId: gearEdits.gearId,
@@ -71,8 +74,15 @@ export async function fetchGearProposalsData(): Promise<EnrichedProposal[]> {
     })
     .from(gearEdits)
     .innerJoin(gear, eq(gearEdits.gearId, gear.id))
-    .innerJoin(users, eq(gearEdits.createdById, users.id))
-    .orderBy(desc(gearEdits.createdAt));
+    .innerJoin(users, eq(gearEdits.createdById, users.id));
+
+  if (whereClause) {
+    query.where(whereClause as any);
+  }
+
+  const proposals: ProposalSelect[] = await query.orderBy(
+    desc(gearEdits.createdAt),
+  );
 
   // Build a baseline cache per gear to compute "before" values
   const baselineCache = new Map<string, Baseline>();
@@ -125,6 +135,103 @@ export async function fetchGearProposalsData(): Promise<EnrichedProposal[]> {
   return enriched;
 }
 
+export async function fetchPendingProposalsData(): Promise<EnrichedProposal[]> {
+  return fetchEnrichedProposals(eq(gearEdits.status, "PENDING"));
+}
+
+export async function fetchRecentResolvedProposalsData(
+  since: Date,
+  limit?: number,
+): Promise<EnrichedProposal[]> {
+  const whereClause = and(
+    ne(gearEdits.status, "PENDING"),
+    gte(gearEdits.updatedAt, since),
+  );
+  if (!limit || limit <= 0) {
+    return fetchEnrichedProposals(whereClause);
+  }
+  const proposals = await db
+    .select({
+      id: gearEdits.id,
+      gearId: gearEdits.gearId,
+      gearName: gear.name,
+      gearSlug: gear.slug,
+      createdById: gearEdits.createdById,
+      createdByName: users.name,
+      status: gearEdits.status,
+      payload: gearEdits.payload,
+      note: gearEdits.note,
+      createdAt: gearEdits.createdAt,
+    })
+    .from(gearEdits)
+    .innerJoin(gear, eq(gearEdits.gearId, gear.id))
+    .innerJoin(users, eq(gearEdits.createdById, users.id))
+    .where(whereClause)
+    .orderBy(desc(gearEdits.updatedAt))
+    .limit(limit);
+
+  // Build a baseline cache per gear to compute "before" values
+  const baselineCache = new Map<string, Baseline>();
+  const getBaseline = async (gearId: string): Promise<Baseline> => {
+    const cached = baselineCache.get(gearId);
+    if (cached) return cached;
+    const [g] = await db
+      .select()
+      .from(gear)
+      .where(eq(gear.id, gearId))
+      .limit(1);
+    const [cam] = await db
+      .select()
+      .from(cameraSpecs)
+      .where(eq(cameraSpecs.gearId, gearId))
+      .limit(1);
+    const [lens] = await db
+      .select()
+      .from(lensSpecs)
+      .where(eq(lensSpecs.gearId, gearId))
+      .limit(1);
+    const baseline: Baseline = {
+      core: (g ?? {}) as Record<string, unknown>,
+      camera: (cam ?? {}) as Record<string, unknown>,
+      lens: (lens ?? {}) as Record<string, unknown>,
+    };
+    baselineCache.set(gearId, baseline);
+    return baseline;
+  };
+
+  const enriched: EnrichedProposal[] = await Promise.all(
+    proposals.map(async (p): Promise<EnrichedProposal> => {
+      const base = (await getBaseline(p.gearId))!;
+      const payload = (p.payload ?? {}) as Record<string, unknown> & {
+        core?: Record<string, unknown>;
+        camera?: Record<string, unknown>;
+        lens?: Record<string, unknown>;
+        cameraCardSlots?: unknown;
+      };
+      return {
+        ...p,
+        beforeCore: pickSubset(base.core, payload.core),
+        beforeCamera: pickSubset(base.camera, payload.camera),
+        beforeLens: pickSubset(base.lens, payload.lens),
+      };
+    }),
+  );
+
+  return enriched;
+}
+
+export async function countRecentResolvedProposals(since: Date) {
+  const rows = await db
+    .select({
+      count: sql<number>`count(*)`,
+    })
+    .from(gearEdits)
+    .where(
+      and(ne(gearEdits.status, "PENDING"), gte(gearEdits.updatedAt, since)),
+    );
+  return rows[0]?.count ?? 0;
+}
+
 export async function getProposalData(
   id: string,
 ): Promise<GearEditProposal | null> {
@@ -159,7 +266,11 @@ export async function approveProposalData(
     // Update the proposal status to APPROVED and persist only the applied changes
     await tx
       .update(gearEdits)
-      .set({ status: "APPROVED", payload: normalized || {} })
+      .set({
+        status: "APPROVED",
+        payload: normalized || {},
+        updatedAt: new Date(),
+      })
       .where(eq(gearEdits.id, proposalId));
 
     // Audit: approved
@@ -305,8 +416,7 @@ export async function approveProposalData(
       }
 
       if (Array.isArray((normalized as any).videoModes)) {
-        const modes = (normalized as any)
-          .videoModes as VideoModeNormalized[];
+        const modes = (normalized as any).videoModes as VideoModeNormalized[];
         await tx
           .delete(cameraVideoModes)
           .where(eq(cameraVideoModes.gearId, gearId));
@@ -332,7 +442,7 @@ export async function approveProposalData(
     // Set all other pending proposals for the same gear to MERGED
     await tx
       .update(gearEdits)
-      .set({ status: "MERGED" })
+      .set({ status: "MERGED", updatedAt: new Date() })
       .where(
         and(
           eq(gearEdits.gearId, gearId),
@@ -358,7 +468,7 @@ export async function mergeProposalData(
 ) {
   await db
     .update(gearEdits)
-    .set({ status: "MERGED" })
+    .set({ status: "MERGED", updatedAt: new Date() })
     .where(eq(gearEdits.id, proposalId));
 
   // Audit: merged
@@ -381,7 +491,7 @@ export async function rejectProposalData(
 ) {
   await db
     .update(gearEdits)
-    .set({ status: "REJECTED" })
+    .set({ status: "REJECTED", updatedAt: new Date() })
     .where(eq(gearEdits.id, proposalId));
 
   // Audit: rejected

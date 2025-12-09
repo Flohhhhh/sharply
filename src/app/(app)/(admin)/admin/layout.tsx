@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { auth } from "~/server/auth";
+import { auth, requireRole } from "~/server/auth";
 import type { Metadata } from "next";
 import { SidebarInset, SidebarProvider } from "~/components/ui/sidebar";
 import { AppSidebar } from "./sidebar";
 import { SiteHeader } from "./admin-header";
+import type { UserRole } from "~/server/auth";
 
 export const metadata: Metadata = {
   title: {
@@ -31,7 +32,16 @@ export default async function AdminLayout({
     redirect(`/api/auth/signin?callbackUrl=${encodeURIComponent("/admin")}`);
   }
 
-  if (!["ADMIN", "EDITOR"].includes((session.user as any).role)) {
+  console.log(session.user.role);
+
+  if (
+    !requireRole(session, [
+      "SUPERADMIN",
+      "ADMIN",
+      "EDITOR",
+      "MODERATOR",
+    ] as UserRole[])
+  ) {
     return (
       <div className="bg-background min-h-screen">
         <main className="container mx-auto px-4 py-16">

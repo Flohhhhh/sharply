@@ -1067,8 +1067,10 @@ export const ENUMS = {
   ],
   "user_role": [
     "USER",
+    "MODERATOR",
     "EDITOR",
-    "ADMIN"
+    "ADMIN",
+    "SUPERADMIN"
   ],
   "viewfinder_types_enum": [
     "none",
