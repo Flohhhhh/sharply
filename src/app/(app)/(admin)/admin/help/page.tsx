@@ -167,7 +167,7 @@ export default async function AdminHelpPage() {
         </CardContent>
       </Card>
 
-      {role === "ADMIN" && (
+      {(role === "ADMIN" || role === "SUPERADMIN") && (
         <>
           <Card>
             <CardHeader>

@@ -11,7 +11,7 @@ import {
   users,
   verificationTokens,
 } from "~/server/db/schema";
-import type { SessionRole } from ".";
+import type { UserRole } from ".";
 import { awardBadgeForce } from "~/server/badges/service";
 
 /**
@@ -24,13 +24,13 @@ declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
-      role: "USER" | "EDITOR" | "ADMIN";
+      role: UserRole;
       memberNumber?: number | null;
     } & DefaultSession["user"];
   }
 
   interface User {
-    role?: "USER" | "EDITOR" | "ADMIN";
+    role?: UserRole;
     memberNumber?: number | null;
   }
 }
@@ -105,7 +105,7 @@ export const authConfig = {
         id: user.id,
         // Ensure session reflects DB values for name and role
         name: (user as { name?: string | null })?.name ?? session.user?.name,
-        role: (user as { role?: SessionRole })?.role ?? "USER",
+        role: (user as { role?: UserRole })?.role ?? "USER",
         memberNumber:
           (user as { memberNumber?: number | null })?.memberNumber ?? null,
       },

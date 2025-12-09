@@ -38,7 +38,14 @@ export const createExtensions = sql`CREATE EXTENSION IF NOT EXISTS pg_trgm`;
 // --- Enums --- now defined inline to ensure migrations create types before use
 
 // Core app enums
-export const userRoleEnum = pgEnum("user_role", ["USER", "EDITOR", "ADMIN"]);
+export const userRoleEnum = pgEnum("user_role", [
+  // Order represents increasing privilege
+  "USER",
+  "MODERATOR",
+  "EDITOR",
+  "ADMIN",
+  "SUPERADMIN",
+]);
 export const gearTypeEnum = pgEnum("gear_type", ["CAMERA", "LENS"]);
 export const proposalStatusEnum = pgEnum("proposal_status", [
   "PENDING",

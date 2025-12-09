@@ -1,6 +1,6 @@
 import "server-only";
 
-import { requireUser, requireRole, type SessionRole } from "~/server/auth";
+import { requireUser, requireRole, type UserRole } from "~/server/auth";
 import {
   fetchAuditLogsData,
   type FetchAuditLogsParams,
@@ -11,7 +11,7 @@ export async function fetchAuditLogs(
   params: FetchAuditLogsParams,
 ): Promise<{ items: AuditLogRow[] }> {
   const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as SessionRole[])) {
+  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
 

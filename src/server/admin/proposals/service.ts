@@ -1,6 +1,6 @@
 import "server-only";
 
-import { requireUser, requireRole, type SessionRole } from "~/server/auth";
+import { requireUser, requireRole, type UserRole } from "~/server/auth";
 import type { GearEditProposal } from "~/types/gear";
 import {
   fetchGearProposalsData,
@@ -29,7 +29,7 @@ type ProposalGroup = {
 
 export async function fetchGearProposals(): Promise<ProposalGroup[]> {
   const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as SessionRole[])) {
+  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
 
@@ -69,7 +69,7 @@ export async function fetchGearProposals(): Promise<ProposalGroup[]> {
 
 export async function approveProposal(id: string, filteredPayload?: unknown) {
   const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as SessionRole[])) {
+  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
 
@@ -103,7 +103,7 @@ export async function approveProposal(id: string, filteredPayload?: unknown) {
 
 export async function mergeProposal(id: string) {
   const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as SessionRole[])) {
+  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
 
@@ -121,7 +121,7 @@ export async function mergeProposal(id: string) {
 
 export async function rejectProposal(id: string) {
   const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as SessionRole[])) {
+  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
 

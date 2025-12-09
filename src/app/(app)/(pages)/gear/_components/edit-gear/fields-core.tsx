@@ -22,6 +22,7 @@ import {
   toDisplayAmazonProductLink,
 } from "~/lib/validation/amazon";
 import { useSession } from "next-auth/react";
+import type { UserRole } from "~/server/auth";
 
 interface CoreFieldsProps {
   currentSpecs: {
@@ -57,7 +58,8 @@ function CoreFieldsComponent({
   sectionId,
 }: CoreFieldsProps) {
   const { data: session } = useSession();
-  const isAdmin = (session?.user as any)?.role === "ADMIN";
+  const role = (session?.user as { role?: UserRole } | null | undefined)?.role;
+  const isAdmin = role === "ADMIN" || role === "SUPERADMIN";
 
   const isMissing = useCallback((v: unknown): boolean => {
     if (v == null) return true;

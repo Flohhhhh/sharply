@@ -13,10 +13,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { LogOut, Settings, ShieldCheck, User as UserIcon } from "lucide-react";
+import type { UserRole } from "~/server/auth";
 
 export type UserMenuUser = {
   id: string;
-  role: "USER" | "EDITOR" | "ADMIN";
+  role: UserRole;
   name?: string | null;
   email?: string | null;
   image?: string | null;
@@ -30,7 +31,10 @@ export function UserMenu({ user }: { user: UserMenuUser }) {
 
   if (!user) return null;
 
-  const isAdminOrEditor = user.role === "ADMIN" || user.role === "EDITOR";
+  const isAdminOrEditor =
+    user.role === "ADMIN" ||
+    user.role === "SUPERADMIN" ||
+    user.role === "EDITOR";
 
   return (
     <DropdownMenu>
