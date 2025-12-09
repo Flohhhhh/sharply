@@ -302,6 +302,13 @@
       "when": 1764820619769,
       "tag": "0042_rapid_phalanx",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1765313729276,
+      "tag": "0043_smooth_thunderbolt_ross",
+      "breakpoints": true
     }
   ]
 }

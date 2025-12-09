@@ -53,74 +53,79 @@ import { GlobalSearchBar } from "~/components/search/global-search-bar";
 import { useSession } from "next-auth/react";
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import { GearCreateCard } from "./gear-create";
+import type { UserRole } from "~/server/auth";
 
-const sidebarItems = [
+type SidebarItem = {
+  label: string;
+  href: string;
+  icon: React.ReactNode;
+  allowed: UserRole[];
+};
+
+const sidebarItems: SidebarItem[] = [
   {
     label: "Approvals",
     href: "/admin",
     icon: <CombineIcon className="size-5" />,
-    allowed: ["ADMIN", "EDITOR"],
+    allowed: ["ADMIN", "SUPERADMIN", "EDITOR"],
   },
   {
     label: "Gear",
     href: "/admin/gear",
     icon: <Camera className="size-5" />,
-    allowed: ["EDITOR", "ADMIN"],
+    allowed: ["EDITOR", "ADMIN", "SUPERADMIN"],
   },
   {
     label: "Analytics",
     href: "/admin/analytics",
     icon: <BarChart3 className="size-5" />,
-    allowed: ["ADMIN"],
+    allowed: ["ADMIN", "SUPERADMIN"],
   },
   {
     label: "Tools",
     href: "/admin/tools",
     icon: <Wrench className="size-5" />,
-    allowed: ["ADMIN"],
+    allowed: ["ADMIN", "SUPERADMIN"],
   },
   {
     label: "Leaderboard",
     href: "/admin/leaderboard",
     icon: <Users className="size-5" />,
-    allowed: ["ADMIN", "EDITOR"],
+    allowed: ["ADMIN", "SUPERADMIN", "EDITOR"],
   },
   {
     label: "Logs",
     href: "/admin/logs",
     icon: <ListCheck className="size-5" />,
-    allowed: ["ADMIN", "EDITOR"],
+    allowed: ["ADMIN", "SUPERADMIN", "EDITOR"],
   },
   {
     label: "Help",
     href: "/admin/help",
     icon: <HelpCircle className="size-5" />,
-    allowed: ["ADMIN", "EDITOR"],
+    allowed: ["ADMIN", "SUPERADMIN", "EDITOR"],
   },
   {
     label: "Private",
     href: "/admin/private",
     icon: <Lock className="size-5" />,
-    allowed: [],
+    allowed: ["ADMIN", "SUPERADMIN"],
   },
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const user = useSession();
   const isLoading = user.status === "loading";
+  const role = (user.data?.user?.role as UserRole | undefined) ?? "USER";
+  const isSuperAdmin = role === "SUPERADMIN";
 
   if (user.status === "unauthenticated") {
     return <div>Unauthenticated</div>;
   }
 
-  const superAdmins = ["bf34c0d0-bdff-477d-9c19-7211ed62c586"];
-
   const isLinkAllowed = (href: string) => {
     const item = sidebarItems.find((item) => item.href === href);
-    return (
-      item?.allowed.includes(user.data?.user?.role ?? "USER") ||
-      superAdmins.includes(user.data?.user?.id ?? "")
-    );
+    return isSuperAdmin || (item ? item.allowed.includes(role) : false);
   };
 
   return (
