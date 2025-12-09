@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import { cache } from "react";
 
 import { authConfig } from "./config";
+import { userRoleEnum } from "../db/schema";
 
 const { auth: uncachedAuth, handlers, signIn, signOut } = NextAuth(authConfig);
 
@@ -9,14 +10,33 @@ const auth = cache(uncachedAuth);
 
 export { auth, handlers, signIn, signOut };
 
-export type SessionRole = "USER" | "EDITOR" | "ADMIN";
+export type SessionRole = (typeof userRoleEnum.enumValues)[number];
+
+export const USER_ROLE_ORDER: SessionRole[] = [
+  "USER",
+  "MODERATOR",
+  "EDITOR",
+  "ADMIN",
+  "SUPERADMIN",
+];
 
 export function requireRole(
   session: { user?: { role?: SessionRole } } | null | undefined,
   allowed: SessionRole[],
 ) {
   const role = session?.user?.role;
-  return Boolean(role && allowed.includes(role));
+  if (!role || allowed.length === 0) return false;
+
+  const rolePriority: Record<SessionRole, number> = USER_ROLE_ORDER.reduce(
+    (acc, value, idx) => ({ ...acc, [value]: idx }),
+    {} as Record<SessionRole, number>,
+  );
+
+  const minimumAllowedPriority = Math.min(
+    ...allowed.map((allowedRole) => rolePriority[allowedRole]),
+  );
+
+  return rolePriority[role] >= minimumAllowedPriority;
 }
 
 // Centralized helpers

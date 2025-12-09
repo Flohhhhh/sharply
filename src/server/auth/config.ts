@@ -24,13 +24,13 @@ declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
-      role: "USER" | "EDITOR" | "ADMIN";
+      role: SessionRole;
       memberNumber?: number | null;
     } & DefaultSession["user"];
   }
 
   interface User {
-    role?: "USER" | "EDITOR" | "ADMIN";
+    role?: SessionRole;
     memberNumber?: number | null;
   }
 }

@@ -307,7 +307,10 @@ export async function submitGearEditProposal(body: unknown) {
     note: data.note ?? null,
   });
   let autoApproved = false;
-  if (!hasPending && (role === "ADMIN" || role === "EDITOR")) {
+  if (
+    !hasPending &&
+    (role === "SUPERADMIN" || role === "ADMIN" || role === "EDITOR")
+  ) {
     try {
       await approveProposal(proposal.id, normalizedPayload);
       autoApproved = true;

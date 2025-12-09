@@ -4,7 +4,12 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { db } from "~/server/db";
-import { auth, requireUser } from "~/server/auth";
+import {
+  auth,
+  requireUser,
+  requireRole,
+  type SessionRole,
+} from "~/server/auth";
 import { users } from "~/server/db/schema";
 import {
   assignUserFromInvite,
@@ -17,11 +22,11 @@ import {
 
 export type CreateInviteParams = {
   inviteeName: string;
-  role: "USER" | "EDITOR" | "ADMIN";
+  role: SessionRole;
 };
 
-function assertIsAdmin(role: string | undefined) {
-  if (!role || !["ADMIN"].includes(role)) {
+function assertIsAdminOrHigher(role: SessionRole | undefined) {
+  if (!role || !requireRole({ user: { role } }, ["ADMIN"])) {
     throw new Error("Not authorized");
   }
 }
@@ -30,7 +35,7 @@ export async function createInvite(
   params: CreateInviteParams,
 ): Promise<InviteRow> {
   const session = await auth();
-  assertIsAdmin(session?.user?.role as string | undefined);
+  assertIsAdminOrHigher(session?.user?.role as SessionRole | undefined);
   if (!session?.user?.id) throw new Error("Missing user");
   console.info("[invites] createInvite:start", {
     actorUserId: session.user.id,
@@ -46,7 +51,7 @@ export async function createInvite(
 
 export async function listInvites(): Promise<InviteRow[]> {
   const session = await auth();
-  assertIsAdmin(session?.user?.role as string | undefined);
+  assertIsAdminOrHigher(session?.user?.role as SessionRole | undefined);
   console.info("[invites] listInvites", { actorUserId: session?.user?.id });
   const rows = await selectInvites();
   console.info("[invites] listInvites:result", { count: rows.length });

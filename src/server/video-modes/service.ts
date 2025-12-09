@@ -1,6 +1,6 @@
 import "server-only";
 
-import { requireUser, type SessionRole } from "~/server/auth";
+import { requireUser, requireRole, type SessionRole } from "~/server/auth";
 import { getGearIdBySlug as getGearIdBySlugData } from "~/server/gear/data";
 import {
   fetchVideoModesByGearId,
@@ -12,10 +12,10 @@ import {
   normalizeVideoModes,
   slugifyResolutionKey,
 } from "~/lib/video/mode-schema";
-const EDIT_ROLES: SessionRole[] = ["ADMIN", "EDITOR"];
+const EDIT_ROLES: SessionRole[] = ["EDITOR"];
 
 function assertCanEdit(role: SessionRole | undefined) {
-  if (!role || !EDIT_ROLES.includes(role)) {
+  if (!role || !requireRole({ user: { role } }, EDIT_ROLES)) {
     throw Object.assign(new Error("Forbidden"), { status: 403 });
   }
 }
@@ -70,4 +70,3 @@ export async function rebuildVideoSummariesForSlug(slug: string) {
     modes,
   };
 }
-

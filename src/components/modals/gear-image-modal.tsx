@@ -20,6 +20,7 @@ import {
 import { genUploader } from "uploadthing/client";
 import type { OurFileRouter } from "~/app/(app)/api/uploadthing/core";
 import { Progress } from "~/components/ui/progress";
+import type { SessionRole } from "~/server/auth";
 
 export interface GearImageModalProps {
   gearId?: string;
@@ -31,10 +32,11 @@ export interface GearImageModalProps {
 
 export function GearImageModal(props: GearImageModalProps) {
   const { data: session } = useSession();
-  const isAdmin = useMemo(
-    () => session?.user?.role === "ADMIN",
-    [session?.user?.role],
-  );
+  const isAdmin = useMemo(() => {
+    const role = (session?.user as { role?: SessionRole } | null | undefined)
+      ?.role;
+    return role === "ADMIN" || role === "SUPERADMIN";
+  }, [session?.user]);
   const [open, setOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUploading, setIsUploading] = useState(false);

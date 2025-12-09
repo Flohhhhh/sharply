@@ -1,4 +1,4 @@
-import { auth } from "~/server/auth";
+import { auth, requireRole, type SessionRole } from "~/server/auth";
 import { redirect } from "next/navigation";
 import { listInvites } from "~/server/invites/service";
 import { actionCreateInvite } from "~/server/invites/actions";
@@ -15,13 +15,14 @@ import {
 import { Button } from "~/components/ui/button";
 import Link from "next/link";
 import { CopyButton } from "./copy-button";
+import { AdminUserList } from "./user-list";
 
 export const dynamic = "force-dynamic";
 
 export default async function PrivateAdminPage() {
   const session = await auth();
   if (!session?.user) redirect("/api/auth/signin?callbackUrl=/admin/private");
-  if (session.user.role !== "ADMIN") {
+  if (!requireRole(session as { user?: { role?: SessionRole } }, ["ADMIN"])) {
     return <div>Access denied.</div>;
   }
 
@@ -29,6 +30,8 @@ export default async function PrivateAdminPage() {
 
   return (
     <div className="flex flex-col gap-8">
+      <AdminUserList />
+
       <Card>
         <CardHeader>
           <CardTitle>Create Invite</CardTitle>
@@ -51,9 +54,11 @@ export default async function PrivateAdminPage() {
                   <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="USER">USER</SelectItem>
-                  <SelectItem value="EDITOR">EDITOR</SelectItem>
+                  <SelectItem value="SUPERADMIN">SUPERADMIN</SelectItem>
                   <SelectItem value="ADMIN">ADMIN</SelectItem>
+                  <SelectItem value="EDITOR">EDITOR</SelectItem>
+                  <SelectItem value="USER">USER</SelectItem>
+                  <SelectItem value="MODERATOR">MODERATOR</SelectItem>
                 </SelectContent>
               </Select>
             </div>

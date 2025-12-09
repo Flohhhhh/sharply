@@ -18,6 +18,7 @@ import Link from "next/link";
 import { MultiSelect } from "~/components/ui/multi-select";
 import { AddToCompareButton } from "~/components/compare/add-to-compare-button";
 import { GearImageModal } from "~/components/modals/gear-image-modal";
+import type { SessionRole } from "~/server/auth";
 
 interface GearActionButtonsProps {
   slug: string;
@@ -38,7 +39,9 @@ export function GearActionButtons({
   currentThumbnailUrl = null,
 }: GearActionButtonsProps) {
   const { data: session, status } = useSession();
-  const isAdmin = session?.user?.role === "ADMIN";
+  const role = (session?.user as { role?: SessionRole } | null | undefined)
+    ?.role;
+  const isAdmin = role === "ADMIN" || role === "SUPERADMIN";
   const [inWishlist, setInWishlist] = useState<boolean | null>(
     initialInWishlist,
   );
