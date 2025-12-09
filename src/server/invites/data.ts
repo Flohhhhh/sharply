@@ -3,13 +3,13 @@ import "server-only";
 import { desc, eq } from "drizzle-orm";
 import { db } from "~/server/db";
 import { invites, users } from "~/server/db/schema";
-import type { SessionRole } from "~/server/auth";
+import type { UserRole } from "~/server/auth";
 
 export type InviteRow = typeof invites.$inferSelect;
 
 export async function insertInvite(params: {
   inviteeName: string;
-  role: SessionRole;
+  role: UserRole;
   createdById: string;
 }): Promise<InviteRow> {
   const [row] = await db
@@ -51,7 +51,7 @@ export async function assignUserFromInvite(params: {
   userId: string;
   inviteId: string;
   name: string;
-  role: SessionRole;
+  role: UserRole;
 }): Promise<void> {
   await db
     .update(users)

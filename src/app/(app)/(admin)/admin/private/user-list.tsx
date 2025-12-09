@@ -33,13 +33,13 @@ import {
   PaginationPrevious,
 } from "~/components/ui/pagination";
 import { Badge } from "~/components/ui/badge";
-import type { SessionRole } from "~/server/auth";
+import type { UserRole } from "~/server/auth";
 
 type AdminUserListResponseItem = {
   id: string;
   name: string | null;
   email: string;
-  role: SessionRole;
+  role: UserRole;
   memberNumber: number;
   createdAt: string;
 };
@@ -48,7 +48,7 @@ type AdminUserListRecord = {
   id: string;
   name: string | null;
   email: string;
-  role: SessionRole;
+  role: UserRole;
   memberNumber: number;
   createdAt: Date | null;
 };

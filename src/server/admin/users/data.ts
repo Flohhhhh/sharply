@@ -3,13 +3,13 @@ import "server-only";
 import { desc } from "drizzle-orm";
 import { db } from "~/server/db";
 import { users } from "~/server/db/schema";
-import type { SessionRole } from "~/server/auth";
+import type { UserRole } from "~/server/auth";
 
 export type AdminUserListItem = {
   id: string;
   name: string | null;
   email: string;
-  role: SessionRole;
+  role: UserRole;
   memberNumber: number;
   createdAt: Date;
 };

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { requireUser, requireRole, type SessionRole } from "~/server/auth";
+import { requireUser, requireRole, type UserRole } from "~/server/auth";
 import {
   performFuzzySearch as performFuzzySearchData,
   checkGearCreationData,
@@ -26,7 +26,7 @@ export async function performFuzzySearchAdmin(params: {
   brandId: string;
 }) {
   const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as SessionRole[])) {
+  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
   return performFuzzySearchData(params);
@@ -36,7 +36,7 @@ export async function checkGearCreationAdmin(
   params: GearCreationCheckParams,
 ): Promise<GearCreationCheckResult> {
   const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as SessionRole[])) {
+  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
   return checkGearCreationData(params);
@@ -46,7 +46,7 @@ export async function createGearAdmin(
   params: GearCreationParams,
 ): Promise<GearCreationResult> {
   const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as SessionRole[])) {
+  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
 
@@ -92,7 +92,7 @@ export async function fetchAdminGearItems(
   params: FetchAdminGearItemsParams,
 ): Promise<FetchAdminGearItemsResult> {
   const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as SessionRole[])) {
+  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
   return fetchAdminGearItemsData(params);
@@ -103,7 +103,7 @@ export async function renameGearService(params: {
   newName: string;
 }): Promise<{ id: string; name: string; slug: string; searchName: string }> {
   const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as SessionRole[])) {
+  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
 
@@ -129,14 +129,15 @@ export async function setGearThumbnailService(params: {
   thumbnailUrl: string | null;
 }): Promise<{ id: string; slug: string; thumbnailUrl: string | null }> {
   const session = await requireUser();
-  if (!requireRole(session, ["ADMIN"] as SessionRole[])) {
+  if (!requireRole(session, ["ADMIN"] as UserRole[])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
 
   const { gearId: maybeId, slug, thumbnailUrl } = params;
   let gearId = maybeId;
   if (!gearId) {
-    if (!slug) throw Object.assign(new Error("Missing gear reference"), { status: 400 });
+    if (!slug)
+      throw Object.assign(new Error("Missing gear reference"), { status: 400 });
     const id = await getGearIdBySlug(slug);
     if (!id) throw Object.assign(new Error("Gear not found"), { status: 404 });
     gearId = id;

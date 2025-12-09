@@ -12,11 +12,11 @@ import { NavSheetDesktop } from "./nav-sheet-desktop";
 import Logo from "public/logo";
 import { UserMenu } from "./user-menu";
 import { ThemeSwitcher } from "../theme-switcher";
-import type { SessionRole } from "~/server/auth";
+import type { UserRole } from "~/server/auth";
 
 export type HeaderUser = {
   id: string;
-  role: SessionRole;
+  role: UserRole;
   name?: string | null;
   email?: string | null;
   image?: string | null;

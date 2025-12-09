@@ -10,9 +10,9 @@ const auth = cache(uncachedAuth);
 
 export { auth, handlers, signIn, signOut };
 
-export type SessionRole = (typeof userRoleEnum.enumValues)[number];
+export type UserRole = (typeof userRoleEnum.enumValues)[number];
 
-export const USER_ROLE_ORDER: SessionRole[] = [
+export const USER_ROLE_ORDER: UserRole[] = [
   "USER",
   "MODERATOR",
   "EDITOR",
@@ -21,15 +21,15 @@ export const USER_ROLE_ORDER: SessionRole[] = [
 ];
 
 export function requireRole(
-  session: { user?: { role?: SessionRole } } | null | undefined,
-  allowed: SessionRole[],
+  session: { user?: { role?: UserRole } } | null | undefined,
+  allowed: UserRole[],
 ) {
   const role = session?.user?.role;
   if (!role || allowed.length === 0) return false;
 
-  const rolePriority: Record<SessionRole, number> = USER_ROLE_ORDER.reduce(
+  const rolePriority: Record<UserRole, number> = USER_ROLE_ORDER.reduce(
     (acc, value, idx) => ({ ...acc, [value]: idx }),
-    {} as Record<SessionRole, number>,
+    {} as Record<UserRole, number>,
   );
 
   const minimumAllowedPriority = Math.min(
@@ -41,12 +41,12 @@ export function requireRole(
 
 // Centralized helpers
 export async function requireUser(): Promise<{
-  user: { id: string; role?: SessionRole };
+  user: { id: string; role?: UserRole };
 }> {
   const session = await auth();
   if (!session?.user?.id)
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
-  return session as { user: { id: string; role?: SessionRole } };
+  return session as { user: { id: string; role?: UserRole } };
 }
 
 // Note: requireUserId was removed for a smaller API surface. Use `requireUser()` and access `.user.id`.

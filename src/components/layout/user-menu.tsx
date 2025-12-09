@@ -13,11 +13,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { LogOut, Settings, ShieldCheck, User as UserIcon } from "lucide-react";
-import type { SessionRole } from "~/server/auth";
+import type { UserRole } from "~/server/auth";
 
 export type UserMenuUser = {
   id: string;
-  role: SessionRole;
+  role: UserRole;
   name?: string | null;
   email?: string | null;
   image?: string | null;

@@ -26,7 +26,7 @@ import { toast } from "sonner";
 import { Separator } from "~/components/ui/separator";
 import { actionUpsertStaffVerdict } from "~/server/gear/actions";
 import { Pencil } from "lucide-react";
-import type { SessionRole } from "~/server/auth";
+import type { UserRole } from "~/server/auth";
 
 const verdictSchema = z.object({
   content: z.string().max(5000).optional(),
@@ -49,7 +49,7 @@ function parseLines(value: string | undefined): string[] | null {
 export function ManageStaffVerdictModal({ slug }: { slug: string }) {
   const { data: session } = useSession();
   const isAdmin = useMemo(() => {
-    const role = (session?.user as { role?: SessionRole } | null | undefined)
+    const role = (session?.user as { role?: UserRole } | null | undefined)
       ?.role;
     return role === "ADMIN" || role === "SUPERADMIN";
   }, [session?.user]);

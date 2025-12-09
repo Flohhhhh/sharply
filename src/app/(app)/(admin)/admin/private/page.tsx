@@ -1,4 +1,4 @@
-import { auth, requireRole, type SessionRole } from "~/server/auth";
+import { auth, requireRole, type UserRole } from "~/server/auth";
 import { redirect } from "next/navigation";
 import { listInvites } from "~/server/invites/service";
 import { actionCreateInvite } from "~/server/invites/actions";
@@ -22,7 +22,7 @@ export const dynamic = "force-dynamic";
 export default async function PrivateAdminPage() {
   const session = await auth();
   if (!session?.user) redirect("/api/auth/signin?callbackUrl=/admin/private");
-  if (!requireRole(session as { user?: { role?: SessionRole } }, ["ADMIN"])) {
+  if (!requireRole(session as { user?: { role?: UserRole } }, ["ADMIN"])) {
     return <div>Access denied.</div>;
   }
 
