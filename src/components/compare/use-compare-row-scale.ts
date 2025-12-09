@@ -7,7 +7,7 @@ type ScaleItem = {
 };
 
 export type CompareRowScale = {
-  containerRef: React.RefObject<HTMLDivElement>;
+  containerRef: React.RefObject<HTMLDivElement | null>;
   pixelsPerMillimeter: number;
 };
 
