@@ -8,7 +8,6 @@ import { BadgesCatalog } from "./badges-catalog";
 import { BadgesTestToastButton } from "./badges-test-toast";
 import { TopComparePairs } from "./top-compare-pairs";
 import { AdminImageUploader } from "./admin-image-uploader";
-import { fetchGearProposals } from "~/server/admin/proposals/service";
 import { fetchAdminReviews } from "~/server/admin/reviews/service";
 import type { GearEditProposal } from "~/types/gear";
 import { auth } from "~/server/auth";
@@ -84,9 +83,7 @@ export default async function AdminPage() {
           </p>
         </div>
 
-        <Suspense fallback={<div>Loading proposals...</div>}>
-          <GearProposalsWrapper />
-        </Suspense>
+        <GearProposalsList />
       </div>
 
       {/* Reviews Approval Queue */}
@@ -103,11 +100,6 @@ export default async function AdminPage() {
       </div>
     </div>
   );
-}
-
-async function GearProposalsWrapper() {
-  const proposals = await fetchGearProposals();
-  return <GearProposalsList initialProposals={proposals} />;
 }
 
 async function ReviewsApprovalWrapper() {
