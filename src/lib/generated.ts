@@ -169,6 +169,30 @@ export const MOUNTS = [
     "created_at": "2025-10-11 17:08:20.69577+00",
     "updated_at": "2025-10-11 17:08:20.69577+00",
     "short_name": "efm"
+  },
+  {
+    "id": "6dfe4720-4f70-4334-a141-f064def78837",
+    "value": "x-hasselblad",
+    "brand_id": "48a8333a-84a1-4800-8b66-90cce7a79d3f",
+    "created_at": "2025-12-09 17:19:07.950103+00",
+    "updated_at": "2025-12-09 17:19:07.950103+00",
+    "short_name": "x"
+  },
+  {
+    "id": "37a68ec2-adcd-4f22-8538-8832c6c282aa",
+    "value": "h-hasselblad",
+    "brand_id": "48a8333a-84a1-4800-8b66-90cce7a79d3f",
+    "created_at": "2025-12-09 17:19:07.960203+00",
+    "updated_at": "2025-12-09 17:19:07.960203+00",
+    "short_name": "h"
+  },
+  {
+    "id": "f18c7f46-34d0-4eee-ba2c-6823fefab9f1",
+    "value": "v-hasselblad",
+    "brand_id": "48a8333a-84a1-4800-8b66-90cce7a79d3f",
+    "created_at": "2025-12-09 17:19:07.960016+00",
+    "updated_at": "2025-12-09 17:19:07.960016+00",
+    "short_name": "v"
   }
 ];
 export const SENSOR_FORMATS = [
