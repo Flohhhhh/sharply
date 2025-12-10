@@ -373,7 +373,7 @@ export const specDictionary: SpecSectionDef[] = [
         getRawValue: (item) => item.cameraSpecs?.sensorReadoutSpeedMs,
         formatDisplay: (raw) =>
           typeof raw === "number" || typeof raw === "string"
-            ? String(raw)
+            ? `${String(raw)} ms`
             : undefined,
       },
       {
