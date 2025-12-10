@@ -3,6 +3,18 @@ import { cn } from "~/lib/utils";
 import { formatShutterType } from "~/lib/mapping";
 import type { GearItem } from "~/types/gear";
 
+function safeToString(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean")
+    return String(value);
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+}
+
 export function normalizeShutterTypeKey(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const lowered = value.toLowerCase();
@@ -205,6 +217,35 @@ export function formatShutterLabel(shutterType: string): string {
   );
 }
 
+export function formatMaxFpsPlain(value: unknown): string {
+  if (!value || typeof value !== "object") return safeToString(value);
+  const entries: string[] = [];
+  for (const [rawKey, rawEntry] of Object.entries(
+    value as Record<string, unknown>,
+  )) {
+    if (!rawEntry || typeof rawEntry !== "object") continue;
+    const normalizedKey = normalizeShutterTypeKey(rawKey) ?? rawKey;
+    const label = formatShutterLabel(normalizedKey);
+    const entryObj = rawEntry as { raw?: unknown; jpg?: unknown };
+    const rawText =
+      entryObj.raw === undefined ? null : formatFpsText(entryObj.raw as any);
+    const jpgText =
+      entryObj.jpg === undefined ? null : formatFpsText(entryObj.jpg as any);
+    let combined = "";
+    if (rawText && jpgText) {
+      combined =
+        rawText === jpgText ? rawText : `${rawText} (Raw), ${jpgText} (JPG)`;
+    } else if (rawText) {
+      combined = `${rawText} (Raw)`;
+    } else if (jpgText) {
+      combined = `${jpgText} (JPG)`;
+    }
+    if (combined.length === 0) continue;
+    entries.push(`${label}: ${combined}`);
+  }
+  return entries.length ? entries.join("; ") : safeToString(value);
+}
+
 export function formatSingleShutterInline(
   rawValue: number | null | undefined,
   jpgValue: number | null | undefined,
@@ -297,4 +338,3 @@ export function formatMaxFpsDisplay(
         formatFpsText(fallbackJpg),
       );
 }
-

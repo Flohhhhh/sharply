@@ -18,6 +18,7 @@ import {
   formatCardSlotDetails,
   formatPrecaptureSupport,
 } from "~/lib/mapping";
+import { formatMaxFpsPlain } from "~/lib/mapping/max-fps-map";
 import { sensorNameFromSlug, sensorNameFromId } from "~/lib/mapping/sensor-map";
 import { getMountLongNameById } from "~/lib/mapping/mounts-map";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
@@ -326,6 +327,7 @@ export function GearProposalsList() {
     if (k === "precaptureSupportLevel") {
       return formatPrecaptureSupport(v) ?? String(v);
     }
+    if (k === "maxFpsByShutter") return formatMaxFpsPlain(v);
     return String(v);
   };
   const formatBeforeValueForKey = (k: string, v: any): string => {
@@ -346,6 +348,7 @@ export function GearProposalsList() {
     if (k === "precaptureSupportLevel") {
       return formatPrecaptureSupport(v) ?? String(v ?? "Empty");
     }
+    if (k === "maxFpsByShutter") return formatMaxFpsPlain(v);
     return String(v ?? "Empty");
   };
 
@@ -1407,6 +1410,7 @@ export function GearProposalsList() {
           ? v.map((id) => getMountLongNameById(id as string)).join(", ")
           : getMountLongNameById(v as string);
       }
+      if (k === "maxFpsByShutter") return formatMaxFpsPlain(v);
       return String(v);
     };
     const formatBeforeValue = (k: string, v: any): string => {
@@ -1419,6 +1423,7 @@ export function GearProposalsList() {
           ? v.map((id) => getMountLongNameById(id as string)).join(", ")
           : getMountLongNameById(v as string);
       }
+      if (k === "maxFpsByShutter") return formatMaxFpsPlain(v);
       return String(v);
     };
     const renderStaticDiffs = (
