@@ -122,6 +122,7 @@ export default async function AllGearContent({
               slug={g.slug}
               name={g.name}
               brandName={g.brandName}
+              thumbnailUrl={g.thumbnailUrl ?? undefined}
               gearType={g.gearType}
               topLeftLabel={null}
               priceText={getItemDisplayPrice(g, {
