@@ -6,9 +6,14 @@ Sensor will be digitally enhanced or replace in final result if needed.
 
 # Finding Images
 
-If you are getting an image from a manufacturer press release asset, make sure to use the front facing image with no lens (sensor showing). If one is not available, choose the best available front-facing image. Prefer w body cap, then w/ lens if needed.
-
+To find images start by looking for a manufacturer press release. They often include images intended for news and press use available for download.
 It is absolutely essential that you do not ever grab images from sites other than manufacturers sites. Images from sites like DP Review or other review sites are strictly off limits.
+
+## For Cameras
+Make sure to use the front facing image with no lens (sensor showing). If one is not available, choose the best available front-facing image. Prefer w body cap, then w/ lens if needed.
+
+## For Lenses
+Prefer a horizontal left facing (front element facing left, mount facing right) image with front element visible. If one is not available, look for a vertiaclly aligned image with front element visible that can be rotated to face left.
 
 # Processing Images
 
