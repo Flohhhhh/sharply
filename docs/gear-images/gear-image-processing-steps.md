@@ -20,7 +20,7 @@ Prefer a horizontal left facing (front element facing left, mount facing right) 
 - Import into Photoshop
 - Remove background if there is one, make sure edges are clean, no white or black left
   - Make sure to remove any holes for straps or in small details
-  - Sometimes it helps to do (Select > Modify > Contract > 1px. Do this before sizing the image down.)
+  - Sometimes it helps to do (Select > Modify > Contract > 1px (check "apply effect at image bounds").Do this before sizing the image down.)
 - If it's a lens and not facing left (front element toward left) rotate into that orientation
 - Crop tightly on all edges (aspect ratio does not matter)
 - If image is larger than 1000px wide, do Image > Image Size > Select "Pixels" for Width > Type 1000px for pixel value leaving resolution at 72 and resampling automatic
