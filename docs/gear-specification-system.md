@@ -42,6 +42,9 @@ Stores detailed camera-specific specifications:
 - **Primary Key**: `gearId` (1:1 relationship with gear)
 - **Sensor**: Format reference, resolution in megapixels
 - **Performance**: ISO range (min/max), IBIS (in-body stabilization), available shutter types, viewfinder type
+- **Burst rate**:
+  - `max_fps_by_shutter` (JSONB, nullable) stores per-shutter continuous FPS for RAW/JPG. Keys: `mechanical`, `efc`, `electronic` with `{ raw, jpg }` numeric values.
+  - Headline `max_fps_raw` and `max_fps_jpg` mirror the maximum RAW/JPG values across the JSON object for backward compatibility.
 - **Precapture**: `precaptureSupportLevel` (`integer`, null allowed) tracks buffer support
   - `0`: No precapture buffer
   - `1`: Yes (RAW)
@@ -194,6 +197,12 @@ The registry exports `buildGearSpecsSections(item: GearItem)` which returns `Spe
 - **Gear Pages**: `buildGearSpecsSections(item)` replaces inline spec definitions
 - **Compare Views**: `CompareSpecsTable` component reuses the same registry
 - **Future Surfaces**: Any new spec display can import and use the registry
+
+**Max Continuous FPS display**
+
+- Uses `max_fps_by_shutter` to render one line per available shutter type when multiple shutters exist (e.g., `Mechanical: Raw 20 fps, JPG 15 fps`).
+- When only one shutter type is available, values are flattened inline (e.g., `20 fps (Raw), 120 fps (JPG)` or `14 fps` when equal).
+- Falls back to `max_fps_raw` / `max_fps_jpg` when per-shutter JSON is missing.
 
 ### Adding New Specs
 
