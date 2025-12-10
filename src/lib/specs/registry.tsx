@@ -16,6 +16,7 @@ import {
   getMountLongNamesById,
 } from "~/lib/mapping/mounts-map";
 import { sensorNameFromId, sensorTypeLabel } from "~/lib/mapping/sensor-map";
+import { formatMaxFpsDisplay } from "~/lib/mapping/max-fps-map";
 import { formatFocusDistance } from "~/lib/mapping/focus-distance-map";
 import { formatFilterType } from "~/lib/mapping/filter-types-map";
 import { MOUNTS, AF_AREA_MODES } from "~/lib/generated";
@@ -344,18 +345,16 @@ export const specDictionary: SpecSectionDef[] = [
         editElementId: "isoRange",
       },
       {
-        key: "maxFpsRaw",
-        label: "Max FPS (RAW)",
-        getRawValue: (item) => item.cameraSpecs?.maxFpsRaw,
-        formatDisplay: (raw) =>
-          raw != null ? `${formatDecimalCompact(raw as any)} fps` : undefined,
-      },
-      {
-        key: "maxFpsJpg",
-        label: "Max FPS (JPEG)",
-        getRawValue: (item) => item.cameraSpecs?.maxFpsJpg,
-        formatDisplay: (raw) =>
-          raw != null ? `${formatDecimalCompact(raw as any)} fps` : undefined,
+        key: "maxFpsByShutter",
+        label: "Max Continuous FPS",
+        getRawValue: (item) => ({
+          perShutter: item.cameraSpecs?.maxFpsByShutter,
+          availableShutters: item.cameraSpecs?.availableShutterTypes,
+          maxRaw: item.cameraSpecs?.maxFpsRaw,
+          maxJpg: item.cameraSpecs?.maxFpsJpg,
+        }),
+        formatDisplay: (_, item) => formatMaxFpsDisplay(item),
+        editElementId: "maxFpsByShutter",
       },
       {
         key: "sensorType",
@@ -374,7 +373,7 @@ export const specDictionary: SpecSectionDef[] = [
         getRawValue: (item) => item.cameraSpecs?.sensorReadoutSpeedMs,
         formatDisplay: (raw) =>
           typeof raw === "number" || typeof raw === "string"
-            ? String(raw)
+            ? `${String(raw)} ms`
             : undefined,
       },
       {

@@ -33,6 +33,60 @@ import {
 } from "~/lib/video/mode-schema";
 import type { GearItem } from "~/types/gear";
 
+const SHUTTER_LABELS: Record<string, string> = {
+  mechanical: "Mechanical",
+  efc: "EFCS",
+  electronic: "Electronic",
+};
+
+function safeString(value: unknown): string {
+  if (value == null) return "";
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return "";
+  }
+}
+
+function formatFpsValue(value: unknown): string {
+  const num = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(num)) return String(value);
+  return `${num} fps`;
+}
+
+function formatMaxFpsByShutter(value: unknown): string {
+  if (!value || typeof value !== "object") return safeString(value);
+  const entries: string[] = [];
+  for (const [rawKey, rawEntry] of Object.entries(
+    value as Record<string, unknown>,
+  )) {
+    if (!rawEntry || typeof rawEntry !== "object") continue;
+    const key = rawKey.toLowerCase();
+    const label = SHUTTER_LABELS[key] ?? rawKey;
+    const entryObj = rawEntry as { raw?: unknown; jpg?: unknown };
+    const rawVal = entryObj.raw;
+    const jpgVal = entryObj.jpg;
+    const rawText = rawVal === undefined ? null : formatFpsValue(rawVal);
+    const jpgText = jpgVal === undefined ? null : formatFpsValue(jpgVal);
+    let combined = "";
+    if (rawText && jpgText) {
+      combined =
+        rawText === jpgText ? rawText : `${rawText} (Raw), ${jpgText} (JPG)`;
+    } else if (rawText) {
+      combined = `${rawText} (Raw)`;
+    } else if (jpgText) {
+      combined = `${jpgText} (JPG)`;
+    }
+    if (combined.length === 0) continue;
+    entries.push(`${label}: ${combined}`);
+  }
+  return entries.length ? entries.join("; ") : safeString(value);
+}
+
 interface EditGearFormProps {
   gearType?: "CAMERA" | "LENS";
   gearSlug: string;
@@ -247,6 +301,7 @@ function EditGearForm({
         "shutterSpeedMin",
         "maxFpsRaw",
         "maxFpsJpg",
+        "maxFpsByShutter",
         "flashSyncSpeed",
         "hasSilentShootingAvailable",
         "availableShutterTypes",
@@ -764,12 +819,34 @@ function EditGearForm({
                     <div>
                       <div className="mb-1 font-medium">Camera</div>
                       <ul className="list-disc pl-5">
+                        {Array.isArray(
+                          (diffPreview.camera as any)?.availableShutterTypes,
+                        ) && (
+                          <li>
+                            <span className="text-muted-foreground">
+                              Available Shutter Types:
+                            </span>{" "}
+                            <span className="font-medium">
+                              {(
+                                (diffPreview.camera as any)
+                                  ?.availableShutterTypes as string[]
+                              ).join(", ")}
+                            </span>
+                          </li>
+                        )}
                         {Object.entries(
                           diffPreview.camera as Record<string, any>,
                         ).map(([k, v]) => {
+                          if (k === "availableShutterTypes") return null;
                           let display: string = String(v);
                           if (k === "sensorFormatId")
                             display = sensorNameFromSlug(v as string);
+                          if (k === "maxFpsRaw" || k === "maxFpsJpg") {
+                            display = formatFpsValue(v);
+                          }
+                          if (k === "maxFpsByShutter") {
+                            display = formatMaxFpsByShutter(v);
+                          }
                           return (
                             <li key={k}>
                               <span className="text-muted-foreground">

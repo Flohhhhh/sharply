@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, memo, useMemo } from "react";
+import { useCallback, memo, useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
 import {
@@ -43,6 +43,247 @@ interface CameraFieldsProps {
   sectionId?: string;
 }
 
+const shutterTypeOrder = ["mechanical", "efc", "electronic"] as const;
+type ShutterType = (typeof shutterTypeOrder)[number];
+type ShutterFpsEntry = { raw?: number | null; jpg?: number | null };
+type ShutterFpsByType = Partial<Record<ShutterType, ShutterFpsEntry>>;
+
+const shutterTypeLabels: Record<ShutterType, string> = {
+  mechanical: "Mechanical shutter",
+  efc: "Electronic first curtain",
+  electronic: "Electronic shutter",
+};
+
+function normalizeShutterTypeKey(value: string): ShutterType | null {
+  const lowered = value.toLowerCase();
+  if (lowered === "efcs") return "efc";
+  if (shutterTypeOrder.includes(lowered as ShutterType)) {
+    return lowered as ShutterType;
+  }
+  return null;
+}
+
+function normalizeFpsNumericValue(value: unknown): number | null | undefined {
+  if (value === null) return null;
+  if (value === undefined) return undefined;
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return Math.round(value * 10) / 10;
+  }
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return Math.round(parsed * 10) / 10;
+  }
+  return undefined;
+}
+
+function normalizeMaxFpsByShutterValue(
+  value: unknown,
+  availableShutterTypes: string[],
+): ShutterFpsByType {
+  if (!value || typeof value !== "object") return {};
+  const allowedNormalized = (availableShutterTypes ?? [])
+    .map((shutterType) => normalizeShutterTypeKey(shutterType))
+    .filter((shutterType): shutterType is ShutterType => Boolean(shutterType));
+  const allowedSet = new Set<ShutterType>(allowedNormalized);
+  const collected: ShutterFpsByType = {};
+
+  for (const [rawKey, rawValue] of Object.entries(
+    value as Record<string, unknown>,
+  )) {
+    const normalizedKey =
+      typeof rawKey === "string" ? normalizeShutterTypeKey(rawKey) : null;
+    if (!normalizedKey) continue;
+    if (allowedSet.size > 0 && !allowedSet.has(normalizedKey)) continue;
+    if (typeof rawValue !== "object" || rawValue === null) continue;
+    const rawFps = normalizeFpsNumericValue(
+      (rawValue as Record<string, unknown>).raw,
+    );
+    const jpgFps = normalizeFpsNumericValue(
+      (rawValue as Record<string, unknown>).jpg,
+    );
+    if (rawFps === undefined && jpgFps === undefined) continue;
+    collected[normalizedKey] = {
+      ...(rawFps !== undefined ? { raw: rawFps } : {}),
+      ...(jpgFps !== undefined ? { jpg: jpgFps } : {}),
+    };
+  }
+
+  const orderedResult: ShutterFpsByType = {};
+  const ordering =
+    allowedNormalized.length > 0
+      ? allowedNormalized
+      : Array.from(shutterTypeOrder);
+  for (const shutterType of ordering) {
+    if (collected[shutterType]) {
+      orderedResult[shutterType] = collected[shutterType];
+    }
+  }
+
+  return orderedResult;
+}
+
+function computeHeadlineMaxFps(shutterMap: ShutterFpsByType): {
+  maxRaw: number | null;
+  maxJpg: number | null;
+} {
+  let maxRaw: number | null = null;
+  let maxJpg: number | null = null;
+  for (const entry of Object.values(shutterMap)) {
+    if (!entry) continue;
+    if (typeof entry.raw === "number") {
+      maxRaw = maxRaw === null ? entry.raw : Math.max(maxRaw, entry.raw);
+    }
+    if (typeof entry.jpg === "number") {
+      maxJpg = maxJpg === null ? entry.jpg : Math.max(maxJpg, entry.jpg);
+    }
+  }
+  return { maxRaw, maxJpg };
+}
+
+function FpsPerShutterInput({
+  availableShutterTypes,
+  value,
+  onChange,
+  onHeadlineChange,
+  isVisible,
+}: {
+  availableShutterTypes: string[];
+  value: unknown;
+  onChange: (nextValue: ShutterFpsByType | null) => void;
+  onHeadlineChange: (maxRaw: number | null, maxJpg: number | null) => void;
+  isVisible: boolean;
+}) {
+  const normalizedAvailable = useMemo(
+    () =>
+      (availableShutterTypes ?? [])
+        .map((shutterType) => normalizeShutterTypeKey(shutterType))
+        .filter((shutterType): shutterType is ShutterType =>
+          Boolean(shutterType),
+        ),
+    [availableShutterTypes],
+  );
+
+  const normalizedValue = useMemo(
+    () => normalizeMaxFpsByShutterValue(value, normalizedAvailable),
+    [value, normalizedAvailable],
+  );
+
+  const { maxRaw, maxJpg } = useMemo(
+    () => computeHeadlineMaxFps(normalizedValue),
+    [normalizedValue],
+  );
+
+  useEffect(() => {
+    const serializedCurrent = JSON.stringify(value ?? {});
+    const serializedNormalized = JSON.stringify(normalizedValue);
+    if (serializedCurrent !== serializedNormalized) {
+      onChange(
+        Object.keys(normalizedValue).length > 0 ? normalizedValue : null,
+      );
+    }
+    onHeadlineChange(maxRaw, maxJpg);
+  }, [maxRaw, maxJpg, normalizedValue, onChange, onHeadlineChange, value]);
+
+  const handleValueChange = useCallback(
+    (
+      shutterType: ShutterType,
+      field: "raw" | "jpg",
+      nextValue: number | null,
+    ) => {
+      const nextMap: ShutterFpsByType = { ...normalizedValue };
+      const currentEntry: ShutterFpsEntry = { ...(nextMap[shutterType] ?? {}) };
+      currentEntry[field] = nextValue;
+
+      if (
+        (currentEntry.raw === null || currentEntry.raw === undefined) &&
+        (currentEntry.jpg === null || currentEntry.jpg === undefined)
+      ) {
+        delete nextMap[shutterType];
+      } else {
+        nextMap[shutterType] = currentEntry;
+      }
+
+      const headline = computeHeadlineMaxFps(nextMap);
+      onChange(Object.keys(nextMap).length > 0 ? nextMap : null);
+      onHeadlineChange(headline.maxRaw, headline.maxJpg);
+    },
+    [normalizedValue, onChange, onHeadlineChange],
+  );
+
+  if (!isVisible) return null;
+
+  if (normalizedAvailable.length === 0) {
+    return (
+      <div className="text-muted-foreground rounded-md border p-3 text-sm">
+        Select available shutter types to enter max FPS values.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {normalizedAvailable.map((shutterType) => {
+        const entry = normalizedValue[shutterType] ?? {};
+        return (
+          <div key={shutterType} className="space-y-3 rounded-md border p-3">
+            <div className="font-semibold">
+              {shutterTypeLabels[shutterType] ?? shutterType}
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <div className="flex-1">
+                <NumberInput
+                  id={`maxFpsByShutter-${shutterType}-raw`}
+                  label="RAW FPS"
+                  value={
+                    entry.raw === null || entry.raw === undefined
+                      ? null
+                      : entry.raw
+                  }
+                  onChange={(newValue) =>
+                    handleValueChange(
+                      shutterType,
+                      "raw",
+                      newValue === null ? null : Number(newValue),
+                    )
+                  }
+                  placeholder="e.g., 20.0"
+                  min={0}
+                  max={120}
+                  step={0.1}
+                  suffix="fps"
+                />
+              </div>
+              <div className="flex-1">
+                <NumberInput
+                  id={`maxFpsByShutter-${shutterType}-jpg`}
+                  label="JPG FPS"
+                  value={
+                    entry.jpg === null || entry.jpg === undefined
+                      ? null
+                      : entry.jpg
+                  }
+                  onChange={(newValue) =>
+                    handleValueChange(
+                      shutterType,
+                      "jpg",
+                      newValue === null ? null : Number(newValue),
+                    )
+                  }
+                  placeholder="e.g., 20.0"
+                  min={0}
+                  max={120}
+                  step={0.1}
+                  suffix="fps"
+                />
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // Using shared NumberInput from custom-inputs
 
 function CameraFieldsComponent({
@@ -63,6 +304,8 @@ function CameraFieldsComponent({
   if (!currentSpecs?.afAreaModes) {
     throw new Error("afAreaModes is completely missing");
   }
+
+  const [usePerShutterFps, setUsePerShutterFps] = useState(true);
 
   // // Use sensor formats from constants
   // const sensorFormatOptions = useMemo(
@@ -336,18 +579,12 @@ function CameraFieldsComponent({
                   )
                 }
               >
-                <SelectTrigger
-                  id="precaptureSupportLevel"
-                  className="w-full"
-                >
+                <SelectTrigger id="precaptureSupportLevel" className="w-full">
                   <SelectValue placeholder="Select support level" />
                 </SelectTrigger>
                 <SelectContent>
                   {PRECAPTURE_SUPPORT_OPTIONS.map((option) => (
-                    <SelectItem
-                      key={option.value}
-                      value={String(option.value)}
-                    >
+                    <SelectItem key={option.value} value={String(option.value)}>
                       {option.label}
                     </SelectItem>
                   ))}
@@ -774,44 +1011,6 @@ function CameraFieldsComponent({
             />
           )}
 
-          {/* Max FPS RAW */}
-          {showWhenMissing((initialSpecs as any)?.maxFpsRaw) && (
-            <NumberInput
-              id="maxFpsRaw"
-              label="Max FPS (RAW)"
-              value={
-                currentSpecs?.maxFpsRaw != null
-                  ? parseFloat(currentSpecs.maxFpsRaw)
-                  : null
-              }
-              onChange={(value) => handleFieldChange("maxFpsRaw", value)}
-              placeholder="e.g., 20.0"
-              min={0}
-              max={120}
-              step={0.1}
-              suffix="fps"
-            />
-          )}
-
-          {/* Max FPS JPEG */}
-          {showWhenMissing((initialSpecs as any)?.maxFpsJpg) && (
-            <NumberInput
-              id="maxFpsJpg"
-              label="Max FPS (JPEG)"
-              value={
-                currentSpecs?.maxFpsJpg != null
-                  ? parseFloat(currentSpecs.maxFpsJpg)
-                  : null
-              }
-              onChange={(value) => handleFieldChange("maxFpsJpg", value)}
-              placeholder="e.g., 20.0"
-              min={0}
-              max={120}
-              step={0.1}
-              suffix="fps"
-            />
-          )}
-
           {/* Flash Sync Speed */}
           {showWhenMissing((initialSpecs as any)?.flashSyncSpeed) && (
             <NumberInput
@@ -858,6 +1057,99 @@ function CameraFieldsComponent({
                   handleFieldChange("availableShutterTypes", value)
                 }
               />
+            </div>
+          )}
+
+          {/* Max Continuous FPS */}
+          {(showWhenMissing((initialSpecs as any)?.maxFpsRaw) ||
+            showWhenMissing((initialSpecs as any)?.maxFpsJpg)) && (
+            <div id="maxFpsByShutter" className="space-y-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <Label>Max Continuous FPS (Photo)</Label>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="usePerShutterFps"
+                    checked={usePerShutterFps}
+                    onCheckedChange={(checked) => {
+                      const enabled = checked === true;
+                      setUsePerShutterFps(enabled);
+                      if (!enabled) {
+                        handleFieldChange("maxFpsByShutter", null);
+                      }
+                    }}
+                  />
+                  <Label
+                    htmlFor="usePerShutterFps"
+                    className="text-muted-foreground cursor-pointer text-sm"
+                  >
+                    Use per-shutter inputs
+                  </Label>
+                </div>
+              </div>
+
+              {!usePerShutterFps && (
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <div className="flex-1">
+                    <NumberInput
+                      id="maxFpsRaw"
+                      label="Max FPS (RAW)"
+                      value={
+                        currentSpecs?.maxFpsRaw != null
+                          ? parseFloat(currentSpecs.maxFpsRaw)
+                          : null
+                      }
+                      onChange={(value) =>
+                        handleFieldChange("maxFpsRaw", value)
+                      }
+                      placeholder="e.g., 20.0"
+                      min={0}
+                      max={120}
+                      step={0.1}
+                      suffix="fps"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <NumberInput
+                      id="maxFpsJpg"
+                      label="Max FPS (JPG)"
+                      value={
+                        currentSpecs?.maxFpsJpg != null
+                          ? parseFloat(currentSpecs.maxFpsJpg)
+                          : null
+                      }
+                      onChange={(value) =>
+                        handleFieldChange("maxFpsJpg", value)
+                      }
+                      placeholder="e.g., 20.0"
+                      min={0}
+                      max={120}
+                      step={0.1}
+                      suffix="fps"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {usePerShutterFps && (
+                <FpsPerShutterInput
+                  availableShutterTypes={
+                    currentSpecs?.availableShutterTypes ?? []
+                  }
+                  value={currentSpecs?.maxFpsByShutter}
+                  onChange={(nextValue) =>
+                    handleFieldChange("maxFpsByShutter", nextValue)
+                  }
+                  onHeadlineChange={(maxRaw, maxJpg) => {
+                    if (maxRaw !== currentSpecs?.maxFpsRaw) {
+                      handleFieldChange("maxFpsRaw", maxRaw);
+                    }
+                    if (maxJpg !== currentSpecs?.maxFpsJpg) {
+                      handleFieldChange("maxFpsJpg", maxJpg);
+                    }
+                  }}
+                  isVisible
+                />
+              )}
             </div>
           )}
 
@@ -973,9 +1265,7 @@ function CameraFieldsComponent({
               checked={currentSpecs?.hasOpenGateVideo ?? null}
               allowNull
               showStateText
-              onChange={(value) =>
-                handleFieldChange("hasOpenGateVideo", value)
-              }
+              onChange={(value) => handleFieldChange("hasOpenGateVideo", value)}
             />
           )}
 

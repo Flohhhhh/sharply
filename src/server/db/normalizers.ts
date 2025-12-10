@@ -62,6 +62,65 @@ function pruneUndefined<T extends Record<string, unknown>>(obj: T): T {
   return Object.fromEntries(entries) as T;
 }
 
+const knownShutterTypes = ["mechanical", "efc", "electronic"] as const;
+
+function normalizeShutterTypeKey(value: string): string | null {
+  const lowered = value.toLowerCase();
+  if (lowered === "efcs") return "efc";
+  if (
+    knownShutterTypes.includes(lowered as (typeof knownShutterTypes)[number])
+  ) {
+    return lowered;
+  }
+  return null;
+}
+
+function normalizeMaxFpsValue(value: unknown): number | null | undefined {
+  if (value === null) return null;
+  const num = coerceNumber(value);
+  if (num === null) return undefined;
+  return Math.round(num * 10) / 10;
+}
+
+function normalizeMaxFpsByShutter(
+  value: unknown,
+  allowedShutterTypes: string[],
+): Record<string, { raw?: number | null; jpg?: number | null }> {
+  if (!value || typeof value !== "object") return {};
+  const allowedNormalized = (allowedShutterTypes ?? [])
+    .map((shutterType) => normalizeShutterTypeKey(shutterType))
+    .filter((shutterType): shutterType is string => Boolean(shutterType));
+  const allowedSet =
+    allowedNormalized.length > 0
+      ? new Set(allowedNormalized)
+      : new Set<string>(knownShutterTypes as unknown as string[]);
+
+  const result: Record<string, { raw?: number | null; jpg?: number | null }> =
+    {};
+  for (const [shutterKey, rawEntry] of Object.entries(
+    value as Record<string, unknown>,
+  )) {
+    const normalizedKey =
+      typeof shutterKey === "string"
+        ? normalizeShutterTypeKey(shutterKey)
+        : null;
+    if (!normalizedKey || !allowedSet.has(normalizedKey)) continue;
+    if (typeof rawEntry !== "object" || rawEntry === null) continue;
+    const rawFps = normalizeMaxFpsValue(
+      (rawEntry as Record<string, unknown>).raw,
+    );
+    const jpgFps = normalizeMaxFpsValue(
+      (rawEntry as Record<string, unknown>).jpg,
+    );
+    if (rawFps === undefined && jpgFps === undefined) continue;
+    result[normalizedKey] = pruneUndefined({
+      raw: rawFps,
+      jpg: jpgFps,
+    });
+  }
+  return result;
+}
+
 export function normalizeProposalPayloadForDb(
   payload: ProposalPayload,
 ): ProposalPayload {
@@ -413,6 +472,24 @@ export function normalizeProposalPayloadForDb(
           const num = coerceNumber(value);
           return num === null ? undefined : Math.round(num * 10) / 10;
         }, z.number().nullable().optional())
+        .optional(),
+      maxFpsByShutter: z
+        .preprocess(
+          (value) => {
+            if (value === null) return null;
+            const cleaned = normalizeMaxFpsByShutter(value, []);
+            return Object.keys(cleaned).length > 0 ? cleaned : null;
+          },
+          z
+            .record(
+              z.object({
+                raw: z.number().nullable().optional(),
+                jpg: z.number().nullable().optional(),
+              }),
+            )
+            .nullable()
+            .optional(),
+        )
         .optional(),
       flashSyncSpeed: z
         .preprocess((value) => {
