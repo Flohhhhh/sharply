@@ -23,7 +23,10 @@ export const ourFileRouter = {
       const session = await auth();
 
       // If you throw, the user will not be able to upload
-      if (!session?.user?.id) throw new UploadThingError("Unauthorized");
+      if (!session?.user?.id) {
+        console.log("Attempt to upload image without user", session);
+        throw new UploadThingError("Unauthorized");
+      }
 
       // Whatever is returned here is accessible in onUploadComplete as `metadata`
       return { userId: session.user.id };
@@ -49,8 +52,18 @@ export const ourFileRouter = {
       const role = session?.user?.role;
 
       // If you throw, the user will not be able to upload
-      if (!session?.user?.id || role !== "ADMIN")
+      if (!session?.user?.id) {
+        console.log("Attempt to upload image without user", session);
         throw new UploadThingError("Unauthorized");
+      }
+
+      if (role !== "ADMIN" && role !== "SUPERADMIN") {
+        console.log(
+          "Attempt to upload gear image without admin or superadmin role",
+          session,
+        );
+        throw new UploadThingError("Unauthorized");
+      }
 
       // Whatever is returned here is accessible in onUploadComplete as `metadata`
       return { userId: session.user.id, role: role };
