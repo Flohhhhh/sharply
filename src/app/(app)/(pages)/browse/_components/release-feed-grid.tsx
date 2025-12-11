@@ -85,6 +85,7 @@ export function ReleaseFeedGrid({
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
+        if (!entry) return;
         if (entry.isIntersecting && !loadingRef.current) {
           void setSize((current) => current + 1);
         }
