@@ -147,7 +147,7 @@ export async function setGearThumbnailService(params: {
 
   try {
     await db.insert(auditLogs).values({
-      action: "GEAR_EDIT_APPROVE", // closest available action for now
+      action: thumbnailUrl ? "GEAR_IMAGE_UPLOAD" : "GEAR_IMAGE_REMOVE",
       actorUserId: session.user.id,
       gearId: updated.id,
     });
