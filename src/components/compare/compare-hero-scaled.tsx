@@ -15,10 +15,13 @@ export function CompareHeroScaledRow({
   leftItem,
   rightItem,
 }: CompareHeroScaledRowProps) {
+  const isCameraComparison =
+    leftItem?.gearType === "CAMERA" && rightItem?.gearType === "CAMERA";
   const leftWidthMillimeters = parseWidthMillimeters(leftItem?.widthMm);
   const rightWidthMillimeters = parseWidthMillimeters(rightItem?.widthMm);
   const hasMissingWidth =
-    leftWidthMillimeters == null || rightWidthMillimeters == null;
+    isCameraComparison &&
+    (leftWidthMillimeters == null || rightWidthMillimeters == null);
 
   const { containerRef, pixelsPerMillimeter } = useCompareRowScale({
     items: [
@@ -30,15 +33,30 @@ export function CompareHeroScaledRow({
   const fallbackWidthMillimeters = 140;
 
   const { leftDisplayWidthPixels, rightDisplayWidthPixels } = useMemo(() => {
-    const compute = (widthMm: number | null) => {
+    // Only apply physical scaling for camera-to-camera comparisons.
+    // For lenses or mixed types, use a constant display width to avoid implying scale.
+    if (!isCameraComparison) {
+      const constantWidthPixels = fallbackWidthMillimeters * pixelsPerMillimeter;
+      return {
+        leftDisplayWidthPixels: constantWidthPixels,
+        rightDisplayWidthPixels: constantWidthPixels,
+      };
+    }
+
+    const computeCameraWidth = (widthMm: number | null) => {
       const mm = widthMm ?? fallbackWidthMillimeters;
       return mm * pixelsPerMillimeter;
     };
     return {
-      leftDisplayWidthPixels: compute(leftWidthMillimeters),
-      rightDisplayWidthPixels: compute(rightWidthMillimeters),
+      leftDisplayWidthPixels: computeCameraWidth(leftWidthMillimeters),
+      rightDisplayWidthPixels: computeCameraWidth(rightWidthMillimeters),
     };
-  }, [leftWidthMillimeters, rightWidthMillimeters, pixelsPerMillimeter]);
+  }, [
+    leftWidthMillimeters,
+    rightWidthMillimeters,
+    pixelsPerMillimeter,
+    isCameraComparison,
+  ]);
 
   return (
     <div className="space-y-3">

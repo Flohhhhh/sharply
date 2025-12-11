@@ -57,9 +57,9 @@ export const ourFileRouter = {
         throw new UploadThingError("Unauthorized");
       }
 
-      if (role !== "ADMIN" && role !== "SUPERADMIN") {
+      if (role !== "ADMIN" && role !== "SUPERADMIN" && role !== "EDITOR") {
         console.log(
-          "Attempt to upload gear image without admin or superadmin role",
+          "Attempt to upload gear image without admin, superadmin or editor role",
           session,
         );
         throw new UploadThingError("Unauthorized");

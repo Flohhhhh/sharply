@@ -202,11 +202,11 @@ export default async function GearPage({ params }: GearPageProps) {
         {/* Photo Placeholder */}
         <div>
           {item.thumbnailUrl ? (
-            <div className="bg-muted dark:bg-card overflow-hidden rounded-md p-12 sm:p-24">
+            <div className="bg-muted dark:bg-card min-h-[420px] overflow-hidden rounded-md p-12 sm:p-24">
               <Image
                 src={item.thumbnailUrl}
                 alt={item.name}
-                className="mx-auto h-full max-h-[300px] w-full max-w-[600px] object-contain sm:max-h-[420x]"
+                className="mx-auto h-full max-h-[300px] w-full max-w-[600px] object-contain sm:max-h-[420px]"
                 width={720}
                 height={480}
                 priority

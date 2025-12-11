@@ -7,6 +7,7 @@ import { CompareLoadingOverlayProvider } from "~/components/compare/compare-load
 import { fetchGearBySlug } from "~/server/gear/service";
 import { getBrandNameById, stripLeadingBrand } from "~/lib/mapping/brand-map";
 import { CompareHeroScaledRow } from "~/components/compare/compare-hero-scaled";
+import { cn } from "~/lib/utils";
 
 export async function generateMetadata({
   searchParams,
@@ -116,7 +117,12 @@ export default async function ComparePage({
           </div>
         </section>
 
-        <section className="bg-background border-border -mt-20 border-t-2 py-8 shadow-sm">
+        <section
+          className={cn(
+            "bg-background border-border border-t-2 py-8 shadow-sm",
+            a?.gearType === "CAMERA" && b?.gearType === "CAMERA" && "-mt-20",
+          )}
+        >
           {/* Increment pair counter once per page load when both sides resolve */}
           {a && b ? <ComparePairTracker slugs={pair} /> : null}
 
