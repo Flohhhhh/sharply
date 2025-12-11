@@ -35,7 +35,7 @@ export function GearImageModal(props: GearImageModalProps) {
   const isAdmin = useMemo(() => {
     const role = (session?.user as { role?: UserRole } | null | undefined)
       ?.role;
-    return role === "ADMIN" || role === "SUPERADMIN";
+    return role === "EDITOR" || role === "ADMIN" || role === "SUPERADMIN";
   }, [session?.user]);
   const [open, setOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
