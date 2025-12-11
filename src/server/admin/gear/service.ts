@@ -143,11 +143,26 @@ export async function setGearThumbnailService(params: {
     gearId = id;
   }
 
+  // Fetch current gear state to determine if this is an upload, replace, or remove
+  const { fetchGearMetadataById } = await import("~/server/gear/data");
+  const currentGear = await fetchGearMetadataById(gearId);
+  const hadThumbnail = !!currentGear.thumbnailUrl;
+
   const updated = await updateGearThumbnailData({ gearId, thumbnailUrl });
 
   try {
+    // Determine the appropriate audit action
+    let action: "GEAR_IMAGE_UPLOAD" | "GEAR_IMAGE_REPLACE" | "GEAR_IMAGE_REMOVE";
+    if (thumbnailUrl) {
+      // Setting a new thumbnail
+      action = hadThumbnail ? "GEAR_IMAGE_REPLACE" : "GEAR_IMAGE_UPLOAD";
+    } else {
+      // Removing thumbnail
+      action = "GEAR_IMAGE_REMOVE";
+    }
+
     await db.insert(auditLogs).values({
-      action: "GEAR_EDIT_APPROVE", // closest available action for now
+      action,
       actorUserId: session.user.id,
       gearId: updated.id,
     });

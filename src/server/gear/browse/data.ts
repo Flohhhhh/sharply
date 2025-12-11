@@ -154,16 +154,18 @@ export async function searchGear(input: SearchInput) {
   // Sorting
   const orderBy = (() => {
     // Default to newest for browse pages, coerce invalid values to newest
-    const allowed = new Set([
+    const allowed = [
       "newest",
       "price_asc",
       "price_desc",
       "rating",
       "popularity",
-    ]);
-    const sortKey = allowed.has(f.sort as any)
-      ? (f.sort as any)
-      : ("newest" as const);
+      "relevance",
+    ] as const;
+    type SortKey = (typeof allowed)[number];
+    const sortKey: SortKey = allowed.includes(f.sort as SortKey)
+      ? (f.sort as SortKey)
+      : "newest";
     switch (sortKey) {
       case "newest":
         return [sql`${gear.releaseDate} DESC NULLS LAST`, asc(gear.name)];
@@ -202,6 +204,73 @@ export async function searchGear(input: SearchInput) {
   );
 
   return { items: rows, total: Number(countRows[0]?.count ?? 0) };
+}
+
+export type ReleaseOrderCursor = {
+  releaseDate: string | null;
+  id: string;
+};
+
+function buildReleaseCursorWhere(cursor?: ReleaseOrderCursor): SQL | null {
+  if (!cursor) return null;
+  const cursorDate = cursor.releaseDate ? new Date(cursor.releaseDate) : null;
+  if (cursorDate) {
+    return sql`
+      (
+        ${gear.releaseDate} < ${cursorDate}
+        OR (${gear.releaseDate} = ${cursorDate} AND ${gear.id} < ${cursor.id})
+        OR ${gear.releaseDate} IS NULL
+      )
+    `;
+  }
+  return sql`${gear.releaseDate} IS NULL AND ${gear.id} < ${cursor.id}`;
+}
+
+export async function getReleaseOrderedGearPage(params: {
+  limit: number;
+  brandId?: string;
+  brandSlug?: string;
+  cursor?: ReleaseOrderCursor;
+}) {
+  const limit = Math.max(1, Math.min(params.limit ?? 12, 60));
+  const where: SQL[] = [];
+  if (params.brandId) where.push(eq(gear.brandId, params.brandId));
+  else if (params.brandSlug) where.push(eq(brands.slug, params.brandSlug));
+
+  const cursorWhere = buildReleaseCursorWhere(params.cursor);
+  if (cursorWhere) where.push(cursorWhere);
+
+  const rows = await db
+    .select({
+      id: gear.id,
+      slug: gear.slug,
+      name: gear.name,
+      brandName: brands.name,
+      thumbnailUrl: gear.thumbnailUrl,
+      gearType: gear.gearType,
+      releaseDate: gear.releaseDate,
+      msrpNowUsdCents: gear.msrpNowUsdCents,
+      mpbMaxPriceUsdCents: gear.mpbMaxPriceUsdCents,
+    })
+    .from(gear)
+    .leftJoin(brands, eq(gear.brandId, brands.id))
+    .where(where.length ? and(...where) : undefined)
+    .orderBy(sql`${gear.releaseDate} DESC NULLS LAST`, desc(gear.id))
+    .limit(limit + 1);
+
+  const items = rows.slice(0, limit);
+  const hasMore = rows.length > limit;
+  const nextItem = hasMore ? items[items.length - 1] : null;
+  const nextCursor = nextItem
+    ? {
+        id: nextItem.id,
+        releaseDate: nextItem.releaseDate
+          ? nextItem.releaseDate.toISOString()
+          : null,
+      }
+    : null;
+
+  return { items, hasMore, nextCursor };
 }
 
 // Deprecated: static params are now generated directly in the browse page

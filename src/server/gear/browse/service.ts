@@ -13,7 +13,14 @@ const gearCategoryLabels = {
   cameras: "Cameras",
   lenses: "Lenses",
 } as const;
-import { getBrandBySlug, getMountByShortName, searchGear } from "./data";
+import {
+  getBrandBySlug,
+  getMountByShortName,
+  searchGear,
+  getReleaseOrderedGearPage,
+  type ReleaseOrderCursor,
+} from "./data";
+import type { BrowseFeedPage } from "~/types/browse";
 
 export async function deriveDefaultBrandFromCookies() {
   const store = await cookies();
@@ -38,7 +45,7 @@ export async function resolveScopeOrThrow(segments: string[]): Promise<{
   }
   if (scope.mountShort) {
     if (!brand) notFound();
-    const m = await getMountByShortName(scope.mountShort, brand!.id);
+    const m = await getMountByShortName(scope.mountShort, brand.id);
     if (!m) notFound();
     mount = { id: m.id, shortName: m.shortName };
   }
@@ -138,3 +145,59 @@ function buildCanonical(scope: RouteScope, _filters: BrowseFilters) {
 }
 
 // Deprecated: static params are generated directly in the page route
+
+const DEFAULT_PAGE_SIZE = 12;
+const MAX_PAGE_SIZE = 60;
+
+export async function fetchReleaseFeedPage(params: {
+  limit?: number;
+  brandSlug?: string;
+  beforeRelease?: string | null;
+  beforeId?: string | null;
+}): Promise<BrowseFeedPage> {
+  const limit = Math.max(
+    1,
+    Math.min(Math.floor(params.limit ?? DEFAULT_PAGE_SIZE), MAX_PAGE_SIZE),
+  );
+  const cursor: ReleaseOrderCursor | null =
+    params.beforeRelease || params.beforeId
+      ? {
+          releaseDate: params.beforeRelease ?? null,
+          id: params.beforeId ?? "",
+        }
+      : null;
+
+  const page = await getReleaseOrderedGearPage({
+    limit,
+    brandSlug: params.brandSlug,
+    cursor: cursor ?? undefined,
+  });
+
+  const items = page.items.map((item) => ({
+    ...item,
+    releaseDate: item.releaseDate ? item.releaseDate.toISOString() : null,
+    brandName: item.brandName ?? null,
+    thumbnailUrl: item.thumbnailUrl ?? null,
+    gearType: item.gearType ?? null,
+    msrpNowUsdCents:
+      typeof item.msrpNowUsdCents === "number" ? item.msrpNowUsdCents : null,
+    mpbMaxPriceUsdCents:
+      typeof item.mpbMaxPriceUsdCents === "number"
+        ? item.mpbMaxPriceUsdCents
+        : null,
+  }));
+
+  const nextCursor =
+    page.hasMore && page.nextCursor
+      ? {
+          beforeRelease: page.nextCursor.releaseDate ?? "",
+          beforeId: page.nextCursor.id,
+        }
+      : null;
+
+  return {
+    items,
+    nextCursor,
+    hasMore: page.hasMore,
+  };
+}
