@@ -160,6 +160,7 @@ export async function searchGear(input: SearchInput) {
       "price_desc",
       "rating",
       "popularity",
+      "relevance",
     ] as const;
     type SortKey = (typeof allowed)[number];
     const sortKey: SortKey = allowed.includes(f.sort as SortKey)
