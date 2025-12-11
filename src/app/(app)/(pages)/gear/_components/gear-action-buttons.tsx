@@ -40,7 +40,8 @@ export function GearActionButtons({
 }: GearActionButtonsProps) {
   const { data: session, status } = useSession();
   const role = (session?.user as { role?: UserRole } | null | undefined)?.role;
-  const isAdmin = role === "ADMIN" || role === "SUPERADMIN";
+  const canEditImage =
+    role === "ADMIN" || role === "SUPERADMIN" || role === "EDITOR";
   const [inWishlist, setInWishlist] = useState<boolean | null>(
     initialInWishlist,
   );
@@ -184,7 +185,7 @@ export function GearActionButtons({
         </Button>
       </Link> */}
 
-      {isAdmin && (
+      {canEditImage && (
         <GearImageModal
           slug={slug}
           currentThumbnailUrl={currentThumbnailUrl ?? undefined}
