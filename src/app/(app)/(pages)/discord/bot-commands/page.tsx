@@ -1,4 +1,9 @@
 import type { Metadata } from "next";
+import type {
+  APIApplicationCommandOption,
+  APIApplicationCommandSubcommandOption,
+} from "discord-api-types/v10";
+import { ApplicationCommandType } from "discord-api-types/v10";
 import { commandMetadata } from "~/server/discord-bot";
 import { Badge } from "~/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -52,7 +57,8 @@ export default function BotCommandsPage() {
             <h2 className="text-2xl font-semibold">{category}</h2>
             <div className="grid gap-4">
               {commandsByCategory[category]?.map((cmd) => {
-                const isContextMenu = cmd.definition.type === 3;
+                const isContextMenu =
+                  cmd.definition.type === ApplicationCommandType.Message;
                 const commandName = cmd.definition.name;
                 const description =
                   "description" in cmd.definition
@@ -92,26 +98,32 @@ export default function BotCommandsPage() {
                         <div className="space-y-2">
                           <h4 className="text-sm font-semibold">Options:</h4>
                           <ul className="space-y-1 pl-4">
-                            {options.map((opt: any, idx: number) => (
-                              <li key={idx} className="text-sm">
-                                <span className="text-muted-foreground font-mono">
-                                  {opt.name}
-                                </span>
-                                {opt.required && (
-                                  <Badge
-                                    variant="destructive"
-                                    className="ml-2 text-xs"
-                                  >
-                                    required
-                                  </Badge>
-                                )}
-                                {opt.description && (
-                                  <span className="text-muted-foreground ml-2">
-                                    — {opt.description}
+                            {options.map(
+                              (
+                                opt:
+                                  | APIApplicationCommandOption
+                                  | APIApplicationCommandSubcommandOption,
+                              ) => (
+                                <li key={opt.name} className="text-sm">
+                                  <span className="text-muted-foreground font-mono">
+                                    {opt.name}
                                   </span>
-                                )}
-                              </li>
-                            ))}
+                                  {"required" in opt && opt.required && (
+                                    <Badge
+                                      variant="destructive"
+                                      className="ml-2 text-xs"
+                                    >
+                                      required
+                                    </Badge>
+                                  )}
+                                  {"description" in opt && opt.description && (
+                                    <span className="text-muted-foreground ml-2">
+                                      — {opt.description}
+                                    </span>
+                                  )}
+                                </li>
+                              ),
+                            )}
                           </ul>
                         </div>
                       )}
