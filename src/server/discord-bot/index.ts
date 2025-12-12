@@ -15,7 +15,7 @@ const commands: Record<string, DiscordCommand> = {
     metadata: {
       category: "Utility",
       examples: ["/ping"],
-      notes: "A simple command to test if the bot is responsive.",
+      // notes: "A simple command to test if the bot is responsive.",
     },
   },
   gear: {
@@ -26,8 +26,8 @@ const commands: Record<string, DiscordCommand> = {
         "/gear search query:Sony A7 IV",
         "/gear price query:Canon EOS R5",
       ],
-      notes:
-        "Search for camera gear or retrieve price information for specific items.",
+      // notes:
+      // "Search for camera gear or retrieve price information for specific items.",
     },
   },
   leaderboard: {
@@ -35,7 +35,7 @@ const commands: Record<string, DiscordCommand> = {
     metadata: {
       category: "Community",
       examples: ["/leaderboard"],
-      notes: "View the top contributors ranked by edits and reviews.",
+      // notes: "View the top contributors ranked by edits and reviews.",
     },
   },
   compare: {
@@ -43,33 +43,33 @@ const commands: Record<string, DiscordCommand> = {
     metadata: {
       category: "Search",
       examples: ["/compare one:Sony A7 IV two:Canon EOS R5"],
-      notes: "Generate a comparison link for two gear items.",
+      // notes: "Generate a comparison link for two gear items.",
     },
   },
   totals: {
     ...totalsCommand,
     metadata: {
-      category: "Statistics",
+      category: "Community",
       examples: ["/totals"],
-      notes: "Display total gear items and contribution counts.",
+      // notes: "Display total gear items and contribution counts.",
     },
   },
   trending: {
     ...trendingCommand,
     metadata: {
-      category: "Statistics",
+      category: "Lists",
       examples: ["/trending", "/trending window:30d"],
-      notes: "See the most popular gear items from the last 7 or 30 days.",
+      // notes: "See the most popular gear items from the last 7 or 30 days.",
     },
   },
   // message command (type 3) registered under the key 'message-search-gear'
   "message-search-gear": {
     ...messageSearchGearCommand,
     metadata: {
-      category: "Context Menu",
+      category: "Search",
       examples: ["Right-click a message → Apps → Search Gear"],
-      notes:
-        "Message context menu command that searches for gear mentioned in a message.",
+      // notes:
+      // "Message context menu command that searches for gear mentioned in a message.",
     },
   },
 };

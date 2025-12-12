@@ -5,9 +5,8 @@ import type {
 } from "discord-api-types/v10";
 import { ApplicationCommandType } from "discord-api-types/v10";
 import { commandMetadata } from "~/server/discord-bot";
-import { Badge } from "~/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { Bot, Hash, MessageSquare } from "lucide-react";
+import { Bot, MessageSquare } from "lucide-react";
+import DiscordBanner from "~/components/discord-banner";
 
 export const metadata: Metadata = {
   title: "Discord Bot Commands",
@@ -38,13 +37,13 @@ export default function BotCommandsPage() {
   const sortedCategories = Object.keys(commandsByCategory).sort();
 
   return (
-    <div className="container mx-auto max-w-5xl space-y-8 px-4 py-16">
+    <div className="container mx-auto mt-16 max-w-5xl space-y-8 px-4 py-16">
       <div className="space-y-4">
         <div className="flex items-center gap-3">
           <Bot className="h-10 w-10" />
           <h1 className="text-4xl font-bold">Discord Bot Commands</h1>
         </div>
-        <p className="text-muted-foreground text-lg">
+        <p className="text-muted-foreground max-w-xl">
           Complete reference for all available commands in the Sharply Discord
           bot. Use these commands in any Discord server where the Sharply bot is
           installed.
@@ -70,73 +69,54 @@ export default function BotCommandsPage() {
                     : undefined;
 
                 return (
-                  <Card key={commandName} className="overflow-hidden">
-                    <CardHeader className="bg-muted/50 pb-3">
-                      <CardTitle className="flex items-center gap-2 text-xl">
-                        {isContextMenu ? (
-                          <MessageSquare className="h-5 w-5" />
-                        ) : (
-                          <Hash className="h-5 w-5" />
-                        )}
-                        <span className="font-mono">{commandName}</span>
-                        {cmd.category && (
-                          <Badge variant="secondary" className="ml-auto">
-                            {cmd.category}
-                          </Badge>
-                        )}
-                      </CardTitle>
-                      {description && (
-                        <p className="text-muted-foreground mt-2">
-                          {description}
-                        </p>
+                  <div
+                    key={commandName}
+                    className="flex flex-col gap-2 rounded-md border p-4"
+                  >
+                    <div className="bg-accent/40 flex items-center gap-2 rounded-md p-2 pl-4 text-xl">
+                      {isContextMenu ? (
+                        <MessageSquare className="h-5 w-5" />
+                      ) : (
+                        <span className="text-muted-foreground font-mono">
+                          /
+                        </span>
                       )}
-                    </CardHeader>
-
-                    <CardContent className="space-y-4 pt-4">
-                      {/* Command Options */}
+                      <span className="font-mono">{commandName}</span>
                       {options && options.length > 0 && (
-                        <div className="space-y-2">
-                          <h4 className="text-sm font-semibold">Options:</h4>
-                          <ul className="space-y-1 pl-4">
-                            {options.map(
-                              (
-                                opt:
-                                  | APIApplicationCommandOption
-                                  | APIApplicationCommandSubcommandOption,
-                              ) => (
-                                <li key={opt.name} className="text-sm">
-                                  <span className="text-muted-foreground font-mono">
-                                    {opt.name}
-                                  </span>
-                                  {"required" in opt && opt.required && (
-                                    <Badge
-                                      variant="destructive"
-                                      className="ml-2 text-xs"
-                                    >
-                                      required
-                                    </Badge>
-                                  )}
-                                  {"description" in opt && opt.description && (
-                                    <span className="text-muted-foreground ml-2">
-                                      — {opt.description}
-                                    </span>
-                                  )}
-                                </li>
-                              ),
-                            )}
-                          </ul>
+                        <div className="flex flex-wrap items-center gap-2 pl-2 text-base">
+                          {options.map(
+                            (
+                              opt:
+                                | APIApplicationCommandOption
+                                | APIApplicationCommandSubcommandOption,
+                            ) => {
+                              const isRequired =
+                                "required" in opt && Boolean(opt.required);
+                              return (
+                                <span
+                                  key={opt.name}
+                                  className={`font-mono ${isRequired ? "text-foreground" : "text-muted-foreground"}`}
+                                >
+                                  [{opt.name}]
+                                </span>
+                              );
+                            },
+                          )}
                         </div>
                       )}
+                    </div>
+                    {description && <p className="mt-2">{description}</p>}
 
+                    <div className="mt-2 space-y-4">
                       {/* Examples */}
                       {cmd.examples && cmd.examples.length > 0 && (
                         <div className="space-y-2">
-                          <h4 className="text-sm font-semibold">Examples:</h4>
-                          <ul className="space-y-1 pl-4">
+                          {/* <h4 className="text-sm font-semibold">Examples:</h4> */}
+                          <ul className="space-y-1">
                             {cmd.examples.map((example, idx) => (
                               <li
                                 key={idx}
-                                className="bg-muted rounded p-2 font-mono text-sm"
+                                className="text-muted-foreground font-mono text-sm"
                               >
                                 {example}
                               </li>
@@ -154,8 +134,8 @@ export default function BotCommandsPage() {
                           </p>
                         </div>
                       )}
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 );
               })}
             </div>
@@ -163,13 +143,7 @@ export default function BotCommandsPage() {
         ))}
       </div>
 
-      <div className="border-muted-foreground/20 rounded-lg border p-6">
-        <h3 className="mb-3 text-lg font-semibold">Need Help?</h3>
-        <p className="text-muted-foreground text-sm">
-          If you encounter any issues or have questions about these commands,
-          please reach out in our Discord server or open an issue on GitHub.
-        </p>
-      </div>
+      <DiscordBanner label="Need Help?" className="w-full max-w-5xl" />
     </div>
   );
 }
