@@ -48,10 +48,6 @@ export default async function AllGearContent({
             <h1 className="text-3xl font-semibold sm:text-4xl">
               Discover the latest gear
             </h1>
-            <p className="text-muted-foreground max-w-2xl text-base">
-              Browse every camera and lens in release order. The first dozen
-              items are preloaded and you can dive deeper with infinite scroll.
-            </p>
           </div>
           {showBrandPicker ? (
             <div className="bg-background/60 space-y-3 rounded-xl p-4 shadow-sm">
