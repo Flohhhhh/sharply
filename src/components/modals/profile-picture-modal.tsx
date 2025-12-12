@@ -33,14 +33,15 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [combinedProgress, setCombinedProgress] = useState(0);
   const [showProgress, setShowProgress] = useState(false);
-  const [progressMode, setProgressMode] = useState<
-    "upload" | "save" | null
-  >(null);
+  const [progressMode, setProgressMode] = useState<"upload" | "save" | null>(
+    null,
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const savingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [localImageUrl, setLocalImageUrl] = useState<string | null>(
     props.currentImageUrl ?? null,
   );
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
   // Constants
   const CLOSE_MODAL_DELAY_MS = 500;
@@ -48,7 +49,10 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
   // Sync when parent changes current image
   useEffect(() => {
     setLocalImageUrl(props.currentImageUrl ?? null);
-  }, [props.currentImageUrl]);
+    if (props.currentImageUrl && props.currentImageUrl === previewImageUrl) {
+      setPreviewImageUrl(null);
+    }
+  }, [props.currentImageUrl, previewImageUrl]);
 
   const { uploadFiles } = genUploader<OurFileRouter>();
 
@@ -73,26 +77,28 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
             return;
           }
 
-          // Calculate new dimensions (max 256px on longest side)
-          const maxSize = 256;
-          let width = img.width;
-          let height = img.height;
+          // Determine canvas size (capped at 256px) and draw with cover cropping
+          const maximumCanvasDimension = 256;
+          const longestSide = Math.max(img.width, img.height);
+          const targetCanvasSize = Math.min(
+            maximumCanvasDimension,
+            longestSide,
+          );
 
-          if (width > height) {
-            if (width > maxSize) {
-              height = (height * maxSize) / width;
-              width = maxSize;
-            }
-          } else {
-            if (height > maxSize) {
-              width = (width * maxSize) / height;
-              height = maxSize;
-            }
-          }
+          canvas.width = targetCanvasSize;
+          canvas.height = targetCanvasSize;
 
-          canvas.width = width;
-          canvas.height = height;
-          ctx.drawImage(img, 0, 0, width, height);
+          const scale = Math.max(
+            targetCanvasSize / img.width,
+            targetCanvasSize / img.height,
+          );
+
+          const drawWidth = img.width * scale;
+          const drawHeight = img.height * scale;
+          const offsetX = (targetCanvasSize - drawWidth) / 2;
+          const offsetY = (targetCanvasSize - drawHeight) / 2;
+
+          ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
 
           canvas.toBlob(
             (blob) => {
@@ -141,15 +147,16 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
           setCombinedProgress((prev) => (mapped > prev ? mapped : prev));
         },
       });
-      
+
       type UploadResponse = {
         serverData?: { fileUrl?: string };
         url?: string;
       };
-      
-      const uploadResult = (Array.isArray(res) ? res[0] : res) as UploadResponse;
-      const url =
-        uploadResult?.serverData?.fileUrl ?? uploadResult?.url ?? "";
+
+      const uploadResult = (
+        Array.isArray(res) ? res[0] : res
+      ) as UploadResponse;
+      const url = uploadResult?.serverData?.fileUrl ?? uploadResult?.url ?? "";
       if (!url) throw new Error("Upload failed. Please try again.");
       setIsUpdating(true);
       setProgressMode("save");
@@ -159,15 +166,16 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
       }, 120);
       await actionUpdateProfileImage(url);
       setLocalImageUrl(url);
+      setPreviewImageUrl(url);
       setCombinedProgress(100);
       if (savingTimerRef.current) {
         clearInterval(savingTimerRef.current);
         savingTimerRef.current = null;
       }
-      
+
       // Update session to reflect new image
       await updateSession();
-      
+
       toast.success("Profile picture updated.");
       props.onSuccess?.({ url });
       await new Promise((r) => setTimeout(r, CLOSE_MODAL_DELAY_MS));
@@ -200,6 +208,7 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
 
   const userName = session?.user?.name ?? "User";
   const userInitial = userName.charAt(0).toUpperCase();
+  const displayedImageUrl = previewImageUrl ?? localImageUrl;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -223,7 +232,10 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
             <div className="text-muted-foreground text-xs">Current picture</div>
             <div className="bg-muted dark:bg-card flex h-32 w-full items-center justify-center overflow-hidden rounded border">
               <Avatar className="h-24 w-24">
-                <AvatarImage src={localImageUrl ?? undefined} alt={userName} />
+                <AvatarImage
+                  src={displayedImageUrl ?? undefined}
+                  alt={userName}
+                />
                 <AvatarFallback className="text-2xl">
                   {userInitial}
                 </AvatarFallback>
@@ -231,7 +243,7 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
             </div>
           </div>
 
-          {!localImageUrl && (
+          {!displayedImageUrl && (
             <div className="space-y-2">
               <div className="text-muted-foreground text-xs">
                 Upload new picture
@@ -282,7 +294,7 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
             >
               {isUploading
                 ? `Uploading ${Math.round(uploadProgress)}%`
-                : localImageUrl
+                : displayedImageUrl
                   ? "Replace"
                   : "Upload"}
             </Button>
