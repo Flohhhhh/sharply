@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  // Floor offset to ensure it's an integer (fractional offsets are acceptable and will be floored)
   const offset = Math.floor(offsetParam);
 
   const page = await fetchReleaseFeedPage({

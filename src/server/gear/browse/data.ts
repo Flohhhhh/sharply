@@ -213,6 +213,7 @@ export async function getReleaseOrderedGearPage(params: {
   offset?: number;
 }) {
   const limit = Math.max(1, Math.min(params.limit ?? 12, 60));
+  // No upper bound on offset - large offsets are expected for deep pagination
   const offset = Math.max(0, Math.floor(params.offset ?? 0));
   const where: SQL[] = [];
   if (params.brandId) where.push(eq(gear.brandId, params.brandId));
