@@ -129,13 +129,62 @@ export function GlobalSearchBar({
     return navigator.platform.toUpperCase().includes("MAC");
   }, []);
 
-  function submit(query: string) {
+  async function submit(
+    query: string,
+    options?: { forceSearchPage?: boolean },
+  ) {
     const trimmed = query.trim();
     if (!trimmed) return;
 
     saveRecentSearch(trimmed);
     setShowRecent(false);
     setLoading(true); // Start loading
+
+    const forceSearchPage = options?.forceSearchPage === true;
+
+    // If not forcing the search page, try a direct redirect when there's exactly one suggestion.
+    if (!forceSearchPage) {
+      try {
+        // Prefer already-loaded suggestions if they're current and stable
+        if (
+          trimmed.length >= 2 &&
+          hasSearched &&
+          !suggestLoading &&
+          !debouncing &&
+          suggestions.length === 1
+        ) {
+          router.push(suggestions[0]!.href);
+          setTimeout(() => {
+            setLoading(false);
+          }, 500);
+          return;
+        }
+
+        // Fallback: perform an immediate suggestion fetch (limit=2) to confirm single match
+        if (trimmed.length >= 2) {
+          const res = await fetch(
+            `/api/search/suggest?q=${encodeURIComponent(trimmed)}&limit=2`,
+          );
+          if (res.ok) {
+            const data = (await res.json()) as {
+              suggestions?: Suggestion[];
+            };
+            const fresh = Array.isArray(data.suggestions)
+              ? data.suggestions
+              : [];
+            if (fresh.length === 1) {
+              router.push(fresh[0]!.href);
+              setTimeout(() => {
+                setLoading(false);
+              }, 500);
+              return;
+            }
+          }
+        }
+      } catch {
+        // Swallow errors and fall back to the search page navigation below
+      }
+    }
 
     const existing = new URLSearchParams(sp.toString());
     const qs = mergeSearchParams(existing, { q: trimmed, page: 1 });
@@ -151,7 +200,7 @@ export function GlobalSearchBar({
   function handleRecentSearchClick(recentQuery: string) {
     setValue(recentQuery);
     setLoading(true); // Start loading
-    submit(recentQuery);
+    void submit(recentQuery, { forceSearchPage: true });
   }
 
   function removeRecentSearch(queryToRemove: string, e: React.MouseEvent) {
@@ -179,7 +228,7 @@ export function GlobalSearchBar({
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Enter") {
       e.preventDefault();
-      submit(value);
+      void submit(value);
     }
   }
 
@@ -334,7 +383,7 @@ export function GlobalSearchBar({
                 className={cn(
                   "hover:bg-accent w-full cursor-pointer rounded px-3 py-2 text-left text-sm",
                 )}
-                onClick={() => submit(value)}
+                onClick={() => void submit(value, { forceSearchPage: true })}
               >
                 <div className="flex items-center">
                   <SearchIcon className="mr-2 h-4 w-4" />
