@@ -17,6 +17,8 @@ import { resolveGearFromMessage } from "~/server/discord-bot/service";
 export const messageSearchGearCommand = {
   definition: {
     name: "Search Gear",
+    description:
+      "Search for gear mentioned in a message. Right-click a message → Apps → Search Gear.",
     type: 3, // MESSAGE command
   },
   handler: async (interaction: APIApplicationCommandInteraction) => {

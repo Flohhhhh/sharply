@@ -4,7 +4,8 @@ import { InteractionResponseFlags } from "discord-interactions";
 export const totalsCommand = {
   definition: {
     name: "totals",
-    description: "Show total gear items and total contributions",
+    description:
+      "Show the total number of gear items in the database and contributions to gear specs all-time.",
   },
   handler: async () => {
     try {
