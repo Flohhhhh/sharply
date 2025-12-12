@@ -56,6 +56,65 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
     };
   }, []);
 
+  // Function to resize image to max 256px on longest side
+  async function resizeImage(file: File): Promise<File> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            reject(new Error("Could not get canvas context"));
+            return;
+          }
+
+          // Calculate new dimensions (max 256px on longest side)
+          const maxSize = 256;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxSize) {
+              height = (height * maxSize) / width;
+              width = maxSize;
+            }
+          } else {
+            if (height > maxSize) {
+              width = (width * maxSize) / height;
+              height = maxSize;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                reject(new Error("Could not create blob"));
+                return;
+              }
+              const resizedFile = new File([blob], file.name, {
+                type: file.type,
+                lastModified: Date.now(),
+              });
+              resolve(resizedFile);
+            },
+            file.type,
+            0.9, // Quality setting
+          );
+        };
+        img.onerror = () => reject(new Error("Could not load image"));
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => reject(new Error("Could not read file"));
+      reader.readAsDataURL(file);
+    });
+  }
+
   async function handleUploadSelected(file: File) {
     if (file.size > 4 * 1024 * 1024) {
       toast.error("Image exceeds 4MB. Choose a smaller file.");
@@ -67,8 +126,12 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
       setShowProgress(true);
       setUploadProgress(0);
       setCombinedProgress(0);
+
+      // Resize image before upload
+      const resizedFile = await resizeImage(file);
+
       const res = await uploadFiles("profilePictureUploader", {
-        files: [file],
+        files: [resizedFile],
         onUploadProgress: ({ progress }) => {
           setUploadProgress(progress);
           const mapped = Math.min(50, Math.max(0, Math.round(progress / 2)));
