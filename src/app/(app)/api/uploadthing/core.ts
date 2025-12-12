@@ -76,6 +76,38 @@ export const ourFileRouter = {
         fileUrl: file.ufsUrl,
       };
     }),
+  profilePictureUploader: f({
+    image: {
+      maxFileSize: "4MB",
+      maxFileCount: 1,
+    },
+  })
+    .middleware(async () => {
+      const session = await auth();
+
+      if (!session?.user?.id) {
+        console.log("Attempt to upload profile picture without user", session);
+        throw new UploadThingError("Unauthorized");
+      }
+
+      // Return old image URL for deletion if it exists
+      return { userId: session.user.id, oldImageUrl: session.user.image };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log(
+        "Uploaded profile picture for user:",
+        metadata.userId,
+        file.ufsUrl,
+      );
+
+      // Note: Old image cleanup should be handled by the calling service
+      // UploadThing doesn't provide direct file deletion API
+      return {
+        uploadedBy: metadata.userId,
+        fileUrl: file.ufsUrl,
+        oldImageUrl: metadata.oldImageUrl,
+      };
+    }),
 } satisfies FileRouter;
 
 export type OurFileRouter = typeof ourFileRouter;
