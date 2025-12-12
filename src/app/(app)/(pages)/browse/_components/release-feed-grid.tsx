@@ -15,6 +15,7 @@ type ReleaseFeedGridProps = {
 };
 
 const PAGE_SIZE = 12;
+const MAX_AUTO_SCROLL_LOADS = 5;
 
 const fetcher = async (url: string) => {
   const res = await fetch(url, { cache: "no-store" });
@@ -30,8 +31,10 @@ export function ReleaseFeedGrid({
 }: ReleaseFeedGridProps) {
   const isMobile = useIsMobile();
   const [infiniteActive, setInfiniteActive] = useState(false);
+  const [autoScrollLoads, setAutoScrollLoads] = useState(0);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const loadingRef = useRef(false);
+  const autoScrollLoadsRef = useRef(0);
 
   const buildKey = useCallback(
     (offset: number) => {
@@ -77,8 +80,12 @@ export function ReleaseFeedGrid({
   }, [isLoadingMore]);
 
   // Disable infinite scroll on mobile
+  const hasReachedAutoLoadLimit = autoScrollLoads >= MAX_AUTO_SCROLL_LOADS;
+
   useEffect(() => {
-    if (isMobile || !infiniteActive || !hasMore) return;
+    if (isMobile || !infiniteActive || !hasMore || hasReachedAutoLoadLimit)
+      return;
+
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
 
@@ -87,6 +94,12 @@ export function ReleaseFeedGrid({
         const entry = entries[0];
         if (!entry) return;
         if (entry.isIntersecting && !loadingRef.current) {
+          const nextAutoLoadCount = autoScrollLoadsRef.current + 1;
+          autoScrollLoadsRef.current = nextAutoLoadCount;
+          setAutoScrollLoads(nextAutoLoadCount);
+          if (nextAutoLoadCount >= MAX_AUTO_SCROLL_LOADS) {
+            setInfiniteActive(false);
+          }
           void setSize((current) => current + 1);
         }
       },
@@ -95,13 +108,15 @@ export function ReleaseFeedGrid({
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [hasMore, infiniteActive, setSize, isMobile]);
+  }, [hasMore, infiniteActive, setSize, isMobile, hasReachedAutoLoadLimit]);
 
   const handleLoadMore = useCallback(() => {
     if (!hasMore || isLoadingMore) return;
     // On desktop, enable infinite scroll after first manual load
     if (!isMobile) {
       setInfiniteActive(true);
+      autoScrollLoadsRef.current = 0;
+      setAutoScrollLoads(0);
     }
     void setSize((current) => current + 1);
   }, [hasMore, isLoadingMore, setSize, isMobile]);
