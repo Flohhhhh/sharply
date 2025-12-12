@@ -95,7 +95,7 @@ export default function BotCommandsPage() {
                               return (
                                 <span
                                   key={opt.name}
-                                  className={`font-mono ${isRequired ? "text-foreground" : "text-muted-foreground"}`}
+                                  className={`font-mono ${isRequired ? "text-destructive" : "text-muted-foreground"}`}
                                 >
                                   [{opt.name}]
                                 </span>
@@ -108,6 +108,39 @@ export default function BotCommandsPage() {
                     {description && <p className="mt-2">{description}</p>}
 
                     <div className="mt-2 space-y-4">
+                      {/* Command Options (below description) */}
+                      {options && options.length > 0 && (
+                        <div className="space-y-2">
+                          <ul className="space-y-1">
+                            {options.map(
+                              (
+                                opt:
+                                  | APIApplicationCommandOption
+                                  | APIApplicationCommandSubcommandOption,
+                              ) => {
+                                const isRequired =
+                                  "required" in opt && Boolean(opt.required);
+                                return (
+                                  <li key={opt.name} className="text-sm">
+                                    <span
+                                      className={`font-mono ${isRequired ? "text-destructive" : "text-muted-foreground"}`}
+                                    >
+                                      [{opt.name}]
+                                    </span>
+                                    {"description" in opt &&
+                                      opt.description && (
+                                        <span className="text-muted-foreground ml-2">
+                                          — {opt.description}
+                                        </span>
+                                      )}
+                                  </li>
+                                );
+                              },
+                            )}
+                          </ul>
+                        </div>
+                      )}
+
                       {/* Examples */}
                       {cmd.examples && cmd.examples.length > 0 && (
                         <div className="space-y-2">

@@ -5,7 +5,8 @@ import { searchGear } from "~/server/search/service";
 export const getGearCommand = {
   definition: {
     name: "gear",
-    description: "Search or fetch details about a gear item",
+    description:
+      "Get details about a single gear item. Searches based on provided text and returns the top result.",
     options: [
       {
         type: 1, // SUB_COMMAND

@@ -4,7 +4,8 @@ import { InteractionResponseFlags } from "discord-interactions";
 export const trendingCommand = {
   definition: {
     name: "trending",
-    description: "Show top 10 trending gear items",
+    description:
+      "Show the top 10 trending gear items from the last 7 or 30 days. Defaults to 7 days.",
     options: [
       {
         name: "window",
