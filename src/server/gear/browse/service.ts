@@ -18,7 +18,6 @@ import {
   getMountByShortName,
   searchGear,
   getReleaseOrderedGearPage,
-  type ReleaseOrderCursor,
 } from "./data";
 import type { BrowseFeedPage } from "~/types/browse";
 
@@ -152,25 +151,18 @@ const MAX_PAGE_SIZE = 60;
 export async function fetchReleaseFeedPage(params: {
   limit?: number;
   brandSlug?: string;
-  beforeRelease?: string | null;
-  beforeId?: string | null;
+  offset?: number;
 }): Promise<BrowseFeedPage> {
   const limit = Math.max(
     1,
     Math.min(Math.floor(params.limit ?? DEFAULT_PAGE_SIZE), MAX_PAGE_SIZE),
   );
-  const cursor: ReleaseOrderCursor | null =
-    params.beforeRelease || params.beforeId
-      ? {
-          releaseDate: params.beforeRelease ?? null,
-          id: params.beforeId ?? "",
-        }
-      : null;
+  const offset = Math.max(0, Math.floor(params.offset ?? 0));
 
   const page = await getReleaseOrderedGearPage({
     limit,
     brandSlug: params.brandSlug,
-    cursor: cursor ?? undefined,
+    offset,
   });
 
   const items = page.items.map((item) => ({
@@ -187,13 +179,11 @@ export async function fetchReleaseFeedPage(params: {
         : null,
   }));
 
-  const nextCursor =
-    page.hasMore && page.nextCursor
-      ? {
-          beforeRelease: page.nextCursor.releaseDate ?? "",
-          beforeId: page.nextCursor.id,
-        }
-      : null;
+  const nextCursor = page.hasMore
+    ? {
+        offset: offset + limit,
+      }
+    : null;
 
   return {
     items,

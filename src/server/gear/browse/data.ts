@@ -206,39 +206,17 @@ export async function searchGear(input: SearchInput) {
   return { items: rows, total: Number(countRows[0]?.count ?? 0) };
 }
 
-export type ReleaseOrderCursor = {
-  releaseDate: string | null;
-  id: string;
-};
-
-function buildReleaseCursorWhere(cursor?: ReleaseOrderCursor): SQL | null {
-  if (!cursor) return null;
-  const cursorDate = cursor.releaseDate ? new Date(cursor.releaseDate) : null;
-  if (cursorDate) {
-    return sql`
-      (
-        ${gear.releaseDate} < ${cursorDate}
-        OR (${gear.releaseDate} = ${cursorDate} AND ${gear.id} < ${cursor.id})
-        OR ${gear.releaseDate} IS NULL
-      )
-    `;
-  }
-  return sql`${gear.releaseDate} IS NULL AND ${gear.id} < ${cursor.id}`;
-}
-
 export async function getReleaseOrderedGearPage(params: {
   limit: number;
   brandId?: string;
   brandSlug?: string;
-  cursor?: ReleaseOrderCursor;
+  offset?: number;
 }) {
   const limit = Math.max(1, Math.min(params.limit ?? 12, 60));
+  const offset = Math.max(0, Math.floor(params.offset ?? 0));
   const where: SQL[] = [];
   if (params.brandId) where.push(eq(gear.brandId, params.brandId));
   else if (params.brandSlug) where.push(eq(brands.slug, params.brandSlug));
-
-  const cursorWhere = buildReleaseCursorWhere(params.cursor);
-  if (cursorWhere) where.push(cursorWhere);
 
   const rows = await db
     .select({
@@ -256,21 +234,13 @@ export async function getReleaseOrderedGearPage(params: {
     .leftJoin(brands, eq(gear.brandId, brands.id))
     .where(where.length ? and(...where) : undefined)
     .orderBy(sql`${gear.releaseDate} DESC NULLS LAST`, desc(gear.id))
-    .limit(limit + 1);
+    .limit(limit + 1)
+    .offset(offset);
 
   const items = rows.slice(0, limit);
   const hasMore = rows.length > limit;
-  const nextItem = hasMore ? items[items.length - 1] : null;
-  const nextCursor = nextItem
-    ? {
-        id: nextItem.id,
-        releaseDate: nextItem.releaseDate
-          ? nextItem.releaseDate.toISOString()
-          : null,
-      }
-    : null;
 
-  return { items, hasMore, nextCursor };
+  return { items, hasMore };
 }
 
 // Deprecated: static params are now generated directly in the browse page
