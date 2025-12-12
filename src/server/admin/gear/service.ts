@@ -129,7 +129,7 @@ export async function setGearThumbnailService(params: {
   thumbnailUrl: string | null;
 }): Promise<{ id: string; slug: string; thumbnailUrl: string | null }> {
   const session = await requireUser();
-  if (!requireRole(session, ["ADMIN"] as UserRole[])) {
+  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
 
