@@ -42,6 +42,9 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
     props.currentImageUrl ?? null,
   );
 
+  // Constants
+  const CLOSE_MODAL_DELAY_MS = 500;
+
   // Sync when parent changes current image
   useEffect(() => {
     setLocalImageUrl(props.currentImageUrl ?? null);
@@ -138,9 +141,15 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
           setCombinedProgress((prev) => (mapped > prev ? mapped : prev));
         },
       });
-      const r: any = Array.isArray(res) ? res[0] : res;
+      
+      type UploadResponse = {
+        serverData?: { fileUrl?: string };
+        url?: string;
+      };
+      
+      const uploadResult = (Array.isArray(res) ? res[0] : res) as UploadResponse;
       const url =
-        (r?.serverData?.fileUrl as string) ?? (r?.url as string) ?? "";
+        uploadResult?.serverData?.fileUrl ?? uploadResult?.url ?? "";
       if (!url) throw new Error("Upload failed. Please try again.");
       setIsUpdating(true);
       setProgressMode("save");
@@ -161,7 +170,7 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
       
       toast.success("Profile picture updated.");
       props.onSuccess?.({ url });
-      await new Promise((r) => setTimeout(r, 500));
+      await new Promise((r) => setTimeout(r, CLOSE_MODAL_DELAY_MS));
       setOpen(false);
     } catch (e) {
       const message = e instanceof Error ? e.message : "Failed to upload";
