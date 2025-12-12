@@ -7,6 +7,7 @@ import { GearCard } from "~/components/gear/gear-card";
 import { Button } from "~/components/ui/button";
 import { getItemDisplayPrice } from "~/lib/mapping";
 import type { BrowseFeedPage } from "~/types/browse";
+import { useIsMobile } from "~/hooks/use-mobile";
 
 type ReleaseFeedGridProps = {
   initialPage: BrowseFeedPage;
@@ -14,6 +15,7 @@ type ReleaseFeedGridProps = {
 };
 
 const PAGE_SIZE = 12;
+const MAX_AUTO_SCROLL_LOADS = 5;
 
 const fetcher = async (url: string) => {
   const res = await fetch(url, { cache: "no-store" });
@@ -27,19 +29,20 @@ export function ReleaseFeedGrid({
   initialPage,
   brandSlug,
 }: ReleaseFeedGridProps) {
+  const isMobile = useIsMobile();
   const [infiniteActive, setInfiniteActive] = useState(false);
+  const [autoScrollLoads, setAutoScrollLoads] = useState(0);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const loadingRef = useRef(false);
+  const autoScrollLoadsRef = useRef(0);
 
   const buildKey = useCallback(
-    (cursor?: { beforeRelease: string; beforeId: string } | null) => {
+    (offset: number) => {
       const params = new URLSearchParams({
         limit: String(PAGE_SIZE),
+        offset: String(offset),
       });
       if (brandSlug) params.set("brandSlug", brandSlug);
-      if (cursor?.beforeRelease)
-        params.set("beforeRelease", cursor.beforeRelease);
-      if (cursor?.beforeId) params.set("beforeId", cursor.beforeId);
       return `/api/gear/browse?${params.toString()}`;
     },
     [brandSlug],
@@ -49,10 +52,9 @@ export function ReleaseFeedGrid({
     BrowseFeedPage,
     Error
   >(
-    (pageIndex, previousPageData) => {
-      if (pageIndex === 0) return buildKey();
-      if (!previousPageData?.nextCursor) return null;
-      return buildKey(previousPageData.nextCursor);
+    (pageIndex) => {
+      const offset = pageIndex * PAGE_SIZE;
+      return buildKey(offset);
     },
     fetcher,
     {
@@ -77,8 +79,13 @@ export function ReleaseFeedGrid({
     loadingRef.current = isLoadingMore;
   }, [isLoadingMore]);
 
+  // Disable infinite scroll on mobile
+  const hasReachedAutoLoadLimit = autoScrollLoads >= MAX_AUTO_SCROLL_LOADS;
+
   useEffect(() => {
-    if (!infiniteActive || !hasMore) return;
+    if (isMobile || !infiniteActive || !hasMore || hasReachedAutoLoadLimit)
+      return;
+
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
 
@@ -87,6 +94,12 @@ export function ReleaseFeedGrid({
         const entry = entries[0];
         if (!entry) return;
         if (entry.isIntersecting && !loadingRef.current) {
+          const nextAutoLoadCount = autoScrollLoadsRef.current + 1;
+          autoScrollLoadsRef.current = nextAutoLoadCount;
+          setAutoScrollLoads(nextAutoLoadCount);
+          if (nextAutoLoadCount >= MAX_AUTO_SCROLL_LOADS) {
+            setInfiniteActive(false);
+          }
           void setSize((current) => current + 1);
         }
       },
@@ -95,13 +108,18 @@ export function ReleaseFeedGrid({
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [hasMore, infiniteActive, setSize]);
+  }, [hasMore, infiniteActive, setSize, isMobile, hasReachedAutoLoadLimit]);
 
   const handleLoadMore = useCallback(() => {
     if (!hasMore || isLoadingMore) return;
-    setInfiniteActive(true);
+    // On desktop, enable infinite scroll after first manual load
+    if (!isMobile) {
+      setInfiniteActive(true);
+      autoScrollLoadsRef.current = 0;
+      setAutoScrollLoads(0);
+    }
     void setSize((current) => current + 1);
-  }, [hasMore, isLoadingMore, setSize]);
+  }, [hasMore, isLoadingMore, setSize, isMobile]);
 
   const errorText = error ? "Unable to load more gear right now." : null;
 
@@ -140,7 +158,8 @@ export function ReleaseFeedGrid({
         ))}
       </div>
 
-      {hasMore && !infiniteActive ? (
+      {/* Always show button when more items available, or when infinite scroll is not active on desktop */}
+      {hasMore && (isMobile || !infiniteActive) ? (
         <div className="flex justify-center">
           <Button
             type="button"
@@ -160,7 +179,8 @@ export function ReleaseFeedGrid({
         </div>
       ) : null}
 
-      {infiniteActive ? (
+      {/* Only show infinite scroll sentinel on desktop when active */}
+      {!isMobile && infiniteActive ? (
         <div className="flex flex-col items-center gap-2">
           {isLoadingMore ? (
             <div className="text-muted-foreground flex items-center gap-2 text-sm">

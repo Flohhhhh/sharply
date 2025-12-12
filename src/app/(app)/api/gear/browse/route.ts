@@ -17,14 +17,22 @@ export async function GET(request: NextRequest) {
 
   const limit = Math.min(Math.floor(limitParam), MAX_LIMIT);
   const brandSlug = searchParams.get("brandSlug") ?? undefined;
-  const beforeRelease = searchParams.get("beforeRelease");
-  const beforeId = searchParams.get("beforeId");
+  const offsetParam = Number(searchParams.get("offset") ?? 0);
+  
+  if (!Number.isFinite(offsetParam) || offsetParam < 0) {
+    return NextResponse.json(
+      { error: "offset must be a non-negative number" },
+      { status: 400 },
+    );
+  }
+
+  // Floor offset to ensure it's an integer (fractional offsets are acceptable and will be floored)
+  const offset = Math.floor(offsetParam);
 
   const page = await fetchReleaseFeedPage({
     limit,
     brandSlug: brandSlug ?? undefined,
-    beforeRelease,
-    beforeId,
+    offset,
   });
 
   return NextResponse.json(page, {

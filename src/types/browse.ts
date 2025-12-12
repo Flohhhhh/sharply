@@ -13,8 +13,7 @@ export type BrowseFeedItem = {
 export type BrowseFeedPage = {
   items: BrowseFeedItem[];
   nextCursor: {
-    beforeRelease: string;
-    beforeId: string;
+    offset: number;
   } | null;
   hasMore: boolean;
 };

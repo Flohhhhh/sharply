@@ -4,7 +4,7 @@ import { InteractionResponseFlags } from "discord-interactions";
 export const compareCommand = {
   definition: {
     name: "compare",
-    description: "Generate a compare link for two gear items",
+    description: "Fetch a comparison between two provided gear items.",
     options: [
       {
         name: "one",

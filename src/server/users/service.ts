@@ -12,6 +12,7 @@ import {
   wishlists,
   ownerships,
 } from "~/server/db/schema";
+import { updateUserImage } from "./data";
 
 export async function getUserReviews(userId: string) {
   return db
@@ -142,4 +143,22 @@ export async function updateDisplayName(rawName: string) {
   const name = displayNameSchema.parse(rawName);
   await db.update(users).set({ name }).where(eq(users.id, user.id));
   return { ok: true as const, name };
+}
+
+const profileImageSchema = z
+  .string()
+  .url("Profile image must be a valid URL")
+  .max(500, "Profile image URL is too long");
+
+export async function updateProfileImage(imageUrl: string) {
+  const { user } = await requireUser();
+  const validatedUrl = profileImageSchema.parse(imageUrl);
+  
+  // Get old image URL before updating
+  const currentUser = await fetchUserById(user.id);
+  const oldImageUrl = currentUser?.image ?? null;
+  
+  await updateUserImage(user.id, validatedUrl);
+  
+  return { ok: true as const, imageUrl: validatedUrl, oldImageUrl };
 }

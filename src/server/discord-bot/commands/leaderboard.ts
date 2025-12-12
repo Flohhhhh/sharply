@@ -4,7 +4,7 @@ import { InteractionResponseFlags } from "discord-interactions";
 export const leaderboardCommand = {
   definition: {
     name: "leaderboard",
-    description: "Show top contributors (edits + reviews)",
+    description: "Show top contributors to gear specs.",
   },
   handler: async () => {
     try {

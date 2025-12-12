@@ -4,7 +4,7 @@ import { InteractionResponseFlags } from "discord-interactions";
 export const pingCommand = {
   definition: {
     name: "ping",
-    description: "Replies with pong",
+    description: "Replies with pong. Used to test if the bot is responsive.",
   },
   handler: () =>
     NextResponse.json({
