@@ -41,6 +41,7 @@ function extractAsinFromPath(pathname: string): string | null {
     /\/gp\/offer-listing\/([A-Z0-9]{10})(?:[\/\?#]|$)/i,
     /\/product-reviews\/([A-Z0-9]{10})(?:[\/\?#]|$)/i,
     /\/[^/]*\/dp\/([A-Z0-9]{10})(?:[\/\?#]|$)/i, // e.g., /Some-Title/dp/ASIN
+    /\/(?:[^/]+\/)*dp\/([A-Z0-9]{10})(?:[\/\?#]|$)/i, // multiple segments before dp
   ];
   for (const re of patterns) {
     const m = pathname.match(re);
@@ -98,6 +99,36 @@ export function normalizeAmazonProductLink(
   if (!asin) return null;
 
   return buildCanonicalUrl(asin, options);
+}
+
+/**
+ * Try to parse an ASIN from user input (either a raw ASIN or an Amazon URL).
+ * Returns the upper-case ASIN or null if the input cannot be interpreted.
+ */
+export function parseAmazonAsin(input?: string | null): string | null {
+  const trimmed = (input ?? "").trim();
+  if (!trimmed) return null;
+
+  const upperCased = trimmed.toUpperCase();
+  if (/^[A-Z0-9]{10}$/.test(upperCased)) {
+    return upperCased;
+  }
+
+  const canonical = normalizeAmazonProductLink(trimmed);
+  if (canonical) {
+    const match = canonical.match(/\/dp\/([A-Z0-9]{10})(?:[\/\?#]|$)/i);
+    if (match?.[1]) {
+      return match[1].toUpperCase();
+    }
+  }
+
+  // Fallback: look for dp/ASIN even if canonicalization did not run
+  const fallbackMatch = trimmed.match(/\/dp\/([A-Z0-9]{10})(?:[\/\?#]|$)/i);
+  if (fallbackMatch?.[1]) {
+    return fallbackMatch[1].toUpperCase();
+  }
+
+  return null;
 }
 
 /**

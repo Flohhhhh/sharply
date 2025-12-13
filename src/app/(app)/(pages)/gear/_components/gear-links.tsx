@@ -3,6 +3,7 @@
 import { Button } from "~/components/ui/button";
 import Link from "next/link";
 import { formatPrice } from "~/lib/mapping";
+import { parseAmazonAsin } from "~/lib/validation/amazon";
 
 interface GearLinksProps {
   slug: string;
@@ -21,7 +22,13 @@ export function GearLinks({
   linkAmazon,
   mpbMaxPriceUsdCents,
 }: GearLinksProps) {
-  const hasAny = !!(linkManufacturer || linkMpb || linkAmazon);
+  const amazonAsin = parseAmazonAsin(linkAmazon) ?? null;
+  const amazonRedirectHref = amazonAsin
+    ? `/api/out/amazon?asin=${encodeURIComponent(
+        amazonAsin,
+      )}&slug=${encodeURIComponent(slug)}`
+    : null;
+  const hasAny = !!(linkManufacturer || linkMpb || amazonAsin);
 
   if (!hasAny) return null;
 
@@ -59,9 +66,13 @@ export function GearLinks({
           </Link>
         </Button>
       )}
-      {linkAmazon && (
+      {amazonAsin && amazonRedirectHref && (
         <Button variant="outline" asChild className="w-full">
-          <Link href={linkAmazon} target="_blank" rel="noopener noreferrer">
+          <Link
+            href={amazonRedirectHref}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <span className="font-bold text-[#FF9900]">Amazon</span>
           </Link>
         </Button>
