@@ -20,15 +20,23 @@ export const Media: CollectionConfig = {
     staticDir: "https://",
   },
   hooks: {
-    beforeChange: [
-      ({ req, data }) => {
-        console.log(req);
-        console.log(data);
-      },
-    ],
     afterChange: [
-      ({ doc }) => {
-        console.log(doc);
+      async ({ collection, context, doc, req }) => {
+        if (!context.updatePerformed) {
+          context.updatePerformed = true; // if this isn't first, the UI hangs?
+          console.log("doc", doc);
+          // console.log("req", req);
+          await req.payload.update({
+            req,
+            collection: collection.slug,
+            data: {
+              url: doc.url,
+            },
+            where: {
+              id: { equals: doc.id },
+            },
+          });
+        }
       },
     ],
   },
