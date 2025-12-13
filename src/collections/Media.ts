@@ -6,6 +6,7 @@ export const Media: CollectionConfig = {
     read: () => true,
     delete: ({ req: { user } }) =>
       user?.role === "superadmin" || user?.role === "admin",
+    create: () => true, // anyone can create media
   },
   fields: [
     {
@@ -17,26 +18,12 @@ export const Media: CollectionConfig = {
   upload: {
     disableLocalStorage: true,
     mimeTypes: ["image/*"],
-    staticDir: "https://",
+    staticDir: "media",
   },
   hooks: {
     afterChange: [
-      async ({ collection, context, doc, req }) => {
-        if (!context.updatePerformed) {
-          context.updatePerformed = true; // if this isn't first, the UI hangs?
-          console.log("doc", doc);
-          // console.log("req", req);
-          await req.payload.update({
-            req,
-            collection: collection.slug,
-            data: {
-              url: doc.url,
-            },
-            where: {
-              id: { equals: doc.id },
-            },
-          });
-        }
+      ({ doc }) => {
+        console.log("doc", doc);
       },
     ],
   },

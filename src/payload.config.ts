@@ -61,9 +61,11 @@ export default buildConfig({
     uploadthingStorage({
       collections: {
         media: {
+          disableLocalStorage: true,
           disablePayloadAccessControl: true,
         },
       },
+      clientUploads: true,
       options: {
         token: process.env.UPLOADTHING_TOKEN || "",
         acl: "public-read",
