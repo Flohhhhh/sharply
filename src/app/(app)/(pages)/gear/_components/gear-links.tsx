@@ -73,7 +73,7 @@ export function GearLinks({
             target="_blank"
             rel="noopener noreferrer"
           >
-            <span className="font-bold text-[#FF9900]">Amazon</span>
+            <span className="font-bold text-[#FF9900]">Buy on Amazon</span>
           </Link>
         </Button>
       )}
