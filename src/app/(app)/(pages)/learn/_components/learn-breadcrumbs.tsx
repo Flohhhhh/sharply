@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Breadcrumbs, type CrumbItem } from "~/components/layout/breadcrumbs";
+import type { LearnPage } from "~/payload-types";
 
 function humanizeSegment(segment: string): string {
   const known: Record<string, string> = {
@@ -19,7 +20,11 @@ function humanizeSegment(segment: string): string {
     .join(" ");
 }
 
-export default function LearnBreadcrumbs() {
+type LearnBreadcrumbsProps = {
+  pages: LearnPage[];
+};
+
+export default function LearnBreadcrumbs({ pages }: LearnBreadcrumbsProps) {
   const pathname = usePathname();
   const [pageTitle, setPageTitle] = useState<string | null>(null);
 
@@ -37,30 +42,34 @@ export default function LearnBreadcrumbs() {
       return [];
     }
 
-    const crumbs: CrumbItem[] = [];
-    let hrefAccumulator = "";
-
-    segments.forEach((seg, idx) => {
-      hrefAccumulator += `/${seg}`;
-      const isLast = idx === segments.length - 1;
-      let label = humanizeSegment(seg);
-      if (isLast && pageTitle) {
-        label = pageTitle;
-      }
-      // Root "Learn" is linkable; intermediate are linkable; last is plain text
-      crumbs.push({
-        label,
-        href: isLast ? undefined : hrefAccumulator,
-      });
-    });
-
-    // If we're exactly on /learn, show nothing (no need for a single crumb)
-    if (crumbs.length === 1) {
+    if (segments.length === 1) {
       return [];
     }
 
+    const pageSlug = segments[segments.length - 1];
+    if (!pageSlug) {
+      return [];
+    }
+    const page = pages.find((learnPage) => learnPage.slug === pageSlug);
+    const categoryLabel =
+      page?.category && humanizeSegment(page.category)
+        ? humanizeSegment(page.category)
+        : null;
+
+    const crumbs: CrumbItem[] = [{ label: "Learn", href: "/learn" }];
+
+    if (categoryLabel) {
+      crumbs.push({ label: categoryLabel });
+    }
+
+    const articleLabel = pageTitle || page?.title || humanizeSegment(pageSlug);
+
+    crumbs.push({
+      label: articleLabel,
+    });
+
     return crumbs;
-  }, [pathname, pageTitle]);
+  }, [pathname, pageTitle, pages]);
 
   if (!items.length) return null;
 

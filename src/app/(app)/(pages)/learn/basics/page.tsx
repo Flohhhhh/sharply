@@ -6,21 +6,27 @@ import { Button } from "~/components/ui/button";
 export default function BasicsPage() {
   const featured = [
     {
-      href: "/learn/basics/camera-basics",
-      title: "Camera Basics",
+      href: "/learn/the-basics-of-modern-cameras",
+      title: "Understanding Modern Cameras",
       description:
-        "Understand the parts of a camera and how they work together.",
+        "Learn about the different types of cameras, their features, and how to choose the right one for your needs.",
     },
     {
-      href: "/learn/basics/buying-your-first-camera",
-      title: "Buying Your First Camera",
-      description: "How to choose a body, lenses, and a starter kit on budget.",
-    },
-    {
-      href: "/learn/basics/exposure-triangle",
+      href: "/learn/the-exposure-triangle",
       title: "The Exposure Triangle",
       description:
         "Aperture, shutter speed, and ISO—how each affects your image.",
+    },
+    {
+      href: "/learn/photography-genres-and-careers",
+      title: "Photography Genres and Careers",
+      description:
+        "Learn about the different genres of photography and the careers available in the industry.",
+    },
+    {
+      href: "/learn/buying-your-first-camera",
+      title: "Buying Your First Camera",
+      description: "How to choose a body, lenses, and a starter kit on budget.",
     },
   ];
 

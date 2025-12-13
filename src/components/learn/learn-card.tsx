@@ -20,7 +20,7 @@ export function LearnCard({ href, title, description, step }: LearnCardProps) {
       >
         <ArrowRight className="text-muted-foreground absolute top-6 right-6 h-5 w-5 transition-transform group-hover:translate-x-1" />
 
-        <div className="flex min-h-[140px] flex-col md:min-h-[180px]">
+        <div className="flex min-h-[100px] flex-col md:min-h-[140px]">
           <h3 className="pr-10 text-3xl leading-tight font-semibold">
             {title}
           </h3>
@@ -40,4 +40,3 @@ export function LearnCard({ href, title, description, step }: LearnCardProps) {
 }
 
 export default LearnCard;
-
