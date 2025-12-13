@@ -65,7 +65,6 @@ export default buildConfig({
           disablePayloadAccessControl: true,
         },
       },
-      clientUploads: true,
       options: {
         token: process.env.UPLOADTHING_TOKEN || "",
         acl: "public-read",
