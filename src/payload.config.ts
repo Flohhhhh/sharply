@@ -18,20 +18,6 @@ import { LearnPages } from "./collections/LearnPages";
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
-const plugins: any[] = [
-  uploadthingStorage({
-    collections: {
-      media: {
-        disablePayloadAccessControl: true,
-      },
-    },
-    options: {
-      token: process.env.UPLOADTHING_TOKEN,
-      acl: "public-read",
-    },
-  }),
-];
-
 export default buildConfig({
   admin: {
     user: Users.slug,
@@ -69,7 +55,21 @@ export default buildConfig({
     },
   }),
   sharp,
-  plugins,
+  plugins: [
+    payloadCloudPlugin(),
+    // storage-adapter-placeholder
+    uploadthingStorage({
+      collections: {
+        media: {
+          disablePayloadAccessControl: true,
+        },
+      },
+      options: {
+        token: process.env.UPLOADTHING_TOKEN || "",
+        acl: "public-read",
+      },
+    }),
+  ],
   email:
     process.env.RESEND_EMAIL_FROM && process.env.RESEND_API_KEY
       ? resendAdapter({
