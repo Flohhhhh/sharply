@@ -11,12 +11,13 @@ export const Media: CollectionConfig = {
     {
       name: "alt",
       type: "text",
-      required: false,
+      required: true,
     },
   ],
   upload: {
     disableLocalStorage: true,
     mimeTypes: ["image/*"],
+    staticDir: "https://",
   },
   hooks: {
     beforeChange: [
