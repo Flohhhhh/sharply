@@ -68,7 +68,7 @@ export default async function LearnArticlePage({
 
   return (
     <>
-      <h1 className="mt-2 text-4xl font-bold">{page.title}</h1>
+      <h1 className="mt-2 text-2xl font-bold sm:text-4xl">{page.title}</h1>
       {thumbUrl ? (
         <Image
           src={thumbUrl}
@@ -100,7 +100,7 @@ export default async function LearnArticlePage({
           ) : null}
         </div>
       )}
-      <RichText data={page.content as any} className="mt-6" />
+      <RichText data={page.content as any} className="mt-6 w-full max-w-none" />
     </>
   );
 }

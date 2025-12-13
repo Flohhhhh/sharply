@@ -39,7 +39,7 @@ export function RichText(
     <LexicalRichText
       {...rest}
       className={[
-        "prose prose-zinc dark:prose-invert prose-h2:text-2xl dark:prose-h2:text-2xl sm:prose:h2:text-4xl dark:sm:prose-h2:text-4xl dark:opacity-90",
+        "prose prose-zinc dark:prose-invert prose-h2:text-2xl dark:prose-h2:text-2xl sm:prose:h2:text-4xl dark:sm:prose-h2:text-4xl max-w-none dark:opacity-90",
         className,
       ]
         .filter(Boolean)
