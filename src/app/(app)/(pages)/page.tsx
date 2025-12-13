@@ -222,7 +222,7 @@ export default async function Home() {
                   className="w-full"
                   icon={<BookOpenIcon className="h-4 w-4" />}
                 >
-                  <Link href="/beginners-guide">Get Started</Link>
+                  <Link href="/learn/basics">Get Started</Link>
                 </Button>
               </div>
               <DiscordBanner vertical />

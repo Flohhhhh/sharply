@@ -59,7 +59,10 @@ export default function LearnBreadcrumbs({ pages }: LearnBreadcrumbsProps) {
     const crumbs: CrumbItem[] = [{ label: "Learn", href: "/learn" }];
 
     if (categoryLabel) {
-      crumbs.push({ label: categoryLabel });
+      crumbs.push({
+        label: categoryLabel,
+        href: page?.category ? `/learn/${page.category}` : undefined,
+      });
     }
 
     const articleLabel = pageTitle || page?.title || humanizeSegment(pageSlug);
