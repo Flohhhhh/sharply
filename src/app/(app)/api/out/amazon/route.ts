@@ -24,11 +24,14 @@ export async function GET(request: NextRequest) {
 
   try {
     const destinationUrl = getAmazonDestinationUrl(asin);
-    await track("amazon_redirect", {
+    const trackPayload: Record<string, string> = {
       asin,
       destinationUrl,
-      slug: slug || undefined,
-    });
+    };
+    if (slug) {
+      trackPayload.slug = slug;
+    }
+    await track("amazon_redirect", trackPayload);
     return NextResponse.redirect(destinationUrl, 307);
   } catch {
     return NextResponse.json({ error: "Invalid ASIN value" }, { status: 400 });

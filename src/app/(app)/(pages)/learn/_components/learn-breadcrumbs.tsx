@@ -47,6 +47,9 @@ export default function LearnBreadcrumbs({ pages }: LearnBreadcrumbsProps) {
     }
 
     const pageSlug = segments[segments.length - 1];
+    if (!pageSlug) {
+      return [];
+    }
     const page = pages.find((learnPage) => learnPage.slug === pageSlug);
     const categoryLabel =
       page?.category && humanizeSegment(page.category)
