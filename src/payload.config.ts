@@ -18,34 +18,19 @@ import { LearnPages } from "./collections/LearnPages";
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
-const plugins: any[] = [payloadCloudPlugin()];
-const uploadthingToken = process.env.UPLOADTHING_TOKEN?.trim();
-const shouldRegisterUploadthing = Boolean(uploadthingToken);
-if (shouldRegisterUploadthing) {
-  console.info(
-    "Payload registration: Uploadthing storage will be used for the media collection.",
-  );
-} else {
-  console.warn(
-    "Payload warning: UPLOADTHING_TOKEN is missing, so Uploadthing storage will not be initialized.",
-  );
-}
-if (shouldRegisterUploadthing) {
-  plugins.push(
-    uploadthingStorage({
-      collections: {
-        media: {
-          disablePayloadAccessControl: true,
-        },
+const plugins: any[] = [
+  uploadthingStorage({
+    collections: {
+      media: {
+        disablePayloadAccessControl: true,
       },
-      options: {
-        token: uploadthingToken,
-        acl: "public-read",
-      },
-    }),
-  );
-  console.log("Plugins: ", plugins);
-}
+    },
+    options: {
+      token: process.env.UPLOADTHING_TOKEN,
+      acl: "public-read",
+    },
+  }),
+];
 
 export default buildConfig({
   admin: {
