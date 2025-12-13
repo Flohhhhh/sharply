@@ -137,7 +137,7 @@ export function lexicalFirstParagraphText(
   ) {
     const children = (root as { children: unknown[] })
       .children as LexicalNode[];
-    paragraphNode = children.find((c) => c && c.type === "paragraph");
+    paragraphNode = children.find((c) => c?.type === "paragraph");
   }
 
   if (!paragraphNode) {
