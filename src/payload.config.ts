@@ -44,6 +44,7 @@ if (shouldRegisterUploadthing) {
       },
     }),
   );
+  console.log("Plugins: ", plugins);
 }
 
 export default buildConfig({
