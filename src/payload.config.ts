@@ -19,7 +19,18 @@ const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
 const plugins: any[] = [payloadCloudPlugin()];
-if (process.env.UPLOADTHING_TOKEN) {
+const uploadthingToken = process.env.UPLOADTHING_TOKEN?.trim();
+const shouldRegisterUploadthing = Boolean(uploadthingToken);
+if (shouldRegisterUploadthing) {
+  console.info(
+    "Payload registration: Uploadthing storage will be used for the media collection.",
+  );
+} else {
+  console.warn(
+    "Payload warning: UPLOADTHING_TOKEN is missing, so Uploadthing storage will not be initialized.",
+  );
+}
+if (shouldRegisterUploadthing) {
   plugins.push(
     uploadthingStorage({
       collections: {
@@ -28,7 +39,7 @@ if (process.env.UPLOADTHING_TOKEN) {
         },
       },
       options: {
-        token: process.env.UPLOADTHING_TOKEN,
+        token: uploadthingToken,
         acl: "public-read",
       },
     }),
