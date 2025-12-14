@@ -122,7 +122,7 @@ export default async function ArticlesLayout({
             <LearnBreadcrumbs pages={pages} />
             <article
               id="learn-article"
-              className="prose-h3:scroll-mt-20 prose-h2:mt-12 prose prose-h1:text-4xl prose-zinc dark:prose-invert prose-h2:text-2xl dark:prose-h2:text-2xl sm:prose:h2:text-4xl dark:sm:prose-h2:text-4xl prose-h1:scroll-mt-20 prose-h2:scroll-mt-20 prose-h4:scroll-mt-20 mx-auto max-w-none dark:opacity-90"
+              className="prose-img:rounded-md prose-h3:scroll-mt-20 prose-h2:mt-12 prose prose-h1:text-4xl prose-zinc dark:prose-invert prose-h2:text-2xl dark:prose-h2:text-2xl sm:prose:h2:text-4xl dark:sm:prose-h2:text-4xl prose-h1:scroll-mt-20 prose-h2:scroll-mt-20 prose-h4:scroll-mt-20 mx-auto max-w-none dark:opacity-90"
             >
               {children}
             </article>
