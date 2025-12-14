@@ -113,8 +113,8 @@ export default async function ArticlesLayout({
   return (
     <>
       <LearnMobileArticleSheet groups={mobileGroups} />
-      <div className="mx-auto min-h-screen max-w-[1500px] p-6 pt-12 sm:pt-24">
-        <div className="grid gap-12 md:grid-cols-[280px_1fr] lg:grid-cols-[280px_1fr_260px]">
+      <div className="mx-auto min-h-screen max-w-[1250px] p-6 pt-12 sm:pt-24">
+        <div className="grid gap-8 md:grid-cols-[280px_1fr] lg:grid-cols-[240px_1fr_260px]">
           <aside className="hidden lg:block">
             <LearnSidebar data={{ sections, rootItems }} />
           </aside>
@@ -122,7 +122,7 @@ export default async function ArticlesLayout({
             <LearnBreadcrumbs pages={pages} />
             <article
               id="learn-article"
-              className="prose prose-h1:text-4xl prose-zinc dark:prose-invert prose-h2:text-2xl dark:prose-h2:text-2xl sm:prose:h2:text-4xl dark:sm:prose-h2:text-4xl prose-h1:scroll-mt-8 prose-h2:scroll-mt-8 prose-h3:scroll-mt-8 prose-h4:scroll-mt-8 mx-auto max-w-none dark:opacity-90"
+              className="prose-h3:scroll-mt-20 prose-h2:mt-12 prose prose-h1:text-4xl prose-zinc dark:prose-invert prose-h2:text-2xl dark:prose-h2:text-2xl sm:prose:h2:text-4xl dark:sm:prose-h2:text-4xl prose-h1:scroll-mt-20 prose-h2:scroll-mt-20 prose-h4:scroll-mt-20 mx-auto max-w-none dark:opacity-90"
             >
               {children}
             </article>
