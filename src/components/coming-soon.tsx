@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "./ui/button";
+import { HouseIcon } from "lucide-react";
 
 export default function ComingSoon(props: {
   title?: string;
@@ -29,7 +30,11 @@ export default function ComingSoon(props: {
         <p className="text-muted-foreground max-w-md text-center text-sm">
           {description}
         </p>
-        <Button asChild className="mt-8">
+        <Button
+          asChild
+          className="z-20 mt-8"
+          icon={<HouseIcon className="h-4 w-4" />}
+        >
           <Link href={buttonHref}>{buttonText}</Link>
         </Button>
       </div>
