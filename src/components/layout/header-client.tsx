@@ -77,7 +77,10 @@ export default function HeaderClient({ user }: { user: HeaderUser }) {
                       <Menu className="size-4" />
                     </Button>
                   </NavSheetDesktop>
-                  <Link href="/">Sharply</Link>
+                  <Link href="/" className="hidden sm:block">
+                    Sharply
+                  </Link>
+                  <Logo className="fill-foreground h-4 w-4 sm:hidden" />
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
