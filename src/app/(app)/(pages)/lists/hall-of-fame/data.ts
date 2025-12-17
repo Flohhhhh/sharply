@@ -24,4 +24,9 @@ export const hallOfFameItems: HallOfFameItem[] = [
     slug: "nikon-nikkor-z-24-70mm-f-2-8-s-ii",
     text: "As the first f/2.8 standard zoom lens with an internal zoom mechanism, the Nikkor Z 24-70 f/2.8 S II earns its spot in our hall of fame as an exceptional professional standard zoom, despite offering only marginal improvements over its already impressive predecessor. It's a versatile lens that is still popular today and is a great all-rounder.",
   },
+  {
+    slug: "canon-rf28-70mm-f2-l-usm",
+    // first f/2 constant apertuer standard zoom lens for full frame
+    text: "The Canon RF 28-70mm f/2 L USM is the first f/2 constant aperture standard zoom lens for full frame cameras.",
+  },
 ];
