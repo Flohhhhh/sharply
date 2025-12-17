@@ -48,9 +48,9 @@ export default function Footer({
     alt: "Sharply",
     title: "Sharply",
   },
-  description = "Real specs, real reviews, real fast. Independent reviews, real specs, and side-by-side comparisons.",
+  description = "Sharply is a community-driven platform for sharing and discovering the best gear for your photography and videography needs.",
   socialLinks = defaultSocialLinks,
-  copyright = "© 2024 Sharply. All rights reserved.",
+  copyright = "© 2025 Sharply. All rights reserved.",
 }: Footer7Props) {
   return (
     <section className="w-full py-16">
