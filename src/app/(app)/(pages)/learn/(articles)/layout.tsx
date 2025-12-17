@@ -113,7 +113,7 @@ export default async function ArticlesLayout({
   return (
     <>
       <LearnMobileArticleSheet groups={mobileGroups} />
-      <div className="mx-auto min-h-screen max-w-[1250px] p-6 pt-12 sm:pt-24">
+      <div className="mx-auto min-h-screen max-w-[1400px] p-6 pt-12 sm:pt-24">
         <div className="grid gap-8 md:grid-cols-[280px_1fr] lg:grid-cols-[240px_1fr_260px]">
           <aside className="hidden lg:block">
             <LearnSidebar data={{ sections, rootItems }} />
