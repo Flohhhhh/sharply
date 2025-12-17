@@ -133,6 +133,10 @@ export default function Footer({
               informational purposes only. This site is independent and not
               affiliated with Nikon, Canon, Sony, or other brands.
             </p>
+            <p>
+              As an Amazon Affiliate, Sharply may earn a commission on
+              qualifying purchases made through links to Amazon.
+            </p>
             <p className="order-2 lg:order-1">{copyright}</p>
           </div>
 
