@@ -6,6 +6,8 @@ import LearnMobileArticleSheet, {
 import { TableOfContents } from "~/components/rich-text/table-of-contents";
 import type { LearnPage } from "~/payload-types";
 import { getLearnPages } from "~/server/payload/service";
+import { auth } from "~/server/auth";
+import ComingSoon from "~/components/coming-soon";
 
 const sortByCreationDate = <T extends { createdAt: string }>(items: T[]) => {
   return [...items].sort(
@@ -46,6 +48,20 @@ export default async function ArticlesLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth();
+  const role = session?.user?.role ?? "USER";
+
+  if (!["EDITOR", "ADMIN", "SUPERADMIN"].includes(role)) {
+    return (
+      <ComingSoon
+        title="Learn Articles"
+        description="We're working hard to bring you the best experience possible. In the meantime, you can browse our gear catalog and learn about the latest releases."
+        buttonText="Go Home"
+        buttonHref="/"
+      />
+    );
+  }
+
   const pages = await getLearnPages();
   const basicPages = pages.filter((page) => page.category === "basics");
   const unassignedPages = pages.filter(
@@ -113,7 +129,7 @@ export default async function ArticlesLayout({
   return (
     <>
       <LearnMobileArticleSheet groups={mobileGroups} />
-      <div className="mx-auto min-h-screen max-w-[1400px] p-6 pt-12 sm:pt-24">
+      <div className="mx-auto min-h-screen max-w-[1400px] p-6 py-12 sm:py-24">
         <div className="grid gap-8 md:grid-cols-[280px_1fr] lg:grid-cols-[240px_1fr_260px]">
           <aside className="hidden lg:block">
             <LearnSidebar data={{ sections, rootItems }} />
