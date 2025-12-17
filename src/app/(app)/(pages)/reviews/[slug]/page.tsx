@@ -23,7 +23,7 @@ export default async function ReviewPage({
   const brandName = getBrandNameById(gearItem.brandId ?? "");
 
   return (
-    <div className="mt-24 min-h-screen w-full px-4 sm:px-8">
+    <div className="mt-24 mb-24 min-h-screen w-full px-4 sm:px-8">
       <div className="mx-auto w-full max-w-5xl space-y-4 px-4 sm:px-8">
         <h1 className="text-4xl font-semibold">{review.title}</h1>
         <p className="text-muted-foreground">{gearItem.name}</p>

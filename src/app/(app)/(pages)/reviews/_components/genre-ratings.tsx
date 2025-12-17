@@ -6,8 +6,16 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
-import { AlertTriangle, CheckCircle2, Circle } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Circle,
+  CircleCheck,
+  Sparkles,
+} from "lucide-react";
 import { GENRES } from "~/lib/generated";
+import { cn } from "~/lib/utils";
+import { Separator } from "~/components/ui/separator";
 
 type GenreRatingsMap = Record<string, string | null | undefined>;
 
@@ -38,21 +46,21 @@ export function GenreRatings({
       return {
         label: "Excels",
         color: "text-blue-600 dark:text-blue-400",
-        bg: "bg-blue-500/5 border-blue-500/20",
-        Icon: CheckCircle2,
+        bg: "bg-blue-500/5 border-blue-500/40",
+        Icon: Sparkles,
       } as const;
     if (v === "2")
       return {
         label: "Acceptable",
         color: "text-green-600 dark:text-green-400",
-        bg: "bg-green-500/5 border-green-500/20",
-        Icon: Circle,
+        bg: "bg-green-500/5 border-green-500/40",
+        Icon: CircleCheck,
       } as const;
     if (v === "1")
       return {
         label: "Underperforms",
         color: "text-amber-600 dark:text-amber-400",
-        bg: "bg-amber-500/5 border-amber-500/20",
+        bg: "bg-amber-500/5 border-amber-500/40",
         Icon: AlertTriangle,
       } as const;
     return {
@@ -107,7 +115,7 @@ export function GenreRatings({
             const meta = getMeta(key);
             const HeaderIcon = meta.Icon;
             return (
-              <div key={key} className="space-y-3">
+              <div key={key} className="mt-2 space-y-2">
                 <div className="flex items-center justify-between">
                   <div className={`flex items-center gap-2 ${meta.color}`}>
                     <HeaderIcon className="h-4 w-4" />
@@ -117,22 +125,26 @@ export function GenreRatings({
                     {list.length}
                   </span>
                 </div>
-
-                <div className="space-y-2">
+                <Separator className="my-4" />
+                <div className="mt-2 space-y-2">
                   {list.map(({ slug, value, displayName, description }) => {
                     const { color, Icon, label, bg } = getMeta(value);
                     return (
                       <Tooltip key={slug}>
                         <TooltipTrigger asChild>
                           <div
-                            className={`flex items-center gap-3 rounded-md border p-3 ${bg}`}
+                            className={`flex items-center gap-3 rounded-md border-2 px-4 py-5 ${bg}`}
                           >
-                            <Icon className={`h-4 w-4 ${color}`} />
+                            {/* <Icon className={`h-4 w-4 ${color}`} /> */}
                             <div className="flex min-w-0 flex-col">
-                              <span className="font-medium">{displayName}</span>
-                              <span className={`text-sm ${color}`}>
-                                {label}
+                              <span
+                                className={cn("text-sm font-medium", color)}
+                              >
+                                {displayName}
                               </span>
+                              {/* <span className={`text-sm ${color}`}>
+                                {label}
+                              </span> */}
                             </div>
                           </div>
                         </TooltipTrigger>
@@ -159,6 +171,7 @@ export function GenreRatings({
           })}
         </div>
       </div>
+      <Separator className="my-4" />
     </div>
   );
 }
