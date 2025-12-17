@@ -23,40 +23,49 @@ export default async function ReviewPage({
   const brandName = getBrandNameById(gearItem.brandId ?? "");
 
   return (
-    <div className="mt-24 mb-24 min-h-screen w-full px-4 sm:px-8">
-      <div className="mx-auto w-full max-w-5xl space-y-4 px-4 sm:px-8">
-        <h1 className="text-4xl font-semibold">{review.title}</h1>
-        <p className="text-muted-foreground">{gearItem.name}</p>
+    <div className="mx-auto my-24 flex min-h-screen flex-col items-center gap-12 px-4 sm:px-8">
+      <div className="flex flex-col items-center gap-3 text-center">
+        <h1 className="text-center text-4xl font-bold sm:text-6xl">
+          {`${gearItem.name} Review`}
+        </h1>
+        <p className="text-muted-foreground max-w-3xl text-base sm:text-lg">
+          {review.title}
+        </p>
+      </div>
+
+      <div className="w-full max-w-7xl space-y-6">
         {/* Image */}
-        <div>
-          {gearItem.thumbnailUrl ? (
-            <div className="bg-muted dark:bg-card overflow-hidden rounded-md p-12 sm:p-24">
-              <Image
-                src={gearItem.thumbnailUrl}
-                alt={gearItem.name}
-                className="mx-auto h-full max-h-[300px] w-full max-w-[600px] object-contain sm:max-h-[475px]"
-                width={720}
-                height={480}
-                priority
-              />
+        {gearItem.thumbnailUrl ? (
+          <div className="bg-muted dark:bg-card min-h-[300px] overflow-hidden rounded-md p-6 sm:p-12">
+            <Image
+              src={gearItem.thumbnailUrl}
+              alt={gearItem.name}
+              className="mx-auto h-full max-h-[300px] w-full max-w-[600px] object-contain sm:max-h-[420px]"
+              width={720}
+              height={480}
+              priority
+            />
+          </div>
+        ) : (
+          <div className="bg-muted dark:bg-card flex aspect-video items-center justify-center rounded-md">
+            <div className="text-muted-foreground text-lg">
+              No image available
             </div>
-          ) : (
-            <div className="bg-muted dark:bg-card flex aspect-video items-center justify-center rounded-md">
-              <div className="text-muted-foreground text-lg">
-                No image available
-              </div>
-            </div>
-          )}
-        </div>
-        {/* Review Summary */}
-        <div className="mx-auto mt-8 max-w-3xl space-y-2">
+          </div>
+        )}
+      </div>
+
+      <section className="w-full max-w-4xl">
+        {/* Summary */}
+        <div className="space-y-2">
           <h2 className="text-lg font-semibold">Summary</h2>
           <p className="text-muted-foreground">{review.review_summary}</p>
         </div>
-        {/* Pros/Cons */}
-        <div className="mx-auto mt-4 max-w-3xl space-y-4">
-          <h2 className="text-lg font-semibold">Pros & Cons</h2>
-          <div className="mx-auto grid max-w-3xl grid-cols-2 gap-3">
+
+        {/* Pros & Cons */}
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold">Pros &amp; Cons</h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="rounded border border-green-400/50 bg-green-400/5 p-3">
               <h3 className="text-lg font-semibold">The Good</h3>
               <ul className="my-4 list-disc space-y-3 pl-5 text-sm text-green-600 dark:text-green-400">
@@ -76,8 +85,9 @@ export default async function ReviewPage({
             </div>
           </div>
         </div>
-        {/* Gear Card - above content */}
-        <div className="mx-auto mt-4 max-w-3xl space-y-2">
+
+        {/* Gear Specs */}
+        <div className="space-y-3">
           <h3 className="text-lg font-semibold">View {gearItem.name} specs</h3>
           <GearCardHorizontal
             slug={gearItem.slug}
@@ -88,17 +98,19 @@ export default async function ReviewPage({
             href={`/gear/${gearItem.slug}`}
           />
         </div>
+
         {/* Review Content */}
-        <div className="mx-auto mt-4 max-w-3xl space-y-4">
+        <div className="space-y-4">
           <h2 className="text-lg font-semibold">My Experience</h2>
           <RichText data={review.reviewContent} className="w-full max-w-none" />
         </div>
+
         {/* Genre Ratings */}
         <GenreRatings
           genreRatings={review.genreRatings ?? {}}
           gearName={gearItem.name}
         />
-      </div>
+      </section>
     </div>
   );
 }
