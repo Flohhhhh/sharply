@@ -134,8 +134,8 @@ export function GearReviewForm({
   return (
     <div className="mb-4">
       {/* Banner + Trigger */}
-      <div className="flex flex-col items-start justify-between gap-2 rounded-md border p-3 sm:flex-row sm:items-center">
-        <div className="text-sm">
+      <div className="flex w-full flex-col items-start justify-between gap-2 rounded-md border p-3 sm:flex-row sm:items-center">
+        <div className="sm:blocktext-sm hidden">
           Share your experience to help others decide.
         </div>
         <Button
@@ -143,6 +143,7 @@ export function GearReviewForm({
           disabled={isAuthLoading}
           loading={isAuthLoading}
           icon={<Pencil className="h-4 w-4" />}
+          className="w-full sm:w-fit"
         >
           Write a Review
         </Button>

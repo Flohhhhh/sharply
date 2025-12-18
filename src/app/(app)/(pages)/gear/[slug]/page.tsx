@@ -49,6 +49,7 @@ import DiscordBanner from "~/components/discord-banner";
 import Image from "next/image";
 // Removed LensApertureDisplay in favor of standardized spec rows using mapping
 import { ExtractorDemo } from "../_components/extractor-demo";
+import { JsonLd } from "~/components/json-ld";
 
 export const revalidate = 3600;
 
@@ -66,15 +67,25 @@ export async function generateMetadata({
   try {
     const item: GearItem = await fetchGearBySlug(slug);
     const verdict = await fetchStaffVerdict(slug).catch(() => null);
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    if (!baseUrl) {
+      throw new Error(
+        "Tried to generate metadata without NEXT_PUBLIC_BASE_URL being set",
+      );
+    }
     const description = verdict
       ? (verdict?.content ?? "")
       : `Sharply is the newest and most comprehensive photography gear database and review platform featuring expert reviews, real specs, and side-by-side comparisons in a modern, minimalist interface.`;
     return {
       title: `${item.name} | Specs & Reviews`,
       description,
+      alternates: {
+        canonical: `${baseUrl}/gear/${slug}`,
+      },
       openGraph: {
         title: `${item.name} | Specs & Reviews`,
         images: [item.thumbnailUrl ?? ""],
+        url: `${baseUrl}/gear/${slug}`,
         description,
       },
     };
@@ -161,9 +172,10 @@ export default async function GearPage({ params }: GearPageProps) {
     <main className="mx-auto max-w-7xl space-y-8 px-4 pt-20 sm:px-6">
       {/* Track page visit for popularity */}
       <GearVisitTracker slug={slug} />
-
       <section className="space-y-4">
-        <Breadcrumbs items={breadCrumbItems} />
+        <div className="hidden sm:block">
+          <Breadcrumbs items={breadCrumbItems} />
+        </div>
         {/* Item Name and Brand */}
         <div>
           <div className="flex items-center gap-3">
@@ -202,7 +214,7 @@ export default async function GearPage({ params }: GearPageProps) {
         {/* Photo Placeholder */}
         <div>
           {item.thumbnailUrl ? (
-            <div className="bg-muted dark:bg-card min-h-[420px] overflow-hidden rounded-md p-12 sm:p-24">
+            <div className="bg-muted dark:bg-card overflow-hidden rounded-md p-12 sm:min-h-[420px] sm:p-24">
               <Image
                 src={item.thumbnailUrl}
                 alt={item.name}
@@ -227,16 +239,16 @@ export default async function GearPage({ params }: GearPageProps) {
         <div className="flex items-center justify-center gap-8">
           {/* specs, reviews, contributors */}
           <Link
-            href={`#specs`}
-            className="text-muted-foreground hover:text-primary text-sm transition-all hover:underline"
-          >
-            Specs
-          </Link>
-          <Link
             href={`#staff-verdict`}
             className="text-muted-foreground hover:text-primary text-sm transition-all hover:underline"
           >
             Staff Verdict
+          </Link>
+          <Link
+            href={`#specs`}
+            className="text-muted-foreground hover:text-primary text-sm transition-all hover:underline"
+          >
+            Specs
           </Link>
           <Link
             href={`#reviews`}
@@ -364,6 +376,7 @@ export default async function GearPage({ params }: GearPageProps) {
               linkMpb={item.linkMpb ?? null}
               linkAmazon={item.linkAmazon ?? null}
               mpbMaxPriceUsdCents={item.mpbMaxPriceUsdCents ?? null}
+              msrpNowUsdCents={item.msrpNowUsdCents ?? null}
             />
           </div>
           {/* Contributors */}
@@ -398,6 +411,7 @@ export default async function GearPage({ params }: GearPageProps) {
       </section>
 
       <DiscordBanner />
+      <JsonLd gear={item} />
     </main>
   );
 }
