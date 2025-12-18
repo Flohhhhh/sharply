@@ -67,15 +67,25 @@ export async function generateMetadata({
   try {
     const item: GearItem = await fetchGearBySlug(slug);
     const verdict = await fetchStaffVerdict(slug).catch(() => null);
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    if (!baseUrl) {
+      throw new Error(
+        "Tried to generate metadata without NEXT_PUBLIC_BASE_URL being set",
+      );
+    }
     const description = verdict
       ? (verdict?.content ?? "")
       : `Sharply is the newest and most comprehensive photography gear database and review platform featuring expert reviews, real specs, and side-by-side comparisons in a modern, minimalist interface.`;
     return {
       title: `${item.name} | Specs & Reviews`,
       description,
+      alternates: {
+        canonical: `${baseUrl}/gear/${slug}`,
+      },
       openGraph: {
         title: `${item.name} | Specs & Reviews`,
         images: [item.thumbnailUrl ?? ""],
+        url: `${baseUrl}/gear/${slug}`,
         description,
       },
     };
