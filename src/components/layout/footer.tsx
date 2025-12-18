@@ -48,9 +48,9 @@ export default function Footer({
     alt: "Sharply",
     title: "Sharply",
   },
-  description = "Real specs, real reviews, real fast. Independent reviews, real specs, and side-by-side comparisons.",
+  description = "Sharply is a community-driven platform for sharing and discovering the best gear for your photography and videography needs.",
   socialLinks = defaultSocialLinks,
-  copyright = "© 2024 Sharply. All rights reserved.",
+  copyright = "© 2025 Sharply. All rights reserved.",
 }: Footer7Props) {
   return (
     <section className="w-full py-16">
@@ -132,6 +132,10 @@ export default function Footer({
               Product images © respective manufacturers. Used for editorial and
               informational purposes only. This site is independent and not
               affiliated with Nikon, Canon, Sony, or other brands.
+            </p>
+            <p>
+              As an Amazon Affiliate, Sharply may earn a commission on
+              qualifying purchases made through links to Amazon.
             </p>
             <p className="order-2 lg:order-1">{copyright}</p>
           </div>

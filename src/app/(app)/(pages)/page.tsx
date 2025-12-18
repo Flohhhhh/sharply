@@ -218,11 +218,13 @@ export default async function Home() {
                   </p>
                 </div>
                 <Button
-                  asChild
+                  // asChild
                   className="w-full"
+                  disabled={true}
                   icon={<BookOpenIcon className="h-4 w-4" />}
                 >
-                  <Link href="/learn/basics">Get Started</Link>
+                  {/* <Link href="/learn/basics">Get Started</Link> */}
+                  Coming Soon
                 </Button>
               </div>
               <DiscordBanner vertical />

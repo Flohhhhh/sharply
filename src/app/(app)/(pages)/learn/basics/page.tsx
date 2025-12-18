@@ -2,8 +2,24 @@ import { Library } from "lucide-react";
 import Link from "next/link";
 import LearnCard from "~/components/learn/learn-card";
 import { Button } from "~/components/ui/button";
+import ComingSoon from "~/components/coming-soon";
+import { auth } from "~/server/auth";
 
-export default function BasicsPage() {
+export default async function BasicsPage() {
+  const session = await auth();
+  const role = session?.user?.role ?? "USER";
+
+  if (!["EDITOR", "ADMIN", "SUPERADMIN"].includes(role)) {
+    return (
+      <ComingSoon
+        title="Learn Articles"
+        description="We're working hard to bring you the best experience possible. In the meantime, you can browse our gear catalog and learn about the latest releases."
+        buttonText="Go Home"
+        buttonHref="/"
+      />
+    );
+  }
+
   const featured = [
     {
       href: "/learn/the-basics-of-modern-cameras",

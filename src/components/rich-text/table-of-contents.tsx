@@ -2,6 +2,7 @@
 
 import { TableOfContentsIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 
 type HeadingItem = {
   id: string;
@@ -43,6 +44,7 @@ export function TableOfContents(props: {
   const [headings, setHeadings] = useState<HeadingItem[]>([]);
   const [activeId, setActiveId] = useState<string>("");
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     const container = document.querySelector(
@@ -69,7 +71,7 @@ export function TableOfContents(props: {
     );
     headingsEls.forEach((el) => observerRef.current?.observe(el));
     return () => observerRef.current?.disconnect();
-  }, [contentSelector]);
+  }, [contentSelector, pathname]);
 
   const items = useMemo(() => headings, [headings]);
 

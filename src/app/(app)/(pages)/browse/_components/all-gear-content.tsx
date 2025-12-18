@@ -37,28 +37,20 @@ export default async function AllGearContent({
     filters: brand ? { brandId: brand.id } : undefined,
   });
   return (
-    <main className="space-y-10">
-      <section className="border-border bg-muted/50 relative overflow-hidden rounded-2xl border px-6 py-10 sm:px-10">
-        <div className="from-background/50 absolute inset-y-0 right-0 hidden w-1/3 bg-gradient-to-l via-transparent to-transparent sm:block" />
+    <main className="space-y-8">
+      {/* browse hero */}
+      <section className="max-w-3xl space-y-4">
+        <h1 className="text-3xl font-bold sm:text-5xl">All Gear</h1>
+        <p className="text-muted-foreground">
+          Browse our comprehensive gear catalog featuring the latest cameras and
+          lenses from all major brands. Results are ordered by release date by
+          default with newer items appearing first.
+        </p>
+      </section>
+      <section className="relative rounded-2xl">
         <div className="relative grid gap-8 lg:grid-cols-[2fr,1fr]">
-          <div className="space-y-4">
-            <p className="text-muted-foreground text-sm">
-              {brand ? `${brand.name} releases` : "All gear releases"}
-            </p>
-            <h1 className="text-3xl font-semibold sm:text-4xl">
-              Discover the latest gear
-            </h1>
-          </div>
           {showBrandPicker ? (
-            <div className="bg-background/60 space-y-3 rounded-xl p-4 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div className="text-muted-foreground text-sm font-semibold">
-                  Popular brands
-                </div>
-                {otherBrandOptions.length ? (
-                  <OtherBrandsSelect brands={otherBrandOptions} />
-                ) : null}
-              </div>
+            <div className="">
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 {featured.map((b) => (
                   <Link
@@ -74,6 +66,11 @@ export default async function AllGearContent({
                     </div>
                   </Link>
                 ))}
+              </div>
+              <div className="mt-4 flex justify-end">
+                {otherBrandOptions.length ? (
+                  <OtherBrandsSelect brands={otherBrandOptions} />
+                ) : null}
               </div>
             </div>
           ) : null}
