@@ -49,6 +49,7 @@ import DiscordBanner from "~/components/discord-banner";
 import Image from "next/image";
 // Removed LensApertureDisplay in favor of standardized spec rows using mapping
 import { ExtractorDemo } from "../_components/extractor-demo";
+import { JsonLd } from "~/components/json-ld";
 
 export const revalidate = 3600;
 
@@ -398,6 +399,7 @@ export default async function GearPage({ params }: GearPageProps) {
       </section>
 
       <DiscordBanner />
+      <JsonLd gear={item} />
     </main>
   );
 }
