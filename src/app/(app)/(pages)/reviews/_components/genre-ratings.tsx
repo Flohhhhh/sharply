@@ -103,7 +103,7 @@ export function GenreRatings({
   return (
     <div className="mx-auto mt-4 max-w-3xl">
       <div className="mb-2">
-        <h3 className="text-lg font-semibold">
+        <h3 className="scroll-mt-24 text-lg font-semibold">
           {gearName} <span className="sr-only">-</span> Genre Ratings
         </h3>
       </div>
