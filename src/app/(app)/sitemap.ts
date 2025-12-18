@@ -1,13 +1,27 @@
 import type { MetadataRoute } from "next";
 import { fetchAllGearSlugs } from "~/server/gear/service";
 import { BRANDS, MOUNTS } from "~/lib/generated";
-import { getNewsPosts } from "~/server/payload/service";
+import {
+  getLearnPages,
+  getNewsPosts,
+  getReviews,
+} from "~/server/payload/service";
 
 export const revalidate = 3600; // Revalidate every hour
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const slugs = await fetchAllGearSlugs();
   const newsPosts = await getNewsPosts();
+  const publishedNewsPosts = newsPosts.filter((p) => p._status === "published");
+  const learnPages = await getLearnPages();
+  const publishedLearnPages = learnPages.filter(
+    (p) => p._status === "published",
+  );
+  const reviews = await getReviews();
+  const publishedReviews = reviews.filter((r) => r._status === "published");
+
+  // TODO: add curated comparisons
+
   return [
     {
       url: "https://sharplyphoto.com",
@@ -33,6 +47,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly" as const,
       priority: 0.5,
     },
+    // Reviews
+    ...publishedReviews.map((review) => ({
+      url: `https://sharplyphoto.com/reviews/${review.slug}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.5,
+    })),
+    // TOOD: finish feature and add to sitemap
     // {
     //   url: "https://sharplyphoto.com/focal-simulator",
     //   lastModified: new Date(),
@@ -78,7 +100,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     },
     // generate news post urls
-    ...newsPosts.map((post) => ({
+    ...publishedNewsPosts.map((post) => ({
       url: `https://sharplyphoto.com/news/${post.slug}`,
       lastModified: new Date(),
       changeFrequency: "weekly" as const,
@@ -120,5 +142,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       );
       return [...brandCategoryUrls, ...mountUrls];
     }),
+    // Learn pages //TODO: finish feature and add to sitemap
+    // {
+    //   url: "https://sharplyphoto.com/learn",
+    //   lastModified: new Date(),
+    //   changeFrequency: "weekly" as const,
+    //   priority: 0.5,
+    // },
+    // ...publishedLearnPages
+    //   .filter((p) => p.slug)
+    //   .map((page) => ({
+    //     url: `https://sharplyphoto.com/learn/${page.slug}`,
+    //     lastModified: new Date(),
+    //     changeFrequency: "weekly" as const,
+    //     priority: 0.5,
+    //   })),
+
+    // Recommended lenses //TODO: finish feature and add to sitemap
+    // {
+    //   url: "https://sharplyphoto.com/recommended-lenses",
+    //   lastModified: new Date(),
+    //   changeFrequency: "weekly" as const,
+    //   priority: 0.5,
+    // },
   ];
 }
