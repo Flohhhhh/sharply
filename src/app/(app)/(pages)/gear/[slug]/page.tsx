@@ -172,9 +172,10 @@ export default async function GearPage({ params }: GearPageProps) {
     <main className="mx-auto max-w-7xl space-y-8 px-4 pt-20 sm:px-6">
       {/* Track page visit for popularity */}
       <GearVisitTracker slug={slug} />
-
       <section className="space-y-4">
-        <Breadcrumbs items={breadCrumbItems} />
+        <div className="hidden sm:block">
+          <Breadcrumbs items={breadCrumbItems} />
+        </div>
         {/* Item Name and Brand */}
         <div>
           <div className="flex items-center gap-3">
@@ -213,7 +214,7 @@ export default async function GearPage({ params }: GearPageProps) {
         {/* Photo Placeholder */}
         <div>
           {item.thumbnailUrl ? (
-            <div className="bg-muted dark:bg-card min-h-[420px] overflow-hidden rounded-md p-12 sm:p-24">
+            <div className="bg-muted dark:bg-card overflow-hidden rounded-md p-12 sm:min-h-[420px] sm:p-24">
               <Image
                 src={item.thumbnailUrl}
                 alt={item.name}
@@ -238,16 +239,16 @@ export default async function GearPage({ params }: GearPageProps) {
         <div className="flex items-center justify-center gap-8">
           {/* specs, reviews, contributors */}
           <Link
-            href={`#specs`}
-            className="text-muted-foreground hover:text-primary text-sm transition-all hover:underline"
-          >
-            Specs
-          </Link>
-          <Link
             href={`#staff-verdict`}
             className="text-muted-foreground hover:text-primary text-sm transition-all hover:underline"
           >
             Staff Verdict
+          </Link>
+          <Link
+            href={`#specs`}
+            className="text-muted-foreground hover:text-primary text-sm transition-all hover:underline"
+          >
+            Specs
           </Link>
           <Link
             href={`#reviews`}
@@ -375,6 +376,7 @@ export default async function GearPage({ params }: GearPageProps) {
               linkMpb={item.linkMpb ?? null}
               linkAmazon={item.linkAmazon ?? null}
               mpbMaxPriceUsdCents={item.mpbMaxPriceUsdCents ?? null}
+              msrpNowUsdCents={item.msrpNowUsdCents ?? null}
             />
           </div>
           {/* Contributors */}

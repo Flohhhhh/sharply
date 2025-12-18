@@ -126,6 +126,7 @@ export type SpecFieldDef = {
   ) => React.ReactNode; // Format for display (table, etc.)
   editElementId?: string; // DOM id to focus in the edit UI when navigating from sidebar
   condition?: (item: GearItem) => boolean; // Optional: when to show this field
+  condenseOnMobile?: boolean; // Whether to condense the field on mobile
 };
 
 export type SpecSectionDef = {
@@ -238,6 +239,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "dimensions",
         label: "Dimensions",
+        condenseOnMobile: true,
         getRawValue: (item) => ({
           widthMm: item.widthMm,
           heightMm: item.heightMm,
@@ -347,6 +349,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "maxFpsByShutter",
         label: "Max Continuous FPS",
+        condenseOnMobile: true,
         getRawValue: (item) => ({
           perShutter: item.cameraSpecs?.maxFpsByShutter,
           availableShutters: item.cameraSpecs?.availableShutterTypes,
@@ -775,6 +778,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "videoSummary",
         label: "Video Summary",
+        condenseOnMobile: true,
         editElementId: "video-modes-manager",
         getRawValue: (item) => item.videoModes,
         formatDisplay: (_, item) => {
@@ -1450,6 +1454,7 @@ export function buildGearSpecsSections(
             label: field.label,
             value: value,
             fullWidth: !field.label,
+            condenseOnMobile: field.condenseOnMobile,
           };
         })
         .filter((row) => hasDisplayValue(row.value)),

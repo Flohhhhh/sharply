@@ -16,6 +16,7 @@ export type SpecsTableSection = {
     value: ReactNode | undefined;
     tooltip?: string;
     fullWidth?: boolean;
+    condenseOnMobile?: boolean;
   }[];
 };
 export default function SpecsTable({
@@ -58,9 +59,13 @@ export default function SpecsTable({
                   return (
                     <div
                       key={row.label}
-                      className={`flex h-full items-start gap-6 ${baseClass}`}
+                      className={cn(
+                        "flex h-full items-start gap-6",
+                        row.condenseOnMobile ? "flex-col" : "flex-row",
+                        baseClass,
+                      )}
                     >
-                      <div className="flex min-w-[180px] shrink-0 items-center gap-2 whitespace-nowrap text-muted-foreground">
+                      <div className="text-muted-foreground flex min-w-[100px] shrink-0 items-center gap-2 whitespace-nowrap sm:min-w-[180px]">
                         <span>{row.label}</span>
                         {row.tooltip && (
                           <Tooltip>
@@ -71,7 +76,7 @@ export default function SpecsTable({
                           </Tooltip>
                         )}
                       </div>
-                      <div className="flex flex-1 justify-end text-right">
+                      <div className="flex flex-1 justify-end self-end text-right">
                         {row.value}
                       </div>
                     </div>
