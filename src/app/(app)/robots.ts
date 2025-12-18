@@ -23,6 +23,6 @@ export default function robots(): MetadataRoute.Robots {
         "/focal-simulator/", // TODO: finish feature and add to sitemap
       ],
     },
-    sitemap: "https://sharplyphoto.com/sitemap.xml",
+    sitemap: "https://www.sharplyphoto.com/sitemap.xml",
   };
 }
