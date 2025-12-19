@@ -1,7 +1,7 @@
 import "server-only";
 
 import { z } from "zod";
-import { auth, requireUser } from "~/server/auth";
+import { auth, requireUser, requireRole, type UserRole } from "~/server/auth";
 import {
   getGearIdBySlug as getGearIdBySlugData,
   fetchGearBySlug as fetchGearBySlugData,
@@ -241,8 +241,8 @@ const verdictInput = z.object({
 });
 
 export async function upsertStaffVerdict(slug: string, body: unknown) {
-  const { user } = await requireUser();
-  if (!user?.role || !["ADMIN"].includes(user.role)) {
+  const session = await requireUser();
+  if (!requireRole(session, ["ADMIN"] as UserRole[])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
   const gearId = await resolveGearIdOrThrow(slug);
@@ -255,7 +255,7 @@ export async function upsertStaffVerdict(slug: string, body: unknown) {
     whoFor: data.whoFor ?? null,
     notFor: data.notFor ?? null,
     alternatives: data.alternatives ?? null,
-    authorUserId: user.id,
+    authorUserId: session.user.id,
   });
   return { ok: true as const, verdict: row };
 }
