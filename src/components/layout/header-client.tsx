@@ -80,7 +80,9 @@ export default function HeaderClient({ user }: { user: HeaderUser }) {
                   <Link href="/" className="hidden sm:block">
                     Sharply
                   </Link>
-                  <Logo className="fill-foreground h-4 w-4 sm:hidden" />
+                  <Link href="/" className="sm:hidden">
+                    <Logo className="fill-foreground h-4 w-4" />
+                  </Link>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
