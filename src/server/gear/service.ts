@@ -1,7 +1,8 @@
 import "server-only";
 
 import { z } from "zod";
-import { auth, requireUser, requireRole, type UserRole } from "~/server/auth";
+import { auth, requireUser, requireRole } from "~/server/auth";
+import type { UserRole } from "~/server/auth";
 import {
   getGearIdBySlug as getGearIdBySlugData,
   fetchGearBySlug as fetchGearBySlugData,
