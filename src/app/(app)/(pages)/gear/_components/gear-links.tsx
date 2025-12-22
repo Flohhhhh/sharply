@@ -4,7 +4,7 @@ import Link from "next/link";
 import { formatPrice } from "~/lib/mapping";
 import { parseAmazonAsin } from "~/lib/validation/amazon";
 import { FaAmazon } from "react-icons/fa";
-import { SiNikon, SiSony, SiFujifilm } from "react-icons/si";
+import { SiNikon, SiSony, SiFujifilm, SiLeica } from "react-icons/si";
 import MpbLogo from "public/mpb-logo";
 import type { ReactNode } from "react";
 import { BRANDS } from "~/lib/generated";
@@ -180,6 +180,27 @@ function getManufacturerStyles(brandSlug: string): {
             <SiFujifilm className="size-96" />
           </div>
         ),
+      };
+    case "tamron":
+      return {
+        title: "Visit Tamron",
+        backgroundClass: "bg-accent hover:bg-accent/70",
+        textColorClass: "text-primary",
+        logo: <></>,
+      };
+    case "sigma":
+      return {
+        title: "Visit Sigma",
+        backgroundClass: "bg-accent hover:bg-accent/70",
+        textColorClass: "text-primary",
+        logo: <></>,
+      };
+    case "leica":
+      return {
+        title: "Visit Leica",
+        backgroundClass: "bg-accent hover:bg-accent/70",
+        textColorClass: "text-primary",
+        logo: <SiLeica className="size-8 text-red-500" />,
       };
     default:
       return {
