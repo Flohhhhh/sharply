@@ -61,7 +61,9 @@ export default function SpecsTable({
                       key={row.label}
                       className={cn(
                         "flex h-full items-start gap-6",
-                        row.condenseOnMobile ? "flex-col" : "flex-row",
+                        row.condenseOnMobile
+                          ? "flex-col sm:flex-row"
+                          : "flex-row",
                         baseClass,
                       )}
                     >

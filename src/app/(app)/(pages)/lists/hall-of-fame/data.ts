@@ -29,4 +29,16 @@ export const hallOfFameItems: HallOfFameItem[] = [
     // first f/2 constant apertuer standard zoom lens for full frame
     text: "The Canon RF 28-70mm f/2 L USM is the first f/2 constant aperture standard zoom lens for full frame cameras.",
   },
+  {
+    slug: "nikon-nikkor-z-58mm-f-0-95-s-noct",
+    text: "Nikon's fastest lens, and the first full-frame lens with flagship performance to feature a f/0.95 aperture. This manual focus lens earns a spot in the hall of fame as a pioneer of wide aperture performance.",
+  },
+  {
+    slug: "canon-eos-5d-mark-ii",
+    text: "As the first DSLR to feature 1080p Full HD video recording, the Canon EOS 5D Mark II earns a spot in the hall of frame as the camera that began the push toward hybrid camera bodies that can shoot photos and videos.",
+  },
+  {
+    slug: "nikon-d90",
+    text: "The Nikon D90 was the first DSLR to feature 720p video recording, and was a major turning point for DSLR video.",
+  },
 ];
