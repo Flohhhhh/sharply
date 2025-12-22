@@ -6,12 +6,15 @@ import { Label } from "~/components/ui/label";
 import { Button } from "~/components/ui/button";
 import { actionUpdateDisplayName } from "~/server/users/actions";
 
-type SettingsFormProps = {
+type DisplayNameFormProps = {
   defaultName: string;
   onSuccess?: (name: string) => void;
 };
 
-export function SettingsForm({ defaultName, onSuccess }: SettingsFormProps) {
+export function DisplayNameForm({
+  defaultName,
+  onSuccess,
+}: DisplayNameFormProps) {
   const [name, setName] = useState(defaultName);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);

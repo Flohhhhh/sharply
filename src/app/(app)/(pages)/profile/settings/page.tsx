@@ -1,6 +1,6 @@
 import { auth } from "~/server/auth";
 import { fetchFullUserById } from "~/server/users/service";
-import { SettingsForm } from "./settings-form";
+import { DisplayNameForm } from "./display-name-form";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { ProfilePictureSettingsSection } from "~/components/profile/profile-picture-settings-section";
@@ -34,7 +34,7 @@ export default async function SettingsPage() {
 
         <section className="space-y-4">
           <h2 className="text-lg font-semibold">Display Name</h2>
-          <SettingsForm defaultName={user?.name ?? ""} />
+          <DisplayNameForm defaultName={user?.name ?? ""} />
         </section>
       </div>
     </main>
