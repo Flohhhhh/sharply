@@ -39,7 +39,7 @@ export function CollectionCard(props: { item: GearItem }) {
           <div className="bg-muted h-[200px] w-full" />
         )}
 
-        <div className="bg-background/40 pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
           <Button
             asChild
             icon={<EyeIcon className="h-4 w-4" />}
