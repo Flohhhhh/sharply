@@ -1,7 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { FaDiscord } from "react-icons/fa";
 import { track } from "@vercel/analytics";
-import { usePathname } from "next/navigation";
 import { cn } from "~/lib/utils";
 import { Button } from "./ui/button";
 
@@ -15,7 +16,6 @@ export default function DiscordLink(props: {
     label = "Join Discord",
     location = "discord_link",
   } = props;
-  const pathname = usePathname();
   return (
     <Button
       asChild
@@ -32,7 +32,7 @@ export default function DiscordLink(props: {
         onClick={() =>
           void track("discord_click", {
             location,
-            route: pathname || "/",
+            label,
           })
         }
       >
