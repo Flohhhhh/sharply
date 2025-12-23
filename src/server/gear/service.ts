@@ -406,6 +406,8 @@ export type UnderConstructionRow = {
   slug: string;
   name: string;
   brandName: string | null;
+  thumbnailUrl: string | null;
+  hasImage: boolean;
   gearType: string;
   missingCount: number;
   missing: string[];
@@ -521,6 +523,8 @@ export async function listUnderConstruction(
       slug: base.slug,
       name: base.name,
       brandName: base.brandName,
+      thumbnailUrl: base.thumbnailUrl ?? null,
+      hasImage: Boolean(base.thumbnailUrl),
       gearType: base.gearType,
       missingCount: missing.length,
       missing,

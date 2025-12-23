@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Badge } from "~/components/ui/badge";
 import {
   Table,
@@ -31,13 +32,16 @@ import EditModalContent from "~/app/(app)/(pages)/gear/_components/edit-gear/edi
 import type { GearItem } from "~/types/gear";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
-import { Loader2 } from "lucide-react";
+import { ImageOff, Loader2 } from "lucide-react";
+import { Button } from "~/components/ui/button";
 
 type Row = {
   id: string;
   slug: string;
   name: string;
   brandName: string | null;
+  thumbnailUrl: string | null;
+  hasImage: boolean;
   gearType: string;
   missingCount: number;
   missing: string[];
@@ -47,6 +51,7 @@ type Row = {
 };
 
 export function UnderConstructionTable({ items }: { items: Row[] }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<{
     slug: string;
@@ -117,18 +122,16 @@ export function UnderConstructionTable({ items }: { items: Row[] }) {
               <TableHead>Missing</TableHead>
               <TableHead>Progress</TableHead>
               <TableHead className="text-right">Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {rows.map((it, idx) => {
-              const editHref = `/gear/${it.slug}/edit?type=${it.gearType}`;
               return (
                 <TableRow
                   key={it.id}
                   className={`cursor-pointer overflow-visible ${idx % 2 === 0 ? "hover:bg-accent/25" : "hover:bg-accent/60"}`}
-                  onClick={() =>
-                    handleOpen(it.slug, it.gearType as "CAMERA" | "LENS")
-                  }
+                  onClick={() => router.push(`/gear/${it.slug}`)}
                   role="button"
                 >
                   <TableCell className="max-w-[360px]">
@@ -136,6 +139,14 @@ export function UnderConstructionTable({ items }: { items: Row[] }) {
                       <span className="font-medium underline-offset-2 group-hover:underline">
                         {it.name}
                       </span>
+                      {!it.hasImage && (
+                        <Badge
+                          variant="outline"
+                          className="flex items-center gap-1"
+                        >
+                          <ImageOff className="h-3 w-3" />
+                        </Badge>
+                      )}
                     </div>
                     <div className="text-muted-foreground text-xs">
                       {it.brandName ?? ""}
@@ -172,6 +183,18 @@ export function UnderConstructionTable({ items }: { items: Row[] }) {
                     ) : (
                       <Badge variant="secondary">Low completeness</Badge>
                     )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpen(it.slug, it.gearType as "CAMERA" | "LENS");
+                      }}
+                    >
+                      Open modal
+                    </Button>
                   </TableCell>
                 </TableRow>
               );

@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { Checkbox } from "~/components/ui/checkbox";
 import UnderConstructionTable from "./under-construction-table";
 
 type Row = {
@@ -15,6 +16,8 @@ type Row = {
   slug: string;
   name: string;
   brandName: string | null;
+  thumbnailUrl: string | null;
+  hasImage: boolean;
   gearType: string;
   missingCount: number;
   missing: string[];
@@ -37,14 +40,16 @@ export default function UnderConstructionClient({
 }) {
   const [brandId, setBrandId] = useState<string>("all");
   const [gearType, setGearType] = useState<string>("all");
+  const [missingImagesOnly, setMissingImagesOnly] = useState(false);
 
   const filtered = useMemo(() => {
     return items.filter((it) => {
       if (brandId !== "all" && (it as any).brandId !== brandId) return false;
       if (gearType !== "all" && it.gearType !== gearType) return false;
+      if (missingImagesOnly && it.hasImage) return false;
       return true;
     });
-  }, [items, brandId, gearType]);
+  }, [items, brandId, gearType, missingImagesOnly]);
 
   return (
     <>
@@ -80,6 +85,19 @@ export default function UnderConstructionClient({
               ))}
             </SelectContent>
           </Select>
+        </div>
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="missing-images"
+            checked={missingImagesOnly}
+            onCheckedChange={(val) => setMissingImagesOnly(val === true)}
+          />
+          <label
+            htmlFor="missing-images"
+            className="text-muted-foreground text-xs"
+          >
+            Show items without images
+          </label>
         </div>
       </div>
       <div className="mt-8">
