@@ -61,11 +61,14 @@ export function CollectionGrid(props: { items: GearItem[] }) {
   }, [items]);
 
   return (
-    <div className="flex w-full flex-col justify-center gap-10">
+    <div className="flex w-full flex-col gap-6 md:gap-10">
       {rows.map((rowItems, rowIndex) => (
-        <div key={rowIndex} className="flex justify-center gap-10">
+        <div
+          key={rowIndex}
+          className="flex flex-col items-stretch gap-6 md:flex-row md:justify-center md:gap-10"
+        >
           {rowItems.map((item) => (
-            <div key={item.id}>
+            <div key={item.id} className="w-full md:w-auto">
               <CollectionCard item={item} />
             </div>
           ))}

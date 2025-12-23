@@ -101,7 +101,7 @@ export default async function UserProfilePage({
 
         {/* Collection */}
         <h2 className="text-2xl font-semibold">Collection</h2>
-        <CollectionContainer items={sortedOwnedItems} />
+        <CollectionContainer items={sortedOwnedItems} user={user} />
         {/* <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold">Collection</h2>
@@ -277,24 +277,29 @@ function getGearTypePriority(item: GearItem) {
 }
 
 function getLensMinimumFocalLength(item: GearItem) {
-  const candidates: number[] = [];
+  const normalize = (value: number | null | undefined) =>
+    typeof value === "number" && Number.isFinite(value) ? value : null;
 
+  const primaryCandidate =
+    normalize(item.lensSpecs?.focalLengthMinMm) ??
+    normalize(item.fixedLensSpecs?.focalLengthMinMm);
+  if (primaryCandidate != null) {
+    return primaryCandidate;
+  }
+
+  const candidates: number[] = [];
   const pushCandidate = (value: number | null | undefined) => {
     if (typeof value === "number" && Number.isFinite(value)) {
       candidates.push(value);
     }
   };
 
-  pushCandidate(item.lensSpecs?.focalLengthMinMm);
   pushCandidate(item.lensSpecs?.focalLengthMaxMm);
-  pushCandidate(item.fixedLensSpecs?.focalLengthMinMm);
   pushCandidate(item.fixedLensSpecs?.focalLengthMaxMm);
 
-  if (candidates.length === 0) {
-    const parsed = parseFocalFromName(item.name);
-    if (parsed != null) {
-      candidates.push(parsed);
-    }
+  const parsed = parseFocalFromName(item.name);
+  if (parsed != null) {
+    candidates.push(parsed);
   }
 
   if (candidates.length === 0) {
@@ -306,9 +311,14 @@ function getLensMinimumFocalLength(item: GearItem) {
 
 function parseFocalFromName(name?: string) {
   if (!name) return null;
-  const match = name.match(/(\d+(\.\d+)?)mm/);
-  if (!match) return null;
-  return Number(match[1]);
+  const rangeMatch = name.match(/(\d+(?:\.\d+)?)\s*-\s*\d+(?:\.\d+)?\s*mm/i);
+  if (rangeMatch) {
+    return Number(rangeMatch[1]);
+  }
+
+  const singleMatch = name.match(/(\d+(?:\.\d+)?)\s*mm/i);
+  if (!singleMatch) return null;
+  return Number(singleMatch[1]);
 }
 
 function getReleaseTimestamp(item: GearItem) {

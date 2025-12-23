@@ -6,8 +6,10 @@ import { eq, sql } from "drizzle-orm";
 import { db } from "~/server/db";
 import {
   brands,
+  fixedLensSpecs,
   gear,
   gearMounts,
+  lensSpecs,
   mounts,
   reviews,
   users,
@@ -80,6 +82,8 @@ async function fetchGearItemsForUserList(
     .from(relationshipTable)
     .innerJoin(gear, eq(relationshipTable.gearId, gear.id))
     .leftJoin(brands, eq(gear.brandId, brands.id))
+    .leftJoin(lensSpecs, eq(lensSpecs.gearId, gear.id))
+    .leftJoin(fixedLensSpecs, eq(fixedLensSpecs.gearId, gear.id))
     .where(eq(relationshipTable.userId, userId));
 
   if (!rows.length) return [];
@@ -123,6 +127,8 @@ async function fetchGearItemsForUserList(
       brands: row.brands ?? null,
       mounts: gearMountsForItem[0] ?? null,
       mountIds: mountIdentifierList,
+      lensSpecs: row.lensSpecs ?? null,
+      fixedLensSpecs: row.fixedLensSpecs ?? null,
     };
   });
 }
