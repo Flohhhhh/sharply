@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@vercel/analytics";
 import { useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Button } from "~/components/ui/button";
@@ -76,6 +77,10 @@ export function GearReviewForm({
     setIsSubmitting(true);
     setError("");
     setSuccess("");
+    void track("review_submit_attempt", {
+      gearSlug,
+      genresCount: genres.length,
+    });
 
     try {
       const response = await fetch(`/api/gear/${gearSlug}/reviews`, {
@@ -118,6 +123,10 @@ export function GearReviewForm({
 
   const handleCtaClick = () => {
     if (isAuthLoading) return;
+    void track("review_cta_click", {
+      gearSlug,
+      authenticated: Boolean(session),
+    });
     if (session) {
       setOpen(true);
     } else {

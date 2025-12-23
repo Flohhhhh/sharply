@@ -1,6 +1,7 @@
 import "server-only";
 
 import { z } from "zod";
+import { track } from "@vercel/analytics/server";
 import { auth, requireUser, requireRole } from "~/server/auth";
 import type { UserRole } from "~/server/auth";
 import {
@@ -168,8 +169,25 @@ export async function submitReview(slug: string, body: unknown) {
     genres: data.genres,
     recommend: data.recommend,
   });
-  if (res.alreadyExists)
+  if (res.alreadyExists) {
+    try {
+      await track("review_submit_duplicate", {
+        userId,
+        gearId,
+      });
+    } catch (eventErr) {
+      console.error("Failed to record duplicate review analytics", eventErr);
+    }
     return { ok: false, reason: "already_reviewed" } as const;
+  }
+  try {
+    await track("review_submit_complete", {
+      userId,
+      gearId,
+    });
+  } catch (eventErr) {
+    console.error("Failed to record review completion analytics", eventErr);
+  }
   return { ok: true, review: res.review } as const;
 }
 
@@ -328,6 +346,14 @@ export async function submitGearEditProposal(body: unknown) {
       gearEditId: proposal.id,
     });
   } catch {}
+  try {
+    await track("gear_edit_submit_complete", {
+      gearId,
+      autoApproved,
+    });
+  } catch (eventErr) {
+    console.error("Failed to record gear edit analytics", eventErr);
+  }
   const resultProposal = autoApproved
     ? { ...proposal, status: "APPROVED" as const }
     : proposal;

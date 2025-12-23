@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@vercel/analytics";
 import { useScrollState } from "@/lib/hooks/useScrollState";
 import { Button } from "../ui/button";
 import { LayoutDashboard, LogIn, Menu } from "lucide-react";
@@ -41,6 +42,13 @@ export default function HeaderClient({ user }: { user: HeaderUser }) {
     user?.role === "ADMIN" ||
     user?.role === "SUPERADMIN" ||
     user?.role === "EDITOR";
+
+  const handleHeaderSignInClick = () => {
+    void track("auth_signin_press", {
+      source: "header",
+      callbackUrl,
+    });
+  };
 
   return (
     <header
@@ -137,6 +145,7 @@ export default function HeaderClient({ user }: { user: HeaderUser }) {
                   <Button size="sm" asChild icon={<LogIn />}>
                     <Link
                       href={`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+                      onClick={handleHeaderSignInClick}
                     >
                       Sign In
                     </Link>

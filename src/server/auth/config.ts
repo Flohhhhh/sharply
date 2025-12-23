@@ -1,4 +1,5 @@
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
+import { track } from "@vercel/analytics/server";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
 import GoogleProvider from "next-auth/providers/google";
@@ -110,7 +111,7 @@ export const authConfig = {
           (user as { memberNumber?: number | null })?.memberNumber ?? null,
       },
     }),
-    async signIn({ user }) {
+    async signIn({ user, account }) {
       try {
         // Temporarily grant Pioneer badge on every sign-in
         if (user?.id) {
@@ -119,6 +120,14 @@ export const authConfig = {
             badgeKey: "pioneer",
             eventType: "auth.signin",
           });
+          try {
+            await track("auth_signin_success", {
+              userId: user.id,
+              provider: account?.provider ?? "unknown",
+            });
+          } catch (eventErr) {
+            console.error("Failed to record signin analytics", eventErr);
+          }
         }
       } catch (err) {
         console.error("Failed to grant Pioneer badge on sign-in", err);

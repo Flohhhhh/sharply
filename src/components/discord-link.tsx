@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FaDiscord } from "react-icons/fa";
+import { track } from "@vercel/analytics";
 import { cn } from "~/lib/utils";
 import { Button } from "./ui/button";
 
@@ -17,7 +18,17 @@ export default function DiscordLink(props: {
         className,
       )}
     >
-      <Link href="/discord/invite" target="_blank" rel="noopener noreferrer">
+      <Link
+        href="/discord/invite"
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={() =>
+          void track("discord_click", {
+            source: "discord_link",
+            label,
+          })
+        }
+      >
         {label}
       </Link>
     </Button>
