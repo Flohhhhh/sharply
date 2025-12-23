@@ -10,6 +10,8 @@ import type { User } from "next-auth";
 
 const designWidth = 1920;
 const designHeight = 1080;
+const bottomPadding = 120;
+const designHeightWithPadding = designHeight + bottomPadding;
 
 export function CollectionContainer(props: {
   items: GearItem[];
@@ -29,7 +31,7 @@ export function CollectionContainer(props: {
       const w = el.clientWidth;
       const h = el.clientHeight;
 
-      const fit = Math.min(w / designWidth, h / designHeight);
+      const fit = Math.min(w / designWidth, h / designHeightWithPadding);
       setScale(Math.min(1, fit)); // clamp so it doesn't upscale in preview
     };
 
@@ -43,16 +45,16 @@ export function CollectionContainer(props: {
     <div
       ref={containerRef}
       className={cn("relative w-full overflow-hidden", className)}
-      style={{ height: designHeight * scale }}
+      style={{ height: designHeightWithPadding * scale }}
     >
       <div
         style={{
           width: designWidth,
-          height: designHeight,
+          height: designHeightWithPadding,
           transform: `scale(${scale})`,
           transformOrigin: "top left",
         }}
-        className="bg-accent/50 relative mx-auto flex flex-col justify-center rounded p-12 sm:p-24"
+        className="bg-accent/50 relative mx-auto flex flex-col justify-center rounded"
       >
         <CollectionGrid items={items} />
       </div>
