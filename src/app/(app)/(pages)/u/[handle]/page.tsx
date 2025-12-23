@@ -101,8 +101,10 @@ export default async function UserProfilePage({
         </div>
 
         {/* Collection */}
-        <h2 className="text-2xl font-semibold">Collection</h2>
-        <CollectionContainer items={sortedOwnedItems} user={user} />
+        <div className="space-y-4">
+          <h2 className="text-2xl font-semibold">Collection</h2>
+          <CollectionContainer items={sortedOwnedItems} user={user} />
+        </div>
         {/* <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold">Collection</h2>
