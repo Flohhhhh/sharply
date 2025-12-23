@@ -20,7 +20,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
-import { SettingsForm } from "~/app/(app)/(pages)/profile/settings/settings-form";
+import { DisplayNameForm } from "~/app/(app)/(pages)/profile/settings/display-name-form";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -269,7 +269,7 @@ export default function UserCard(props: {
                       reviews.
                     </DialogDescription>
                   </DialogHeader>
-                  <SettingsForm
+                  <DisplayNameForm
                     defaultName={displayName}
                     onSuccess={(name) => {
                       setDisplayName(name);

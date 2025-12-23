@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   getItemDisplayPrice,
   getMountDisplayName,
@@ -19,6 +20,9 @@ import { auth } from "~/server/auth";
 import { Button } from "~/components/ui/button";
 import { UserPen } from "lucide-react";
 import { ShowUserCardButton } from "~/app/(app)/(pages)/u/_components/ShowUserCardButton";
+import type { GearItem } from "~/types/gear";
+import { getBrandNameById } from "~/lib/mapping/brand-map";
+import { CollectionContainer } from "~/app/(app)/(pages)/u/_components/collection/collection-container";
 
 interface UserProfilePageProps {
   params: Promise<{
@@ -55,6 +59,8 @@ export default async function UserProfilePage({
     fetchUserOwnedItems(user.id),
   ]);
 
+  const sortedOwnedItems = sortOwnedItems(ownedItems);
+
   // ownedItems loaded above
 
   const myProfile = user.id === session?.user?.id;
@@ -88,7 +94,7 @@ export default async function UserProfilePage({
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+      <div className="flex flex-col gap-8">
         {/* Badges */}
         <div className="space-y-4 lg:col-span-2">
           <UserBadges userId={user.id} />
@@ -96,6 +102,10 @@ export default async function UserProfilePage({
 
         {/* Collection */}
         <div className="space-y-4">
+          <h2 className="text-2xl font-semibold">Collection</h2>
+          <CollectionContainer items={sortedOwnedItems} user={user} />
+        </div>
+        {/* <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold">Collection</h2>
             <span className="bg-secondary rounded-full px-3 py-1 text-sm font-medium">
@@ -117,7 +127,7 @@ export default async function UserProfilePage({
               </Link>
             </div>
           )}
-        </div>
+        </div> */}
 
         {/* Wishlist */}
         <div className="space-y-4">
@@ -129,7 +139,7 @@ export default async function UserProfilePage({
           </div>
 
           {wishlistItems.length > 0 ? (
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               {wishlistItems.map((item) => (
                 <GearCard key={item.id} item={item} />
               ))}
@@ -157,65 +167,196 @@ export default async function UserProfilePage({
 }
 
 // Gear card component for displaying individual items
-function GearCard({ item }: { item: any }) {
-  const preferredPriceCents =
-    typeof item.mpbMaxPriceUsdCents === "number"
-      ? item.mpbMaxPriceUsdCents
-      : typeof item.msrpNowUsdCents === "number"
-        ? item.msrpNowUsdCents
-        : null;
-  const priceDisplay = getItemDisplayPrice(item, { padWholeAmounts: true });
+function GearCard({ item }: { item: GearItem }) {
+  const brandName = getBrandNameById(item.brandId);
+  const displayName = getDisplayName(item, brandName);
+  const priceDisplay = getItemDisplayPrice(item, {
+    style: "short",
+    padWholeAmounts: true,
+  });
+
   return (
     <Link
       href={`/gear/${item.slug}`}
-      className="border-input bg-card hover:bg-accent block rounded-md border p-4"
+      className="group border-border/80 hover:border-foreground/50 block overflow-hidden rounded-xl border transition-colors"
     >
-      <div className="flex gap-4">
+      <div className="flex gap-3 p-3">
         {item.thumbnailUrl ? (
-          <div className="bg-muted h-20 w-20 flex-shrink-0 overflow-hidden rounded-md">
-            <img
+          <div className="bg-muted relative aspect-[4/3] w-28 flex-shrink-0 overflow-hidden rounded-lg">
+            <Image
               src={item.thumbnailUrl}
-              alt={item.name}
-              className="h-full w-full object-cover"
+              alt={displayName}
+              fill
+              sizes="(min-width: 1024px) 180px, 30vw"
+              className="object-contain p-2"
             />
           </div>
         ) : (
-          <div className="bg-muted h-20 w-20 flex-shrink-0 rounded-md" />
+          <div className="bg-muted text-muted-foreground relative aspect-[4/3] w-28 flex-shrink-0 overflow-hidden rounded-lg">
+            <div className="flex h-full w-full items-center justify-center px-2 text-center text-xs font-medium">
+              {displayName}
+            </div>
+          </div>
         )}
 
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between">
-            <div className="min-w-0 flex-1">
-              <h3 className="truncate font-medium">{item.name}</h3>
-              <div className="text-muted-foreground mt-1 flex items-center gap-2 text-sm">
-                <span className="bg-secondary rounded-full px-2 py-1 text-xs font-medium">
-                  {item.gearType}
-                </span>
-                {item.brand && (
-                  <span className="truncate">{item.brand.name}</span>
-                )}
-              </div>
-              {item.mount && (
-                <p className="text-muted-foreground mt-1 text-xs">
-                  {getMountDisplayName(item.mount.value)}
-                </p>
-              )}
-            </div>
-
-            <div className="text-right">
-              <p
-                className={
-                  preferredPriceCents != null
-                    ? "font-medium"
-                    : "text-muted-foreground"
-                }
-              >
-                {priceDisplay}
-              </p>
-            </div>
+        <div className="min-w-0 flex-1 space-y-2">
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="line-clamp-2 leading-tight font-semibold">
+              {displayName}
+            </h3>
+            <span
+              className={
+                priceDisplay === PRICE_FALLBACK_TEXT
+                  ? "text-muted-foreground text-sm"
+                  : "text-sm font-semibold"
+              }
+            >
+              {priceDisplay}
+            </span>
           </div>
         </div>
       </div>
     </Link>
   );
+}
+
+function getDisplayName(item: GearItem, brandName?: string | null) {
+  const trimmed = stripBrandFromName(item.name, brandName);
+  return trimmed || item.name;
+}
+
+function stripBrandFromName(name: string, brandName?: string | null) {
+  const normalizedName = name?.trim();
+  if (!normalizedName) return normalizedName;
+
+  if (!brandName) return normalizedName;
+
+  const normalizedBrand = brandName.trim();
+  if (!normalizedBrand) return normalizedName;
+
+  const pattern = new RegExp(
+    `^${escapeRegExp(normalizedBrand)}(?:\\s+|[-–—:]\\s*)`,
+    "i",
+  );
+
+  const stripped = normalizedName.replace(pattern, "").trim();
+  return stripped || normalizedName;
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function sortOwnedItems(items: GearItem[]) {
+  return [...items].sort((firstItem, secondItem) => {
+    const firstPriority = getGearTypePriority(firstItem);
+    const secondPriority = getGearTypePriority(secondItem);
+
+    const priorityDifference = firstPriority - secondPriority;
+    if (priorityDifference !== 0) {
+      return priorityDifference;
+    }
+
+    if (firstPriority === 0 && secondPriority === 0) {
+      const firstCameraRelease = getReleaseTimestamp(firstItem);
+      const secondCameraRelease = getReleaseTimestamp(secondItem);
+      if (firstCameraRelease !== null || secondCameraRelease !== null) {
+        if (firstCameraRelease === null) {
+          return 1;
+        }
+        if (secondCameraRelease === null) {
+          return -1;
+        }
+
+        const releaseDifference = secondCameraRelease - firstCameraRelease;
+        if (releaseDifference !== 0) {
+          return releaseDifference;
+        }
+      }
+    }
+
+    if (firstPriority === 1 && secondPriority === 1) {
+      const focalLengthDifference =
+        getLensMinimumFocalLength(firstItem) -
+        getLensMinimumFocalLength(secondItem);
+      if (focalLengthDifference !== 0) {
+        return focalLengthDifference;
+      }
+    }
+
+    return firstItem.name.localeCompare(secondItem.name);
+  });
+}
+
+function getGearTypePriority(item: GearItem) {
+  const gearTypeIdentifier = item.gearType?.toUpperCase() ?? "";
+  if (gearTypeIdentifier === "CAMERA") {
+    return 0;
+  }
+
+  if (gearTypeIdentifier === "LENS") {
+    return 1;
+  }
+
+  return 2;
+}
+
+function getLensMinimumFocalLength(item: GearItem) {
+  const normalize = (value: number | null | undefined) =>
+    typeof value === "number" && Number.isFinite(value) ? value : null;
+
+  const primaryCandidate =
+    normalize(item.lensSpecs?.focalLengthMinMm) ??
+    normalize(item.fixedLensSpecs?.focalLengthMinMm);
+  if (primaryCandidate != null) {
+    return primaryCandidate;
+  }
+
+  const candidates: number[] = [];
+  const pushCandidate = (value: number | null | undefined) => {
+    if (typeof value === "number" && Number.isFinite(value)) {
+      candidates.push(value);
+    }
+  };
+
+  pushCandidate(item.lensSpecs?.focalLengthMaxMm);
+  pushCandidate(item.fixedLensSpecs?.focalLengthMaxMm);
+
+  const parsed = parseFocalFromName(item.name);
+  if (parsed != null) {
+    candidates.push(parsed);
+  }
+
+  if (candidates.length === 0) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  return Math.min(...candidates);
+}
+
+function parseFocalFromName(name?: string) {
+  if (!name) return null;
+  const rangeMatch = name.match(/(\d+(?:\.\d+)?)\s*-\s*\d+(?:\.\d+)?\s*mm/i);
+  if (rangeMatch) {
+    return Number(rangeMatch[1]);
+  }
+
+  const singleMatch = name.match(/(\d+(?:\.\d+)?)\s*mm/i);
+  if (!singleMatch) return null;
+  return Number(singleMatch[1]);
+}
+
+function getReleaseTimestamp(item: GearItem) {
+  const releaseValue = item.releaseDate;
+  if (!releaseValue) {
+    return null;
+  }
+
+  const parsedDate =
+    releaseValue instanceof Date ? releaseValue : new Date(releaseValue);
+  const timeValue = parsedDate.getTime();
+  if (Number.isNaN(timeValue)) {
+    return null;
+  }
+  return timeValue;
 }
