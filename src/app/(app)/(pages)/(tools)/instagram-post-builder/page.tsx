@@ -60,7 +60,7 @@ const DEFAULT_SETTINGS: Settings = {
   aspectRatio: 4 / 5,
   padding: 16,
   bgColor: "#FFFFFF",
-  peekAmount: 132,
+  peekAmount: 110,
   showGuides: true,
 };
 
@@ -91,14 +91,15 @@ const getFrameRect = (
     rightBoundary -= peekAmount;
   }
 
+  const hasPeek = peekAmount > 0;
   let paddingLeft = padding;
   let paddingRight = padding;
 
-  if (index === 1) {
+  if (hasPeek && index === 1 && totalFrames > 1) {
     paddingLeft = padding / 2;
   }
 
-  if (index === 0 && totalFrames > 1) {
+  if (hasPeek && index === 0 && totalFrames > 1) {
     paddingRight = padding / 2;
   }
 

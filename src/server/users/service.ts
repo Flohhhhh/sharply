@@ -127,8 +127,8 @@ async function fetchGearItemsForUserList(
       brands: row.brands ?? null,
       mounts: gearMountsForItem[0] ?? null,
       mountIds: mountIdentifierList,
-      lensSpecs: row.lensSpecs ?? null,
-      fixedLensSpecs: row.fixedLensSpecs ?? null,
+      lensSpecs: row.lens_specs ?? null,
+      fixedLensSpecs: row.fixed_lens_specs ?? null,
     };
   });
 }
