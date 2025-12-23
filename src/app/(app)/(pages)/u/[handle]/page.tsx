@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   getItemDisplayPrice,
   getMountDisplayName,
@@ -136,7 +137,7 @@ export default async function UserProfilePage({
           </div>
 
           {wishlistItems.length > 0 ? (
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               {wishlistItems.map((item) => (
                 <GearCard key={item.id} item={item} />
               ))}
@@ -166,60 +167,82 @@ export default async function UserProfilePage({
 // Gear card component for displaying individual items
 function GearCard({ item }: { item: GearItem }) {
   const brandName = getBrandNameById(item.brandId);
-
-  const preferredPriceCents =
-    typeof item.mpbMaxPriceUsdCents === "number"
-      ? item.mpbMaxPriceUsdCents
-      : typeof item.msrpNowUsdCents === "number"
-        ? item.msrpNowUsdCents
-        : null;
+  const displayName = getDisplayName(item, brandName);
+  const priceDisplay = getItemDisplayPrice(item, {
+    style: "short",
+    padWholeAmounts: true,
+  });
 
   return (
     <Link
       href={`/gear/${item.slug}`}
-      className="border-input bg-card hover:bg-accent block rounded-md border p-4"
+      className="group border-border/80 hover:border-foreground/50 block overflow-hidden rounded-xl border transition-colors"
     >
-      <div className="flex gap-4">
+      <div className="flex gap-3 p-3">
         {item.thumbnailUrl ? (
-          <div className="bg-muted h-20 w-20 flex-shrink-0 overflow-hidden rounded-md">
-            <img
+          <div className="bg-muted relative aspect-[4/3] w-28 flex-shrink-0 overflow-hidden rounded-lg">
+            <Image
               src={item.thumbnailUrl}
-              alt={item.name}
-              className="h-full w-full object-cover"
+              alt={displayName}
+              fill
+              sizes="(min-width: 1024px) 180px, 30vw"
+              className="object-contain p-2"
             />
           </div>
         ) : (
-          <div className="bg-muted h-20 w-20 flex-shrink-0 rounded-md" />
+          <div className="bg-muted text-muted-foreground relative aspect-[4/3] w-28 flex-shrink-0 overflow-hidden rounded-lg">
+            <div className="flex h-full w-full items-center justify-center px-2 text-center text-xs font-medium">
+              {displayName}
+            </div>
+          </div>
         )}
 
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between">
-            <div className="min-w-0 flex-1">
-              <h3 className="truncate font-medium">{item.name}</h3>
-              <div className="text-muted-foreground mt-1 flex items-center gap-2 text-sm">
-                <span className="bg-secondary rounded-full px-2 py-1 text-xs font-medium">
-                  {item.gearType}
-                </span>
-                {brandName && <span className="truncate">{brandName}</span>}
-              </div>
-            </div>
-
-            {/* <div className="text-right">
-              <p
-                className={
-                  preferredPriceCents != null
-                    ? "font-medium"
-                    : "text-muted-foreground"
-                }
-              >
-                {priceDisplay}
-              </p>
-            </div> */}
+        <div className="min-w-0 flex-1 space-y-2">
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="line-clamp-2 leading-tight font-semibold">
+              {displayName}
+            </h3>
+            <span
+              className={
+                priceDisplay === PRICE_FALLBACK_TEXT
+                  ? "text-muted-foreground text-sm"
+                  : "text-sm font-semibold"
+              }
+            >
+              {priceDisplay}
+            </span>
           </div>
         </div>
       </div>
     </Link>
   );
+}
+
+function getDisplayName(item: GearItem, brandName?: string | null) {
+  const trimmed = stripBrandFromName(item.name, brandName);
+  return trimmed || item.name;
+}
+
+function stripBrandFromName(name: string, brandName?: string | null) {
+  const normalizedName = name?.trim();
+  if (!normalizedName) return normalizedName;
+
+  if (!brandName) return normalizedName;
+
+  const normalizedBrand = brandName.trim();
+  if (!normalizedBrand) return normalizedName;
+
+  const pattern = new RegExp(
+    `^${escapeRegExp(normalizedBrand)}(?:\\s+|[-–—:]\\s*)`,
+    "i",
+  );
+
+  const stripped = normalizedName.replace(pattern, "").trim();
+  return stripped || normalizedName;
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function sortOwnedItems(items: GearItem[]) {
