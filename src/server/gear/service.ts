@@ -123,6 +123,11 @@ export async function toggleWishlist(slug: string, action: "add" | "remove") {
     const res = await addToWishlist(gearId, userId);
     if (res.alreadyExists)
       return { ok: false, reason: "already_in_wishlist" } as const;
+    try {
+      await track("wishlist_toggle", { slug, action: "add" });
+    } catch (eventErr) {
+      console.error("Failed to record wishlist analytics", eventErr);
+    }
     const evalRes = await evaluateForEvent(
       { type: "wishlist.added", context: { gearId } },
       userId,
@@ -130,6 +135,11 @@ export async function toggleWishlist(slug: string, action: "add" | "remove") {
     return { ok: true, action: "added" as const, awarded: evalRes.awarded };
   }
   await removeFromWishlist(gearId, userId);
+  try {
+    await track("wishlist_toggle", { slug, action: "remove" });
+  } catch (eventErr) {
+    console.error("Failed to record wishlist analytics", eventErr);
+  }
   return { ok: true, action: "removed" as const };
 }
 
@@ -141,6 +151,11 @@ export async function toggleOwnership(slug: string, action: "add" | "remove") {
     const res = await addOwnership(gearId, userId);
     if (res.alreadyExists)
       return { ok: false, reason: "already_owned" } as const;
+    try {
+      await track("ownership_toggle", { slug, action: "add" });
+    } catch (eventErr) {
+      console.error("Failed to record ownership analytics", eventErr);
+    }
     const evalRes = await evaluateForEvent(
       { type: "ownership.added", context: { gearId } },
       userId,
@@ -148,6 +163,11 @@ export async function toggleOwnership(slug: string, action: "add" | "remove") {
     return { ok: true, action: "added" as const, awarded: evalRes.awarded };
   }
   await removeOwnership(gearId, userId);
+  try {
+    await track("ownership_toggle", { slug, action: "remove" });
+  } catch (eventErr) {
+    console.error("Failed to record ownership analytics", eventErr);
+  }
   return { ok: true, action: "removed" as const };
 }
 
