@@ -33,9 +33,17 @@ const defaultSocialLinks = [
     href: "/discord/invite",
     label: "Join Discord",
   },
-  // { icon: <FaInstagram className="size-5" />, href: "#", label: "Instagram" },
+  {
+    icon: <FaInstagram className="size-5" />,
+    href: "https://www.instagram.com/sharplyphoto/",
+    label: "Instagram",
+  },
   // { icon: <FaFacebook className="size-5" />, href: "#", label: "Facebook" },
-  // { icon: <FaTwitter className="size-5" />, href: "#", label: "Twitter" },
+  {
+    icon: <FaTwitter className="size-5" />,
+    href: "https://x.com/sharply_photo",
+    label: "X",
+  },
   // { icon: <FaLinkedin className="size-5" />, href: "#", label: "LinkedIn" },
 ];
 
@@ -74,9 +82,14 @@ export default function Footer({
           <ul className="text-muted-foreground flex items-center space-x-6">
             {socialLinks.map((social, idx) => (
               <li key={idx} className="hover:text-primary font-medium">
-                <a href={social.href} aria-label={social.label}>
+                <Link
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={social.label}
+                >
                   {social.icon}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
@@ -147,9 +160,9 @@ export default function Footer({
             <li className="hover:text-primary transition-colors">
               <Link href="/terms-of-service">Term of Service</Link>
             </li>
-            <li className="hover:text-primary transition-colors">
+            {/* <li className="hover:text-primary transition-colors">
               <Link href="/contact">Contact</Link>
-            </li>
+            </li> */}
           </ul>
         </div>
       </div>
