@@ -7,12 +7,15 @@ import { db } from "~/server/db";
 import {
   brands,
   gear,
+  gearMounts,
+  mounts,
   reviews,
   users,
   wishlists,
   ownerships,
 } from "~/server/db/schema";
 import { updateUserImage } from "./data";
+import type { GearItem, Mount } from "~/types/gear";
 
 export async function getUserReviews(userId: string) {
   return db
@@ -66,58 +69,72 @@ export async function fetchFullUserById(userId: string) {
   return row[0] ?? null;
 }
 
-type GearListItem = {
-  id: string;
-  slug: string;
-  name: string;
-  gearType: string;
-  msrpNowUsdCents: number | null;
-  mpbMaxPriceUsdCents: number | null;
-  thumbnailUrl: string | null;
-  brand: { id: string; name: string; slug: string } | null;
-  // mount removed from here; UI should resolve mounts separately if needed
-};
+type UserGearRelationshipTable = typeof wishlists | typeof ownerships;
+
+async function fetchGearItemsForUserList(
+  relationshipTable: UserGearRelationshipTable,
+  userId: string,
+): Promise<GearItem[]> {
+  const rows = await db
+    .select()
+    .from(relationshipTable)
+    .innerJoin(gear, eq(relationshipTable.gearId, gear.id))
+    .leftJoin(brands, eq(gear.brandId, brands.id))
+    .where(eq(relationshipTable.userId, userId));
+
+  if (!rows.length) return [];
+
+  const gearIdentifiers = rows.map((row) => row.gear.id);
+  const mountRows = gearIdentifiers.length
+    ? await db
+        .select({
+          gearId: gearMounts.gearId,
+          mount: mounts,
+        })
+        .from(gearMounts)
+        .leftJoin(mounts, eq(gearMounts.mountId, mounts.id))
+        .where(
+          sql`${gearMounts.gearId} IN (${sql.join(
+            gearIdentifiers.map((gearId) => sql`${gearId}`),
+            sql`, `,
+          )})`,
+        )
+    : [];
+
+  const mountsByGearId = new Map<string, Mount[]>();
+  for (const mountRow of mountRows) {
+    if (!mountRow.mount) continue;
+    const existingMounts = mountsByGearId.get(mountRow.gearId) ?? [];
+    existingMounts.push(mountRow.mount);
+    mountsByGearId.set(mountRow.gearId, existingMounts);
+  }
+
+  return rows.map((row) => {
+    const gearRecord = row.gear;
+    const gearMountsForItem = mountsByGearId.get(gearRecord.id) ?? [];
+    const mountIdentifierList =
+      gearMountsForItem.length > 0
+        ? gearMountsForItem.map((mountEntry) => mountEntry.id)
+        : gearRecord.mountId
+          ? [gearRecord.mountId]
+          : null;
+    return {
+      ...gearRecord,
+      brands: row.brands ?? null,
+      mounts: gearMountsForItem[0] ?? null,
+      mountIds: mountIdentifierList,
+    };
+  });
+}
 
 export async function fetchUserWishlistItems(
   userId: string,
-): Promise<GearListItem[]> {
-  const rows = await db
-    .select({
-      id: gear.id,
-      slug: gear.slug,
-      name: gear.name,
-      gearType: gear.gearType,
-      msrpNowUsdCents: gear.msrpNowUsdCents,
-      mpbMaxPriceUsdCents: gear.mpbMaxPriceUsdCents,
-      thumbnailUrl: gear.thumbnailUrl,
-      brand: { id: brands.id, name: brands.name, slug: brands.slug },
-    })
-    .from(wishlists)
-    .innerJoin(gear, eq(wishlists.gearId, gear.id))
-    .leftJoin(brands, eq(gear.brandId, brands.id))
-    .where(eq(wishlists.userId, userId));
-  return rows as unknown as GearListItem[];
+): Promise<GearItem[]> {
+  return fetchGearItemsForUserList(wishlists, userId);
 }
 
-export async function fetchUserOwnedItems(
-  userId: string,
-): Promise<GearListItem[]> {
-  const rows = await db
-    .select({
-      id: gear.id,
-      slug: gear.slug,
-      name: gear.name,
-      gearType: gear.gearType,
-      msrpNowUsdCents: gear.msrpNowUsdCents,
-      mpbMaxPriceUsdCents: gear.mpbMaxPriceUsdCents,
-      thumbnailUrl: gear.thumbnailUrl,
-      brand: { id: brands.id, name: brands.name, slug: brands.slug },
-    })
-    .from(ownerships)
-    .innerJoin(gear, eq(ownerships.gearId, gear.id))
-    .leftJoin(brands, eq(gear.brandId, brands.id))
-    .where(eq(ownerships.userId, userId));
-  return rows as unknown as GearListItem[];
+export async function fetchUserOwnedItems(userId: string): Promise<GearItem[]> {
+  return fetchGearItemsForUserList(ownerships, userId);
 }
 
 export async function fetchUsersWithAnniversaryToday(): Promise<
@@ -153,12 +170,12 @@ const profileImageSchema = z
 export async function updateProfileImage(imageUrl: string) {
   const { user } = await requireUser();
   const validatedUrl = profileImageSchema.parse(imageUrl);
-  
+
   // Get old image URL before updating
   const currentUser = await fetchUserById(user.id);
   const oldImageUrl = currentUser?.image ?? null;
-  
+
   await updateUserImage(user.id, validatedUrl);
-  
+
   return { ok: true as const, imageUrl: validatedUrl, oldImageUrl };
 }

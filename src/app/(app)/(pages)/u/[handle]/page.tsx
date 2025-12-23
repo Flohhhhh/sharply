@@ -19,6 +19,9 @@ import { auth } from "~/server/auth";
 import { Button } from "~/components/ui/button";
 import { UserPen } from "lucide-react";
 import { ShowUserCardButton } from "~/app/(app)/(pages)/u/_components/ShowUserCardButton";
+import type { GearItem } from "~/types/gear";
+import { getBrandNameById } from "~/lib/mapping/brand-map";
+import { CollectionContainer } from "~/app/(app)/(pages)/u/_components/collection/collection-container";
 
 interface UserProfilePageProps {
   params: Promise<{
@@ -55,6 +58,8 @@ export default async function UserProfilePage({
     fetchUserOwnedItems(user.id),
   ]);
 
+  const sortedOwnedItems = sortOwnedItems(ownedItems);
+
   // ownedItems loaded above
 
   const myProfile = user.id === session?.user?.id;
@@ -88,14 +93,16 @@ export default async function UserProfilePage({
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+      <div className="flex flex-col gap-8">
         {/* Badges */}
         <div className="space-y-4 lg:col-span-2">
           <UserBadges userId={user.id} />
         </div>
 
         {/* Collection */}
-        <div className="space-y-4">
+        <h2 className="text-2xl font-semibold">Collection</h2>
+        <CollectionContainer items={sortedOwnedItems} />
+        {/* <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold">Collection</h2>
             <span className="bg-secondary rounded-full px-3 py-1 text-sm font-medium">
@@ -117,7 +124,7 @@ export default async function UserProfilePage({
               </Link>
             </div>
           )}
-        </div>
+        </div> */}
 
         {/* Wishlist */}
         <div className="space-y-4">
@@ -157,14 +164,16 @@ export default async function UserProfilePage({
 }
 
 // Gear card component for displaying individual items
-function GearCard({ item }: { item: any }) {
+function GearCard({ item }: { item: GearItem }) {
+  const brandName = getBrandNameById(item.brandId);
+
   const preferredPriceCents =
     typeof item.mpbMaxPriceUsdCents === "number"
       ? item.mpbMaxPriceUsdCents
       : typeof item.msrpNowUsdCents === "number"
         ? item.msrpNowUsdCents
         : null;
-  const priceDisplay = getItemDisplayPrice(item, { padWholeAmounts: true });
+
   return (
     <Link
       href={`/gear/${item.slug}`}
@@ -191,18 +200,11 @@ function GearCard({ item }: { item: any }) {
                 <span className="bg-secondary rounded-full px-2 py-1 text-xs font-medium">
                   {item.gearType}
                 </span>
-                {item.brand && (
-                  <span className="truncate">{item.brand.name}</span>
-                )}
+                {brandName && <span className="truncate">{brandName}</span>}
               </div>
-              {item.mount && (
-                <p className="text-muted-foreground mt-1 text-xs">
-                  {getMountDisplayName(item.mount.value)}
-                </p>
-              )}
             </div>
 
-            <div className="text-right">
+            {/* <div className="text-right">
               <p
                 className={
                   preferredPriceCents != null
@@ -212,10 +214,114 @@ function GearCard({ item }: { item: any }) {
               >
                 {priceDisplay}
               </p>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
     </Link>
   );
+}
+
+function sortOwnedItems(items: GearItem[]) {
+  return [...items].sort((firstItem, secondItem) => {
+    const firstPriority = getGearTypePriority(firstItem);
+    const secondPriority = getGearTypePriority(secondItem);
+
+    const priorityDifference = firstPriority - secondPriority;
+    if (priorityDifference !== 0) {
+      return priorityDifference;
+    }
+
+    if (firstPriority === 0 && secondPriority === 0) {
+      const firstCameraRelease = getReleaseTimestamp(firstItem);
+      const secondCameraRelease = getReleaseTimestamp(secondItem);
+      if (firstCameraRelease !== null || secondCameraRelease !== null) {
+        if (firstCameraRelease === null) {
+          return 1;
+        }
+        if (secondCameraRelease === null) {
+          return -1;
+        }
+
+        const releaseDifference = secondCameraRelease - firstCameraRelease;
+        if (releaseDifference !== 0) {
+          return releaseDifference;
+        }
+      }
+    }
+
+    if (firstPriority === 1 && secondPriority === 1) {
+      const focalLengthDifference =
+        getLensMinimumFocalLength(firstItem) -
+        getLensMinimumFocalLength(secondItem);
+      if (focalLengthDifference !== 0) {
+        return focalLengthDifference;
+      }
+    }
+
+    return firstItem.name.localeCompare(secondItem.name);
+  });
+}
+
+function getGearTypePriority(item: GearItem) {
+  const gearTypeIdentifier = item.gearType?.toUpperCase() ?? "";
+  if (gearTypeIdentifier === "CAMERA") {
+    return 0;
+  }
+
+  if (gearTypeIdentifier === "LENS") {
+    return 1;
+  }
+
+  return 2;
+}
+
+function getLensMinimumFocalLength(item: GearItem) {
+  const candidates: number[] = [];
+
+  const pushCandidate = (value: number | null | undefined) => {
+    if (typeof value === "number" && Number.isFinite(value)) {
+      candidates.push(value);
+    }
+  };
+
+  pushCandidate(item.lensSpecs?.focalLengthMinMm);
+  pushCandidate(item.lensSpecs?.focalLengthMaxMm);
+  pushCandidate(item.fixedLensSpecs?.focalLengthMinMm);
+  pushCandidate(item.fixedLensSpecs?.focalLengthMaxMm);
+
+  if (candidates.length === 0) {
+    const parsed = parseFocalFromName(item.name);
+    if (parsed != null) {
+      candidates.push(parsed);
+    }
+  }
+
+  if (candidates.length === 0) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  return Math.min(...candidates);
+}
+
+function parseFocalFromName(name?: string) {
+  if (!name) return null;
+  const match = name.match(/(\d+(\.\d+)?)mm/);
+  if (!match) return null;
+  return Number(match[1]);
+}
+
+function getReleaseTimestamp(item: GearItem) {
+  const releaseValue = item.releaseDate;
+  if (!releaseValue) {
+    return null;
+  }
+
+  const parsedDate =
+    releaseValue instanceof Date ? releaseValue : new Date(releaseValue);
+  const timeValue = parsedDate.getTime();
+  if (Number.isNaN(timeValue)) {
+    return null;
+  }
+  return timeValue;
 }
