@@ -557,6 +557,7 @@ export type ConstructionMinimalRow = {
   slug: string;
   name: string;
   gearType: string;
+  thumbnailUrl: string | null;
   brandId: string | null;
   brandName: string | null;
   mountId: string | null; // legacy single-mount pointer
@@ -587,6 +588,7 @@ export async function fetchAllGearForConstructionData(): Promise<
       slug: gear.slug,
       name: gear.name,
       gearType: gear.gearType,
+      thumbnailUrl: gear.thumbnailUrl,
       brandId: gear.brandId,
       brandName: brands.name,
       mountId: gear.mountId,

@@ -31,13 +31,15 @@ import EditModalContent from "~/app/(app)/(pages)/gear/_components/edit-gear/edi
 import type { GearItem } from "~/types/gear";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
-import { Loader2 } from "lucide-react";
+import { ImageOff, Loader2 } from "lucide-react";
 
 type Row = {
   id: string;
   slug: string;
   name: string;
   brandName: string | null;
+  thumbnailUrl: string | null;
+  hasImage: boolean;
   gearType: string;
   missingCount: number;
   missing: string[];
@@ -136,6 +138,14 @@ export function UnderConstructionTable({ items }: { items: Row[] }) {
                       <span className="font-medium underline-offset-2 group-hover:underline">
                         {it.name}
                       </span>
+                      {!it.hasImage && (
+                        <Badge
+                          variant="outline"
+                          className="flex items-center gap-1"
+                        >
+                          <ImageOff className="h-3 w-3" />
+                        </Badge>
+                      )}
                     </div>
                     <div className="text-muted-foreground text-xs">
                       {it.brandName ?? ""}
