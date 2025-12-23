@@ -1,4 +1,5 @@
 "use client";
+import { track } from "@vercel/analytics";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -86,6 +87,10 @@ export default function SignInClient() {
 
   // Handle OAuth sign-in with error handling
   async function handleOAuthSignIn(provider: string) {
+    void track("auth_signin_press", {
+      method: "oauth",
+      provider,
+    });
     try {
       const result = await signIn(provider, {
         callbackUrl,
@@ -107,6 +112,10 @@ export default function SignInClient() {
     if (!canSubmit || sending) return;
     try {
       setSending(true);
+      void track("auth_signin_press", {
+        method: "magic_link",
+        callbackUrl,
+      });
       await signIn("resend", {
         email,
         callbackUrl,

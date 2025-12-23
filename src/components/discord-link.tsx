@@ -1,13 +1,21 @@
+"use client";
+
 import Link from "next/link";
 import { FaDiscord } from "react-icons/fa";
+import { track } from "@vercel/analytics";
 import { cn } from "~/lib/utils";
 import { Button } from "./ui/button";
 
 export default function DiscordLink(props: {
   className?: string;
   label?: string;
+  location?: string;
 }) {
-  const { className, label = "Join Discord" } = props;
+  const {
+    className,
+    label = "Join Discord",
+    location = "discord_link",
+  } = props;
   return (
     <Button
       asChild
@@ -17,7 +25,17 @@ export default function DiscordLink(props: {
         className,
       )}
     >
-      <Link href="/discord/invite" target="_blank" rel="noopener noreferrer">
+      <Link
+        href="/discord/invite"
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={() =>
+          void track("discord_click", {
+            location,
+            label,
+          })
+        }
+      >
         {label}
       </Link>
     </Button>

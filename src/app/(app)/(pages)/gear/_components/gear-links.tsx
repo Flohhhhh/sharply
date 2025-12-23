@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@vercel/analytics";
 import Link from "next/link";
 import { formatPrice } from "~/lib/mapping";
 import { parseAmazonAsin } from "~/lib/validation/amazon";
@@ -73,6 +74,12 @@ export function GearLinks({
           backgroundClass={manufacturerStyles.backgroundClass}
           textColorClass={manufacturerStyles.textColorClass}
           logo={manufacturerStyles.logo}
+          onClick={() =>
+            void track("gear_link_click", {
+              slug,
+              linkType: "manufacturer",
+            })
+          }
         />
       )}
       {linkMpb && (
@@ -83,6 +90,12 @@ export function GearLinks({
           backgroundClass="bg-[#0b002b] hover:bg-[#0b002b]/80"
           textColorClass="text-white"
           logo={<MpbLogo className="h-8 w-8 text-[#ff18bd]" />}
+          onClick={() =>
+            void track("gear_link_click", {
+              slug,
+              linkType: "mpb",
+            })
+          }
         />
       )}
       {amazonAsin && amazonRedirectHref && (
@@ -93,6 +106,12 @@ export function GearLinks({
           backgroundClass="bg-[#ffd814] hover:bg-[#ffd814]/70"
           textColorClass="text-black"
           logo={<FaAmazon className="h-8 w-8" />}
+          onClick={() =>
+            void track("gear_link_click", {
+              slug,
+              linkType: "amazon",
+            })
+          }
         />
       )}
     </div>
@@ -108,6 +127,7 @@ interface AffiliateLinkCardProps {
   backgroundClass: string;
   textColorClass?: string;
   logo: ReactNode;
+  onClick?: () => void;
 }
 
 function AffiliateLinkCard({
@@ -117,6 +137,7 @@ function AffiliateLinkCard({
   backgroundClass,
   textColorClass = "text-white",
   logo,
+  onClick,
 }: AffiliateLinkCardProps) {
   return (
     <Link
@@ -124,6 +145,7 @@ function AffiliateLinkCard({
       target="_blank"
       rel="noopener noreferrer sponsored"
       className={`flex w-full items-center justify-between rounded px-6 py-2 transition-all ${backgroundClass} ${textColorClass}`}
+      onClick={onClick}
     >
       <div className="flex flex-1 flex-col text-left">
         <span className="text-sm font-semibold">{title}</span>

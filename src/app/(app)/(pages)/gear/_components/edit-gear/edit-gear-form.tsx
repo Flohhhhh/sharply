@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@vercel/analytics";
 import React, { useState, useCallback } from "react";
 import { Crop } from "lucide-react";
 import { Button } from "~/components/ui/button";
@@ -549,6 +550,34 @@ function EditGearForm({
     return payload;
   };
 
+  const computePayloadStats = (payload: Record<string, any>) => {
+    const counts = {
+      coreFields: payload.core ? Object.keys(payload.core as any).length : 0,
+      cameraFields: payload.camera
+        ? Object.keys(payload.camera as any).length
+        : 0,
+      lensFields: payload.lens ? Object.keys(payload.lens as any).length : 0,
+      fixedLensFields: payload.fixedLens
+        ? Object.keys(payload.fixedLens as any).length
+        : 0,
+      cardSlots: Array.isArray(payload.cameraCardSlots)
+        ? payload.cameraCardSlots.length
+        : 0,
+      videoModes: Array.isArray(payload.videoModes)
+        ? payload.videoModes.length
+        : 0,
+    };
+    return {
+      ...counts,
+      sections: Object.keys(payload).length,
+      totalFields:
+        counts.coreFields +
+        counts.cameraFields +
+        counts.lensFields +
+        counts.fixedLensFields,
+    };
+  };
+
   const doSubmit = async () => {
     setIsSubmitting(true);
     onSubmittingChange?.(true);
@@ -566,6 +595,11 @@ function EditGearForm({
       onSubmittingChange?.(false);
       return;
     }
+    const payloadStats = computePayloadStats(payload as Record<string, any>);
+    void track("gear_edit_submit_attempt", {
+      gearSlug,
+      sections: payloadStats.sections,
+    });
 
     try {
       console.log("[EditGearForm] submitting suggestion", {
@@ -582,6 +616,10 @@ function EditGearForm({
         onDirtyChange?.(false);
         const createdId = (res as any)?.proposal?.id;
         const autoApproved = Boolean((res as any)?.autoApproved);
+        void track("gear_edit_submit_success", {
+          gearSlug,
+          autoApproved,
+        });
         toast.success(
           autoApproved ? "Changes applied" : "Suggestion submitted",
           {
@@ -605,11 +643,19 @@ function EditGearForm({
         toast.error("Failed to submit suggestion", {
           description: "Please try again in a moment.",
         });
+        void track("gear_edit_submit_failure", {
+          gearSlug,
+          reason: "unknown",
+        });
       }
     } catch (err) {
       console.error("[EditGearForm] submit error", err);
       toast.error("Something went wrong", {
         description: "Could not submit your suggestion.",
+      });
+      void track("gear_edit_submit_failure", {
+        gearSlug,
+        reason: err instanceof Error ? err.message : "unknown",
       });
     }
 
@@ -627,6 +673,11 @@ function EditGearForm({
       });
       return;
     }
+    const stats = computePayloadStats(preview);
+    void track("gear_edit_continue", {
+      gearSlug,
+      fields: stats.totalFields,
+    });
     setDiffPreview({
       ...preview,
       __videoModesDiff: videoModesDiffRef.current,

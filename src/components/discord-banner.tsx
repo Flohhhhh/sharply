@@ -22,7 +22,10 @@ export default function DiscordBanner(props: {
           chat with other users and get help with your gear.
         </p>
       </div>
-      <DiscordLink className={cn(vertical ? "w-full" : "w-full sm:w-fit")} />
+      <DiscordLink
+        className={cn(vertical ? "w-full" : "w-full sm:w-fit")}
+        location="discord_banner"
+      />
     </div>
   );
 }

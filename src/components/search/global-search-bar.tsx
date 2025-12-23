@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@vercel/analytics";
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Search as SearchIcon, Clock, X, Loader2 } from "lucide-react";
@@ -129,6 +130,17 @@ export function GlobalSearchBar({
     return navigator.platform.toUpperCase().includes("MAC");
   }, []);
 
+  const logSearchEvent = (
+    event: string,
+    payload: Record<string, string | number | boolean | null | undefined>,
+  ) => {
+    try {
+      void track(event, payload);
+    } catch (err) {
+      console.error("[GlobalSearchBar] analytics error", err);
+    }
+  };
+
   async function submit(
     query: string,
     options?: { forceSearchPage?: boolean },
@@ -153,6 +165,10 @@ export function GlobalSearchBar({
           !debouncing &&
           suggestions.length === 1
         ) {
+          logSearchEvent("search_direct_navigate", {
+            query: trimmed,
+            suggestionId: suggestions[0]!.id,
+          });
           router.push(suggestions[0]!.href);
           setTimeout(() => {
             setLoading(false);
@@ -173,6 +189,10 @@ export function GlobalSearchBar({
               ? data.suggestions
               : [];
             if (fresh.length === 1) {
+              logSearchEvent("search_direct_navigate", {
+                query: trimmed,
+                suggestionId: fresh[0]!.id,
+              });
               router.push(fresh[0]!.href);
               setTimeout(() => {
                 setLoading(false);
@@ -190,6 +210,10 @@ export function GlobalSearchBar({
     const qs = mergeSearchParams(existing, { q: trimmed, page: 1 });
     const href = qs ? `${"/search"}?${qs}` : "/search";
 
+    logSearchEvent("search_view_results", {
+      query: trimmed,
+    });
+
     // Navigate and clear loading after a short delay
     router.push(href);
     setTimeout(() => {
@@ -200,6 +224,9 @@ export function GlobalSearchBar({
   function handleRecentSearchClick(recentQuery: string) {
     setValue(recentQuery);
     setLoading(true); // Start loading
+    logSearchEvent("search_recent_click", {
+      query: recentQuery,
+    });
     void submit(recentQuery, { forceSearchPage: true });
   }
 
@@ -294,6 +321,7 @@ export function GlobalSearchBar({
         <button
           type="button"
           onClick={() => {
+            logSearchEvent("search_open_palette", { source: "global_search" });
             // Hint button triggers command palette via custom event
             document.dispatchEvent(
               new CustomEvent("sharply:open-command-palette"),
@@ -411,6 +439,10 @@ export function GlobalSearchBar({
                       relevance={s.relevance}
                       className={sizes.recentItem}
                       onClick={() => {
+                        logSearchEvent("search_suggestion_click", {
+                          query: value,
+                          suggestionId: s.label,
+                        });
                         setIsFocused(false);
                         router.push(s.href);
                       }}
