@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import {
   Sheet,
   SheetContent,
@@ -18,11 +18,12 @@ import {
   AccordionTrigger,
 } from "~/components/ui/accordion";
 import { Button } from "~/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogIn } from "lucide-react";
 import { getNavItems, iconMap } from "~/lib/nav-items";
 import type { UserMenuUser } from "./user-menu";
 import { LogOut, Settings, User as UserIcon } from "lucide-react";
 import { signOut } from "next-auth/react";
+import { track } from "@vercel/analytics";
 
 interface NavMenuMobileProps {
   children: React.ReactNode;
@@ -32,11 +33,25 @@ interface NavMenuMobileProps {
 export function NavMenuMobile({ children, user = null }: NavMenuMobileProps) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const navItems = getNavItems();
+
+  const callbackUrl = (() => {
+    const qs = searchParams?.toString();
+    return qs ? `${pathname}?${qs}` : pathname || "/";
+  })();
 
   const handleNavigation = (url: string) => {
     setOpen(false);
     router.push(url);
+  };
+
+  const handleSignInClick = () => {
+    void track("auth_signin_press", {
+      source: "mobile_menu",
+      callbackUrl,
+    });
   };
 
   return (
@@ -48,7 +63,7 @@ export function NavMenuMobile({ children, user = null }: NavMenuMobileProps) {
         </SheetHeader>
 
         {/* Top user section */}
-        {user && (
+        {user ? (
           <div className="bg-muted/30 border-b px-4 py-3 text-sm">
             <div className="flex flex-col gap-2">
               <button
@@ -76,6 +91,22 @@ export function NavMenuMobile({ children, user = null }: NavMenuMobileProps) {
                 <span>Log out</span>
               </button>
             </div>
+          </div>
+        ) : (
+          <div className="border-b px-4 py-3">
+            <Button
+              asChild
+              size="sm"
+              icon={<LogIn />}
+              className="w-full"
+              onClick={handleSignInClick}
+            >
+              <Link
+                href={`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+              >
+                Sign In
+              </Link>
+            </Button>
           </div>
         )}
 
