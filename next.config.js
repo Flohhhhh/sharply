@@ -29,6 +29,11 @@ const config = {
         destination: "https://discord.gg/8qSXVurbw6",
         permanent: false,
       },
+      {
+        source: "/qr",
+        destination: "/",
+        permanent: false,
+      },
     ];
   },
   eslint: {
