@@ -3,8 +3,6 @@ import { track } from "@vercel/analytics";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
-import { Apple, Image as ImageIcon } from "lucide-react";
 import { FaDiscord, FaGoogle } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -191,16 +189,6 @@ export default function SignInClient() {
                 Send magic link
               </Button>
             </form>
-
-            <p className="text-muted-foreground mt-6 text-center text-sm">
-              Don&apos;t have an account?{" "}
-              <Link
-                href="#"
-                className="font-medium underline underline-offset-4"
-              >
-                Sign up
-              </Link>
-            </p>
           </div>
         </div>
         <div className="bg-muted/40 relative hidden md:block">
