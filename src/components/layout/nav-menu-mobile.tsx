@@ -94,15 +94,10 @@ export function NavMenuMobile({ children, user = null }: NavMenuMobileProps) {
           </div>
         ) : (
           <div className="border-b px-4 py-3">
-            <Button
-              asChild
-              size="sm"
-              icon={<LogIn />}
-              className="w-full"
-              onClick={handleSignInClick}
-            >
+            <Button asChild size="sm" icon={<LogIn />} className="w-full">
               <Link
                 href={`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+                onClick={handleSignInClick}
               >
                 Sign In
               </Link>
