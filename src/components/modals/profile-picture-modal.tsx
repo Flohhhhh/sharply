@@ -143,7 +143,7 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
         files: [resizedFile],
         onUploadProgress: ({ progress }) => {
           setUploadProgress(progress);
-          const mapped = Math.min(50, Math.max(0, Math.round(progress / 2)));
+          const mapped = Math.min(75, Math.max(0, Math.round(progress * 0.75)));
           setCombinedProgress((prev) => (mapped > prev ? mapped : prev));
         },
       });
@@ -160,6 +160,7 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
       if (!url) throw new Error("Upload failed. Please try again.");
       setIsUpdating(true);
       setProgressMode("save");
+      setCombinedProgress(75);
       if (savingTimerRef.current) clearInterval(savingTimerRef.current);
       savingTimerRef.current = setInterval(() => {
         setCombinedProgress((prev) => (prev < 95 ? prev + 2 : prev));
