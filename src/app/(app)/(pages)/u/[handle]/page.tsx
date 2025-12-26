@@ -75,7 +75,7 @@ export default async function UserProfilePage({
   return (
     <main className="mx-auto min-h-screen max-w-6xl p-6 pt-32">
       {/* User Header */}
-      <div className="mb-8 flex items-center justify-between gap-4">
+      <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div className="flex items-center gap-4">
           {user.image && (
             <img
@@ -116,32 +116,38 @@ export default async function UserProfilePage({
 
         {/* Collection */}
         <div className="space-y-4">
-          <h2 className="text-2xl font-semibold">Collection</h2>
-          <CollectionContainer items={sortedOwnedItems} user={user} />
-        </div>
-        {/* <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold">Collection</h2>
             <span className="bg-secondary rounded-full px-3 py-1 text-sm font-medium">
-              {ownedItems.length} items
+              {sortedOwnedItems.length} items
             </span>
           </div>
 
-          {ownedItems.length > 0 ? (
-            <div className="space-y-3">
-              {ownedItems.map((item) => (
-                <GearCard key={item.id} item={item} />
-              ))}
-            </div>
-          ) : (
-            <div className="border-border rounded-lg border-2 border-dashed p-8 text-center">
-              <p className="text-muted-foreground">No gear in collection yet</p>
-              <Link href="/gear" className="text-primary mt-2 inline-block">
-                Browse gear to add to your collection
-              </Link>
-            </div>
-          )}
-        </div> */}
+          <div className="md:hidden">
+            {sortedOwnedItems.length > 0 ? (
+              <div className="grid grid-cols-1 gap-1">
+                {sortedOwnedItems.map((item) => (
+                  <GearCard key={item.id} item={item} />
+                ))}
+              </div>
+            ) : (
+              <div className="border-border rounded-lg border-2 border-dashed p-8 text-center">
+                <p className="text-muted-foreground">
+                  No gear in collection yet
+                </p>
+                <Link href="/gear" className="text-primary mt-2 inline-block">
+                  Browse gear to add to your collection
+                </Link>
+              </div>
+            )}
+          </div>
+
+          <CollectionContainer
+            className="hidden md:block"
+            items={sortedOwnedItems}
+            user={user}
+          />
+        </div>
 
         {/* Wishlist */}
         <div className="space-y-4">
@@ -153,7 +159,7 @@ export default async function UserProfilePage({
           </div>
 
           {wishlistItems.length > 0 ? (
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-1 md:grid-cols-2">
               {wishlistItems.map((item) => (
                 <GearCard key={item.id} item={item} />
               ))}
@@ -188,13 +194,14 @@ function GearCard({ item }: { item: GearItem }) {
     style: "short",
     padWholeAmounts: true,
   });
+  const brandLabel = brandName || "Unknown brand";
 
   return (
     <Link
       href={`/gear/${item.slug}`}
       className="group border-border/80 hover:border-foreground/50 block overflow-hidden rounded-xl border transition-colors"
     >
-      <div className="flex gap-3 p-3">
+      <div className="flex gap-3 p-2">
         {item.thumbnailUrl ? (
           <div className="bg-muted relative aspect-[4/3] w-28 flex-shrink-0 overflow-hidden rounded-lg">
             <Image
@@ -213,18 +220,15 @@ function GearCard({ item }: { item: GearItem }) {
           </div>
         )}
 
-        <div className="min-w-0 flex-1 space-y-2">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="line-clamp-2 leading-tight font-semibold">
+        <div className="min-w-0 flex-1">
+          <div className="flex h-full flex-col gap-1">
+            <span className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+              {brandLabel}
+            </span>
+            <h3 className="line-clamp-2 text-lg leading-tight font-semibold">
               {displayName}
             </h3>
-            <span
-              className={
-                priceDisplay === PRICE_FALLBACK_TEXT
-                  ? "text-muted-foreground text-sm"
-                  : "text-sm font-semibold"
-              }
-            >
+            <span className="text-muted-foreground mt-auto text-sm font-medium">
               {priceDisplay}
             </span>
           </div>

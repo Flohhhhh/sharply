@@ -1,6 +1,6 @@
 "use client";
 
-import { EyeIcon, TrashIcon } from "lucide-react";
+import { CircleQuestionMark, EyeIcon, TrashIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
@@ -36,7 +36,12 @@ export function CollectionCard(props: { item: GearItem }) {
             draggable={false}
           />
         ) : (
-          <div className="bg-muted h-[200px] w-full" />
+          <div className="bg-muted/50 flex h-[200px] w-[200px] items-center justify-center rounded-full">
+            <CircleQuestionMark
+              className="text-muted-foreground/50 size-8"
+              aria-hidden
+            />
+          </div>
         )}
 
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 opacity-0 transition-opacity duration-200 group-hover:opacity-100">

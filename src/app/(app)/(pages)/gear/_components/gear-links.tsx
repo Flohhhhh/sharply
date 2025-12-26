@@ -17,6 +17,7 @@ interface GearLinksProps {
   linkManufacturer: string | null;
   linkMpb: string | null;
   linkAmazon: string | null;
+  linkBh: string | null;
   mpbMaxPriceUsdCents?: number | null;
   brandName: string | null;
   msrpNowUsdCents?: number | null;
@@ -28,6 +29,7 @@ export function GearLinks({
   linkManufacturer,
   linkMpb,
   linkAmazon,
+  linkBh,
   mpbMaxPriceUsdCents,
   msrpNowUsdCents,
 }: GearLinksProps) {
@@ -37,13 +39,30 @@ export function GearLinks({
         amazonAsin,
       )}&slug=${encodeURIComponent(slug)}`
     : null;
-  const hasAny = !!(linkManufacturer || linkMpb || amazonAsin);
+  const bhRedirectHref = linkBh
+    ? `/api/out/bh?url=${encodeURIComponent(
+        linkBh,
+      )}&slug=${encodeURIComponent(slug)}`
+    : null;
+  const hasAny = !!(
+    linkManufacturer ||
+    linkMpb ||
+    amazonAsin ||
+    bhRedirectHref
+  );
+  const bhPriceDescription =
+    msrpNowUsdCents != null
+      ? `Around ${formatPrice(truncateToWholeDollars(msrpNowUsdCents), {
+          style: "short",
+        })} • New and Used`
+      : "New and Used";
   const mpbPriceDescription =
     mpbMaxPriceUsdCents != null
       ? `From ${formatPrice(truncateToWholeDollars(mpbMaxPriceUsdCents), {
           style: "short",
         })} • Used`
       : "Used";
+
   const amazonPriceDescription =
     msrpNowUsdCents != null
       ? `Around ${formatPrice(truncateToWholeDollars(msrpNowUsdCents), {
@@ -110,6 +129,22 @@ export function GearLinks({
             void track("gear_link_click", {
               slug,
               linkType: "amazon",
+            })
+          }
+        />
+      )}
+      {bhRedirectHref && (
+        <AffiliateLinkCard
+          href={bhRedirectHref}
+          title="Buy at B&H Photo"
+          description={bhPriceDescription}
+          backgroundClass="bg-[#b03734] hover:bg-[#b03734]/80"
+          textColorClass="text-white"
+          logo={<></>}
+          onClick={() =>
+            void track("gear_link_click", {
+              slug,
+              linkType: "bhphoto",
             })
           }
         />
