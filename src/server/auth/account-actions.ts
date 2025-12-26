@@ -5,10 +5,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { requireUser } from "~/server/auth";
-import {
-  SupportedProvider,
-  unlinkProviderAccount,
-} from "./account-linking";
+import { unlinkProviderAccount } from "./account-linking";
+import type { SupportedProvider } from "./account-linking";
 
 const providerSchema = z.enum(["discord", "google"]);
 
