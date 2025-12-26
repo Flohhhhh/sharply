@@ -41,14 +41,10 @@ export function SocialLinksForm({
         // Filter out empty links
         const validLinks = links.filter((link) => link.url.trim() !== "");
         const res = await actionUpdateSocialLinks(validLinks);
-        if (res.ok) {
-          setLinks(res.socialLinks);
-          setSuccess(true);
-          onSuccess?.(res.socialLinks);
-          setTimeout(() => setSuccess(false), 3000);
-        } else {
-          setError("Could not update your social links. Please try again.");
-        }
+        setLinks(res.socialLinks);
+        setSuccess(true);
+        onSuccess?.(res.socialLinks);
+        setTimeout(() => setSuccess(false), 3000);
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : "An error occurred";

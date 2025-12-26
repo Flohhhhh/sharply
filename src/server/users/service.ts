@@ -186,7 +186,13 @@ export async function updateProfileImage(imageUrl: string) {
   return { ok: true as const, imageUrl: validatedUrl, oldImageUrl };
 }
 
-// Social link type
+/**
+ * Social link object for user profiles.
+ * @property label - Display name for the link (e.g., "Instagram", "Website")
+ * @property url - Valid URL to the external resource
+ * @property icon - Optional icon identifier. Common values: 'instagram', 'website'.
+ *                  Used by UI components to display appropriate icons.
+ */
 export type SocialLink = {
   label: string;
   url: string;
