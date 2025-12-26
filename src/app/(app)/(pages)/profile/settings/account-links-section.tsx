@@ -92,6 +92,7 @@ export function AccountLinksSection({
   };
 
   const handleDisconnect = (provider: ProviderKey) => {
+    if (isBusy) return;
     setError(null);
     startTransition(async () => {
       const res = await actionUnlinkProvider(provider);
