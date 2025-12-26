@@ -136,10 +136,10 @@ export default function SignInClient() {
         <div className="dark:bg-accent/50 bg-white p-8 md:border-r md:p-10">
           <div className="mb-8 text-center md:text-left">
             <h1 className="text-2xl font-semibold tracking-tight">
-              Welcome back
+              Welcome
             </h1>
             <p className="text-muted-foreground mt-1 text-sm">
-              Login to your Sharply account
+              Log in or create an account to continue
             </p>
           </div>
           <div className="grid grid-cols-2 gap-3">
