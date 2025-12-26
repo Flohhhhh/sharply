@@ -903,6 +903,9 @@ export const ENUMS = {
   "audit_action": [
     "GEAR_CREATE",
     "GEAR_RENAME",
+    "GEAR_IMAGE_UPLOAD",
+    "GEAR_IMAGE_REPLACE",
+    "GEAR_IMAGE_REMOVE",
     "GEAR_EDIT_PROPOSE",
     "GEAR_EDIT_APPROVE",
     "GEAR_EDIT_REJECT",

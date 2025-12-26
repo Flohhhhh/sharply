@@ -1282,6 +1282,8 @@ export const users = appSchema.table("user", (d) => ({
     .unique(),
   // Invite used to join (if applicable). Stored for audit, no FK to avoid cycle.
   inviteId: varchar("invite_id", { length: 36 }),
+  // Social links (array of {label: string, url: string, icon?: string})
+  socialLinks: jsonb("social_links"),
   createdAt,
 }));
 

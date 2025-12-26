@@ -8,6 +8,8 @@ import {
 } from "~/lib/mapping";
 import { UserReviewsList } from "~/app/(app)/(pages)/u/_components/user-reviews-list";
 import { UserBadges } from "~/app/(app)/(pages)/u/_components/user-badges";
+import { SocialLinksDisplay } from "~/app/(app)/(pages)/u/_components/social-links-display";
+import type { SocialLink } from "~/server/users/service";
 import {
   fetchUserById,
   fetchUserOwnedItems,
@@ -65,6 +67,11 @@ export default async function UserProfilePage({
 
   const myProfile = user.id === session?.user?.id;
 
+  // Parse social links from JSONB
+  const socialLinks: SocialLink[] = Array.isArray(user.socialLinks)
+    ? (user.socialLinks as SocialLink[])
+    : [];
+
   return (
     <main className="mx-auto min-h-screen max-w-6xl p-6 pt-32">
       {/* User Header */}
@@ -93,6 +100,13 @@ export default async function UserProfilePage({
           </div>
         )}
       </div>
+
+      {/* Social Links */}
+      {socialLinks.length > 0 && (
+        <div className="mb-8">
+          <SocialLinksDisplay links={socialLinks} />
+        </div>
+      )}
 
       <div className="flex flex-col gap-8">
         {/* Badges */}
