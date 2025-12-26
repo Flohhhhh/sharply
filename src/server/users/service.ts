@@ -16,7 +16,7 @@ import {
   wishlists,
   ownerships,
 } from "~/server/db/schema";
-import { updateUserImage } from "./data";
+import { updateUserImage, updateUserSocialLinks } from "./data";
 import type { GearItem, Mount } from "~/types/gear";
 
 export async function getUserReviews(userId: string) {
@@ -184,4 +184,103 @@ export async function updateProfileImage(imageUrl: string) {
   await updateUserImage(user.id, validatedUrl);
 
   return { ok: true as const, imageUrl: validatedUrl, oldImageUrl };
+}
+
+/**
+ * Social link object for user profiles.
+ * @property label - Display name for the link (e.g., "Instagram", "Website")
+ * @property url - Valid URL to the external resource
+ * @property icon - Optional icon identifier. Common values: 'instagram', 'website'.
+ *                  Used by UI components to display appropriate icons.
+ */
+export type SocialLink = {
+  label: string;
+  url: string;
+  icon?: string;
+};
+
+const SOCIAL_PLATFORM_RULES: Record<
+  string,
+  { hostnames: string[]; pathPattern?: RegExp }
+> = {
+  instagram: {
+    hostnames: ["instagram.com", "www.instagram.com"],
+    pathPattern: /^\/[A-Za-z0-9._-]+\/?$/,
+  },
+};
+
+const getSocialPlatformKey = (link: SocialLink) => {
+  const iconKey = link.icon?.toLowerCase();
+  if (iconKey && SOCIAL_PLATFORM_RULES[iconKey]) return iconKey;
+  const labelKey = link.label?.trim().toLowerCase();
+  if (labelKey && SOCIAL_PLATFORM_RULES[labelKey]) return labelKey;
+  return null;
+};
+
+const socialLinkSchema = z.object({
+  label: z
+    .string()
+    .trim()
+    .min(1, "Label is required")
+    .max(50, "Label must be at most 50 characters"),
+  url: z
+    .string()
+    .trim()
+    .url("Must be a valid URL")
+    .max(500, "URL is too long"),
+  icon: z.string().optional(),
+}).superRefine((link, ctx) => {
+  const platformKey = getSocialPlatformKey(link);
+  const platformRules = platformKey ? SOCIAL_PLATFORM_RULES[platformKey] : null;
+  if (!platformRules) return;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(link.url);
+  } catch {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["url"],
+      message: "Must be a valid URL",
+    });
+    return;
+  }
+
+  if (parsed.protocol !== "https:") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["url"],
+      message: "Social links must use https",
+    });
+  }
+
+  if (!platformRules.hostnames.includes(parsed.hostname)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["url"],
+      message: `${link.label} must use ${platformRules.hostnames[0]}`,
+    });
+  }
+
+  if (
+    platformRules.pathPattern &&
+    !platformRules.pathPattern.test(parsed.pathname)
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["url"],
+      message: "Username looks invalid for this platform",
+    });
+  }
+});
+
+const socialLinksArraySchema = z
+  .array(socialLinkSchema)
+  .max(10, "You can have at most 10 social links");
+
+export async function updateSocialLinks(rawLinks: unknown) {
+  const { user } = await requireUser();
+  const socialLinks = socialLinksArraySchema.parse(rawLinks);
+  await updateUserSocialLinks(user.id, socialLinks);
+  return { ok: true as const, socialLinks };
 }
