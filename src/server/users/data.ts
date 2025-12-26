@@ -7,3 +7,13 @@ import { users } from "~/server/db/schema";
 export async function updateUserImage(userId: string, imageUrl: string) {
   await db.update(users).set({ image: imageUrl }).where(eq(users.id, userId));
 }
+
+export async function updateUserSocialLinks(
+  userId: string,
+  socialLinks: unknown,
+) {
+  await db
+    .update(users)
+    .set({ socialLinks })
+    .where(eq(users.id, userId));
+}

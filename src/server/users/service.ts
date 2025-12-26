@@ -16,7 +16,7 @@ import {
   wishlists,
   ownerships,
 } from "~/server/db/schema";
-import { updateUserImage } from "./data";
+import { updateUserImage, updateUserSocialLinks } from "./data";
 import type { GearItem, Mount } from "~/types/gear";
 
 export async function getUserReviews(userId: string) {
@@ -184,4 +184,36 @@ export async function updateProfileImage(imageUrl: string) {
   await updateUserImage(user.id, validatedUrl);
 
   return { ok: true as const, imageUrl: validatedUrl, oldImageUrl };
+}
+
+// Social link type
+export type SocialLink = {
+  label: string;
+  url: string;
+  icon?: string;
+};
+
+const socialLinkSchema = z.object({
+  label: z
+    .string()
+    .trim()
+    .min(1, "Label is required")
+    .max(50, "Label must be at most 50 characters"),
+  url: z
+    .string()
+    .trim()
+    .url("Must be a valid URL")
+    .max(500, "URL is too long"),
+  icon: z.string().optional(),
+});
+
+const socialLinksArraySchema = z
+  .array(socialLinkSchema)
+  .max(10, "You can have at most 10 social links");
+
+export async function updateSocialLinks(rawLinks: unknown) {
+  const { user } = await requireUser();
+  const socialLinks = socialLinksArraySchema.parse(rawLinks);
+  await updateUserSocialLinks(user.id, socialLinks);
+  return { ok: true as const, socialLinks };
 }
