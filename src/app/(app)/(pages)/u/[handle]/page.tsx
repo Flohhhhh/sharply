@@ -225,7 +225,7 @@ function GearCard({ item }: { item: GearItem }) {
             <span className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
               {brandLabel}
             </span>
-            <h3 className="line-clamp-2 text-lg leading-tight font-semibold">
+            <h3 className="line-clamp-2 pr-4 text-sm leading-tight font-semibold sm:text-lg">
               {displayName}
             </h3>
             <span className="text-muted-foreground mt-auto text-sm font-medium">
