@@ -199,6 +199,24 @@ export type SocialLink = {
   icon?: string;
 };
 
+const SOCIAL_PLATFORM_RULES: Record<
+  string,
+  { hostnames: string[]; pathPattern?: RegExp }
+> = {
+  instagram: {
+    hostnames: ["instagram.com", "www.instagram.com"],
+    pathPattern: /^\/[A-Za-z0-9._-]+\/?$/,
+  },
+};
+
+const getSocialPlatformKey = (link: SocialLink) => {
+  const iconKey = link.icon?.toLowerCase();
+  if (iconKey && SOCIAL_PLATFORM_RULES[iconKey]) return iconKey;
+  const labelKey = link.label?.trim().toLowerCase();
+  if (labelKey && SOCIAL_PLATFORM_RULES[labelKey]) return labelKey;
+  return null;
+};
+
 const socialLinkSchema = z.object({
   label: z
     .string()
@@ -211,6 +229,49 @@ const socialLinkSchema = z.object({
     .url("Must be a valid URL")
     .max(500, "URL is too long"),
   icon: z.string().optional(),
+}).superRefine((link, ctx) => {
+  const platformKey = getSocialPlatformKey(link);
+  const platformRules = platformKey ? SOCIAL_PLATFORM_RULES[platformKey] : null;
+  if (!platformRules) return;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(link.url);
+  } catch {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["url"],
+      message: "Must be a valid URL",
+    });
+    return;
+  }
+
+  if (parsed.protocol !== "https:") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["url"],
+      message: "Social links must use https",
+    });
+  }
+
+  if (!platformRules.hostnames.includes(parsed.hostname)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["url"],
+      message: `${link.label} must use ${platformRules.hostnames[0]}`,
+    });
+  }
+
+  if (
+    platformRules.pathPattern &&
+    !platformRules.pathPattern.test(parsed.pathname)
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["url"],
+      message: "Username looks invalid for this platform",
+    });
+  }
 });
 
 const socialLinksArraySchema = z

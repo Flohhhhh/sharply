@@ -22,18 +22,32 @@ export function SocialLinksDisplay({ links }: SocialLinksDisplayProps) {
     }
   };
 
+  const formatDisplayUrl = (url: string) => {
+    try {
+      const parsed = new URL(url);
+      const pathname = parsed.pathname.replace(/\/$/, "");
+      return `${parsed.hostname}${pathname}`;
+    } catch {
+      return url;
+    }
+  };
+
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="space-y-1.5">
       {links.map((link, index) => (
         <Link
           key={index}
           href={link.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="hover:bg-secondary/80 border-border inline-flex items-center gap-2 rounded-lg border bg-secondary px-3 py-2 text-sm font-medium transition-colors"
+          className="text-foreground hover:text-foreground/80 flex items-center gap-2 text-sm"
         >
           {getIconComponent(link.icon)}
-          <span>{link.label}</span>
+          <span className="font-medium">{link.label}</span>
+          <span className="text-muted-foreground truncate text-xs sm:text-sm">
+            {formatDisplayUrl(link.url)}
+          </span>
+          <ExternalLink className="text-muted-foreground h-3.5 w-3.5 flex-shrink-0" />
         </Link>
       ))}
     </div>
