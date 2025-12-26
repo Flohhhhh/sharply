@@ -25,7 +25,7 @@ export async function UserBadges({ userId }: { userId: string }) {
     <div className="space-y-2">
       <h2 className="text-2xl font-semibold">Badges</h2>
       <TooltipProvider>
-        <div className="bg-accent/50 flex gap-2 rounded-md border p-1">
+        <div className="flex flex-wrap gap-2">
           {rows
             .map((r) => ({ row: r, meta: keyToMeta.get(r.badgeKey) }))
             .sort((a, b) => {
@@ -50,7 +50,7 @@ export async function UserBadges({ userId }: { userId: string }) {
                 <Tooltip key={`${r.badgeKey}-${String(r.awardedAt)}`}>
                   <TooltipTrigger asChild>
                     <div
-                      className="bg-card text-card-foreground relative flex aspect-[3/4] h-12 flex-col items-center justify-center overflow-hidden rounded-md p-1"
+                      className="bg-card text-card-foreground relative flex aspect-[3/4] h-12 flex-col items-center justify-center overflow-hidden rounded-md border p-1"
                       style={{ background: meta?.color, color: meta?.color }}
                     >
                       {meta?.levelIndex ? (
