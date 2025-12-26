@@ -5,10 +5,10 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { requireUser } from "~/server/auth";
-import { unlinkProviderAccount } from "./account-linking";
+import { SUPPORTED_PROVIDERS, unlinkProviderAccount } from "./account-linking";
 import type { SupportedProvider } from "./account-linking";
 
-const providerSchema = z.enum(["discord", "google"]);
+const providerSchema = z.enum(SUPPORTED_PROVIDERS);
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 

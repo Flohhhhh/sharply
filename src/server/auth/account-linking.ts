@@ -5,7 +5,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import { db } from "~/server/db";
 import { accounts } from "~/server/db/schema";
 
-const SUPPORTED_PROVIDERS = ["discord", "google"] as const;
+export const SUPPORTED_PROVIDERS = ["discord", "google"] as const;
 
 export type SupportedProvider = (typeof SUPPORTED_PROVIDERS)[number];
 
