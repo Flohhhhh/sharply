@@ -293,7 +293,7 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
               className="w-full"
             >
               {isUploading
-                ? `Uploading ${Math.round(uploadProgress)}%`
+                ? `Uploading ${Math.min(100, Math.round(uploadProgress))}%`
                 : displayedImageUrl
                   ? "Replace"
                   : "Upload"}
@@ -305,7 +305,7 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
               <Progress value={combinedProgress} />
               <div className="text-muted-foreground mt-1 text-xs">
                 {progressMode === "upload"
-                  ? `Uploading ${Math.round(uploadProgress)}%`
+                  ? `Uploading ${Math.min(100, Math.round(uploadProgress))}%`
                   : combinedProgress < 100
                     ? "Saving…"
                     : "Done"}

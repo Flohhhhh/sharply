@@ -212,7 +212,7 @@ export function GearImageModal(props: GearImageModalProps) {
               className="w-full"
             >
               {isUploading
-                ? `Uploading ${Math.round(uploadProgress)}%`
+                ? `Uploading ${Math.min(100, Math.round(uploadProgress))}%`
                 : localThumbnailUrl
                   ? "Replace"
                   : "Upload"}
@@ -276,7 +276,7 @@ export function GearImageModal(props: GearImageModalProps) {
               <Progress value={combinedProgress} />
               <div className="text-muted-foreground mt-1 text-xs">
                 {progressMode === "upload"
-                  ? `Uploading ${Math.round(uploadProgress)}%`
+                  ? `Uploading ${Math.min(100, Math.round(uploadProgress))}%`
                   : progressMode === "delete"
                     ? combinedProgress < 100
                       ? "Deleting…"
