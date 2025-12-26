@@ -10,9 +10,7 @@ import type { SupportedProvider } from "./account-linking";
 
 const providerSchema = z.enum(["discord", "google"]);
 
-type ActionResult =
-  | { ok: true }
-  | { ok: false; error: string };
+type ActionResult = { ok: true } | { ok: false; error: string };
 
 export async function actionUnlinkProvider(
   rawProvider: unknown,
@@ -22,7 +20,7 @@ export async function actionUnlinkProvider(
     return { ok: false, error: "Invalid provider" };
   }
 
-  const provider = parseResult.data as SupportedProvider;
+  const provider: SupportedProvider = parseResult.data;
   const { user } = await requireUser();
 
   await unlinkProviderAccount(user.id, provider);
@@ -30,4 +28,3 @@ export async function actionUnlinkProvider(
 
   return { ok: true };
 }
-
