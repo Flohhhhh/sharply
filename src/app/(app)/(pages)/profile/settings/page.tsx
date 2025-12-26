@@ -4,10 +4,12 @@ import { DisplayNameForm } from "./display-name-form";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { ProfilePictureSettingsSection } from "~/components/profile/profile-picture-settings-section";
+import { AccountLinksSection } from "./account-links-section";
 import { SocialLinksForm } from "./social-links-form";
 import type { SocialLink } from "~/server/users/service";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { fetchLinkedAccountsForUser } from "~/server/auth/account-linking";
 
 export const metadata: Metadata = {
   title: "Account Settings",
@@ -23,6 +25,17 @@ export default async function SettingsPage() {
   }
 
   const user = await fetchFullUserById(session.user.id);
+  const linkedAccounts = await fetchLinkedAccountsForUser(session.user.id);
+  const userEmail = user?.email ?? session.user.email ?? null;
+
+  const providerAvailability = {
+    discord:
+      Boolean(process.env.AUTH_DISCORD_ID) &&
+      Boolean(process.env.AUTH_DISCORD_SECRET),
+    google:
+      Boolean(process.env.AUTH_GOOGLE_ID) &&
+      Boolean(process.env.AUTH_GOOGLE_SECRET),
+  } as const;
 
   // Parse social links from JSONB
   const socialLinks: SocialLink[] = Array.isArray(user?.socialLinks)
@@ -40,6 +53,11 @@ export default async function SettingsPage() {
           View profile
         </Link>
         <h1 className="text-2xl font-bold">Account Settings</h1>
+        {userEmail ? (
+          <p className="text-muted-foreground text-sm">
+            Signed in as {userEmail}
+          </p>
+        ) : null}
       </div>
 
       <div className="space-y-6">
@@ -54,6 +72,12 @@ export default async function SettingsPage() {
           <h2 className="text-lg font-semibold">Display Name</h2>
           <DisplayNameForm defaultName={user?.name ?? ""} />
         </section>
+
+        <AccountLinksSection
+          linkedAccounts={linkedAccounts}
+          providerAvailability={providerAvailability}
+          userEmail={userEmail}
+        />
 
         <section className="border-border space-y-3 rounded-lg border p-4">
           <h2 className="text-lg font-semibold">Social Links</h2>
