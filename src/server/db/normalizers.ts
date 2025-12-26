@@ -1,4 +1,5 @@
 import { SENSOR_FORMATS, ENUMS } from "~/lib/constants";
+import { normalizeBhProductLink } from "~/lib/validation/bhphoto";
 import {
   videoModeInputSchema,
   normalizeVideoModes,
@@ -247,6 +248,49 @@ export function normalizeProposalPayloadForDb(
           const num = coerceNumber(value);
           return num === null ? undefined : num;
         }, z.number().nullable().optional())
+        .optional(),
+      linkManufacturer: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          if (typeof value === "string") {
+            const trimmed = value.trim();
+            return trimmed.length > 0 ? trimmed : null;
+          }
+          return undefined;
+        }, z.string().nullable().optional())
+        .optional(),
+      linkMpb: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          if (typeof value === "string") {
+            const trimmed = value.trim();
+            return trimmed.length > 0 ? trimmed : null;
+          }
+          return undefined;
+        }, z.string().nullable().optional())
+        .optional(),
+      linkBh: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          if (typeof value === "string") {
+            const trimmed = value.trim();
+            if (trimmed.length === 0) return null;
+            // Canonicalize to the product base path when valid
+            const normalized = normalizeBhProductLink(trimmed);
+            return normalized ?? trimmed;
+          }
+          return undefined;
+        }, z.string().nullable().optional())
+        .optional(),
+      linkAmazon: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          if (typeof value === "string") {
+            const trimmed = value.trim();
+            return trimmed.length > 0 ? trimmed : null;
+          }
+          return undefined;
+        }, z.string().nullable().optional())
         .optional(),
       // Free-form notes: normalize to array of trimmed non-empty strings
       notes: z

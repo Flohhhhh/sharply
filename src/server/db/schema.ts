@@ -396,6 +396,7 @@ export const gear = appSchema.table(
     depthMm: decimal("depth_mm", { precision: 6, scale: 2 }),
     linkManufacturer: text("link_manufacturer"),
     linkMpb: text("link_mpb"),
+    linkBh: text("link_bh"),
     linkAmazon: text("link_amazon"),
     // Denormalized shortlist of genre slugs for quick reads (authoritative list via join table)
     genres: jsonb("genres"),

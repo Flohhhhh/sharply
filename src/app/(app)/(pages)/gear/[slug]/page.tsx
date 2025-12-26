@@ -374,6 +374,7 @@ export default async function GearPage({ params }: GearPageProps) {
               brandName={brand ?? null}
               linkManufacturer={item.linkManufacturer ?? null}
               linkMpb={item.linkMpb ?? null}
+              linkBh={item.linkBh ?? null}
               linkAmazon={item.linkAmazon ?? null}
               mpbMaxPriceUsdCents={item.mpbMaxPriceUsdCents ?? null}
               msrpNowUsdCents={item.msrpNowUsdCents ?? null}
