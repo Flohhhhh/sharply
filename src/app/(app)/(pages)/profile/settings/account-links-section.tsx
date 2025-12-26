@@ -125,6 +125,9 @@ export function AccountLinksSection({
           const available = providerAvailability[provider];
           const meta = PROVIDER_METADATA[provider];
           const Icon = meta.icon;
+          const otherProvider: ProviderKey =
+            provider === "discord" ? "google" : "discord";
+          const isLastLinkedOAuth = !!link && !localLinks[otherProvider];
 
           if (!link) {
             return (
@@ -184,10 +187,18 @@ export function AccountLinksSection({
                       <AlertDialogTitle>
                         Disconnect {meta.label}?
                       </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        You will not be able to sign in with this provider until
-                        you link it again. Your account will remain accessible
-                        via other sign-in methods.
+                      <AlertDialogDescription className="space-y-2">
+                        <p>
+                          You will not be able to sign in with this provider
+                          until you link it again.
+                        </p>
+                        {isLastLinkedOAuth ? (
+                          <p>
+                            This is your last linked OAuth account. If you
+                            continue, you will need to sign in using your
+                            email/magic link.
+                          </p>
+                        ) : null}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
