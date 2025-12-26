@@ -33,7 +33,7 @@ export async function fetchLinkedAccountsForUser(
     .where(
       and(
         eq(accounts.userId, userId),
-        inArray(accounts.provider, SUPPORTED_PROVIDERS),
+        inArray(accounts.provider, [...SUPPORTED_PROVIDERS]),
       ),
     );
 
