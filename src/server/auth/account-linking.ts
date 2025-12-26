@@ -40,7 +40,7 @@ export async function fetchLinkedAccountsForUser(
   const result = emptyLinkedMap();
   for (const row of rows) {
     const provider = row.provider as SupportedProvider;
-    // Only keep the first match per provider; UI enforces single link.
+    // Only keep the first match per provider; the database schema enforces a single account per provider.
     if (!result[provider]) {
       result[provider] = {
         provider,

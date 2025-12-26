@@ -75,6 +75,9 @@ export function AccountLinksSection({
   const handleConnect = async (provider: ProviderKey) => {
     setError(null);
     setConnecting(provider);
+    const toastId = toast.loading(
+      `Opening ${PROVIDER_METADATA[provider].label} to link...`,
+    );
     try {
       toast.success(`Redirecting to link ${PROVIDER_METADATA[provider].label}`);
       await signIn(provider, {
@@ -86,7 +89,7 @@ export function AccountLinksSection({
         err instanceof Error ? err.message : "Failed to start linking";
       setError(message);
       toast.error(message);
-    } finally {
+      toast.dismiss(toastId);
       setConnecting(null);
     }
   };
@@ -110,14 +113,6 @@ export function AccountLinksSection({
     <section className="border-border space-y-4 rounded-lg border p-4">
       <div className="space-y-1">
         <h2 className="text-lg font-semibold">Connected Accounts</h2>
-        <p className="text-muted-foreground text-sm">
-          Link Discord or Google so you can sign in with either method. You can
-          have one of each connected.
-        </p>
-        <p className="text-muted-foreground text-xs">
-          Once linked, you can log in with those providers instead of your email
-          link.
-        </p>
       </div>
 
       <div className="space-y-3">
