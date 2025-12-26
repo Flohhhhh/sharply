@@ -62,7 +62,7 @@ export function SocialLinksForm({
       setError("You can have at most 10 social links");
       return;
     }
-    setLinks([...links, { label: "", url: "", icon: "" }]);
+    setLinks([...links, { label: "", url: "" }]);
   };
 
   const removeLink = (index: number) => {
