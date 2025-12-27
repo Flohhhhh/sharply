@@ -324,9 +324,16 @@ const fullFrameCameras = await db
 To add a new gear type (e.g., tripods, lighting):
 
 1. Add new enum value to `gearTypeEnum`
-2. Create new specification table
+2. Create new specification table (see below)
 3. Add relationship to `gearRelations`
 4. Update application logic
+
+### Adding New Specification Tables
+
+1. Define the schema table under `src/server/db/schema.ts`, giving it a clear PK that references `gear.id` and keeping the column names descriptive.
+2. Register relations in `gearRelations` so the new table is reachable from `GearItem` and the registry layers.
+3. Extend the spec registry (`src/lib/specs/registry.tsx`) and any UI that consumes the new specs so they render consistently.
+4. Update service/data layers plus edit forms or admin flow to read/write the new specs while respecting normalization/validation rules.
 
 ### Schema Evolution
 
