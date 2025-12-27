@@ -156,8 +156,7 @@ export function NotificationsDropdown({ data }: NotificationsDropdownProps) {
           <Bell className="size-5" />
           {hasUnread ? (
             <span className="bg-destructive text-destructive-foreground ring-background absolute -top-1 -right-1 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold ring-2">
-              {Math.min(state.unreadCount, 9)}
-              {state.unreadCount > 9 ? "+" : ""}
+              {state.unreadCount >= 10 ? "9+" : state.unreadCount}
             </span>
           ) : null}
         </Button>
