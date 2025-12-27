@@ -1,3 +1,5 @@
+import { getMountDisplayName } from "~/lib/mapping/mounts-map";
+
 export type GearCategorySlug = "cameras" | "lenses";
 
 export const gearCategories: GearCategorySlug[] = ["cameras", "lenses"];
@@ -38,11 +40,11 @@ export function getCategoryLabel(category: GearCategorySlug): string {
 export function formatScopeTitle(params: {
   brandName?: string | null;
   category?: GearCategorySlug | null;
-  mountShort?: string | null;
+  mountValue?: string | null;
 }): string {
   const brand = params.brandName?.trim() ?? "";
   const cat = params.category ?? null;
-  const mount = params.mountShort ? params.mountShort.toUpperCase() : null;
+  const mount = params.mountValue ? getMountDisplayName(params.mountValue) : null;
 
   if (!brand && !cat) return "Browse Gear";
   if (brand && !cat) return `${brand} Gear`;

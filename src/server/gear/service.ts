@@ -339,6 +339,7 @@ export async function submitGearEditProposal(body: unknown) {
   if (!gearId)
     throw Object.assign(new Error("Missing gear reference"), { status: 400 });
   const hasPending = await hasPendingEditsForGear(gearId);
+  const gearMeta = await fetchGearMetadataById(gearId);
   const proposal = await createGearEditProposal({
     gearId,
     userId,
@@ -351,7 +352,10 @@ export async function submitGearEditProposal(body: unknown) {
     (role === "SUPERADMIN" || role === "ADMIN" || role === "EDITOR")
   ) {
     try {
-      await approveProposal(proposal.id, normalizedPayload);
+      await approveProposal(proposal.id, normalizedPayload, {
+        gearName: gearMeta?.name ?? "Gear",
+        gearSlug: gearMeta?.slug ?? data.slug ?? gearId,
+      });
       autoApproved = true;
     } catch (error) {
       console.error("[submitGearEditProposal] auto-approve failed", error);

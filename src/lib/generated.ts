@@ -1008,6 +1008,10 @@ export const ENUMS = {
     "metal",
     "plastic"
   ],
+  "notification_type": [
+    "gear_spec_approved",
+    "badge_awarded"
+  ],
   "popularity_event_type": [
     "view",
     "wishlist_add",

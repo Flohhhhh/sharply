@@ -330,6 +330,13 @@
       "when": 1766774290612,
       "tag": "0046_hot_silhouette",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1766842907174,
+      "tag": "0047_violet_chameleon",
+      "breakpoints": true
     }
   ]
 }

@@ -59,6 +59,34 @@ export function usdToCents(dollars: number | undefined): number | null {
 }
 
 /**
+ * Formats a Date (or date-like) to a short relative string.
+ * Examples: "just now", "2m ago", "3h ago", "yesterday", "3d ago", "1w ago".
+ */
+export function formatRelativeTime(input: Date | string | number): string {
+  const date = input instanceof Date ? input : new Date(input);
+  if (Number.isNaN(date.getTime())) return "";
+  const now = Date.now();
+  const diffMs = now - date.getTime();
+  if (diffMs <= 0) return "just now";
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHr = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHr / 24);
+  const diffWeek = Math.floor(diffDay / 7);
+
+  if (diffSec < 5) return "just now";
+  if (diffSec < 60) return `${diffSec}s ago`;
+  if (diffMin === 1) return "1m ago";
+  if (diffMin < 60) return `${diffMin}m ago`;
+  if (diffHr === 1) return "1h ago";
+  if (diffHr < 24) return `${diffHr}h ago`;
+  if (diffDay === 1) return "1d ago";
+  if (diffDay < 7) return `${diffDay}d ago`;
+  if (diffWeek === 1) return "1w ago";
+  return `${diffWeek}w ago`;
+}
+
+/**
  * Converts camelCase/snake_case/kebab-case keys to human-friendly labels.
  * Examples: "msrpUsdCents" -> "Msrp Usd Cents" (then acronym fixes -> "MSRP USD Cents")
  */
