@@ -42,7 +42,7 @@ interface AnalogCameraFieldsProps {
   currentSpecs: AnalogCameraSpecs | null | undefined;
   initialSpecs?: AnalogCameraSpecs | null | undefined;
   showMissingOnly?: boolean;
-  onChange: (field: keyof AnalogCameraSpecs | string, value: any) => void;
+  onChange: (field: keyof AnalogCameraSpecs, value: any) => void;
   sectionId?: string;
 }
 

@@ -72,8 +72,6 @@ type Props = {
   initialData: TrendingPageResult;
 };
 
-import type { GearType } from "~/types/gear";
-
 function buildKey(params: {
   timeframe: "7d" | "30d";
   page: number;
