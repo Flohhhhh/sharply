@@ -14,6 +14,8 @@ import Logo from "public/logo";
 import { UserMenu } from "./user-menu";
 import { ThemeSwitcher } from "../theme-switcher";
 import type { UserRole } from "~/server/auth";
+import type { NotificationView } from "~/server/notifications/service";
+import { NotificationsDropdown } from "./notifications/notifications-dropdown";
 
 export type HeaderUser = {
   id: string;
@@ -23,7 +25,19 @@ export type HeaderUser = {
   image?: string | null;
 } | null;
 
-export default function HeaderClient({ user }: { user: HeaderUser }) {
+export type HeaderNotificationsData = {
+  notifications: NotificationView[];
+  archived: NotificationView[];
+  unreadCount: number;
+} | null;
+
+export default function HeaderClient({
+  user,
+  notifications,
+}: {
+  user: HeaderUser;
+  notifications: HeaderNotificationsData;
+}) {
   const { hasScrolled } = useScrollState(290);
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -42,6 +56,9 @@ export default function HeaderClient({ user }: { user: HeaderUser }) {
     user?.role === "ADMIN" ||
     user?.role === "SUPERADMIN" ||
     user?.role === "EDITOR";
+
+  const notificationsData =
+    notifications ?? { notifications: [], archived: [], unreadCount: 0 };
 
   const handleHeaderSignInClick = () => {
     void track("auth_signin_press", {
@@ -128,6 +145,7 @@ export default function HeaderClient({ user }: { user: HeaderUser }) {
               <ThemeSwitcher />
               {user ? (
                 <>
+                  <NotificationsDropdown data={notificationsData} />
                   {isAdminOrEditor && (
                     <Button
                       variant="outline"

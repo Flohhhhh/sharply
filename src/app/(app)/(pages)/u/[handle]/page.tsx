@@ -203,7 +203,7 @@ function GearCard({ item }: { item: GearItem }) {
     >
       <div className="flex gap-3 p-2">
         {item.thumbnailUrl ? (
-          <div className="bg-muted relative aspect-[4/3] w-28 flex-shrink-0 overflow-hidden rounded-lg">
+          <div className="bg-muted relative aspect-4/3 w-28 shrink-0 overflow-hidden rounded-lg">
             <Image
               src={item.thumbnailUrl}
               alt={displayName}
@@ -213,7 +213,7 @@ function GearCard({ item }: { item: GearItem }) {
             />
           </div>
         ) : (
-          <div className="bg-muted text-muted-foreground relative aspect-[4/3] w-28 flex-shrink-0 overflow-hidden rounded-lg">
+          <div className="bg-muted text-muted-foreground relative aspect-4/3 w-28 shrink-0 overflow-hidden rounded-lg">
             <div className="flex h-full w-full items-center justify-center px-2 text-center text-xs font-medium">
               {displayName}
             </div>

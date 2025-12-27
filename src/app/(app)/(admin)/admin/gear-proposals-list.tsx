@@ -581,12 +581,15 @@ export function GearProposalsList() {
     action: "approve" | "reject",
   ) => {
     try {
-      const { actionApproveProposal, actionRejectProposal } = await import(
-        "~/server/admin/proposals/actions"
-      );
+      const { actionApproveProposal, actionRejectProposal } =
+        await import("~/server/admin/proposals/actions");
 
       if (action === "approve") {
-        await actionApproveProposal(proposalId);
+        const current = proposals.find((p) => p.id === proposalId);
+        await actionApproveProposal(proposalId, undefined, {
+          gearName: current?.gearName ?? "Gear",
+          gearSlug: current?.gearSlug ?? current?.gearId ?? "",
+        });
       } else {
         await actionRejectProposal(proposalId);
       }
@@ -639,10 +642,12 @@ export function GearProposalsList() {
     try {
       const filteredPayload = buildSelectedPayload(proposal);
 
-      const { actionApproveProposal } = await import(
-        "~/server/admin/proposals/actions"
-      );
-      await actionApproveProposal(proposal.id, filteredPayload);
+      const { actionApproveProposal } =
+        await import("~/server/admin/proposals/actions");
+      await actionApproveProposal(proposal.id, filteredPayload, {
+        gearName: proposal.gearName ?? "Gear",
+        gearSlug: proposal.gearSlug ?? proposal.gearId ?? "",
+      });
 
       // Reflect status and filtered payload locally
       setProposals((prev): GearProposal[] =>
@@ -760,10 +765,12 @@ export function GearProposalsList() {
             new Date(a.createdAt as any).getTime(),
         )[0];
       if (!anchor) return;
-      const { actionApproveProposal } = await import(
-        "~/server/admin/proposals/actions"
-      );
-      await actionApproveProposal(anchor.id, mergedPayload);
+      const { actionApproveProposal } =
+        await import("~/server/admin/proposals/actions");
+      await actionApproveProposal(anchor.id, mergedPayload, {
+        gearName: group.gearName ?? "Gear",
+        gearSlug: group.gearSlug ?? group.gearId ?? "",
+      });
 
       // Optimistically move all group's proposals to resolved locally
       setProposals((prev) =>
