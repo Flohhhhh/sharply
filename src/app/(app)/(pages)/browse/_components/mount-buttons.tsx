@@ -7,6 +7,7 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 import { Button } from "~/components/ui/button";
+import { getMountDisplayName } from "~/lib/mapping/mounts-map";
 
 export default async function MountButtons({
   brandId,
@@ -69,7 +70,7 @@ export default async function MountButtons({
               className="border-border hover:bg-accent/40 group block rounded-lg border p-6 text-center"
             >
               <div className="text-2xl font-semibold group-hover:underline">
-                {(m.shortName ?? m.value).toUpperCase()} Mount
+                {getMountDisplayName(m.value)} Mount
               </div>
               <div className="text-muted-foreground mt-1 text-sm">
                 Browse {category}
@@ -94,7 +95,7 @@ export default async function MountButtons({
                     href={`/browse/${brandSlug}/${category}/${m.shortName ?? m.value}`}
                     className="hover:bg-accent/40 rounded-md px-3 py-2 text-center"
                   >
-                    {(m.shortName ?? m.value).toUpperCase()} Mount
+                    {getMountDisplayName(m.value)} Mount
                   </Link>
                 ))}
               </div>

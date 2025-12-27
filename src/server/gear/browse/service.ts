@@ -31,7 +31,7 @@ export async function resolveScopeOrThrow(segments: string[]): Promise<{
   depth: 0 | 1 | 2 | 3;
   scope: RouteScope;
   brand?: { id: string; name: string; slug: string } | null;
-  mount?: { id: string; shortName: string | null } | null;
+  mount?: { id: string; shortName: string | null; value: string } | null;
 }> {
   const scope = parseSegments(segments);
   const depth = getDepth(scope);
@@ -46,7 +46,7 @@ export async function resolveScopeOrThrow(segments: string[]): Promise<{
     if (!brand) notFound();
     const m = await getMountByShortName(scope.mountShort, brand.id);
     if (!m) notFound();
-    mount = { id: m.id, shortName: m.shortName };
+    mount = { id: m.id, shortName: m.shortName, value: m.value };
   }
   return { depth, scope, brand, mount };
 }
@@ -125,7 +125,7 @@ export async function buildSeo(params: {
   const plainTitle = formatScopeTitle({
     brandName: brand?.name ?? null,
     category: scope.categorySlug ?? null,
-    mountShort: mount?.shortName ?? null,
+    mountValue: mount?.value ?? null,
   });
   const title = `${plainTitle}`;
   const description = `Explore all ${lists.total} ${plainTitle}`;

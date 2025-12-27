@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { getCategoryLabel, type GearCategorySlug } from "~/lib/browse/routing";
+import { getMountDisplayName } from "~/lib/mapping/mounts-map";
 
 type Props = {
   brand?: { name: string; slug: string } | null;
   category?: GearCategorySlug | null;
-  mountShort?: string | null;
+  mountValue?: string | null;
 };
 
-export default function Breadcrumbs({ brand, category, mountShort }: Props) {
+export default function Breadcrumbs({ brand, category, mountValue }: Props) {
   const items: Array<{ label: string; href?: string }> = [];
   items.push({ label: "Browse", href: "/browse" });
 
@@ -20,9 +21,9 @@ export default function Breadcrumbs({ brand, category, mountShort }: Props) {
       href: `/browse/${brand.slug}/${category}`,
     });
   }
-  if (brand && category && mountShort) {
+  if (brand && category && mountValue) {
     items.push({
-      label: `${mountShort.toUpperCase()} Mount`,
+      label: `${getMountDisplayName(mountValue)} Mount`,
       // final crumb has no link
     });
   }
