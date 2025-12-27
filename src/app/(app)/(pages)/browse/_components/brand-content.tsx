@@ -13,9 +13,9 @@ export default function BrandContent({ brandSlug }: { brandSlug: string }) {
           <Link
             key={i.href}
             href={i.href}
-            className="border-border hover:bg-accent/40 group block rounded-lg border p-6 text-center"
+            className="border-border hover:bg-accent/40 group block rounded-lg border p-2 text-center sm:p-6"
           >
-            <div className="text-2xl font-semibold group-hover:underline">
+            <div className="text-lg font-semibold group-hover:underline sm:text-2xl">
               {i.label}
             </div>
             <div className="text-muted-foreground mt-1 text-sm">

@@ -51,9 +51,9 @@ export default async function MountButtons({
   }
   const visibleCount = mounts?.length ?? 0;
   const gridCols = (() => {
-    if (visibleCount === 2) return "grid-cols-2";
-    if (visibleCount === 3) return "grid-cols-3";
-    if (visibleCount >= 4) return "grid-cols-2"; // two rows of two
+    if (visibleCount === 2) return "sm:grid-cols-2";
+    if (visibleCount === 3) return "sm:grid-cols-3";
+    if (visibleCount >= 4) return "sm:grid-cols-2"; // two rows of two
     return ""; // 0 or 1 -> no grid
   })();
 
@@ -62,14 +62,14 @@ export default async function MountButtons({
   return (
     <div className="space-y-3">
       {visibleCount >= 2 ? (
-        <div className={`grid gap-4 ${gridCols}`}>
+        <div className={`grid grid-cols-1 gap-4 ${gridCols}`}>
           {mounts.map((m) => (
             <Link
               key={m.id}
               href={`/browse/${brandSlug}/${category}/${m.shortName ?? m.value}`}
-              className="border-border hover:bg-accent/40 group block rounded-lg border p-6 text-center"
+              className="border-border hover:bg-accent/40 group block rounded-lg border p-2 text-center sm:p-6"
             >
-              <div className="text-2xl font-semibold group-hover:underline">
+              <div className="text-lg font-semibold group-hover:underline sm:text-2xl">
                 {getMountDisplayName(m.value)} Mount
               </div>
               <div className="text-muted-foreground mt-1 text-sm">
