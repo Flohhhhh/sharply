@@ -4,6 +4,7 @@ import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
 import GoogleProvider from "next-auth/providers/google";
 import Resend from "next-auth/providers/resend";
+import util from "node:util";
 
 import { db } from "~/server/db";
 import {
@@ -72,7 +73,7 @@ if (process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET) {
 }
 
 export const authConfig = {
-  // debug: true,
+  debug: process.env.NODE_ENV === "development",
   providers,
   pages: {
     signIn: "/auth/signin",
@@ -95,7 +96,15 @@ export const authConfig = {
       ) {
         return;
       }
-      console.error(error);
+      console.error(
+        "Auth adapter error",
+        util.inspect(error, { depth: null, colors: true }),
+        "cause",
+        util.inspect((error as { cause?: unknown })?.cause, {
+          depth: null,
+          colors: true,
+        }),
+      );
     },
   },
   callbacks: {

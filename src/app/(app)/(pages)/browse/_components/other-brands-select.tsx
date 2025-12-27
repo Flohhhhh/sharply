@@ -14,9 +14,9 @@ type Brand = { id: string; name: string; slug: string };
 export function OtherBrandsSelect({ brands }: { brands: Brand[] }) {
   const router = useRouter();
   return (
-    <div className="flex justify-center">
+    <div className="flex w-full justify-center sm:w-fit">
       <Select onValueChange={(slug) => router.push(`/browse/${slug}`)}>
-        <SelectTrigger className="w-64">
+        <SelectTrigger className="w-full sm:w-64">
           <SelectValue placeholder="Other brands" />
         </SelectTrigger>
         <SelectContent>

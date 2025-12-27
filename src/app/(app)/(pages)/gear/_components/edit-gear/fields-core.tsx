@@ -21,6 +21,7 @@ import {
   normalizeAmazonProductLink,
   toDisplayAmazonProductLink,
 } from "~/lib/validation/amazon";
+import { normalizeBhProductLink } from "~/lib/validation/bhphoto";
 import { useSession } from "next-auth/react";
 import type { UserRole } from "~/server/auth";
 
@@ -39,6 +40,7 @@ interface CoreFieldsProps {
     depthMm?: number | null;
     linkManufacturer?: string | null;
     linkMpb?: string | null;
+    linkBh?: string | null;
     linkAmazon?: string | null;
     genres?: string[] | null;
   };
@@ -153,7 +155,10 @@ function CoreFieldsComponent({
   );
 
   const handleLinkChange = useCallback(
-    (field: "linkManufacturer" | "linkMpb" | "linkAmazon", value: string) => {
+    (
+      field: "linkManufacturer" | "linkMpb" | "linkAmazon" | "linkBh",
+      value: string,
+    ) => {
       const v = value.trim();
       onChange(field, v.length ? v : null);
     },
@@ -196,6 +201,19 @@ function CoreFieldsComponent({
       onChange("linkAmazon", trimmed.length ? trimmed : null);
       setAmazonNoticeUrl(null);
       setAmazonPreviewUrl(null);
+    },
+    [onChange],
+  );
+
+  const handleBhLinkBlur = useCallback(
+    (value: string) => {
+      const trimmed = value.trim();
+      const canonical = normalizeBhProductLink(value);
+      if (canonical) {
+        onChange("linkBh", canonical);
+        return;
+      }
+      onChange("linkBh", trimmed.length ? trimmed : null);
     },
     [onChange],
   );
@@ -663,6 +681,21 @@ function CoreFieldsComponent({
                 onChange={(e) => handleLinkChange("linkMpb", e.target.value)}
                 className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder="https://www.mpb.com/..."
+              />
+            </div>
+          )}
+
+          {showWhenMissing((initialSpecs as any)?.linkBh) && (
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="linkBh">B&H Link</Label>
+              <input
+                id="linkBh"
+                type="url"
+                value={currentSpecs.linkBh || ""}
+                onChange={(e) => handleLinkChange("linkBh", e.target.value)}
+                onBlur={(e) => handleBhLinkBlur(e.target.value)}
+                className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="https://www.bhphotovideo.com/..."
               />
             </div>
           )}

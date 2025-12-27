@@ -10,6 +10,7 @@ import { SortSelect } from "~/components/search/sort-select";
 import MountButtons from "../_components/mount-buttons";
 import Breadcrumbs from "../_components/breadcrumbs";
 import { getItemDisplayPrice } from "~/lib/mapping";
+import { getMountDisplayName } from "~/lib/mapping/mounts-map";
 
 export const dynamicParams = true;
 
@@ -144,10 +145,10 @@ export default async function BrowseCatchAll({
       <Breadcrumbs
         brand={{ name: brand!.name, slug: brand!.slug }}
         category={scope.categorySlug!}
-        mountShort={mount?.shortName ?? null}
+        mountValue={mount?.value ?? null}
       />
       <h1 className="text-3xl font-semibold">
-        {brand!.name} {mount?.shortName?.toUpperCase()} Mount{" "}
+        {brand!.name} {getMountDisplayName(mount?.value)} Mount{" "}
         {scope.categorySlug === "cameras" ? "Cameras" : "Lenses"}
       </h1>
       <div className="mb-2 flex items-center justify-end gap-2">

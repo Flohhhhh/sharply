@@ -14,6 +14,7 @@ The project uses Drizzle ORM for schema, and we manage changes via generated SQL
 3. Wire the editor UI:
    - Add an input in `fields-cameras.tsx`, `fields-lenses.tsx`, or `fields-core.tsx`.
    - Add the key to the diff whitelist in `edit-gear-form.tsx` (`cameraKeys`, `lensKeys`, or `coreKeys`).
+   - Example: for the new B&H link (`linkBh` on `gear`), add the input in `fields-core.tsx`, include it in `coreKeys`, and trim/null-normalize in `normalizeProposalPayloadForDb`.
 4. Normalize on submit in `src/server/db/normalizers.ts` (coerce to DB-safe types; enums as string pass‑through or enum-check).
 5. Add the spec to the registry: update `src/lib/specs/registry.tsx` to include the new field with proper label, formatting, and section grouping.
 

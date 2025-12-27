@@ -79,6 +79,12 @@ export const badgeAwardSourceEnum = pgEnum("badge_award_source", [
   "manual",
 ]);
 
+// Notifications
+export const notificationTypeEnum = pgEnum("notification_type", [
+  "gear_spec_approved",
+  "badge_awarded",
+]);
+
 // Popularity
 export const popularityEventTypeEnum = pgEnum("popularity_event_type", [
   "view",
@@ -396,6 +402,7 @@ export const gear = appSchema.table(
     depthMm: decimal("depth_mm", { precision: 6, scale: 2 }),
     linkManufacturer: text("link_manufacturer"),
     linkMpb: text("link_mpb"),
+    linkBh: text("link_bh"),
     linkAmazon: text("link_amazon"),
     // Denormalized shortlist of genre slugs for quick reads (authoritative list via join table)
     genres: jsonb("genres"),
@@ -1282,13 +1289,51 @@ export const users = appSchema.table("user", (d) => ({
     .unique(),
   // Invite used to join (if applicable). Stored for audit, no FK to avoid cycle.
   inviteId: varchar("invite_id", { length: 36 }),
+  // Social links (array of {label: string, url: string, icon?: string})
+  socialLinks: jsonb("social_links"),
   createdAt,
 }));
+
+export const notifications = appSchema.table(
+  "notifications",
+  (d) => ({
+    id: d
+      .varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    userId: d
+      .varchar("user_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: notificationTypeEnum("type").notNull(),
+    title: text("title").notNull(),
+    body: text("body"),
+    linkUrl: text("link_url"),
+    sourceType: varchar("source_type", { length: 100 }),
+    sourceId: varchar("source_id", { length: 100 }),
+    metadata: jsonb("metadata"),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  }),
+  (t) => [
+    index("notifications_user_created_idx").on(t.userId, t.createdAt),
+    index("notifications_user_unread_idx").on(t.userId, t.readAt),
+    index("notifications_user_archived_idx").on(t.userId, t.archivedAt),
+  ],
+);
 
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
   gearEdits: many(gearEdits),
   reviews: many(reviews),
+  notifications: many(notifications),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, { fields: [notifications.userId], references: [users.id] }),
 }));
 
 // Export the user type for use throughout the application

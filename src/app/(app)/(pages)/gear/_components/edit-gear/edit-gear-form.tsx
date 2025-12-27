@@ -255,6 +255,7 @@ function EditGearForm({
       "widthMm",
       "heightMm",
       "depthMm",
+      "linkBh",
       "linkManufacturer",
       "linkMpb",
       "linkAmazon",

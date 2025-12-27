@@ -316,6 +316,27 @@
       "when": 1765386824696,
       "tag": "0044_mushy_cammi",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1766757349006,
+      "tag": "0045_sweet_stellaris",
+      "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1766774290612,
+      "tag": "0046_hot_silhouette",
+      "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1766842907174,
+      "tag": "0047_violet_chameleon",
+      "breakpoints": true
     }
   ]
 }

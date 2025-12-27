@@ -12,6 +12,7 @@ import {
   rejectProposalData,
 } from "./data";
 import { evaluateForEvent } from "~/server/badges/service";
+import { createNotification } from "~/server/notifications/service";
 
 type EnrichedProposal = GearEditProposal & {
   gearName: string;
@@ -134,7 +135,11 @@ export async function fetchResolvedProposalGroupsWithCount(
   };
 }
 
-export async function approveProposal(id: string, filteredPayload?: unknown) {
+export async function approveProposal(
+  id: string,
+  filteredPayload: unknown = undefined,
+  gearContext: { gearName: string; gearSlug: string },
+) {
   const session = await requireUser();
   if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
@@ -159,12 +164,28 @@ export async function approveProposal(id: string, filteredPayload?: unknown) {
     filteredPayload,
   );
 
+  const gearRow = {
+    name: gearContext.gearName,
+    slug: gearContext.gearSlug,
+  };
+
   // Emit badge event for contributor who created the proposal
   if (proposal.createdById) {
     await evaluateForEvent(
       { type: "edit.approved", context: { gearId: proposal.gearId } },
       proposal.createdById,
     );
+
+    await createNotification({
+      userId: proposal.createdById,
+      type: "gear_spec_approved",
+      title: "Your spec edit was approved!",
+      body: `${gearRow.name ?? "Gear"} is now updated. Click to view the page.`,
+      linkUrl: `/gear/${gearRow.slug}`,
+      sourceType: "gear",
+      sourceId: proposal.gearId,
+      metadata: { proposalId: proposal.id },
+    });
   }
 }
 

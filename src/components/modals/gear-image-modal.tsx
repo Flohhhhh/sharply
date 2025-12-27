@@ -291,8 +291,7 @@ export function GearImageModal(props: GearImageModalProps) {
         </div>
 
         <div className="text-muted-foreground text-xs">
-          Max 1 file, 4MB. Admins only. Use .webp, transparent background, max
-          800px on long edge.
+          Upload a single image with transparent background, tightly cropped, 1000px on long edge, .webp @ 75% quality.
         </div>
       </DialogContent>
     </Dialog>

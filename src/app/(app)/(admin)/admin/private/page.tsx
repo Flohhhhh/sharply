@@ -16,6 +16,7 @@ import { Button } from "~/components/ui/button";
 import Link from "next/link";
 import { CopyButton } from "./copy-button";
 import { AdminUserList } from "./user-list";
+import { NotificationsTestButton } from "../notifications-test-button";
 
 export const dynamic = "force-dynamic";
 
@@ -64,6 +65,18 @@ export default async function PrivateAdminPage() {
             </div>
             <Button type="submit">Create Link</Button>
           </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Notifications</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-muted-foreground text-sm">
+            Send yourself a test notification using the current session.
+          </p>
+          <NotificationsTestButton />
         </CardContent>
       </Card>
 

@@ -181,7 +181,7 @@ export function CollectionContainer(props: {
           loading={isCopying}
           data-export-ignore="true"
           icon={<ClipboardCopy />}
-          className="w-full"
+          className="hidden w-full md:flex"
         >
           Copy image
         </Button>

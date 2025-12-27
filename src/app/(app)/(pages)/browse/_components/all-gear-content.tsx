@@ -38,15 +38,17 @@ export default async function AllGearContent({
   });
   return (
     <main className="space-y-8">
-      {/* browse hero */}
-      <section className="max-w-3xl space-y-4">
-        <h1 className="text-3xl font-bold sm:text-5xl">All Gear</h1>
-        <p className="text-muted-foreground">
-          Browse our comprehensive gear catalog featuring the latest cameras and
-          lenses from all major brands. Results are ordered by release date by
-          default with newer items appearing first.
-        </p>
-      </section>
+      {/* browse hero only on root browse page*/}
+      {brandSlug ? null : (
+        <section className="max-w-3xl space-y-4">
+          <h1 className="text-3xl font-bold sm:text-5xl">All Gear</h1>
+          <p className="text-muted-foreground">
+            Browse our comprehensive gear catalog featuring the latest cameras
+            and lenses from all major brands. Results are ordered by release
+            date by default with newer items appearing first.
+          </p>
+        </section>
+      )}
       <section className="relative rounded-2xl">
         <div className="relative grid gap-8 lg:grid-cols-[2fr,1fr]">
           {showBrandPicker ? (
@@ -89,7 +91,7 @@ export default async function AllGearContent({
             <Link href="/lists/trending">View All</Link>
           </Button>
         </div>
-        <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
           {trendingResult.map((g) => (
             <GearCard
               key={g.slug}

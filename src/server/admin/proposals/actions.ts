@@ -4,8 +4,12 @@ import "server-only";
 import { revalidatePath } from "next/cache";
 import { approveProposal, mergeProposal, rejectProposal } from "./service";
 
-export async function actionApproveProposal(id: string, filteredPayload?: any) {
-  await approveProposal(id, filteredPayload);
+export async function actionApproveProposal(
+  id: string,
+  filteredPayload: any = undefined,
+  gearContext: { gearName: string; gearSlug: string },
+) {
+  await approveProposal(id, filteredPayload, gearContext);
   revalidatePath("/admin");
 }
 

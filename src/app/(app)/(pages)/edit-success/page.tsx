@@ -217,6 +217,23 @@ export default async function EditSuccessPage({
                     </ul>
                   </div>
                 )}
+                {(edit.payload as any).fixedLens && (
+                  <div>
+                    <div className="mb-1 font-medium">Fixed Lens</div>
+                    <ul className="list-disc pl-5">
+                      {Object.entries((edit.payload as any).fixedLens).map(
+                        ([k, v]) => (
+                          <li key={String(k)}>
+                            <span className="text-muted-foreground">
+                              {humanizeKey(String(k))}:
+                            </span>{" "}
+                            <span className="font-medium">{String(v)}</span>
+                          </li>
+                        ),
+                      )}
+                    </ul>
+                  </div>
+                )}
                 {Array.isArray((edit.payload as any).cameraCardSlots) && (
                   <div>
                     <div className="mb-1 font-medium">Card Slots</div>
