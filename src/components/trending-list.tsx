@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Flame } from "lucide-react";
 import { fetchTrending } from "~/server/popularity/service";
 import type { TrendingEntry } from "~/types/popularity";
+import type { GearType } from "~/types/gear";
 
 export type TrendingItem = TrendingEntry;
 
@@ -52,7 +53,7 @@ export default async function TrendingList({
   filters?: {
     brandId?: string;
     mountId?: string;
-    gearType?: "CAMERA" | "LENS";
+    gearType?: GearType;
   };
   title?: string;
   loading?: boolean;

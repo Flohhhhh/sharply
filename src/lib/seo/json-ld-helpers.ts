@@ -1,5 +1,6 @@
 import { BRANDS, MOUNTS, SENSOR_FORMATS } from "~/lib/constants";
 import type { GearItem } from "~/types/gear";
+import type { GearType } from "~/types/gear";
 
 export type GearJsonLdSpec = {
   name: string;
@@ -12,7 +13,7 @@ export type GearPageJsonLdInput = {
   description?: string;
   brandId?: string;
   image?: string;
-  category?: "CAMERA" | "LENS"; // "Camera" / "Lens" etc
+  category?: GearType; // "Camera" / "Lens" etc
   // keySpecs?: GearJsonLdSpec[];
 };
 

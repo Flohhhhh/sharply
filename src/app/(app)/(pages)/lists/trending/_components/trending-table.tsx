@@ -49,13 +49,15 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { useCompare } from "~/lib/hooks/useCompare";
+import type { GearType } from "~/types/gear";
 
 const WINDOW_OPTIONS: Array<"7d" | "30d"> = ["7d", "30d"];
 const TYPE_OPTIONS = [
   { label: "All gear", value: "ALL" },
   { label: "Cameras", value: "CAMERA" },
+  { label: "Analog Cameras", value: "ANALOG_CAMERA" },
   { label: "Lenses", value: "LENS" },
-];
+] as const;
 const PER_PAGE_OPTIONS = [20, 50, 100];
 
 const fetcher = async (url: string) => {
@@ -74,7 +76,7 @@ function buildKey(params: {
   timeframe: "7d" | "30d";
   page: number;
   perPage: number;
-  gearType?: "CAMERA" | "LENS";
+  gearType?: GearType;
 }) {
   const search = new URLSearchParams({
     timeframe: params.timeframe,
@@ -96,7 +98,7 @@ export function TrendingTable({ initialData }: Props) {
   const [timeframe, setTimeframe] = useState<"7d" | "30d">(
     initialData.timeframe,
   );
-  const [gearType, setGearType] = useState<"ALL" | "CAMERA" | "LENS">(
+  const [gearType, setGearType] = useState<"ALL" | GearType>(
     initialData.filters.gearType ?? "ALL",
   );
   const [page, setPage] = useState(initialData.page);

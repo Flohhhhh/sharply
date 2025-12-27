@@ -8,8 +8,9 @@ import {
 } from "~/lib/constants";
 import type { BrowseFilters } from "~/lib/browse/filters";
 import type { GearCategorySlug } from "~/lib/browse/routing";
+import type { GearType } from "~/types/gear";
 
-const gearCategoryToType: Record<GearCategorySlug, "CAMERA" | "LENS"> = {
+const gearCategoryToType: Record<GearCategorySlug, GearType> = {
   cameras: "CAMERA",
   lenses: "LENS",
 };

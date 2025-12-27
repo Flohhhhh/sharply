@@ -15,12 +15,13 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import type { GearItem, CameraSpecs } from "~/types/gear";
+import type { GearType } from "~/types/gear";
 import { buildEditSidebarSections } from "~/lib/specs/registry";
 import { sensorTypeLabel } from "~/lib/mapping/sensor-map";
 import { Button } from "~/components/ui/button";
 
 interface EditModalContentProps {
-  gearType?: "CAMERA" | "LENS";
+  gearType?: GearType;
   gearSlug: string;
   gearName?: string;
   gearData: GearItem;

@@ -17,6 +17,7 @@ The project uses Drizzle ORM for schema, and we manage changes via generated SQL
    - Example: for the new B&H link (`linkBh` on `gear`), add the input in `fields-core.tsx`, include it in `coreKeys`, and trim/null-normalize in `normalizeProposalPayloadForDb`.
 4. Normalize on submit in `src/server/db/normalizers.ts` (coerce to DB-safe types; enums as string pass‑through or enum-check).
 5. Add the spec to the registry: update `src/lib/specs/registry.tsx` to include the new field with proper label, formatting, and section grouping.
+6. Analog cameras use `analog_camera_specs` (1:1 on `gear.id`); integrated-lens data still lives in `fixed_lens_specs`. Treat `ANALOG_CAMERA` like cameras for fixed-lens UI/flows but use the analog schema for everything else.
 
 #### Example – add Camera Type enum to camera specs
 

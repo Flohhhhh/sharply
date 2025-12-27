@@ -20,11 +20,12 @@ import {
 } from "~/components/ui/alert-dialog";
 import EditModalContent from "./edit-modal-content";
 import type { GearItem } from "~/types/gear";
+import type { GearType } from "~/types/gear";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 
 interface EditGearModalProps {
-  gearType?: "CAMERA" | "LENS";
+  gearType?: GearType;
   gearData: GearItem;
   gearSlug: string;
   gearName: string;

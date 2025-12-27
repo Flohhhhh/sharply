@@ -15,6 +15,8 @@ import {
 import { CoreFields } from "./fields-core";
 import { LensFields } from "./fields-lenses";
 import CameraFields from "./fields-cameras";
+import type { GearType } from "~/types/gear";
+import { AnalogCameraFields } from "./fields-analog-cameras";
 import { FixedLensFields } from "./fields-fixed-lens";
 import { NotesFields } from "~/app/(app)/(pages)/gear/_components/edit-gear/fields-notes";
 import { MOUNTS } from "~/lib/generated";
@@ -89,7 +91,7 @@ function formatMaxFpsByShutter(value: unknown): string {
 }
 
 interface EditGearFormProps {
-  gearType?: "CAMERA" | "LENS";
+  gearType?: GearType;
   gearSlug: string;
   gearData: GearItem;
   onDirtyChange?: (dirty: boolean) => void;
@@ -324,6 +326,46 @@ function EditGearForm({
       const orig = (gearData.cameraSpecs ?? {}) as Record<string, any>;
       const diffs = diffByKeys(orig, formData.cameraSpecs as any, cameraKeys);
       if (Object.keys(diffs).length > 0) payload.camera = diffs;
+    }
+
+    if (formData.analogCameraSpecs) {
+      const analogKeys = [
+        "cameraType",
+        "captureMedium",
+        "filmTransportType",
+        "hasAutoFilmAdvance",
+        "hasOptionalMotorizedDrive",
+        "viewfinderType",
+        "shutterType",
+        "shutterSpeedMax",
+        "shutterSpeedMin",
+        "flashSyncSpeed",
+        "hasBulbMode",
+        "hasMetering",
+        "meteringModes",
+        "exposureModes",
+        "meteringDisplayTypes",
+        "hasExposureCompensation",
+        "isoSettingMethod",
+        "isoMin",
+        "isoMax",
+        "hasAutoFocus",
+        "focusAidTypes",
+        "requiresBatteryForShutter",
+        "requiresBatteryForMetering",
+        "hasContinuousDrive",
+        "maxContinuousFps",
+        "hasHotShoe",
+        "hasSelfTimer",
+        "hasIntervalometer",
+      ] as const;
+      const orig = (gearData.analogCameraSpecs ?? {}) as Record<string, any>;
+      const diffs = diffByKeys(
+        orig,
+        formData.analogCameraSpecs as any,
+        analogKeys,
+      );
+      if (Object.keys(diffs).length > 0) payload.analogCamera = diffs;
     }
 
     if (formData.lensSpecs) {
@@ -732,8 +774,20 @@ function EditGearForm({
         />
       )}
 
+      {gearType === "ANALOG_CAMERA" && (
+        <AnalogCameraFields
+          sectionId="analog-camera-section"
+          currentSpecs={(formData as any).analogCameraSpecs}
+          showMissingOnly={Boolean(showMissingOnly)}
+          initialSpecs={(gearData as any).analogCameraSpecs as any}
+          onChange={(field, value) =>
+            handleChange(field as string, value, "analogCameraSpecs")
+          }
+        />
+      )}
+
       {/* Integrated Lens section (separate card), only when mount is fixed-lens */}
-      {gearType === "CAMERA" &&
+      {(gearType === "CAMERA" || gearType === "ANALOG_CAMERA") &&
         (() => {
           const primaryMountId = Array.isArray((formData as any).mountIds)
             ? ((formData as any).mountIds[0] ?? (formData as any).mountId)
@@ -864,6 +918,26 @@ function EditGearForm({
                             </li>
                           );
                         })}
+                      </ul>
+                    </div>
+                  )}
+                  {(diffPreview as any).analogCamera && (
+                    <div>
+                      <div className="mb-1 font-medium">Analog Camera</div>
+                      <ul className="list-disc pl-5">
+                        {Object.entries(
+                          (diffPreview as any).analogCamera as Record<
+                            string,
+                            any
+                          >,
+                        ).map(([k, v]) => (
+                          <li key={k}>
+                            <span className="text-muted-foreground">
+                              {humanizeKey(k)}:
+                            </span>{" "}
+                            <span className="font-medium">{String(v)}</span>
+                          </li>
+                        ))}
                       </ul>
                     </div>
                   )}

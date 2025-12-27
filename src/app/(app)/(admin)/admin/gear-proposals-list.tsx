@@ -245,11 +245,16 @@ export function GearProposalsList() {
       const next = { ...prev };
       for (const p of proposals) {
         if (!next[p.id]) {
-        const coreKeys = Object.keys(p.payload.core ?? {});
-        const cameraKeys = Object.keys(p.payload.camera ?? {});
-        const lensKeys = Object.keys(p.payload.lens ?? {});
-        const fixedLensKeys = Object.keys((p.payload as any).fixedLens ?? {});
-        const allKeys = [...coreKeys, ...cameraKeys, ...lensKeys, ...fixedLensKeys];
+          const coreKeys = Object.keys(p.payload.core ?? {});
+          const cameraKeys = Object.keys(p.payload.camera ?? {});
+          const lensKeys = Object.keys(p.payload.lens ?? {});
+          const fixedLensKeys = Object.keys((p.payload as any).fixedLens ?? {});
+          const allKeys = [
+            ...coreKeys,
+            ...cameraKeys,
+            ...lensKeys,
+            ...fixedLensKeys,
+          ];
           const initial: Record<string, boolean> = {};
           for (const k of allKeys) initial[k] = true;
           next[p.id] = initial;
@@ -361,7 +366,14 @@ export function GearProposalsList() {
 
   type ConflictEntry = {
     fieldKey: string; // e.g. core.name or cameraCardSlots
-  area: "core" | "camera" | "lens" | "fixedLens" | "cameraCardSlots" | "videoModes";
+    area:
+      | "core"
+      | "camera"
+      | "analogCamera"
+      | "lens"
+      | "fixedLens"
+      | "cameraCardSlots"
+      | "videoModes";
     key?: string; // inner key when area != cameraCardSlots
     options: Array<{
       proposalId: string;
@@ -372,7 +384,14 @@ export function GearProposalsList() {
   };
   type NonConflictEntry = {
     fieldKey: string;
-  area: "core" | "camera" | "lens" | "fixedLens" | "cameraCardSlots" | "videoModes";
+    area:
+      | "core"
+      | "camera"
+      | "analogCamera"
+      | "lens"
+      | "fixedLens"
+      | "cameraCardSlots"
+      | "videoModes";
     key?: string;
     provider: {
       proposalId: string;
@@ -410,6 +429,7 @@ export function GearProposalsList() {
       };
       add("core", p.payload.core);
       add("camera", p.payload.camera);
+      add("analogCamera", (p.payload as any).analogCamera);
       add("lens", p.payload.lens);
       add("fixedLens", (p.payload as any).fixedLens);
       add("fixedLens", (p.payload as any).fixedLens);

@@ -11,6 +11,7 @@ type ProposalPayloadSection = Record<string, unknown>;
 type ProposalPayload = {
   core?: ProposalPayloadSection;
   camera?: ProposalPayloadSection;
+  analogCamera?: ProposalPayloadSection;
   lens?: ProposalPayloadSection;
   cameraCardSlots?: unknown;
   fixedLens?: ProposalPayloadSection;
@@ -704,6 +705,239 @@ export function normalizeProposalPayloadForDb(
     })
     .catchall(z.unknown());
 
+  const includeIfAllowed = (
+    allowed: readonly string[],
+    value: unknown,
+  ): string | undefined => {
+    if (typeof value !== "string") return undefined;
+    return allowed.includes(value) ? value : undefined;
+  };
+
+  const AnalogCameraSchema = z
+    .object({
+      cameraType: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          return includeIfAllowed(
+            (ENUMS.analog_types_enum ?? []) as readonly string[],
+            value,
+          );
+        }, z.string().nullable().optional())
+        .optional(),
+      captureMedium: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          return includeIfAllowed(
+            (ENUMS.analog_medium_enum ?? []) as readonly string[],
+            value,
+          );
+        }, z.string().nullable().optional())
+        .optional(),
+      filmTransportType: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          return includeIfAllowed(
+            (ENUMS.film_transport_enum ?? []) as readonly string[],
+            value,
+          );
+        }, z.string().nullable().optional())
+        .optional(),
+      hasAutoFilmAdvance: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      hasOptionalMotorizedDrive: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      viewfinderType: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          return includeIfAllowed(
+            (ENUMS.analog_viewfinder_types_enum ?? []) as readonly string[],
+            value,
+          );
+        }, z.string().nullable().optional())
+        .optional(),
+      shutterType: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          return includeIfAllowed(
+            (ENUMS.shutter_type_enum ?? []) as readonly string[],
+            value,
+          );
+        }, z.string().nullable().optional())
+        .optional(),
+      shutterSpeedMax: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().nullable().optional())
+        .optional(),
+      shutterSpeedMin: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().nullable().optional())
+        .optional(),
+      flashSyncSpeed: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().nullable().optional())
+        .optional(),
+      hasBulbMode: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      hasMetering: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      meteringModes: z
+        .array(
+          z.preprocess((value) => {
+            return includeIfAllowed(
+              (ENUMS.metering_mode_enum ?? []) as readonly string[],
+              value,
+            );
+          }, z.string()),
+        )
+        .optional(),
+      exposureModes: z
+        .array(
+          z.preprocess((value) => {
+            return includeIfAllowed(
+              (ENUMS.exposure_modes_enum ?? []) as readonly string[],
+              value,
+            );
+          }, z.string()),
+        )
+        .optional(),
+      meteringDisplayTypes: z
+        .array(
+          z.preprocess((value) => {
+            return includeIfAllowed(
+              (ENUMS.metering_display_type_enum ?? []) as readonly string[],
+              value,
+            );
+          }, z.string()),
+        )
+        .optional(),
+      hasExposureCompensation: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      isoSettingMethod: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          return includeIfAllowed(
+            (ENUMS.iso_setting_method_enum ?? []) as readonly string[],
+            value,
+          );
+        }, z.string().nullable().optional())
+        .optional(),
+      isoMin: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().nullable().optional())
+        .optional(),
+      isoMax: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().nullable().optional())
+        .optional(),
+      hasAutoFocus: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      focusAidTypes: z
+        .array(
+          z.preprocess((value) => {
+            return includeIfAllowed(
+              (ENUMS.focus_aid_enum ?? []) as readonly string[],
+              value,
+            );
+          }, z.string()),
+        )
+        .optional(),
+      requiresBatteryForShutter: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      requiresBatteryForMetering: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      hasContinuousDrive: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      maxContinuousFps: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().nullable().optional())
+        .optional(),
+      hasHotShoe: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      hasSelfTimer: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      hasIntervalometer: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+    })
+    .catchall(z.unknown());
+
   const LensSchema = z
     .object({
       isPrime: z
@@ -1045,6 +1279,12 @@ export function normalizeProposalPayloadForDb(
     const parsed = CameraSchema.parse(payload.camera);
     const pruned = pruneUndefined(parsed as Record<string, unknown>);
     if (Object.keys(pruned).length) normalized.camera = pruned;
+  }
+
+  if (payload.analogCamera) {
+    const parsed = AnalogCameraSchema.parse(payload.analogCamera);
+    const pruned = pruneUndefined(parsed as Record<string, unknown>);
+    if (Object.keys(pruned).length) normalized.analogCamera = pruned;
   }
 
   if (payload.lens) {

@@ -274,6 +274,29 @@ export function getConstructionState(gearItem: GearItem) {
     }
   }
 
+  if (gearItem.gearType === "ANALOG_CAMERA") {
+    const cameraType = gearItem.analogCameraSpecs?.cameraType ?? null;
+    const captureMedium = gearItem.analogCameraSpecs?.captureMedium ?? null;
+    if (!cameraType) missing.push("Camera type");
+    if (!captureMedium) missing.push("Capture medium");
+  }
+
+  // Integrated lens check for camera-like gear (digital or analog)
+  if (gearItem.gearType === "CAMERA" || gearItem.gearType === "ANALOG_CAMERA") {
+    const primaryMountId = Array.isArray(gearItem.mountIds)
+      ? (gearItem.mountIds[0] ?? gearItem.mountId)
+      : gearItem.mountId;
+    const mountValue = (MOUNTS as any[]).find((m) => m.id === primaryMountId)
+      ?.value as string | undefined;
+    if (mountValue === "fixed-lens") {
+      const fmin = gearItem.fixedLensSpecs?.focalLengthMinMm ?? null;
+      const fmax = gearItem.fixedLensSpecs?.focalLengthMaxMm ?? null;
+      if (fmin == null && fmax == null) {
+        missing.push("Integrated lens focal length");
+      }
+    }
+  }
+
   return {
     underConstruction: missing.length > 0,
     missing,

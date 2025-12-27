@@ -1,6 +1,7 @@
 import EditGearClient from "~/app/(app)/(pages)/gear/_components/edit-gear/edit-gear-page-client";
 import { fetchGearBySlug } from "~/server/gear/service";
-import type { GearItem } from "~/types/gear";
+import type { GearItem, GearType } from "~/types/gear";
+import { ENUMS } from "~/lib/constants";
 import { auth } from "~/server/auth";
 import { fetchPendingEditId } from "~/server/gear/service";
 import { redirect } from "next/navigation";
@@ -52,10 +53,15 @@ export default async function EditGearPage({
 
   // Fetch current gear data
   const gearData: GearItem = await fetchGearBySlug(slug);
+  const resolvedGearType: GearType =
+    (type && (ENUMS.gear_type ?? []).includes(type as GearType)
+      ? (type as GearType)
+      : (gearData.gearType as GearType)) ?? gearData.gearType;
 
   // Initialize mountIds for the edit form (prefer new mountIds, fallback to legacy)
   const gearDataWithMountIds = {
     ...gearData,
+    gearType: resolvedGearType,
     mountIds:
       Array.isArray(gearData.mountIds) && gearData.mountIds.length > 0
         ? gearData.mountIds
@@ -72,6 +78,7 @@ export default async function EditGearPage({
     id: gearData?.id,
     name: gearData?.name,
     gearType: gearData?.gearType,
+    resolvedGearType,
     mountId: gearData?.mountId,
     mountIds: gearDataWithMountIds.mountIds,
     lensSpecs: gearData?.lensSpecs,
@@ -81,7 +88,7 @@ export default async function EditGearPage({
   return (
     <div className="container mx-auto max-w-4xl p-6 pt-20">
       <EditGearClient
-        gearType={type as "CAMERA" | "LENS"}
+        gearType={resolvedGearType}
         gearData={gearDataWithMountIds}
         gearSlug={slug}
         initialShowMissingOnly={(() => {
