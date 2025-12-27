@@ -57,3 +57,10 @@ Returned shape to UI (`NotificationView`):
 - Gear spec approved: update the `createNotification` payload in `src/server/admin/proposals/service.ts` (type `gear_spec_approved`).
 - Badge awarded: update the `createNotification` payload in `src/server/badges/service.ts` inside `evaluateForEvent` (type `badge_awarded`).
 - Test notifications (admin button): edit sample payloads in `src/server/notifications/actions.ts` (`actionSendTestNotification`).
+
+## Adding a new notification type
+1. Add the new type to `notification_type` enum in `src/server/db/schema.ts`.
+2. Emit the notification via `createNotification` from a service (not UI/client). Follow the data → service → actions layering.
+3. Add an icon mapping (and any type-specific display tweaks) in `src/components/layout/notifications/notification-item.tsx`.
+4. Optionally add a test payload in `src/server/notifications/actions.ts` (`actionSendTestNotification`) for manual testing.
+5. Update this doc with the new type’s purpose and emission point.
