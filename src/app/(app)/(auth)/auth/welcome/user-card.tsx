@@ -144,7 +144,7 @@ export default function UserCard(props: {
       >
         <div
           ref={cardRef}
-          className="relative aspect-[3/2] w-72 overflow-hidden rounded-3xl border-2 border-zinc-300 bg-white p-6 shadow-md sm:w-[500px]"
+          className="relative aspect-3/2 w-72 overflow-hidden rounded-3xl border-2 border-zinc-300 bg-white p-6 shadow-md sm:w-[500px]"
         >
           {/* Liquid gradient accent (bottom-right) */}
           {/* <div
