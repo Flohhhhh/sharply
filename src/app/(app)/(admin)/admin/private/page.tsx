@@ -16,7 +16,6 @@ import { Button } from "~/components/ui/button";
 import Link from "next/link";
 import { CopyButton } from "./copy-button";
 import { AdminUserList } from "./user-list";
-import { actionSendTestNotification } from "~/server/notifications/actions";
 import { NotificationsTestButton } from "../notifications-test-button";
 
 export const dynamic = "force-dynamic";

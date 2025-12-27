@@ -6,7 +6,7 @@ import { approveProposal, mergeProposal, rejectProposal } from "./service";
 
 export async function actionApproveProposal(
   id: string,
-  filteredPayload: any,
+  filteredPayload: any = undefined,
   gearContext: { gearName: string; gearSlug: string },
 ) {
   await approveProposal(id, filteredPayload, gearContext);

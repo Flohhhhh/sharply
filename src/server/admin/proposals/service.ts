@@ -137,7 +137,7 @@ export async function fetchResolvedProposalGroupsWithCount(
 
 export async function approveProposal(
   id: string,
-  filteredPayload: unknown,
+  filteredPayload: unknown = undefined,
   gearContext: { gearName: string; gearSlug: string },
 ) {
   const session = await requireUser();
