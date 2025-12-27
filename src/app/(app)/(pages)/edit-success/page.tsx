@@ -11,6 +11,18 @@ import {
   type VideoModeNormalized,
   normalizedToCameraVideoModes,
 } from "~/lib/video/mode-schema";
+import {
+  formatAnalogCameraType,
+  formatAnalogMedium,
+  formatAnalogFilmTransport,
+  formatAnalogViewfinderType,
+  formatAnalogShutterType,
+  formatAnalogMeteringMode,
+  formatAnalogMeteringDisplay,
+  formatAnalogExposureMode,
+  formatAnalogIsoSettingMethod,
+  formatAnalogFocusAid,
+} from "~/lib/mapping/analog-types-map";
 
 const describeUnknownValue = (value: unknown): string => {
   if (value == null) return "Empty";
@@ -170,6 +182,62 @@ export default async function EditSuccessPage({
                           );
                         },
                       )}
+                    </ul>
+                  </div>
+                )}
+                {(edit.payload as any).analogCamera && (
+                  <div>
+                    <div className="mb-1 font-medium">Analog Camera</div>
+                    <ul className="list-disc pl-5">
+                      {Object.entries(
+                        (edit.payload as any).analogCamera as Record<
+                          string,
+                          unknown
+                        >,
+                      ).map(([k, v]) => {
+                        let display: string | undefined;
+                        if (k === "cameraType")
+                          display = formatAnalogCameraType(v as string);
+                        else if (k === "captureMedium")
+                          display = formatAnalogMedium(v as string);
+                        else if (k === "filmTransportType")
+                          display = formatAnalogFilmTransport(v as string);
+                        else if (k === "viewfinderType")
+                          display = formatAnalogViewfinderType(v as string);
+                        else if (k === "shutterType")
+                          display = formatAnalogShutterType(v as string);
+                        else if (k === "isoSettingMethod")
+                          display = formatAnalogIsoSettingMethod(v as string);
+                        else if (k === "meteringModes" && Array.isArray(v))
+                          display = (v as string[])
+                            .map((m) => formatAnalogMeteringMode(m) ?? m)
+                            .join(", ");
+                        else if (
+                          k === "meteringDisplayTypes" &&
+                          Array.isArray(v)
+                        )
+                          display = (v as string[])
+                            .map((m) => formatAnalogMeteringDisplay(m) ?? m)
+                            .join(", ");
+                        else if (k === "exposureModes" && Array.isArray(v))
+                          display = (v as string[])
+                            .map((m) => formatAnalogExposureMode(m) ?? m)
+                            .join(", ");
+                        else if (k === "focusAidTypes" && Array.isArray(v))
+                          display = (v as string[])
+                            .map((m) => formatAnalogFocusAid(m) ?? m)
+                            .join(", ");
+                        if (display === undefined)
+                          display = describeUnknownValue(v);
+                        return (
+                          <li key={String(k)}>
+                            <span className="text-muted-foreground">
+                              {humanizeKey(String(k))}:
+                            </span>{" "}
+                            <span className="font-medium">{display}</span>
+                          </li>
+                        );
+                      })}
                     </ul>
                   </div>
                 )}

@@ -44,7 +44,7 @@ interface CoreFieldsProps {
     linkAmazon?: string | null;
     genres?: string[] | null;
   };
-  gearType?: "CAMERA" | "LENS";
+  gearType?: "CAMERA" | "ANALOG_CAMERA" | "LENS";
   showMissingOnly?: boolean;
   initialSpecs?: CoreFieldsProps["currentSpecs"]; // initial snapshot for filtering only
   onChange: (field: string, value: any) => void;

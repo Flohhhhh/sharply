@@ -11,7 +11,7 @@ import {
   TooltipTrigger,
 } from "~/components/ui/tooltip";
 
-type GearType = "CAMERA" | "LENS";
+type GearType = "CAMERA" | "ANALOG_CAMERA" | "LENS";
 
 interface SuggestEditButtonProps {
   slug: string;

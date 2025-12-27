@@ -16,6 +16,7 @@ import {
   users,
   wishlists,
   cameraSpecs,
+  analogCameraSpecs,
   cameraAfAreaSpecs,
   afAreaModes,
   cameraCardSlots,
@@ -96,6 +97,7 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
   const base: GearItem = {
     ...gearItem[0]!.gear,
     cameraSpecs: null,
+    analogCameraSpecs: null,
     lensSpecs: null,
     fixedLensSpecs: null,
     mountIds: mountIdRows.map((r) => r.mountId),
@@ -145,6 +147,24 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
       cameraCardSlots: slots.length ? (slots as any) : [],
       fixedLensSpecs: fixed[0] ?? null,
       videoModes: videoModes.length ? videoModes : [],
+    };
+  } else if (gearItem[0]!.gear.gearType === "ANALOG_CAMERA") {
+    const analog = await db
+      .select()
+      .from(analogCameraSpecs)
+      .where(eq(analogCameraSpecs.gearId, gearItem[0]!.gear.id))
+      .limit(1);
+
+    const fixed = await db
+      .select()
+      .from(fixedLensSpecs)
+      .where(eq(fixedLensSpecs.gearId, gearItem[0]!.gear.id))
+      .limit(1);
+
+    return {
+      ...base,
+      analogCameraSpecs: analog[0] ?? null,
+      fixedLensSpecs: fixed[0] ?? null,
     };
     // LENS SPECS
   } else if (gearItem[0]!.gear.gearType === "LENS") {
@@ -565,6 +585,8 @@ export type ConstructionMinimalRow = {
   // Camera bits
   camera_sensorFormatId: string | null;
   camera_resolutionMp: number | string | null;
+  analog_cameraType: string | null;
+  analog_captureMedium: string | null;
   fixed_focalMin: number | null;
   fixed_focalMax: number | null;
   // Lens bits
@@ -574,6 +596,7 @@ export type ConstructionMinimalRow = {
   lens_maxApertureWide: number | string | null;
   // Full spec rows (optional, for completion computation)
   cameraAll?: Record<string, unknown> | null;
+  analogAll?: Record<string, unknown> | null;
   lensAll?: Record<string, unknown> | null;
   fixedAll?: Record<string, unknown> | null;
 };
@@ -595,6 +618,8 @@ export async function fetchAllGearForConstructionData(): Promise<
       createdAt: gear.createdAt,
       camera_sensorFormatId: cameraSpecs.sensorFormatId,
       camera_resolutionMp: cameraSpecs.resolutionMp,
+      analog_cameraType: analogCameraSpecs.cameraType,
+      analog_captureMedium: analogCameraSpecs.captureMedium,
       fixed_focalMin: fixedLensSpecs.focalLengthMinMm,
       fixed_focalMax: fixedLensSpecs.focalLengthMaxMm,
       lens_focalMin: lensSpecs.focalLengthMinMm,
@@ -602,12 +627,14 @@ export async function fetchAllGearForConstructionData(): Promise<
       lens_isPrime: lensSpecs.isPrime,
       lens_maxApertureWide: lensSpecs.maxApertureWide,
       cameraAll: cameraSpecs,
+      analogAll: analogCameraSpecs,
       lensAll: lensSpecs,
       fixedAll: fixedLensSpecs,
     })
     .from(gear)
     .leftJoin(brands, eq(gear.brandId, brands.id))
     .leftJoin(cameraSpecs, eq(gear.id, cameraSpecs.gearId))
+    .leftJoin(analogCameraSpecs, eq(gear.id, analogCameraSpecs.gearId))
     .leftJoin(fixedLensSpecs, eq(gear.id, fixedLensSpecs.gearId))
     .leftJoin(lensSpecs, eq(gear.id, lensSpecs.gearId));
 

@@ -10,7 +10,7 @@ import { sensorTypeLabel } from "~/lib/mapping/sensor-map";
 import { Check, CheckCircle, Circle, ChevronRight } from "lucide-react";
 
 interface Props {
-  gearType?: "CAMERA" | "LENS";
+  gearType?: "CAMERA" | "ANALOG_CAMERA" | "LENS";
   gearSlug: string;
   gearData: GearItem;
   initialShowMissingOnly?: boolean;
