@@ -36,7 +36,7 @@ export async function resolveScopeOrThrow(segments: string[]): Promise<{
   const scope = parseSegments(segments);
   const depth = getDepth(scope);
   let brand: { id: string; name: string; slug: string } | null = null;
-  let mount: { id: string; shortName: string | null } | null = null;
+  let mount: { id: string; shortName: string | null; value: string } | null = null;
 
   if (scope.brandSlug) {
     brand = await getBrandBySlug(scope.brandSlug);
