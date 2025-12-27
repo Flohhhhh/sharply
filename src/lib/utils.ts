@@ -67,6 +67,7 @@ export function formatRelativeTime(input: Date | string | number): string {
   if (Number.isNaN(date.getTime())) return "";
   const now = Date.now();
   const diffMs = now - date.getTime();
+  if (diffMs <= 0) return "just now";
   const diffSec = Math.floor(diffMs / 1000);
   const diffMin = Math.floor(diffSec / 60);
   const diffHr = Math.floor(diffMin / 60);
