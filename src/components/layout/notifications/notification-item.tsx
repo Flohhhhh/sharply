@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Award, BadgeCheck, Bell, Trash2 } from "lucide-react";
+import { Award, BadgeCheck, Bell } from "lucide-react";
 import { cn, formatRelativeTime } from "~/lib/utils";
 import type { NotificationView } from "~/server/notifications/service";
-import { Button } from "@/components/ui/button";
 import type { ComponentType } from "react";
 
 type IconEntry = { icon: ComponentType<{ className?: string }> };
