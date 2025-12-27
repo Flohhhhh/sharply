@@ -6,6 +6,7 @@ import { SidebarInset, SidebarProvider } from "~/components/ui/sidebar";
 import { AppSidebar } from "./sidebar";
 import { SiteHeader } from "./admin-header";
 import type { UserRole } from "~/server/auth";
+import { fetchNotificationsForUser } from "~/server/notifications/service";
 
 export const metadata: Metadata = {
   title: {
@@ -61,6 +62,14 @@ export default async function AdminLayout({
     );
   }
 
+  const notifications = session?.user?.id
+    ? await fetchNotificationsForUser({
+        userId: session.user.id,
+        limit: 10,
+        archivedLimit: 5,
+      })
+    : null;
+
   return (
     <SidebarProvider
       style={
@@ -72,7 +81,7 @@ export default async function AdminLayout({
     >
       <AppSidebar />
       <SidebarInset className="bg-background min-h-screen">
-        <SiteHeader />
+        <SiteHeader notifications={notifications} />
 
         <main className="container mx-auto mt-12 px-4 py-8">{children}</main>
       </SidebarInset>

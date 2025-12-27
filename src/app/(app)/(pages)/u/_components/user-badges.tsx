@@ -50,7 +50,7 @@ export async function UserBadges({ userId }: { userId: string }) {
                 <Tooltip key={`${r.badgeKey}-${String(r.awardedAt)}`}>
                   <TooltipTrigger asChild>
                     <div
-                      className="bg-card text-card-foreground relative flex aspect-[3/4] h-12 flex-col items-center justify-center overflow-hidden rounded-md border p-1"
+                      className="bg-card text-card-foreground relative flex aspect-3/4 h-12 flex-col items-center justify-center overflow-hidden rounded-md border p-1"
                       style={{ background: meta?.color, color: meta?.color }}
                     >
                       {meta?.levelIndex ? (
