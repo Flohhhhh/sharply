@@ -19,10 +19,6 @@ const NotificationIcon = ({ type }: { type: NotificationView["type"] }) => {
   return <Icon className="text-muted-foreground mt-1 size-5" />;
 };
 
-const UnreadDot = () => (
-  <span className="bg-primary inline-block h-2.5 w-2.5 rounded-full" />
-);
-
 type NotificationItemProps = {
   notification: NotificationView;
   wasUnread?: boolean;
