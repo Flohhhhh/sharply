@@ -345,7 +345,7 @@ export function EditModalContent({
                     >
                       <span className="flex min-w-0 items-center gap-2">
                         <ChevronRight
-                          className={`h-3.5 w-3.5 flex-shrink-0 transition-transform ${expanded[section.id] ? "rotate-90" : "rotate-0"}`}
+                          className={`h-3.5 w-3.5 shrink-0 transition-transform ${expanded[section.id] ? "rotate-90" : "rotate-0"}`}
                         />
                         <span className="truncate">{section.title}</span>
                       </span>
