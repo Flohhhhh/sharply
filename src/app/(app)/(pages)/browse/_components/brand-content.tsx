@@ -1,7 +1,18 @@
 import Link from "next/link";
 import AllGearContent from "./all-gear-content";
+import type { BrowseListPage } from "./browse-results-grid";
 
-export default function BrandContent({ brandSlug }: { brandSlug: string }) {
+export default function BrandContent({
+  brandSlug,
+  initialBrowsePage,
+  browseBaseQuery,
+  brandName,
+}: {
+  brandSlug: string;
+  initialBrowsePage?: BrowseListPage;
+  browseBaseQuery?: string;
+  brandName?: string;
+}) {
   const items = [
     { label: "Cameras", href: `/browse/${brandSlug}/cameras` },
     { label: "Lenses", href: `/browse/${brandSlug}/lenses` },
@@ -25,7 +36,13 @@ export default function BrandContent({ brandSlug }: { brandSlug: string }) {
         ))}
       </div>
       {/* Brand-specific latest and trending */}
-      <AllGearContent brandSlug={brandSlug} showBrandPicker={false} />
+      <AllGearContent
+        brandSlug={brandSlug}
+        showBrandPicker={false}
+        initialBrowsePage={initialBrowsePage}
+        browseBaseQuery={browseBaseQuery}
+        brandName={brandName}
+      />
     </div>
   );
 }

@@ -64,7 +64,15 @@ export async function loadHubData(params: {
     params.segments,
   );
   const defaultSort = getDefaultSortForScope(scope);
-  const filters = parseFilters(params.searchParams, { defaultSort });
+  const isLensMountScope = scope.categorySlug === "lenses" && !!scope.mountShort;
+  const filters = (() => {
+    const base = parseFilters(params.searchParams, { defaultSort });
+    if (isLensMountScope) {
+      // Lens + mount pages are narrow enough to return all items in one request.
+      return { ...base, perPage: 500, page: 1 };
+    }
+    return base;
+  })();
 
   const cookieSlug = await deriveDefaultBrandFromCookies();
   const effectiveBrandSlug =

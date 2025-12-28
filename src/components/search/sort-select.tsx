@@ -35,7 +35,9 @@ export function SortSelect({ category, hasMount }: SortSelectProps) {
       ? LENS_FOCAL_LENGTH_SORT
       : "newest"
     : "relevance";
-  const current = (sp.get("sort") ?? defaultSort) as SortValue;
+  const incoming = (sp.get("sort") ?? defaultSort) as SortValue;
+  const current =
+    isBrowse && incoming === "name" ? defaultSort : incoming;
 
   function onChange(next: string) {
     const existing = new URLSearchParams(sp.toString());
@@ -61,7 +63,7 @@ export function SortSelect({ category, hasMount }: SortSelectProps) {
         <SelectItem value="newest">Newest</SelectItem>
         <SelectItem value="price_asc">Price: Low → High</SelectItem>
         <SelectItem value="price_desc">Price: High → Low</SelectItem>
-        <SelectItem value="name">Name</SelectItem>
+        {!isBrowse && <SelectItem value="name">Name</SelectItem>}
       </SelectContent>
     </Select>
   );

@@ -10,7 +10,13 @@ import {
   type SQL,
 } from "drizzle-orm";
 import { db } from "~/server/db";
-import { brands, gear, mounts, gearMounts, lensSpecs } from "~/server/db/schema";
+import {
+  brands,
+  gear,
+  mounts,
+  gearMounts,
+  lensSpecs,
+} from "~/server/db/schema";
 import {
   BRANDS as BRAND_CONSTANTS,
   MOUNTS as MOUNT_CONSTANTS,
@@ -128,6 +134,7 @@ export async function searchGear(input: SearchInput) {
     slug: gear.slug,
     name: gear.name,
     brandId: gear.brandId,
+    brandName: brands.name,
     gearType: gear.gearType,
     thumbnailUrl: gear.thumbnailUrl,
     releaseDate: gear.releaseDate,
@@ -140,7 +147,10 @@ export async function searchGear(input: SearchInput) {
     selectFields.lensFocalLengthMaxMm = lensSpecs.focalLengthMaxMm;
   }
 
-  let base = db.select(selectFields).from(gear);
+  let base = db
+    .select(selectFields)
+    .from(gear)
+    .leftJoin(brands, eq(gear.brandId, brands.id));
 
   if (input.mountId) {
     base = base.leftJoin(gearMounts, sql`${gear.id} = ${gearMounts.gearId}`);
