@@ -8,6 +8,7 @@ import { fetchGearBySlug } from "~/server/gear/service";
 import { getBrandNameById, stripLeadingBrand } from "~/lib/mapping/brand-map";
 import { CompareHeroScaledRow } from "~/components/compare/compare-hero-scaled";
 import { cn } from "~/lib/utils";
+import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
 
 export async function generateMetadata({
   searchParams,
@@ -129,6 +130,7 @@ export default async function ComparePage({
           <CompareClient slugs={pair} a={a} b={b} />
         </section>
       </div>
+      <ScrollProgress bottomOffset={300} />
     </CompareLoadingOverlayProvider>
   );
 }

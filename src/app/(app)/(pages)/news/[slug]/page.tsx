@@ -14,6 +14,7 @@ import { fetchGearBySlug } from "~/server/gear/service";
 import { getBrandNameById } from "~/lib/mapping/brand-map";
 import Discord from "next-auth/providers/discord";
 import DiscordBanner from "~/components/discord-banner";
+import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
 
 export const revalidate = 60;
 
@@ -80,6 +81,7 @@ export default async function DynamicPage({
 
   return (
     <div className="mx-auto my-24 flex min-h-screen flex-col items-center gap-12 px-4 sm:px-8">
+      <ScrollProgress bottomOffset={300} />
       <div className="flex flex-col items-center gap-4">
         <Badge className="bg-accent text-accent-foreground">{category}</Badge>
         <h1 className="max-w-3xl text-center text-3xl font-semibold sm:max-w-5xl sm:text-6xl">

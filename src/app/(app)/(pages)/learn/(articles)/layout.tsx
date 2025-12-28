@@ -8,6 +8,7 @@ import type { LearnPage } from "~/payload-types";
 import { getLearnPages } from "~/server/payload/service";
 import { auth } from "~/server/auth";
 import ComingSoon from "~/components/coming-soon";
+import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
 
 const sortByCreationDate = <T extends { createdAt: string }>(items: T[]) => {
   return [...items].sort(
@@ -128,6 +129,7 @@ export default async function ArticlesLayout({
 
   return (
     <>
+      <ScrollProgress bottomOffset={300} />
       <LearnMobileArticleSheet groups={mobileGroups} />
       <div className="mx-auto min-h-screen max-w-[1400px] p-6 py-12 sm:py-24">
         <div className="grid gap-8 md:grid-cols-[280px_1fr] lg:grid-cols-[240px_1fr_260px]">

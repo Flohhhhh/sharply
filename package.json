@@ -28,6 +28,7 @@
   "dependencies": {
     "@auth/drizzle-adapter": "^1.7.2",
     "@hookform/resolvers": "^5.2.2",
+    "@number-flow/react": "^0.5.10",
     "@payloadcms/db-postgres": "^3.68.3",
     "@payloadcms/email-resend": "^3.68.3",
     "@payloadcms/next": "^3.68.3",
@@ -67,6 +68,7 @@
     "discord-api-types": "^0.38.26",
     "discord-interactions": "^4.3.0",
     "drizzle-orm": "^0.41.0",
+    "framer-motion": "^12.23.26",
     "graphql": "^16.11.0",
     "html-to-image": "^1.11.13",
     "jszip": "^3.10.1",

@@ -7,6 +7,7 @@ import { GearCardHorizontal } from "~/components/gear/gear-card-horizontal";
 import { getBrandNameById } from "~/lib/mapping/brand-map";
 import { notFound } from "next/navigation";
 import { GenreRatings } from "../_components/genre-ratings";
+import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
 
 export default async function ReviewPage({
   params,
@@ -25,6 +26,7 @@ export default async function ReviewPage({
 
   return (
     <div className="mx-auto my-24 flex min-h-screen flex-col items-center gap-12 px-4 pt-8 sm:px-8">
+      <ScrollProgress bottomOffset={300} />
       <div className="flex flex-col items-center gap-3 text-center">
         <h1 className="text-center text-4xl font-bold sm:text-6xl">
           {`${gearItem.name} Review`}
