@@ -1,5 +1,14 @@
 import "server-only";
-import { and, asc, desc, eq, ilike, sql, type SQL } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  ilike,
+  inArray,
+  sql,
+  type SQL,
+} from "drizzle-orm";
 import { db } from "~/server/db";
 import { brands, gear, mounts, gearMounts } from "~/server/db/schema";
 import {
@@ -10,9 +19,9 @@ import type { BrowseFilters } from "~/lib/browse/filters";
 import type { GearCategorySlug } from "~/lib/browse/routing";
 import type { GearType } from "~/types/gear";
 
-const gearCategoryToType: Record<GearCategorySlug, GearType> = {
-  cameras: "CAMERA",
-  lenses: "LENS",
+const gearCategoryToTypes: Record<GearCategorySlug, GearType[]> = {
+  cameras: ["CAMERA", "ANALOG_CAMERA"],
+  lenses: ["LENS"],
 };
 
 // Prefer using BRANDS directly from constants at call sites; kept for legacy imports
@@ -105,7 +114,7 @@ export async function searchGear(input: SearchInput) {
   const where: SQL[] = [];
   if (input.brandId) where.push(eq(gear.brandId, input.brandId));
   if (input.category)
-    where.push(eq(gear.gearType, gearCategoryToType[input.category]));
+    where.push(inArray(gear.gearType, gearCategoryToTypes[input.category]));
 
   // Select base; include join only when a mount filter is present
   const base = input.mountId
