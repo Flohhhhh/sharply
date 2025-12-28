@@ -12,17 +12,50 @@ export function CollectionCard(props: { item: GearItem }) {
   const { item } = props;
   const [removing, setRemoving] = useState<boolean>(false);
 
+  const handleUndo = async () => {
+    if (removing) return;
+    setRemoving(true);
+
+    const undoPromise = actionToggleOwnership(item.slug, "add");
+    toast.promise(undoPromise, {
+      loading: `Adding ${item.name}...`,
+      success: `Added ${item.name}`,
+      error: `Failed to restore ${item.name}`,
+    });
+
+    try {
+      await undoPromise;
+    } finally {
+      setRemoving(false);
+    }
+  };
+
   const handleRemove = async () => {
     if (removing) return;
     setRemoving(true);
+
     const promise = actionToggleOwnership(item.slug, "remove");
     toast.promise(promise, {
-      loading: "Removing from collection...",
-      success: "Removed from collection",
-      error: "Failed to remove from collection",
+      loading: `Removing ${item.name}...`,
+      success: () => ({
+        message: `Removed Successfully`,
+        description: `${item.name} was removed from your collection`,
+        duration: 12000,
+        action: {
+          label: "Undo",
+          onClick: () => {
+            void handleUndo();
+          },
+        },
+      }),
+      error: `Failed to remove ${item.name}`,
     });
-    await promise;
-    setRemoving(false);
+
+    try {
+      await promise;
+    } finally {
+      setRemoving(false);
+    }
   };
 
   return (
