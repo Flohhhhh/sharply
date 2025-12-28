@@ -44,10 +44,11 @@ import {
 } from "~/components/ui/dialog";
 import { Textarea } from "~/components/ui/textarea";
 import { parseSingleColumnCsv } from "~/lib/utils/csv";
+import type { GearType } from "~/types/gear";
+import { ENUMS } from "~/lib/constants";
+import { humanizeKey } from "~/lib/utils";
 
 type Brand = { id: string; name: string };
-type GearType = "CAMERA" | "LENS";
-
 type RowValidation = {
   slugPreview: string;
   slugConflict: boolean;
@@ -599,8 +600,8 @@ export default function GearBulkCreate(): React.JSX.Element {
             name,
             modelNumber: r.modelNumber.trim() || undefined,
             brandId,
-            gearType: gearType as "CAMERA" | "LENS",
             mountIds: trimmedMountIds.length > 0 ? trimmedMountIds : undefined,
+            gearType: gearType as GearType,
             force: r.proceedAnyway,
           });
           updateRow(r.id, { status: "created", createdSlug: result.slug });
@@ -715,8 +716,11 @@ export default function GearBulkCreate(): React.JSX.Element {
                   <SelectValue placeholder="Select a type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="CAMERA">Camera</SelectItem>
-                  <SelectItem value="LENS">Lens</SelectItem>
+                  {(ENUMS.gear_type ?? []).map((v) => (
+                    <SelectItem key={v} value={v}>
+                      {v === "ANALOG_CAMERA" ? "Analog Camera" : humanizeKey(v)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

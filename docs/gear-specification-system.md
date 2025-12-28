@@ -328,6 +328,13 @@ To add a new gear type (e.g., tripods, lighting):
 3. Add relationship to `gearRelations`
 4. Update application logic
 
+#### Example: Analog Cameras
+
+- `gear_type` includes `ANALOG_CAMERA`.
+- Specs live in `analog_camera_specs` (1:1 on `gear.id`); integrated lenses still use `fixed_lens_specs` shared with digital cameras.
+- Under-construction rule: analog items are incomplete when `mount`, `cameraType`, or `captureMedium` are missing (plus fixed-lens focal length when the mount is `fixed-lens`).
+- Update data/service fetchers, edit/admin payloads, and the specs registry to treat analog cameras like digital cameras for integrated-lens display while using their own spec table.
+
 ### Adding New Specification Tables
 
 1. Define the schema table under `src/server/db/schema.ts`, giving it a clear PK that references `gear.id` and keeping the column names descriptive.

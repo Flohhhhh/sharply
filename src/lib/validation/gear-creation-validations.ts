@@ -1,4 +1,6 @@
-export type GearType = "CAMERA" | "LENS" | "";
+import type { GearType as GearTypeValue } from "~/types/gear";
+
+export type GearType = GearTypeValue | "";
 
 export type SoftWarningId =
   | "nikkor"

@@ -34,6 +34,7 @@ import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 import { ImageOff, Loader2 } from "lucide-react";
 import { Button } from "~/components/ui/button";
+import type { GearType } from "~/types/gear";
 
 type Row = {
   id: string;
@@ -55,7 +56,7 @@ export function UnderConstructionTable({ items }: { items: Row[] }) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<{
     slug: string;
-    type: "CAMERA" | "LENS";
+    type: GearType;
   } | null>(null);
   const [loading, setLoading] = useState(false);
   const [gearData, setGearData] = useState<GearItem | null>(null);
@@ -75,7 +76,7 @@ export function UnderConstructionTable({ items }: { items: Row[] }) {
     [isDirty],
   );
 
-  const handleOpen = useCallback((slug: string, type: "CAMERA" | "LENS") => {
+  const handleOpen = useCallback((slug: string, type: GearType) => {
     setSelected({ slug, type });
     setIsDirty(false);
     setShowMissingOnly(true); // default to missing-only when launched from this page
@@ -190,7 +191,7 @@ export function UnderConstructionTable({ items }: { items: Row[] }) {
                       variant="outline"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleOpen(it.slug, it.gearType as "CAMERA" | "LENS");
+                        handleOpen(it.slug, it.gearType as GearType);
                       }}
                     >
                       Open modal

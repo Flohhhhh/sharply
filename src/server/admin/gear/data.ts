@@ -13,6 +13,7 @@ import {
 } from "~/server/db/schema";
 import { normalizeSearchName } from "~/lib/utils";
 import { normalizeFuzzyTokens } from "~/lib/utils/fuzzy";
+import type { GearType } from "~/types/gear";
 export interface FuzzySearchResult {
   id: string;
   name: string;
@@ -161,7 +162,7 @@ export async function checkGearCreationData(
 export interface GearCreationParams {
   name: string;
   brandId: string;
-  gearType: "CAMERA" | "LENS";
+  gearType: GearType;
   modelNumber?: string;
   /**
    * Optional mounts to associate. Multi-mount is supported via the junction

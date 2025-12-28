@@ -1,4 +1,4 @@
-export type GearType = "CAMERA" | "LENS";
+import type { GearType } from "~/types/gear";
 
 export type TrendingFiltersInput = {
   brandId?: string;
