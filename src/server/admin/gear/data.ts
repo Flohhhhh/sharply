@@ -8,6 +8,8 @@ import {
   cameraSpecs,
   lensSpecs,
   auditLogs,
+  gearMounts,
+  mounts,
 } from "~/server/db/schema";
 import { normalizeSearchName } from "~/lib/utils";
 import { normalizeFuzzyTokens } from "~/lib/utils/fuzzy";
@@ -161,6 +163,7 @@ export interface GearCreationParams {
   brandId: string;
   gearType: "CAMERA" | "LENS";
   modelNumber?: string;
+  mountId?: string;
   linkManufacturer?: string;
   linkMpb?: string;
   linkAmazon?: string;
@@ -180,6 +183,7 @@ export async function createGearData(
     brandId,
     gearType,
     modelNumber,
+    mountId,
     linkManufacturer,
     linkMpb,
     linkAmazon,
@@ -193,6 +197,19 @@ export async function createGearData(
     .limit(1);
   if (b.length === 0) {
     throw new Error("Invalid brand");
+  }
+
+  let mountRow: { id: string } | null = null;
+  if (mountId) {
+    const m = await db
+      .select({ id: mounts.id })
+      .from(mounts)
+      .where(eq(mounts.id, mountId))
+      .limit(1);
+    if (m.length === 0) {
+      throw new Error("Invalid mount");
+    }
+    mountRow = m[0] ?? null;
   }
 
   // Ensure brand is prefixed in display name
@@ -241,6 +258,7 @@ export async function createGearData(
         gearType,
         brandId,
         modelNumber: modelNumber || null,
+        mountId: mountRow?.id ?? null,
         linkManufacturer: linkManufacturer || null,
         linkMpb: linkMpb || null,
         linkAmazon: linkAmazon || null,
@@ -249,6 +267,13 @@ export async function createGearData(
       .returning({ id: gear.id, slug: gear.slug });
 
     const createdGear = inserted[0]!;
+
+    if (mountRow?.id) {
+      await tx.insert(gearMounts).values({
+        gearId: createdGear.id,
+        mountId: mountRow.id,
+      });
+    }
 
     // Create an empty specs row matching the gear type
     if (gearType === "CAMERA") {
