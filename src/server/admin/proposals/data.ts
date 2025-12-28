@@ -337,6 +337,10 @@ export async function approveProposalData(
             coreUpdate.mountId = null;
           }
           delete (coreUpdate as any).mountIds; // Don't try to update gear.mountIds (doesn't exist)
+        } else if (coreUpdate.mountIds === null) {
+          await tx.delete(gearMounts).where(eq(gearMounts.gearId, gearId));
+          coreUpdate.mountId = null;
+          delete (coreUpdate as any).mountIds;
         }
 
         if (Object.keys(coreUpdate).length > 0) {
