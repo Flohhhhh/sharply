@@ -121,6 +121,11 @@ import {
 4. **Consistent API**: Similar function signatures across all mappers
 5. **Fallback Behavior**: Returns original value if transformation fails
 
+## Analog Cameras and Fixed-Lens Mounts
+
+- Analog camera enum strings are currently humanized inline (hyphen to spaces, title-case). Add dedicated mapping helpers if these values need richer labels.
+- Integrated-lens cameras (digital or analog) share the `fixed-lens` mount value and the `fixed_lens_specs` table; continue to resolve `fixed-lens` through `mounts-map` for display/filters.
+
 ## Extensibility
 
 To add new mapping types:

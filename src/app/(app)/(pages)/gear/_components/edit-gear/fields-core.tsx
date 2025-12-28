@@ -44,7 +44,7 @@ interface CoreFieldsProps {
     linkAmazon?: string | null;
     genres?: string[] | null;
   };
-  gearType?: "CAMERA" | "LENS";
+  gearType?: "CAMERA" | "ANALOG_CAMERA" | "LENS";
   showMissingOnly?: boolean;
   initialSpecs?: CoreFieldsProps["currentSpecs"]; // initial snapshot for filtering only
   onChange: (field: string, value: any) => void;
@@ -294,22 +294,23 @@ function CoreFieldsComponent({
 
   // Safely format the mount value(s) for the select
   const formattedMountValue = useMemo(() => {
+    const mountIdsRaw = currentSpecs.mountIds;
+    const hasExplicitClear = mountIdsRaw === null;
+    const mountIdsArray = Array.isArray(mountIdsRaw) ? mountIdsRaw : undefined;
+
     if (gearType === "CAMERA") {
       // Single-select expects a single id string
-      const firstFromArray = Array.isArray(currentSpecs.mountIds)
-        ? currentSpecs.mountIds[0]
-        : undefined;
-      if (firstFromArray) return firstFromArray;
+      if (mountIdsArray !== undefined) return mountIdsArray[0] ?? "";
+      if (hasExplicitClear) return "";
       // Fallback to legacy mountId for existing records
       return (currentSpecs.mountId as string | undefined) || "";
     }
 
     // For lenses (multi select), prefer mountIds and include legacy as fallback for display
-    const fromArray = Array.isArray(currentSpecs.mountIds)
-      ? currentSpecs.mountIds
-      : [];
+    if (mountIdsArray !== undefined) return mountIdsArray;
+    if (hasExplicitClear) return [];
     const fromLegacy = currentSpecs.mountId ? [currentSpecs.mountId] : [];
-    return Array.from(new Set<string>([...fromArray, ...fromLegacy]));
+    return fromLegacy;
   }, [currentSpecs.mountIds, currentSpecs.mountId, gearType]);
 
   // Genres options and values

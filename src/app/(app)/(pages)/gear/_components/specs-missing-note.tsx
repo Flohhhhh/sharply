@@ -39,6 +39,9 @@ function countMissingForItem(item: GearItem): number {
       "afAreaModes",
     ];
     extra += countMissingValues(item.cameraSpecs as any, cameraExcludes);
+  } else if (item.gearType === "ANALOG_CAMERA") {
+    const analogExcludes = [...baseExcludes];
+    extra += countMissingValues(item.analogCameraSpecs as any, analogExcludes);
   } else if (item.gearType === "LENS") {
     const lensExcludes = [
       ...baseExcludes,

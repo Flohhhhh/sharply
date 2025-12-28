@@ -11,12 +11,17 @@ export function ConstructionFullPage(props: {
   missing: string[];
   editHref: string;
   slug: string;
-  gearType: "CAMERA" | "LENS";
+  gearType: "CAMERA" | "ANALOG_CAMERA" | "LENS";
 }) {
   const { gearName, missing, editHref, slug, gearType } = props;
   const missingCount = missing.length;
   const totalChecks = (() => {
     if (gearType === "LENS") return 5; // Brand, Mount, Focal length, Prime/Zoom, Max aperture
+    if (gearType === "ANALOG_CAMERA") {
+      let base = 4; // Brand, Mount, Camera type, Capture medium
+      if (missing.includes("Integrated lens focal length")) base += 1;
+      return base;
+    }
     let base = 4; // Brand, Mount, Sensor type, Sensor resolution
     if (missing.includes("Integrated lens focal length")) base += 1;
     return base;

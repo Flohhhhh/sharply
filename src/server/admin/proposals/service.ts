@@ -179,8 +179,8 @@ export async function approveProposal(
     await createNotification({
       userId: proposal.createdById,
       type: "gear_spec_approved",
-      title: "Your spec edit was approved! Click to view the page.",
-      body: `${gearRow.name ?? "Gear"} is now updated.`,
+      title: "Your spec edit was approved!",
+      body: `${gearRow.name ?? "Gear"} is now updated. Click to view the page.`,
       linkUrl: `/gear/${gearRow.slug}`,
       sourceType: "gear",
       sourceId: proposal.gearId,

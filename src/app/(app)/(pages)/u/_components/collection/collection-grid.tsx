@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import type { GearItem } from "~/types/gear";
 import { CollectionCard } from "./collection-card";
+import { useCompareRowScale } from "~/components/compare/use-compare-row-scale";
 
 function computeColumnCount(itemCount: number) {
   if (itemCount <= 1) {
@@ -46,8 +47,52 @@ function splitItemsByRowCounts<T>(items: T[], rowCounts: number[]) {
   return rows;
 }
 
+function parseWidthMillimeters(rawWidth: unknown): number | null {
+  if (rawWidth == null) return null;
+  if (typeof rawWidth === "number")
+    return Number.isNaN(rawWidth) ? null : rawWidth;
+  if (typeof rawWidth === "string") {
+    const value = Number(rawWidth);
+    return Number.isNaN(value) ? null : value;
+  }
+  return null;
+}
+
 export function CollectionGrid(props: { items: GearItem[] }) {
   const { items } = props;
+
+  const { pixelsPerMillimeter } = useCompareRowScale({
+    items: items.map((item) => ({
+      widthMillimeters: parseWidthMillimeters(item.widthMm),
+    })),
+    basePixelsPerMillimeter: 1.6,
+  });
+
+  const displayMetaById = useMemo(() => {
+    const fallbackWidthMillimeters = 140;
+    const nonCameraWidthPixels = 240;
+    const nonCameraHeightPixels = 200;
+
+    return new Map(
+      items.map((item) => {
+        const widthMillimeters = parseWidthMillimeters(item.widthMm);
+        const isCamera = item.gearType === "CAMERA";
+        const displayWidthPixels = isCamera
+          ? (widthMillimeters ?? fallbackWidthMillimeters) * pixelsPerMillimeter
+          : nonCameraWidthPixels;
+
+        return [
+          item.id,
+          {
+            displayWidthPixels,
+            isScaleEstimated: isCamera && widthMillimeters == null,
+            useFixedHeight: !isCamera,
+            fixedHeightPixels: !isCamera ? nonCameraHeightPixels : undefined,
+          },
+        ] as const;
+      }),
+    );
+  }, [items, pixelsPerMillimeter]);
 
   const rows = useMemo(() => {
     const itemCount = items.length;
@@ -61,15 +106,29 @@ export function CollectionGrid(props: { items: GearItem[] }) {
   }, [items]);
 
   return (
-    <div className="flex w-full flex-col gap-6 md:gap-10">
+    <div className="flex w-full flex-col gap-10 md:gap-16">
       {rows.map((rowItems, rowIndex) => (
         <div
           key={rowIndex}
-          className="flex flex-col items-stretch gap-6 md:flex-row md:justify-center md:gap-10"
+          className="flex flex-col items-stretch gap-8 md:flex-row md:justify-center md:gap-12"
         >
           {rowItems.map((item) => (
             <div key={item.id} className="w-full md:w-auto">
-              <CollectionCard item={item} />
+              <CollectionCard
+                item={item}
+                displayWidthPixels={
+                  displayMetaById.get(item.id)?.displayWidthPixels ?? 200
+                }
+                isScaleEstimated={
+                  displayMetaById.get(item.id)?.isScaleEstimated ?? false
+                }
+                useFixedHeight={
+                  displayMetaById.get(item.id)?.useFixedHeight ?? false
+                }
+                fixedHeightPixels={
+                  displayMetaById.get(item.id)?.fixedHeightPixels
+                }
+              />
             </div>
           ))}
         </div>

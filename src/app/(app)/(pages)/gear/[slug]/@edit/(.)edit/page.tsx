@@ -39,8 +39,10 @@ export default async function EditGearModalPage({
   // Fetch current gear data
   const gearDataResult: GearItem = await fetchGearBySlug(slug);
 
+  console.log("[EditGearModalPage] gearDataResult", gearDataResult);
+
   // Validate and set default gear type
-  const gearType = type === "CAMERA" || type === "LENS" ? type : "CAMERA";
+  // const gearType = type === "CAMERA" || type === "LENS" ? type : gearDataResult.gearType;
 
   // Create gearData object outside of JSX to prevent recreation on every render
   const gearData = gearDataResult
@@ -53,7 +55,7 @@ export default async function EditGearModalPage({
 
   return (
     <EditGearModal
-      gearType={gearType}
+      gearType={gearDataResult.gearType}
       gearData={gearData}
       gearSlug={slug}
       gearName={gearData.name || ""}

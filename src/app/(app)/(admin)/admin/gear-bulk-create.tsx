@@ -34,6 +34,7 @@ import {
 } from "~/components/ui/collapsible";
 import { useState, useEffect } from "react";
 import { z } from "zod";
+import { MountSelect } from "~/components/custom-inputs/mount-select";
 import {
   Dialog,
   DialogContent,
@@ -43,10 +44,11 @@ import {
 } from "~/components/ui/dialog";
 import { Textarea } from "~/components/ui/textarea";
 import { parseSingleColumnCsv } from "~/lib/utils/csv";
+import type { GearType } from "~/types/gear";
+import { ENUMS } from "~/lib/constants";
+import { humanizeKey } from "~/lib/utils";
 
 type Brand = { id: string; name: string };
-type GearType = "CAMERA" | "LENS";
-
 type RowValidation = {
   slugPreview: string;
   slugConflict: boolean;
@@ -58,6 +60,7 @@ type RowState = {
   id: string;
   name: string;
   modelNumber: string;
+  mountIds: string[];
   validation: RowValidation | null;
   proceedAnyway: boolean;
   status: "idle" | "blocked" | "creating" | "created" | "error" | "pending";
@@ -160,6 +163,7 @@ function BulkCreateRow({
   const isSoftOnly = softWarn && !hardBlocked && !fuzzyWarn;
   const isReviewed = row.proceedAnyway || !isFailing;
   const hasValidationIssues = hardBlocked || fuzzyWarn || softWarn;
+  const columnCount = gearType ? 6 : 5;
 
   return (
     <>
@@ -189,6 +193,23 @@ function BulkCreateRow({
             disabled={!canEditRows || row.status === "created"}
           />
         </TableCell>
+        {gearType && (
+          <TableCell>
+            <MountSelect
+              mode={gearType === "LENS" ? "multiple" : "single"}
+              value={gearType === "LENS" ? row.mountIds : row.mountIds[0] || ""}
+              onChange={(val) => {
+                const next = Array.isArray(val) ? val : val ? [val] : [];
+                updateRow(row.id, { mountIds: next });
+              }}
+              brandId={brandId || undefined}
+              placeholder="Optional"
+              disabled={!canEditRows || row.status === "created"}
+              showLabel={false}
+              className="w-full"
+            />
+          </TableCell>
+        )}
         <TableCell>
           <div className="text-muted-foreground truncate text-sm">
             {v?.slugPreview || "—"}
@@ -249,7 +270,7 @@ function BulkCreateRow({
       </TableRow>
       {hasValidationIssues && (
         <TableRow>
-          <TableCell colSpan={5} className="p-0">
+          <TableCell colSpan={columnCount} className="p-0">
             <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
               <CollapsibleContent className="mb-2 space-y-3 rounded-md p-3">
                 {v?.slugConflict && (
@@ -486,6 +507,7 @@ export default function GearBulkCreate(): React.JSX.Element {
       id: crypto.randomUUID(),
       name: "",
       modelNumber: "",
+      mountIds: [],
       validation: null,
       proceedAnyway: false,
       status: "pending",
@@ -525,6 +547,7 @@ export default function GearBulkCreate(): React.JSX.Element {
           id: crypto.randomUUID(),
           name,
           modelNumber: "",
+          mountIds: [],
           validation: null,
           proceedAnyway: false,
           status: "pending",
@@ -568,14 +591,17 @@ export default function GearBulkCreate(): React.JSX.Element {
         }
         updateRow(r.id, { status: "creating" });
         try {
-          const { actionCreateGear } = await import(
-            "~/server/admin/gear/actions"
-          );
+          const { actionCreateGear } =
+            await import("~/server/admin/gear/actions");
+          const trimmedMountIds = r.mountIds
+            .map((id) => id.trim())
+            .filter((id) => id.length > 0);
           const result = await actionCreateGear({
             name,
             modelNumber: r.modelNumber.trim() || undefined,
             brandId,
-            gearType: gearType as "CAMERA" | "LENS",
+            mountIds: trimmedMountIds.length > 0 ? trimmedMountIds : undefined,
+            gearType: gearType as GearType,
             force: r.proceedAnyway,
           });
           updateRow(r.id, { status: "created", createdSlug: result.slug });
@@ -690,8 +716,11 @@ export default function GearBulkCreate(): React.JSX.Element {
                   <SelectValue placeholder="Select a type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="CAMERA">Camera</SelectItem>
-                  <SelectItem value="LENS">Lens</SelectItem>
+                  {(ENUMS.gear_type ?? []).map((v) => (
+                    <SelectItem key={v} value={v}>
+                      {v === "ANALOG_CAMERA" ? "Analog Camera" : humanizeKey(v)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -703,6 +732,7 @@ export default function GearBulkCreate(): React.JSX.Element {
                 <TableRow>
                   <TableHead className="w-[30%]">Name</TableHead>
                   <TableHead className="w-[20%]">Model Number</TableHead>
+                  {gearType && <TableHead className="w-[20%]">Mount</TableHead>}
                   <TableHead className="w-[20%]">Slug Preview</TableHead>
                   <TableHead className="w-[20%]">Validation</TableHead>
                   <TableHead className="w-[10%]">Actions</TableHead>
@@ -712,7 +742,7 @@ export default function GearBulkCreate(): React.JSX.Element {
                 {rows.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={5}
+                      colSpan={gearType ? 6 : 5}
                       className="text-muted-foreground text-center text-sm"
                     >
                       {isSuccess

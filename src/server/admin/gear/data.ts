@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, ilike, eq, sql, desc, count, ne, or } from "drizzle-orm";
+import { and, ilike, eq, sql, desc, count, ne, or, inArray } from "drizzle-orm";
 import { db } from "~/server/db";
 import {
   gear,
@@ -8,9 +8,12 @@ import {
   cameraSpecs,
   lensSpecs,
   auditLogs,
+  gearMounts,
+  mounts,
 } from "~/server/db/schema";
 import { normalizeSearchName } from "~/lib/utils";
 import { normalizeFuzzyTokens } from "~/lib/utils/fuzzy";
+import type { GearType } from "~/types/gear";
 export interface FuzzySearchResult {
   id: string;
   name: string;
@@ -34,6 +37,7 @@ export async function performFuzzySearch(
   tokens: string[];
   normalized: string;
 }> {
+  const fuzzyStopWords = new Set(["nikkor", "eos", "lumix"]);
   const { inputName, brandName, brandId } = params;
   const normalized = normalizeSearchName(inputName, brandName);
 
@@ -43,14 +47,20 @@ export async function performFuzzySearch(
       .replace(/[^a-z0-9]+/g, " ")
       .trim();
 
+  // Exclude brand tokens from the input name
   const brandTokenSet = new Set(
     sanitize(brandName).split(/\s+/).filter(Boolean),
   );
 
-  const rawTokens = sanitize(inputName)
+  // Exclude stop words from the input name
+  const inputNameWithoutStopWords = sanitize(inputName)
     .split(/\s+/)
     .filter(Boolean)
-    .filter((t) => !brandTokenSet.has(t));
+    .filter((t) => !fuzzyStopWords.has(t));
+
+  const rawTokens = inputNameWithoutStopWords.filter(
+    (t) => !brandTokenSet.has(t),
+  );
 
   const expanded: string[] = [];
   for (const token of rawTokens) {
@@ -159,8 +169,14 @@ export async function checkGearCreationData(
 export interface GearCreationParams {
   name: string;
   brandId: string;
-  gearType: "CAMERA" | "LENS";
+  gearType: GearType;
   modelNumber?: string;
+  /**
+   * Optional mounts to associate. Multi-mount is supported via the junction
+   * table; mountId is deprecated in favor of mountIds.
+   */
+  mountIds?: string[];
+  mountId?: string;
   linkManufacturer?: string;
   linkMpb?: string;
   linkAmazon?: string;
@@ -180,6 +196,8 @@ export async function createGearData(
     brandId,
     gearType,
     modelNumber,
+    mountIds,
+    mountId,
     linkManufacturer,
     linkMpb,
     linkAmazon,
@@ -193,6 +211,25 @@ export async function createGearData(
     .limit(1);
   if (b.length === 0) {
     throw new Error("Invalid brand");
+  }
+
+  const requestedMountIds = mountIds ?? (mountId ? [mountId] : []);
+  const normalizedMountIds = Array.from(
+    new Set(
+      requestedMountIds
+        .map((m) => m.trim())
+        .filter((m): m is string => m.length > 0),
+    ),
+  );
+
+  if (normalizedMountIds.length > 0) {
+    const found = await db
+      .select({ id: mounts.id })
+      .from(mounts)
+      .where(inArray(mounts.id, normalizedMountIds));
+    if (found.length !== normalizedMountIds.length) {
+      throw new Error("Invalid mount");
+    }
   }
 
   // Ensure brand is prefixed in display name
@@ -249,6 +286,15 @@ export async function createGearData(
       .returning({ id: gear.id, slug: gear.slug });
 
     const createdGear = inserted[0]!;
+
+    if (normalizedMountIds.length > 0) {
+      await tx.insert(gearMounts).values(
+        normalizedMountIds.map((id) => ({
+          gearId: createdGear.id,
+          mountId: id,
+        })),
+      );
+    }
 
     // Create an empty specs row matching the gear type
     if (gearType === "CAMERA") {
@@ -464,7 +510,11 @@ export async function updateGearThumbnailData(
     .update(gear)
     .set({ thumbnailUrl })
     .where(eq(gear.id, gearId))
-    .returning({ id: gear.id, slug: gear.slug, thumbnailUrl: gear.thumbnailUrl });
+    .returning({
+      id: gear.id,
+      slug: gear.slug,
+      thumbnailUrl: gear.thumbnailUrl,
+    });
   if (!updated[0]) {
     throw Object.assign(new Error("Gear not found"), { status: 404 });
   }

@@ -1,6 +1,7 @@
 import type {
   gear,
   cameraSpecs,
+  analogCameraSpecs,
   lensSpecs,
   fixedLensSpecs,
   brands,
@@ -13,10 +14,12 @@ import type {
   cameraVideoModes,
 } from "~/server/db/schema";
 import type { VideoModeNormalized } from "~/lib/video/mode-schema";
+import { ENUMS } from "~/lib/constants";
 
 // Base types from schema
 export type Gear = typeof gear.$inferSelect;
 export type CameraSpecs = typeof cameraSpecs.$inferSelect;
+export type AnalogCameraSpecs = typeof analogCameraSpecs.$inferSelect;
 export type LensSpecs = typeof lensSpecs.$inferSelect;
 export type FixedLensSpecs = typeof fixedLensSpecs.$inferSelect;
 export type Brand = typeof brands.$inferSelect;
@@ -38,6 +41,7 @@ export type GearItem = Gear & {
   mounts?: Mount | null;
   mountIds?: string[] | null; // Canonical multi-mount list
   cameraSpecs?: EnrichedCameraSpecs | null;
+  analogCameraSpecs?: AnalogCameraSpecs | null;
   lensSpecs?: LensSpecs | null;
   fixedLensSpecs?: FixedLensSpecs | null;
   afAreaModes?: AfAreaMode[] | null;
@@ -49,3 +53,5 @@ export type PopularityEventType =
   (typeof popularityEventTypeEnum.enumValues)[number];
 
 export type { AdminGearTableRow } from "~/server/admin/gear/data";
+
+export type GearType = (typeof ENUMS.gear_type)[number];

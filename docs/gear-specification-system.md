@@ -51,7 +51,7 @@ Stores detailed camera-specific specifications:
   - `2`: Yes (JPEG only)
 - **Displays**: rear display type (none, fixed, single_axis_tilt, dual_axis_tilt, fully_articulated), rear display size (inches), rear display resolution (million dots), has top display, has rear touchscreen
 - **Viewfinder**: type (none/optical/electronic), magnification (x), resolution (million dots)
-- **Video**: Maximum video resolution
+- **Video**: Mode matrix (`camera_video_modes`) plus capability flags: log profile, 10-bit, 12-bit, open gate, supports external recording, supports recording to a drive
 - **Flexibility**: JSONB extra field for additional specs
 
 #### `lensSpecs` - Lens Specifications
@@ -324,9 +324,23 @@ const fullFrameCameras = await db
 To add a new gear type (e.g., tripods, lighting):
 
 1. Add new enum value to `gearTypeEnum`
-2. Create new specification table
+2. Create new specification table (see below)
 3. Add relationship to `gearRelations`
 4. Update application logic
+
+#### Example: Analog Cameras
+
+- `gear_type` includes `ANALOG_CAMERA`.
+- Specs live in `analog_camera_specs` (1:1 on `gear.id`); integrated lenses still use `fixed_lens_specs` shared with digital cameras.
+- Under-construction rule: analog items are incomplete when `mount`, `cameraType`, or `captureMedium` are missing (plus fixed-lens focal length when the mount is `fixed-lens`).
+- Update data/service fetchers, edit/admin payloads, and the specs registry to treat analog cameras like digital cameras for integrated-lens display while using their own spec table.
+
+### Adding New Specification Tables
+
+1. Define the schema table under `src/server/db/schema.ts`, giving it a clear PK that references `gear.id` and keeping the column names descriptive.
+2. Register relations in `gearRelations` so the new table is reachable from `GearItem` and the registry layers.
+3. Extend the spec registry (`src/lib/specs/registry.tsx`) and any UI that consumes the new specs so they render consistently.
+4. Update service/data layers plus edit forms or admin flow to read/write the new specs while respecting normalization/validation rules.
 
 ### Schema Evolution
 

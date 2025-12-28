@@ -42,6 +42,7 @@ interface GearProposal {
     core?: Record<string, any>;
     camera?: Record<string, any>;
     lens?: Record<string, any>;
+    fixedLens?: Record<string, any>;
     cameraCardSlots?: Array<{
       slotIndex: number;
       supportedFormFactors: string[];
@@ -53,6 +54,7 @@ interface GearProposal {
   beforeCore?: Record<string, any>;
   beforeCamera?: Record<string, any>;
   beforeLens?: Record<string, any>;
+  beforeFixedLens?: Record<string, any>;
   note?: string | null;
   createdAt: string | Date;
 }
@@ -71,6 +73,7 @@ type ProposalGroupDto = {
     beforeCore?: Record<string, unknown>;
     beforeCamera?: Record<string, unknown>;
     beforeLens?: Record<string, unknown>;
+    beforeFixedLens?: Record<string, unknown>;
     note?: string | null;
     createdAt: string | Date;
   }>;
@@ -183,16 +186,19 @@ export function GearProposalsList() {
             core?: Record<string, any>;
             camera?: Record<string, any>;
             lens?: Record<string, any>;
+            fixedLens?: Record<string, any>;
             cameraCardSlots?: Array<{
               slotIndex: number;
               supportedFormFactors: string[];
               supportedBuses: string[];
               supportedSpeedClasses?: string[];
             }>;
+            videoModes?: VideoModeNormalized[];
           }) || {},
         beforeCore: p.beforeCore as Record<string, any> | undefined,
         beforeCamera: p.beforeCamera as Record<string, any> | undefined,
         beforeLens: p.beforeLens as Record<string, any> | undefined,
+        beforeFixedLens: p.beforeFixedLens as Record<string, any> | undefined,
         note: p.note,
         createdAt: p.createdAt,
       })),
@@ -242,7 +248,13 @@ export function GearProposalsList() {
           const coreKeys = Object.keys(p.payload.core ?? {});
           const cameraKeys = Object.keys(p.payload.camera ?? {});
           const lensKeys = Object.keys(p.payload.lens ?? {});
-          const allKeys = [...coreKeys, ...cameraKeys, ...lensKeys];
+          const fixedLensKeys = Object.keys((p.payload as any).fixedLens ?? {});
+          const allKeys = [
+            ...coreKeys,
+            ...cameraKeys,
+            ...lensKeys,
+            ...fixedLensKeys,
+          ];
           const initial: Record<string, boolean> = {};
           for (const k of allKeys) initial[k] = true;
           next[p.id] = initial;
@@ -354,7 +366,14 @@ export function GearProposalsList() {
 
   type ConflictEntry = {
     fieldKey: string; // e.g. core.name or cameraCardSlots
-    area: "core" | "camera" | "lens" | "cameraCardSlots" | "videoModes";
+    area:
+      | "core"
+      | "camera"
+      | "analogCamera"
+      | "lens"
+      | "fixedLens"
+      | "cameraCardSlots"
+      | "videoModes";
     key?: string; // inner key when area != cameraCardSlots
     options: Array<{
       proposalId: string;
@@ -365,7 +384,14 @@ export function GearProposalsList() {
   };
   type NonConflictEntry = {
     fieldKey: string;
-    area: "core" | "camera" | "lens" | "cameraCardSlots" | "videoModes";
+    area:
+      | "core"
+      | "camera"
+      | "analogCamera"
+      | "lens"
+      | "fixedLens"
+      | "cameraCardSlots"
+      | "videoModes";
     key?: string;
     provider: {
       proposalId: string;
@@ -403,7 +429,10 @@ export function GearProposalsList() {
       };
       add("core", p.payload.core);
       add("camera", p.payload.camera);
+      add("analogCamera", (p.payload as any).analogCamera);
       add("lens", p.payload.lens);
+      add("fixedLens", (p.payload as any).fixedLens);
+      add("fixedLens", (p.payload as any).fixedLens);
       if (Array.isArray(p.payload.cameraCardSlots)) {
         const fieldKey = "cameraCardSlots";
         const rec:
@@ -627,6 +656,7 @@ export function GearProposalsList() {
       core: pick(proposal.payload.core),
       camera: pick(proposal.payload.camera),
       lens: pick(proposal.payload.lens),
+      fixedLens: pick((proposal.payload as any).fixedLens),
       cameraCardSlots: Array.isArray(proposal.payload.cameraCardSlots)
         ? proposal.payload.cameraCardSlots
         : undefined,
@@ -634,6 +664,7 @@ export function GearProposalsList() {
       core?: Record<string, any>;
       camera?: Record<string, any>;
       lens?: Record<string, any>;
+      fixedLens?: Record<string, any>;
       cameraCardSlots?: unknown;
     };
   };
@@ -657,6 +688,8 @@ export function GearProposalsList() {
             core: (filteredPayload as any)?.core ?? p.payload.core,
             camera: (filteredPayload as any)?.camera ?? p.payload.camera,
             lens: (filteredPayload as any)?.lens ?? p.payload.lens,
+            fixedLens:
+              (filteredPayload as any)?.fixedLens ?? p.payload.fixedLens,
             cameraCardSlots: Array.isArray(
               (filteredPayload as any)?.cameraCardSlots,
             )
@@ -715,6 +748,7 @@ export function GearProposalsList() {
       core?: Record<string, any>;
       camera?: Record<string, any>;
       lens?: Record<string, any>;
+      fixedLens?: Record<string, any>;
       cameraCardSlots?: any;
       videoModes?: VideoModeNormalized[];
     } = {};
@@ -738,7 +772,7 @@ export function GearProposalsList() {
         continue;
       }
       const parts = fieldKey.split(".");
-      const area = parts[0] as "core" | "camera" | "lens";
+      const area = parts[0] as "core" | "camera" | "lens" | "fixedLens";
       const key = parts[1] as string | undefined;
       if (!key) continue;
       const p = getProposalById(providerId);
@@ -1014,6 +1048,8 @@ export function GearProposalsList() {
                       beforeVal = provider.beforeCamera?.[key as any];
                     if (area === "lens")
                       beforeVal = provider.beforeLens?.[key as any];
+                    if (area === "fixedLens")
+                      beforeVal = provider.beforeFixedLens?.[key as any];
                   }
                   const beforeIsEmpty =
                     beforeVal === null ||
@@ -1093,11 +1129,13 @@ export function GearProposalsList() {
       ...(proposal.beforeCore || {}),
       ...(proposal.beforeCamera || {}),
       ...(proposal.beforeLens || {}),
+      ...(proposal.beforeFixedLens || {}),
     };
     const afterMerged = {
       ...(proposal.payload.core || {}),
       ...(proposal.payload.camera || {}),
       ...(proposal.payload.lens || {}),
+      ...(proposal.payload.fixedLens || {}),
       ...(Array.isArray(proposal.payload.cameraCardSlots)
         ? { cameraCardSlots: proposal.payload.cameraCardSlots }
         : {}),
@@ -1394,11 +1432,13 @@ export function GearProposalsList() {
       ...(proposal.beforeCore || {}),
       ...(proposal.beforeCamera || {}),
       ...(proposal.beforeLens || {}),
+      ...(proposal.beforeFixedLens || {}),
     };
     const afterMerged = {
       ...(proposal.payload.core || {}),
       ...(proposal.payload.camera || {}),
       ...(proposal.payload.lens || {}),
+      ...(proposal.payload.fixedLens || {}),
     };
     const formatValue = (k: string, v: any): string => {
       const isEmpty = v === null || v === undefined || v === "";

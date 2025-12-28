@@ -8,6 +8,7 @@ import {
   gearMounts,
   users,
   cameraSpecs,
+  analogCameraSpecs,
   cameraAfAreaSpecs,
   cameraCardSlots,
   cameraVideoModes,
@@ -35,14 +36,18 @@ type ProposalSelect = {
 
 type Baseline = {
   core: Record<string, unknown>;
+  analogCamera: Record<string, unknown>;
   camera: Record<string, unknown>;
   lens: Record<string, unknown>;
+  fixedLens: Record<string, unknown>;
 };
 
 type EnrichedProposal = ProposalSelect & {
   beforeCore?: Record<string, unknown>;
+  beforeAnalogCamera?: Record<string, unknown>;
   beforeCamera?: Record<string, unknown>;
   beforeLens?: Record<string, unknown>;
+  beforeFixedLens?: Record<string, unknown>;
 };
 
 function pickSubset(
@@ -99,15 +104,27 @@ async function fetchEnrichedProposals(
       .from(cameraSpecs)
       .where(eq(cameraSpecs.gearId, gearId))
       .limit(1);
+    const [analogCam] = await db
+      .select()
+      .from(analogCameraSpecs)
+      .where(eq(analogCameraSpecs.gearId, gearId))
+      .limit(1);
     const [lens] = await db
       .select()
       .from(lensSpecs)
       .where(eq(lensSpecs.gearId, gearId))
       .limit(1);
+    const [fixedLens] = await db
+      .select()
+      .from(fixedLensSpecs)
+      .where(eq(fixedLensSpecs.gearId, gearId))
+      .limit(1);
     const baseline: Baseline = {
       core: (g ?? {}) as Record<string, unknown>,
+      analogCamera: (analogCam ?? {}) as Record<string, unknown>,
       camera: (cam ?? {}) as Record<string, unknown>,
       lens: (lens ?? {}) as Record<string, unknown>,
+      fixedLens: (fixedLens ?? {}) as Record<string, unknown>,
     };
     baselineCache.set(gearId, baseline);
     return baseline;
@@ -119,15 +136,22 @@ async function fetchEnrichedProposals(
       const base = (await getBaseline(p.gearId))!;
       const payload = (p.payload ?? {}) as Record<string, unknown> & {
         core?: Record<string, unknown>;
+        analogCamera?: Record<string, unknown>;
         camera?: Record<string, unknown>;
         lens?: Record<string, unknown>;
+        fixedLens?: Record<string, unknown>;
         cameraCardSlots?: unknown;
       };
       return {
         ...p,
         beforeCore: pickSubset(base.core, payload.core),
+        beforeAnalogCamera: pickSubset(
+          base.analogCamera,
+          payload.analogCamera,
+        ),
         beforeCamera: pickSubset(base.camera, payload.camera),
         beforeLens: pickSubset(base.lens, payload.lens),
+        beforeFixedLens: pickSubset(base.fixedLens, payload.fixedLens),
       };
     }),
   );
@@ -185,15 +209,27 @@ export async function fetchRecentResolvedProposalsData(
       .from(cameraSpecs)
       .where(eq(cameraSpecs.gearId, gearId))
       .limit(1);
+    const [analogCam] = await db
+      .select()
+      .from(analogCameraSpecs)
+      .where(eq(analogCameraSpecs.gearId, gearId))
+      .limit(1);
     const [lens] = await db
       .select()
       .from(lensSpecs)
       .where(eq(lensSpecs.gearId, gearId))
       .limit(1);
+    const [fixedLens] = await db
+      .select()
+      .from(fixedLensSpecs)
+      .where(eq(fixedLensSpecs.gearId, gearId))
+      .limit(1);
     const baseline: Baseline = {
       core: (g ?? {}) as Record<string, unknown>,
+      analogCamera: (analogCam ?? {}) as Record<string, unknown>,
       camera: (cam ?? {}) as Record<string, unknown>,
       lens: (lens ?? {}) as Record<string, unknown>,
+      fixedLens: (fixedLens ?? {}) as Record<string, unknown>,
     };
     baselineCache.set(gearId, baseline);
     return baseline;
@@ -204,15 +240,22 @@ export async function fetchRecentResolvedProposalsData(
       const base = (await getBaseline(p.gearId))!;
       const payload = (p.payload ?? {}) as Record<string, unknown> & {
         core?: Record<string, unknown>;
+        analogCamera?: Record<string, unknown>;
         camera?: Record<string, unknown>;
         lens?: Record<string, unknown>;
+        fixedLens?: Record<string, unknown>;
         cameraCardSlots?: unknown;
       };
       return {
         ...p,
         beforeCore: pickSubset(base.core, payload.core),
+        beforeAnalogCamera: pickSubset(
+          base.analogCamera,
+          payload.analogCamera,
+        ),
         beforeCamera: pickSubset(base.camera, payload.camera),
         beforeLens: pickSubset(base.lens, payload.lens),
+        beforeFixedLens: pickSubset(base.fixedLens, payload.fixedLens),
       };
     }),
   );
@@ -285,6 +328,7 @@ export async function approveProposalData(
     if (normalized && typeof normalized === "object") {
       const normalizedPayload = normalized as {
         core?: any;
+        analogCamera?: any;
         camera?: any;
         lens?: any;
         fixedLens?: any;
@@ -319,6 +363,10 @@ export async function approveProposalData(
             coreUpdate.mountId = null;
           }
           delete (coreUpdate as any).mountIds; // Don't try to update gear.mountIds (doesn't exist)
+        } else if (coreUpdate.mountIds === null) {
+          await tx.delete(gearMounts).where(eq(gearMounts.gearId, gearId));
+          coreUpdate.mountId = null;
+          delete (coreUpdate as any).mountIds;
         }
 
         if (Object.keys(coreUpdate).length > 0) {
@@ -354,6 +402,23 @@ export async function approveProposalData(
             }));
             await tx.insert(cameraAfAreaSpecs).values(rows);
           }
+        }
+      }
+
+      // Apply analog camera specs (upsert)
+      if (normalizedPayload.analogCamera) {
+        const analogUpdate = { ...normalizedPayload.analogCamera } as Record<
+          string,
+          unknown
+        >;
+        if (Object.keys(analogUpdate).length > 0) {
+          await tx
+            .insert(analogCameraSpecs)
+            .values({ gearId, ...(analogUpdate as any) })
+            .onConflictDoUpdate({
+              target: analogCameraSpecs.gearId,
+              set: analogUpdate as any,
+            });
         }
       }
 

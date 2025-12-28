@@ -22,6 +22,9 @@ import {
   getNameSoftWarnings,
   type SoftWarning,
 } from "~/lib/validation/gear-creation-validations";
+import type { GearType } from "~/types/gear";
+import { ENUMS } from "~/lib/constants";
+import { humanizeKey } from "~/lib/utils";
 
 type Brand = { id: string; name: string };
 type FuzzyItem = { id: string; slug: string; name: string };
@@ -33,7 +36,7 @@ export function GearCreateCard() {
   const [linkMpb, setLinkMpb] = useState("");
   const [linkAmazon, setLinkAmazon] = useState("");
   const [brandId, setBrandId] = useState<string>("");
-  const [gearType, setGearType] = useState<"CAMERA" | "LENS" | "">("");
+  const [gearType, setGearType] = useState<GearType | "">("");
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(false);
   const [createdSlug, setCreatedSlug] = useState<string | null>(null);
@@ -227,14 +230,17 @@ export function GearCreateCard() {
             <Label>Type</Label>
             <Select
               value={gearType}
-              onValueChange={(v) => setGearType(v as "CAMERA" | "LENS")}
+              onValueChange={(v) => setGearType(v as GearType)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="CAMERA">Camera</SelectItem>
-                <SelectItem value="LENS">Lens</SelectItem>
+                {(ENUMS.gear_type ?? []).map((v) => (
+                  <SelectItem key={v} value={v}>
+                    {v === "ANALOG_CAMERA" ? "Analog Camera" : humanizeKey(v)}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

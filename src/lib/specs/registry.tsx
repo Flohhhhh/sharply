@@ -12,6 +12,18 @@ import {
   formatPrecaptureSupport,
 } from "~/lib/mapping";
 import {
+  formatAnalogCameraType,
+  formatAnalogMedium,
+  formatAnalogFilmTransport,
+  formatAnalogViewfinderType,
+  formatAnalogShutterType,
+  formatAnalogMeteringMode,
+  formatAnalogMeteringDisplay,
+  formatAnalogExposureMode,
+  formatAnalogIsoSettingMethod,
+  formatAnalogFocusAid,
+} from "~/lib/mapping/analog-types-map";
+import {
   getMountLongNameById,
   getMountLongNamesById,
 } from "~/lib/mapping/mounts-map";
@@ -43,6 +55,14 @@ function coerceCameraVideoModes(
 function yesNoNull(value: boolean | null | undefined): string | undefined {
   if (value == null) return undefined;
   return value ? "Yes" : "No";
+}
+
+function humanizeEnum(value: string | null | undefined): string | undefined {
+  if (!value) return undefined;
+  return value
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 }
 
 function formatDecimalCompact(
@@ -852,6 +872,20 @@ export const specDictionary: SpecSectionDef[] = [
         formatDisplay: (raw) =>
           typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
+      {
+        key: "supportsExternalRecording",
+        label: "Supports External Recording",
+        getRawValue: (item) => item.cameraSpecs?.supportsExternalRecording,
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+      },
+      {
+        key: "supportsRecordToDrive",
+        label: "Supports Recording to Drive",
+        getRawValue: (item) => item.cameraSpecs?.supportsRecordToDrive,
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+      },
     ],
   },
 
@@ -1271,6 +1305,221 @@ export const specDictionary: SpecSectionDef[] = [
   },
 
   // ==========================================================================
+  // ANALOG CAMERAS
+  // ==========================================================================
+  {
+    id: "analog-camera",
+    title: "Analog Camera",
+    sectionAnchor: "analog-camera-section",
+    condition: (item) => item.gearType === "ANALOG_CAMERA",
+    fields: [
+      {
+        key: "cameraType",
+        label: "Camera Type",
+        getRawValue: (item) => item.analogCameraSpecs?.cameraType,
+        formatDisplay: (raw) => formatAnalogCameraType(raw as string),
+      },
+      {
+        key: "captureMedium",
+        label: "Capture Medium",
+        getRawValue: (item) => item.analogCameraSpecs?.captureMedium,
+        formatDisplay: (raw) => formatAnalogMedium(raw as string),
+      },
+      {
+        key: "filmTransportType",
+        label: "Film Transport",
+        getRawValue: (item) => item.analogCameraSpecs?.filmTransportType,
+        formatDisplay: (raw) => formatAnalogFilmTransport(raw as string),
+      },
+      {
+        key: "viewfinderType",
+        label: "Viewfinder Type",
+        getRawValue: (item) => item.analogCameraSpecs?.viewfinderType,
+        formatDisplay: (raw) => formatAnalogViewfinderType(raw as string),
+      },
+      {
+        key: "shutterType",
+        label: "Shutter Type",
+        getRawValue: (item) => item.analogCameraSpecs?.shutterType,
+        formatDisplay: (raw) => formatAnalogShutterType(raw as string),
+      },
+      {
+        key: "shutterSpeeds",
+        label: "Shutter Speeds",
+        getRawValue: (item) => ({
+          min: item.analogCameraSpecs?.shutterSpeedMin,
+          max: item.analogCameraSpecs?.shutterSpeedMax,
+        }),
+        formatDisplay: (_, item) => {
+          const min = item.analogCameraSpecs?.shutterSpeedMin ?? null;
+          const max = item.analogCameraSpecs?.shutterSpeedMax ?? null;
+          if (min == null && max == null) return undefined;
+          const maxText = max != null ? `${max}s` : "";
+          const minText = min != null ? `1/${min}s` : "";
+          if (maxText && minText) return `${maxText} to ${minText}`;
+          return maxText || minText || undefined;
+        },
+      },
+      {
+        key: "flashSyncSpeed",
+        label: "Flash Sync Speed",
+        getRawValue: (item) => item.analogCameraSpecs?.flashSyncSpeed,
+        formatDisplay: (raw) =>
+          raw != null ? `1/${Number(raw as number)}s` : undefined,
+      },
+      {
+        key: "hasBulbMode",
+        label: "Bulb Mode",
+        getRawValue: (item) => item.analogCameraSpecs?.hasBulbMode,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+      {
+        key: "hasMetering",
+        label: "Has Metering",
+        getRawValue: (item) => item.analogCameraSpecs?.hasMetering,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+      {
+        key: "meteringModes",
+        label: "Metering Modes",
+        getRawValue: (item) => item.analogCameraSpecs?.meteringModes ?? [],
+        formatDisplay: (raw) =>
+          Array.isArray(raw)
+            ? renderBadgeColumn(
+                (raw as string[]).map(
+                  (r) => formatAnalogMeteringMode(r) ?? r,
+                ),
+                true,
+                true,
+              )
+            : undefined,
+      },
+      {
+        key: "meteringDisplayTypes",
+        label: "Metering Display",
+        getRawValue: (item) =>
+          item.analogCameraSpecs?.meteringDisplayTypes ?? [],
+        formatDisplay: (raw) =>
+          Array.isArray(raw)
+            ? renderBadgeColumn(
+                (raw as string[]).map(
+                  (r) => formatAnalogMeteringDisplay(r) ?? r,
+                ),
+                true,
+                true,
+              )
+            : undefined,
+      },
+      {
+        key: "exposureModes",
+        label: "Exposure Modes",
+        getRawValue: (item) => item.analogCameraSpecs?.exposureModes ?? [],
+        formatDisplay: (raw) =>
+          Array.isArray(raw)
+            ? renderBadgeColumn(
+                (raw as string[]).map(
+                  (r) => formatAnalogExposureMode(r) ?? r,
+                ),
+                true,
+                true,
+              )
+            : undefined,
+      },
+      {
+        key: "isoSettingMethod",
+        label: "ISO Setting",
+        getRawValue: (item) => item.analogCameraSpecs?.isoSettingMethod,
+        formatDisplay: (raw) => formatAnalogIsoSettingMethod(raw as string),
+      },
+      {
+        key: "isoRange",
+        label: "ISO Range",
+        getRawValue: (item) => ({
+          min: item.analogCameraSpecs?.isoMin,
+          max: item.analogCameraSpecs?.isoMax,
+        }),
+        formatDisplay: (_, item) => {
+          const min = item.analogCameraSpecs?.isoMin ?? null;
+          const max = item.analogCameraSpecs?.isoMax ?? null;
+          if (min == null && max == null) return undefined;
+          if (min != null && max != null) return `${min} - ${max}`;
+          return (min ?? max)?.toString();
+        },
+      },
+      {
+        key: "hasExposureCompensation",
+        label: "Exposure Compensation",
+        getRawValue: (item) => item.analogCameraSpecs?.hasExposureCompensation,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+      {
+        key: "hasAutoFocus",
+        label: "Autofocus",
+        getRawValue: (item) => item.analogCameraSpecs?.hasAutoFocus,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+      {
+        key: "focusAidTypes",
+        label: "Focus Aids",
+        getRawValue: (item) => item.analogCameraSpecs?.focusAidTypes ?? [],
+        formatDisplay: (raw) =>
+          Array.isArray(raw)
+            ? renderBadgeColumn(
+                (raw as string[]).map((r) => formatAnalogFocusAid(r) ?? r),
+                true,
+                true,
+              )
+            : undefined,
+      },
+      {
+        key: "hasContinuousDrive",
+        label: "Continuous Drive",
+        getRawValue: (item) => item.analogCameraSpecs?.hasContinuousDrive,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+      {
+        key: "maxContinuousFps",
+        label: "Max FPS",
+        getRawValue: (item) => item.analogCameraSpecs?.maxContinuousFps,
+        formatDisplay: (raw) =>
+          raw != null ? `${Number(raw as number)} fps` : undefined,
+      },
+      {
+        key: "requiresBatteryForShutter",
+        label: "Battery Required (Shutter)",
+        getRawValue: (item) =>
+          item.analogCameraSpecs?.requiresBatteryForShutter,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+      {
+        key: "requiresBatteryForMetering",
+        label: "Battery Required (Metering)",
+        getRawValue: (item) =>
+          item.analogCameraSpecs?.requiresBatteryForMetering,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+      {
+        key: "hasHotShoe",
+        label: "Hot Shoe",
+        getRawValue: (item) => item.analogCameraSpecs?.hasHotShoe,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+      {
+        key: "hasSelfTimer",
+        label: "Self Timer",
+        getRawValue: (item) => item.analogCameraSpecs?.hasSelfTimer,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+      {
+        key: "hasIntervalometer",
+        label: "Intervalometer",
+        getRawValue: (item) => item.analogCameraSpecs?.hasIntervalometer,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+    ],
+  },
+
+  // ==========================================================================
   // INTEGRATED LENS (for fixed-lens cameras)
   // ==========================================================================
   {
@@ -1278,7 +1527,8 @@ export const specDictionary: SpecSectionDef[] = [
     title: "Integrated Lens",
     sectionAnchor: "fixed-lens-section",
     condition: (item) => {
-      if (item.gearType !== "CAMERA") return false;
+      if (item.gearType !== "CAMERA" && item.gearType !== "ANALOG_CAMERA")
+        return false;
       type MountGenerated = (typeof MOUNTS)[number];
       const mountValueById = (id: string | null | undefined): string | null => {
         if (!id) return null;

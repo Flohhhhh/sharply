@@ -46,7 +46,11 @@ export const userRoleEnum = pgEnum("user_role", [
   "ADMIN",
   "SUPERADMIN",
 ]);
-export const gearTypeEnum = pgEnum("gear_type", ["CAMERA", "LENS"]);
+export const gearTypeEnum = pgEnum("gear_type", [
+  "CAMERA",
+  "ANALOG_CAMERA",
+  "LENS",
+]);
 export const proposalStatusEnum = pgEnum("proposal_status", [
   "PENDING",
   "APPROVED",
@@ -257,6 +261,16 @@ export const lensFilterTypesEnum = pgEnum("lens_filter_types_enum", [
   "internal-rotary",
 ]);
 
+// lens zoom mechanisms
+export const lensZoomTypesEnum = pgEnum("lens_zoom_types_enum", [
+  "two-ring", // Separate zoom ring + focus ring; the modern standard for most zoom lenses
+  "push-pull", // Single sleeve controls zoom by sliding and often rotates for focal length; common on many analog-era zooms
+  "power-zoom", // Motor-driven zoom controlled by rocker or ring; found on some video-oriented and compact systems
+  "zoom-by-wire", // Electronic zoom response rather than direct mechanical linkage; typical on some modern mirrorless/video lenses
+  "collar-zoom", // Zoom controlled by a rotating collar near the mount; shows up on some specialty designs
+  "other",
+]);
+
 // --- Recommendations (Enums) ---
 export const recommendationRatingEnum = pgEnum("rec_rating", [
   "best value",
@@ -265,6 +279,151 @@ export const recommendationRatingEnum = pgEnum("rec_rating", [
   "balanced",
 ]);
 export const recommendationGroupEnum = pgEnum("rec_group", ["prime", "zoom"]);
+
+// Analog Camera Types
+export const analogTypesEnum = pgEnum("analog_types_enum", [
+  "single-lens-reflex-slr",
+  "rangefinder",
+  "twin-lens-reflex-tlr",
+  "point-and-shoot",
+  "large-format",
+  "instant-film",
+  "disposable",
+  "toy",
+  "stereo",
+  "panoramic",
+  "folding",
+  "box",
+  "pinhole",
+  "press",
+]);
+
+// Analog Film Formats
+export const analogMediumEnum = pgEnum("analog_medium_enum", [
+  "35mm",
+  "half-frame",
+  "panoramic-35mm",
+  "aps",
+  "110",
+  "126-instamatic",
+  "828",
+  "120",
+  "220",
+  "127",
+  "620",
+  "large-format-4x5",
+  "large-format-5x7",
+  "large-format-8x10",
+  "ultra-large-format",
+  "sheet-film",
+  "metal-plate",
+  "glass-plate",
+  "experimental-other",
+]);
+
+// Analog Film Transport Types
+export const filmTransportEnum = pgEnum("film_transport_enum", [
+  "not-applicable",
+  "manual-lever",
+  "manual-knob",
+  "manual-other",
+  "motorized",
+  "other",
+]);
+
+// Analog Exposure Modes
+export const exposureModesEnum = pgEnum("exposure_modes_enum", [
+  "manual",
+  "aperture-priority",
+  "shutter-priority",
+  "program",
+  "auto",
+  "other",
+]);
+
+// Analog Exposure Modes
+export const exposureModeEnum = pgEnum("metering_mode_enum", [
+  "average",
+  "center-weighted",
+  "spot",
+  "other",
+]);
+
+// Analog Metering Display Types
+export const meteringDisplayTypeEnum = pgEnum("metering_display_type_enum", [
+  "needle-middle",
+  "needle-match",
+  "led-indicators",
+  "led-scale",
+  "lcd-viewfinder",
+  "lcd-top-panel",
+  "none",
+  "other",
+]);
+
+// Analog Focus Aid Types
+export const focusAidEnum = pgEnum("focus_aid_enum", [
+  // Plain matte screen only
+  "none",
+  // Split-image prism
+  // Looks like: central circle split into two halves that misalign when out of focus
+  "split-prism",
+  // Microprism
+  // Looks like: shimmering or broken image area (dot or ring) when out of focus
+  "microprism",
+  // Electronic focus confirmation
+  // Looks like: single dot, light, or symbol that illuminates when focus is achieved
+  "electronic-confirm",
+  // Directional electronic focus guidance
+  // Looks like: arrows pointing left/right or near/far
+  "electronic-directional",
+  // Autofocus point highlight
+  // Looks like: illuminated AF boxes or brackets in the viewfinder
+  "af-point",
+]);
+
+// Analog Metering Modes
+export const meteringModeEnum = pgEnum("metering_mode_enum", [
+  "average",
+  "center-weighted",
+  "spot",
+  "other",
+]);
+
+// Analog Shutter Types (practical families)
+export const shutterTypeEnum = pgEnum("shutter_type_enum", [
+  "focal-plane-cloth", // horizontal-travel, Fabric curtains traverse the film gate; classic mechanical SLR feel
+  "focal-plane-metal", // vertical-travel, Metal blades traverse the film gate; often supports higher max speeds
+  "focal-plane-electronic", // Electronically controlled focal-plane shutter, Focal-plane curtains exist, but exposure timing depends on electronics/battery
+  "leaf", // Leaf shutter (in-lens), Iris-style blades inside the lens; typically enables high flash sync speeds
+  "rotary", // Rotary/disc shutter, Rotating disc with a cutout exposes film; rare outside specialty cameras
+  "none", // No shutter in the body, Exposure controlled externally (rare / specialty setups)
+  "other",
+]);
+
+// Analog ISO Setting Methods
+export const isoSettingMethodEnum = pgEnum("iso_setting_method_enum", [
+  "manual", // Manual ISO dial; photographer sets ISO directly for full control and push/pull flexibility
+  "dx-only", // DX-coded film only; camera reads ISO from film canister with no manual override
+  "dx-with-override", // DX-coded by default with manual ISO override available
+  "fixed", // Fixed ISO assumption; camera meters to a single ISO value
+  "other",
+]);
+
+// Analog Viewfinder Types
+export const analogViewfinderTypesEnum = pgEnum(
+  "analog_viewfinder_types_enum",
+  [
+    "none",
+    "pentaprism", // Glass prism hump; bright, upright, laterally correct image (typical SLR experience)
+    "pentamirror", // Mirror-based prism housing; upright image but dimmer and lighter than pentaprism
+    "waist-level", // Flip-up hood viewed from above; reversed image, common on early SLRs and medium format
+    "sports-finder", // Open-frame or wire finder; fast framing without precise focus, often auxiliary
+    "rangefinder-style", // Separate optical window not through the lens; framing lines, no TTL viewing
+    "ground-glass", // Direct ground-glass viewing at film plane; dim but precise, often with loupe
+    "other",
+  ],
+);
 
 // --- Base helpers ---
 const createdAt = timestamp("created_at", { withTimezone: true })
@@ -525,6 +684,8 @@ export const cameraSpecs = appSchema.table(
     has10BitVideo: boolean("has_10_bit_video"),
     has12BitVideo: boolean("has_12_bit_video"),
     hasOpenGateVideo: boolean("has_open_gate_video"),
+    supportsExternalRecording: boolean("supports_external_recording"),
+    supportsRecordToDrive: boolean("supports_record_to_drive"),
     // misc
     hasIntervalometer: boolean("has_intervalometer"),
     hasSelfTimer: boolean("has_self_timer"),
@@ -624,6 +785,55 @@ export const cameraCardSlots = appSchema.table(
   (t) => [uniqueIndex("uniq_camera_card_slot").on(t.gearId, t.slotIndex)],
 );
 
+// Analog Camera Specs
+export const analogCameraSpecs = appSchema.table(
+  "analog_camera_specs",
+  (d) => ({
+    gearId: varchar("gear_id", { length: 36 })
+      .primaryKey()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    cameraType: analogTypesEnum("camera_type"), // list of analog camera types
+    // film/capture medium
+    captureMedium: analogMediumEnum("capture_medium"), //list of film types, or other capture medium
+    filmTransportType: filmTransportEnum("film_transport_type"), // list of film transport types
+    hasAutoFilmAdvance: boolean("has_auto_film_advance"), //weather the film advanced automatically after each shot
+    hasOptionalMotorizedDrive: boolean("has_optional_motorized_drive"), //weather the camera has an optional motorized drive for the film advance
+    // viewfinder
+    viewfinderType: analogViewfinderTypesEnum("viewfinder_type"),
+    // exposure & shutter
+    shutterType: shutterTypeEnum("shutter_type"),
+    shutterSpeedMax: integer("shutter_speed_max"), // in seconds
+    shutterSpeedMin: integer("shutter_speed_min"), // in fractions of a second (1/1000)
+    flashSyncSpeed: integer("flash_sync_speed"), // in fractions of a second (1/250)
+    hasBulbMode: boolean("has_bulb_mode"),
+    hasMetering: boolean("has_metering"),
+    meteringModes: meteringModeEnum("metering_modes").array(),
+    exposureModes: exposureModeEnum("exposure_modes").array(),
+    meteringDisplayTypes: meteringDisplayTypeEnum(
+      "metering_display_types",
+    ).array(),
+    hasExposureCompensation: boolean("has_exposure_compensation"),
+    isoSettingMethod: isoSettingMethodEnum("iso_setting_method"),
+    isoMin: integer("iso_min"),
+    isoMax: integer("iso_max"),
+    // focus
+    hasAutoFocus: boolean("has_auto_focus"),
+    focusAidTypes: focusAidEnum("focus_aid_types").array(),
+    // electronics
+    requiresBatteryForShutter: boolean("requires_battery_for_shutter"),
+    requiresBatteryForMetering: boolean("requires_battery_for_metering"),
+    hasContinuousDrive: boolean("has_continuous_drive"),
+    maxContinuousFps: integer("max_continuous_fps"),
+    hasHotShoe: boolean("has_hot_shoe"),
+    hasSelfTimer: boolean("has_self_timer"),
+    hasIntervalometer: boolean("has_intervalometer"),
+    // meta
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [index("analog_camera_specs_gear_idx").on(t.gearId)],
+);
+
 // Lenses
 export const lensSpecs = appSchema.table(
   "lens_specs",
@@ -655,6 +865,7 @@ export const lensSpecs = appSchema.table(
     minimumFocusDistanceMm: integer("minimum_focus_distance_mm"), // TODO: display this using mapping as feet/meters
     hasFocusRing: boolean("has_focus_ring"),
     focusMotorType: text("focus_motor_type"), //TODO: may want to make a relation for this eventually, brands have proprietary names for different types
+    focusThrowDegrees: integer("focus_throw_degrees"),
     hasAfMfSwitch: boolean("has_af_mf_switch"),
     hasFocusLimiter: boolean("has_focus_limiter"),
     hasFocusRecallButton: boolean("has_focus_recall_button"),
@@ -663,6 +874,7 @@ export const lensSpecs = appSchema.table(
     numberElementGroups: integer("number_element_groups"),
     hasDiffractiveOptics: boolean("has_diffractive_optics"), // also known as phase fresnel elements
     // build or features
+    lensZoomType: lensZoomTypesEnum("lens_zoom_type"),
     numberDiaphragmBlades: integer("number_diaphragm_blades"),
     hasRoundedDiaphragmBlades: boolean("has_rounded_diaphragm_blades"),
     hasInternalZoom: boolean("has_internal_zoom"),
@@ -872,6 +1084,10 @@ export const gearRelations = relations(gear, ({ one, many }) => ({
   cameraSpecs: one(cameraSpecs, {
     fields: [gear.id],
     references: [cameraSpecs.gearId],
+  }),
+  analogCameraSpecs: one(analogCameraSpecs, {
+    fields: [gear.id],
+    references: [analogCameraSpecs.gearId],
   }),
   lensSpecs: one(lensSpecs, {
     fields: [gear.id],
