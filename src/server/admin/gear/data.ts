@@ -37,6 +37,7 @@ export async function performFuzzySearch(
   tokens: string[];
   normalized: string;
 }> {
+  const fuzzyStopWords = new Set(["nikkor", "eos", "lumix"]);
   const { inputName, brandName, brandId } = params;
   const normalized = normalizeSearchName(inputName, brandName);
 
@@ -46,14 +47,20 @@ export async function performFuzzySearch(
       .replace(/[^a-z0-9]+/g, " ")
       .trim();
 
+  // Exclude brand tokens from the input name
   const brandTokenSet = new Set(
     sanitize(brandName).split(/\s+/).filter(Boolean),
   );
 
-  const rawTokens = sanitize(inputName)
+  // Exclude stop words from the input name
+  const inputNameWithoutStopWords = sanitize(inputName)
     .split(/\s+/)
     .filter(Boolean)
-    .filter((t) => !brandTokenSet.has(t));
+    .filter((t) => !fuzzyStopWords.has(t));
+
+  const rawTokens = inputNameWithoutStopWords.filter(
+    (t) => !brandTokenSet.has(t),
+  );
 
   const expanded: string[] = [];
   for (const token of rawTokens) {
@@ -281,14 +288,12 @@ export async function createGearData(
     const createdGear = inserted[0]!;
 
     if (normalizedMountIds.length > 0) {
-      await tx
-        .insert(gearMounts)
-        .values(
-          normalizedMountIds.map((id) => ({
-            gearId: createdGear.id,
-            mountId: id,
-          })),
-        );
+      await tx.insert(gearMounts).values(
+        normalizedMountIds.map((id) => ({
+          gearId: createdGear.id,
+          mountId: id,
+        })),
+      );
     }
 
     // Create an empty specs row matching the gear type
@@ -505,7 +510,11 @@ export async function updateGearThumbnailData(
     .update(gear)
     .set({ thumbnailUrl })
     .where(eq(gear.id, gearId))
-    .returning({ id: gear.id, slug: gear.slug, thumbnailUrl: gear.thumbnailUrl });
+    .returning({
+      id: gear.id,
+      slug: gear.slug,
+      thumbnailUrl: gear.thumbnailUrl,
+    });
   if (!updated[0]) {
     throw Object.assign(new Error("Gear not found"), { status: 404 });
   }
