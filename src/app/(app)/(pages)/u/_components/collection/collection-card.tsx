@@ -8,8 +8,20 @@ import { actionToggleOwnership } from "~/server/gear/actions";
 import type { GearItem } from "~/types/gear";
 import { toast } from "sonner";
 
-export function CollectionCard(props: { item: GearItem }) {
-  const { item } = props;
+export function CollectionCard(props: {
+  item: GearItem;
+  displayWidthPixels: number;
+  isScaleEstimated: boolean;
+  useFixedHeight: boolean;
+  fixedHeightPixels?: number;
+}) {
+  const {
+    item,
+    displayWidthPixels,
+    isScaleEstimated,
+    useFixedHeight,
+    fixedHeightPixels,
+  } = props;
   const [removing, setRemoving] = useState<boolean>(false);
 
   const handleUndo = async () => {
@@ -65,7 +77,21 @@ export function CollectionCard(props: { item: GearItem }) {
           <img
             src={item.thumbnailUrl}
             alt={item.name}
-            className="h-[200px] w-full object-contain transition-all duration-200 group-hover:scale-105 group-hover:opacity-50"
+            style={
+              useFixedHeight
+                ? {
+                    height: `${fixedHeightPixels ?? 200}px`,
+                    width: "auto",
+                    maxWidth: `${Math.max(140, displayWidthPixels)}px`,
+                    objectFit: "contain",
+                  }
+                : {
+                    width: `${Math.max(120, displayWidthPixels)}px`,
+                    height: "auto",
+                    objectFit: "contain",
+                  }
+            }
+            className="transition-all duration-200 group-hover:scale-105 group-hover:opacity-50"
             draggable={false}
           />
         ) : (
@@ -98,6 +124,11 @@ export function CollectionCard(props: { item: GearItem }) {
       <div className="text-foreground max-w-[240px] text-2xl leading-snug font-semibold">
         {item.name}
       </div>
+      {item.gearType === "CAMERA" && isScaleEstimated ? (
+        <p className="text-muted-foreground text-xs">
+          Scale approximate (missing width spec)
+        </p>
+      ) : null}
     </div>
   );
 }
