@@ -105,7 +105,7 @@ export default async function BrowseCatchAll({
           category={scope.categorySlug!}
         />
         <div className="mb-2 flex items-center justify-end gap-2">
-          <SortSelect />
+          <SortSelect category={scope.categorySlug} hasMount={false} />
           <FiltersModal />
         </div>
         <div className="mb-2">
@@ -152,7 +152,7 @@ export default async function BrowseCatchAll({
         {scope.categorySlug === "cameras" ? "Cameras" : "Lenses"}
       </h1>
       <div className="mb-2 flex items-center justify-end gap-2">
-        <SortSelect />
+        <SortSelect category={scope.categorySlug} hasMount={!!mount} />
         <FiltersModal />
       </div>
       <div className="mb-2">

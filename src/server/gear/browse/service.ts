@@ -7,7 +7,11 @@ import {
   getDepth,
   formatScopeTitle,
 } from "~/lib/browse/routing";
-import { parseFilters, type BrowseFilters } from "~/lib/browse/filters";
+import {
+  parseFilters,
+  type BrowseFilters,
+  type SortOption,
+} from "~/lib/browse/filters";
 // Category labels are defined locally to avoid a separate constants module
 const gearCategoryLabels = {
   cameras: "Cameras",
@@ -19,6 +23,7 @@ import {
   searchGear,
   getReleaseOrderedGearPage,
 } from "./data";
+import { LENS_FOCAL_LENGTH_SORT } from "./lens-sort";
 import type { BrowseFeedPage } from "~/types/browse";
 
 export async function deriveDefaultBrandFromCookies() {
@@ -58,7 +63,8 @@ export async function loadHubData(params: {
   const { depth, scope, brand, mount } = await resolveScopeOrThrow(
     params.segments,
   );
-  const filters = parseFilters(params.searchParams);
+  const defaultSort = getDefaultSortForScope(scope);
+  const filters = parseFilters(params.searchParams, { defaultSort });
 
   const cookieSlug = await deriveDefaultBrandFromCookies();
   const effectiveBrandSlug =
@@ -129,7 +135,12 @@ export async function buildSeo(params: {
   });
   const title = `${plainTitle}`;
   const description = `Explore all ${lists.total} ${plainTitle}`;
-  const canonical = buildCanonical(scope, parseFilters(params.searchParams));
+  const canonical = buildCanonical(
+    scope,
+    parseFilters(params.searchParams, {
+      defaultSort: getDefaultSortForScope(scope),
+    }),
+  );
   const openGraph = { title, description, url: canonical };
   return { title, description, canonical, openGraph };
 }
@@ -141,6 +152,13 @@ function buildCanonical(scope: RouteScope, _filters: BrowseFilters) {
   if (scope.categorySlug) segs.push(scope.categorySlug);
   if (scope.mountShort) segs.push(scope.mountShort);
   return `${base}/${segs.join("/")}`;
+}
+
+function getDefaultSortForScope(scope: RouteScope): SortOption {
+  if (scope.categorySlug === "lenses" && scope.mountShort) {
+    return LENS_FOCAL_LENGTH_SORT;
+  }
+  return "newest";
 }
 
 // Deprecated: static params are generated directly in the page route

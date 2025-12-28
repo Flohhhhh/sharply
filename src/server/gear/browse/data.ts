@@ -10,7 +10,7 @@ import {
   type SQL,
 } from "drizzle-orm";
 import { db } from "~/server/db";
-import { brands, gear, mounts, gearMounts } from "~/server/db/schema";
+import { brands, gear, mounts, gearMounts, lensSpecs } from "~/server/db/schema";
 import {
   BRANDS as BRAND_CONSTANTS,
   MOUNTS as MOUNT_CONSTANTS,
@@ -18,6 +18,10 @@ import {
 import type { BrowseFilters } from "~/lib/browse/filters";
 import type { GearCategorySlug } from "~/lib/browse/routing";
 import type { GearType } from "~/types/gear";
+import {
+  LENS_FOCAL_LENGTH_SORT,
+  lensFocalLengthSortExpression,
+} from "./lens-sort";
 
 const gearCategoryToTypes: Record<GearCategorySlug, GearType[]> = {
   cameras: ["CAMERA", "ANALOG_CAMERA"],
@@ -116,42 +120,40 @@ export async function searchGear(input: SearchInput) {
   if (input.category)
     where.push(inArray(gear.gearType, gearCategoryToTypes[input.category]));
 
-  // Select base; include join only when a mount filter is present
-  const base = input.mountId
-    ? db
-        .select({
-          id: gear.id,
-          slug: gear.slug,
-          name: gear.name,
-          brandId: gear.brandId,
-          gearType: gear.gearType,
-          thumbnailUrl: gear.thumbnailUrl,
-          releaseDate: gear.releaseDate,
-          msrpNowUsdCents: gear.msrpNowUsdCents,
-          mpbMaxPriceUsdCents: gear.mpbMaxPriceUsdCents,
-        })
-        .from(gear)
-        .leftJoin(gearMounts, sql`${gear.id} = ${gearMounts.gearId}`)
-    : db
-        .select({
-          id: gear.id,
-          slug: gear.slug,
-          name: gear.name,
-          brandId: gear.brandId,
-          gearType: gear.gearType,
-          thumbnailUrl: gear.thumbnailUrl,
-          releaseDate: gear.releaseDate,
-          msrpNowUsdCents: gear.msrpNowUsdCents,
-          mpbMaxPriceUsdCents: gear.mpbMaxPriceUsdCents,
-        })
-        .from(gear);
+  const f = input.filters;
+  const needsLensFocalSort = f.sort === LENS_FOCAL_LENGTH_SORT;
+
+  const selectFields: Record<string, any> = {
+    id: gear.id,
+    slug: gear.slug,
+    name: gear.name,
+    brandId: gear.brandId,
+    gearType: gear.gearType,
+    thumbnailUrl: gear.thumbnailUrl,
+    releaseDate: gear.releaseDate,
+    msrpNowUsdCents: gear.msrpNowUsdCents,
+    mpbMaxPriceUsdCents: gear.mpbMaxPriceUsdCents,
+  };
+
+  if (needsLensFocalSort) {
+    selectFields.lensFocalLengthMinMm = lensSpecs.focalLengthMinMm;
+    selectFields.lensFocalLengthMaxMm = lensSpecs.focalLengthMaxMm;
+  }
+
+  let base = db.select(selectFields).from(gear);
+
+  if (input.mountId) {
+    base = base.leftJoin(gearMounts, sql`${gear.id} = ${gearMounts.gearId}`);
+  }
+  if (needsLensFocalSort) {
+    base = base.leftJoin(lensSpecs, eq(gear.id, lensSpecs.gearId));
+  }
 
   if (input.mountId) {
     where.push(eq(gearMounts.mountId, input.mountId));
   }
 
   // Traits filters
-  const f = input.filters;
   if (f.minPrice != null)
     where.push(sql`${gear.msrpNowUsdCents} >= ${f.minPrice * 100}`);
   if (f.maxPrice != null)
@@ -163,7 +165,7 @@ export async function searchGear(input: SearchInput) {
 
   // Sorting
   const orderBy = (() => {
-    // Default to newest for browse pages, coerce invalid values to newest
+    // Default sort is resolved upstream; coerce invalid values to newest
     const allowed = [
       "newest",
       "price_asc",
@@ -171,6 +173,7 @@ export async function searchGear(input: SearchInput) {
       "rating",
       "popularity",
       "relevance",
+      LENS_FOCAL_LENGTH_SORT,
     ] as const;
     type SortKey = (typeof allowed)[number];
     const sortKey: SortKey = allowed.includes(f.sort as SortKey)
@@ -187,6 +190,8 @@ export async function searchGear(input: SearchInput) {
         return [desc(gear.createdAt), asc(gear.name)];
       case "relevance":
         return [asc(gear.name)];
+      case LENS_FOCAL_LENGTH_SORT:
+        return [lensFocalLengthSortExpression(), asc(gear.name)];
       default:
         return [sql`${gear.releaseDate} DESC NULLS LAST`, asc(gear.name)];
     }
