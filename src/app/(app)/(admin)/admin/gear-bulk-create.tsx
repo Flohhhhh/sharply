@@ -486,13 +486,11 @@ export default function GearBulkCreate(): React.JSX.Element {
 
   const scopedMountOptions = React.useMemo(() => {
     if (!brandId) return mountOptions;
-    const seen = new Set<string>();
     const preferred: MountOption[] = [];
     const neutral: MountOption[] = [];
     const others: MountOption[] = [];
 
     for (const m of mountOptions) {
-      if (seen.has(m.id)) continue;
       if (m.brandId === brandId) {
         preferred.push(m);
       } else if (m.brandId === null) {
@@ -500,7 +498,6 @@ export default function GearBulkCreate(): React.JSX.Element {
       } else {
         others.push(m);
       }
-      seen.add(m.id);
     }
 
     return [...preferred, ...neutral, ...others];

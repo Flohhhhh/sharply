@@ -209,7 +209,7 @@ export async function createGearData(
     if (m.length === 0) {
       throw new Error("Invalid mount");
     }
-    mountRow = m[0] ?? null;
+    mountRow = m[0];
   }
 
   // Ensure brand is prefixed in display name
