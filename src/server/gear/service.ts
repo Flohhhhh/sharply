@@ -444,6 +444,10 @@ export async function listUnderConstruction(
       sensorFormatId: string | null;
       resolutionMp: number | string | null;
     } | null;
+    analogCameraSpecs: {
+      cameraType: string | null;
+      captureMedium: string | null;
+    } | null;
     lensSpecs: {
       isPrime: boolean | null;
       focalLengthMinMm: number | null;
@@ -464,6 +468,13 @@ export async function listUnderConstruction(
             resolutionMp: r.camera_resolutionMp,
           }
         : null;
+    const analogCameraSpecs =
+      r.gearType === "ANALOG_CAMERA"
+        ? {
+            cameraType: r.analog_cameraType,
+            captureMedium: r.analog_captureMedium,
+          }
+        : null;
     const lensSpecs =
       r.gearType === "LENS"
         ? {
@@ -474,7 +485,7 @@ export async function listUnderConstruction(
           }
         : null;
     const fixedLensSpecs =
-      r.gearType === "CAMERA"
+      r.gearType === "CAMERA" || r.gearType === "ANALOG_CAMERA"
         ? {
             focalLengthMinMm: r.fixed_focalMin,
             focalLengthMaxMm: r.fixed_focalMax,
@@ -489,6 +500,7 @@ export async function listUnderConstruction(
       mountId: r.mountId,
       mountIds: r.mountIds,
       cameraSpecs,
+      analogCameraSpecs,
       lensSpecs,
       fixedLensSpecs,
     };
@@ -511,8 +523,10 @@ export async function listUnderConstruction(
       }
     };
     if (src.cameraAll && it.gearType === "CAMERA") countObject(src.cameraAll);
+    if (src.analogAll && it.gearType === "ANALOG_CAMERA")
+      countObject(src.analogAll);
     if (src.lensAll && it.gearType === "LENS") countObject(src.lensAll);
-    if (src.fixedAll && it.gearType === "CAMERA") countObject(src.fixedAll);
+    if (src.fixedAll && it.gearType !== "LENS") countObject(src.fixedAll);
     // include brand/mount core
     const coreValues = [it.brandId, it.mountId];
     totalFields += coreValues.length;

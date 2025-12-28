@@ -6,7 +6,7 @@ import React from "react";
 
 interface SignInToEditSpecsCtaProps {
   slug: string;
-  gearType: "CAMERA" | "LENS";
+  gearType: "CAMERA" | "ANALOG_CAMERA" | "LENS";
 }
 
 export function SignInToEditSpecsCta({
