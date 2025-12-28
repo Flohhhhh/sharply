@@ -25,6 +25,7 @@ import { ShowUserCardButton } from "~/app/(app)/(pages)/u/_components/ShowUserCa
 import type { GearItem } from "~/types/gear";
 import { getBrandNameById } from "~/lib/mapping/brand-map";
 import { CollectionContainer } from "~/app/(app)/(pages)/u/_components/collection/collection-container";
+import { CollectionCard } from "~/app/(app)/(pages)/u/_components/collection/collection-card";
 
 interface UserProfilePageProps {
   params: Promise<{
@@ -125,9 +126,9 @@ export default async function UserProfilePage({
 
           <div className="md:hidden">
             {sortedOwnedItems.length > 0 ? (
-              <div className="grid grid-cols-1 gap-1">
+              <div className="grid grid-cols-2 gap-6">
                 {sortedOwnedItems.map((item) => (
-                  <GearCard key={item.id} item={item} />
+                  <CollectionCard key={item.id} item={item} isOwner={myProfile} />
                 ))}
               </div>
             ) : (
