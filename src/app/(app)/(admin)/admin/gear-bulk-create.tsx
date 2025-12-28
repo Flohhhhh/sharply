@@ -48,7 +48,7 @@ import { parseSingleColumnCsv } from "~/lib/utils/csv";
 type Brand = { id: string; name: string };
 type GearType = "CAMERA" | "LENS";
 type MountOption = { id: string; name: string; brandId: string | null };
-type GeneratedMount = { id: string; value: string; brand_id: string | null };
+type GeneratedMount = (typeof MOUNTS)[number];
 
 type RowValidation = {
   slugPreview: string;
@@ -467,7 +467,7 @@ export default function GearBulkCreate(): React.JSX.Element {
   );
   const mountOptions = React.useMemo<MountOption[]>(
     () =>
-      (MOUNTS as GeneratedMount[]).map((m) => ({
+      (MOUNTS as readonly GeneratedMount[]).map((m) => ({
         id: m.id,
         name: getMountLongName(m.value),
         brandId: m.brand_id ?? null,
@@ -487,28 +487,23 @@ export default function GearBulkCreate(): React.JSX.Element {
   const scopedMountOptions = React.useMemo(() => {
     if (!brandId) return mountOptions;
     const seen = new Set<string>();
-    const ordered: MountOption[] = [];
+    const preferred: MountOption[] = [];
+    const neutral: MountOption[] = [];
+    const others: MountOption[] = [];
 
     for (const m of mountOptions) {
-      if (m.brandId === brandId && !seen.has(m.id)) {
-        ordered.push(m);
-        seen.add(m.id);
+      if (seen.has(m.id)) continue;
+      if (m.brandId === brandId) {
+        preferred.push(m);
+      } else if (m.brandId === null) {
+        neutral.push(m);
+      } else {
+        others.push(m);
       }
-    }
-    for (const m of mountOptions) {
-      if (m.brandId === null && !seen.has(m.id)) {
-        ordered.push(m);
-        seen.add(m.id);
-      }
-    }
-    for (const m of mountOptions) {
-      if (m.brandId !== brandId && m.brandId !== null && !seen.has(m.id)) {
-        ordered.push(m);
-        seen.add(m.id);
-      }
+      seen.add(m.id);
     }
 
-    return ordered;
+    return [...preferred, ...neutral, ...others];
   }, [brandId, mountOptions]);
 
   // Brands come from generated constants
@@ -633,6 +628,7 @@ export default function GearBulkCreate(): React.JSX.Element {
         }
         updateRow(r.id, { status: "creating" });
         try {
+          const trimmedMountId = r.mountId.trim();
           const { actionCreateGear } = await import(
             "~/server/admin/gear/actions"
           );
@@ -641,7 +637,12 @@ export default function GearBulkCreate(): React.JSX.Element {
             modelNumber: r.modelNumber.trim() || undefined,
             brandId,
             gearType: gearType as "CAMERA" | "LENS",
-            mountId: gearType === "LENS" ? r.mountId || undefined : undefined,
+            mountId:
+              gearType === "LENS"
+                ? trimmedMountId
+                  ? trimmedMountId
+                  : undefined
+                : undefined,
             force: r.proceedAnyway,
           });
           updateRow(r.id, { status: "created", createdSlug: result.slug });

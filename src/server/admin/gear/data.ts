@@ -258,7 +258,6 @@ export async function createGearData(
         gearType,
         brandId,
         modelNumber: modelNumber || null,
-        mountId: mountRow?.id ?? null,
         linkManufacturer: linkManufacturer || null,
         linkMpb: linkMpb || null,
         linkAmazon: linkAmazon || null,
