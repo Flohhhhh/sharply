@@ -146,6 +146,7 @@ export default async function UserProfilePage({
             className="hidden md:block"
             items={sortedOwnedItems}
             user={user}
+            isOwner={myProfile}
           />
         </div>
 

@@ -4,17 +4,30 @@ import { CircleQuestionMark, EyeIcon, TrashIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "~/components/ui/alert-dialog";
 import { actionToggleOwnership } from "~/server/gear/actions";
 import type { GearItem } from "~/types/gear";
 import { toast } from "sonner";
 
-export function CollectionCard(props: { item: GearItem }) {
-  const { item } = props;
+export function CollectionCard(props: { item: GearItem; isOwner?: boolean }) {
+  const { item, isOwner = false } = props;
   const [removing, setRemoving] = useState<boolean>(false);
+  const [dialogOpen, setDialogOpen] = useState<boolean>(false);
 
   const handleRemove = async () => {
     if (removing) return;
     setRemoving(true);
+    setDialogOpen(false);
     const promise = actionToggleOwnership(item.slug, "remove");
     toast.promise(promise, {
       loading: "Removing from collection...",
@@ -52,14 +65,40 @@ export function CollectionCard(props: { item: GearItem }) {
           >
             <Link href={`/gear/${item.slug}`}>View</Link>
           </Button>
-          <Button
-            variant="outline"
-            onClick={handleRemove}
-            icon={<TrashIcon className="h-4 w-4" />}
-            className="pointer-events-auto hover:cursor-pointer"
-          >
-            Remove
-          </Button>
+          {isOwner && (
+            <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  icon={<TrashIcon className="h-4 w-4" />}
+                  className="pointer-events-auto hover:cursor-pointer"
+                  disabled={removing}
+                >
+                  Remove
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Remove from collection?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to remove "{item.name}" from your
+                    collection? This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={removing}>
+                    Cancel
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleRemove}
+                    disabled={removing}
+                  >
+                    Remove
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
         </div>
       </div>
       <div className="text-foreground max-w-[240px] text-2xl leading-snug font-semibold">

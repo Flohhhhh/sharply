@@ -46,8 +46,8 @@ function splitItemsByRowCounts<T>(items: T[], rowCounts: number[]) {
   return rows;
 }
 
-export function CollectionGrid(props: { items: GearItem[] }) {
-  const { items } = props;
+export function CollectionGrid(props: { items: GearItem[]; isOwner?: boolean }) {
+  const { items, isOwner = false } = props;
 
   const rows = useMemo(() => {
     const itemCount = items.length;
@@ -69,7 +69,7 @@ export function CollectionGrid(props: { items: GearItem[] }) {
         >
           {rowItems.map((item) => (
             <div key={item.id} className="w-full md:w-auto">
-              <CollectionCard item={item} />
+              <CollectionCard item={item} isOwner={isOwner} />
             </div>
           ))}
         </div>

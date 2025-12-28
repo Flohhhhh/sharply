@@ -26,8 +26,9 @@ export function CollectionContainer(props: {
   items: GearItem[];
   user: User;
   className?: string;
+  isOwner?: boolean;
 }) {
-  const { items, user, className } = props;
+  const { items, user, className, isOwner = false } = props;
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [scale, setScale] = useState(1);
@@ -151,7 +152,7 @@ export function CollectionContainer(props: {
           }}
           className="bg-accent/20 relative mx-auto flex flex-col justify-center border"
         >
-          <CollectionGrid items={items} />
+          <CollectionGrid items={items} isOwner={isOwner} />
         </div>
         <div className="absolute top-6 right-6 left-6 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
