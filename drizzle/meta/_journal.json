@@ -344,6 +344,13 @@
       "when": 1766871111445,
       "tag": "0048_careful_quicksilver",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1766929728636,
+      "tag": "0049_naive_patch",
+      "breakpoints": true
     }
   ]
 }

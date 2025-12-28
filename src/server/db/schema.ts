@@ -684,6 +684,8 @@ export const cameraSpecs = appSchema.table(
     has10BitVideo: boolean("has_10_bit_video"),
     has12BitVideo: boolean("has_12_bit_video"),
     hasOpenGateVideo: boolean("has_open_gate_video"),
+    supportsExternalRecording: boolean("supports_external_recording"),
+    supportsRecordToDrive: boolean("supports_record_to_drive"),
     // misc
     hasIntervalometer: boolean("has_intervalometer"),
     hasSelfTimer: boolean("has_self_timer"),

@@ -317,6 +317,8 @@ function EditGearForm({
         "has10BitVideo",
         "has12BitVideo",
         "hasOpenGateVideo",
+        "supportsExternalRecording",
+        "supportsRecordToDrive",
         "hasIntervalometer",
         "hasSelfTimer",
         "hasBuiltInFlash",

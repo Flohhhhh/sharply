@@ -1269,6 +1269,36 @@ function CameraFieldsComponent({
             />
           )}
 
+          {/* Supports External Recording */}
+          {showWhenMissing(
+            (initialSpecs as any)?.supportsExternalRecording,
+          ) && (
+            <BooleanInput
+              id="supportsExternalRecording"
+              label="Supports External Recording"
+              checked={currentSpecs?.supportsExternalRecording ?? null}
+              allowNull
+              showStateText
+              onChange={(value) =>
+                handleFieldChange("supportsExternalRecording", value)
+              }
+            />
+          )}
+
+          {/* Supports Recording to Drive */}
+          {showWhenMissing((initialSpecs as any)?.supportsRecordToDrive) && (
+            <BooleanInput
+              id="supportsRecordToDrive"
+              label="Supports Recording to Drive"
+              checked={currentSpecs?.supportsRecordToDrive ?? null}
+              allowNull
+              showStateText
+              onChange={(value) =>
+                handleFieldChange("supportsRecordToDrive", value)
+              }
+            />
+          )}
+
           {shouldShowVideoModes && (
             <VideoModesManager
               value={gearItem.videoModes ?? []}

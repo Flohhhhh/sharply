@@ -872,6 +872,20 @@ export const specDictionary: SpecSectionDef[] = [
         formatDisplay: (raw) =>
           typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
+      {
+        key: "supportsExternalRecording",
+        label: "Supports External Recording",
+        getRawValue: (item) => item.cameraSpecs?.supportsExternalRecording,
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+      },
+      {
+        key: "supportsRecordToDrive",
+        label: "Supports Recording to Drive",
+        getRawValue: (item) => item.cameraSpecs?.supportsRecordToDrive,
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+      },
     ],
   },
 
