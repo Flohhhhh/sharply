@@ -632,17 +632,14 @@ export default function GearBulkCreate(): React.JSX.Element {
           const { actionCreateGear } = await import(
             "~/server/admin/gear/actions"
           );
+          const mountIdValue =
+            gearType === "LENS" && trimmedMountId ? trimmedMountId : undefined;
           const result = await actionCreateGear({
             name,
             modelNumber: r.modelNumber.trim() || undefined,
             brandId,
             gearType: gearType as "CAMERA" | "LENS",
-            mountId:
-              gearType === "LENS"
-                ? trimmedMountId
-                  ? trimmedMountId
-                  : undefined
-                : undefined,
+            mountId: mountIdValue,
             force: r.proceedAnyway,
           });
           updateRow(r.id, { status: "created", createdSlug: result.slug });
