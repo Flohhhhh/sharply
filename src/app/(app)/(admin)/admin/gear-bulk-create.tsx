@@ -21,7 +21,7 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { Badge } from "~/components/ui/badge";
-import { BRANDS, MOUNTS } from "~/lib/constants";
+import { BRANDS } from "~/lib/constants";
 import {
   isBrandNameOnly as isBrandOnlyName,
   getNameSoftWarnings,
@@ -34,7 +34,7 @@ import {
 } from "~/components/ui/collapsible";
 import { useState, useEffect } from "react";
 import { z } from "zod";
-import { getMountLongName } from "~/lib/mapping/mounts-map";
+import { MountSelect } from "~/components/custom-inputs/mount-select";
 import {
   Dialog,
   DialogContent,
@@ -47,8 +47,6 @@ import { parseSingleColumnCsv } from "~/lib/utils/csv";
 
 type Brand = { id: string; name: string };
 type GearType = "CAMERA" | "LENS";
-type MountOption = { id: string; name: string; brandId: string | null };
-type GeneratedMount = (typeof MOUNTS)[number];
 
 type RowValidation = {
   slugPreview: string;
@@ -61,7 +59,7 @@ type RowState = {
   id: string;
   name: string;
   modelNumber: string;
-  mountId: string;
+  mountIds: string[];
   validation: RowValidation | null;
   proceedAnyway: boolean;
   status: "idle" | "blocked" | "creating" | "created" | "error" | "pending";
@@ -90,7 +88,6 @@ type BulkCreateRowProps = {
   brandId: string;
   gearType: GearType | "";
   canEditRows: boolean;
-  mountOptions: MountOption[];
   updateRow: (id: string, patch: Partial<RowState>) => void;
   removeRow: (id: string) => void;
 };
@@ -100,7 +97,6 @@ function BulkCreateRow({
   brandId,
   gearType,
   canEditRows,
-  mountOptions,
   updateRow,
   removeRow,
 }: BulkCreateRowProps): React.JSX.Element {
@@ -166,7 +162,7 @@ function BulkCreateRow({
   const isSoftOnly = softWarn && !hardBlocked && !fuzzyWarn;
   const isReviewed = row.proceedAnyway || !isFailing;
   const hasValidationIssues = hardBlocked || fuzzyWarn || softWarn;
-  const columnCount = gearType === "LENS" ? 6 : 5;
+  const columnCount = gearType ? 6 : 5;
 
   return (
     <>
@@ -196,24 +192,21 @@ function BulkCreateRow({
             disabled={!canEditRows || row.status === "created"}
           />
         </TableCell>
-        {gearType === "LENS" && (
+        {gearType && (
           <TableCell>
-            <Select
-              value={row.mountId}
-              onValueChange={(v) => updateRow(row.id, { mountId: v })}
+            <MountSelect
+              mode={gearType === "LENS" ? "multiple" : "single"}
+              value={gearType === "LENS" ? row.mountIds : row.mountIds[0] || ""}
+              onChange={(val) => {
+                const next = Array.isArray(val) ? val : val ? [val] : [];
+                updateRow(row.id, { mountIds: next });
+              }}
+              brandId={brandId || undefined}
+              placeholder="Optional"
               disabled={!canEditRows || row.status === "created"}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Optional" />
-              </SelectTrigger>
-              <SelectContent>
-                {mountOptions.map((mount) => (
-                  <SelectItem key={mount.id} value={mount.id}>
-                    {mount.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              showLabel={false}
+              className="w-full"
+            />
           </TableCell>
         )}
         <TableCell>
@@ -465,15 +458,6 @@ export default function GearBulkCreate(): React.JSX.Element {
     () => BRANDS.map((b) => ({ id: b.id, name: b.name })),
     [],
   );
-  const mountOptions = React.useMemo<MountOption[]>(
-    () =>
-      (MOUNTS as readonly GeneratedMount[]).map((m) => ({
-        id: m.id,
-        name: getMountLongName(m.value),
-        brandId: m.brand_id ?? null,
-      })),
-    [],
-  );
   const [brandId, setBrandId] = React.useState<string>("");
   const [gearType, setGearType] = React.useState<GearType | "">("");
   const [rows, setRows] = React.useState<RowState[]>([]);
@@ -483,25 +467,6 @@ export default function GearBulkCreate(): React.JSX.Element {
   const [successCount, setSuccessCount] = useState(0);
   const [isCsvOpen, setIsCsvOpen] = useState(false);
   const [csvText, setCsvText] = useState("");
-
-  const scopedMountOptions = React.useMemo(() => {
-    if (!brandId) return mountOptions;
-    const preferred: MountOption[] = [];
-    const neutral: MountOption[] = [];
-    const others: MountOption[] = [];
-
-    for (const m of mountOptions) {
-      if (m.brandId === brandId) {
-        preferred.push(m);
-      } else if (m.brandId === null) {
-        neutral.push(m);
-      } else {
-        others.push(m);
-      }
-    }
-
-    return [...preferred, ...neutral, ...others];
-  }, [brandId, mountOptions]);
 
   // Brands come from generated constants
 
@@ -541,7 +506,7 @@ export default function GearBulkCreate(): React.JSX.Element {
       id: crypto.randomUUID(),
       name: "",
       modelNumber: "",
-      mountId: "",
+      mountIds: [],
       validation: null,
       proceedAnyway: false,
       status: "pending",
@@ -581,7 +546,7 @@ export default function GearBulkCreate(): React.JSX.Element {
           id: crypto.randomUUID(),
           name,
           modelNumber: "",
-          mountId: "",
+          mountIds: [],
           validation: null,
           proceedAnyway: false,
           status: "pending",
@@ -625,18 +590,17 @@ export default function GearBulkCreate(): React.JSX.Element {
         }
         updateRow(r.id, { status: "creating" });
         try {
-          const trimmedMountId = r.mountId.trim();
-          const { actionCreateGear } = await import(
-            "~/server/admin/gear/actions"
-          );
-          const mountIdValue =
-            gearType === "LENS" && trimmedMountId ? trimmedMountId : undefined;
+          const { actionCreateGear } =
+            await import("~/server/admin/gear/actions");
+          const trimmedMountIds = r.mountIds
+            .map((id) => id.trim())
+            .filter((id) => id.length > 0);
           const result = await actionCreateGear({
             name,
             modelNumber: r.modelNumber.trim() || undefined,
             brandId,
             gearType: gearType as "CAMERA" | "LENS",
-            mountId: mountIdValue,
+            mountIds: trimmedMountIds.length > 0 ? trimmedMountIds : undefined,
             force: r.proceedAnyway,
           });
           updateRow(r.id, { status: "created", createdSlug: result.slug });
@@ -764,9 +728,7 @@ export default function GearBulkCreate(): React.JSX.Element {
                 <TableRow>
                   <TableHead className="w-[30%]">Name</TableHead>
                   <TableHead className="w-[20%]">Model Number</TableHead>
-                  {gearType === "LENS" && (
-                    <TableHead className="w-[20%]">Mount</TableHead>
-                  )}
+                  {gearType && <TableHead className="w-[20%]">Mount</TableHead>}
                   <TableHead className="w-[20%]">Slug Preview</TableHead>
                   <TableHead className="w-[20%]">Validation</TableHead>
                   <TableHead className="w-[10%]">Actions</TableHead>
@@ -776,7 +738,7 @@ export default function GearBulkCreate(): React.JSX.Element {
                 {rows.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={gearType === "LENS" ? 6 : 5}
+                      colSpan={gearType ? 6 : 5}
                       className="text-muted-foreground text-center text-sm"
                     >
                       {isSuccess
@@ -792,7 +754,6 @@ export default function GearBulkCreate(): React.JSX.Element {
                       brandId={brandId}
                       gearType={gearType}
                       canEditRows={canEditRows}
-                      mountOptions={scopedMountOptions}
                       updateRow={updateRow}
                       removeRow={removeRow}
                     />

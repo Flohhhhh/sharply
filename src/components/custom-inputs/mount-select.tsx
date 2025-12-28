@@ -13,6 +13,7 @@ import {
 import MultiSelect from "~/components/ui/multi-select";
 import { MOUNTS, BRANDS } from "~/lib/constants";
 import { getMountLongName } from "~/lib/mapping/mounts-map";
+import { cn } from "~/lib/utils";
 
 interface MountSelectProps {
   value: string | string[] | null;
@@ -20,6 +21,10 @@ interface MountSelectProps {
   mode?: "single" | "multiple";
   label?: string;
   placeholder?: string;
+  brandId?: string | null;
+  disabled?: boolean;
+  showLabel?: boolean;
+  className?: string;
 }
 
 export function MountSelect({
@@ -28,6 +33,10 @@ export function MountSelect({
   mode = "single",
   label = "Mount",
   placeholder,
+  brandId,
+  disabled,
+  showLabel = true,
+  className,
 }: MountSelectProps) {
   const brandIdToName = useMemo(() => {
     const map = new Map<string, string>();
@@ -37,27 +46,28 @@ export function MountSelect({
     return map;
   }, []);
 
-  const optionsWithBrand = useMemo(
-    () =>
-      (MOUNTS as any[]).map((mount: any) => {
-        const brandId = (mount as any).brand_id as string | undefined;
-        const brandName = (brandId && brandIdToName.get(brandId)) || "Other";
-        const createdAtStr = (mount as any).created_at as string | undefined;
-        const createdAtMs = createdAtStr ? new Date(createdAtStr).getTime() : 0;
-        return {
-          id: (mount as any).id as string,
-          name: getMountLongName((mount as any).value as string),
-          brandName,
-          createdAtMs,
-        } as {
-          id: string;
-          name: string;
-          brandName: string;
-          createdAtMs: number;
-        };
-      }),
-    [brandIdToName],
-  );
+  const optionsWithBrand = useMemo(() => {
+    return (MOUNTS as any[]).map((mount: any) => {
+      const mountBrandId = (mount as any).brand_id as string | undefined | null;
+      const brandName =
+        (mountBrandId && brandIdToName.get(mountBrandId)) || "Other";
+      const createdAtStr = (mount as any).created_at as string | undefined;
+      const createdAtMs = createdAtStr ? new Date(createdAtStr).getTime() : 0;
+      return {
+        id: (mount as any).id as string,
+        name: getMountLongName((mount as any).value as string),
+        brandName,
+        createdAtMs,
+        rawBrandId: mountBrandId ?? null,
+      } as {
+        id: string;
+        name: string;
+        brandName: string;
+        createdAtMs: number;
+        rawBrandId: string | null;
+      };
+    });
+  }, [brandIdToName]);
 
   // Custom brand priority order, then alphabetical for the rest
   const brandPriority = useMemo(
@@ -116,9 +126,13 @@ export function MountSelect({
     const singleValue = Array.isArray(value) ? value[0] || "" : value || "";
 
     return (
-      <div id="mount" className="space-y-2">
-        <Label htmlFor="mount">{label}</Label>
-        <Select value={singleValue} onValueChange={(val) => onChange(val)}>
+      <div id="mount" className={cn("space-y-2", className)}>
+        {showLabel && <Label htmlFor="mount">{label}</Label>}
+        <Select
+          value={singleValue}
+          onValueChange={(val) => onChange(val)}
+          disabled={disabled}
+        >
           <SelectTrigger id="mount" className="w-full">
             <SelectValue placeholder={placeholder || "Select mount"} />
           </SelectTrigger>
@@ -143,15 +157,17 @@ export function MountSelect({
   const multiValue = Array.isArray(value) ? value : value ? [value] : [];
 
   return (
-    <div id="mount" className="space-y-2">
-      <Label>{label}</Label>
-      <MultiSelect
-        options={orderedOptions as any}
-        value={multiValue}
-        onChange={(ids) => onChange(ids)}
-        placeholder={placeholder || "Select compatible mounts..."}
-        searchPlaceholder="Search mounts..."
-      />
+    <div id="mount" className={cn("space-y-2", className)}>
+      {showLabel && <Label>{label}</Label>}
+      <div className={disabled ? "pointer-events-none opacity-60" : undefined}>
+        <MultiSelect
+          options={orderedOptions as any}
+          value={multiValue}
+          onChange={(ids) => onChange(ids)}
+          placeholder={placeholder || "Select compatible mounts..."}
+          searchPlaceholder="Search mounts..."
+        />
+      </div>
     </div>
   );
 }
