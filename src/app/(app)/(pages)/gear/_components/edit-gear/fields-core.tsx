@@ -302,10 +302,6 @@ function CoreFieldsComponent({
       // Single-select expects a single id string
       if (mountIdsArray !== undefined) return mountIdsArray[0] ?? "";
       if (hasExplicitClear) return "";
-      const firstFromArray = Array.isArray(currentSpecs.mountIds)
-        ? currentSpecs.mountIds[0]
-        : undefined;
-      if (firstFromArray) return firstFromArray;
       // Fallback to legacy mountId for existing records
       return (currentSpecs.mountId as string | undefined) || "";
     }
@@ -314,7 +310,7 @@ function CoreFieldsComponent({
     if (mountIdsArray !== undefined) return mountIdsArray;
     if (hasExplicitClear) return [];
     const fromLegacy = currentSpecs.mountId ? [currentSpecs.mountId] : [];
-    return Array.from(new Set<string>(fromLegacy));
+    return fromLegacy;
   }, [currentSpecs.mountIds, currentSpecs.mountId, gearType]);
 
   // Genres options and values
