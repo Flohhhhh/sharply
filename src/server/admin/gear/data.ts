@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, ilike, eq, sql, desc, count, ne, or } from "drizzle-orm";
+import { and, ilike, eq, sql, desc, count, ne, or, inArray } from "drizzle-orm";
 import { db } from "~/server/db";
 import {
   gear,
@@ -8,6 +8,8 @@ import {
   cameraSpecs,
   lensSpecs,
   auditLogs,
+  gearMounts,
+  mounts,
 } from "~/server/db/schema";
 import { normalizeSearchName } from "~/lib/utils";
 import { normalizeFuzzyTokens } from "~/lib/utils/fuzzy";
@@ -162,6 +164,12 @@ export interface GearCreationParams {
   brandId: string;
   gearType: GearType;
   modelNumber?: string;
+  /**
+   * Optional mounts to associate. Multi-mount is supported via the junction
+   * table; mountId is deprecated in favor of mountIds.
+   */
+  mountIds?: string[];
+  mountId?: string;
   linkManufacturer?: string;
   linkMpb?: string;
   linkAmazon?: string;
@@ -181,6 +189,8 @@ export async function createGearData(
     brandId,
     gearType,
     modelNumber,
+    mountIds,
+    mountId,
     linkManufacturer,
     linkMpb,
     linkAmazon,
@@ -194,6 +204,25 @@ export async function createGearData(
     .limit(1);
   if (b.length === 0) {
     throw new Error("Invalid brand");
+  }
+
+  const requestedMountIds = mountIds ?? (mountId ? [mountId] : []);
+  const normalizedMountIds = Array.from(
+    new Set(
+      requestedMountIds
+        .map((m) => m.trim())
+        .filter((m): m is string => m.length > 0),
+    ),
+  );
+
+  if (normalizedMountIds.length > 0) {
+    const found = await db
+      .select({ id: mounts.id })
+      .from(mounts)
+      .where(inArray(mounts.id, normalizedMountIds));
+    if (found.length !== normalizedMountIds.length) {
+      throw new Error("Invalid mount");
+    }
   }
 
   // Ensure brand is prefixed in display name
@@ -250,6 +279,17 @@ export async function createGearData(
       .returning({ id: gear.id, slug: gear.slug });
 
     const createdGear = inserted[0]!;
+
+    if (normalizedMountIds.length > 0) {
+      await tx
+        .insert(gearMounts)
+        .values(
+          normalizedMountIds.map((id) => ({
+            gearId: createdGear.id,
+            mountId: id,
+          })),
+        );
+    }
 
     // Create an empty specs row matching the gear type
     if (gearType === "CAMERA") {
