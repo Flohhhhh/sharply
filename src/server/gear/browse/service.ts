@@ -17,12 +17,22 @@ const gearCategoryLabels = {
   cameras: "Cameras",
   lenses: "Lenses",
 } as const;
+
+type LoadHubDataResult = {
+  depth: 0 | 1 | 2 | 3;
+  scope: RouteScope;
+  brand?: { id: string; name: string; slug: string } | null;
+  mount?: { id: string; shortName: string | null; value: string } | null;
+  lists: SearchGearResult;
+  filters: BrowseFilters;
+};
 import {
   getBrandBySlug,
   getMountByShortName,
   searchGear,
   getReleaseOrderedGearPage,
 } from "./data";
+import type { SearchGearResult } from "./data";
 import { LENS_FOCAL_LENGTH_SORT } from "./lens-sort";
 import type { BrowseFeedPage } from "~/types/browse";
 
@@ -59,7 +69,7 @@ export async function resolveScopeOrThrow(segments: string[]): Promise<{
 export async function loadHubData(params: {
   segments: string[];
   searchParams: Record<string, string | string[] | undefined>;
-}) {
+}): Promise<LoadHubDataResult> {
   const { depth, scope, brand, mount } = await resolveScopeOrThrow(
     params.segments,
   );

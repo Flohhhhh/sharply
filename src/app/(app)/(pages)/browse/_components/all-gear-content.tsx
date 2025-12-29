@@ -11,6 +11,7 @@ import { ReleaseFeedGrid } from "./release-feed-grid";
 import { BrowseResultsGrid, type BrowseListPage } from "./browse-results-grid";
 import type { BrowseFilters } from "~/lib/browse/filters";
 import { loadHubData } from "~/server/gear/browse/service";
+import type { SearchGearResult } from "~/server/gear/browse/data";
 
 export default async function AllGearContent({
   brandSlug,
@@ -199,7 +200,7 @@ async function ensureBrowseData(params: {
 }
 
 function buildInitialPage(
-  lists: { items: any[]; total: number },
+  lists: SearchGearResult,
   filters: BrowseFilters,
 ): BrowseListPage {
   return {

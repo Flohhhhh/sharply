@@ -29,6 +29,26 @@ import {
   lensFocalLengthSortExpression,
 } from "./lens-sort";
 
+export type BrowseGearRow = {
+  id: string;
+  slug: string;
+  name: string;
+  brandId: string;
+  brandName: string | null;
+  gearType: string | null;
+  thumbnailUrl: string | null;
+  releaseDate: Date | null;
+  msrpNowUsdCents: number | null;
+  mpbMaxPriceUsdCents: number | null;
+  lensFocalLengthMinMm?: number | null;
+  lensFocalLengthMaxMm?: number | null;
+};
+
+export type SearchGearResult = {
+  items: BrowseGearRow[];
+  total: number;
+};
+
 const gearCategoryToTypes: Record<GearCategorySlug, GearType[]> = {
   cameras: ["CAMERA", "ANALOG_CAMERA"],
   lenses: ["LENS"],
@@ -120,7 +140,9 @@ export type SearchInput = {
   filters: BrowseFilters;
 };
 
-export async function searchGear(input: SearchInput) {
+export async function searchGear(
+  input: SearchInput,
+): Promise<SearchGearResult> {
   const where: SQL[] = [];
   if (input.brandId) where.push(eq(gear.brandId, input.brandId));
   if (input.category)
@@ -228,7 +250,10 @@ export async function searchGear(input: SearchInput) {
     where.length ? and(...where) : undefined,
   );
 
-  return { items: rows, total: Number(countRows[0]?.count ?? 0) };
+  return {
+    items: rows as BrowseGearRow[],
+    total: Number(countRows[0]?.count ?? 0),
+  };
 }
 
 export async function getReleaseOrderedGearPage(params: {

@@ -12,6 +12,7 @@ import {
   type BrowseListPage,
 } from "../_components/browse-results-grid";
 import type { BrowseFilters } from "~/lib/browse/filters";
+import type { SearchGearResult } from "~/server/gear/browse/data";
 
 export const dynamicParams = true;
 
@@ -181,7 +182,7 @@ export default async function BrowseCatchAll({
 }
 
 function buildInitialPage(
-  lists: { items: any[]; total: number },
+  lists: SearchGearResult,
   filters: BrowseFilters,
 ): BrowseListPage {
   return {
