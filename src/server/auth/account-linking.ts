@@ -1,9 +1,11 @@
 import "server-only";
 
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
+import { headers } from "next/headers";
 
 import { db } from "~/server/db";
 import { accounts } from "~/server/db/schema";
+import { auth } from "~/auth";
 
 export const SUPPORTED_PROVIDERS = ["discord", "google"] as const;
 
@@ -21,42 +23,43 @@ const emptyLinkedMap = (): LinkedAccountMap => ({
   google: null,
 });
 
+// fetch linked accounts for a user
 export async function fetchLinkedAccountsForUser(
-  userId: string,
+  _userId: string,
 ): Promise<LinkedAccountMap> {
-  const rows = await db
-    .select({
-      provider: accounts.provider,
-      providerAccountId: accounts.providerAccountId,
-    })
-    .from(accounts)
-    .where(
-      and(
-        eq(accounts.userId, userId),
-        inArray(accounts.provider, [...SUPPORTED_PROVIDERS]),
-      ),
-    );
-
   const result = emptyLinkedMap();
+
+  const apiResult: unknown = await auth.api.listUserAccounts({
+    headers: await headers(),
+  });
+
+  if (
+    apiResult &&
+    !Array.isArray(apiResult) &&
+    (apiResult as { error?: unknown }).error
+  ) {
+    return result;
+  }
+
+  const rows = Array.isArray(apiResult)
+    ? apiResult
+    : Array.isArray((apiResult as { data?: unknown }).data)
+      ? ((apiResult as { data: unknown[] }).data as Array<{
+          providerId: string;
+          accountId: string;
+        }>)
+      : [];
+
   for (const row of rows) {
-    const provider = row.provider as SupportedProvider;
-    // Only keep the first match per provider; the database schema enforces a single account per provider.
+    const provider = row.providerId as SupportedProvider;
+    if (provider !== "discord" && provider !== "google") continue;
+    // Only keep the first match per provider; UI enforces a single account per provider.
     if (!result[provider]) {
       result[provider] = {
         provider,
-        providerAccountId: row.providerAccountId,
+        providerAccountId: row.accountId,
       };
     }
   }
   return result;
 }
-
-export async function unlinkProviderAccount(
-  userId: string,
-  provider: SupportedProvider,
-) {
-  await db
-    .delete(accounts)
-    .where(and(eq(accounts.userId, userId), eq(accounts.provider, provider)));
-}
-

@@ -2,10 +2,11 @@ import EditGearClient from "~/app/(app)/(pages)/gear/_components/edit-gear/edit-
 import { fetchGearBySlug } from "~/server/gear/service";
 import type { GearItem, GearType } from "~/types/gear";
 import { ENUMS } from "~/lib/constants";
-import { auth } from "~/server/auth";
+import { auth } from "~/auth";
 import { fetchPendingEditId } from "~/server/gear/service";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 
 interface EditGearPageProps {
   params: Promise<{
@@ -37,14 +38,16 @@ export default async function EditGearPage({
   ]);
 
   // Require authentication: if not signed in, send to login and return here
-  const session = await auth();
-  if (!session?.user?.id) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session) {
     const editUrl = `/gear/${slug}/edit${type ? `?type=${type}` : ""}`;
-    redirect(`/api/auth/signin?callbackUrl=${encodeURIComponent(editUrl)}`);
+    redirect(`/auth/signin?callbackUrl=${encodeURIComponent(editUrl)}`);
   }
 
   // Prevent duplicate submissions: redirect back if user already has a pending edit
-  if (session?.user?.id) {
+  if (session?.user) {
     const pendingId = await fetchPendingEditId(slug).catch(() => null);
     if (pendingId) {
       redirect(`/gear/${slug}?editAlreadyPending=1&id=${pendingId}`);

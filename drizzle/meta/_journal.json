@@ -351,6 +351,13 @@
       "when": 1766929728636,
       "tag": "0049_naive_patch",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1767022800564,
+      "tag": "0050_premium_captain_flint",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,5 @@
-import { auth, requireRole, type UserRole } from "~/server/auth";
+import { requireRole } from "~/lib/auth/auth-helpers";
+import { auth } from "~/auth";
 import { redirect } from "next/navigation";
 import { listInvites } from "~/server/invites/service";
 import { actionCreateInvite } from "~/server/invites/actions";
@@ -17,13 +18,17 @@ import Link from "next/link";
 import { CopyButton } from "./copy-button";
 import { AdminUserList } from "./user-list";
 import { NotificationsTestButton } from "../notifications-test-button";
+import { headers } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
 export default async function PrivateAdminPage() {
-  const session = await auth();
-  if (!session?.user) redirect("/api/auth/signin?callbackUrl=/admin/private");
-  if (!requireRole(session as { user?: { role?: UserRole } }, ["ADMIN"])) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user) redirect("/auth/signin?callbackUrl=/admin/private");
+  if (!requireRole(session.user, ["ADMIN"])) {
     return <div>Access denied.</div>;
   }
 

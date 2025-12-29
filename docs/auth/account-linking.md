@@ -1,9 +1,10 @@
 ## Account Linking Overview
 
-- Supported providers: Discord and Google (conditionally available based on env creds). Each user can link at most one of each.
+- Supported providers: Discord and Google (enabled only when env creds are present). One account per provider per user.
 - Location: `/profile/settings` → “Connected Accounts”.
-- Linking flow: While signed in, clicking “Link {provider}” calls `signIn("provider", { callbackUrl: "/profile/settings" })`.
-  - NextAuth sees the active session and attaches the new provider account to the current user.
-- Unlink flow: “Disconnect” removes the provider’s `account` row for that user. The user record is unchanged; other sign-in methods continue to work. Re-link anytime.
-- Display: Shows connected provider with a green check and “Connected as {user email or provider ID}”. Unlinked providers show an outline button to start linking.
-- Confirmation: Disconnect is gated by an alert dialog explaining loss of that sign-in method until re-linked. If it is the last linked OAuth account, the dialog also warns: “This is your last linked OAuth account. If you continue, you will need to sign in using your email/magic link.”
+- Linking flow: Uses Better Auth `linkSocial` from `~/lib/auth/auth-client`. While signed in, clicking “Link {provider}” calls:
+  - `linkSocial({ provider, callbackURL: "/profile/settings?linked={provider}" })`
+  - Better Auth attaches the provider account to the current session’s user. On return, the page shows a success toast if `linked={provider}` is present.
+- Unlink flow: “Disconnect” calls `unlinkAccount({ providerId, accountId })`. The provider’s account row is removed; the user record remains and other sign-in methods keep working.
+- Display: Connected providers show a green check and “Connected as {user email or provider ID}”. Unlinked providers show an outline button to start linking and note when a provider is unavailable in the current environment.
+- Confirmation: Disconnect is gated by an alert dialog explaining loss of that sign-in method. If it is the last linked OAuth account, the dialog warns: “This is your last linked OAuth account. If you continue, you will need to sign in using your email/magic link.”

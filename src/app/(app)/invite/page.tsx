@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 };
 
 export default function GenericInvitePage() {
-  const signInHref = "/api/auth/signin?callbackUrl=%2Fauth%2Fwelcome";
+  const signInHref = "/auth/signin?callbackUrl=%2Fauth%2Fwelcome";
 
   return (
     <div className="mx-auto flex h-screen flex-col items-center justify-between overflow-hidden py-12">

@@ -10,10 +10,14 @@ import { TopComparePairs } from "./top-compare-pairs";
 import { AdminImageUploader } from "./admin-image-uploader";
 import { fetchAdminReviews } from "~/server/admin/reviews/service";
 import type { GearEditProposal } from "~/types/gear";
-import { auth } from "~/server/auth";
+import { auth } from "~/auth";
+import { headers } from "next/headers";
 
 export default async function AdminPage() {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
   const user = session?.user;
 
   if (!user) {

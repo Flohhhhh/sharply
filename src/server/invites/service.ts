@@ -1,11 +1,11 @@
 import "server-only";
 
-import { cookies } from "next/headers";
-import { revalidatePath } from "next/cache";
-import { and, eq } from "drizzle-orm";
 import { db } from "~/server/db";
-import { auth, requireUser, requireRole, type UserRole } from "~/server/auth";
-import { users } from "~/server/db/schema";
+import { headers } from "next/headers";
+import { auth } from "~/auth";
+import type { AuthUser, UserRole } from "~/auth";
+import { requireRole } from "~/lib/auth/auth-helpers";
+import { getSessionOrThrow } from "~/server/auth";
 import {
   assignUserFromInvite,
   findInviteById,
@@ -20,8 +20,8 @@ export type CreateInviteParams = {
   role: UserRole;
 };
 
-function assertIsAdminOrHigher(role: UserRole | undefined) {
-  if (!role || !requireRole({ user: { role } }, ["ADMIN"])) {
+function assertIsAdminOrHigher(user: AuthUser | undefined) {
+  if (!user || !requireRole(user, ["ADMIN"])) {
     throw new Error("Not authorized");
   }
 }
@@ -29,9 +29,17 @@ function assertIsAdminOrHigher(role: UserRole | undefined) {
 export async function createInvite(
   params: CreateInviteParams,
 ): Promise<InviteRow> {
-  const session = await auth();
-  assertIsAdminOrHigher(session?.user?.role as UserRole | undefined);
-  if (!session?.user?.id) throw new Error("Missing user");
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) {
+    throw new Error("Unauthorized");
+  }
+
+  const user = session?.user;
+
+  assertIsAdminOrHigher(user);
   console.info("[invites] createInvite:start", {
     actorUserId: session.user.id,
     role: params.role,
@@ -45,8 +53,15 @@ export async function createInvite(
 }
 
 export async function listInvites(): Promise<InviteRow[]> {
-  const session = await auth();
-  assertIsAdminOrHigher(session?.user?.role as UserRole | undefined);
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session) {
+    throw new Error("Unauthorized");
+  }
+  const user = session?.user;
+
+  assertIsAdminOrHigher(user);
   console.info("[invites] listInvites", { actorUserId: session?.user?.id });
   const rows = await selectInvites();
   console.info("[invites] listInvites:result", { count: rows.length });
@@ -66,21 +81,24 @@ export async function claimInvite(
   | { ok: true; alreadyUsed?: boolean }
   | { ok: false; reason: "not_found" | "already_used" }
 > {
-  const { user } = await requireUser();
+  const { user } = await getSessionOrThrow();
   console.info("[invites] claimInvite:start", { inviteId, userId: user.id });
   const invite = await findInviteById(inviteId);
   if (!invite) return { ok: false, reason: "not_found" } as const;
   if (invite.isUsed) return { ok: false, reason: "already_used" } as const;
 
   try {
-    await db.transaction(async () => {
-      await assignUserFromInvite({
-        userId: user.id,
-        inviteId: invite.id,
-        name: invite.inviteeName,
-        role: invite.role,
-      });
-      await markInviteUsed(invite.id, user.id);
+    await db.transaction(async (tx) => {
+      await assignUserFromInvite(
+        {
+          userId: user.id,
+          inviteId: invite.id,
+          name: invite.inviteeName,
+          role: invite.role,
+        },
+        tx,
+      );
+      await markInviteUsed(invite.id, user.id, tx);
     });
   } catch (err) {
     console.error("[invites] claimInvite:error", {

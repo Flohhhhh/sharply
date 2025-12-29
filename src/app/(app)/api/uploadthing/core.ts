@@ -1,6 +1,8 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UploadThingError } from "uploadthing/server";
-import { auth } from "~/server/auth";
+import { auth } from "~/auth";
+import { headers } from "next/headers";
+import { requireRole } from "~/lib/auth/auth-helpers";
 
 const f = createUploadthing();
 
@@ -20,16 +22,23 @@ export const ourFileRouter = {
     // Set permissions and file types for this FileRoute
     .middleware(async () => {
       // This code runs on your server before upload
-      const session = await auth();
+      const session = await auth.api.getSession({
+        headers: await headers(),
+      });
 
       // If you throw, the user will not be able to upload
-      if (!session?.user?.id) {
+      if (!session) {
         console.log("Attempt to upload image without user", session);
         throw new UploadThingError("Unauthorized");
       }
 
+      const user = session?.user;
+      if (!user) {
+        console.log("Attempt to upload image without user", session);
+        throw new UploadThingError("Unauthorized");
+      }
       // Whatever is returned here is accessible in onUploadComplete as `metadata`
-      return { userId: session.user.id };
+      return { userId: user.id };
     })
     .onUploadComplete(async ({ metadata, file }) => {
       // This code RUNS ON YOUR SERVER after upload
@@ -48,16 +57,23 @@ export const ourFileRouter = {
   }) // Set permissions and file types for this FileRoute
     .middleware(async () => {
       // This code runs on your server before upload
-      const session = await auth();
-      const role = session?.user?.role;
+      const session = await auth.api.getSession({
+        headers: await headers(),
+      });
+      const user = session?.user;
 
       // If you throw, the user will not be able to upload
-      if (!session?.user?.id) {
+      if (!session) {
         console.log("Attempt to upload image without user", session);
         throw new UploadThingError("Unauthorized");
       }
 
-      if (role !== "ADMIN" && role !== "SUPERADMIN" && role !== "EDITOR") {
+      if (!user) {
+        console.log("Attempt to upload gear image without user", session);
+        throw new UploadThingError("Unauthorized");
+      }
+
+      if (!requireRole(user, ["EDITOR"])) {
         console.log(
           "Attempt to upload gear image without admin, superadmin or editor role",
           session,
@@ -66,7 +82,7 @@ export const ourFileRouter = {
       }
 
       // Whatever is returned here is accessible in onUploadComplete as `metadata`
-      return { userId: session.user.id, role: role };
+      return { userId: user.id, role: user.role };
     })
     .onUploadComplete(async ({ metadata, file }) => {
       console.log("Uploaded gear image", file.ufsUrl);
@@ -83,15 +99,23 @@ export const ourFileRouter = {
     },
   })
     .middleware(async () => {
-      const session = await auth();
+      const session = await auth.api.getSession({
+        headers: await headers(),
+      });
+      const user = session?.user;
 
-      if (!session?.user?.id) {
+      if (!session) {
+        console.log("Attempt to upload profile picture without user", session);
+        throw new UploadThingError("Unauthorized");
+      }
+
+      if (!user) {
         console.log("Attempt to upload profile picture without user", session);
         throw new UploadThingError("Unauthorized");
       }
 
       // Return old image URL for deletion if it exists
-      return { userId: session.user.id, oldImageUrl: session.user.image };
+      return { userId: user.id, oldImageUrl: user.image };
     })
     .onUploadComplete(async ({ metadata, file }) => {
       console.log(

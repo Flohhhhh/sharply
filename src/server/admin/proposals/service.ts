@@ -1,6 +1,7 @@
 import "server-only";
 
-import { requireUser, requireRole, type UserRole } from "~/server/auth";
+import { requireRole } from "~/lib/auth/auth-helpers";
+import { getSessionOrThrow } from "~/server/auth";
 import type { GearEditProposal } from "~/types/gear";
 import {
   fetchPendingProposalsData,
@@ -73,8 +74,8 @@ function groupProposals(proposals: EnrichedProposal[]): ProposalGroup[] {
 }
 
 export async function fetchGearProposals(): Promise<ProposalGroups> {
-  const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session.user, ["ADMIN", "EDITOR"])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
 
@@ -97,8 +98,8 @@ export async function fetchRecentResolvedProposals(
   days: number,
   limit?: number,
 ): Promise<ProposalGroup[]> {
-  const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
+  const { user } = await getSessionOrThrow();
+  if (!requireRole(user, ["ADMIN", "EDITOR"])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
@@ -107,8 +108,8 @@ export async function fetchRecentResolvedProposals(
 }
 
 export async function fetchPendingProposalGroups(): Promise<ProposalGroup[]> {
-  const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
+  const { user } = await getSessionOrThrow();
+  if (!requireRole(user, ["ADMIN", "EDITOR"])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
   const pending = await fetchPendingProposalsData();
@@ -119,8 +120,8 @@ export async function fetchResolvedProposalGroupsWithCount(
   days: number,
   limit?: number,
 ) {
-  const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
+  const { user } = await getSessionOrThrow();
+  if (!requireRole(user, ["ADMIN", "EDITOR"])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
@@ -140,8 +141,8 @@ export async function approveProposal(
   filteredPayload: unknown = undefined,
   gearContext: { gearName: string; gearSlug: string },
 ) {
-  const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
+  const { user } = await getSessionOrThrow();
+  if (!requireRole(user, ["ADMIN", "EDITOR"])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
 
@@ -160,7 +161,7 @@ export async function approveProposal(
     id,
     proposal.gearId,
     proposal.payload,
-    session.user.id,
+    user.id,
     filteredPayload,
   );
 
@@ -190,8 +191,8 @@ export async function approveProposal(
 }
 
 export async function mergeProposal(id: string) {
-  const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
+  const { user } = await getSessionOrThrow();
+  if (!requireRole(user, ["ADMIN", "EDITOR"])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
 
@@ -204,12 +205,12 @@ export async function mergeProposal(id: string) {
     throw new Error("Proposal is not pending");
   }
 
-  await mergeProposalData(id, proposal.gearId, session.user.id);
+  await mergeProposalData(id, proposal.gearId, user.id);
 }
 
 export async function rejectProposal(id: string) {
-  const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
+  const { user } = await getSessionOrThrow();
+  if (!requireRole(user, ["ADMIN", "EDITOR"])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
 
@@ -222,5 +223,5 @@ export async function rejectProposal(id: string) {
     throw new Error("Proposal is not pending");
   }
 
-  await rejectProposalData(id, proposal.gearId, session.user.id);
+  await rejectProposalData(id, proposal.gearId, user.id);
 }

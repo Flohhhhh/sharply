@@ -7,18 +7,33 @@ import {
   getDepth,
   formatScopeTitle,
 } from "~/lib/browse/routing";
-import { parseFilters, type BrowseFilters } from "~/lib/browse/filters";
+import {
+  parseFilters,
+  type BrowseFilters,
+  type SortOption,
+} from "~/lib/browse/filters";
 // Category labels are defined locally to avoid a separate constants module
 const gearCategoryLabels = {
   cameras: "Cameras",
   lenses: "Lenses",
 } as const;
+
+type LoadHubDataResult = {
+  depth: 0 | 1 | 2 | 3;
+  scope: RouteScope;
+  brand?: { id: string; name: string; slug: string } | null;
+  mount?: { id: string; shortName: string | null; value: string } | null;
+  lists: SearchGearResult;
+  filters: BrowseFilters;
+};
 import {
   getBrandBySlug,
   getMountByShortName,
   searchGear,
   getReleaseOrderedGearPage,
 } from "./data";
+import type { SearchGearResult } from "./data";
+import { LENS_FOCAL_LENGTH_SORT } from "./lens-sort";
 import type { BrowseFeedPage } from "~/types/browse";
 
 export async function deriveDefaultBrandFromCookies() {
@@ -36,7 +51,8 @@ export async function resolveScopeOrThrow(segments: string[]): Promise<{
   const scope = parseSegments(segments);
   const depth = getDepth(scope);
   let brand: { id: string; name: string; slug: string } | null = null;
-  let mount: { id: string; shortName: string | null; value: string } | null = null;
+  let mount: { id: string; shortName: string | null; value: string } | null =
+    null;
 
   if (scope.brandSlug) {
     brand = await getBrandBySlug(scope.brandSlug);
@@ -54,11 +70,21 @@ export async function resolveScopeOrThrow(segments: string[]): Promise<{
 export async function loadHubData(params: {
   segments: string[];
   searchParams: Record<string, string | string[] | undefined>;
-}) {
+}): Promise<LoadHubDataResult> {
   const { depth, scope, brand, mount } = await resolveScopeOrThrow(
     params.segments,
   );
-  const filters = parseFilters(params.searchParams);
+  const defaultSort = getDefaultSortForScope(scope);
+  const isLensMountScope =
+    scope.categorySlug === "lenses" && !!scope.mountShort;
+  const filters = (() => {
+    const base = parseFilters(params.searchParams, { defaultSort });
+    if (isLensMountScope) {
+      // Lens + mount pages are narrow enough to return all items in one request.
+      return { ...base, perPage: 500, page: 1 };
+    }
+    return base;
+  })();
 
   const cookieSlug = await deriveDefaultBrandFromCookies();
   const effectiveBrandSlug =
@@ -129,7 +155,12 @@ export async function buildSeo(params: {
   });
   const title = `${plainTitle}`;
   const description = `Explore all ${lists.total} ${plainTitle}`;
-  const canonical = buildCanonical(scope, parseFilters(params.searchParams));
+  const canonical = buildCanonical(
+    scope,
+    parseFilters(params.searchParams, {
+      defaultSort: getDefaultSortForScope(scope),
+    }),
+  );
   const openGraph = { title, description, url: canonical };
   return { title, description, canonical, openGraph };
 }
@@ -141,6 +172,13 @@ function buildCanonical(scope: RouteScope, _filters: BrowseFilters) {
   if (scope.categorySlug) segs.push(scope.categorySlug);
   if (scope.mountShort) segs.push(scope.mountShort);
   return `${base}/${segs.join("/")}`;
+}
+
+function getDefaultSortForScope(scope: RouteScope): SortOption {
+  if (scope.categorySlug === "lenses" && scope.mountShort) {
+    return LENS_FOCAL_LENGTH_SORT;
+  }
+  return "newest";
 }
 
 // Deprecated: static params are generated directly in the page route

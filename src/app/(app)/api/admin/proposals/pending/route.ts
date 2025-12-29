@@ -8,6 +8,7 @@ export async function GET() {
   } catch (e: any) {
     const status = (e as any)?.status ?? 500;
     const message = (e as any)?.message ?? "Failed to load pending proposals";
+    console.error(e);
     return NextResponse.json({ error: message }, { status });
   }
 }

@@ -22,8 +22,8 @@ import { Menu, X, LogIn } from "lucide-react";
 import { getNavItems, iconMap } from "~/lib/nav-items";
 import type { UserMenuUser } from "./user-menu";
 import { LogOut, Settings, User as UserIcon } from "lucide-react";
-import { signOut } from "next-auth/react";
 import { track } from "@vercel/analytics";
+import { logOut } from "~/lib/auth";
 
 interface NavMenuMobileProps {
   children: React.ReactNode;
@@ -83,7 +83,8 @@ export function NavMenuMobile({ children, user = null }: NavMenuMobileProps) {
               <button
                 onClick={() => {
                   setOpen(false);
-                  void signOut();
+                  // TODO: verify this works
+                  void logOut();
                 }}
                 className="hover:bg-accent hover:text-accent-foreground flex w-full items-center gap-3 rounded-md p-3 text-left text-red-600 transition-colors"
               >

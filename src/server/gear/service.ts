@@ -2,8 +2,9 @@ import "server-only";
 
 import { z } from "zod";
 import { track } from "@vercel/analytics/server";
-import { auth, requireUser, requireRole } from "~/server/auth";
-import type { UserRole } from "~/server/auth";
+import { auth } from "~/auth";
+import { requireRole } from "~/lib/auth/auth-helpers";
+import { getSessionOrThrow } from "~/server/auth";
 import {
   getGearIdBySlug as getGearIdBySlugData,
   fetchGearBySlug as fetchGearBySlugData,
@@ -45,6 +46,7 @@ import {
   type ConstructionMinimalRow,
 } from "./data";
 import { getConstructionState } from "~/lib/utils";
+import { headers } from "next/headers";
 
 // Internal low-level reads moved to data.ts
 
@@ -116,7 +118,7 @@ export async function fetchGearMetadataById(id: string) {
 }
 
 export async function toggleWishlist(slug: string, action: "add" | "remove") {
-  const { user } = await requireUser();
+  const { user } = await getSessionOrThrow();
   const userId = user.id;
   const gearId = await resolveGearIdOrThrow(slug);
   if (action === "add") {
@@ -144,7 +146,7 @@ export async function toggleWishlist(slug: string, action: "add" | "remove") {
 }
 
 export async function toggleOwnership(slug: string, action: "add" | "remove") {
-  const { user } = await requireUser();
+  const { user } = await getSessionOrThrow();
   const userId = user.id;
   const gearId = await resolveGearIdOrThrow(slug);
   if (action === "add") {
@@ -178,7 +180,7 @@ const reviewInput = z.object({
 });
 
 export async function submitReview(slug: string, body: unknown) {
-  const { user } = await requireUser();
+  const { user } = await getSessionOrThrow();
   const userId = user.id;
   const gearId = await resolveGearIdOrThrow(slug);
   const data = reviewInput.parse(body);
@@ -218,16 +220,23 @@ export async function fetchApprovedReviews(slug: string) {
 }
 
 export async function fetchMyReviewStatus(slug: string) {
-  const session = await auth();
-  if (!session?.user?.id)
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session) {
     return { hasReview: false, status: null as unknown as string | null };
+  }
+  const user = session?.user;
+  if (!user) {
+    return { hasReview: false, status: null as unknown as string | null };
+  }
   const gearId = await resolveGearIdOrThrow(slug);
-  const my = await getMyReviewStatus(gearId, session.user.id);
+  const my = await getMyReviewStatus(gearId, user.id);
   return { hasReview: Boolean(my), status: my?.status ?? null };
 }
 
 export async function fetchWishlistStatus(slug: string) {
-  const { user } = await requireUser();
+  const { user } = await getSessionOrThrow();
   const userId = user.id;
   const gearId = await resolveGearIdOrThrow(slug);
   const inWl = await isInWishlist(gearId, userId);
@@ -235,7 +244,7 @@ export async function fetchWishlistStatus(slug: string) {
 }
 
 export async function fetchOwnershipStatus(slug: string) {
-  const { user } = await requireUser();
+  const { user } = await getSessionOrThrow();
   const userId = user.id;
   const gearId = await resolveGearIdOrThrow(slug);
   const owned = await isOwned(gearId, userId);
@@ -280,8 +289,8 @@ const verdictInput = z.object({
 });
 
 export async function upsertStaffVerdict(slug: string, body: unknown) {
-  const session = await requireUser();
-  if (!requireRole(session, ["ADMIN"] as UserRole[])) {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session?.user, ["ADMIN"])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
   const gearId = await resolveGearIdOrThrow(slug);
@@ -326,7 +335,7 @@ const proposalInput = z
   });
 
 export async function submitGearEditProposal(body: unknown) {
-  const { user } = await requireUser();
+  const { user } = await getSessionOrThrow();
   const userId = user.id;
   const role = user.role ?? "USER";
   const data = proposalInput.parse(body);
@@ -385,13 +394,13 @@ export async function submitGearEditProposal(body: unknown) {
 }
 
 export async function fetchPendingEditId(slug: string) {
-  const { user } = await requireUser();
+  const { user } = await getSessionOrThrow();
   const gearId = await resolveGearIdOrThrow(slug);
   return getPendingEditIdData(gearId, user.id);
 }
 
 export async function fetchPendingEdit(slug: string) {
-  const { user } = await requireUser();
+  const { user } = await getSessionOrThrow();
   const gearId = await resolveGearIdOrThrow(slug);
   const pending = await fetchPendingEditForGear(gearId);
   if (!pending) return null;

@@ -1,6 +1,7 @@
 import "server-only";
 
-import { requireUser, requireRole, type UserRole } from "~/server/auth";
+import { requireRole } from "~/lib/auth/auth-helpers";
+import { getSessionOrThrow } from "~/server/auth";
 import {
   performFuzzySearch as performFuzzySearchData,
   checkGearCreationData,
@@ -25,8 +26,9 @@ export async function performFuzzySearchAdmin(params: {
   brandName: string;
   brandId: string;
 }) {
-  const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
+  const session = await getSessionOrThrow();
+  const user = session.user;
+  if (!requireRole(user, ["ADMIN", "EDITOR"])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
   return performFuzzySearchData(params);
@@ -35,8 +37,8 @@ export async function performFuzzySearchAdmin(params: {
 export async function checkGearCreationAdmin(
   params: GearCreationCheckParams,
 ): Promise<GearCreationCheckResult> {
-  const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session.user, ["ADMIN", "EDITOR"])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
   return checkGearCreationData(params);
@@ -45,8 +47,8 @@ export async function checkGearCreationAdmin(
 export async function createGearAdmin(
   params: GearCreationParams,
 ): Promise<GearCreationResult> {
-  const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session.user, ["ADMIN", "EDITOR"])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
 
@@ -81,7 +83,7 @@ export async function createGearAdmin(
   const { auditLogs } = await import("~/server/db/schema");
   await db.insert(auditLogs).values({
     action: "GEAR_CREATE",
-    actorUserId: session.user.id,
+    actorUserId: session.user?.id ?? "",
     gearId: created.id,
   });
 
@@ -91,8 +93,8 @@ export async function createGearAdmin(
 export async function fetchAdminGearItems(
   params: FetchAdminGearItemsParams,
 ): Promise<FetchAdminGearItemsResult> {
-  const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session.user, ["ADMIN", "EDITOR"])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
   return fetchAdminGearItemsData(params);
@@ -102,8 +104,8 @@ export async function renameGearService(params: {
   gearId: string;
   newName: string;
 }): Promise<{ id: string; name: string; slug: string; searchName: string }> {
-  const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session.user, ["ADMIN", "EDITOR"])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
 
@@ -115,7 +117,7 @@ export async function renameGearService(params: {
   try {
     await db.insert(auditLogs).values({
       action: "GEAR_RENAME",
-      actorUserId: session.user.id,
+      actorUserId: session.user?.id ?? "",
       gearId: updated.id,
     });
   } catch {}
@@ -128,8 +130,8 @@ export async function setGearThumbnailService(params: {
   slug?: string;
   thumbnailUrl: string | null;
 }): Promise<{ id: string; slug: string; thumbnailUrl: string | null }> {
-  const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session.user, ["ADMIN", "EDITOR"])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
 
@@ -152,7 +154,10 @@ export async function setGearThumbnailService(params: {
 
   try {
     // Determine the appropriate audit action
-    let action: "GEAR_IMAGE_UPLOAD" | "GEAR_IMAGE_REPLACE" | "GEAR_IMAGE_REMOVE";
+    let action:
+      | "GEAR_IMAGE_UPLOAD"
+      | "GEAR_IMAGE_REPLACE"
+      | "GEAR_IMAGE_REMOVE";
     if (thumbnailUrl) {
       // Setting a new thumbnail
       action = hadThumbnail ? "GEAR_IMAGE_REPLACE" : "GEAR_IMAGE_UPLOAD";
@@ -163,7 +168,7 @@ export async function setGearThumbnailService(params: {
 
     await db.insert(auditLogs).values({
       action,
-      actorUserId: session.user.id,
+      actorUserId: session.user?.id ?? "",
       gearId: updated.id,
     });
   } catch {}

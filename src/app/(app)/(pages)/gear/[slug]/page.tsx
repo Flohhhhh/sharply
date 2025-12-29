@@ -16,7 +16,6 @@ import {
   fetchStaffVerdict,
   fetchAllGearSlugs,
 } from "~/server/gear/service";
-import { ConstructionNotice } from "~/app/(app)/(pages)/gear/_components/construction-notice";
 import { ConstructionFullPage } from "~/app/(app)/(pages)/gear/_components/construction-full";
 import type { GearItem } from "~/types/gear";
 import { GearContributors } from "~/app/(app)/(pages)/gear/_components/gear-contributors";
@@ -27,7 +26,6 @@ import { GearLinks } from "~/app/(app)/(pages)/gear/_components/gear-links";
 import GearStatsCard from "../_components/gear-stats-card";
 import GearBadges from "../_components/gear-badges";
 import SpecsTable from "../_components/specs-table";
-import { ManageStaffVerdictModal } from "../_components/manage-staff-verdict-modal";
 import { StaffVerdictSection } from "../_components/staff-verdict-section";
 import { buildGearSpecsSections } from "~/lib/specs/registry";
 import type { GearType } from "~/types/gear";
@@ -40,17 +38,15 @@ import {
   getNewsByRelatedGearSlug,
 } from "~/server/payload/service";
 import { NewsCard } from "~/components/home/news-card";
-import { Card, CardContent } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { notFound } from "next/navigation";
-import { auth } from "~/server/auth";
-import { requireRole } from "~/server/auth/index";
-import DiscordLink from "~/components/discord-link";
+import { auth } from "~/auth";
+import { requireRole } from "~/lib/auth/auth-helpers";
 import DiscordBanner from "~/components/discord-banner";
 import Image from "next/image";
-// Removed LensApertureDisplay in favor of standardized spec rows using mapping
-import { ExtractorDemo } from "../_components/extractor-demo";
+
 import { JsonLd } from "~/components/json-ld";
+import { headers } from "next/headers";
 
 export const revalidate = 3600;
 
@@ -109,8 +105,11 @@ export async function generateMetadata({
 
 export default async function GearPage({ params }: GearPageProps) {
   const { slug } = await params;
-  const session = await auth();
-  const isAdmin = requireRole(session, ["ADMIN"]);
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  const user = session?.user;
+  const isAdmin = requireRole(user, ["ADMIN"]);
   // console.log("[gear/[slug]] Generating static page (build/ISR)", { slug });
 
   // Fetch core gear data

@@ -1,15 +1,21 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { auth } from "~/server/auth";
+import { auth } from "~/auth";
 import { serviceListCharts } from "~/server/recommendations/service";
+import { headers } from "next/headers";
+import { requireRole } from "~/lib/auth/auth-helpers";
 
 export const revalidate = 0;
 
 export default async function Page() {
-  const session = await auth();
-  const role = (session?.user as any)?.role as string | undefined;
-  if (!role || !["ADMIN", "EDITOR"].includes(role)) {
-    redirect("/");
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  const user = session?.user;
+
+  if (!session || !requireRole(user, ["EDITOR"])) {
+    redirect("/auth/signin?callbackUrl=/admin/recommended-lenses");
   }
 
   const charts = await serviceListCharts();

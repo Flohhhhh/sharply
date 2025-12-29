@@ -2,7 +2,7 @@
 
 import { track } from "@vercel/analytics";
 import { useMemo, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession } from "~/lib/auth/auth-client";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { TextareaWithCounter } from "~/components/ui/textarea-with-counter";
@@ -28,7 +28,10 @@ export function GearReviewForm({
   gearSlug,
   onReviewSubmitted,
 }: GearReviewFormProps) {
-  const { data: session, status } = useSession();
+  const { data, isPending } = useSession();
+
+  const session = data?.session;
+
   const callbackUrl = `/gear/${gearSlug}`;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState<boolean | null>(null);
@@ -58,12 +61,12 @@ export function GearReviewForm({
         setHasSubmitted(false);
       }
     };
-    if (status === "authenticated")
+    if (session)
       run().catch((error) => {
         console.error("[GearReviewForm] error", error);
       });
-    else if (status === "unauthenticated") setHasSubmitted(false);
-  }, [gearSlug, status]);
+    else if (!session) setHasSubmitted(false);
+  }, [gearSlug, session]);
 
   const formValid = useMemo(() => {
     if (genres.length < 1 || genres.length > 3) return false;
@@ -119,10 +122,8 @@ export function GearReviewForm({
     }
   };
 
-  const isAuthLoading = status === "loading" || hasSubmitted === null;
-
   const handleCtaClick = () => {
-    if (isAuthLoading) return;
+    if (isPending) return;
     void track("review_cta_click", {
       gearSlug,
       authenticated: Boolean(session),
@@ -130,7 +131,7 @@ export function GearReviewForm({
     if (session) {
       setOpen(true);
     } else {
-      window.location.href = `/api/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+      window.location.href = `/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`;
     }
   };
 
@@ -149,8 +150,7 @@ export function GearReviewForm({
         </div>
         <Button
           onClick={handleCtaClick}
-          disabled={isAuthLoading}
-          loading={isAuthLoading}
+          loading={isPending}
           icon={<Pencil className="h-4 w-4" />}
           className="w-full sm:w-fit"
         >

@@ -1,10 +1,10 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useSession } from "~/lib/auth/auth-client";
 import { RenameGearDialog } from "~/components/gear/rename-gear-dialog";
 import { Button } from "~/components/ui/button";
 import { Pencil } from "lucide-react";
-import type { UserRole } from "~/server/auth";
+import { requireRole } from "~/lib/auth/auth-helpers";
 
 interface RenameGearButtonProps {
   gearId: string;
@@ -17,12 +17,12 @@ export function RenameGearButton({
   currentName,
   currentSlug,
 }: RenameGearButtonProps) {
-  const { data: session } = useSession();
-  const role = (session?.user as { role?: UserRole } | null | undefined)?.role;
-  const isAdminOrEditor =
-    role === "ADMIN" || role === "SUPERADMIN" || role === "EDITOR";
+  const { data } = useSession();
 
-  if (!isAdminOrEditor) return null;
+  const session = data?.session;
+  const user = data?.user;
+
+  if (!session || !user || !requireRole(user, ["EDITOR"])) return null;
 
   return (
     <RenameGearDialog

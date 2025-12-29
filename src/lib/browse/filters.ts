@@ -4,7 +4,8 @@ export type SortOption =
   | "rating"
   | "price_asc"
   | "price_desc"
-  | "popularity";
+  | "popularity"
+  | "focal_length";
 
 export type BrowseFilters = {
   sort: SortOption;
@@ -33,6 +34,7 @@ const clamp = (n: number, lo: number, hi: number) =>
 
 export function parseFilters(
   searchParams: Record<string, string | string[] | undefined>,
+  opts?: { defaultSort?: SortOption },
 ): BrowseFilters {
   const get = (k: string) => searchParams[k];
   const num = (k: string) => {
@@ -56,6 +58,7 @@ export function parseFilters(
   const sort = (() => {
     const v = get("sort");
     const s = Array.isArray(v) ? v[0] : v;
+    const defaultSort = opts?.defaultSort ?? "relevance";
     const allowed: SortOption[] = [
       "relevance",
       "newest",
@@ -63,10 +66,10 @@ export function parseFilters(
       "price_asc",
       "price_desc",
       "popularity",
+      "focal_length",
     ];
-    return allowed.includes((s as SortOption) ?? "relevance")
-      ? ((s as SortOption) ?? "relevance")
-      : "relevance";
+    const candidate = (s as SortOption) ?? defaultSort;
+    return allowed.includes(candidate) ? candidate : defaultSort;
   })();
 
   const pageRaw = num("page") ?? 1;

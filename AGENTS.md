@@ -5,7 +5,7 @@ Sharply is a photography gear database and cataloging application built with Nex
 ## Project Structure
 
 - **Frontend**: Next.js 15 with React 19, TypeScript, and Tailwind CSS
-- **Backend**: Next.js API routes with NextAuth for authentication
+- **Backend**: Next.js API routes with BetterAuth for authentication
 - **Database**: PostgreSQL with Drizzle ORM
 - **Schema**: Located in `src/server/db/schema.ts`
 - **Documentation**: Stored in `/docs` folder

@@ -22,8 +22,8 @@ import {
   toDisplayAmazonProductLink,
 } from "~/lib/validation/amazon";
 import { normalizeBhProductLink } from "~/lib/validation/bhphoto";
-import { useSession } from "next-auth/react";
-import type { UserRole } from "~/server/auth";
+import { useSession } from "~/lib/auth/auth-client";
+import { requireRole } from "~/lib/auth/auth-helpers";
 
 interface CoreFieldsProps {
   currentSpecs: {
@@ -59,9 +59,7 @@ function CoreFieldsComponent({
   onChange,
   sectionId,
 }: CoreFieldsProps) {
-  const { data: session } = useSession();
-  const role = (session?.user as { role?: UserRole } | null | undefined)?.role;
-  const isAdmin = role === "ADMIN" || role === "SUPERADMIN";
+  const { data, isPending, error } = useSession();
 
   const isMissing = useCallback((v: unknown): boolean => {
     if (v == null) return true;
@@ -325,6 +323,22 @@ function CoreFieldsComponent({
   const formattedGenres = useMemo(() => {
     return Array.isArray(currentSpecs.genres) ? currentSpecs.genres : [];
   }, [currentSpecs.genres]);
+
+  if (isPending) {
+    return <div>Loading...</div>;
+  }
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
+  if (!data) {
+    return <div>Unauthenticated</div>;
+  }
+  const session = data.session;
+  const user = data.user;
+
+  if (!session) return null;
+
+  const isAdmin = requireRole(user, ["ADMIN"]);
 
   return (
     <Card

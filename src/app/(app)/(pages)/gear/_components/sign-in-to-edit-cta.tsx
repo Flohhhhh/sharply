@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useSession } from "~/lib/auth/auth-client";
 import Link from "next/link";
 import React from "react";
 
@@ -13,12 +13,15 @@ export function SignInToEditSpecsCta({
   slug,
   gearType,
 }: SignInToEditSpecsCtaProps) {
-  const { data: session, status } = useSession();
+  const { data, isPending, error } = useSession();
+  const session = data?.session;
+
   const callbackUrl = React.useMemo(
     () => `/gear/${slug}/edit?type=${gearType}`,
     [slug, gearType],
   );
-  if (status === "loading") return null;
+
+  // If the user is authenticated, don't show the CTA
   if (session) return null;
 
   return (
@@ -32,7 +35,7 @@ export function SignInToEditSpecsCta({
           </span>
         </div>
         <Link
-          href={`/api/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+          href={`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`}
           className="bg-primary hover:bg-primary/90 text-primary-foreground inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
         >
           Sign in to edit specs

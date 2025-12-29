@@ -13,7 +13,7 @@ import { NavSheetDesktop } from "./nav-sheet-desktop";
 import Logo from "public/logo";
 import { UserMenu } from "./user-menu";
 import { ThemeSwitcher } from "../theme-switcher";
-import type { UserRole } from "~/server/auth";
+import type { UserRole } from "~/auth";
 import type { NotificationView } from "~/server/notifications/service";
 import { NotificationsDropdown } from "./notifications/notifications-dropdown";
 
@@ -57,8 +57,11 @@ export default function HeaderClient({
     user?.role === "SUPERADMIN" ||
     user?.role === "EDITOR";
 
-  const notificationsData =
-    notifications ?? { notifications: [], archived: [], unreadCount: 0 };
+  const notificationsData = notifications ?? {
+    notifications: [],
+    archived: [],
+    unreadCount: 0,
+  };
 
   const handleHeaderSignInClick = () => {
     void track("auth_signin_press", {

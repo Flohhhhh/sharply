@@ -1,17 +1,25 @@
 import "server-only";
 
-import { requireUser, requireRole, type UserRole } from "~/server/auth";
+import { requireRole } from "~/lib/auth/auth-helpers";
 import {
   fetchAuditLogsData,
   type FetchAuditLogsParams,
   type AuditLogRow,
 } from "./data";
+import { auth } from "~/auth";
+import { headers } from "next/headers";
 
 export async function fetchAuditLogs(
   params: FetchAuditLogsParams,
 ): Promise<{ items: AuditLogRow[] }> {
-  const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+  const user = session?.user;
+  if (!requireRole(user, ["ADMIN"])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
 

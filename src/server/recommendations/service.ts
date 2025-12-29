@@ -21,7 +21,8 @@ import {
 import { mergeDefaultColumns } from "@/lib/recommendations/bucketing";
 import { computeColumnKeyFromLensSpecs } from "@/lib/recommendations/bucketing";
 import type { Rating } from "@/lib/recommendations/types";
-import { requireUser, requireRole, type UserRole } from "~/server/auth";
+import { requireRole } from "~/lib/auth/auth-helpers";
+import { getSessionOrThrow } from "~/server/auth";
 
 type ItemRow = NonNullable<
   Awaited<ReturnType<typeof fetchRecommendationChartByBrandSlug>>
@@ -189,8 +190,8 @@ export async function serviceGetChart(brand: string, slug: string) {
 
 // Raw view for admin editor (includes item ids)
 export async function serviceGetChartAdminRaw(brand: string, slug: string) {
-  const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session?.user, ["ADMIN", "EDITOR"])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
   return fetchRecommendationChartByBrandSlug(brand, slug);
@@ -200,8 +201,8 @@ export async function serviceGetChartAdminRaw(brand: string, slug: string) {
 export async function serviceCreateRecommendationChart(
   params: Omit<InsertChartParams, "updatedDate">,
 ) {
-  const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session?.user, ["ADMIN", "EDITOR"])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
   // Basic extra guards
@@ -228,8 +229,8 @@ export async function serviceUpdateChartMeta(params: {
   description?: string | null;
   isPublished: boolean;
 }) {
-  const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session?.user, ["ADMIN", "EDITOR"])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
   const brand = params.brand.trim().toLowerCase();
@@ -256,8 +257,8 @@ export async function serviceUpsertItem(params: {
   priceMinOverride?: number | null;
   priceMaxOverride?: number | null;
 }) {
-  const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session?.user, ["ADMIN", "EDITOR"])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
   const chartId = await getChartIdByBrandSlug(
@@ -278,8 +279,8 @@ export async function serviceUpsertItem(params: {
 }
 
 export async function serviceDeleteItem(params: { itemId: string }) {
-  const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session?.user, ["ADMIN", "EDITOR"])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
   return deleteRecommendationItemById(params.itemId);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession } from "~/lib/auth/auth-client";
 import {
   Dialog,
   DialogContent,
@@ -26,7 +26,11 @@ export interface ProfilePictureModalProps {
 }
 
 export function ProfilePictureModal(props: ProfilePictureModalProps) {
-  const { data: session, update: updateSession } = useSession();
+  const { data } = useSession();
+
+  const session = data?.session;
+  const user = data?.user;
+
   const [open, setOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -175,7 +179,8 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
       }
 
       // Update session to reflect new image
-      await updateSession();
+      // TODO: check if we need to do anything here with betterAuth
+      // await updateSession();
 
       toast.success("Profile picture updated.");
       props.onSuccess?.({ url });
@@ -199,7 +204,7 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
   }
 
   const handleOpenChange = (next: boolean) => {
-    if (next && !session?.user?.id) {
+    if (next && !session) {
       toast.error("You must be signed in to update your profile picture.");
       setOpen(false);
       return;
@@ -207,7 +212,9 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
     setOpen(next);
   };
 
-  const userName = session?.user?.name ?? "User";
+  if (!session || !user) return null;
+
+  const userName = user.name ?? "User";
   const userInitial = userName.charAt(0).toUpperCase();
   const displayedImageUrl = previewImageUrl ?? localImageUrl;
 

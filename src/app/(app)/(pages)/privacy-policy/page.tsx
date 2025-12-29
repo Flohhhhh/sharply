@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -146,6 +147,7 @@ export default function PrivacyPolicyPage() {
           listed on our website.
         </p>
       </article>
+      <ScrollProgress bottomOffset={300} />
     </div>
   );
 }

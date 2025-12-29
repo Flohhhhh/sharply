@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useEffect, useRef, useState } from "react";
+import { useSession } from "~/lib/auth/auth-client";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +20,7 @@ import {
 import { genUploader } from "uploadthing/client";
 import type { OurFileRouter } from "~/app/(app)/api/uploadthing/core";
 import { Progress } from "~/components/ui/progress";
-import type { UserRole } from "~/server/auth";
+import { requireRole } from "~/lib/auth/auth-helpers";
 
 export interface GearImageModalProps {
   gearId?: string;
@@ -31,12 +31,8 @@ export interface GearImageModalProps {
 }
 
 export function GearImageModal(props: GearImageModalProps) {
-  const { data: session } = useSession();
-  const isAdmin = useMemo(() => {
-    const role = (session?.user as { role?: UserRole } | null | undefined)
-      ?.role;
-    return role === "EDITOR" || role === "ADMIN" || role === "SUPERADMIN";
-  }, [session?.user]);
+  const { data, isPending, error } = useSession();
+
   const [open, setOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -65,6 +61,24 @@ export function GearImageModal(props: GearImageModalProps) {
       if (savingTimerRef.current) clearInterval(savingTimerRef.current);
     };
   }, []);
+
+  if (isPending) {
+    return <div>Loading...</div>;
+  }
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
+  if (!data) {
+    return <div>Unauthenticated</div>;
+  }
+  const session = data.session;
+  const user = data.user;
+
+  if (!session) return null;
+
+  const access = requireRole(user, ["EDITOR"]);
+
+  if (!access) return null;
 
   async function handleUploadSelected(file: File) {
     if (file.size > 4 * 1024 * 1024) {
@@ -129,7 +143,7 @@ export function GearImageModal(props: GearImageModalProps) {
   }
 
   const handleOpenChange = (next: boolean) => {
-    if (next && !isAdmin) {
+    if (next && !access) {
       toast.error("You must be an admin to upload images.");
       setOpen(false);
       return;
@@ -291,7 +305,8 @@ export function GearImageModal(props: GearImageModalProps) {
         </div>
 
         <div className="text-muted-foreground text-xs">
-          Upload a single image with transparent background, tightly cropped, 1000px on long edge, .webp @ 75% quality.
+          Upload a single image with transparent background, tightly cropped,
+          1000px on long edge, .webp @ 75% quality.
         </div>
       </DialogContent>
     </Dialog>

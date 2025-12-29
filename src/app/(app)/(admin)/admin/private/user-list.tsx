@@ -33,7 +33,7 @@ import {
   PaginationPrevious,
 } from "~/components/ui/pagination";
 import { Badge } from "~/components/ui/badge";
-import type { UserRole } from "~/server/auth";
+import type { AuthUser, UserRole } from "~/auth";
 
 type AdminUserListResponseItem = {
   id: string;

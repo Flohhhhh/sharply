@@ -1,6 +1,8 @@
 import "server-only";
 
-import { auth, requireUser } from "~/server/auth";
+import { auth } from "~/auth";
+import { headers } from "next/headers";
+import { getSessionOrThrow } from "~/server/auth";
 import {
   archiveNotificationData,
   countUnreadNotificationsData,
@@ -77,10 +79,17 @@ export async function fetchNotificationsForUser(options: {
 }
 
 export async function getCurrentUserNotifications(
-  options?: Partial<Pick<Parameters<typeof fetchNotificationsForUser>[0], "limit" | "archivedLimit">>,
+  options?: Partial<
+    Pick<
+      Parameters<typeof fetchNotificationsForUser>[0],
+      "limit" | "archivedLimit"
+    >
+  >,
 ): Promise<NotificationFetchResult> {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session) {
     return {
       userId: null,
       notifications: [],
@@ -97,21 +106,21 @@ export async function getCurrentUserNotifications(
 }
 
 export async function markNotificationRead(id: string) {
-  const { user } = await requireUser();
+  const { user } = await getSessionOrThrow();
   const row = await markNotificationReadData(id, user.id);
   if (!row) throw new Error("Notification not found");
   return mapNotification(row);
 }
 
 export async function archiveNotification(id: string) {
-  const { user } = await requireUser();
+  const { user } = await getSessionOrThrow();
   const row = await archiveNotificationData(id, user.id);
   if (!row) throw new Error("Notification not found or already archived");
   return mapNotification(row);
 }
 
 export async function deleteNotification(id: string) {
-  const { user } = await requireUser();
+  const { user } = await getSessionOrThrow();
   const result = await deleteNotificationData(id, user.id);
   if (!result.deleted) {
     if (result.reason === "not_archived") {
@@ -121,4 +130,3 @@ export async function deleteNotification(id: string) {
   }
   return { deleted: true as const };
 }
-

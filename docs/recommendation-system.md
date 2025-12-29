@@ -59,7 +59,7 @@ Follow `docs/server-structure.md` (no DB in UI; flow is data → service → act
     - `serviceGetChart(brand, slug)` returns a fully shaped chart with grouped columns and items
       - Column grouping is composed with utilities below
     - Mutations: `serviceCreateRecommendationChart`, `serviceUpdateChartMeta`, `serviceUpsertItem`, `serviceDeleteItem`
-  - Applies auth/role checks for admin endpoints via `requireUser`/`requireRole`
+  - Applies auth/role checks for admin endpoints via `auth.api.getSession({ headers })` + `requireRole`
 
 - Actions (Next.js server actions): `src/server/recommendations/actions.ts`
   - Thin wrappers that parse `FormData` (zod) and delegate to the service

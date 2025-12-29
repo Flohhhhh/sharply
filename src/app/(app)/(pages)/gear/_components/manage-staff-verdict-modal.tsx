@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { useSession } from "~/lib/auth/auth-client";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,7 +26,7 @@ import { toast } from "sonner";
 import { Separator } from "~/components/ui/separator";
 import { actionUpsertStaffVerdict } from "~/server/gear/actions";
 import { Pencil } from "lucide-react";
-import type { UserRole } from "~/server/auth";
+import { requireRole } from "~/lib/auth/auth-helpers";
 
 const verdictSchema = z.object({
   content: z.string().max(5000).optional(),
@@ -47,12 +47,8 @@ function parseLines(value: string | undefined): string[] | null {
 }
 
 export function ManageStaffVerdictModal({ slug }: { slug: string }) {
-  const { data: session } = useSession();
-  const isAdmin = useMemo(() => {
-    const role = (session?.user as { role?: UserRole } | null | undefined)
-      ?.role;
-    return role === "ADMIN" || role === "SUPERADMIN";
-  }, [session?.user]);
+  const { data, isPending, error } = useSession();
+
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [initial, setInitial] = useState<{
@@ -137,8 +133,16 @@ export function ManageStaffVerdictModal({ slug }: { slug: string }) {
     return () => {
       mounted = false;
     };
-  }, [open, slug]);
+  }, [open, slug, form]);
 
+  if (!data || isPending || error) return null;
+
+  const session = data.session;
+  const user = data.user;
+
+  if (!session || !user) return null;
+
+  const isAdmin = requireRole(user, ["ADMIN", "SUPERADMIN"]);
   if (!isAdmin) return null;
 
   const handleSubmit = async (formData: z.infer<typeof verdictSchema>) => {

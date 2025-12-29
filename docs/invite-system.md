@@ -8,7 +8,7 @@ This document describes the one-time invite link system added for app launch.
   - invitee name (for VIP welcome)
   - target role (`USER`, `EDITOR`, or `ADMIN`)
 - Visiting `/invite/:id` shows a CTA that sends to `/invite/:id/accept`.
-- The accept route sets a short-lived, httpOnly `invite_id` cookie and redirects to NextAuth sign-in.
+- The accept route sets a short-lived, httpOnly `invite_id` cookie and redirects to Better Auth sign-in (or straight to welcome if already signed in).
 - After sign-in, `auth/welcome` auto-claims the invite (reads `inviteId` from query or the cookie), assigns the user name and role, and marks the invite as used.
 - The user record stores the `inviteId` used.
 
@@ -44,7 +44,7 @@ Note: `users.inviteId` does not have an FK to avoid a circular dependency.
 - Invite landing: `src/app/(app)/invite/[id]/page.tsx`
   - Shows the invitee name/role and a button to Accept (`/invite/:id/accept`).
 - Accept route: `src/app/(app)/invite/[id]/accept/route.ts`
-  - Sets `invite_id` cookie server-side and redirects to `/api/auth/signin?callbackUrl=/auth/welcome`.
+  - Sets `invite_id` cookie server-side (30 min). If already signed in, redirects to `/auth/welcome?inviteId=:id&next=/`; otherwise redirects to `/auth/signin?callbackUrl=/auth/welcome`.
 - Welcome flow: `src/app/(app)/(auth)/auth/welcome/page.tsx`
   - Reads `inviteId` from query OR `invite_id` cookie; claims, assigns name and role.
 
@@ -52,9 +52,9 @@ Note: `users.inviteId` does not have an FK to avoid a circular dependency.
 
 1. Admin creates invite in `Admin → Private` and copies link `/invite/:id`.
 2. Recipient visits `/invite/:id` and clicks Accept.
-3. `/invite/:id/accept` sets `invite_id` cookie (30 min) and redirects to sign-in.
-4. After auth, NextAuth sends user to `/auth/welcome`.
-5. Welcome claims invite and updates the user (name, role, inviteId) in DB.
+3. `/invite/:id/accept` sets `invite_id` cookie (30 min). If logged in, it redirects directly to `/auth/welcome`; otherwise it redirects to `/auth/signin?callbackUrl=/auth/welcome`.
+4. After auth, Better Auth sends user to `/auth/welcome` (callback).
+5. Welcome claims invite and updates the user (name, role, inviteId) in DB. Existing users are upgraded if they are `USER`; higher roles are never downgraded.
 6. Session callback returns updated `session.user` fields (name, role, memberNumber).
 
 ## Notes

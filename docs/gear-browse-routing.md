@@ -35,7 +35,7 @@ Notes:
 
 ## Filters (via query params)
 
-- `sort` (browse): `newest` (default), `price_asc`, `price_desc`, `popularity` (no `relevance` on browse)
+- `sort` (browse): `newest` (default for cameras/brand/all lens pages), `focal_length` (default for lens mount pages), `price_asc`, `price_desc`, `popularity` (no `relevance` on browse)
 - `sort` (search): defaults to `relevance`
 - `page`, `perPage` (defaults: 1, 24; `perPage` max 96)
 - Traits: `minPrice`, `maxPrice`, `minRating`, `minYear`, `maxYear`, `sensor`

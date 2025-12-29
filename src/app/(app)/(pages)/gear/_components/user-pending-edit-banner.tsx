@@ -1,17 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession } from "~/lib/auth/auth-client";
 
 export function UserPendingEditBanner({ slug }: { slug: string }) {
-  const { data: session, status } = useSession();
+  const { data } = useSession();
+
+  const session = data?.session;
+
   const [pendingEdit, setPendingEdit] = useState<{
     id: string;
     status: "PENDING" | "APPROVED" | "REJECTED" | "MERGED";
   } | null>(null);
 
   useEffect(() => {
-    if (status !== "authenticated" || !session?.user) return;
+    if (!session) return;
 
     const run = async () => {
       try {
@@ -29,9 +32,9 @@ export function UserPendingEditBanner({ slug }: { slug: string }) {
     run().catch((error) => {
       console.error("[UserPendingEditBanner] error", error);
     });
-  }, [session, status, slug]);
+  }, [session, slug]);
 
-  if (status !== "authenticated" || !pendingEdit) return null;
+  if (!session || !pendingEdit) return null;
 
   if (pendingEdit.status !== "PENDING") return null;
 

@@ -8,11 +8,24 @@ import { fetchTrending } from "~/server/popularity/service";
 import { getItemDisplayPrice } from "~/lib/mapping";
 import { fetchReleaseFeedPage } from "~/server/gear/browse/service";
 import { ReleaseFeedGrid } from "./release-feed-grid";
+import { BrowseResultsGrid, type BrowseListPage } from "./browse-results-grid";
+import type { BrowseFilters } from "~/lib/browse/filters";
+import { loadHubData } from "~/server/gear/browse/service";
+import type { SearchGearResult } from "~/server/gear/browse/data";
 
 export default async function AllGearContent({
   brandSlug,
   showBrandPicker = true,
-}: { brandSlug?: string; showBrandPicker?: boolean } = {}) {
+  initialBrowsePage,
+  browseBaseQuery,
+  brandName,
+}: {
+  brandSlug?: string;
+  showBrandPicker?: boolean;
+  initialBrowsePage?: BrowseListPage;
+  browseBaseQuery?: string;
+  brandName?: string;
+} = {}) {
   const featured = BRANDS.filter((b) =>
     ["Canon", "Nikon", "Sony"].includes(b.name),
   );
@@ -27,6 +40,12 @@ export default async function AllGearContent({
   const brand = brandSlug
     ? BRANDS.find((b) => b.slug === brandSlug)
     : undefined;
+  const { listPage, baseQuery, brandLabel } = await ensureBrowseData({
+    brandSlug,
+    initialBrowsePage,
+    browseBaseQuery,
+    brandName,
+  });
   const initialReleasePage = await fetchReleaseFeedPage({
     limit: 12,
     brandSlug,
@@ -80,6 +99,19 @@ export default async function AllGearContent({
       </section>
 
       <section className="space-y-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="flex items-center gap-2 text-2xl font-semibold">
+            {brandLabel ?? "All gear"}
+          </h2>
+        </div>
+        <BrowseResultsGrid
+          initialPage={listPage}
+          brandName={brandLabel ?? undefined}
+          baseQuery={baseQuery}
+        />
+      </section>
+
+      <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-2xl font-semibold">
             <span>
@@ -129,4 +161,89 @@ export default async function AllGearContent({
       </section>
     </main>
   );
+}
+
+async function ensureBrowseData(params: {
+  brandSlug?: string;
+  initialBrowsePage?: BrowseListPage;
+  browseBaseQuery?: string;
+  brandName?: string;
+}): Promise<{
+  listPage: BrowseListPage;
+  baseQuery: string;
+  brandLabel?: string;
+}> {
+  if (params.initialBrowsePage && params.browseBaseQuery) {
+    return {
+      listPage: params.initialBrowsePage,
+      baseQuery: params.browseBaseQuery,
+      brandLabel: params.brandName,
+    };
+  }
+
+  const { lists, filters, brand } = await loadHubData({
+    segments: params.brandSlug ? [params.brandSlug] : [],
+    searchParams: {},
+  });
+
+  return {
+    listPage: buildInitialPage(lists, filters),
+    baseQuery: buildBaseQuery({
+      searchParams: {},
+      perPage: filters.perPage,
+      brandSlug: params.brandSlug,
+      category: null,
+      mountShort: null,
+    }),
+    brandLabel: params.brandName ?? brand?.name,
+  };
+}
+
+function buildInitialPage(
+  lists: SearchGearResult,
+  filters: BrowseFilters,
+): BrowseListPage {
+  return {
+    items: lists.items.map((g) => ({
+      ...g,
+      releaseDate: g.releaseDate ? g.releaseDate.toISOString() : null,
+      thumbnailUrl: g.thumbnailUrl ?? null,
+      brandName: g.brandName ?? null,
+      gearType: g.gearType ?? null,
+      msrpNowUsdCents:
+        typeof g.msrpNowUsdCents === "number" ? g.msrpNowUsdCents : null,
+      mpbMaxPriceUsdCents:
+        typeof g.mpbMaxPriceUsdCents === "number"
+          ? g.mpbMaxPriceUsdCents
+          : null,
+    })),
+    total: lists.total,
+    page: filters.page,
+    perPage: filters.perPage,
+    hasMore: filters.page * filters.perPage < lists.total,
+  };
+}
+
+function buildBaseQuery(params: {
+  searchParams: Record<string, string | string[] | undefined>;
+  perPage: number;
+  brandSlug?: string | null;
+  category?: string | null;
+  mountShort?: string | null;
+}) {
+  const qs = new URLSearchParams();
+  qs.set("view", "list");
+  if (params.brandSlug) qs.set("brandSlug", params.brandSlug);
+  if (params.category) qs.set("category", params.category);
+  if (params.mountShort) qs.set("mount", params.mountShort);
+  qs.set("perPage", String(params.perPage));
+
+  Object.entries(params.searchParams).forEach(([key, value]) => {
+    if (key === "page" || key === "perPage") return;
+    if (value == null) return;
+    if (Array.isArray(value)) value.forEach((v) => qs.append(key, v));
+    else qs.set(key, value);
+  });
+
+  return qs.toString();
 }

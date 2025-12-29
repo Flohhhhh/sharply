@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession } from "~/lib/auth/auth-client";
 import { Button } from "~/components/ui/button";
 import {
   Heart,
@@ -18,7 +18,7 @@ import Link from "next/link";
 import { MultiSelect } from "~/components/ui/multi-select";
 import { AddToCompareButton } from "~/components/compare/add-to-compare-button";
 import { GearImageModal } from "~/components/modals/gear-image-modal";
-import type { UserRole } from "~/server/auth";
+import { requireRole } from "~/lib/auth/auth-helpers";
 
 interface GearActionButtonsProps {
   slug: string;
@@ -38,10 +38,12 @@ export function GearActionButtons({
   initialIsOwned = null,
   currentThumbnailUrl = null,
 }: GearActionButtonsProps) {
-  const { data: session, status } = useSession();
-  const role = (session?.user as { role?: UserRole } | null | undefined)?.role;
-  const canEditImage =
-    role === "ADMIN" || role === "SUPERADMIN" || role === "EDITOR";
+  const { data, isPending, error } = useSession();
+
+  const session = data?.session;
+  const user = data?.user;
+
+  const canEditImage = requireRole(user, ["EDITOR"]);
   const [inWishlist, setInWishlist] = useState<boolean | null>(
     initialInWishlist,
   );
@@ -54,7 +56,7 @@ export function GearActionButtons({
   // Initial state comes from server props; no client fetch
 
   const handleWishlistToggle = async () => {
-    if (!session?.user || inWishlist === null) return;
+    if (!session || inWishlist === null) return;
 
     setLoading((prev) => ({ ...prev, wishlist: true }));
     try {
@@ -85,7 +87,7 @@ export function GearActionButtons({
   };
 
   const handleOwnershipToggle = async () => {
-    if (!session?.user || isOwned === null) return;
+    if (!session || isOwned === null) return;
 
     setLoading((prev) => ({ ...prev, ownership: true }));
     try {

@@ -15,7 +15,7 @@ import { CollectionGrid } from "./collection-grid";
 import Logo from "public/logo";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
-import type { User } from "next-auth";
+import type { AuthUser } from "~/auth";
 
 const designWidth = 1920;
 const designHeight = 1080;
@@ -24,7 +24,7 @@ const designHeightWithPadding = designHeight + bottomPadding;
 
 export function CollectionContainer(props: {
   items: GearItem[];
-  user: User;
+  user: AuthUser;
   className?: string;
 }) {
   const { items, user, className } = props;

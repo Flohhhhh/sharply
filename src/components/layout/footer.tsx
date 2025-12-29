@@ -4,6 +4,7 @@ import {
   FaFacebook,
   FaInstagram,
   FaLinkedin,
+  FaGithub,
   FaTwitter,
 } from "react-icons/fa";
 import { getFooterItems } from "~/lib/nav-items";
@@ -43,6 +44,11 @@ const defaultSocialLinks = [
     icon: <FaTwitter className="size-5" />,
     href: "https://x.com/sharply_photo",
     label: "X",
+  },
+  {
+    icon: <FaGithub className="size-5" />,
+    href: "https://github.com/Flohhhhh/sharply",
+    label: "GitHub",
   },
   // { icon: <FaLinkedin className="size-5" />, href: "#", label: "LinkedIn" },
 ];

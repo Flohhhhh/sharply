@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "~/server/auth";
+import { auth } from "~/auth";
 import { getUserReviews } from "~/server/users/service";
+import { headers } from "next/headers";
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,8 +9,11 @@ export async function GET(request: NextRequest) {
     const requestedUserId = searchParams.get("userId");
     // If a userId is provided, fetch reviews for that user (public profile view).
     // Otherwise, require auth and fetch the current user's reviews.
-    const session = await auth();
-    const targetUserId = requestedUserId || session?.user?.id || null;
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    const userId = session?.user?.id;
+    const targetUserId = requestedUserId || userId || null;
     if (!targetUserId) {
       return NextResponse.json({ reviews: [] });
     }

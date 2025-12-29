@@ -1,5 +1,6 @@
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { auth } from "~/server/auth";
+import { auth } from "~/auth";
 import { fetchPendingEdit } from "~/server/gear/service";
 
 export async function GET(
@@ -7,8 +8,11 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> },
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session) {
       return NextResponse.json({ pendingEditId: null });
     }
 

@@ -6,8 +6,11 @@ import LearnMobileArticleSheet, {
 import { TableOfContents } from "~/components/rich-text/table-of-contents";
 import type { LearnPage } from "~/payload-types";
 import { getLearnPages } from "~/server/payload/service";
-import { auth } from "~/server/auth";
+import { auth } from "~/auth";
+import { requireRole } from "~/lib/auth/auth-helpers";
 import ComingSoon from "~/components/coming-soon";
+import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
+import { headers } from "next/headers";
 
 const sortByCreationDate = <T extends { createdAt: string }>(items: T[]) => {
   return [...items].sort(
@@ -48,10 +51,12 @@ export default async function ArticlesLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
-  const role = session?.user?.role ?? "USER";
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  const user = session?.user;
 
-  if (!["EDITOR", "ADMIN", "SUPERADMIN"].includes(role)) {
+  if (!session || !requireRole(user, ["EDITOR"])) {
     return (
       <ComingSoon
         title="Learn Articles"
@@ -128,6 +133,7 @@ export default async function ArticlesLayout({
 
   return (
     <>
+      <ScrollProgress bottomOffset={300} />
       <LearnMobileArticleSheet groups={mobileGroups} />
       <div className="mx-auto min-h-screen max-w-[1400px] p-6 py-12 sm:py-24">
         <div className="grid gap-8 md:grid-cols-[280px_1fr] lg:grid-cols-[240px_1fr_260px]">

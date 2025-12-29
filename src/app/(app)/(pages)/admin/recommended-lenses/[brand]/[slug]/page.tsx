@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { auth } from "~/server/auth";
+import { auth } from "~/auth";
+import { requireRole } from "~/lib/auth/auth-helpers";
 import {
   serviceGetChart,
   serviceGetChartAdminRaw,
@@ -7,15 +8,10 @@ import {
 import {
   actionUpdateChartMeta,
   actionUpsertItem,
-  actionDeleteItem,
 } from "~/server/recommendations/actions";
-import { Input } from "~/components/ui/input";
-import { Textarea } from "~/components/ui/textarea";
-import { Button } from "~/components/ui/button";
-import { Label } from "~/components/ui/label";
 import Link from "next/link";
-import GearCombobox from "~/components/custom-inputs/gear-combobox";
 import EditChartContent from "./_components/EditChartContent";
+import { headers } from "next/headers";
 
 export const revalidate = 0;
 
@@ -23,10 +19,14 @@ export default async function Page(props: {
   params: Promise<{ brand: string; slug: string }>;
 }) {
   const params = await props.params;
-  const session = await auth();
-  const role = (session?.user as any)?.role as string | undefined;
-  if (!role || !["ADMIN", "EDITOR"].includes(role)) {
-    redirect("/");
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  const user = session?.user;
+
+  if (!session || !user || !requireRole(user, ["EDITOR"])) {
+    redirect("/auth/signin?callbackUrl=/admin/recommended-lenses");
   }
 
   const chart = await serviceGetChart(params.brand, params.slug);

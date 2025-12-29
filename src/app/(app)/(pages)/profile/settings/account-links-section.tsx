@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState, useTransition } from "react";
-import { signIn } from "next-auth/react";
+import { linkSocial, unlinkAccount } from "~/lib/auth/auth-client";
 import { FaDiscord, FaGoogle } from "react-icons/fa";
 import { CheckCircle2, Loader } from "lucide-react";
 import { toast } from "sonner";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -18,7 +19,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "~/components/ui/alert-dialog";
-import { actionUnlinkProvider } from "~/server/auth/account-actions";
 import type { LinkedAccountInfo } from "~/server/auth/account-linking";
 
 type ProviderKey = "discord" | "google";
@@ -58,6 +58,8 @@ export function AccountLinksSection({
   providerAvailability,
   userEmail,
 }: AccountLinksSectionProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [localLinks, setLocalLinks] = useState(linkedAccounts);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -72,6 +74,16 @@ export function AccountLinksSection({
     [isPending, connecting],
   );
 
+  useEffect(() => {
+    const linkedProvider = searchParams.get("linked");
+    if (!linkedProvider) return;
+    if (linkedProvider === "discord" || linkedProvider === "google") {
+      const meta = PROVIDER_METADATA[linkedProvider];
+      toast.success(`${meta.label} linked`);
+    }
+    router.replace("/profile/settings");
+  }, [router, searchParams]);
+
   const handleConnect = async (provider: ProviderKey) => {
     setError(null);
     setConnecting(provider);
@@ -79,11 +91,14 @@ export function AccountLinksSection({
       `Opening ${PROVIDER_METADATA[provider].label} to link...`,
     );
     try {
-      toast.success(`Redirecting to link ${PROVIDER_METADATA[provider].label}`);
-      await signIn(provider, {
-        callbackUrl: "/profile/settings",
+      // toast.success(`Redirecting to link ${PROVIDER_METADATA[provider].label}`);
+      const res = await linkSocial({
+        provider,
+        callbackURL: `/profile/settings?linked=${provider}`,
       });
-      // Redirect will occur; no further state updates needed.
+      if (res.error) {
+        throw new Error(res.error.message);
+      }
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to start linking";
@@ -94,18 +109,24 @@ export function AccountLinksSection({
     }
   };
 
-  const handleDisconnect = (provider: ProviderKey) => {
+  const handleDisconnect = (provider: ProviderKey, accountId: string) => {
     if (isBusy) return;
     setError(null);
+    const toastId = toast.loading(
+      `Disconnecting ${PROVIDER_METADATA[provider].label}...`,
+    );
     startTransition(async () => {
-      const res = await actionUnlinkProvider(provider);
-      if (!res.ok) {
-        setError(res.error);
-        toast.error(res.error);
-        return;
+      const { data, error } = await unlinkAccount({
+        providerId: provider,
+        accountId: accountId,
+      });
+      if (error) {
+        throw new Error(error.message);
       }
       setLocalLinks((prev) => ({ ...prev, [provider]: null }));
       toast.success(`${PROVIDER_METADATA[provider].label} disconnected`);
+      toast.dismiss(toastId);
+      setConnecting(null);
     });
   };
 
@@ -202,7 +223,9 @@ export function AccountLinksSection({
                         Cancel
                       </AlertDialogCancel>
                       <AlertDialogAction
-                        onClick={() => handleDisconnect(provider)}
+                        onClick={() =>
+                          handleDisconnect(provider, link.providerAccountId)
+                        }
                         disabled={isBusy}
                       >
                         Disconnect
