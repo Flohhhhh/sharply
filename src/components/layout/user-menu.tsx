@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,9 +11,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
-import { signOut } from "next-auth/react";
 import { LogOut, Settings, ShieldCheck, User as UserIcon } from "lucide-react";
-import type { UserRole } from "~/server/auth";
+import type { UserRole } from "~/auth";
+import { logOut } from "~/lib/auth";
+import { Spinner } from "~/components/ui/spinner";
 
 export type UserMenuUser = {
   id: string;
@@ -28,6 +29,8 @@ export function UserMenu({ user }: { user: UserMenuUser }) {
     const source = user?.name || user?.email || "?";
     return source.trim().charAt(0).toUpperCase();
   }, [user?.name, user?.email]);
+
+  const [loggingOut, setLoggingOut] = useState<boolean>(false);
 
   if (!user) return null;
 
@@ -96,15 +99,23 @@ export function UserMenu({ user }: { user: UserMenuUser }) {
         )}
         <DropdownMenuSeparator />
         <DropdownMenuItem
+          disabled={loggingOut}
           onSelect={(e) => {
             e.preventDefault();
-            void signOut();
+            setLoggingOut(true);
+            void logOut();
           }}
           variant="destructive"
           className="text-red-600"
         >
-          <LogOut className="size-4" />
-          <span>Log out</span>
+          {loggingOut ? (
+            <Spinner />
+          ) : (
+            <>
+              <LogOut className="size-4" />
+              <span>Log out</span>
+            </>
+          )}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

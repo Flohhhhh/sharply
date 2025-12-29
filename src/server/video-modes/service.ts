@@ -1,6 +1,8 @@
 import "server-only";
 
-import { requireUser, requireRole, type UserRole } from "~/server/auth";
+import type { AuthUser } from "~/auth";
+import { requireRole } from "~/lib/auth/auth-helpers";
+import { getSessionOrThrow } from "~/server/auth";
 import { getGearIdBySlug as getGearIdBySlugData } from "~/server/gear/data";
 import {
   fetchVideoModesByGearId,
@@ -12,10 +14,9 @@ import {
   normalizeVideoModes,
   slugifyResolutionKey,
 } from "~/lib/video/mode-schema";
-const EDIT_ROLES: UserRole[] = ["EDITOR"];
 
-function assertCanEdit(role: UserRole | undefined) {
-  if (!role || !requireRole({ user: { role } }, EDIT_ROLES)) {
+function assertCanEdit(user: AuthUser | undefined) {
+  if (!user || !requireRole(user, ["EDITOR"])) {
     throw Object.assign(new Error("Forbidden"), { status: 403 });
   }
 }
@@ -38,8 +39,8 @@ export async function saveVideoModesForGearSlug(
   slug: string,
   payload: unknown,
 ) {
-  const { user } = await requireUser();
-  assertCanEdit(user.role);
+  const { user } = await getSessionOrThrow();
+  assertCanEdit(user);
 
   const gearId = await resolveGearIdOrThrow(slug);
   const parsed = videoModesPayloadSchema.parse(payload ?? {});

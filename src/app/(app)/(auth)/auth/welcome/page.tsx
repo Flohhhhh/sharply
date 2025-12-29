@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import { auth } from "~/server/auth";
+import { auth } from "~/auth";
 import { fetchFullUserById } from "~/server/users/service";
 import UserCard from "./user-card";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { claimInvite } from "~/server/invites/service";
+import { headers } from "next/headers";
 
 export const metadata: Metadata = {
   title: "Welcome!",
@@ -24,7 +25,10 @@ type WelcomeSearchParams = {
 export default async function WelcomePage(props: {
   searchParams: Promise<WelcomeSearchParams>;
 }) {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  const user = session?.user;
   const {
     callbackUrl,
     inviteId: inviteIdFromQuery,
@@ -38,7 +42,7 @@ export default async function WelcomePage(props: {
         ? callbackUrl
         : "/";
 
-  if (!session?.user?.id) {
+  if (!session) {
     return (
       <div className="bg-background flex min-h-screen w-full flex-col items-center justify-center">
         <p>Please sign in to continue.</p>
@@ -65,7 +69,6 @@ export default async function WelcomePage(props: {
     }
     // Note: cannot modify cookies in a server component; leave cleanup to accept route expiry
   }
-  const user = await fetchFullUserById(session.user.id);
 
   if (!user) {
     return (

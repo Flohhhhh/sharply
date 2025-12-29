@@ -1,18 +1,25 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { auth } from "~/auth";
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id: inviteId } = await params;
-  const res = NextResponse.redirect(
-    // Send users to welcome first-time, then allow welcome to redirect to `next` (default "/")
-    new URL(
-      "/api/auth/signin?callbackUrl=%2Fauth%2Fwelcome%3Fnext%3D%2F",
-      _req.url,
-    ),
-  );
+  const nextFromQuery = req.nextUrl.searchParams.get("next");
+  const next = nextFromQuery?.startsWith("/") ? nextFromQuery : "/";
+
+  const welcomeUrl = `/auth/welcome?inviteId=${encodeURIComponent(inviteId)}&next=${encodeURIComponent(next)}`;
+  const signInUrl = `/auth/signin?callbackUrl=${encodeURIComponent(welcomeUrl)}`;
+
+  const session = await auth.api.getSession({
+    headers: req.headers,
+  });
+
+  const redirectTarget = session ? welcomeUrl : signInUrl;
+
+  const res = NextResponse.redirect(new URL(redirectTarget, req.url));
   res.cookies.set("invite_id", inviteId, {
     httpOnly: true,
     path: "/",

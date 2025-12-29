@@ -17,7 +17,7 @@ export async function getUserSnapshot(userId: string): Promise<UserSnapshot> {
     await Promise.all([
       db
         .select({
-          joinDate: users.emailVerified, // fallback if separate join date not present
+          joinDate: users.createdAt, // fallback if separate join date not present
         })
         .from(users)
         .where(eq(users.id, userId)),

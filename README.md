@@ -8,7 +8,7 @@ Sharply is a photography gear database and cataloging application. It combines a
 - **Language**: TypeScript
 - **UI**: Tailwind CSS 4, shadcn/ui
 - **Database**: PostgreSQL with Drizzle ORM
-- **Auth**: NextAuth.js v5 with Discord & Google providers
+- **Auth**: BetterAuth with Passkeys and Discord & Google providers
 - **AI & Integrations**: OpenAI API, Payload CMS for editorial content
 - **Tooling**: ESLint, Prettier, TypeScript, Drizzle Kit
 
@@ -42,7 +42,7 @@ Sharply validates configuration through `src/env.js`. For onboarding you only ne
 
 **Core minimum (the app will crash without these)**
 
-- `AUTH_SECRET` – used by NextAuth for session encryption (`src/server/auth/index.ts`)
+- `AUTH_SECRET` – used by BetterAuth for session encryption (`src/server/auth/index.ts`)
 - `DATABASE_URL` – establishes the Drizzle/Postgres connection (`src/server/db/index.ts`)
 - `NEXT_PUBLIC_BASE_URL` – required when building canonical URLs and Discord bot links (`src/server/gear/browse/service.ts`)
 

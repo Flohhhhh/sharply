@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSession } from "next-auth/react";
 import { actionRecordGearView } from "~/server/popularity/actions";
 
 interface GearVisitTrackerProps {
@@ -9,8 +8,6 @@ interface GearVisitTrackerProps {
 }
 
 export function GearVisitTracker({ slug }: GearVisitTrackerProps) {
-  const { data: session, status } = useSession();
-
   const recordVisit = async () => {
     try {
       // Try to include a client-side visitorId to assist the server in dedupe when signed out

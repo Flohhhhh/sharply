@@ -6,13 +6,11 @@ import { Badge } from "~/components/ui/badge";
 import { Calendar } from "lucide-react";
 import { formatHumanDate } from "~/lib/utils";
 import type { Metadata } from "next";
-import type { News } from "~/payload-types";
 import { RichText } from "~/components/rich-text";
 import { TableOfContents } from "~/components/rich-text/table-of-contents";
 import { GearCardHorizontal } from "~/components/gear/gear-card-horizontal";
 import { fetchGearBySlug } from "~/server/gear/service";
 import { getBrandNameById } from "~/lib/mapping/brand-map";
-import Discord from "next-auth/providers/discord";
 import DiscordBanner from "~/components/discord-banner";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
 

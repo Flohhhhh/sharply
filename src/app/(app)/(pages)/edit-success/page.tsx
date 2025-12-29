@@ -3,7 +3,8 @@ import { fetchGearEditById } from "~/server/gear/service";
 import { formatPrice, formatPrecaptureSupport } from "~/lib/mapping";
 import { sensorNameFromSlug } from "~/lib/mapping/sensor-map";
 import { humanizeKey, formatHumanDate } from "~/lib/utils";
-import { auth, requireRole } from "~/server/auth";
+import { auth } from "~/auth";
+import { requireRole } from "~/lib/auth/auth-helpers";
 import type { Metadata } from "next";
 import { VideoSpecsSummary } from "~/app/(app)/(pages)/gear/_components/video/video-summary";
 import { buildVideoDisplayBundle } from "~/lib/video/transform";
@@ -23,6 +24,7 @@ import {
   formatAnalogIsoSettingMethod,
   formatAnalogFocusAid,
 } from "~/lib/mapping/analog-types-map";
+import { headers } from "next/headers";
 
 const describeUnknownValue = (value: unknown): string => {
   if (value == null) return "Empty";
@@ -55,8 +57,12 @@ export default async function EditSuccessPage({
   searchParams,
 }: EditSuccessPageProps) {
   const { id } = await searchParams;
-  const session = await auth();
-  const isAdmin = requireRole(session, ["ADMIN"]);
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  const user = session?.user;
+  const isAdmin = requireRole(user, ["ADMIN"]);
 
   if (!id) {
     return (

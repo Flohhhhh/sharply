@@ -5,7 +5,7 @@ import { buildGearSpecsSections, specDictionary } from "~/lib/specs/registry";
 import { cn } from "~/lib/utils";
 import { Fragment, useState } from "react";
 import { SuggestEditButton } from "~/app/(app)/(pages)/gear/_components/suggest-edit-button";
-import { useSession } from "next-auth/react";
+import { useSession } from "~/lib/auth/auth-client";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import { getConstructionState } from "~/lib/utils";
@@ -99,11 +99,14 @@ export function CompareSpecsTable({
   b: GearItem;
   className?: string;
 }) {
+  const { data } = useSession();
+
+  const session = data?.session;
+
   const aSections = buildGearSpecsSections(a, true);
   const bSections = buildGearSpecsSections(b, true);
   const missingA = countMissingSpecs(aSections);
   const missingB = countMissingSpecs(bSections);
-  const { status } = useSession();
   const aConstruction = getConstructionState(a);
   const bConstruction = getConstructionState(b);
   const [showMissing, setShowMissing] = useState(false);
@@ -146,7 +149,7 @@ export function CompareSpecsTable({
           We don't have enough information on these gear items to show a
           comparison yet.
         </p>
-        {status !== "authenticated" ? (
+        {!session ? (
           <div className="bg-muted/40 mt-4 rounded-md border p-4 text-left">
             <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
               <div>
@@ -156,7 +159,7 @@ export function CompareSpecsTable({
                 </div>
               </div>
               <Button asChild>
-                <Link href={`/api/auth/signin`}>Log in to contribute</Link>
+                <Link href={`/auth/signin`}>Log in to contribute</Link>
               </Button>
             </div>
           </div>

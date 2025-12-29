@@ -1,7 +1,6 @@
 "use server";
 import "server-only";
 
-import { requireUser } from "~/server/auth";
 import {
   archiveNotification,
   deleteNotification,
@@ -9,6 +8,7 @@ import {
   createNotification,
 } from "./service";
 import type { CreateNotificationParams } from "./data";
+import { getSessionOrThrow } from "~/server/auth";
 
 export async function actionMarkNotificationRead(id: string) {
   return markNotificationRead(id);
@@ -23,7 +23,7 @@ export async function actionDeleteNotification(id: string) {
 }
 
 export async function actionSendTestNotification() {
-  const { user } = await requireUser();
+  const { user } = await getSessionOrThrow();
   const samples: Array<Omit<CreateNotificationParams, "userId">> = [
     {
       type: "gear_spec_approved",

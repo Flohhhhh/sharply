@@ -14,9 +14,10 @@ import Timeline from "./timeline";
 import { Badge } from "~/components/ui/badge";
 import { ContributionCounter } from "~/components/home/contribution-counter";
 import { GearCounter } from "~/components/home/gear-counter";
-import { auth } from "~/server/auth";
+import { auth } from "~/auth";
 import type { Metadata } from "next";
 import DiscordBanner from "~/components/discord-banner";
+import { headers } from "next/headers";
 
 export const metadata: Metadata = {
   title: "About",
@@ -26,7 +27,9 @@ export const metadata: Metadata = {
 };
 
 export default async function About() {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
   return (
     <div className="mt-36 min-h-screen space-y-16">

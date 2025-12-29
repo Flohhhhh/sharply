@@ -1,12 +1,21 @@
 import { redirect } from "next/navigation";
-import { auth } from "~/server/auth";
+import { auth } from "~/auth";
+import { headers } from "next/headers";
 
 export default async function ProfileRedirectPage() {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-  if (!session?.user?.id) {
+  if (!session) {
     redirect(`/auth/signin?callbackUrl=${encodeURIComponent("/profile")}`);
   }
 
-  redirect(`/u/${session.user.id}`);
+  const user = session?.user;
+
+  if (!user) {
+    redirect(`/auth/signin?callbackUrl=${encodeURIComponent("/profile")}`);
+  }
+
+  redirect(`/u/${user.id}`);
 }

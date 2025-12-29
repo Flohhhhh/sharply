@@ -27,7 +27,7 @@ data/ → service/ → actions/ → UI component
 #### Data Layer (`src/server/users/data.ts`)
 
 ```typescript
-export async function updateUserImage(userId: string, imageUrl: string)
+export async function updateUserImage(userId: string, imageUrl: string);
 ```
 
 Raw database write to update the user's image field.
@@ -35,10 +35,10 @@ Raw database write to update the user's image field.
 #### Service Layer (`src/server/users/service.ts`)
 
 ```typescript
-export async function updateProfileImage(imageUrl: string)
+export async function updateProfileImage(imageUrl: string);
 ```
 
-- Validates the user is authenticated using `requireUser()`
+- Validates the user is authenticated via `auth.api.getSession({ headers })`
 - Validates the image URL format
 - Retrieves old image URL for potential cleanup
 - Calls data layer to update user image
@@ -47,7 +47,7 @@ export async function updateProfileImage(imageUrl: string)
 #### Actions Layer (`src/server/users/actions.ts`)
 
 ```typescript
-export async function actionUpdateProfileImage(imageUrl: string)
+export async function actionUpdateProfileImage(imageUrl: string);
 ```
 
 - Server action for client-side mutations
@@ -57,7 +57,7 @@ export async function actionUpdateProfileImage(imageUrl: string)
 #### Upload Handler (`src/app/(app)/api/uploadthing/core.ts`)
 
 ```typescript
-profilePictureUploader: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
+profilePictureUploader: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } });
 ```
 
 - Validates user authentication in middleware
@@ -93,7 +93,7 @@ Images are resized client-side before upload:
 ### Permission Controls
 
 - **Middleware**: UploadThing middleware validates user authentication before allowing upload
-- **Service Layer**: `requireUser()` ensures only authenticated users can update profile images
+- **Service Layer**: Session is fetched with `auth.api.getSession({ headers })` to ensure only authenticated users update images
 - **Scope**: Users can only update their own profile picture (enforced by session user ID)
 
 ### Data Validation
@@ -131,10 +131,10 @@ The modal can be used with a custom trigger:
 The profile picture URL is stored in the `users` table:
 
 ```typescript
-image: d.varchar({ length: 255 })
+image: d.varchar({ length: 255 });
 ```
 
-This field is also used by NextAuth for OAuth provider profile images.
+Better Auth uses this field for the user avatar (including any provider profile image pulled during OAuth).
 
 ## Future Improvements
 

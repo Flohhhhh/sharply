@@ -3,7 +3,7 @@
 import Tilt from "react-parallax-tilt";
 import { useIsMobile } from "~/hooks/use-mobile";
 import { Avatar, AvatarImage, AvatarFallback } from "~/components/ui/avatar";
-import type { User } from "~/server/db/schema";
+import type { AuthUser } from "~/auth";
 import { formatHumanDate, cn } from "~/lib/utils";
 import { useCallback, useMemo, useRef } from "react";
 import QrCode from "~/components/qr-code";
@@ -26,7 +26,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function UserCard(props: {
-  user: User;
+  user: AuthUser;
   className?: string;
   showActions?: boolean;
 }) {

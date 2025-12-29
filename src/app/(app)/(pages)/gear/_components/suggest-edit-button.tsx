@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { useSession } from "~/lib/auth/auth-client";
 import { Button } from "~/components/ui/button";
 import { Clock, Pencil } from "lucide-react";
 import {
@@ -30,7 +30,9 @@ export function SuggestEditButton({
   searchParams,
   compact,
 }: SuggestEditButtonProps) {
-  const { status } = useSession();
+  const { data } = useSession();
+
+  const session = data?.session;
   const [hasPending, setHasPending] = useState<boolean>(false);
 
   useEffect(() => {
@@ -44,11 +46,11 @@ export function SuggestEditButton({
         setHasPending(false);
       }
     };
-    if (status === "authenticated")
+    if (session)
       run().catch((error) => {
         console.error("[SuggestEditButton] error", error);
       });
-  }, [slug, status]);
+  }, [slug, session]);
 
   const targetUrl = useMemo(() => {
     const qp = new URLSearchParams();
@@ -59,15 +61,15 @@ export function SuggestEditButton({
       }
     }
     const editPath = `/gear/${slug}/edit?${qp.toString()}`;
-    if (status !== "authenticated") {
-      return `/api/auth/signin?callbackUrl=${encodeURIComponent(editPath)}`;
+    if (!session) {
+      return `/auth/signin?callbackUrl=${encodeURIComponent(editPath)}`;
     }
     return editPath;
-  }, [slug, gearType, status, searchParams]);
+  }, [slug, gearType, session, searchParams]);
 
   const buttonVariant = variant === "primary" ? "default" : variant;
 
-  if (status === "authenticated" && hasPending) {
+  if (session && hasPending) {
     const pendingContent = (
       <>
         <Clock

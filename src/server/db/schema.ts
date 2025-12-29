@@ -1482,34 +1482,6 @@ export const rollupRuns = appSchema.table(
 //   ],
 // );
 
-export const users = appSchema.table("user", (d) => ({
-  id: d
-    .varchar({ length: 255 })
-    .notNull()
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  name: d.varchar({ length: 255 }),
-  email: d.varchar({ length: 255 }).notNull(),
-  emailVerified: d
-    .timestamp({
-      mode: "date",
-      withTimezone: true,
-    })
-    .default(sql`CURRENT_TIMESTAMP`),
-  image: d.varchar({ length: 255 }),
-  role: userRoleEnum("role").notNull().default("USER"),
-  // Sequential public member number, first user is 1, second is 2, etc.
-  memberNumber: integer("member_number")
-    .generatedByDefaultAsIdentity()
-    .notNull()
-    .unique(),
-  // Invite used to join (if applicable). Stored for audit, no FK to avoid cycle.
-  inviteId: varchar("invite_id", { length: 36 }),
-  // Social links (array of {label: string, url: string, icon?: string})
-  socialLinks: jsonb("social_links"),
-  createdAt,
-}));
-
 export const notifications = appSchema.table(
   "notifications",
   (d) => ({
@@ -1541,19 +1513,9 @@ export const notifications = appSchema.table(
   ],
 );
 
-export const usersRelations = relations(users, ({ many }) => ({
-  accounts: many(accounts),
-  gearEdits: many(gearEdits),
-  reviews: many(reviews),
-  notifications: many(notifications),
-}));
-
 export const notificationsRelations = relations(notifications, ({ one }) => ({
   user: one(users, { fields: [notifications.userId], references: [users.id] }),
 }));
-
-// Export the user type for use throughout the application
-export type User = typeof users.$inferSelect;
 
 export const accounts = appSchema.table(
   "account",
@@ -1685,3 +1647,122 @@ export const invites = appSchema.table(
     index("invites_used_by_idx").on(t.usedByUserId),
   ],
 );
+
+// -- AUTH SCHEMA --
+
+export const users = appSchema.table("user", (d) => ({
+  id: d
+    .varchar({ length: 255 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: d.varchar({ length: 255 }),
+  email: d.varchar({ length: 255 }).notNull(),
+  // changed from timestamp to boolean
+  emailVerified: d.boolean().notNull().default(false),
+  image: d.varchar({ length: 255 }),
+  role: userRoleEnum("role").notNull().default("USER"),
+  // Sequential public member number, first user is 1, second is 2, etc.
+  memberNumber: integer("member_number")
+    .generatedByDefaultAsIdentity()
+    .notNull()
+    .unique(),
+  // Invite used to join (if applicable). Stored for audit, no FK to avoid cycle.
+  inviteId: varchar("invite_id", { length: 36 }),
+  // Social links (array of {label: string, url: string, icon?: string})
+  socialLinks: jsonb("social_links"),
+  createdAt,
+  updatedAt: d
+    .timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+}));
+
+export const usersRelations = relations(users, ({ many }) => ({
+  accounts: many(accounts),
+  gearEdits: many(gearEdits),
+  reviews: many(reviews),
+  notifications: many(notifications),
+}));
+
+// Export the user type for use throughout the application
+export type User = typeof users.$inferSelect;
+
+export const authSessions = appSchema.table(
+  "auth_sessions",
+  {
+    id: text("id").primaryKey(),
+    expiresAt: timestamp("expires_at").notNull(),
+    token: text("token").notNull().unique(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+  },
+  (table) => [index("auth_sessions_userId_idx").on(table.userId)],
+);
+
+export const authAccounts = appSchema.table(
+  "auth_accounts",
+  {
+    id: text("id").primaryKey(),
+    accountId: text("account_id").notNull(),
+    providerId: text("provider_id").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    accessToken: text("access_token"),
+    refreshToken: text("refresh_token"),
+    idToken: text("id_token"),
+    accessTokenExpiresAt: timestamp("access_token_expires_at"),
+    refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
+    scope: text("scope"),
+    password: text("password"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [index("auth_accounts_userId_idx").on(table.userId)],
+);
+
+export const authVerifications = appSchema.table(
+  "auth_verifications",
+  {
+    id: text("id").primaryKey(),
+    identifier: text("identifier").notNull(),
+    value: text("value").notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [index("auth_verifications_identifier_idx").on(table.identifier)],
+);
+
+export const authUsersRelations = relations(users, ({ many }) => ({
+  sessions: many(authSessions),
+  accounts: many(authAccounts),
+}));
+
+export const authSessionsRelations = relations(authSessions, ({ one }) => ({
+  users: one(users, {
+    fields: [authSessions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const authAccountsRelations = relations(authAccounts, ({ one }) => ({
+  users: one(users, {
+    fields: [authAccounts.userId],
+    references: [users.id],
+  }),
+}));

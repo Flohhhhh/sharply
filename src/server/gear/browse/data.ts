@@ -1,14 +1,5 @@
 import "server-only";
-import {
-  and,
-  asc,
-  desc,
-  eq,
-  ilike,
-  inArray,
-  sql,
-  type SQL,
-} from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, sql, type SQL } from "drizzle-orm";
 import { db } from "~/server/db";
 import {
   brands,

@@ -3,7 +3,9 @@ import "server-only";
 import { desc, eq } from "drizzle-orm";
 import { db } from "~/server/db";
 import { invites, users } from "~/server/db/schema";
-import type { UserRole } from "~/server/auth";
+import type { UserRole } from "~/auth";
+
+type DbClient = Pick<typeof db, "update" | "query">;
 
 export type InviteRow = typeof invites.$inferSelect;
 
@@ -40,21 +42,50 @@ export async function findInviteById(id: string): Promise<InviteRow | null> {
 export async function markInviteUsed(
   inviteId: string,
   userId: string,
+  client: DbClient = db,
 ): Promise<void> {
-  await db
+  await client
     .update(invites)
     .set({ isUsed: true, usedByUserId: userId, usedAt: new Date() })
     .where(eq(invites.id, inviteId));
 }
 
-export async function assignUserFromInvite(params: {
-  userId: string;
-  inviteId: string;
-  name: string;
-  role: UserRole;
-}): Promise<void> {
-  await db
+export async function assignUserFromInvite(
+  params: {
+    userId: string;
+    inviteId: string;
+    name: string;
+    role: UserRole;
+  },
+  client: DbClient = db,
+): Promise<void> {
+  const ROLE_PRIORITY: Record<UserRole, number> = {
+    USER: 0,
+    MODERATOR: 1,
+    EDITOR: 2,
+    ADMIN: 3,
+    SUPERADMIN: 4,
+  };
+
+  const currentUser = await client.query.users.findFirst({
+    columns: { role: true },
+    where: eq(users.id, params.userId),
+  });
+
+  const currentRole = currentUser?.role ?? "USER";
+  const targetRolePriority =
+    ROLE_PRIORITY[params.role as keyof typeof ROLE_PRIORITY] ?? 0;
+  const currentRolePriority =
+    ROLE_PRIORITY[currentRole as keyof typeof ROLE_PRIORITY] ?? 0;
+  const nextRole =
+    currentRolePriority >= targetRolePriority ? currentRole : params.role;
+
+  await client
     .update(users)
-    .set({ name: params.name, role: params.role, inviteId: params.inviteId })
+    .set({
+      name: params.name,
+      role: nextRole,
+      inviteId: params.inviteId,
+    })
     .where(eq(users.id, params.userId));
 }

@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { auth, requireRole } from "~/server/auth";
+import { requireRole } from "~/lib/auth/auth-helpers";
+import { auth } from "~/auth";
 import type { Metadata } from "next";
 import { SidebarInset, SidebarProvider } from "~/components/ui/sidebar";
 import { AppSidebar } from "./sidebar";
 import { SiteHeader } from "./admin-header";
-import type { UserRole } from "~/server/auth";
+import type { AuthUser } from "~/auth";
 import { fetchNotificationsForUser } from "~/server/notifications/service";
+import { headers } from "next/headers";
 
 export const metadata: Metadata = {
   title: {
@@ -26,23 +28,18 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
   // Role check: only EDITOR and ADMIN may access
   if (!session?.user) {
-    redirect(`/api/auth/signin?callbackUrl=${encodeURIComponent("/admin")}`);
+    redirect(`/auth/signin?callbackUrl=${encodeURIComponent("/admin")}`);
   }
 
   console.log(session.user.role);
 
-  if (
-    !requireRole(session, [
-      "SUPERADMIN",
-      "ADMIN",
-      "EDITOR",
-      "MODERATOR",
-    ] as UserRole[])
-  ) {
+  if (!requireRole(session.user, ["MODERATOR"])) {
     return (
       <div className="bg-background min-h-screen">
         <main className="container mx-auto px-4 py-16">

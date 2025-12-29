@@ -6,9 +6,11 @@ import LearnMobileArticleSheet, {
 import { TableOfContents } from "~/components/rich-text/table-of-contents";
 import type { LearnPage } from "~/payload-types";
 import { getLearnPages } from "~/server/payload/service";
-import { auth } from "~/server/auth";
+import { auth } from "~/auth";
+import { requireRole } from "~/lib/auth/auth-helpers";
 import ComingSoon from "~/components/coming-soon";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
+import { headers } from "next/headers";
 
 const sortByCreationDate = <T extends { createdAt: string }>(items: T[]) => {
   return [...items].sort(
@@ -49,10 +51,12 @@ export default async function ArticlesLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
-  const role = session?.user?.role ?? "USER";
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  const user = session?.user;
 
-  if (!["EDITOR", "ADMIN", "SUPERADMIN"].includes(role)) {
+  if (!session || !requireRole(user, ["EDITOR"])) {
     return (
       <ComingSoon
         title="Learn Articles"

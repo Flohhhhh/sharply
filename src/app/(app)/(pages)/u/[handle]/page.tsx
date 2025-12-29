@@ -18,13 +18,14 @@ import {
 } from "~/server/users/service";
 // Note: page is a Server Component and reads from the service layer only.
 import type { Metadata } from "next";
-import { auth } from "~/server/auth";
+import { auth } from "~/auth";
 import { Button } from "~/components/ui/button";
 import { UserPen } from "lucide-react";
 import { ShowUserCardButton } from "~/app/(app)/(pages)/u/_components/ShowUserCardButton";
 import type { GearItem } from "~/types/gear";
 import { getBrandNameById } from "~/lib/mapping/brand-map";
 import { CollectionContainer } from "~/app/(app)/(pages)/u/_components/collection/collection-container";
+import { headers } from "next/headers";
 
 interface UserProfilePageProps {
   params: Promise<{
@@ -49,27 +50,28 @@ export default async function UserProfilePage({
   params,
 }: UserProfilePageProps) {
   const { handle } = await params;
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  const user = session?.user;
 
   // Load user profile
-  const user = await fetchFullUserById(handle);
-  if (!user) notFound();
+  const profile = await fetchFullUserById(handle);
+  if (!profile) notFound();
 
   // Wishlist and owned items via service layer
   const [wishlistItems, ownedItems] = await Promise.all([
-    fetchUserWishlistItems(user.id),
-    fetchUserOwnedItems(user.id),
+    fetchUserWishlistItems(profile.id),
+    fetchUserOwnedItems(profile.id),
   ]);
 
   const sortedOwnedItems = sortOwnedItems(ownedItems);
-
-  // ownedItems loaded above
-
-  const myProfile = user.id === session?.user?.id;
+  const myProfile = profile.id === user?.id;
 
   // Parse social links from JSONB
-  const socialLinks: SocialLink[] = Array.isArray(user.socialLinks)
-    ? (user.socialLinks as SocialLink[])
+  const socialLinks: SocialLink[] = Array.isArray(profile.socialLinks)
+    ? (profile.socialLinks as SocialLink[])
     : [];
 
   return (
@@ -77,16 +79,16 @@ export default async function UserProfilePage({
       {/* User Header */}
       <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div className="flex items-center gap-4">
-          {user.image && (
+          {profile.image && (
             <img
-              src={user.image}
-              alt={user.name || "User"}
+              src={profile.image}
+              alt={profile.name || "User"}
               className="h-16 w-16 rounded-full"
             />
           )}
           <div>
             <h1 className="text-3xl font-bold">
-              {user.name || "Anonymous User"}
+              {profile.name || "Anonymous User"}
             </h1>
             <p className="text-muted-foreground">Gear Collection & Wishlist</p>
           </div>
@@ -96,7 +98,7 @@ export default async function UserProfilePage({
             <Button asChild icon={<UserPen />} className="self-end">
               <Link href="/profile/settings">Edit Profile</Link>
             </Button>
-            <ShowUserCardButton user={user} />
+            <ShowUserCardButton user={profile} />
           </div>
         )}
       </div>
@@ -111,7 +113,7 @@ export default async function UserProfilePage({
       <div className="flex flex-col gap-8">
         {/* Badges */}
         <div className="space-y-4 lg:col-span-2">
-          <UserBadges userId={user.id} />
+          <UserBadges userId={profile.id} />
         </div>
 
         {/* Collection */}
@@ -145,7 +147,7 @@ export default async function UserProfilePage({
           <CollectionContainer
             className="hidden md:block"
             items={sortedOwnedItems}
-            user={user}
+            user={profile}
           />
         </div>
 
@@ -179,7 +181,7 @@ export default async function UserProfilePage({
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold">Reviews</h2>
           </div>
-          <UserReviewsList userId={user.id} />
+          <UserReviewsList userId={profile.id} />
         </div>
       </div>
     </main>

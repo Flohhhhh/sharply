@@ -91,6 +91,13 @@ export default tseslint.config(
       "@typescript-eslint/no-restricted-imports": "off",
     },
   },
+  // Allow auth.ts to import schema
+  {
+    files: ["src/auth.ts"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": "off",
+    },
+  },
   {
     linterOptions: {
       reportUnusedDisableDirectives: true,

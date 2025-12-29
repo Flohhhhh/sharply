@@ -6,7 +6,7 @@ import { Input } from "~/components/ui/input";
 import { FaDiscord, FaGoogle } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { signIn } from "next-auth/react";
+import { emailOtp, signIn } from "~/lib/auth/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 
@@ -90,41 +90,55 @@ export default function SignInClient() {
       provider,
     });
     try {
-      const result = await signIn(provider, {
-        callbackUrl,
-        redirect: false,
+      const { data, error } = await signIn.social({
+        provider,
+        callbackURL: callbackUrl,
+        disableRedirect: true,
       });
 
-      if (result?.error) {
-        toast.error("Sign in failed. Please try again.");
-      } else if (result?.ok) {
-        router.push(callbackUrl);
+      if (error) {
+        toast.error("Sign in failed.", {
+          richColors: true,
+          description: error.message,
+        });
+      } else {
+        router.push(data.url ?? "/");
       }
     } catch (error) {
       toast.error("An unexpected error occurred. Please try again.");
     }
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleEmailOtpSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!canSubmit || sending) return;
+
+    if (!emailOtp?.sendVerificationOtp) {
+      toast.error("Email OTP is not available right now.");
+      return;
+    }
+
     try {
       setSending(true);
       void track("auth_signin_press", {
-        method: "magic_link",
+        method: "email_otp",
         callbackUrl,
       });
-      await signIn("resend", {
+      const { error } = await emailOtp.sendVerificationOtp({
         email,
-        callbackUrl,
-        redirect: false,
-        replyTo: "admin@sharplyphoto.com",
+        type: "sign-in",
       });
+      if (error) {
+        toast.error("Failed to send code.", { description: error.message });
+        return;
+      }
+      toast.success("Code sent! Check your email.");
       router.push(
-        `/auth/verify?email=${encodeURIComponent(email)}&callbackUrl=${encodeURIComponent(callbackUrl)}`,
+        `/auth/verify-otp?email=${encodeURIComponent(email)}&callbackUrl=${encodeURIComponent(callbackUrl)}`,
       );
-    } catch {
-      toast("Failed to send magic link. Please try again.");
+    } catch (err) {
+      console.error("Failed to send OTP", err);
+      toast.error("Failed to send code. Please try again.");
     } finally {
       setSending(false);
     }
@@ -135,9 +149,7 @@ export default function SignInClient() {
       <div className="overflow-hidden rounded-xl border md:grid md:min-h-[560px] md:grid-cols-2">
         <div className="dark:bg-accent/50 bg-white p-8 md:border-r md:p-10">
           <div className="mb-8 text-center md:text-left">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Welcome
-            </h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Welcome</h1>
             <p className="text-muted-foreground mt-1 text-sm">
               Log in or create an account to continue
             </p>
@@ -163,14 +175,14 @@ export default function SignInClient() {
             </Button>
           </div>
 
+          {/* Email OTP sign-in */}
           <div className="mt-5 space-y-5">
             <div className="text-muted-foreground relative py-2 text-center text-xs">
               <span className="relative px-2">or continue with email</span>
               <div className="bg-border absolute inset-x-0 top-1/2 -z-10 h-px -translate-y-1/2" />
             </div>
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleEmailOtpSubmit} className="space-y-5">
               <div className="space-y-2">
-                {/* <Label htmlFor="email">Email</Label> */}
                 <Input
                   id="email"
                   type="email"
@@ -179,6 +191,9 @@ export default function SignInClient() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
+                <p className="text-muted-foreground text-xs">
+                  We will send a 6-digit code to this address.
+                </p>
               </div>
               <Button
                 className="w-full"
@@ -186,7 +201,7 @@ export default function SignInClient() {
                 disabled={!canSubmit || sending}
                 loading={sending}
               >
-                Send magic link
+                Send code
               </Button>
             </form>
           </div>

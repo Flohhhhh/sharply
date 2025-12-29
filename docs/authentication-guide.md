@@ -1,349 +1,207 @@
 # Authentication Guide
 
-This guide covers how to use authentication throughout the Sharply application, including server components, client components, and API routes.
+This guide shows how to work with authentication in Sharply using Better Auth (configured in `src/auth.ts`) across server components, client components, and API routes.
 
 ## Overview
 
-Sharply uses NextAuth.js v5 with Discord as the primary authentication provider. The authentication is configured in `src/server/auth/config.ts` and exported through `src/server/auth/index.ts`.
+- Better Auth is initialized in `src/auth.ts` with the Drizzle adapter.
+- Client helpers (including `useSession`) are exported from `src/lib/auth/auth-client.ts`.
+- Shared role helper (`requireRole`) lives in `src/lib/auth/auth-helpers.ts` and is safe to use in both server and client code (pure runtime check, no server APIs).
+- Server session helper `getSessionOrThrow` is exported from `~/server/auth` (wraps `auth.api.getSession` with `headers` and throws 401 when missing).
 
-## Server Components
+## Server Components and API Routes
 
-### Getting User Session
+### Getting the session
 
-Use the `auth()` function from the server auth module:
+Use `getSessionOrThrow` (wraps `auth.api.getSession` with request headers). For custom handling (e.g., allow anonymous), call `auth.api.getSession` directly and branch on null.
 
 ```tsx
-import { auth } from "~/server/auth";
+import { auth } from "~/auth";
+import { headers } from "next/headers";
+import { getSessionOrThrow } from "~/server/auth";
 
 export default async function ServerComponent() {
-  const session = await auth();
+  const session = await getSessionOrThrow();
+  const user = session?.user;
 
-  if (!session?.user) {
-    // User is not authenticated
+  if (!session) {
     return <div>Please sign in</div>;
   }
 
-  // User is authenticated
-  return <div>Welcome, {session.user.name}!</div>;
+  return <div>Welcome, {user?.name ?? "Sharply user"}!</div>;
 }
 ```
 
-### Session Object Structure
+### Role and permission checks
 
-```tsx
-interface Session {
-  user: {
-    id: string;
-    name?: string | null;
-    email?: string | null;
-    image?: string | null;
-    role: "USER" | "EDITOR" | "ADMIN";
-    memberNumber?: number | null; // Sequential public member id
-  };
-  expires: string;
-}
-```
-
-### Redirecting Unauthenticated Users
+Use the shared helpers to enforce authentication and roles:
 
 ```tsx
 import { redirect } from "next/navigation";
-import { auth } from "~/server/auth";
+import { auth } from "~/auth";
+import { headers } from "next/headers";
+import { requireRole } from "~/lib/auth/auth-helpers";
+import { getSessionOrThrow } from "~/server/auth";
 
 export default async function ProtectedPage() {
-  const session = await auth();
+  const session = await getSessionOrThrow();
 
-  if (!session?.user) {
-    redirect("/api/auth/signin");
+  if (!session || !requireRole(session.user, ["EDITOR"])) {
+    redirect("/auth/signin");
   }
 
-  return <div>Protected content</div>;
+  return <div>Editor-only content</div>;
+}
+
+// If you just need the user and want an error on missing auth:
+// const session = await getSessionOrThrow();
+```
+
+### API route pattern
+
+```tsx
+import { NextResponse } from "next/server";
+import { requireRole } from "~/lib/auth/auth-helpers";
+import { getSessionOrThrow } from "~/server/auth";
+
+export async function POST() {
+  const session = await getSessionOrThrow();
+
+  if (!requireRole(session.user, ["ADMIN"])) {
+    return NextResponse.json(
+      { error: "Insufficient permissions" },
+      { status: 403 },
+    );
+  }
+
+  // ...handle request
+  return NextResponse.json({ ok: true });
 }
 ```
 
 ## Client Components
 
-### Getting User Session
+### Getting the session
 
-Use the `useSession` hook from `next-auth/react`:
+Use the Better Auth client hook:
 
 ```tsx
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useSession } from "~/lib/auth/auth-client";
 
 export function ClientComponent() {
-  const { data: session, status } = useSession();
+  const { data, isPending, error } = useSession();
+  const session = data?.session;
 
-  if (status === "loading") {
-    return <div>Loading...</div>;
-  }
+  if (isPending) return <div>Loading...</div>;
+  if (error) return <div>Authentication error</div>;
+  if (!session) return <div>Please sign in</div>;
 
-  if (status === "unauthenticated") {
-    return <div>Please sign in</div>;
-  }
-
-  return <div>Welcome, {session?.user?.name}!</div>;
+  return <div>Welcome, {session.user.name ?? "Sharply user"}!</div>;
 }
 ```
 
-### Session Status Values
-
-- `"loading"` - Session is being fetched
-- `"authenticated"` - User is signed in
-- `"unauthenticated"` - User is not signed in
-
-### Conditional Rendering
+### Conditional rendering
 
 ```tsx
 export function ConditionalComponent() {
-  const { data: session } = useSession();
+  const { data } = useSession();
+  const session = data?.session;
 
-  return (
-    <div>
-      {session ? (
-        <div>Welcome back, {session.user.name}!</div>
-      ) : (
-        <div>Please sign in to continue</div>
-      )}
-    </div>
+  return session ? (
+    <div>Welcome back, {session.user.name ?? "friend"}!</div>
+  ) : (
+    <div>Please sign in to continue</div>
   );
 }
 ```
 
-## API Routes
+## Session Types
 
-### Getting User Session
+Better Auth exports types you can import from `~/auth`:
 
-Use the `auth()` function in API routes:
+```ts
+import type { AuthSession, AuthUser, UserRole } from "~/auth";
+```
+
+Shape (simplified):
+
+```ts
+type AuthUser = {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  role: UserRole; // USER | MODERATOR | EDITOR | ADMIN | SUPERADMIN
+  memberNumber?: number | null;
+  inviteId?: string | null;
+  socialLinks?: unknown[]; // JSON array stored on the user
+};
+
+type AuthSession = {
+  user: AuthUser;
+  expires: string;
+};
+```
+
+## Sign-in / Sign-out (client)
 
 ```tsx
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "~/server/auth";
+import { signIn, signOut } from "~/lib/auth/auth-client";
 
-export async function POST(request: NextRequest) {
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    return NextResponse.json(
-      { error: "Authentication required" },
-      { status: 401 },
-    );
-  }
-
-  // User is authenticated, proceed with request
-  const userId = session.user.id;
-  // ... handle request
+// OAuth sign-in with redirect you control
+const { data, error } = await signIn.social({
+  provider: "discord",
+  callbackURL: "/dashboard",
+  disableRedirect: true,
+});
+if (!error) {
+  window.location.href = data.url ?? "/dashboard";
 }
+
+// Email OTP (if enabled)
+// const { error } = await emailOtp.sendVerificationOtp({ email, type: "sign-in" });
+
+// Sign out
+await signOut({ callbackURL: "/" });
 ```
 
-### Error Responses
-
-```tsx
-// Unauthorized
-return NextResponse.json({ error: "Authentication required" }, { status: 401 });
-
-// Forbidden (user authenticated but lacks permission)
-return NextResponse.json(
-  { error: "Insufficient permissions" },
-  { status: 403 },
-);
-```
-
-## Authentication Actions
-
-### Sign In
-
-```tsx
-// In client components
-import { signIn } from "next-auth/react";
-
-// Sign in with specific provider
-<button onClick={() => signIn("discord")}>
-  Sign in with Discord
-</button>
-
-// Sign in with redirect
-<button onClick={() => signIn("discord", { callbackUrl: "/dashboard" })}>
-  Sign in and redirect
-</button>
-
-// In server components (redirect)
-import { redirect } from "next/navigation";
-redirect("/api/auth/signin");
-```
-
-### Sign Out
-
-```tsx
-// In client components
-import { signOut } from "next-auth/react";
-
-<button onClick={() => signOut()}>
-  Sign out
-</button>
-
-// Sign out with redirect
-<button onClick={() => signOut({ callbackUrl: "/" })}>
-  Sign out and go home
-</button>
-```
-
-### Sign In/Out Links
-
-```tsx
-// Simple anchor tags for server-side rendering
-<a href="/api/auth/signin">Sign In</a>
-<a href="/api/auth/signout">Sign Out</a>
-```
-
-## Protected Routes
-
-### Route Protection Pattern
+## Protected layout pattern
 
 ```tsx
 // src/app/(app)/(protected)/layout.tsx
 import { redirect } from "next/navigation";
-import { auth } from "~/server/auth";
+import { auth } from "~/auth";
+import { headers } from "next/headers";
 
 export default async function ProtectedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
   if (!session?.user) {
-    redirect("/api/auth/signin");
+    redirect("/auth/signin");
   }
 
-  return <div>{children}</div>;
-}
-```
-
-### Conditional Protection
-
-```tsx
-export default async function ConditionalPage() {
-  const session = await auth();
-
-  if (!session?.user) {
-    return (
-      <div>
-        <h1>Sign in required</h1>
-        <a href="/api/auth/signin">Sign in to continue</a>
-      </div>
-    );
-  }
-
-  return <div>Protected content</div>;
-}
-```
-
-## User Data Access
-
-### Current User ID
-
-```tsx
-// Server component
-const session = await auth();
-const userId = session?.user?.id;
-
-// Client component
-const { data: session } = useSession();
-const userId = session?.user?.id;
-```
-
-### User Profile Information
-
-```tsx
-const session = await auth();
-const user = session?.user;
-
-if (user) {
-  console.log("User ID:", user.id);
-  console.log("Name:", user.name);
-  console.log("Email:", user.email);
-  console.log("Avatar:", user.image);
-}
-```
-
-## Common Patterns
-
-### Loading States
-
-```tsx
-export function UserProfile() {
-  const { data: session, status } = useSession();
-
-  if (status === "loading") {
-    return <div>Loading user profile...</div>;
-  }
-
-  if (!session) {
-    return <div>Please sign in</div>;
-  }
-
-  return <div>Welcome, {session.user.name}!</div>;
-}
-```
-
-### Conditional Features
-
-```tsx
-export function FeatureToggle() {
-  const { data: session } = useSession();
-
-  return (
-    <div>
-      {session ? (
-        <button>Use Premium Feature</button>
-      ) : (
-        <a href="/api/auth/signin">Sign in for Premium</a>
-      )}
-    </div>
-  );
-}
-```
-
-### User-Specific Data
-
-```tsx
-export async function UserData() {
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    return <div>Sign in to view your data</div>;
-  }
-
-  // Fetch user-specific data using session.user.id
-  const userData = await fetchUserData(session.user.id);
-
-  return <div>{/* Render user data */}</div>;
+  return <>{children}</>;
 }
 ```
 
 ## Troubleshooting
 
-### Common Issues
-
-1. **"auth is not a function"** - Make sure you're importing from `~/server/auth`, not `next-auth`
-2. **Session always null** - Check that your auth configuration is correct
-3. **Client component auth errors** - Ensure the component is wrapped in `SessionProvider`
-
-### Debug Tips
-
-```tsx
-// Add logging to debug session issues
-const session = await auth();
-console.log("Session:", session);
-console.log("User:", session?.user);
-```
+1. **Session is always null** – ensure `headers` are passed to `auth.api.getSession` on the server and that the request includes cookies.
+2. **Client errors** – confirm components using `useSession` are client components and that Better Auth client is initialized via `src/lib/auth/auth-client.ts`.
+3. **Role checks failing** – verify the user object includes `role` and that `requireRole` receives the user (not the entire session).
 
 ## Best Practices
 
-1. **Always check session existence** before accessing user data
-2. **Use appropriate HTTP status codes** in API responses
-3. **Handle loading states** gracefully in client components
-4. **Protect sensitive routes** at the layout level when possible
-5. **Cache auth calls** in server components to avoid repeated database queries
+1. Always derive `session` with `auth.api.getSession({ headers })` on the server (or `getSessionOrThrow` when you want a thrown 401).
+2. Keep role checks in services/guards; do not put DB access in client components.
+3. Handle `isPending` and `error` states when using `useSession` on the client.
+4. Redirect unauthenticated users early in server components/layouts.
+5. Import types from `~/auth` to keep user/session typing consistent.

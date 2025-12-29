@@ -49,7 +49,7 @@ This document explains how to organize server-only code under `src/server/**`.
 - data → service → actions
   - Reads: import from `service.ts` in server components or API routes
   - Mutations from client: call `actions.ts` which delegates to `service.ts`
-  - Auth: enforced in `service.ts` (`requireUser`/`requireRole`); actions remain thin wrappers
+- Auth: enforced in `service.ts` (fetch session with `auth.api.getSession({ headers })` + `requireRole`); actions remain thin wrappers
 
 ## Examples
 

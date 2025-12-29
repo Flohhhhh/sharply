@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import type { UserRole } from "~/auth";
 // import {
 //     IconCamera,
 //     IconChartBar,
@@ -50,10 +51,10 @@ import {
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
 import { GlobalSearchBar } from "~/components/search/global-search-bar";
-import { useSession } from "next-auth/react";
+import { useSession } from "~/lib/auth/auth-client";
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import { GearCreateCard } from "./gear-create";
-import type { UserRole } from "~/server/auth";
+import { requireRole } from "~/lib/auth/auth-helpers";
 
 type SidebarItem = {
   label: string;
@@ -114,19 +115,21 @@ const sidebarItems: SidebarItem[] = [
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const user = useSession();
-  const isLoading = user.status === "loading";
-  const role = (user.data?.user?.role as UserRole | undefined) ?? "USER";
-  const isSuperAdmin = role === "SUPERADMIN";
+  const { data, isPending, error } = useSession();
 
-  if (user.status === "unauthenticated") {
+  if (isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
+
+  if (!data) {
     return <div>Unauthenticated</div>;
   }
 
-  const isLinkAllowed = (href: string) => {
-    const item = sidebarItems.find((item) => item.href === href);
-    return isSuperAdmin || (item ? item.allowed.includes(role) : false);
-  };
+  const user = data.user;
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -135,7 +138,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
+              className="data-[slot=sidebar-menu-button]:p-1.5!"
             >
               <Link href="/">
                 <span className="text-base font-semibold">Sharply</span>
@@ -145,7 +148,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent className="list-none px-4">
-        {isLoading ? (
+        {isPending ? (
           <>
             <Skeleton className="h-8 w-40 rounded-md" />
             {Array.from({ length: sidebarItems.length }).map((_, idx) => (
@@ -168,7 +171,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </Dialog>
             {/* Only show links the user is allowed to see */}
             {sidebarItems
-              .filter((item) => isLinkAllowed(item.href))
+              .filter((item) => requireRole(user, item.allowed))
               .map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton

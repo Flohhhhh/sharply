@@ -1,6 +1,8 @@
 import "server-only";
 
-import { auth, requireRole } from "~/server/auth";
+import { auth } from "~/auth";
+import { requireRole } from "~/lib/auth/auth-helpers";
+import { headers } from "next/headers";
 import {
   approveReviewById,
   rejectReviewById,
@@ -14,16 +16,29 @@ import { gear as gearTable } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function fetchAdminReviews() {
-  const session = await auth();
-  if (!requireRole(session, ["ADMIN", "EDITOR"]))
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+  const user = session?.user;
+  if (!requireRole(user, ["EDITOR"]))
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   return listAllReviewsWithContext();
 }
 
 export async function approveReview(id: string) {
-  const session = await auth();
-  if (!requireRole(session, ["ADMIN", "EDITOR"]))
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+  const user = session?.user;
+  if (!requireRole(user, ["ADMIN", "EDITOR"]))
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+
   const ctx = await getReviewUserAndGear(id);
   await approveReviewById(id);
   if (ctx?.userId) {
@@ -46,8 +61,14 @@ export async function approveReview(id: string) {
 }
 
 export async function rejectReview(id: string) {
-  const session = await auth();
-  if (!requireRole(session, ["ADMIN", "EDITOR"]))
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+  const user = session?.user;
+  if (!requireRole(user, ["ADMIN", "EDITOR"]))
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   await rejectReviewById(id);
 }

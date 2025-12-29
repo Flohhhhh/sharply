@@ -9,11 +9,11 @@ import {
   DialogClose,
 } from "~/components/ui/dialog";
 import UserCard from "~/app/(app)/(auth)/auth/welcome/user-card";
-import type { User } from "~/server/db/schema";
+import type { AuthUser } from "~/auth";
 import { XIcon } from "lucide-react";
 
 type ShowUserCardButtonProps = {
-  user: User;
+  user: AuthUser;
 };
 
 export function ShowUserCardButton({ user }: ShowUserCardButtonProps) {

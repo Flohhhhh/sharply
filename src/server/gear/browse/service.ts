@@ -51,7 +51,8 @@ export async function resolveScopeOrThrow(segments: string[]): Promise<{
   const scope = parseSegments(segments);
   const depth = getDepth(scope);
   let brand: { id: string; name: string; slug: string } | null = null;
-  let mount: { id: string; shortName: string | null; value: string } | null = null;
+  let mount: { id: string; shortName: string | null; value: string } | null =
+    null;
 
   if (scope.brandSlug) {
     brand = await getBrandBySlug(scope.brandSlug);
@@ -74,7 +75,8 @@ export async function loadHubData(params: {
     params.segments,
   );
   const defaultSort = getDefaultSortForScope(scope);
-  const isLensMountScope = scope.categorySlug === "lenses" && !!scope.mountShort;
+  const isLensMountScope =
+    scope.categorySlug === "lenses" && !!scope.mountShort;
   const filters = (() => {
     const base = parseFilters(params.searchParams, { defaultSort });
     if (isLensMountScope) {

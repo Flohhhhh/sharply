@@ -16,7 +16,8 @@ import {
 } from "./data";
 import { applyLiveBoostToTrending } from "./live";
 export { applyLiveBoostToTrending } from "./live";
-import { auth } from "~/server/auth";
+import { auth } from "~/auth";
+import { headers } from "next/headers";
 import type {
   TrendingFiltersInput,
   TrendingPageResult,
@@ -74,7 +75,9 @@ export async function recordGearView(params: {
   let resolvedUserId = params.userId ?? null;
   if (!resolvedUserId) {
     try {
-      const session = await auth();
+      const session = await auth.api.getSession({
+        headers: await headers(),
+      });
       resolvedUserId = session?.user?.id ?? null;
     } catch {}
   }
@@ -196,10 +199,13 @@ export async function recordCompareAdd(params: {
   }
   const gearId = gearRow[0]!.id;
 
+  // try to get userId from session to assign to the event
   let resolvedUserId = params.userId ?? null;
   if (!resolvedUserId) {
     try {
-      const session = await auth();
+      const session = await auth.api.getSession({
+        headers: await headers(),
+      });
       resolvedUserId = session?.user?.id ?? null;
     } catch {}
   }

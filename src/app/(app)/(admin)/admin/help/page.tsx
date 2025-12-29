@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { auth } from "~/server/auth";
+import { auth } from "~/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { headers } from "next/headers";
+import { requireRole } from "~/lib/auth/auth-helpers";
 
 export const metadata = {
   title: "Help",
@@ -10,8 +12,11 @@ export const metadata = {
 } as const;
 
 export default async function AdminHelpPage() {
-  const session = await auth();
-  const role = session?.user?.role ?? "USER";
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  const user = session?.user;
 
   return (
     <div className="space-y-8 px-2 md:px-8">
@@ -167,7 +172,7 @@ export default async function AdminHelpPage() {
         </CardContent>
       </Card>
 
-      {(role === "ADMIN" || role === "SUPERADMIN") && (
+      {requireRole(user, ["ADMIN"]) && (
         <>
           <Card>
             <CardHeader>

@@ -1,11 +1,13 @@
 import "server-only";
 
-import { requireUser, requireRole, type UserRole } from "~/server/auth";
+import { requireRole } from "~/lib/auth/auth-helpers";
+import { getSessionOrThrow } from "~/server/auth";
+
 import { fetchRollupRunsData, type RollupRunRow } from "./data";
 
 export async function fetchRollupRuns(limit = 50): Promise<RollupRunRow[]> {
-  const session = await requireUser();
-  if (!requireRole(session, ["ADMIN", "EDITOR"] as UserRole[])) {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session?.user, ["EDITOR"])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
   return fetchRollupRunsData(limit);

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { auth, requireUser } from "~/server/auth";
+import { auth, type AuthUser } from "~/auth";
 import { z } from "zod";
 import { eq, sql } from "drizzle-orm";
 import { db } from "~/server/db";
@@ -18,6 +18,8 @@ import {
 } from "~/server/db/schema";
 import { updateUserImage, updateUserSocialLinks } from "./data";
 import type { GearItem, Mount } from "~/types/gear";
+import { headers } from "next/headers";
+import { getSessionOrThrow } from "~/server/auth";
 
 export async function getUserReviews(userId: string) {
   return db
@@ -41,9 +43,13 @@ export async function getUserReviews(userId: string) {
 }
 
 export async function fetchCurrentUserReviews() {
-  const session = await auth();
-  if (!session?.user?.id)
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session) {
     return [] as Awaited<ReturnType<typeof getUserReviews>>;
+  }
+
   return getUserReviews(session.user.id);
 }
 
@@ -62,13 +68,15 @@ export async function fetchUserById(userId: string) {
   return row[0] ?? null;
 }
 
-export async function fetchFullUserById(userId: string) {
+export async function fetchFullUserById(
+  userId: string,
+): Promise<AuthUser | null> {
   const row = await db
     .select()
     .from(users)
     .where(eq(users.id, userId))
     .limit(1);
-  return row[0] ?? null;
+  return row[0] as AuthUser | null;
 }
 
 type UserGearRelationshipTable = typeof wishlists | typeof ownerships;
@@ -162,7 +170,7 @@ const displayNameSchema = z
   .max(50, "Display name must be at most 50 characters");
 
 export async function updateDisplayName(rawName: string) {
-  const { user } = await requireUser();
+  const { user } = await getSessionOrThrow();
   const name = displayNameSchema.parse(rawName);
   await db.update(users).set({ name }).where(eq(users.id, user.id));
   return { ok: true as const, name };
@@ -174,7 +182,7 @@ const profileImageSchema = z
   .max(500, "Profile image URL is too long");
 
 export async function updateProfileImage(imageUrl: string) {
-  const { user } = await requireUser();
+  const { user } = await getSessionOrThrow();
   const validatedUrl = profileImageSchema.parse(imageUrl);
 
   // Get old image URL before updating
@@ -217,69 +225,73 @@ const getSocialPlatformKey = (link: SocialLink) => {
   return null;
 };
 
-const socialLinkSchema = z.object({
-  label: z
-    .string()
-    .trim()
-    .min(1, "Label is required")
-    .max(50, "Label must be at most 50 characters"),
-  url: z
-    .string()
-    .trim()
-    .url("Must be a valid URL")
-    .max(500, "URL is too long"),
-  icon: z.string().optional(),
-}).superRefine((link, ctx) => {
-  const platformKey = getSocialPlatformKey(link);
-  const platformRules = platformKey ? SOCIAL_PLATFORM_RULES[platformKey] : null;
-  if (!platformRules) return;
+const socialLinkSchema = z
+  .object({
+    label: z
+      .string()
+      .trim()
+      .min(1, "Label is required")
+      .max(50, "Label must be at most 50 characters"),
+    url: z
+      .string()
+      .trim()
+      .url("Must be a valid URL")
+      .max(500, "URL is too long"),
+    icon: z.string().optional(),
+  })
+  .superRefine((link, ctx) => {
+    const platformKey = getSocialPlatformKey(link);
+    const platformRules = platformKey
+      ? SOCIAL_PLATFORM_RULES[platformKey]
+      : null;
+    if (!platformRules) return;
 
-  let parsed: URL;
-  try {
-    parsed = new URL(link.url);
-  } catch {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ["url"],
-      message: "Must be a valid URL",
-    });
-    return;
-  }
+    let parsed: URL;
+    try {
+      parsed = new URL(link.url);
+    } catch {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["url"],
+        message: "Must be a valid URL",
+      });
+      return;
+    }
 
-  if (parsed.protocol !== "https:") {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ["url"],
-      message: "Social links must use https",
-    });
-  }
+    if (parsed.protocol !== "https:") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["url"],
+        message: "Social links must use https",
+      });
+    }
 
-  if (!platformRules.hostnames.includes(parsed.hostname)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ["url"],
-      message: `${link.label} must use ${platformRules.hostnames[0]}`,
-    });
-  }
+    if (!platformRules.hostnames.includes(parsed.hostname)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["url"],
+        message: `${link.label} must use ${platformRules.hostnames[0]}`,
+      });
+    }
 
-  if (
-    platformRules.pathPattern &&
-    !platformRules.pathPattern.test(parsed.pathname)
-  ) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ["url"],
-      message: "Username looks invalid for this platform",
-    });
-  }
-});
+    if (
+      platformRules.pathPattern &&
+      !platformRules.pathPattern.test(parsed.pathname)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["url"],
+        message: "Username looks invalid for this platform",
+      });
+    }
+  });
 
 const socialLinksArraySchema = z
   .array(socialLinkSchema)
   .max(10, "You can have at most 10 social links");
 
 export async function updateSocialLinks(rawLinks: unknown) {
-  const { user } = await requireUser();
+  const { user } = await getSessionOrThrow();
   const socialLinks = socialLinksArraySchema.parse(rawLinks);
   await updateUserSocialLinks(user.id, socialLinks);
   return { ok: true as const, socialLinks };

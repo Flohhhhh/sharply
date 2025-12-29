@@ -1,7 +1,8 @@
 import { EditGearModal } from "~/app/(app)/(pages)/gear/_components/edit-gear/edit-gear-modal";
 import { fetchGearBySlug, fetchPendingEditId } from "~/server/gear/service";
 import type { GearItem } from "~/types/gear";
-import { auth } from "~/server/auth";
+import { auth } from "~/auth";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 interface EditGearModalPageProps {
@@ -21,15 +22,18 @@ export default async function EditGearModalPage({
   ]);
 
   // Require authentication: if not signed in, send to login and return here
-  const session = await auth();
-  if (!session?.user?.id) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) {
     const editUrl = `/gear/${slug}/edit${type ? `?type=${type}` : ""}`;
-    redirect(`/api/auth/signin?callbackUrl=${encodeURIComponent(editUrl)}`);
+    redirect(`/auth/signin?callbackUrl=${encodeURIComponent(editUrl)}`);
   }
 
   // Prevent duplicate submissions: if user already has a pending edit for this gear,
   // redirect back to gear page with flags to show a toast
-  if (session?.user?.id) {
+  if (session?.user) {
     const pendingId = await fetchPendingEditId(slug).catch(() => null);
     if (pendingId) {
       redirect(`/gear/${slug}?editAlreadyPending=1&id=${pendingId}`);

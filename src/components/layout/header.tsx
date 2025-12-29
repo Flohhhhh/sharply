@@ -1,9 +1,12 @@
 import HeaderClient, { type HeaderUser } from "./header-client";
-import { auth } from "~/server/auth";
+import { auth } from "~/auth";
+import { headers } from "next/headers";
 import { fetchNotificationsForUser } from "~/server/notifications/service";
 
 export default async function Header() {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
   const user: HeaderUser = session?.user
     ? {
         id: session.user.id,

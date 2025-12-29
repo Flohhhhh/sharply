@@ -3,13 +3,17 @@ import Link from "next/link";
 import LearnCard from "~/components/learn/learn-card";
 import { Button } from "~/components/ui/button";
 import ComingSoon from "~/components/coming-soon";
-import { auth } from "~/server/auth";
+import { auth } from "~/auth";
+import { requireRole } from "~/lib/auth/auth-helpers";
+import { headers } from "next/headers";
 
 export default async function BasicsPage() {
-  const session = await auth();
-  const role = session?.user?.role ?? "USER";
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  const user = session?.user;
 
-  if (!["EDITOR", "ADMIN", "SUPERADMIN"].includes(role)) {
+  if (!session || !requireRole(user, ["EDITOR"])) {
     return (
       <ComingSoon
         title="Learn Articles"
