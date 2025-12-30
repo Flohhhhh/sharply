@@ -16,7 +16,7 @@ type AddPasskeyClientProps = {
 function computeDefaultPasskeyName(): string {
   if (typeof navigator === "undefined") return "New passkey";
   const ua = navigator.userAgent.toLowerCase();
-  const brandList =
+  const brandList: string[] =
     // @ts-expect-error userAgentData not in all browsers
     navigator.userAgentData?.brands?.map((b: { brand: string }) =>
       b.brand.toLowerCase(),
@@ -36,11 +36,11 @@ function computeDefaultPasskeyName(): string {
           ? "Android"
           : "Unknown OS";
 
-  const browser = brandList.find((b: string) => b.includes("chrome"))
+  const browser = brandList.find((b) => b.includes("chrome"))
     ? "Chrome"
-    : brandList.find((b: string) => b.includes("edge"))
+    : brandList.find((b) => b.includes("edge"))
       ? "Edge"
-      : brandList.find((b: string) => b.includes("opera"))
+      : brandList.find((b) => b.includes("opera"))
         ? "Opera"
         : ua.includes("firefox")
           ? "Firefox"
@@ -66,7 +66,9 @@ export function AddPasskeyClient({ userEmail }: AddPasskeyClientProps) {
     const finalName = name.trim() || computeDefaultPasskeyName();
 
     setLoading(true);
-    const toastId = toast.loading("Waiting for your device to create a passkey...");
+    const toastId = toast.loading(
+      "Waiting for your device to create a passkey...",
+    );
     try {
       const { data, error } = await passkey.addPasskey({
         name: finalName,
@@ -78,17 +80,13 @@ export function AddPasskeyClient({ userEmail }: AddPasskeyClientProps) {
 
       toast.success("Passkey added");
 
-      // Optionally refresh user session to reflect latest keys
-      if (data?.url) {
-        router.push(data.url);
-        return;
-      }
-
       router.push("/profile/settings");
       router.refresh();
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "Failed to add passkey. Please try again.";
+        err instanceof Error
+          ? err.message
+          : "Failed to add passkey. Please try again.";
       toast.error(message);
     } finally {
       toast.dismiss(toastId);
@@ -112,13 +110,17 @@ export function AddPasskeyClient({ userEmail }: AddPasskeyClientProps) {
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold">Add a passkey</h1>
           <p className="text-muted-foreground text-sm">
-            We will prefill a device-friendly name based on your browser and OS. You can keep it or
-            rename it before creating the passkey. {userEmail ? `Signed in as ${userEmail}.` : null}
+            We will prefill a device-friendly name based on your browser and OS.
+            You can keep it or rename it before creating the passkey.{" "}
+            {userEmail ? `Signed in as ${userEmail}.` : null}
           </p>
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground" htmlFor="passkey-name">
+          <label
+            className="text-foreground text-sm font-medium"
+            htmlFor="passkey-name"
+          >
             Passkey name
           </label>
           <Input
@@ -130,16 +132,25 @@ export function AddPasskeyClient({ userEmail }: AddPasskeyClientProps) {
             placeholder="e.g. Firefox on Windows"
           />
           <p className="text-muted-foreground text-sm">
-            This helps you recognize the device later if you add multiple passkeys.
+            This helps you recognize the device later if you add multiple
+            passkeys.
           </p>
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <Button variant="outline" onClick={() => router.push("/profile/settings")} disabled={loading}>
+          <Button
+            variant="outline"
+            onClick={() => router.push("/profile/settings")}
+            disabled={loading}
+          >
             Cancel
           </Button>
           <Button onClick={handleAdd} disabled={loading}>
-            {loading ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : <Fingerprint className="mr-2 h-4 w-4" />}
+            {loading ? (
+              <Loader className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Fingerprint className="mr-2 h-4 w-4" />
+            )}
             Save & create passkey
           </Button>
         </div>
@@ -147,5 +158,3 @@ export function AddPasskeyClient({ userEmail }: AddPasskeyClientProps) {
     </main>
   );
 }
-
-
