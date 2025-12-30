@@ -363,6 +363,8 @@ export async function getApprovedReviewsByGearId(gearId: string) {
       createdBy: {
         id: users.id,
         name: users.name,
+        handle: users.handle,
+        memberNumber: users.memberNumber,
         image: users.image,
       },
     })
@@ -371,6 +373,7 @@ export async function getApprovedReviewsByGearId(gearId: string) {
     .where(and(eq(reviews.gearId, gearId), eq(reviews.status, "APPROVED")))
     .orderBy(desc(reviews.createdAt));
 }
+
 
 export async function getMyReviewStatus(gearId: string, userId: string) {
   const row = await db
@@ -551,6 +554,8 @@ export async function fetchGearEditByIdData(
 export type ContributorRow = {
   userId: string;
   name: string | null;
+  handle: string | null;
+  memberNumber: number;
   image: string | null;
   payload: unknown;
 };
@@ -562,6 +567,8 @@ export async function fetchContributorsByGearIdData(
     .select({
       userId: users.id,
       name: users.name,
+      handle: users.handle,
+      memberNumber: users.memberNumber,
       image: users.image,
       payload: gearEdits.payload,
     })

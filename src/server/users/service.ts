@@ -2,7 +2,7 @@ import "server-only";
 
 import { auth, type AuthUser } from "~/auth";
 import { z } from "zod";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, and } from "drizzle-orm";
 import { db } from "~/server/db";
 import {
   brands,
@@ -15,8 +15,10 @@ import {
   users,
   wishlists,
   ownerships,
+  notifications,
 } from "~/server/db/schema";
 import { updateUserImage, updateUserSocialLinks } from "./data";
+import { createNotificationData } from "../notifications/data";
 import type { GearItem, Mount } from "~/types/gear";
 import { headers } from "next/headers";
 import { getSessionOrThrow } from "~/server/auth";
@@ -58,6 +60,7 @@ export async function fetchUserById(userId: string) {
     .select({
       id: users.id,
       name: users.name,
+      handle: users.handle,
       email: users.email,
       image: users.image,
       memberNumber: users.memberNumber,
@@ -295,4 +298,143 @@ export async function updateSocialLinks(rawLinks: unknown) {
   const socialLinks = socialLinksArraySchema.parse(rawLinks);
   await updateUserSocialLinks(user.id, socialLinks);
   return { ok: true as const, socialLinks };
+}
+
+export const RESERVED_HANDLES = [
+  "admin",
+  "sharply",
+  "official",
+  "settings",
+  "auth",
+  "api",
+  "gear",
+  "lists",
+  "u",
+  "explore",
+  "search",
+  "notifications",
+  "welcome",
+  "signin",
+  "signup",
+  "verify-otp",
+];
+
+const handleSchema = z
+  .string()
+  .trim()
+  .min(3, "Handle must be at least 3 characters")
+  .max(50, "Handle must be at most 50 characters")
+  .regex(
+    /^[a-zA-Z0-9_-]+$/,
+    "Handle can only contain letters, numbers, hyphens, and underscores",
+  )
+  .toLowerCase()
+  .refine((h) => !RESERVED_HANDLES.includes(h), "This handle is reserved");
+
+/**
+ * Resolves a user by handle, default user-number format, or UUID.
+ */
+export async function fetchUserByHandle(handle: string) {
+  // 1. Try exact handle match
+  const byHandle = await db
+    .select()
+    .from(users)
+    .where(eq(users.handle, handle))
+    .limit(1);
+  if (byHandle[0]) return byHandle[0] as AuthUser;
+
+  // 2. Try default handle fallback: user-{memberNumber}
+  const match = handle.match(/^user-(\d+)$/i);
+  if (match?.[1]) {
+    const memberNumber = parseInt(match[1]);
+    const byMemberNumber = await db
+      .select()
+      .from(users)
+      .where(eq(users.memberNumber, memberNumber))
+      .limit(1);
+    // Only return if they haven't set a custom handle yet (to avoid handle hijacking)
+    if (byMemberNumber[0] && !byMemberNumber[0].handle) {
+      return byMemberNumber[0] as AuthUser;
+    }
+  }
+
+  // 3. Fallback to UUID (legacy support or internal linking)
+  const isUuid =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      handle,
+    );
+  if (isUuid) {
+    return fetchFullUserById(handle);
+  }
+
+  return null;
+}
+
+export async function checkHandleAvailability(handle: string) {
+  try {
+    const validated = handleSchema.parse(handle);
+    const existing = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.handle, validated))
+      .limit(1);
+
+    return {
+      available: existing.length === 0,
+      reason: existing.length > 0 ? "Handle is already taken" : null,
+    };
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return {
+        available: false,
+        reason: err.errors[0]?.message ?? "Invalid handle format",
+      };
+    }
+    return { available: false, reason: "Invalid handle" };
+  }
+}
+
+export async function updateUserHandle(rawHandle: string) {
+  const { user } = await getSessionOrThrow();
+  const handle = handleSchema.parse(rawHandle);
+
+  const availability = await checkHandleAvailability(handle);
+  if (!availability.available) {
+    throw new Error(availability.reason ?? "Handle unavailable");
+  }
+
+  await db.update(users).set({ handle }).where(eq(users.id, user.id));
+  return { ok: true as const, handle };
+}
+
+/**
+ * Triggers a notification prompting the user to set their handle.
+ * Only sends if one hasn't been sent with the same sourceId already.
+ */
+export async function triggerHandleSetupNotification(userId: string) {
+  const sourceId = "handle_setup_prompt";
+
+  // Check if already sent
+  const existing = await db
+    .select({ id: notifications.id })
+    .from(notifications)
+    .where(
+      and(
+        eq(notifications.userId, userId),
+        eq(notifications.sourceId, sourceId),
+      ),
+    )
+    .limit(1);
+
+  if (existing.length > 0) return;
+
+  await createNotificationData({
+    userId,
+    type: "prompt_handle_setup",
+    title: "Choose your unique handle",
+    body: "Visit your profile settings to choose your unique handle for your profile!",
+    linkUrl: "/profile/settings",
+    sourceType: "system",
+    sourceId,
+  });
 }

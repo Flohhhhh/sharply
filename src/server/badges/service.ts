@@ -9,6 +9,7 @@ import { fetchUserBadgesData } from "./data";
 import type { BadgeEvent } from "~/types/badges";
 import { buildTriggerIndex } from "~/lib/badges/catalog";
 import { createNotification } from "~/server/notifications/service";
+import { fetchUserById } from "../users/service";
 
 // Boot-time validation of the catalog
 validateBadgeCatalog(BADGE_CATALOG);
@@ -36,12 +37,15 @@ export async function evaluateForEvent(event: BadgeEvent, userId: string) {
         });
         awarded.push(def.key);
 
+        const user = await fetchUserById(userId);
+        const handle = user?.handle || `user-${user?.memberNumber}`;
+
         await createNotification({
           userId,
           type: "badge_awarded",
           title: `You earned the ${def.label} badge`,
           body: def.description,
-          linkUrl: `/u/${userId}`,
+          linkUrl: `/u/${handle}`,
           sourceType: "badge",
           sourceId: def.key,
           metadata: { badgeKey: def.key, eventType: event.type },

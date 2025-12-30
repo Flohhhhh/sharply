@@ -11,10 +11,10 @@ import { UserBadges } from "~/app/(app)/(pages)/u/_components/user-badges";
 import { SocialLinksDisplay } from "~/app/(app)/(pages)/u/_components/social-links-display";
 import type { SocialLink } from "~/server/users/service";
 import {
-  fetchUserById,
+  fetchUserByHandle,
   fetchUserOwnedItems,
   fetchUserWishlistItems,
-  fetchFullUserById,
+  triggerHandleSetupNotification,
 } from "~/server/users/service";
 // Note: page is a Server Component and reads from the service layer only.
 import type { Metadata } from "next";
@@ -26,6 +26,7 @@ import type { GearItem } from "~/types/gear";
 import { getBrandNameById } from "~/lib/mapping/brand-map";
 import { CollectionContainer } from "~/app/(app)/(pages)/u/_components/collection/collection-container";
 import { headers } from "next/headers";
+import { HandleSetupBanner } from "~/app/(app)/(pages)/u/_components/HandleSetupBanner";
 
 interface UserProfilePageProps {
   params: Promise<{
@@ -37,7 +38,7 @@ export async function generateMetadata({
   params,
 }: UserProfilePageProps): Promise<Metadata> {
   const { handle } = await params;
-  const user = await fetchUserById(handle);
+  const user = await fetchUserByHandle(handle);
   return {
     title: `${user?.name}'s Profile`,
     openGraph: {
@@ -57,7 +58,7 @@ export default async function UserProfilePage({
   const user = session?.user;
 
   // Load user profile
-  const profile = await fetchFullUserById(handle);
+  const profile = await fetchUserByHandle(handle);
   if (!profile) notFound();
 
   // Wishlist and owned items via service layer
@@ -68,6 +69,10 @@ export default async function UserProfilePage({
 
   const sortedOwnedItems = sortOwnedItems(ownedItems);
   const myProfile = profile.id === user?.id;
+
+  if (myProfile && !profile.handle) {
+    void triggerHandleSetupNotification(profile.id);
+  }
 
   // Parse social links from JSONB
   const socialLinks: SocialLink[] = Array.isArray(profile.socialLinks)
@@ -102,7 +107,7 @@ export default async function UserProfilePage({
           </div>
         )}
       </div>
-
+      {myProfile && !profile.handle && <HandleSetupBanner />}
       {/* Social Links */}
       {socialLinks.length > 0 && (
         <div className="mb-8">

@@ -20,6 +20,8 @@ import { NotificationsDropdown } from "./notifications/notifications-dropdown";
 export type HeaderUser = {
   id: string;
   role: UserRole;
+  handle?: string | null;
+  memberNumber?: number;
   name?: string | null;
   email?: string | null;
   image?: string | null;

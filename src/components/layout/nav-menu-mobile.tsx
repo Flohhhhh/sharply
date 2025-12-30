@@ -67,7 +67,11 @@ export function NavMenuMobile({ children, user = null }: NavMenuMobileProps) {
           <div className="bg-muted/30 border-b px-4 py-3 text-sm">
             <div className="flex flex-col gap-2">
               <button
-                onClick={() => handleNavigation(`/u/${user.id}`)}
+                onClick={() =>
+                  handleNavigation(
+                    `/u/${user.handle || `user-${user.memberNumber}`}`,
+                  )
+                }
                 className="hover:bg-accent hover:text-accent-foreground flex w-full items-center gap-3 rounded-md p-3 text-left transition-colors"
               >
                 <UserIcon className="text-muted-foreground h-4 w-4" />

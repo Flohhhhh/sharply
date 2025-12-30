@@ -17,5 +17,5 @@ export default async function ProfileRedirectPage() {
     redirect(`/auth/signin?callbackUrl=${encodeURIComponent("/profile")}`);
   }
 
-  redirect(`/u/${user.id}`);
+  redirect(`/u/${user.handle || `user-${user.memberNumber}`}`);
 }

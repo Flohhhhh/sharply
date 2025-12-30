@@ -8,6 +8,7 @@ import { Button } from "~/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { claimInvite } from "~/server/invites/service";
 import { headers } from "next/headers";
+import { triggerHandleSetupNotification } from "~/server/users/service";
 
 export const metadata: Metadata = {
   title: "Welcome!",
@@ -76,6 +77,11 @@ export default async function WelcomePage(props: {
         <p>User not found.</p>
       </div>
     );
+  }
+
+  // Trigger handle setup notification if they don't have one
+  if (!user.handle) {
+    void triggerHandleSetupNotification(user.id);
   }
 
   const firstName = user.name?.split(" ")[0];

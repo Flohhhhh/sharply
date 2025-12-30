@@ -13,6 +13,8 @@ import {
 export interface ContributorItem {
   id: string;
   name: string | null;
+  handle: string | null;
+  memberNumber: number;
   image: string | null;
   count: number;
 }
@@ -82,7 +84,10 @@ export function GearContributorsClient({
                   key={u.id}
                   className="flex items-center justify-between gap-3 py-3"
                 >
-                  <Link href={`/u/${u.id}`} className="flex items-center gap-3">
+                  <Link
+                    href={`/u/${u.handle || `user-${u.memberNumber}`}`}
+                    className="flex items-center gap-3"
+                  >
                     <Avatar className="size-8">
                       <AvatarImage
                         src={u.image ?? undefined}

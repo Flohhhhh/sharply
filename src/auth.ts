@@ -57,6 +57,10 @@ export const auth = betterAuth({
   user: {
     modelName: "user",
     additionalFields: {
+      handle: {
+        type: "string",
+        required: false,
+      },
       role: {
         type: userRoleValues,
         required: true,

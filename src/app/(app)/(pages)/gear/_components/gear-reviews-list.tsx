@@ -5,6 +5,7 @@ import { Card, CardContent } from "~/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import { GENRES } from "~/lib/constants";
+import Link from "next/link";
 
 interface Review {
   id: string;
@@ -15,6 +16,8 @@ interface Review {
   createdBy: {
     id: string;
     name: string | null;
+    handle: string | null;
+    memberNumber: number;
     image?: string | null;
   };
 }
@@ -132,9 +135,14 @@ export function GearReviewsList({
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold">
-                      {review.createdBy.name || "Anonymous"}
-                    </p>
+                    <Link
+                      href={`/u/${review.createdBy.handle || `user-${review.createdBy.memberNumber}`}`}
+                      className="hover:underline"
+                    >
+                      <p className="truncate text-sm font-semibold">
+                        {review.createdBy.name || "Anonymous"}
+                      </p>
+                    </Link>
                     {hasGenres ? null : (
                       <p className="text-muted-foreground text-xs">
                         Shared a review
