@@ -150,7 +150,7 @@ export default function SignInClient() {
     setPasskeySigningIn(true);
     void track("auth_signin_press", { method: "passkey", callbackUrl });
     try {
-      const { data, error } = await signIn.passkey({
+      const { error } = await signIn.passkey({
         fetchOptions: {
           onSuccess() {
             router.push(callbackUrl);
