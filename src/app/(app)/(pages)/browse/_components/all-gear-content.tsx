@@ -17,8 +17,6 @@ import {
   type SearchGearResult,
 } from "~/server/gear/browse/data";
 
-import Loading from "~/app/(app)/(pages)/browse/loading";
-
 export default async function AllGearContent({
   brandSlug,
   showBrandPicker = true,
