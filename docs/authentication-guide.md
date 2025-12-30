@@ -147,7 +147,7 @@ type AuthSession = {
 
 ## Passkey storage
 
-Passkey credentials are persisted in the `passkeys` table defined in `src/server/db/schema.ts`. Each row stores the credential metadata (`publicKey`, `credentialId`, `counter`, `deviceType`, `backedUp`, `transports`, `aaguid`, and `createdAt`) and links back to the owning user via `userId`. This lets you list or revoke registered passkeys without touching the low‑level Better Auth adapter, and the table is indexed by `userId` for quick lookups when showing the device list or enforcing session limits.
+Passkey credentials are persisted in the `passkeys` table defined in `src/server/db/schema.ts`. Each row stores the credential metadata (`publicKey`, `credentialID`, `counter`, `deviceType`, `backedUp`, `transports`, `aaguid`, and `createdAt`) and links back to the owning user via `userId`. This lets you list or revoke registered passkeys without touching the low‑level Better Auth adapter, and the table is indexed by `userId` for quick lookups when showing the device list or enforcing session limits.
 
 ### Our passkey UX (Sharply)
 
