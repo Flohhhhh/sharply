@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Fingerprint, Trash, Loader, ChevronDown, Pencil } from "lucide-react";
 import { passkey } from "~/lib/auth/auth-client";
+import type { Passkey } from "@better-auth/passkey";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import {
@@ -29,25 +30,15 @@ import {
 } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
 
-type PasskeyRecord = {
-  id: string;
-  name: string;
-  createdAt?: string | null;
-  deviceType?: string | null;
-  backedUp?: boolean | null;
-  transports?: string | null;
-  lastUsedAt?: string | null;
-};
-
 type PasskeySectionProps = {
-  initialPasskeys: PasskeyRecord[];
+  initialPasskeys: Passkey[];
 };
 
 export function PasskeySection({ initialPasskeys }: PasskeySectionProps) {
-  const [items, setItems] = useState<PasskeyRecord[]>(initialPasskeys);
+  const [items, setItems] = useState<Passkey[]>(initialPasskeys);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
-  const [renameTarget, setRenameTarget] = useState<PasskeyRecord | null>(null);
+  const [renameTarget, setRenameTarget] = useState<Passkey | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const [renaming, setRenaming] = useState(false);
 
@@ -80,7 +71,7 @@ export function PasskeySection({ initialPasskeys }: PasskeySectionProps) {
     }
   };
 
-  const handleOpenRename = (record: PasskeyRecord) => {
+  const handleOpenRename = (record: Passkey) => {
     setRenameTarget(record);
     setRenameValue(record.name);
   };
@@ -113,7 +104,7 @@ export function PasskeySection({ initialPasskeys }: PasskeySectionProps) {
     }
   };
 
-  const formatLastUse = (item: PasskeyRecord) => {
+  const formatLastUse = (item: Passkey) => {
     const ts = item.lastUsedAt || item.createdAt;
     if (!ts) return null;
     try {

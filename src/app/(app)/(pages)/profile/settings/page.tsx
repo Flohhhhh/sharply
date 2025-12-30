@@ -1,4 +1,5 @@
 import { auth } from "~/auth";
+import type { Passkey } from "@better-auth/passkey";
 import { DisplayNameForm } from "./display-name-form";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
@@ -40,37 +41,10 @@ export default async function SettingsPage() {
   const userEmail = user.email ?? null;
 
   // Fetch passkeys for display
-  let passkeys: Array<{
-    id: string;
-    name: string;
-    createdAt?: string | null;
-    deviceType?: string | null;
-    backedUp?: boolean | null;
-    transports?: string | null;
-    lastUsedAt?: string | null;
-  }> = [];
-
-  try {
-    const list = await auth.api.listPasskeys({
+  const passkeys =
+    (await auth.api.listPasskeys({
       headers: requestHeaders,
-    });
-    const anyList = list as Record<string, unknown> | undefined;
-    const maybeData = (anyList?.data ?? {}) as Record<string, unknown>;
-    // Cover possible return shapes:
-    // { passkeys: [...] } OR { data: [...] } OR { data: { passkeys: [...] } }
-    const extracted =
-      (anyList?.passkeys as typeof passkeys | undefined) ??
-      (maybeData.passkeys as typeof passkeys | undefined) ??
-      (anyList?.data as typeof passkeys | undefined) ??
-      [];
-    if (Array.isArray(list)) {
-      passkeys = list as typeof passkeys;
-    } else if (Array.isArray(extracted)) {
-      passkeys = extracted;
-    }
-  } catch {
-    passkeys = [];
-  }
+    })) ?? [];
 
   const providerAvailability = {
     discord:
