@@ -154,7 +154,6 @@ export default function SignInClient() {
         fetchOptions: {
           onSuccess() {
             router.push(callbackUrl);
-            router.refresh();
           },
         },
       });
@@ -174,7 +173,9 @@ export default function SignInClient() {
         return;
       }
 
-      router.push(callbackUrl);
+      console.warn(
+        "Reached unhandled passkey sign in case. Please investigate.",
+      );
       router.refresh();
     } catch (err) {
       console.error("Passkey sign-in failed", err);
