@@ -62,7 +62,7 @@ export default async function SettingsPage() {
     : [];
 
   return (
-    <main className="mx-auto min-h-screen max-w-3xl p-6 pt-24">
+    <main className="mx-auto min-h-screen max-w-5xl p-6 pt-24">
       <div className="mb-6 space-y-2">
         <Link
           href={`/u/${user.handle || `user-${user.memberNumber}`}`}
