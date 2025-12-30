@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { ClockIcon, FlameIcon } from "lucide-react";
 import Link from "next/link";
-import { GearCard } from "~/components/gear/gear-card";
+import { GearCard, GearCardSkeleton } from "~/components/gear/gear-card";
 import { Button } from "~/components/ui/button";
 import { BRANDS } from "~/lib/constants";
 import { OtherBrandsSelect } from "./other-brands-select";
@@ -12,7 +12,10 @@ import { ReleaseFeedGrid } from "./release-feed-grid";
 import { BrowseResultsGrid, type BrowseListPage } from "./browse-results-grid";
 import type { BrowseFilters } from "~/lib/browse/filters";
 import { loadHubData } from "~/server/gear/browse/service";
-import type { SearchGearResult } from "~/server/gear/browse/data";
+import {
+  getBrandBySlug,
+  type SearchGearResult,
+} from "~/server/gear/browse/data";
 
 export default async function AllGearContent({
   brandSlug,
@@ -20,12 +23,14 @@ export default async function AllGearContent({
   initialBrowsePage,
   browseBaseQuery,
   brandName,
+  searchParams = {},
 }: {
   brandSlug?: string;
   showBrandPicker?: boolean;
   initialBrowsePage?: BrowseListPage;
   browseBaseQuery?: string;
   brandName?: string;
+  searchParams?: Record<string, string | string[] | undefined>;
 } = {}) {
   const featured = BRANDS.filter((b) =>
     ["Canon", "Nikon", "Sony"].includes(b.name),
@@ -38,14 +43,12 @@ export default async function AllGearContent({
     name: b.name,
     slug: b.slug,
   }));
-  const brand = brandSlug
-    ? BRANDS.find((b) => b.slug === brandSlug)
-    : undefined;
   const { listPage, baseQuery, brandLabel } = await ensureBrowseData({
     brandSlug,
     initialBrowsePage,
     browseBaseQuery,
     brandName,
+    searchParams,
   });
   const initialReleasePage = await fetchReleaseFeedPage({
     limit: 12,
@@ -95,9 +98,23 @@ export default async function AllGearContent({
         </div>
       </section>
 
-      <Suspense fallback={<TrendingSkeleton />}>
-        <TrendingSection brandSlug={brandSlug} brandId={brand?.id} />
-      </Suspense>
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="flex items-center gap-2 text-2xl font-semibold">
+            <span>
+              <FlameIcon className="size-5 text-orange-500" />
+            </span>
+            Trending Gear
+          </h2>
+          <Button variant="link" asChild>
+            <Link href="/lists/trending">View All</Link>
+          </Button>
+        </div>
+
+        <Suspense fallback={<TrendingSkeleton />}>
+          <TrendingGrid brandSlug={brandSlug} />
+        </Suspense>
+      </section>
 
       <ReleaseSection
         brandSlug={brandSlug}
@@ -107,13 +124,15 @@ export default async function AllGearContent({
   );
 }
 
-async function TrendingSection({
-  brandSlug,
-  brandId,
-}: {
-  brandSlug?: string;
-  brandId?: string;
-}) {
+async function TrendingGrid({ brandSlug }: { brandSlug?: string }) {
+  let brandId: string | undefined;
+  if (brandSlug) {
+    const brand = await getBrandBySlug(brandSlug);
+    if (!brand) {
+      throw new Error(`Brand not found: ${brandSlug}`);
+    }
+    brandId = brand.id;
+  }
   const trendingResult = await fetchTrending({
     timeframe: "7d",
     limit: 3,
@@ -121,37 +140,24 @@ async function TrendingSection({
   });
 
   return (
-    <section className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-2xl font-semibold">
-          <span>
-            <FlameIcon className="size-5 text-orange-500" />
-          </span>
-          Trending Gear
-        </h2>
-        <Button variant="link" asChild>
-          <Link href="/lists/trending">View All</Link>
-        </Button>
-      </div>
-      <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-        {trendingResult.map((g) => (
-          <GearCard
-            key={g.slug}
-            href={`/gear/${g.slug}`}
-            slug={g.slug}
-            name={g.name}
-            brandName={g.brandName}
-            thumbnailUrl={g.thumbnailUrl ?? undefined}
-            gearType={g.gearType}
-            topLeftLabel={null}
-            priceText={getItemDisplayPrice(g, {
-              style: "short",
-              padWholeAmounts: true,
-            })}
-          />
-        ))}
-      </div>
-    </section>
+    <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+      {trendingResult.map((g) => (
+        <GearCard
+          key={g.slug}
+          href={`/gear/${g.slug}`}
+          slug={g.slug}
+          name={g.name}
+          brandName={g.brandName}
+          thumbnailUrl={g.thumbnailUrl ?? undefined}
+          gearType={g.gearType}
+          topLeftLabel={null}
+          priceText={getItemDisplayPrice(g, {
+            style: "short",
+            padWholeAmounts: true,
+          })}
+        />
+      ))}
+    </div>
   );
 }
 
@@ -177,17 +183,11 @@ async function ReleaseSection({
 
 function TrendingSkeleton() {
   return (
-    <section className="space-y-4">
-      <div className="h-7 w-48 animate-pulse rounded bg-red-500" />
-      <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-        {[0, 1, 2].map((i) => (
-          <div
-            key={i}
-            className="bg-muted h-48 animate-pulse rounded-lg border"
-          />
-        ))}
-      </div>
-    </section>
+    <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+      {[0, 1, 2].map((i) => (
+        <GearCardSkeleton key={i} />
+      ))}
+    </div>
   );
 }
 
@@ -198,6 +198,7 @@ async function ensureBrowseData(params: {
   initialBrowsePage?: BrowseListPage;
   browseBaseQuery?: string;
   brandName?: string;
+  searchParams?: Record<string, string | string[] | undefined>;
 }): Promise<{
   listPage: BrowseListPage;
   baseQuery: string;
@@ -213,13 +214,13 @@ async function ensureBrowseData(params: {
 
   const { lists, filters, brand } = await loadHubData({
     segments: params.brandSlug ? [params.brandSlug] : [],
-    searchParams: {},
+    searchParams: params.searchParams ?? {},
   });
 
   return {
     listPage: buildInitialPage(lists, filters),
     baseQuery: buildBaseQuery({
-      searchParams: {},
+      searchParams: params.searchParams ?? {},
       perPage: filters.perPage,
       brandSlug: params.brandSlug,
       category: null,

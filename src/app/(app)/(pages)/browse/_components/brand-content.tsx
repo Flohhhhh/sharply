@@ -1,17 +1,12 @@
 import Link from "next/link";
 import AllGearContent from "./all-gear-content";
-import type { BrowseListPage } from "./browse-results-grid";
 
 export default function BrandContent({
   brandSlug,
-  initialBrowsePage,
-  browseBaseQuery,
-  brandName,
+  searchParams,
 }: {
   brandSlug: string;
-  initialBrowsePage?: BrowseListPage;
-  browseBaseQuery?: string;
-  brandName?: string;
+  searchParams?: Record<string, string | string[] | undefined>;
 }) {
   const items = [
     { label: "Cameras", href: `/browse/${brandSlug}/cameras` },
@@ -39,9 +34,7 @@ export default function BrandContent({
       <AllGearContent
         brandSlug={brandSlug}
         showBrandPicker={false}
-        initialBrowsePage={initialBrowsePage}
-        browseBaseQuery={browseBaseQuery}
-        brandName={brandName}
+        searchParams={searchParams}
       />
     </div>
   );
