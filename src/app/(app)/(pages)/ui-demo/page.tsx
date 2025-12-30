@@ -14,6 +14,7 @@ import {
   type GearOption,
 } from "~/components/gear/gear-search-combobox";
 import ExtractorDemo from "./extractor-demo";
+import { CountryDropdown } from "~/components/country-select";
 
 export default function UIDemoPage() {
   const [apertureValue, setApertureValue] = useState<number | undefined>(
@@ -34,6 +35,15 @@ export default function UIDemoPage() {
   return (
     <div className="container mx-auto space-y-8 p-6">
       <h1 className="text-3xl font-bold">UI Demo Page</h1>
+      {/* Country Select Demo */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Country Select Component</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CountryDropdown />
+        </CardContent>
+      </Card>
 
       {/* @ui-demo: Message → Gear Extractor */}
       <Card>

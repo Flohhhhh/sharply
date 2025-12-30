@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import {
   FaDiscord,
@@ -9,6 +11,7 @@ import {
 } from "react-icons/fa";
 import { getFooterItems } from "~/lib/nav-items";
 import Link from "next/link";
+import { CountryDropdown } from "~/components/country-select";
 
 interface Footer7Props {
   logo?: {
@@ -71,7 +74,7 @@ export default function Footer({
       <div className="flex w-full flex-col justify-between gap-10 px-4 sm:px-8 lg:flex-row lg:items-start lg:text-left">
         <div className="flex w-full flex-col justify-between gap-6 lg:items-start">
           {/* Logo */}
-          <div className="flex items-center gap-2 lg:justify-start">
+          <div className="flex items-center gap-4 lg:justify-start">
             <Link href={logo.url}>
               <img
                 src={logo.src}
@@ -81,6 +84,12 @@ export default function Footer({
               />
             </Link>
             <h2 className="text-xl font-semibold">{logo.title}</h2>
+            <div className="flex max-w-[160px] items-center justify-center">
+              <CountryDropdown
+                className="border-border min-w-[60px] rounded-md border pr-3 pl-2"
+                slim
+              />
+            </div>
           </div>
           <p className="text-muted-foreground max-w-[70%] text-sm">
             {description}

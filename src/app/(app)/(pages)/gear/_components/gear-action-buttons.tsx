@@ -118,7 +118,7 @@ export function GearActionButtons({
   };
 
   // Loading skeleton before auth status resolved
-  if (status === "loading") {
+  if (isPending) {
     return (
       <div className="space-y-3 pt-4">
         <div className="bg-muted h-10 animate-pulse rounded-md" />
@@ -127,7 +127,7 @@ export function GearActionButtons({
     );
   }
 
-  if (status !== "authenticated") {
+  if (!session) {
     return (
       <div className="pt-4">
         <Button variant="outline" className="w-full" disabled>

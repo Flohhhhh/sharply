@@ -1,3 +1,4 @@
+import { env } from "~/env";
 import { buildAmazonProductUrl } from "~/lib/validation/amazon";
 
 /**
@@ -5,6 +6,6 @@ import { buildAmazonProductUrl } from "~/lib/validation/amazon";
  */
 export function getAmazonDestinationUrl(asin: string): string {
   return buildAmazonProductUrl(asin, {
-    affiliateTag: process.env.AMAZON_AFFILIATE_TAG,
+    affiliateTag: env.AMAZON_AFFILIATE_TAG ?? "sharply-20",
   });
 }
