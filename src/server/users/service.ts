@@ -335,16 +335,18 @@ const handleSchema = z
  * Resolves a user by handle, default user-number format, or UUID.
  */
 export async function fetchUserByHandle(handle: string) {
+  const normalizedHandle = handle.toLowerCase();
+
   // 1. Try exact handle match
   const byHandle = await db
     .select()
     .from(users)
-    .where(eq(users.handle, handle))
+    .where(eq(users.handle, normalizedHandle))
     .limit(1);
   if (byHandle[0]) return byHandle[0] as AuthUser;
 
   // 2. Try default handle fallback: user-{memberNumber}
-  const match = handle.match(/^user-(\d+)$/i);
+  const match = normalizedHandle.match(/^user-(\d+)$/i);
   if (match?.[1]) {
     const memberNumber = parseInt(match[1]);
     const byMemberNumber = await db
