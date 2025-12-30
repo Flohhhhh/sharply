@@ -43,6 +43,22 @@ export async function getGearIdBySlug(slug: string): Promise<string | null> {
   return row[0]?.id ?? null;
 }
 
+export async function getGearLinkMpb(params: {
+  slug?: string | null;
+  gearId?: string | null;
+}): Promise<string | null> {
+  const { slug, gearId } = params;
+  if (!slug && !gearId) return null;
+
+  const row = await db
+    .select({ linkMpb: gear.linkMpb })
+    .from(gear)
+    .where(slug ? eq(gear.slug, slug) : eq(gear.id, gearId ?? ""))
+    .limit(1);
+
+  return row[0]?.linkMpb ?? null;
+}
+
 /** Fetch full gearItem  by id */
 export async function fetchGearMetadataById(id: string): Promise<Gear> {
   const result = await db

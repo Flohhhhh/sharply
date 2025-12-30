@@ -1,13 +1,11 @@
 import "server-only";
 
-import { db } from "~/server/db";
-import { gear } from "~/server/db/schema";
-import { eq } from "drizzle-orm";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 
 import { buildMpbPartnerizeUrl, type Market } from "~/lib/links/mpb";
+import { resolveGearLinkMpb } from "~/server/gear/service";
 
 const EU_COUNTRIES = new Set([
   "AT",
@@ -56,20 +54,17 @@ function detectMarketFromCountryCode(alpha2Value: string | null): Market {
   return "US";
 }
 
-async function resolveGearLinkMpb({
+async function fetchGearLinkMpbFromService({
   slug,
   gearId,
 }: {
   slug?: string | null;
   gearId?: string | null;
 }): Promise<string | null> {
-  if (!slug && !gearId) return null;
-  const row = await db
-    .select({ linkMpb: gear.linkMpb })
-    .from(gear)
-    .where(slug ? eq(gear.slug, slug) : eq(gear.id, gearId ?? ""))
-    .limit(1);
-  return row[0]?.linkMpb ?? null;
+  return resolveGearLinkMpb({
+    slug,
+    gearId,
+  });
 }
 
 export async function GET(request: NextRequest) {
@@ -99,7 +94,8 @@ export async function GET(request: NextRequest) {
   let destinationPath = destinationPathParam ?? undefined;
   if (!destinationPath && (gearSlug || gearId)) {
     destinationPath =
-      (await resolveGearLinkMpb({ slug: gearSlug, gearId })) ?? undefined;
+      (await fetchGearLinkMpbFromService({ slug: gearSlug, gearId })) ??
+      undefined;
     console.log("MPB out resolved destinationPath from db", {
       gearSlug,
       gearId,

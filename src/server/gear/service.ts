@@ -9,6 +9,7 @@ import {
   getGearIdBySlug as getGearIdBySlugData,
   fetchGearBySlug as fetchGearBySlugData,
   fetchGearMetadataById as fetchGearMetadataByIdData,
+  getGearLinkMpb as getGearLinkMpbData,
   isInWishlist as isInWishlistData,
   isOwned as isOwnedData,
   getApprovedReviewsByGearId as getApprovedReviewsByGearIdData,
@@ -115,6 +116,13 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
 // Fetch minimal gear metadata by id via data layer
 export async function fetchGearMetadataById(id: string) {
   return fetchGearMetadataByIdData(id);
+}
+
+export async function resolveGearLinkMpb(options: {
+  slug?: string | null;
+  gearId?: string | null;
+}) {
+  return getGearLinkMpbData(options);
 }
 
 export async function toggleWishlist(slug: string, action: "add" | "remove") {
