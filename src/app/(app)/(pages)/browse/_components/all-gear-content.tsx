@@ -17,6 +17,8 @@ import {
   type SearchGearResult,
 } from "~/server/gear/browse/data";
 
+import Loading from "~/app/(app)/(pages)/browse/loading";
+
 export default async function AllGearContent({
   brandSlug,
   showBrandPicker = true,
@@ -32,6 +34,7 @@ export default async function AllGearContent({
   brandName?: string;
   searchParams?: Record<string, string | string[] | undefined>;
 } = {}) {
+  // return <Loading />;
   const featured = BRANDS.filter((b) =>
     ["Canon", "Nikon", "Sony"].includes(b.name),
   );
