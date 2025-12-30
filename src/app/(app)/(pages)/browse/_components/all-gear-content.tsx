@@ -43,13 +43,13 @@ export default async function AllGearContent({
     name: b.name,
     slug: b.slug,
   }));
-  const { listPage, baseQuery, brandLabel } = await ensureBrowseData({
-    brandSlug,
-    initialBrowsePage,
-    browseBaseQuery,
-    brandName,
-    searchParams,
-  });
+  // const { listPage, baseQuery, brandLabel } = await ensureBrowseData({
+  //   brandSlug,
+  //   initialBrowsePage,
+  //   browseBaseQuery,
+  //   brandName,
+  //   searchParams,
+  // });
   const initialReleasePage = await fetchReleaseFeedPage({
     limit: 12,
     brandSlug,
