@@ -269,7 +269,7 @@ export default function SignInClient() {
           />
           {/* subtle bottom gradient for text readability */}
           <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-linear-to-t from-black/60 to-transparent"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 to-transparent"
             aria-hidden
           />
           <div className="pointer-events-none absolute bottom-2 left-2 rounded bg-black/50 px-2 py-1 text-[10px] leading-none text-white/90">
