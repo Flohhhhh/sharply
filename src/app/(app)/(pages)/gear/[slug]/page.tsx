@@ -2,11 +2,7 @@ import Link from "next/link";
 import { getItemDisplayPrice, PRICE_FALLBACK_TEXT } from "~/lib/mapping";
 import { formatHumanDate, getConstructionState } from "~/lib/utils";
 import { GearActionButtons } from "~/app/(app)/(pages)/gear/_components/gear-action-buttons";
-import {
-  fetchOwnershipStatus,
-  fetchWishlistStatus,
-  fetchPendingEditCountForGear,
-} from "~/server/gear/service";
+import { fetchPendingEditCountForGear } from "~/server/gear/service";
 import { GearVisitTracker } from "~/app/(app)/(pages)/gear/_components/gear-visit-tracker";
 import { GearReviews } from "~/app/(app)/(pages)/gear/_components/gear-reviews";
 import { AiReviewBanner } from "../_components/ai-review-banner";
@@ -26,7 +22,6 @@ import { GearLinks } from "~/app/(app)/(pages)/gear/_components/gear-links";
 import GearStatsCard from "../_components/gear-stats-card";
 import GearBadges from "../_components/gear-badges";
 import SpecsTable from "../_components/specs-table";
-import { StaffVerdictSection } from "../_components/staff-verdict-section";
 import { buildGearSpecsSections } from "~/lib/specs/registry";
 import type { GearType } from "~/types/gear";
 import type { Metadata } from "next";
@@ -40,13 +35,11 @@ import {
 import { NewsCard } from "~/components/home/news-card";
 import { Button } from "~/components/ui/button";
 import { notFound } from "next/navigation";
-import { auth } from "~/auth";
-import { requireRole } from "~/lib/auth/auth-helpers";
 import DiscordBanner from "~/components/discord-banner";
 import Image from "next/image";
 
 import { JsonLd } from "~/components/json-ld";
-import { headers } from "next/headers";
+import { StaffVerdictSection } from "../_components/staff-verdict-section";
 
 export const revalidate = 3600;
 
@@ -105,11 +98,6 @@ export async function generateMetadata({
 
 export default async function GearPage({ params }: GearPageProps) {
   const { slug } = await params;
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  const user = session?.user;
-  const isAdmin = requireRole(user, ["ADMIN"]);
   // console.log("[gear/[slug]] Generating static page (build/ISR)", { slug });
 
   // Fetch core gear data
@@ -264,9 +252,7 @@ export default async function GearPage({ params }: GearPageProps) {
           {/* Pending submission banner (client, only for this user when pending) */}
           <UserPendingEditBanner slug={slug} />
           {/* Staff Verdict */}
-          {(staffVerdictRows.length > 0 || isAdmin) && (
-            <StaffVerdictSection slug={slug} verdict={verdict} />
-          )}
+          <StaffVerdictSection slug={slug} verdict={verdict} />
 
           {/* Specifications */}
           <section className="scroll-mt-24" id="specs">
@@ -340,32 +326,10 @@ export default async function GearPage({ params }: GearPageProps) {
         <div className="static top-28 col-span-1 -mt-4 w-full space-y-8 self-start sm:sticky md:col-span-3">
           {/* Action Buttons */}
           <div className="w-full">
-            {(() => {
-              // Compute initial flags on the server and render client component with props
-              // Note: this closure is immediately invoked synchronously with awaited calls inside
-              // eslint-disable-next-line react/no-unstable-nested-components
-              const ServerWrapper = async () => {
-                let initialInWishlist: boolean | null = null;
-                let initialIsOwned: boolean | null = null;
-                try {
-                  const [wl, own] = await Promise.all([
-                    fetchWishlistStatus(slug).catch(() => null),
-                    fetchOwnershipStatus(slug).catch(() => null),
-                  ]);
-                  initialInWishlist = wl ? Boolean(wl.inWishlist) : null;
-                  initialIsOwned = own ? Boolean(own.isOwned) : null;
-                } catch {}
-                return (
-                  <GearActionButtons
-                    slug={slug}
-                    initialInWishlist={initialInWishlist}
-                    initialIsOwned={initialIsOwned}
-                    currentThumbnailUrl={item.thumbnailUrl ?? null}
-                  />
-                );
-              };
-              return <ServerWrapper />;
-            })()}
+            <GearActionButtons
+              slug={slug}
+              currentThumbnailUrl={item.thumbnailUrl ?? null}
+            />
           </div>
           {/* Links */}
           <div className="mb-8">
