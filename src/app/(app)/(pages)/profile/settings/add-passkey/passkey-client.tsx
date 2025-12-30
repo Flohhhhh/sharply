@@ -36,11 +36,11 @@ function computeDefaultPasskeyName(): string {
           ? "Android"
           : "Unknown OS";
 
-  const browser = brandList.find((b) => b.includes("chrome"))
+  const browser = brandList.find((b: string) => b.includes("chrome"))
     ? "Chrome"
-    : brandList.find((b) => b.includes("edge"))
+    : brandList.find((b: string) => b.includes("edge"))
       ? "Edge"
-      : brandList.find((b) => b.includes("opera"))
+      : brandList.find((b: string) => b.includes("opera"))
         ? "Opera"
         : ua.includes("firefox")
           ? "Firefox"
