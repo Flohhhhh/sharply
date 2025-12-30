@@ -1513,6 +1513,30 @@ export const notifications = appSchema.table(
   ],
 );
 
+export const passkeys = appSchema.table(
+  "passkeys",
+  (d) => ({
+    id: d
+      .varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    name: d.varchar("name", { length: 255 }).notNull(),
+    publicKey: d.text("public_key").notNull(),
+    userId: d
+      .varchar("user_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    credentialID: d.text("credential_id").notNull(),
+    counter: d.integer("counter").notNull().default(0),
+    deviceType: d.varchar("device_type", { length: 100 }),
+    backedUp: d.boolean("backed_up").notNull().default(false),
+    transports: d.text("transports"),
+    aaguid: d.varchar("aaguid", { length: 255 }),
+    createdAt,
+  }),
+  (t) => [index("passkeys_user_idx").on(t.userId)],
+);
+
 export const notificationsRelations = relations(notifications, ({ one }) => ({
   user: one(users, { fields: [notifications.userId], references: [users.id] }),
 }));
@@ -1684,6 +1708,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   gearEdits: many(gearEdits),
   reviews: many(reviews),
   notifications: many(notifications),
+  passkeys: many(passkeys),
 }));
 
 // Export the user type for use throughout the application
@@ -1765,4 +1790,8 @@ export const authAccountsRelations = relations(authAccounts, ({ one }) => ({
     fields: [authAccounts.userId],
     references: [users.id],
   }),
+}));
+
+export const passkeysRelations = relations(passkeys, ({ one }) => ({
+  user: one(users, { fields: [passkeys.userId], references: [users.id] }),
 }));

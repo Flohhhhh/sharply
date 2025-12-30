@@ -1,4 +1,5 @@
 import { auth } from "~/auth";
+import type { Passkey } from "@better-auth/passkey";
 import { DisplayNameForm } from "./display-name-form";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
@@ -10,6 +11,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { fetchLinkedAccountsForUser } from "~/server/auth/account-linking";
 import { headers } from "next/headers";
+import { PasskeySection } from "./passkey-section";
 
 export const metadata: Metadata = {
   title: "Account Settings",
@@ -19,8 +21,9 @@ export const metadata: Metadata = {
 };
 
 export default async function SettingsPage() {
+  const requestHeaders = await headers();
   const session = await auth.api.getSession({
-    headers: await headers(),
+    headers: requestHeaders,
   });
 
   const user = session?.user;
@@ -36,6 +39,12 @@ export default async function SettingsPage() {
   const linkedAccounts = await fetchLinkedAccountsForUser(user.id);
   // console.log(linkedAccounts);
   const userEmail = user.email ?? null;
+
+  // Fetch passkeys for display
+  const passkeys =
+    (await auth.api.listPasskeys({
+      headers: requestHeaders,
+    })) ?? [];
 
   const providerAvailability = {
     discord:
@@ -85,6 +94,8 @@ export default async function SettingsPage() {
           providerAvailability={providerAvailability}
           userEmail={userEmail}
         />
+
+        <PasskeySection initialPasskeys={passkeys} />
 
         <section className="border-border space-y-3 rounded-lg border p-4">
           <h2 className="text-lg font-semibold">Social Links</h2>

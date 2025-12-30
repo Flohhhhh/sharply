@@ -23,8 +23,9 @@ import { headers } from "next/headers";
 export const dynamic = "force-dynamic";
 
 export default async function PrivateAdminPage() {
+  const requestHeaders = await headers();
   const session = await auth.api.getSession({
-    headers: await headers(),
+    headers: requestHeaders,
   });
 
   if (!session?.user) redirect("/auth/signin?callbackUrl=/admin/private");
