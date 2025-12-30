@@ -17,9 +17,8 @@ function computeDefaultPasskeyName(): string {
   if (typeof navigator === "undefined") return "New passkey";
   const ua = navigator.userAgent.toLowerCase();
   const brandList: string[] =
-    // @ts-expect-error userAgentData not in all browsers
-    navigator.userAgentData?.brands?.map((b: { brand: string }) =>
-      b.brand.toLowerCase(),
+    ((navigator as any).userAgentData?.brands as Array<{ brand: string }>)?.map(
+      (b) => b.brand.toLowerCase(),
     ) ?? [];
 
   const isWindows = ua.includes("windows");

@@ -1,5 +1,5 @@
 import { requireRole } from "~/lib/auth/auth-helpers";
-import { auth } from "~/auth";
+import { auth, type AuthSession } from "~/auth";
 import { redirect } from "next/navigation";
 import { listInvites } from "~/server/invites/service";
 import { actionCreateInvite } from "~/server/invites/actions";
@@ -23,8 +23,9 @@ import { headers } from "next/headers";
 export const dynamic = "force-dynamic";
 
 export default async function PrivateAdminPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
+  const requestHeaders = await headers();
+  const session: AuthSession | null = await auth.api.getSession({
+    headers: requestHeaders,
   });
 
   if (!session?.user) redirect("/auth/signin?callbackUrl=/admin/private");
