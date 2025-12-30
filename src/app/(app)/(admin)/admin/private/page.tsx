@@ -1,5 +1,5 @@
 import { requireRole } from "~/lib/auth/auth-helpers";
-import { auth, type AuthSession } from "~/auth";
+import { auth } from "~/auth";
 import { redirect } from "next/navigation";
 import { listInvites } from "~/server/invites/service";
 import { actionCreateInvite } from "~/server/invites/actions";
@@ -24,7 +24,7 @@ export const dynamic = "force-dynamic";
 
 export default async function PrivateAdminPage() {
   const requestHeaders = await headers();
-  const session: AuthSession | null = await auth.api.getSession({
+  const session = await auth.api.getSession({
     headers: requestHeaders,
   });
 
