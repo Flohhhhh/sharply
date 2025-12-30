@@ -98,24 +98,8 @@ const CountrySelect = (
     }
   }, [defaultValue, filteredOptions, globallySelectedCountry]);
 
-  useEffect(() => {
-    console.log(
-      "CountryDropdown selection changed:",
-      selectedCountry?.alpha2 ?? "none",
-    );
-  }, [selectedCountry]);
-
-  useEffect(() => {
-    if (!globallySelectedCountry) return;
-    console.log(
-      "CountryDropdown synced with global country:",
-      globallySelectedCountry.alpha2,
-    );
-  }, [globallySelectedCountry]);
-
   const handleSelect = useCallback(
     (country: Country) => {
-      console.log("🌍 CountryDropdown value: ", country);
       setSelectedCountry(country);
       setGlobalCountry(country);
       onChange?.(country);
