@@ -59,7 +59,7 @@ Stores detailed camera-specific specifications:
 Stores detailed lens-specific specifications:
 
 - **Primary Key**: `gearId` (1:1 relationship with gear)
-- **Focal Length**: Minimum and maximum focal length in mm
+- **Focal Length**: Minimum and maximum focal length in mm (decimal, 0.1mm precision)
 - **Aperture**: Maximum aperture value
 - **Stabilization**: Whether the lens has stabilization
 - **Flexibility**: JSONB extra field for additional specs
@@ -71,7 +71,7 @@ For cameras that use the `fixed-lens` mount, a simplified lens spec table stores
 - Primary Key: `gearId` (1:1 with `gear`)
 - Fields:
   - `isPrime` (boolean)
-  - `focalLengthMinMm` (int), `focalLengthMaxMm` (int)
+  - `focalLengthMinMm` (decimal, 0.1mm precision), `focalLengthMaxMm` (decimal, 0.1mm precision)
   - `maxApertureWide` (decimal), `maxApertureTele` (decimal)
   - `minApertureWide` (decimal), `minApertureTele` (decimal)
   - `hasAutofocus` (boolean)
@@ -143,7 +143,7 @@ CREATE TABLE sharply_lens_specs (
 ### Numeric Precision
 
 - **Resolution**: High precision for megapixel values
-- **Focal Length**: Precise measurements in millimeters
+- **Focal Length**: Stored as `decimal(5,1)` to capture 0.1mm precision for lenses and fixed-lens cameras
 - **Aperture**: Standard aperture scale precision
 
 ### Text Fields
