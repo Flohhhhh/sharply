@@ -4,6 +4,7 @@ import { db } from "~/server/db"; // your drizzle instance
 import * as schema from "~/server/db/schema";
 import { nextCookies } from "better-auth/next-js";
 import { emailOTP } from "better-auth/plugins";
+import { passkey } from "@better-auth/passkey";
 import { resend } from "~/lib/email";
 
 const userRoleValues = schema.userRoleEnum.enumValues;
@@ -24,6 +25,7 @@ export const auth = betterAuth({
       session: schema.authSessions,
       account: schema.authAccounts,
       verification: schema.authVerifications,
+      passkey: schema.passkeys,
     },
   }),
 
@@ -89,6 +91,7 @@ export const auth = betterAuth({
   // plugins
   plugins: [
     nextCookies(),
+    passkey(),
     emailOTP({
       overrideDefaultEmailVerification: true,
       async sendVerificationOTP({ email, otp, type }) {

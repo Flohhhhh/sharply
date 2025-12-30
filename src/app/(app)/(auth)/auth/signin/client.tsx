@@ -9,10 +9,12 @@ import { toast } from "sonner";
 import { emailOtp, signIn } from "~/lib/auth/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
+import { Fingerprint } from "lucide-react";
 
 export default function SignInClient() {
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
+  const [passkeySigningIn, setPasskeySigningIn] = useState(false);
   const canSubmit = /.+@.+\..+/.test(email);
 
   const searchParams = useSearchParams();
@@ -144,6 +146,44 @@ export default function SignInClient() {
     }
   }
 
+  async function handlePasskeySignIn() {
+    setPasskeySigningIn(true);
+    void track("auth_signin_press", { method: "passkey", callbackUrl });
+    try {
+      const { data, error } = await signIn.passkey({
+        fetchOptions: {
+          onSuccess() {
+            router.push(callbackUrl);
+            router.refresh();
+          },
+        },
+      });
+
+      if (error) {
+        toast.error("Passkey sign-in failed.", {
+          description:
+            error.message ||
+            "No passkey found. Try email, OAuth, or sign up, then add a passkey in Settings.",
+          richColors: true,
+          action: {
+            label: "Sign up",
+            onClick: () =>
+              router.push("/auth/signin?callbackUrl=/profile/settings"),
+          },
+        });
+        return;
+      }
+
+      router.push(callbackUrl);
+      router.refresh();
+    } catch (err) {
+      console.error("Passkey sign-in failed", err);
+      toast.error("Passkey sign-in failed. Please try again.");
+    } finally {
+      setPasskeySigningIn(false);
+    }
+  }
+
   return (
     <div className="mx-auto flex min-h-screen max-w-5xl flex-col justify-center px-4 py-12 md:py-20">
       <div className="overflow-hidden rounded-xl border md:grid md:min-h-[560px] md:grid-cols-2">
@@ -175,6 +215,19 @@ export default function SignInClient() {
             </Button>
           </div>
 
+          <div className="mt-4">
+            <Button
+              variant="default"
+              className="w-full"
+              onClick={handlePasskeySignIn}
+              disabled={passkeySigningIn}
+              loading={passkeySigningIn}
+            >
+              <Fingerprint className="mr-2 h-4 w-4" />
+              Sign in with passkey
+            </Button>
+          </div>
+
           {/* Email OTP sign-in */}
           <div className="mt-5 space-y-5">
             <div className="text-muted-foreground relative py-2 text-center text-xs">
@@ -187,7 +240,7 @@ export default function SignInClient() {
                   id="email"
                   type="email"
                   placeholder="Enter your email"
-                  autoComplete="email"
+                  autoComplete="email webauthn"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -215,7 +268,7 @@ export default function SignInClient() {
           />
           {/* subtle bottom gradient for text readability */}
           <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 to-transparent"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-linear-to-t from-black/60 to-transparent"
             aria-hidden
           />
           <div className="pointer-events-none absolute bottom-2 left-2 rounded bg-black/50 px-2 py-1 text-[10px] leading-none text-white/90">

@@ -10,6 +10,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { fetchLinkedAccountsForUser } from "~/server/auth/account-linking";
 import { headers } from "next/headers";
+import { PasskeySection } from "./passkey-section";
 
 export const metadata: Metadata = {
   title: "Account Settings",
@@ -19,8 +20,9 @@ export const metadata: Metadata = {
 };
 
 export default async function SettingsPage() {
+  const requestHeaders = await headers();
   const session = await auth.api.getSession({
-    headers: await headers(),
+    headers: requestHeaders,
   });
 
   const user = session?.user;
@@ -36,6 +38,39 @@ export default async function SettingsPage() {
   const linkedAccounts = await fetchLinkedAccountsForUser(user.id);
   // console.log(linkedAccounts);
   const userEmail = user.email ?? null;
+
+  // Fetch passkeys for display
+  let passkeys: Array<{
+    id: string;
+    name: string;
+    createdAt?: string | null;
+    deviceType?: string | null;
+    backedUp?: boolean | null;
+    transports?: string | null;
+    lastUsedAt?: string | null;
+  }> = [];
+
+  try {
+    const list = await auth.api.listPasskeys({
+      headers: requestHeaders,
+    });
+    const anyList = list as Record<string, unknown> | undefined;
+    const maybeData = (anyList?.data ?? {}) as Record<string, unknown>;
+    // Cover possible return shapes:
+    // { passkeys: [...] } OR { data: [...] } OR { data: { passkeys: [...] } }
+    const extracted =
+      (anyList?.passkeys as typeof passkeys | undefined) ??
+      (maybeData.passkeys as typeof passkeys | undefined) ??
+      (anyList?.data as typeof passkeys | undefined) ??
+      [];
+    if (Array.isArray(list)) {
+      passkeys = list as typeof passkeys;
+    } else if (Array.isArray(extracted)) {
+      passkeys = extracted;
+    }
+  } catch {
+    passkeys = [];
+  }
 
   const providerAvailability = {
     discord:
@@ -85,6 +120,8 @@ export default async function SettingsPage() {
           providerAvailability={providerAvailability}
           userEmail={userEmail}
         />
+
+        <PasskeySection initialPasskeys={passkeys} />
 
         <section className="border-border space-y-3 rounded-lg border p-4">
           <h2 className="text-lg font-semibold">Social Links</h2>

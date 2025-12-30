@@ -27,6 +27,8 @@
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.7.2",
+    "@better-auth/core": "^1.4.9",
+    "@better-auth/passkey": "^1.4.9",
     "@hookform/resolvers": "^5.2.2",
     "@number-flow/react": "^0.5.10",
     "@payloadcms/db-postgres": "^3.68.3",
@@ -62,6 +64,7 @@
     "@uploadthing/react": "^7.3.3",
     "@vercel/analytics": "^1.5.0",
     "better-auth": "^1.4.9",
+    "better-call": "^1.1.7",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

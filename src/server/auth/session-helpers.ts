@@ -14,3 +14,4 @@ export async function getSessionOrThrow() {
   if (!session) throw Object.assign(new Error("Unauthorized"), { status: 401 });
   return session;
 }
+

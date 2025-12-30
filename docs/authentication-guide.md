@@ -145,6 +145,18 @@ type AuthSession = {
 };
 ```
 
+## Passkey storage
+
+Passkey credentials are persisted in the `passkeys` table defined in `src/server/db/schema.ts`. Each row stores the credential metadata (`publicKey`, `credentialId`, `counter`, `deviceType`, `backedUp`, `transports`, `aaguid`, and `createdAt`) and links back to the owning user via `userId`. This lets you list or revoke registered passkeys without touching the low‑level Better Auth adapter, and the table is indexed by `userId` for quick lookups when showing the device list or enforcing session limits.
+
+### Our passkey UX (Sharply)
+
+- **Server config:** `passkey()` plugin is enabled in `src/auth.ts` and wired to the Drizzle adapter; `credentialID` is the expected field name in the schema.
+- **Add flow:** `/profile/settings/add-passkey` pre-fills a device-friendly name (e.g., “Firefox on Windows”) based on browser/OS. Users can edit it before creation. Registration runs `passkey.addPasskey` and returns to settings.
+- **Manage & list:** `/profile/settings` shows a collapsible “X passkeys configured” list with rename and delete actions (uses `passkey.updatePasskey` and `passkey.deletePasskey`). Last-used/created timestamps are displayed when present.
+- **Sign-in:** The sign-in page includes “Sign in with passkey”. If no credential is found for the user, the UI toasts an error and prompts to sign up or use email/OAuth, then add a passkey in settings.
+- **Authenticator choice:** We use the default passkey plugin options (both platform and cross‑platform allowed). Browsers may surface platform/phone first; if you want to bias to hardware keys, pass `authenticatorAttachment: "cross-platform"` to `passkey.addPasskey` (not currently enabled in UI).
+
 ## Sign-in / Sign-out (client)
 
 ```tsx
