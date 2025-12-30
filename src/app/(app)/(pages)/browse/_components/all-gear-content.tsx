@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { ClockIcon, FlameIcon } from "lucide-react";
 import Link from "next/link";
 import { GearCard } from "~/components/gear/gear-card";
@@ -50,11 +51,7 @@ export default async function AllGearContent({
     limit: 12,
     brandSlug,
   });
-  const trendingResult = await fetchTrending({
-    timeframe: "7d",
-    limit: 3,
-    filters: brand ? { brandId: brand.id } : undefined,
-  });
+
   return (
     <main className="space-y-8">
       {/* browse hero only on root browse page*/}
@@ -98,70 +95,103 @@ export default async function AllGearContent({
         </div>
       </section>
 
-      <section className="space-y-4">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="flex items-center gap-2 text-2xl font-semibold">
-            {brandLabel ?? "All gear"}
-          </h2>
-        </div>
-        <BrowseResultsGrid
-          initialPage={listPage}
-          brandName={brandLabel ?? undefined}
-          baseQuery={baseQuery}
-        />
-      </section>
+      <Suspense fallback={<TrendingSkeleton />}>
+        <TrendingSection brandSlug={brandSlug} brandId={brand?.id} />
+      </Suspense>
 
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="flex items-center gap-2 text-2xl font-semibold">
-            <span>
-              <FlameIcon className="size-5 text-orange-500" />
-            </span>
-            Trending Gear
-          </h2>
-          <Button variant="link" asChild>
-            <Link href="/lists/trending">View All</Link>
-          </Button>
-        </div>
-        <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-          {trendingResult.map((g) => (
-            <GearCard
-              key={g.slug}
-              href={`/gear/${g.slug}`}
-              slug={g.slug}
-              name={g.name}
-              brandName={g.brandName}
-              thumbnailUrl={g.thumbnailUrl ?? undefined}
-              gearType={g.gearType}
-              topLeftLabel={null}
-              priceText={getItemDisplayPrice(g, {
-                style: "short",
-                padWholeAmounts: true,
-              })}
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className="space-y-4">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="flex items-center gap-2 text-2xl font-semibold">
-            <ClockIcon className="text-muted-foreground size-5" />
-            Latest releases
-          </h2>
-          {/* <p className="text-muted-foreground text-sm">
-            Release date descending; start with 12 then continue with infinite
-            scroll.
-          </p> */}
-        </div>
-        <ReleaseFeedGrid
-          initialPage={initialReleasePage}
-          brandSlug={brandSlug}
-        />
-      </section>
+      <ReleaseSection
+        brandSlug={brandSlug}
+        initialReleasePage={initialReleasePage}
+      />
     </main>
   );
 }
+
+async function TrendingSection({
+  brandSlug,
+  brandId,
+}: {
+  brandSlug?: string;
+  brandId?: string;
+}) {
+  const trendingResult = await fetchTrending({
+    timeframe: "7d",
+    limit: 3,
+    filters: brandId ? { brandId } : undefined,
+  });
+
+  return (
+    <section className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="flex items-center gap-2 text-2xl font-semibold">
+          <span>
+            <FlameIcon className="size-5 text-orange-500" />
+          </span>
+          Trending Gear
+        </h2>
+        <Button variant="link" asChild>
+          <Link href="/lists/trending">View All</Link>
+        </Button>
+      </div>
+      <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+        {trendingResult.map((g) => (
+          <GearCard
+            key={g.slug}
+            href={`/gear/${g.slug}`}
+            slug={g.slug}
+            name={g.name}
+            brandName={g.brandName}
+            thumbnailUrl={g.thumbnailUrl ?? undefined}
+            gearType={g.gearType}
+            topLeftLabel={null}
+            priceText={getItemDisplayPrice(g, {
+              style: "short",
+              padWholeAmounts: true,
+            })}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+async function ReleaseSection({
+  brandSlug,
+  initialReleasePage,
+}: {
+  brandSlug?: string;
+  initialReleasePage: Awaited<ReturnType<typeof fetchReleaseFeedPage>>;
+}) {
+  return (
+    <section className="space-y-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="flex items-center gap-2 text-2xl font-semibold">
+          <ClockIcon className="text-muted-foreground size-5" />
+          Latest releases
+        </h2>
+      </div>
+      <ReleaseFeedGrid initialPage={initialReleasePage} brandSlug={brandSlug} />
+    </section>
+  );
+}
+
+function TrendingSkeleton() {
+  return (
+    <section className="space-y-4">
+      <div className="h-7 w-48 animate-pulse rounded bg-red-500" />
+      <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            className="bg-muted h-48 animate-pulse rounded-lg border"
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// Release section renders with initial data; no suspense needed to avoid duplicate headings.
 
 async function ensureBrowseData(params: {
   brandSlug?: string;
