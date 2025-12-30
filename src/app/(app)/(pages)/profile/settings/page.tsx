@@ -102,14 +102,6 @@ export default async function SettingsPage() {
           <DisplayNameForm defaultName={user.name ?? ""} />
         </section>
 
-        <AccountLinksSection
-          linkedAccounts={linkedAccounts}
-          providerAvailability={providerAvailability}
-          userEmail={userEmail}
-        />
-
-        <PasskeySection initialPasskeys={passkeys} />
-
         <section className="border-border space-y-3 rounded-lg border p-4">
           <h2 className="text-lg font-semibold">Social Links</h2>
           <p className="text-muted-foreground text-sm">
@@ -118,6 +110,14 @@ export default async function SettingsPage() {
           </p>
           <SocialLinksForm defaultLinks={socialLinks} />
         </section>
+
+        <AccountLinksSection
+          linkedAccounts={linkedAccounts}
+          providerAvailability={providerAvailability}
+          userEmail={userEmail}
+        />
+
+        <PasskeySection initialPasskeys={passkeys} />
       </div>
     </main>
   );
