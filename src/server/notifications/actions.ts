@@ -37,7 +37,7 @@ export async function actionSendTestNotification() {
       type: "badge_awarded",
       title: "You earned the Pioneer badge",
       body: "Early member perk unlocked.",
-      linkUrl: `/u/${user.id}`,
+      linkUrl: `/u/${user.handle || `user-${user.memberNumber}`}`,
       sourceType: "badge",
       sourceId: "pioneer",
       metadata: { badgeKey: "pioneer" },

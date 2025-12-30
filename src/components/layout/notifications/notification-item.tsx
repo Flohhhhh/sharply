@@ -11,6 +11,7 @@ type IconEntry = { icon: ComponentType<{ className?: string }> };
 const typeIconMap: Record<NotificationView["type"], IconEntry> = {
   gear_spec_approved: { icon: BadgeCheck },
   badge_awarded: { icon: Award },
+  prompt_handle_setup: { icon: Bell },
 };
 
 const NotificationIcon = ({ type }: { type: NotificationView["type"] }) => {

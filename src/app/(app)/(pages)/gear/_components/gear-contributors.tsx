@@ -12,7 +12,14 @@ export async function GearContributors({ gearId }: GearContributorsProps) {
   // Aggregate contribution counts per user by counting fields in payloads
   const contributions = new Map<
     string,
-    { id: string; name: string | null; image: string | null; count: number }
+    {
+      id: string;
+      name: string | null;
+      handle: string | null;
+      memberNumber: number;
+      image: string | null;
+      count: number;
+    }
   >();
   const countFields = (payload: any): number => {
     if (!payload || typeof payload !== "object") return 0;
@@ -30,6 +37,8 @@ export async function GearContributors({ gearId }: GearContributorsProps) {
     const prev = contributions.get(r.userId) ?? {
       id: r.userId,
       name: r.name,
+      handle: r.handle,
+      memberNumber: r.memberNumber,
       image: r.image,
       count: 0,
     };

@@ -87,6 +87,7 @@ export const badgeAwardSourceEnum = pgEnum("badge_award_source", [
 export const notificationTypeEnum = pgEnum("notification_type", [
   "gear_spec_approved",
   "badge_awarded",
+  "prompt_handle_setup",
 ]);
 
 // Popularity
@@ -1681,6 +1682,7 @@ export const users = appSchema.table("user", (d) => ({
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
   name: d.varchar({ length: 255 }),
+  handle: d.varchar({ length: 50 }).unique(),
   email: d.varchar({ length: 255 }).notNull(),
   // changed from timestamp to boolean
   emailVerified: d.boolean().notNull().default(false),

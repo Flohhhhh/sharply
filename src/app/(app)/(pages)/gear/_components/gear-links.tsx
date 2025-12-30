@@ -11,6 +11,7 @@ import type { ReactNode } from "react";
 import { BRANDS } from "~/lib/generated";
 import { CanonLogo } from "public/canon-logo";
 import { CircleQuestionMark } from "lucide-react";
+import { useCountry } from "~/lib/hooks/useCountry";
 
 interface GearLinksProps {
   slug: string;
@@ -33,6 +34,7 @@ export function GearLinks({
   mpbMaxPriceUsdCents,
   msrpNowUsdCents,
 }: GearLinksProps) {
+  const { countryCode } = useCountry();
   const amazonAsin = parseAmazonAsin(linkAmazon) ?? null;
   const amazonRedirectHref = amazonAsin
     ? `/api/out/amazon?asin=${encodeURIComponent(
@@ -79,6 +81,12 @@ export function GearLinks({
 
   if (!hasAny) return null;
 
+  const mpbOutLink = linkMpb
+    ? `/api/out/mpb?destinationPath=${encodeURIComponent(linkMpb)}${
+        countryCode ? `&market=${encodeURIComponent(countryCode)}` : ""
+      }`
+    : undefined;
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -103,7 +111,7 @@ export function GearLinks({
       )}
       {linkMpb && (
         <AffiliateLinkCard
-          href={linkMpb}
+          href={mpbOutLink ?? linkMpb}
           title="See on MPB"
           description={mpbPriceDescription}
           backgroundClass="bg-[#0b002b] hover:bg-[#0b002b]/80"

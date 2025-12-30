@@ -37,7 +37,7 @@ export default async function AdminLayout({
     redirect(`/auth/signin?callbackUrl=${encodeURIComponent("/admin")}`);
   }
 
-  console.log(session.user.role);
+  // console.log(session.user.role);
 
   if (!requireRole(session.user, ["MODERATOR"])) {
     return (

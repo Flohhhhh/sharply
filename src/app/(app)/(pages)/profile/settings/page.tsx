@@ -1,6 +1,7 @@
 import { auth } from "~/auth";
 import type { Passkey } from "@better-auth/passkey";
 import { DisplayNameForm } from "./display-name-form";
+import { UserHandleForm } from "./user-handle-form";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { ProfilePictureSettingsSection } from "~/components/profile/profile-picture-settings-section";
@@ -64,7 +65,7 @@ export default async function SettingsPage() {
     <main className="mx-auto min-h-screen max-w-3xl p-6 pt-24">
       <div className="mb-6 space-y-2">
         <Link
-          href={`/u/${user.id}`}
+          href={`/u/${user.handle || `user-${user.memberNumber}`}`}
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-2 text-sm font-medium"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -82,6 +83,18 @@ export default async function SettingsPage() {
         <section className="border-border space-y-3 rounded-lg border p-4">
           <h2 className="text-lg font-semibold">Profile Picture</h2>
           <ProfilePictureSettingsSection initialImageUrl={user.image ?? null} />
+        </section>
+
+        <section className="border-border space-y-3 rounded-lg border p-4">
+          <h2 className="text-lg font-semibold">Username / Handle</h2>
+          <p className="text-muted-foreground text-sm">
+            This is your unique address on Sharply. It can only contain letters,
+            numbers, hyphens, and underscores.
+          </p>
+          <UserHandleForm
+            initialHandle={user.handle ?? null}
+            memberNumber={user.memberNumber}
+          />
         </section>
 
         <section className="border-border space-y-3 rounded-lg border p-4">

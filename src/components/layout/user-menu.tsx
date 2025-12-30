@@ -19,6 +19,8 @@ import { Spinner } from "~/components/ui/spinner";
 export type UserMenuUser = {
   id: string;
   role: UserRole;
+  handle?: string | null;
+  memberNumber?: number;
   name?: string | null;
   email?: string | null;
   image?: string | null;
@@ -73,7 +75,7 @@ export function UserMenu({ user }: { user: UserMenuUser }) {
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link
-            href={`/u/${user.id}`}
+            href={`/u/${user.handle || `user-${user.memberNumber}`}`}
             className="flex w-full items-center gap-2"
           >
             <UserIcon className="size-4" />

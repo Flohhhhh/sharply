@@ -11,6 +11,8 @@ export default async function Header() {
     ? {
         id: session.user.id,
         role: session.user.role,
+        handle: session.user.handle,
+        memberNumber: session.user.memberNumber,
         name: session.user.name,
         email: session.user.email,
         image: session.user.image,

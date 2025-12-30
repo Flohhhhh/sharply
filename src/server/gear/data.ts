@@ -43,6 +43,22 @@ export async function getGearIdBySlug(slug: string): Promise<string | null> {
   return row[0]?.id ?? null;
 }
 
+export async function getGearLinkMpb(params: {
+  slug?: string | null;
+  gearId?: string | null;
+}): Promise<string | null> {
+  const { slug, gearId } = params;
+  if (!slug && !gearId) return null;
+
+  const row = await db
+    .select({ linkMpb: gear.linkMpb })
+    .from(gear)
+    .where(slug ? eq(gear.slug, slug) : eq(gear.id, gearId ?? ""))
+    .limit(1);
+
+  return row[0]?.linkMpb ?? null;
+}
+
 /** Fetch full gearItem  by id */
 export async function fetchGearMetadataById(id: string): Promise<Gear> {
   const result = await db
@@ -363,6 +379,8 @@ export async function getApprovedReviewsByGearId(gearId: string) {
       createdBy: {
         id: users.id,
         name: users.name,
+        handle: users.handle,
+        memberNumber: users.memberNumber,
         image: users.image,
       },
     })
@@ -371,6 +389,7 @@ export async function getApprovedReviewsByGearId(gearId: string) {
     .where(and(eq(reviews.gearId, gearId), eq(reviews.status, "APPROVED")))
     .orderBy(desc(reviews.createdAt));
 }
+
 
 export async function getMyReviewStatus(gearId: string, userId: string) {
   const row = await db
@@ -551,6 +570,8 @@ export async function fetchGearEditByIdData(
 export type ContributorRow = {
   userId: string;
   name: string | null;
+  handle: string | null;
+  memberNumber: number;
   image: string | null;
   payload: unknown;
 };
@@ -562,6 +583,8 @@ export async function fetchContributorsByGearIdData(
     .select({
       userId: users.id,
       name: users.name,
+      handle: users.handle,
+      memberNumber: users.memberNumber,
       image: users.image,
       payload: gearEdits.payload,
     })
