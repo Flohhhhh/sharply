@@ -73,20 +73,9 @@ export default async function BrowseCatchAll({
   });
 
   if (depth === 0) {
-    const initialPage = buildInitialPage(lists, filters);
-    const baseQuery = buildBaseQuery({
-      searchParams: sp,
-      perPage: filters.perPage,
-      brandSlug: brand?.slug ?? undefined,
-      category: null,
-    });
     return (
       <main className="space-y-6 pb-24">
-        <AllGearContent
-          initialBrowsePage={initialPage}
-          browseBaseQuery={baseQuery}
-          brandName={brand?.name ?? undefined}
-        />
+        <AllGearContent searchParams={sp} />
       </main>
     );
   }
@@ -96,17 +85,7 @@ export default async function BrowseCatchAll({
       <main className="space-y-6 pb-24">
         <Breadcrumbs brand={{ name: brand!.name, slug: brand!.slug }} />
         <h1 className="text-3xl font-semibold">{brand!.name}</h1>
-        <BrandContent
-          brandSlug={brand!.slug}
-          initialBrowsePage={buildInitialPage(lists, filters)}
-          browseBaseQuery={buildBaseQuery({
-            searchParams: sp,
-            perPage: filters.perPage,
-            brandSlug: brand!.slug,
-            category: null,
-          })}
-          brandName={brand!.name}
-        />
+        <BrandContent brandSlug={brand!.slug} searchParams={sp} />
       </main>
     );
   }

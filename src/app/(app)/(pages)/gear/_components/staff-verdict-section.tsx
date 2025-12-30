@@ -1,4 +1,5 @@
 import { ManageStaffVerdictModal } from "./manage-staff-verdict-modal";
+import { StaffVerdictEmptyState } from "./staff-verdict-empty-state";
 
 interface StaffVerdict {
   content?: string | null;
@@ -9,32 +10,25 @@ interface StaffVerdict {
   alternatives?: unknown;
 }
 
-export function StaffVerdictSection({
+export async function StaffVerdictSection({
   slug,
   verdict,
 }: {
   slug: string;
   verdict: StaffVerdict | null;
 }) {
-  if (
-    !verdict ||
-    !Boolean(
-      verdict.content ||
-        verdict.pros ||
-        verdict.cons ||
-        verdict.whoFor ||
-        verdict.notFor ||
-        verdict.alternatives,
-    )
-  ) {
-    return (
-      <section id="staff-verdict" className="mt-12 scroll-mt-24 space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Staff Verdict</h3>
-          <ManageStaffVerdictModal slug={slug} />
-        </div>
-      </section>
-    );
+  const hasVerdict = Boolean(
+    verdict &&
+    (verdict.content ||
+      verdict.pros ||
+      verdict.cons ||
+      verdict.whoFor ||
+      verdict.notFor ||
+      verdict.alternatives),
+  );
+
+  if (!hasVerdict || !verdict) {
+    return <StaffVerdictEmptyState slug={slug} />;
   }
 
   const pros = Array.isArray(verdict.pros) ? (verdict.pros as string[]) : null;

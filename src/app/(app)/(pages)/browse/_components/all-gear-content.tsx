@@ -1,6 +1,7 @@
+import { Suspense } from "react";
 import { ClockIcon, FlameIcon } from "lucide-react";
 import Link from "next/link";
-import { GearCard } from "~/components/gear/gear-card";
+import { GearCard, GearCardSkeleton } from "~/components/gear/gear-card";
 import { Button } from "~/components/ui/button";
 import { BRANDS } from "~/lib/constants";
 import { OtherBrandsSelect } from "./other-brands-select";
@@ -11,7 +12,12 @@ import { ReleaseFeedGrid } from "./release-feed-grid";
 import { BrowseResultsGrid, type BrowseListPage } from "./browse-results-grid";
 import type { BrowseFilters } from "~/lib/browse/filters";
 import { loadHubData } from "~/server/gear/browse/service";
-import type { SearchGearResult } from "~/server/gear/browse/data";
+import {
+  getBrandBySlug,
+  type SearchGearResult,
+} from "~/server/gear/browse/data";
+
+import Loading from "~/app/(app)/(pages)/browse/loading";
 
 export default async function AllGearContent({
   brandSlug,
@@ -19,13 +25,16 @@ export default async function AllGearContent({
   initialBrowsePage,
   browseBaseQuery,
   brandName,
+  searchParams = {},
 }: {
   brandSlug?: string;
   showBrandPicker?: boolean;
   initialBrowsePage?: BrowseListPage;
   browseBaseQuery?: string;
   brandName?: string;
+  searchParams?: Record<string, string | string[] | undefined>;
 } = {}) {
+  // return <Loading />;
   const featured = BRANDS.filter((b) =>
     ["Canon", "Nikon", "Sony"].includes(b.name),
   );
@@ -37,24 +46,18 @@ export default async function AllGearContent({
     name: b.name,
     slug: b.slug,
   }));
-  const brand = brandSlug
-    ? BRANDS.find((b) => b.slug === brandSlug)
-    : undefined;
-  const { listPage, baseQuery, brandLabel } = await ensureBrowseData({
-    brandSlug,
-    initialBrowsePage,
-    browseBaseQuery,
-    brandName,
-  });
+  // const { listPage, baseQuery, brandLabel } = await ensureBrowseData({
+  //   brandSlug,
+  //   initialBrowsePage,
+  //   browseBaseQuery,
+  //   brandName,
+  //   searchParams,
+  // });
   const initialReleasePage = await fetchReleaseFeedPage({
     limit: 12,
     brandSlug,
   });
-  const trendingResult = await fetchTrending({
-    timeframe: "7d",
-    limit: 3,
-    filters: brand ? { brandId: brand.id } : undefined,
-  });
+
   return (
     <main className="space-y-8">
       {/* browse hero only on root browse page*/}
@@ -99,19 +102,6 @@ export default async function AllGearContent({
       </section>
 
       <section className="space-y-4">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="flex items-center gap-2 text-2xl font-semibold">
-            {brandLabel ?? "All gear"}
-          </h2>
-        </div>
-        <BrowseResultsGrid
-          initialPage={listPage}
-          brandName={brandLabel ?? undefined}
-          baseQuery={baseQuery}
-        />
-      </section>
-
-      <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-2xl font-semibold">
             <span>
@@ -123,51 +113,95 @@ export default async function AllGearContent({
             <Link href="/lists/trending">View All</Link>
           </Button>
         </div>
-        <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-          {trendingResult.map((g) => (
-            <GearCard
-              key={g.slug}
-              href={`/gear/${g.slug}`}
-              slug={g.slug}
-              name={g.name}
-              brandName={g.brandName}
-              thumbnailUrl={g.thumbnailUrl ?? undefined}
-              gearType={g.gearType}
-              topLeftLabel={null}
-              priceText={getItemDisplayPrice(g, {
-                style: "short",
-                padWholeAmounts: true,
-              })}
-            />
-          ))}
-        </div>
+
+        <Suspense fallback={<TrendingSkeleton />}>
+          <TrendingGrid brandSlug={brandSlug} />
+        </Suspense>
       </section>
 
-      <section className="space-y-4">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="flex items-center gap-2 text-2xl font-semibold">
-            <ClockIcon className="text-muted-foreground size-5" />
-            Latest releases
-          </h2>
-          {/* <p className="text-muted-foreground text-sm">
-            Release date descending; start with 12 then continue with infinite
-            scroll.
-          </p> */}
-        </div>
-        <ReleaseFeedGrid
-          initialPage={initialReleasePage}
-          brandSlug={brandSlug}
-        />
-      </section>
+      <ReleaseSection
+        brandSlug={brandSlug}
+        initialReleasePage={initialReleasePage}
+      />
     </main>
   );
 }
+
+async function TrendingGrid({ brandSlug }: { brandSlug?: string }) {
+  let brandId: string | undefined;
+  if (brandSlug) {
+    const brand = await getBrandBySlug(brandSlug);
+    if (!brand) {
+      throw new Error(`Brand not found: ${brandSlug}`);
+    }
+    brandId = brand.id;
+  }
+  const trendingResult = await fetchTrending({
+    timeframe: "7d",
+    limit: 3,
+    filters: brandId ? { brandId } : undefined,
+  });
+
+  return (
+    <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+      {trendingResult.map((g) => (
+        <GearCard
+          key={g.slug}
+          href={`/gear/${g.slug}`}
+          slug={g.slug}
+          name={g.name}
+          brandName={g.brandName}
+          thumbnailUrl={g.thumbnailUrl ?? undefined}
+          gearType={g.gearType}
+          topLeftLabel={null}
+          priceText={getItemDisplayPrice(g, {
+            style: "short",
+            padWholeAmounts: true,
+          })}
+        />
+      ))}
+    </div>
+  );
+}
+
+async function ReleaseSection({
+  brandSlug,
+  initialReleasePage,
+}: {
+  brandSlug?: string;
+  initialReleasePage: Awaited<ReturnType<typeof fetchReleaseFeedPage>>;
+}) {
+  return (
+    <section className="space-y-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="flex items-center gap-2 text-2xl font-semibold">
+          <ClockIcon className="text-muted-foreground size-5" />
+          Latest releases
+        </h2>
+      </div>
+      <ReleaseFeedGrid initialPage={initialReleasePage} brandSlug={brandSlug} />
+    </section>
+  );
+}
+
+function TrendingSkeleton() {
+  return (
+    <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+      {[0, 1, 2].map((i) => (
+        <GearCardSkeleton key={i} />
+      ))}
+    </div>
+  );
+}
+
+// Release section renders with initial data; no suspense needed to avoid duplicate headings.
 
 async function ensureBrowseData(params: {
   brandSlug?: string;
   initialBrowsePage?: BrowseListPage;
   browseBaseQuery?: string;
   brandName?: string;
+  searchParams?: Record<string, string | string[] | undefined>;
 }): Promise<{
   listPage: BrowseListPage;
   baseQuery: string;
@@ -183,13 +217,13 @@ async function ensureBrowseData(params: {
 
   const { lists, filters, brand } = await loadHubData({
     segments: params.brandSlug ? [params.brandSlug] : [],
-    searchParams: {},
+    searchParams: params.searchParams ?? {},
   });
 
   return {
     listPage: buildInitialPage(lists, filters),
     baseQuery: buildBaseQuery({
-      searchParams: {},
+      searchParams: params.searchParams ?? {},
       perPage: filters.perPage,
       brandSlug: params.brandSlug,
       category: null,

@@ -6,6 +6,7 @@ import { AddToCompareButton } from "~/components/compare/add-to-compare-button";
 import Image from "next/image";
 import { BRANDS } from "~/lib/constants";
 import { PRICE_FALLBACK_TEXT } from "~/lib/mapping";
+import { Spinner } from "../ui/spinner";
 
 const BASE_BRAND_NAMES = uniqueCaseInsensitive(
   BRANDS.flatMap((brand) => splitBrandNameVariants(brand.name)),
@@ -196,6 +197,35 @@ export function GearCard(props: GearCardProps) {
           </div>
         </div>
       </Link>
+    </div>
+  );
+}
+
+export function GearCardSkeleton() {
+  return (
+    <div className="group relative">
+      <div
+        className={cn(
+          "border-input bg-card/50 hover:border-foreground/40 block rounded-2xl border transition-all",
+          "shadow-sm hover:shadow-md",
+        )}
+      >
+        {/* Inset surface (border removed) */}
+        <div className="bg-background rounded-2xl p-2">
+          {/* Image area */}
+          <div className="bg-muted dark:bg-card relative flex aspect-video items-center justify-center overflow-hidden rounded-xl p-4">
+            <Spinner className="text-muted-foreground/50 size-6" />
+          </div>
+          <div className="mt-3 space-y-5 px-1.5 pb-1 transition-opacity group-hover:opacity-50">
+            <div className="bg-muted/60 h-3 w-16 rounded" />
+            <div className="bg-muted h-4 w-16 rounded" />
+            <div className="flex items-center justify-between">
+              <div className="bg-muted/60 h-3 w-24 rounded"></div>
+              <div className="bg-muted/60 h-4 w-12 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
