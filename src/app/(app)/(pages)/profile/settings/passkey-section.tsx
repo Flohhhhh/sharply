@@ -73,7 +73,7 @@ export function PasskeySection({ initialPasskeys }: PasskeySectionProps) {
 
   const handleOpenRename = (record: Passkey) => {
     setRenameTarget(record);
-    setRenameValue(record.name);
+    setRenameValue(record.name ?? "");
   };
 
   const handleSaveRename = async () => {
@@ -90,7 +90,9 @@ export function PasskeySection({ initialPasskeys }: PasskeySectionProps) {
       });
       if (error) throw new Error(error.message);
       setItems((prev) =>
-        prev.map((p) => (p.id === renameTarget.id ? { ...p, name: nextName } : p)),
+        prev.map((p) =>
+          p.id === renameTarget.id ? { ...p, name: nextName } : p,
+        ),
       );
       toast.success("Passkey renamed");
       setRenameTarget(null);
@@ -105,7 +107,7 @@ export function PasskeySection({ initialPasskeys }: PasskeySectionProps) {
   };
 
   const formatLastUse = (item: Passkey) => {
-    const ts = item.lastUsedAt || item.createdAt;
+    const ts = item.createdAt;
     if (!ts) return null;
     try {
       return format(new Date(ts), "PPP p");
@@ -119,8 +121,9 @@ export function PasskeySection({ initialPasskeys }: PasskeySectionProps) {
       <div className="space-y-1">
         <h2 className="text-lg font-semibold">Passkeys</h2>
         <p className="text-muted-foreground text-sm">
-          Register a passkey for passwordless sign-in. We prefill a device-friendly name
-          (e.g., &ldquo;Firefox on Windows&rdquo;) and you can keep or change it.
+          Register a passkey for passwordless sign-in. We prefill a
+          device-friendly name (e.g., &ldquo;Firefox on Windows&rdquo;) and you
+          can keep or change it.
         </p>
       </div>
 
@@ -151,7 +154,7 @@ export function PasskeySection({ initialPasskeys }: PasskeySectionProps) {
               No passkeys yet. Add one to get started.
             </p>
           ) : (
-            <ul className="divide-y divide-border rounded-md border">
+            <ul className="divide-border divide-y rounded-md border">
               {items.map((item) => (
                 <li
                   key={item.id}
@@ -163,10 +166,8 @@ export function PasskeySection({ initialPasskeys }: PasskeySectionProps) {
                       {item.deviceType ? `${item.deviceType}` : "Device"}
                       {item.backedUp ? " · Synced" : ""}
                       {formatLastUse(item)
-                        ? ` · Last used ${formatLastUse(item)}`
-                        : item.createdAt
-                          ? ` · Added ${format(new Date(item.createdAt), "PPP")}`
-                          : ""}
+                        ? ` · Added ${formatLastUse(item)}`
+                        : ""}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -190,7 +191,8 @@ export function PasskeySection({ initialPasskeys }: PasskeySectionProps) {
                         <DialogHeader>
                           <DialogTitle>Rename passkey</DialogTitle>
                           <DialogDescription>
-                            Choose a name to help you recognize this device later.
+                            Choose a name to help you recognize this device
+                            later.
                           </DialogDescription>
                         </DialogHeader>
                         <Input
@@ -200,10 +202,17 @@ export function PasskeySection({ initialPasskeys }: PasskeySectionProps) {
                           autoFocus
                         />
                         <DialogFooter>
-                          <Button variant="ghost" onClick={() => setRenameTarget(null)} disabled={renaming}>
+                          <Button
+                            variant="ghost"
+                            onClick={() => setRenameTarget(null)}
+                            disabled={renaming}
+                          >
                             Cancel
                           </Button>
-                          <Button onClick={handleSaveRename} disabled={renaming || !renameValue.trim()}>
+                          <Button
+                            onClick={handleSaveRename}
+                            disabled={renaming || !renameValue.trim()}
+                          >
                             {renaming ? (
                               <Loader className="mr-2 h-4 w-4 animate-spin" />
                             ) : (
@@ -260,4 +269,3 @@ export function PasskeySection({ initialPasskeys }: PasskeySectionProps) {
     </section>
   );
 }
-
