@@ -60,7 +60,6 @@ type RowState = {
   id: string;
   name: string;
   modelNumber: string;
-  mountIds: string[];
   validation: RowValidation | null;
   proceedAnyway: boolean;
   status: "idle" | "blocked" | "creating" | "created" | "error" | "pending";
@@ -163,7 +162,7 @@ function BulkCreateRow({
   const isSoftOnly = softWarn && !hardBlocked && !fuzzyWarn;
   const isReviewed = row.proceedAnyway || !isFailing;
   const hasValidationIssues = hardBlocked || fuzzyWarn || softWarn;
-  const columnCount = gearType ? 6 : 5;
+  const columnCount = 5;
 
   return (
     <>
@@ -193,23 +192,6 @@ function BulkCreateRow({
             disabled={!canEditRows || row.status === "created"}
           />
         </TableCell>
-        {gearType && (
-          <TableCell>
-            <MountSelect
-              mode={gearType === "LENS" ? "multiple" : "single"}
-              value={gearType === "LENS" ? row.mountIds : row.mountIds[0] || ""}
-              onChange={(val) => {
-                const next = Array.isArray(val) ? val : val ? [val] : [];
-                updateRow(row.id, { mountIds: next });
-              }}
-              brandId={brandId || undefined}
-              placeholder="Optional"
-              disabled={!canEditRows || row.status === "created"}
-              showLabel={false}
-              className="w-full"
-            />
-          </TableCell>
-        )}
         <TableCell>
           <div className="text-muted-foreground truncate text-sm">
             {v?.slugPreview || "—"}
@@ -461,6 +443,7 @@ export default function GearBulkCreate(): React.JSX.Element {
   );
   const [brandId, setBrandId] = React.useState<string>("");
   const [gearType, setGearType] = React.useState<GearType | "">("");
+  const [lensMountIds, setLensMountIds] = React.useState<string[]>([]);
   const [rows, setRows] = React.useState<RowState[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
@@ -507,7 +490,6 @@ export default function GearBulkCreate(): React.JSX.Element {
       id: crypto.randomUUID(),
       name: "",
       modelNumber: "",
-      mountIds: [],
       validation: null,
       proceedAnyway: false,
       status: "pending",
@@ -547,7 +529,6 @@ export default function GearBulkCreate(): React.JSX.Element {
           id: crypto.randomUUID(),
           name,
           modelNumber: "",
-          mountIds: [],
           validation: null,
           proceedAnyway: false,
           status: "pending",
@@ -593,14 +574,17 @@ export default function GearBulkCreate(): React.JSX.Element {
         try {
           const { actionCreateGear } =
             await import("~/server/admin/gear/actions");
-          const trimmedMountIds = r.mountIds
-            .map((id) => id.trim())
-            .filter((id) => id.length > 0);
+          const sharedMountIds =
+            gearType === "LENS"
+              ? lensMountIds.map((id) => id.trim()).filter((id) => id.length > 0)
+              : [];
+          const mountPayload =
+            sharedMountIds.length > 0 ? sharedMountIds : undefined;
           const result = await actionCreateGear({
             name,
             modelNumber: r.modelNumber.trim() || undefined,
             brandId,
-            mountIds: trimmedMountIds.length > 0 ? trimmedMountIds : undefined,
+            mountIds: mountPayload,
             gearType: gearType as GearType,
             force: r.proceedAnyway,
           });
@@ -641,6 +625,7 @@ export default function GearBulkCreate(): React.JSX.Element {
     }
     setIsSuccess(false);
     setSuccessCount(0);
+    setLensMountIds([]);
   }, [brandId, gearType]);
 
   return (
@@ -693,8 +678,12 @@ export default function GearBulkCreate(): React.JSX.Element {
           <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-3">
             <div className="space-y-1">
               <label className="text-sm font-medium">Brand</label>
-              <Select value={brandId} onValueChange={(v) => setBrandId(v)}>
-                <SelectTrigger disabled={isImporting || isSubmitting}>
+              <Select
+                value={brandId}
+                onValueChange={(v) => setBrandId(v)}
+                disabled={isImporting || isSubmitting}
+              >
+                <SelectTrigger>
                   <SelectValue placeholder="Select a brand" />
                 </SelectTrigger>
                 <SelectContent>
@@ -711,8 +700,9 @@ export default function GearBulkCreate(): React.JSX.Element {
               <Select
                 value={gearType}
                 onValueChange={(v) => setGearType(v as GearType)}
+                disabled={isImporting || isSubmitting}
               >
-                <SelectTrigger disabled={isImporting || isSubmitting}>
+                <SelectTrigger>
                   <SelectValue placeholder="Select a type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -724,6 +714,27 @@ export default function GearBulkCreate(): React.JSX.Element {
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Lens mount</label>
+              <MountSelect
+                mode="multiple"
+                value={lensMountIds}
+                onChange={(val) => {
+                  const next = Array.isArray(val) ? val : val ? [val] : [];
+                  setLensMountIds(next);
+                }}
+                brandId={brandId || undefined}
+                placeholder="Optional (applies to every row)"
+                disabled={
+                  gearType !== "LENS" ||
+                  !canInteractRows ||
+                  !brandId ||
+                  isSuccess
+                }
+                showLabel={false}
+                className="w-full"
+              />
+            </div>
           </div>
 
           <div className="overflow-hidden rounded-md border">
@@ -732,7 +743,6 @@ export default function GearBulkCreate(): React.JSX.Element {
                 <TableRow>
                   <TableHead className="w-[30%]">Name</TableHead>
                   <TableHead className="w-[20%]">Model Number</TableHead>
-                  {gearType && <TableHead className="w-[20%]">Mount</TableHead>}
                   <TableHead className="w-[20%]">Slug Preview</TableHead>
                   <TableHead className="w-[20%]">Validation</TableHead>
                   <TableHead className="w-[10%]">Actions</TableHead>
@@ -742,7 +752,7 @@ export default function GearBulkCreate(): React.JSX.Element {
                 {rows.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={gearType ? 6 : 5}
+                      colSpan={5}
                       className="text-muted-foreground text-center text-sm"
                     >
                       {isSuccess
