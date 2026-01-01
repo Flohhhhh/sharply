@@ -124,7 +124,8 @@ export function CollectionCard(props: {
       <div className="text-foreground max-w-[240px] text-2xl leading-snug font-semibold">
         {item.name}
       </div>
-      {item.gearType === "CAMERA" && isScaleEstimated ? (
+      {(item.gearType === "CAMERA" || item.gearType === "ANALOG_CAMERA") &&
+        isScaleEstimated ? (
         <p className="text-muted-foreground text-xs">
           Scale approximate (missing width spec)
         </p>

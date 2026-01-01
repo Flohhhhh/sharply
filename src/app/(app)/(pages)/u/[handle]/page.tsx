@@ -315,7 +315,10 @@ function sortOwnedItems(items: GearItem[]) {
 
 function getGearTypePriority(item: GearItem) {
   const gearTypeIdentifier = item.gearType?.toUpperCase() ?? "";
-  if (gearTypeIdentifier === "CAMERA") {
+  if (
+    gearTypeIdentifier === "CAMERA" ||
+    gearTypeIdentifier === "ANALOG_CAMERA"
+  ) {
     return 0;
   }
 

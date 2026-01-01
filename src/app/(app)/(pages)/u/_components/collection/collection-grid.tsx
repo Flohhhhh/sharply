@@ -76,7 +76,8 @@ export function CollectionGrid(props: { items: GearItem[] }) {
     return new Map(
       items.map((item) => {
         const widthMillimeters = parseWidthMillimeters(item.widthMm);
-        const isCamera = item.gearType === "CAMERA";
+        const isCamera =
+          item.gearType === "CAMERA" || item.gearType === "ANALOG_CAMERA";
         const displayWidthPixels = isCamera
           ? (widthMillimeters ?? fallbackWidthMillimeters) * pixelsPerMillimeter
           : nonCameraWidthPixels;
