@@ -106,8 +106,8 @@ export function GearActionButtonsClient({
     }
   };
 
-  // Loading skeleton before auth status resolved
-  if (isPending) {
+  // Loading skeleton before auth status resolved (only when session unknown)
+  if (isPending && !session) {
     return (
       <div className="space-y-3 pt-4">
         <div className="bg-muted h-10 animate-pulse rounded-md" />
@@ -194,4 +194,3 @@ export function GearActionButtonsClient({
     </div>
   );
 }
-

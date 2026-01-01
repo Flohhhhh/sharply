@@ -844,8 +844,16 @@ export const lensSpecs = appSchema.table(
       .references(() => gear.id, { onDelete: "cascade" }),
     // focal length
     isPrime: boolean("is_prime"),
-    focalLengthMinMm: integer("focal_length_min_mm"),
-    focalLengthMaxMm: integer("focal_length_max_mm"),
+    focalLengthMinMm: decimal("focal_length_min_mm", {
+      precision: 5,
+      scale: 1,
+      mode: "number",
+    }),
+    focalLengthMaxMm: decimal("focal_length_max_mm", {
+      precision: 5,
+      scale: 1,
+      mode: "number",
+    }),
     // aperture
     maxApertureWide: decimal("max_aperture_wide", { precision: 4, scale: 2 }),
     maxApertureTele: decimal("max_aperture_tele", { precision: 4, scale: 2 }), // nullable
@@ -911,8 +919,16 @@ export const fixedLensSpecs = appSchema.table(
       .references(() => gear.id, { onDelete: "cascade" }),
     // focal length
     isPrime: boolean("is_prime"),
-    focalLengthMinMm: integer("focal_length_min_mm"),
-    focalLengthMaxMm: integer("focal_length_max_mm"),
+    focalLengthMinMm: decimal("focal_length_min_mm", {
+      precision: 5,
+      scale: 1,
+      mode: "number",
+    }),
+    focalLengthMaxMm: decimal("focal_length_max_mm", {
+      precision: 5,
+      scale: 1,
+      mode: "number",
+    }),
     // aperture
     maxApertureWide: decimal("max_aperture_wide", { precision: 4, scale: 2 }),
     maxApertureTele: decimal("max_aperture_tele", { precision: 4, scale: 2 }),
