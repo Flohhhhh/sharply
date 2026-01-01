@@ -443,7 +443,7 @@ export default function GearBulkCreate(): React.JSX.Element {
   );
   const [brandId, setBrandId] = React.useState<string>("");
   const [gearType, setGearType] = React.useState<GearType | "">("");
-  const [lensMountIds, setLensMountIds] = React.useState<string[]>([]);
+  const [selectedMountId, setSelectedMountId] = React.useState<string>("");
   const [rows, setRows] = React.useState<RowState[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
@@ -574,12 +574,10 @@ export default function GearBulkCreate(): React.JSX.Element {
         try {
           const { actionCreateGear } =
             await import("~/server/admin/gear/actions");
-          const sharedMountIds =
-            gearType === "LENS"
-              ? lensMountIds.map((id) => id.trim()).filter((id) => id.length > 0)
-              : [];
-          const mountPayload =
-            sharedMountIds.length > 0 ? sharedMountIds : undefined;
+        const sharedMountId =
+          selectedMountId.trim().length > 0 ? selectedMountId.trim() : "";
+        const mountPayload =
+          sharedMountId.length > 0 ? [sharedMountId] : undefined;
           const result = await actionCreateGear({
             name,
             modelNumber: r.modelNumber.trim() || undefined,
@@ -625,7 +623,7 @@ export default function GearBulkCreate(): React.JSX.Element {
     }
     setIsSuccess(false);
     setSuccessCount(0);
-    setLensMountIds([]);
+    setSelectedMountId("");
   }, [brandId, gearType]);
 
   return (
@@ -715,22 +713,17 @@ export default function GearBulkCreate(): React.JSX.Element {
               </Select>
             </div>
             <div className="space-y-1">
-              <label className="text-sm font-medium">Lens mount</label>
+              <label className="text-sm font-medium">Mount</label>
               <MountSelect
-                mode="multiple"
-                value={lensMountIds}
+                mode="single"
+                value={selectedMountId}
                 onChange={(val) => {
-                  const next = Array.isArray(val) ? val : val ? [val] : [];
-                  setLensMountIds(next);
+                  const next = typeof val === "string" ? val : "";
+                  setSelectedMountId(next);
                 }}
                 brandId={brandId || undefined}
                 placeholder="Optional (applies to every row)"
-                disabled={
-                  gearType !== "LENS" ||
-                  !canInteractRows ||
-                  !brandId ||
-                  isSuccess
-                }
+                disabled={!gearType || !canInteractRows || isSuccess}
                 showLabel={false}
                 className="w-full"
               />
