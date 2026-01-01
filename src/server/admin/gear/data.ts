@@ -281,6 +281,7 @@ export async function createGearData(
         linkManufacturer: linkManufacturer || null,
         linkMpb: linkMpb || null,
         linkAmazon: linkAmazon || null,
+        mountId: normalizedMountIds[0] ?? null,
         searchName: normalizeSearchName(displayName, brandName),
       })
       .returning({ id: gear.id, slug: gear.slug });
