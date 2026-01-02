@@ -118,12 +118,6 @@ export const navItems: NavItem[] = [
         description: "Create Instagram posts with multiple images",
         iconKey: "instagram",
       },
-      {
-        title: "Under Construction",
-        url: "/lists/under-construction",
-        description: "View items that need contributions",
-        iconKey: "pencilRuler",
-      },
       // {
       //   title: "Focal Simulator",
       //   url: "/focal-simulator",
