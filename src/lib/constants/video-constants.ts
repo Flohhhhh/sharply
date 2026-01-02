@@ -41,50 +41,18 @@ export type VideoResolution = (typeof COMMON_VIDEO_RESOLUTIONS)[number];
 
 // list of available frame rate options for frame rate drop down
 export const VIDEO_FRAME_RATES = [
-  {
-    id: "1",
-    value: "24",
-  },
-  {
-    id: "2",
-    value: "25",
-  },
-  {
-    id: "3",
-    value: "30",
-  },
-  {
-    id: "4",
-    value: "50",
-  },
-  {
-    id: "5",
-    value: "60",
-  },
-  {
-    id: "6",
-    value: "100",
-  },
-  {
-    id: "7",
-    value: "120",
-  },
-  {
-    id: "8",
-    value: "150",
-  },
-  {
-    id: "9",
-    value: "180",
-  },
-  {
-    id: "10",
-    value: "200",
-  },
-  {
-    id: "11",
-    value: "240",
-  },
+  { id: "12", value: "20" },
+  { id: "1", value: "24" },
+  { id: "2", value: "25" },
+  { id: "3", value: "30" },
+  { id: "4", value: "50" },
+  { id: "5", value: "60" },
+  { id: "6", value: "100" },
+  { id: "7", value: "120" },
+  { id: "8", value: "150" },
+  { id: "9", value: "180" },
+  { id: "10", value: "200" },
+  { id: "11", value: "240" },
 ];
 export type VideoFrameRate = (typeof VIDEO_FRAME_RATES)[number];
 
