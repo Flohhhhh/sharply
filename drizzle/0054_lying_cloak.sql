@@ -1,0 +1,4 @@
+ALTER TABLE "app"."fixed_lens_specs" ADD COLUMN "image_circle_size_id" varchar(36);--> statement-breakpoint
+ALTER TABLE "app"."lens_specs" ADD COLUMN "image_circle_size_id" varchar(36);--> statement-breakpoint
+ALTER TABLE "app"."fixed_lens_specs" ADD CONSTRAINT "fixed_lens_specs_image_circle_size_id_sensor_formats_id_fk" FOREIGN KEY ("image_circle_size_id") REFERENCES "app"."sensor_formats"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "app"."lens_specs" ADD CONSTRAINT "lens_specs_image_circle_size_id_sensor_formats_id_fk" FOREIGN KEY ("image_circle_size_id") REFERENCES "app"."sensor_formats"("id") ON DELETE set null ON UPDATE no action;

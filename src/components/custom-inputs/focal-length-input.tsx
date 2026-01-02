@@ -141,8 +141,8 @@ const FocalLengthInput = ({
             type="number"
             value={min ?? ""}
             onChange={(e) => handleMinChange(e.target.value)}
-            min={1}
-            step={1}
+            min={0.1}
+            step={0.1}
             placeholder="e.g., 35"
             disabled={disabled}
           />
@@ -161,8 +161,8 @@ const FocalLengthInput = ({
               type="number"
               value={max ?? ""}
               onChange={(e) => handleMaxChange(e.target.value)}
-              min={min ?? 1}
-              step={1}
+              min={min ?? 0.1}
+              step={0.1}
               placeholder="e.g., 70"
               disabled={disabled || isPrime}
             />

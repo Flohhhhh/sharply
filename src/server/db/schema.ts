@@ -854,6 +854,10 @@ export const lensSpecs = appSchema.table(
       scale: 1,
       mode: "number",
     }),
+    imageCircleSize: varchar("image_circle_size_id", { length: 36 }).references(
+      () => sensorFormats.id,
+      { onDelete: "set null" },
+    ),
     // aperture
     maxApertureWide: decimal("max_aperture_wide", { precision: 4, scale: 2 }),
     maxApertureTele: decimal("max_aperture_tele", { precision: 4, scale: 2 }), // nullable
@@ -929,6 +933,10 @@ export const fixedLensSpecs = appSchema.table(
       scale: 1,
       mode: "number",
     }),
+    imageCircleSize: varchar("image_circle_size_id", { length: 36 }).references(
+      () => sensorFormats.id,
+      { onDelete: "set null" },
+    ),
     // aperture
     maxApertureWide: decimal("max_aperture_wide", { precision: 4, scale: 2 }),
     maxApertureTele: decimal("max_aperture_tele", { precision: 4, scale: 2 }),

@@ -965,15 +965,29 @@ export function normalizeProposalPayloadForDb(
         .preprocess((value) => {
           if (value === null) return null;
           const num = coerceNumber(value);
-          return num === null ? undefined : Math.trunc(num);
-        }, z.number().int().nullable().optional())
+          return num === null ? undefined : num;
+        }, z.number().nullable().optional())
         .optional(),
       focalLengthMaxMm: z
         .preprocess((value) => {
           if (value === null) return null;
           const num = coerceNumber(value);
-          return num === null ? undefined : Math.trunc(num);
-        }, z.number().int().nullable().optional())
+          return num === null ? undefined : num;
+        }, z.number().nullable().optional())
+        .optional(),
+      imageCircleSize: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          if (typeof value !== "string") return undefined;
+          if (isUuid(value)) return value;
+          const match = SENSOR_FORMATS.find(
+            (format) =>
+              format &&
+              typeof format === "object" &&
+              ((format as any).slug === value || (format as any).id === value),
+          ) as { id?: string } | undefined;
+          return match?.id ?? undefined;
+        }, z.string().uuid().nullable().optional())
         .optional(),
       // Aperture fields (decimals allowed)
       maxApertureWide: z
@@ -1322,16 +1336,30 @@ export function normalizeProposalPayloadForDb(
           .preprocess((value) => {
             if (value === null) return null;
             const num = coerceNumber(value);
-            return num === null ? undefined : Math.trunc(num);
-          }, z.number().int().nullable().optional())
+            return num === null ? undefined : num;
+          }, z.number().nullable().optional())
           .optional(),
         focalLengthMaxMm: z
           .preprocess((value) => {
             if (value === null) return null;
             const num = coerceNumber(value);
-            return num === null ? undefined : Math.trunc(num);
-          }, z.number().int().nullable().optional())
+            return num === null ? undefined : num;
+          }, z.number().nullable().optional())
           .optional(),
+      imageCircleSize: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          if (typeof value !== "string") return undefined;
+          if (isUuid(value)) return value;
+          const match = SENSOR_FORMATS.find(
+            (format) =>
+              format &&
+              typeof format === "object" &&
+              ((format as any).slug === value || (format as any).id === value),
+          ) as { id?: string } | undefined;
+          return match?.id ?? undefined;
+        }, z.string().uuid().nullable().optional())
+        .optional(),
         maxApertureWide: z
           .preprocess((value) => {
             if (value === null) return null;
@@ -1371,7 +1399,7 @@ export function normalizeProposalPayloadForDb(
           .preprocess((value) => {
             if (value === null) return null;
             const num = coerceNumber(value);
-            return num === null ? undefined : Math.trunc(num);
+            return num === null ? undefined : num;
           }, z.number().nullable().optional())
           .optional(),
         frontElementRotates: z
@@ -1385,8 +1413,8 @@ export function normalizeProposalPayloadForDb(
           .preprocess((value) => {
             if (value === null) return null;
             const num = coerceNumber(value);
-            return num === null ? undefined : Math.trunc(num);
-          }, z.number().int().nullable().optional())
+            return num === null ? undefined : num;
+          }, z.number().nullable().optional())
           .optional(),
         hasLensHood: z
           .preprocess(
