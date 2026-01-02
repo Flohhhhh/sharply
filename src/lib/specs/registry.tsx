@@ -1771,3 +1771,20 @@ export function buildEditSidebarSections(item: GearItem): SidebarSection[] {
         })),
     }));
 }
+
+/**
+ * Fetch a spec field definition by its key.
+ * Useful for table rendering so callers can reuse getRawValue and formatDisplay.
+ */
+export function getSpecFieldDefByKey(
+  fieldKey: string,
+): SpecFieldDef | undefined {
+  for (const section of specDictionary) {
+    for (const field of section.fields) {
+      if (field.key === fieldKey) {
+        return field;
+      }
+    }
+  }
+  return undefined;
+}
