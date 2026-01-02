@@ -11,6 +11,7 @@ import {
   navigationMenuTriggerStyle,
 } from "~/components/ui/navigation-menu";
 import { getNavItems, iconMap } from "~/lib/nav-items";
+import { cn } from "~/lib/utils";
 
 export function NavMenuDesktop() {
   const navItems = getNavItems();
@@ -61,10 +62,10 @@ export function NavMenuDesktop() {
             // Simple link item
             return (
               <NavigationMenuItem key={item.title}>
-                <NavigationMenuLink asChild>
+                <NavigationMenuLink asChild className="rounded-md">
                   <Link
                     href={item.url}
-                    className={navigationMenuTriggerStyle()}
+                    className={cn(navigationMenuTriggerStyle())}
                   >
                     {item.title}
                   </Link>

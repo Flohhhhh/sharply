@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, memo } from "react";
+import { useCallback, memo, useMemo } from "react";
 import type { lensSpecs } from "~/server/db/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
@@ -17,7 +17,7 @@ import LensApertureInput from "~/components/custom-inputs/lens-aperture-input";
 import { BooleanInput } from "~/components/custom-inputs";
 import { NumberInput } from "~/components/custom-inputs";
 import { Input } from "~/components/ui/input";
-import { ENUMS } from "~/lib/constants";
+import { ENUMS, SENSOR_FORMATS } from "~/lib/constants";
 import { MultiSelect } from "~/components/ui/multi-select";
 import { formatFilterType } from "~/lib/mapping/filter-types-map";
 import { formatFocusDistance } from "~/lib/mapping/focus-distance-map";
@@ -75,6 +75,29 @@ function LensFieldsComponent({
 
   const isPrimeLens = currentSpecs?.isPrime === true;
   const hasStabilization = currentSpecs?.hasStabilization === true;
+  const CLEAR_SENSOR_FORMAT_VALUE = "none";
+  const sensorFormatOptions = useMemo(
+    () =>
+      (Array.isArray(SENSOR_FORMATS) ? SENSOR_FORMATS : [])
+        .map((format) => {
+          if (
+            !format ||
+            typeof format !== "object" ||
+            typeof (format as any).id !== "string" ||
+            typeof (format as any).name !== "string"
+          )
+            return null;
+          return {
+            id: (format as any).id as string,
+            name: (format as any).name as string,
+          };
+        })
+        .filter(
+          (item): item is { id: string; name: string } =>
+            !!item && item.id.length > 0 && item.name.length > 0,
+        ),
+    [],
+  );
 
   return (
     <Card
@@ -105,6 +128,38 @@ function LensFieldsComponent({
                 }
               }}
             />
+          )}
+
+          {/* Image Circle Size */}
+          {showWhenMissing((initialSpecs as any)?.imageCircleSize) && (
+            <div className="space-y-2">
+              <Label htmlFor="imageCircleSize">Image Circle Size</Label>
+              <Select
+                value={
+                  currentSpecs?.imageCircleSize ?? CLEAR_SENSOR_FORMAT_VALUE
+                }
+                onValueChange={(value) =>
+                  handleFieldChange(
+                    "imageCircleSize",
+                    value === CLEAR_SENSOR_FORMAT_VALUE ? null : value,
+                  )
+                }
+              >
+                <SelectTrigger id="imageCircleSize" className="w-full">
+                  <SelectValue placeholder="Select sensor format coverage" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={CLEAR_SENSOR_FORMAT_VALUE}>
+                    None
+                  </SelectItem>
+                  {sensorFormatOptions.map((format) => (
+                    <SelectItem key={format.id} value={format.id}>
+                      {format.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           )}
 
           {/* Aperture input */}
@@ -161,7 +216,9 @@ function LensFieldsComponent({
               id="hasStabilizationSwitch"
               label="Has Stabilization Switch"
               checked={
-                hasStabilization ? currentSpecs?.hasStabilizationSwitch ?? null : null
+                hasStabilization
+                  ? (currentSpecs?.hasStabilizationSwitch ?? null)
+                  : null
               }
               disabled={!hasStabilization}
               allowNull
@@ -376,7 +433,9 @@ function LensFieldsComponent({
             <BooleanInput
               id="hasInternalZoom"
               label="Has Internal Zoom"
-              checked={isPrimeLens ? null : currentSpecs?.hasInternalZoom ?? null}
+              checked={
+                isPrimeLens ? null : (currentSpecs?.hasInternalZoom ?? null)
+              }
               disabled={isPrimeLens}
               allowNull
               showStateText

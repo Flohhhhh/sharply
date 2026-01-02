@@ -1,11 +1,20 @@
 "use client";
 
-import { memo, useCallback } from "react";
+import { memo, useCallback, useMemo } from "react";
 import type { fixedLensSpecs } from "~/server/db/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Label } from "~/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import FocalLengthInput from "~/components/custom-inputs/focal-length-input";
 import LensApertureInput from "~/components/custom-inputs/lens-aperture-input";
 import { BooleanInput, NumberInput } from "~/components/custom-inputs";
+import { SENSOR_FORMATS } from "~/lib/constants";
 
 interface FixedLensFieldsProps {
   currentSpecs: typeof fixedLensSpecs.$inferSelect | null | undefined;
@@ -53,6 +62,30 @@ function FixedLensFieldsComponent({
   };
   const showWhenMissing = (v: unknown): boolean =>
     !showMissingOnly || isMissing(v);
+
+  const CLEAR_SENSOR_FORMAT_VALUE = "none";
+  const sensorFormatOptions = useMemo(
+    () =>
+      (Array.isArray(SENSOR_FORMATS) ? SENSOR_FORMATS : [])
+        .map((format) => {
+          if (
+            !format ||
+            typeof format !== "object" ||
+            typeof (format as any).id !== "string" ||
+            typeof (format as any).name !== "string"
+          )
+            return null;
+          return {
+            id: (format as any).id as string,
+            name: (format as any).name as string,
+          };
+        })
+        .filter(
+          (item): item is { id: string; name: string } =>
+            !!item && item.id.length > 0 && item.name.length > 0,
+        ),
+    [],
+  );
 
   return (
     <Card
@@ -107,6 +140,38 @@ function FixedLensFieldsComponent({
                 handleFieldChange("minApertureTele", minApertureTele);
               }}
             />
+          )}
+
+          {showWhenMissing((initialSpecs as any)?.imageCircleSize) && (
+            <div className="space-y-2">
+              <Label htmlFor="fixed-image-circle-size">Image Circle Size</Label>
+              <Select
+                value={
+                  currentSpecs?.imageCircleSize ?? CLEAR_SENSOR_FORMAT_VALUE
+                }
+                onValueChange={(value) =>
+                  handleFieldChange(
+                    "imageCircleSize",
+                    value === CLEAR_SENSOR_FORMAT_VALUE ? null : value,
+                  )
+                }
+              >
+                <SelectTrigger
+                  id="fixed-image-circle-size"
+                  className="w-full"
+                >
+                  <SelectValue placeholder="Select sensor format coverage" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={CLEAR_SENSOR_FORMAT_VALUE}>None</SelectItem>
+                  {sensorFormatOptions.map((format) => (
+                    <SelectItem key={format.id} value={format.id}>
+                      {format.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           )}
 
           {showWhenMissing((initialSpecs as any)?.hasAutofocus) && (

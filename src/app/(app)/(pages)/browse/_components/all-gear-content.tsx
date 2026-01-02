@@ -73,7 +73,7 @@ export default async function AllGearContent({
         <div className="relative grid gap-8 lg:grid-cols-[2fr,1fr]">
           {showBrandPicker ? (
             <div className="">
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 {featured.map((b) => (
                   <Link
                     key={b.id}
@@ -141,7 +141,7 @@ async function TrendingGrid({ brandSlug }: { brandSlug?: string }) {
   });
 
   return (
-    <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid w-full grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
       {trendingResult.map((g) => (
         <GearCard
           key={g.slug}
@@ -184,7 +184,7 @@ async function ReleaseSection({
 
 function TrendingSkeleton() {
   return (
-    <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid w-full grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
       {[0, 1, 2].map((i) => (
         <GearCardSkeleton key={i} />
       ))}

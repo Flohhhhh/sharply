@@ -31,6 +31,7 @@ import { sensorNameFromId, sensorTypeLabel } from "~/lib/mapping/sensor-map";
 import { formatMaxFpsDisplay } from "~/lib/mapping/max-fps-map";
 import { formatFocusDistance } from "~/lib/mapping/focus-distance-map";
 import { formatFilterType } from "~/lib/mapping/filter-types-map";
+import { formatFocalLengthRangeDisplay } from "~/lib/mapping/focal-length-map";
 import { MOUNTS, AF_AREA_MODES } from "~/lib/generated";
 import { buildVideoDisplayBundle } from "~/lib/video/transform";
 import { VideoSpecsSummary } from "~/app/(app)/(pages)/gear/_components/video/video-summary";
@@ -503,6 +504,145 @@ export const specDictionary: SpecSectionDef[] = [
   },
 
   // ==========================================================================
+  // INTEGRATED LENS (for fixed-lens cameras)
+  // ==========================================================================
+  {
+    id: "fixed-lens",
+    title: "Integrated Lens",
+    sectionAnchor: "fixed-lens-section",
+    condition: (item) => {
+      if (item.gearType !== "CAMERA" && item.gearType !== "ANALOG_CAMERA")
+        return false;
+      type MountGenerated = (typeof MOUNTS)[number];
+      const mountValueById = (id: string | null | undefined): string | null => {
+        if (!id) return null;
+        const m = MOUNTS.find((x) => x.id === id);
+        return m && typeof m.value === "string" ? m.value : null;
+      };
+      const primaryMountId = (() => {
+        const arr = Array.isArray(item.mountIds) ? item.mountIds : [];
+        if (arr.length > 0) return arr[0]!;
+        return (item.mountId as string | null | undefined) ?? null;
+      })();
+      return mountValueById(primaryMountId) === "fixed-lens";
+    },
+    fields: [
+      {
+        key: "isPrime",
+        label: "Lens Type",
+        getRawValue: (item) => item.fixedLensSpecs?.isPrime,
+        formatDisplay: (raw) =>
+          raw == null ? undefined : raw ? "Prime" : "Zoom",
+      },
+      {
+        key: "focalLength",
+        label: "Focal Length",
+        getRawValue: (item) => ({
+          isPrime: item.fixedLensSpecs?.isPrime,
+          min: item.fixedLensSpecs?.focalLengthMinMm,
+          max: item.fixedLensSpecs?.focalLengthMaxMm,
+        }),
+        formatDisplay: (_, item) => {
+          const { actual, equivalent } = formatFocalLengthRangeDisplay({
+            isPrime: item.fixedLensSpecs?.isPrime,
+            min: item.fixedLensSpecs?.focalLengthMinMm,
+            max: item.fixedLensSpecs?.focalLengthMaxMm,
+            imageCircleFormatId: item.fixedLensSpecs?.imageCircleSize,
+            sensorFormatId: item.cameraSpecs?.sensorFormatId,
+          });
+          if (!actual) return undefined;
+          return (
+            <span className="flex items-center gap-1">
+              {actual}
+              {equivalent ? (
+                <span className="text-muted-foreground">
+                  {`(${equivalent} equiv.)`}
+                </span>
+              ) : null}
+            </span>
+          );
+        },
+      },
+      {
+        key: "fixedImageCircleSize",
+        label: "Image Circle Size",
+        getRawValue: (item) => item.fixedLensSpecs?.imageCircleSize,
+        formatDisplay: (raw) =>
+          typeof raw === "string" ? sensorNameFromId(raw) : undefined,
+        editElementId: "fixed-image-circle-size",
+      },
+      {
+        key: "maxAperture",
+        label: "Maximum Aperture",
+        getRawValue: (item) => ({
+          wide: item.fixedLensSpecs?.maxApertureWide,
+          tele: item.fixedLensSpecs?.maxApertureTele,
+        }),
+        formatDisplay: (_, item) =>
+          item.fixedLensSpecs?.maxApertureTele &&
+          item.fixedLensSpecs?.maxApertureTele !==
+            item.fixedLensSpecs?.maxApertureWide
+            ? `f/${Number(item.fixedLensSpecs?.maxApertureWide)} - f/${Number(item.fixedLensSpecs?.maxApertureTele)}`
+            : item.fixedLensSpecs?.maxApertureWide != null
+              ? `f/${Number(item.fixedLensSpecs?.maxApertureWide)}`
+              : undefined,
+        editElementId: "fixed-lens-aperture-max-wide",
+      },
+      {
+        key: "minAperture",
+        label: "Minimum Aperture",
+        getRawValue: (item) => ({
+          wide: item.fixedLensSpecs?.minApertureWide,
+          tele: item.fixedLensSpecs?.minApertureTele,
+        }),
+        formatDisplay: (_, item) =>
+          item.fixedLensSpecs?.minApertureTele &&
+          item.fixedLensSpecs?.minApertureTele !==
+            item.fixedLensSpecs?.minApertureWide
+            ? `f/${Number(item.fixedLensSpecs?.minApertureWide)} - f/${Number(item.fixedLensSpecs?.minApertureTele)}`
+            : item.fixedLensSpecs?.minApertureWide != null
+              ? `f/${Number(item.fixedLensSpecs?.minApertureWide)}`
+              : undefined,
+        editElementId: "fixed-lens-aperture-min-wide",
+      },
+      {
+        key: "hasAutofocus",
+        label: "Has Autofocus",
+        getRawValue: (item) => item.fixedLensSpecs?.hasAutofocus,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+      {
+        key: "minimumFocusDistanceMm",
+        label: "Minimum Focus Distance",
+        getRawValue: (item) => item.fixedLensSpecs?.minimumFocusDistanceMm,
+        formatDisplay: (raw) =>
+          raw != null ? formatFocusDistance(raw as number) : undefined,
+      },
+      {
+        key: "frontElementRotates",
+        label: "Front Element Rotates",
+        getRawValue: (item) => item.fixedLensSpecs?.frontElementRotates,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+      {
+        key: "frontFilterThreadSizeMm",
+        label: "Front Filter Thread Size",
+        getRawValue: (item) => item.fixedLensSpecs?.frontFilterThreadSizeMm,
+        formatDisplay: (raw) => {
+          const n = raw == null ? NaN : Number(raw);
+          return Number.isFinite(n) ? `${n}mm` : undefined;
+        },
+      },
+      {
+        key: "hasLensHood",
+        label: "Has Lens Hood",
+        getRawValue: (item) => item.fixedLensSpecs?.hasLensHood,
+        formatDisplay: (raw) => yesNoNull(raw as any),
+      },
+    ],
+  },
+
+  // ==========================================================================
   // CAMERA: HARDWARE/BUILD
   // ==========================================================================
   {
@@ -956,11 +1096,32 @@ export const specDictionary: SpecSectionDef[] = [
           isPrime: item.lensSpecs?.isPrime,
           min: item.lensSpecs?.focalLengthMinMm,
           max: item.lensSpecs?.focalLengthMaxMm,
+          imageCircleFormatId: item.lensSpecs?.imageCircleSize,
         }),
-        formatDisplay: (_, item) =>
-          item.lensSpecs?.isPrime
-            ? `${item.lensSpecs?.focalLengthMinMm}mm`
-            : `${item.lensSpecs?.focalLengthMinMm}mm - ${item.lensSpecs?.focalLengthMaxMm}mm`,
+        formatDisplay: (_, item) => {
+          const { actual, equivalent } = formatFocalLengthRangeDisplay({
+            isPrime: item.lensSpecs?.isPrime,
+            min: item.lensSpecs?.focalLengthMinMm,
+            max: item.lensSpecs?.focalLengthMaxMm,
+            imageCircleFormatId: item.lensSpecs?.imageCircleSize,
+          });
+          if (!actual) return undefined;
+          if (!equivalent) return actual;
+          return (
+            <span className="flex items-center gap-1">
+              {actual}
+              <span className="text-muted-foreground">{`(${equivalent} equiv.)`}</span>
+            </span>
+          );
+        },
+      },
+      {
+        key: "imageCircleSize",
+        label: "Image Circle Size",
+        getRawValue: (item) => item.lensSpecs?.imageCircleSize,
+        formatDisplay: (raw) =>
+          typeof raw === "string" ? sensorNameFromId(raw) : undefined,
+        editElementId: "imageCircleSize",
       },
       {
         key: "magnification",
@@ -1386,9 +1547,7 @@ export const specDictionary: SpecSectionDef[] = [
         formatDisplay: (raw) =>
           Array.isArray(raw)
             ? renderBadgeColumn(
-                (raw as string[]).map(
-                  (r) => formatAnalogMeteringMode(r) ?? r,
-                ),
+                (raw as string[]).map((r) => formatAnalogMeteringMode(r) ?? r),
                 true,
                 true,
               )
@@ -1417,9 +1576,7 @@ export const specDictionary: SpecSectionDef[] = [
         formatDisplay: (raw) =>
           Array.isArray(raw)
             ? renderBadgeColumn(
-                (raw as string[]).map(
-                  (r) => formatAnalogExposureMode(r) ?? r,
-                ),
+                (raw as string[]).map((r) => formatAnalogExposureMode(r) ?? r),
                 true,
                 true,
               )
@@ -1514,136 +1671,6 @@ export const specDictionary: SpecSectionDef[] = [
         key: "hasIntervalometer",
         label: "Intervalometer",
         getRawValue: (item) => item.analogCameraSpecs?.hasIntervalometer,
-        formatDisplay: (raw) => yesNoNull(raw as any),
-      },
-    ],
-  },
-
-  // ==========================================================================
-  // INTEGRATED LENS (for fixed-lens cameras)
-  // ==========================================================================
-  {
-    id: "fixed-lens",
-    title: "Integrated Lens",
-    sectionAnchor: "fixed-lens-section",
-    condition: (item) => {
-      if (item.gearType !== "CAMERA" && item.gearType !== "ANALOG_CAMERA")
-        return false;
-      type MountGenerated = (typeof MOUNTS)[number];
-      const mountValueById = (id: string | null | undefined): string | null => {
-        if (!id) return null;
-        const m = MOUNTS.find((x) => x.id === id);
-        return m && typeof m.value === "string" ? m.value : null;
-      };
-      const primaryMountId = (() => {
-        const arr = Array.isArray(item.mountIds) ? item.mountIds : [];
-        if (arr.length > 0) return arr[0]!;
-        return (item.mountId as string | null | undefined) ?? null;
-      })();
-      return mountValueById(primaryMountId) === "fixed-lens";
-    },
-    fields: [
-      {
-        key: "isPrime",
-        label: "Lens Type",
-        getRawValue: (item) => item.fixedLensSpecs?.isPrime,
-        formatDisplay: (raw) =>
-          raw == null ? undefined : raw ? "Prime" : "Zoom",
-      },
-      {
-        key: "focalLength",
-        label: "Focal Length",
-        getRawValue: (item) => ({
-          isPrime: item.fixedLensSpecs?.isPrime,
-          min: item.fixedLensSpecs?.focalLengthMinMm,
-          max: item.fixedLensSpecs?.focalLengthMaxMm,
-        }),
-        formatDisplay: (_, item) => {
-          if (
-            item.fixedLensSpecs?.focalLengthMinMm == null &&
-            item.fixedLensSpecs?.focalLengthMaxMm == null
-          )
-            return undefined;
-          return item.fixedLensSpecs?.isPrime
-            ? `${item.fixedLensSpecs?.focalLengthMinMm}mm`
-            : `${item.fixedLensSpecs?.focalLengthMinMm ?? ""}${
-                item.fixedLensSpecs?.focalLengthMinMm != null &&
-                item.fixedLensSpecs?.focalLengthMaxMm != null
-                  ? "mm - "
-                  : ""
-              }${
-                item.fixedLensSpecs?.focalLengthMaxMm != null
-                  ? `${item.fixedLensSpecs?.focalLengthMaxMm}mm`
-                  : ""
-              }`;
-        },
-      },
-      {
-        key: "maxAperture",
-        label: "Maximum Aperture",
-        getRawValue: (item) => ({
-          wide: item.fixedLensSpecs?.maxApertureWide,
-          tele: item.fixedLensSpecs?.maxApertureTele,
-        }),
-        formatDisplay: (_, item) =>
-          item.fixedLensSpecs?.maxApertureTele &&
-          item.fixedLensSpecs?.maxApertureTele !==
-            item.fixedLensSpecs?.maxApertureWide
-            ? `f/${Number(item.fixedLensSpecs?.maxApertureWide)} - f/${Number(item.fixedLensSpecs?.maxApertureTele)}`
-            : item.fixedLensSpecs?.maxApertureWide != null
-              ? `f/${Number(item.fixedLensSpecs?.maxApertureWide)}`
-              : undefined,
-        editElementId: "fixed-lens-aperture-max-wide",
-      },
-      {
-        key: "minAperture",
-        label: "Minimum Aperture",
-        getRawValue: (item) => ({
-          wide: item.fixedLensSpecs?.minApertureWide,
-          tele: item.fixedLensSpecs?.minApertureTele,
-        }),
-        formatDisplay: (_, item) =>
-          item.fixedLensSpecs?.minApertureTele &&
-          item.fixedLensSpecs?.minApertureTele !==
-            item.fixedLensSpecs?.minApertureWide
-            ? `f/${Number(item.fixedLensSpecs?.minApertureWide)} - f/${Number(item.fixedLensSpecs?.minApertureTele)}`
-            : item.fixedLensSpecs?.minApertureWide != null
-              ? `f/${Number(item.fixedLensSpecs?.minApertureWide)}`
-              : undefined,
-        editElementId: "fixed-lens-aperture-min-wide",
-      },
-      {
-        key: "hasAutofocus",
-        label: "Has Autofocus",
-        getRawValue: (item) => item.fixedLensSpecs?.hasAutofocus,
-        formatDisplay: (raw) => yesNoNull(raw as any),
-      },
-      {
-        key: "minimumFocusDistanceMm",
-        label: "Minimum Focus Distance",
-        getRawValue: (item) => item.fixedLensSpecs?.minimumFocusDistanceMm,
-        formatDisplay: (raw) =>
-          raw != null ? formatFocusDistance(raw as number) : undefined,
-      },
-      {
-        key: "frontElementRotates",
-        label: "Front Element Rotates",
-        getRawValue: (item) => item.fixedLensSpecs?.frontElementRotates,
-        formatDisplay: (raw) => yesNoNull(raw as any),
-      },
-      {
-        key: "frontFilterThreadSizeMm",
-        label: "Front Filter Thread Size",
-        getRawValue: (item) => item.fixedLensSpecs?.frontFilterThreadSizeMm,
-        formatDisplay: (raw) => {
-          const n = raw == null ? NaN : Number(raw);
-          return Number.isFinite(n) ? `${n}mm` : undefined;
-        },
-      },
-      {
-        key: "hasLensHood",
-        label: "Has Lens Hood",
-        getRawValue: (item) => item.fixedLensSpecs?.hasLensHood,
         formatDisplay: (raw) => yesNoNull(raw as any),
       },
     ],
