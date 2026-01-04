@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { ClockIcon, FlameIcon } from "lucide-react";
+import { ClockIcon, FlameIcon, LinkIcon, TrendingUpIcon } from "lucide-react";
 import Link from "next/link";
 import { GearCard, GearCardSkeleton } from "~/components/gear/gear-card";
 import { Button } from "~/components/ui/button";
@@ -107,8 +107,14 @@ export default async function AllGearContent({
             </span>
             Trending Gear
           </h2>
-          <Button variant="link" asChild>
-            <Link href="/lists/trending">View All</Link>
+          <Button
+            variant="link"
+            asChild
+            icon={<TrendingUpIcon className="text-muted-foreground h-3 w-3" />}
+            iconPosition="right"
+            className="text-muted-foreground pr-1"
+          >
+            <Link href="/lists/trending">View Trending List</Link>
           </Button>
         </div>
 
