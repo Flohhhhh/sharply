@@ -488,6 +488,13 @@ export const BRANDS = [
     "slug": "kodak",
     "created_at": "2026-01-01 18:07:50.384292+00",
     "updated_at": "2026-01-01 18:07:50.384292+00"
+  },
+  {
+    "id": "0bf28abb-b1b1-43e0-b799-be780632315d",
+    "name": "Blackmagic Design",
+    "slug": "blackmagic",
+    "created_at": "2026-01-03 12:10:53.685766+00",
+    "updated_at": "2026-01-03 12:10:53.685766+00"
   }
 ];
 export const GENRES = [

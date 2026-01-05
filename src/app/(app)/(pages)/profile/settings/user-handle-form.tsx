@@ -10,7 +10,7 @@ import { actionUpdateUserHandle } from "~/server/users/actions";
 
 interface UserHandleFormProps {
   initialHandle: string | null;
-  memberNumber: number;
+  memberNumber: number | null | undefined;
 }
 
 export function UserHandleForm({
@@ -108,7 +108,7 @@ export function UserHandleForm({
               setAvailability(null);
               setIsChecking(true);
             }}
-            placeholder={initialHandle || `user-${memberNumber}`}
+            placeholder={initialHandle || `user-${memberNumber ?? "?"}`}
             className="pl-[26px]"
             maxLength={50}
           />
@@ -125,7 +125,7 @@ export function UserHandleForm({
         )}
         {!availability && !initialHandle && handle === "" && (
           <p className="text-muted-foreground text-xs">
-            Currently using default: user-{memberNumber}
+            Currently using default: user-{memberNumber ?? "?"}
           </p>
         )}
       </div>
