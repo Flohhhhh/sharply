@@ -20,7 +20,7 @@ export type UserMenuUser = {
   id: string;
   role: UserRole;
   handle?: string | null;
-  memberNumber?: number;
+  memberNumber?: number | null;
   name?: string | null;
   email?: string | null;
   image?: string | null;

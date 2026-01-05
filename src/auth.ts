@@ -76,8 +76,7 @@ export const auth = betterAuth({
       },
       memberNumber: {
         type: "number",
-        required: true,
-        defaultValue: 0,
+        required: false,
       },
       inviteId: {
         type: "string",
