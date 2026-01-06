@@ -235,13 +235,35 @@ export default async function UserProfilePage({
                 <GearCard key={item.id} item={item} />
               ))}
             </div>
+          ) : myProfile ? (
+            <Empty className="border-border rounded-lg border-2 border-dashed p-8">
+              <EmptyTitle>Your wishlist is empty</EmptyTitle>
+              <EmptyDescription>
+                Browse gear to add items you want to keep an eye on.
+              </EmptyDescription>
+              <EmptyContent>
+                <div className="flex flex-col items-center gap-2">
+                  <Button
+                    asChild
+                    size="sm"
+                    icon={<LibraryIcon className="size-4" />}
+                  >
+                    <Link href="/gear">Browse gear</Link>
+                  </Button>
+                </div>
+              </EmptyContent>
+            </Empty>
           ) : (
-            <div className="border-border rounded-lg border-2 border-dashed p-8 text-center">
-              <p className="text-muted-foreground">No items in wishlist yet</p>
-              <Link href="/gear" className="text-primary mt-2 inline-block">
-                Browse gear to add to your wishlist
-              </Link>
-            </div>
+            <Empty className="border-border rounded-lg border-2 border-dashed p-8">
+              <EmptyTitle>
+                {profile.name
+                  ? `${profile.name}'s wishlist is empty`
+                  : "Wishlist is empty"}
+              </EmptyTitle>
+              <EmptyDescription>
+                Check back later to see what gear they are interested in.
+              </EmptyDescription>
+            </Empty>
           )}
         </div>
 
