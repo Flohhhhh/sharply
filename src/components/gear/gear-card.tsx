@@ -7,6 +7,9 @@ import Image from "next/image";
 import { BRANDS } from "~/lib/constants";
 import { PRICE_FALLBACK_TEXT } from "~/lib/mapping";
 import { Spinner } from "../ui/spinner";
+import { TrendingBadge } from "../gear-badges/trending-badge";
+import { NewBadge } from "../gear-badges/new-badge";
+import { isNewRelease } from "~/lib/utils/is-new";
 
 const BASE_BRAND_NAMES = uniqueCaseInsensitive(
   BRANDS.flatMap((brand) => splitBrandNameVariants(brand.name)),
@@ -79,13 +82,37 @@ export type GearCardProps = {
   brandName?: string | null;
   thumbnailUrl?: string | null;
   gearType?: string | null;
-  dateText?: string | null;
+  isTrending?: boolean;
+  releaseDate?: string | Date | null;
+  releaseDatePrecision?: DatePrecision | null;
   priceText?: string | null;
-  topLeftLabel?: string | null;
   metaRight?: React.ReactNode;
   badges?: React.ReactNode;
   className?: string;
 };
+
+type DatePrecision = "DAY" | "MONTH" | "YEAR";
+
+export function formatGearDate(
+  dateValue?: string | Date | null,
+  precision?: DatePrecision | null,
+) {
+  if (!dateValue) return "---";
+
+  const parsedDate =
+    dateValue instanceof Date ? dateValue : new Date(dateValue ?? undefined);
+  if (Number.isNaN(parsedDate.getTime())) return "-";
+
+  const resolvedPrecision: DatePrecision = precision ?? "MONTH";
+  if (resolvedPrecision === "YEAR") {
+    return parsedDate.getFullYear().toString();
+  }
+
+  return parsedDate.toLocaleDateString("en-US", {
+    month: "short",
+    year: "numeric",
+  });
+}
 
 // TODO: Need to work on what information is showed on these cards, might vary based on where they are used
 // should so badges, trending, etc. in some places.
@@ -97,15 +124,22 @@ export function GearCard(props: GearCardProps) {
     brandName,
     thumbnailUrl,
     gearType,
-    dateText,
+    isTrending,
+    releaseDate,
+    releaseDatePrecision,
     priceText,
-    topLeftLabel,
     metaRight,
     badges,
     className,
   } = props;
 
   const trimmedName = stripBrandFromName(name, brandName);
+  const dateLabel = formatGearDate(releaseDate, releaseDatePrecision);
+  const isNew = isNewRelease(releaseDate, releaseDatePrecision);
+  const badgeNodes: React.ReactNode[] = [];
+  if (isTrending) badgeNodes.push(<TrendingBadge key="trending" />);
+  if (isNew) badgeNodes.push(<NewBadge key="new" />);
+  if (badges) badgeNodes.push(badges);
 
   return (
     <div className={cn("group relative", className)}>
@@ -121,9 +155,9 @@ export function GearCard(props: GearCardProps) {
         <div className="bg-background rounded-2xl p-2">
           {/* Image area */}
           <div className="bg-muted dark:bg-card relative aspect-video overflow-hidden rounded-xl p-4">
-            {topLeftLabel ? (
-              <div className="absolute top-2 left-2 rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
-                {topLeftLabel}
+            {badgeNodes.length ? (
+              <div className="absolute top-2 left-2 flex flex-wrap gap-1">
+                {badgeNodes}
               </div>
             ) : null}
             {thumbnailUrl ? (
@@ -173,14 +207,8 @@ export function GearCard(props: GearCardProps) {
               {trimmedName}
             </div>
 
-            {badges}
-
             <div className="flex items-center justify-between">
-              {dateText ? (
-                <div className="text-muted-foreground text-xs">{dateText}</div>
-              ) : (
-                <span />
-              )}
+              <div className="text-muted-foreground text-xs">{dateLabel}</div>
               {priceText ? (
                 <span
                   className={cn(

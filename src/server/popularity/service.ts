@@ -1,5 +1,6 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import { db } from "~/server/db";
 import { gear } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
@@ -144,6 +145,31 @@ export async function fetchTrending(params: {
   ]);
 
   return applyLiveBoostToTrending({ baseline, liveSnapshot, limit });
+}
+
+type TrendingSlugsParams = {
+  timeframe?: "7d" | "30d";
+  limit?: number;
+  filters?: TrendingFiltersInput;
+};
+
+const cachedTrendingSlugs = unstable_cache(
+  async (params: TrendingSlugsParams = {}): Promise<string[]> => {
+    const res = await fetchTrending({
+      timeframe: params.timeframe ?? "30d",
+      limit: params.limit ?? 20,
+      filters: params.filters,
+    });
+    return res.map((item) => item.slug);
+  },
+  ["popularity:trending-slugs"],
+  { revalidate: 7200 },
+);
+
+export async function fetchTrendingSlugs(
+  params?: TrendingSlugsParams,
+): Promise<string[]> {
+  return cachedTrendingSlugs(params ?? {});
 }
 
 export async function fetchTrendingPage(params: {

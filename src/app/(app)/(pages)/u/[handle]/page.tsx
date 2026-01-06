@@ -2,6 +2,12 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyTitle,
+} from "~/components/ui/empty";
+import {
   getItemDisplayPrice,
   getMountDisplayName,
   PRICE_FALLBACK_TEXT,
@@ -20,7 +26,7 @@ import {
 import type { Metadata } from "next";
 import { auth } from "~/auth";
 import { Button } from "~/components/ui/button";
-import { UserPen } from "lucide-react";
+import { LibraryIcon, UserPen } from "lucide-react";
 import { ShowUserCardButton } from "~/app/(app)/(pages)/u/_components/ShowUserCardButton";
 import type { GearItem } from "~/types/gear";
 import { getBrandNameById } from "~/lib/mapping/brand-map";
@@ -126,6 +132,7 @@ export default async function UserProfilePage({
         </div>
 
         {/* Collection */}
+
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -158,30 +165,59 @@ export default async function UserProfilePage({
             </div>
           </div>
 
-          <div className="md:hidden">
-            {sortedOwnedItems.length > 0 ? (
-              <div className="grid grid-cols-1 gap-1">
-                {sortedOwnedItems.map((item) => (
-                  <GearCard key={item.id} item={item} />
-                ))}
+          {ownedItems.length > 0 ? (
+            <>
+              <div className="md:hidden">
+                {sortedOwnedItems.length > 0 ? (
+                  <div className="grid grid-cols-1 gap-1">
+                    {sortedOwnedItems.map((item) => (
+                      <GearCard key={item.id} item={item} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="border-border rounded-lg border-2 border-dashed p-8 text-center">
+                    <p className="text-muted-foreground">
+                      No gear in collection yet
+                    </p>
+                    <Link
+                      href="/gear"
+                      className="text-primary mt-2 inline-block"
+                    >
+                      Browse gear to add to your collection
+                    </Link>
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="border-border rounded-lg border-2 border-dashed p-8 text-center">
-                <p className="text-muted-foreground">
-                  No gear in collection yet
-                </p>
-                <Link href="/gear" className="text-primary mt-2 inline-block">
-                  Browse gear to add to your collection
-                </Link>
-              </div>
-            )}
-          </div>
 
-          <CollectionContainer
-            className="hidden md:block"
-            items={sortedOwnedItems}
-            user={profile}
-          />
+              <CollectionContainer
+                className="hidden md:block"
+                items={sortedOwnedItems}
+                user={profile}
+              />
+            </>
+          ) : myProfile ? (
+            <Empty className="border-border rounded-lg border-2 border-dashed p-8">
+              <EmptyTitle>Your collection is empty</EmptyTitle>
+              <EmptyDescription>
+                Add gear to your collection to start tracking your gear.
+              </EmptyDescription>
+              <EmptyContent>
+                <div className="flex flex-col items-center gap-2">
+                  <Button
+                    asChild
+                    size="sm"
+                    icon={<LibraryIcon className="size-4" />}
+                  >
+                    <Link href="/gear">Browse gear</Link>
+                  </Button>
+                </div>
+              </EmptyContent>
+            </Empty>
+          ) : (
+            <div className="border-border text-muted-foreground rounded-lg border-2 border-dashed p-8 text-center">
+              {profile.name}'s collection is empty
+            </div>
+          )}
         </div>
 
         {/* Wishlist */}
@@ -199,13 +235,35 @@ export default async function UserProfilePage({
                 <GearCard key={item.id} item={item} />
               ))}
             </div>
+          ) : myProfile ? (
+            <Empty className="border-border rounded-lg border-2 border-dashed p-8">
+              <EmptyTitle>Your wishlist is empty</EmptyTitle>
+              <EmptyDescription>
+                Browse gear to add items you want to keep an eye on.
+              </EmptyDescription>
+              <EmptyContent>
+                <div className="flex flex-col items-center gap-2">
+                  <Button
+                    asChild
+                    size="sm"
+                    icon={<LibraryIcon className="size-4" />}
+                  >
+                    <Link href="/gear">Browse gear</Link>
+                  </Button>
+                </div>
+              </EmptyContent>
+            </Empty>
           ) : (
-            <div className="border-border rounded-lg border-2 border-dashed p-8 text-center">
-              <p className="text-muted-foreground">No items in wishlist yet</p>
-              <Link href="/gear" className="text-primary mt-2 inline-block">
-                Browse gear to add to your wishlist
-              </Link>
-            </div>
+            <Empty className="border-border rounded-lg border-2 border-dashed p-8">
+              <EmptyTitle>
+                {profile.name
+                  ? `${profile.name}'s wishlist is empty`
+                  : "Wishlist is empty"}
+              </EmptyTitle>
+              <EmptyDescription>
+                Check back later to see what gear they are interested in.
+              </EmptyDescription>
+            </Empty>
           )}
         </div>
 
@@ -214,7 +272,11 @@ export default async function UserProfilePage({
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold">Reviews</h2>
           </div>
-          <UserReviewsList userId={profile.id} />
+          <UserReviewsList
+            userId={profile.id}
+            isCurrentUser={myProfile}
+            profileName={profile.name}
+          />
         </div>
       </div>
     </main>

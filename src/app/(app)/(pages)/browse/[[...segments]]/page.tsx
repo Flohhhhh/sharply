@@ -13,6 +13,7 @@ import {
 } from "../_components/browse-results-grid";
 import type { BrowseFilters } from "~/lib/browse/filters";
 import type { SearchGearResult } from "~/server/gear/browse/data";
+import { fetchTrendingSlugs } from "~/server/popularity/service";
 
 export const dynamicParams = true;
 
@@ -98,6 +99,11 @@ export default async function BrowseCatchAll({
       brandSlug: brand!.slug,
       category: scope.categorySlug,
     });
+    const trendingSlugs = await fetchTrendingSlugs({
+      timeframe: "30d",
+      limit: 20,
+      filters: { brandId: brand!.id },
+    });
     return (
       <main className="space-y-6 pb-24">
         <Breadcrumbs
@@ -123,10 +129,17 @@ export default async function BrowseCatchAll({
           initialPage={initialPage}
           brandName={brand!.name}
           baseQuery={baseQuery}
+          trendingSlugs={trendingSlugs}
         />
       </main>
     );
   }
+
+  const trendingSlugs = await fetchTrendingSlugs({
+    timeframe: "30d",
+    limit: 20,
+    filters: { brandId: brand!.id },
+  });
 
   return (
     <main className="space-y-6 pb-24">
@@ -155,6 +168,7 @@ export default async function BrowseCatchAll({
           category: scope.categorySlug,
           mountShort: mount?.shortName ?? null,
         })}
+        trendingSlugs={trendingSlugs}
       />
     </main>
   );
@@ -168,6 +182,7 @@ function buildInitialPage(
     items: lists.items.map((g) => ({
       ...g,
       releaseDate: g.releaseDate ? g.releaseDate.toISOString() : null,
+      releaseDatePrecision: g.releaseDatePrecision ?? null,
       thumbnailUrl: g.thumbnailUrl ?? null,
       brandName: g.brandName ?? null,
       gearType: g.gearType ?? null,

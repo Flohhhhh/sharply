@@ -4,7 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { cn } from "~/lib/utils";
 import { AddToCompareButton } from "~/components/compare/add-to-compare-button";
-import type { GearCardProps } from "./gear-card";
+import { formatGearDate, type GearCardProps } from "./gear-card";
+import { TrendingBadge } from "../gear-badges/trending-badge";
 import { BRANDS } from "~/lib/constants";
 
 function splitBrandNameVariants(brandName: string) {
@@ -81,14 +82,19 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
     brandName,
     thumbnailUrl,
     gearType,
-    dateText,
-    topLeftLabel,
+    releaseDate,
+    isTrending,
+    releaseDatePrecision,
     metaRight,
     badges,
     className,
   } = props;
 
   const trimmedName = stripBrandFromName(name, brandName);
+  const dateLabel = formatGearDate(releaseDate, releaseDatePrecision);
+  const badgeNodes: React.ReactNode[] = [];
+  if (isTrending) badgeNodes.push(<TrendingBadge key="trending" />);
+  if (badges) badgeNodes.push(badges);
 
   return (
     <div className={cn("group relative", className)}>
@@ -102,11 +108,11 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
         <div className="bg-background rounded-lg p-2">
           <div className="flex gap-3">
             {/* Image / left side */}
-            <div className="bg-muted relative w-44 flex-shrink-0 overflow-hidden rounded">
-              <div className="relative aspect-[16/10]">
-                {topLeftLabel ? (
-                  <div className="absolute top-2 left-2 rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
-                    {topLeftLabel}
+            <div className="bg-muted relative w-44 shrink-0 overflow-hidden rounded">
+              <div className="relative aspect-16/10">
+                {badgeNodes.length ? (
+                  <div className="absolute top-2 left-2 flex flex-wrap gap-1">
+                    {badgeNodes}
                   </div>
                 ) : null}
 
@@ -160,9 +166,9 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
 
               {badges}
 
-              {dateText ? (
+              {dateLabel ? (
                 <div className="text-muted-foreground mt-2 text-xs">
-                  {dateText}
+                  {dateLabel}
                 </div>
               ) : null}
             </div>

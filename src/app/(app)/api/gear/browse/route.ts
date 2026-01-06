@@ -50,6 +50,7 @@ export async function GET(request: NextRequest) {
     const items = lists.items.map((item) => ({
       ...item,
       releaseDate: item.releaseDate ? item.releaseDate.toISOString() : null,
+      releaseDatePrecision: item.releaseDatePrecision ?? null,
       thumbnailUrl: item.thumbnailUrl ?? null,
       gearType: item.gearType ?? null,
       brandName: item.brandName ?? null,

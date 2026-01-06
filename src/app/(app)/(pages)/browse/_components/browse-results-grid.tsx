@@ -16,6 +16,7 @@ type GearListItem = {
   gearType: string | null;
   thumbnailUrl: string | null;
   releaseDate: string | null;
+  releaseDatePrecision: "DAY" | "MONTH" | "YEAR" | null;
   msrpNowUsdCents: number | null;
   mpbMaxPriceUsdCents: number | null;
 };
@@ -32,6 +33,7 @@ type BrowseResultsGridProps = {
   initialPage: BrowseListPage;
   brandName?: string;
   baseQuery: string;
+  trendingSlugs?: string[];
 };
 
 const fetcher = async (url: string) => {
@@ -48,6 +50,7 @@ export function BrowseResultsGrid({
   initialPage,
   brandName,
   baseQuery,
+  trendingSlugs,
 }: BrowseResultsGridProps) {
   const isMobile = useIsMobile();
   const [infiniteActive, setInfiniteActive] = useState(false);
@@ -81,6 +84,10 @@ export function BrowseResultsGrid({
   const items = useMemo(
     () => pages.flatMap((page) => page?.items ?? []),
     [pages],
+  );
+  const trendingSet = useMemo(
+    () => new Set(trendingSlugs ?? []),
+    [trendingSlugs],
   );
   const lastPage = pages[pages.length - 1] ?? initialPage;
   const hasMore = lastPage?.hasMore ?? false;
@@ -155,11 +162,9 @@ export function BrowseResultsGrid({
             brandName={g.brandName ?? brandName}
             thumbnailUrl={g.thumbnailUrl ?? undefined}
             gearType={g.gearType ?? undefined}
-            dateText={
-              g.releaseDate
-                ? `Released ${new Date(g.releaseDate).getFullYear()}`
-                : null
-            }
+            isTrending={trendingSet.has(g.slug)}
+            releaseDate={g.releaseDate}
+            releaseDatePrecision={g.releaseDatePrecision}
             priceText={getItemDisplayPrice(g, {
               style: "short",
               padWholeAmounts: true,

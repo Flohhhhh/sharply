@@ -6,6 +6,7 @@ import { Button } from "~/components/ui/button";
 import { GearCard } from "~/components/gear/gear-card";
 import type { Metadata } from "next";
 import { getMountDisplayName } from "~/lib/mapping";
+import { fetchTrendingSlugs } from "~/server/popularity/service";
 
 export const metadata: Metadata = {
   title: "Gear",
@@ -29,6 +30,11 @@ export default async function GearIndex() {
   );
 
   const sectionsWithItems = brandSections.filter((s) => s.items.length > 0);
+  const trendingSlugs = await fetchTrendingSlugs({
+    timeframe: "30d",
+    limit: 20,
+  });
+  const trendingSet = new Set(trendingSlugs);
 
   return (
     <main className="mx-auto min-h-screen max-w-7xl p-6 pt-20">
@@ -47,11 +53,9 @@ export default async function GearIndex() {
                     brandName={g.brandName}
                     thumbnailUrl={g.thumbnailUrl}
                     gearType={g.gearType}
-                    dateText={
-                      g.releaseDate
-                        ? `Released ${new Date(g.releaseDate).getFullYear()}`
-                        : null
-                    }
+                    isTrending={trendingSet.has(g.slug)}
+                    releaseDate={g.releaseDate}
+                    releaseDatePrecision={g.releaseDatePrecision}
                   />
                 </li>
               ))}

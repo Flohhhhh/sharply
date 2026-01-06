@@ -5,7 +5,7 @@ import { GearCard, GearCardSkeleton } from "~/components/gear/gear-card";
 import { Button } from "~/components/ui/button";
 import { BRANDS } from "~/lib/constants";
 import { OtherBrandsSelect } from "./other-brands-select";
-import { fetchTrending } from "~/server/popularity/service";
+import { fetchTrending, fetchTrendingSlugs } from "~/server/popularity/service";
 import { getItemDisplayPrice } from "~/lib/mapping";
 import { fetchReleaseFeedPage } from "~/server/gear/browse/service";
 import { ReleaseFeedGrid } from "./release-feed-grid";
@@ -33,6 +33,12 @@ export default async function AllGearContent({
   searchParams?: Record<string, string | string[] | undefined>;
 } = {}) {
   // return <Loading />;
+  const brand = brandSlug ? await getBrandBySlug(brandSlug) : null;
+  if (brandSlug && !brand) {
+    throw new Error(`Brand not found: ${brandSlug}`);
+  }
+  const brandId = brand?.id;
+
   const featured = BRANDS.filter((b) =>
     ["Canon", "Nikon", "Sony"].includes(b.name),
   );
@@ -54,6 +60,11 @@ export default async function AllGearContent({
   const initialReleasePage = await fetchReleaseFeedPage({
     limit: 12,
     brandSlug,
+  });
+  const trendingSlugs = await fetchTrendingSlugs({
+    timeframe: "30d",
+    limit: 20,
+    filters: brandId ? { brandId } : undefined,
   });
 
   return (
@@ -119,27 +130,20 @@ export default async function AllGearContent({
         </div>
 
         <Suspense fallback={<TrendingSkeleton />}>
-          <TrendingGrid brandSlug={brandSlug} />
+          <TrendingGrid brandId={brandId} />
         </Suspense>
       </section>
 
       <ReleaseSection
         brandSlug={brandSlug}
         initialReleasePage={initialReleasePage}
+        trendingSlugs={trendingSlugs}
       />
     </main>
   );
 }
 
-async function TrendingGrid({ brandSlug }: { brandSlug?: string }) {
-  let brandId: string | undefined;
-  if (brandSlug) {
-    const brand = await getBrandBySlug(brandSlug);
-    if (!brand) {
-      throw new Error(`Brand not found: ${brandSlug}`);
-    }
-    brandId = brand.id;
-  }
+async function TrendingGrid({ brandId }: { brandId?: string }) {
   const trendingResult = await fetchTrending({
     timeframe: "7d",
     limit: 3,
@@ -157,7 +161,7 @@ async function TrendingGrid({ brandSlug }: { brandSlug?: string }) {
           brandName={g.brandName}
           thumbnailUrl={g.thumbnailUrl ?? undefined}
           gearType={g.gearType}
-          topLeftLabel={null}
+          isTrending
           priceText={getItemDisplayPrice(g, {
             style: "short",
             padWholeAmounts: true,
@@ -171,9 +175,11 @@ async function TrendingGrid({ brandSlug }: { brandSlug?: string }) {
 async function ReleaseSection({
   brandSlug,
   initialReleasePage,
+  trendingSlugs,
 }: {
   brandSlug?: string;
   initialReleasePage: Awaited<ReturnType<typeof fetchReleaseFeedPage>>;
+  trendingSlugs: string[];
 }) {
   return (
     <section className="space-y-4">
@@ -183,7 +189,11 @@ async function ReleaseSection({
           Latest releases
         </h2>
       </div>
-      <ReleaseFeedGrid initialPage={initialReleasePage} brandSlug={brandSlug} />
+      <ReleaseFeedGrid
+        initialPage={initialReleasePage}
+        brandSlug={brandSlug}
+        trendingSlugs={trendingSlugs}
+      />
     </section>
   );
 }
@@ -245,6 +255,7 @@ function buildInitialPage(
     items: lists.items.map((g) => ({
       ...g,
       releaseDate: g.releaseDate ? g.releaseDate.toISOString() : null,
+      releaseDatePrecision: g.releaseDatePrecision ?? null,
       thumbnailUrl: g.thumbnailUrl ?? null,
       brandName: g.brandName ?? null,
       gearType: g.gearType ?? null,

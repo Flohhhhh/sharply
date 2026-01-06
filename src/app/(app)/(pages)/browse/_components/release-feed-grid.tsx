@@ -12,6 +12,7 @@ import { useIsMobile } from "~/hooks/use-mobile";
 type ReleaseFeedGridProps = {
   initialPage: BrowseFeedPage;
   brandSlug?: string;
+  trendingSlugs?: string[];
 };
 
 const PAGE_SIZE = 12;
@@ -28,6 +29,7 @@ const fetcher = async (url: string) => {
 export function ReleaseFeedGrid({
   initialPage,
   brandSlug,
+  trendingSlugs,
 }: ReleaseFeedGridProps) {
   const isMobile = useIsMobile();
   const [infiniteActive, setInfiniteActive] = useState(false);
@@ -69,6 +71,10 @@ export function ReleaseFeedGrid({
   const items = useMemo(
     () => pages.flatMap((page) => page?.items ?? []),
     [pages],
+  );
+  const trendingSet = useMemo(
+    () => new Set(trendingSlugs ?? []),
+    [trendingSlugs],
   );
   const lastPage = pages[pages.length - 1] ?? initialPage;
   const hasMore = lastPage?.hasMore ?? false;
@@ -145,11 +151,9 @@ export function ReleaseFeedGrid({
             brandName={g.brandName ?? undefined}
             thumbnailUrl={g.thumbnailUrl ?? undefined}
             gearType={g.gearType}
-            dateText={
-              g.releaseDate
-                ? `Released ${new Date(g.releaseDate).getFullYear()}`
-                : null
-            }
+            isTrending={trendingSet.has(g.slug)}
+            releaseDate={g.releaseDate}
+            releaseDatePrecision={g.releaseDatePrecision}
             priceText={getItemDisplayPrice(g, {
               style: "short",
               padWholeAmounts: true,
