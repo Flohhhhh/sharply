@@ -24,6 +24,7 @@ import GearBadges from "../_components/gear-badges";
 import { TrendingBadge } from "~/components/gear-badges/trending-badge";
 import { NewBadge } from "~/components/gear-badges/new-badge";
 import { isNewRelease } from "~/lib/utils/is-new";
+import { fetchTrendingSlugs } from "~/server/popularity/service";
 import SpecsTable from "../_components/specs-table";
 import { buildGearSpecsSections } from "~/lib/specs/registry";
 import type { GearType } from "~/types/gear";
@@ -131,6 +132,8 @@ export default async function GearPage({ params }: GearPageProps) {
   const review = await getReviewByGearSlug(item.slug);
   const relatedNews = await getNewsByRelatedGearSlug(item.slug, 9);
   const isNew = isNewRelease(item.releaseDate, item.releaseDatePrecision);
+  const trendingSlugs = await fetchTrendingSlugs({ timeframe: "30d", limit: 20 });
+  const isTrending = trendingSlugs.includes(item.slug);
 
   // Under construction state
   const construction = getConstructionState(item);
@@ -199,7 +202,7 @@ export default async function GearPage({ params }: GearPageProps) {
             )}
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            {item.isTrending ? <TrendingBadge /> : null}
+            {isTrending ? <TrendingBadge /> : null}
             {isNew ? <NewBadge /> : null}
           </div>
         </div>
