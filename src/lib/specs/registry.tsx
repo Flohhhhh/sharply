@@ -227,18 +227,18 @@ export const specDictionary: SpecSectionDef[] = [
         editElementId: "release-date",
       },
       {
-        key: "msrpNowUsdCents",
-        label: "MSRP Now",
-        getRawValue: (item) => item.msrpNowUsdCents,
-        formatDisplay: (raw) => (raw ? formatPrice(raw as number) : undefined),
-        editElementId: "msrpNow",
-      },
-      {
         key: "msrpAtLaunchUsdCents",
         label: "MSRP At Launch",
         getRawValue: (item) => item.msrpAtLaunchUsdCents,
         formatDisplay: (raw) => (raw ? formatPrice(raw as number) : undefined),
         editElementId: "msrpAtLaunch",
+      },
+      {
+        key: "msrpNowUsdCents",
+        label: "MSRP Now",
+        getRawValue: (item) => item.msrpNowUsdCents,
+        formatDisplay: (raw) => (raw ? formatPrice(raw as number) : undefined),
+        editElementId: "msrpNow",
       },
       {
         key: "mpbMaxPriceUsdCents",
