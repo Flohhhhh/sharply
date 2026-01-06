@@ -295,8 +295,9 @@ const InstagramPostBuilderPage = () => {
     reader.onload = (readerEvent) => {
       const img = new Image();
       img.onload = () => {
+        const baseImageId = Date.now();
         const imageData: FrameImage = {
-          id: Number(`${Date.now()}${Math.random()}`),
+          id: baseImageId,
           src: readerEvent.target?.result as string,
           width: img.width,
           height: img.height,
@@ -309,15 +310,14 @@ const InstagramPostBuilderPage = () => {
           const frameId = i + 1;
           // Calculate horizontal position for this slice
           // Position ranges from 0 to 100, spread evenly across the image
-          const slicePosition =
-            panoramaSlides === 1 ? 50 : (i / (panoramaSlides - 1)) * 100;
+          const slicePosition = (i / (panoramaSlides - 1)) * 100;
 
           newFrames.push({
             id: frameId,
             images: [
               {
                 ...imageData,
-                id: Number(`${imageData.id}${i}`),
+                id: baseImageId + i + 1,
                 position: { x: slicePosition, y: 50 },
               },
             ],
