@@ -9,6 +9,7 @@ import {
   PanelLeft,
   Plus,
   Scissors,
+  SplitSquareHorizontal,
   Trash2,
   X,
 } from "lucide-react";
@@ -146,9 +147,11 @@ const InstagramPostBuilderPage = () => {
     initialPosY: 50,
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const panoramaInputRef = useRef<HTMLInputElement>(null);
   const targetFrameRef = useRef<number | null>(null);
   const workspaceRef = useRef<HTMLDivElement>(null);
   const [workspaceHeight, setWorkspaceHeight] = useState(0);
+  const [panoramaSlides, setPanoramaSlides] = useState<number>(3);
 
   const totalWidth = useMemo(
     () => frames.length * FRAME_WIDTH,
@@ -273,6 +276,67 @@ const InstagramPostBuilderPage = () => {
       ),
     );
     setActiveFrameId(targetFrame);
+  };
+
+  const handlePanoramaUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) {
+      return;
+    }
+
+    const file = files[0];
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (readerEvent) => {
+      const img = new Image();
+      img.onload = () => {
+        const imageData: FrameImage = {
+          id: Number(`${Date.now()}${Math.random()}`),
+          src: readerEvent.target?.result as string,
+          width: img.width,
+          height: img.height,
+          position: { x: 50, y: 50 },
+        };
+
+        // Clear existing frames and create new ones for panorama
+        const newFrames: Frame[] = [];
+        for (let i = 0; i < panoramaSlides; i++) {
+          const frameId = i + 1;
+          // Calculate horizontal position for this slice
+          // Position ranges from 0 to 100, spread evenly across the image
+          const slicePosition =
+            panoramaSlides === 1 ? 50 : (i / (panoramaSlides - 1)) * 100;
+
+          newFrames.push({
+            id: frameId,
+            images: [
+              {
+                ...imageData,
+                id: Number(`${imageData.id}${i}`),
+                position: { x: slicePosition, y: 50 },
+              },
+            ],
+          });
+        }
+
+        setFrames(newFrames);
+        setActiveFrameId(null);
+      };
+      img.src = readerEvent.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const triggerPanoramaUpload = () => {
+    if (panoramaInputRef.current) {
+      panoramaInputRef.current.value = "";
+      panoramaInputRef.current.click();
+    }
   };
 
   const handleMouseDown = (
@@ -529,6 +593,13 @@ const InstagramPostBuilderPage = () => {
         className="hidden"
         onChange={handleFileChange}
       />
+      <input
+        ref={panoramaInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handlePanoramaUpload}
+      />
 
       <main className="bg-background mt-16 flex flex-1">
         <section
@@ -698,6 +769,38 @@ const InstagramPostBuilderPage = () => {
             </div>
 
             <div className="flex flex-col gap-6">
+              <section>
+                <h3 className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+                  Panorama Helper
+                </h3>
+                <p className="text-muted-foreground mb-2 mt-1 text-[10px]">
+                  Split one wide photo across multiple slides
+                </p>
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="text-muted-foreground text-xs">Slides:</span>
+                  <Slider
+                    min={2}
+                    max={10}
+                    value={[panoramaSlides]}
+                    onValueChange={(value) =>
+                      setPanoramaSlides(value[0] ?? panoramaSlides)
+                    }
+                    className="flex-1"
+                  />
+                  <span className="text-foreground w-8 text-center text-xs font-semibold">
+                    {panoramaSlides}
+                  </span>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={triggerPanoramaUpload}
+                  className="flex w-full items-center gap-2"
+                >
+                  <SplitSquareHorizontal size={14} /> Upload Panorama
+                </Button>
+              </section>
+
               <section>
                 <h3 className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
                   Aspect Ratio
