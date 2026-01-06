@@ -287,17 +287,13 @@ const InstagramPostBuilderPage = () => {
     }
 
     const file = files[0];
-    if (!file) {
-      return;
-    }
 
     const reader = new FileReader();
     reader.onload = (readerEvent) => {
       const img = new Image();
       img.onload = () => {
-        const baseImageId = Date.now();
         const imageData: FrameImage = {
-          id: baseImageId,
+          id: Number(`${Date.now()}${Math.random()}`),
           src: readerEvent.target?.result as string,
           width: img.width,
           height: img.height,
@@ -317,7 +313,7 @@ const InstagramPostBuilderPage = () => {
             images: [
               {
                 ...imageData,
-                id: baseImageId + i + 1,
+                id: Number(`${Date.now()}${Math.random()}${i}`),
                 position: { x: slicePosition, y: 50 },
               },
             ],
