@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { cn } from "~/lib/utils";
 import { AddToCompareButton } from "~/components/compare/add-to-compare-button";
-import type { GearCardProps } from "./gear-card";
+import { formatGearDate, type GearCardProps } from "./gear-card";
 import { BRANDS } from "~/lib/constants";
 
 function splitBrandNameVariants(brandName: string) {
@@ -81,7 +81,8 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
     brandName,
     thumbnailUrl,
     gearType,
-    dateText,
+    releaseDate,
+    releaseDatePrecision,
     topLeftLabel,
     metaRight,
     badges,
@@ -89,6 +90,7 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
   } = props;
 
   const trimmedName = stripBrandFromName(name, brandName);
+  const dateLabel = formatGearDate(releaseDate, releaseDatePrecision);
 
   return (
     <div className={cn("group relative", className)}>
@@ -160,9 +162,9 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
 
               {badges}
 
-              {dateText ? (
+              {dateLabel ? (
                 <div className="text-muted-foreground mt-2 text-xs">
-                  {dateText}
+                  {dateLabel}
                 </div>
               ) : null}
             </div>

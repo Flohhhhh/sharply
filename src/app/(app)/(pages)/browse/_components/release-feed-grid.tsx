@@ -145,11 +145,8 @@ export function ReleaseFeedGrid({
             brandName={g.brandName ?? undefined}
             thumbnailUrl={g.thumbnailUrl ?? undefined}
             gearType={g.gearType}
-            dateText={
-              g.releaseDate
-                ? `Released ${new Date(g.releaseDate).getFullYear()}`
-                : null
-            }
+            releaseDate={g.releaseDate}
+            releaseDatePrecision={g.releaseDatePrecision}
             priceText={getItemDisplayPrice(g, {
               style: "short",
               padWholeAmounts: true,

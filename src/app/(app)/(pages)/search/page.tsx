@@ -127,7 +127,6 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                               brandName={r.brandName}
                               thumbnailUrl={r.thumbnailUrl}
                               gearType={r.gearType}
-                              dateText={null}
                               metaRight={
                                 showDebugScores
                                   ? (r.relevance ?? 0).toFixed(3)
@@ -161,7 +160,6 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                               brandName={r.brandName}
                               thumbnailUrl={r.thumbnailUrl}
                               gearType={r.gearType}
-                              dateText={null}
                               metaRight={
                                 showDebugScores
                                   ? (r.relevance ?? 0).toFixed(3)
@@ -185,7 +183,6 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                       brandName={r.brandName}
                       thumbnailUrl={r.thumbnailUrl}
                       gearType={r.gearType}
-                      dateText={null}
                     />
                   ))}
                 </div>

@@ -206,6 +206,7 @@ export async function fetchReleaseFeedPage(params: {
   const items = page.items.map((item) => ({
     ...item,
     releaseDate: item.releaseDate ? item.releaseDate.toISOString() : null,
+    releaseDatePrecision: item.releaseDatePrecision ?? null,
     brandName: item.brandName ?? null,
     thumbnailUrl: item.thumbnailUrl ?? null,
     gearType: item.gearType ?? null,

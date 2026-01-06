@@ -47,11 +47,8 @@ export default async function GearIndex() {
                     brandName={g.brandName}
                     thumbnailUrl={g.thumbnailUrl}
                     gearType={g.gearType}
-                    dateText={
-                      g.releaseDate
-                        ? `Released ${new Date(g.releaseDate).getFullYear()}`
-                        : null
-                    }
+                  releaseDate={g.releaseDate}
+                  releaseDatePrecision={g.releaseDatePrecision}
                   />
                 </li>
               ))}

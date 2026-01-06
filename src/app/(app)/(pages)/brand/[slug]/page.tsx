@@ -80,14 +80,8 @@ export default async function BrandPage({ params }: BrandPageProps) {
               brandName={item.brandName}
               thumbnailUrl={item.thumbnailUrl}
               gearType={item.gearType}
-              dateText={
-                item.releaseDate
-                  ? new Date(item.releaseDate).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "short",
-                    })
-                  : null
-              }
+              releaseDate={item.releaseDate}
+              releaseDatePrecision={item.releaseDatePrecision}
             />
           ))}
         </div>

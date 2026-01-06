@@ -245,6 +245,7 @@ function buildInitialPage(
     items: lists.items.map((g) => ({
       ...g,
       releaseDate: g.releaseDate ? g.releaseDate.toISOString() : null,
+      releaseDatePrecision: g.releaseDatePrecision ?? null,
       thumbnailUrl: g.thumbnailUrl ?? null,
       brandName: g.brandName ?? null,
       gearType: g.gearType ?? null,

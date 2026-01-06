@@ -207,6 +207,7 @@ export type GearCardRow = {
   msrpNowUsdCents: number | null;
   msrpAtLaunchUsdCents: number | null;
   releaseDate: Date | null;
+  releaseDatePrecision: "DAY" | "MONTH" | "YEAR" | null;
   createdAt: Date;
   resolutionMp: number | null;
   focalLengthMinMm: number | null;
@@ -229,6 +230,7 @@ export async function fetchLatestGearCardsData(
       msrpNowUsdCents: gear.msrpNowUsdCents,
       msrpAtLaunchUsdCents: gear.msrpAtLaunchUsdCents,
       releaseDate: gear.releaseDate,
+      releaseDatePrecision: gear.releaseDatePrecision,
       createdAt: gear.createdAt,
       resolutionMp: cameraSpecs.resolutionMp,
       focalLengthMinMm: lensSpecs.focalLengthMinMm,
@@ -260,6 +262,7 @@ export async function fetchBrandGearData(
       thumbnailUrl: gear.thumbnailUrl,
       msrpUsdCents: gear.msrpNowUsdCents,
       releaseDate: gear.releaseDate,
+      releaseDatePrecision: gear.releaseDatePrecision,
       createdAt: gear.createdAt,
       resolutionMp: cameraSpecs.resolutionMp,
       focalLengthMinMm: lensSpecs.focalLengthMinMm,

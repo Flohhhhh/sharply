@@ -16,6 +16,7 @@ type GearListItem = {
   gearType: string | null;
   thumbnailUrl: string | null;
   releaseDate: string | null;
+  releaseDatePrecision: "DAY" | "MONTH" | "YEAR" | null;
   msrpNowUsdCents: number | null;
   mpbMaxPriceUsdCents: number | null;
 };
@@ -155,11 +156,8 @@ export function BrowseResultsGrid({
             brandName={g.brandName ?? brandName}
             thumbnailUrl={g.thumbnailUrl ?? undefined}
             gearType={g.gearType ?? undefined}
-            dateText={
-              g.releaseDate
-                ? `Released ${new Date(g.releaseDate).getFullYear()}`
-                : null
-            }
+            releaseDate={g.releaseDate}
+            releaseDatePrecision={g.releaseDatePrecision}
             priceText={getItemDisplayPrice(g, {
               style: "short",
               padWholeAmounts: true,

@@ -79,13 +79,37 @@ export type GearCardProps = {
   brandName?: string | null;
   thumbnailUrl?: string | null;
   gearType?: string | null;
-  dateText?: string | null;
+  releaseDate?: string | Date | null;
+  releaseDatePrecision?: DatePrecision | null;
   priceText?: string | null;
   topLeftLabel?: string | null;
   metaRight?: React.ReactNode;
   badges?: React.ReactNode;
   className?: string;
 };
+
+type DatePrecision = "DAY" | "MONTH" | "YEAR";
+
+export function formatGearDate(
+  dateValue?: string | Date | null,
+  precision?: DatePrecision | null,
+) {
+  if (!dateValue) return "---";
+
+  const parsedDate =
+    dateValue instanceof Date ? dateValue : new Date(dateValue ?? undefined);
+  if (Number.isNaN(parsedDate.getTime())) return "-";
+
+  const resolvedPrecision: DatePrecision = precision ?? "MONTH";
+  if (resolvedPrecision === "YEAR") {
+    return parsedDate.getFullYear().toString();
+  }
+
+  return parsedDate.toLocaleDateString("en-US", {
+    month: "short",
+    year: "numeric",
+  });
+}
 
 // TODO: Need to work on what information is showed on these cards, might vary based on where they are used
 // should so badges, trending, etc. in some places.
@@ -97,7 +121,8 @@ export function GearCard(props: GearCardProps) {
     brandName,
     thumbnailUrl,
     gearType,
-    dateText,
+    releaseDate,
+    releaseDatePrecision,
     priceText,
     topLeftLabel,
     metaRight,
@@ -106,6 +131,7 @@ export function GearCard(props: GearCardProps) {
   } = props;
 
   const trimmedName = stripBrandFromName(name, brandName);
+  const dateLabel = formatGearDate(releaseDate, releaseDatePrecision);
 
   return (
     <div className={cn("group relative", className)}>
@@ -176,11 +202,7 @@ export function GearCard(props: GearCardProps) {
             {badges}
 
             <div className="flex items-center justify-between">
-              {dateText ? (
-                <div className="text-muted-foreground text-xs">{dateText}</div>
-              ) : (
-                <span />
-              )}
+              <div className="text-muted-foreground text-xs">{dateLabel}</div>
               {priceText ? (
                 <span
                   className={cn(
