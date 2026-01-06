@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Card, CardContent, CardHeader } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
+import { Empty, EmptyDescription, EmptyTitle } from "~/components/ui/empty";
 import Link from "next/link";
 
 interface UserReview {
@@ -30,7 +31,15 @@ function isUserReviewsResponse(value: unknown): value is UserReviewsResponse {
   );
 }
 
-export function UserReviewsList({ userId }: { userId?: string }) {
+export function UserReviewsList({
+  userId,
+  isCurrentUser = false,
+  profileName,
+}: {
+  userId?: string;
+  isCurrentUser?: boolean;
+  profileName?: string | null;
+}) {
   const [reviews, setReviews] = useState<UserReview[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -83,17 +92,19 @@ export function UserReviewsList({ userId }: { userId?: string }) {
   }
 
   if (reviews.length === 0) {
+    const displayName = profileName?.trim() || "This user";
+    const emptyTitle = isCurrentUser
+      ? "You haven't written any reviews yet"
+      : `${displayName} hasn't written any reviews yet`;
+    const emptyDescription = isCurrentUser
+      ? "Start reviewing gear you've used to help other photographers."
+      : "Check back later to see their thoughts on gear they've used.";
+
     return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-muted-foreground text-center">
-            <p className="mb-2">You haven't written any reviews yet.</p>
-            <p className="text-sm">
-              Start reviewing gear you've used to help other photographers!
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <Empty className="border-border rounded-lg border-2 border-dashed p-8">
+        <EmptyTitle>{emptyTitle}</EmptyTitle>
+        <EmptyDescription>{emptyDescription}</EmptyDescription>
+      </Empty>
     );
   }
 
