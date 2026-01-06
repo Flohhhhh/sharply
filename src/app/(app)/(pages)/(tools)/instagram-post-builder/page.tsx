@@ -27,6 +27,7 @@ type FrameImage = {
 
 type Frame = {
   id: number;
+  span: number;
   images: FrameImage[];
 };
 
@@ -72,8 +73,11 @@ const ASPECT_RATIOS = [
 ];
 
 const COLORS = ["#FFFFFF", "#000000"];
+const PANORAMA_SPAN_OPTIONS = [2, 3, 4];
 
 const getFrameRect = (
+  frameOffset: number,
+  frameWidth: number,
   index: number,
   totalFrames: number,
   settings: Settings,
@@ -81,12 +85,12 @@ const getFrameRect = (
   const { padding, peekAmount, aspectRatio } = settings;
   const totalHeight = FRAME_WIDTH / aspectRatio;
 
-  let leftBoundary = index * FRAME_WIDTH;
-  if (index === 1) {
+  let leftBoundary = frameOffset;
+  if (index > 0) {
     leftBoundary -= peekAmount;
   }
 
-  let rightBoundary = (index + 1) * FRAME_WIDTH;
+  let rightBoundary = frameOffset + frameWidth;
   if (index === 0 && totalFrames > 1) {
     rightBoundary -= peekAmount;
   }
@@ -95,7 +99,7 @@ const getFrameRect = (
   let paddingLeft = padding;
   let paddingRight = padding;
 
-  if (hasPeek && index === 1 && totalFrames > 1) {
+  if (hasPeek && index > 0) {
     paddingLeft = padding / 2;
   }
 
@@ -133,7 +137,9 @@ const getNextFrameId = (frames: Frame[]) =>
 
 const InstagramPostBuilderPage = () => {
   const isMobile = useIsMobile();
-  const [frames, setFrames] = useState<Frame[]>([{ id: 1, images: [] }]);
+  const [frames, setFrames] = useState<Frame[]>([
+    { id: 1, span: 1, images: [] },
+  ]);
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [activeFrameId, setActiveFrameId] = useState<number | null>(null);
   const [dragState, setDragState] = useState<DragState>({
@@ -150,14 +156,30 @@ const InstagramPostBuilderPage = () => {
   const workspaceRef = useRef<HTMLDivElement>(null);
   const [workspaceHeight, setWorkspaceHeight] = useState(0);
 
+  const totalSpan = useMemo(
+    () => frames.reduce((sum, frame) => sum + frame.span, 0),
+    [frames],
+  );
+
+  const totalSlides = totalSpan;
+
   const totalWidth = useMemo(
-    () => frames.length * FRAME_WIDTH,
-    [frames.length],
+    () => totalSpan * FRAME_WIDTH,
+    [totalSpan],
   );
   const totalHeight = useMemo(
     () => FRAME_WIDTH / settings.aspectRatio,
     [settings.aspectRatio],
   );
+
+  const frameOffsets = useMemo(() => {
+    let offset = 0;
+    return frames.map((frame) => {
+      const currentOffset = offset;
+      offset += frame.span * FRAME_WIDTH;
+      return currentOffset;
+    });
+  }, [frames]);
 
   useEffect(() => {
     const element = workspaceRef.current;
@@ -193,13 +215,13 @@ const InstagramPostBuilderPage = () => {
 
   const addFrame = () => {
     const newId = getNextFrameId(frames);
-    setFrames((prev) => [...prev, { id: newId, images: [] }]);
+    setFrames((prev) => [...prev, { id: newId, span: 1, images: [] }]);
   };
 
   const removeFrame = (frameId: number) => {
     setFrames((prev) => {
       if (prev.length === 1) {
-        return [{ id: 1, images: [] }];
+        return [{ id: 1, span: 1, images: [] }];
       }
       const nextFrames = prev.filter((frame) => frame.id !== frameId);
       if (activeFrameId === frameId) {
@@ -226,6 +248,15 @@ const InstagramPostBuilderPage = () => {
               images: frame.images.filter((image) => image.id !== imageId),
             }
           : frame,
+      ),
+    );
+  };
+
+  const setFrameSpan = (frameId: number, span: number) => {
+    const safeSpan = Math.max(1, Math.min(10, Math.round(span)));
+    setFrames((prev) =>
+      prev.map((frame) =>
+        frame.id === frameId ? { ...frame, span: safeSpan } : frame,
       ),
     );
   };
@@ -359,7 +390,15 @@ const InstagramPostBuilderPage = () => {
     ctx.fillRect(0, 0, totalWidth, totalHeight);
 
     for (const [frameIndex, frame] of frames.entries()) {
-      const rect = getFrameRect(frameIndex, frames.length, settings);
+      const frameOffset = frameOffsets[frameIndex] ?? 0;
+      const frameWidth = frame.span * FRAME_WIDTH;
+      const rect = getFrameRect(
+        frameOffset,
+        frameWidth,
+        frameIndex,
+        frames.length,
+        settings,
+      );
 
       if (frame.images.length === 0) {
         continue;
@@ -417,12 +456,22 @@ const InstagramPostBuilderPage = () => {
       return [];
     }
 
-    const slices: Array<{ id: number; url: string }> = [];
-    for (const [frameIndex, frame] of frames.entries()) {
+    const slideOwners: Array<{
+      frameId: number;
+      frameSlideIndex: number;
+    }> = [];
+    frames.forEach((frame) => {
+      for (let index = 0; index < frame.span; index += 1) {
+        slideOwners.push({ frameId: frame.id, frameSlideIndex: index + 1 });
+      }
+    });
+
+    const slices: Array<{ id: number; url: string; slideNumber: number }> = [];
+    slideOwners.forEach((owner, slideIndex) => {
       exportCtx.clearRect(0, 0, FRAME_WIDTH, totalHeight);
       exportCtx.drawImage(
         canvas,
-        frameIndex * FRAME_WIDTH,
+        slideIndex * FRAME_WIDTH,
         0,
         FRAME_WIDTH,
         totalHeight,
@@ -432,8 +481,12 @@ const InstagramPostBuilderPage = () => {
         totalHeight,
       );
       const url = exportCanvas.toDataURL("image/jpeg", 0.95);
-      slices.push({ id: frame.id, url });
-    }
+      slices.push({
+        id: owner.frameId,
+        url,
+        slideNumber: slideIndex + 1,
+      });
+    });
 
     return slices;
   };
@@ -448,7 +501,7 @@ const InstagramPostBuilderPage = () => {
     await Promise.all(
       slices.map(async (slice) => {
         const blob = await dataUrlToBlob(slice.url);
-        zip.file(`frame-${slice.id}.jpg`, blob);
+        zip.file(`slide-${slice.slideNumber}.jpg`, blob);
       }),
     );
 
@@ -549,7 +602,7 @@ const InstagramPostBuilderPage = () => {
                     className="relative flex min-w-fit flex-shrink-0 items-stretch"
                     style={{
                       height: renderHeight ? `${renderHeight}px` : "55vh",
-                      aspectRatio: `${frames.length * settings.aspectRatio}`,
+                      aspectRatio: `${totalSpan * settings.aspectRatio}`,
                     }}
                   >
                     <div
@@ -558,16 +611,30 @@ const InstagramPostBuilderPage = () => {
                     />
 
                     {frames.map((frame, index) => {
-                      const rect = getFrameRect(index, frames.length, settings);
+                      const frameOffset = frameOffsets[index] ?? 0;
+                      const frameWidth = frame.span * FRAME_WIDTH;
+                      const rect = getFrameRect(
+                        frameOffset,
+                        frameWidth,
+                        index,
+                        frames.length,
+                        settings,
+                      );
                       const leftPct = (rect.x / totalWidth) * 100;
                       const topPct = (rect.y / totalHeight) * 100;
                       const widthPct = (rect.w / totalWidth) * 100;
                       const heightPct = (rect.h / totalHeight) * 100;
                       const isActive = activeFrameId === frame.id;
+                      const slideStart = Math.round(frameOffset / FRAME_WIDTH + 1);
+                      const slideEnd = slideStart + frame.span - 1;
+                      const slideLabel =
+                        frame.span === 1
+                          ? `Slide ${slideStart}`
+                          : `Slides ${slideStart}-${slideEnd}`;
 
                       return (
                         <div key={frame.id} className="group">
-                          {frames.length > 1 && (
+                          {totalSpan > 1 && (
                             <div
                               className="border-border bg-background/95 text-foreground absolute z-30 flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold shadow"
                               style={{
@@ -576,12 +643,12 @@ const InstagramPostBuilderPage = () => {
                                 transform: "translate(-50%, -140%)",
                               }}
                             >
-                              <span>Slide {index + 1}</span>
+                              <span>{slideLabel}</span>
                               <Button
                                 type="button"
                                 size="icon"
                                 variant="ghost"
-                                aria-label={`Delete slide ${index + 1}`}
+                                aria-label={`Delete ${slideLabel}`}
                                 className="text-destructive hover:bg-destructive/10 hover:text-destructive h-6 w-6"
                                 onClick={() => removeFrame(frame.id)}
                               >
@@ -637,6 +704,47 @@ const InstagramPostBuilderPage = () => {
                                 >
                                   <Layers size={14} /> Add Image
                                 </Button>
+                                <div className="flex items-center gap-1">
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="secondary"
+                                    disabled={frame.images.length === 0}
+                                    onClick={() => setFrameSpan(frame.id, 2)}
+                                    className="flex items-center gap-1"
+                                  >
+                                    Extend (panorama)
+                                  </Button>
+                                  {PANORAMA_SPAN_OPTIONS.map((spanOption) => (
+                                    <Button
+                                      key={spanOption}
+                                      type="button"
+                                      size="icon"
+                                      variant={
+                                        frame.span === spanOption
+                                          ? "default"
+                                          : "ghost"
+                                      }
+                                      disabled={frame.images.length === 0}
+                                      onClick={() =>
+                                        setFrameSpan(frame.id, spanOption)
+                                      }
+                                      className="min-w-10"
+                                    >
+                                      {spanOption}x
+                                    </Button>
+                                  ))}
+                                  <Button
+                                    type="button"
+                                    size="icon"
+                                    variant={frame.span === 1 ? "default" : "ghost"}
+                                    disabled={frame.images.length === 0}
+                                    onClick={() => setFrameSpan(frame.id, 1)}
+                                    className="min-w-10"
+                                  >
+                                    1x
+                                  </Button>
+                                </div>
                               </div>
                             </div>
                           )}
@@ -646,13 +754,13 @@ const InstagramPostBuilderPage = () => {
 
                     {settings.showGuides &&
                       Array.from({
-                        length: Math.max(frames.length - 1, 0),
+                        length: Math.max(totalSlides - 1, 0),
                       }).map((_, index) => (
                         <div
                           key={`guide-${index}`}
                           className="border-primary/60 pointer-events-none absolute inset-y-0 border-l border-dashed"
                           style={{
-                            left: `${((index + 1) / frames.length) * 100}%`,
+                            left: `${((index + 1) / totalSlides) * 100}%`,
                           }}
                         >
                           <div className="bg-primary text-primary-foreground absolute bottom-2 left-1 rounded px-1 py-0.5 font-mono text-[10px]">
