@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { CameraVideoMode } from "~/types/gear";
 
-export const MAX_VIDEO_MODES = 200;
+export const MAX_VIDEO_MODES = 500;
 
 const nullableNumber = z
   .union([z.number(), z.string(), z.null(), z.undefined()])

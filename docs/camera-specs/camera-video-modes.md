@@ -54,3 +54,6 @@ The database still stores one row per codec (contributors set `codec_label` when
 
 Future optimizations (such as caching a `video_matrix` JSON blob on `camera_specs`) can layer on top of this structure without changing contributor workflows.
 
+### Mode Count Limit
+
+`videoModes` submissions are validated through `src/lib/video/mode-schema.ts`, which now allows up to 500 entries per gear. Keeping an explicit upper bound helps keep proposal payloads manageable without clipping typical cinema rigs.
