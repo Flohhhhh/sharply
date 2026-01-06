@@ -195,7 +195,7 @@ export default async function UserProfilePage({
                 user={profile}
               />
             </>
-          ) : (
+          ) : myProfile ? (
             <Empty className="border-border rounded-lg border-2 border-dashed p-8">
               <EmptyTitle>Your collection is empty</EmptyTitle>
               <EmptyDescription>
@@ -213,6 +213,10 @@ export default async function UserProfilePage({
                 </div>
               </EmptyContent>
             </Empty>
+          ) : (
+            <div className="border-border text-muted-foreground rounded-lg border-2 border-dashed p-8 text-center">
+              {profile.name}'s collection is empty
+            </div>
           )}
         </div>
 
