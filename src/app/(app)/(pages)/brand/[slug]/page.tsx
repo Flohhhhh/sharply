@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { GearCard } from "~/components/gear/gear-card";
 import BrandTrendingList from "./_components/brand-trending-list";
+import { fetchTrendingSlugs } from "~/server/popularity/service";
 
 interface BrandPageProps {
   params: Promise<{
@@ -40,6 +41,12 @@ export default async function BrandPage({ params }: BrandPageProps) {
 
   // Get all gear for this brand
   const brandGear = await fetchGearForBrand(brand.id);
+  const trendingSlugs = await fetchTrendingSlugs({
+    timeframe: "30d",
+    limit: 20,
+    filters: { brandId: brand.id },
+  });
+  const trendingSet = new Set(trendingSlugs);
 
   return (
     <main className="mx-auto mt-24 max-w-6xl p-6">
@@ -80,6 +87,7 @@ export default async function BrandPage({ params }: BrandPageProps) {
               brandName={item.brandName}
               thumbnailUrl={item.thumbnailUrl}
               gearType={item.gearType}
+              isTrending={trendingSet.has(item.slug)}
               releaseDate={item.releaseDate}
               releaseDatePrecision={item.releaseDatePrecision}
             />

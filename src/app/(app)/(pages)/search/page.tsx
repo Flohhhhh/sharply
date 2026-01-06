@@ -13,6 +13,7 @@ import { SortSelect } from "~/components/search/sort-select";
 import FilterSidebar from "~/components/layout/FilterSidebar";
 import { Button } from "~/components/ui/button";
 import { GearCard } from "~/components/gear/gear-card";
+import { fetchTrendingSlugs } from "~/server/popularity/service";
 
 type SearchPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -58,15 +59,20 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   };
 
   try {
-    const result: SearchResponse = await searchGear({
-      query: q,
-      sort,
-      page,
-      pageSize,
-      filters: Object.fromEntries(
-        Object.entries(filters).filter(([_, value]) => value !== undefined),
-      ) as Parameters<typeof searchGear>[0]["filters"],
-    });
+    const [result, trendingSlugs]: [SearchResponse, string[]] =
+      await Promise.all([
+        searchGear({
+          query: q,
+          sort,
+          page,
+          pageSize,
+          filters: Object.fromEntries(
+            Object.entries(filters).filter(([_, value]) => value !== undefined),
+          ) as Parameters<typeof searchGear>[0]["filters"],
+        }),
+        fetchTrendingSlugs({ timeframe: "30d", limit: 20 }),
+      ]);
+    const trendingSet = new Set(trendingSlugs);
 
     // Build base URLSearchParams from incoming searchParams to preserve all filters
     const baseParams = new URLSearchParams();
@@ -127,6 +133,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                               brandName={r.brandName}
                               thumbnailUrl={r.thumbnailUrl}
                               gearType={r.gearType}
+                              isTrending={trendingSet.has(r.slug)}
                               metaRight={
                                 showDebugScores
                                   ? (r.relevance ?? 0).toFixed(3)
@@ -160,6 +167,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                               brandName={r.brandName}
                               thumbnailUrl={r.thumbnailUrl}
                               gearType={r.gearType}
+                              isTrending={trendingSet.has(r.slug)}
                               metaRight={
                                 showDebugScores
                                   ? (r.relevance ?? 0).toFixed(3)
@@ -183,6 +191,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                       brandName={r.brandName}
                       thumbnailUrl={r.thumbnailUrl}
                       gearType={r.gearType}
+                      isTrending={trendingSet.has(r.slug)}
                     />
                   ))}
                 </div>

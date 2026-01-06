@@ -7,6 +7,7 @@ import Image from "next/image";
 import { BRANDS } from "~/lib/constants";
 import { PRICE_FALLBACK_TEXT } from "~/lib/mapping";
 import { Spinner } from "../ui/spinner";
+import { TrendingBadge } from "../gear-badges/trending-badge";
 
 const BASE_BRAND_NAMES = uniqueCaseInsensitive(
   BRANDS.flatMap((brand) => splitBrandNameVariants(brand.name)),
@@ -79,10 +80,10 @@ export type GearCardProps = {
   brandName?: string | null;
   thumbnailUrl?: string | null;
   gearType?: string | null;
+  isTrending?: boolean;
   releaseDate?: string | Date | null;
   releaseDatePrecision?: DatePrecision | null;
   priceText?: string | null;
-  topLeftLabel?: string | null;
   metaRight?: React.ReactNode;
   badges?: React.ReactNode;
   className?: string;
@@ -121,10 +122,10 @@ export function GearCard(props: GearCardProps) {
     brandName,
     thumbnailUrl,
     gearType,
+    isTrending,
     releaseDate,
     releaseDatePrecision,
     priceText,
-    topLeftLabel,
     metaRight,
     badges,
     className,
@@ -132,6 +133,9 @@ export function GearCard(props: GearCardProps) {
 
   const trimmedName = stripBrandFromName(name, brandName);
   const dateLabel = formatGearDate(releaseDate, releaseDatePrecision);
+  const badgeNodes: React.ReactNode[] = [];
+  if (isTrending) badgeNodes.push(<TrendingBadge key="trending" />);
+  if (badges) badgeNodes.push(badges);
 
   return (
     <div className={cn("group relative", className)}>
@@ -147,9 +151,9 @@ export function GearCard(props: GearCardProps) {
         <div className="bg-background rounded-2xl p-2">
           {/* Image area */}
           <div className="bg-muted dark:bg-card relative aspect-video overflow-hidden rounded-xl p-4">
-            {topLeftLabel ? (
-              <div className="absolute top-2 left-2 rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
-                {topLeftLabel}
+            {badgeNodes.length ? (
+              <div className="absolute top-2 left-2 flex flex-wrap gap-1">
+                {badgeNodes}
               </div>
             ) : null}
             {thumbnailUrl ? (
@@ -198,8 +202,6 @@ export function GearCard(props: GearCardProps) {
             <div className="text-foreground truncate text-lg font-semibold">
               {trimmedName}
             </div>
-
-            {badges}
 
             <div className="flex items-center justify-between">
               <div className="text-muted-foreground text-xs">{dateLabel}</div>
