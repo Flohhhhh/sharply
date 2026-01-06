@@ -8,6 +8,7 @@ import { BRANDS } from "~/lib/constants";
 import { PRICE_FALLBACK_TEXT } from "~/lib/mapping";
 import { Spinner } from "../ui/spinner";
 import { TrendingBadge } from "../gear-badges/trending-badge";
+import { NewBadge } from "../gear-badges/new-badge";
 
 const BASE_BRAND_NAMES = uniqueCaseInsensitive(
   BRANDS.flatMap((brand) => splitBrandNameVariants(brand.name)),
@@ -133,8 +134,10 @@ export function GearCard(props: GearCardProps) {
 
   const trimmedName = stripBrandFromName(name, brandName);
   const dateLabel = formatGearDate(releaseDate, releaseDatePrecision);
+  const isNew = isNewRelease(releaseDate, releaseDatePrecision);
   const badgeNodes: React.ReactNode[] = [];
   if (isTrending) badgeNodes.push(<TrendingBadge key="trending" />);
+  if (isNew) badgeNodes.push(<NewBadge key="new" />);
   if (badges) badgeNodes.push(badges);
 
   return (
@@ -223,6 +226,21 @@ export function GearCard(props: GearCardProps) {
       </Link>
     </div>
   );
+}
+
+function isNewRelease(
+  dateValue?: string | Date | null,
+  precision?: DatePrecision | null,
+) {
+  if (!dateValue) return false;
+  // Skip when precision is year-only to avoid false positives.
+  if (precision === "YEAR") return false;
+  const parsedDate =
+    dateValue instanceof Date ? dateValue : new Date(dateValue ?? undefined);
+  if (Number.isNaN(parsedDate.getTime())) return false;
+  const now = Date.now();
+  const threeMonthsMs = 1000 * 60 * 60 * 24 * 90;
+  return now - parsedDate.getTime() <= threeMonthsMs;
 }
 
 export function GearCardSkeleton() {
