@@ -27,7 +27,7 @@ export function CollectionContainer(props: {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
   const updateFrameRef = useRef<number | null>(null);
-  const hasUpdatedForItemsRef = useRef(false);
+  const hasRunItemsEffectRef = useRef(false);
   const [layout, setLayout] = useState({
     scale: 1,
     containerHeight: designHeightWithPadding,
@@ -85,7 +85,7 @@ export function CollectionContainer(props: {
   }, []);
 
   const scheduleUpdate = useCallback(() => {
-    if (updateFrameRef.current != null) {
+    if (updateFrameRef.current !== null) {
       cancelAnimationFrame(updateFrameRef.current);
     }
     updateFrameRef.current = requestAnimationFrame(() => {
@@ -104,7 +104,7 @@ export function CollectionContainer(props: {
     ro.observe(content);
     return () => {
       ro.disconnect();
-      if (updateFrameRef.current != null) {
+      if (updateFrameRef.current !== null) {
         cancelAnimationFrame(updateFrameRef.current);
         updateFrameRef.current = null;
       }
@@ -112,8 +112,8 @@ export function CollectionContainer(props: {
   }, [scheduleUpdate]);
 
   useLayoutEffect(() => {
-    if (!hasUpdatedForItemsRef.current) {
-      hasUpdatedForItemsRef.current = true;
+    if (!hasRunItemsEffectRef.current) {
+      hasRunItemsEffectRef.current = true;
       return;
     }
     scheduleUpdate();
