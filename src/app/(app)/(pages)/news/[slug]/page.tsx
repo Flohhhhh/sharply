@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getNewsPostBySlug } from "~/server/payload/service";
 import Image from "next/image";
 import { Badge } from "~/components/ui/badge";
-import { Calendar } from "lucide-react";
+import { Calendar, ExternalLink } from "lucide-react";
 import { formatHumanDate } from "~/lib/utils";
 import type { Metadata } from "next";
 import { RichText } from "~/components/rich-text";
@@ -13,6 +13,8 @@ import { fetchGearBySlug } from "~/server/gear/service";
 import { getBrandNameById } from "~/lib/mapping/brand-map";
 import DiscordBanner from "~/components/discord-banner";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
+import Link from "next/link";
+import { Separator } from "~/components/ui/separator";
 
 export const revalidate = 60;
 
@@ -76,6 +78,34 @@ export default async function DynamicPage({
         )
       ).filter(Boolean)
     : [];
+  const sourceLinks =
+    Array.isArray(page.sourceLinks) && page.sourceLinks.length > 0
+      ? page.sourceLinks
+          .map((source) => {
+            const name =
+              source && typeof source === "object" && "name" in source
+                ? source.name
+                : null;
+            const link =
+              source && typeof source === "object" && "link" in source
+                ? source.link
+                : null;
+            return {
+              id:
+                source && typeof source === "object" && "id" in source
+                  ? source.id
+                  : null,
+              name: typeof name === "string" ? name : null,
+              link: typeof link === "string" ? link : null,
+            };
+          })
+          .filter(
+            (
+              source,
+            ): source is { id: string | null; name: string; link: string } =>
+              Boolean(source.name) && Boolean(source.link),
+          )
+      : [];
 
   return (
     <div className="mx-auto my-24 flex min-h-screen flex-col items-center gap-12 px-4 sm:px-8">
@@ -134,6 +164,28 @@ export default async function DynamicPage({
 
         <aside className="sticky top-24 col-span-2 hidden h-fit space-y-8 self-start lg:block">
           <TableOfContents contentSelector="#news-content" />
+          <Separator />
+          {sourceLinks.length > 0 ? (
+            <div className="space-y-3">
+              <div className="text-muted-foreground text-sm font-semibold">
+                Links
+              </div>
+              <div className="flex flex-col gap-2 text-sm">
+                {sourceLinks.map((source) => ( 
+                  <Link
+                    key={source.id ?? source.link}
+                    href={source.link}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="text-primary flex items-start gap-2 rounded border px-3 py-2 hover:underline"
+                  >
+                    <ExternalLink className="text-muted-foreground mt-0.5 h-4 w-4" />
+                    <span>{source.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </aside>
       </div>
       <DiscordBanner label="Join the Discussion" className="w-full max-w-5xl" />

@@ -6,8 +6,20 @@ import { TbLaurelWreath } from "react-icons/tb";
 import { WreathIcon } from "./WreathIcon";
 import { BlurFade } from "@/components/ui/blur-fade";
 import { Separator } from "@/components/ui/separator";
+import type { Metadata } from "next";
 
 export const dynamic = "force-static";
+
+export const metadata: Metadata = {
+  title: "Hall of Fame",
+  description:
+    "Explore Sharply’s Hall of Fame, a curated collection of the most iconic and influential cameras and lenses in photography history, highlighting the gear that shaped the industry and remains relevant today.",
+  openGraph: {
+    title: "Hall of Fame",
+    description:
+      "Explore Sharply’s Hall of Fame, a curated collection of the most iconic and influential cameras and lenses in photography history, highlighting the gear that shaped the industry and remains relevant today.",
+  },
+};
 
 type DatePrecision = "DAY" | "MONTH" | "YEAR";
 

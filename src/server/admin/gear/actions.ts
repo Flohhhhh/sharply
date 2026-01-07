@@ -2,12 +2,18 @@
 import "server-only";
 
 import { revalidatePath } from "next/cache";
-import { createGearAdmin, renameGearService, setGearThumbnailService, clearGearThumbnailService } from "./service";
+import {
+  createGearAdmin,
+  renameGearService,
+  setGearThumbnailService,
+  clearGearThumbnailService,
+} from "./service";
 import type { GearCreationParams } from "./data";
 
 export async function actionCreateGear(params: GearCreationParams) {
   const result = await createGearAdmin(params);
   revalidatePath("/admin");
+  revalidatePath("/browse");
   return result;
 }
 
@@ -19,6 +25,7 @@ export async function actionRenameGear(params: {
   // Revalidate both old and new paths
   revalidatePath("/admin/gear");
   revalidatePath(`/gear/${result.slug}`);
+  revalidatePath("/browse");
   return result;
 }
 
@@ -30,6 +37,7 @@ export async function actionSetGearThumbnail(params: {
   const result = await setGearThumbnailService(params);
   revalidatePath("/admin/gear");
   revalidatePath(`/gear/${result.slug}`);
+  revalidatePath("/browse");
   return result;
 }
 
@@ -40,5 +48,6 @@ export async function actionClearGearThumbnail(params: {
   const result = await clearGearThumbnailService(params);
   revalidatePath("/admin/gear");
   revalidatePath(`/gear/${result.slug}`);
+  revalidatePath("/browse");
   return result;
 }
