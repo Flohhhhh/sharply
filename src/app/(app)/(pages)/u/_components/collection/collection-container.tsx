@@ -21,6 +21,7 @@ const designWidth = 1920;
 const designHeight = 1080;
 const bottomPadding = 120;
 const designHeightWithPadding = designHeight + bottomPadding;
+const HEIGHT_CHANGE_THRESHOLD = 0.5;
 
 export function CollectionContainer(props: {
   items: GearItem[];
@@ -57,16 +58,18 @@ export function CollectionContainer(props: {
       1,
     );
 
-    setScale((prev) => (prev === fit ? prev : fit));
+    setScale(fit);
     setContainerHeight((prev) =>
-      Math.abs(prev - targetHeight) < 0.5 ? prev : targetHeight,
+      Math.abs(prev - targetHeight) < HEIGHT_CHANGE_THRESHOLD
+        ? prev
+        : targetHeight,
     );
     setContentSize((prev) =>
       prev.width === measuredWidth && prev.height === measuredHeight
         ? prev
         : { width: measuredWidth, height: measuredHeight },
     );
-  }, []);
+  }, [designHeightWithPadding, designWidth]);
 
   useLayoutEffect(() => {
     updateScale();
@@ -76,7 +79,11 @@ export function CollectionContainer(props: {
     if (container) ro.observe(container);
     if (content) ro.observe(content);
     return () => ro.disconnect();
-  }, [updateScale, items]);
+  }, [updateScale]);
+
+  useLayoutEffect(() => {
+    updateScale();
+  }, [items, updateScale]);
 
   useEffect(() => {
     console.log("isCopying", isCopying);
