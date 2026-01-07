@@ -26,6 +26,8 @@ export function CollectionContainer(props: {
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
+  const updateFrameRef = useRef<number | null>(null);
+  const hasUpdatedForItemsRef = useRef(false);
   const [layout, setLayout] = useState({
     scale: 1,
     containerHeight: designHeightWithPadding,
@@ -82,20 +84,40 @@ export function CollectionContainer(props: {
     });
   }, []);
 
-  useLayoutEffect(() => {
-    updateScale();
-    const container = containerRef.current;
-    const content = contentRef.current;
-    if (!container || !content) return;
-    const ro = new ResizeObserver(updateScale);
-    ro.observe(container);
-    ro.observe(content);
-    return () => ro.disconnect();
+  const scheduleUpdate = useCallback(() => {
+    if (updateFrameRef.current != null) {
+      cancelAnimationFrame(updateFrameRef.current);
+    }
+    updateFrameRef.current = requestAnimationFrame(() => {
+      updateFrameRef.current = null;
+      updateScale();
+    });
   }, [updateScale]);
 
   useLayoutEffect(() => {
-    updateScale();
-  }, [items, updateScale]);
+    scheduleUpdate();
+    const container = containerRef.current;
+    const content = contentRef.current;
+    if (!container || !content) return;
+    const ro = new ResizeObserver(scheduleUpdate);
+    ro.observe(container);
+    ro.observe(content);
+    return () => {
+      ro.disconnect();
+      if (updateFrameRef.current != null) {
+        cancelAnimationFrame(updateFrameRef.current);
+        updateFrameRef.current = null;
+      }
+    };
+  }, [scheduleUpdate]);
+
+  useLayoutEffect(() => {
+    if (!hasUpdatedForItemsRef.current) {
+      hasUpdatedForItemsRef.current = true;
+      return;
+    }
+    scheduleUpdate();
+  }, [items, scheduleUpdate]);
 
   const handleCopyImage = useCallback(async () => {
     setIsCopying(true);
