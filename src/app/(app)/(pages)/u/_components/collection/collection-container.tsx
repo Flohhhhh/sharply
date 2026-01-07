@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { ClipboardCopy, Loader } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "~/lib/utils";
@@ -94,8 +88,8 @@ export function CollectionContainer(props: {
     const content = contentRef.current;
     if (!container || !content) return;
     const ro = new ResizeObserver(updateScale);
-    if (container) ro.observe(container);
-    if (content) ro.observe(content);
+    ro.observe(container);
+    ro.observe(content);
     return () => ro.disconnect();
   }, [updateScale]);
 
