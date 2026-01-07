@@ -32,12 +32,15 @@ export function CollectionContainer(props: {
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
-  const [scale, setScale] = useState(1);
-  const [containerHeight, setContainerHeight] = useState(designHeightWithPadding);
-  const [contentSize, setContentSize] = useState({
-    width: designWidth,
-    height: designHeightWithPadding,
+  const [layout, setLayout] = useState({
+    scale: 1,
+    containerHeight: designHeightWithPadding,
+    contentSize: {
+      width: designWidth,
+      height: designHeightWithPadding,
+    },
   });
+  const { scale, containerHeight, contentSize } = layout;
   const [isCopying, setIsCopying] = useState(false);
 
   const updateScale = useCallback(() => {
@@ -58,17 +61,31 @@ export function CollectionContainer(props: {
       1,
     );
 
-    setScale(fit);
-    setContainerHeight((prev) =>
-      Math.abs(prev - targetHeight) < HEIGHT_CHANGE_THRESHOLD
-        ? prev
-        : targetHeight,
-    );
-    setContentSize((prev) =>
-      prev.width === measuredWidth && prev.height === measuredHeight
-        ? prev
-        : { width: measuredWidth, height: measuredHeight },
-    );
+    setLayout((prev) => {
+      const nextContainerHeight =
+        Math.abs(prev.containerHeight - targetHeight) < HEIGHT_CHANGE_THRESHOLD
+          ? prev.containerHeight
+          : targetHeight;
+      const nextContentSize =
+        prev.contentSize.width === measuredWidth &&
+        prev.contentSize.height === measuredHeight
+          ? prev.contentSize
+          : { width: measuredWidth, height: measuredHeight };
+
+      if (
+        prev.scale === fit &&
+        prev.containerHeight === nextContainerHeight &&
+        prev.contentSize === nextContentSize
+      ) {
+        return prev;
+      }
+
+      return {
+        scale: fit,
+        containerHeight: nextContainerHeight,
+        contentSize: nextContentSize,
+      };
+    });
   }, [designHeightWithPadding, designWidth]);
 
   useLayoutEffect(() => {
@@ -84,13 +101,6 @@ export function CollectionContainer(props: {
   useLayoutEffect(() => {
     updateScale();
   }, [items, updateScale]);
-
-  useEffect(() => {
-    console.log("isCopying", isCopying);
-    return () => {
-      console.log("unmounting");
-    };
-  }, [isCopying]);
 
   const handleCopyImage = useCallback(async () => {
     setIsCopying(true);
