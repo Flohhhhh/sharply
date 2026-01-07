@@ -7,6 +7,8 @@ import { AddToCompareButton } from "~/components/compare/add-to-compare-button";
 import { formatGearDate, type GearCardProps } from "./gear-card";
 import { TrendingBadge } from "../gear-badges/trending-badge";
 import { BRANDS } from "~/lib/constants";
+import { HallOfFameBadge } from "../gear-badges/hall-of-fame-badge";
+import { isInHallOfFame } from "~/lib/utils/is-in-hall-of-fame";
 
 function splitBrandNameVariants(brandName: string) {
   const normalized = brandName?.trim();
@@ -93,6 +95,8 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
   const trimmedName = stripBrandFromName(name, brandName);
   const dateLabel = formatGearDate(releaseDate, releaseDatePrecision);
   const badgeNodes: React.ReactNode[] = [];
+  const isHallOfFameItem = isInHallOfFame(slug);
+  if (isHallOfFameItem) badgeNodes.push(<HallOfFameBadge key="hall-of-fame" />);
   if (isTrending) badgeNodes.push(<TrendingBadge key="trending" />);
   if (badges) badgeNodes.push(badges);
 
