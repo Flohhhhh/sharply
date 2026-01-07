@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ClipboardCopy, Loader } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "~/lib/utils";
@@ -15,7 +15,6 @@ const designWidth = 1920;
 const designHeight = 1080;
 const bottomPadding = 120;
 const designHeightWithPadding = designHeight + bottomPadding;
-const HEIGHT_CHANGE_THRESHOLD = 0.5;
 
 export function CollectionContainer(props: {
   items: GearItem[];
@@ -27,7 +26,6 @@ export function CollectionContainer(props: {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
   const updateFrameRef = useRef<number | null>(null);
-  const hasRunItemsEffectRef = useRef(false);
   const [layout, setLayout] = useState({
     scale: 1,
     containerHeight: designHeightWithPadding,
@@ -58,10 +56,7 @@ export function CollectionContainer(props: {
     );
 
     setLayout((prev) => {
-      const nextContainerHeight =
-        Math.abs(prev.containerHeight - targetHeight) < HEIGHT_CHANGE_THRESHOLD
-          ? prev.containerHeight
-          : targetHeight;
+      const nextContainerHeight = targetHeight;
       const nextContentSize =
         prev.contentSize.width === measuredWidth &&
         prev.contentSize.height === measuredHeight
@@ -111,11 +106,7 @@ export function CollectionContainer(props: {
     };
   }, [scheduleUpdate]);
 
-  useLayoutEffect(() => {
-    if (!hasRunItemsEffectRef.current) {
-      hasRunItemsEffectRef.current = true;
-      return;
-    }
+  useEffect(() => {
     scheduleUpdate();
   }, [items, scheduleUpdate]);
 
