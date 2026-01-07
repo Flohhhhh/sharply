@@ -30,26 +30,53 @@ export function CollectionContainer(props: {
   const { items, user, className } = props;
 
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
   const [scale, setScale] = useState(1);
+  const [containerHeight, setContainerHeight] = useState(designHeightWithPadding);
+  const [contentSize, setContentSize] = useState({
+    width: designWidth,
+    height: designHeightWithPadding,
+  });
   const [isCopying, setIsCopying] = useState(false);
 
-  useLayoutEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
+  const updateScale = useCallback(() => {
+    const container = containerRef.current;
+    const content = contentRef.current;
+    if (!container || !content) return;
 
-    const update = () => {
-      const w = el.clientWidth;
-      const h = el.clientHeight;
+    const containerWidth = container.clientWidth || designWidth;
+    const targetHeight =
+      (containerWidth / designWidth) * designHeightWithPadding;
 
-      const fit = Math.min(w / designWidth, h / designHeightWithPadding);
-      setScale(Math.min(1, fit)); // clamp so it doesn't upscale in preview
-    };
+    const measuredWidth = Math.max(content.scrollWidth, designWidth);
+    const measuredHeight = Math.max(content.scrollHeight, designHeightWithPadding);
 
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
+    const fit = Math.min(
+      containerWidth / measuredWidth,
+      targetHeight / measuredHeight,
+      1,
+    );
+
+    setScale((prev) => (prev === fit ? prev : fit));
+    setContainerHeight((prev) =>
+      Math.abs(prev - targetHeight) < 0.5 ? prev : targetHeight,
+    );
+    setContentSize((prev) =>
+      prev.width === measuredWidth && prev.height === measuredHeight
+        ? prev
+        : { width: measuredWidth, height: measuredHeight },
+    );
   }, []);
+
+  useLayoutEffect(() => {
+    updateScale();
+    const container = containerRef.current;
+    const content = contentRef.current;
+    const ro = new ResizeObserver(updateScale);
+    if (container) ro.observe(container);
+    if (content) ro.observe(content);
+    return () => ro.disconnect();
+  }, [updateScale, items]);
 
   useEffect(() => {
     console.log("isCopying", isCopying);
@@ -140,12 +167,13 @@ export function CollectionContainer(props: {
           "bg-background relative w-full overflow-hidden",
           className,
         )}
-        style={{ height: designHeightWithPadding * scale }}
+        style={{ height: containerHeight }}
       >
         <div
+          ref={contentRef}
           style={{
-            width: designWidth,
-            height: designHeightWithPadding,
+            width: contentSize.width,
+            height: contentSize.height,
             transform: `scale(${scale})`,
             transformOrigin: "top left",
           }}
