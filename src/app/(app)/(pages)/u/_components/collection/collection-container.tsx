@@ -86,12 +86,13 @@ export function CollectionContainer(props: {
         contentSize: nextContentSize,
       };
     });
-  }, [designHeightWithPadding, designWidth]);
+  }, []);
 
   useLayoutEffect(() => {
     updateScale();
     const container = containerRef.current;
     const content = contentRef.current;
+    if (!container && !content) return;
     const ro = new ResizeObserver(updateScale);
     if (container) ro.observe(container);
     if (content) ro.observe(content);
