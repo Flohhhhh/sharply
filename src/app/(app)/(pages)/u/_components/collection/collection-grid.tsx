@@ -10,7 +10,8 @@ function computeColumnCount(itemCount: number) {
 		return 1;
 	}
 
-	const minimalWideColumns = Math.max(4, Math.ceil(Math.sqrt(itemCount)));
+	const wideBias = Math.ceil(Math.sqrt(itemCount) * 1.4);
+	const minimalWideColumns = Math.max(6, wideBias);
 	return Math.min(itemCount, minimalWideColumns);
 }
 
