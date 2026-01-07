@@ -26,14 +26,15 @@ export function CollectionContainer(props: {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
   const updateFrameRef = useRef<number | null>(null);
-  const [layout, setLayout] = useState({
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
+  const [layout, setLayout] = useState(() => ({
     scale: 1,
     containerHeight: designHeightWithPadding,
     contentSize: {
       width: designWidth,
       height: designHeightWithPadding,
     },
-  });
+  }));
   const { scale, containerHeight, contentSize } = layout;
   const [isCopying, setIsCopying] = useState(false);
 
@@ -57,11 +58,12 @@ export function CollectionContainer(props: {
 
     setLayout((prev) => {
       const nextContainerHeight = targetHeight;
-      const nextContentSize =
+      const isSameContentSize =
         prev.contentSize.width === measuredWidth &&
-        prev.contentSize.height === measuredHeight
-          ? prev.contentSize
-          : { width: measuredWidth, height: measuredHeight };
+        prev.contentSize.height === measuredHeight;
+      const nextContentSize = isSameContentSize
+        ? prev.contentSize
+        : { width: measuredWidth, height: measuredHeight };
 
       if (
         prev.scale === fit &&
@@ -94,11 +96,14 @@ export function CollectionContainer(props: {
     const container = containerRef.current;
     const content = contentRef.current;
     if (!container || !content) return;
-    const ro = new ResizeObserver(scheduleUpdate);
+    const ro =
+      resizeObserverRef.current ?? new ResizeObserver(scheduleUpdate);
+    resizeObserverRef.current = ro;
     ro.observe(container);
     ro.observe(content);
     return () => {
       ro.disconnect();
+      resizeObserverRef.current = null;
       if (updateFrameRef.current !== null) {
         cancelAnimationFrame(updateFrameRef.current);
         updateFrameRef.current = null;
