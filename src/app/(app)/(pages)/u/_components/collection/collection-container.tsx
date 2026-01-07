@@ -99,6 +99,7 @@ export function CollectionContainer(props: {
     const ro =
       resizeObserverRef.current ?? new ResizeObserver(scheduleUpdate);
     resizeObserverRef.current = ro;
+    ro.disconnect();
     ro.observe(container);
     ro.observe(content);
     return () => {
