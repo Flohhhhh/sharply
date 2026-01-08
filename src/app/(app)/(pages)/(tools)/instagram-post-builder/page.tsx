@@ -85,27 +85,19 @@ const getFrameRect = (
   const { padding, peekAmount, aspectRatio } = settings;
   const totalHeight = FRAME_WIDTH / aspectRatio;
 
-  let leftBoundary = frameOffset;
-  if (index > 0) {
-    leftBoundary -= peekAmount;
-  }
+  const leftBoundary =
+    index === 1 && totalFrames > 1 ? frameOffset - peekAmount : frameOffset;
 
-  let rightBoundary = frameOffset + frameWidth;
-  if (index === 0 && totalFrames > 1) {
-    rightBoundary -= peekAmount;
-  }
+  const rightBoundary =
+    index === 0 && totalFrames > 1
+      ? frameOffset + frameWidth - peekAmount
+      : frameOffset + frameWidth;
 
   const hasPeek = peekAmount > 0;
-  let paddingLeft = padding;
-  let paddingRight = padding;
-
-  if (hasPeek && index > 0) {
-    paddingLeft = padding / 2;
-  }
-
-  if (hasPeek && index === 0 && totalFrames > 1) {
-    paddingRight = padding / 2;
-  }
+  const paddingLeft =
+    hasPeek && index === 1 && totalFrames > 1 ? padding / 2 : padding;
+  const paddingRight =
+    hasPeek && index === 0 && totalFrames > 1 ? padding / 2 : padding;
 
   const x = leftBoundary + paddingLeft;
   const width = rightBoundary - leftBoundary - paddingLeft - paddingRight;
