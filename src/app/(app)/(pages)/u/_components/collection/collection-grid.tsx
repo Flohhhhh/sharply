@@ -10,7 +10,16 @@ function computeColumnCount(itemCount: number) {
 		return 1;
 	}
 
-	const minimalWideColumns = Math.max(4, Math.ceil(Math.sqrt(itemCount)));
+	if (itemCount <= 4) {
+		return itemCount;
+	}
+
+	if (itemCount <= 9) {
+		return Math.min(itemCount, 4);
+	}
+
+	const wideBias = Math.ceil(Math.sqrt(itemCount) * 1.3);
+	const minimalWideColumns = Math.max(6, wideBias);
 	return Math.min(itemCount, minimalWideColumns);
 }
 
@@ -96,14 +105,29 @@ export function CollectionGrid(props: { items: GearItem[] }) {
 	}, [items, pixelsPerMillimeter]);
 
 	const rows = useMemo(() => {
-		const itemCount = items.length;
-		if (itemCount === 0) {
-			return [];
-		}
+		const cameras = items.filter(
+			(item) =>
+				item.gearType === "CAMERA" || item.gearType === "ANALOG_CAMERA",
+		);
+		const others = items.filter(
+			(item) =>
+				item.gearType !== "CAMERA" && item.gearType !== "ANALOG_CAMERA",
+		);
 
-		const columnCount = computeColumnCount(itemCount);
-		const rowCounts = computeRowCountsPyramidDown(itemCount, columnCount);
-		return splitItemsByRowCounts(items, rowCounts);
+		const otherCount = others.length;
+		const otherRows =
+			otherCount === 0
+				? []
+				: (() => {
+						const columnCount = computeColumnCount(otherCount);
+						const rowCounts = computeRowCountsPyramidDown(
+							otherCount,
+							columnCount,
+						);
+						return splitItemsByRowCounts(others, rowCounts);
+					})();
+
+		return cameras.length > 0 ? [cameras, ...otherRows] : otherRows;
 	}, [items]);
 
 	return (

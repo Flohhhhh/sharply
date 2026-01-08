@@ -10,6 +10,8 @@ import { Spinner } from "../ui/spinner";
 import { TrendingBadge } from "../gear-badges/trending-badge";
 import { NewBadge } from "../gear-badges/new-badge";
 import { isNewRelease } from "~/lib/utils/is-new";
+import { HallOfFameBadge } from "../gear-badges/hall-of-fame-badge";
+import { isInHallOfFame } from "~/lib/utils/is-in-hall-of-fame";
 
 const BASE_BRAND_NAMES = uniqueCaseInsensitive(
   BRANDS.flatMap((brand) => splitBrandNameVariants(brand.name)),
@@ -136,7 +138,9 @@ export function GearCard(props: GearCardProps) {
   const trimmedName = stripBrandFromName(name, brandName);
   const dateLabel = formatGearDate(releaseDate, releaseDatePrecision);
   const isNew = isNewRelease(releaseDate, releaseDatePrecision);
+  const isHallOfFameItem = isInHallOfFame(slug);
   const badgeNodes: React.ReactNode[] = [];
+  if (isHallOfFameItem) badgeNodes.push(<HallOfFameBadge key="hall-of-fame" />);
   if (isTrending) badgeNodes.push(<TrendingBadge key="trending" />);
   if (isNew) badgeNodes.push(<NewBadge key="new" />);
   if (badges) badgeNodes.push(badges);

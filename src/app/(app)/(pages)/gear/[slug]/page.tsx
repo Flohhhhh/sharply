@@ -44,6 +44,8 @@ import Image from "next/image";
 
 import { JsonLd } from "~/components/json-ld";
 import { StaffVerdictSection } from "../_components/staff-verdict-section";
+import { HallOfFameBadge } from "~/components/gear-badges/hall-of-fame-badge";
+import { isInHallOfFame } from "~/lib/utils/is-in-hall-of-fame";
 
 export const revalidate = 3600;
 
@@ -134,6 +136,7 @@ export default async function GearPage({ params }: GearPageProps) {
   const isNew = isNewRelease(item.releaseDate, item.releaseDatePrecision);
   const trendingSlugs = await fetchTrendingSlugs({ timeframe: "30d", limit: 20 });
   const isTrending = trendingSlugs.includes(item.slug);
+  const isHallOfFameItem = isInHallOfFame(item.slug);
 
   // Under construction state
   const construction = getConstructionState(item);
@@ -202,6 +205,7 @@ export default async function GearPage({ params }: GearPageProps) {
             )}
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-2">
+            {isHallOfFameItem ? <HallOfFameBadge /> : null}
             {isTrending ? <TrendingBadge /> : null}
             {isNew ? <NewBadge /> : null}
           </div>

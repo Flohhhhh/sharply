@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ClipboardCopy, Loader } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "~/lib/utils";
@@ -30,33 +24,97 @@ export function CollectionContainer(props: {
   const { items, user, className } = props;
 
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [scale, setScale] = useState(1);
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  const updateFrameRef = useRef<number | null>(null);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
+  const [layout, setLayout] = useState(() => ({
+    scale: 1,
+    containerHeight: designHeightWithPadding,
+    contentSize: {
+      width: designWidth,
+      height: designHeightWithPadding,
+    },
+  }));
+  const { scale, containerHeight, contentSize } = layout;
   const [isCopying, setIsCopying] = useState(false);
 
-  useLayoutEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
+  const updateScale = useCallback(() => {
+    const container = containerRef.current;
+    const content = contentRef.current;
+    if (!container || !content) return;
 
-    const update = () => {
-      const w = el.clientWidth;
-      const h = el.clientHeight;
+    const containerWidth = container.clientWidth || designWidth;
+    const targetHeight =
+      (containerWidth / designWidth) * designHeightWithPadding;
 
-      const fit = Math.min(w / designWidth, h / designHeightWithPadding);
-      setScale(Math.min(1, fit)); // clamp so it doesn't upscale in preview
-    };
+    const measuredWidth = Math.max(content.scrollWidth, designWidth);
+    const measuredHeight = Math.max(content.scrollHeight, designHeightWithPadding);
 
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
+    const fit = Math.min(
+      containerWidth / measuredWidth,
+      targetHeight / measuredHeight,
+      1,
+    );
+
+    setLayout((prev) => {
+      const nextContainerHeight = targetHeight;
+      const isSameContentSize =
+        prev.contentSize.width === measuredWidth &&
+        prev.contentSize.height === measuredHeight;
+      const nextContentSize = isSameContentSize
+        ? prev.contentSize
+        : { width: measuredWidth, height: measuredHeight };
+
+      if (
+        prev.scale === fit &&
+        prev.containerHeight === nextContainerHeight &&
+        prev.contentSize === nextContentSize
+      ) {
+        return prev;
+      }
+
+      return {
+        scale: fit,
+        containerHeight: nextContainerHeight,
+        contentSize: nextContentSize,
+      };
+    });
   }, []);
 
-  useEffect(() => {
-    console.log("isCopying", isCopying);
+  const scheduleUpdate = useCallback(() => {
+    if (updateFrameRef.current !== null) {
+      cancelAnimationFrame(updateFrameRef.current);
+    }
+    updateFrameRef.current = requestAnimationFrame(() => {
+      updateFrameRef.current = null;
+      updateScale();
+    });
+  }, [updateScale]);
+
+  useLayoutEffect(() => {
+    scheduleUpdate();
+    const container = containerRef.current;
+    const content = contentRef.current;
+    if (!container || !content) return;
+    const ro =
+      resizeObserverRef.current ?? new ResizeObserver(scheduleUpdate);
+    resizeObserverRef.current = ro;
+    ro.disconnect();
+    ro.observe(container);
+    ro.observe(content);
     return () => {
-      console.log("unmounting");
+      ro.disconnect();
+      resizeObserverRef.current = null;
+      if (updateFrameRef.current !== null) {
+        cancelAnimationFrame(updateFrameRef.current);
+        updateFrameRef.current = null;
+      }
     };
-  }, [isCopying]);
+  }, [scheduleUpdate]);
+
+  useEffect(() => {
+    scheduleUpdate();
+  }, [items, scheduleUpdate]);
 
   const handleCopyImage = useCallback(async () => {
     setIsCopying(true);
@@ -140,12 +198,13 @@ export function CollectionContainer(props: {
           "bg-background relative w-full overflow-hidden",
           className,
         )}
-        style={{ height: designHeightWithPadding * scale }}
+        style={{ height: containerHeight }}
       >
         <div
+          ref={contentRef}
           style={{
-            width: designWidth,
-            height: designHeightWithPadding,
+            width: contentSize.width,
+            height: contentSize.height,
             transform: `scale(${scale})`,
             transformOrigin: "top left",
           }}

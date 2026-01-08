@@ -19,6 +19,8 @@ export function getMountDisplayName(
 ): string {
   if (!mountValue) return "Unknown";
   if (mountValue === "ef-m-canon") return "EF-M";
+  if (mountValue === "43-olympus") return "4/3";
+  if (mountValue === "m43-panasonic") return "Micro 4/3";
 
   // Remove everything after the dash and uppercase
   const displayName = mountValue.split("-")[0]?.toUpperCase();
@@ -35,6 +37,8 @@ export function getMountLongName(
 ): string {
   if (!mountValue) return "Unknown";
   if (mountValue === "ef-m-canon") return "EF-M - Canon";
+  if (mountValue === "43-olympus") return "4/3 - Olympus";
+  if (mountValue === "m43-panasonic") return "Micro 4/3 - Panasonic";
   const parts = mountValue.split("-");
   if (parts.length < 2) return mountValue;
 
