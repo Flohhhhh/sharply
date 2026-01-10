@@ -20,7 +20,6 @@ import { SignInToEditSpecsCta } from "../_components/sign-in-to-edit-cta";
 import { SuggestEditButton } from "../_components/suggest-edit-button";
 import { GearLinks } from "~/app/(app)/(pages)/gear/_components/gear-links";
 import GearStatsCard from "../_components/gear-stats-card";
-import GearBadges from "../_components/gear-badges";
 import { TrendingBadge } from "~/components/gear-badges/trending-badge";
 import { NewBadge } from "~/components/gear-badges/new-badge";
 import { isNewRelease } from "~/lib/utils/is-new";
@@ -209,10 +208,6 @@ export default async function GearPage({ params }: GearPageProps) {
             {isTrending ? <TrendingBadge /> : null}
             {isNew ? <NewBadge /> : null}
           </div>
-        </div>
-        {/* Badges */}
-        <div>
-          <GearBadges slug={slug} />
         </div>
         {/* Photo Placeholder */}
         <div>
