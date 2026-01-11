@@ -40,10 +40,10 @@ export default async function About() {
             Photography for Everyone
           </h2>
           <p className="text-muted-foreground max-w-lg self-end">
-            Sharply is building the modern hub for photography knowledge. We
-            bring together accurate gear data, structured community insights,
-            and inspiring stories; we're making information open, clear, and
-            accessible for every photographer.
+            Sharply is building a modern reference for photography knowledge. We
+            bring together accurate, open-source gear data, structured community
+            insight, and focused editorial context to make photography
+            information clear, reliable, and accessible for every photographer.
           </p>
         </div>
 
@@ -72,10 +72,17 @@ export default async function About() {
               We're building a better way to learn about & find gear.
             </h3>
             <p className="text-muted-foreground">
-              Sharply was built to make photography knowledge open, clear, and
-              accessible. We combine accurate data, trusted insights, and modern
-              design to create a space where photographers can learn, compare,
-              and make better choices without the noise or gatekeeping.
+              Sharply is built to be a clear, reliable reference for photography
+              gear, designed around how people actually research and use
+              equipment. Instead of prioritizing long-form opinion, Sharply
+              focuses on structured specifications, real-world samples, and
+              precise answers to specific questions, making it easy to find the
+              exact information you need without friction. By organizing gear
+              data, comparisons, and editorial insight into a searchable,
+              consistent system, Sharply aims to become the first place
+              photographers turn when evaluating cameras, lenses, and tools,
+              complementing existing reviews with clarity, depth, and
+              accessibility rather than replacing them.
             </p>
           </div>
           <div className="flex flex-col gap-3">
