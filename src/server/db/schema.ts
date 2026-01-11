@@ -676,6 +676,10 @@ export const cameraSpecs = appSchema.table(
     hasSilentShootingAvailable: boolean("has_silent_shooting_available"),
     availableShutterTypes: shutterTypesEnum("available_shutter_types").array(),
     // battery
+    internalStorageGb: decimal("internal_storage_gb", {
+      precision: 6,
+      scale: 1,
+    }),
     cipaBatteryShotsPerCharge: integer("cipa_battery_shots_per_charge"),
     supportedBatteries: text("supported_batteries").array(),
     usbPowerDelivery: boolean("usb_power_delivery"),

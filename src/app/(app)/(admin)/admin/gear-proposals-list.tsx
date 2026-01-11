@@ -86,6 +86,18 @@ type ResolvedResponse = {
   days?: number;
 };
 
+const formatStorageValue = (value: unknown): string => {
+  const num = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(num)) return String(value);
+  if (num >= 1000) {
+    const tb = num / 1000;
+    const formattedTb = Number.isInteger(tb) ? tb.toFixed(0) : tb.toFixed(1);
+    return `${formattedTb} TB`;
+  }
+  const formattedGb = Number.isInteger(num) ? num.toFixed(0) : num.toFixed(1);
+  return `${formattedGb} GB`;
+};
+
 export function GearProposalsList() {
   const [proposals, setProposals] = useState<GearProposal[]>([]);
 
@@ -1157,6 +1169,7 @@ export function GearProposalsList() {
           ? v.map((id) => getMountLongNameById(id as string)).join(", ")
           : getMountLongNameById(v as string);
       }
+      if (k === "internalStorageGb") return formatStorageValue(v);
       return String(v);
     };
     const formatBeforeValue = (k: string, v: any): string => {
@@ -1174,6 +1187,7 @@ export function GearProposalsList() {
           ? v.map((id) => getMountLongNameById(id as string)).join(", ")
           : getMountLongNameById(v as string);
       }
+      if (k === "internalStorageGb") return formatStorageValue(v);
       return String(v);
     };
     const renderFieldDiffs = (

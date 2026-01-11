@@ -42,6 +42,18 @@ const describeUnknownValue = (value: unknown): string => {
   }
 };
 
+const formatStorageForDisplay = (value: unknown): string | undefined => {
+  const num = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(num)) return undefined;
+  if (num >= 1000) {
+    const tb = num / 1000;
+    const formattedTb = Number.isInteger(tb) ? tb.toFixed(0) : tb.toFixed(1);
+    return `${formattedTb} TB`;
+  }
+  const formattedGb = Number.isInteger(num) ? num.toFixed(0) : num.toFixed(1);
+  return `${formattedGb} GB`;
+};
+
 export const metadata: Metadata = {
   title: "Edit Submitted",
   openGraph: {
@@ -259,6 +271,11 @@ export default async function EditSuccessPage({
                           if (k === "precaptureSupportLevel") {
                             display =
                               formatPrecaptureSupport(v) ??
+                              describeUnknownValue(v);
+                          }
+                          if (k === "internalStorageGb") {
+                            display =
+                              formatStorageForDisplay(v) ??
                               describeUnknownValue(v);
                           }
                           return (

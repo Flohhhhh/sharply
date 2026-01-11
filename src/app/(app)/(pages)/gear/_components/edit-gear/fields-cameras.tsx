@@ -1154,6 +1154,25 @@ function CameraFieldsComponent({
           )}
 
           {/* CIPA Battery Shots Per Charge */}
+          {showWhenMissing((initialSpecs as any)?.internalStorageGb) && (
+            <NumberInput
+              id="internalStorageGb"
+              label="Internal Storage"
+              suffix="GB"
+              value={
+                currentSpecs?.internalStorageGb != null
+                  ? Number(currentSpecs.internalStorageGb)
+                  : null
+              }
+              onChange={(value) =>
+                handleFieldChange("internalStorageGb", value)
+              }
+              placeholder="e.g., 512"
+              min={0}
+              step={0.1}
+            />
+          )}
+
           {showWhenMissing(
             (initialSpecs as any)?.cipaBatteryShotsPerCharge,
           ) && (

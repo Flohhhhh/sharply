@@ -489,3 +489,30 @@ const cameraKeys = [
   "hasUsbFileTransfer", // <= add
 ] as const;
 ```
+
+### Example: Add internal storage (GB with TB display)
+
+- Schema (`src/server/db/schema.ts`):
+
+```ts
+internalStorageGb: decimal("internal_storage_gb", { precision: 6, scale: 1 }),
+```
+
+- UI (`fields-cameras.tsx`):
+
+```tsx
+<NumberInput
+  id="internalStorageGb"
+  label="Internal Storage"
+  suffix="GB"
+  value={currentSpecs?.internalStorageGb ?? null}
+  onChange={(value) => handleFieldChange("internalStorageGb", value)}
+  placeholder="e.g., 512"
+  step={0.1}
+  min={0}
+/>
+```
+
+- Display (`src/lib/specs/registry.tsx`): values ≥ 1000 GB automatically render as TB.
+
+- Whitelist/normalize: add `internalStorageGb` to the camera whitelist and normalize it to a single decimal place in `normalizers.ts`.

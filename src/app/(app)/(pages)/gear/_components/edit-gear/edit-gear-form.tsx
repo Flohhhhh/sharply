@@ -42,6 +42,18 @@ const SHUTTER_LABELS: Record<string, string> = {
   electronic: "Electronic",
 };
 
+function formatStorageValue(value: unknown): string {
+  const num = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(num)) return safeString(value);
+  if (num >= 1000) {
+    const tb = num / 1000;
+    const formattedTb = Number.isInteger(tb) ? tb.toFixed(0) : tb.toFixed(1);
+    return `${formattedTb} TB`;
+  }
+  const formattedGb = Number.isInteger(num) ? num.toFixed(0) : num.toFixed(1);
+  return `${formattedGb} GB`;
+}
+
 function safeString(value: unknown): string {
   if (value == null) return "";
   if (typeof value === "string") return value;
@@ -296,6 +308,7 @@ function EditGearForm({
         "hasTopDisplay",
         "processorName",
         "hasWeatherSealing",
+        "internalStorageGb",
         "focusPoints",
         "afAreaModes",
         "afSubjectCategories",
@@ -976,6 +989,9 @@ function EditGearForm({
                           }
                           if (k === "maxFpsByShutter") {
                             display = formatMaxFpsByShutter(v);
+                          }
+                          if (k === "internalStorageGb") {
+                            display = formatStorageValue(v);
                           }
                           return (
                             <li key={k}>
