@@ -75,6 +75,19 @@ function formatDecimalCompact(
   return String(n);
 }
 
+function formatStorageGb(value: unknown): string | undefined {
+  if (value == null) return undefined;
+  const num = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(num)) return undefined;
+  if (num >= 1000) {
+    const tb = num / 1000;
+    const formattedTb = Number.isInteger(tb) ? tb.toFixed(0) : tb.toFixed(1);
+    return `${formattedTb} TB`;
+  }
+  const formattedGb = Number.isInteger(num) ? num.toFixed(0) : num.toFixed(1);
+  return `${formattedGb} GB`;
+}
+
 // Centralized visibility check for registry values
 function hasDisplayValue(value: unknown): boolean {
   if (value == null) return false; // null/undefined
@@ -664,6 +677,13 @@ export const specDictionary: SpecSectionDef[] = [
         getRawValue: (item) => item.cameraSpecs?.hasWeatherSealing,
         formatDisplay: (raw) =>
           typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+      },
+      {
+        key: "internalStorageGb",
+        label: "Internal Storage",
+        getRawValue: (item) => item.cameraSpecs?.internalStorageGb,
+        formatDisplay: (raw) => formatStorageGb(raw),
+        editElementId: "internalStorageGb",
       },
       {
         key: "rearDisplayType",

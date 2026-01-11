@@ -1,0 +1,1 @@
+ALTER TABLE "app"."camera_specs" ADD COLUMN "internal_storage_gb" numeric(6, 1);

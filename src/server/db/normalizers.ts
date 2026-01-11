@@ -551,6 +551,13 @@ export function normalizeProposalPayloadForDb(
         )
         .optional(),
       availableShutterTypes: z.array(z.string()).optional(),
+      internalStorageGb: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.round(num * 10) / 10;
+        }, z.number().nullable().optional())
+        .optional(),
       cipaBatteryShotsPerCharge: z
         .preprocess((value) => {
           if (value === null) return null;
