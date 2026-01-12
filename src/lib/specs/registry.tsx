@@ -63,6 +63,16 @@ function yesNoNull(
     return undefined;
   return value ? "Yes" : "No";
 }
+// Helper function to format a decimal number in a compact format
+// If it's a whole number display as integer, otherwise display with up to 1 decimal
+function formatDecimalCompact(
+  value: number | string | null | undefined,
+): string | undefined {
+  if (value == null) return undefined;
+  const n = typeof value === "number" ? value : Number(value);
+  if (Number.isNaN(n)) return undefined;
+  return Number.isInteger(n) ? String(n) : String(Number(n.toFixed(1)));
+}
 
 function formatStorageGb(value: unknown): string | undefined {
   if (value == null) return undefined;
@@ -438,9 +448,10 @@ export const specDictionary: SpecSectionDef[] = [
         key: "cipaStabilizationRatingStops",
         label: "CIPA Stabilization Rating Stops",
         getRawValue: (item) => item.cameraSpecs?.cipaStabilizationRatingStops,
+        condition: (item) => item.cameraSpecs?.hasIbis === true,
         formatDisplay: (raw) =>
           typeof raw === "number" || typeof raw === "string"
-            ? String(raw)
+            ? `${formatDecimalCompact(raw)} stops`
             : undefined,
       },
       {
@@ -1804,6 +1815,7 @@ export function buildGearSpecsSections(
     .map((section) => ({
       title: section.title,
       data: section.fields
+        .filter((field) => !field.condition || field.condition(item))
         .map((field) => {
           const raw = field.getRawValue(item);
           const value = field.formatDisplay
