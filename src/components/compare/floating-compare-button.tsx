@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Button } from "~/components/ui/button";
 import { X, ArrowRight, Shuffle, Trash, Scale } from "lucide-react";
 import { useCompare } from "~/lib/hooks/useCompare";
+import { useIsMobile } from "~/lib/hooks/useIsMobile";
 
 const blockedRoutes = ["/auth*", "/compare", "/admin*"] as const;
 
@@ -18,8 +19,13 @@ const blockedRoutePatterns = blockedRoutes.map(
 );
 
 export function FloatingCompareButton() {
+  const isMobile = useIsMobile();
   const pathname = usePathname();
   const { items, remove, clear, href, isFull } = useCompare();
+
+  if (isMobile) {
+    return null;
+  }
 
   const isBlockedRoute = pathname
     ? blockedRoutePatterns.some((regex) => regex.test(pathname))
