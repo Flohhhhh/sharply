@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { ClipboardCopy, Loader } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "~/lib/utils";
@@ -48,7 +54,10 @@ export function CollectionContainer(props: {
       (containerWidth / designWidth) * designHeightWithPadding;
 
     const measuredWidth = Math.max(content.scrollWidth, designWidth);
-    const measuredHeight = Math.max(content.scrollHeight, designHeightWithPadding);
+    const measuredHeight = Math.max(
+      content.scrollHeight,
+      designHeightWithPadding,
+    );
 
     const fit = Math.min(
       containerWidth / measuredWidth,
@@ -96,8 +105,7 @@ export function CollectionContainer(props: {
     const container = containerRef.current;
     const content = contentRef.current;
     if (!container || !content) return;
-    const ro =
-      resizeObserverRef.current ?? new ResizeObserver(scheduleUpdate);
+    const ro = resizeObserverRef.current ?? new ResizeObserver(scheduleUpdate);
     resizeObserverRef.current = ro;
     ro.disconnect();
     ro.observe(container);
@@ -200,18 +208,6 @@ export function CollectionContainer(props: {
         )}
         style={{ height: containerHeight }}
       >
-        <div
-          ref={contentRef}
-          style={{
-            width: contentSize.width,
-            height: contentSize.height,
-            transform: `scale(${scale})`,
-            transformOrigin: "top left",
-          }}
-          className="bg-accent/20 relative mx-auto flex flex-col justify-center border"
-        >
-          <CollectionGrid items={items} />
-        </div>
         <div className="absolute top-6 right-6 left-6 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Logo className="fill-foreground h-4 w-4" />
@@ -227,6 +223,20 @@ export function CollectionContainer(props: {
             </Avatar>
           </div>
         </div>
+
+        <div
+          ref={contentRef}
+          style={{
+            width: contentSize.width,
+            height: contentSize.height,
+            transform: `scale(${scale})`,
+            transformOrigin: "top left",
+          }}
+          className="bg-accent/20 relative mx-auto flex flex-col justify-center border"
+        >
+          <CollectionGrid items={items} />
+        </div>
+
         <div className="absolute right-6 bottom-6 left-6 flex items-center justify-center gap-2">
           <p className="text-muted-foreground text-xs">
             {user.name}'s collection on sharplyphoto.com
