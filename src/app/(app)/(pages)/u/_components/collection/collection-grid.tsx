@@ -14,6 +14,35 @@ function computeColumnCount(itemCount: number) {
 		return itemCount;
 	}
 
+	const preferredWideColumns = [6, 5, 4] as const;
+	let bestColumnChoice: { columns: number; rowCount: number; leftover: number } | null =
+		null;
+
+	for (const columns of preferredWideColumns) {
+		if (columns > itemCount) {
+			continue;
+		}
+
+		const rowCount = Math.ceil(itemCount / columns);
+		const leftover = rowCount * columns - itemCount;
+
+		const isBetterChoice =
+			bestColumnChoice === null ||
+			rowCount < bestColumnChoice.rowCount ||
+			(rowCount === bestColumnChoice.rowCount &&
+				(leftover < bestColumnChoice.leftover ||
+					(leftover === bestColumnChoice.leftover &&
+						columns > bestColumnChoice.columns)));
+
+		if (isBetterChoice) {
+			bestColumnChoice = { columns, rowCount, leftover };
+		}
+	}
+
+	if (bestColumnChoice !== null) {
+		return bestColumnChoice.columns;
+	}
+
 	if (itemCount <= 9) {
 		return Math.min(itemCount, 4);
 	}
