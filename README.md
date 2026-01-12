@@ -2,6 +2,8 @@
 
 Sharply is a photography gear database and cataloging application. It combines authoritative gear specs, editorial reviews, and contributor tools so the community can keep data accurate while discovering new equipment.
 
+<img width="1573" height="1016" alt="image" src="https://github.com/user-attachments/assets/acd51e9b-0c98-48c5-b62f-06049f8404a8" />
+
 ## Tech Stack
 
 - **Framework**: Next.js 15 (App Router) with React 19
