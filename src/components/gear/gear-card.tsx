@@ -164,7 +164,7 @@ export function GearCard(props: GearCardProps) {
                 {badgeNodes}
               </div>
             ) : null}
-            <div className="h-full w-full p-8 sm:p-9">
+            <div className="h-full w-full p-8">
               <div className="relative h-full w-full">
                 {thumbnailUrl ? (
                   // Transparent gear on gray background expected
@@ -172,8 +172,8 @@ export function GearCard(props: GearCardProps) {
                     src={thumbnailUrl}
                     alt={name}
                     fill
-                    sizes="(max-width: 640px) 100vw, 560px"
-                    className="object-contain transition-opacity group-hover:opacity-50"
+                    sizes="(max-width: 640px) 85vw, 560px"
+                    className="pointer-events-none object-contain transition-opacity group-hover:opacity-50"
                   />
                 ) : (
                   <div className="text-muted-foreground/50 flex h-full w-full items-center justify-center text-xl font-bold">
