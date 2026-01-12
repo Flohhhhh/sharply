@@ -713,6 +713,8 @@ export const specDictionary: SpecSectionDef[] = [
         key: "rearDisplaySizeInches",
         label: "Rear Display Size",
         getRawValue: (item) => item.cameraSpecs?.rearDisplaySizeInches,
+        // only show if the camera has a rear display
+        condition: (item) => item.cameraSpecs?.rearDisplayType !== "none",
         formatDisplay: (raw) => {
           const n = raw == null ? NaN : Number(raw);
           return Number.isFinite(n) ? `${n.toFixed(2)} inches` : undefined;
@@ -723,6 +725,8 @@ export const specDictionary: SpecSectionDef[] = [
         label: "Rear Display Resolution",
         getRawValue: (item) =>
           item.cameraSpecs?.rearDisplayResolutionMillionDots,
+        // only show if the camera has a rear display
+        condition: (item) => item.cameraSpecs?.rearDisplayType !== "none",
         formatDisplay: (raw) => {
           const n = raw == null ? NaN : Number(raw);
           return Number.isFinite(n)
@@ -1041,7 +1045,7 @@ export const specDictionary: SpecSectionDef[] = [
             ? yesNoNull(
                 raw,
                 !supportsVideoMeaningfully(item) &&
-                  item.cameraSpecs?.has10BitVideo === true,
+                  item.cameraSpecs?.has10BitVideo !== true,
               )
             : undefined,
       },
@@ -1200,7 +1204,7 @@ export const specDictionary: SpecSectionDef[] = [
         label: "Has Diffractive Optics",
         getRawValue: (item) => item.lensSpecs?.hasDiffractiveOptics,
         formatDisplay: (raw) =>
-          raw != null ? (raw ? "Yes" : "No") : undefined,
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
     ],
   },
@@ -1256,14 +1260,14 @@ export const specDictionary: SpecSectionDef[] = [
         label: "Has Rounded Diaphragm Blades",
         getRawValue: (item) => item.lensSpecs?.hasRoundedDiaphragmBlades,
         formatDisplay: (raw) =>
-          raw != null ? (raw ? "Yes" : "No") : undefined,
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
       {
         key: "hasApertureRing",
         label: "Has Aperture Ring",
         getRawValue: (item) => item.lensSpecs?.hasApertureRing,
         formatDisplay: (raw) =>
-          raw != null ? (raw ? "Yes" : "No") : undefined,
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
     ],
   },
@@ -1282,55 +1286,65 @@ export const specDictionary: SpecSectionDef[] = [
         label: "Has Autofocus",
         getRawValue: (item) => item.lensSpecs?.hasAutofocus,
         formatDisplay: (raw) =>
-          raw != null ? (raw ? "Yes" : "No") : undefined,
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
       {
         key: "focusMotorType",
         label: "Focus Motor Type",
         getRawValue: (item) => item.lensSpecs?.focusMotorType,
-        formatDisplay: (raw) => (raw as string) ?? undefined,
+        formatDisplay: (raw, item) => {
+          if (item.lensSpecs?.hasAutofocus !== true) return undefined;
+          return typeof raw === "string" ? (raw as string) : undefined;
+        },
       },
       {
         key: "hasAfMfSwitch",
         label: "Has AF/MF Switch",
         getRawValue: (item) => item.lensSpecs?.hasAfMfSwitch,
-        formatDisplay: (raw) =>
-          raw != null ? (raw ? "Yes" : "No") : undefined,
+        formatDisplay: (raw, item) => {
+          return typeof raw === "boolean" ? yesNoNull(raw) : undefined;
+        },
+        condition: (item) => item.lensSpecs?.hasAutofocus === true,
       },
       {
         key: "hasFocusLimiter",
         label: "Has Focus Limiter",
         getRawValue: (item) => item.lensSpecs?.hasFocusLimiter,
-        formatDisplay: (raw) =>
-          raw != null ? (raw ? "Yes" : "No") : undefined,
+        formatDisplay: (raw, item) => {
+          if (item.lensSpecs?.hasAutofocus !== true) return undefined;
+          return typeof raw === "boolean" ? yesNoNull(raw, true) : undefined;
+        },
+        condition: (item) => item.lensSpecs?.hasAutofocus === true,
       },
       {
         key: "hasFocusRecallButton",
         label: "Has Focus Recall Button",
         getRawValue: (item) => item.lensSpecs?.hasFocusRecallButton,
-        formatDisplay: (raw) =>
-          raw != null ? (raw ? "Yes" : "No") : undefined,
+        formatDisplay: (raw, item) => {
+          return typeof raw === "boolean" ? yesNoNull(raw, true) : undefined;
+        },
+        condition: (item) => item.lensSpecs?.hasAutofocus === true,
       },
       {
         key: "hasFocusRing",
         label: "Has Focus Ring",
         getRawValue: (item) => item.lensSpecs?.hasFocusRing,
         formatDisplay: (raw) =>
-          raw != null ? (raw ? "Yes" : "No") : undefined,
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
       {
         key: "hasInternalFocus",
         label: "Has Internal Focus",
         getRawValue: (item) => item.lensSpecs?.hasInternalFocus,
         formatDisplay: (raw) =>
-          raw != null ? (raw ? "Yes" : "No") : undefined,
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
       {
         key: "frontElementRotates",
         label: "Front Element Rotates",
         getRawValue: (item) => item.lensSpecs?.frontElementRotates,
         formatDisplay: (raw) =>
-          raw != null ? (raw ? "Yes" : "No") : undefined,
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
     ],
   },
@@ -1349,14 +1363,14 @@ export const specDictionary: SpecSectionDef[] = [
         label: "Has Image Stabilization",
         getRawValue: (item) => item.lensSpecs?.hasStabilization,
         formatDisplay: (raw) =>
-          raw != null ? (raw ? "Yes" : "No") : undefined,
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
       {
         key: "hasStabilizationSwitch",
         label: "Has Stabilization Switch",
         getRawValue: (item) => item.lensSpecs?.hasStabilizationSwitch,
         formatDisplay: (raw) =>
-          raw != null ? (raw ? "Yes" : "No") : undefined,
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
         condition: (item) => item.lensSpecs?.hasStabilization === true,
       },
       {
@@ -1385,8 +1399,10 @@ export const specDictionary: SpecSectionDef[] = [
         key: "hasInternalZoom",
         label: "Has Internal Zoom",
         getRawValue: (item) => item.lensSpecs?.hasInternalZoom,
+        // only show if the lens is not a prime lens
+        condition: (item) => item.lensSpecs?.isPrime === false,
         formatDisplay: (raw) =>
-          raw != null ? (raw ? "Yes" : "No") : undefined,
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
       {
         key: "mountMaterial",
@@ -1402,17 +1418,25 @@ export const specDictionary: SpecSectionDef[] = [
         label: "Has Weather Sealing",
         getRawValue: (item) => item.lensSpecs?.hasWeatherSealing,
         formatDisplay: (raw) =>
-          raw != null ? (raw ? "Yes" : "No") : undefined,
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
       {
         key: "numberCustomControlRings",
         label: "Number of Custom Control Rings",
         getRawValue: (item) => item.lensSpecs?.numberCustomControlRings,
+        // only show if the lens has custom control rings
+        condition: (item) =>
+          item.lensSpecs?.numberCustomControlRings != null &&
+          item.lensSpecs?.numberCustomControlRings > 0,
       },
       {
         key: "numberFunctionButtons",
         label: "Number of Function Buttons",
         getRawValue: (item) => item.lensSpecs?.numberFunctionButtons,
+        // only show if the lens has function buttons
+        condition: (item) =>
+          item.lensSpecs?.numberFunctionButtons != null &&
+          item.lensSpecs?.numberFunctionButtons > 0,
       },
     ],
   },
@@ -1491,7 +1515,7 @@ export const specDictionary: SpecSectionDef[] = [
         key: "hasBuiltInTeleconverter",
         label: "Has Built In Teleconverter",
         getRawValue: (item) => item.lensSpecs?.hasBuiltInTeleconverter,
-        formatDisplay: (raw, item) =>
+        formatDisplay: (raw) =>
           typeof raw === "boolean" ? yesNoNull(raw, true) : undefined,
       },
       {
@@ -1499,14 +1523,17 @@ export const specDictionary: SpecSectionDef[] = [
         label: "Has Lens Hood",
         getRawValue: (item) => item.lensSpecs?.hasLensHood,
         formatDisplay: (raw) =>
-          raw != null ? (raw ? "Yes" : "No") : undefined,
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
       },
       {
         key: "hasTripodCollar",
         label: "Has Tripod Collar/Lens Foot",
         getRawValue: (item) => item.lensSpecs?.hasTripodCollar,
-        formatDisplay: (raw) =>
-          raw != null ? (raw ? "Yes" : "No") : undefined,
+        formatDisplay: (raw, item) =>
+          // if the lens has max focal length under 200 we should hide the row when false
+          typeof raw === "boolean"
+            ? yesNoNull(raw, item.lensSpecs?.focalLengthMaxMm! < 200)
+            : undefined,
       },
     ],
   },
@@ -1590,6 +1617,8 @@ export const specDictionary: SpecSectionDef[] = [
         key: "meteringModes",
         label: "Metering Modes",
         getRawValue: (item) => item.analogCameraSpecs?.meteringModes ?? [],
+        // only show if the camera has metering
+        condition: (item) => item.analogCameraSpecs?.hasMetering === true,
         formatDisplay: (raw) =>
           Array.isArray(raw)
             ? renderBadgeColumn(
@@ -1604,6 +1633,8 @@ export const specDictionary: SpecSectionDef[] = [
         label: "Metering Display",
         getRawValue: (item) =>
           item.analogCameraSpecs?.meteringDisplayTypes ?? [],
+        // only show if the camera has metering
+        condition: (item) => item.analogCameraSpecs?.hasMetering === true,
         formatDisplay: (raw) =>
           Array.isArray(raw)
             ? renderBadgeColumn(
@@ -1684,6 +1715,9 @@ export const specDictionary: SpecSectionDef[] = [
         key: "maxContinuousFps",
         label: "Max FPS",
         getRawValue: (item) => item.analogCameraSpecs?.maxContinuousFps,
+        // only show if the camera has continuous drive
+        condition: (item) =>
+          item.analogCameraSpecs?.hasContinuousDrive === true,
         formatDisplay: (raw) =>
           raw != null ? `${Number(raw as number)} fps` : undefined,
       },
@@ -1699,6 +1733,8 @@ export const specDictionary: SpecSectionDef[] = [
         label: "Battery Required (Metering)",
         getRawValue: (item) =>
           item.analogCameraSpecs?.requiresBatteryForMetering,
+        // only show if camera has metering
+        condition: (item) => item.analogCameraSpecs?.hasMetering === true,
         formatDisplay: (raw) => yesNoNull(raw as any),
       },
       {
