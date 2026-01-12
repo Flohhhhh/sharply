@@ -171,7 +171,7 @@ export function GearCard(props: GearCardProps) {
                 alt={name}
                 width={560}
                 height={320}
-                className="h-full w-full object-contain transition-opacity group-hover:opacity-50"
+                className="h-full object-contain transition-opacity group-hover:opacity-50 sm:w-full"
               />
             ) : (
               <div className="text-muted-foreground/50 flex h-full w-full items-center justify-center text-xl font-bold">
