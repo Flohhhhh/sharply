@@ -41,6 +41,8 @@ import {
   type VideoModeNormalized,
 } from "~/lib/video/mode-schema";
 import type { CameraVideoMode } from "~/types/gear";
+import { supportsVideoMeaningfully } from "./helpers";
+import { Item } from "@radix-ui/react-toggle-group";
 
 function coerceCameraVideoModes(
   modes?: GearItem["videoModes"],
@@ -53,8 +55,12 @@ function coerceCameraVideoModes(
   return normalizedToCameraVideoModes((modes ?? []) as VideoModeNormalized[]);
 }
 
-function yesNoNull(value: boolean | null | undefined): string | undefined {
-  if (value == null) return undefined;
+function yesNoNull(
+  value: boolean | null | undefined,
+  hideIfFalse?: boolean,
+): string | undefined {
+  if (value == null || (value === false && hideIfFalse === true))
+    return undefined;
   return value ? "Yes" : "No";
 }
 
@@ -417,16 +423,18 @@ export const specDictionary: SpecSectionDef[] = [
         key: "hasIbis",
         label: "Has IBIS",
         getRawValue: (item) => item.cameraSpecs?.hasIbis,
-        formatDisplay: (raw) =>
-          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+        formatDisplay: (raw, item) =>
+          typeof raw === "boolean"
+            ? yesNoNull(raw, !supportsVideoMeaningfully(item))
+            : undefined,
       },
       {
         key: "hasElectronicVibrationReduction",
-        label: "Has Electronic VR",
+        label: "Has Digital Stabilization",
         getRawValue: (item) =>
           item.cameraSpecs?.hasElectronicVibrationReduction,
-        formatDisplay: (raw) =>
-          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+        formatDisplay: (raw, item) =>
+          typeof raw === "boolean" ? yesNoNull(raw, true) : undefined,
       },
       {
         key: "cipaStabilizationRatingStops",
@@ -442,7 +450,7 @@ export const specDictionary: SpecSectionDef[] = [
         label: "Has Pixel Shift Shooting",
         getRawValue: (item) => item.cameraSpecs?.hasPixelShiftShooting,
         formatDisplay: (raw) =>
-          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+          typeof raw === "boolean" ? yesNoNull(raw, true) : undefined,
       },
       {
         key: "hasAntiAliasingFilter",
@@ -489,7 +497,7 @@ export const specDictionary: SpecSectionDef[] = [
         label: "Has Silent Shooting Available",
         getRawValue: (item) => item.cameraSpecs?.hasSilentShootingAvailable,
         formatDisplay: (raw) =>
-          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+          typeof raw === "boolean" ? yesNoNull(raw, true) : undefined,
       },
       {
         key: "availableShutterTypes",
@@ -766,14 +774,16 @@ export const specDictionary: SpecSectionDef[] = [
         label: "Has Top Display",
         getRawValue: (item) => item.cameraSpecs?.hasTopDisplay,
         formatDisplay: (raw) =>
-          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+          typeof raw === "boolean" ? yesNoNull(raw, true) : undefined,
       },
       {
         key: "hasRearTouchscreen",
         label: "Has Rear Touchscreen",
         getRawValue: (item) => item.cameraSpecs?.hasRearTouchscreen,
-        formatDisplay: (raw) =>
-          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+        formatDisplay: (raw, item) =>
+          typeof raw === "boolean"
+            ? yesNoNull(raw, item.cameraSpecs?.rearDisplayType === "none")
+            : undefined,
       },
       {
         key: "cardSlots",
@@ -828,14 +838,14 @@ export const specDictionary: SpecSectionDef[] = [
         label: "Has Focus Peaking",
         getRawValue: (item) => item.cameraSpecs?.hasFocusPeaking,
         formatDisplay: (raw) =>
-          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+          typeof raw === "boolean" ? yesNoNull(raw, true) : undefined,
       },
       {
         key: "hasFocusBracketing",
         label: "Has Focus Bracketing",
         getRawValue: (item) => item.cameraSpecs?.hasFocusBracketing,
         formatDisplay: (raw) =>
-          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+          typeof raw === "boolean" ? yesNoNull(raw, true) : undefined,
       },
       {
         key: "afAreaModes",
@@ -914,14 +924,14 @@ export const specDictionary: SpecSectionDef[] = [
         label: "Supports USB Charging",
         getRawValue: (item) => item.cameraSpecs?.usbCharging,
         formatDisplay: (raw) =>
-          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+          typeof raw === "boolean" ? yesNoNull(raw, true) : undefined,
       },
       {
         key: "usbPowerDelivery",
-        label: "USB Power Delivery",
+        label: "Supports USB Power Delivery",
         getRawValue: (item) => item.cameraSpecs?.usbPowerDelivery,
         formatDisplay: (raw) =>
-          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+          typeof raw === "boolean" ? yesNoNull(raw, true) : undefined,
       },
       {
         key: "supportedBatteries",
@@ -1008,43 +1018,57 @@ export const specDictionary: SpecSectionDef[] = [
         key: "hasLogColorProfile",
         label: "Has Log Color Profile",
         getRawValue: (item) => item.cameraSpecs?.hasLogColorProfile,
-        formatDisplay: (raw) =>
-          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+        formatDisplay: (raw, item) =>
+          typeof raw === "boolean"
+            ? yesNoNull(raw, !supportsVideoMeaningfully(item))
+            : undefined,
       },
       {
         key: "has10BitVideo",
         label: "Has 10 Bit Video",
         getRawValue: (item) => item.cameraSpecs?.has10BitVideo,
-        formatDisplay: (raw) =>
-          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+        formatDisplay: (raw, item) =>
+          typeof raw === "boolean"
+            ? yesNoNull(raw, !supportsVideoMeaningfully(item))
+            : undefined,
       },
       {
         key: "has12BitVideo",
         label: "Has 12 Bit Video",
         getRawValue: (item) => item.cameraSpecs?.has12BitVideo,
-        formatDisplay: (raw) =>
-          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+        formatDisplay: (raw, item) =>
+          typeof raw === "boolean"
+            ? yesNoNull(
+                raw,
+                !supportsVideoMeaningfully(item) &&
+                  item.cameraSpecs?.has10BitVideo === true,
+              )
+            : undefined,
       },
       {
         key: "hasOpenGateVideo",
         label: "Has Open Gate Video",
         getRawValue: (item) => item.cameraSpecs?.hasOpenGateVideo,
         formatDisplay: (raw) =>
-          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+          typeof raw === "boolean" ? yesNoNull(raw, true) : undefined,
       },
       {
         key: "supportsExternalRecording",
         label: "Supports External Recording",
         getRawValue: (item) => item.cameraSpecs?.supportsExternalRecording,
-        formatDisplay: (raw) =>
-          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+        formatDisplay: (raw, item) =>
+          typeof raw === "boolean"
+            ? yesNoNull(raw, !supportsVideoMeaningfully(item))
+            : undefined,
       },
       {
         key: "supportsRecordToDrive",
         label: "Supports Recording to Drive",
         getRawValue: (item) => item.cameraSpecs?.supportsRecordToDrive,
-        formatDisplay: (raw) =>
-          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+        formatDisplay: (raw, item) =>
+          typeof raw === "boolean"
+            ? yesNoNull(raw, !supportsVideoMeaningfully(item))
+            : undefined,
       },
     ],
   },
@@ -1076,20 +1100,22 @@ export const specDictionary: SpecSectionDef[] = [
         key: "hasBuiltInFlash",
         label: "Has Built In Flash",
         getRawValue: (item) => item.cameraSpecs?.hasBuiltInFlash,
-        formatDisplay: (raw) => yesNoNull(raw as any),
+        formatDisplay: (raw) =>
+          yesNoNull(raw as boolean | null | undefined, true),
       },
       {
         key: "hasHotShoe",
         label: "Has Hot Shoe",
         getRawValue: (item) => item.cameraSpecs?.hasHotShoe,
-        formatDisplay: (raw) => yesNoNull(raw as any),
+        formatDisplay: (raw) =>
+          yesNoNull(raw as boolean | null | undefined, true),
       },
       {
         key: "hasUsbFileTransfer",
         label: "Has USB File Transfer",
         getRawValue: (item) => item.cameraSpecs?.hasUsbFileTransfer,
         formatDisplay: (raw) =>
-          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+          yesNoNull(raw as boolean | null | undefined, true),
       },
     ],
   },
@@ -1465,8 +1491,8 @@ export const specDictionary: SpecSectionDef[] = [
         key: "hasBuiltInTeleconverter",
         label: "Has Built In Teleconverter",
         getRawValue: (item) => item.lensSpecs?.hasBuiltInTeleconverter,
-        formatDisplay: (raw) =>
-          raw != null ? (raw ? "Yes" : "No") : undefined,
+        formatDisplay: (raw, item) =>
+          typeof raw === "boolean" ? yesNoNull(raw, true) : undefined,
       },
       {
         key: "hasLensHood",
