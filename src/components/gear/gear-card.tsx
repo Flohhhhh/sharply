@@ -158,7 +158,7 @@ export function GearCard(props: GearCardProps) {
         {/* Inset surface (border removed) */}
         <div className="bg-background rounded-2xl p-2">
           {/* Image area */}
-          <div className="bg-muted dark:bg-card relative aspect-video overflow-hidden rounded-xl p-4">
+          <div className="bg-muted dark:bg-card relative aspect-video overflow-hidden rounded-xl">
             {badgeNodes.length ? (
               <div className="absolute top-2 left-2 flex flex-wrap gap-1">
                 {badgeNodes}
@@ -245,7 +245,7 @@ export function GearCardSkeleton() {
         {/* Inset surface (border removed) */}
         <div className="bg-background rounded-2xl p-2">
           {/* Image area */}
-          <div className="bg-muted dark:bg-card relative flex aspect-video items-center justify-center overflow-hidden rounded-xl p-4">
+          <div className="bg-muted dark:bg-card relative flex aspect-video items-center justify-center overflow-hidden rounded-xl">
             <Spinner className="text-muted-foreground/50 size-6" />
           </div>
           <div className="mt-3 space-y-5 px-1.5 pb-1 transition-opacity group-hover:opacity-50">
