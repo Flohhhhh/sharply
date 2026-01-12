@@ -64,23 +64,6 @@ function yesNoNull(
   return value ? "Yes" : "No";
 }
 
-function humanizeEnum(value: string | null | undefined): string | undefined {
-  if (!value) return undefined;
-  return value
-    .split("-")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
-
-function formatDecimalCompact(
-  value: number | string | null | undefined,
-): string | undefined {
-  if (value == null) return undefined;
-  const n = typeof value === "number" ? value : Number(value);
-  if (Number.isNaN(n)) return undefined;
-  return String(n);
-}
-
 function formatStorageGb(value: unknown): string | undefined {
   if (value == null) return undefined;
   const num = typeof value === "number" ? value : Number(value);
@@ -125,7 +108,7 @@ function renderBadgeColumn(
         <Badge
           key={`${value}-${index}`}
           variant="outline"
-          className={cn("", forceLeftAlign ? "text-left" : "text-right")}
+          className={cn("text-sm", forceLeftAlign ? "text-left" : "text-right")}
         >
           {value}
         </Badge>
@@ -158,6 +141,7 @@ function getVideoNotes(item: GearItem): string | null {
 export type SpecFieldDef = {
   key: string; // Stable identifier (e.g., "announcedDate", "resolutionMp")
   label: string; // Human-readable label for display
+  labelOverride?: (item: GearItem) => string; // Optional per-item label
   getRawValue: (item: GearItem) => unknown; // Extract raw value from GearItem
   formatDisplay?: (
     raw: unknown,
@@ -201,7 +185,13 @@ export const specDictionary: SpecSectionDef[] = [
       },
       {
         key: "mounts",
-        label: "Mount", // Will be overridden based on gear type
+        label: "Mount",
+        labelOverride: (item) =>
+          item.gearType === "LENS" &&
+          item.mountIds?.length &&
+          item.mountIds.length > 1
+            ? "Mounts"
+            : "Mount",
         getRawValue: (item) => {
           const ids =
             (Array.isArray(item.mountIds) && item.mountIds.length > 0
@@ -209,13 +199,21 @@ export const specDictionary: SpecSectionDef[] = [
               : []) || (item.mountId ? [item.mountId] : []);
           return ids;
         },
-        formatDisplay: (raw, item) => {
+        formatDisplay: (raw, item, forceLeftAlign) => {
           const ids = Array.isArray(raw) ? (raw as string[]) : [];
           if (!ids.length) return undefined;
-          // Lenses show all mounts, cameras show first mount only
-          return item.gearType === "LENS"
-            ? getMountLongNamesById(ids)
-            : getMountLongNameById(ids[0]);
+          // Lenses show all mounts, cameras show first mount only (just as a safety)
+          const selectedIds =
+            item.gearType === "LENS" ? ids : [ids[0] as string];
+          const mountLabels = selectedIds
+            .map((mountId) => getMountLongNameById(mountId))
+            .filter(
+              (mountName) =>
+                typeof mountName === "string" && mountName.trim().length > 0,
+            );
+          if (!mountLabels.length) return undefined;
+          if (mountLabels.length === 1) return mountLabels[0];
+          return renderBadgeColumn(mountLabels, forceLeftAlign);
         },
         editElementId: "mount",
       },
@@ -1529,11 +1527,13 @@ export const specDictionary: SpecSectionDef[] = [
         key: "hasTripodCollar",
         label: "Has Tripod Collar/Lens Foot",
         getRawValue: (item) => item.lensSpecs?.hasTripodCollar,
-        formatDisplay: (raw, item) =>
+        formatDisplay: (raw, item) => {
+          const focalLengthMax = item.lensSpecs?.focalLengthMaxMm ?? 0;
           // if the lens has max focal length under 200 we should hide the row when false
-          typeof raw === "boolean"
-            ? yesNoNull(raw, item.lensSpecs?.focalLengthMaxMm! < 200)
-            : undefined,
+          return typeof raw === "boolean"
+            ? yesNoNull(raw, focalLengthMax < 200)
+            : undefined;
+        },
       },
     ],
   },
@@ -1809,10 +1809,13 @@ export function buildGearSpecsSections(
           const value = field.formatDisplay
             ? field.formatDisplay(raw, item, forceLeftAlign)
             : (raw as React.ReactNode);
+          const label = field.labelOverride
+            ? field.labelOverride(item)
+            : field.label;
           return {
-            label: field.label,
+            label,
             value: value,
-            fullWidth: !field.label,
+            fullWidth: !label,
             condenseOnMobile: field.condenseOnMobile,
           };
         })
@@ -1845,12 +1848,17 @@ export function buildEditSidebarSections(item: GearItem): SidebarSection[] {
       anchor: section.sectionAnchor,
       fields: section.fields
         .filter((f) => (!f.condition || f.condition(item)) && f.label) // Skip fields without labels or failing condition
-        .map((field) => ({
-          key: field.key,
-          label: field.label,
-          rawValue: field.getRawValue(item),
-          targetId: field.editElementId ?? field.key,
-        })),
+        .map((field) => {
+          const label = field.labelOverride
+            ? field.labelOverride(item)
+            : field.label;
+          return {
+            key: field.key,
+            label,
+            rawValue: field.getRawValue(item),
+            targetId: field.editElementId ?? field.key,
+          };
+        }),
     }));
 }
 
