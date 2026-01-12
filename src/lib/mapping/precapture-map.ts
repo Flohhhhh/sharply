@@ -21,13 +21,10 @@ function toIntOrNull(value: unknown): number | null {
   return null;
 }
 
-export function formatPrecaptureSupport(
-  value: unknown,
-): string | undefined {
+export function formatPrecaptureSupport(value: unknown): string | undefined {
   const numeric = toIntOrNull(value);
-  if (numeric === null) return undefined;
-  return PRECAPTURE_SUPPORT_OPTIONS.find(
-    (option) => option.value === numeric,
-  )?.label;
+  // Return undefined if no value or explicitly "No" support (0)
+  if (numeric === null || numeric === 0) return undefined;
+  return PRECAPTURE_SUPPORT_OPTIONS.find((option) => option.value === numeric)
+    ?.label;
 }
-
