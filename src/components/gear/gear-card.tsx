@@ -158,26 +158,30 @@ export function GearCard(props: GearCardProps) {
         {/* Inset surface (border removed) */}
         <div className="bg-background rounded-2xl p-2">
           {/* Image area */}
-          <div className="bg-muted dark:bg-card relative aspect-video overflow-hidden rounded-xl p-5 sm:p-9">
+          <div className="bg-muted dark:bg-card relative aspect-video overflow-hidden rounded-xl">
             {badgeNodes.length ? (
               <div className="absolute top-2 left-2 flex flex-wrap gap-1">
                 {badgeNodes}
               </div>
             ) : null}
-            {thumbnailUrl ? (
-              // Transparent gear on gray background expected
-              <Image
-                src={thumbnailUrl}
-                alt={name}
-                width={560}
-                height={320}
-                className="h-full object-contain transition-opacity group-hover:opacity-50 sm:w-full"
-              />
-            ) : (
-              <div className="text-muted-foreground/50 flex h-full w-full items-center justify-center text-xl font-bold">
-                {trimmedName}
+            <div className="h-full w-full p-8 sm:p-9">
+              <div className="relative h-full w-full">
+                {thumbnailUrl ? (
+                  // Transparent gear on gray background expected
+                  <Image
+                    src={thumbnailUrl}
+                    alt={name}
+                    fill
+                    sizes="(max-width: 640px) 100vw, 560px"
+                    className="object-contain transition-opacity group-hover:opacity-50"
+                  />
+                ) : (
+                  <div className="text-muted-foreground/50 flex h-full w-full items-center justify-center text-xl font-bold">
+                    {trimmedName}
+                  </div>
+                )}
               </div>
-            )}
+            </div>
 
             {/* Hover actions overlay */}
             <div className="pointer-events-none absolute inset-0 flex items-start justify-center p-2 opacity-0 transition-opacity group-hover:opacity-100">
