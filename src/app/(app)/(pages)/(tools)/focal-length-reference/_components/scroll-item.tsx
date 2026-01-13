@@ -60,11 +60,9 @@ export function ScrollItem(props: ScrollItemProps) {
     ? Math.round(image.focalLengthMm * sensorCropFactor)
     : null;
   const sensorCropLabelText = sensorCropLabel
-    ? size === "sm"
-      ? sensorCropLabel
-      : effectiveFocalLength
-        ? `${sensorCropLabel} - Effective focal length: ${effectiveFocalLength}mm`
-        : sensorCropLabel
+    ? effectiveFocalLength
+      ? `${sensorCropLabel} - Effective focal length: ${effectiveFocalLength}mm`
+      : sensorCropLabel
     : undefined;
 
   return (
