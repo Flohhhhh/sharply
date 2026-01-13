@@ -13,6 +13,8 @@ export type TrendingEntry = {
   brandName: string;
   gearType: GearType;
   thumbnailUrl: string | null;
+  releaseDate: string | null;
+  releaseDatePrecision: "DAY" | "MONTH" | "YEAR" | null;
   msrpNowUsdCents: number | null;
   mpbMaxPriceUsdCents: number | null;
   lifetimeViews: number;
@@ -43,6 +45,8 @@ export type LiveTrendingSnapshotItem = {
   brandName: string;
   gearType: GearType;
   thumbnailUrl: string | null;
+  releaseDate: string | null;
+  releaseDatePrecision: TrendingEntry["releaseDatePrecision"];
   msrpNowUsdCents: number | null;
   mpbMaxPriceUsdCents: number | null;
   lifetimeViews: number;
