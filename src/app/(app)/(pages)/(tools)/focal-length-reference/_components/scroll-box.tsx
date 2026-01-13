@@ -63,7 +63,6 @@ export function ScrollBox({
       externalChangeTimeoutRef.current = null;
     }, 200);
     scrollToIndex(activeIndex, "smooth");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeIndex]);
 
   useEffect(() => {
