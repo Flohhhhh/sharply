@@ -99,8 +99,12 @@ export default function FocalLengthReferencePage() {
       return idx >= 0 ? idx : 0;
     };
 
-    const lfIdx = lfParam ? findIndex(Number(lfParam)) : getIndexForFocalLength(35);
-    const rfIdx = rfParam ? findIndex(Number(rfParam)) : getIndexForFocalLength(50);
+    const lfIdx = lfParam
+      ? findIndex(Number(lfParam))
+      : getIndexForFocalLength(35);
+    const rfIdx = rfParam
+      ? findIndex(Number(rfParam))
+      : getIndexForFocalLength(50);
 
     skipSceneDefaultOnce.current = true;
     setLeftActiveIndex(lfIdx);
@@ -146,11 +150,11 @@ export default function FocalLengthReferencePage() {
   ]);
 
   return (
-    <div className="mx-auto mt-24 min-h-[calc(100vh-10rem)] max-w-[1920px] space-y-8 px-4 sm:px-8">
+    <div className="mx-auto mt-24 min-h-[calc(100vh-10rem)] max-w-[1600px] space-y-8 px-4 sm:px-8">
       {/* header */}
       <section className="space-y-2 px-8">
-        <h1 className="text-5xl font-semibold">Focal Length Reference</h1>
-        <p className="text-muted-foreground text-base">
+        <h1 className="text-4xl font-semibold">Focal Length Reference</h1>
+        <p className="text-muted-foreground text-sm">
           Pick a scene captured at a known focal length, then explore how
           tighter focal lengths would frame the same scene.
         </p>
