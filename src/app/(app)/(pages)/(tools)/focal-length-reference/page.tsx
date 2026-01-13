@@ -16,6 +16,25 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { BlurFade } from "~/components/ui/blur-fade";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Focal Length Reference",
+  description:
+    "See how different focal lengths and sensor sizes affect the field of view with different scenes.",
+  openGraph: {
+    title: "Focal Length Reference",
+    description:
+      "See how different focal lengths and sensor sizes affect the field of view with different scenes.",
+    images: [
+      {
+        url: "https://8v5lpkd4bi.ufs.sh/f/mJwI0W8NBfTndcjXBY9t0HF8TGqsvlIEWRPn6ywJp3XzgAYQ",
+        width: 1200,
+        height: 630,
+      },
+    ],
+  },
+};
 
 export default function FocalLengthReferencePage() {
   const searchParams = useSearchParams();
