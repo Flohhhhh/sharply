@@ -51,7 +51,6 @@ export function applyLiveBoostToTrending(params: {
   }
 
   merged.sort((a, b) => b.score - a.score);
-
   const limit = params.limit ?? merged.length;
   return merged.slice(0, limit);
 }
