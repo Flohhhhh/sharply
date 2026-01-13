@@ -36,6 +36,8 @@ export function applyLiveBoostToTrending(params: {
       brandName: live.brandName,
       gearType: live.gearType,
       thumbnailUrl: live.thumbnailUrl,
+      releaseDate: live.releaseDate,
+      releaseDatePrecision: live.releaseDatePrecision,
       msrpNowUsdCents: live.msrpNowUsdCents,
       mpbMaxPriceUsdCents: live.mpbMaxPriceUsdCents,
       lifetimeViews: live.lifetimeViews,
@@ -53,4 +55,3 @@ export function applyLiveBoostToTrending(params: {
   const limit = params.limit ?? merged.length;
   return merged.slice(0, limit);
 }
-
