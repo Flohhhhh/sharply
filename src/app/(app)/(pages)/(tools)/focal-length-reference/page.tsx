@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { FocalLengthClient } from "./_components/focal-length-client";
+import { ResponsiveFocalLengthClient } from "./_components/responsive-focal-length-client";
 
 export const metadata: Metadata = {
   title: "Field of View Reference",
@@ -20,5 +20,5 @@ export const metadata: Metadata = {
 };
 
 export default function FocalLengthReferencePage() {
-  return <FocalLengthClient />;
+  return <ResponsiveFocalLengthClient />;
 }

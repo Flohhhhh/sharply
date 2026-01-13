@@ -5,6 +5,7 @@ import Image from "next/image";
 const SHOW_FOCAL_LENGTH_OVERLAY = false;
 
 type ScrollItemProps = ImageSet["images"][number] & {
+  size?: "default" | "sm";
   isActive?: boolean;
   distanceFromActive?: number;
   onSelect?: () => void;
@@ -16,6 +17,7 @@ type ScrollItemProps = ImageSet["images"][number] & {
 
 export function ScrollItem(props: ScrollItemProps) {
   const {
+    size = "default",
     isActive = false,
     distanceFromActive = 0,
     onSelect,
@@ -57,10 +59,13 @@ export function ScrollItem(props: ScrollItemProps) {
   const effectiveFocalLength = shouldShowSensorCrop
     ? Math.round(image.focalLengthMm * sensorCropFactor)
     : null;
-  const sensorCropLabelText =
-    sensorCropLabel && effectiveFocalLength
-      ? `${sensorCropLabel} - Effective focal length: ${effectiveFocalLength}mm`
-      : sensorCropLabel;
+  const sensorCropLabelText = sensorCropLabel
+    ? size === "sm"
+      ? sensorCropLabel
+      : effectiveFocalLength
+        ? `${sensorCropLabel} - Effective focal length: ${effectiveFocalLength}mm`
+        : sensorCropLabel
+    : undefined;
 
   return (
     <button
@@ -97,7 +102,12 @@ export function ScrollItem(props: ScrollItemProps) {
               }}
             >
               {sensorCropLabelText ? (
-                <div className="absolute -top-2 left-0 -translate-y-full rounded-md bg-black/50 px-3 py-1.5 text-sm leading-none font-semibold text-white">
+                <div
+                  className={cn(
+                    "absolute -top-2 left-0 -translate-y-full rounded-md bg-black/50 px-3 py-1.5 leading-none font-semibold text-white",
+                    size === "sm" ? "text-xs" : "text-sm",
+                  )}
+                >
                   {sensorCropLabelText}
                 </div>
               ) : null}
@@ -129,10 +139,10 @@ export function ScrollItem(props: ScrollItemProps) {
         )}
 
         <div
-          className={[
-            "absolute top-3 rounded-md bg-black/60 px-3 py-1 text-2xl font-semibold text-white",
+          className={cn(
+            "absolute top-3 hidden rounded-md bg-black/60 px-3 py-1 font-semibold text-white md:block",
             labelPosition === "right" ? "right-3" : "left-3",
-          ].join(" ")}
+          )}
         >
           {image.focalLengthMm}mm
         </div>
