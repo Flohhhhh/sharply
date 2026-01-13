@@ -225,7 +225,7 @@ export function EditModalContent({
     const el = (candidates
       .map((id) => document.getElementById(id))
       .find((n) => n) ||
-      document.getElementById(sectionId));
+      document.getElementById(sectionId)) as HTMLElement | null;
     if (!el) return;
     // Prefer inputs/selects/comboboxes; fallback to any focusable
     const primarySelector =
@@ -235,10 +235,10 @@ export function EditModalContent({
     const focusEl: HTMLElement | null =
       (el.matches(primarySelector)
         ? el
-        : (el.querySelector(primarySelector))) ||
+        : (el.querySelector(primarySelector) as HTMLElement | null)) ||
       (el.matches(fallbackSelector)
         ? el
-        : (el.querySelector(fallbackSelector))) ||
+        : (el.querySelector(fallbackSelector) as HTMLElement | null)) ||
       el;
     const doFocus = () => {
       try {
@@ -249,7 +249,7 @@ export function EditModalContent({
             const ringContainer =
               (focusEl.closest(
                 "[data-force-ring-container]",
-              )) || null;
+              ) as HTMLElement | null) || null;
             if (ringContainer) ringContainer.classList.add("force-focus");
             setTimeout(() => {
               focusEl.classList.remove("force-focus");

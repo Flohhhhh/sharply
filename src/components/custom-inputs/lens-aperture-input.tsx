@@ -87,7 +87,7 @@ export default function LensApertureInput({
 
 	// Inline validation (no auto-adjustments)
 	const n = (v: unknown): number | null =>
-		typeof v === "number" && Number.isFinite(v) ? (v) : null;
+		typeof v === "number" && Number.isFinite(v) ? (v as number) : null;
 	const wideMaxVal = n(maxApertureWide);
 	const wideMinVal = n(minApertureWide);
 	const teleMaxVal = n(maxApertureTele);

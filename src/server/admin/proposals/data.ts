@@ -133,7 +133,7 @@ async function fetchEnrichedProposals(
   // Attach before values for only the keys present in payload
   const enriched: EnrichedProposal[] = await Promise.all(
     proposals.map(async (p): Promise<EnrichedProposal> => {
-      const base = (await getBaseline(p.gearId));
+      const base = (await getBaseline(p.gearId))!;
       const payload = (p.payload ?? {}) as Record<string, unknown> & {
         core?: Record<string, unknown>;
         analogCamera?: Record<string, unknown>;
@@ -237,7 +237,7 @@ export async function fetchRecentResolvedProposalsData(
 
   const enriched: EnrichedProposal[] = await Promise.all(
     proposals.map(async (p): Promise<EnrichedProposal> => {
-      const base = (await getBaseline(p.gearId));
+      const base = (await getBaseline(p.gearId))!;
       const payload = (p.payload ?? {}) as Record<string, unknown> & {
         core?: Record<string, unknown>;
         analogCamera?: Record<string, unknown>;
@@ -304,7 +304,7 @@ export async function approveProposalData(
   await db.transaction(async (tx) => {
     // Determine final payload (filtered if provided) and normalize to DB types
     const source = filteredPayload ?? payload;
-    const normalized = normalizeProposalPayloadForDb(source);
+    const normalized = normalizeProposalPayloadForDb(source as any);
 
     // Update the proposal status to APPROVED and persist only the applied changes
     await tx
@@ -339,7 +339,7 @@ export async function approveProposalData(
           ...normalizedPayload.core,
         };
         if (Object.prototype.hasOwnProperty.call(coreUpdate, "msrpUsdCents")) {
-          coreUpdate.msrpNowUsdCents = coreUpdate.msrpUsdCents;
+          coreUpdate.msrpNowUsdCents = coreUpdate.msrpUsdCents as unknown;
           delete (coreUpdate as any).msrpUsdCents;
         }
 

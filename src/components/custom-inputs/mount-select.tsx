@@ -41,21 +41,21 @@ export function MountSelect({
   const brandIdToName = useMemo(() => {
     const map = new Map<string, string>();
     for (const b of BRANDS as any[]) {
-      map.set((b).id as string, (b).name as string);
+      map.set((b as any).id as string, (b as any).name as string);
     }
     return map;
   }, []);
 
   const optionsWithBrand = useMemo(() => {
     return (MOUNTS as any[]).map((mount: any) => {
-      const mountBrandId = (mount).brand_id as string | undefined | null;
+      const mountBrandId = (mount as any).brand_id as string | undefined | null;
       const brandName =
         (mountBrandId && brandIdToName.get(mountBrandId)) || "Other";
-      const createdAtStr = (mount).created_at as string | undefined;
+      const createdAtStr = (mount as any).created_at as string | undefined;
       const createdAtMs = createdAtStr ? new Date(createdAtStr).getTime() : 0;
       return {
-        id: (mount).id as string,
-        name: getMountLongName((mount).value as string),
+        id: (mount as any).id as string,
+        name: getMountLongName((mount as any).value as string),
         brandName,
         createdAtMs,
         rawBrandId: mountBrandId ?? null,

@@ -43,7 +43,7 @@ export const getGearCommand = {
       value?: unknown;
       options?: CommandOption[];
     };
-    const optionsRaw = (interaction?.data)?.options as
+    const optionsRaw = (interaction?.data as any)?.options as
       | CommandOption[]
       | undefined;
     const options: CommandOption[] = Array.isArray(optionsRaw)
@@ -126,7 +126,9 @@ export const getGearCommand = {
         });
       }
 
-      const searchText = (searchQueryFromSub ?? rootSearch);
+      const searchText = (searchQueryFromSub ?? rootSearch) as
+        | string
+        | undefined;
       if (!searchText || String(searchText).trim().length === 0) {
         return NextResponse.json({
           type: 4,

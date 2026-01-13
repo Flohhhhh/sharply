@@ -11,7 +11,7 @@ function humanizeSegment(segment: string): string {
     "all-about-gear": "All About Gear",
   };
   if (segment in known) {
-    const mapped = known[segment];
+    const mapped = known[segment as keyof typeof known];
     if (mapped !== undefined) return mapped;
   }
   return segment

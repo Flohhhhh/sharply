@@ -535,7 +535,7 @@ export function GearProposalsList() {
             proposalId: p.id,
             createdByName: p.createdByName ?? null,
             createdAt: p.createdAt,
-            value: v,
+            value: v as unknown,
           });
           map.set(fieldKey, rec);
         });
@@ -614,7 +614,7 @@ export function GearProposalsList() {
     }
     setSelectedByGroup(next);
     setIncludedByGroup(nextIncluded);
-     
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groups]);
 
   const handleAction = async (
@@ -1463,7 +1463,7 @@ export function GearProposalsList() {
         k === "msrpAtLaunchUsdCents"
       )
         return formatPrice(v as number);
-      if (k === "releaseDate") return formatHumanDate(v);
+      if (k === "releaseDate") return formatHumanDate(v as any);
       if (k === "sensorFormatId") return sensorNameFromSlug(v as string);
       if (k === "mountId") return getMountLongNameById(v as string);
       if (k === "mountIds") {
@@ -1476,7 +1476,7 @@ export function GearProposalsList() {
     };
     const formatBeforeValue = (k: string, v: any): string => {
       if (k === "msrpUsdCents") return formatPrice(v as number);
-      if (k === "releaseDate") return formatHumanDate(v);
+      if (k === "releaseDate") return formatHumanDate(v as any);
       if (k === "sensorFormatId") return sensorNameFromId(v as string);
       if (k === "mountId") return getMountLongNameById(v as string);
       if (k === "mountIds") {

@@ -1,7 +1,7 @@
 export const runtime = "nodejs";
 export const maxDuration = 300; // seconds
 
-import { type NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { env } from "~/env";
 import { runDailyPopularityRollup } from "~/server/popularity/rollup";
 

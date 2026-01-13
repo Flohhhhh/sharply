@@ -66,7 +66,7 @@ export default async function DynamicPage({
   const relatedGearItems = Array.isArray(page.related_gear_items)
     ? (
         await Promise.all(
-          (page.related_gear_items)
+          (page.related_gear_items as unknown[])
             .filter((v): v is string => typeof v === "string")
             .map(async (gearSlug) => {
               try {

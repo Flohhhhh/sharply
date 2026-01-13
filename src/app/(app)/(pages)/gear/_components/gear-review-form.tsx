@@ -192,7 +192,7 @@ export function GearReviewForm({
                               if (genres.length < 3)
                                 setGenres([
                                   ...genres,
-                                  ((g.slug as string) ?? (g.id as string)),
+                                  ((g.slug as string) ?? (g.id as string))!,
                                 ]);
                             } else {
                               const key =

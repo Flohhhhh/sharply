@@ -304,7 +304,7 @@ function deriveInitialAssignments(
   for (const row of rows) {
     const resolutionKey = row.resolutionKey;
     assignments[resolutionKey] = assignments[resolutionKey] ?? {};
-    const bucket = assignments[resolutionKey];
+    const bucket = assignments[resolutionKey]!;
     const fpsKey = String(row.fps);
     const bitDepth = Number(row.bitDepth) || 0;
     const current = bucket[fpsKey];
@@ -321,7 +321,7 @@ function deriveInitialCropFactors(
     if (!row.cropFactor) continue;
     const key = row.resolutionKey;
     crop[key] = crop[key] ?? {};
-    const bucket = crop[key];
+    const bucket = crop[key]!;
     bucket[String(row.fps)] = true;
   }
   return crop;

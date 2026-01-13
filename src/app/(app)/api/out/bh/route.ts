@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { track } from "@vercel/analytics/server";
 import { getBhDestinationUrl } from "~/lib/links/bhphoto";
 

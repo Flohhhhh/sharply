@@ -141,7 +141,7 @@ export default function CardSlotsManager({
     >
       <div className="mb-2 text-sm font-medium">Card Slots</div>
       <div className="space-y-1">
-        {summarizedLines(value).map((line, i) => (
+        {summarizedLines(value as CardSlot[] | undefined).map((line, i) => (
           <div key={i} className="text-sm">
             {line}
           </div>

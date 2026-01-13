@@ -31,10 +31,10 @@ export async function UserBadges({ userId }: { userId: string }) {
             .sort((a, b) => {
               const aScore = (a.row.sortOverride ??
                 a.meta?.sortScore ??
-                0);
+                0) as number;
               const bScore = (b.row.sortOverride ??
                 b.meta?.sortScore ??
-                0);
+                0) as number;
               if (bScore !== aScore) return bScore - aScore;
               const aTs = new Date(
                 a.row.awardedAt as unknown as string,

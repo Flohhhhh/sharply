@@ -4,7 +4,7 @@ import {
   inferAdditionalFields,
 } from "better-auth/client/plugins";
 import { passkeyClient } from "@better-auth/passkey/client";
-import { type auth } from "~/auth";
+import { auth } from "~/auth";
 
 // typically done as export const authClient = createAuthClient();, we just destructure the functions we need
 export const {

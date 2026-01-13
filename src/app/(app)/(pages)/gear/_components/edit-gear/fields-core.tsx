@@ -408,10 +408,10 @@ function CoreFieldsComponent({
                   value={formattedAnnouncedDate}
                   onChange={handleAnnouncedDateChange}
                   granularity={
-                    ((currentSpecs as any).announceDatePrecision) ===
+                    ((currentSpecs as any).announceDatePrecision as any) ===
                     "YEAR"
                       ? "year"
-                      : ((currentSpecs as any).announceDatePrecision) ===
+                      : ((currentSpecs as any).announceDatePrecision as any) ===
                           "MONTH"
                         ? "month"
                         : "day"
@@ -480,10 +480,10 @@ function CoreFieldsComponent({
                   value={formattedReleaseDate}
                   onChange={handleReleaseDateChange}
                   granularity={
-                    ((currentSpecs as any).releaseDatePrecision) ===
+                    ((currentSpecs as any).releaseDatePrecision as any) ===
                     "YEAR"
                       ? "year"
-                      : ((currentSpecs as any).releaseDatePrecision) ===
+                      : ((currentSpecs as any).releaseDatePrecision as any) ===
                           "MONTH"
                         ? "month"
                         : "day"

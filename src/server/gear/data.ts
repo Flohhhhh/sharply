@@ -305,7 +305,7 @@ export async function fetchBrandGearData(
     }
     mountsByGearId
       .get(m.gearId)!
-      .push({ id: m.mountId, value: m.mountValue });
+      .push({ id: m.mountId!, value: m.mountValue! });
   }
 
   // Attach mounts array to each gear item
@@ -520,11 +520,11 @@ export async function upsertStaffVerdictByGearIdData(params: {
       target: staffVerdicts.gearId,
       set: {
         content: values.content,
-        pros: values.pros,
-        cons: values.cons,
+        pros: values.pros as any,
+        cons: values.cons as any,
         whoFor: values.whoFor,
         notFor: values.notFor,
-        alternatives: values.alternatives,
+        alternatives: values.alternatives as any,
         authorUserId: values.authorUserId,
         updatedAt: sql`now()`,
       },
@@ -679,8 +679,8 @@ export async function fetchAllGearForConstructionData(): Promise<
 
   const mountIdsByGearId = new Map<string, string[]>();
   for (const mr of mountsRows) {
-    if (!mountIdsByGearId.has(mr.gearId)) mountIdsByGearId.set(mr.gearId, []);
-    mountIdsByGearId.get(mr.gearId)!.push(mr.mountId);
+    if (!mountIdsByGearId.has(mr.gearId!)) mountIdsByGearId.set(mr.gearId!, []);
+    mountIdsByGearId.get(mr.gearId!)!.push(mr.mountId!);
   }
 
   return rows.map((r) => ({

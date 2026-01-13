@@ -36,7 +36,7 @@ const NullableSlider: React.FC<NullableSliderProps> = (props) => {
   const { value, setValue } = useField<number | null>({ path: effectivePath });
 
   const isUnset =
-    value === null || value === undefined || Number.isNaN(value);
+    value === null || value === undefined || Number.isNaN(value as number);
   const displayValue = useMemo(() => {
     if (typeof value === "number" && !Number.isNaN(value)) return value;
     // Center as neutral when unset

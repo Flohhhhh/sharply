@@ -519,5 +519,5 @@ export async function updateGearThumbnailData(
   if (!updated[0]) {
     throw Object.assign(new Error("Gear not found"), { status: 404 });
   }
-  return updated[0];
+  return updated[0]!;
 }

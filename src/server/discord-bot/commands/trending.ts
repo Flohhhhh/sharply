@@ -23,7 +23,7 @@ export const trendingCommand = {
         value?: unknown;
         options?: CommandOption[];
       };
-      const optionsRaw = (interaction?.data)?.options as
+      const optionsRaw = (interaction?.data as any)?.options as
         | CommandOption[]
         | undefined;
       const opts: CommandOption[] = Array.isArray(optionsRaw) ? optionsRaw : [];

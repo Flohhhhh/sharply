@@ -74,9 +74,9 @@ export async function assignUserFromInvite(
 
   const currentRole = currentUser?.role ?? "USER";
   const targetRolePriority =
-    ROLE_PRIORITY[params.role] ?? 0;
+    ROLE_PRIORITY[params.role as keyof typeof ROLE_PRIORITY] ?? 0;
   const currentRolePriority =
-    ROLE_PRIORITY[currentRole] ?? 0;
+    ROLE_PRIORITY[currentRole as keyof typeof ROLE_PRIORITY] ?? 0;
   const nextRole =
     currentRolePriority >= targetRolePriority ? currentRole : params.role;
 

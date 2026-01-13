@@ -1302,7 +1302,7 @@ export const specDictionary: SpecSectionDef[] = [
         getRawValue: (item) => item.lensSpecs?.focusMotorType,
         formatDisplay: (raw, item) => {
           if (item.lensSpecs?.hasAutofocus !== true) return undefined;
-          return typeof raw === "string" ? (raw) : undefined;
+          return typeof raw === "string" ? (raw as string) : undefined;
         },
       },
       {
@@ -1479,7 +1479,7 @@ export const specDictionary: SpecSectionDef[] = [
             : undefined,
         condition: (item) =>
           Array.isArray(item.lensSpecs?.acceptsFilterTypes) &&
-          item.lensSpecs.acceptsFilterTypes.includes("front-screw-on"),
+          item.lensSpecs!.acceptsFilterTypes!.includes("front-screw-on"),
       },
       {
         key: "rearFilterThreadSizeMm",
@@ -1492,7 +1492,7 @@ export const specDictionary: SpecSectionDef[] = [
             : undefined,
         condition: (item) =>
           Array.isArray(item.lensSpecs?.acceptsFilterTypes) &&
-          item.lensSpecs.acceptsFilterTypes.includes("rear-screw-on"),
+          item.lensSpecs!.acceptsFilterTypes!.includes("rear-screw-on"),
       },
       {
         key: "dropInFilterSizeMm",
@@ -1505,7 +1505,7 @@ export const specDictionary: SpecSectionDef[] = [
             : undefined,
         condition: (item) =>
           Array.isArray(item.lensSpecs?.acceptsFilterTypes) &&
-          item.lensSpecs.acceptsFilterTypes.includes("rear-drop-in"),
+          item.lensSpecs!.acceptsFilterTypes!.includes("rear-drop-in"),
       },
     ],
   },

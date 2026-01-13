@@ -190,7 +190,7 @@ export function TrendingTable({ initialData }: Props) {
                   type="button"
                   size="sm"
                   variant={gearType === option.value ? "default" : "outline"}
-                  onClick={() => setGearType(option.value)}
+                  onClick={() => setGearType(option.value as typeof gearType)}
                 >
                   {option.label}
                 </Button>

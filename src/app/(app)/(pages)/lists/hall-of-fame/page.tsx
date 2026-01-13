@@ -38,8 +38,8 @@ function pickBestDate(gear: {
     p === "DAY" ? 3 : p === "MONTH" ? 2 : p === "YEAR" ? 1 : 0;
 
   if (!rel && !ann) return null;
-  if (rel && !ann) return { date: rel, precision: relPrec! };
-  if (!rel && ann) return { date: ann, precision: annPrec! };
+  if (rel && !ann) return { date: rel!, precision: relPrec! };
+  if (!rel && ann) return { date: ann!, precision: annPrec! };
 
   // both exist -> choose higher precision; if tie, prefer release date
   if (rank(relPrec) > rank(annPrec)) return { date: rel!, precision: relPrec! };

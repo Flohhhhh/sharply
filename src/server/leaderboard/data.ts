@@ -43,7 +43,7 @@ export async function fetchContributorLeaderboardData(
     let total = 0;
     const sections = ["core", "camera", "lens"] as const;
     for (const key of sections) {
-      const section = (payload)[key];
+      const section = (payload as any)[key];
       if (section && typeof section === "object") {
         total += Object.keys(section).length;
       }

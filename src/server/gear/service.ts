@@ -348,7 +348,7 @@ export async function submitGearEditProposal(body: unknown) {
   const role = user.role ?? "USER";
   const data = proposalInput.parse(body);
   const normalizedPayload = normalizeProposalPayloadForDb(
-    data.payload,
+    data.payload as Record<string, unknown>,
   );
   const gearId =
     data.gearId ??

@@ -108,7 +108,7 @@ export function GlobalSearchBar({
   // Keep input in sync when navigating via back/forward
   useEffect(() => {
     setValue(sp.get("q") ?? "");
-     
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sp.toString()]);
 
   // Handle click outside to close dropdown

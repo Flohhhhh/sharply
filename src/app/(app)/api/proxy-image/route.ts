@@ -1,4 +1,4 @@
-import { type NextRequest } from "next/server";
+import { NextRequest } from "next/server";
 
 const ALLOWED_PROTOCOLS = new Set(["http:", "https:"]);
 
