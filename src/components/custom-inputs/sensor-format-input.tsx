@@ -20,6 +20,7 @@ export interface SensorFormatInputProps {
   disabled?: boolean;
   className?: string;
   placeholder?: string;
+  filterFormats?: (format: (typeof SENSOR_FORMATS)[number]) => boolean;
 }
 
 export interface SensorFormatInputConfig {
@@ -38,6 +39,7 @@ const SensorFormatInput = ({
   disabled = false,
   className = "",
   placeholder = "Select sensor format",
+  filterFormats,
 }: SensorFormatInputProps) => {
   // Convert value to slug if it's an ID, otherwise use as-is
   const getDisplaySlug = (val: string | null | undefined): string => {
@@ -56,6 +58,9 @@ const SensorFormatInput = ({
   const displayName = displaySlug
     ? SENSOR_FORMATS.find((f) => f.slug === displaySlug)?.name
     : undefined;
+  const formats = filterFormats
+    ? SENSOR_FORMATS.filter(filterFormats)
+    : SENSOR_FORMATS;
 
   return (
     <div className={`w-full space-y-2 ${className}`}>
@@ -69,7 +74,7 @@ const SensorFormatInput = ({
           )}
         </SelectTrigger>
         <SelectContent>
-          {SENSOR_FORMATS.map((format) => (
+          {formats.map((format) => (
             <SelectItem key={format.slug} value={format.slug}>
               <div className="flex w-full flex-col">
                 <div className="flex items-center gap-2">

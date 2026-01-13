@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
   // 2. Slash commands
   if (interaction.type === InteractionType.ApplicationCommand) {
     const { name: commandName } = (
-      interaction as APIApplicationCommandInteraction
+      interaction
     ).data;
     const handler = commandHandlers[commandName];
     if (handler) return handler(interaction);

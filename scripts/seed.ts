@@ -97,12 +97,12 @@ function parseCliOptions(argv: string[]): SeedOptions {
   };
 
   return {
-    skipTaxonomy: toBool(args["skip-taxonomy"] ?? args["skipTaxonomy"]),
-    skipEditorial: toBool(args["skip-editorial"] ?? args["skipEditorial"]),
-    skipReviews: toBool(args["skip-reviews"] ?? args["skipReviews"]),
-    confirmSeed: toBool(args["confirm-seed"] ?? args["confirmSeed"]),
+    skipTaxonomy: toBool(args["skip-taxonomy"] ?? args.skipTaxonomy),
+    skipEditorial: toBool(args["skip-editorial"] ?? args.skipEditorial),
+    skipReviews: toBool(args["skip-reviews"] ?? args.skipReviews),
+    confirmSeed: toBool(args["confirm-seed"] ?? args.confirmSeed),
     allowGearOverwrite: toBool(
-      args["allow-gear-overwrite"] ?? args["allowGearOverwrite"],
+      args["allow-gear-overwrite"] ?? args.allowGearOverwrite,
     ),
   };
 }
@@ -907,14 +907,14 @@ async function upsertGearRow(
     .limit(1);
   if (existing[0]) {
     if (!allowOverwrite) {
-      return { record: existing[0]!, mutated: false };
+      return { record: existing[0], mutated: false };
     }
     const [updated] = await db
       .update(gear)
       .set({ ...values })
-      .where(eq(gear.id, existing[0]!.id))
+      .where(eq(gear.id, existing[0].id))
       .returning();
-    return { record: updated ?? { ...existing[0]!, ...values }, mutated: true };
+    return { record: updated ?? { ...existing[0], ...values }, mutated: true };
   }
   const insertQuery = db
     .insert(gear)
@@ -1105,15 +1105,15 @@ async function ensureUser(userSeed: ReviewSeed["user"]) {
     .where(eq(users.email, userSeed.email))
     .limit(1);
   if (existing[0]) {
-    if (existing[0]!.name !== userSeed.name) {
+    if (existing[0].name !== userSeed.name) {
       const [updated] = await db
         .update(users)
         .set({ name: userSeed.name })
-        .where(eq(users.id, existing[0]!.id))
+        .where(eq(users.id, existing[0].id))
         .returning();
-      return updated ?? existing[0]!;
+      return updated ?? existing[0];
     }
-    return existing[0]!;
+    return existing[0];
   }
   const [inserted] = await db
     .insert(users)

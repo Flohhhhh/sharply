@@ -206,7 +206,7 @@ export function CollectionTableModal(props: CollectionTableModalProps) {
     }
     return uniqueKeys
       .map((key) => columnConfigMap[key])
-      .filter(Boolean) as ColumnConfig[];
+      .filter(Boolean);
   }, [columnKeys]);
 
   const modalTrigger = trigger ?? (

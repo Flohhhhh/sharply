@@ -49,7 +49,7 @@ export function TableOfContents(props: {
   useEffect(() => {
     const container = document.querySelector(
       contentSelector,
-    ) as HTMLElement | null;
+    );
     setHeadings(extractHeadings(container));
 
     const headingsEls = container

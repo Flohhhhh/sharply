@@ -27,7 +27,7 @@ export const compareCommand = {
       value?: unknown;
       options?: CommandOption[];
     };
-    const optionsRaw = (interaction?.data as any)?.options as
+    const optionsRaw = (interaction?.data)?.options as
       | CommandOption[]
       | undefined;
     const opt: CommandOption[] = Array.isArray(optionsRaw) ? optionsRaw : [];

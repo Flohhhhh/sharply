@@ -14,7 +14,7 @@ import type {
   cameraVideoModes,
 } from "~/server/db/schema";
 import type { VideoModeNormalized } from "~/lib/video/mode-schema";
-import { ENUMS } from "~/lib/constants";
+import { type ENUMS } from "~/lib/constants";
 
 // Base types from schema
 export type Gear = typeof gear.$inferSelect;

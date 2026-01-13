@@ -1324,7 +1324,7 @@ export function normalizeProposalPayloadForDb(
 
   if (payload.lens) {
     const parsed = LensSchema.parse(payload.lens);
-    const pruned = pruneUndefined(parsed as Record<string, unknown>);
+    const pruned = pruneUndefined(parsed);
     if (Object.keys(pruned).length) normalized.lens = pruned;
   }
 

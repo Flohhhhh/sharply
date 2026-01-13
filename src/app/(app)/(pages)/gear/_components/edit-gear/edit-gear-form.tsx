@@ -471,7 +471,7 @@ function EditGearForm({
       >;
       const diffs = diffByKeys(
         orig,
-        (formData as any).fixedLensSpecs as any,
+        (formData as any).fixedLensSpecs,
         fixedKeys,
       );
       if (Object.keys(diffs).length > 0) (payload as any).fixedLens = diffs;
@@ -612,13 +612,13 @@ function EditGearForm({
 
   const computePayloadStats = (payload: Record<string, any>) => {
     const counts = {
-      coreFields: payload.core ? Object.keys(payload.core as any).length : 0,
+      coreFields: payload.core ? Object.keys(payload.core).length : 0,
       cameraFields: payload.camera
-        ? Object.keys(payload.camera as any).length
+        ? Object.keys(payload.camera).length
         : 0,
-      lensFields: payload.lens ? Object.keys(payload.lens as any).length : 0,
+      lensFields: payload.lens ? Object.keys(payload.lens).length : 0,
       fixedLensFields: payload.fixedLens
-        ? Object.keys(payload.fixedLens as any).length
+        ? Object.keys(payload.fixedLens).length
         : 0,
       cardSlots: Array.isArray(payload.cameraCardSlots)
         ? payload.cameraCardSlots.length
@@ -759,7 +759,7 @@ function EditGearForm({
             genres: Array.isArray((formData as any).genres)
               ? ((formData as any).genres as string[])
               : [],
-          } as any
+          }
         }
         gearType={gearType}
         showMissingOnly={Boolean(showMissingOnly)}
@@ -772,7 +772,7 @@ function EditGearForm({
             genres: Array.isArray((gearData as any).genres)
               ? ((gearData as any).genres as string[])
               : [],
-          } as any
+          }
         }
         onChange={handleChange}
       />
@@ -784,7 +784,7 @@ function EditGearForm({
           gearItem={formData}
           currentSpecs={formData.cameraSpecs}
           showMissingOnly={Boolean(showMissingOnly)}
-          initialSpecs={(gearData as any).cameraSpecs as any}
+          initialSpecs={(gearData as any).cameraSpecs}
           initialGearItem={gearData as any}
           onChange={(field, value) => handleChange(field, value, "cameraSpecs")}
           onChangeTopLevel={(field, value) => handleChange(field, value)}
@@ -796,7 +796,7 @@ function EditGearForm({
           sectionId="analog-camera-section"
           currentSpecs={(formData as any).analogCameraSpecs}
           showMissingOnly={Boolean(showMissingOnly)}
-          initialSpecs={(gearData as any).analogCameraSpecs as any}
+          initialSpecs={(gearData as any).analogCameraSpecs}
           onChange={(field, value) =>
             handleChange(field as string, value, "analogCameraSpecs")
           }
@@ -819,7 +819,7 @@ function EditGearForm({
               sectionId="fixed-lens-section"
               currentSpecs={(formData as any).fixedLensSpecs ?? null}
               showMissingOnly={Boolean(showMissingOnly)}
-              initialSpecs={(gearData as any).fixedLensSpecs as any}
+              initialSpecs={(gearData as any).fixedLensSpecs}
               onChange={(field, value) => {
                 setFormData(
                   (prev) =>
@@ -841,7 +841,7 @@ function EditGearForm({
           sectionId="lens-section"
           currentSpecs={formData.lensSpecs}
           showMissingOnly={Boolean(showMissingOnly)}
-          initialSpecs={(gearData as any).lensSpecs as any}
+          initialSpecs={(gearData as any).lensSpecs}
           onChange={(field, value) => handleChange(field, value, "lensSpecs")}
         />
       )}
@@ -911,7 +911,7 @@ function EditGearForm({
                           )
                             display = formatPrice(v as number);
                           if (k === "releaseDate" || k === "announcedDate")
-                            display = formatHumanDate(v as any);
+                            display = formatHumanDate(v);
                           if (k === "mountIds") {
                             const ids = Array.isArray(v) ? (v as string[]) : [];
                             display = getMountLongNamesById(ids);
@@ -963,7 +963,7 @@ function EditGearForm({
                       <div className="mb-1 font-medium">Camera</div>
                       <ul className="list-disc pl-5">
                         {Array.isArray(
-                          (diffPreview.camera as any)?.availableShutterTypes,
+                          (diffPreview.camera)?.availableShutterTypes,
                         ) && (
                           <li>
                             <span className="text-muted-foreground">
@@ -971,7 +971,7 @@ function EditGearForm({
                             </span>{" "}
                             <span className="font-medium">
                               {(
-                                (diffPreview.camera as any)
+                                (diffPreview.camera)
                                   ?.availableShutterTypes as string[]
                               ).join(", ")}
                             </span>

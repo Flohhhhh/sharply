@@ -20,8 +20,8 @@ export async function GET(request: Request) {
     } = await fetchResolvedProposalGroupsWithCount(days, limit);
     return NextResponse.json({ groups, count, days: actualDays, limit });
   } catch (e: any) {
-    const status = (e as any)?.status ?? 500;
-    const message = (e as any)?.message ?? "Failed to load resolved proposals";
+    const status = (e)?.status ?? 500;
+    const message = (e)?.message ?? "Failed to load resolved proposals";
     return NextResponse.json({ error: message }, { status });
   }
 }

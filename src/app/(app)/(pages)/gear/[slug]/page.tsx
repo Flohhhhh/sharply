@@ -107,7 +107,7 @@ export default async function GearPage({ params }: GearPageProps) {
 
   // Fetch core gear data
   const item = await fetchGearBySlug(slug).catch((err: any) => {
-    if ((err as any)?.status === 404) return null;
+    if ((err)?.status === 404) return null;
     throw err;
   });
 
@@ -148,7 +148,7 @@ export default async function GearPage({ params }: GearPageProps) {
           missing={construction.missing}
           editHref={`/gear/${item.slug}/edit?type=${item.gearType}`}
           slug={item.slug}
-          gearType={item.gearType as "CAMERA" | "ANALOG_CAMERA" | "LENS"}
+          gearType={item.gearType}
         />
       </main>
     );
@@ -270,7 +270,7 @@ export default async function GearPage({ params }: GearPageProps) {
               <h2 className="mb-2 text-lg font-semibold">Specifications</h2>
               <SuggestEditButton
                 slug={item.slug}
-                gearType={item.gearType as GearType}
+                gearType={item.gearType}
               />
             </div>
             <SpecsTable sections={specSections} item={item} />
@@ -278,7 +278,7 @@ export default async function GearPage({ params }: GearPageProps) {
           {/* Sign-in CTA banner for editing specs (client, only when signed out) */}
           <SignInToEditSpecsCta
             slug={item.slug}
-            gearType={item.gearType as GearType}
+            gearType={item.gearType}
           />
           {/* Editorial Reviews*/}
           {review && (

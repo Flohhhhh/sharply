@@ -95,7 +95,7 @@ async function main() {
     sample = json.map((r) => ({
       content: r.content,
       recommend: r.recommend ?? null,
-      genres: (r.genres ?? null) as string[] | null,
+      genres: (r.genres ?? null),
     }));
     console.log("[ai-summary:script] sample loaded", { items: sample.length });
   } else {
@@ -121,12 +121,12 @@ async function main() {
     await backdateSummaryTimestamp(g.id, backdateDays);
   }
 
-  // eslint-disable-next-line no-console
+   
   console.log("Generated summary:\n\n" + text + "\n");
 }
 
 main().catch((err) => {
-  // eslint-disable-next-line no-console
+   
   console.error(err);
   process.exit(1);
 });

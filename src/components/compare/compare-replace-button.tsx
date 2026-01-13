@@ -27,7 +27,7 @@ export function CompareReplaceButton({
   const slotIndex = useMemo(() => {
     const matchIndex = slots.findIndex((slot) => slot?.slug === slug);
     if (matchIndex === -1) return fallbackIndex;
-    return (matchIndex === 0 ? 0 : 1) as 0 | 1;
+    return (matchIndex === 0 ? 0 : 1);
   }, [slots, slug, fallbackIndex]);
 
   const currentSlot = slots[slotIndex] ?? null;

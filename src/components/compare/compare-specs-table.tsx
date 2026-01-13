@@ -27,7 +27,7 @@ const sectionLabelOrder = new Map(
     section.title,
     section.fields
       .filter((field) => Boolean(field.label))
-      .map((field) => field.label as string),
+      .map((field) => field.label),
   ]),
 );
 

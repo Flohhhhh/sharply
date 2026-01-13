@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { getAmazonDestinationUrl } from "~/lib/links/amazon";
 import { parseAmazonAsin } from "~/lib/validation/amazon";
 import { track } from "@vercel/analytics/server";

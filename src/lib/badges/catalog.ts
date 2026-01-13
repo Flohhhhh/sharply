@@ -147,7 +147,7 @@ export function buildTriggerIndex(catalog: BadgeDefinition[]) {
   const index = new Map<AllowedTrigger, BadgeDefinition[]>();
   for (const def of catalog) {
     for (const t of def.triggers) {
-      const list = (index.get(t as AllowedTrigger) ?? []) as BadgeDefinition[];
+      const list = (index.get(t as AllowedTrigger) ?? []);
       list.push(def);
       index.set(t as AllowedTrigger, list);
     }

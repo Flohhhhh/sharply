@@ -183,7 +183,7 @@ export function GearCreateCard() {
           const hard = rec.hard as Record<string, unknown> | undefined;
           setHardSlugConflict(Boolean(hard?.slug));
           setHardModelConflict(Boolean(hard?.modelName));
-          const fz = rec.fuzzy as unknown;
+          const fz = rec.fuzzy;
           if (Array.isArray(fz)) {
             const items = fz.filter((g): g is FuzzyItem => {
               if (typeof g !== "object" || g === null) return false;

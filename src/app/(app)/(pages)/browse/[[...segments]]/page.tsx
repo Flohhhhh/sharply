@@ -108,7 +108,7 @@ export default async function BrowseCatchAll({
       <main className="space-y-6 pb-24">
         <Breadcrumbs
           brand={{ name: brand!.name, slug: brand!.slug }}
-          category={scope.categorySlug!}
+          category={scope.categorySlug}
         />
         <h1 className="text-3xl font-semibold">
           {brand!.name}{" "}
@@ -145,7 +145,7 @@ export default async function BrowseCatchAll({
     <main className="space-y-6 pb-24">
       <Breadcrumbs
         brand={{ name: brand!.name, slug: brand!.slug }}
-        category={scope.categorySlug!}
+        category={scope.categorySlug}
         mountValue={mount?.value ?? null}
       />
       <h1 className="text-3xl font-semibold">

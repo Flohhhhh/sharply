@@ -201,8 +201,8 @@ export async function searchGear(
       LENS_FOCAL_LENGTH_SORT,
     ] as const;
     type SortKey = (typeof allowed)[number];
-    const sortKey: SortKey = allowed.includes(f.sort as SortKey)
-      ? (f.sort as SortKey)
+    const sortKey: SortKey = allowed.includes(f.sort)
+      ? (f.sort)
       : "newest";
     switch (sortKey) {
       case "newest":

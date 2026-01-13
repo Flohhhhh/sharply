@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { fetchStaffVerdict } from "~/server/gear/service";
 
 export async function GET(

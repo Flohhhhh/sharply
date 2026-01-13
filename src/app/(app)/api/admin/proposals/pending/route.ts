@@ -6,8 +6,8 @@ export async function GET() {
     const groups = await fetchPendingProposalGroups();
     return NextResponse.json({ groups });
   } catch (e: any) {
-    const status = (e as any)?.status ?? 500;
-    const message = (e as any)?.message ?? "Failed to load pending proposals";
+    const status = (e)?.status ?? 500;
+    const message = (e)?.message ?? "Failed to load pending proposals";
     console.error(e);
     return NextResponse.json({ error: message }, { status });
   }

@@ -75,7 +75,7 @@ export default async function Home() {
     };
   };
 
-  const featuredPost = posts[0] ? toHomePost(posts[0]!) : null;
+  const featuredPost = posts[0] ? toHomePost(posts[0]) : null;
   const otherPosts = posts.slice(1, 7).map(toHomePost);
 
   // Editorial reviews from Payload

@@ -536,7 +536,7 @@ export async function hasViewEventForIdentityToday(params: {
         eq(popularityEvents.eventType, "view"),
         gte(popularityEvents.createdAt, startUtc),
         lt(popularityEvents.createdAt, nextUtc),
-        identityFilter!,
+        identityFilter,
       ),
     )
     .limit(1);
@@ -621,7 +621,7 @@ export async function hasEventForIdentityToday(params: {
         eq(popularityEvents.eventType, params.eventType),
         gte(popularityEvents.createdAt, startUtc),
         lt(popularityEvents.createdAt, nextUtc),
-        identityFilter!,
+        identityFilter,
       ),
     )
     .limit(1);

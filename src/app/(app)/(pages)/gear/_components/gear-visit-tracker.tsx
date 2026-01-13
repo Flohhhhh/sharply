@@ -31,7 +31,7 @@ export function GearVisitTracker({ slug }: GearVisitTrackerProps) {
       console.error("[GearVisitTracker] error", error);
     });
     // Fire once on mount for a given slug
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [slug]);
 
   // This component doesn't render anything

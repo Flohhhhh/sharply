@@ -201,7 +201,7 @@ export default function EditGearClient({
     const el = (candidates
       .map((id) => document.getElementById(id))
       .find((n) => n) ||
-      document.getElementById(sectionId)) as HTMLElement | null;
+      document.getElementById(sectionId));
     if (!el) return;
     // Prefer inputs/selects/comboboxes; fallback to any focusable
     const primarySelector =
@@ -211,10 +211,10 @@ export default function EditGearClient({
     const focusEl: HTMLElement | null =
       (el.matches(primarySelector)
         ? el
-        : (el.querySelector(primarySelector) as HTMLElement | null)) ||
+        : (el.querySelector(primarySelector))) ||
       (el.matches(fallbackSelector)
         ? el
-        : (el.querySelector(fallbackSelector) as HTMLElement | null)) ||
+        : (el.querySelector(fallbackSelector))) ||
       el;
     const headerOffset = 64; // page header spacing
     if (container) {
@@ -231,7 +231,7 @@ export default function EditGearClient({
             const ringContainer =
               (focusEl?.closest(
                 "[data-force-ring-container]",
-              ) as HTMLElement | null) || null;
+              )) || null;
             if (ringContainer) ringContainer.classList.add("force-focus");
             setTimeout(() => {
               focusEl?.classList.remove("force-focus");
@@ -251,7 +251,7 @@ export default function EditGearClient({
             const ringContainer =
               (focusEl?.closest(
                 "[data-force-ring-container]",
-              ) as HTMLElement | null) || null;
+              )) || null;
             if (ringContainer) ringContainer.classList.add("force-focus");
             setTimeout(() => {
               focusEl?.classList.remove("force-focus");

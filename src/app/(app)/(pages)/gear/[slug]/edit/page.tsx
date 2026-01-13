@@ -59,7 +59,7 @@ export default async function EditGearPage({
   const resolvedGearType: GearType =
     (type && (ENUMS.gear_type ?? []).includes(type as GearType)
       ? (type as GearType)
-      : (gearData.gearType as GearType)) ?? gearData.gearType;
+      : (gearData.gearType)) ?? gearData.gearType;
 
   // Initialize mountIds for the edit form (prefer new mountIds, fallback to legacy)
   const gearDataWithMountIds = {

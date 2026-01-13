@@ -97,9 +97,7 @@ export async function serviceGetChart(brand: string, slug: string) {
     .map((i) => ({
       key: i.customColumn!,
       label: i.customColumn!,
-      group: (i.groupOverride ?? (i.lensIsPrime ? "prime" : "zoom")) as
-        | "prime"
-        | "zoom",
+      group: (i.groupOverride ?? (i.lensIsPrime ? "prime" : "zoom")),
       order: 1000,
     }));
 
@@ -152,13 +150,13 @@ export async function serviceGetChart(brand: string, slug: string) {
         row.priceMinOverride != null && row.priceMaxOverride != null
           ? `$${row.priceMinOverride}-${row.priceMaxOverride}`
           : row.gearMsrpCents != null
-            ? `$${Math.round((row.gearMsrpCents as number) / 100)}`
+            ? `$${Math.round((row.gearMsrpCents) / 100)}`
             : undefined,
       priceLow:
         row.priceMinOverride != null
           ? row.priceMinOverride
           : row.gearMsrpCents != null
-            ? (row.gearMsrpCents as number) / 100
+            ? (row.gearMsrpCents) / 100
             : undefined,
       thumbnailUrl:
         "gearThumb" in row &&

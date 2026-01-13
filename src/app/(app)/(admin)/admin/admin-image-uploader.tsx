@@ -18,7 +18,7 @@ export function AdminImageUploader() {
         <UploadDropzone
           endpoint="imageUploader"
           onClientUploadComplete={(res) => {
-            const urls = res?.map((f) => f.ufsUrl).filter(Boolean) as string[];
+            const urls = res?.map((f) => f.ufsUrl).filter(Boolean);
             setUploadedUrls((prev) => [...prev, ...urls]);
           }}
           onUploadError={(error) => {
