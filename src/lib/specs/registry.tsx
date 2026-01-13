@@ -213,8 +213,7 @@ export const specDictionary: SpecSectionDef[] = [
           const ids = Array.isArray(raw) ? (raw as string[]) : [];
           if (!ids.length) return undefined;
           // Lenses show all mounts, cameras show first mount only (just as a safety)
-          const selectedIds =
-            item.gearType === "LENS" ? ids : [ids[0]!];
+          const selectedIds = item.gearType === "LENS" ? ids : [ids[0]!];
           const mountLabels = selectedIds
             .map((mountId) => getMountLongNameById(mountId))
             .filter(
