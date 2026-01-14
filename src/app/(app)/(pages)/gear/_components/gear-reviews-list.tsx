@@ -7,6 +7,7 @@ import { Badge } from "~/components/ui/badge";
 import {
   Pagination,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
@@ -243,20 +244,30 @@ export function GearReviewsList({
               />
             </PaginationItem>
 
-            {Array.from({ length: totalPages }, (_, pageIndex) => (
-              <PaginationItem key={pageIndex}>
-                <PaginationLink
-                  href="#"
-                  isActive={pageIndex === currentPage}
-                  onClick={(event) => {
-                    event.preventDefault();
-                    handlePageChange(pageIndex);
-                  }}
-                >
-                  {pageIndex + 1}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
+            {buildPaginationItems(currentPage, totalPages).map((item, idx) => {
+              if (item === "ellipsis") {
+                return (
+                  <PaginationItem key={`ellipsis-${idx}`}>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                );
+              }
+              const pageIndex = item;
+              return (
+                <PaginationItem key={pageIndex}>
+                  <PaginationLink
+                    href="#"
+                    isActive={pageIndex === currentPage}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      handlePageChange(pageIndex);
+                    }}
+                  >
+                    {pageIndex + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              );
+            })}
 
             <PaginationItem>
               <PaginationNext
@@ -280,4 +291,53 @@ export function GearReviewsList({
       )}
     </div>
   );
+}
+
+/**
+ * Build pagination items with ellipsis for large page counts.
+ * Always shows first page, last page, and a few pages around the current page.
+ */
+function buildPaginationItems(
+  currentPage: number,
+  totalPages: number,
+): Array<number | "ellipsis"> {
+  // For small page counts, just show all pages
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, i) => i);
+  }
+
+  const items: Array<number | "ellipsis"> = [];
+
+  // Always add first page
+  items.push(0);
+
+  // Add ellipsis or pages near the start
+  if (currentPage > 2) {
+    items.push("ellipsis");
+  } else if (currentPage === 2) {
+    items.push(1);
+  }
+
+  // Add pages around current page
+  const start = Math.max(1, currentPage - 1);
+  const end = Math.min(totalPages - 2, currentPage + 1);
+  for (let i = start; i <= end; i++) {
+    if (!items.includes(i)) {
+      items.push(i);
+    }
+  }
+
+  // Add ellipsis or pages near the end
+  if (currentPage < totalPages - 3) {
+    items.push("ellipsis");
+  } else if (currentPage === totalPages - 3) {
+    items.push(totalPages - 2);
+  }
+
+  // Always add last page
+  if (!items.includes(totalPages - 1)) {
+    items.push(totalPages - 1);
+  }
+
+  return items;
 }
