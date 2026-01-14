@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowBigDown, ArrowDown, MouseIcon } from "lucide-react";
+import { ArrowDown, MouseIcon } from "lucide-react";
 import { Children, useEffect, useMemo, useRef } from "react";
 
 import { ScrollArea } from "~/components/ui/scroll-area";

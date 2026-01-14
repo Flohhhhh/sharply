@@ -38,15 +38,17 @@ export function AddToWishlistButton({
   const { data } = useSession();
   const session = data?.session;
   const user = data?.user;
-  
-  const [inWishlist, setInWishlist] = useState<boolean | null>(initialInWishlist);
+
+  const [inWishlist, setInWishlist] = useState<boolean | null>(
+    initialInWishlist,
+  );
   const [loading, setLoading] = useState(false);
 
   const handleToggle = async () => {
     if (!session || !user || loading) return;
 
     setLoading(true);
-    
+
     // Optimistically determine action based on current state
     // If we don't know the state (null), assume we're adding
     const action = inWishlist ? "remove" : "add";
@@ -63,7 +65,7 @@ export function AddToWishlistButton({
           window.dispatchEvent(
             new CustomEvent("gear:wishlist", { detail: { delta: 1, slug } }),
           );
-          
+
           return {
             message: "Added to wishlist",
             description: `${gearName} added to your wishlist`,
@@ -80,7 +82,7 @@ export function AddToWishlistButton({
           window.dispatchEvent(
             new CustomEvent("gear:wishlist", { detail: { delta: -1, slug } }),
           );
-          
+
           return {
             message: "Removed from wishlist",
           };
@@ -116,22 +118,30 @@ export function AddToWishlistButton({
   }
 
   const active = inWishlist === true;
-  const disabled = (initialInWishlist !== null && inWishlist === null) || loading;
-  
+
   // Dynamic variant: if initialInWishlist is provided (gear detail page),
   // use "default" when active, "outline" when not
-  const effectiveVariant = initialInWishlist !== null && variant === "outline"
-    ? (active ? "default" : "outline")
-    : variant;
+  const effectiveVariant =
+    initialInWishlist !== null && variant === "outline"
+      ? active
+        ? "default"
+        : "outline"
+      : variant;
 
   return (
+    // Loading prop handles disabled state for the button
     <Button
       variant={effectiveVariant}
       size={size === "sm" ? "sm" : "default"}
       className={fullWidth ? "w-full" : className}
-      disabled={disabled}
       loading={loading}
-      icon={active ? <Heart className="h-4 w-4 fill-current" /> : <Heart className="h-4 w-4" />}
+      icon={
+        active ? (
+          <Heart className="h-4 w-4 fill-current" />
+        ) : (
+          <Heart className="h-4 w-4" />
+        )
+      }
       onClick={(e) => {
         if (stopPropagation) {
           e.preventDefault();

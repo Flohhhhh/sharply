@@ -194,7 +194,7 @@ export function FocalLengthClient() {
             loading={copyingShareLink}
             icon={<LinkIcon className="size-4" />}
           >
-            Share this Comparison
+            {copiedShare ? "Copied!" : "Share this Comparison"}
           </Button>
         </div>
         <div className="flex max-w-xl flex-col gap-2">

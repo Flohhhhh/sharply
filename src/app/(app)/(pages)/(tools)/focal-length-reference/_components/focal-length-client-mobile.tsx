@@ -152,6 +152,7 @@ export function FocalLengthClientMobile() {
     rightActiveIndex,
     leftSensorFormat,
     rightSensorFormat,
+    getIndexForFocalLength,
     selectedSet,
     selectedSetKey,
   ]);
@@ -206,7 +207,7 @@ export function FocalLengthClientMobile() {
             loading={copyingShareLink}
             icon={<LinkIcon className="size-4" />}
           >
-            Share this view
+            {copiedShare ? "Copied!" : "Share this view"}
           </Button>
         </div>
         <div className="flex flex-col gap-2">
