@@ -37,6 +37,7 @@ import {
   CollectionTableModal,
   type CollectionTableColumnKey,
 } from "~/app/(app)/(pages)/u/_components/collection/collection-table-modal";
+import { WishlistGearCard } from "~/app/(app)/(pages)/u/_components/wishlist-gear-card";
 
 interface UserProfilePageProps {
   params: Promise<{
@@ -232,7 +233,11 @@ export default async function UserProfilePage({
           {wishlistItems.length > 0 ? (
             <div className="grid grid-cols-1 gap-1 md:grid-cols-2">
               {wishlistItems.map((item) => (
-                <GearCard key={item.id} item={item} />
+                <WishlistGearCard
+                  key={item.id}
+                  item={item}
+                  showRemoveButton={myProfile}
+                />
               ))}
             </div>
           ) : myProfile ? (
