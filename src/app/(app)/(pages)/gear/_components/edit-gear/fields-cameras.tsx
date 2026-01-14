@@ -305,7 +305,17 @@ function CameraFieldsComponent({
     throw new Error("afAreaModes is completely missing");
   }
 
-  const [usePerShutterFps, setUsePerShutterFps] = useState(true);
+  const [usePerShutterFps, setUsePerShutterFps] = useState(() => {
+    const available =
+      currentSpecs?.availableShutterTypes ??
+      initialSpecs?.availableShutterTypes ??
+      [];
+    const normalized = normalizeMaxFpsByShutterValue(
+      currentSpecs?.maxFpsByShutter ?? initialSpecs?.maxFpsByShutter,
+      available,
+    );
+    return Object.keys(normalized).length > 0;
+  });
 
   // // Use sensor formats from constants
   // const sensorFormatOptions = useMemo(
