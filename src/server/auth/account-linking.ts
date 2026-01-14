@@ -3,8 +3,6 @@ import "server-only";
 import { and, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 
-import { db } from "~/server/db";
-import { accounts } from "~/server/db/schema";
 import { auth } from "~/auth";
 
 export const SUPPORTED_PROVIDERS = ["discord", "google"] as const;
