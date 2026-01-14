@@ -40,8 +40,8 @@ import { Button } from "~/components/ui/button";
 import { notFound } from "next/navigation";
 import DiscordBanner from "~/components/discord-banner";
 import Image from "next/image";
-
 import { JsonLd } from "~/components/json-ld";
+import { GearImageCarousel } from "~/app/(app)/(pages)/gear/_components/gear-image-carousel";
 import { StaffVerdictSection } from "../_components/staff-verdict-section";
 import { HallOfFameBadge } from "~/components/gear-badges/hall-of-fame-badge";
 import { isInHallOfFame } from "~/lib/utils/is-in-hall-of-fame";
@@ -211,24 +211,11 @@ export default async function GearPage({ params }: GearPageProps) {
         </div>
         {/* Photo Placeholder */}
         <div>
-          {item.thumbnailUrl ? (
-            <div className="bg-muted dark:bg-card overflow-hidden rounded-md p-12 sm:min-h-[420px] sm:p-24">
-              <Image
-                src={item.thumbnailUrl}
-                alt={item.name}
-                className="mx-auto h-full max-h-[300px] w-full max-w-[600px] object-contain sm:max-h-[420px]"
-                width={720}
-                height={480}
-                priority
-              />
-            </div>
-          ) : (
-            <div className="bg-muted dark:bg-card flex aspect-video items-center justify-center rounded-md">
-              <div className="text-muted-foreground text-lg">
-                No image available
-              </div>
-            </div>
-          )}
+          <GearImageCarousel
+            name={item.name}
+            thumbnailUrl={item.thumbnailUrl}
+            topViewUrl={item.topViewUrl}
+          />
         </div>
       </section>
 
@@ -339,6 +326,7 @@ export default async function GearPage({ params }: GearPageProps) {
             <GearActionButtons
               slug={slug}
               currentThumbnailUrl={item.thumbnailUrl ?? null}
+              currentTopViewUrl={item.topViewUrl ?? null}
             />
           </div>
           {/* Links */}

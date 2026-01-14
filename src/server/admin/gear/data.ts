@@ -342,6 +342,7 @@ const adminGearSelect = {
   brandId: gear.brandId,
   brandName: brands.name,
   thumbnailUrl: gear.thumbnailUrl,
+  topViewUrl: gear.topViewUrl,
   createdAt: gear.createdAt,
 };
 
@@ -515,6 +516,39 @@ export async function updateGearThumbnailData(
       id: gear.id,
       slug: gear.slug,
       thumbnailUrl: gear.thumbnailUrl,
+    });
+  if (!updated[0]) {
+    throw Object.assign(new Error("Gear not found"), { status: 404 });
+  }
+  return updated[0]!;
+}
+
+export interface UpdateGearTopViewParams {
+  gearId: string;
+  topViewUrl: string | null;
+}
+
+export interface UpdateGearTopViewResult {
+  id: string;
+  slug: string;
+  topViewUrl: string | null;
+}
+
+/**
+ * Update a gear item's top view URL by id.
+ */
+export async function updateGearTopViewData(
+  params: UpdateGearTopViewParams,
+): Promise<UpdateGearTopViewResult> {
+  const { gearId, topViewUrl } = params;
+  const updated = await db
+    .update(gear)
+    .set({ topViewUrl })
+    .where(eq(gear.id, gearId))
+    .returning({
+      id: gear.id,
+      slug: gear.slug,
+      topViewUrl: gear.topViewUrl,
     });
   if (!updated[0]) {
     throw Object.assign(new Error("Gear not found"), { status: 404 });

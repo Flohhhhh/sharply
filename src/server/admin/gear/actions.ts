@@ -7,6 +7,8 @@ import {
   renameGearService,
   setGearThumbnailService,
   clearGearThumbnailService,
+  setGearTopViewService,
+  clearGearTopViewService,
 } from "./service";
 import type { GearCreationParams } from "./data";
 
@@ -46,6 +48,29 @@ export async function actionClearGearThumbnail(params: {
   slug?: string;
 }) {
   const result = await clearGearThumbnailService(params);
+  revalidatePath("/admin/gear");
+  revalidatePath(`/gear/${result.slug}`);
+  revalidatePath("/browse");
+  return result;
+}
+
+export async function actionSetGearTopView(params: {
+  gearId?: string;
+  slug?: string;
+  topViewUrl: string;
+}) {
+  const result = await setGearTopViewService(params);
+  revalidatePath("/admin/gear");
+  revalidatePath(`/gear/${result.slug}`);
+  revalidatePath("/browse");
+  return result;
+}
+
+export async function actionClearGearTopView(params: {
+  gearId?: string;
+  slug?: string;
+}) {
+  const result = await clearGearTopViewService(params);
   revalidatePath("/admin/gear");
   revalidatePath(`/gear/${result.slug}`);
   revalidatePath("/browse");
