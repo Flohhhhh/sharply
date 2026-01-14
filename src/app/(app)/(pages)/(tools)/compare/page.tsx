@@ -118,12 +118,7 @@ export default async function ComparePage({
           </div>
         </section>
 
-        <section
-          className={cn(
-            "bg-background border-border border-t-2 py-8 shadow-sm",
-            a?.gearType === "CAMERA" && b?.gearType === "CAMERA" && "-mt-20",
-          )}
-        >
+        <section className="bg-background border-border border-t-2 py-8 shadow-sm">
           {/* Increment pair counter once per page load when both sides resolve */}
           {a && b ? <ComparePairTracker slugs={pair} /> : null}
 
