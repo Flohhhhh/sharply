@@ -41,16 +41,18 @@ export function WishlistRemoveButton({
         message: `${gearNameLabel} removed from wishlist`,
         action: {
           label: "Undo",
-          onClick: async () => {
+          onClick: () => {
             if (isUndoInFlightRef.current) return;
             isUndoInFlightRef.current = true;
-            try {
-              await actionToggleWishlist(slug, "add");
-              onUndo?.();
-              router.refresh();
-            } finally {
-              isUndoInFlightRef.current = false;
-            }
+            void (async () => {
+              try {
+                await actionToggleWishlist(slug, "add");
+                onUndo?.();
+                router.refresh();
+              } finally {
+                isUndoInFlightRef.current = false;
+              }
+            })();
           },
         },
       }),
@@ -72,7 +74,7 @@ export function WishlistRemoveButton({
     <Button
       variant="secondary"
       size="icon"
-      className="bg-background/80 text-muted-foreground shadow-sm backdrop-blur hover:bg-background hover:text-foreground"
+      className="bg-background/80 text-muted-foreground hover:bg-background hover:text-foreground shadow-sm backdrop-blur"
       onClick={(event) => {
         void handleRemoveClick(event);
       }}
