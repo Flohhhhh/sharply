@@ -1,11 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent } from "~/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "~/components/ui/pagination";
 import { GENRES } from "~/lib/constants";
 import Link from "next/link";
+
+const REVIEWS_PER_PAGE = 5;
 
 interface Review {
   id: string;
@@ -38,6 +48,22 @@ export function GearReviewsList({
   const [reviews, setReviews] = useState<Review[]>(initialReviews ?? []);
   const [isLoading, setIsLoading] = useState(!initialReviews);
   const [error, setError] = useState("");
+  const [currentPage, setCurrentPage] = useState(0);
+
+  const totalPages = useMemo(
+    () => Math.ceil(reviews.length / REVIEWS_PER_PAGE),
+    [reviews.length],
+  );
+
+  const paginatedReviews = useMemo(() => {
+    const startIndex = currentPage * REVIEWS_PER_PAGE;
+    return reviews.slice(startIndex, startIndex + REVIEWS_PER_PAGE);
+  }, [reviews, currentPage]);
+
+  const handlePageChange = (nextPage: number) => {
+    if (nextPage < 0 || (totalPages > 0 && nextPage >= totalPages)) return;
+    setCurrentPage(nextPage);
+  };
 
   useEffect(() => {
     if (initialReviews) {
@@ -106,7 +132,7 @@ export function GearReviewsList({
         </div>
       )}
 
-      {reviews.map((review) => {
+      {paginatedReviews.map((review) => {
         const createdAt = new Date(review.createdAt);
         const formattedDate = Number.isNaN(createdAt.getTime())
           ? review.createdAt
@@ -197,6 +223,61 @@ export function GearReviewsList({
           </div>
         );
       })}
+
+      {totalPages > 1 && (
+        <Pagination className="mt-6">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                onClick={(event) => {
+                  event.preventDefault();
+                  handlePageChange(currentPage - 1);
+                }}
+                aria-disabled={currentPage === 0}
+                className={
+                  currentPage === 0
+                    ? "pointer-events-none opacity-50"
+                    : undefined
+                }
+              />
+            </PaginationItem>
+
+            {Array.from({ length: totalPages }, (_, pageIndex) => (
+              <PaginationItem key={pageIndex}>
+                <PaginationLink
+                  href="#"
+                  isActive={pageIndex === currentPage}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    handlePageChange(pageIndex);
+                  }}
+                >
+                  {pageIndex + 1}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                onClick={(event) => {
+                  event.preventDefault();
+                  handlePageChange(currentPage + 1);
+                }}
+                aria-disabled={
+                  totalPages === 0 || currentPage + 1 >= totalPages
+                }
+                className={
+                  totalPages === 0 || currentPage + 1 >= totalPages
+                    ? "pointer-events-none opacity-50"
+                    : undefined
+                }
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
     </div>
   );
 }
