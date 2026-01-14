@@ -34,11 +34,11 @@ export function GearImageCarousel({
         <CarouselContent>
           {thumbnailUrl && (
             <CarouselItem>
-              <div className="bg-muted dark:bg-card overflow-hidden rounded-md p-12 sm:min-h-[420px] sm:p-24">
+              <div className="bg-muted dark:bg-card flex h-[300px] items-center justify-center overflow-hidden rounded-md p-8 sm:h-[600px] sm:p-12">
                 <Image
                   src={thumbnailUrl}
                   alt={name}
-                  className="mx-auto h-full max-h-[300px] w-full max-w-[600px] object-contain sm:max-h-[420px]"
+                  className="h-full w-full max-w-[600px] object-contain"
                   width={720}
                   height={480}
                   priority
@@ -48,11 +48,11 @@ export function GearImageCarousel({
           )}
           {topViewUrl && (
             <CarouselItem>
-              <div className="bg-muted dark:bg-card overflow-hidden rounded-md p-12 sm:min-h-[420px] sm:p-24">
+              <div className="bg-muted dark:bg-card flex h-[300px] items-center justify-center overflow-hidden rounded-md p-8 sm:h-[600px] sm:p-12">
                 <Image
                   src={topViewUrl}
                   alt={`${name} - Top View`}
-                  className="mx-auto h-full max-h-[300px] w-full max-w-[600px] object-contain sm:max-h-[420px]"
+                  className="h-full w-full max-w-[600px] object-contain"
                   width={720}
                   height={480}
                 />
