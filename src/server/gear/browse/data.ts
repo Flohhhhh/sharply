@@ -30,6 +30,8 @@ export type BrowseGearRow = {
   thumbnailUrl: string | null;
   releaseDate: Date | null;
   releaseDatePrecision: "DAY" | "MONTH" | "YEAR" | null;
+  announcedDate: Date | null;
+  announcedDatePrecision: "DAY" | "MONTH" | "YEAR" | null;
   msrpNowUsdCents: number | null;
   mpbMaxPriceUsdCents: number | null;
   lensFocalLengthMinMm?: number | null;
@@ -153,6 +155,8 @@ export async function searchGear(
     thumbnailUrl: gear.thumbnailUrl,
     releaseDate: gear.releaseDate,
     releaseDatePrecision: gear.releaseDatePrecision,
+    announcedDate: gear.announcedDate,
+    announcedDatePrecision: gear.announcedDatePrecision,
     msrpNowUsdCents: gear.msrpNowUsdCents,
     mpbMaxPriceUsdCents: gear.mpbMaxPriceUsdCents,
   };
@@ -272,6 +276,8 @@ export async function getReleaseOrderedGearPage(params: {
       gearType: gear.gearType,
       releaseDate: gear.releaseDate,
     releaseDatePrecision: gear.releaseDatePrecision,
+      announcedDate: gear.announcedDate,
+      announcedDatePrecision: gear.announcedDatePrecision,
       msrpNowUsdCents: gear.msrpNowUsdCents,
       mpbMaxPriceUsdCents: gear.mpbMaxPriceUsdCents,
     })

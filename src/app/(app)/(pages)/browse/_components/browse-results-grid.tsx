@@ -17,6 +17,8 @@ type GearListItem = {
   thumbnailUrl: string | null;
   releaseDate: string | null;
   releaseDatePrecision: "DAY" | "MONTH" | "YEAR" | null;
+  announcedDate: string | null;
+  announcedDatePrecision: "DAY" | "MONTH" | "YEAR" | null;
   msrpNowUsdCents: number | null;
   mpbMaxPriceUsdCents: number | null;
 };
@@ -165,6 +167,8 @@ export function BrowseResultsGrid({
             isTrending={trendingSet.has(g.slug)}
             releaseDate={g.releaseDate}
             releaseDatePrecision={g.releaseDatePrecision}
+            announcedDate={g.announcedDate}
+            announcedDatePrecision={g.announcedDatePrecision}
             priceText={getItemDisplayPrice(g, {
               style: "short",
               padWholeAmounts: true,

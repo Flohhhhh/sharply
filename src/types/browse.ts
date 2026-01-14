@@ -7,6 +7,8 @@ export type BrowseFeedItem = {
   gearType: string | null;
   releaseDate: string | null;
   releaseDatePrecision: "DAY" | "MONTH" | "YEAR" | null;
+  announcedDate: string | null;
+  announcedDatePrecision: "DAY" | "MONTH" | "YEAR" | null;
   msrpNowUsdCents: number | null;
   mpbMaxPriceUsdCents: number | null;
 };
