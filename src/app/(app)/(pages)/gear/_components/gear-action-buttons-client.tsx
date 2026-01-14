@@ -19,6 +19,7 @@ interface GearActionButtonsClientProps {
   initialInWishlist?: boolean | null;
   initialIsOwned?: boolean | null;
   currentThumbnailUrl?: string | null;
+  currentTopViewUrl?: string | null;
 }
 
 export function GearActionButtonsClient({
@@ -26,6 +27,7 @@ export function GearActionButtonsClient({
   initialInWishlist = null,
   initialIsOwned = null,
   currentThumbnailUrl = null,
+  currentTopViewUrl = null,
 }: GearActionButtonsClientProps) {
   const { data, isPending, error } = useSession();
 
@@ -142,13 +144,14 @@ export function GearActionButtonsClient({
         <GearImageModal
           slug={slug}
           currentThumbnailUrl={currentThumbnailUrl ?? undefined}
+          currentTopViewUrl={currentTopViewUrl ?? undefined}
           trigger={
             <Button
               icon={<ImageIcon className="h-4 w-4" />}
               variant="outline"
               className="w-full"
             >
-              Manage Image
+              Manage Images
             </Button>
           }
         />

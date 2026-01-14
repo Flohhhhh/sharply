@@ -182,3 +182,62 @@ export async function clearGearThumbnailService(params: {
 }): Promise<{ id: string; slug: string; thumbnailUrl: string | null }> {
   return setGearThumbnailService({ ...params, thumbnailUrl: null });
 }
+
+export async function setGearTopViewService(params: {
+  gearId?: string;
+  slug?: string;
+  topViewUrl: string | null;
+}): Promise<{ id: string; slug: string; topViewUrl: string | null }> {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session.user, ["ADMIN", "EDITOR"])) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+
+  const { gearId: maybeId, slug, topViewUrl } = params;
+  let gearId = maybeId;
+  if (!gearId) {
+    if (!slug)
+      throw Object.assign(new Error("Missing gear reference"), { status: 400 });
+    const id = await getGearIdBySlug(slug);
+    if (!id) throw Object.assign(new Error("Gear not found"), { status: 404 });
+    gearId = id;
+  }
+
+  // Fetch current gear state to determine if this is an upload, replace, or remove
+  const { fetchGearMetadataById } = await import("~/server/gear/data");
+  const currentGear = await fetchGearMetadataById(gearId);
+  const hadTopView = !!(currentGear as any).topViewUrl;
+
+  const { updateGearTopViewData } = await import("./data");
+  const updated = await updateGearTopViewData({ gearId, topViewUrl });
+
+  try {
+    // Determine the appropriate audit action
+    let action:
+      | "GEAR_TOP_VIEW_UPLOAD"
+      | "GEAR_TOP_VIEW_REPLACE"
+      | "GEAR_TOP_VIEW_REMOVE";
+    if (topViewUrl) {
+      // Setting a new top view
+      action = hadTopView ? "GEAR_TOP_VIEW_REPLACE" : "GEAR_TOP_VIEW_UPLOAD";
+    } else {
+      // Removing top view
+      action = "GEAR_TOP_VIEW_REMOVE";
+    }
+
+    await db.insert(auditLogs).values({
+      action,
+      actorUserId: session.user?.id ?? "",
+      gearId: updated.id,
+    });
+  } catch {}
+
+  return updated;
+}
+
+export async function clearGearTopViewService(params: {
+  gearId?: string;
+  slug?: string;
+}): Promise<{ id: string; slug: string; topViewUrl: string | null }> {
+  return setGearTopViewService({ ...params, topViewUrl: null });
+}

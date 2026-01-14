@@ -40,6 +40,13 @@ import { Button } from "~/components/ui/button";
 import { notFound } from "next/navigation";
 import DiscordBanner from "~/components/discord-banner";
 import Image from "next/image";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "~/components/ui/carousel";
 
 import { JsonLd } from "~/components/json-ld";
 import { StaffVerdictSection } from "../_components/staff-verdict-section";
@@ -211,16 +218,45 @@ export default async function GearPage({ params }: GearPageProps) {
         </div>
         {/* Photo Placeholder */}
         <div>
-          {item.thumbnailUrl ? (
-            <div className="bg-muted dark:bg-card overflow-hidden rounded-md p-12 sm:min-h-[420px] sm:p-24">
-              <Image
-                src={item.thumbnailUrl}
-                alt={item.name}
-                className="mx-auto h-full max-h-[300px] w-full max-w-[600px] object-contain sm:max-h-[420px]"
-                width={720}
-                height={480}
-                priority
-              />
+          {item.thumbnailUrl || (item as any).topViewUrl ? (
+            <div className="relative">
+              <Carousel className="w-full">
+                <CarouselContent>
+                  {item.thumbnailUrl && (
+                    <CarouselItem>
+                      <div className="bg-muted dark:bg-card overflow-hidden rounded-md p-12 sm:min-h-[420px] sm:p-24">
+                        <Image
+                          src={item.thumbnailUrl}
+                          alt={item.name}
+                          className="mx-auto h-full max-h-[300px] w-full max-w-[600px] object-contain sm:max-h-[420px]"
+                          width={720}
+                          height={480}
+                          priority
+                        />
+                      </div>
+                    </CarouselItem>
+                  )}
+                  {(item as any).topViewUrl && (
+                    <CarouselItem>
+                      <div className="bg-muted dark:bg-card overflow-hidden rounded-md p-12 sm:min-h-[420px] sm:p-24">
+                        <Image
+                          src={(item as any).topViewUrl}
+                          alt={`${item.name} - Top View`}
+                          className="mx-auto h-full max-h-[300px] w-full max-w-[600px] object-contain sm:max-h-[420px]"
+                          width={720}
+                          height={480}
+                        />
+                      </div>
+                    </CarouselItem>
+                  )}
+                </CarouselContent>
+                {item.thumbnailUrl && (item as any).topViewUrl && (
+                  <>
+                    <CarouselPrevious className="left-4" />
+                    <CarouselNext className="right-4" />
+                  </>
+                )}
+              </Carousel>
             </div>
           ) : (
             <div className="bg-muted dark:bg-card flex aspect-video items-center justify-center rounded-md">
@@ -339,6 +375,7 @@ export default async function GearPage({ params }: GearPageProps) {
             <GearActionButtons
               slug={slug}
               currentThumbnailUrl={item.thumbnailUrl ?? null}
+              currentTopViewUrl={(item as any).topViewUrl ?? null}
             />
           </div>
           {/* Links */}
