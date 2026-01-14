@@ -154,7 +154,6 @@ export function GearImageModal(props: GearImageModalProps) {
         savingTimerRef.current = null;
       }
       props.onSuccess?.({ url });
-      await new Promise((r) => setTimeout(r, 500));
     } catch (e) {
       const message = e instanceof Error ? e.message : "Failed to upload";
       toast.error(message);
