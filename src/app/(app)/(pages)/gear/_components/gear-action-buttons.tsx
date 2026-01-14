@@ -7,11 +7,15 @@ import { GearActionButtonsClient } from "./gear-action-buttons-client";
 interface GearActionButtonsProps {
   slug: string;
   currentThumbnailUrl?: string | null;
+  gearId?: string;
+  gearName?: string;
 }
 
 export async function GearActionButtons({
   slug,
   currentThumbnailUrl = null,
+  gearId,
+  gearName,
 }: GearActionButtonsProps) {
   let initialInWishlist: boolean | null = null;
   let initialIsOwned: boolean | null = null;
@@ -34,6 +38,8 @@ export async function GearActionButtons({
       initialInWishlist={initialInWishlist}
       initialIsOwned={initialIsOwned}
       currentThumbnailUrl={currentThumbnailUrl}
+      gearId={gearId}
+      gearName={gearName}
     />
   );
 }

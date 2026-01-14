@@ -620,6 +620,31 @@ export const gearMounts = appSchema.table(
   ],
 );
 
+// Many-to-many: Gear x Gear Alternatives (connects gear items to alternative options)
+export const gearAlternatives = appSchema.table(
+  "gear_alternatives",
+  (d) => ({
+    gearId: d
+      .varchar("gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    alternativeGearId: d
+      .varchar("alternative_gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    isDirectCompetitor: d
+      .boolean("is_direct_competitor")
+      .notNull()
+      .default(false),
+    createdAt,
+  }),
+  (t) => [
+    primaryKey({ columns: [t.gearId, t.alternativeGearId] }),
+    index("gear_alternatives_gear_idx").on(t.gearId),
+    index("gear_alternatives_alternative_idx").on(t.alternativeGearId),
+  ],
+);
+
 // --- Gear Specification Tables ---
 export const cameraSpecs = appSchema.table(
   "camera_specs",

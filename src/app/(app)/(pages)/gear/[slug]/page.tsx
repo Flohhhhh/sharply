@@ -339,6 +339,8 @@ export default async function GearPage({ params }: GearPageProps) {
             <GearActionButtons
               slug={slug}
               currentThumbnailUrl={item.thumbnailUrl ?? null}
+              gearId={item.id}
+              gearName={item.name}
             />
           </div>
           {/* Links */}

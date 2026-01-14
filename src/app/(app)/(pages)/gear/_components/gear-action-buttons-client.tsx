@@ -9,6 +9,7 @@ import { withBadgeToasts } from "~/components/badges/badge-toast";
 import { AddToCompareButton } from "~/components/compare/add-to-compare-button";
 import { AddToWishlistButton } from "~/components/gear/add-to-wishlist-button";
 import { GearImageModal } from "~/components/modals/gear-image-modal";
+import { GearAlternativesModal } from "~/components/modals/gear-alternatives-modal";
 import { requireRole } from "~/lib/auth/auth-helpers";
 import {
   actionToggleOwnership,
@@ -19,6 +20,8 @@ interface GearActionButtonsClientProps {
   initialInWishlist?: boolean | null;
   initialIsOwned?: boolean | null;
   currentThumbnailUrl?: string | null;
+  gearId?: string;
+  gearName?: string;
 }
 
 export function GearActionButtonsClient({
@@ -26,6 +29,8 @@ export function GearActionButtonsClient({
   initialInWishlist = null,
   initialIsOwned = null,
   currentThumbnailUrl = null,
+  gearId,
+  gearName,
 }: GearActionButtonsClientProps) {
   const { data, isPending, error } = useSession();
 
@@ -151,6 +156,13 @@ export function GearActionButtonsClient({
               Manage Image
             </Button>
           }
+        />
+      )}
+
+      {canEditImage && gearId && gearName && (
+        <GearAlternativesModal
+          gearId={gearId}
+          gearName={gearName}
         />
       )}
     </div>
