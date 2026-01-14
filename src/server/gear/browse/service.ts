@@ -208,7 +208,7 @@ export async function fetchReleaseFeedPage(params: {
     releaseDate: item.releaseDate ? item.releaseDate.toISOString() : null,
     releaseDatePrecision: item.releaseDatePrecision ?? null,
     announcedDate: item.announcedDate ? item.announcedDate.toISOString() : null,
-    announcedDatePrecision: item.announcedDatePrecision ?? null,
+    announceDatePrecision: item.announceDatePrecision ?? null,
     brandName: item.brandName ?? null,
     thumbnailUrl: item.thumbnailUrl ?? null,
     gearType: item.gearType ?? null,

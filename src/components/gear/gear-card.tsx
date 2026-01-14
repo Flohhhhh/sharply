@@ -89,7 +89,7 @@ export type GearCardProps = {
   releaseDate?: string | Date | null;
   releaseDatePrecision?: DatePrecision | null;
   announcedDate?: string | Date | null;
-  announcedDatePrecision?: DatePrecision | null;
+  announceDatePrecision?: DatePrecision | null;
   priceText?: string | null;
   metaRight?: React.ReactNode;
   badges?: React.ReactNode;
@@ -133,7 +133,7 @@ export function GearCard(props: GearCardProps) {
     releaseDate,
     releaseDatePrecision,
     announcedDate,
-    announcedDatePrecision,
+    announceDatePrecision,
     priceText,
     metaRight,
     badges,
@@ -143,7 +143,7 @@ export function GearCard(props: GearCardProps) {
   const trimmedName = stripBrandFromName(name, brandName);
   const dateLabel = formatGearDate(
     releaseDate ?? announcedDate,
-    releaseDatePrecision ?? announcedDatePrecision,
+    releaseDatePrecision ?? announceDatePrecision,
   );
   const isNew = isNewRelease(releaseDate, releaseDatePrecision);
   const isHallOfFameItem = isInHallOfFame(slug);

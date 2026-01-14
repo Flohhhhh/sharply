@@ -155,7 +155,7 @@ export function ReleaseFeedGrid({
             releaseDate={g.releaseDate}
             releaseDatePrecision={g.releaseDatePrecision}
             announcedDate={g.announcedDate}
-            announcedDatePrecision={g.announcedDatePrecision}
+            announceDatePrecision={g.announceDatePrecision}
             priceText={getItemDisplayPrice(g, {
               style: "short",
               padWholeAmounts: true,

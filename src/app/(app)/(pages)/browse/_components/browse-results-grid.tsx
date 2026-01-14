@@ -18,7 +18,7 @@ type GearListItem = {
   releaseDate: string | null;
   releaseDatePrecision: "DAY" | "MONTH" | "YEAR" | null;
   announcedDate: string | null;
-  announcedDatePrecision: "DAY" | "MONTH" | "YEAR" | null;
+  announceDatePrecision: "DAY" | "MONTH" | "YEAR" | null;
   msrpNowUsdCents: number | null;
   mpbMaxPriceUsdCents: number | null;
 };
@@ -168,7 +168,7 @@ export function BrowseResultsGrid({
             releaseDate={g.releaseDate}
             releaseDatePrecision={g.releaseDatePrecision}
             announcedDate={g.announcedDate}
-            announcedDatePrecision={g.announcedDatePrecision}
+            announceDatePrecision={g.announceDatePrecision}
             priceText={getItemDisplayPrice(g, {
               style: "short",
               padWholeAmounts: true,

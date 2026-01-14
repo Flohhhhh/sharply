@@ -258,6 +258,8 @@ function buildInitialPage(
       ...g,
       releaseDate: g.releaseDate ? g.releaseDate.toISOString() : null,
       releaseDatePrecision: g.releaseDatePrecision ?? null,
+      announcedDate: g.announcedDate ? g.announcedDate.toISOString() : null,
+      announceDatePrecision: g.announceDatePrecision ?? null,
       thumbnailUrl: g.thumbnailUrl ?? null,
       brandName: g.brandName ?? null,
       gearType: g.gearType ?? null,

@@ -8,7 +8,7 @@ export type BrowseFeedItem = {
   releaseDate: string | null;
   releaseDatePrecision: "DAY" | "MONTH" | "YEAR" | null;
   announcedDate: string | null;
-  announcedDatePrecision: "DAY" | "MONTH" | "YEAR" | null;
+  announceDatePrecision: "DAY" | "MONTH" | "YEAR" | null;
   msrpNowUsdCents: number | null;
   mpbMaxPriceUsdCents: number | null;
 };
