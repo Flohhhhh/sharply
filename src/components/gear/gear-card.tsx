@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { cn } from "~/lib/utils";
 import { AddToCompareButton } from "~/components/compare/add-to-compare-button";
+import { AddToWishlistButton } from "~/components/gear/add-to-wishlist-button";
 import Image from "next/image";
 import { BRANDS } from "~/lib/constants";
 import { PRICE_FALLBACK_TEXT } from "~/lib/mapping";
@@ -184,8 +185,15 @@ export function GearCard(props: GearCardProps) {
             </div>
 
             {/* Hover actions overlay */}
-            <div className="pointer-events-none absolute inset-0 flex items-start justify-center p-2 opacity-0 transition-opacity group-hover:opacity-100">
-              <div className="pointer-events-auto w-full">
+            <div className="pointer-events-none absolute inset-0 flex items-end justify-center p-2 pb-4 opacity-0 transition-opacity group-hover:opacity-100">
+              <div className="pointer-events-auto w-full space-y-2">
+                <AddToWishlistButton
+                  slug={slug}
+                  name={name}
+                  size="sm"
+                  className="w-full cursor-pointer"
+                  showLabel
+                />
                 <AddToCompareButton
                   slug={slug}
                   name={name}

@@ -19,6 +19,7 @@ import {
   Scale,
   PencilRuler,
   Flame,
+  SquareStop,
 } from "lucide-react";
 import { TbLaurelWreath } from "react-icons/tb";
 import { FaInstagram } from "react-icons/fa";
@@ -52,7 +53,8 @@ interface NavItem {
       | "scale"
       | "pencilRuler"
       | "instagram"
-      | "flame";
+      | "flame"
+      | "squareStop";
   }[];
   hideFromNavbar?: boolean;
   hideFromFooter?: boolean;
@@ -119,10 +121,10 @@ export const navItems: NavItem[] = [
         iconKey: "instagram",
       },
       // {
-      //   title: "Focal Simulator",
-      //   url: "/focal-simulator",
-      //   description: "Visualize different focal lengths",
-      //   iconKey: "target",
+      //   title: "Field of View Reference",
+      //   url: "/focal-length-reference",
+      //   description: "Visualize different focal lengths and sensor sizes.",
+      //   iconKey: "squareStop",
       // },
     ],
   },
@@ -214,6 +216,7 @@ export const iconMap = {
   wreath: TbLaurelWreath,
   instagram: FaInstagram,
   flame: Flame,
+  squareStop: SquareStop,
 };
 
 // Get nav items filtered by hideFromNavbar and format for the navbar component

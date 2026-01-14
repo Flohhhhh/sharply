@@ -8,6 +8,7 @@ This guide shows how to work with authentication in Sharply using Better Auth (c
 - Client helpers (including `useSession`) are exported from `src/lib/auth/auth-client.ts`.
 - Shared role helper (`requireRole`) lives in `src/lib/auth/auth-helpers.ts` and is safe to use in both server and client code (pure runtime check, no server APIs).
 - Server session helper `getSessionOrThrow` is exported from `~/server/auth` (wraps `auth.api.getSession` with `headers` and throws 401 when missing).
+- Auth tables in Postgres are `auth_sessions`, `auth_accounts`, `auth_verifications`, and `passkeys`; legacy NextAuth tables (`account`, `session`, `verification_token`) have been removed.
 
 ## Server Components and API Routes
 

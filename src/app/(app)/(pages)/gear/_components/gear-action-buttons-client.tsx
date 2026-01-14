@@ -3,14 +3,14 @@
 import { useState } from "react";
 import { useSession } from "~/lib/auth/auth-client";
 import { Button } from "~/components/ui/button";
-import { Heart, PackageOpen, Package, ImageIcon } from "lucide-react";
+import { PackageOpen, Package, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { withBadgeToasts } from "~/components/badges/badge-toast";
 import { AddToCompareButton } from "~/components/compare/add-to-compare-button";
+import { AddToWishlistButton } from "~/components/gear/add-to-wishlist-button";
 import { GearImageModal } from "~/components/modals/gear-image-modal";
 import { requireRole } from "~/lib/auth/auth-helpers";
 import {
-  actionToggleWishlist,
   actionToggleOwnership,
 } from "~/server/gear/actions";
 
@@ -33,47 +33,12 @@ export function GearActionButtonsClient({
   const user = data?.user;
 
   const canEditImage = requireRole(user, ["EDITOR"]);
-  const [inWishlist, setInWishlist] = useState<boolean | null>(
-    initialInWishlist,
-  );
   const [isOwned, setIsOwned] = useState<boolean | null>(initialIsOwned);
   const [loading, setLoading] = useState({
-    wishlist: false,
     ownership: false,
   });
 
   // Initial state comes from the server wrapper props; no client fetch
-
-  const handleWishlistToggle = async () => {
-    if (!session || inWishlist === null) return;
-
-    setLoading((prev) => ({ ...prev, wishlist: true }));
-    try {
-      const action = inWishlist ? "remove" : ("add" as const);
-      const res = await withBadgeToasts(actionToggleWishlist(slug, action));
-      if (res.ok) {
-        setInWishlist(!inWishlist);
-
-        // Optimistic stats update event
-        const delta = res.action === "added" ? 1 : -1;
-        window.dispatchEvent(
-          new CustomEvent("gear:wishlist", { detail: { delta, slug } }),
-        );
-
-        if (res.action === "added") {
-          toast.success("Added to wishlist");
-        } else {
-          toast.success("Removed from wishlist");
-        }
-      } else {
-        toast.error("Failed to update wishlist");
-      }
-    } catch (error) {
-      toast.error("Failed to update wishlist");
-    } finally {
-      setLoading((prev) => ({ ...prev, wishlist: false }));
-    }
-  };
 
   const handleOwnershipToggle = async () => {
     if (!session || isOwned === null) return;
@@ -126,22 +91,19 @@ export function GearActionButtonsClient({
     );
   }
 
-  const wishlistActive = inWishlist === true;
   const ownedActive = isOwned === true;
 
   return (
     <div className="space-y-3 pt-4">
       {/* Wishlist Button */}
-      <Button
-        variant={!wishlistActive ? "outline" : "default"}
-        className="w-full"
-        onClick={handleWishlistToggle}
-        loading={loading.wishlist}
-        disabled={inWishlist === null}
-        icon={wishlistActive ? <Heart className="fill-current" /> : <Heart />}
-      >
-        {wishlistActive ? "Remove from Wishlist" : "Add to Wishlist"}
-      </Button>
+      <AddToWishlistButton
+        slug={slug}
+        initialInWishlist={initialInWishlist}
+        size="md"
+        variant="outline"
+        fullWidth
+        showLabel
+      />
 
       {/* Ownership Button */}
       <Button

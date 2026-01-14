@@ -162,6 +162,8 @@ async function TrendingGrid({ brandId }: { brandId?: string }) {
           thumbnailUrl={g.thumbnailUrl ?? undefined}
           gearType={g.gearType}
           isTrending
+          releaseDate={g.releaseDate}
+          releaseDatePrecision={g.releaseDatePrecision}
           priceText={getItemDisplayPrice(g, {
             style: "short",
             padWholeAmounts: true,
