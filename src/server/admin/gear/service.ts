@@ -206,7 +206,7 @@ export async function setGearTopViewService(params: {
   // Fetch current gear state to determine if this is an upload, replace, or remove
   const { fetchGearMetadataById } = await import("~/server/gear/data");
   const currentGear = await fetchGearMetadataById(gearId);
-  const hadTopView = !!(currentGear as any).topViewUrl;
+  const hadTopView = !!currentGear.topViewUrl;
 
   const { updateGearTopViewData } = await import("./data");
   const updated = await updateGearTopViewData({ gearId, topViewUrl });

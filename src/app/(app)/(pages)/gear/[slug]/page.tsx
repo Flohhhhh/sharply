@@ -218,7 +218,7 @@ export default async function GearPage({ params }: GearPageProps) {
         </div>
         {/* Photo Placeholder */}
         <div>
-          {item.thumbnailUrl || (item as any).topViewUrl ? (
+          {item.thumbnailUrl || item.topViewUrl ? (
             <div className="relative">
               <Carousel className="w-full">
                 <CarouselContent>
@@ -236,11 +236,11 @@ export default async function GearPage({ params }: GearPageProps) {
                       </div>
                     </CarouselItem>
                   )}
-                  {(item as any).topViewUrl && (
+                  {item.topViewUrl && (
                     <CarouselItem>
                       <div className="bg-muted dark:bg-card overflow-hidden rounded-md p-12 sm:min-h-[420px] sm:p-24">
                         <Image
-                          src={(item as any).topViewUrl}
+                          src={item.topViewUrl}
                           alt={`${item.name} - Top View`}
                           className="mx-auto h-full max-h-[300px] w-full max-w-[600px] object-contain sm:max-h-[420px]"
                           width={720}
@@ -250,7 +250,7 @@ export default async function GearPage({ params }: GearPageProps) {
                     </CarouselItem>
                   )}
                 </CarouselContent>
-                {item.thumbnailUrl && (item as any).topViewUrl && (
+                {item.thumbnailUrl && item.topViewUrl && (
                   <>
                     <CarouselPrevious className="left-4" />
                     <CarouselNext className="right-4" />
@@ -375,7 +375,7 @@ export default async function GearPage({ params }: GearPageProps) {
             <GearActionButtons
               slug={slug}
               currentThumbnailUrl={item.thumbnailUrl ?? null}
-              currentTopViewUrl={(item as any).topViewUrl ?? null}
+              currentTopViewUrl={item.topViewUrl ?? null}
             />
           </div>
           {/* Links */}
