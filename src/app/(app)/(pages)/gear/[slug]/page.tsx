@@ -45,6 +45,8 @@ import { JsonLd } from "~/components/json-ld";
 import { StaffVerdictSection } from "../_components/staff-verdict-section";
 import { HallOfFameBadge } from "~/components/gear-badges/hall-of-fame-badge";
 import { isInHallOfFame } from "~/lib/utils/is-in-hall-of-fame";
+import { fetchGearAlternativesForDisplay } from "~/server/gear-alternatives/service";
+import { GearCardHorizontal } from "~/components/gear/gear-card-horizontal";
 
 export const revalidate = 3600;
 
@@ -136,6 +138,7 @@ export default async function GearPage({ params }: GearPageProps) {
   const trendingSlugs = await fetchTrendingSlugs({ timeframe: "30d", limit: 20 });
   const isTrending = trendingSlugs.includes(item.slug);
   const isHallOfFameItem = isInHallOfFame(item.slug);
+  const alternatives = await fetchGearAlternativesForDisplay(item.id);
 
   // Under construction state
   const construction = getConstructionState(item);
@@ -297,6 +300,62 @@ export default async function GearPage({ params }: GearPageProps) {
                   </div>
                 </div>
               </Link>
+            </section>
+          )}
+          {/* Direct Competitors */}
+          {alternatives.competitors.length > 0 && (
+            <section id="competitors" className="scroll-mt-24">
+              <h2 className="mb-3 text-lg font-semibold">Direct Competitors</h2>
+              <div className="grid grid-cols-1 gap-3">
+                {alternatives.competitors.map((alt) => (
+                  <GearCardHorizontal
+                    key={alt.alternativeGearId}
+                    href={`/gear/${alt.slug}`}
+                    slug={alt.slug}
+                    name={alt.name}
+                    brandName={alt.brandName}
+                    thumbnailUrl={alt.thumbnailUrl}
+                    gearType={alt.gearType}
+                    releaseDate={alt.releaseDate}
+                    releaseDatePrecision={
+                      alt.releaseDatePrecision as
+                        | "DAY"
+                        | "MONTH"
+                        | "YEAR"
+                        | null
+                    }
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+          {/* Adjacent Alternatives */}
+          {alternatives.adjacent.length > 0 && (
+            <section id="alternatives" className="scroll-mt-24">
+              <h2 className="mb-3 text-lg font-semibold">
+                Alternative Options
+              </h2>
+              <div className="grid grid-cols-1 gap-3">
+                {alternatives.adjacent.map((alt) => (
+                  <GearCardHorizontal
+                    key={alt.alternativeGearId}
+                    href={`/gear/${alt.slug}`}
+                    slug={alt.slug}
+                    name={alt.name}
+                    brandName={alt.brandName}
+                    thumbnailUrl={alt.thumbnailUrl}
+                    gearType={alt.gearType}
+                    releaseDate={alt.releaseDate}
+                    releaseDatePrecision={
+                      alt.releaseDatePrecision as
+                        | "DAY"
+                        | "MONTH"
+                        | "YEAR"
+                        | null
+                    }
+                  />
+                ))}
+              </div>
             </section>
           )}
           {/* Articles about this item (below specs) */}
