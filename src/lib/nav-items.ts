@@ -120,12 +120,12 @@ export const navItems: NavItem[] = [
         description: "Create Instagram posts with multiple images",
         iconKey: "instagram",
       },
-      {
-        title: "Field of View Reference",
-        url: "/focal-length-reference",
-        description: "Visualize different focal lengths and sensor sizes.",
-        iconKey: "squareStop",
-      },
+      // {
+      //   title: "Field of View Reference",
+      //   url: "/focal-length-reference",
+      //   description: "Visualize different focal lengths and sensor sizes.",
+      //   iconKey: "squareStop",
+      // },
     ],
   },
 
