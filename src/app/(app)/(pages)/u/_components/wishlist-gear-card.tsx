@@ -38,7 +38,7 @@ export function WishlistGearCard({
       className="group border-border/80 hover:border-foreground/50 relative block overflow-hidden rounded-xl border transition-colors"
     >
       {showRemoveButton ? (
-        <div className="absolute right-2 top-2 z-10">
+        <div className="absolute top-2 right-2 z-10">
           <WishlistRemoveButton
             slug={item.slug}
             gearName={displayName}

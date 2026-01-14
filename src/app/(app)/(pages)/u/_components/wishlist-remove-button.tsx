@@ -73,7 +73,9 @@ export function WishlistRemoveButton({
       variant="secondary"
       size="icon"
       className="bg-background/80 text-muted-foreground shadow-sm backdrop-blur hover:bg-background hover:text-foreground"
-      onClick={handleRemoveClick}
+      onClick={(event) => {
+        void handleRemoveClick(event);
+      }}
       loading={isLoading}
       aria-label="Remove from wishlist"
     >
