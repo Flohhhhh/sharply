@@ -185,7 +185,7 @@ export function GearCard(props: GearCardProps) {
             </div>
 
             {/* Hover actions overlay */}
-            <div className="pointer-events-none absolute inset-0 flex items-start justify-center p-2 opacity-0 transition-opacity group-hover:opacity-100">
+            <div className="pointer-events-none absolute inset-0 flex items-end justify-center p-2 pb-4 opacity-0 transition-opacity group-hover:opacity-100">
               <div className="pointer-events-auto w-full space-y-2">
                 <AddToWishlistButton
                   slug={slug}
