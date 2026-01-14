@@ -38,6 +38,8 @@ export function applyLiveBoostToTrending(params: {
       thumbnailUrl: live.thumbnailUrl,
       releaseDate: live.releaseDate,
       releaseDatePrecision: live.releaseDatePrecision,
+      announcedDate: live.announcedDate,
+      announceDatePrecision: live.announceDatePrecision,
       msrpNowUsdCents: live.msrpNowUsdCents,
       mpbMaxPriceUsdCents: live.mpbMaxPriceUsdCents,
       lifetimeViews: live.lifetimeViews,
