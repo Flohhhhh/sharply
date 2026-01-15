@@ -40,11 +40,11 @@ export async function StaffVerdictSection({
   return (
     <section id="staff-verdict" className="scroll-mt-24 space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-xl font-semibold">Staff Verdict</h3>
+        <h3 className="text-lg font-semibold">Staff Verdict</h3>
         <ManageStaffVerdictModal slug={slug} />
       </div>
 
-      <div className="border-border overflow-hidden rounded-md border p-6">
+      <div className="overflow-hidden">
         {verdict.content && (
           <div className="space-y-2">
             {verdict.content.split("\n").map((p: string, i: number) =>
