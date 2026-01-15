@@ -109,19 +109,11 @@ export function GearActionButtonsClient({
             : typeof item?.serverData?.size === "number"
               ? item.serverData.size
               : null;
-        const uploadThingFileId =
-          (item?.serverData?.fileKey as string | undefined) ??
-          (item?.serverData?.key as string | undefined) ??
-          (item?.serverData?.fileId as string | undefined) ??
-          (item?.id as string | undefined) ??
-          (item?.key as string | undefined) ??
-          fileUrl;
         const newSample = await actionAddGearRawSample(slug, {
           fileUrl,
           originalFilename,
           contentType,
           sizeBytes,
-          uploadThingFileId,
         });
         setManagedSamples((prev) => [...prev, newSample]);
         toast.success("Sample uploaded");

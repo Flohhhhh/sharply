@@ -124,7 +124,6 @@ export type RawSamplePayload = {
   originalFilename?: string | null;
   contentType?: string | null;
   sizeBytes?: number | null;
-  uploadThingFileId?: string | null;
 };
 
 export async function fetchRawSamples(slug: string): Promise<RawSample[]> {
@@ -154,7 +153,6 @@ export async function addRawSampleToGear(
     originalFilename: payload.originalFilename ?? null,
     contentType: payload.contentType ?? null,
     sizeBytes: payload.sizeBytes ?? null,
-    uploadThingFileId: payload.uploadThingFileId ?? null,
     uploadedByUserId: user.id,
   });
 }

@@ -202,16 +202,13 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
 
 export async function fetchRawSamplesByGearId(
   gearId: string,
-): Promise<typeof rawSamples.$inferSelect[]> {
+): Promise<(typeof rawSamples.$inferSelect)[]> {
   const rows = await db
     .select()
     .from(rawSamples)
     .innerJoin(gearRawSamples, eq(rawSamples.id, gearRawSamples.rawSampleId))
     .where(
-      and(
-        eq(gearRawSamples.gearId, gearId),
-        eq(rawSamples.isDeleted, false),
-      ),
+      and(eq(gearRawSamples.gearId, gearId), eq(rawSamples.isDeleted, false)),
     )
     .orderBy(desc(gearRawSamples.createdAt));
 
@@ -225,14 +222,13 @@ export type RawSampleInsertParams = {
   contentType?: string | null;
   sizeBytes?: number | null;
   uploadedByUserId?: string | null;
-  uploadThingFileId?: string | null;
 };
 
 export async function insertRawSample(
   params: RawSampleInsertParams,
 ): Promise<typeof rawSamples.$inferSelect> {
   return await db.transaction(async (tx) => {
-    const [sample] = await tx
+    const inserted = await tx
       .insert(rawSamples)
       .values({
         fileUrl: params.fileUrl,
@@ -240,9 +236,14 @@ export async function insertRawSample(
         contentType: params.contentType ?? null,
         sizeBytes: params.sizeBytes ?? null,
         uploadedByUserId: params.uploadedByUserId ?? null,
-        uploadThingFileId: params.uploadThingFileId ?? null,
       })
       .returning();
+
+    const sample = inserted[0];
+    if (!sample) {
+      throw new Error("Failed to insert raw sample");
+    }
+
     await tx.insert(gearRawSamples).values({
       gearId: params.gearId,
       rawSampleId: sample.id,
@@ -471,7 +472,6 @@ export async function getApprovedReviewsByGearId(gearId: string) {
     .where(and(eq(reviews.gearId, gearId), eq(reviews.status, "APPROVED")))
     .orderBy(desc(reviews.createdAt));
 }
-
 
 export async function getMyReviewStatus(gearId: string, userId: string) {
   const row = await db
@@ -970,33 +970,25 @@ export async function fetchAlternativesByGearId(
       // Gear A info
       gearAName: sql<string>`ga.name`.as("gear_a_name"),
       gearASlug: sql<string>`ga.slug`.as("gear_a_slug"),
-      gearAThumbnail: sql<string | null>`ga.thumbnail_url`.as("gear_a_thumbnail"),
+      gearAThumbnail: sql<string | null>`ga.thumbnail_url`.as(
+        "gear_a_thumbnail",
+      ),
       gearAType: sql<string>`ga.gear_type`.as("gear_a_type"),
       gearABrandName: sql<string | null>`ba.name`.as("gear_a_brand_name"),
       // Gear B info
       gearBName: sql<string>`gb.name`.as("gear_b_name"),
       gearBSlug: sql<string>`gb.slug`.as("gear_b_slug"),
-      gearBThumbnail: sql<string | null>`gb.thumbnail_url`.as("gear_b_thumbnail"),
+      gearBThumbnail: sql<string | null>`gb.thumbnail_url`.as(
+        "gear_b_thumbnail",
+      ),
       gearBType: sql<string>`gb.gear_type`.as("gear_b_type"),
       gearBBrandName: sql<string | null>`bb.name`.as("gear_b_brand_name"),
     })
     .from(gearAlternatives)
-    .innerJoin(
-      sql`${gear} AS ga`,
-      sql`ga.id = ${gearAlternatives.gearAId}`,
-    )
-    .innerJoin(
-      sql`${gear} AS gb`,
-      sql`gb.id = ${gearAlternatives.gearBId}`,
-    )
-    .leftJoin(
-      sql`${brands} AS ba`,
-      sql`ba.id = ga.brand_id`,
-    )
-    .leftJoin(
-      sql`${brands} AS bb`,
-      sql`bb.id = gb.brand_id`,
-    )
+    .innerJoin(sql`${gear} AS ga`, sql`ga.id = ${gearAlternatives.gearAId}`)
+    .innerJoin(sql`${gear} AS gb`, sql`gb.id = ${gearAlternatives.gearBId}`)
+    .leftJoin(sql`${brands} AS ba`, sql`ba.id = ga.brand_id`)
+    .leftJoin(sql`${brands} AS bb`, sql`bb.id = gb.brand_id`)
     .where(
       or(
         eq(gearAlternatives.gearAId, gearId),
