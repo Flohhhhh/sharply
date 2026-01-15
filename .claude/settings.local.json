@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash(cat:*)",
+      "Bash(ls:*)",
+      "Bash(git -C /c/Users/Cameron/CodeProjects/sharply log --oneline -20)"
+    ]
+  }
+}
