@@ -174,21 +174,15 @@ if (k === "mountIds") {
 
 ## Migration & Backfill
 
-### Step 1: Generate Migration
-
-```bash
-npm run db:generate
-```
-
-This creates the migration for `gear_mounts` table.
-
-### Step 2: Push Migration
+### Step 1: Test Schema Changes Locally
 
 ```bash
 npm run db:push
 ```
 
-**WARNING**: As per project rules, developer must manually run this.
+This syncs your local database with the schema changes for `gear_mounts` table.
+
+**Note**: Do not generate migration files. Maintainers will generate a consolidated migration when merging dev to main/staging.
 
 ### Step 3: Backfill Data
 
@@ -215,8 +209,8 @@ ON CONFLICT (gear_id, mount_id) DO NOTHING;
 - [x] Proposal approval writes to gear_mounts junction
 - [x] Backward compatibility: gear.mountId still updated
 - [x] Admin UI displays mountIds arrays correctly
-- [ ] Manual: Generate migration
-- [ ] Manual: Push migration to database
+- [ ] Manual: Test schema changes locally with `db:push`
+- [ ] Manual: (Maintainers only) Generate consolidated migration when merging dev to main/staging
 - [ ] Manual: Run backfill script
 - [ ] Manual: Test creating/editing lens with multiple mounts
 - [ ] Manual: Test camera mount editing (single select)

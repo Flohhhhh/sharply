@@ -1,0 +1,47 @@
+name: Protect migration files
+
+on:
+  pull_request:
+    branches:
+      - development
+
+jobs:
+  check-migration-files:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for migration files
+        run: |
+          # Compare the PR branch against the base branch
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }} ${{ github.sha }} || true)
+
+          echo "Changed files:"
+          echo "$CHANGED"
+
+          # Check for any SQL migration files in drizzle/ directory
+          MIGRATION_FILES=$(echo "$CHANGED" | grep -E "^drizzle/.*\.sql$" || true)
+
+          if [ -n "$MIGRATION_FILES" ]; then
+            echo "❌ Migration files detected in this PR:"
+            echo "$MIGRATION_FILES"
+            echo ""
+            echo "Migration files should not be committed by contributors."
+            echo ""
+            echo "Workflow:"
+            echo "  1. Make schema changes in src/server/db/schema.ts"
+            echo "  2. Test locally using: npm run db:push"
+            echo "  3. Commit only the schema changes (schema.ts)"
+            echo "  4. Maintainers will generate a consolidated migration when merging dev to main/staging"
+            echo ""
+            echo "➡️  To fix:"
+            echo "   - Remove migration files from this PR"
+            echo "   - Keep only schema.ts changes"
+            echo "   - Use db:push for local testing instead"
+            exit 1
+          fi
+
+          echo "✅ No migration files detected in PR"

@@ -13,10 +13,11 @@ Sharply is a photography gear database and cataloging application built with Nex
 npm run dev               # Start dev server at http://localhost:3000
 
 # Database
-npm run db:generate       # Generate migrations from schema changes
-npm run db:migrate        # Apply pending migrations
+npm run db:push           # Sync local database with schema.ts (for testing schema changes)
+npm run db:migrate        # Apply pending migrations (after migrations are merged)
 npm run db:seed -- --confirm-seed  # Seed sample data (required flag)
 npx drizzle-kit studio    # View database in Drizzle UI
+# Note: db:generate is for maintainers only when merging dev to main/staging
 
 # Code quality
 npm run lint              # ESLint check
@@ -56,7 +57,13 @@ Import flow: UI → service/actions, actions → service, service → data
 - **Schema**: `src/server/db/schema.ts` is the source of truth
 - **Migrations**: Auto-generated in `drizzle/` via `npm run db:generate`
 
-**Important**: NEVER run `db:push` or `drizzle-kit push`. Always use `db:generate` then `db:migrate`.
+**Important**:
+
+- **First-time setup**: New contributors use `db:push` once for initial database setup
+- **During development**: Contributors use `db:push` to test schema changes locally (do NOT generate migrations)
+- **For maintainers**: Generate consolidated migrations (`db:generate`) when merging dev to main/staging
+- **After migrations merged**: Contributors use `db:migrate` to sync their local database
+- Contributors never generate or commit migration files - only maintainers do this when merging
 
 ### Authentication
 

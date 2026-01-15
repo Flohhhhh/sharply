@@ -78,11 +78,32 @@ You can run Postgres however you prefer. Two common options:
 
 After Postgres is running:
 
+**First-time setup** (for new contributors setting up a fresh database):
+
 ```bash
-npm run db:migrate        # apply migrations to your local database to setup the schema
+npm run db:push           # sync schema directly from src/server/db/schema.ts (one-time initial setup)
 npm run db:seed           # (optional) populate sample data
 npx drizzle-kit studio    # (optional) view the database in Drizzle studio (or use your own viewer)
 ```
+
+**After pulling changes** (when migrations have been generated and merged to main):
+
+```bash
+npm run db:migrate        # apply pending migrations to your LOCAL database
+```
+
+**During development** (when working on schema changes):
+
+```bash
+npm run db:push           # sync your local database with schema.ts changes (for testing)
+```
+
+> **Note**:
+>
+> - Use `db:push` to test schema changes locally during development
+> - Do NOT generate migration files (`db:generate`) - maintainers will generate a consolidated migration when merging dev to main/staging
+> - After migrations are merged, use `db:migrate` to sync your local database
+> - Never run migrations against production/staging databases
 
 > `npm run db:seed` requires you to append `-- --confirm-seed` (for example `npm run db:seed -- --confirm-seed`). This keeps the safeguard in place so the script only runs when you explicitly acknowledge it and target a dev database. It will not overwrite existing gear unless you also pass `--allow-gear-overwrite`.
 
@@ -143,10 +164,16 @@ This starts Next.js on `http://localhost:3000`.
 
 1. Fork or create a feature branch.
 2. Keep schema changes in `src/server/db/schema.ts`; do not edit migrations manually.
-3. Generate migrations with `npm run db:generate`, they will be applied during CI.
-4. Update relevant docs in `/docs` alongside code changes.
-5. Run `npm run lint` and and `npm run typecheck` or `npm run build` and fix any errors in touched files.
-6. Open a pull request with context on the changes and testing performed.
+3. **Database workflow**:
+   - Make schema changes in `src/server/db/schema.ts`
+   - Test locally: Use `npm run db:push` to sync your local database with schema changes
+   - **Do NOT** run `db:generate` or commit migration files - maintainers will generate a consolidated migration when merging dev to main/staging
+   - Commit only the schema changes (`schema.ts`)
+   - After migrations are merged to main, pull and run `npm run db:migrate` to sync your local database
+4. **First-time setup**: New contributors use `npm run db:push` once for initial database setup
+5. Update relevant docs in `/docs` alongside code changes.
+6. Run `npm run lint` and and `npm run typecheck` or `npm run build` and fix any errors in touched files.
+7. Open a pull request with context on the changes and testing performed.
 
 ## Support
 

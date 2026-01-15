@@ -29,9 +29,19 @@ Sharply is a photography gear database and cataloging application built with Nex
 
 ### Migration Guidelines
 
-Do not create migration files, just make changes to schema, then developer will run the migration generation and push scripts.
+**For Contributors:**
+1. Make schema changes in `src/server/db/schema.ts`
+2. Test locally: Use `npm run db:push` to sync your local database with schema changes
+3. **Do NOT** run `db:generate` or commit migration files
+4. Commit only the schema changes (`schema.ts`)
+5. Maintainers will generate a consolidated migration file when merging dev to main/staging
+6. After migrations are merged, pull and run `npm run db:migrate` to sync your local database
 
-NEVER RUN DB:PUSH OR drizzle-kit push
+**Database Setup Workflow:**
+- **First-time setup**: New contributors use `npm run db:push` once to sync the schema directly from `src/server/db/schema.ts` for initial database setup
+- **During development**: Use `npm run db:push` to test schema changes locally (do NOT generate migrations)
+- **After migrations are merged**: Use `npm run db:migrate` to sync your local database with the consolidated migration
+- **Important**: Contributors never generate or commit migration files - maintainers handle migration generation when merging dev to main/staging
 
 ## Documentation Management
 
@@ -73,7 +83,11 @@ NEVER RUN DB:PUSH OR drizzle-kit push
 
 ### For Database Migrations
 
-NEVER RUN DB:PUSH or drizzle-kit push
+- **First-time setup**: `db:push` is allowed for new contributors setting up a fresh database
+- **During development**: Contributors use `db:push` to test schema changes locally (do NOT generate migrations)
+- **For maintainers**: Generate consolidated migrations (`db:generate`) when merging dev to main/staging
+- **After migrations merged**: Contributors use `db:migrate` to sync their local database
+- **Important**: Contributors never generate or commit migration files - only maintainers do this when merging
 
 ### For Schema Changes
 
