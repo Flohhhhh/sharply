@@ -1,1 +1,0 @@
-ALTER TABLE "app"."popularity_events" ALTER COLUMN "event_type" SET DATA TYPE varchar(40);

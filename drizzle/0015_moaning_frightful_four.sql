@@ -1,1 +1,0 @@
-ALTER TABLE "app"."gear" ADD COLUMN "mpb_max_price_usd_cents" integer;

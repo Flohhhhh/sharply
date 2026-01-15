@@ -1,1 +1,0 @@
-ALTER TABLE "app"."camera_specs" ADD COLUMN "precapture_support_level" integer;

@@ -1,1 +1,0 @@
-ALTER TABLE "app"."camera_specs" ADD COLUMN "has_rear_touchscreen" boolean;
