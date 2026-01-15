@@ -1,0 +1,798 @@
+-- Current sql file was generated after introspecting the database
+-- If you want to run this migration please uncomment this code before executing migrations
+
+-- CREATE SCHEMA "app";
+-- --> statement-breakpoint
+-- CREATE TYPE "public"."analog_medium_enum" AS ENUM('35mm', 'half-frame', 'panoramic-35mm', 'aps', '110', '126-instamatic', '828', '120', '220', '127', '620', 'large-format-4x5', 'large-format-5x7', 'large-format-8x10', 'ultra-large-format', 'sheet-film', 'metal-plate', 'glass-plate', 'experimental-other');--> statement-breakpoint
+-- CREATE TYPE "public"."analog_types_enum" AS ENUM('single-lens-reflex-slr', 'rangefinder', 'twin-lens-reflex-tlr', 'point-and-shoot', 'large-format', 'instant-film', 'disposable', 'toy', 'stereo', 'panoramic', 'folding', 'box', 'pinhole', 'press');--> statement-breakpoint
+-- CREATE TYPE "public"."analog_viewfinder_types_enum" AS ENUM('none', 'pentaprism', 'pentamirror', 'waist-level', 'sports-finder', 'rangefinder-style', 'ground-glass', 'other');--> statement-breakpoint
+-- CREATE TYPE "public"."audit_action" AS ENUM('GEAR_CREATE', 'GEAR_RENAME', 'GEAR_IMAGE_UPLOAD', 'GEAR_IMAGE_REPLACE', 'GEAR_IMAGE_REMOVE', 'GEAR_TOP_VIEW_UPLOAD', 'GEAR_TOP_VIEW_REPLACE', 'GEAR_TOP_VIEW_REMOVE', 'GEAR_EDIT_PROPOSE', 'GEAR_EDIT_APPROVE', 'GEAR_EDIT_REJECT', 'GEAR_EDIT_MERGE', 'REVIEW_APPROVE', 'REVIEW_REJECT');--> statement-breakpoint
+-- CREATE TYPE "public"."badge_award_source" AS ENUM('auto', 'manual');--> statement-breakpoint
+-- CREATE TYPE "public"."camera_af_subject_categories_enum" AS ENUM('people', 'animals', 'vehicles', 'birds', 'aircraft');--> statement-breakpoint
+-- CREATE TYPE "public"."camera_type_enum" AS ENUM('dslr', 'mirrorless', 'slr', 'action', 'cinema');--> statement-breakpoint
+-- CREATE TYPE "public"."card_bus_enum" AS ENUM('sd_default', 'uhs_i', 'uhs_ii', 'uhs_iii', 'sd_express', 'cfexpress_pcie_gen3x1', 'cfexpress_pcie_gen3x2', 'cfexpress_pcie_gen4x1', 'cfexpress_pcie_gen4x2', 'xqd_1_0', 'xqd_2_0', 'cfast_sata_ii', 'cfast_sata_iii', 'cf_udma4', 'cf_udma5', 'cf_udma6', 'cf_udma7', 'sxs_pcie_gen1', 'sxs_pcie_gen2', 'p2_pci');--> statement-breakpoint
+-- CREATE TYPE "public"."card_form_factor_enum" AS ENUM('sd', 'micro_sd', 'cfexpress_type_a', 'cfexpress_type_b', 'cfexpress_type_c', 'xqd', 'cfast', 'compactflash_type_i', 'compactflash_type_ii', 'memory_stick_pro_duo', 'memory_stick_pro_hg_duo', 'xd_picture_card', 'smartmedia', 'sxs', 'p2');--> statement-breakpoint
+-- CREATE TYPE "public"."card_speed_class_enum" AS ENUM('c2', 'c4', 'c6', 'c10', 'u1', 'u3', 'v6', 'v10', 'v30', 'v60', 'v90', 'vpg_20', 'vpg_65', 'vpg_130');--> statement-breakpoint
+-- CREATE TYPE "public"."date_precision_enum" AS ENUM('YEAR', 'MONTH', 'DAY');--> statement-breakpoint
+-- CREATE TYPE "public"."exposure_modes_enum" AS ENUM('manual', 'aperture-priority', 'shutter-priority', 'program', 'auto', 'other');--> statement-breakpoint
+-- CREATE TYPE "public"."film_transport_enum" AS ENUM('not-applicable', 'manual-lever', 'manual-knob', 'manual-other', 'motorized', 'other');--> statement-breakpoint
+-- CREATE TYPE "public"."focus_aid_enum" AS ENUM('none', 'split-prism', 'microprism', 'electronic-confirm', 'electronic-directional', 'af-point');--> statement-breakpoint
+-- CREATE TYPE "public"."gear_type" AS ENUM('CAMERA', 'ANALOG_CAMERA', 'LENS');--> statement-breakpoint
+-- CREATE TYPE "public"."iso_setting_method_enum" AS ENUM('manual', 'dx-only', 'dx-with-override', 'fixed', 'other');--> statement-breakpoint
+-- CREATE TYPE "public"."lens_filter_types_enum" AS ENUM('none', 'front-screw-on', 'rear-screw-on', 'rear-bayonet', 'rear-gel-slot', 'rear-drop-in', 'internal-rotary');--> statement-breakpoint
+-- CREATE TYPE "public"."lens_zoom_types_enum" AS ENUM('two-ring', 'push-pull', 'power-zoom', 'zoom-by-wire', 'collar-zoom', 'other');--> statement-breakpoint
+-- CREATE TYPE "public"."metering_display_type_enum" AS ENUM('needle-middle', 'needle-match', 'led-indicators', 'led-scale', 'lcd-viewfinder', 'lcd-top-panel', 'none', 'other');--> statement-breakpoint
+-- CREATE TYPE "public"."metering_mode_enum" AS ENUM('average', 'center-weighted', 'spot', 'other');--> statement-breakpoint
+-- CREATE TYPE "public"."mount_material_enum" AS ENUM('metal', 'plastic');--> statement-breakpoint
+-- CREATE TYPE "public"."notification_type" AS ENUM('gear_spec_approved', 'badge_awarded', 'prompt_handle_setup');--> statement-breakpoint
+-- CREATE TYPE "public"."popularity_event_type" AS ENUM('view', 'wishlist_add', 'owner_add', 'compare_add', 'review_submit', 'api_fetch');--> statement-breakpoint
+-- CREATE TYPE "public"."popularity_timeframe" AS ENUM('7d', '30d');--> statement-breakpoint
+-- CREATE TYPE "public"."proposal_status" AS ENUM('PENDING', 'APPROVED', 'REJECTED', 'MERGED');--> statement-breakpoint
+-- CREATE TYPE "public"."raw_bit_depth_enum" AS ENUM('10', '12', '14', '16');--> statement-breakpoint
+-- CREATE TYPE "public"."rear_display_types_enum" AS ENUM('none', 'fixed', 'single_axis_tilt', 'dual_axis_tilt', 'fully_articulated');--> statement-breakpoint
+-- CREATE TYPE "public"."rec_group" AS ENUM('prime', 'zoom');--> statement-breakpoint
+-- CREATE TYPE "public"."rec_rating" AS ENUM('best value', 'best performance', 'situational', 'balanced');--> statement-breakpoint
+-- CREATE TYPE "public"."review_status" AS ENUM('PENDING', 'APPROVED', 'REJECTED');--> statement-breakpoint
+-- CREATE TYPE "public"."sensor_stacking_types_enum" AS ENUM('unstacked', 'partially-stacked', 'fully-stacked');--> statement-breakpoint
+-- CREATE TYPE "public"."sensor_tech_types_enum" AS ENUM('cmos', 'ccd');--> statement-breakpoint
+-- CREATE TYPE "public"."shutter_type_enum" AS ENUM('focal-plane-cloth', 'focal-plane-metal', 'focal-plane-electronic', 'leaf', 'rotary', 'none', 'other');--> statement-breakpoint
+-- CREATE TYPE "public"."shutter_types_enum" AS ENUM('mechanical', 'efc', 'electronic');--> statement-breakpoint
+-- CREATE TYPE "public"."user_role" AS ENUM('USER', 'MODERATOR', 'EDITOR', 'ADMIN', 'SUPERADMIN');--> statement-breakpoint
+-- CREATE TYPE "public"."viewfinder_types_enum" AS ENUM('none', 'optical', 'electronic');--> statement-breakpoint
+-- CREATE TABLE "app"."fixed_lens_specs" (
+-- 	"gear_id" varchar(36) PRIMARY KEY NOT NULL,
+-- 	"is_prime" boolean,
+-- 	"focal_length_min_mm" numeric(5, 1),
+-- 	"focal_length_max_mm" numeric(5, 1),
+-- 	"max_aperture_wide" numeric(4, 2),
+-- 	"max_aperture_tele" numeric(4, 2),
+-- 	"min_aperture_wide" numeric(4, 2),
+-- 	"min_aperture_tele" numeric(4, 2),
+-- 	"has_autofocus" boolean,
+-- 	"minimum_focus_distance_mm" integer,
+-- 	"front_element_rotates" boolean,
+-- 	"front_filter_thread_size_mm" integer,
+-- 	"has_lens_hood" boolean,
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"image_circle_size_id" varchar(36)
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."user" (
+-- 	"id" varchar(255) PRIMARY KEY NOT NULL,
+-- 	"name" varchar(255),
+-- 	"email" varchar(255) NOT NULL,
+-- 	"image" varchar(255),
+-- 	"role" "user_role" DEFAULT 'USER' NOT NULL,
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"member_number" integer GENERATED BY DEFAULT AS IDENTITY (sequence name "app"."app.user_member_number_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
+-- 	"invite_id" varchar(36),
+-- 	"social_links" jsonb,
+-- 	"emailVerified" boolean DEFAULT false NOT NULL,
+-- 	"updated_at" timestamp DEFAULT now() NOT NULL,
+-- 	"handle" varchar(50),
+-- 	CONSTRAINT "user_member_number_unique" UNIQUE("member_number"),
+-- 	CONSTRAINT "user_handle_unique" UNIQUE("handle")
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."recommendation_charts" (
+-- 	"id" varchar(36) PRIMARY KEY DEFAULT (gen_random_uuid()) NOT NULL,
+-- 	"brand" varchar(120) NOT NULL,
+-- 	"slug" varchar(200) NOT NULL,
+-- 	"title" varchar(300) NOT NULL,
+-- 	"description" varchar(800),
+-- 	"updated_date" date NOT NULL,
+-- 	"is_published" boolean DEFAULT true NOT NULL,
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."recommendation_items" (
+-- 	"id" varchar(36) PRIMARY KEY DEFAULT (gen_random_uuid()) NOT NULL,
+-- 	"chart_id" varchar(36) NOT NULL,
+-- 	"gear_id" varchar(36) NOT NULL,
+-- 	"rating" "rec_rating" NOT NULL,
+-- 	"note" text,
+-- 	"group_override" "rec_group",
+-- 	"custom_column" varchar(120),
+-- 	"price_min_override" integer,
+-- 	"price_max_override" integer,
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."audit_logs" (
+-- 	"id" varchar(36) PRIMARY KEY DEFAULT (gen_random_uuid()) NOT NULL,
+-- 	"action" "audit_action" NOT NULL,
+-- 	"actor_user_id" varchar(255) NOT NULL,
+-- 	"gear_id" varchar(36),
+-- 	"gear_edit_id" varchar(36),
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."gear" (
+-- 	"id" varchar(36) PRIMARY KEY DEFAULT (gen_random_uuid()) NOT NULL,
+-- 	"slug" varchar(220) NOT NULL,
+-- 	"search_name" text NOT NULL,
+-- 	"name" varchar(240) NOT NULL,
+-- 	"model_number" varchar(240),
+-- 	"gear_type" "gear_type" NOT NULL,
+-- 	"brand_id" varchar(36) NOT NULL,
+-- 	"mount_id" varchar(36),
+-- 	"release_date" timestamp with time zone,
+-- 	"msrp_now_usd_cents" integer,
+-- 	"thumbnail_url" text,
+-- 	"weight_grams" integer,
+-- 	"link_manufacturer" text,
+-- 	"link_mpb" text,
+-- 	"link_amazon" text,
+-- 	"genres" jsonb,
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"announced_date" timestamp with time zone,
+-- 	"msrp_at_launch_usd_cents" integer,
+-- 	"width_mm" numeric(6, 2),
+-- 	"height_mm" numeric(6, 2),
+-- 	"depth_mm" numeric(6, 2),
+-- 	"mpb_max_price_usd_cents" integer,
+-- 	"announce_date_precision" date_precision_enum DEFAULT 'DAY',
+-- 	"release_date_precision" date_precision_enum DEFAULT 'DAY',
+-- 	"notes" text[],
+-- 	"link_bh" text,
+-- 	"top_view_url" text,
+-- 	CONSTRAINT "gear_slug_unique" UNIQUE("slug"),
+-- 	CONSTRAINT "gear_name_unique" UNIQUE("name"),
+-- 	CONSTRAINT "gear_model_number_unique" UNIQUE("model_number")
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."gear_edits" (
+-- 	"id" varchar(36) PRIMARY KEY DEFAULT (gen_random_uuid()) NOT NULL,
+-- 	"gear_id" varchar(36) NOT NULL,
+-- 	"created_by_id" varchar(255) NOT NULL,
+-- 	"status" "proposal_status" DEFAULT 'PENDING' NOT NULL,
+-- 	"payload" jsonb NOT NULL,
+-- 	"note" text,
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."sensor_formats" (
+-- 	"id" varchar(36) PRIMARY KEY DEFAULT (gen_random_uuid()) NOT NULL,
+-- 	"name" varchar(200) NOT NULL,
+-- 	"slug" varchar(200) NOT NULL,
+-- 	"crop_factor" numeric(4, 2) NOT NULL,
+-- 	"description" varchar(500),
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	CONSTRAINT "sensor_formats_name_unique" UNIQUE("name"),
+-- 	CONSTRAINT "sensor_formats_slug_unique" UNIQUE("slug")
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."brands" (
+-- 	"id" varchar(36) PRIMARY KEY DEFAULT (gen_random_uuid()) NOT NULL,
+-- 	"name" varchar(200) NOT NULL,
+-- 	"slug" varchar(200) NOT NULL,
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	CONSTRAINT "brands_name_unique" UNIQUE("name"),
+-- 	CONSTRAINT "brands_slug_unique" UNIQUE("slug")
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."mounts" (
+-- 	"id" varchar(36) PRIMARY KEY DEFAULT (gen_random_uuid()) NOT NULL,
+-- 	"value" varchar(200) NOT NULL,
+-- 	"brand_id" varchar(36),
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"short_name" varchar(10),
+-- 	CONSTRAINT "mounts_value_unique" UNIQUE("value")
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."reviews" (
+-- 	"id" varchar(36) PRIMARY KEY DEFAULT (gen_random_uuid()) NOT NULL,
+-- 	"gear_id" varchar(36) NOT NULL,
+-- 	"created_by_id" varchar(255) NOT NULL,
+-- 	"status" "review_status" DEFAULT 'PENDING' NOT NULL,
+-- 	"genres" jsonb,
+-- 	"recommend" boolean,
+-- 	"content" text NOT NULL,
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."staff_verdicts" (
+-- 	"gear_id" varchar(36) PRIMARY KEY NOT NULL,
+-- 	"content" text,
+-- 	"pros" jsonb,
+-- 	"cons" jsonb,
+-- 	"who_for" text,
+-- 	"not_for" text,
+-- 	"alternatives" jsonb,
+-- 	"author_user_id" varchar(255),
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."genres" (
+-- 	"id" varchar(36) PRIMARY KEY DEFAULT (gen_random_uuid()) NOT NULL,
+-- 	"name" varchar(200) NOT NULL,
+-- 	"slug" varchar(200) NOT NULL,
+-- 	"description" varchar(500),
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"applies_to" text[],
+-- 	CONSTRAINT "genres_name_unique" UNIQUE("name"),
+-- 	CONSTRAINT "genres_slug_unique" UNIQUE("slug")
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."gear_popularity_lifetime" (
+-- 	"gear_id" varchar(36) PRIMARY KEY NOT NULL,
+-- 	"views_lifetime" integer DEFAULT 0 NOT NULL,
+-- 	"wishlist_lifetime_adds" integer DEFAULT 0 NOT NULL,
+-- 	"owner_lifetime_adds" integer DEFAULT 0 NOT NULL,
+-- 	"compare_lifetime_adds" integer DEFAULT 0 NOT NULL,
+-- 	"review_lifetime_submits" integer DEFAULT 0 NOT NULL,
+-- 	"api_fetch_lifetime" integer DEFAULT 0 NOT NULL,
+-- 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."popularity_events" (
+-- 	"id" varchar(36) PRIMARY KEY DEFAULT (gen_random_uuid()) NOT NULL,
+-- 	"gear_id" varchar(36) NOT NULL,
+-- 	"user_id" varchar(255),
+-- 	"event_type" "popularity_event_type" NOT NULL,
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"visitor_id" varchar(64)
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."rollup_runs" (
+-- 	"id" varchar(36) PRIMARY KEY DEFAULT (gen_random_uuid()) NOT NULL,
+-- 	"as_of_date" date NOT NULL,
+-- 	"corrected_date" date NOT NULL,
+-- 	"daily_rows" integer DEFAULT 0 NOT NULL,
+-- 	"late_arrivals" integer DEFAULT 0 NOT NULL,
+-- 	"windows_rows" integer DEFAULT 0 NOT NULL,
+-- 	"lifetime_total_rows" integer DEFAULT 0 NOT NULL,
+-- 	"duration_ms" integer DEFAULT 0 NOT NULL,
+-- 	"success" boolean DEFAULT false NOT NULL,
+-- 	"error" text,
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."badge_awards_log" (
+-- 	"id" varchar(36) PRIMARY KEY DEFAULT (gen_random_uuid()) NOT NULL,
+-- 	"userId" varchar(255),
+-- 	"badgeKey" varchar(200) NOT NULL,
+-- 	"eventType" varchar(100) NOT NULL,
+-- 	"source" "badge_award_source" DEFAULT 'auto' NOT NULL,
+-- 	"context" jsonb,
+-- 	"awardedAt" timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."camera_specs" (
+-- 	"gear_id" varchar(36) PRIMARY KEY NOT NULL,
+-- 	"sensor_format_id" varchar(36),
+-- 	"resolution_mp" numeric(6, 2),
+-- 	"iso_min" integer,
+-- 	"iso_max" integer,
+-- 	"max_fps_raw" numeric(4, 1),
+-- 	"max_fps_jpg" numeric(4, 1),
+-- 	"extra" jsonb,
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"sensor_stacking_type" "sensor_stacking_types_enum",
+-- 	"sensor_tech_type" "sensor_tech_types_enum",
+-- 	"is_back_side_illuminated" boolean,
+-- 	"sensor_readout_speed_ms" numeric(4, 1),
+-- 	"max_raw_bit_depth" "raw_bit_depth_enum",
+-- 	"has_ibis" boolean,
+-- 	"has_electronic_vibration_reduction" boolean,
+-- 	"cipa_stabilization_rating_stops" numeric(4, 1),
+-- 	"has_pixel_shift_shooting" boolean,
+-- 	"has_anti_aliasing_filter" boolean,
+-- 	"processor_name" varchar(200),
+-- 	"has_weather_sealing" boolean,
+-- 	"focus_points" integer,
+-- 	"af_subject_categories" "camera_af_subject_categories_enum"[],
+-- 	"has_focus_peaking" boolean,
+-- 	"has_focus_bracketing" boolean,
+-- 	"shutter_speed_max" integer,
+-- 	"shutter_speed_min" integer,
+-- 	"flash_sync_speed" integer,
+-- 	"has_silent_shooting_available" boolean,
+-- 	"available_shutter_types" "shutter_types_enum"[],
+-- 	"cipa_battery_shots_per_charge" integer,
+-- 	"usb_power_delivery" boolean,
+-- 	"usb_charging" boolean,
+-- 	"has_intervalometer" boolean,
+-- 	"has_self_timer" boolean,
+-- 	"has_built_in_flash" boolean,
+-- 	"has_hot_shoe" boolean,
+-- 	"supported_batteries" text[],
+-- 	"has_log_color_profile" boolean,
+-- 	"has_10_bit_video" boolean,
+-- 	"has_12_bit_video" boolean,
+-- 	"camera_type" "camera_type_enum",
+-- 	"rear_display_type" "rear_display_types_enum",
+-- 	"rear_display_resolution_million_dots" numeric(6, 2),
+-- 	"rear_display_size_inches" numeric(4, 2),
+-- 	"viewfinder_type" "viewfinder_types_enum",
+-- 	"viewfinder_magnification" numeric(4, 2),
+-- 	"viewfinder_resolution_million_dots" numeric(6, 2),
+-- 	"has_top_display" boolean,
+-- 	"has_rear_touchscreen" boolean,
+-- 	"has_open_gate_video" boolean,
+-- 	"has_usb_file_transfer" boolean,
+-- 	"precapture_support_level" integer,
+-- 	"max_fps_by_shutter" jsonb,
+-- 	"supports_external_recording" boolean,
+-- 	"supports_record_to_drive" boolean,
+-- 	"internal_storage_gb" numeric(6, 1)
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."camera_card_slots" (
+-- 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+-- 	"gear_id" uuid NOT NULL,
+-- 	"slot_index" integer NOT NULL,
+-- 	"supported_form_factors" "card_form_factor_enum"[] NOT NULL,
+-- 	"supported_buses" "card_bus_enum"[] NOT NULL,
+-- 	"supported_speed_classes" "card_speed_class_enum"[],
+-- 	"notes" text,
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."af_area_modes" (
+-- 	"id" varchar(36) PRIMARY KEY DEFAULT (gen_random_uuid()) NOT NULL,
+-- 	"name" varchar(200) NOT NULL,
+-- 	"search_name" text NOT NULL,
+-- 	"description" varchar(500),
+-- 	"brand_id" varchar(36),
+-- 	"aliases" jsonb,
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."review_summaries" (
+-- 	"gear_id" varchar(36) PRIMARY KEY NOT NULL,
+-- 	"summary_text" text,
+-- 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."invites" (
+-- 	"id" varchar(36) PRIMARY KEY DEFAULT (gen_random_uuid()) NOT NULL,
+-- 	"inviteeName" varchar(255) NOT NULL,
+-- 	"role" "user_role" DEFAULT 'USER' NOT NULL,
+-- 	"createdById" varchar(255) NOT NULL,
+-- 	"is_used" boolean DEFAULT false NOT NULL,
+-- 	"usedByUserId" varchar(255),
+-- 	"usedAt" timestamp with time zone,
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."lens_specs" (
+-- 	"gear_id" varchar(36) PRIMARY KEY NOT NULL,
+-- 	"focal_length_min_mm" numeric(5, 1),
+-- 	"focal_length_max_mm" numeric(5, 1),
+-- 	"has_stabilization" boolean,
+-- 	"extra" jsonb,
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"has_autofocus" boolean,
+-- 	"is_prime" boolean,
+-- 	"max_aperture_wide" numeric(4, 2),
+-- 	"max_aperture_tele" numeric(4, 2),
+-- 	"min_aperture_wide" numeric(4, 2),
+-- 	"min_aperture_tele" numeric(4, 2),
+-- 	"cipa_stabilization_rating_stops" numeric(4, 1),
+-- 	"has_stabilization_switch" boolean,
+-- 	"is_macro" boolean,
+-- 	"magnification" numeric(4, 2),
+-- 	"minimum_focus_distance_mm" integer,
+-- 	"has_focus_ring" boolean,
+-- 	"focus_motor_type" text,
+-- 	"has_af_mf_switch" boolean,
+-- 	"has_focus_limiter" boolean,
+-- 	"number_elements" integer,
+-- 	"number_element_groups" integer,
+-- 	"has_diffractive_optics" boolean,
+-- 	"number_diaphragm_blades" integer,
+-- 	"has_rounded_diaphragm_blades" boolean,
+-- 	"has_internal_zoom" boolean,
+-- 	"has_internal_focus" boolean,
+-- 	"front_element_rotates" boolean,
+-- 	"mount_material" "mount_material_enum",
+-- 	"has_weather_sealing" boolean,
+-- 	"has_aperture_ring" boolean,
+-- 	"number_custom_control_rings" integer,
+-- 	"number_function_buttons" integer,
+-- 	"accepts_filter_types" "lens_filter_types_enum"[],
+-- 	"front_filter_thread_size_mm" integer,
+-- 	"rear_filter_thread_size_mm" integer,
+-- 	"drop_in_filter_size_mm" integer,
+-- 	"has_built_in_teleconverter" boolean,
+-- 	"has_lens_hood" boolean,
+-- 	"has_tripod_collar" boolean,
+-- 	"has_focus_recall_button" boolean,
+-- 	"focus_throw_degrees" integer,
+-- 	"lens_zoom_type" "lens_zoom_types_enum",
+-- 	"image_circle_size_id" varchar(36)
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."raw_samples" (
+-- 	"id" varchar(36) PRIMARY KEY DEFAULT (gen_random_uuid()) NOT NULL,
+-- 	"file_url" text NOT NULL,
+-- 	"original_filename" varchar(255),
+-- 	"content_type" varchar(120),
+-- 	"size_bytes" integer,
+-- 	"uploaded_by_user_id" varchar(255),
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."camera_video_modes" (
+-- 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+-- 	"gear_id" varchar(36) NOT NULL,
+-- 	"resolution_key" varchar(64) NOT NULL,
+-- 	"resolution_label" varchar(120) NOT NULL,
+-- 	"resolution_horizontal" integer,
+-- 	"resolution_vertical" integer,
+-- 	"fps" integer NOT NULL,
+-- 	"codec_label" varchar(120) NOT NULL,
+-- 	"bit_depth" integer NOT NULL,
+-- 	"crop_factor" boolean DEFAULT false NOT NULL,
+-- 	"notes" text,
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."notifications" (
+-- 	"id" varchar(36) PRIMARY KEY DEFAULT (gen_random_uuid()) NOT NULL,
+-- 	"user_id" varchar(255) NOT NULL,
+-- 	"type" "notification_type" NOT NULL,
+-- 	"title" text NOT NULL,
+-- 	"body" text,
+-- 	"link_url" text,
+-- 	"source_type" varchar(100),
+-- 	"source_id" varchar(100),
+-- 	"metadata" jsonb,
+-- 	"read_at" timestamp with time zone,
+-- 	"archived_at" timestamp with time zone,
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."analog_camera_specs" (
+-- 	"gear_id" varchar(36) PRIMARY KEY NOT NULL,
+-- 	"camera_type" "analog_types_enum",
+-- 	"capture_medium" "analog_medium_enum",
+-- 	"film_transport_type" "film_transport_enum",
+-- 	"has_auto_film_advance" boolean,
+-- 	"has_optional_motorized_drive" boolean,
+-- 	"viewfinder_type" "analog_viewfinder_types_enum",
+-- 	"shutter_type" "shutter_type_enum",
+-- 	"shutter_speed_max" integer,
+-- 	"shutter_speed_min" integer,
+-- 	"flash_sync_speed" integer,
+-- 	"has_bulb_mode" boolean,
+-- 	"has_metering" boolean,
+-- 	"metering_modes" "metering_mode_enum"[],
+-- 	"exposure_modes" "metering_mode_enum"[],
+-- 	"metering_display_types" "metering_display_type_enum"[],
+-- 	"has_exposure_compensation" boolean,
+-- 	"iso_setting_method" "iso_setting_method_enum",
+-- 	"iso_min" integer,
+-- 	"iso_max" integer,
+-- 	"has_auto_focus" boolean,
+-- 	"focus_aid_types" "focus_aid_enum"[],
+-- 	"requires_battery_for_shutter" boolean,
+-- 	"requires_battery_for_metering" boolean,
+-- 	"has_continuous_drive" boolean,
+-- 	"max_continuous_fps" integer,
+-- 	"has_hot_shoe" boolean,
+-- 	"has_self_timer" boolean,
+-- 	"has_intervalometer" boolean,
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."auth_verifications" (
+-- 	"id" text PRIMARY KEY NOT NULL,
+-- 	"identifier" text NOT NULL,
+-- 	"value" text NOT NULL,
+-- 	"expires_at" timestamp NOT NULL,
+-- 	"created_at" timestamp DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp DEFAULT now() NOT NULL
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."auth_accounts" (
+-- 	"id" text PRIMARY KEY NOT NULL,
+-- 	"account_id" text NOT NULL,
+-- 	"provider_id" text NOT NULL,
+-- 	"user_id" text NOT NULL,
+-- 	"access_token" text,
+-- 	"refresh_token" text,
+-- 	"id_token" text,
+-- 	"access_token_expires_at" timestamp,
+-- 	"refresh_token_expires_at" timestamp,
+-- 	"scope" text,
+-- 	"password" text,
+-- 	"created_at" timestamp DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp NOT NULL
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."auth_sessions" (
+-- 	"id" text PRIMARY KEY NOT NULL,
+-- 	"expires_at" timestamp NOT NULL,
+-- 	"token" text NOT NULL,
+-- 	"created_at" timestamp DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp NOT NULL,
+-- 	"ip_address" text,
+-- 	"user_agent" text,
+-- 	"user_id" text NOT NULL,
+-- 	CONSTRAINT "auth_sessions_token_unique" UNIQUE("token")
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."passkeys" (
+-- 	"id" varchar(36) PRIMARY KEY DEFAULT (gen_random_uuid()) NOT NULL,
+-- 	"name" varchar(255) NOT NULL,
+-- 	"public_key" text NOT NULL,
+-- 	"user_id" varchar(255) NOT NULL,
+-- 	"credential_id" text NOT NULL,
+-- 	"counter" integer DEFAULT 0 NOT NULL,
+-- 	"device_type" varchar(100),
+-- 	"backed_up" boolean DEFAULT false NOT NULL,
+-- 	"transports" text,
+-- 	"aaguid" varchar(255),
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."gear_genres" (
+-- 	"gear_id" varchar(36) NOT NULL,
+-- 	"genre_id" varchar(36) NOT NULL,
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	CONSTRAINT "gear_genres_gear_id_genre_id_pk" PRIMARY KEY("gear_id","genre_id")
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."ownerships" (
+-- 	"user_id" varchar(255) NOT NULL,
+-- 	"gear_id" varchar(36) NOT NULL,
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	CONSTRAINT "ownerships_user_id_gear_id_pk" PRIMARY KEY("user_id","gear_id")
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."wishlists" (
+-- 	"user_id" varchar(255) NOT NULL,
+-- 	"gear_id" varchar(36) NOT NULL,
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	CONSTRAINT "wishlists_user_id_gear_id_pk" PRIMARY KEY("user_id","gear_id")
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."gear_raw_samples" (
+-- 	"gear_id" varchar(36) NOT NULL,
+-- 	"raw_sample_id" varchar(36) NOT NULL,
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	CONSTRAINT "gear_raw_samples_gear_id_raw_sample_id_pk" PRIMARY KEY("gear_id","raw_sample_id")
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."gear_mounts" (
+-- 	"gear_id" varchar(36) NOT NULL,
+-- 	"mount_id" varchar(36) NOT NULL,
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	CONSTRAINT "gear_mounts_gear_id_mount_id_pk" PRIMARY KEY("gear_id","mount_id")
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."gear_alternatives" (
+-- 	"gear_a_id" varchar(36) NOT NULL,
+-- 	"gear_b_id" varchar(36) NOT NULL,
+-- 	"is_competitor" boolean DEFAULT false NOT NULL,
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	CONSTRAINT "gear_alternatives_gear_a_id_gear_b_id_pk" PRIMARY KEY("gear_a_id","gear_b_id")
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."camera_af_area_specs" (
+-- 	"gear_id" varchar(36) NOT NULL,
+-- 	"af_area_mode_id" varchar(36) NOT NULL,
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	CONSTRAINT "camera_af_area_specs_gear_id_af_area_mode_id_pk" PRIMARY KEY("gear_id","af_area_mode_id")
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."compare_pair_counts" (
+-- 	"pair_key" varchar(500) NOT NULL,
+-- 	"gear_a_id" varchar(36) NOT NULL,
+-- 	"gear_b_id" varchar(36) NOT NULL,
+-- 	"count" integer DEFAULT 0 NOT NULL,
+-- 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	CONSTRAINT "compare_pair_counts_gear_a_id_gear_b_id_pk" PRIMARY KEY("gear_a_id","gear_b_id")
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."use_case_ratings" (
+-- 	"gear_id" varchar(36) NOT NULL,
+-- 	"genre_id" varchar(36) NOT NULL,
+-- 	"score" integer NOT NULL,
+-- 	"note" text,
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	CONSTRAINT "use_case_ratings_gear_id_genre_id_pk" PRIMARY KEY("gear_id","genre_id")
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."user_badges" (
+-- 	"userId" varchar(255) NOT NULL,
+-- 	"badgeKey" varchar(200) NOT NULL,
+-- 	"awardedAt" timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+-- 	"source" "badge_award_source" DEFAULT 'auto' NOT NULL,
+-- 	"context" jsonb,
+-- 	"sort_override" integer,
+-- 	CONSTRAINT "user_badges_userId_badgeKey_pk" PRIMARY KEY("userId","badgeKey")
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."gear_popularity_daily" (
+-- 	"date" date NOT NULL,
+-- 	"gear_id" varchar(36) NOT NULL,
+-- 	"views" integer DEFAULT 0 NOT NULL,
+-- 	"wishlist_adds" integer DEFAULT 0 NOT NULL,
+-- 	"owner_adds" integer DEFAULT 0 NOT NULL,
+-- 	"compare_adds" integer DEFAULT 0 NOT NULL,
+-- 	"review_submits" integer DEFAULT 0 NOT NULL,
+-- 	"api_fetches" integer DEFAULT 0 NOT NULL,
+-- 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	CONSTRAINT "gear_popularity_daily_date_gear_id_pk" PRIMARY KEY("date","gear_id")
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."gear_popularity_windows" (
+-- 	"gear_id" varchar(36) NOT NULL,
+-- 	"timeframe" "popularity_timeframe" NOT NULL,
+-- 	"as_of_date" date NOT NULL,
+-- 	"views_sum" integer DEFAULT 0 NOT NULL,
+-- 	"wishlist_adds_sum" integer DEFAULT 0 NOT NULL,
+-- 	"owner_adds_sum" integer DEFAULT 0 NOT NULL,
+-- 	"compare_adds_sum" integer DEFAULT 0 NOT NULL,
+-- 	"review_submits_sum" integer DEFAULT 0 NOT NULL,
+-- 	"api_fetches_sum" integer DEFAULT 0 NOT NULL,
+-- 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	CONSTRAINT "gear_popularity_windows_gear_id_timeframe_pk" PRIMARY KEY("gear_id","timeframe")
+-- );
+-- --> statement-breakpoint
+-- CREATE TABLE "app"."gear_popularity_intraday" (
+-- 	"date" date NOT NULL,
+-- 	"gear_id" varchar(36) NOT NULL,
+-- 	"views" integer DEFAULT 0 NOT NULL,
+-- 	"wishlist_adds" integer DEFAULT 0 NOT NULL,
+-- 	"owner_adds" integer DEFAULT 0 NOT NULL,
+-- 	"compare_adds" integer DEFAULT 0 NOT NULL,
+-- 	"review_submits" integer DEFAULT 0 NOT NULL,
+-- 	"api_fetches" integer DEFAULT 0 NOT NULL,
+-- 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+-- 	CONSTRAINT "gear_popularity_intraday_date_gear_id_pk" PRIMARY KEY("date","gear_id")
+-- );
+-- --> statement-breakpoint
+-- ALTER TABLE "app"."fixed_lens_specs" ADD CONSTRAINT "fixed_lens_specs_gear_id_gear_id_fk" FOREIGN KEY ("gear_id") REFERENCES "app"."gear"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."fixed_lens_specs" ADD CONSTRAINT "fixed_lens_specs_image_circle_size_id_sensor_formats_id_fk" FOREIGN KEY ("image_circle_size_id") REFERENCES "app"."sensor_formats"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."recommendation_items" ADD CONSTRAINT "recommendation_items_chart_id_recommendation_charts_id_fk" FOREIGN KEY ("chart_id") REFERENCES "app"."recommendation_charts"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."recommendation_items" ADD CONSTRAINT "recommendation_items_gear_id_gear_id_fk" FOREIGN KEY ("gear_id") REFERENCES "app"."gear"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."audit_logs" ADD CONSTRAINT "audit_logs_actor_user_id_user_id_fk" FOREIGN KEY ("actor_user_id") REFERENCES "app"."user"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."audit_logs" ADD CONSTRAINT "audit_logs_gear_id_gear_id_fk" FOREIGN KEY ("gear_id") REFERENCES "app"."gear"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."audit_logs" ADD CONSTRAINT "audit_logs_gear_edit_id_gear_edits_id_fk" FOREIGN KEY ("gear_edit_id") REFERENCES "app"."gear_edits"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."gear" ADD CONSTRAINT "gear_brand_id_brands_id_fk" FOREIGN KEY ("brand_id") REFERENCES "app"."brands"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."gear" ADD CONSTRAINT "gear_mount_id_mounts_id_fk" FOREIGN KEY ("mount_id") REFERENCES "app"."mounts"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."gear_edits" ADD CONSTRAINT "gear_edits_gear_id_gear_id_fk" FOREIGN KEY ("gear_id") REFERENCES "app"."gear"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."gear_edits" ADD CONSTRAINT "gear_edits_created_by_id_user_id_fk" FOREIGN KEY ("created_by_id") REFERENCES "app"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."mounts" ADD CONSTRAINT "mounts_brand_id_brands_id_fk" FOREIGN KEY ("brand_id") REFERENCES "app"."brands"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."reviews" ADD CONSTRAINT "reviews_gear_id_gear_id_fk" FOREIGN KEY ("gear_id") REFERENCES "app"."gear"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."reviews" ADD CONSTRAINT "reviews_created_by_id_user_id_fk" FOREIGN KEY ("created_by_id") REFERENCES "app"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."staff_verdicts" ADD CONSTRAINT "staff_verdicts_gear_id_gear_id_fk" FOREIGN KEY ("gear_id") REFERENCES "app"."gear"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."staff_verdicts" ADD CONSTRAINT "staff_verdicts_author_user_id_user_id_fk" FOREIGN KEY ("author_user_id") REFERENCES "app"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."gear_popularity_lifetime" ADD CONSTRAINT "gear_popularity_lifetime_gear_id_gear_id_fk" FOREIGN KEY ("gear_id") REFERENCES "app"."gear"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."popularity_events" ADD CONSTRAINT "popularity_events_gear_id_gear_id_fk" FOREIGN KEY ("gear_id") REFERENCES "app"."gear"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."popularity_events" ADD CONSTRAINT "popularity_events_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "app"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."badge_awards_log" ADD CONSTRAINT "badge_awards_log_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "app"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."camera_specs" ADD CONSTRAINT "camera_specs_gear_id_gear_id_fk" FOREIGN KEY ("gear_id") REFERENCES "app"."gear"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."camera_specs" ADD CONSTRAINT "camera_specs_sensor_format_id_sensor_formats_id_fk" FOREIGN KEY ("sensor_format_id") REFERENCES "app"."sensor_formats"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."af_area_modes" ADD CONSTRAINT "af_area_modes_brand_id_brands_id_fk" FOREIGN KEY ("brand_id") REFERENCES "app"."brands"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."review_summaries" ADD CONSTRAINT "review_summaries_gear_id_gear_id_fk" FOREIGN KEY ("gear_id") REFERENCES "app"."gear"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."invites" ADD CONSTRAINT "invites_createdById_user_id_fk" FOREIGN KEY ("createdById") REFERENCES "app"."user"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."invites" ADD CONSTRAINT "invites_usedByUserId_user_id_fk" FOREIGN KEY ("usedByUserId") REFERENCES "app"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."lens_specs" ADD CONSTRAINT "lens_specs_gear_id_gear_id_fk" FOREIGN KEY ("gear_id") REFERENCES "app"."gear"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."lens_specs" ADD CONSTRAINT "lens_specs_image_circle_size_id_sensor_formats_id_fk" FOREIGN KEY ("image_circle_size_id") REFERENCES "app"."sensor_formats"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."camera_video_modes" ADD CONSTRAINT "camera_video_modes_gear_id_gear_id_fk" FOREIGN KEY ("gear_id") REFERENCES "app"."gear"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."notifications" ADD CONSTRAINT "notifications_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "app"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."analog_camera_specs" ADD CONSTRAINT "analog_camera_specs_gear_id_gear_id_fk" FOREIGN KEY ("gear_id") REFERENCES "app"."gear"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."auth_accounts" ADD CONSTRAINT "auth_accounts_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "app"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."auth_sessions" ADD CONSTRAINT "auth_sessions_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "app"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."passkeys" ADD CONSTRAINT "passkeys_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "app"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."gear_genres" ADD CONSTRAINT "gear_genres_gear_id_gear_id_fk" FOREIGN KEY ("gear_id") REFERENCES "app"."gear"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."gear_genres" ADD CONSTRAINT "gear_genres_genre_id_genres_id_fk" FOREIGN KEY ("genre_id") REFERENCES "app"."genres"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."ownerships" ADD CONSTRAINT "ownerships_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "app"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."ownerships" ADD CONSTRAINT "ownerships_gear_id_gear_id_fk" FOREIGN KEY ("gear_id") REFERENCES "app"."gear"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."wishlists" ADD CONSTRAINT "wishlists_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "app"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."wishlists" ADD CONSTRAINT "wishlists_gear_id_gear_id_fk" FOREIGN KEY ("gear_id") REFERENCES "app"."gear"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."gear_raw_samples" ADD CONSTRAINT "gear_raw_samples_gear_id_gear_id_fk" FOREIGN KEY ("gear_id") REFERENCES "app"."gear"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."gear_raw_samples" ADD CONSTRAINT "gear_raw_samples_raw_sample_id_raw_samples_id_fk" FOREIGN KEY ("raw_sample_id") REFERENCES "app"."raw_samples"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."gear_mounts" ADD CONSTRAINT "gear_mounts_gear_id_gear_id_fk" FOREIGN KEY ("gear_id") REFERENCES "app"."gear"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."gear_mounts" ADD CONSTRAINT "gear_mounts_mount_id_mounts_id_fk" FOREIGN KEY ("mount_id") REFERENCES "app"."mounts"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."gear_alternatives" ADD CONSTRAINT "gear_alternatives_gear_a_id_gear_id_fk" FOREIGN KEY ("gear_a_id") REFERENCES "app"."gear"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."gear_alternatives" ADD CONSTRAINT "gear_alternatives_gear_b_id_gear_id_fk" FOREIGN KEY ("gear_b_id") REFERENCES "app"."gear"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."camera_af_area_specs" ADD CONSTRAINT "camera_af_area_specs_gear_id_gear_id_fk" FOREIGN KEY ("gear_id") REFERENCES "app"."gear"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."camera_af_area_specs" ADD CONSTRAINT "camera_af_area_specs_af_area_mode_id_af_area_modes_id_fk" FOREIGN KEY ("af_area_mode_id") REFERENCES "app"."af_area_modes"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."compare_pair_counts" ADD CONSTRAINT "compare_pair_counts_gear_a_id_gear_id_fk" FOREIGN KEY ("gear_a_id") REFERENCES "app"."gear"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."compare_pair_counts" ADD CONSTRAINT "compare_pair_counts_gear_b_id_gear_id_fk" FOREIGN KEY ("gear_b_id") REFERENCES "app"."gear"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."use_case_ratings" ADD CONSTRAINT "use_case_ratings_gear_id_gear_id_fk" FOREIGN KEY ("gear_id") REFERENCES "app"."gear"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."use_case_ratings" ADD CONSTRAINT "use_case_ratings_genre_id_genres_id_fk" FOREIGN KEY ("genre_id") REFERENCES "app"."genres"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."user_badges" ADD CONSTRAINT "user_badges_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "app"."user"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."gear_popularity_daily" ADD CONSTRAINT "gear_popularity_daily_gear_id_gear_id_fk" FOREIGN KEY ("gear_id") REFERENCES "app"."gear"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."gear_popularity_windows" ADD CONSTRAINT "gear_popularity_windows_gear_id_gear_id_fk" FOREIGN KEY ("gear_id") REFERENCES "app"."gear"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- ALTER TABLE "app"."gear_popularity_intraday" ADD CONSTRAINT "gear_popularity_intraday_gear_id_gear_id_fk" FOREIGN KEY ("gear_id") REFERENCES "app"."gear"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- CREATE INDEX "fixed_lens_specs_focal_idx" ON "app"."fixed_lens_specs" USING btree ("focal_length_min_mm" numeric_ops,"focal_length_max_mm" numeric_ops);--> statement-breakpoint
+-- CREATE UNIQUE INDEX "rec_brand_slug" ON "app"."recommendation_charts" USING btree ("brand" text_ops,"slug" text_ops);--> statement-breakpoint
+-- CREATE INDEX "rec_items_chart_idx" ON "app"."recommendation_items" USING btree ("chart_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "rec_items_gear_idx" ON "app"."recommendation_items" USING btree ("gear_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "audit_action_idx" ON "app"."audit_logs" USING btree ("action" enum_ops);--> statement-breakpoint
+-- CREATE INDEX "audit_actor_idx" ON "app"."audit_logs" USING btree ("actor_user_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "audit_created_idx" ON "app"."audit_logs" USING btree ("created_at" timestamptz_ops);--> statement-breakpoint
+-- CREATE INDEX "audit_edit_idx" ON "app"."audit_logs" USING btree ("gear_edit_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "audit_gear_idx" ON "app"."audit_logs" USING btree ("gear_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "gear_brand_mount_idx" ON "app"."gear" USING btree ("brand_id" text_ops,"mount_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "gear_search_idx" ON "app"."gear" USING btree ("search_name" text_ops);--> statement-breakpoint
+-- CREATE INDEX "gear_type_brand_idx" ON "app"."gear" USING btree ("gear_type" text_ops,"brand_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "gear_edits_created_by_idx" ON "app"."gear_edits" USING btree ("created_by_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "gear_edits_gear_idx" ON "app"."gear_edits" USING btree ("gear_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "gear_edits_status_idx" ON "app"."gear_edits" USING btree ("status" enum_ops);--> statement-breakpoint
+-- CREATE INDEX "reviews_created_by_idx" ON "app"."reviews" USING btree ("created_by_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "reviews_gear_idx" ON "app"."reviews" USING btree ("gear_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "reviews_status_idx" ON "app"."reviews" USING btree ("status" enum_ops);--> statement-breakpoint
+-- CREATE INDEX "staff_verdicts_author_idx" ON "app"."staff_verdicts" USING btree ("author_user_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "gpl_gear_idx" ON "app"."gear_popularity_lifetime" USING btree ("gear_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "pop_events_created_idx" ON "app"."popularity_events" USING btree ("created_at" timestamptz_ops);--> statement-breakpoint
+-- CREATE INDEX "pop_events_gear_idx" ON "app"."popularity_events" USING btree ("gear_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "pop_events_gear_type_idx" ON "app"."popularity_events" USING btree ("gear_id" text_ops,"event_type" enum_ops);--> statement-breakpoint
+-- CREATE INDEX "pop_events_gear_visitor_created_idx" ON "app"."popularity_events" USING btree ("gear_id" timestamptz_ops,"visitor_id" timestamptz_ops,"created_at" text_ops);--> statement-breakpoint
+-- CREATE INDEX "pop_events_visitor_idx" ON "app"."popularity_events" USING btree ("visitor_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "rollup_runs_created_idx" ON "app"."rollup_runs" USING btree ("created_at" timestamptz_ops);--> statement-breakpoint
+-- CREATE INDEX "badge_awards_log_awarded_idx" ON "app"."badge_awards_log" USING btree ("awardedAt" timestamptz_ops);--> statement-breakpoint
+-- CREATE INDEX "badge_awards_log_badge_idx" ON "app"."badge_awards_log" USING btree ("badgeKey" text_ops);--> statement-breakpoint
+-- CREATE INDEX "badge_awards_log_user_idx" ON "app"."badge_awards_log" USING btree ("userId" text_ops);--> statement-breakpoint
+-- CREATE INDEX "camera_specs_sensor_idx" ON "app"."camera_specs" USING btree ("sensor_format_id" text_ops);--> statement-breakpoint
+-- CREATE UNIQUE INDEX "uniq_camera_card_slot" ON "app"."camera_card_slots" USING btree ("gear_id" int4_ops,"slot_index" int4_ops);--> statement-breakpoint
+-- CREATE INDEX "af_area_modes_brand_idx" ON "app"."af_area_modes" USING btree ("brand_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "af_area_modes_name_idx" ON "app"."af_area_modes" USING btree ("name" text_ops);--> statement-breakpoint
+-- CREATE INDEX "af_area_modes_search_name_idx" ON "app"."af_area_modes" USING btree ("search_name" text_ops);--> statement-breakpoint
+-- CREATE INDEX "review_summaries_updated_idx" ON "app"."review_summaries" USING btree ("updated_at" timestamptz_ops);--> statement-breakpoint
+-- CREATE INDEX "invites_created_by_idx" ON "app"."invites" USING btree ("createdById" text_ops);--> statement-breakpoint
+-- CREATE INDEX "invites_is_used_idx" ON "app"."invites" USING btree ("is_used" bool_ops);--> statement-breakpoint
+-- CREATE INDEX "invites_used_by_idx" ON "app"."invites" USING btree ("usedByUserId" text_ops);--> statement-breakpoint
+-- CREATE INDEX "lens_specs_focal_idx" ON "app"."lens_specs" USING btree ("focal_length_min_mm" numeric_ops,"focal_length_max_mm" numeric_ops);--> statement-breakpoint
+-- CREATE INDEX "raw_samples_file_url_idx" ON "app"."raw_samples" USING btree ("file_url" text_ops);--> statement-breakpoint
+-- CREATE INDEX "raw_samples_user_idx" ON "app"."raw_samples" USING btree ("uploaded_by_user_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "camera_video_modes_gear_idx" ON "app"."camera_video_modes" USING btree ("gear_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "notifications_user_archived_idx" ON "app"."notifications" USING btree ("user_id" text_ops,"archived_at" timestamptz_ops);--> statement-breakpoint
+-- CREATE INDEX "notifications_user_created_idx" ON "app"."notifications" USING btree ("user_id" timestamptz_ops,"created_at" timestamptz_ops);--> statement-breakpoint
+-- CREATE INDEX "notifications_user_unread_idx" ON "app"."notifications" USING btree ("user_id" text_ops,"read_at" text_ops);--> statement-breakpoint
+-- CREATE INDEX "analog_camera_specs_gear_idx" ON "app"."analog_camera_specs" USING btree ("gear_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "auth_verifications_identifier_idx" ON "app"."auth_verifications" USING btree ("identifier" text_ops);--> statement-breakpoint
+-- CREATE INDEX "auth_accounts_userId_idx" ON "app"."auth_accounts" USING btree ("user_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "auth_sessions_userId_idx" ON "app"."auth_sessions" USING btree ("user_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "passkeys_user_idx" ON "app"."passkeys" USING btree ("user_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "gear_genres_gear_idx" ON "app"."gear_genres" USING btree ("gear_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "gear_genres_genre_idx" ON "app"."gear_genres" USING btree ("genre_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "ownership_gear_idx" ON "app"."ownerships" USING btree ("gear_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "wishlist_gear_idx" ON "app"."wishlists" USING btree ("gear_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "gear_raw_samples_gear_idx" ON "app"."gear_raw_samples" USING btree ("gear_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "gear_raw_samples_sample_idx" ON "app"."gear_raw_samples" USING btree ("raw_sample_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "gear_mounts_gear_idx" ON "app"."gear_mounts" USING btree ("gear_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "gear_mounts_mount_idx" ON "app"."gear_mounts" USING btree ("mount_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "gear_alternatives_gear_a_idx" ON "app"."gear_alternatives" USING btree ("gear_a_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "gear_alternatives_gear_b_idx" ON "app"."gear_alternatives" USING btree ("gear_b_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "camera_af_area_specs_af_area_mode_idx" ON "app"."camera_af_area_specs" USING btree ("af_area_mode_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "camera_af_area_specs_gear_idx" ON "app"."camera_af_area_specs" USING btree ("gear_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "pair_counts_count_idx" ON "app"."compare_pair_counts" USING btree ("count" int4_ops);--> statement-breakpoint
+-- CREATE INDEX "pair_counts_gear_a_idx" ON "app"."compare_pair_counts" USING btree ("gear_a_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "pair_counts_gear_b_idx" ON "app"."compare_pair_counts" USING btree ("gear_b_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "ucr_gear_idx" ON "app"."use_case_ratings" USING btree ("gear_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "ucr_genre_idx" ON "app"."use_case_ratings" USING btree ("genre_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "gpd_date_idx" ON "app"."gear_popularity_daily" USING btree ("date" date_ops);--> statement-breakpoint
+-- CREATE INDEX "gpd_gear_idx" ON "app"."gear_popularity_daily" USING btree ("gear_id" text_ops);--> statement-breakpoint
+-- CREATE INDEX "gpw_timeframe_idx" ON "app"."gear_popularity_windows" USING btree ("timeframe" enum_ops);--> statement-breakpoint
+-- CREATE INDEX "gpi_date_idx" ON "app"."gear_popularity_intraday" USING btree ("date" date_ops);--> statement-breakpoint
+-- CREATE INDEX "gpi_gear_idx" ON "app"."gear_popularity_intraday" USING btree ("gear_id" text_ops);
