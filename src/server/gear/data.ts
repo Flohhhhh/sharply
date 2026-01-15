@@ -152,7 +152,7 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
     const slots = await db
       .select()
       .from(cameraCardSlots)
-      .where(eq(cameraCardSlots.gearId, gearItem[0]!.gear.id as any));
+      .where(eq(cameraCardSlots.gearId, gearItem[0]!.gear.id));
 
     // fixed-lens specs (for integrated lens cameras)
     const fixed = await db
@@ -165,7 +165,7 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
     return {
       ...base,
       cameraSpecs: camera[0] ? { ...camera[0], afAreaModes: modes } : null,
-      cameraCardSlots: slots.length ? (slots as any) : [],
+      cameraCardSlots: slots.length > 0 ? slots : [],
       fixedLensSpecs: fixed[0] ?? null,
       videoModes: videoModes.length ? videoModes : [],
     };
@@ -212,7 +212,7 @@ export async function fetchRawSamplesByGearId(
     .where(eq(gearRawSamples.gearId, gearId))
     .where(eq(rawSamples.isDeleted, false))
     .orderBy(desc(gearRawSamples.createdAt));
-  return rows.map((r) => r.rawSample);
+  return rows.map((r) => r.rawSample) as typeof rawSamples.$inferSelect[];
 }
 
 export type RawSampleInsertParams = {
