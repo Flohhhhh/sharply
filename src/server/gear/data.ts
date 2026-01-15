@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, desc, eq, gte, or, sql } from "drizzle-orm";
+import { and, desc, eq, getTableColumns, gte, or, sql } from "drizzle-orm";
 import { db } from "~/server/db";
 import {
   brands,
@@ -204,15 +204,13 @@ export async function fetchRawSamplesByGearId(
   gearId: string,
 ): Promise<typeof rawSamples.$inferSelect[]> {
   const rows = await db
-    .select({
-      rawSample: rawSamples,
-    })
+    .select(getTableColumns(rawSamples))
     .from(gearRawSamples)
     .innerJoin(rawSamples, eq(rawSamples.id, gearRawSamples.rawSampleId))
     .where(eq(gearRawSamples.gearId, gearId))
     .where(eq(rawSamples.isDeleted, false))
     .orderBy(desc(gearRawSamples.createdAt));
-  return rows.map((r) => r.rawSample) as typeof rawSamples.$inferSelect[];
+  return rows;
 }
 
 export type RawSampleInsertParams = {
@@ -250,6 +248,7 @@ export async function insertRawSample(
 
 export async function deleteRawSample(sampleId: string, gearId: string) {
   return await db.transaction(async (tx) => {
+    // Remove the junction table relationship
     await tx
       .delete(gearRawSamples)
       .where(
@@ -259,6 +258,7 @@ export async function deleteRawSample(sampleId: string, gearId: string) {
         ),
       );
 
+    // Soft delete the raw sample
     await tx
       .update(rawSamples)
       .set({

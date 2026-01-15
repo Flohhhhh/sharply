@@ -637,6 +637,8 @@ export const rawSamples = appSchema.table(
     contentType: varchar("content_type", { length: 120 }),
     sizeBytes: integer("size_bytes"),
     uploadedByUserId: varchar("uploaded_by_user_id", { length: 255 }),
+    isDeleted: boolean("is_deleted").default(false).notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
     createdAt,
     updatedAt,
   }),
