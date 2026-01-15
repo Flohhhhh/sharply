@@ -5,7 +5,9 @@
       "Bash(cat:*)",
       "Bash(ls:*)",
       "Bash(find:*)",
-      "Bash(npm run typecheck:*)"
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

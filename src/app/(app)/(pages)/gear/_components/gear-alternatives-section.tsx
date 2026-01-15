@@ -1,5 +1,6 @@
 import { GearCardHorizontal } from "~/components/gear/gear-card-horizontal";
 import type { GearAlternativeRow } from "~/server/gear/service";
+import { getItemDisplayPrice } from "~/lib/mapping";
 
 interface GearAlternativesSectionProps {
   alternatives: GearAlternativeRow[];
@@ -33,6 +34,21 @@ export function GearAlternativesSection({
             brandName={alt.brandName}
             thumbnailUrl={alt.thumbnailUrl}
             gearType={alt.gearType}
+            releaseDate={alt.releaseDate}
+            releaseDatePrecision={
+              alt.releaseDatePrecision as "DAY" | "MONTH" | "YEAR" | null
+            }
+            announcedDate={alt.announcedDate}
+            announceDatePrecision={
+              alt.announceDatePrecision as "DAY" | "MONTH" | "YEAR" | null
+            }
+            priceText={getItemDisplayPrice(
+              {
+                msrpNowUsdCents: alt.msrpNowUsdCents,
+                mpbMaxPriceUsdCents: null,
+              },
+              { style: "short", padWholeAmounts: true },
+            )}
           />
         ))}
       </div>

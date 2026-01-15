@@ -3,12 +3,27 @@
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "~/lib/utils";
-import { AddToCompareButton } from "~/components/compare/add-to-compare-button";
 import { formatGearDate, type GearCardProps } from "./gear-card";
 import { TrendingBadge } from "../gear-badges/trending-badge";
+import { NewBadge } from "../gear-badges/new-badge";
 import { BRANDS } from "~/lib/constants";
+import { PRICE_FALLBACK_TEXT } from "~/lib/mapping";
 import { HallOfFameBadge } from "../gear-badges/hall-of-fame-badge";
 import { isInHallOfFame } from "~/lib/utils/is-in-hall-of-fame";
+import { isNewRelease } from "~/lib/utils/is-new";
+import { Button } from "~/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
+import { Heart, MoreVertical, Scale } from "lucide-react";
+import { actionToggleWishlist } from "~/server/gear/actions";
+import { useCompare } from "~/lib/hooks/useCompare";
+import { useSession } from "~/lib/auth/auth-client";
+import { useState } from "react";
+import { toast } from "sonner";
 
 function splitBrandNameVariants(brandName: string) {
   const normalized = brandName?.trim();
@@ -87,94 +102,188 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
     releaseDate,
     isTrending,
     releaseDatePrecision,
+    announcedDate,
+    announceDatePrecision,
+    priceText,
     metaRight,
     badges,
     className,
   } = props;
 
+  const { data } = useSession();
+  const session = data?.session;
+  const compare = useCompare();
+  const [inWishlist, setInWishlist] = useState<boolean | null>(null);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+
   const trimmedName = stripBrandFromName(name, brandName);
-  const dateLabel = formatGearDate(releaseDate, releaseDatePrecision);
-  const badgeNodes: React.ReactNode[] = [];
+  const dateLabel = formatGearDate(
+    releaseDate ?? announcedDate,
+    releaseDatePrecision ?? announceDatePrecision,
+  );
+  const isNew = isNewRelease(releaseDate, releaseDatePrecision);
   const isHallOfFameItem = isInHallOfFame(slug);
+  const badgeNodes: React.ReactNode[] = [];
   if (isHallOfFameItem) badgeNodes.push(<HallOfFameBadge key="hall-of-fame" />);
   if (isTrending) badgeNodes.push(<TrendingBadge key="trending" />);
+  if (isNew) badgeNodes.push(<NewBadge key="new" />);
   if (badges) badgeNodes.push(badges);
+
+  const handleAddToWishlist = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!session || wishlistLoading) return;
+
+    setWishlistLoading(true);
+    const action = inWishlist ? "remove" : "add";
+
+    try {
+      const res = await actionToggleWishlist(slug, action);
+      if (res.ok) {
+        setInWishlist(res.action === "added");
+        toast.success(
+          res.action === "added" ? "Added to wishlist" : "Removed from wishlist",
+        );
+      }
+    } catch (error) {
+      toast.error("Failed to update wishlist");
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
+
+  const handleAddToCompare = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    await compare.add({ slug, name, gearType: gearType ?? undefined });
+  };
 
   return (
     <div className={cn("group relative", className)}>
       <Link
         href={href}
         className={cn(
-          "border-input bg-card/50 hover:border-foreground/40 block rounded-lg border transition-all",
+          "border-input bg-card/50 hover:border-foreground/40 block rounded-2xl border transition-all",
           "shadow-sm hover:shadow-md",
         )}
       >
-        <div className="bg-background rounded-lg p-2">
+        <div className="bg-background rounded-2xl p-2">
           <div className="flex gap-3">
             {/* Image / left side */}
-            <div className="bg-muted relative w-44 shrink-0 overflow-hidden rounded">
-              <div className="relative aspect-16/10">
-                {badgeNodes.length ? (
-                  <div className="absolute top-2 left-2 flex flex-wrap gap-1">
-                    {badgeNodes}
-                  </div>
-                ) : null}
-
-                {thumbnailUrl ? (
-                  <Image
-                    src={thumbnailUrl}
-                    alt={name}
-                    width={240}
-                    height={160}
-                    sizes="(max-width: 768px) 176px, 176px"
-                    className="h-full w-full object-contain p-3 transition-opacity group-hover:opacity-50"
-                  />
-                ) : (
-                  <div className="text-muted-foreground/50 flex h-full w-full items-center justify-center px-2 text-center text-sm font-bold">
-                    {trimmedName}
-                  </div>
-                )}
-
-                {/* Hover actions overlay */}
-                <div className="pointer-events-none absolute inset-0 flex items-end justify-center p-2 opacity-0 transition-opacity group-hover:opacity-100">
-                  <div className="pointer-events-auto w-full">
-                    <AddToCompareButton
-                      slug={slug}
-                      name={name}
-                      gearType={gearType ?? undefined}
-                      size="sm"
-                      className="w-full cursor-pointer"
-                      showLabel
-                    />
+            <div className="bg-muted dark:bg-card relative w-48 shrink-0 overflow-hidden rounded-xl">
+              <div className="relative aspect-video">
+                <div className="h-full w-full p-4">
+                  <div className="relative h-full w-full">
+                    {thumbnailUrl ? (
+                      <Image
+                        src={thumbnailUrl}
+                        alt={name}
+                        fill
+                        sizes="(max-width: 768px) 192px, 192px"
+                        className="pointer-events-none object-contain"
+                      />
+                    ) : (
+                      <div className="text-muted-foreground/50 flex h-full w-full items-center justify-center text-center text-sm font-bold">
+                        {trimmedName}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Right content */}
-            <div className="flex min-w-0 flex-1 flex-col justify-between px-1.5 py-1">
-              <div className="flex items-start justify-between gap-2">
-                <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                  {brandName ? <span>{brandName}</span> : null}
+            <div className="flex min-w-0 flex-1 flex-col justify-between px-1.5 py-2">
+              <div>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="text-muted-foreground flex min-w-0 flex-1 items-center gap-2 text-sm">
+                    {brandName ? <span className="shrink-0">{brandName}</span> : null}
+                    {badgeNodes.length > 0 ? (
+                      <div className="flex flex-wrap items-center gap-1">
+                        {badgeNodes}
+                      </div>
+                    ) : null}
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1">
+                    {metaRight ? (
+                      <span className="bg-secondary rounded-full px-2 py-1 text-xs">
+                        {metaRight}
+                      </span>
+                    ) : null}
+                    {session ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-8 shrink-0"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                          >
+                            <MoreVertical className="size-4" />
+                            <span className="sr-only">More options</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={handleAddToWishlist}
+                            disabled={wishlistLoading}
+                          >
+                            <Heart
+                              className={cn(
+                                "size-4",
+                                inWishlist === true && "fill-current",
+                              )}
+                            />
+                            {inWishlist === true
+                              ? "Remove from Wishlist"
+                              : "Add to Wishlist"}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={handleAddToCompare}
+                            disabled={
+                              compare.contains(slug) ||
+                              compare.isFull ||
+                              !compare.acceptsType(gearType ?? undefined)
+                            }
+                          >
+                            <Scale className="size-4" />
+                            {compare.contains(slug)
+                              ? "Already in Compare"
+                              : "Add to Compare"}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : null}
+                  </div>
                 </div>
-                {metaRight ? (
-                  <span className="bg-secondary rounded-full px-2 py-1 text-xs">
-                    {metaRight}
-                  </span>
+
+                <div className="text-foreground mt-2 line-clamp-2 text-lg font-semibold">
+                  {trimmedName}
+                </div>
+              </div>
+
+              <div className="mt-2 flex items-center gap-2">
+                <div className="text-muted-foreground text-xs">{dateLabel}</div>
+                {priceText && dateLabel !== "---" ? (
+                  <>
+                    <span className="text-muted-foreground text-xs">·</span>
+                    <span
+                      className={cn(
+                        "text-xs font-semibold",
+                        priceText === PRICE_FALLBACK_TEXT
+                          ? "text-muted-foreground"
+                          : "text-foreground",
+                      )}
+                    >
+                      {priceText}
+                    </span>
+                  </>
                 ) : null}
               </div>
-
-              <div className="text-foreground mt-1 line-clamp-2 text-base font-semibold">
-                {trimmedName}
-              </div>
-
-              {badges}
-
-              {dateLabel ? (
-                <div className="text-muted-foreground mt-2 text-xs">
-                  {dateLabel}
-                </div>
-              ) : null}
             </div>
           </div>
         </div>
