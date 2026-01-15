@@ -35,6 +35,14 @@ export const MOUNTS = [
     "short_name": "sr"
   },
   {
+    "id": "c2ea33e9-b803-4ed2-ab40-a7a2e27d532f",
+    "value": "43-olympus",
+    "brand_id": "27c898a8-307d-4af9-9052-9046c2ee8043",
+    "created_at": "2026-01-08 11:52:46.365511+00",
+    "updated_at": "2026-01-08 11:52:46.365511+00",
+    "short_name": "43"
+  },
+  {
     "id": "08048973-2001-47a7-9140-6c5f9a06ae12",
     "value": "ef-canon",
     "brand_id": "7df18188-0939-4241-9ca7-6561c6e233e1",
@@ -240,15 +248,6 @@ export const SENSOR_FORMATS = [
     "updated_at": "2025-08-19 01:55:27.602979+00"
   },
   {
-    "id": "9ee34d66-036b-4598-bbb9-d80a1b96c512",
-    "name": "Micro 4/3",
-    "slug": "micro-4-3",
-    "crop_factor": "2.00",
-    "description": "Panasonic, Olympus",
-    "created_at": "2025-08-19 01:55:28.154644+00",
-    "updated_at": "2025-08-19 01:55:28.154644+00"
-  },
-  {
     "id": "a5b24cc2-4b36-47d4-8765-777a5c2e10ca",
     "name": "1\"",
     "slug": "1-inch",
@@ -283,6 +282,24 @@ export const SENSOR_FORMATS = [
     "description": null,
     "created_at": "2026-01-02 17:24:17.478933+00",
     "updated_at": "2026-01-02 17:24:17.478933+00"
+  },
+  {
+    "id": "9ee34d66-036b-4598-bbb9-d80a1b96c512",
+    "name": "4/3",
+    "slug": "micro-4-3",
+    "crop_factor": "2.00",
+    "description": "Panasonic, Olympus",
+    "created_at": "2025-08-19 01:55:28.154644+00",
+    "updated_at": "2025-08-19 01:55:28.154644+00"
+  },
+  {
+    "id": "0d97617b-ec5a-47d6-bd60-010b3337e375",
+    "name": "1/5\"",
+    "slug": "fifth-inch",
+    "crop_factor": "11.50",
+    "description": null,
+    "created_at": "2026-01-11 00:36:54.959034+00",
+    "updated_at": "2026-01-11 00:36:54.959034+00"
   }
 ];
 export const BRANDS = [
@@ -495,6 +512,13 @@ export const BRANDS = [
     "slug": "blackmagic",
     "created_at": "2026-01-03 12:10:53.685766+00",
     "updated_at": "2026-01-03 12:10:53.685766+00"
+  },
+  {
+    "id": "3586b7b4-3910-4f85-86e1-c9d25a316df9",
+    "name": "Retropia",
+    "slug": "retropia",
+    "created_at": "2026-01-11 00:58:08.626843+00",
+    "updated_at": "2026-01-11 00:58:08.626843+00"
   }
 ];
 export const GENRES = [
@@ -999,6 +1023,9 @@ export const ENUMS = {
     "GEAR_IMAGE_UPLOAD",
     "GEAR_IMAGE_REPLACE",
     "GEAR_IMAGE_REMOVE",
+    "GEAR_TOP_VIEW_UPLOAD",
+    "GEAR_TOP_VIEW_REPLACE",
+    "GEAR_TOP_VIEW_REMOVE",
     "GEAR_EDIT_PROPOSE",
     "GEAR_EDIT_APPROVE",
     "GEAR_EDIT_REJECT",
