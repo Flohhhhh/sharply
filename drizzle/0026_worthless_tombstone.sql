@@ -1,1 +1,0 @@
-ALTER TYPE "public"."raw_bit_depth_enum" ADD VALUE '10' BEFORE '12';

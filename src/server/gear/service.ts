@@ -26,7 +26,7 @@ import {
   fetchPendingEditForGear,
   countPendingEditsForGear,
 } from "./data";
-import type { GearItem } from "~/types/gear";
+import type { GearItem, RawSample } from "~/types/gear";
 import { normalizeProposalPayloadForDb } from "~/server/db/normalizers";
 import { evaluateForEvent } from "~/server/badges/service";
 import { approveProposal } from "~/server/admin/proposals/service";
@@ -45,6 +45,12 @@ import {
   fetchBrandGearData,
   fetchAllGearForConstructionData,
   type ConstructionMinimalRow,
+  fetchAlternativesByGearId,
+  setGearAlternatives as setGearAlternativesData,
+  type GearAlternativeRow,
+  fetchRawSamplesByGearId,
+  insertRawSample,
+  deleteRawSample,
 } from "./data";
 import { getConstructionState } from "~/lib/utils";
 import { headers } from "next/headers";
@@ -111,6 +117,57 @@ export async function resolveGearIdOrThrow(slug: string) {
 // Service-level helper: fetch core gear by slug via data layer
 export async function fetchGearBySlug(slug: string): Promise<GearItem> {
   return fetchGearBySlugData(slug);
+}
+
+export type RawSamplePayload = {
+  fileUrl: string;
+  originalFilename?: string | null;
+  contentType?: string | null;
+  sizeBytes?: number | null;
+};
+
+export async function fetchRawSamples(slug: string): Promise<RawSample[]> {
+  const gearId = await resolveGearIdOrThrow(slug);
+  return fetchRawSamplesByGearId(gearId);
+}
+
+export async function addRawSampleToGear(
+  slug: string,
+  payload: RawSamplePayload,
+): Promise<RawSample> {
+  const { user } = await getSessionOrThrow();
+  if (!requireRole(user, ["ADMIN", "SUPERADMIN"])) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+  const gearId = await resolveGearIdOrThrow(slug);
+  const currentSamples = await fetchRawSamplesByGearId(gearId);
+  if (currentSamples.length >= 3) {
+    throw Object.assign(
+      new Error("Maximum of 3 samples allowed per gear item"),
+      { status: 400 },
+    );
+  }
+  return insertRawSample({
+    gearId,
+    fileUrl: payload.fileUrl,
+    originalFilename: payload.originalFilename ?? null,
+    contentType: payload.contentType ?? null,
+    sizeBytes: payload.sizeBytes ?? null,
+    uploadedByUserId: user.id,
+  });
+}
+
+export async function removeRawSampleFromGear(
+  slug: string,
+  sampleId: string,
+): Promise<{ ok: true }> {
+  const { user } = await getSessionOrThrow();
+  if (!requireRole(user, ["EDITOR"])) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+  const gearId = await resolveGearIdOrThrow(slug);
+  await deleteRawSample(sampleId, gearId);
+  return { ok: true };
 }
 
 // Fetch minimal gear metadata by id via data layer
@@ -587,4 +644,56 @@ export async function listUnderConstruction(
         return a.completionPercent - b.completionPercent;
       return b.createdAt.getTime() - a.createdAt.getTime();
     });
+}
+
+// --- Gear Alternatives ---
+
+/**
+ * Fetch alternatives for a gear item by slug (no auth required).
+ * Returns the list of alternative gear items with metadata.
+ */
+export async function fetchGearAlternatives(
+  slug: string,
+): Promise<GearAlternativeRow[]> {
+  const gearId = await resolveGearIdOrThrow(slug);
+  return fetchAlternativesByGearId(gearId);
+}
+
+// Re-export type for convenience
+export type { GearAlternativeRow };
+
+const alternativesInput = z.object({
+  alternatives: z.array(
+    z.object({
+      gearId: z.string().min(1),
+      isCompetitor: z.boolean(),
+    }),
+  ),
+});
+
+/**
+ * Update alternatives for a gear item (requires EDITOR+ role).
+ * Replaces all existing alternatives with the provided list.
+ */
+export async function updateGearAlternatives(
+  slug: string,
+  body: unknown,
+): Promise<{ ok: true }> {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session?.user, ["EDITOR", "ADMIN", "SUPERADMIN"])) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+
+  const gearId = await resolveGearIdOrThrow(slug);
+  const data = alternativesInput.parse(body);
+
+  await setGearAlternativesData(
+    gearId,
+    data.alternatives.map((alt) => ({
+      alternativeGearId: alt.gearId,
+      isCompetitor: alt.isCompetitor,
+    })),
+  );
+
+  return { ok: true };
 }

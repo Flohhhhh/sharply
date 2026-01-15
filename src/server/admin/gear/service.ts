@@ -17,9 +17,10 @@ import {
 import { shouldBlockFuzzyResults } from "~/lib/utils/gear-creation";
 import { renameGearData } from "./data";
 import { db } from "~/server/db";
-import { auditLogs } from "~/server/db/schema";
+import { auditLogs, gearEdits } from "~/server/db/schema";
 import { updateGearThumbnailData } from "./data";
 import { getGearIdBySlug } from "~/server/gear/data";
+import { nanoid } from "nanoid";
 
 export async function performFuzzySearchAdmin(params: {
   inputName: string;
@@ -171,6 +172,23 @@ export async function setGearThumbnailService(params: {
       actorUserId: session.user?.id ?? "",
       gearId: updated.id,
     });
+
+    // Create a contribution record for image uploads (not removals)
+    if (thumbnailUrl) {
+      await db.insert(gearEdits).values({
+        id: nanoid(),
+        gearId: updated.id,
+        createdById: session.user?.id ?? "",
+        status: "APPROVED",
+        payload: {
+          imageUpload: {
+            type: "thumbnail",
+            url: thumbnailUrl,
+            action: hadThumbnail ? "replace" : "upload",
+          },
+        },
+      });
+    }
   } catch {}
 
   return updated;
@@ -181,4 +199,80 @@ export async function clearGearThumbnailService(params: {
   slug?: string;
 }): Promise<{ id: string; slug: string; thumbnailUrl: string | null }> {
   return setGearThumbnailService({ ...params, thumbnailUrl: null });
+}
+
+export async function setGearTopViewService(params: {
+  gearId?: string;
+  slug?: string;
+  topViewUrl: string | null;
+}): Promise<{ id: string; slug: string; topViewUrl: string | null }> {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session.user, ["ADMIN", "EDITOR"])) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+
+  const { gearId: maybeId, slug, topViewUrl } = params;
+  let gearId = maybeId;
+  if (!gearId) {
+    if (!slug)
+      throw Object.assign(new Error("Missing gear reference"), { status: 400 });
+    const id = await getGearIdBySlug(slug);
+    if (!id) throw Object.assign(new Error("Gear not found"), { status: 404 });
+    gearId = id;
+  }
+
+  // Fetch current gear state to determine if this is an upload, replace, or remove
+  const { fetchGearMetadataById } = await import("~/server/gear/data");
+  const currentGear = await fetchGearMetadataById(gearId);
+  const hadTopView = !!currentGear.topViewUrl;
+
+  const { updateGearTopViewData } = await import("./data");
+  const updated = await updateGearTopViewData({ gearId, topViewUrl });
+
+  try {
+    // Determine the appropriate audit action
+    let action:
+      | "GEAR_TOP_VIEW_UPLOAD"
+      | "GEAR_TOP_VIEW_REPLACE"
+      | "GEAR_TOP_VIEW_REMOVE";
+    if (topViewUrl) {
+      // Setting a new top view
+      action = hadTopView ? "GEAR_TOP_VIEW_REPLACE" : "GEAR_TOP_VIEW_UPLOAD";
+    } else {
+      // Removing top view
+      action = "GEAR_TOP_VIEW_REMOVE";
+    }
+
+    await db.insert(auditLogs).values({
+      action,
+      actorUserId: session.user?.id ?? "",
+      gearId: updated.id,
+    });
+
+    // Create a contribution record for image uploads (not removals)
+    if (topViewUrl) {
+      await db.insert(gearEdits).values({
+        id: nanoid(),
+        gearId: updated.id,
+        createdById: session.user?.id ?? "",
+        status: "APPROVED",
+        payload: {
+          imageUpload: {
+            type: "topView",
+            url: topViewUrl,
+            action: hadTopView ? "replace" : "upload",
+          },
+        },
+      });
+    }
+  } catch {}
+
+  return updated;
+}
+
+export async function clearGearTopViewService(params: {
+  gearId?: string;
+  slug?: string;
+}): Promise<{ id: string; slug: string; topViewUrl: string | null }> {
+  return setGearTopViewService({ ...params, topViewUrl: null });
 }

@@ -8,6 +8,10 @@ import {
   toggleOwnership,
   toggleWishlist,
   upsertStaffVerdict,
+  updateGearAlternatives,
+  addRawSampleToGear,
+  removeRawSampleFromGear,
+  type RawSamplePayload,
 } from "./service";
 
 /** Server actions for UI components */
@@ -56,4 +60,28 @@ export async function actionUpsertStaffVerdict(slug: string, body: unknown) {
   const res = await upsertStaffVerdict(slug, body);
   revalidatePath(`/gear/${slug}`);
   return res;
+}
+
+export async function actionUpdateGearAlternatives(
+  slug: string,
+  alternatives: Array<{ gearId: string; isCompetitor: boolean }>,
+) {
+  const res = await updateGearAlternatives(slug, { alternatives });
+  revalidatePath(`/gear/${slug}`);
+  return res;
+}
+
+export async function actionAddGearRawSample(
+  slug: string,
+  payload: RawSamplePayload,
+) {
+  const result = await addRawSampleToGear(slug, payload);
+  revalidatePath(`/gear/${slug}`);
+  return result;
+}
+
+export async function actionRemoveGearRawSample(slug: string, sampleId: string) {
+  const result = await removeRawSampleFromGear(slug, sampleId);
+  revalidatePath(`/gear/${slug}`);
+  return result;
 }

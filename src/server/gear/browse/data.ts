@@ -30,6 +30,8 @@ export type BrowseGearRow = {
   thumbnailUrl: string | null;
   releaseDate: Date | null;
   releaseDatePrecision: "DAY" | "MONTH" | "YEAR" | null;
+  announcedDate: Date | null;
+  announceDatePrecision: "DAY" | "MONTH" | "YEAR" | null;
   msrpNowUsdCents: number | null;
   mpbMaxPriceUsdCents: number | null;
   lensFocalLengthMinMm?: number | null;
@@ -91,40 +93,6 @@ export async function getMountsForBrand(brandId: string) {
     .sort((a, b) => a.value.localeCompare(b.value));
 }
 
-export async function getLatestGear(
-  limit = 3,
-  opts?: { brandId?: string; brandSlug?: string },
-) {
-  const where: SQL[] = [];
-  if (opts?.brandId) where.push(eq(gear.brandId, opts.brandId));
-  if (!opts?.brandId && opts?.brandSlug)
-    where.push(eq(brands.slug, opts.brandSlug));
-
-  const rows = await db
-    .select({
-      id: gear.id,
-      slug: gear.slug,
-      name: gear.name,
-      brandName: brands.name,
-      thumbnailUrl: gear.thumbnailUrl,
-      gearType: gear.gearType,
-      releaseDate: gear.releaseDate,
-      announcedDate: gear.announcedDate,
-      createdAt: gear.createdAt,
-      msrpNowUsdCents: gear.msrpNowUsdCents,
-      mpbMaxPriceUsdCents: gear.mpbMaxPriceUsdCents,
-    })
-    .from(gear)
-    .leftJoin(brands, eq(gear.brandId, brands.id))
-    .where(where.length ? and(...where) : undefined)
-    .orderBy(
-      sql`coalesce(${gear.releaseDate}, ${gear.announcedDate}) DESC NULLS LAST`,
-      desc(gear.createdAt),
-    )
-    .limit(limit);
-  return rows;
-}
-
 export type SearchInput = {
   brandId?: string;
   category?: GearCategorySlug;
@@ -153,6 +121,8 @@ export async function searchGear(
     thumbnailUrl: gear.thumbnailUrl,
     releaseDate: gear.releaseDate,
     releaseDatePrecision: gear.releaseDatePrecision,
+    announcedDate: gear.announcedDate,
+    announceDatePrecision: gear.announceDatePrecision,
     msrpNowUsdCents: gear.msrpNowUsdCents,
     mpbMaxPriceUsdCents: gear.mpbMaxPriceUsdCents,
   };
@@ -272,6 +242,8 @@ export async function getReleaseOrderedGearPage(params: {
       gearType: gear.gearType,
       releaseDate: gear.releaseDate,
     releaseDatePrecision: gear.releaseDatePrecision,
+      announcedDate: gear.announcedDate,
+      announceDatePrecision: gear.announceDatePrecision,
       msrpNowUsdCents: gear.msrpNowUsdCents,
       mpbMaxPriceUsdCents: gear.mpbMaxPriceUsdCents,
     })

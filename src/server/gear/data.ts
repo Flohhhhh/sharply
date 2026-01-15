@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, desc, eq, gte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, or, sql } from "drizzle-orm";
 import { db } from "~/server/db";
 import {
   brands,
@@ -27,6 +27,9 @@ import {
   staffVerdicts,
   genres,
   auditLogs,
+  gearAlternatives,
+  rawSamples,
+  gearRawSamples,
 } from "~/server/db/schema";
 import { hasEventForUserOnUtcDay } from "~/server/validation/dedupe";
 import { incrementGearPopularityIntraday } from "~/server/popularity/data";
@@ -109,6 +112,7 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
     .select({ mountId: gearMounts.mountId })
     .from(gearMounts)
     .where(eq(gearMounts.gearId, gearItem[0]!.gear.id));
+  const rawSampleRows = await fetchRawSamplesByGearId(gearItem[0]!.gear.id);
 
   const base: GearItem = {
     ...gearItem[0]!.gear,
@@ -117,6 +121,7 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
     lensSpecs: null,
     fixedLensSpecs: null,
     mountIds: mountIdRows.map((r) => r.mountId),
+    rawSamples: rawSampleRows,
   };
 
   // CAMERA SPECS
@@ -147,7 +152,7 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
     const slots = await db
       .select()
       .from(cameraCardSlots)
-      .where(eq(cameraCardSlots.gearId, gearItem[0]!.gear.id as any));
+      .where(eq(cameraCardSlots.gearId, gearItem[0]!.gear.id));
 
     // fixed-lens specs (for integrated lens cameras)
     const fixed = await db
@@ -160,7 +165,7 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
     return {
       ...base,
       cameraSpecs: camera[0] ? { ...camera[0], afAreaModes: modes } : null,
-      cameraCardSlots: slots.length ? (slots as any) : [],
+      cameraCardSlots: slots.length > 0 ? slots : [],
       fixedLensSpecs: fixed[0] ?? null,
       videoModes: videoModes.length ? videoModes : [],
     };
@@ -193,6 +198,81 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
   } else {
     return base;
   }
+}
+
+export async function fetchRawSamplesByGearId(
+  gearId: string,
+): Promise<(typeof rawSamples.$inferSelect)[]> {
+  const rows = await db
+    .select()
+    .from(rawSamples)
+    .innerJoin(gearRawSamples, eq(rawSamples.id, gearRawSamples.rawSampleId))
+    .where(
+      and(eq(gearRawSamples.gearId, gearId), eq(rawSamples.isDeleted, false)),
+    )
+    .orderBy(desc(gearRawSamples.createdAt));
+
+  return rows.map((r) => r.raw_samples);
+}
+
+export type RawSampleInsertParams = {
+  gearId: string;
+  fileUrl: string;
+  originalFilename?: string | null;
+  contentType?: string | null;
+  sizeBytes?: number | null;
+  uploadedByUserId?: string | null;
+};
+
+export async function insertRawSample(
+  params: RawSampleInsertParams,
+): Promise<typeof rawSamples.$inferSelect> {
+  return await db.transaction(async (tx) => {
+    const inserted = await tx
+      .insert(rawSamples)
+      .values({
+        fileUrl: params.fileUrl,
+        originalFilename: params.originalFilename ?? null,
+        contentType: params.contentType ?? null,
+        sizeBytes: params.sizeBytes ?? null,
+        uploadedByUserId: params.uploadedByUserId ?? null,
+      })
+      .returning();
+
+    const sample = inserted[0];
+    if (!sample) {
+      throw new Error("Failed to insert raw sample");
+    }
+
+    await tx.insert(gearRawSamples).values({
+      gearId: params.gearId,
+      rawSampleId: sample.id,
+    });
+    return sample;
+  });
+}
+
+export async function deleteRawSample(sampleId: string, gearId: string) {
+  return await db.transaction(async (tx) => {
+    // Remove the junction table relationship
+    await tx
+      .delete(gearRawSamples)
+      .where(
+        and(
+          eq(gearRawSamples.gearId, gearId),
+          eq(gearRawSamples.rawSampleId, sampleId),
+        ),
+      );
+
+    // Soft delete the raw sample
+    await tx
+      .update(rawSamples)
+      .set({
+        isDeleted: true,
+        deletedAt: sql`CURRENT_TIMESTAMP`,
+      })
+      .where(eq(rawSamples.id, sampleId));
+  });
 }
 
 export type GearCardRow = {
@@ -392,7 +472,6 @@ export async function getApprovedReviewsByGearId(gearId: string) {
     .where(and(eq(reviews.gearId, gearId), eq(reviews.status, "APPROVED")))
     .orderBy(desc(reviews.createdAt));
 }
-
 
 export async function getMyReviewStatus(gearId: string, userId: string) {
   const row = await db
@@ -861,4 +940,178 @@ export async function getPendingEditIdData(
     )
     .limit(1);
   return row[0]?.id ?? null;
+}
+
+// --- Gear Alternatives ---
+
+export type GearAlternativeRow = {
+  gearId: string;
+  name: string;
+  slug: string;
+  brandName: string | null;
+  thumbnailUrl: string | null;
+  gearType: string;
+  isCompetitor: boolean;
+};
+
+/**
+ * Fetch all alternatives for a gear item (both directions due to symmetric storage).
+ * Returns the "other" gear item in each pair along with metadata.
+ */
+export async function fetchAlternativesByGearId(
+  gearId: string,
+): Promise<GearAlternativeRow[]> {
+  // Query both directions: where gearId is gearAId or gearBId
+  const rows = await db
+    .select({
+      gearAId: gearAlternatives.gearAId,
+      gearBId: gearAlternatives.gearBId,
+      isCompetitor: gearAlternatives.isCompetitor,
+      // Gear A info
+      gearAName: sql<string>`ga.name`.as("gear_a_name"),
+      gearASlug: sql<string>`ga.slug`.as("gear_a_slug"),
+      gearAThumbnail: sql<string | null>`ga.thumbnail_url`.as(
+        "gear_a_thumbnail",
+      ),
+      gearAType: sql<string>`ga.gear_type`.as("gear_a_type"),
+      gearABrandName: sql<string | null>`ba.name`.as("gear_a_brand_name"),
+      // Gear B info
+      gearBName: sql<string>`gb.name`.as("gear_b_name"),
+      gearBSlug: sql<string>`gb.slug`.as("gear_b_slug"),
+      gearBThumbnail: sql<string | null>`gb.thumbnail_url`.as(
+        "gear_b_thumbnail",
+      ),
+      gearBType: sql<string>`gb.gear_type`.as("gear_b_type"),
+      gearBBrandName: sql<string | null>`bb.name`.as("gear_b_brand_name"),
+    })
+    .from(gearAlternatives)
+    .innerJoin(sql`${gear} AS ga`, sql`ga.id = ${gearAlternatives.gearAId}`)
+    .innerJoin(sql`${gear} AS gb`, sql`gb.id = ${gearAlternatives.gearBId}`)
+    .leftJoin(sql`${brands} AS ba`, sql`ba.id = ga.brand_id`)
+    .leftJoin(sql`${brands} AS bb`, sql`bb.id = gb.brand_id`)
+    .where(
+      or(
+        eq(gearAlternatives.gearAId, gearId),
+        eq(gearAlternatives.gearBId, gearId),
+      ),
+    );
+
+  // Map to return the "other" gear item (not the one we're querying for)
+  return rows.map((row) => {
+    const isA = row.gearAId === gearId;
+    return {
+      gearId: isA ? row.gearBId : row.gearAId,
+      name: isA ? row.gearBName : row.gearAName,
+      slug: isA ? row.gearBSlug : row.gearASlug,
+      brandName: isA ? row.gearBBrandName : row.gearABrandName,
+      thumbnailUrl: isA ? row.gearBThumbnail : row.gearAThumbnail,
+      gearType: isA ? row.gearBType : row.gearAType,
+      isCompetitor: row.isCompetitor,
+    };
+  });
+}
+
+/**
+ * Helper to ensure canonical ordering for pair storage.
+ * Returns [smaller, larger] by lexicographic comparison.
+ */
+function canonicalPair(idA: string, idB: string): [string, string] {
+  return idA < idB ? [idA, idB] : [idB, idA];
+}
+
+/**
+ * Add an alternative relationship between two gear items.
+ * Handles canonical ordering internally.
+ */
+export async function addGearAlternative(params: {
+  gearId: string;
+  alternativeGearId: string;
+  isCompetitor: boolean;
+}): Promise<void> {
+  const { gearId, alternativeGearId, isCompetitor } = params;
+  if (gearId === alternativeGearId) {
+    throw new Error("Cannot add a gear item as its own alternative");
+  }
+
+  const [gearAId, gearBId] = canonicalPair(gearId, alternativeGearId);
+
+  await db
+    .insert(gearAlternatives)
+    .values({ gearAId, gearBId, isCompetitor })
+    .onConflictDoUpdate({
+      target: [gearAlternatives.gearAId, gearAlternatives.gearBId],
+      set: { isCompetitor },
+    });
+}
+
+/**
+ * Remove an alternative relationship between two gear items.
+ */
+export async function removeGearAlternative(params: {
+  gearId: string;
+  alternativeGearId: string;
+}): Promise<void> {
+  const { gearId, alternativeGearId } = params;
+  const [gearAId, gearBId] = canonicalPair(gearId, alternativeGearId);
+
+  await db
+    .delete(gearAlternatives)
+    .where(
+      and(
+        eq(gearAlternatives.gearAId, gearAId),
+        eq(gearAlternatives.gearBId, gearBId),
+      ),
+    );
+}
+
+/**
+ * Update the competitor flag for an existing alternative relationship.
+ */
+export async function updateGearAlternativeCompetitor(params: {
+  gearId: string;
+  alternativeGearId: string;
+  isCompetitor: boolean;
+}): Promise<void> {
+  const { gearId, alternativeGearId, isCompetitor } = params;
+  const [gearAId, gearBId] = canonicalPair(gearId, alternativeGearId);
+
+  await db
+    .update(gearAlternatives)
+    .set({ isCompetitor })
+    .where(
+      and(
+        eq(gearAlternatives.gearAId, gearAId),
+        eq(gearAlternatives.gearBId, gearBId),
+      ),
+    );
+}
+
+/**
+ * Bulk replace all alternatives for a gear item.
+ * Removes existing alternatives not in the new list, adds/updates others.
+ */
+export async function setGearAlternatives(
+  gearId: string,
+  alternatives: Array<{ alternativeGearId: string; isCompetitor: boolean }>,
+): Promise<void> {
+  // Get current alternatives
+  const current = await fetchAlternativesByGearId(gearId);
+  const currentIds = new Set(current.map((a) => a.gearId));
+  const newIds = new Set(alternatives.map((a) => a.alternativeGearId));
+
+  // Remove alternatives not in new list
+  for (const curr of current) {
+    if (!newIds.has(curr.gearId)) {
+      await removeGearAlternative({ gearId, alternativeGearId: curr.gearId });
+    }
+  }
+
+  // Add or update alternatives in new list
+  for (const alt of alternatives) {
+    await addGearAlternative({
+      gearId,
+      alternativeGearId: alt.alternativeGearId,
+      isCompetitor: alt.isCompetitor,
+    });
+  }
 }

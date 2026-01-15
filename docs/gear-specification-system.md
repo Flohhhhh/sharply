@@ -60,7 +60,7 @@ Stores detailed lens-specific specifications:
 
 - **Primary Key**: `gearId` (1:1 relationship with gear)
 - **Focal Length**: Minimum and maximum focal length in mm (decimal, 0.1mm precision)
-- **Image Circle**: `imageCircleSize` references `sensor_formats.id` to capture coverage (e.g., full frame, APS-C)
+- **Image Circle**: `imageCircleSizeId` references `sensor_formats.id` to capture coverage (e.g., full frame, APS-C)
 - **Aperture**: Maximum aperture value
 - **Stabilization**: Whether the lens has stabilization
 - **Flexibility**: JSONB extra field for additional specs
@@ -75,7 +75,7 @@ For cameras that use the `fixed-lens` mount, a simplified lens spec table stores
   - `focalLengthMinMm` (decimal, 0.1mm precision), `focalLengthMaxMm` (decimal, 0.1mm precision)
   - `maxApertureWide` (decimal), `maxApertureTele` (decimal)
   - `minApertureWide` (decimal), `minApertureTele` (decimal)
-  - `imageCircleSize` references `sensor_formats.id` to describe coverage
+  - `imageCircleSizeId` references `sensor_formats.id` to describe coverage
   - `hasAutofocus` (boolean)
   - `minimumFocusDistanceMm` (int)
   - `frontElementRotates` (boolean)
@@ -134,8 +134,8 @@ CREATE TABLE sharply_lens_specs (
 - **Gear → Brands**: Required relationship (restrict delete)
 - **Gear → Mounts**: Optional relationship (set null on delete)
 - **Camera Specs → Sensor Formats**: Optional relationship (set null on delete)
-- **Lens Specs → Sensor Formats** (`imageCircleSize`): Optional relationship (set null on delete)
-- **Fixed-lens Specs → Sensor Formats** (`imageCircleSize`): Optional relationship (set null on delete)
+- **Lens Specs → Sensor Formats** (`imageCircleSizeId`): Optional relationship (set null on delete)
+- **Fixed-lens Specs → Sensor Formats** (`imageCircleSizeId`): Optional relationship (set null on delete)
 
 ### Cascade Behavior
 

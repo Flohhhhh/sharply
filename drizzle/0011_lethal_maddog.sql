@@ -1,2 +1,0 @@
-ALTER TABLE "app"."camera_specs" RENAME COLUMN "usb_c_power_delivery" TO "usb_power_delivery";--> statement-breakpoint
-ALTER TABLE "app"."camera_specs" RENAME COLUMN "usb_c_charging" TO "usb_charging";

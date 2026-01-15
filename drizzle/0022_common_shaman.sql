@@ -1,2 +1,0 @@
-ALTER TABLE "app"."camera_specs" ALTER COLUMN "max_fps_raw" SET DATA TYPE numeric(4, 1);--> statement-breakpoint
-ALTER TABLE "app"."camera_specs" ALTER COLUMN "max_fps_jpg" SET DATA TYPE numeric(4, 1);

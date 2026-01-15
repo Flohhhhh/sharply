@@ -154,6 +154,8 @@ export function ReleaseFeedGrid({
             isTrending={trendingSet.has(g.slug)}
             releaseDate={g.releaseDate}
             releaseDatePrecision={g.releaseDatePrecision}
+            announcedDate={g.announcedDate}
+            announceDatePrecision={g.announceDatePrecision}
             priceText={getItemDisplayPrice(g, {
               style: "short",
               padWholeAmounts: true,

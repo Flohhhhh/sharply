@@ -62,6 +62,9 @@ export const auditActionEnum = pgEnum("audit_action", [
   "GEAR_IMAGE_UPLOAD",
   "GEAR_IMAGE_REPLACE",
   "GEAR_IMAGE_REMOVE",
+  "GEAR_TOP_VIEW_UPLOAD",
+  "GEAR_TOP_VIEW_REPLACE",
+  "GEAR_TOP_VIEW_REMOVE",
   "GEAR_EDIT_PROPOSE",
   "GEAR_EDIT_APPROVE",
   "GEAR_EDIT_REJECT",
@@ -341,7 +344,8 @@ export const exposureModesEnum = pgEnum("exposure_modes_enum", [
   "other",
 ]);
 
-// Analog Exposure Modes
+// Note: This enum was incorrectly named. Use meteringModeEnum instead.
+// Keeping for backward compatibility but should not be used.
 export const exposureModeEnum = pgEnum("metering_mode_enum", [
   "average",
   "center-weighted",
@@ -554,6 +558,7 @@ export const gear = appSchema.table(
     // Max observed price on MPB (USD cents), optional
     mpbMaxPriceUsdCents: integer("mpb_max_price_usd_cents"),
     thumbnailUrl: text("thumbnail_url"),
+    topViewUrl: text("top_view_url"),
     weightGrams: integer("weight_grams"),
     // Physical dimensions
     widthMm: decimal("width_mm", { precision: 6, scale: 2 }),
@@ -617,6 +622,50 @@ export const gearMounts = appSchema.table(
     primaryKey({ columns: [t.gearId, t.mountId] }),
     index("gear_mounts_gear_idx").on(t.gearId),
     index("gear_mounts_mount_idx").on(t.mountId),
+  ],
+);
+
+// Raw sample artifacts that can be attached to gear via a junction table.
+export const rawSamples = appSchema.table(
+  "raw_samples",
+  (d) => ({
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    fileUrl: text("file_url").notNull(),
+    originalFilename: varchar("original_filename", { length: 255 }),
+    contentType: varchar("content_type", { length: 120 }),
+    sizeBytes: integer("size_bytes"),
+    uploadedByUserId: varchar("uploaded_by_user_id", { length: 255 }),
+    isDeleted: boolean("is_deleted").default(false).notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    index("raw_samples_file_url_idx").on(t.fileUrl),
+    index("raw_samples_user_idx").on(t.uploadedByUserId),
+  ],
+);
+
+// Junction table linking gear items to raw samples.
+export const gearRawSamples = appSchema.table(
+  "gear_raw_samples",
+  (d) => ({
+    gearId: d
+      .varchar("gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    rawSampleId: d
+      .varchar("raw_sample_id", { length: 36 })
+      .notNull()
+      .references(() => rawSamples.id, { onDelete: "cascade" }),
+    createdAt,
+  }),
+  (t) => [
+    primaryKey({ columns: [t.gearId, t.rawSampleId] }),
+    index("gear_raw_samples_gear_idx").on(t.gearId),
+    index("gear_raw_samples_sample_idx").on(t.rawSampleId),
   ],
 );
 
@@ -812,7 +861,7 @@ export const analogCameraSpecs = appSchema.table(
     hasBulbMode: boolean("has_bulb_mode"),
     hasMetering: boolean("has_metering"),
     meteringModes: meteringModeEnum("metering_modes").array(),
-    exposureModes: exposureModeEnum("exposure_modes").array(),
+    exposureModes: exposureModesEnum("exposure_modes").array(),
     meteringDisplayTypes: meteringDisplayTypeEnum(
       "metering_display_types",
     ).array(),
@@ -857,10 +906,9 @@ export const lensSpecs = appSchema.table(
       scale: 1,
       mode: "number",
     }),
-    imageCircleSize: varchar("image_circle_size_id", { length: 36 }).references(
-      () => sensorFormats.id,
-      { onDelete: "set null" },
-    ),
+    imageCircleSizeId: varchar("image_circle_size_id", {
+      length: 36,
+    }).references(() => sensorFormats.id, { onDelete: "set null" }),
     // aperture
     maxApertureWide: decimal("max_aperture_wide", { precision: 4, scale: 2 }),
     maxApertureTele: decimal("max_aperture_tele", { precision: 4, scale: 2 }), // nullable
@@ -936,10 +984,9 @@ export const fixedLensSpecs = appSchema.table(
       scale: 1,
       mode: "number",
     }),
-    imageCircleSize: varchar("image_circle_size_id", { length: 36 }).references(
-      () => sensorFormats.id,
-      { onDelete: "set null" },
-    ),
+    imageCircleSizeId: varchar("image_circle_size_id", {
+      length: 36,
+    }).references(() => sensorFormats.id, { onDelete: "set null" }),
     // aperture
     maxApertureWide: decimal("max_aperture_wide", { precision: 4, scale: 2 }),
     maxApertureTele: decimal("max_aperture_tele", { precision: 4, scale: 2 }),
@@ -1134,6 +1181,7 @@ export const gearRelations = relations(gear, ({ one, many }) => ({
     fields: [gear.id],
     references: [staffVerdicts.gearId],
   }),
+  rawSamples: many(gearRawSamples),
 }));
 
 export const gearMountsRelations = relations(gearMounts, ({ one }) => ({
@@ -1145,6 +1193,21 @@ export const gearMountsRelations = relations(gearMounts, ({ one }) => ({
     fields: [gearMounts.mountId],
     references: [mounts.id],
   }),
+}));
+
+export const gearRawSamplesRelations = relations(gearRawSamples, ({ one }) => ({
+  gear: one(gear, {
+    fields: [gearRawSamples.gearId],
+    references: [gear.id],
+  }),
+  rawSample: one(rawSamples, {
+    fields: [gearRawSamples.rawSampleId],
+    references: [rawSamples.id],
+  }),
+}));
+
+export const rawSamplesRelations = relations(rawSamples, ({ many }) => ({
+  gearAssociations: many(gearRawSamples),
 }));
 
 export const gearEditsRelations = relations(gearEdits, ({ one }) => ({
@@ -1465,6 +1528,29 @@ export const comparePairCounts = appSchema.table(
   ],
 );
 
+// --- Gear Alternatives (symmetric pairs with competitor flag) ---
+export const gearAlternatives = appSchema.table(
+  "gear_alternatives",
+  (d) => ({
+    // Canonical pair ordering: gearAId < gearBId (lexicographically)
+    gearAId: d
+      .varchar("gear_a_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    gearBId: d
+      .varchar("gear_b_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    isCompetitor: d.boolean("is_competitor").notNull().default(false),
+    createdAt,
+  }),
+  (t) => [
+    primaryKey({ columns: [t.gearAId, t.gearBId] }),
+    index("gear_alternatives_gear_a_idx").on(t.gearAId),
+    index("gear_alternatives_gear_b_idx").on(t.gearBId),
+  ],
+);
+
 // Rollup run history
 export const rollupRuns = appSchema.table(
   "rollup_runs",
@@ -1576,7 +1662,7 @@ export const userBadges = appSchema.table(
     userId: d
       .varchar({ length: 255 })
       .notNull()
-      .references(() => users.id),
+      .references(() => users.id, { onDelete: "cascade" }),
     badgeKey: d.varchar({ length: 200 }).notNull(),
     awardedAt: d
       .timestamp({ mode: "date", withTimezone: true })

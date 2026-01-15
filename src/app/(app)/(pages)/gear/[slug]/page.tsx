@@ -11,6 +11,7 @@ import {
   fetchUseCaseRatings,
   fetchStaffVerdict,
   fetchAllGearSlugs,
+  fetchGearAlternatives,
 } from "~/server/gear/service";
 import { ConstructionFullPage } from "~/app/(app)/(pages)/gear/_components/construction-full";
 import type { GearItem } from "~/types/gear";
@@ -40,11 +41,20 @@ import { Button } from "~/components/ui/button";
 import { notFound } from "next/navigation";
 import DiscordBanner from "~/components/discord-banner";
 import Image from "next/image";
-
 import { JsonLd } from "~/components/json-ld";
+import { GearImageCarousel } from "~/app/(app)/(pages)/gear/_components/gear-image-carousel";
 import { StaffVerdictSection } from "../_components/staff-verdict-section";
 import { HallOfFameBadge } from "~/components/gear-badges/hall-of-fame-badge";
 import { isInHallOfFame } from "~/lib/utils/is-in-hall-of-fame";
+import { GearAlternativesSection } from "../_components/gear-alternatives-section";
+import { BookImageIcon, Download, FileDown } from "lucide-react";
+import {
+  Item,
+  ItemContent,
+  ItemActions,
+  ItemDescription,
+  ItemTitle,
+} from "~/components/ui/item";
 
 export const revalidate = 3600;
 
@@ -132,8 +142,12 @@ export default async function GearPage({ params }: GearPageProps) {
 
   const review = await getReviewByGearSlug(item.slug);
   const relatedNews = await getNewsByRelatedGearSlug(item.slug, 9);
+  const alternatives = await fetchGearAlternatives(slug);
   const isNew = isNewRelease(item.releaseDate, item.releaseDatePrecision);
-  const trendingSlugs = await fetchTrendingSlugs({ timeframe: "30d", limit: 20 });
+  const trendingSlugs = await fetchTrendingSlugs({
+    timeframe: "30d",
+    limit: 20,
+  });
   const isTrending = trendingSlugs.includes(item.slug);
   const isHallOfFameItem = isInHallOfFame(item.slug);
 
@@ -211,24 +225,11 @@ export default async function GearPage({ params }: GearPageProps) {
         </div>
         {/* Photo Placeholder */}
         <div>
-          {item.thumbnailUrl ? (
-            <div className="bg-muted dark:bg-card overflow-hidden rounded-md p-12 sm:min-h-[420px] sm:p-24">
-              <Image
-                src={item.thumbnailUrl}
-                alt={item.name}
-                className="mx-auto h-full max-h-[300px] w-full max-w-[600px] object-contain sm:max-h-[420px]"
-                width={720}
-                height={480}
-                priority
-              />
-            </div>
-          ) : (
-            <div className="bg-muted dark:bg-card flex aspect-video items-center justify-center rounded-md">
-              <div className="text-muted-foreground text-lg">
-                No image available
-              </div>
-            </div>
-          )}
+          <GearImageCarousel
+            name={item.name}
+            thumbnailUrl={item.thumbnailUrl}
+            topViewUrl={item.topViewUrl}
+          />
         </div>
       </section>
 
@@ -299,38 +300,42 @@ export default async function GearPage({ params }: GearPageProps) {
               </Link>
             </section>
           )}
-          {/* Articles about this item (below specs) */}
-          {relatedNews.length > 0 && (
-            <section id="related-articles" className="scroll-mt-24">
-              <h2 className="mb-2 text-lg font-semibold">
-                Articles about this item
-              </h2>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {relatedNews.map((post) => {
-                  const image =
-                    post.thumbnail && typeof post.thumbnail === "object"
-                      ? (post.thumbnail.url ?? "/image-temp.png")
-                      : "/image-temp.png";
-                  return (
-                    <NewsCard
-                      key={post.id}
-                      post={{
-                        id: post.id,
-                        title: post.title,
-                        excerpt: (post.excerpt as any) ?? undefined,
-                        href: `/news/${post.slug}`,
-                        image,
-                        date: new Date(
-                          post.override_date || post.createdAt,
-                        ).toLocaleDateString(),
-                      }}
-                      size="sm"
-                    />
-                  );
-                })}
+          {/* Raw Samples */}
+          {item.rawSamples && item.rawSamples.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold">Raw Samples</h3>
+              <div className="space-y-2">
+                {item.rawSamples.map((sample) => (
+                  <Item key={sample.id} variant="outline" size="sm">
+                    <ItemContent>
+                      <ItemTitle className="max-w-[70%] truncate text-sm font-medium">
+                        {sample.originalFilename ?? sample.fileUrl}
+                      </ItemTitle>
+                    </ItemContent>
+                    <ItemActions>
+                      <Button
+                        size="sm"
+                        className="h-8 w-auto px-3 text-xs"
+                        icon={<FileDown className="h-4 w-4" />}
+                        asChild
+                      >
+                        <a
+                          href={sample.fileUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          download
+                        >
+                          Download
+                        </a>
+                      </Button>
+                    </ItemActions>
+                  </Item>
+                ))}
               </div>
-            </section>
+            </div>
           )}
+          {/* Alternatives */}
+          <GearAlternativesSection alternatives={alternatives} />
         </div>
         {/* Right column */}
         <div className="static top-28 col-span-1 -mt-4 w-full space-y-8 self-start sm:sticky md:col-span-3">
@@ -338,7 +343,11 @@ export default async function GearPage({ params }: GearPageProps) {
           <div className="w-full">
             <GearActionButtons
               slug={slug}
+              gearId={item.id}
               currentThumbnailUrl={item.thumbnailUrl ?? null}
+              currentTopViewUrl={item.topViewUrl ?? null}
+              alternatives={alternatives}
+              rawSamples={item.rawSamples ?? []}
             />
           </div>
           {/* Links */}
@@ -354,6 +363,7 @@ export default async function GearPage({ params }: GearPageProps) {
               msrpNowUsdCents={item.msrpNowUsdCents ?? null}
             />
           </div>
+
           {/* Contributors */}
           <GearContributors gearId={item.id} />
           <GearStatsCard slug={slug} />
@@ -386,6 +396,40 @@ export default async function GearPage({ params }: GearPageProps) {
       </section>
 
       <DiscordBanner />
+
+      {/* Articles about this item */}
+      {relatedNews.length > 0 && (
+        <section id="related-articles" className="scroll-mt-24">
+          <h2 className="mb-2 text-lg font-semibold">
+            Articles about this item
+          </h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
+            {relatedNews.map((post) => {
+              const image =
+                post.thumbnail && typeof post.thumbnail === "object"
+                  ? (post.thumbnail.url ?? "/image-temp.png")
+                  : "/image-temp.png";
+              return (
+                <NewsCard
+                  key={post.id}
+                  post={{
+                    id: post.id,
+                    title: post.title,
+                    excerpt: (post.excerpt as any) ?? undefined,
+                    href: `/news/${post.slug}`,
+                    image,
+                    date: new Date(
+                      post.override_date || post.createdAt,
+                    ).toLocaleDateString(),
+                  }}
+                  size="sm"
+                />
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       <JsonLd gear={item} />
     </main>
   );

@@ -131,16 +131,16 @@ function LensFieldsComponent({
           )}
 
           {/* Image Circle Size */}
-          {showWhenMissing((initialSpecs as any)?.imageCircleSize) && (
+          {showWhenMissing((initialSpecs as any)?.imageCircleSizeId) && (
             <div className="space-y-2">
               <Label htmlFor="imageCircleSize">Image Circle Size</Label>
               <Select
                 value={
-                  currentSpecs?.imageCircleSize ?? CLEAR_SENSOR_FORMAT_VALUE
+                  currentSpecs?.imageCircleSizeId ?? CLEAR_SENSOR_FORMAT_VALUE
                 }
                 onValueChange={(value) =>
                   handleFieldChange(
-                    "imageCircleSize",
+                    "imageCircleSizeId",
                     value === CLEAR_SENSOR_FORMAT_VALUE ? null : value,
                   )
                 }

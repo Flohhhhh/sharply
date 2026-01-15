@@ -982,7 +982,7 @@ export function normalizeProposalPayloadForDb(
           return num === null ? undefined : num;
         }, z.number().nullable().optional())
         .optional(),
-      imageCircleSize: z
+      imageCircleSizeId: z
         .preprocess((value) => {
           if (value === null) return null;
           if (typeof value !== "string") return undefined;
@@ -1353,7 +1353,7 @@ export function normalizeProposalPayloadForDb(
             return num === null ? undefined : num;
           }, z.number().nullable().optional())
           .optional(),
-      imageCircleSize: z
+      imageCircleSizeId: z
         .preprocess((value) => {
           if (value === null) return null;
           if (typeof value !== "string") return undefined;

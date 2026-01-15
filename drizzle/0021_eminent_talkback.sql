@@ -1,1 +1,0 @@
-ALTER TABLE "app"."camera_specs" ALTER COLUMN "sensor_readout_speed_ms" SET DATA TYPE numeric(4, 1);

@@ -576,7 +576,7 @@ export const specDictionary: SpecSectionDef[] = [
             isPrime: item.fixedLensSpecs?.isPrime,
             min: item.fixedLensSpecs?.focalLengthMinMm,
             max: item.fixedLensSpecs?.focalLengthMaxMm,
-            imageCircleFormatId: item.fixedLensSpecs?.imageCircleSize,
+            imageCircleFormatId: item.fixedLensSpecs?.imageCircleSizeId,
             sensorFormatId: item.cameraSpecs?.sensorFormatId,
           });
           if (!actual) return undefined;
@@ -595,7 +595,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "fixedImageCircleSize",
         label: "Image Circle Size",
-        getRawValue: (item) => item.fixedLensSpecs?.imageCircleSize,
+        getRawValue: (item) => item.fixedLensSpecs?.imageCircleSizeId,
         formatDisplay: (raw) =>
           typeof raw === "string" ? sensorNameFromId(raw) : undefined,
         editElementId: "fixed-image-circle-size",
@@ -1154,14 +1154,14 @@ export const specDictionary: SpecSectionDef[] = [
           isPrime: item.lensSpecs?.isPrime,
           min: item.lensSpecs?.focalLengthMinMm,
           max: item.lensSpecs?.focalLengthMaxMm,
-          imageCircleFormatId: item.lensSpecs?.imageCircleSize,
+          imageCircleFormatId: item.lensSpecs?.imageCircleSizeId,
         }),
         formatDisplay: (_, item) => {
           const { actual, equivalent } = formatFocalLengthRangeDisplay({
             isPrime: item.lensSpecs?.isPrime,
             min: item.lensSpecs?.focalLengthMinMm,
             max: item.lensSpecs?.focalLengthMaxMm,
-            imageCircleFormatId: item.lensSpecs?.imageCircleSize,
+            imageCircleFormatId: item.lensSpecs?.imageCircleSizeId,
           });
           if (!actual) return undefined;
           if (!equivalent) return actual;
@@ -1176,7 +1176,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "imageCircleSize",
         label: "Image Circle Size",
-        getRawValue: (item) => item.lensSpecs?.imageCircleSize,
+        getRawValue: (item) => item.lensSpecs?.imageCircleSizeId,
         formatDisplay: (raw) =>
           typeof raw === "string" ? sensorNameFromId(raw) : undefined,
         editElementId: "imageCircleSize",

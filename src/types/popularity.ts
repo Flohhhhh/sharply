@@ -15,6 +15,8 @@ export type TrendingEntry = {
   thumbnailUrl: string | null;
   releaseDate: string | null;
   releaseDatePrecision: "DAY" | "MONTH" | "YEAR" | null;
+  announcedDate: string | null;
+  announceDatePrecision: "DAY" | "MONTH" | "YEAR" | null;
   msrpNowUsdCents: number | null;
   mpbMaxPriceUsdCents: number | null;
   lifetimeViews: number;
@@ -47,6 +49,8 @@ export type LiveTrendingSnapshotItem = {
   thumbnailUrl: string | null;
   releaseDate: string | null;
   releaseDatePrecision: TrendingEntry["releaseDatePrecision"];
+  announcedDate: string | null;
+  announceDatePrecision: TrendingEntry["announceDatePrecision"];
   msrpNowUsdCents: number | null;
   mpbMaxPriceUsdCents: number | null;
   lifetimeViews: number;

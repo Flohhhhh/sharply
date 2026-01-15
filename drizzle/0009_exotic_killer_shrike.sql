@@ -1,1 +1,0 @@
-ALTER TABLE "app"."camera_specs" DROP COLUMN "viewfinder_type";

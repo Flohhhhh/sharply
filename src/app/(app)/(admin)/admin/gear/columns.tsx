@@ -118,8 +118,9 @@ export const columns: ColumnDef<AdminGearTableRow>[] = [
           <GearImageModal
             gearId={row.original.id}
             currentThumbnailUrl={row.original.thumbnailUrl ?? undefined}
+            currentTopViewUrl={row.original.topViewUrl ?? undefined}
             trigger={
-              <Button variant="ghost" size="sm" aria-label="Upload Thumbnail">
+              <Button variant="ghost" size="sm" aria-label="Manage Images">
                 <ImageIcon className="h-4 w-4" />
               </Button>
             }

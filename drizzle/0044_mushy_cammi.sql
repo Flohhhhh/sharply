@@ -1,1 +1,0 @@
-ALTER TABLE "app"."camera_specs" ADD COLUMN "max_fps_by_shutter" jsonb;

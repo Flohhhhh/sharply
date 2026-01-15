@@ -1,1 +1,0 @@
-ALTER TABLE "app"."gear" ADD COLUMN "link_bh" text;
