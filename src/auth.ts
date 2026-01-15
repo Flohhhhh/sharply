@@ -8,6 +8,10 @@ import { passkey } from "@better-auth/passkey";
 import { resend } from "~/lib/email";
 
 const userRoleValues = schema.userRoleEnum.enumValues;
+const emailOtpEnabled =
+  !!resend &&
+  !!process.env.RESEND_API_KEY &&
+  !!process.env.RESEND_EMAIL_FROM;
 
 export const auth = betterAuth({
   // config
@@ -103,27 +107,28 @@ export const auth = betterAuth({
   plugins: [
     nextCookies(),
     passkey(),
-    emailOTP({
-      overrideDefaultEmailVerification: true,
-      async sendVerificationOTP({ email, otp, type }) {
-        const subject =
-          type === "sign-in"
-            ? "Your Sharply sign-in code"
-            : type === "email-verification"
-              ? "Verify your Sharply email"
-              : "Reset your Sharply password";
-        const text = `Your code is ${otp}. It expires in 10 minutes. If you didn’t request this, please ignore.`;
-        if (!process.env.RESEND_EMAIL_FROM) {
-          throw new Error("RESEND_EMAIL_FROM is not set");
-        }
-        await resend.emails.send({
-          from: process.env.RESEND_EMAIL_FROM,
-          to: email,
-          subject,
-          text,
-        });
-      },
-    }),
+    ...(emailOtpEnabled
+      ? [
+          emailOTP({
+            overrideDefaultEmailVerification: true,
+            async sendVerificationOTP({ email, otp, type }) {
+              const subject =
+                type === "sign-in"
+                  ? "Your Sharply sign-in code"
+                  : type === "email-verification"
+                    ? "Verify your Sharply email"
+                    : "Reset your Sharply password";
+              const text = `Your code is ${otp}. It expires in 10 minutes. If you didn’t request this, please ignore.`;
+              await resend!.emails.send({
+                from: process.env.RESEND_EMAIL_FROM!,
+                to: email,
+                subject,
+                text,
+              });
+            },
+          }),
+        ]
+      : []),
   ],
 });
 

@@ -2,13 +2,15 @@
 
 Sharply is a photography gear database and cataloging application. It combines authoritative gear specs, editorial reviews, and contributor tools so the community can keep data accurate while discovering new equipment.
 
+<img width="1573" height="1016" alt="image" src="https://github.com/user-attachments/assets/acd51e9b-0c98-48c5-b62f-06049f8404a8" />
+
 ## Tech Stack
 
 - **Framework**: Next.js 15 (App Router) with React 19
 - **Language**: TypeScript
 - **UI**: Tailwind CSS 4, shadcn/ui
 - **Database**: PostgreSQL with Drizzle ORM
-- **Auth**: BetterAuth with Passkeys and Discord & Google providers
+- **Auth**: BetterAuth with Passkeys, OTP, and Discord & Google providers
 - **AI & Integrations**: OpenAI API, Payload CMS for editorial content
 - **Tooling**: ESLint, Prettier, TypeScript, Drizzle Kit
 
@@ -45,12 +47,14 @@ Sharply validates configuration through `src/env.js`. For onboarding you only ne
 - `AUTH_SECRET` – used by BetterAuth for session encryption (`src/server/auth/index.ts`)
 - `DATABASE_URL` – establishes the Drizzle/Postgres connection (`src/server/db/index.ts`)
 - `NEXT_PUBLIC_BASE_URL` – required when building canonical URLs and Discord bot links (`src/server/gear/browse/service.ts`)
+- `PAYLOAD_SECRET` – required user-generated secret string for Payload CMS (`src/payload.config.ts`)
 
 **Sign-in providers (pick whichever providers you keep enabled in `src/server/auth/config.ts`)**
+It's highly advised you set up at least one of these, otherwise you can't test or use most features of the app because auth will be impossible. Discord is typically the fastest and easiest.
 
 - Discord OAuth: `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`
 - Google OAuth: `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`
-- Email magic links: `RESEND_API_KEY`, `RESEND_EMAIL_FROM` (also used by `payload.config.ts` for Resend email delivery)
+- Email magic links (optional; email auth is disabled when these are unset): `RESEND_API_KEY`, `RESEND_EMAIL_FROM` (also used by `payload.config.ts` for Resend email delivery)
 
 If you do not plan to use a provider locally, comment it out in `src/server/auth/config.ts` and you can skip its credentials.
 
@@ -59,7 +63,7 @@ If you do not plan to use a provider locally, comment it out in `src/server/auth
 - `CRON_SECRET` – only required when hitting the secured cron routes such as `/api/admin/popularity/rollup`
 - `DISCORD_ROLLUP_WEBHOOK_URL` – used to post rollup status messages to Discord; rollups still run without it
 - `OPENAI_API_KEY` – enables AI review summaries; `src/server/reviews/summary/service.ts` safely no-ops if it is missing
-- `PAYLOAD_SECRET` & `UPLOADTHING_TOKEN` – used exclusively by the Payload CMS instance (`src/payload.config.ts`); the main Next.js app does not import them
+- `UPLOADTHING_TOKEN` – used exclusively by the Payload CMS instance (`src/payload.config.ts`); the main Next.js app does not import it
 
 > Use the template comments as guidance; keep secrets out of version control.
 
@@ -81,9 +85,9 @@ After Postgres is running:
 **First-time setup** (for new contributors setting up a fresh database):
 
 ```bash
-npm run db:push           # sync schema directly from src/server/db/schema.ts (one-time initial setup)
-npm run db:seed           # (optional) populate sample data
-npx drizzle-kit studio    # (optional) view the database in Drizzle studio (or use your own viewer)
+npm run db:push                      # sync schema directly from src/server/db/schema.ts (one-time initial setup)
+npm run db:seed -- --confirm-seed    # (optional) populate sample data
+npx drizzle-kit studio               # (optional) view the database in Drizzle studio (or use your own viewer)
 ```
 
 **After pulling changes** (when migrations have been generated and merged to main):
