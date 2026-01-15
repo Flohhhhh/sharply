@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, desc, eq, getTableColumns, gte, or, sql } from "drizzle-orm";
+import { and, desc, eq, gte, or, sql } from "drizzle-orm";
 import { db } from "~/server/db";
 import {
   brands,
@@ -204,13 +204,18 @@ export async function fetchRawSamplesByGearId(
   gearId: string,
 ): Promise<typeof rawSamples.$inferSelect[]> {
   const rows = await db
-    .select(getTableColumns(rawSamples))
-    .from(gearRawSamples)
-    .innerJoin(rawSamples, eq(rawSamples.id, gearRawSamples.rawSampleId))
-    .where(eq(gearRawSamples.gearId, gearId))
-    .where(eq(rawSamples.isDeleted, false))
+    .select()
+    .from(rawSamples)
+    .innerJoin(gearRawSamples, eq(rawSamples.id, gearRawSamples.rawSampleId))
+    .where(
+      and(
+        eq(gearRawSamples.gearId, gearId),
+        eq(rawSamples.isDeleted, false),
+      ),
+    )
     .orderBy(desc(gearRawSamples.createdAt));
-  return rows;
+
+  return rows.map((r) => r.raw_samples);
 }
 
 export type RawSampleInsertParams = {
