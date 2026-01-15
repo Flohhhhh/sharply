@@ -300,8 +300,8 @@ export default async function GearPage({ params }: GearPageProps) {
               </Link>
             </section>
           )}
-          {/* Raw Samples */}
-          {item.rawSamples && item.rawSamples.length > 0 && (
+          {/* Raw Samples (only for cameras) */}
+          {item.gearType === "CAMERA" && item.rawSamples && item.rawSamples.length > 0 && (
             <div className="space-y-3">
               <h3 className="text-lg font-semibold">Raw Samples</h3>
               <div className="space-y-2">
@@ -344,6 +344,7 @@ export default async function GearPage({ params }: GearPageProps) {
             <GearActionButtons
               slug={slug}
               gearId={item.id}
+              gearType={item.gearType}
               currentThumbnailUrl={item.thumbnailUrl ?? null}
               currentTopViewUrl={item.topViewUrl ?? null}
               alternatives={alternatives}

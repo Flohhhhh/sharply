@@ -9,6 +9,7 @@ import type { RawSample } from "~/types/gear";
 interface GearActionButtonsProps {
   slug: string;
   gearId?: string;
+  gearType: string;
   currentThumbnailUrl?: string | null;
   currentTopViewUrl?: string | null;
   alternatives?: GearAlternativeRow[];
@@ -18,6 +19,7 @@ interface GearActionButtonsProps {
 export async function GearActionButtons({
   slug,
   gearId,
+  gearType,
   currentThumbnailUrl = null,
   currentTopViewUrl = null,
   alternatives = [],
@@ -42,6 +44,7 @@ export async function GearActionButtons({
     <GearActionButtonsClient
       slug={slug}
       gearId={gearId}
+      gearType={gearType}
       initialInWishlist={initialInWishlist}
       initialIsOwned={initialIsOwned}
       currentThumbnailUrl={currentThumbnailUrl}

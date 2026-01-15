@@ -49,6 +49,9 @@ export const ourFileRouter = {
       // !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback
       return { uploadedBy: metadata.userId };
     }),
+  // Raw sample uploader - only for CAMERA gear types
+  // Note: Gear type validation (CAMERA only) occurs at the service layer
+  // when the file is linked to gear via addRawSampleToGear()
   rawSampleUploader: f({
     blob: {
       maxFileSize: "128MB",
