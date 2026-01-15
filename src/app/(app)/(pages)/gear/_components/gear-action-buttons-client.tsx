@@ -139,7 +139,9 @@ export function GearActionButtonsClient({
     setDeletingSampleId(sampleId);
     try {
       await actionRemoveGearRawSample(slug, sampleId);
-      setManagedSamples((prev) => prev.filter((sample) => sample.id !== sampleId));
+      setManagedSamples((prev) =>
+        prev.filter((sample) => sample.id !== sampleId),
+      );
       toast.success("Sample removed");
     } catch (error) {
       toast.error("Could not remove sample");
@@ -306,38 +308,39 @@ export function GearActionButtonsClient({
             </DialogHeader>
 
             <div className="space-y-4">
-      <div className="space-y-2 rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
-        {managedSamples.length >= 3 ? (
-          <div className="flex items-center gap-2">
-            <Upload className="h-4 w-4" />
-            <p className="text-xs text-muted-foreground">
-              Maximum of three samples reached. Remove one to upload another.
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="flex items-center gap-2">
-              <Upload className="h-4 w-4" />
-              <span>Drop a file or click to upload</span>
-            </div>
-            <UploadDropzone
-              endpoint="rawSampleUploader"
-              onClientUploadComplete={handleSampleUploadCompletion}
-              onUploadError={(uploadError) => {
-                const message =
-                  uploadError instanceof Error
-                    ? uploadError.message
-                    : "Upload failed";
-                toast.error(message);
-              }}
-            />
-          </>
-        )}
-      </div>
+              <div className="border-border text-muted-foreground space-y-2 rounded-md border border-dashed p-4 text-sm">
+                {managedSamples.length >= 3 ? (
+                  <div className="flex items-center gap-2">
+                    <Upload className="h-4 w-4" />
+                    <p className="text-muted-foreground text-xs">
+                      Maximum of three samples reached. Remove one to upload
+                      another.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <Upload className="h-4 w-4" />
+                      <span>Drop a file or click to upload</span>
+                    </div>
+                    <UploadDropzone
+                      endpoint="rawSampleUploader"
+                      onClientUploadComplete={handleSampleUploadCompletion}
+                      onUploadError={(uploadError) => {
+                        const message =
+                          uploadError instanceof Error
+                            ? uploadError.message
+                            : "Upload failed";
+                        toast.error(message);
+                      }}
+                    />
+                  </>
+                )}
+              </div>
 
               <div className="space-y-3">
                 {managedSamples.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-muted-foreground text-sm">
                     No samples yet. Upload a file to make it available.
                   </p>
                 ) : (
@@ -353,7 +356,7 @@ export function GearActionButtonsClient({
                         >
                           <div className="space-y-1 text-sm">
                             <p className="font-medium">{displayName}</p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-muted-foreground text-xs">
                               {timestamp
                                 ? new Date(timestamp).toLocaleString()
                                 : "Unknown date"}
