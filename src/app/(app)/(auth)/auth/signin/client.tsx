@@ -11,7 +11,18 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Fingerprint } from "lucide-react";
 
-export default function SignInClient() {
+type ProviderAvailability = Record<
+  "google" | "discord",
+  { enabled: boolean; missing: string[] }
+>;
+
+export default function SignInClient({
+  providerAvailability,
+  emailOtpAvailability,
+}: {
+  providerAvailability: ProviderAvailability;
+  emailOtpAvailability: { enabled: boolean; missing: string[] };
+}) {
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
   const [passkeySigningIn, setPasskeySigningIn] = useState(false);
@@ -86,7 +97,21 @@ export default function SignInClient() {
   }, [searchParams, router]);
 
   // Handle OAuth sign-in with error handling
-  async function handleOAuthSignIn(provider: string) {
+  async function handleOAuthSignIn(provider: keyof ProviderAvailability) {
+    const providerInfo = providerAvailability[provider];
+    if (!providerInfo?.enabled) {
+      const providerLabel =
+        provider === "google" ? "Google" : "Discord";
+      const missingVars =
+        providerInfo?.missing.join(" and ") || "required environment variables";
+      toast.error(`${providerLabel} sign-in is not configured.`, {
+        description: `Set ${missingVars} to enable ${providerLabel} auth.`,
+        richColors: true,
+        duration: 10000,
+      });
+      return;
+    }
+
     void track("auth_signin_press", {
       method: "oauth",
       provider,
@@ -114,6 +139,18 @@ export default function SignInClient() {
   async function handleEmailOtpSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!canSubmit || sending) return;
+
+    if (!emailOtpAvailability.enabled) {
+      const missingVars =
+        emailOtpAvailability.missing.join(" and ") ||
+        "RESEND_EMAIL_FROM and RESEND_API_KEY";
+      toast.error("Email sign-in is not configured.", {
+        description: `Set ${missingVars} to enable magic link sign-in.`,
+        richColors: true,
+        duration: 10000,
+      });
+      return;
+    }
 
     if (!emailOtp?.sendVerificationOtp) {
       toast.error("Email OTP is not available right now.");

@@ -49,14 +49,13 @@ Sharply validates configuration through `src/env.js`. For onboarding you only ne
 - `NEXT_PUBLIC_BASE_URL` – required when building canonical URLs and Discord bot links (`src/server/gear/browse/service.ts`)
 - `PAYLOAD_SECRET` – required user-generated secret string for Payload CMS (`src/payload.config.ts`)
 
-**Sign-in providers (pick whichever providers you keep enabled in `src/server/auth/config.ts`)**
+**Sign-in providers (pick which providers you want and populate them)**
+
 It's highly advised you set up at least one of these, otherwise you can't test or use most features of the app because auth will be impossible. Discord is typically the fastest and easiest.
 
 - Discord OAuth: `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`
 - Google OAuth: `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`
-- Email magic links (optional; email auth is disabled when these are unset): `RESEND_API_KEY`, `RESEND_EMAIL_FROM` (also used by `payload.config.ts` for Resend email delivery)
-
-If you do not plan to use a provider locally, comment it out in `src/server/auth/config.ts` and you can skip its credentials.
+- Email magic links: `RESEND_API_KEY`, `RESEND_EMAIL_FROM`
 
 **Feature-specific values (optional until you need the feature)**
 
