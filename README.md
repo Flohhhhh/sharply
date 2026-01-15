@@ -172,7 +172,7 @@ This starts Next.js on `http://localhost:3000`.
    - After migrations are merged to main, pull and run `npm run db:migrate` to sync your local database
 4. **First-time setup**: New contributors use `npm run db:push` once for initial database setup
 5. Update relevant docs in `/docs` alongside code changes.
-6. Run `npm run lint` and and `npm run typecheck` or `npm run build` and fix any errors in touched files.
+6. Run `npm run lint` and `npm run typecheck` or `npm run build` and fix any errors in touched files.
 7. Open a pull request with context on the changes and testing performed.
 
 ## Support

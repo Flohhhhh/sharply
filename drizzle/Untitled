@@ -1,0 +1,7 @@
+In `@docs/multi-mount-implementation.md` around lines 177 - 187, Documentation
+step numbering is inconsistent: the heading after "Step 1: Test Schema Changes
+Locally" jumps to "Step 3: Backfill Data"; update the heading "Step 3: Backfill
+Data" to "Step 2: Backfill Data" so steps are sequential. Locate the "Step 3:
+Backfill Data" heading in the docs (near the "npm run db:push" block and
+references to the gear_mounts table) and rename the heading text only, ensuring
+the copy and any internal anchors or TOC entries remain consistent.

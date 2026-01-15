@@ -184,7 +184,7 @@ This syncs your local database with the schema changes for `gear_mounts` table.
 
 **Note**: Do not generate migration files. Maintainers will generate a consolidated migration when merging dev to main/staging.
 
-### Step 3: Backfill Data
+### Step 2: Backfill Data
 
 ```bash
 npx tsx scripts/backfill-gear-mounts.ts

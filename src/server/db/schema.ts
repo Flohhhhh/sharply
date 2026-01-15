@@ -1660,7 +1660,7 @@ export const userBadges = appSchema.table(
     userId: d
       .varchar({ length: 255 })
       .notNull()
-      .references(() => users.id),
+      .references(() => users.id, { onDelete: "cascade" }),
     badgeKey: d.varchar({ length: 200 }).notNull(),
     awardedAt: d
       .timestamp({ mode: "date", withTimezone: true })
