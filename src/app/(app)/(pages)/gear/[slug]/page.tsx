@@ -11,6 +11,7 @@ import {
   fetchUseCaseRatings,
   fetchStaffVerdict,
   fetchAllGearSlugs,
+  fetchGearAlternatives,
 } from "~/server/gear/service";
 import { ConstructionFullPage } from "~/app/(app)/(pages)/gear/_components/construction-full";
 import type { GearItem } from "~/types/gear";
@@ -45,6 +46,7 @@ import { GearImageCarousel } from "~/app/(app)/(pages)/gear/_components/gear-ima
 import { StaffVerdictSection } from "../_components/staff-verdict-section";
 import { HallOfFameBadge } from "~/components/gear-badges/hall-of-fame-badge";
 import { isInHallOfFame } from "~/lib/utils/is-in-hall-of-fame";
+import { GearAlternativesSection } from "../_components/gear-alternatives-section";
 
 export const revalidate = 3600;
 
@@ -132,6 +134,7 @@ export default async function GearPage({ params }: GearPageProps) {
 
   const review = await getReviewByGearSlug(item.slug);
   const relatedNews = await getNewsByRelatedGearSlug(item.slug, 9);
+  const alternatives = await fetchGearAlternatives(slug);
   const isNew = isNewRelease(item.releaseDate, item.releaseDatePrecision);
   const trendingSlugs = await fetchTrendingSlugs({ timeframe: "30d", limit: 20 });
   const isTrending = trendingSlugs.includes(item.slug);
@@ -286,38 +289,8 @@ export default async function GearPage({ params }: GearPageProps) {
               </Link>
             </section>
           )}
-          {/* Articles about this item (below specs) */}
-          {relatedNews.length > 0 && (
-            <section id="related-articles" className="scroll-mt-24">
-              <h2 className="mb-2 text-lg font-semibold">
-                Articles about this item
-              </h2>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {relatedNews.map((post) => {
-                  const image =
-                    post.thumbnail && typeof post.thumbnail === "object"
-                      ? (post.thumbnail.url ?? "/image-temp.png")
-                      : "/image-temp.png";
-                  return (
-                    <NewsCard
-                      key={post.id}
-                      post={{
-                        id: post.id,
-                        title: post.title,
-                        excerpt: (post.excerpt as any) ?? undefined,
-                        href: `/news/${post.slug}`,
-                        image,
-                        date: new Date(
-                          post.override_date || post.createdAt,
-                        ).toLocaleDateString(),
-                      }}
-                      size="sm"
-                    />
-                  );
-                })}
-              </div>
-            </section>
-          )}
+          {/* Alternatives */}
+          <GearAlternativesSection alternatives={alternatives} />
         </div>
         {/* Right column */}
         <div className="static top-28 col-span-1 -mt-4 w-full space-y-8 self-start sm:sticky md:col-span-3">
@@ -325,8 +298,10 @@ export default async function GearPage({ params }: GearPageProps) {
           <div className="w-full">
             <GearActionButtons
               slug={slug}
+              gearId={item.id}
               currentThumbnailUrl={item.thumbnailUrl ?? null}
               currentTopViewUrl={item.topViewUrl ?? null}
+              alternatives={alternatives}
             />
           </div>
           {/* Links */}
@@ -374,6 +349,40 @@ export default async function GearPage({ params }: GearPageProps) {
       </section>
 
       <DiscordBanner />
+
+      {/* Articles about this item */}
+      {relatedNews.length > 0 && (
+        <section id="related-articles" className="scroll-mt-24">
+          <h2 className="mb-2 text-lg font-semibold">
+            Articles about this item
+          </h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
+            {relatedNews.map((post) => {
+              const image =
+                post.thumbnail && typeof post.thumbnail === "object"
+                  ? (post.thumbnail.url ?? "/image-temp.png")
+                  : "/image-temp.png";
+              return (
+                <NewsCard
+                  key={post.id}
+                  post={{
+                    id: post.id,
+                    title: post.title,
+                    excerpt: (post.excerpt as any) ?? undefined,
+                    href: `/news/${post.slug}`,
+                    image,
+                    date: new Date(
+                      post.override_date || post.createdAt,
+                    ).toLocaleDateString(),
+                  }}
+                  size="sm"
+                />
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       <JsonLd gear={item} />
     </main>
   );

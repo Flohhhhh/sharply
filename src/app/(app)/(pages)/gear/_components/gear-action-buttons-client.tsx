@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useSession } from "~/lib/auth/auth-client";
 import { Button } from "~/components/ui/button";
-import { PackageOpen, Package, ImageIcon } from "lucide-react";
+import { PackageOpen, Package, ImageIcon, Swords } from "lucide-react";
 import { toast } from "sonner";
 import { withBadgeToasts } from "~/components/badges/badge-toast";
 import { AddToCompareButton } from "~/components/compare/add-to-compare-button";
@@ -13,21 +13,27 @@ import { requireRole } from "~/lib/auth/auth-helpers";
 import {
   actionToggleOwnership,
 } from "~/server/gear/actions";
+import { AlternativesManager } from "./alternatives-manager";
+import type { GearAlternativeRow } from "~/server/gear/service";
 
 interface GearActionButtonsClientProps {
   slug: string;
+  gearId?: string;
   initialInWishlist?: boolean | null;
   initialIsOwned?: boolean | null;
   currentThumbnailUrl?: string | null;
   currentTopViewUrl?: string | null;
+  alternatives?: GearAlternativeRow[];
 }
 
 export function GearActionButtonsClient({
   slug,
+  gearId,
   initialInWishlist = null,
   initialIsOwned = null,
   currentThumbnailUrl = null,
   currentTopViewUrl = null,
+  alternatives = [],
 }: GearActionButtonsClientProps) {
   const { data, isPending, error } = useSession();
 
@@ -35,6 +41,7 @@ export function GearActionButtonsClient({
   const user = data?.user;
 
   const canEditImage = requireRole(user, ["EDITOR"]);
+  const canEditAlternatives = requireRole(user, ["EDITOR"]);
   const [isOwned, setIsOwned] = useState<boolean | null>(initialIsOwned);
   const [loading, setLoading] = useState({
     ownership: false,
@@ -152,6 +159,28 @@ export function GearActionButtonsClient({
               className="w-full"
             >
               Manage Images
+            </Button>
+          }
+        />
+      )}
+
+      {canEditAlternatives && gearId && (
+        <AlternativesManager
+          gearId={gearId}
+          gearSlug={slug}
+          initialAlternatives={alternatives}
+          trigger={
+            <Button
+              icon={<Swords className="h-4 w-4" />}
+              variant="outline"
+              className="w-full"
+            >
+              Manage Alternatives
+              {alternatives.length > 0 && (
+                <span className="bg-muted ml-2 rounded-full px-1.5 py-0.5 text-xs">
+                  {alternatives.length}
+                </span>
+              )}
             </Button>
           }
         />

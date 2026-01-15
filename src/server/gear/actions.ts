@@ -8,6 +8,7 @@ import {
   toggleOwnership,
   toggleWishlist,
   upsertStaffVerdict,
+  updateGearAlternatives,
 } from "./service";
 
 /** Server actions for UI components */
@@ -54,6 +55,15 @@ export async function actionSubmitGearProposal(body: unknown) {
 
 export async function actionUpsertStaffVerdict(slug: string, body: unknown) {
   const res = await upsertStaffVerdict(slug, body);
+  revalidatePath(`/gear/${slug}`);
+  return res;
+}
+
+export async function actionUpdateGearAlternatives(
+  slug: string,
+  alternatives: Array<{ gearId: string; isCompetitor: boolean }>,
+) {
+  const res = await updateGearAlternatives(slug, { alternatives });
   revalidatePath(`/gear/${slug}`);
   return res;
 }

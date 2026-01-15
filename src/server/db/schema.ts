@@ -1469,6 +1469,29 @@ export const comparePairCounts = appSchema.table(
   ],
 );
 
+// --- Gear Alternatives (symmetric pairs with competitor flag) ---
+export const gearAlternatives = appSchema.table(
+  "gear_alternatives",
+  (d) => ({
+    // Canonical pair ordering: gearAId < gearBId (lexicographically)
+    gearAId: d
+      .varchar("gear_a_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    gearBId: d
+      .varchar("gear_b_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    isCompetitor: d.boolean("is_competitor").notNull().default(false),
+    createdAt,
+  }),
+  (t) => [
+    primaryKey({ columns: [t.gearAId, t.gearBId] }),
+    index("gear_alternatives_gear_a_idx").on(t.gearAId),
+    index("gear_alternatives_gear_b_idx").on(t.gearBId),
+  ],
+);
+
 // Rollup run history
 export const rollupRuns = appSchema.table(
   "rollup_runs",
