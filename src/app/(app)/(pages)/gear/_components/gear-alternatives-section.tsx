@@ -4,10 +4,12 @@ import { getItemDisplayPrice } from "~/lib/mapping";
 
 interface GearAlternativesSectionProps {
   alternatives: GearAlternativeRow[];
+  trendingSlugs?: Set<string>;
 }
 
 export function GearAlternativesSection({
   alternatives,
+  trendingSlugs = new Set(),
 }: GearAlternativesSectionProps) {
   if (alternatives.length === 0) {
     return null;
@@ -49,6 +51,7 @@ export function GearAlternativesSection({
               },
               { style: "short", padWholeAmounts: true },
             )}
+            isTrending={trendingSlugs.has(alt.slug)}
           />
         ))}
       </div>
