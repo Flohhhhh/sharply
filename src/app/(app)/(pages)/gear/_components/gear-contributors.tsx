@@ -31,6 +31,10 @@ export async function GearContributors({ gearId }: GearContributorsProps) {
         total += Object.keys(section).length;
       }
     }
+    // Count image uploads as 1 contribution each
+    if (payload.imageUpload && typeof payload.imageUpload === "object") {
+      total += 1;
+    }
     return total;
   };
   for (const r of rows) {

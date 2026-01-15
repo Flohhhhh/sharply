@@ -17,9 +17,10 @@ import {
 import { shouldBlockFuzzyResults } from "~/lib/utils/gear-creation";
 import { renameGearData } from "./data";
 import { db } from "~/server/db";
-import { auditLogs } from "~/server/db/schema";
+import { auditLogs, gearEdits } from "~/server/db/schema";
 import { updateGearThumbnailData } from "./data";
 import { getGearIdBySlug } from "~/server/gear/data";
+import { nanoid } from "nanoid";
 
 export async function performFuzzySearchAdmin(params: {
   inputName: string;
@@ -171,6 +172,23 @@ export async function setGearThumbnailService(params: {
       actorUserId: session.user?.id ?? "",
       gearId: updated.id,
     });
+
+    // Create a contribution record for image uploads (not removals)
+    if (thumbnailUrl) {
+      await db.insert(gearEdits).values({
+        id: nanoid(),
+        gearId: updated.id,
+        createdById: session.user?.id ?? "",
+        status: "APPROVED",
+        payload: {
+          imageUpload: {
+            type: "thumbnail",
+            url: thumbnailUrl,
+            action: hadThumbnail ? "replace" : "upload",
+          },
+        },
+      });
+    }
   } catch {}
 
   return updated;
@@ -230,6 +248,23 @@ export async function setGearTopViewService(params: {
       actorUserId: session.user?.id ?? "",
       gearId: updated.id,
     });
+
+    // Create a contribution record for image uploads (not removals)
+    if (topViewUrl) {
+      await db.insert(gearEdits).values({
+        id: nanoid(),
+        gearId: updated.id,
+        createdById: session.user?.id ?? "",
+        status: "APPROVED",
+        payload: {
+          imageUpload: {
+            type: "topView",
+            url: topViewUrl,
+            action: hadTopView ? "replace" : "upload",
+          },
+        },
+      });
+    }
   } catch {}
 
   return updated;
