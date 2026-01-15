@@ -624,6 +624,51 @@ export const gearMounts = appSchema.table(
   ],
 );
 
+// Raw sample artifacts that can be attached to gear via a junction table.
+export const rawSamples = appSchema.table(
+  "raw_samples",
+  (d) => ({
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    fileUrl: text("file_url").notNull(),
+    originalFilename: varchar("original_filename", { length: 255 }),
+    contentType: varchar("content_type", { length: 120 }),
+    sizeBytes: integer("size_bytes"),
+    uploadedByUserId: varchar("uploaded_by_user_id", { length: 255 }),
+    uploadThingFileId: varchar("upload_thing_file_id", { length: 255 }),
+    isDeleted: boolean("is_deleted").default(false).notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    index("raw_samples_file_url_idx").on(t.fileUrl),
+    index("raw_samples_user_idx").on(t.uploadedByUserId),
+  ],
+);
+
+// Junction table linking gear items to raw samples.
+export const gearRawSamples = appSchema.table(
+  "gear_raw_samples",
+  (d) => ({
+    gearId: d
+      .varchar("gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    rawSampleId: d
+      .varchar("raw_sample_id", { length: 36 })
+      .notNull()
+      .references(() => rawSamples.id, { onDelete: "cascade" }),
+    createdAt,
+  }),
+  (t) => [
+    primaryKey({ columns: [t.gearId, t.rawSampleId] }),
+    index("gear_raw_samples_gear_idx").on(t.gearId),
+    index("gear_raw_samples_sample_idx").on(t.rawSampleId),
+  ],
+);
+
 // --- Gear Specification Tables ---
 export const cameraSpecs = appSchema.table(
   "camera_specs",
@@ -1138,6 +1183,7 @@ export const gearRelations = relations(gear, ({ one, many }) => ({
     fields: [gear.id],
     references: [staffVerdicts.gearId],
   }),
+  rawSamples: many(gearRawSamples),
 }));
 
 export const gearMountsRelations = relations(gearMounts, ({ one }) => ({
@@ -1149,6 +1195,21 @@ export const gearMountsRelations = relations(gearMounts, ({ one }) => ({
     fields: [gearMounts.mountId],
     references: [mounts.id],
   }),
+}));
+
+export const gearRawSamplesRelations = relations(gearRawSamples, ({ one }) => ({
+  gear: one(gear, {
+    fields: [gearRawSamples.gearId],
+    references: [gear.id],
+  }),
+  rawSample: one(rawSamples, {
+    fields: [gearRawSamples.rawSampleId],
+    references: [rawSamples.id],
+  }),
+}));
+
+export const rawSamplesRelations = relations(rawSamples, ({ many }) => ({
+  gearAssociations: many(gearRawSamples),
 }));
 
 export const gearEditsRelations = relations(gearEdits, ({ one }) => ({

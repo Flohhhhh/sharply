@@ -407,6 +407,13 @@
       "when": 1768442821584,
       "tag": "0057_charming_madame_web",
       "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1768447916768,
+      "tag": "0058_freezing_shocker",
+      "breakpoints": true
     }
   ]
 }

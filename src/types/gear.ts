@@ -12,6 +12,8 @@ import type {
   afAreaModes,
   cameraCardSlots,
   cameraVideoModes,
+  rawSamples,
+  gearRawSamples,
 } from "~/server/db/schema";
 import type { VideoModeNormalized } from "~/lib/video/mode-schema";
 import { ENUMS } from "~/lib/constants";
@@ -34,6 +36,8 @@ export type EnrichedCameraSpecs = CameraSpecs & {
 
 export type CameraCardSlot = typeof cameraCardSlots.$inferSelect;
 export type CameraVideoMode = typeof cameraVideoModes.$inferSelect;
+export type RawSample = typeof rawSamples.$inferSelect;
+export type GearRawSample = typeof gearRawSamples.$inferSelect;
 
 // Unified gear item types
 export type GearItem = Gear & {
@@ -47,6 +51,7 @@ export type GearItem = Gear & {
   afAreaModes?: AfAreaMode[] | null;
   cameraCardSlots?: CameraCardSlot[] | null;
   videoModes?: (CameraVideoMode | VideoModeNormalized)[] | null;
+  rawSamples?: RawSample[] | null;
 };
 
 export type PopularityEventType =

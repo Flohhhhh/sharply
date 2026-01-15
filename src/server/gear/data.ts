@@ -28,6 +28,8 @@ import {
   genres,
   auditLogs,
   gearAlternatives,
+  rawSamples,
+  gearRawSamples,
 } from "~/server/db/schema";
 import { hasEventForUserOnUtcDay } from "~/server/validation/dedupe";
 import { incrementGearPopularityIntraday } from "~/server/popularity/data";
@@ -110,6 +112,7 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
     .select({ mountId: gearMounts.mountId })
     .from(gearMounts)
     .where(eq(gearMounts.gearId, gearItem[0]!.gear.id));
+  const rawSampleRows = await fetchRawSamplesByGearId(gearItem[0]!.gear.id);
 
   const base: GearItem = {
     ...gearItem[0]!.gear,
@@ -118,6 +121,7 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
     lensSpecs: null,
     fixedLensSpecs: null,
     mountIds: mountIdRows.map((r) => r.mountId),
+    rawSamples: rawSampleRows,
   };
 
   // CAMERA SPECS
@@ -194,6 +198,75 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
   } else {
     return base;
   }
+}
+
+export async function fetchRawSamplesByGearId(
+  gearId: string,
+): Promise<typeof rawSamples.$inferSelect[]> {
+  const rows = await db
+    .select({
+      rawSample: rawSamples,
+    })
+    .from(gearRawSamples)
+    .innerJoin(rawSamples, eq(rawSamples.id, gearRawSamples.rawSampleId))
+    .where(eq(gearRawSamples.gearId, gearId))
+    .where(eq(rawSamples.isDeleted, false))
+    .orderBy(desc(gearRawSamples.createdAt));
+  return rows.map((r) => r.rawSample);
+}
+
+export type RawSampleInsertParams = {
+  gearId: string;
+  fileUrl: string;
+  originalFilename?: string | null;
+  contentType?: string | null;
+  sizeBytes?: number | null;
+  uploadedByUserId?: string | null;
+  uploadThingFileId?: string | null;
+};
+
+export async function insertRawSample(
+  params: RawSampleInsertParams,
+): Promise<typeof rawSamples.$inferSelect> {
+  return await db.transaction(async (tx) => {
+    const [sample] = await tx
+      .insert(rawSamples)
+      .values({
+        fileUrl: params.fileUrl,
+        originalFilename: params.originalFilename ?? null,
+        contentType: params.contentType ?? null,
+        sizeBytes: params.sizeBytes ?? null,
+        uploadedByUserId: params.uploadedByUserId ?? null,
+        uploadThingFileId: params.uploadThingFileId ?? null,
+      })
+      .returning();
+    await tx.insert(gearRawSamples).values({
+      gearId: params.gearId,
+      rawSampleId: sample.id,
+    });
+    return sample;
+  });
+}
+
+export async function deleteRawSample(sampleId: string, gearId: string) {
+  return await db.transaction(async (tx) => {
+    await tx
+      .delete(gearRawSamples)
+      .where(
+        and(
+          eq(gearRawSamples.gearId, gearId),
+          eq(gearRawSamples.rawSampleId, sampleId),
+        ),
+      );
+
+    await tx
+      .update(rawSamples)
+      .set({
+        isDeleted: true,
+        deletedAt: sql`CURRENT_TIMESTAMP`,
+      })
+      .where(eq(rawSamples.id, sampleId));
+  });
 }
 
 export type GearCardRow = {
