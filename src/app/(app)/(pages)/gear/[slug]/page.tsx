@@ -47,6 +47,14 @@ import { StaffVerdictSection } from "../_components/staff-verdict-section";
 import { HallOfFameBadge } from "~/components/gear-badges/hall-of-fame-badge";
 import { isInHallOfFame } from "~/lib/utils/is-in-hall-of-fame";
 import { GearAlternativesSection } from "../_components/gear-alternatives-section";
+import { BookImageIcon, Download, FileDown } from "lucide-react";
+import {
+  Item,
+  ItemContent,
+  ItemActions,
+  ItemDescription,
+  ItemTitle,
+} from "~/components/ui/item";
 
 export const revalidate = 3600;
 
@@ -136,7 +144,10 @@ export default async function GearPage({ params }: GearPageProps) {
   const relatedNews = await getNewsByRelatedGearSlug(item.slug, 9);
   const alternatives = await fetchGearAlternatives(slug);
   const isNew = isNewRelease(item.releaseDate, item.releaseDatePrecision);
-  const trendingSlugs = await fetchTrendingSlugs({ timeframe: "30d", limit: 20 });
+  const trendingSlugs = await fetchTrendingSlugs({
+    timeframe: "30d",
+    limit: 20,
+  });
   const isTrending = trendingSlugs.includes(item.slug);
   const isHallOfFameItem = isInHallOfFame(item.slug);
 
@@ -289,6 +300,40 @@ export default async function GearPage({ params }: GearPageProps) {
               </Link>
             </section>
           )}
+          {/* Raw Samples */}
+          {item.rawSamples && item.rawSamples.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold">Raw Samples</h3>
+              <div className="space-y-2">
+                {item.rawSamples.map((sample) => (
+                  <Item key={sample.id} variant="outline" size="sm">
+                    <ItemContent>
+                      <ItemTitle className="max-w-[70%] truncate text-sm font-medium">
+                        {sample.originalFilename ?? sample.fileUrl}
+                      </ItemTitle>
+                    </ItemContent>
+                    <ItemActions>
+                      <Button
+                        size="sm"
+                        className="h-8 w-auto px-3 text-xs"
+                        icon={<FileDown className="h-4 w-4" />}
+                        asChild
+                      >
+                        <a
+                          href={sample.fileUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          download
+                        >
+                          Download
+                        </a>
+                      </Button>
+                    </ItemActions>
+                  </Item>
+                ))}
+              </div>
+            </div>
+          )}
           {/* Alternatives */}
           <GearAlternativesSection alternatives={alternatives} />
         </div>
@@ -302,6 +347,7 @@ export default async function GearPage({ params }: GearPageProps) {
               currentThumbnailUrl={item.thumbnailUrl ?? null}
               currentTopViewUrl={item.topViewUrl ?? null}
               alternatives={alternatives}
+              rawSamples={item.rawSamples ?? []}
             />
           </div>
           {/* Links */}
@@ -317,6 +363,7 @@ export default async function GearPage({ params }: GearPageProps) {
               msrpNowUsdCents={item.msrpNowUsdCents ?? null}
             />
           </div>
+
           {/* Contributors */}
           <GearContributors gearId={item.id} />
           <GearStatsCard slug={slug} />

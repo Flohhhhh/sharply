@@ -4,6 +4,7 @@ import {
   type GearAlternativeRow,
 } from "~/server/gear/service";
 import { GearActionButtonsClient } from "./gear-action-buttons-client";
+import type { RawSample } from "~/types/gear";
 
 interface GearActionButtonsProps {
   slug: string;
@@ -11,6 +12,7 @@ interface GearActionButtonsProps {
   currentThumbnailUrl?: string | null;
   currentTopViewUrl?: string | null;
   alternatives?: GearAlternativeRow[];
+  rawSamples?: RawSample[];
 }
 
 export async function GearActionButtons({
@@ -19,12 +21,13 @@ export async function GearActionButtons({
   currentThumbnailUrl = null,
   currentTopViewUrl = null,
   alternatives = [],
+  rawSamples = [],
 }: GearActionButtonsProps) {
   let initialInWishlist: boolean | null = null;
   let initialIsOwned: boolean | null = null;
 
   try {
-    const [wl, own] = await Promise.all([
+  const [wl, own] = await Promise.all([
       fetchWishlistStatus(slug).catch(() => null),
       fetchOwnershipStatus(slug).catch(() => null),
     ]);
@@ -44,6 +47,7 @@ export async function GearActionButtons({
       currentThumbnailUrl={currentThumbnailUrl}
       currentTopViewUrl={currentTopViewUrl}
       alternatives={alternatives}
+      rawSamples={rawSamples}
     />
   );
 }

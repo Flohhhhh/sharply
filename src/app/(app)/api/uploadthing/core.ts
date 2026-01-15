@@ -49,6 +49,45 @@ export const ourFileRouter = {
       // !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback
       return { uploadedBy: metadata.userId };
     }),
+  rawSampleUploader: f({
+    blob: {
+      maxFileSize: "128MB",
+      maxFileCount: 1,
+    },
+  })
+    .middleware(async () => {
+      const session = await auth.api.getSession({
+        headers: await headers(),
+      });
+
+      if (!session?.user) {
+        console.log(
+          "Attempt to upload raw sample without editor permission",
+          session,
+        );
+        throw new UploadThingError("Unauthorized");
+      }
+
+      if (!requireRole(session.user, ["ADMIN", "SUPERADMIN"])) {
+        console.log(
+          "Attempt to upload raw sample without editor role",
+          session,
+        );
+        throw new UploadThingError("Unauthorized");
+      }
+
+      return { userId: session.user.id };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("Uploaded raw sample", file.ufsUrl);
+      return {
+        uploadedBy: metadata.userId,
+        fileUrl: file.ufsUrl,
+        fileName: file.name,
+        contentType: file.type,
+        sizeBytes: file.size,
+      };
+    }),
   gearImageUploader: f({
     image: {
       maxFileSize: "4MB",
