@@ -40,6 +40,7 @@ import type { RawSample } from "~/types/gear";
 interface GearActionButtonsClientProps {
   slug: string;
   gearId?: string;
+  gearType: string;
   initialInWishlist?: boolean | null;
   initialIsOwned?: boolean | null;
   currentThumbnailUrl?: string | null;
@@ -51,6 +52,7 @@ interface GearActionButtonsClientProps {
 export function GearActionButtonsClient({
   slug,
   gearId,
+  gearType,
   initialInWishlist = null,
   initialIsOwned = null,
   currentThumbnailUrl = null,
@@ -65,7 +67,7 @@ export function GearActionButtonsClient({
 
   const canEditImage = requireRole(user, ["EDITOR"]);
   const canEditAlternatives = requireRole(user, ["EDITOR"]);
-  const canManageSamples = requireRole(user, ["ADMIN", "SUPERADMIN"]);
+  const canManageSamples = requireRole(user, ["ADMIN", "SUPERADMIN"]) && gearType === "CAMERA";
   const [isOwned, setIsOwned] = useState<boolean | null>(initialIsOwned);
   const [loading, setLoading] = useState({
     ownership: false,

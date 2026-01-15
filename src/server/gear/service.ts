@@ -140,6 +140,16 @@ export async function addRawSampleToGear(
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
   const gearId = await resolveGearIdOrThrow(slug);
+
+  // Check if gear type supports raw samples (only CAMERA)
+  const gearMeta = await fetchGearMetadataById(gearId);
+  if (gearMeta.gearType !== "CAMERA") {
+    throw Object.assign(
+      new Error("Raw samples are only supported for cameras"),
+      { status: 400 },
+    );
+  }
+
   const currentSamples = await fetchRawSamplesByGearId(gearId);
   if (currentSamples.length >= 3) {
     throw Object.assign(
@@ -166,6 +176,16 @@ export async function removeRawSampleFromGear(
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
   const gearId = await resolveGearIdOrThrow(slug);
+
+  // Check if gear type supports raw samples (only CAMERA)
+  const gearMeta = await fetchGearMetadataById(gearId);
+  if (gearMeta.gearType !== "CAMERA") {
+    throw Object.assign(
+      new Error("Raw samples are only supported for cameras"),
+      { status: 400 },
+    );
+  }
+
   await deleteRawSample(sampleId, gearId);
   return { ok: true };
 }

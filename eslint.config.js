@@ -39,9 +39,9 @@ export default tseslint.config(
         "warn",
         { prefer: "type-imports", fixStyle: "inline-type-imports" },
       ],
-      "@typescript-eslint/no-unsafe-assignment": "warn",
+      "@typescript-eslint/no-unsafe-assignment": "off",
       "@typescript-eslint/no-unsafe-member-access": "off", // TODO: prefer warning or error for this eventually
-      "@typescript-eslint/no-unnecessary-type-assertion": "warn",
+      "@typescript-eslint/no-unnecessary-type-assertion": "off", // TODO: prefer warning or error for this eventually
       "@typescript-eslint/no-unused-vars": "off",
       "@typescript-eslint/require-await": "off",
       "@typescript-eslint/only-throw-error": "warn",

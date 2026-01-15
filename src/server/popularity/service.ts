@@ -172,6 +172,41 @@ export async function fetchTrendingSlugs(
   return cachedTrendingSlugs(params ?? {});
 }
 
+/**
+ * Check if a single slug is trending.
+ * Uses the cached trending slugs list to avoid redundant fetches.
+ * This is useful for showing trending badges on individual gear cards.
+ *
+ * @param slug - The gear slug to check
+ * @param params - Optional parameters for the trending query (timeframe, filters)
+ * @returns Promise<boolean> - Whether the slug is in the trending list
+ */
+export async function isSlugTrending(
+  slug: string,
+  params?: TrendingSlugsParams,
+): Promise<boolean> {
+  const trendingSlugs = await fetchTrendingSlugs(params);
+  return trendingSlugs.includes(slug);
+}
+
+/**
+ * Check multiple slugs for trending status.
+ * Fetches the trending list once and checks all slugs against it.
+ * More efficient than calling isSlugTrending multiple times.
+ *
+ * @param slugs - Array of gear slugs to check
+ * @param params - Optional parameters for the trending query (timeframe, filters)
+ * @returns Promise<Set<string>> - Set of slugs that are trending
+ */
+export async function getTrendingStatusForSlugs(
+  slugs: string[],
+  params?: TrendingSlugsParams,
+): Promise<Set<string>> {
+  const trendingSlugs = await fetchTrendingSlugs(params);
+  const trendingSet = new Set(trendingSlugs);
+  return new Set(slugs.filter((slug) => trendingSet.has(slug)));
+}
+
 export async function fetchTrendingPage(params: {
   timeframe?: "7d" | "30d";
   page?: number;

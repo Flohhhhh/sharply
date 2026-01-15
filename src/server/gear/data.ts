@@ -952,6 +952,11 @@ export type GearAlternativeRow = {
   thumbnailUrl: string | null;
   gearType: string;
   isCompetitor: boolean;
+  releaseDate: string | null;
+  releaseDatePrecision: string | null;
+  announcedDate: string | null;
+  announceDatePrecision: string | null;
+  msrpNowUsdCents: number | null;
 };
 
 /**
@@ -975,6 +980,21 @@ export async function fetchAlternativesByGearId(
       ),
       gearAType: sql<string>`ga.gear_type`.as("gear_a_type"),
       gearABrandName: sql<string | null>`ba.name`.as("gear_a_brand_name"),
+      gearAReleaseDate: sql<string | null>`ga.release_date`.as(
+        "gear_a_release_date",
+      ),
+      gearAReleaseDatePrecision: sql<string | null>`ga.release_date_precision`.as(
+        "gear_a_release_date_precision",
+      ),
+      gearAAnnouncedDate: sql<string | null>`ga.announced_date`.as(
+        "gear_a_announced_date",
+      ),
+      gearAAnnounceDatePrecision: sql<string | null>`ga.announce_date_precision`.as(
+        "gear_a_announce_date_precision",
+      ),
+      gearAMsrpNowUsdCents: sql<number | null>`ga.msrp_now_usd_cents`.as(
+        "gear_a_msrp_now_usd_cents",
+      ),
       // Gear B info
       gearBName: sql<string>`gb.name`.as("gear_b_name"),
       gearBSlug: sql<string>`gb.slug`.as("gear_b_slug"),
@@ -983,6 +1003,21 @@ export async function fetchAlternativesByGearId(
       ),
       gearBType: sql<string>`gb.gear_type`.as("gear_b_type"),
       gearBBrandName: sql<string | null>`bb.name`.as("gear_b_brand_name"),
+      gearBReleaseDate: sql<string | null>`gb.release_date`.as(
+        "gear_b_release_date",
+      ),
+      gearBReleaseDatePrecision: sql<string | null>`gb.release_date_precision`.as(
+        "gear_b_release_date_precision",
+      ),
+      gearBAnnouncedDate: sql<string | null>`gb.announced_date`.as(
+        "gear_b_announced_date",
+      ),
+      gearBAnnounceDatePrecision: sql<string | null>`gb.announce_date_precision`.as(
+        "gear_b_announce_date_precision",
+      ),
+      gearBMsrpNowUsdCents: sql<number | null>`gb.msrp_now_usd_cents`.as(
+        "gear_b_msrp_now_usd_cents",
+      ),
     })
     .from(gearAlternatives)
     .innerJoin(sql`${gear} AS ga`, sql`ga.id = ${gearAlternatives.gearAId}`)
@@ -1007,6 +1042,17 @@ export async function fetchAlternativesByGearId(
       thumbnailUrl: isA ? row.gearBThumbnail : row.gearAThumbnail,
       gearType: isA ? row.gearBType : row.gearAType,
       isCompetitor: row.isCompetitor,
+      releaseDate: isA ? row.gearBReleaseDate : row.gearAReleaseDate,
+      releaseDatePrecision: isA
+        ? row.gearBReleaseDatePrecision
+        : row.gearAReleaseDatePrecision,
+      announcedDate: isA ? row.gearBAnnouncedDate : row.gearAAnnouncedDate,
+      announceDatePrecision: isA
+        ? row.gearBAnnounceDatePrecision
+        : row.gearAAnnounceDatePrecision,
+      msrpNowUsdCents: isA
+        ? row.gearBMsrpNowUsdCents
+        : row.gearAMsrpNowUsdCents,
     };
   });
 }

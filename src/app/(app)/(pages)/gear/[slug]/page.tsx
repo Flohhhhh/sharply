@@ -24,7 +24,7 @@ import GearStatsCard from "../_components/gear-stats-card";
 import { TrendingBadge } from "~/components/gear-badges/trending-badge";
 import { NewBadge } from "~/components/gear-badges/new-badge";
 import { isNewRelease } from "~/lib/utils/is-new";
-import { fetchTrendingSlugs } from "~/server/popularity/service";
+import { getTrendingStatusForSlugs } from "~/server/popularity/service";
 import SpecsTable from "../_components/specs-table";
 import { buildGearSpecsSections } from "~/lib/specs/registry";
 import type { GearType } from "~/types/gear";
@@ -144,11 +144,14 @@ export default async function GearPage({ params }: GearPageProps) {
   const relatedNews = await getNewsByRelatedGearSlug(item.slug, 9);
   const alternatives = await fetchGearAlternatives(slug);
   const isNew = isNewRelease(item.releaseDate, item.releaseDatePrecision);
-  const trendingSlugs = await fetchTrendingSlugs({
+
+  // Check trending status for this item and all alternatives
+  const allSlugs = [item.slug, ...alternatives.map((alt) => alt.slug)];
+  const trendingSlugs = await getTrendingStatusForSlugs(allSlugs, {
     timeframe: "30d",
     limit: 20,
   });
-  const isTrending = trendingSlugs.includes(item.slug);
+  const isTrending = trendingSlugs.has(item.slug);
   const isHallOfFameItem = isInHallOfFame(item.slug);
 
   // Under construction state
@@ -300,8 +303,8 @@ export default async function GearPage({ params }: GearPageProps) {
               </Link>
             </section>
           )}
-          {/* Raw Samples */}
-          {item.rawSamples && item.rawSamples.length > 0 && (
+          {/* Raw Samples (only for cameras) */}
+          {item.gearType === "CAMERA" && item.rawSamples && item.rawSamples.length > 0 && (
             <div className="space-y-3">
               <h3 className="text-lg font-semibold">Raw Samples</h3>
               <div className="space-y-2">
@@ -335,7 +338,10 @@ export default async function GearPage({ params }: GearPageProps) {
             </div>
           )}
           {/* Alternatives */}
-          <GearAlternativesSection alternatives={alternatives} />
+          <GearAlternativesSection
+            alternatives={alternatives}
+            trendingSlugs={trendingSlugs}
+          />
         </div>
         {/* Right column */}
         <div className="static top-28 col-span-1 -mt-4 w-full space-y-8 self-start sm:sticky md:col-span-3">
@@ -344,6 +350,7 @@ export default async function GearPage({ params }: GearPageProps) {
             <GearActionButtons
               slug={slug}
               gearId={item.id}
+              gearType={item.gearType}
               currentThumbnailUrl={item.thumbnailUrl ?? null}
               currentTopViewUrl={item.topViewUrl ?? null}
               alternatives={alternatives}
