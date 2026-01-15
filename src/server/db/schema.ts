@@ -344,7 +344,8 @@ export const exposureModesEnum = pgEnum("exposure_modes_enum", [
   "other",
 ]);
 
-// Analog Exposure Modes
+// Note: This enum was incorrectly named. Use meteringModeEnum instead.
+// Keeping for backward compatibility but should not be used.
 export const exposureModeEnum = pgEnum("metering_mode_enum", [
   "average",
   "center-weighted",
@@ -858,7 +859,7 @@ export const analogCameraSpecs = appSchema.table(
     hasBulbMode: boolean("has_bulb_mode"),
     hasMetering: boolean("has_metering"),
     meteringModes: meteringModeEnum("metering_modes").array(),
-    exposureModes: exposureModeEnum("exposure_modes").array(),
+    exposureModes: exposureModesEnum("exposure_modes").array(),
     meteringDisplayTypes: meteringDisplayTypeEnum(
       "metering_display_types",
     ).array(),

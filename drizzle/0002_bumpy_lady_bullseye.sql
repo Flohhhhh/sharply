@@ -1,0 +1,1 @@
+ALTER TABLE "app"."analog_camera_specs" ALTER COLUMN "exposure_modes" SET DATA TYPE "public"."exposure_modes_enum"[] USING "exposure_modes"::text::"public"."exposure_modes_enum"[];
