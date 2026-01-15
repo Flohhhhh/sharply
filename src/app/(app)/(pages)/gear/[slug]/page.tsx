@@ -45,6 +45,10 @@ import { JsonLd } from "~/components/json-ld";
 import { StaffVerdictSection } from "../_components/staff-verdict-section";
 import { HallOfFameBadge } from "~/components/gear-badges/hall-of-fame-badge";
 import { isInHallOfFame } from "~/lib/utils/is-in-hall-of-fame";
+import { auth } from "~/auth";
+import { headers } from "next/headers";
+import { requireRole } from "~/lib/auth/auth-helpers";
+import { GearSampleFiles } from "../_components/gear-sample-files";
 
 export const revalidate = 3600;
 
@@ -136,6 +140,12 @@ export default async function GearPage({ params }: GearPageProps) {
   const trendingSlugs = await fetchTrendingSlugs({ timeframe: "30d", limit: 20 });
   const isTrending = trendingSlugs.includes(item.slug);
   const isHallOfFameItem = isInHallOfFame(item.slug);
+
+  // Check if user can manage sample files
+  const session = await auth.api.getSession({ headers: await headers() });
+  const canManageSamples = session?.user
+    ? requireRole(session.user, ["EDITOR"])
+    : false;
 
   // Under construction state
   const construction = getConstructionState(item);
@@ -274,6 +284,14 @@ export default async function GearPage({ params }: GearPageProps) {
               />
             </div>
             <SpecsTable sections={specSections} item={item} />
+          </section>
+          {/* Sample Raw Files */}
+          <section className="scroll-mt-24">
+            <GearSampleFiles
+              gearId={item.id}
+              slug={item.slug}
+              canManage={canManageSamples}
+            />
           </section>
           {/* Sign-in CTA banner for editing specs (client, only when signed out) */}
           <SignInToEditSpecsCta

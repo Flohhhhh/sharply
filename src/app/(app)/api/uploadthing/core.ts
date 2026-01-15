@@ -132,6 +132,57 @@ export const ourFileRouter = {
         oldImageUrl: metadata.oldImageUrl,
       };
     }),
+  gearSampleUploader: f({
+    // Accept various raw file formats and other image files
+    "image/x-canon-cr2": { maxFileSize: "128MB", maxFileCount: 10 },
+    "image/x-canon-cr3": { maxFileSize: "128MB", maxFileCount: 10 },
+    "image/x-nikon-nef": { maxFileSize: "128MB", maxFileCount: 10 },
+    "image/x-sony-arw": { maxFileSize: "128MB", maxFileCount: 10 },
+    "image/x-fuji-raf": { maxFileSize: "128MB", maxFileCount: 10 },
+    "image/x-adobe-dng": { maxFileSize: "128MB", maxFileCount: 10 },
+    "image/x-panasonic-raw": { maxFileSize: "128MB", maxFileCount: 10 },
+    "image/x-olympus-orf": { maxFileSize: "128MB", maxFileCount: 10 },
+    "image/x-pentax-pef": { maxFileSize: "128MB", maxFileCount: 10 },
+  })
+    .middleware(async ({ req }) => {
+      const session = await auth.api.getSession({
+        headers: await headers(),
+      });
+      const user = session?.user;
+
+      if (!session || !user) {
+        throw new UploadThingError("Unauthorized");
+      }
+
+      if (!requireRole(user, ["EDITOR"])) {
+        throw new UploadThingError("Insufficient permissions");
+      }
+
+      // Extract gearId from URL searchParams
+      const url = new URL(req.url);
+      const gearId = url.searchParams.get("gearId");
+
+      if (!gearId) {
+        throw new UploadThingError("Missing gearId");
+      }
+
+      return {
+        userId: user.id,
+        role: user.role,
+        gearId,
+      };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("Sample file uploaded:", file.name, "for gear:", metadata.gearId);
+      return {
+        uploadedBy: metadata.userId,
+        gearId: metadata.gearId,
+        fileUrl: file.url,
+        fileKey: file.key,
+        fileName: file.name,
+        fileSize: file.size,
+      };
+    }),
 } satisfies FileRouter;
 
 export type OurFileRouter = typeof ourFileRouter;

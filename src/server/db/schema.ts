@@ -69,6 +69,10 @@ export const auditActionEnum = pgEnum("audit_action", [
   // Reviews
   "REVIEW_APPROVE",
   "REVIEW_REJECT",
+  // Sample files
+  "GEAR_SAMPLE_UPLOAD",
+  "GEAR_SAMPLE_DELETE",
+  "GEAR_SAMPLE_DOWNLOAD",
 ]);
 export const reviewStatusEnum = pgEnum("review_status", [
   "PENDING",
@@ -574,6 +578,35 @@ export const gear = appSchema.table(
     index("gear_search_idx").on(t.searchName),
     index("gear_type_brand_idx").on(t.gearType, t.brandId),
     index("gear_brand_mount_idx").on(t.brandId, t.mountId),
+  ],
+);
+
+// --- Gear Sample Files ---
+export const gearSampleFiles = appSchema.table(
+  "gear_sample_files",
+  (d) => ({
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    gearId: varchar("gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    fileName: varchar("file_name", { length: 500 }).notNull(),
+    fileUrl: text("file_url").notNull(),
+    fileKey: text("file_key").notNull(),
+    fileSizeBytes: integer("file_size_bytes").notNull(),
+    fileExtension: varchar("file_extension", { length: 10 }).notNull(),
+    uploadedById: varchar("uploaded_by_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    downloadCount: integer("download_count").notNull().default(0),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    index("gear_sample_files_gear_idx").on(t.gearId),
+    index("gear_sample_files_uploaded_by_idx").on(t.uploadedById),
+    index("gear_sample_files_created_idx").on(t.createdAt),
   ],
 );
 
@@ -1134,7 +1167,22 @@ export const gearRelations = relations(gear, ({ one, many }) => ({
     fields: [gear.id],
     references: [staffVerdicts.gearId],
   }),
+  sampleFiles: many(gearSampleFiles),
 }));
+
+export const gearSampleFilesRelations = relations(
+  gearSampleFiles,
+  ({ one }) => ({
+    gear: one(gear, {
+      fields: [gearSampleFiles.gearId],
+      references: [gear.id],
+    }),
+    uploadedBy: one(users, {
+      fields: [gearSampleFiles.uploadedById],
+      references: [users.id],
+    }),
+  }),
+);
 
 export const gearMountsRelations = relations(gearMounts, ({ one }) => ({
   gear: one(gear, {
