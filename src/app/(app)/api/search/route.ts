@@ -15,16 +15,11 @@ export async function GET(request: NextRequest) {
   const mount = searchParams.get("mount");
   const gearType = searchParams.get("gearType");
   const sensorFormat = searchParams.get("sensorFormat");
-  const priceMin = searchParams.get("priceMin");
-  const priceMax = searchParams.get("priceMax");
 
   if (brand) filters.brand = brand;
   if (mount) filters.mount = mount;
   if (gearType) filters.gearType = gearType;
   if (sensorFormat) filters.sensorFormat = sensorFormat;
-  if (priceMin) filters.priceMin = parseInt(priceMin, 10);
-  if (priceMax) filters.priceMax = parseInt(priceMax, 10);
-
   try {
     const result = await searchGear({
       query: query ?? undefined,
