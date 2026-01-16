@@ -135,9 +135,6 @@ export function AlternativesManager({
     });
   }
 
-  // Exclude current gear and existing alternatives from search
-  const existingIds = new Set([gearId, ...localAlternatives.map((a) => a.gearId)]);
-
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
@@ -233,13 +230,14 @@ export function AlternativesManager({
                     allowClear
                     fullWidth
                     filters={{ gearType }}
+                    excludeIds={[gearId, ...localAlternatives.map((a) => a.gearId)]}
                   />
                 </div>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={handleAddAlternative}
-                  disabled={!selectedGear || existingIds.has(selectedGear.id)}
+                  disabled={!selectedGear}
                 >
                   <Plus className="size-4" />
                 </Button>
