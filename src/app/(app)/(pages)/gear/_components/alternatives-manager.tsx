@@ -34,6 +34,7 @@ type LocalAlternative = {
 interface AlternativesManagerProps {
   gearId: string;
   gearSlug: string;
+  gearType: string;
   initialAlternatives: GearAlternativeRow[];
   trigger?: React.ReactNode;
 }
@@ -41,6 +42,7 @@ interface AlternativesManagerProps {
 export function AlternativesManager({
   gearId,
   gearSlug,
+  gearType,
   initialAlternatives,
   trigger,
 }: AlternativesManagerProps) {
@@ -177,7 +179,6 @@ export function AlternativesManager({
                           target="_blank"
                           className="font-medium text-sm hover:underline truncate block"
                         >
-                          {alt.brandName ? `${alt.brandName} ` : ""}
                           {alt.name}
                         </Link>
                       </div>
@@ -231,6 +232,7 @@ export function AlternativesManager({
                     searchPlaceholder="Type to search..."
                     allowClear
                     fullWidth
+                    filters={{ gearType }}
                   />
                 </div>
                 <Button
