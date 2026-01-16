@@ -34,6 +34,7 @@ type LocalAlternative = {
 interface AlternativesManagerProps {
   gearId: string;
   gearSlug: string;
+  gearType: string;
   initialAlternatives: GearAlternativeRow[];
   trigger?: React.ReactNode;
 }
@@ -41,6 +42,7 @@ interface AlternativesManagerProps {
 export function AlternativesManager({
   gearId,
   gearSlug,
+  gearType,
   initialAlternatives,
   trigger,
 }: AlternativesManagerProps) {
@@ -133,9 +135,6 @@ export function AlternativesManager({
     });
   }
 
-  // Exclude current gear and existing alternatives from search
-  const existingIds = new Set([gearId, ...localAlternatives.map((a) => a.gearId)]);
-
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
@@ -177,7 +176,6 @@ export function AlternativesManager({
                           target="_blank"
                           className="font-medium text-sm hover:underline truncate block"
                         >
-                          {alt.brandName ? `${alt.brandName} ` : ""}
                           {alt.name}
                         </Link>
                       </div>
@@ -231,13 +229,15 @@ export function AlternativesManager({
                     searchPlaceholder="Type to search..."
                     allowClear
                     fullWidth
+                    filters={{ gearType }}
+                    excludeIds={[gearId, ...localAlternatives.map((a) => a.gearId)]}
                   />
                 </div>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={handleAddAlternative}
-                  disabled={!selectedGear || existingIds.has(selectedGear.id)}
+                  disabled={!selectedGear}
                 >
                   <Plus className="size-4" />
                 </Button>

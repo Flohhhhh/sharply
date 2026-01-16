@@ -57,6 +57,7 @@ export type GearSearchComboboxProps = {
   buttonClassName?: string;
   allowClear?: boolean;
   filters?: GearSearchFilters;
+  excludeIds?: string[];
   name?: string;
   serializeValue?: (value: GearOption | null) => string;
   onSelectionChange?: (value: GearOption | null) => void;
@@ -95,6 +96,7 @@ export function GearSearchCombobox({
   buttonClassName,
   allowClear = true,
   filters,
+  excludeIds = [],
   name,
   serializeValue = defaultSerialize,
   onSelectionChange,
@@ -169,6 +171,7 @@ export function GearSearchCombobox({
         const list = Array.isArray(data.results) ? data.results : [];
         const mapped: GearOption[] = list
           .filter((item) => item?.slug && item?.name)
+          .filter((item) => !excludeIds.includes(String(item.id)))
           .map((item) => ({
             id: String(item.id),
             slug: String(item.slug),
@@ -196,6 +199,7 @@ export function GearSearchCombobox({
   }, [
     brandFilter,
     debouncedQuery,
+    excludeIds,
     gearTypeFilter,
     limit,
     minChars,
