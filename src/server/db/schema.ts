@@ -218,6 +218,8 @@ export const rearDisplayTypesEnum = pgEnum("rear_display_types_enum", [
   "single_axis_tilt", // tilts up/down only
   "dual_axis_tilt", // up/down + side tilt (2-axis)
   "fully_articulated", // side-hinged vari-angle
+  "four_axis_tilt_flip", // tilt and flip (sony a9III)
+  "other", // other
 ]);
 
 export const shutterTypesEnum = pgEnum("shutter_types_enum", [

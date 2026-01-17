@@ -49,7 +49,7 @@ Stores detailed camera-specific specifications:
   - `0`: No precapture buffer
   - `1`: Yes (RAW)
   - `2`: Yes (JPEG only)
-- **Displays**: rear display type (none, fixed, single_axis_tilt, dual_axis_tilt, fully_articulated), rear display size (inches), rear display resolution (million dots), has top display, has rear touchscreen
+- **Displays**: rear display type (none, fixed, single_axis_tilt, dual_axis_tilt, fully_articulated, four_axis_tilt_flip, other), rear display size (inches), rear display resolution (million dots), has top display, has rear touchscreen
 - **Viewfinder**: type (none/optical/electronic), magnification (x), resolution (million dots)
 - **Video**: Mode matrix (`camera_video_modes`) plus capability flags: log profile, 10-bit, 12-bit, open gate, supports external recording, supports recording to a drive
 - **Flexibility**: JSONB extra field for additional specs

@@ -649,6 +649,8 @@ function CameraFieldsComponent({
                   <SelectItem value="fully_articulated">
                     Fully articulated
                   </SelectItem>
+                  <SelectItem value="four_axis_tilt_flip">4 Axis Tilt-Flip</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>

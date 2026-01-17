@@ -713,6 +713,8 @@ export const specDictionary: SpecSectionDef[] = [
             single_axis_tilt: "Single-axis tilt",
             dual_axis_tilt: "Dual-axis tilt",
             fully_articulated: "Fully articulated",
+            four_axis_tilt_flip: "4 Axis Tilt-Flip",
+            other: "Other",
           };
           return map[raw] ?? raw;
         },

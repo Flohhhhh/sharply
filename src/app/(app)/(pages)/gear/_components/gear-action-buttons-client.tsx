@@ -265,6 +265,7 @@ export function GearActionButtonsClient({
         <AlternativesManager
           gearId={gearId}
           gearSlug={slug}
+          gearType={gearType}
           initialAlternatives={alternatives}
           trigger={
             <Button
