@@ -957,6 +957,7 @@ export type GearAlternativeRow = {
   announcedDate: string | null;
   announceDatePrecision: string | null;
   msrpNowUsdCents: number | null;
+  mpbMaxPriceUsdCents: number | null;
 };
 
 /**
@@ -995,6 +996,9 @@ export async function fetchAlternativesByGearId(
       gearAMsrpNowUsdCents: sql<number | null>`ga.msrp_now_usd_cents`.as(
         "gear_a_msrp_now_usd_cents",
       ),
+      gearAMpbMaxPriceUsdCents: sql<number | null>`ga.mpb_max_price_usd_cents`.as(
+        "gear_a_mpb_max_price_usd_cents",
+      ),
       // Gear B info
       gearBName: sql<string>`gb.name`.as("gear_b_name"),
       gearBSlug: sql<string>`gb.slug`.as("gear_b_slug"),
@@ -1017,6 +1021,9 @@ export async function fetchAlternativesByGearId(
       ),
       gearBMsrpNowUsdCents: sql<number | null>`gb.msrp_now_usd_cents`.as(
         "gear_b_msrp_now_usd_cents",
+      ),
+      gearBMpbMaxPriceUsdCents: sql<number | null>`gb.mpb_max_price_usd_cents`.as(
+        "gear_b_mpb_max_price_usd_cents",
       ),
     })
     .from(gearAlternatives)
@@ -1053,6 +1060,9 @@ export async function fetchAlternativesByGearId(
       msrpNowUsdCents: isA
         ? row.gearBMsrpNowUsdCents
         : row.gearAMsrpNowUsdCents,
+      mpbMaxPriceUsdCents: isA
+        ? row.gearBMpbMaxPriceUsdCents
+        : row.gearAMpbMaxPriceUsdCents,
     };
   });
 }
