@@ -519,6 +519,27 @@ export const BRANDS = [
     "slug": "retropia",
     "created_at": "2026-01-11 00:58:08.626843+00",
     "updated_at": "2026-01-11 00:58:08.626843+00"
+  },
+  {
+    "id": "3120acc8-10c5-4719-b2c8-77be601178dd",
+    "name": "AstrHori",
+    "slug": "astrhori",
+    "created_at": "2026-01-19 19:43:19.285118+00",
+    "updated_at": "2026-01-19 19:43:19.285118+00"
+  },
+  {
+    "id": "7fbdf1df-52fc-4c3e-84a6-4f0e0c17c014",
+    "name": "Laowa",
+    "slug": "laowa",
+    "created_at": "2026-01-19 19:43:19.28451+00",
+    "updated_at": "2026-01-19 19:43:19.28451+00"
+  },
+  {
+    "id": "9f9a7761-8cd7-40a5-9652-c3f0af4d4de5",
+    "name": "KIPON",
+    "slug": "kipon",
+    "created_at": "2026-01-19 19:44:17.759354+00",
+    "updated_at": "2026-01-19 19:44:17.759354+00"
   }
 ];
 export const GENRES = [
@@ -1218,7 +1239,9 @@ export const ENUMS = {
     "fixed",
     "single_axis_tilt",
     "dual_axis_tilt",
-    "fully_articulated"
+    "fully_articulated",
+    "four_axis_tilt_flip",
+    "other"
   ],
   "rec_group": [
     "prime",

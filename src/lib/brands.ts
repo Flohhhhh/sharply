@@ -1,13 +1,4 @@
-const DEFAULT_HOISTED_BRANDS = [
-  "Canon",
-  "Nikon",
-  "Sony",
-  "Fujifilm",
-  "Leica",
-  "Hasselblad",
-  "Sigma",
-  "Tamron",
-];
+const DEFAULT_HOISTED_BRANDS = ["Canon", "Nikon", "Sony", "Fujifilm", "Leica"];
 
 /**
  * Returns brands ordered with priority names first (in the given order) and
