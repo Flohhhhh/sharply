@@ -7,6 +7,7 @@ import {
   FieldDescription,
 } from "@payloadcms/ui";
 import { BRANDS } from "~/lib/generated";
+import { orderBrandsWithPriority } from "~/lib/brands";
 
 const BrandSelect: React.FC<{
   name?: string;
@@ -24,7 +25,14 @@ const BrandSelect: React.FC<{
   const { value, setValue } = useField<string>({ path: effectivePath });
 
   const options = useMemo(
-    () => BRANDS.map((b) => ({ label: b.name, value: b.slug })),
+    () =>
+      orderBrandsWithPriority(
+        BRANDS.map((b) => ({
+          label: b.name,
+          value: b.slug,
+          name: b.name,
+        })),
+      ).map(({ label, value }) => ({ label, value })),
     [],
   );
 

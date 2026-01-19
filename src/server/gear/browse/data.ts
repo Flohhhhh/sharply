@@ -12,6 +12,7 @@ import {
   BRANDS as BRAND_CONSTANTS,
   MOUNTS as MOUNT_CONSTANTS,
 } from "~/lib/constants";
+import { orderBrandsWithPriority } from "~/lib/brands";
 import type { BrowseFilters } from "~/lib/browse/filters";
 import type { GearCategorySlug } from "~/lib/browse/routing";
 import type { GearType } from "~/types/gear";
@@ -50,11 +51,13 @@ const gearCategoryToTypes: Record<GearCategorySlug, GearType[]> = {
 
 // Prefer using BRANDS directly from constants at call sites; kept for legacy imports
 export async function getBrands() {
-  return BRAND_CONSTANTS.map((b) => ({
-    id: b.id,
-    name: b.name,
-    slug: b.slug,
-  })).sort((a, b) => a.name.localeCompare(b.name));
+  return orderBrandsWithPriority(
+    BRAND_CONSTANTS.map((b) => ({
+      id: b.id,
+      name: b.name,
+      slug: b.slug,
+    })),
+  );
 }
 
 export async function getBrandBySlug(slug: string) {

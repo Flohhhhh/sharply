@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -14,6 +14,7 @@ import {
   Select,
   SelectContent,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
@@ -25,6 +26,7 @@ import {
 import type { GearType } from "~/types/gear";
 import { ENUMS } from "~/lib/constants";
 import { humanizeKey } from "~/lib/utils";
+import { splitBrandsWithPriority } from "~/lib/brands";
 
 type Brand = { id: string; name: string };
 type FuzzyItem = { id: string; slug: string; name: string };
@@ -47,6 +49,12 @@ export function GearCreateCard() {
   const [proceedAnyway, setProceedAnyway] = useState(false);
   const debouncedName = useDebounce(name, 300);
   const debouncedModel = useDebounce(modelNumber, 300);
+  const { hoisted: hoistedBrands, remaining: remainingBrands } = useMemo(
+    () => splitBrandsWithPriority(brands),
+    [brands],
+  );
+  const showBrandDivider =
+    hoistedBrands.length > 0 && remainingBrands.length > 0;
 
   useEffect(() => {
     // Load brands minimal list
@@ -218,7 +226,13 @@ export function GearCreateCard() {
                 <SelectValue placeholder="Select brand" />
               </SelectTrigger>
               <SelectContent>
-                {brands.map((b) => (
+                {hoistedBrands.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>
+                    {b.name}
+                  </SelectItem>
+                ))}
+                {showBrandDivider ? <SelectSeparator /> : null}
+                {remainingBrands.map((b) => (
                   <SelectItem key={b.id} value={b.id}>
                     {b.name}
                   </SelectItem>

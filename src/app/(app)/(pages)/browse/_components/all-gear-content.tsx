@@ -4,6 +4,7 @@ import Link from "next/link";
 import { GearCard, GearCardSkeleton } from "~/components/gear/gear-card";
 import { Button } from "~/components/ui/button";
 import { BRANDS } from "~/lib/constants";
+import { splitBrandsWithPriority } from "~/lib/brands";
 import { OtherBrandsSelect } from "./other-brands-select";
 import { fetchTrending, fetchTrendingSlugs } from "~/server/popularity/service";
 import { getItemDisplayPrice } from "~/lib/mapping";
@@ -39,17 +40,15 @@ export default async function AllGearContent({
   }
   const brandId = brand?.id;
 
-  const featured = BRANDS.filter((b) =>
-    ["Canon", "Nikon", "Sony"].includes(b.name),
-  );
-  const otherBrands = BRANDS.filter(
-    (b) => !["Canon", "Nikon", "Sony"].includes(b.name),
-  );
-  const otherBrandOptions = otherBrands.map((b) => ({
+  const brandOptions = BRANDS.map((b) => ({
     id: b.id,
     name: b.name,
     slug: b.slug,
   }));
+  const featuredNames = ["Canon", "Nikon", "Sony"];
+  const featured = brandOptions.filter((b) => featuredNames.includes(b.name));
+
+  const prioritizedBrands = splitBrandsWithPriority(brandOptions);
   // const { listPage, baseQuery, brandLabel } = await ensureBrowseData({
   //   brandSlug,
   //   initialBrowsePage,
@@ -101,8 +100,13 @@ export default async function AllGearContent({
                 ))}
               </div>
               <div className="mt-4 flex justify-end">
-                {otherBrandOptions.length ? (
-                  <OtherBrandsSelect brands={otherBrandOptions} />
+                {brandOptions.length ? (
+                  <OtherBrandsSelect
+                    brands={[
+                      ...prioritizedBrands.hoisted,
+                      ...prioritizedBrands.remaining,
+                    ]}
+                  />
                 ) : null}
               </div>
             </div>

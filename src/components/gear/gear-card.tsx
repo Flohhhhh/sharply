@@ -1,9 +1,8 @@
 "use client";
 
+import type React from "react";
 import Link from "next/link";
 import { cn } from "~/lib/utils";
-import { AddToCompareButton } from "~/components/compare/add-to-compare-button";
-import { AddToWishlistButton } from "~/components/gear/add-to-wishlist-button";
 import Image from "next/image";
 import { BRANDS } from "~/lib/constants";
 import { PRICE_FALLBACK_TEXT } from "~/lib/mapping";
@@ -13,6 +12,19 @@ import { NewBadge } from "../gear-badges/new-badge";
 import { isNewRelease } from "~/lib/utils/is-new";
 import { HallOfFameBadge } from "../gear-badges/hall-of-fame-badge";
 import { isInHallOfFame } from "~/lib/utils/is-in-hall-of-fame";
+import { useSession } from "~/lib/auth/auth-client";
+import { useCompare } from "~/lib/hooks/useCompare";
+import { useState } from "react";
+import { actionToggleWishlist } from "~/server/gear/actions";
+import { toast } from "sonner";
+import { Button } from "../ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import { Heart, MoreVertical, Scale } from "lucide-react";
 
 const BASE_BRAND_NAMES = uniqueCaseInsensitive(
   BRANDS.flatMap((brand) => splitBrandNameVariants(brand.name)),
@@ -140,6 +152,12 @@ export function GearCard(props: GearCardProps) {
     className,
   } = props;
 
+  const { data } = useSession();
+  const session = data?.session;
+  const compare = useCompare();
+  const [inWishlist, setInWishlist] = useState<boolean | null>(null);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+
   const trimmedName = stripBrandFromName(name, brandName);
   const dateLabel = formatGearDate(
     releaseDate ?? announcedDate,
@@ -152,6 +170,36 @@ export function GearCard(props: GearCardProps) {
   if (isTrending) badgeNodes.push(<TrendingBadge key="trending" />);
   if (isNew) badgeNodes.push(<NewBadge key="new" />);
   if (badges) badgeNodes.push(badges);
+
+  const handleAddToWishlist = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!session || wishlistLoading) return;
+
+    setWishlistLoading(true);
+    const action = inWishlist ? "remove" : "add";
+
+    try {
+      const res = await actionToggleWishlist(slug, action);
+      if (res.ok) {
+        setInWishlist(res.action === "added");
+        toast.success(
+          res.action === "added" ? "Added to wishlist" : "Removed from wishlist",
+        );
+      }
+    } catch (error) {
+      toast.error("Failed to update wishlist");
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
+
+  const handleAddToCompare = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    await compare.add({ slug, name, gearType: gearType ?? undefined });
+  };
 
   return (
     <div className={cn("group relative", className)}>
@@ -192,25 +240,54 @@ export function GearCard(props: GearCardProps) {
             </div>
 
             {/* Hover actions overlay */}
-            <div className="pointer-events-none absolute inset-0 flex items-end justify-center p-2 pb-4 opacity-0 transition-opacity group-hover:opacity-100">
-              <div className="pointer-events-auto w-full space-y-2">
-                <AddToWishlistButton
-                  slug={slug}
-                  name={name}
-                  size="sm"
-                  className="w-full cursor-pointer"
-                  showLabel
-                />
-                <AddToCompareButton
-                  slug={slug}
-                  name={name}
-                  gearType={gearType ?? undefined}
-                  size="sm"
-                  className="w-full cursor-pointer"
-                  showLabel
-                />
+            {session ? (
+              <div className="pointer-events-none absolute inset-0 flex items-start justify-end p-2 opacity-0 transition-opacity group-hover:opacity-100">
+                <div className="pointer-events-auto">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="secondary"
+                        size="icon"
+                        className="shadow-md"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                      >
+                        <MoreVertical className="size-4" />
+                        <span className="sr-only">More options</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" side="bottom" sideOffset={6}>
+                      <DropdownMenuItem
+                        onClick={handleAddToWishlist}
+                        disabled={wishlistLoading}
+                      >
+                        <Heart
+                          className={cn("size-4", inWishlist === true && "fill-current")}
+                        />
+                        {inWishlist === true
+                          ? "Remove from Wishlist"
+                          : "Add to Wishlist"}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={handleAddToCompare}
+                        disabled={
+                          compare.contains(slug) ||
+                          compare.isFull ||
+                          !compare.acceptsType(gearType ?? undefined)
+                        }
+                      >
+                        <Scale className="size-4" />
+                        {compare.contains(slug)
+                          ? "Already in Compare"
+                          : "Add to Compare"}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
-            </div>
+            ) : null}
           </div>
 
           {/* Content below image */}
