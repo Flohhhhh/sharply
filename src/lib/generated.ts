@@ -540,6 +540,13 @@ export const BRANDS = [
     "slug": "kipon",
     "created_at": "2026-01-19 19:44:17.759354+00",
     "updated_at": "2026-01-19 19:44:17.759354+00"
+  },
+  {
+    "id": "f9fcebe4-2e4d-4d94-80c6-840876d268dd",
+    "name": "Mitakon",
+    "slug": "mitakon",
+    "created_at": "2026-01-19 20:17:25.333797+00",
+    "updated_at": "2026-01-19 20:17:25.333797+00"
   }
 ];
 export const GENRES = [
