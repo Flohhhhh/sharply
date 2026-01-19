@@ -9,6 +9,7 @@ import {
   Select,
   SelectContent,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
@@ -22,6 +23,7 @@ import {
 } from "~/components/ui/table";
 import { Badge } from "~/components/ui/badge";
 import { BRANDS } from "~/lib/constants";
+import { splitBrandsWithPriority } from "~/lib/brands";
 import {
   isBrandNameOnly as isBrandOnlyName,
   getNameSoftWarnings,
@@ -437,10 +439,16 @@ function BulkCreateRow({
 }
 
 export default function GearBulkCreate(): React.JSX.Element {
-  const brandOptions = React.useMemo<Brand[]>(
-    () => BRANDS.map((b) => ({ id: b.id, name: b.name })),
-    [],
-  );
+  const { hoisted: hoistedBrands, remaining: remainingBrands } =
+    React.useMemo(
+      () =>
+        splitBrandsWithPriority(
+          BRANDS.map((b) => ({ id: b.id, name: b.name })),
+        ),
+      [],
+    );
+  const showBrandDivider =
+    hoistedBrands.length > 0 && remainingBrands.length > 0;
   const [brandId, setBrandId] = React.useState<string>("");
   const [gearType, setGearType] = React.useState<GearType | "">("");
   const [selectedMountId, setSelectedMountId] = React.useState<string>("");
@@ -685,7 +693,13 @@ export default function GearBulkCreate(): React.JSX.Element {
                   <SelectValue placeholder="Select a brand" />
                 </SelectTrigger>
                 <SelectContent>
-                  {brandOptions.map((b) => (
+                  {hoistedBrands.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>
+                      {b.name}
+                    </SelectItem>
+                  ))}
+                  {showBrandDivider ? <SelectSeparator /> : null}
+                  {remainingBrands.map((b) => (
                     <SelectItem key={b.id} value={b.id}>
                       {b.name}
                     </SelectItem>
