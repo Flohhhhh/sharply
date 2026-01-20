@@ -1375,6 +1375,25 @@ export const ownerships = appSchema.table(
   ],
 );
 
+export const imageRequests = appSchema.table(
+  "image_requests",
+  (d) => ({
+    userId: d
+      .varchar("user_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    gearId: d
+      .varchar("gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    createdAt,
+  }),
+  (t) => [
+    primaryKey({ columns: [t.userId, t.gearId] }),
+    index("image_request_gear_idx").on(t.gearId),
+  ],
+);
+
 // Popularity events table
 export const popularityEvents = appSchema.table(
   "popularity_events",

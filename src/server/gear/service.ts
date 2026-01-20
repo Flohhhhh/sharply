@@ -12,6 +12,7 @@ import {
   getGearLinkMpb as getGearLinkMpbData,
   isInWishlist as isInWishlistData,
   isOwned as isOwnedData,
+  hasImageRequest as hasImageRequestData,
   getApprovedReviewsByGearId as getApprovedReviewsByGearIdData,
   getMyReviewStatus as getMyReviewStatusData,
   getGearStatsById as getGearStatsByIdData,
@@ -19,6 +20,8 @@ import {
   removeFromWishlist as removeFromWishlistData,
   addOwnership as addOwnershipData,
   removeOwnership as removeOwnershipData,
+  addImageRequest as addImageRequestData,
+  removeImageRequest as removeImageRequestData,
   createReview as createReviewData,
   insertAuditLog as insertAuditLogData,
   getPendingEditIdData,
@@ -256,6 +259,50 @@ export async function toggleOwnership(slug: string, action: "add" | "remove") {
     console.error("Failed to record ownership analytics", eventErr);
   }
   return { ok: true, action: "removed" as const };
+}
+
+export async function toggleImageRequest(slug: string, action: "add" | "remove") {
+  const { user } = await getSessionOrThrow();
+  const userId = user.id;
+  const gearId = await resolveGearIdOrThrow(slug);
+  if (action === "add") {
+    const res = await addImageRequest(gearId, userId);
+    if (res.alreadyExists)
+      return { ok: false, reason: "already_requested" } as const;
+    try {
+      await track("image_request_toggle", { slug, action: "add" });
+    } catch (eventErr) {
+      console.error("Failed to record image request analytics", eventErr);
+    }
+    return { ok: true, action: "added" as const };
+  }
+  await removeImageRequest(gearId, userId);
+  try {
+    await track("image_request_toggle", { slug, action: "remove" });
+  } catch (eventErr) {
+    console.error("Failed to record image request analytics", eventErr);
+  }
+  return { ok: true, action: "removed" as const };
+}
+
+export async function fetchImageRequestStatus(slug: string) {
+  const { user } = await getSessionOrThrow();
+  const userId = user.id;
+  const gearId = await resolveGearIdOrThrow(slug);
+  const hasRequested = await hasImageRequest(gearId, userId);
+  return { hasRequested };
+}
+
+async function hasImageRequest(gearId: string, userId: string): Promise<boolean> {
+  return hasImageRequestData(gearId, userId);
+}
+
+async function addImageRequest(gearId: string, userId: string) {
+  return addImageRequestData(gearId, userId);
+}
+
+async function removeImageRequest(gearId: string, userId: string) {
+  return removeImageRequestData(gearId, userId);
 }
 
 const reviewInput = z.object({

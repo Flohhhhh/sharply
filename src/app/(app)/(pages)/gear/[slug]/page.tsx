@@ -126,6 +126,17 @@ export default async function GearPage({ params }: GearPageProps) {
 
   const priceDisplay = getItemDisplayPrice(item);
 
+  // Fetch image request status for current user (null if not logged in)
+  let hasImageRequest: boolean | null = null;
+  try {
+    const { fetchImageRequestStatus } = await import("~/server/gear/service");
+    const status = await fetchImageRequestStatus(slug).catch(() => null);
+    hasImageRequest = status ? status.hasRequested : null;
+  } catch {
+    // User not logged in
+    hasImageRequest = null;
+  }
+
   // Fetch editorial content
   const [ratingsRows, staffVerdictRows, pendingChangeRequests] =
     await Promise.all([
@@ -242,6 +253,8 @@ export default async function GearPage({ params }: GearPageProps) {
             name={item.name}
             thumbnailUrl={item.thumbnailUrl}
             topViewUrl={item.topViewUrl}
+            slug={slug}
+            hasImageRequest={hasImageRequest}
           />
         </div>
       </section>
