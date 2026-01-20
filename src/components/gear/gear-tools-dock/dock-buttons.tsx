@@ -88,7 +88,7 @@ export function buildDockButtons({
               className={baseTriggerClass}
               scroll={false}
             >
-              <Pencil className="h-5 w-5" />
+              <Pencil className="text-foreground/70 size-4" />
             </Link>
           </TooltipTrigger>
           <TooltipContent sideOffset={10}>Edit Specs</TooltipContent>
@@ -107,7 +107,7 @@ export function buildDockButtons({
             trigger={
               <TooltipTrigger asChild>
                 <button className={baseTriggerClass} aria-label="Manage Images">
-                  <ImageIcon className="h-5 w-5" />
+                  <ImageIcon className="text-foreground/70 size-4.5" />
                 </button>
               </TooltipTrigger>
             }
@@ -134,7 +134,7 @@ export function buildDockButtons({
                     className={baseTriggerClass}
                     aria-label="Manage Alternatives"
                   >
-                    <Swords className="h-5 w-5" />
+                    <Swords className="text-foreground/70 size-4.5" />
                     {/* {alternatives.length > 0 ? (
                   <span className="bg-primary absolute -top-1 -right-1 rounded-full px-1.5 text-[10px] font-semibold text-white">
                     {alternatives.length}
@@ -164,7 +164,7 @@ export function buildDockButtons({
                   className={baseTriggerClass}
                   aria-label="Manage Samples"
                 >
-                  <FilePlus className="h-5 w-5" />
+                  <FilePlus className="text-foreground/70 size-4.5" />
                 </button>
               </DialogTrigger>
             </TooltipTrigger>
