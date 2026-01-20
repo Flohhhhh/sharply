@@ -55,6 +55,7 @@ import {
   ItemDescription,
   ItemTitle,
 } from "~/components/ui/item";
+import { GearItemDock } from "~/components/gear/gear-tools-dock/gear-item-dock";
 
 export const revalidate = 3600;
 
@@ -184,6 +185,15 @@ export default async function GearPage({ params }: GearPageProps) {
 
   return (
     <main className="mx-auto max-w-7xl space-y-8 px-4 pt-20 sm:px-6">
+      <GearItemDock
+        slug={slug}
+        gearId={item.id}
+        gearType={item.gearType}
+        currentThumbnailUrl={item.thumbnailUrl ?? null}
+        currentTopViewUrl={item.topViewUrl ?? null}
+        alternatives={alternatives}
+        rawSamples={item.rawSamples ?? []}
+      />
       {/* Track page visit for popularity */}
       <GearVisitTracker slug={slug} />
       <section className="space-y-4">
@@ -349,12 +359,6 @@ export default async function GearPage({ params }: GearPageProps) {
           <div className="w-full">
             <GearActionButtons
               slug={slug}
-              gearId={item.id}
-              gearType={item.gearType}
-              currentThumbnailUrl={item.thumbnailUrl ?? null}
-              currentTopViewUrl={item.topViewUrl ?? null}
-              alternatives={alternatives}
-              rawSamples={item.rawSamples ?? []}
             />
           </div>
           {/* Links */}
