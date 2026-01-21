@@ -21,24 +21,26 @@ export function RequestImageButton({
   const [isLoading, setIsLoading] = useState(false);
 
   const handleToggle = async () => {
+    if (hasRequested) {
+      return;
+    }
     setIsLoading(true);
     try {
-      const action = hasRequested ? "remove" : "add";
-      const result = await actionToggleImageRequest(slug, action);
+      const result = await actionToggleImageRequest(slug, "add");
 
-      if (result.ok) {
-        if (result.action === "added") {
-          setHasRequested(true);
-          toast.success("Image request submitted", {
-            description:
-              "Thanks for your interest! We'll prioritize adding an image for this item.",
-          });
-        } else {
-          setHasRequested(false);
-          toast.success("Image request removed");
-        }
-      } else {
+      if (result.ok && result.action === "added") {
+        setHasRequested(true);
+        toast.success("Image request submitted", {
+          description:
+            "Thanks for your interest! We'll prioritize adding an image for this item.",
+        });
+      } else if (!result.ok && result.reason === "already_requested") {
+        setHasRequested(true);
         toast.error("Request already exists");
+      } else {
+        toast.error("Failed to submit request", {
+          description: "Please try again later.",
+        });
       }
     } catch (error) {
       console.error("Failed to toggle image request:", error);
