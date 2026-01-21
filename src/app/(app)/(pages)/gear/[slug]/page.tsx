@@ -56,6 +56,8 @@ import {
   ItemTitle,
 } from "~/components/ui/item";
 import { GearItemDock } from "~/components/gear/gear-tools-dock/gear-item-dock";
+import { auth } from "~/auth";
+import { headers } from "next/headers";
 
 export const revalidate = 3600;
 
@@ -126,15 +128,22 @@ export default async function GearPage({ params }: GearPageProps) {
 
   const priceDisplay = getItemDisplayPrice(item);
 
-  // Fetch image request status for current user (null if not logged in)
+  // Check auth status for image request feature
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  const isAuthenticated = !!session?.user;
+
+  // Fetch image request status only for authenticated users
   let hasImageRequest: boolean | null = null;
-  try {
-    const { fetchImageRequestStatus } = await import("~/server/gear/service");
-    const status = await fetchImageRequestStatus(slug).catch(() => null);
-    hasImageRequest = status ? status.hasRequested : null;
-  } catch {
-    // User not logged in
-    hasImageRequest = null;
+  if (isAuthenticated) {
+    try {
+      const { fetchImageRequestStatus } = await import("~/server/gear/service");
+      const status = await fetchImageRequestStatus(slug).catch(() => null);
+      hasImageRequest = status ? status.hasRequested : false;
+    } catch {
+      hasImageRequest = false;
+    }
   }
 
   // Fetch editorial content
