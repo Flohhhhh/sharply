@@ -27,8 +27,10 @@ export function GearImageCarousel({
 }: GearImageCarouselProps) {
   if (!thumbnailUrl && !topViewUrl) {
     return (
-      <div className="bg-muted dark:bg-card flex aspect-video flex-col items-center justify-center gap-4 rounded-md">
-        <div className="text-muted-foreground text-lg">No image available</div>
+      <div className="bg-muted dark:bg-card flex aspect-video flex-col items-center justify-center gap-1 rounded-md">
+        <span className="text-muted-foreground text-lg">
+          No image available
+        </span>
         <RequestImageButton slug={slug} initialHasRequested={hasImageRequest} />
       </div>
     );

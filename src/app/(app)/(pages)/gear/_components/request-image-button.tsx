@@ -15,7 +15,9 @@ export function RequestImageButton({
   slug,
   initialHasRequested,
 }: RequestImageButtonProps) {
-  const [hasRequested, setHasRequested] = useState(initialHasRequested ?? false);
+  const [hasRequested, setHasRequested] = useState(
+    initialHasRequested ?? false,
+  );
   const [isLoading, setIsLoading] = useState(false);
 
   const handleToggle = async () => {
@@ -28,7 +30,8 @@ export function RequestImageButton({
         if (result.action === "added") {
           setHasRequested(true);
           toast.success("Image request submitted", {
-            description: "Thanks for your interest! We'll prioritize adding an image for this item.",
+            description:
+              "Thanks for your interest! We'll prioritize adding an image for this item.",
           });
         } else {
           setHasRequested(false);
@@ -53,14 +56,29 @@ export function RequestImageButton({
   }
 
   return (
-    <Button
-      onClick={handleToggle}
-      disabled={isLoading}
-      variant={hasRequested ? "outline" : "default"}
-      size="sm"
-      icon={hasRequested ? <Check className="h-4 w-4" /> : <ImagePlus className="h-4 w-4" />}
-    >
-      {hasRequested ? "Image Requested" : "Request Image"}
-    </Button>
+    <div className="flex flex-col gap-6">
+      {!hasRequested && (
+        <span className="text-muted-foreground text-sm">
+          Click below to help us prioritize this image!
+        </span>
+      )}
+
+      <Button
+        onClick={handleToggle}
+        loading={isLoading}
+        variant={hasRequested ? "outline" : "default"}
+        disabled={hasRequested}
+        size="sm"
+        icon={
+          hasRequested ? (
+            <Check className="h-4 w-4" />
+          ) : (
+            <ImagePlus className="h-4 w-4" />
+          )
+        }
+      >
+        {hasRequested ? "Image Requested" : "Request Image"}
+      </Button>
+    </div>
   );
 }
