@@ -15,6 +15,7 @@ import {
   reviews,
   users,
   wishlists,
+  imageRequests,
   cameraSpecs,
   analogCameraSpecs,
   cameraAfAreaSpecs,
@@ -841,6 +842,54 @@ export async function removeOwnership(gearId: string, userId: string) {
     .delete(ownerships)
     .where(and(eq(ownerships.userId, userId), eq(ownerships.gearId, gearId)));
   return { removed: true } as const;
+}
+
+export async function hasImageRequest(
+  gearId: string,
+  userId: string,
+): Promise<boolean> {
+  const row = await db
+    .select({ userId: imageRequests.userId })
+    .from(imageRequests)
+    .where(and(eq(imageRequests.userId, userId), eq(imageRequests.gearId, gearId)))
+    .limit(1);
+  return row.length > 0;
+}
+
+export async function addImageRequest(gearId: string, userId: string) {
+  // Single insert with conflict handling to avoid race conditions on the composite key
+  const inserted = await db
+    .insert(imageRequests)
+    .values({ userId, gearId })
+    .onConflictDoNothing({
+      target: [imageRequests.userId, imageRequests.gearId],
+    })
+    .returning({ userId: imageRequests.userId });
+
+  const added = inserted.length > 0;
+  return { added, alreadyExists: !added } as const;
+}
+
+export async function removeImageRequest(gearId: string, userId: string) {
+  await db
+    .delete(imageRequests)
+    .where(and(eq(imageRequests.userId, userId), eq(imageRequests.gearId, gearId)));
+  return { removed: true } as const;
+}
+
+export async function fetchAllImageRequests() {
+  return db
+    .select({
+      gearId: imageRequests.gearId,
+      gearName: gear.name,
+      gearSlug: gear.slug,
+      requestCount: sql<number>`count(*)`,
+      latestRequestDate: sql<Date>`max(${imageRequests.createdAt})`,
+    })
+    .from(imageRequests)
+    .leftJoin(gear, eq(imageRequests.gearId, gear.id))
+    .groupBy(imageRequests.gearId, gear.name, gear.slug)
+    .orderBy(sql`count(*) desc, max(${imageRequests.createdAt}) desc`);
 }
 
 export async function createReview(params: {

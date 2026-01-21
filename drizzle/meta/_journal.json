@@ -43,6 +43,13 @@
       "when": 1768657413532,
       "tag": "0005_third_thanos",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1769002420091,
+      "tag": "0006_groovy_madrox",
+      "breakpoints": true
     }
   ]
 }
