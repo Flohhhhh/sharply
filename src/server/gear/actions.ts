@@ -7,6 +7,7 @@ import {
   submitGearEditProposal,
   toggleOwnership,
   toggleWishlist,
+  toggleImageRequest,
   upsertStaffVerdict,
   updateGearAlternatives,
   addRawSampleToGear,
@@ -31,6 +32,15 @@ export async function actionToggleOwnership(
   action: "add" | "remove",
 ) {
   const res = await toggleOwnership(slug, action);
+  revalidatePath(`/gear/${slug}`);
+  return res;
+}
+
+export async function actionToggleImageRequest(
+  slug: string,
+  action: "add" | "remove",
+) {
+  const res = await toggleImageRequest(slug, action);
   revalidatePath(`/gear/${slug}`);
   return res;
 }

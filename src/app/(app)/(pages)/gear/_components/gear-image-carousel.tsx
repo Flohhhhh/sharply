@@ -8,22 +8,30 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "~/components/ui/carousel";
+import { RequestImageButton } from "./request-image-button";
 
 interface GearImageCarouselProps {
   name: string;
   thumbnailUrl: string | null;
   topViewUrl: string | null;
+  slug: string;
+  hasImageRequest: boolean | null;
 }
 
 export function GearImageCarousel({
   name,
   thumbnailUrl,
   topViewUrl,
+  slug,
+  hasImageRequest,
 }: GearImageCarouselProps) {
   if (!thumbnailUrl && !topViewUrl) {
     return (
-      <div className="bg-muted dark:bg-card flex aspect-video items-center justify-center rounded-md">
-        <div className="text-muted-foreground text-lg">No image available</div>
+      <div className="bg-muted dark:bg-card flex aspect-video flex-col items-center justify-center gap-1 rounded-md">
+        <span className="text-muted-foreground text-lg">
+          No image available
+        </span>
+        <RequestImageButton slug={slug} initialHasRequested={hasImageRequest} />
       </div>
     );
   }
