@@ -1,4 +1,4 @@
-import { fetchAllImageRequests } from "~/server/gear/data";
+import { fetchAllImageRequests } from "~/server/gear/service";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 

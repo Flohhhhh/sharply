@@ -22,6 +22,7 @@ import {
   removeOwnership as removeOwnershipData,
   addImageRequest as addImageRequestData,
   removeImageRequest as removeImageRequestData,
+  fetchAllImageRequests as fetchAllImageRequestsData,
   createReview as createReviewData,
   insertAuditLog as insertAuditLogData,
   getPendingEditIdData,
@@ -303,6 +304,12 @@ async function addImageRequest(gearId: string, userId: string) {
 
 async function removeImageRequest(gearId: string, userId: string) {
   return removeImageRequestData(gearId, userId);
+}
+
+export async function fetchAllImageRequests() {
+  // This is an admin-only function, but we don't enforce auth here
+  // because the admin analytics page is already protected by layout/middleware
+  return fetchAllImageRequestsData();
 }
 
 const reviewInput = z.object({
