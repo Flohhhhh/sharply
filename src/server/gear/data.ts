@@ -857,15 +857,17 @@ export async function hasImageRequest(
 }
 
 export async function addImageRequest(gearId: string, userId: string) {
-  const exists = await db
-    .select({ userId: imageRequests.userId })
-    .from(imageRequests)
-    .where(and(eq(imageRequests.userId, userId), eq(imageRequests.gearId, gearId)))
-    .limit(1);
-  if (exists.length > 0) return { alreadyExists: true } as const;
+  // Single insert with conflict handling to avoid race conditions on the composite key
+  const inserted = await db
+    .insert(imageRequests)
+    .values({ userId, gearId })
+    .onConflictDoNothing({
+      target: [imageRequests.userId, imageRequests.gearId],
+    })
+    .returning({ userId: imageRequests.userId });
 
-  await db.insert(imageRequests).values({ userId, gearId });
-  return { added: true, alreadyExists: false } as const;
+  const added = inserted.length > 0;
+  return { added, alreadyExists: !added } as const;
 }
 
 export async function removeImageRequest(gearId: string, userId: string) {
