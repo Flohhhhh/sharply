@@ -877,6 +877,11 @@ export async function removeImageRequest(gearId: string, userId: string) {
   return { removed: true } as const;
 }
 
+/** Remove all image requests for a gear once an image has been added */
+export async function clearImageRequestsForGear(gearId: string) {
+  await db.delete(imageRequests).where(eq(imageRequests.gearId, gearId));
+}
+
 export async function fetchAllImageRequests() {
   return db
     .select({
