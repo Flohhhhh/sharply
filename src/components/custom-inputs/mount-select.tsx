@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { XIcon } from "lucide-react";
 import { Label } from "~/components/ui/label";
 import {
   Select,
@@ -22,9 +23,12 @@ interface MountSelectProps {
   label?: string;
   placeholder?: string;
   brandId?: string | null;
+  filterBrand?: string | null;
   disabled?: boolean;
   showLabel?: boolean;
   className?: string;
+  allowClear?: boolean;
+  clearLabel?: string;
 }
 
 export function MountSelect({
@@ -34,10 +38,15 @@ export function MountSelect({
   label = "Mount",
   placeholder,
   brandId,
+  filterBrand,
   disabled,
   showLabel = true,
   className,
+  allowClear = false,
+  clearLabel = "Clear selection",
 }: MountSelectProps) {
+  const clearValue = "__mount_clear__";
+
   const brandIdToName = useMemo(() => {
     const map = new Map<string, string>();
     for (const b of BRANDS as any[]) {
@@ -46,8 +55,23 @@ export function MountSelect({
     return map;
   }, []);
 
+  const brandSlugToId = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const b of BRANDS as any[]) {
+      map.set((b as any).slug as string, (b as any).id as string);
+    }
+    return map;
+  }, []);
+
+  const normalizedFilterBrandId = useMemo(() => {
+    if (!filterBrand) return null;
+    if (brandSlugToId.has(filterBrand)) return brandSlugToId.get(filterBrand)!;
+    if (brandIdToName.has(filterBrand)) return filterBrand;
+    return null;
+  }, [filterBrand, brandIdToName, brandSlugToId]);
+
   const optionsWithBrand = useMemo(() => {
-    return (MOUNTS as any[]).map((mount: any) => {
+    const mapped = (MOUNTS as any[]).map((mount: any) => {
       const mountBrandId = (mount as any).brand_id as string | undefined | null;
       const brandName =
         (mountBrandId && brandIdToName.get(mountBrandId)) || "Other";
@@ -67,7 +91,9 @@ export function MountSelect({
         rawBrandId: string | null;
       };
     });
-  }, [brandIdToName]);
+    if (!normalizedFilterBrandId) return mapped;
+    return mapped.filter((opt) => opt.rawBrandId === normalizedFilterBrandId);
+  }, [brandIdToName, normalizedFilterBrandId]);
 
   // Custom brand priority order, then alphabetical for the rest
   const brandPriority = useMemo(
@@ -124,19 +150,39 @@ export function MountSelect({
   // Single select mode
   if (mode === "single") {
     const singleValue = Array.isArray(value) ? value[0] || "" : value || "";
+    const selectValue = singleValue ?? "";
 
     return (
       <div id="mount" className={cn("space-y-2", className)}>
         {showLabel && <Label htmlFor="mount">{label}</Label>}
         <Select
-          value={singleValue}
-          onValueChange={(val) => onChange(val)}
+          value={selectValue}
+          onValueChange={(nextValue) => {
+            // Allow clearing the selection when the clear option is chosen.
+            if (allowClear && nextValue === clearValue) {
+              onChange("");
+              return;
+            }
+            onChange(nextValue);
+          }}
           disabled={disabled}
         >
           <SelectTrigger id="mount" className="w-full">
             <SelectValue placeholder={placeholder || "Select mount"} />
           </SelectTrigger>
           <SelectContent>
+            {allowClear ? (
+              <SelectItem
+                value={clearValue}
+                className="text-muted-foreground flex items-center justify-between gap-2"
+              >
+                <XIcon className="size-4" />
+                {clearLabel}
+              </SelectItem>
+            ) : null}
+            {allowClear && orderedOptions.length > 0 ? (
+              <SelectSeparator />
+            ) : null}
             {orderedOptions.map((opt) => {
               if ((opt as any).type === "separator") {
                 return <SelectSeparator key={(opt as any).id} />;

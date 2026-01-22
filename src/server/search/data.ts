@@ -21,8 +21,18 @@ if (process.env.NEXT_RUNTIME) {
  */
 
 import { db } from "~/server/db";
-import { gear, brands, mounts, gearMounts } from "~/server/db/schema";
-import { asc, desc, ilike, sql, and, type SQL } from "drizzle-orm";
+import {
+  gear,
+  brands,
+  mounts,
+  gearMounts,
+  cameraSpecs,
+  sensorFormats,
+  lensSpecs,
+  fixedLensSpecs,
+  analogCameraSpecs,
+} from "~/server/db/schema";
+import { asc, desc, ilike, sql, and, eq, type SQL } from "drizzle-orm";
 
 /**
  * Build a strict WHERE clause for free-text search.
@@ -190,9 +200,13 @@ export async function querySearchRows(options: {
   pageSize: number;
   offset: number;
   relevanceExpr?: any;
+  includeMounts?: boolean;
+  includeSensorFormats?: boolean;
+  includeLensSpecs?: boolean;
+  includeAnalogSpecs?: boolean;
 }) {
   // Return only core gear fields; callers shouldn't rely on single mount anymore.
-  return db
+  let query = db
     .select({
       id: gear.id,
       name: gear.name,
@@ -200,10 +214,58 @@ export async function querySearchRows(options: {
       brandName: brands.name,
       gearType: gear.gearType,
       thumbnailUrl: gear.thumbnailUrl,
+      msrpNowUsdCents: gear.msrpNowUsdCents,
+      msrpAtLaunchUsdCents: gear.msrpAtLaunchUsdCents,
+      mpbMaxPriceUsdCents: gear.mpbMaxPriceUsdCents,
+      releaseDate: gear.releaseDate,
+      releaseDatePrecision: gear.releaseDatePrecision,
+      announcedDate: gear.announcedDate,
+      announceDatePrecision: gear.announceDatePrecision,
       ...(options.relevanceExpr && { relevance: options.relevanceExpr }),
     })
     .from(gear)
-    .leftJoin(brands, sql`${gear.brandId} = ${brands.id}`)
+    .leftJoin(brands, sql`${gear.brandId} = ${brands.id}`);
+
+  if (options.includeMounts) {
+    query = query
+      .leftJoin(gearMounts, eq(gear.id, gearMounts.gearId))
+      .leftJoin(mounts, eq(gearMounts.mountId, mounts.id));
+  }
+  if (options.includeSensorFormats) {
+    query = query
+      .leftJoin(cameraSpecs, eq(gear.id, cameraSpecs.gearId))
+      .leftJoin(sensorFormats, eq(cameraSpecs.sensorFormatId, sensorFormats.id));
+  }
+  if (options.includeLensSpecs) {
+    query = query
+      .leftJoin(lensSpecs, eq(gear.id, lensSpecs.gearId))
+      .leftJoin(fixedLensSpecs, eq(gear.id, fixedLensSpecs.gearId));
+  }
+  if (options.includeAnalogSpecs) {
+    query = query.leftJoin(analogCameraSpecs, eq(gear.id, analogCameraSpecs.gearId));
+  }
+
+  const groupByColumns = [
+    gear.id,
+    gear.name,
+    gear.slug,
+    brands.name,
+    gear.gearType,
+    gear.thumbnailUrl,
+    gear.msrpNowUsdCents,
+    gear.msrpAtLaunchUsdCents,
+    gear.mpbMaxPriceUsdCents,
+    gear.releaseDate,
+    gear.releaseDatePrecision,
+    gear.announcedDate,
+    gear.announceDatePrecision,
+  ];
+  if (options.relevanceExpr) {
+    groupByColumns.push(options.relevanceExpr);
+  }
+
+  return query
+    .groupBy(...groupByColumns)
     .where(options.whereClause)
     .orderBy(...options.orderBy)
     .limit(options.pageSize)
@@ -213,12 +275,38 @@ export async function querySearchRows(options: {
 /**
  * Execute the COUNT(*) for the current search constraints.
  */
-export async function querySearchTotal(whereClause?: SQL) {
-  const rows = await db
-    .select({ count: sql<number>`count(*)` })
+export async function querySearchTotal(
+  whereClause?: SQL,
+  includeMounts?: boolean,
+  includeSensorFormats?: boolean,
+  includeLensSpecs?: boolean,
+  includeAnalogSpecs?: boolean,
+) {
+  let query = db
+    .select({ count: sql<number>`count(distinct ${gear.id})` })
     .from(gear)
-    .leftJoin(brands, sql`${gear.brandId} = ${brands.id}`)
-    .where(whereClause);
+    .leftJoin(brands, sql`${gear.brandId} = ${brands.id}`);
+
+  if (includeMounts) {
+    query = query
+      .leftJoin(gearMounts, eq(gear.id, gearMounts.gearId))
+      .leftJoin(mounts, eq(gearMounts.mountId, mounts.id));
+  }
+  if (includeSensorFormats) {
+    query = query
+      .leftJoin(cameraSpecs, eq(gear.id, cameraSpecs.gearId))
+      .leftJoin(sensorFormats, eq(cameraSpecs.sensorFormatId, sensorFormats.id));
+  }
+  if (includeLensSpecs) {
+    query = query
+      .leftJoin(lensSpecs, eq(gear.id, lensSpecs.gearId))
+      .leftJoin(fixedLensSpecs, eq(gear.id, fixedLensSpecs.gearId));
+  }
+  if (includeAnalogSpecs) {
+    query = query.leftJoin(analogCameraSpecs, eq(gear.id, analogCameraSpecs.gearId));
+  }
+
+  const rows = await query.where(whereClause);
   return Number(rows[0]?.count ?? 0);
 }
 

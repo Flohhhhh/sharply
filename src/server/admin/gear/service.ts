@@ -19,7 +19,7 @@ import { renameGearData } from "./data";
 import { db } from "~/server/db";
 import { auditLogs, gearEdits } from "~/server/db/schema";
 import { updateGearThumbnailData } from "./data";
-import { getGearIdBySlug } from "~/server/gear/data";
+import { clearImageRequestsForGear, getGearIdBySlug } from "~/server/gear/data";
 import { nanoid } from "nanoid";
 
 export async function performFuzzySearchAdmin(params: {
@@ -153,6 +153,11 @@ export async function setGearThumbnailService(params: {
 
   const updated = await updateGearThumbnailData({ gearId, thumbnailUrl });
 
+  if (thumbnailUrl) {
+    // Clear outstanding image requests once an image is provided
+    await clearImageRequestsForGear(gearId);
+  }
+
   try {
     // Determine the appropriate audit action
     let action:
@@ -228,6 +233,11 @@ export async function setGearTopViewService(params: {
 
   const { updateGearTopViewData } = await import("./data");
   const updated = await updateGearTopViewData({ gearId, topViewUrl });
+
+  if (topViewUrl) {
+    // Clear outstanding image requests once an image is provided
+    await clearImageRequestsForGear(gearId);
+  }
 
   try {
     // Determine the appropriate audit action

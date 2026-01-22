@@ -44,10 +44,18 @@ export default function HeaderClient({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const isHomePage = pathname === "/";
-  const sheetTopClass =
-    hasScrolled || !isHomePage
-      ? "top-16 h-[calc(100vh-4rem)]"
-      : "top-24 h-[calc(100vh-6rem)]";
+  const isSearchResultsPage = pathname?.startsWith("/search") ?? false;
+  // Home (usesHeroSearchHeader) shows the hero search, so shouldShowHeaderSearch flips
+  // to true after scroll to reveal the compact header search; the search results page
+  // (isSearchResultsPage) never shows the header search, so shouldShowHeaderSearch stays
+  // false and sheetTopClass keeps the expanded header ("top-24...").
+  const usesHeroSearchHeader = isHomePage || isSearchResultsPage;
+  // Never show the header search bar on the search results page; on home it appears after scroll.
+  const shouldShowHeaderSearch =
+    (!isSearchResultsPage && hasScrolled) || !usesHeroSearchHeader;
+  const sheetTopClass = shouldShowHeaderSearch
+    ? "top-16 h-[calc(100vh-4rem)]"
+    : "top-24 h-[calc(100vh-6rem)]";
 
   const callbackUrl = (() => {
     const qs = searchParams?.toString();
@@ -75,7 +83,7 @@ export default function HeaderClient({
   return (
     <header
       className={`fixed top-0 right-0 left-0 z-50 transition-all duration-200 ${
-        hasScrolled || !isHomePage
+        shouldShowHeaderSearch
           ? "bg-background h-16 shadow-sm backdrop-blur-sm"
           : "bg-background h-20"
       }`}
@@ -83,7 +91,7 @@ export default function HeaderClient({
       <div className="mx-auto h-full px-4 sm:px-8">
         <div
           className={`h-full items-center ${
-            hasScrolled || !isHomePage
+            shouldShowHeaderSearch
               ? "flex justify-between gap-6 sm:gap-12"
               : "grid grid-cols-3"
           }`}
@@ -92,10 +100,10 @@ export default function HeaderClient({
           <div className="flex justify-start">
             <div
               className={`font-extrabold transition-all duration-200 ${
-                hasScrolled || !isHomePage ? "text-lg" : "text-2xl"
+                shouldShowHeaderSearch ? "text-lg" : "text-2xl"
               }`}
             >
-              {hasScrolled || !isHomePage ? (
+              {shouldShowHeaderSearch ? (
                 <div className="flex items-center gap-0 sm:gap-2">
                   {/* Desktop nav sheet trigger - hidden on mobile when scrolled */}
                   <NavSheetDesktop topClass={sheetTopClass}>
@@ -125,7 +133,7 @@ export default function HeaderClient({
 
           {/* Middle section - Navigation/Search */}
           <div className="flex w-full max-w-4xl justify-center">
-            {hasScrolled || !isHomePage ? (
+            {shouldShowHeaderSearch ? (
               <div className="w-full">
                 <GlobalSearchBar />
               </div>
