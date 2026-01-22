@@ -45,7 +45,10 @@ export default function HeaderClient({
   const searchParams = useSearchParams();
   const isHomePage = pathname === "/";
   const isSearchResultsPage = pathname?.startsWith("/search") ?? false;
-  // Home and search pages show the hero search on-page, so keep the header compact there.
+  // Home (usesHeroSearchHeader) shows the hero search, so shouldShowHeaderSearch flips
+  // to true after scroll to reveal the compact header search; the search results page
+  // (isSearchResultsPage) never shows the header search, so shouldShowHeaderSearch stays
+  // false and sheetTopClass keeps the expanded header ("top-24...").
   const usesHeroSearchHeader = isHomePage || isSearchResultsPage;
   // Never show the header search bar on the search results page; on home it appears after scroll.
   const shouldShowHeaderSearch =
