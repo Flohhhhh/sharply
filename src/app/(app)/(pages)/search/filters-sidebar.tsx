@@ -280,7 +280,9 @@ export function FiltersSidebar() {
             <div className="text-sm font-medium">Lens type</div>
             <Select
               value={lensType ?? ""}
-              onValueChange={(value) => setLensType(value || null)}
+              onValueChange={(value) =>
+                setLensType(value === "all" ? null : value)
+              }
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select a lens type" />
