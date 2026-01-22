@@ -24,6 +24,22 @@ import { mergeSearchParams } from "@utils/url";
 import { SENSOR_FORMATS, MOUNTS, BRANDS } from "~/lib/constants";
 import { getMountLongName } from "~/lib/mapping/mounts-map";
 
+// Slider curve: 1 = linear, higher = more weight to low prices (exponential).
+const PRICE_SLIDER_CURVE = 2;
+
+function priceToSlider(value: number, maxPrice: number) {
+  const clamped = Math.max(0, Math.min(value, maxPrice));
+  const ratio = clamped / maxPrice;
+  const curved = Math.pow(ratio, 1 / PRICE_SLIDER_CURVE);
+  return Math.round(curved * 1000);
+}
+
+function sliderToPrice(value: number, maxPrice: number) {
+  const ratio = Math.max(0, Math.min(value, 1000)) / 1000;
+  const price = Math.pow(ratio, PRICE_SLIDER_CURVE) * maxPrice;
+  return Math.round(price);
+}
+
 // Narrow generated constants to safe shapes to avoid `any`
 const MOUNT_OPTIONS = MOUNTS as Array<{ id: string; value: string }>;
 const SENSOR_OPTIONS = SENSOR_FORMATS as Array<{
@@ -209,20 +225,27 @@ export function FiltersModal() {
           <div className="text-sm font-medium">Price range</div>
           <Slider
             value={[
-              Number.isFinite(price[0]) ? Number(price[0]) : 0,
-              Number.isFinite(price[1]) && price[1] !== 0
-                ? Number(price[1])
-                : PRICE_MAX,
+              priceToSlider(Number.isFinite(price[0]) ? Number(price[0]) : 0, PRICE_MAX),
+              priceToSlider(
+                Number.isFinite(price[1]) && price[1] !== 0
+                  ? Number(price[1])
+                  : PRICE_MAX,
+                PRICE_MAX,
+              ),
             ]}
             min={0}
-            max={PRICE_MAX}
-            step={50}
+            max={1000}
+            step={1}
             onValueChange={(v: number[]) => {
-              const [min = 0, max = PRICE_MAX] = v;
+              const [minSlider = 0, maxSlider = 1000] = v;
+              const min = sliderToPrice(minSlider, PRICE_MAX);
+              const max = sliderToPrice(maxSlider, PRICE_MAX);
               setPrice([min, max]);
             }}
             onValueCommit={(v: number[]) => {
-              const [min = 0, max = PRICE_MAX] = v;
+              const [minSlider = 0, maxSlider = 1000] = v;
+              const min = sliderToPrice(minSlider, PRICE_MAX);
+              const max = sliderToPrice(maxSlider, PRICE_MAX);
               if (pathname.startsWith("/browse")) {
                 pushParams({
                   minPrice: min > 0 ? min : null,

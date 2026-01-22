@@ -22,6 +22,7 @@ interface MountSelectProps {
   label?: string;
   placeholder?: string;
   brandId?: string | null;
+  filterBrand?: string | null;
   disabled?: boolean;
   showLabel?: boolean;
   className?: string;
@@ -34,6 +35,7 @@ export function MountSelect({
   label = "Mount",
   placeholder,
   brandId,
+  filterBrand,
   disabled,
   showLabel = true,
   className,
@@ -46,8 +48,23 @@ export function MountSelect({
     return map;
   }, []);
 
+  const brandSlugToId = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const b of BRANDS as any[]) {
+      map.set((b as any).slug as string, (b as any).id as string);
+    }
+    return map;
+  }, []);
+
+  const normalizedFilterBrandId = useMemo(() => {
+    if (!filterBrand) return null;
+    if (brandSlugToId.has(filterBrand)) return brandSlugToId.get(filterBrand)!;
+    if (brandIdToName.has(filterBrand)) return filterBrand;
+    return null;
+  }, [filterBrand, brandIdToName, brandSlugToId]);
+
   const optionsWithBrand = useMemo(() => {
-    return (MOUNTS as any[]).map((mount: any) => {
+    const mapped = (MOUNTS as any[]).map((mount: any) => {
       const mountBrandId = (mount as any).brand_id as string | undefined | null;
       const brandName =
         (mountBrandId && brandIdToName.get(mountBrandId)) || "Other";
@@ -67,7 +84,9 @@ export function MountSelect({
         rawBrandId: string | null;
       };
     });
-  }, [brandIdToName]);
+    if (!normalizedFilterBrandId) return mapped;
+    return mapped.filter((opt) => opt.rawBrandId === normalizedFilterBrandId);
+  }, [brandIdToName, normalizedFilterBrandId]);
 
   // Custom brand priority order, then alphabetical for the rest
   const brandPriority = useMemo(

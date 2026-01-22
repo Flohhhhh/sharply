@@ -5,14 +5,7 @@ import { useDebounce } from "~/lib/hooks/useDebounce";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectSeparator,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import {
   Table,
   TableBody,
@@ -23,7 +16,6 @@ import {
 } from "~/components/ui/table";
 import { Badge } from "~/components/ui/badge";
 import { BRANDS } from "~/lib/constants";
-import { splitBrandsWithPriority } from "~/lib/brands";
 import {
   isBrandNameOnly as isBrandOnlyName,
   getNameSoftWarnings,
@@ -37,6 +29,7 @@ import {
 import { useState, useEffect } from "react";
 import { z } from "zod";
 import { MountSelect } from "~/components/custom-inputs/mount-select";
+import { BrandSelect } from "~/components/custom-inputs/brand-select";
 import {
   Dialog,
   DialogContent,
@@ -439,16 +432,6 @@ function BulkCreateRow({
 }
 
 export default function GearBulkCreate(): React.JSX.Element {
-  const { hoisted: hoistedBrands, remaining: remainingBrands } =
-    React.useMemo(
-      () =>
-        splitBrandsWithPriority(
-          BRANDS.map((b) => ({ id: b.id, name: b.name })),
-        ),
-      [],
-    );
-  const showBrandDivider =
-    hoistedBrands.length > 0 && remainingBrands.length > 0;
   const [brandId, setBrandId] = React.useState<string>("");
   const [gearType, setGearType] = React.useState<GearType | "">("");
   const [selectedMountId, setSelectedMountId] = React.useState<string>("");
@@ -684,28 +667,11 @@ export default function GearBulkCreate(): React.JSX.Element {
           <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-3">
             <div className="space-y-1">
               <label className="text-sm font-medium">Brand</label>
-              <Select
+              <BrandSelect
                 value={brandId}
-                onValueChange={(v) => setBrandId(v)}
+                onChange={setBrandId}
                 disabled={isImporting || isSubmitting}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a brand" />
-                </SelectTrigger>
-                <SelectContent>
-                  {hoistedBrands.map((b) => (
-                    <SelectItem key={b.id} value={b.id}>
-                      {b.name}
-                    </SelectItem>
-                  ))}
-                  {showBrandDivider ? <SelectSeparator /> : null}
-                  {remainingBrands.map((b) => (
-                    <SelectItem key={b.id} value={b.id}>
-                      {b.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium">Type</label>

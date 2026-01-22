@@ -98,3 +98,13 @@ export function getMountLongNamesById(
     .filter((n) => n !== "Unknown")
     .join(", ");
 }
+
+export const getMountSlugById = (id: string) => {
+  const m = MOUNT_LIST.find((x) => x.id === id);
+  return m?.value;
+};
+
+export const getMountIdFromSlug = (slug: string) => {
+  const m = MOUNT_LIST.find((x) => x.value === slug);
+  return m?.id;
+};

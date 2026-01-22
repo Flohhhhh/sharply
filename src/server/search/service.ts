@@ -56,6 +56,13 @@ export type SearchResult = {
   mountValue: string | null;
   gearType: string;
   thumbnailUrl: string | null;
+  msrpNowUsdCents?: number | null;
+  msrpAtLaunchUsdCents?: number | null;
+  mpbMaxPriceUsdCents?: number | null;
+  releaseDate?: Date | string | null;
+  releaseDatePrecision?: string | null;
+  announcedDate?: Date | string | null;
+  announceDatePrecision?: string | null;
   relevance?: number;
 };
 
@@ -95,23 +102,33 @@ export async function searchGear(
 
   if (filters) {
     const filterConditions: SQL[] = [];
+    const hasPrice = sql`
+      ${gear.msrpNowUsdCents} IS NOT NULL
+      OR ${gear.msrpAtLaunchUsdCents} IS NOT NULL
+      OR ${gear.mpbMaxPriceUsdCents} IS NOT NULL
+    `;
+    // Prefer current MSRP, then used market (MPB), then launch MSRP.
+    const effectivePriceCentsForMax = sql`COALESCE(${gear.msrpNowUsdCents}, ${gear.mpbMaxPriceUsdCents}, ${gear.msrpAtLaunchUsdCents})`;
+    // For min bounds, prefer current MSRP, then launch, then used price.
+    const effectivePriceCentsForMin = sql`COALESCE(${gear.msrpNowUsdCents}, ${gear.msrpAtLaunchUsdCents}, ${gear.mpbMaxPriceUsdCents})`;
     if (filters.brand) {
       filterConditions.push(sql`${brands.name} ILIKE ${`%${filters.brand}%`}`);
     }
     if (filters.mount) {
-      filterConditions.push(sql`${mounts.value} ILIKE ${`%${filters.mount}%`}`);
+      filterConditions.push(sql`${mounts.id} = ${filters.mount}`);
     }
     if (filters.gearType) {
       filterConditions.push(sql`${gear.gearType} = ${filters.gearType}`);
     }
     if (filters.priceMin !== undefined) {
+      // Require a known price and enforce the lower bound.
       filterConditions.push(
-        sql`${gear.msrpNowUsdCents} >= ${filters.priceMin * 100}`,
+        sql`(${hasPrice}) AND (${effectivePriceCentsForMin} >= ${filters.priceMin * 100})`,
       );
     }
     if (filters.priceMax !== undefined) {
       filterConditions.push(
-        sql`${gear.msrpNowUsdCents} <= ${filters.priceMax * 100}`,
+        sql`(NOT (${hasPrice}) OR ${effectivePriceCentsForMax} <= ${filters.priceMax * 100})`,
       );
     }
 
@@ -146,9 +163,10 @@ export async function searchGear(
     pageSize,
     offset,
     relevanceExpr: query && sort === "relevance" ? relevanceExpr : undefined,
+    includeMounts: Boolean(filters?.mount),
   });
 
-  const total = await querySearchTotal(whereClause);
+  const total = await querySearchTotal(whereClause, Boolean(filters?.mount));
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return {
