@@ -85,13 +85,18 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       }
     }
 
+    // Fallback when totals are omitted to keep pagination logic predictable.
+    const totalPages = result.totalPages ?? 1;
+
     const prevParams = new URLSearchParams(baseParams);
     if (result.page > 1) prevParams.set("page", String(result.page - 1));
     const nextParams = new URLSearchParams(baseParams);
-    if (result.page < result.totalPages)
+    if (result.page < totalPages)
       nextParams.set("page", String(result.page + 1));
 
-    const hasResults = result.total > 0;
+    // Default totals to keep the UI stable even when totals are not returned.
+    const totalResults = result.total ?? result.results.length;
+    const hasResults = totalResults > 0;
 
     return (
       <main className="mx-auto min-h-screen max-w-7xl space-y-10 px-4 pt-36 pb-12 sm:px-6">
@@ -126,7 +131,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 {q ? `Search results for "${q}"` : "All search results"}
               </h2>
               <p className="text-muted-foreground text-sm">
-                Showing {result.total} result{result.total === 1 ? "" : "s"}
+                Showing {totalResults} result{totalResults === 1 ? "" : "s"}
               </p>
             </div>
             <div className="flex items-center justify-end gap-2">
@@ -230,7 +235,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
               <div className="mt-6 flex items-center justify-between">
                 <span className="text-muted-foreground text-sm">
-                  Page {result.page} of {result.totalPages}
+                  Page {result.page} of {totalPages}
                 </span>
                 <div className="flex gap-2">
                   <a
@@ -246,9 +251,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                   </a>
                   <a
                     className="border-input hover:bg-accent rounded-md border px-3 py-1.5 text-sm aria-disabled:opacity-50"
-                    aria-disabled={result.page >= result.totalPages}
+                    aria-disabled={result.page >= totalPages}
                     href={
-                      result.page >= result.totalPages
+                      result.page >= totalPages
                         ? "#"
                         : `/search?${nextParams.toString()}`
                     }
