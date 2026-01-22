@@ -9,10 +9,7 @@ function parsePriceParam(value: string | null) {
   if (value === null) return undefined;
   const parsed = Number(value);
   if (!Number.isFinite(parsed) || parsed < 0) return undefined;
-  const looksLikeCents =
-    value.endsWith("00") && parsed > PRICE_DOLLAR_UI_MAX * 2;
-  const dollars = looksLikeCents ? Math.round(parsed / 100) : parsed;
-  return dollars;
+  return parsed;
 }
 
 export async function GET(request: NextRequest) {
