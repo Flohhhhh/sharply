@@ -245,7 +245,27 @@ export async function querySearchRows(options: {
     query = query.leftJoin(analogCameraSpecs, eq(gear.id, analogCameraSpecs.gearId));
   }
 
+  const groupByColumns = [
+    gear.id,
+    gear.name,
+    gear.slug,
+    brands.name,
+    gear.gearType,
+    gear.thumbnailUrl,
+    gear.msrpNowUsdCents,
+    gear.msrpAtLaunchUsdCents,
+    gear.mpbMaxPriceUsdCents,
+    gear.releaseDate,
+    gear.releaseDatePrecision,
+    gear.announcedDate,
+    gear.announceDatePrecision,
+  ];
+  if (options.relevanceExpr) {
+    groupByColumns.push(options.relevanceExpr);
+  }
+
   return query
+    .groupBy(...groupByColumns)
     .where(options.whereClause)
     .orderBy(...options.orderBy)
     .limit(options.pageSize)
@@ -263,7 +283,7 @@ export async function querySearchTotal(
   includeAnalogSpecs?: boolean,
 ) {
   let query = db
-    .select({ count: sql<number>`count(*)` })
+    .select({ count: sql<number>`count(distinct ${gear.id})` })
     .from(gear)
     .leftJoin(brands, sql`${gear.brandId} = ${brands.id}`);
 
