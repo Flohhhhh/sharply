@@ -15,9 +15,12 @@ import { Spinner } from "~/components/ui/spinner";
 import { FiltersSidebar } from "./filters-sidebar";
 import { Separator } from "~/components/ui/separator";
 import { SortSelect } from "~/components/search/sort-select";
+import type { SearchResponse } from "~/server/search/service";
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
-const fetcherJson = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = <T,>(url: string): Promise<T> =>
+  fetch(url).then((res) => res.json() as Promise<T>);
+const fetcherJson = <T,>(url: string): Promise<T> =>
+  fetch(url).then((res) => res.json() as Promise<T>);
 const PAGE_SIZE = 24;
 
 type SearchClientProps = {
@@ -130,31 +133,27 @@ export function SearchClient({ initialPage }: SearchClientProps) {
     megapixelsMax,
   ]);
 
-  const { data, error, size, setSize, isValidating } = useSWRInfinite(
-    getKey,
-    fetcher,
-    {
-      initialSize: 1,
-      revalidateFirstPage: true,
-      fallbackData:
-        !debouncedQ && noFiltersActive && initialPage
-          ? [initialPage]
-          : undefined,
-    },
-  );
+  const { data, error, size, setSize, isValidating } = useSWRInfinite<
+    SearchResponse
+  >(getKey, fetcher, {
+    initialSize: 1,
+    revalidateFirstPage: true,
+    fallbackData:
+      !debouncedQ && noFiltersActive && initialPage ? [initialPage] : undefined,
+  });
 
-  const flattenedResults = data?.flatMap((d: any) => d?.results ?? []) ?? [];
-  const latestPage = data?.[data.length - 1];
+  const flattenedResults =
+    data?.flatMap((page) => page?.results ?? []) ?? [];
+  const latestPage = data?.at?.(-1) ?? data?.[data.length - 1];
   const firstPage = data?.[0];
   // const totalPages = firstPage?.totalPages ?? latestPage?.totalPages ?? 0;
   // const currentPage = latestPage?.page ?? 1;
   const totalCount = firstPage?.total ?? flattenedResults.length;
   const isLoadingInitial = !data && !error;
   const isLoadingMore =
-    isLoadingInitial ||
-    (size > 0 && data && typeof data[size - 1] === "undefined");
+    isLoadingInitial || (size > 0 && typeof data?.[size - 1] === "undefined");
   const isReachingEnd =
-    data && data.length > 0
+    data?.length
       ? (latestPage?.results?.length ?? 0) < PAGE_SIZE ||
         (totalCount ? flattenedResults.length >= totalCount : false)
       : false;
@@ -167,15 +166,17 @@ export function SearchClient({ initialPage }: SearchClientProps) {
 
     const observer = new IntersectionObserver((entries) => {
       const first = entries[0];
-      if (first && first.isIntersecting) {
-        setSize((prev) => prev + 1);
+      if (first?.isIntersecting) {
+        void setSize((prev) => prev + 1);
       }
     });
     observer.observe(node);
     return () => observer.disconnect();
   }, [isReachingEnd, isLoadingMore, setSize]);
 
-  const { data: trendingData } = useSwr(
+  type TrendingResponse = { items?: { slug: string }[] };
+
+  const { data: trendingData } = useSwr<TrendingResponse>(
     "/api/trending?timeframe=30d&perPage=200",
     fetcherJson,
     {
@@ -215,16 +216,16 @@ export function SearchClient({ initialPage }: SearchClientProps) {
               size="sm"
               icon={<RefreshCcwDot className="size-4" />}
               onClick={() => {
-                setGearType("all");
-                setMount(null);
-                setSensorFormat(null);
-                setBrand(null);
-                setLensType(null);
-                setAnalogCameraType(null);
-                setPriceMin(null);
-                setPriceMax(null);
-                setMegapixelsMin(null);
-                setMegapixelsMax(null);
+                void setGearType("all");
+                void setMount(null);
+                void setSensorFormat(null);
+                void setBrand(null);
+                void setLensType(null);
+                void setAnalogCameraType(null);
+                void setPriceMin(null);
+                void setPriceMax(null);
+                void setMegapixelsMin(null);
+                void setMegapixelsMax(null);
               }}
             >
               Reset filters
@@ -244,9 +245,7 @@ export function SearchClient({ initialPage }: SearchClientProps) {
             isLoading={isLoadingInitial}
             error={error}
             trendingSlugs={
-              Array.isArray(trendingData?.items)
-                ? trendingData.items.map((item: any) => item.slug)
-                : []
+              trendingData?.items?.map((item) => item.slug) ?? []
             }
             isLoadingMore={isLoadingMore}
             isReachingEnd={isReachingEnd}

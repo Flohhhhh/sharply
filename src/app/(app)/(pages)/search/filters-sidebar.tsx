@@ -104,13 +104,13 @@ export function FiltersSidebar() {
 
   const handleGearTypeChange = (value: string) => {
     // Remove the query param when "all" is selected to keep it undefined
-    setGearType(value === "all" ? null : value);
+    void setGearType(value === "all" ? null : value);
     // Clear type-scoped filters when switching gear type
-    setSensorFormat(null);
-    setLensType(null);
-    setMegapixelsMin(null);
-    setMegapixelsMax(null);
-    setAnalogCameraType(null);
+    void setSensorFormat(null);
+    void setLensType(null);
+    void setMegapixelsMin(null);
+    void setMegapixelsMax(null);
+    void setAnalogCameraType(null);
   };
 
   return (
@@ -149,8 +149,8 @@ export function FiltersSidebar() {
         <BrandSelect
           value={brand ?? ""}
           onChange={(value) => {
-            setBrand(value || null);
-            setMount(null);
+            void setBrand(value || null);
+            void setMount(null);
           }}
           valueKey="slug"
           placeholder="Select a brand"
@@ -169,7 +169,7 @@ export function FiltersSidebar() {
               typeof value === "string"
                 ? (getMountSlugById(value) ?? null)
                 : null;
-            setMount(slug || null);
+            void setMount(slug || null);
           }}
         />
       </div>
@@ -235,7 +235,7 @@ export function FiltersSidebar() {
                 label="Sensor format"
                 value={sensorFormat ?? null}
                 onChange={(value: string | undefined) =>
-                  setSensorFormat(value || null)
+                  void setSensorFormat(value || null)
                 }
               />
             </div>
@@ -261,8 +261,8 @@ export function FiltersSidebar() {
                   const min = sliderToMp(minSlider, MP_MAX);
                   const max = sliderToMp(maxSlider, MP_MAX);
                   setMegapixelsRange([min, max]);
-                  setMegapixelsMin(min > 0 ? String(min) : null);
-                  setMegapixelsMax(max < MP_MAX ? String(max) : null);
+                  void setMegapixelsMin(min > 0 ? String(min) : null);
+                  void setMegapixelsMax(max < MP_MAX ? String(max) : null);
                 }}
               />
               <div className="text-muted-foreground flex items-center justify-between text-sm">
@@ -281,7 +281,7 @@ export function FiltersSidebar() {
             <Select
               value={lensType ?? ""}
               onValueChange={(value) =>
-                setLensType(value === "all" ? null : value)
+                void setLensType(value === "all" ? null : value)
               }
             >
               <SelectTrigger className="w-full">
@@ -299,7 +299,7 @@ export function FiltersSidebar() {
             <div className="text-sm font-medium">Analog camera type</div>
             <Select
               value={analogCameraType ?? ""}
-              onValueChange={(value) => setAnalogCameraType(value || null)}
+              onValueChange={(value) => void setAnalogCameraType(value || null)}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select an analog camera type" />

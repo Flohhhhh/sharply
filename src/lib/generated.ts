@@ -300,6 +300,15 @@ export const SENSOR_FORMATS = [
     "description": null,
     "created_at": "2026-01-11 00:36:54.959034+00",
     "updated_at": "2026-01-11 00:36:54.959034+00"
+  },
+  {
+    "id": "ac4bc86d-501a-4eec-9817-d17a3b2d37a0",
+    "name": "Cinema Large Format",
+    "slug": "cinema-large-format",
+    "crop_factor": "1.00",
+    "description": "Catch-all for various larger than full-frame wide and large format cinema camera sensors",
+    "created_at": "2026-01-20 12:14:13.604012+00",
+    "updated_at": "2026-01-20 12:14:13.604012+00"
   }
 ];
 export const BRANDS = [
