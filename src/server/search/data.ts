@@ -30,6 +30,7 @@ import {
   sensorFormats,
   lensSpecs,
   fixedLensSpecs,
+  analogCameraSpecs,
 } from "~/server/db/schema";
 import { asc, desc, ilike, sql, and, eq, type SQL } from "drizzle-orm";
 
@@ -202,6 +203,7 @@ export async function querySearchRows(options: {
   includeMounts?: boolean;
   includeSensorFormats?: boolean;
   includeLensSpecs?: boolean;
+  includeAnalogSpecs?: boolean;
 }) {
   // Return only core gear fields; callers shouldn't rely on single mount anymore.
   let query = db
@@ -239,6 +241,9 @@ export async function querySearchRows(options: {
       .leftJoin(lensSpecs, eq(gear.id, lensSpecs.gearId))
       .leftJoin(fixedLensSpecs, eq(gear.id, fixedLensSpecs.gearId));
   }
+  if (options.includeAnalogSpecs) {
+    query = query.leftJoin(analogCameraSpecs, eq(gear.id, analogCameraSpecs.gearId));
+  }
 
   return query
     .where(options.whereClause)
@@ -255,6 +260,7 @@ export async function querySearchTotal(
   includeMounts?: boolean,
   includeSensorFormats?: boolean,
   includeLensSpecs?: boolean,
+  includeAnalogSpecs?: boolean,
 ) {
   let query = db
     .select({ count: sql<number>`count(*)` })
@@ -275,6 +281,9 @@ export async function querySearchTotal(
     query = query
       .leftJoin(lensSpecs, eq(gear.id, lensSpecs.gearId))
       .leftJoin(fixedLensSpecs, eq(gear.id, fixedLensSpecs.gearId));
+  }
+  if (includeAnalogSpecs) {
+    query = query.leftJoin(analogCameraSpecs, eq(gear.id, analogCameraSpecs.gearId));
   }
 
   const rows = await query.where(whereClause);

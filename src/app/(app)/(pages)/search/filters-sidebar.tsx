@@ -8,6 +8,7 @@ import { getMountIdFromSlug, getMountSlugById } from "~/lib/mapping/mounts-map";
 import { Slider } from "~/components/ui/slider";
 import { Separator } from "~/components/ui/separator";
 import SensorFormatInput from "~/components/custom-inputs/sensor-format-input";
+import { ANALOG_OPTIONS } from "~/lib/mapping/analog-types-map";
 import {
   SelectContent,
   SelectValue,
@@ -57,6 +58,8 @@ export function FiltersSidebar() {
   const [priceMax, setPriceMax] = useQueryState("priceMax");
   const [megapixelsMin, setMegapixelsMin] = useQueryState("megapixelsMin");
   const [megapixelsMax, setMegapixelsMax] = useQueryState("megapixelsMax");
+  const [analogCameraType, setAnalogCameraType] =
+    useQueryState("analogCameraType");
 
   const PRICE_MAX = 20000; // USD
   const MP_MAX = 100;
@@ -107,6 +110,7 @@ export function FiltersSidebar() {
     setLensType(null);
     setMegapixelsMin(null);
     setMegapixelsMax(null);
+    setAnalogCameraType(null);
   };
 
   return (
@@ -159,6 +163,7 @@ export function FiltersSidebar() {
         <MountSelect
           value={mount ? (getMountIdFromSlug(mount) ?? null) : null}
           filterBrand={brand}
+          allowClear
           onChange={(value) => {
             const slug =
               typeof value === "string"
@@ -290,6 +295,21 @@ export function FiltersSidebar() {
         ) : gearType === "analog-camera" ? (
           <div className="space-y-2">
             <div className="text-sm font-medium">Analog camera type</div>
+            <Select
+              value={analogCameraType ?? ""}
+              onValueChange={(value) => setAnalogCameraType(value || null)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select an analog camera type" />
+              </SelectTrigger>
+              <SelectContent>
+                {ANALOG_OPTIONS.cameraTypes.map((opt) => (
+                  <SelectItem key={opt.id} value={opt.id}>
+                    {opt.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         ) : null}
       </section>

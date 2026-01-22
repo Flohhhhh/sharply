@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { XIcon } from "lucide-react";
 import { Label } from "~/components/ui/label";
 import {
   Select,
@@ -26,6 +27,8 @@ interface MountSelectProps {
   disabled?: boolean;
   showLabel?: boolean;
   className?: string;
+  allowClear?: boolean;
+  clearLabel?: string;
 }
 
 export function MountSelect({
@@ -39,7 +42,11 @@ export function MountSelect({
   disabled,
   showLabel = true,
   className,
+  allowClear = false,
+  clearLabel = "Clear selection",
 }: MountSelectProps) {
+  const clearValue = "__mount_clear__";
+
   const brandIdToName = useMemo(() => {
     const map = new Map<string, string>();
     for (const b of BRANDS as any[]) {
@@ -143,19 +150,39 @@ export function MountSelect({
   // Single select mode
   if (mode === "single") {
     const singleValue = Array.isArray(value) ? value[0] || "" : value || "";
+    const selectValue = singleValue ?? "";
 
     return (
       <div id="mount" className={cn("space-y-2", className)}>
         {showLabel && <Label htmlFor="mount">{label}</Label>}
         <Select
-          value={singleValue}
-          onValueChange={(val) => onChange(val)}
+          value={selectValue}
+          onValueChange={(nextValue) => {
+            // Allow clearing the selection when the clear option is chosen.
+            if (allowClear && nextValue === clearValue) {
+              onChange("");
+              return;
+            }
+            onChange(nextValue);
+          }}
           disabled={disabled}
         >
           <SelectTrigger id="mount" className="w-full">
             <SelectValue placeholder={placeholder || "Select mount"} />
           </SelectTrigger>
           <SelectContent>
+            {allowClear ? (
+              <SelectItem
+                value={clearValue}
+                className="text-muted-foreground flex items-center justify-between gap-2"
+              >
+                <XIcon className="size-4" />
+                {clearLabel}
+              </SelectItem>
+            ) : null}
+            {allowClear && orderedOptions.length > 0 ? (
+              <SelectSeparator />
+            ) : null}
             {orderedOptions.map((opt) => {
               if ((opt as any).type === "separator") {
                 return <SelectSeparator key={(opt as any).id} />;

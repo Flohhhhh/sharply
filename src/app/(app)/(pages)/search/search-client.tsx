@@ -38,6 +38,8 @@ export function SearchClient({ initialPage }: SearchClientProps) {
   const [gearType, setGearType] = useQueryState("gearType");
   const [sensorFormat, setSensorFormat] = useQueryState("sensorFormat");
   const [lensType, setLensType] = useQueryState("lensType");
+  const [analogCameraType, setAnalogCameraType] =
+    useQueryState("analogCameraType");
   const [priceMin, setPriceMin] = useQueryState("priceMin");
   const [priceMax, setPriceMax] = useQueryState("priceMax");
   const [megapixelsMin, setMegapixelsMin] = useQueryState("megapixelsMin");
@@ -84,6 +86,7 @@ export function SearchClient({ initialPage }: SearchClientProps) {
         gearType: mappedGearType,
         sensorFormat,
         lensType,
+        analogCameraType,
         megapixelsMin,
         megapixelsMax,
         priceMin,
@@ -98,10 +101,33 @@ export function SearchClient({ initialPage }: SearchClientProps) {
     mappedGearType,
     sensorFormat,
     lensType,
+    analogCameraType,
     megapixelsMin,
     megapixelsMax,
     priceMin,
     priceMax,
+  ]);
+
+  const noFiltersActive = useMemo(() => {
+    return (
+      !brand &&
+      !mount &&
+      !gearType &&
+      !sensorFormat &&
+      !lensType &&
+      !analogCameraType &&
+      !megapixelsMin &&
+      !megapixelsMax
+    );
+  }, [
+    brand,
+    mount,
+    gearType,
+    sensorFormat,
+    lensType,
+    analogCameraType,
+    megapixelsMin,
+    megapixelsMax,
   ]);
 
   const { data, error, size, setSize, isValidating } = useSWRInfinite(
@@ -110,7 +136,10 @@ export function SearchClient({ initialPage }: SearchClientProps) {
     {
       initialSize: 1,
       revalidateFirstPage: true,
-      fallbackData: initialPage ? [initialPage] : undefined,
+      fallbackData:
+        !debouncedQ && noFiltersActive && initialPage
+          ? [initialPage]
+          : undefined,
     },
   );
 

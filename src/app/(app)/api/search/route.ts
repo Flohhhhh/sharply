@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
   const gearType = searchParams.get("gearType");
   const sensorFormat = searchParams.get("sensorFormat");
   const lensType = searchParams.get("lensType");
+  const analogCameraType = searchParams.get("analogCameraType");
   const rawPriceMin = searchParams.get("priceMin");
   const rawPriceMax = searchParams.get("priceMax");
   const priceMin = parsePriceParam(rawPriceMin);
@@ -54,6 +55,7 @@ export async function GET(request: NextRequest) {
   if (gearType) filters.gearType = gearType;
   if (sensorFormat) filters.sensorFormat = sensorFormat;
   if (lensType === "prime" || lensType === "zoom") filters.lensType = lensType;
+  if (analogCameraType) filters.analogCameraType = analogCameraType;
   if (megapixelsMin !== undefined) filters.megapixelsMin = megapixelsMin;
   if (megapixelsMax !== undefined) filters.megapixelsMax = megapixelsMax;
   if (priceMin !== undefined) filters.priceMin = priceMin;

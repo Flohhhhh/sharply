@@ -13,6 +13,7 @@ import {
   sensorFormats,
   lensSpecs,
   fixedLensSpecs,
+  analogCameraSpecs,
 } from "~/server/db/schema";
 import { asc, desc, sql, and, type SQL } from "drizzle-orm";
 import {
@@ -49,6 +50,7 @@ export type SearchFilters = {
   lensType?: "prime" | "zoom";
   megapixelsMin?: number;
   megapixelsMax?: number;
+  analogCameraType?: string;
 };
 
 export type SearchParams = {
@@ -143,6 +145,11 @@ export async function searchGear(
         sql`(${lensSpecs.isPrime} = ${isPrime} OR ${fixedLensSpecs.isPrime} = ${isPrime})`,
       );
     }
+    if (filters.analogCameraType) {
+      filterConditions.push(
+        sql`${analogCameraSpecs.cameraType} = ${filters.analogCameraType}`,
+      );
+    }
     const adjustedMpMin =
       filters.megapixelsMin !== undefined
         ? Math.max(0, filters.megapixelsMin - 0.9)
@@ -210,6 +217,7 @@ export async function searchGear(
       filters?.megapixelsMin !== undefined ||
       filters?.megapixelsMax !== undefined,
     includeLensSpecs: Boolean(filters?.lensType),
+    includeAnalogSpecs: Boolean(filters?.analogCameraType),
   });
 
   const total =
@@ -222,6 +230,7 @@ export async function searchGear(
             filters?.megapixelsMin !== undefined ||
             filters?.megapixelsMax !== undefined,
           Boolean(filters?.lensType),
+          Boolean(filters?.analogCameraType),
         );
   const totalPages =
     total !== undefined ? Math.max(1, Math.ceil(total / pageSize)) : undefined;
