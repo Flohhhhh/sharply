@@ -1,30 +1,34 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export function useLocalStorage<T>(key: string, initialValue: T) {
-  const isMounted = useRef(false);
-  const [value, setValue] = useState<T>(() => {
-    try {
-      const raw =
-        typeof window !== "undefined" ? window.localStorage.getItem(key) : null;
-      return raw ? (JSON.parse(raw) as T) : initialValue;
-    } catch {
-      return initialValue;
-    }
-  });
+  // Keep the server render deterministic and hydrate from localStorage after mount
+  const [value, setValue] = useState<T>(initialValue);
+  const [hasLoadedFromStorage, setHasLoadedFromStorage] = useState(false);
 
   useEffect(() => {
-    if (!isMounted.current) {
-      isMounted.current = true;
-      return;
+    // Read the stored value once the component is mounted to avoid SSR mismatch
+    try {
+      const raw = window.localStorage.getItem(key);
+      if (raw !== null) {
+        setValue(JSON.parse(raw) as T);
+      }
+    } catch {
+      // ignore read failures
+    } finally {
+      setHasLoadedFromStorage(true);
     }
+  }, [key]);
+
+  useEffect(() => {
+    if (!hasLoadedFromStorage) return;
     try {
       window.localStorage.setItem(key, JSON.stringify(value));
     } catch {
-      // ignore
+      // ignore write failures
     }
-  }, [key, value]);
+  }, [key, value, hasLoadedFromStorage]);
 
   const clear = useCallback(() => {
     try {

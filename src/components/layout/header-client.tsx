@@ -50,10 +50,9 @@ export default function HeaderClient({
   // Never show the header search bar on the search results page; on home it appears after scroll.
   const shouldShowHeaderSearch =
     (!isSearchResultsPage && hasScrolled) || !usesHeroSearchHeader;
-  const sheetTopClass =
-    shouldShowHeaderSearch
-      ? "top-16 h-[calc(100vh-4rem)]"
-      : "top-24 h-[calc(100vh-6rem)]";
+  const sheetTopClass = shouldShowHeaderSearch
+    ? "top-16 h-[calc(100vh-4rem)]"
+    : "top-24 h-[calc(100vh-6rem)]";
 
   const callbackUrl = (() => {
     const qs = searchParams?.toString();

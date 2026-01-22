@@ -10,19 +10,29 @@ import { SearchResults } from "./search-results";
 import { useEffect, useMemo, useRef } from "react";
 import { buildSearchHref } from "~/lib/utils/url";
 import { useDebounce } from "~/lib/hooks/useDebounce";
-import { SearchIcon } from "lucide-react";
+import { SearchIcon, RefreshCcwDot } from "lucide-react";
 import { Spinner } from "~/components/ui/spinner";
 import { FiltersSidebar } from "./filters-sidebar";
 import { Separator } from "~/components/ui/separator";
+import { SortSelect } from "~/components/search/sort-select";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 const fetcherJson = (url: string) => fetch(url).then((res) => res.json());
 const PAGE_SIZE = 24;
 
-export function SearchClient() {
+type SearchClientProps = {
+  initialPage?: {
+    results: any[];
+    total?: number;
+    totalPages?: number;
+    page: number;
+    pageSize: number;
+  } | null;
+};
+
+export function SearchClient({ initialPage }: SearchClientProps) {
   const [q, setQ] = useQueryState("q");
   const [sort, setSort] = useQueryState("sort") ?? "relevance";
-  const [page, setPage] = useQueryState("page") ?? 1;
   const [brand, setBrand] = useQueryState("brand");
   const [mount, setMount] = useQueryState("mount");
   const [gearType, setGearType] = useQueryState("gearType");
@@ -30,7 +40,9 @@ export function SearchClient() {
   const [lensType, setLensType] = useQueryState("lensType");
   const [priceMin, setPriceMin] = useQueryState("priceMin");
   const [priceMax, setPriceMax] = useQueryState("priceMax");
-  const debouncedQ = useDebounce(q, 300);
+  const [megapixelsMin, setMegapixelsMin] = useQueryState("megapixelsMin");
+  const [megapixelsMax, setMegapixelsMax] = useQueryState("megapixelsMax");
+  const debouncedQ = useDebounce(q, 400);
 
   const mappedGearType = useMemo(() => {
     switch (gearType) {
@@ -47,13 +59,23 @@ export function SearchClient() {
     }
   }, [gearType]);
 
+  // Default sort: newest when no query; relevance when query present
+  const effectiveSort = useMemo(() => {
+    const hasQuery = (q ?? "").trim().length > 0;
+    if (!hasQuery) {
+      if (!sort || sort === "relevance") return "newest";
+      return sort;
+    }
+    return sort || "relevance";
+  }, [q, sort]);
+
   const getKey = useMemo(() => {
     return (pageIndex: number) => {
       const base = "/api/search";
 
       return buildSearchHref(base, {
         q: debouncedQ,
-        sort,
+        sort: effectiveSort,
         page: pageIndex + 1,
         pageSize: PAGE_SIZE,
         includeTotal: pageIndex === 0 ? undefined : "false",
@@ -62,18 +84,22 @@ export function SearchClient() {
         gearType: mappedGearType,
         sensorFormat,
         lensType,
+        megapixelsMin,
+        megapixelsMax,
         priceMin,
         priceMax,
       });
     };
   }, [
-    q,
-    sort,
+    debouncedQ,
+    effectiveSort,
     brand,
     mount,
     mappedGearType,
     sensorFormat,
     lensType,
+    megapixelsMin,
+    megapixelsMax,
     priceMin,
     priceMax,
   ]);
@@ -82,8 +108,9 @@ export function SearchClient() {
     getKey,
     fetcher,
     {
-      initialSize: Number(page) || 1,
+      initialSize: 1,
       revalidateFirstPage: true,
+      fallbackData: initialPage ? [initialPage] : undefined,
     },
   );
 
@@ -147,14 +174,39 @@ export function SearchClient() {
         </div>
       </section>
 
+      <section className="px-4 sm:px-8">
+        <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-muted-foreground text-sm">
+              Showing {flattenedResults.length}
+              {totalCount ? ` of ${totalCount}` : ""} results
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<RefreshCcwDot className="size-4" />}
+              onClick={() => {
+                setGearType("all");
+                setMount(null);
+                setSensorFormat(null);
+                setBrand(null);
+                setLensType(null);
+                setPriceMin(null);
+                setPriceMax(null);
+              }}
+            >
+              Reset filters
+            </Button>
+          </div>
+          <SortSelect />
+        </div>
+      </section>
+
       <section className="grid grid-cols-1 border-t px-4 sm:grid-cols-3 sm:px-8 lg:grid-cols-5">
         <div className="col-span-1 hidden h-full sm:block">
-          <FiltersSidebar
-            resultsCount={totalCount}
-            showingCount={flattenedResults.length}
-          />
+          <FiltersSidebar />
         </div>
-        <div className="col-span-1 h-full min-h-screen px-3 sm:col-span-2 lg:col-span-4">
+        <div className="col-span-1 h-full min-h-screen pl-4 sm:col-span-2 lg:col-span-4">
           <SearchResults
             results={flattenedResults}
             isLoading={isLoadingInitial}

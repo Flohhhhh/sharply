@@ -47,6 +47,8 @@ export type SearchFilters = {
   priceMax?: number;
   sensorFormat?: string;
   lensType?: "prime" | "zoom";
+  megapixelsMin?: number;
+  megapixelsMax?: number;
 };
 
 export type SearchParams = {
@@ -131,12 +133,32 @@ export async function searchGear(
       filterConditions.push(sql`${gear.gearType} = ${filters.gearType}`);
     }
     if (filters.sensorFormat) {
-      filterConditions.push(sql`${sensorFormats.slug} = ${filters.sensorFormat}`);
+      filterConditions.push(
+        sql`${sensorFormats.slug} = ${filters.sensorFormat}`,
+      );
     }
     if (filters.lensType) {
       const isPrime = filters.lensType === "prime";
       filterConditions.push(
         sql`(${lensSpecs.isPrime} = ${isPrime} OR ${fixedLensSpecs.isPrime} = ${isPrime})`,
+      );
+    }
+    const adjustedMpMin =
+      filters.megapixelsMin !== undefined
+        ? Math.max(0, filters.megapixelsMin - 0.9)
+        : undefined;
+    const adjustedMpMax =
+      filters.megapixelsMax !== undefined
+        ? filters.megapixelsMax + 0.9
+        : undefined;
+    if (filters.megapixelsMin !== undefined) {
+      filterConditions.push(
+        sql`${cameraSpecs.resolutionMp} >= ${adjustedMpMin!}`,
+      );
+    }
+    if (filters.megapixelsMax !== undefined) {
+      filterConditions.push(
+        sql`${cameraSpecs.resolutionMp} <= ${adjustedMpMax!}`,
       );
     }
     if (filters.priceMin !== undefined) {
@@ -183,7 +205,10 @@ export async function searchGear(
     offset,
     relevanceExpr: query && sort === "relevance" ? relevanceExpr : undefined,
     includeMounts: Boolean(filters?.mount),
-    includeSensorFormats: Boolean(filters?.sensorFormat),
+    includeSensorFormats:
+      Boolean(filters?.sensorFormat) ||
+      filters?.megapixelsMin !== undefined ||
+      filters?.megapixelsMax !== undefined,
     includeLensSpecs: Boolean(filters?.lensType),
   });
 
@@ -193,7 +218,9 @@ export async function searchGear(
       : await querySearchTotal(
           whereClause,
           Boolean(filters?.mount),
-          Boolean(filters?.sensorFormat),
+          Boolean(filters?.sensorFormat) ||
+            filters?.megapixelsMin !== undefined ||
+            filters?.megapixelsMax !== undefined,
           Boolean(filters?.lensType),
         );
   const totalPages =

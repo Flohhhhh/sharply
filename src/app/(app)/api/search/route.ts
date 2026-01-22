@@ -38,12 +38,24 @@ export async function GET(request: NextRequest) {
   const rawPriceMax = searchParams.get("priceMax");
   const priceMin = parsePriceParam(rawPriceMin);
   const priceMax = parsePriceParam(rawPriceMax);
+  const rawMpMin = searchParams.get("megapixelsMin");
+  const rawMpMax = searchParams.get("megapixelsMax");
+  const megapixelsMin =
+    rawMpMin !== null && Number.isFinite(Number(rawMpMin))
+      ? Number(rawMpMin)
+      : undefined;
+  const megapixelsMax =
+    rawMpMax !== null && Number.isFinite(Number(rawMpMax))
+      ? Number(rawMpMax)
+      : undefined;
 
   if (brand) filters.brand = brand;
   if (mount) filters.mount = mount;
   if (gearType) filters.gearType = gearType;
   if (sensorFormat) filters.sensorFormat = sensorFormat;
   if (lensType === "prime" || lensType === "zoom") filters.lensType = lensType;
+  if (megapixelsMin !== undefined) filters.megapixelsMin = megapixelsMin;
+  if (megapixelsMax !== undefined) filters.megapixelsMax = megapixelsMax;
   if (priceMin !== undefined) filters.priceMin = priceMin;
   if (priceMax !== undefined) filters.priceMax = priceMax;
   try {

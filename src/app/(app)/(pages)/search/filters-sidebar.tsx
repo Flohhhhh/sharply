@@ -7,8 +7,6 @@ import { MountSelect } from "~/components/custom-inputs/mount-select";
 import { getMountIdFromSlug, getMountSlugById } from "~/lib/mapping/mounts-map";
 import { Slider } from "~/components/ui/slider";
 import { Separator } from "~/components/ui/separator";
-import { Button } from "~/components/ui/button";
-import { RefreshCcwDotIcon } from "lucide-react";
 import SensorFormatInput from "~/components/custom-inputs/sensor-format-input";
 import {
   SelectContent,
@@ -17,9 +15,11 @@ import {
   SelectItem,
   SelectTrigger,
 } from "~/components/ui/select";
+import { Label } from "~/components/ui/label";
 
 // Slider curve: 1 = linear, higher = more weight to low prices (exponential).
 const PRICE_SLIDER_CURVE = 3;
+const MP_SLIDER_CURVE = 2;
 
 function priceToSlider(value: number, maxPrice: number) {
   const clamped = Math.max(0, Math.min(value, maxPrice));
@@ -34,10 +34,20 @@ function sliderToPrice(value: number, maxPrice: number) {
   return Math.round(price);
 }
 
-export function FiltersSidebar(props: {
-  resultsCount: number;
-  showingCount: number;
-}) {
+function mpToSlider(value: number, maxMp: number) {
+  const clamped = Math.max(0, Math.min(value, maxMp));
+  const ratio = clamped / maxMp;
+  const curved = Math.pow(ratio, 1 / MP_SLIDER_CURVE);
+  return Math.round(curved * 1000);
+}
+
+function sliderToMp(value: number, maxMp: number) {
+  const ratio = Math.max(0, Math.min(value, 1000)) / 1000;
+  const mp = Math.pow(ratio, MP_SLIDER_CURVE) * maxMp;
+  return Math.round(mp);
+}
+
+export function FiltersSidebar() {
   const [brand, setBrand] = useQueryState("brand");
   const [mount, setMount] = useQueryState("mount");
   const [sensorFormat, setSensorFormat] = useQueryState("sensorFormat");
@@ -45,9 +55,11 @@ export function FiltersSidebar(props: {
   const [gearType, setGearType] = useQueryState("gearType");
   const [priceMin, setPriceMin] = useQueryState("priceMin");
   const [priceMax, setPriceMax] = useQueryState("priceMax");
-  const [, setPage] = useQueryState("page");
+  const [megapixelsMin, setMegapixelsMin] = useQueryState("megapixelsMin");
+  const [megapixelsMax, setMegapixelsMax] = useQueryState("megapixelsMax");
 
   const PRICE_MAX = 20000; // USD
+  const MP_MAX = 100;
 
   const [priceRange, setPriceRange] = useState<[number, number]>(() => {
     const min = Number(priceMin ?? 0);
@@ -58,6 +70,17 @@ export function FiltersSidebar(props: {
     ];
   });
 
+  const [megapixelsRange, setMegapixelsRange] = useState<[number, number]>(
+    () => {
+      const min = Number(megapixelsMin ?? 0);
+      const max = Number(megapixelsMax ?? 100);
+      return [
+        Number.isFinite(min) ? min : 0,
+        Number.isFinite(max) && max > 0 ? max : 100,
+      ];
+    },
+  );
+
   useEffect(() => {
     const min = Number(priceMin ?? 0);
     const max = Number(priceMax ?? 0);
@@ -67,34 +90,28 @@ export function FiltersSidebar(props: {
     ]);
   }, [priceMin, priceMax]);
 
+  useEffect(() => {
+    const min = Number(megapixelsMin ?? 0);
+    const max = Number(megapixelsMax ?? 100);
+    setMegapixelsRange([
+      Number.isFinite(min) ? min : 0,
+      Number.isFinite(max) && max > 0 ? max : 100,
+    ]);
+  }, [megapixelsMin, megapixelsMax]);
+
   const handleGearTypeChange = (value: string) => {
     // Remove the query param when "all" is selected to keep it undefined
     setGearType(value === "all" ? null : value);
-    void setPage("1");
+    // Clear type-scoped filters when switching gear type
+    setSensorFormat(null);
+    setLensType(null);
+    setMegapixelsMin(null);
+    setMegapixelsMax(null);
   };
 
   return (
     <div className="sticky top-24 mt-4 w-full space-y-4 border-r pr-6">
       <div className="text-xl font-bold">Filters</div>
-      <div className="text-muted-foreground text-sm">
-        Showing {props.showingCount} of {props.resultsCount} results found
-      </div>
-      <Button
-        variant="outline"
-        size="sm"
-        icon={<RefreshCcwDotIcon className="size-4" />}
-        onClick={() => {
-          setGearType("all");
-          setMount(null);
-          setSensorFormat(null);
-          setBrand(null);
-          setPriceMin(null);
-          setPriceMax(null);
-          void setPage("1");
-        }}
-      >
-        Reset filters
-      </Button>
       {/* Gear Type */}
       <div className="space-y-2">
         <div className="text-sm font-medium">Gear Type</div>
@@ -130,7 +147,6 @@ export function FiltersSidebar(props: {
           onChange={(value) => {
             setBrand(value || null);
             setMount(null);
-            void setPage("1");
           }}
           valueKey="slug"
           placeholder="Select a brand"
@@ -149,7 +165,6 @@ export function FiltersSidebar(props: {
                 ? (getMountSlugById(value) ?? null)
                 : null;
             setMount(slug || null);
-            void setPage("1");
           }}
         />
       </div>
@@ -186,7 +201,6 @@ export function FiltersSidebar(props: {
             setPriceRange([min, max]);
             void setPriceMin(min > 0 ? String(min) : null);
             void setPriceMax(max && max < PRICE_MAX ? String(max) : null);
-            void setPage("1");
           }}
         />
         <div className="text-muted-foreground flex items-center justify-between text-sm">
@@ -199,7 +213,7 @@ export function FiltersSidebar(props: {
         </div>
       </div>
 
-      <Separator />
+      <Separator className="my-8" />
 
       <section className="h-48 space-y-4">
         {gearType === "all" || !gearType ? (
@@ -209,17 +223,53 @@ export function FiltersSidebar(props: {
             </span>
           </div>
         ) : gearType === "camera" ? (
-          <div className="space-y-2">
-            <div className="text-sm font-medium">Sensor format</div>
-            <SensorFormatInput
-              id="sensor-format"
-              label="Sensor format"
-              value={sensorFormat ?? null}
-              onChange={(value: string | undefined) =>
-                setSensorFormat(value || null)
-              }
-            />
-          </div>
+          <>
+            <div className="space-y-2">
+              <SensorFormatInput
+                id="sensor-format"
+                label="Sensor format"
+                value={sensorFormat ?? null}
+                onChange={(value: string | undefined) =>
+                  setSensorFormat(value || null)
+                }
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="megapixels">Megapixels</Label>
+              <Slider
+                value={[
+                  mpToSlider(megapixelsRange[0], MP_MAX),
+                  mpToSlider(megapixelsRange[1], MP_MAX),
+                ]}
+                min={0}
+                max={1000}
+                step={1}
+                onValueChange={(v: number[]) => {
+                  const [minSlider = 0, maxSlider = 1000] = v;
+                  const min = sliderToMp(minSlider, MP_MAX);
+                  const max = sliderToMp(maxSlider, MP_MAX);
+                  setMegapixelsRange([min, max]);
+                }}
+                onValueCommit={(v: number[]) => {
+                  const [minSlider = 0, maxSlider = 1000] = v;
+                  const min = sliderToMp(minSlider, MP_MAX);
+                  const max = sliderToMp(maxSlider, MP_MAX);
+                  setMegapixelsRange([min, max]);
+                  setMegapixelsMin(min > 0 ? String(min) : null);
+                  setMegapixelsMax(max < MP_MAX ? String(max) : null);
+                }}
+              />
+              <div className="text-muted-foreground flex items-center justify-between text-sm">
+                <span>{megapixelsRange[0]}MP</span>
+                <span>
+                  {megapixelsRange[1] && megapixelsRange[1] < MP_MAX
+                    ? `${megapixelsRange[1]}MP`
+                    : "No max"}
+                </span>
+              </div>
+            </div>
+          </>
         ) : gearType === "lens" ? (
           <div className="space-y-2">
             <div className="text-sm font-medium">Lens type</div>
@@ -231,6 +281,7 @@ export function FiltersSidebar(props: {
                 <SelectValue placeholder="Select a lens type" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="all">All</SelectItem>
                 <SelectItem value="prime">Prime</SelectItem>
                 <SelectItem value="zoom">Zoom</SelectItem>
               </SelectContent>
