@@ -32,7 +32,7 @@ type SearchClientProps = {
 
 export function SearchClient({ initialPage }: SearchClientProps) {
   const [q, setQ] = useQueryState("q");
-  const [sort, setSort] = useQueryState("sort") ?? "relevance";
+  const [sort, setSort] = useQueryState("sort");
   const [brand, setBrand] = useQueryState("brand");
   const [mount, setMount] = useQueryState("mount");
   const [gearType, setGearType] = useQueryState("gearType");
