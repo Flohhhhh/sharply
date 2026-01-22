@@ -119,7 +119,8 @@ export function FiltersModal() {
   }
   function onChangeBrand(next: string) {
     setBrand(next);
-    pushParams({ brand: next || null });
+    setMount("");
+    pushParams({ brand: next || null, mount: null });
   }
 
   const PRICE_MAX = 10000; // USD

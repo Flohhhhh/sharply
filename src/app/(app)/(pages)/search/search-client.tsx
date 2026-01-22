@@ -27,6 +27,7 @@ export function SearchClient() {
   const [mount, setMount] = useQueryState("mount");
   const [gearType, setGearType] = useQueryState("gearType");
   const [sensorFormat, setSensorFormat] = useQueryState("sensorFormat");
+  const [lensType, setLensType] = useQueryState("lensType");
   const [priceMin, setPriceMin] = useQueryState("priceMin");
   const [priceMax, setPriceMax] = useQueryState("priceMax");
   const debouncedQ = useDebounce(q, 300);
@@ -55,10 +56,12 @@ export function SearchClient() {
         sort,
         page: pageIndex + 1,
         pageSize: PAGE_SIZE,
+        includeTotal: pageIndex === 0 ? undefined : "false",
         brand,
         mount,
         gearType: mappedGearType,
         sensorFormat,
+        lensType,
         priceMin,
         priceMax,
       });
@@ -70,34 +73,34 @@ export function SearchClient() {
     mount,
     mappedGearType,
     sensorFormat,
+    lensType,
     priceMin,
     priceMax,
   ]);
 
-  const {
-    data,
-    error,
-    size,
-    setSize,
-    isValidating,
-  } = useSWRInfinite(getKey, fetcher, {
-    initialSize: Number(page) || 1,
-    revalidateFirstPage: true,
-  });
+  const { data, error, size, setSize, isValidating } = useSWRInfinite(
+    getKey,
+    fetcher,
+    {
+      initialSize: Number(page) || 1,
+      revalidateFirstPage: true,
+    },
+  );
 
-  const flattenedResults =
-    data?.flatMap((d: any) => d?.results ?? []) ?? [];
+  const flattenedResults = data?.flatMap((d: any) => d?.results ?? []) ?? [];
   const latestPage = data?.[data.length - 1];
-  const totalPages = latestPage?.totalPages ?? 0;
-  const currentPage = latestPage?.page ?? 1;
+  const firstPage = data?.[0];
+  // const totalPages = firstPage?.totalPages ?? latestPage?.totalPages ?? 0;
+  // const currentPage = latestPage?.page ?? 1;
+  const totalCount = firstPage?.total ?? flattenedResults.length;
   const isLoadingInitial = !data && !error;
   const isLoadingMore =
     isLoadingInitial ||
     (size > 0 && data && typeof data[size - 1] === "undefined");
   const isReachingEnd =
     data && data.length > 0
-      ? currentPage >= totalPages ||
-        (latestPage?.results?.length ?? 0) < PAGE_SIZE
+      ? (latestPage?.results?.length ?? 0) < PAGE_SIZE ||
+        (totalCount ? flattenedResults.length >= totalCount : false)
       : false;
 
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -146,7 +149,10 @@ export function SearchClient() {
 
       <section className="grid grid-cols-1 border-t px-4 sm:grid-cols-3 sm:px-8 lg:grid-cols-5">
         <div className="col-span-1 hidden h-full sm:block">
-          <FiltersSidebar />
+          <FiltersSidebar
+            resultsCount={totalCount}
+            showingCount={flattenedResults.length}
+          />
         </div>
         <div className="col-span-1 h-full min-h-screen px-3 sm:col-span-2 lg:col-span-4">
           <SearchResults

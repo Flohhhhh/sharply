@@ -21,7 +21,16 @@ if (process.env.NEXT_RUNTIME) {
  */
 
 import { db } from "~/server/db";
-import { gear, brands, mounts, gearMounts } from "~/server/db/schema";
+import {
+  gear,
+  brands,
+  mounts,
+  gearMounts,
+  cameraSpecs,
+  sensorFormats,
+  lensSpecs,
+  fixedLensSpecs,
+} from "~/server/db/schema";
 import { asc, desc, ilike, sql, and, eq, type SQL } from "drizzle-orm";
 
 /**
@@ -191,6 +200,8 @@ export async function querySearchRows(options: {
   offset: number;
   relevanceExpr?: any;
   includeMounts?: boolean;
+  includeSensorFormats?: boolean;
+  includeLensSpecs?: boolean;
 }) {
   // Return only core gear fields; callers shouldn't rely on single mount anymore.
   let query = db
@@ -218,6 +229,16 @@ export async function querySearchRows(options: {
       .leftJoin(gearMounts, eq(gear.id, gearMounts.gearId))
       .leftJoin(mounts, eq(gearMounts.mountId, mounts.id));
   }
+  if (options.includeSensorFormats) {
+    query = query
+      .leftJoin(cameraSpecs, eq(gear.id, cameraSpecs.gearId))
+      .leftJoin(sensorFormats, eq(cameraSpecs.sensorFormatId, sensorFormats.id));
+  }
+  if (options.includeLensSpecs) {
+    query = query
+      .leftJoin(lensSpecs, eq(gear.id, lensSpecs.gearId))
+      .leftJoin(fixedLensSpecs, eq(gear.id, fixedLensSpecs.gearId));
+  }
 
   return query
     .where(options.whereClause)
@@ -232,6 +253,8 @@ export async function querySearchRows(options: {
 export async function querySearchTotal(
   whereClause?: SQL,
   includeMounts?: boolean,
+  includeSensorFormats?: boolean,
+  includeLensSpecs?: boolean,
 ) {
   let query = db
     .select({ count: sql<number>`count(*)` })
@@ -242,6 +265,16 @@ export async function querySearchTotal(
     query = query
       .leftJoin(gearMounts, eq(gear.id, gearMounts.gearId))
       .leftJoin(mounts, eq(gearMounts.mountId, mounts.id));
+  }
+  if (includeSensorFormats) {
+    query = query
+      .leftJoin(cameraSpecs, eq(gear.id, cameraSpecs.gearId))
+      .leftJoin(sensorFormats, eq(cameraSpecs.sensorFormatId, sensorFormats.id));
+  }
+  if (includeLensSpecs) {
+    query = query
+      .leftJoin(lensSpecs, eq(gear.id, lensSpecs.gearId))
+      .leftJoin(fixedLensSpecs, eq(gear.id, fixedLensSpecs.gearId));
   }
 
   const rows = await query.where(whereClause);

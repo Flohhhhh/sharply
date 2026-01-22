@@ -21,6 +21,9 @@ export async function GET(request: NextRequest) {
   const sort = searchParams.get("sort") ?? "relevance";
   const page = parseInt(searchParams.get("page") ?? "1", 10);
   const pageSize = parseInt(searchParams.get("pageSize") ?? "20", 10);
+  const includeTotalParam = searchParams.get("includeTotal");
+  const includeTotal =
+    includeTotalParam === null ? true : includeTotalParam !== "false";
 
   // Extract filter parameters
   const filters: SearchFilters = {};
@@ -30,6 +33,7 @@ export async function GET(request: NextRequest) {
     : null;
   const gearType = searchParams.get("gearType");
   const sensorFormat = searchParams.get("sensorFormat");
+  const lensType = searchParams.get("lensType");
   const rawPriceMin = searchParams.get("priceMin");
   const rawPriceMax = searchParams.get("priceMax");
   const priceMin = parsePriceParam(rawPriceMin);
@@ -39,6 +43,7 @@ export async function GET(request: NextRequest) {
   if (mount) filters.mount = mount;
   if (gearType) filters.gearType = gearType;
   if (sensorFormat) filters.sensorFormat = sensorFormat;
+  if (lensType === "prime" || lensType === "zoom") filters.lensType = lensType;
   if (priceMin !== undefined) filters.priceMin = priceMin;
   if (priceMax !== undefined) filters.priceMax = priceMax;
   try {
@@ -47,6 +52,7 @@ export async function GET(request: NextRequest) {
       sort: sort as "relevance" | "name" | "newest",
       page,
       pageSize,
+      includeTotal,
       filters: Object.keys(filters).length > 0 ? filters : undefined,
     });
 

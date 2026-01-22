@@ -7,6 +7,16 @@ import { MountSelect } from "~/components/custom-inputs/mount-select";
 import { getMountIdFromSlug, getMountSlugById } from "~/lib/mapping/mounts-map";
 import { Slider } from "~/components/ui/slider";
 import { Separator } from "~/components/ui/separator";
+import { Button } from "~/components/ui/button";
+import { RefreshCcwDotIcon } from "lucide-react";
+import SensorFormatInput from "~/components/custom-inputs/sensor-format-input";
+import {
+  SelectContent,
+  SelectValue,
+  Select,
+  SelectItem,
+  SelectTrigger,
+} from "~/components/ui/select";
 
 // Slider curve: 1 = linear, higher = more weight to low prices (exponential).
 const PRICE_SLIDER_CURVE = 3;
@@ -24,10 +34,14 @@ function sliderToPrice(value: number, maxPrice: number) {
   return Math.round(price);
 }
 
-export function FiltersSidebar() {
+export function FiltersSidebar(props: {
+  resultsCount: number;
+  showingCount: number;
+}) {
   const [brand, setBrand] = useQueryState("brand");
   const [mount, setMount] = useQueryState("mount");
   const [sensorFormat, setSensorFormat] = useQueryState("sensorFormat");
+  const [lensType, setLensType] = useQueryState("lensType");
   const [gearType, setGearType] = useQueryState("gearType");
   const [priceMin, setPriceMin] = useQueryState("priceMin");
   const [priceMax, setPriceMax] = useQueryState("priceMax");
@@ -62,6 +76,25 @@ export function FiltersSidebar() {
   return (
     <div className="sticky top-24 mt-4 w-full space-y-4 border-r pr-6">
       <div className="text-xl font-bold">Filters</div>
+      <div className="text-muted-foreground text-sm">
+        Showing {props.showingCount} of {props.resultsCount} results found
+      </div>
+      <Button
+        variant="outline"
+        size="sm"
+        icon={<RefreshCcwDotIcon className="size-4" />}
+        onClick={() => {
+          setGearType("all");
+          setMount(null);
+          setSensorFormat(null);
+          setBrand(null);
+          setPriceMin(null);
+          setPriceMax(null);
+          void setPage("1");
+        }}
+      >
+        Reset filters
+      </Button>
       {/* Gear Type */}
       <div className="space-y-2">
         <div className="text-sm font-medium">Gear Type</div>
@@ -96,6 +129,7 @@ export function FiltersSidebar() {
           value={brand ?? ""}
           onChange={(value) => {
             setBrand(value || null);
+            setMount(null);
             void setPage("1");
           }}
           valueKey="slug"
@@ -177,10 +211,30 @@ export function FiltersSidebar() {
         ) : gearType === "camera" ? (
           <div className="space-y-2">
             <div className="text-sm font-medium">Sensor format</div>
+            <SensorFormatInput
+              id="sensor-format"
+              label="Sensor format"
+              value={sensorFormat ?? null}
+              onChange={(value: string | undefined) =>
+                setSensorFormat(value || null)
+              }
+            />
           </div>
         ) : gearType === "lens" ? (
           <div className="space-y-2">
             <div className="text-sm font-medium">Lens type</div>
+            <Select
+              value={lensType ?? ""}
+              onValueChange={(value) => setLensType(value || null)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a lens type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="prime">Prime</SelectItem>
+                <SelectItem value="zoom">Zoom</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         ) : gearType === "analog-camera" ? (
           <div className="space-y-2">

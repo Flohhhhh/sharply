@@ -5,7 +5,15 @@ if (process.env.NEXT_RUNTIME) {
   });
 }
 
-import { gear, brands, mounts } from "~/server/db/schema";
+import {
+  gear,
+  brands,
+  mounts,
+  cameraSpecs,
+  sensorFormats,
+  lensSpecs,
+  fixedLensSpecs,
+} from "~/server/db/schema";
 import { asc, desc, sql, and, type SQL } from "drizzle-orm";
 import {
   buildSearchWhereClause,
@@ -38,6 +46,7 @@ export type SearchFilters = {
   priceMin?: number;
   priceMax?: number;
   sensorFormat?: string;
+  lensType?: "prime" | "zoom";
 };
 
 export type SearchParams = {
@@ -46,6 +55,7 @@ export type SearchParams = {
   page: number;
   pageSize: number;
   filters?: SearchFilters;
+  includeTotal?: boolean;
 };
 
 export type SearchResult = {
@@ -68,8 +78,8 @@ export type SearchResult = {
 
 export type SearchResponse = {
   results: SearchResult[];
-  total: number;
-  totalPages: number;
+  total?: number;
+  totalPages?: number;
   page: number;
   pageSize: number;
 };
@@ -87,7 +97,7 @@ export type Suggestion = {
 export async function searchGear(
   params: SearchParams,
 ): Promise<SearchResponse> {
-  const { query, sort, page, pageSize, filters } = params;
+  const { query, sort, page, pageSize, filters, includeTotal } = params;
   const offset = (page - 1) * pageSize;
 
   let whereClause: SQL | undefined = undefined;
@@ -119,6 +129,15 @@ export async function searchGear(
     }
     if (filters.gearType) {
       filterConditions.push(sql`${gear.gearType} = ${filters.gearType}`);
+    }
+    if (filters.sensorFormat) {
+      filterConditions.push(sql`${sensorFormats.slug} = ${filters.sensorFormat}`);
+    }
+    if (filters.lensType) {
+      const isPrime = filters.lensType === "prime";
+      filterConditions.push(
+        sql`(${lensSpecs.isPrime} = ${isPrime} OR ${fixedLensSpecs.isPrime} = ${isPrime})`,
+      );
     }
     if (filters.priceMin !== undefined) {
       // Require a known price and enforce the lower bound.
@@ -164,10 +183,21 @@ export async function searchGear(
     offset,
     relevanceExpr: query && sort === "relevance" ? relevanceExpr : undefined,
     includeMounts: Boolean(filters?.mount),
+    includeSensorFormats: Boolean(filters?.sensorFormat),
+    includeLensSpecs: Boolean(filters?.lensType),
   });
 
-  const total = await querySearchTotal(whereClause, Boolean(filters?.mount));
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const total =
+    includeTotal === false
+      ? undefined
+      : await querySearchTotal(
+          whereClause,
+          Boolean(filters?.mount),
+          Boolean(filters?.sensorFormat),
+          Boolean(filters?.lensType),
+        );
+  const totalPages =
+    total !== undefined ? Math.max(1, Math.ceil(total / pageSize)) : undefined;
 
   return {
     results: rows as unknown as SearchResult[],
