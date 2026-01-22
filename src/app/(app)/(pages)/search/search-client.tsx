@@ -220,8 +220,11 @@ export function SearchClient({ initialPage }: SearchClientProps) {
                 setSensorFormat(null);
                 setBrand(null);
                 setLensType(null);
+                setAnalogCameraType(null);
                 setPriceMin(null);
                 setPriceMax(null);
+                setMegapixelsMin(null);
+                setMegapixelsMax(null);
               }}
             >
               Reset filters
