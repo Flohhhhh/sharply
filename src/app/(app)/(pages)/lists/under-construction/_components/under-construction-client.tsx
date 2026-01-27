@@ -81,7 +81,7 @@ export default function UnderConstructionClient({
               <SelectItem value="all">All types</SelectItem>
               {types.map((t) => (
                 <SelectItem key={t} value={t}>
-                  {GEAR_TYPE_LABELS[t] ?? t}
+                  {GEAR_TYPE_LABELS[t as keyof typeof GEAR_TYPE_LABELS] ?? t}
                 </SelectItem>
               ))}
             </SelectContent>

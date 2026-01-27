@@ -155,7 +155,7 @@ export function UnderConstructionTable({ items }: { items: Row[] }) {
                     </div>
                   </TableCell>
                   <TableCell className="text-muted-foreground text-xs whitespace-nowrap">
-                    {GEAR_TYPE_LABELS[it.gearType] ?? it.gearType}
+                    {GEAR_TYPE_LABELS[it.gearType as keyof typeof GEAR_TYPE_LABELS] ?? it.gearType}
                   </TableCell>
                   <TableCell className="align-top">
                     <div className="flex flex-wrap gap-1">
