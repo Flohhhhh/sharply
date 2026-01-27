@@ -1750,6 +1750,22 @@ export const specDictionary: SpecSectionDef[] = [
         formatDisplay: (raw) => yesNoNull(raw as any),
       },
       {
+        key: "supportedBatteries",
+        label: "Supported Batteries",
+        getRawValue: (item) => item.analogCameraSpecs?.supportedBatteries,
+        formatDisplay: (raw) => {
+          if (!raw) return undefined;
+          const arr = raw as string[];
+          if (!Array.isArray(arr) || arr.length === 0) return undefined;
+          return arr.join(", ");
+        },
+        // only show if there are batteries
+        condition: (item) =>
+          Array.isArray(item.analogCameraSpecs?.supportedBatteries) &&
+          (item.analogCameraSpecs?.supportedBatteries as string[]).length > 0,
+        editElementId: "supportedBatteries",
+      },
+      {
         key: "hasHotShoe",
         label: "Hot Shoe",
         getRawValue: (item) => item.analogCameraSpecs?.hasHotShoe,

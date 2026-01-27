@@ -368,6 +368,7 @@ function EditGearForm({
         "focusAidTypes",
         "requiresBatteryForShutter",
         "requiresBatteryForMetering",
+        "supportedBatteries",
         "hasContinuousDrive",
         "maxContinuousFps",
         "hasHotShoe",
