@@ -78,6 +78,7 @@ const ANALOG_LABELS = {
     "split-prism": "Split Prism",
     microprism: "Microprism",
     "split-microprism": "Split + Microprism",
+    "rangefinder-patch": "Rangefinder Patch",
     "electronic-confirm": "Electronic Confirm",
     "electronic-directional": "Electronic Directional",
     "af-point": "AF Point",
