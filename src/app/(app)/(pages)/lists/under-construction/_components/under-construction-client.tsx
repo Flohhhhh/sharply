@@ -29,6 +29,13 @@ type Row = {
 
 type Option = { value: string; label: string };
 
+// Map gear types to user-friendly labels
+const GEAR_TYPE_LABELS: Record<string, string> = {
+  CAMERA: "Digital Camera",
+  ANALOG_CAMERA: "Analog Camera",
+  LENS: "Lens",
+};
+
 export default function UnderConstructionClient({
   items,
   brands,
@@ -80,7 +87,7 @@ export default function UnderConstructionClient({
               <SelectItem value="all">All types</SelectItem>
               {types.map((t) => (
                 <SelectItem key={t} value={t}>
-                  {t}
+                  {GEAR_TYPE_LABELS[t] ?? t}
                 </SelectItem>
               ))}
             </SelectContent>

@@ -36,6 +36,13 @@ import { ImageOff, Loader2 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import type { GearType } from "~/types/gear";
 
+// Map gear types to user-friendly labels
+const GEAR_TYPE_LABELS: Record<string, string> = {
+  CAMERA: "Digital Camera",
+  ANALOG_CAMERA: "Analog Camera",
+  LENS: "Lens",
+};
+
 type Row = {
   id: string;
   slug: string;
@@ -153,8 +160,8 @@ export function UnderConstructionTable({ items }: { items: Row[] }) {
                       {it.brandName ?? ""}
                     </div>
                   </TableCell>
-                  <TableCell className="text-muted-foreground text-xs whitespace-nowrap uppercase">
-                    {it.gearType}
+                  <TableCell className="text-muted-foreground text-xs whitespace-nowrap">
+                    {GEAR_TYPE_LABELS[it.gearType] ?? it.gearType}
                   </TableCell>
                   <TableCell className="align-top">
                     <div className="flex flex-wrap gap-1">
