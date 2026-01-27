@@ -81,6 +81,7 @@ export default function UnderConstructionClient({
               <SelectItem value="all">All types</SelectItem>
               {types.map((t) => (
                 <SelectItem key={t} value={t}>
+                  {/* Type cast needed because types is readonly string[] from server data */}
                   {GEAR_TYPE_LABELS[t as keyof typeof GEAR_TYPE_LABELS] ?? t}
                 </SelectItem>
               ))}

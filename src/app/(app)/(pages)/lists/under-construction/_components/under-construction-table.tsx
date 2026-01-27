@@ -155,6 +155,7 @@ export function UnderConstructionTable({ items }: { items: Row[] }) {
                     </div>
                   </TableCell>
                   <TableCell className="text-muted-foreground text-xs whitespace-nowrap">
+                    {/* Type cast needed because gearType is string from server data */}
                     {GEAR_TYPE_LABELS[it.gearType as keyof typeof GEAR_TYPE_LABELS] ?? it.gearType}
                   </TableCell>
                   <TableCell className="align-top">
