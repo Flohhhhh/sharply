@@ -10,6 +10,7 @@ import {
 } from "~/components/ui/select";
 import { Checkbox } from "~/components/ui/checkbox";
 import UnderConstructionTable from "./under-construction-table";
+import { GEAR_TYPE_LABELS } from "~/lib/constants";
 
 type Row = {
   id: string;
@@ -80,7 +81,8 @@ export default function UnderConstructionClient({
               <SelectItem value="all">All types</SelectItem>
               {types.map((t) => (
                 <SelectItem key={t} value={t}>
-                  {t}
+                  {/* Type cast needed because types is readonly string[] from server data */}
+                  {GEAR_TYPE_LABELS[t as keyof typeof GEAR_TYPE_LABELS] ?? t}
                 </SelectItem>
               ))}
             </SelectContent>

@@ -6,6 +6,7 @@ import {
   gear,
   brands,
   cameraSpecs,
+  analogCameraSpecs,
   lensSpecs,
   auditLogs,
   gearMounts,
@@ -300,6 +301,8 @@ export async function createGearData(
     // Create an empty specs row matching the gear type
     if (gearType === "CAMERA") {
       await tx.insert(cameraSpecs).values({ gearId: createdGear.id });
+    } else if (gearType === "ANALOG_CAMERA") {
+      await tx.insert(analogCameraSpecs).values({ gearId: createdGear.id });
     } else if (gearType === "LENS") {
       await tx.insert(lensSpecs).values({ gearId: createdGear.id });
     }
