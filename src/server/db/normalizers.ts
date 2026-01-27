@@ -921,6 +921,7 @@ export function normalizeProposalPayloadForDb(
           z.boolean().nullable().optional(),
         )
         .optional(),
+      supportedBatteries: z.array(z.string()).optional(),
       hasContinuousDrive: z
         .preprocess(
           (value) =>

@@ -377,6 +377,9 @@ export const focusAidEnum = pgEnum("focus_aid_enum", [
   // Microprism
   // Looks like: shimmering or broken image area (dot or ring) when out of focus
   "microprism",
+  // Rangefinder patch
+  // Looks like: secondary ghosted image that shifts horizontally; when aligned with main image, subject is in focus
+  "rangefinder-patch",
   // Electronic focus confirmation
   // Looks like: single dot, light, or symbol that illuminates when focus is achieved
   "electronic-confirm",
@@ -877,6 +880,7 @@ export const analogCameraSpecs = appSchema.table(
     // electronics
     requiresBatteryForShutter: boolean("requires_battery_for_shutter"),
     requiresBatteryForMetering: boolean("requires_battery_for_metering"),
+    supportedBatteries: text("supported_batteries").array(),
     hasContinuousDrive: boolean("has_continuous_drive"),
     maxContinuousFps: integer("max_continuous_fps"),
     hasHotShoe: boolean("has_hot_shoe"),

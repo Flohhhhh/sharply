@@ -4,7 +4,7 @@ import { listUnderConstruction } from "~/server/gear/service";
 import UnderConstructionClient from "./_components/under-construction-client";
 import { BRANDS } from "~/lib/generated";
 // Avoid importing runtime schema in pages; use a local constant
-const GEAR_TYPES = ["CAMERA", "LENS"] as const;
+const GEAR_TYPES = ["CAMERA", "ANALOG_CAMERA", "LENS"] as const;
 
 export const revalidate = 3600;
 

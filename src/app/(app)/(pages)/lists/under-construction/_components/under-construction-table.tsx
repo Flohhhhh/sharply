@@ -35,6 +35,7 @@ import { Switch } from "~/components/ui/switch";
 import { ImageOff, Loader2 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import type { GearType } from "~/types/gear";
+import { GEAR_TYPE_LABELS } from "~/lib/constants";
 
 type Row = {
   id: string;
@@ -153,8 +154,9 @@ export function UnderConstructionTable({ items }: { items: Row[] }) {
                       {it.brandName ?? ""}
                     </div>
                   </TableCell>
-                  <TableCell className="text-muted-foreground text-xs whitespace-nowrap uppercase">
-                    {it.gearType}
+                  <TableCell className="text-muted-foreground text-xs whitespace-nowrap">
+                    {/* Type cast needed because gearType is string from server data */}
+                    {GEAR_TYPE_LABELS[it.gearType as keyof typeof GEAR_TYPE_LABELS] ?? it.gearType}
                   </TableCell>
                   <TableCell className="align-top">
                     <div className="flex flex-wrap gap-1">

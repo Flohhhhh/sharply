@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { MultiSelect } from "~/components/ui/multi-select";
-import { BooleanInput, NumberInput } from "~/components/custom-inputs";
+import { BooleanInput, NumberInput, MultiTextInput } from "~/components/custom-inputs";
 import type { AnalogCameraSpecs } from "~/types/gear";
 import { humanizeKey } from "~/lib/utils";
 import { ANALOG_OPTIONS } from "~/lib/mapping/analog-types-map";
@@ -415,6 +415,27 @@ export function AnalogCameraFields({
               showStateText
               className="w-full"
             />
+          )}
+
+          {shouldShowField(currentSpecs?.supportedBatteries, showMissingOnly) && (
+            <div
+              data-force-ring-container
+              className="space-y-2"
+            >
+              <MultiTextInput
+                id="supportedBatteries"
+                label="Supported Batteries"
+                values={
+                  Array.isArray(currentSpecs?.supportedBatteries)
+                    ? currentSpecs.supportedBatteries.filter(
+                        (x): x is string => typeof x === "string"
+                      )
+                    : []
+                }
+                onChange={(value) => onChange("supportedBatteries", value)}
+                placeholder="e.g., CR2032, LR44"
+              />
+            </div>
           )}
 
           {shouldShowField(currentSpecs?.hasHotShoe, showMissingOnly) && (
