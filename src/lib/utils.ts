@@ -236,7 +236,10 @@ export function getConstructionState(gearItem: GearItem) {
 
   // Core checks
   if (!gearItem?.brandId) missing.push("Brand");
-  if (!gearItem?.mountId) missing.push("Mount");
+  // Check both legacy mountId and new multi-mount mountIds array
+  const hasMount =
+    gearItem?.mountId || (gearItem?.mountIds && gearItem.mountIds.length > 0);
+  if (!hasMount) missing.push("Mount");
 
   if (gearItem.gearType === "LENS") {
     const focalMin = gearItem.lensSpecs?.focalLengthMinMm ?? null;
