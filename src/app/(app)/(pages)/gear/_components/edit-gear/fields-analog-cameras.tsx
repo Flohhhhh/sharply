@@ -419,7 +419,6 @@ export function AnalogCameraFields({
 
           {shouldShowField(currentSpecs?.supportedBatteries, showMissingOnly) && (
             <div
-              id="supportedBatteries"
               data-force-ring-container
               className="space-y-2"
             >
