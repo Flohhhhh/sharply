@@ -1168,7 +1168,6 @@ export const ENUMS = {
     "none",
     "split-prism",
     "microprism",
-    "rangefinder-patch",
     "electronic-confirm",
     "electronic-directional",
     "af-point"
