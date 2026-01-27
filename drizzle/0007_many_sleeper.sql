@@ -1,0 +1,1 @@
+ALTER TABLE "app"."analog_camera_specs" ADD COLUMN "supported_batteries" text[];

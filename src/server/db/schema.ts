@@ -880,6 +880,7 @@ export const analogCameraSpecs = appSchema.table(
     // electronics
     requiresBatteryForShutter: boolean("requires_battery_for_shutter"),
     requiresBatteryForMetering: boolean("requires_battery_for_metering"),
+    supportedBatteries: text("supported_batteries").array(),
     hasContinuousDrive: boolean("has_continuous_drive"),
     maxContinuousFps: integer("max_continuous_fps"),
     hasHotShoe: boolean("has_hot_shoe"),
