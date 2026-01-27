@@ -35,13 +35,7 @@ import { Switch } from "~/components/ui/switch";
 import { ImageOff, Loader2 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import type { GearType } from "~/types/gear";
-
-// Map gear types to user-friendly labels
-const GEAR_TYPE_LABELS: Record<string, string> = {
-  CAMERA: "Digital Camera",
-  ANALOG_CAMERA: "Analog Camera",
-  LENS: "Lens",
-};
+import { GEAR_TYPE_LABELS } from "~/lib/constants";
 
 type Row = {
   id: string;

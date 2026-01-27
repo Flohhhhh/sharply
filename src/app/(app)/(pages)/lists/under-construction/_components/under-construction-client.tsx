@@ -10,6 +10,7 @@ import {
 } from "~/components/ui/select";
 import { Checkbox } from "~/components/ui/checkbox";
 import UnderConstructionTable from "./under-construction-table";
+import { GEAR_TYPE_LABELS } from "~/lib/constants";
 
 type Row = {
   id: string;
@@ -28,13 +29,6 @@ type Row = {
 };
 
 type Option = { value: string; label: string };
-
-// Map gear types to user-friendly labels
-const GEAR_TYPE_LABELS: Record<string, string> = {
-  CAMERA: "Digital Camera",
-  ANALOG_CAMERA: "Analog Camera",
-  LENS: "Lens",
-};
 
 export default function UnderConstructionClient({
   items,
