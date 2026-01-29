@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleQuestionMark, EyeIcon, TrashIcon } from "lucide-react";
+import { CircleQuestionMark, TrashIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
@@ -103,27 +103,24 @@ export function CollectionCard(props: {
           </div>
         )}
 
-        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+        <div className="pointer-events-none absolute inset-0 flex items-start justify-end p-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
           <Button
-            asChild
-            icon={<EyeIcon className="h-4 w-4" />}
-            className="pointer-events-auto hover:cursor-pointer"
-          >
-            <Link href={`/gear/${item.slug}`}>View</Link>
-          </Button>
-          <Button
-            variant="outline"
+            variant="secondary"
+            size="icon"
             onClick={handleRemove}
-            icon={<TrashIcon className="h-4 w-4" />}
-            className="pointer-events-auto hover:cursor-pointer"
+            className="pointer-events-auto shadow-md"
           >
-            Remove
+            <TrashIcon className="h-4 w-4" />
+            <span className="sr-only">Remove from collection</span>
           </Button>
         </div>
       </div>
-      <div className="text-foreground max-w-[240px] text-2xl leading-snug font-semibold">
+      <Link
+        href={`/gear/${item.slug}`}
+        className="text-foreground hover:text-foreground/80 max-w-[240px] text-2xl leading-snug font-semibold transition-colors"
+      >
         {item.name}
-      </div>
+      </Link>
       {(item.gearType === "CAMERA" || item.gearType === "ANALOG_CAMERA") &&
         isScaleEstimated ? (
         <p className="text-muted-foreground text-xs">
