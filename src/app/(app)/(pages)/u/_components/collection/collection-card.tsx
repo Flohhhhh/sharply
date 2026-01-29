@@ -108,6 +108,7 @@ export function CollectionCard(props: {
             variant="secondary"
             size="icon"
             onClick={handleRemove}
+            disabled={removing}
             className="pointer-events-auto shadow-md"
           >
             <TrashIcon className="h-4 w-4" />
