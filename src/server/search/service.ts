@@ -188,8 +188,8 @@ export async function searchGear(
     }
   }
 
-  const relevanceExpr = query
-    ? buildRelevanceExpr(query, normalizedQueryNoPunct!)
+  const relevanceExpr = query && normalizedQueryNoPunct
+    ? buildRelevanceExpr(query, normalizedQueryNoPunct)
     : sql<number>`0`;
 
   let orderBy: any[];
