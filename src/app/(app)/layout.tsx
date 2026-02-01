@@ -6,7 +6,6 @@ import { headers } from "next/headers";
 import { Archivo, Crimson_Text } from "next/font/google";
 import { Providers } from "./providers";
 import { Toaster } from "~/components/ui/sonner";
-import { FloatingCompareButton } from "~/components/compare/floating-compare-button";
 import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
@@ -76,7 +75,6 @@ export default async function RootLayout({
       <body>
         <Providers initialCountryAlpha2={initialCountryAlpha2}>
           {children}
-          <FloatingCompareButton />
           <Toaster />
         </Providers>
       </body>

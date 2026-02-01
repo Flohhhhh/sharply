@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import {
   Loader,
@@ -10,7 +11,6 @@ import {
   ImageOff,
   MoreHorizontal,
   ExternalLink,
-  Plus,
   Scale,
 } from "lucide-react";
 
@@ -40,6 +40,17 @@ import {
   PaginationLink,
   PaginationEllipsis,
 } from "~/components/ui/pagination";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog";
+import {
+  GearSearchCombobox,
+  type GearOption,
+} from "~/components/gear/gear-search-combobox";
 import type { TrendingEntry, TrendingPageResult } from "~/types/popularity";
 import { cn } from "~/lib/utils";
 import {
@@ -48,7 +59,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { useCompare } from "~/lib/hooks/useCompare";
+import { buildCompareHref } from "~/lib/utils/url";
+import { actionRecordCompareAdd } from "~/server/popularity/actions";
 import type { GearType } from "~/types/gear";
 
 const WINDOW_OPTIONS: Array<"7d" | "30d"> = ["7d", "30d"];
@@ -346,121 +358,138 @@ function TrendingRow({
   filledCount: number;
   liveDelta?: number;
 }) {
+  const router = useRouter();
   const zebraClass =
     "group border-border/50 bg-background px-4 py-2 transition-colors hover:bg-zinc-200/70 dark:hover:bg-accent/50 even:bg-accent/20";
   const cellBase = "px-4 py-2";
-  const { add, contains, isFull, acceptsType } = useCompare();
-  const already = contains(row.slug);
-  const wrongType = !acceptsType(row.gearType);
-  const compareDisabled = already || isFull || wrongType;
+
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [compareSelection, setCompareSelection] = useState<GearOption | null>(
+    null,
+  );
+
+  const handleOpenCompare = (event: React.MouseEvent) => {
+    event.preventDefault();
+    setCompareOpen(true);
+  };
+
+  const handleCompareSelect = async (option: GearOption | null) => {
+    if (!option) return;
+    setCompareOpen(false);
+    try {
+      await actionRecordCompareAdd({ slug: option.slug });
+    } catch {
+      // ignore failures
+    }
+    router.push(buildCompareHref([row.slug, option.slug]));
+  };
 
   return (
-    <TableRow className={zebraClass}>
-      <TableCell
-        className={cn(cellBase, "text-muted-foreground font-mono text-sm")}
-      >
-        {index}
-      </TableCell>
-      <TableCell className={cellBase}>
-        <Link
-          href={`/gear/${row.slug}`}
-          className="hover:bg-muted/40 flex items-center gap-3 rounded-md transition-colors"
+    <>
+      <TableRow className={zebraClass}>
+        <TableCell
+          className={cn(cellBase, "text-muted-foreground font-mono text-sm")}
         >
-          {row.thumbnailUrl ? (
-            <Image
-              src={row.thumbnailUrl}
-              alt={row.name}
-              width={48}
-              height={48}
-              className="rounded-md object-cover"
-            />
-          ) : (
-            <div className="text-muted-foreground flex h-12 w-12 items-center justify-center rounded-md text-xs tracking-wide uppercase">
-              <ImageOff className="text-foreground/20 h-4 w-4" />
+          {index}
+        </TableCell>
+        <TableCell className={cellBase}>
+          <Link
+            href={`/gear/${row.slug}`}
+            className="hover:bg-muted/40 flex items-center gap-3 rounded-md transition-colors"
+          >
+            {row.thumbnailUrl ? (
+              <Image
+                src={row.thumbnailUrl}
+                alt={row.name}
+                width={48}
+                height={48}
+                className="rounded-md object-cover"
+              />
+            ) : (
+              <div className="text-muted-foreground flex h-12 w-12 items-center justify-center rounded-md text-xs tracking-wide uppercase">
+                <ImageOff className="text-foreground/20 h-4 w-4" />
+              </div>
+            )}
+            <div className="min-w-0">
+              <p className="text-foreground truncate font-medium">{row.name}</p>
             </div>
-          )}
-          <div className="min-w-0">
-            <p className="text-foreground truncate font-medium">{row.name}</p>
+          </Link>
+        </TableCell>
+        <TableCell className={cellBase}>
+          <div className="flex items-center gap-1">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Flame
+                key={i}
+                className={
+                  i < filledCount
+                    ? "h-4 w-4 text-orange-400"
+                    : "text-muted-foreground/40 h-4 w-4"
+                }
+              />
+            ))}
           </div>
-        </Link>
-      </TableCell>
-      <TableCell className={cellBase}>
-        <div className="flex items-center gap-1">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Flame
-              key={i}
-              className={
-                i < filledCount
-                  ? "h-4 w-4 text-orange-400"
-                  : "text-muted-foreground/40 h-4 w-4"
-              }
-            />
-          ))}
-        </div>
-      </TableCell>
-      <TableCell className={cn(cellBase, "text-foreground font-medium")}>
-        {numberFormatter.format(row.stats.views)}
-      </TableCell>
-      <TableCell className={cn(cellBase, "text-foreground")}>
-        {numberFormatter.format(row.lifetimeViews)}
-      </TableCell>
-      <TableCell className={cn(cellBase, "w-0 text-right")}>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="min-w-48">
-            <DropdownMenuItem asChild>
+        </TableCell>
+        <TableCell className={cn(cellBase, "text-foreground font-medium")}>
+          {numberFormatter.format(row.stats.views)}
+        </TableCell>
+        <TableCell className={cn(cellBase, "text-foreground")}>
+          {numberFormatter.format(row.lifetimeViews)}
+        </TableCell>
+        <TableCell className={cn(cellBase, "w-0 text-right")}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <Button
-                asChild
+                size="icon"
                 variant="ghost"
-                className="justify-between"
-                iconPosition="right"
-                icon={<ExternalLink className="h-4 w-4" />}
+                className="text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
               >
-                <Link target="_blank" href={`/gear/${row.slug}`}>
-                  View gear
-                </Link>
+                <MoreHorizontal className="h-4 w-4" />
               </Button>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              asChild
-              disabled={compareDisabled}
-              onSelect={async (event) => {
-                event.preventDefault();
-                if (compareDisabled) return;
-                await add({
-                  slug: row.slug,
-                  name: row.name,
-                  gearType: row.gearType,
-                });
-              }}
-            >
-              <Button
-                variant="ghost"
-                className="w-full justify-between"
-                iconPosition="right"
-                icon={<Scale className="h-4 w-4" />}
-              >
-                {already
-                  ? "Already in compare"
-                  : wrongType
-                    ? "Type mismatch"
-                    : isFull
-                      ? "Compare list full"
-                      : "Add to compare"}
-              </Button>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </TableCell>
-    </TableRow>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-48">
+              <DropdownMenuItem asChild>
+                <Button
+                  asChild
+                  variant="ghost"
+                  className="justify-between"
+                  iconPosition="right"
+                  icon={<ExternalLink className="h-4 w-4" />}
+                >
+                  <Link target="_blank" href={`/gear/${row.slug}`}>
+                    View gear
+                  </Link>
+                </Button>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleOpenCompare}>
+                <Scale className="h-4 w-4" />
+                Compare
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </TableCell>
+      </TableRow>
+
+      {/* Compare Dialog */}
+      <Dialog open={compareOpen} onOpenChange={setCompareOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Compare {row.name}</DialogTitle>
+            <DialogDescription>
+              Select another item to compare with {row.name}
+            </DialogDescription>
+          </DialogHeader>
+          <GearSearchCombobox
+            value={compareSelection}
+            setValue={setCompareSelection}
+            onSelectionChange={handleCompareSelect}
+            filters={row.gearType ? { gearType: row.gearType } : undefined}
+            excludeIds={[row.slug]}
+            placeholder="Search for gear..."
+            searchPlaceholder="Search gear to compare"
+          />
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

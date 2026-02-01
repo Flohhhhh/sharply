@@ -381,6 +381,8 @@ export default async function GearPage({ params }: GearPageProps) {
           <div className="w-full">
             <GearActionButtons
               slug={slug}
+              name={item.name}
+              gearType={item.gearType}
             />
           </div>
           {/* Links */}
