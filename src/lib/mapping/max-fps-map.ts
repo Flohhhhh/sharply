@@ -46,26 +46,50 @@ export function formatFpsText(
   if (value == null) return undefined;
   const n = typeof value === "number" ? value : Number(value);
   if (Number.isNaN(n)) return undefined;
-  return `${n} fps`;
+  return `${n} FPS`;
+}
+
+export function renderFpsValue(
+  value: number | string | null | undefined,
+): React.ReactNode | undefined {
+  if (value == null) return undefined;
+  const numericValue = typeof value === "number" ? value : Number(value);
+  if (Number.isNaN(numericValue)) return undefined;
+
+  return React.createElement(
+    "span",
+    { className: "inline-flex items-baseline gap-1" },
+    React.createElement("span", null, String(numericValue)),
+    React.createElement("span", { className: "text-muted-foreground" }, "FPS"),
+  );
 }
 
 export function renderInlineRawJpg(
-  rawText?: string,
-  jpgText?: string,
+  rawValue?: number | string | null,
+  jpgValue?: number | string | null,
 ): React.ReactNode | undefined {
-  if (rawText && jpgText) {
-    if (rawText === jpgText) return rawText;
+  const rawNode = renderFpsValue(rawValue);
+  const jpgNode = renderFpsValue(jpgValue);
+
+  if (rawNode && jpgNode) {
+    const rawNumeric =
+      typeof rawValue === "number" ? rawValue : Number(rawValue);
+    const jpgNumeric =
+      typeof jpgValue === "number" ? jpgValue : Number(jpgValue);
+    if (Number.isFinite(rawNumeric) && Number.isFinite(jpgNumeric)) {
+      if (rawNumeric === jpgNumeric) return rawNode;
+    }
     return React.createElement(
       "span",
       { className: "inline-flex items-center gap-1" },
-      React.createElement("span", null, rawText),
+      React.createElement("span", null, rawNode),
       React.createElement(
         "span",
         { className: "text-muted-foreground" },
         "(Raw)",
       ),
       React.createElement("span", { className: "text-muted-foreground" }, "/"),
-      React.createElement("span", null, jpgText),
+      React.createElement("span", null, jpgNode),
       React.createElement(
         "span",
         { className: "text-muted-foreground" },
@@ -73,11 +97,11 @@ export function renderInlineRawJpg(
       ),
     );
   }
-  if (rawText) {
+  if (rawNode) {
     return React.createElement(
       "span",
       { className: "inline-flex items-center gap-1" },
-      React.createElement("span", null, rawText),
+      React.createElement("span", null, rawNode),
       React.createElement(
         "span",
         { className: "text-muted-foreground" },
@@ -85,11 +109,11 @@ export function renderInlineRawJpg(
       ),
     );
   }
-  if (jpgText) {
+  if (jpgNode) {
     return React.createElement(
       "span",
       { className: "inline-flex items-center gap-1" },
-      React.createElement("span", null, jpgText),
+      React.createElement("span", null, jpgNode),
       React.createElement(
         "span",
         { className: "text-muted-foreground" },
@@ -104,11 +128,11 @@ export function formatPerShutterValue(
   rawValue: number | null | undefined,
   jpgValue: number | null | undefined,
 ): React.ReactNode | undefined {
-  const rawText = formatFpsText(rawValue);
-  const jpgText = formatFpsText(jpgValue);
-  if (rawText && jpgText) {
-    if (rawText === jpgText) {
-      return React.createElement("span", { className: "font-medium" }, rawText);
+  const rawNode = renderFpsValue(rawValue);
+  const jpgNode = renderFpsValue(jpgValue);
+  if (rawNode && jpgNode) {
+    if (rawValue != null && jpgValue != null && rawValue === jpgValue) {
+      return React.createElement("span", { className: "font-medium" }, rawNode);
     }
     return React.createElement(
       "div",
@@ -116,7 +140,7 @@ export function formatPerShutterValue(
       React.createElement(
         "span",
         { className: "inline-flex items-center gap-1 font-medium" },
-        rawText,
+        rawNode,
         React.createElement(
           "span",
           { className: "text-muted-foreground" },
@@ -126,7 +150,7 @@ export function formatPerShutterValue(
       React.createElement(
         "span",
         { className: "inline-flex items-center gap-1 font-medium" },
-        jpgText,
+        jpgNode,
         React.createElement(
           "span",
           { className: "text-muted-foreground" },
@@ -135,11 +159,11 @@ export function formatPerShutterValue(
       ),
     );
   }
-  if (rawText) {
+  if (rawNode) {
     return React.createElement(
       "span",
       { className: "inline-flex items-center gap-1 font-medium" },
-      rawText,
+      rawNode,
       React.createElement(
         "span",
         { className: "text-muted-foreground" },
@@ -147,11 +171,11 @@ export function formatPerShutterValue(
       ),
     );
   }
-  if (jpgText) {
+  if (jpgNode) {
     return React.createElement(
       "span",
       { className: "inline-flex items-center gap-1 font-medium" },
-      jpgText,
+      jpgNode,
       React.createElement(
         "span",
         { className: "text-muted-foreground" },
@@ -250,9 +274,10 @@ export function formatSingleShutterInline(
   rawValue: number | null | undefined,
   jpgValue: number | null | undefined,
 ): React.ReactNode | undefined {
-  const rawText = formatFpsText(rawValue);
-  const jpgText = formatFpsText(jpgValue);
-  const content = renderInlineRawJpg(rawText, jpgText);
+  const content = renderInlineRawJpg(
+    rawValue ?? undefined,
+    jpgValue ?? undefined,
+  );
   if (!content) return undefined;
   return React.createElement("span", { className: "font-medium" }, content);
 }
@@ -322,19 +347,14 @@ export function formatMaxFpsDisplay(
   }
 
   const fallbackText = formatPerShutterValue(fallbackRaw, fallbackJpg);
-  return fallbackText
-    ? React.createElement(
-        "div",
-        { className: "flex items-center justify-end gap-2" },
-        React.createElement(
-          "span",
-          { className: "text-muted-foreground" },
-          "FPS",
-        ),
-        React.createElement("span", null, fallbackText),
-      )
-    : renderInlineRawJpg(
-        formatFpsText(fallbackRaw),
-        formatFpsText(fallbackJpg),
-      );
+  if (fallbackText) {
+    // This value renders the unit internally, so we do not add a redundant label.
+    return React.createElement(
+      "div",
+      { className: "flex items-center justify-end" },
+      fallbackText,
+    );
+  }
+
+  return renderInlineRawJpg(fallbackRaw ?? undefined, fallbackJpg ?? undefined);
 }

@@ -1731,7 +1731,7 @@ export const specDictionary: SpecSectionDef[] = [
         condition: (item) =>
           item.analogCameraSpecs?.hasContinuousDrive === true,
         formatDisplay: (raw) =>
-          raw != null ? `${Number(raw as number)} fps` : undefined,
+          raw != null ? `${Number(raw as number)} FPS` : undefined,
       },
       {
         key: "requiresBatteryForShutter",
