@@ -84,6 +84,19 @@ export async function generateMetadata({
     const description = verdict
       ? (verdict?.content ?? "")
       : `Sharply is the newest and most comprehensive photography gear database and review platform featuring expert reviews, real specs, and side-by-side comparisons in a modern, minimalist interface.`;
+    const ogImage = item.thumbnailUrl
+      ? {
+          url: item.thumbnailUrl,
+          width: 1200,
+          height: 630,
+          alt: `${item.name}`,
+        }
+      : {
+          url: `${baseUrl}/og-default.png`,
+          width: 1200,
+          height: 630,
+          alt: "Sharply - Photography Gear Database",
+        };
     return {
       title: `${item.name} | Specs & Reviews`,
       description,
@@ -91,10 +104,17 @@ export async function generateMetadata({
         canonical: `${baseUrl}/gear/${slug}`,
       },
       openGraph: {
+        type: "website",
         title: `${item.name} | Specs & Reviews`,
-        images: [item.thumbnailUrl ?? ""],
+        images: [ogImage],
         url: `${baseUrl}/gear/${slug}`,
         description,
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `${item.name} | Specs & Reviews`,
+        description,
+        images: [ogImage.url],
       },
     };
   } catch (err: any) {
