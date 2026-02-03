@@ -27,7 +27,7 @@ export const metadata: Metadata = {
       "Real specs, real reviews, real fast. Sharply is the newest and most comprehensive photography gear database and review platform featuring expert reviews, real specs, and side-by-side comparisons in a modern, minimalist interface.",
     images: [
       {
-        url: "https://www.sharplyphoto.com/og-default.jpg",
+        url: "https://www.sharplyphoto.com/og-default.png",
         width: 1200,
         height: 630,
         alt: "Sharply - Photography Gear Database",
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     title: "Sharply",
     description:
       "Real specs, real reviews, real fast. Sharply is the newest and most comprehensive photography gear database and review platform featuring expert reviews, real specs, and side-by-side comparisons in a modern, minimalist interface.",
-    images: ["https://www.sharplyphoto.com/og-default.jpg"],
+    images: ["https://www.sharplyphoto.com/og-default.png"],
   },
   robots: {
     index: true,

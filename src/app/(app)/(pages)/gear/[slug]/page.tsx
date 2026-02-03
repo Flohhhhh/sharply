@@ -92,7 +92,7 @@ export async function generateMetadata({
           alt: `${item.name}`,
         }
       : {
-          url: `${baseUrl}/og-default.jpg`,
+          url: `${baseUrl}/og-default.png`,
           width: 1200,
           height: 630,
           alt: "Sharply - Photography Gear Database",
@@ -104,7 +104,7 @@ export async function generateMetadata({
         canonical: `${baseUrl}/gear/${slug}`,
       },
       openGraph: {
-        type: "article",
+        type: "website",
         title: `${item.name} | Specs & Reviews`,
         images: [ogImage],
         url: `${baseUrl}/gear/${slug}`,

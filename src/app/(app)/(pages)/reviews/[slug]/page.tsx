@@ -46,7 +46,7 @@ export async function generateMetadata({
           alt: `${gearItem.name} Review`,
         }
       : {
-          url: `${baseUrl}/og-default.jpg`,
+          url: `${baseUrl}/og-default.png`,
           width: 1200,
           height: 630,
           alt: "Sharply - Photography Gear Reviews",
