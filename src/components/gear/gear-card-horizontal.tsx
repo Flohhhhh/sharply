@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { cn } from "~/lib/utils";
 import { formatGearDate, type GearCardProps } from "./gear-card";
 import { TrendingBadge } from "../gear-badges/trending-badge";
@@ -18,12 +19,24 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog";
+import {
+  GearSearchCombobox,
+  type GearOption,
+} from "~/components/gear/gear-search-combobox";
 import { Heart, MoreVertical, Scale } from "lucide-react";
 import { actionToggleWishlist } from "~/server/gear/actions";
-import { useCompare } from "~/lib/hooks/useCompare";
 import { useSession } from "~/lib/auth/auth-client";
 import { useState } from "react";
 import { toast } from "sonner";
+import { buildCompareHref } from "~/lib/utils/url";
+import { actionRecordCompareAdd } from "~/server/popularity/actions";
 
 function splitBrandNameVariants(brandName: string) {
   const normalized = brandName?.trim();
@@ -111,10 +124,14 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
   } = props;
 
   const { data } = useSession();
+  const router = useRouter();
   const session = data?.session;
-  const compare = useCompare();
   const [inWishlist, setInWishlist] = useState<boolean | null>(null);
   const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [compareSelection, setCompareSelection] = useState<GearOption | null>(
+    null,
+  );
 
   const trimmedName = stripBrandFromName(name, brandName);
   const dateLabel = formatGearDate(
@@ -153,10 +170,21 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
     }
   };
 
-  const handleAddToCompare = async (e: React.MouseEvent) => {
+  const handleOpenCompare = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    await compare.add({ slug, name, gearType: gearType ?? undefined });
+    setCompareOpen(true);
+  };
+
+  const handleCompareSelect = async (option: GearOption | null) => {
+    if (!option) return;
+    setCompareOpen(false);
+    try {
+      await actionRecordCompareAdd({ slug: option.slug });
+    } catch {
+      // ignore failures
+    }
+    router.push(buildCompareHref([slug, option.slug]));
   };
 
   return (
@@ -242,18 +270,9 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
                               ? "Remove from Wishlist"
                               : "Add to Wishlist"}
                           </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={handleAddToCompare}
-                            disabled={
-                              compare.contains(slug) ||
-                              compare.isFull ||
-                              !compare.acceptsType(gearType ?? undefined)
-                            }
-                          >
+                          <DropdownMenuItem onClick={handleOpenCompare}>
                             <Scale className="size-4" />
-                            {compare.contains(slug)
-                              ? "Already in Compare"
-                              : "Add to Compare"}
+                            Compare
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -288,6 +307,27 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
           </div>
         </div>
       </Link>
+
+      {/* Compare Dialog - rendered outside the Link to work properly */}
+      <Dialog open={compareOpen} onOpenChange={setCompareOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Compare {name}</DialogTitle>
+            <DialogDescription>
+              Select another item to compare with {name}
+            </DialogDescription>
+          </DialogHeader>
+          <GearSearchCombobox
+            value={compareSelection}
+            setValue={setCompareSelection}
+            onSelectionChange={handleCompareSelect}
+            filters={gearType ? { gearType } : undefined}
+            excludeIds={[slug]}
+            placeholder="Search for gear..."
+            searchPlaceholder="Search gear to compare"
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

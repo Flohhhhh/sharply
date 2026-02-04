@@ -8,6 +8,81 @@ import { getBrandNameById } from "~/lib/mapping/brand-map";
 import { notFound } from "next/navigation";
 import { GenreRatings } from "../_components/genre-ratings";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
+import type { Metadata } from "next";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+
+  try {
+    const review = await getReviewBySlug(slug);
+
+    if (!review) {
+      return {
+        title: "Review not found",
+        description: "The requested review could not be found.",
+        robots: { index: false, follow: false },
+      };
+    }
+
+    const gearItem = await fetchGearBySlug(review.review_gear_item);
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    if (!baseUrl) {
+      throw new Error(
+        "Tried to generate metadata without NEXT_PUBLIC_BASE_URL being set",
+      );
+    }
+
+    const title = `${gearItem.name} Review`;
+    const description = review.review_summary || review.title;
+    const ogImage = gearItem.thumbnailUrl
+      ? {
+          url: gearItem.thumbnailUrl,
+          width: 1200,
+          height: 630,
+          alt: `${gearItem.name} Review`,
+        }
+      : {
+          url: `${baseUrl}/og-default.png`,
+          width: 1200,
+          height: 630,
+          alt: "Sharply - Photography Gear Reviews",
+        };
+
+    return {
+      title,
+      description,
+      alternates: {
+        canonical: `${baseUrl}/reviews/${slug}`,
+      },
+      openGraph: {
+        type: "article",
+        title,
+        description,
+        url: `${baseUrl}/reviews/${slug}`,
+        images: [ogImage],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        images: [ogImage.url],
+      },
+    };
+  } catch (err: any) {
+    if (err?.status === 404) {
+      return {
+        title: "Review not found",
+        description: "The requested review could not be found.",
+        robots: { index: false, follow: false },
+      };
+    }
+    throw err;
+  }
+}
 
 export default async function ReviewPage({
   params,

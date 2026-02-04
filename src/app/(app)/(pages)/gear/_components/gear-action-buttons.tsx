@@ -3,9 +3,15 @@ import { GearActionButtonsClient } from "./gear-action-buttons-client";
 
 interface GearActionButtonsProps {
   slug: string;
+  name: string;
+  gearType?: string | null;
 }
 
-export async function GearActionButtons({ slug }: GearActionButtonsProps) {
+export async function GearActionButtons({
+  slug,
+  name,
+  gearType,
+}: GearActionButtonsProps) {
   let initialInWishlist: boolean | null = null;
   let initialIsOwned: boolean | null = null;
 
@@ -24,6 +30,8 @@ export async function GearActionButtons({ slug }: GearActionButtonsProps) {
   return (
     <GearActionButtonsClient
       slug={slug}
+      name={name}
+      gearType={gearType}
       initialInWishlist={initialInWishlist}
       initialIsOwned={initialIsOwned}
     />

@@ -3,7 +3,10 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import GearCombobox from "~/components/custom-inputs/gear-combobox";
+import {
+  GearSearchCombobox,
+  type GearOption,
+} from "~/components/gear/gear-search-combobox";
 import RatingSelectField from "../../../_components/RatingSelectField";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
@@ -54,6 +57,7 @@ export default function EditChartContent({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [selectedGear, setSelectedGear] = useState<GearOption | null>(null);
 
   async function onUpsert(formData: FormData) {
     startTransition(async () => {
@@ -111,11 +115,20 @@ export default function EditChartContent({
         <input type="hidden" name="slug" value={slug} />
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="space-y-1">
-            <Label htmlFor="gearId">Gear</Label>
-            <GearCombobox
-              name="gearId"
+            <Label>Gear</Label>
+            <GearSearchCombobox
+              value={selectedGear}
+              setValue={setSelectedGear}
+              disabled={pending}
               placeholder="Search lenses..."
-              onlyLenses
+              searchPlaceholder="Search lenses…"
+              filters={{ gearType: "LENS" }}
+              name="gearId"
+              serializeValue={(value) => value?.id ?? ""}
+              onSelectionChange={(value) => {
+                // Keep the selection in sync so the hidden input is updated.
+                setSelectedGear(value);
+              }}
             />
           </div>
           <div className="space-y-1">

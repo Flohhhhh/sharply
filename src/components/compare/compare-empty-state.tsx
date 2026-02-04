@@ -1,54 +1,64 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { useCallback, useMemo } from "react";
+import { useCallback, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Scale } from "lucide-react";
-import { useCompare, type CompareItem } from "~/lib/hooks/useCompare";
 import {
   GearSearchCombobox,
   type GearOption,
 } from "~/components/gear/gear-search-combobox";
 import { Button } from "~/components/ui/button";
 import { useCompareLoadingOverlay } from "~/components/compare/compare-loading-overlay";
+import { buildCompareHref } from "~/lib/utils/url";
+import { actionRecordCompareAdd } from "~/server/popularity/actions";
 
 export function CompareEmptyState() {
-  const { slots, replaceAt, remove, clear, href, isFull } = useCompare();
-  const selectionCount = slots.filter(Boolean).length;
+  const router = useRouter();
+  const [slot0, setSlot0] = useState<GearOption | null>(null);
+  const [slot1, setSlot1] = useState<GearOption | null>(null);
   const { show } = useCompareLoadingOverlay();
 
-  const slotOptions = useMemo(
-    () => slots.map((slot) => slotToOption(slot)),
-    [slots],
-  );
+  const selectionCount = [slot0, slot1].filter(Boolean).length;
+  const isFull = slot0 !== null && slot1 !== null;
 
   const handleSelectionChange = useCallback(
     (index: number, option: GearOption | null) => {
-      const current = slots[index];
-      if (!option) {
-        if (current) {
-          remove(current.slug);
+      if (index === 0) {
+        setSlot0(option);
+        // Clear slot1 if type doesn't match
+        if (option && slot1 && option.gearType !== slot1.gearType) {
+          setSlot1(null);
         }
-        return;
+      } else {
+        setSlot1(option);
       }
-
-      if (current?.slug === option.slug) {
-        return;
-      }
-
-      void replaceAt(index, {
-        slug: option.slug,
-        name: option.name,
-        thumbnailUrl: option.thumbnailUrl ?? undefined,
-        gearType: option.gearType ?? undefined,
-      });
     },
-    [remove, replaceAt, slots],
+    [slot1],
   );
 
   const handleClear = useCallback(() => {
-    clear();
-  }, [clear]);
+    setSlot0(null);
+    setSlot1(null);
+  }, []);
+
+  const handleCompare = useCallback(async () => {
+    if (!slot0 || !slot1) return;
+    show();
+
+    // Record compare adds
+    try {
+      await Promise.all([
+        actionRecordCompareAdd({ slug: slot0.slug }),
+        actionRecordCompareAdd({ slug: slot1.slug }),
+      ]);
+    } catch {
+      // ignore failures
+    }
+
+    const href = buildCompareHref([slot0.slug, slot1.slug]);
+    router.push(href);
+  }, [slot0, slot1, router, show]);
 
   return (
     <div className="mx-auto mt-24 min-h-screen max-w-5xl space-y-10 px-4 py-16">
@@ -63,33 +73,28 @@ export function CompareEmptyState() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        {[0, 1].map((index) => {
-          const columnValue = slotOptions[index] ?? null;
-          return (
-            <CompareEmptyColumn
-              key={index}
-              index={index}
-              value={columnValue}
-              onChange={(option) => handleSelectionChange(index, option)}
-              hasSelection={Boolean(columnValue)}
-            />
-          );
-        })}
+        <CompareEmptyColumn
+          index={0}
+          value={slot0}
+          onChange={(option) => handleSelectionChange(0, option)}
+          hasSelection={Boolean(slot0)}
+          gearTypeFilter={undefined}
+          excludeIds={slot1 ? [slot1.slug] : []}
+        />
+        <CompareEmptyColumn
+          index={1}
+          value={slot1}
+          onChange={(option) => handleSelectionChange(1, option)}
+          hasSelection={Boolean(slot1)}
+          gearTypeFilter={slot0?.gearType ?? undefined}
+          excludeIds={slot0 ? [slot0.slug] : []}
+        />
       </div>
 
       <div className="flex flex-wrap items-center justify-center gap-3">
-        <Link href={href}>
-          <Button
-            size="lg"
-            disabled={!isFull}
-            onClick={() => {
-              if (!isFull) return;
-              show();
-            }}
-          >
-            Compare selected gear
-          </Button>
-        </Link>
+        <Button size="lg" disabled={!isFull} onClick={handleCompare}>
+          Compare selected gear
+        </Button>
         {selectionCount > 0 ? (
           <Button variant="ghost" onClick={handleClear}>
             Clear slots
@@ -105,11 +110,15 @@ function CompareEmptyColumn({
   value,
   onChange,
   hasSelection,
+  gearTypeFilter,
+  excludeIds,
 }: {
   index: number;
   value: GearOption | null;
   onChange: (value: GearOption | null) => void;
   hasSelection: boolean;
+  gearTypeFilter?: string | null;
+  excludeIds: string[];
 }) {
   const placeholders = [
     {
@@ -141,6 +150,8 @@ function CompareEmptyColumn({
             index === 0 ? "Select first gear item" : "Select second gear item"
           }
           buttonClassName="text-base font-medium"
+          filters={gearTypeFilter ? { gearType: gearTypeFilter } : undefined}
+          excludeIds={excludeIds}
         />
       </div>
       <div className="flex flex-col items-center justify-center gap-3 px-8 py-12 text-center">
@@ -173,15 +184,4 @@ function CompareEmptyColumn({
       </div>
     </div>
   );
-}
-
-function slotToOption(slot: CompareItem | null): GearOption | null {
-  if (!slot) return null;
-  return {
-    id: slot.slug,
-    slug: slot.slug,
-    name: slot.name ?? slot.slug,
-    gearType: slot.gearType ?? undefined,
-    thumbnailUrl: slot.thumbnailUrl ?? undefined,
-  };
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { cn } from "~/lib/utils";
-import { AddToCompareButton } from "~/components/compare/add-to-compare-button";
 
 type Props = {
   id: string;
@@ -40,17 +39,9 @@ export function GlobalSearchSuggestion({
         )}
       </div>
       {type === "gear" && (
-        <div
-          className="opacity-0 transition-opacity group-hover/item:opacity-100"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <AddToCompareButton
-            slug={href.replace("/gear/", "")}
-            name={label}
-            size="sm"
-            iconStyle="scalePlus"
-          />
-        </div>
+        <span className="text-muted-foreground rounded-full border border-muted-foreground/20 px-2 py-0.5 text-[11px] uppercase tracking-wide opacity-0 transition-opacity group-hover/item:opacity-100">
+          {type}
+        </span>
       )}
     </div>
   );

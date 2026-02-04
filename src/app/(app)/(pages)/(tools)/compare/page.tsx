@@ -99,7 +99,12 @@ export default async function ComparePage({
                 {aBrand || "Unknown brand"}
               </p>
               <div className="flex w-full items-center justify-between gap-5">
-                <CompareReplaceButton slug={slugA} fallbackIndex={0} />
+                <CompareReplaceButton
+                  currentSlug={slugA}
+                  otherSlug={slugB}
+                  currentGearType={a?.gearType}
+                  currentName={aName}
+                />
                 <p className="leading-tight">{aName || slugA}</p>
               </div>
             </div>
@@ -109,7 +114,12 @@ export default async function ComparePage({
               </p>
               <div className="flex w-full items-center justify-between gap-5">
                 <p className="leading-tight">{bName || slugB}</p>
-                <CompareReplaceButton slug={slugB} fallbackIndex={1} />
+                <CompareReplaceButton
+                  currentSlug={slugB}
+                  otherSlug={slugA}
+                  currentGearType={b?.gearType}
+                  currentName={bName}
+                />
               </div>
             </div>
           </div>

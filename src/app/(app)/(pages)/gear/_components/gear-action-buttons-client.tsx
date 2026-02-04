@@ -6,18 +6,22 @@ import { Button } from "~/components/ui/button";
 import { Package, PackageOpen } from "lucide-react";
 import { toast } from "sonner";
 import { withBadgeToasts } from "~/components/badges/badge-toast";
-import { AddToCompareButton } from "~/components/compare/add-to-compare-button";
+import { CompareButton } from "~/components/compare/compare-button";
 import { AddToWishlistButton } from "~/components/gear/add-to-wishlist-button";
 import { actionToggleOwnership } from "~/server/gear/actions";
 
 interface GearActionButtonsClientProps {
   slug: string;
+  name: string;
+  gearType?: string | null;
   initialInWishlist?: boolean | null;
   initialIsOwned?: boolean | null;
 }
 
 export function GearActionButtonsClient({
   slug,
+  name,
+  gearType,
   initialInWishlist = null,
   initialIsOwned = null,
 }: GearActionButtonsClientProps) {
@@ -110,14 +114,15 @@ export function GearActionButtonsClient({
         {ownedActive ? "Remove from Collection" : "Add to Collection"}
       </Button>
 
-      {/* compare button */}
-      <AddToCompareButton
+      {/* Compare Button */}
+      <CompareButton
         slug={slug}
+        name={name}
+        gearType={gearType}
         size="md"
         variant="outline"
         className="w-full"
         showLabel
-        iconStyle="scaleOnly"
       />
     </div>
   );

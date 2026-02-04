@@ -11,8 +11,6 @@ import {
   CommandList,
 } from "~/components/ui/command";
 import { Bird, Loader2, SearchIcon } from "lucide-react";
-import { AddToCompareButton } from "~/components/compare/add-to-compare-button";
-import { useCompare } from "~/lib/hooks/useCompare";
 import { useSearchSuggestions } from "@hooks/useSearchSuggestions";
 import type { Suggestion } from "~/types/search";
 
@@ -135,17 +133,10 @@ export function CommandPalette() {
                               {Math.round(s.relevance * 100)}%
                             </span>
                           )}
-                          {/* Add to compare on hover (gear suggestions only) */}
                           {s.type === "gear" && (
-                            <div className="opacity-0 transition-opacity group-hover/item:opacity-100">
-                              <AddToCompareButton
-                                slug={s.href.replace("/gear/", "")}
-                                name={s.label}
-                                size="sm"
-                                className="px-2"
-                                iconStyle="scalePlus"
-                              />
-                            </div>
+                            <span className="text-muted-foreground rounded-full border border-muted-foreground/20 px-2 py-0.5 text-[11px] uppercase tracking-wide opacity-0 transition-opacity group-hover/item:opacity-100">
+                              {s.type}
+                            </span>
                           )}
                         </div>
                       </CommandItem>

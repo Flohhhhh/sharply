@@ -6,7 +6,6 @@ import { headers } from "next/headers";
 import { Archivo, Crimson_Text } from "next/font/google";
 import { Providers } from "./providers";
 import { Toaster } from "~/components/ui/sonner";
-import { FloatingCompareButton } from "~/components/compare/floating-compare-button";
 import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
@@ -18,6 +17,7 @@ export const metadata: Metadata = {
     "Real specs, real reviews, real fast. Sharply is the newest and most comprehensive photography gear database and review platform featuring expert reviews, real specs, and side-by-side comparisons in a modern, minimalist interface.",
   openGraph: {
     siteName: "Sharply",
+    type: "website",
     title: {
       default: "Sharply",
       template: "%s | Sharply",
@@ -25,11 +25,21 @@ export const metadata: Metadata = {
     url: "https://www.sharplyphoto.com",
     description:
       "Real specs, real reviews, real fast. Sharply is the newest and most comprehensive photography gear database and review platform featuring expert reviews, real specs, and side-by-side comparisons in a modern, minimalist interface.",
+    images: [
+      {
+        url: "https://www.sharplyphoto.com/og-default.png",
+        width: 1200,
+        height: 630,
+        alt: "Sharply - Photography Gear Database",
+      },
+    ],
   },
   twitter: {
+    card: "summary_large_image",
     title: "Sharply",
     description:
       "Real specs, real reviews, real fast. Sharply is the newest and most comprehensive photography gear database and review platform featuring expert reviews, real specs, and side-by-side comparisons in a modern, minimalist interface.",
+    images: ["https://www.sharplyphoto.com/og-default.png"],
   },
   robots: {
     index: true,
@@ -76,7 +86,6 @@ export default async function RootLayout({
       <body>
         <Providers initialCountryAlpha2={initialCountryAlpha2}>
           {children}
-          <FloatingCompareButton />
           <Toaster />
         </Providers>
       </body>
