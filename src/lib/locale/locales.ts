@@ -95,14 +95,14 @@ export function resolveLocaleFromCountryCode(
 
   if (normalized === "UK") {
     const gbLocale =
-      LOCALE_COUNTRY_FALLBACK["GB"] ??
+      LOCALE_COUNTRY_FALLBACK.GB ??
       LOCALE_OPTIONS.find((opt) => opt.id === "uk");
     if (gbLocale) return gbLocale;
     return DEFAULT_LOCALE;
   }
   if (normalized === "EU") {
     const euLocale =
-      LOCALE_COUNTRY_FALLBACK["EU"] ??
+      LOCALE_COUNTRY_FALLBACK.EU ??
       LOCALE_OPTIONS.find((opt) => opt.id === "eu");
     if (euLocale) return euLocale;
     return DEFAULT_LOCALE;

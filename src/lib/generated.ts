@@ -43,6 +43,38 @@ export const MOUNTS = [
     "short_name": "43"
   },
   {
+    "id": "0c5aafd6-9898-4e66-9484-97723330b8fb",
+    "value": "fl-canon",
+    "brand_id": "7df18188-0939-4241-9ca7-6561c6e233e1",
+    "created_at": "2026-01-24 13:10:08.137983+00",
+    "updated_at": "2026-01-24 13:10:08.137983+00",
+    "short_name": "fl"
+  },
+  {
+    "id": "4cd0ea3b-ef92-40b3-b4b1-e4baad1e165d",
+    "value": "fd-canon",
+    "brand_id": "7df18188-0939-4241-9ca7-6561c6e233e1",
+    "created_at": "2026-01-24 13:10:08.138425+00",
+    "updated_at": "2026-01-24 13:10:08.138425+00",
+    "short_name": "fd"
+  },
+  {
+    "id": "13d1b2c6-5aec-4c33-96e1-1696a23b8fa5",
+    "value": "ltm-leica",
+    "brand_id": "007b4cff-1dbf-4583-8104-35c04f1fd6d0",
+    "created_at": "2026-01-27 20:36:40.148933+00",
+    "updated_at": "2026-01-27 20:36:40.148933+00",
+    "short_name": "ltm"
+  },
+  {
+    "id": "c3b01dad-2e2b-40cd-8684-9b19f27c440b",
+    "value": "m42-zeiss",
+    "brand_id": "a6cb882a-eb11-4b63-848d-e49a87713503",
+    "created_at": "2026-01-27 20:37:51.275679+00",
+    "updated_at": "2026-01-27 20:37:51.275679+00",
+    "short_name": "m42"
+  },
+  {
     "id": "08048973-2001-47a7-9140-6c5f9a06ae12",
     "value": "ef-canon",
     "brand_id": "7df18188-0939-4241-9ca7-6561c6e233e1",
@@ -1168,9 +1200,15 @@ export const ENUMS = {
     "none",
     "split-prism",
     "microprism",
+    "rangefinder-patch",
     "electronic-confirm",
     "electronic-directional",
     "af-point"
+  ],
+  "gear_region": [
+    "GLOBAL",
+    "EU",
+    "JP"
   ],
   "gear_type": [
     "CAMERA",
