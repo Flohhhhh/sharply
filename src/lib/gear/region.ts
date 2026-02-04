@@ -39,7 +39,7 @@ export function resolveRegionFromCountryCode(
 ): GearRegion {
   if (!countryCode) return "GLOBAL";
   const normalized = countryCode.trim().slice(0, 2).toUpperCase();
-  if (normalized === "UK") return "GLOBAL";
+  if (normalized === "UK" || normalized === "GB") return "EU";
   if (normalized === "EU") return "EU";
   if (normalized === JP_COUNTRY_CODE) return "JP";
   if (EU_COUNTRY_CODES.has(normalized)) return "EU";

@@ -1857,7 +1857,7 @@ export const specDictionary: SpecSectionDef[] = [
             (n) => typeof n === "string" && n.trim().length > 0,
           );
           return list.length ? (
-            <ul className="text-muted-foreground list-none space-y-1 text-sm">
+            <ul className="text-muted-foreground list-disc space-y-1 pl-4 text-sm">
               {list.map((note) => (
                 <li key={note}>{note}</li>
               ))}
