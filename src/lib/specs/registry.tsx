@@ -372,7 +372,7 @@ export const specDictionary: SpecSectionDef[] = [
           const viewer = viewerRegion ?? "GLOBAL";
           const entries: Array<{ label: string; name: string }> = [];
 
-          const findAlias = (region: GearRegion) =>
+          const findAlias = (region: GearRegion): string | undefined =>
             aliases.find((a) => a.region === region)?.name?.trim();
 
           if (viewer !== "GLOBAL") {
