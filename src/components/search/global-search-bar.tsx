@@ -11,6 +11,7 @@ import { cn } from "~/lib/utils";
 import { useSearchSuggestions } from "@hooks/useSearchSuggestions";
 import { GlobalSearchSuggestion } from "~/components/search/global-search-suggestion";
 import type { Suggestion } from "~/types/search";
+import { useCountry } from "~/lib/hooks/useCountry";
 
 type GlobalSearchBarProps = {
   placeholder?: string;
@@ -71,6 +72,7 @@ export function GlobalSearchBar({
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { countryCode } = useCountry();
 
   const sizes = sizeVariants[size];
 
@@ -105,11 +107,12 @@ export function GlobalSearchBar({
     });
   };
 
+  const queryParam = sp.get("q") ?? "";
+
   // Keep input in sync when navigating via back/forward
   useEffect(() => {
-    setValue(sp.get("q") ?? "");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sp.toString()]);
+    setValue(queryParam);
+  }, [queryParam]);
 
   // Handle click outside to close dropdown
   useEffect(() => {
@@ -178,8 +181,11 @@ export function GlobalSearchBar({
 
         // Fallback: perform an immediate suggestion fetch (limit=2) to confirm single match
         if (trimmed.length >= 2) {
+          const countryParam = countryCode
+            ? `&country=${encodeURIComponent(countryCode)}`
+            : "";
           const res = await fetch(
-            `/api/search/suggest?q=${encodeURIComponent(trimmed)}&limit=2`,
+            `/api/search/suggest?q=${encodeURIComponent(trimmed)}&limit=2${countryParam}`,
           );
           if (res.ok) {
             const data = (await res.json()) as {
@@ -266,7 +272,11 @@ export function GlobalSearchBar({
     debouncing,
     hasSearched,
     fetchNow,
-  } = useSearchSuggestions(value, { debounceMs: 200, minLength: 2 });
+  } = useSearchSuggestions(value, {
+    debounceMs: 200,
+    minLength: 2,
+    countryCode,
+  });
 
   // Kick an immediate fetch exactly when crossing threshold to reduce perceived lag
   useEffect(() => {
@@ -362,15 +372,16 @@ export function GlobalSearchBar({
             </div>
 
             <div className="py-1">
-              {recentSearches.map((recentQuery, index) => (
+              {recentSearches.map((recentQuery) => (
                 <div
-                  key={`${recentQuery}-${index}`}
+                  key={recentQuery}
                   className={cn(
                     "hover:bg-accent group flex w-full items-center justify-between",
                     sizes.recentItem,
                   )}
                 >
                   <button
+                    type="button"
                     onClick={() => handleRecentSearchClick(recentQuery)}
                     className="flex min-w-0 flex-1 items-center text-left"
                   >
@@ -408,6 +419,7 @@ export function GlobalSearchBar({
           >
             <div className="border-b p-2">
               <button
+                type="button"
                 className={cn(
                   "hover:bg-accent w-full cursor-pointer rounded px-3 py-2 text-left text-sm",
                 )}

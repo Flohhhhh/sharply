@@ -58,6 +58,8 @@ import {
 import { GearItemDock } from "~/components/gear/gear-tools-dock/gear-item-dock";
 import { auth } from "~/auth";
 import { headers } from "next/headers";
+import { GearDisplayName } from "~/components/gear/gear-display-name";
+import { GetGearDisplayName } from "~/lib/gear/naming";
 
 export const revalidate = 3600;
 
@@ -81,6 +83,10 @@ export async function generateMetadata({
         "Tried to generate metadata without NEXT_PUBLIC_BASE_URL being set",
       );
     }
+    const displayName = GetGearDisplayName({
+      name: item.name,
+      regionalAliases: item.regionalAliases ?? [],
+    });
     const description = verdict
       ? (verdict?.content ?? "")
       : `Sharply is the newest and most comprehensive photography gear database and review platform featuring expert reviews, real specs, and side-by-side comparisons in a modern, minimalist interface.`;
@@ -89,7 +95,7 @@ export async function generateMetadata({
           url: item.thumbnailUrl,
           width: 1200,
           height: 630,
-          alt: `${item.name}`,
+          alt: `${displayName}`,
         }
       : {
           url: `${baseUrl}/og-default.png`,
@@ -98,21 +104,21 @@ export async function generateMetadata({
           alt: "Sharply - Photography Gear Database",
         };
     return {
-      title: `${item.name} | Specs & Reviews`,
+      title: `${displayName} | Specs & Reviews`,
       description,
       alternates: {
         canonical: `${baseUrl}/gear/${slug}`,
       },
       openGraph: {
         type: "website",
-        title: `${item.name} | Specs & Reviews`,
+        title: `${displayName} | Specs & Reviews`,
         images: [ogImage],
         url: `${baseUrl}/gear/${slug}`,
         description,
       },
       twitter: {
         card: "summary_large_image",
-        title: `${item.name} | Specs & Reviews`,
+        title: `${displayName} | Specs & Reviews`,
         description,
         images: [ogImage.url],
       },
@@ -147,6 +153,10 @@ export default async function GearPage({ params }: GearPageProps) {
   if (!item) return notFound();
 
   const priceDisplay = getItemDisplayPrice(item);
+  const displayName = GetGearDisplayName({
+    name: item.name,
+    regionalAliases: item.regionalAliases ?? [],
+  });
 
   // Check auth status for image request feature
   const session = await auth.api.getSession({
@@ -202,7 +212,7 @@ export default async function GearPage({ params }: GearPageProps) {
     return (
       <main className="mx-auto mt-24 min-h-screen max-w-4xl p-6">
         <ConstructionFullPage
-          gearName={item.name}
+          gearName={displayName}
           missing={construction.missing}
           editHref={`/gear/${item.slug}/edit?type=${item.gearType}`}
           slug={item.slug}
@@ -220,7 +230,7 @@ export default async function GearPage({ params }: GearPageProps) {
   const breadCrumbItems = [
     { label: "Gear", href: "/gear" },
     brand ? { label: brand, href: `/brand/${brand.toLowerCase()}` } : null,
-    { label: item.name },
+    { label: displayName },
   ].filter(Boolean) as CrumbItem[];
 
   return (
@@ -256,11 +266,18 @@ export default async function GearPage({ params }: GearPageProps) {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-bold sm:text-5xl">{item.name}</h1>
+            <h1 className="text-3xl font-bold sm:text-5xl">
+              <GearDisplayName
+                name={item.name}
+                regionalAliases={item.regionalAliases}
+              />
+            </h1>
             <RenameGearButton
               gearId={item.id}
               currentName={item.name}
               currentSlug={item.slug}
+              brandName={item.brands?.name ?? brand ?? null}
+              regionalAliases={item.regionalAliases ?? undefined}
             />
           </div>
           <div className="mt-2 text-lg font-semibold sm:text-2xl">
@@ -280,6 +297,7 @@ export default async function GearPage({ params }: GearPageProps) {
         <div>
           <GearImageCarousel
             name={item.name}
+            regionalAliases={item.regionalAliases}
             thumbnailUrl={item.thumbnailUrl}
             topViewUrl={item.topViewUrl}
             slug={slug}
@@ -356,39 +374,41 @@ export default async function GearPage({ params }: GearPageProps) {
             </section>
           )}
           {/* Raw Samples (only for cameras) */}
-          {item.gearType === "CAMERA" && item.rawSamples && item.rawSamples.length > 0 && (
-            <div className="space-y-3">
-              <h3 className="text-lg font-semibold">Raw Samples</h3>
-              <div className="space-y-2">
-                {item.rawSamples.map((sample) => (
-                  <Item key={sample.id} variant="outline" size="sm">
-                    <ItemContent>
-                      <ItemTitle className="max-w-[70%] truncate text-sm font-medium">
-                        {sample.originalFilename ?? sample.fileUrl}
-                      </ItemTitle>
-                    </ItemContent>
-                    <ItemActions>
-                      <Button
-                        size="sm"
-                        className="h-8 w-auto px-3 text-xs"
-                        icon={<FileDown className="h-4 w-4" />}
-                        asChild
-                      >
-                        <a
-                          href={sample.fileUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          download
+          {item.gearType === "CAMERA" &&
+            item.rawSamples &&
+            item.rawSamples.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold">Raw Samples</h3>
+                <div className="space-y-2">
+                  {item.rawSamples.map((sample) => (
+                    <Item key={sample.id} variant="outline" size="sm">
+                      <ItemContent>
+                        <ItemTitle className="max-w-[70%] truncate text-sm font-medium">
+                          {sample.originalFilename ?? sample.fileUrl}
+                        </ItemTitle>
+                      </ItemContent>
+                      <ItemActions>
+                        <Button
+                          size="sm"
+                          className="h-8 w-auto px-3 text-xs"
+                          icon={<FileDown className="h-4 w-4" />}
+                          asChild
                         >
-                          Download
-                        </a>
-                      </Button>
-                    </ItemActions>
-                  </Item>
-                ))}
+                          <a
+                            href={sample.fileUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            download
+                          >
+                            Download
+                          </a>
+                        </Button>
+                      </ItemActions>
+                    </Item>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
           {/* Alternatives */}
           <GearAlternativesSection
             alternatives={alternatives}
@@ -402,6 +422,7 @@ export default async function GearPage({ params }: GearPageProps) {
             <GearActionButtons
               slug={slug}
               name={item.name}
+              regionalAliases={item.regionalAliases}
               gearType={item.gearType}
             />
           </div>

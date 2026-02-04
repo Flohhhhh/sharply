@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import type { GearItem } from "~/types/gear";
 import { cn } from "~/lib/utils";
 import { useCompareRowScale } from "./use-compare-row-scale";
+import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
 
 type CompareHeroScaledRowProps = {
   leftItem: GearItem | null;
@@ -36,7 +37,8 @@ export function CompareHeroScaledRow({
     // Only apply physical scaling for camera-to-camera comparisons.
     // For lenses or mixed types, use a constant display width to avoid implying scale.
     if (!isCameraComparison) {
-      const constantWidthPixels = fallbackWidthMillimeters * pixelsPerMillimeter;
+      const constantWidthPixels =
+        fallbackWidthMillimeters * pixelsPerMillimeter;
       return {
         leftDisplayWidthPixels: constantWidthPixels,
         rightDisplayWidthPixels: constantWidthPixels,
@@ -99,6 +101,10 @@ function CompareHeroScaledImage({
   displayWidthPixels,
 }: CompareHeroScaledImageProps) {
   const hasImage = Boolean(item?.thumbnailUrl);
+  const displayName = useGearDisplayName({
+    name: item?.name ?? "Gear thumbnail",
+    regionalAliases: item?.regionalAliases ?? null,
+  });
   const alignment =
     side === "left" ? "justify-end pr-4 sm:pr-8" : "justify-start pl-4 sm:pl-8";
   const framePaddingPixels = 20;
@@ -123,7 +129,7 @@ function CompareHeroScaledImage({
           {hasImage ? (
             <img
               src={item?.thumbnailUrl ?? "/image-temp.png"}
-              alt={item?.name ?? "Gear thumbnail"}
+              alt={displayName}
               style={{
                 width: `${displayWidthPixels}px`,
                 height: "auto",

@@ -84,6 +84,7 @@ export default async function BrandPage({ params }: BrandPageProps) {
               href={`/gear/${item.slug}`}
               slug={item.slug}
               name={item.name}
+              regionalAliases={item.regionalAliases}
               brandName={item.brandName}
               thumbnailUrl={item.thumbnailUrl}
               gearType={item.gearType}

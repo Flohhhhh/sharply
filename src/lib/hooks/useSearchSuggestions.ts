@@ -10,6 +10,7 @@ type UseSearchSuggestionsOptions = {
   enabled?: boolean;
   debounceMs?: number;
   endpoint?: string; // GET endpoint that returns { suggestions: Suggestion[] }
+  countryCode?: string | null;
 };
 
 type UseSearchSuggestionsReturn = {
@@ -31,6 +32,7 @@ export function useSearchSuggestions(
     enabled = true,
     debounceMs = 200,
     endpoint = "/api/search/suggest",
+    countryCode,
   } = options;
 
   const [results, setResults] = useState<Suggestion[]>([]);
@@ -75,13 +77,13 @@ export function useSearchSuggestions(
     }
 
     lastRawQueryRef.current = query;
-  }, [query, enabled, minLength]);
+  }, [query, enabled, minLength, debounceMs]);
 
-  const cancelOngoing = () => {
+  const cancelOngoing = useCallback(() => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
-  };
+  }, []);
 
   const doFetch = useCallback(
     async (q: string, immediate = false) => {
@@ -97,7 +99,10 @@ export function useSearchSuggestions(
       setLoading(true);
 
       try {
-        const url = `${endpoint}?q=${encodeURIComponent(q)}${limit ? `&limit=${limit}` : ""}`;
+        const countryParam = countryCode
+          ? `&country=${encodeURIComponent(countryCode)}`
+          : "";
+        const url = `${endpoint}?q=${encodeURIComponent(q)}${limit ? `&limit=${limit}` : ""}${countryParam}`;
         const res = await fetch(url, {
           signal: abortControllerRef.current.signal,
         });
@@ -114,7 +119,7 @@ export function useSearchSuggestions(
         setLoading(false);
       }
     },
-    [enabled, endpoint, limit, minLength],
+    [enabled, endpoint, limit, minLength, countryCode, cancelOngoing],
   );
 
   // Debounced fetching while typing
@@ -124,7 +129,7 @@ export function useSearchSuggestions(
       return;
     }
     void doFetch(debounced, false);
-  }, [debounced, enabled, minLength]);
+  }, [debounced, enabled, minLength, doFetch]);
 
   // Immediate fetch when crossing threshold upward (reduces perceived lag)
   const prevLenRef = useRef<number>(0);
@@ -142,7 +147,7 @@ export function useSearchSuggestions(
   // Cleanup on unmount
   useEffect(() => {
     return () => cancelOngoing();
-  }, []);
+  }, [cancelOngoing]);
 
   const fetchNow = useCallback(async () => {
     await doFetch(query, true);

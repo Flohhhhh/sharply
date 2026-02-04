@@ -1,8 +1,8 @@
-import { BRANDS } from "~/lib/generated";
 import {
   generateGearPageJsonLd,
   type GearPageJsonLdInput,
 } from "~/lib/seo/json-ld-helpers";
+import { GetGearDisplayName } from "~/lib/gear/naming";
 import type { GearItem } from "~/types/gear";
 
 export function JsonLd(props: { gear: GearItem }) {
@@ -14,23 +14,20 @@ export function JsonLd(props: { gear: GearItem }) {
     );
   }
   const url = `${baseUrl}/gear/${gear.slug}`;
+  const displayName = GetGearDisplayName({
+    name: gear.name,
+    regionalAliases: gear.regionalAliases ?? [],
+  });
 
   const input: GearPageJsonLdInput = {
     canonicalUrl: url,
-    name: gear.name,
+    name: displayName,
     brandId: gear.brandId,
     image: gear.thumbnailUrl ?? undefined,
     category: gear.gearType,
   };
 
-
-
   return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{
-        __html: generateGearPageJsonLd(input),
-      }}
-    />
+    <script type="application/ld+json">{generateGearPageJsonLd(input)}</script>
   );
 }

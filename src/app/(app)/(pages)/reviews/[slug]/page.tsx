@@ -5,6 +5,7 @@ import { RichText } from "~/components/rich-text";
 import { TableOfContents } from "~/components/rich-text/table-of-contents";
 import { GearCardHorizontal } from "~/components/gear/gear-card-horizontal";
 import { getBrandNameById } from "~/lib/mapping/brand-map";
+import { GetGearDisplayName } from "~/lib/gear/naming";
 import { notFound } from "next/navigation";
 import { GenreRatings } from "../_components/genre-ratings";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
@@ -171,11 +172,12 @@ export default async function ReviewPage({
               {/* Gear Specs */}
               <div className="space-y-3">
                 <h3 className="scroll-mt-24 text-lg font-semibold">
-                  View {gearItem.name} specs
+                  View {GetGearDisplayName(gearItem)} specs
                 </h3>
                 <GearCardHorizontal
                   slug={gearItem.slug}
                   name={gearItem.name}
+                  regionalAliases={gearItem.regionalAliases}
                   thumbnailUrl={gearItem.thumbnailUrl}
                   brandName={brandName ?? ""}
                   gearType={gearItem.gearType}
@@ -197,7 +199,7 @@ export default async function ReviewPage({
               {/* Genre Ratings */}
               <GenreRatings
                 genreRatings={review.genreRatings ?? {}}
-                gearName={gearItem.name}
+                gearName={GetGearDisplayName(gearItem)}
               />
             </section>
           </div>

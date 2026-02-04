@@ -19,6 +19,7 @@ import { applyLiveBoostToTrending } from "./live";
 export { applyLiveBoostToTrending } from "./live";
 import { auth } from "~/auth";
 import { headers } from "next/headers";
+import { fetchGearAliasesByGearIds } from "~/server/gear/data";
 import type {
   TrendingFiltersInput,
   TrendingPageResult,
@@ -124,8 +125,16 @@ export async function fetchLiveBoosts(params?: {
   const filters = params?.filters ?? {};
   const offset = params?.offset ?? 0;
   const snapshot = await getLiveTrendingSnapshot(limit, filters, offset);
+  const aliasesById = await fetchGearAliasesByGearIds(
+    snapshot.items.map((item) => item.gearId),
+  );
   // Only show items with a positive live score
-  return snapshot.items.filter((i) => (i.liveScore ?? 0) > 0);
+  return snapshot.items
+    .filter((i) => (i.liveScore ?? 0) > 0)
+    .map((item) => ({
+      ...item,
+      regionalAliases: aliasesById.get(item.gearId) ?? [],
+    }));
 }
 
 export async function fetchTrending(params: {
@@ -144,7 +153,15 @@ export async function fetchTrending(params: {
     getLiveTrendingSnapshot(limit, filters, offset),
   ]);
 
-  return applyLiveBoostToTrending({ baseline, liveSnapshot, limit });
+  const merged = applyLiveBoostToTrending({ baseline, liveSnapshot, limit });
+  const aliasesById = await fetchGearAliasesByGearIds(
+    merged.map((item) => item.gearId),
+  );
+
+  return merged.map((item) => ({
+    ...item,
+    regionalAliases: aliasesById.get(item.gearId) ?? [],
+  }));
 }
 
 type TrendingSlugsParams = {

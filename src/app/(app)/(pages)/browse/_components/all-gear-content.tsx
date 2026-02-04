@@ -162,6 +162,7 @@ async function TrendingGrid({ brandId }: { brandId?: string }) {
           href={`/gear/${g.slug}`}
           slug={g.slug}
           name={g.name}
+          regionalAliases={g.regionalAliases}
           brandName={g.brandName}
           thumbnailUrl={g.thumbnailUrl ?? undefined}
           gearType={g.gearType}
@@ -297,12 +298,17 @@ function buildBaseQuery(params: {
   if (params.mountShort) qs.set("mount", params.mountShort);
   qs.set("perPage", String(params.perPage));
 
-  Object.entries(params.searchParams).forEach(([key, value]) => {
-    if (key === "page" || key === "perPage") return;
-    if (value == null) return;
-    if (Array.isArray(value)) value.forEach((v) => qs.append(key, v));
-    else qs.set(key, value);
-  });
+  for (const [key, value] of Object.entries(params.searchParams)) {
+    if (key === "page" || key === "perPage") continue;
+    if (value == null) continue;
+    if (Array.isArray(value)) {
+      value.forEach((v) => {
+        qs.append(key, v);
+      });
+    } else {
+      qs.set(key, value);
+    }
+  }
 
   return qs.toString();
 }

@@ -12,6 +12,8 @@ import { Button } from "~/components/ui/button";
 import { useCompareLoadingOverlay } from "~/components/compare/compare-loading-overlay";
 import { buildCompareHref } from "~/lib/utils/url";
 import { actionRecordCompareAdd } from "~/server/popularity/actions";
+import { GetGearDisplayName } from "~/lib/gear/naming";
+import { useCountry } from "~/lib/hooks/useCountry";
 
 export function CompareEmptyState() {
   const router = useRouter();
@@ -120,6 +122,7 @@ function CompareEmptyColumn({
   gearTypeFilter?: string | null;
   excludeIds: string[];
 }) {
+  const { region } = useCountry();
   const placeholders = [
     {
       title: "Pick the first item",
@@ -131,8 +134,15 @@ function CompareEmptyColumn({
     },
   ];
 
+  const displayName = value
+    ? GetGearDisplayName(
+        { name: value.name, regionalAliases: value.regionalAliases ?? [] },
+        { region },
+      )
+    : null;
+
   const title = hasSelection
-    ? (value?.name ?? "Selected item")
+    ? (displayName ?? "Selected item")
     : placeholders[index]?.title;
   const body = hasSelection
     ? "Use the selector above to swap or clear this slot."
@@ -160,7 +170,7 @@ function CompareEmptyColumn({
             <div className="bg-muted relative h-36 w-full max-w-[220px] overflow-hidden rounded-2xl">
               <Image
                 src={value?.thumbnailUrl ?? "/image-temp.png"}
-                alt={value?.name ?? "Selected gear"}
+                alt={displayName ?? "Selected gear"}
                 fill
                 sizes="220px"
                 className="object-contain object-center"

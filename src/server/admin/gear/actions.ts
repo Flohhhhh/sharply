@@ -9,7 +9,9 @@ import {
   clearGearThumbnailService,
   setGearTopViewService,
   clearGearTopViewService,
+  updateGearAliasesService,
 } from "./service";
+import { type GearRegion } from "~/lib/gear/region";
 import type { GearCreationParams } from "./data";
 
 export async function actionCreateGear(params: GearCreationParams) {
@@ -27,6 +29,23 @@ export async function actionRenameGear(params: {
   // Revalidate both old and new paths
   revalidatePath("/admin/gear");
   revalidatePath(`/gear/${result.slug}`);
+  revalidatePath("/browse");
+  return result;
+}
+
+export async function actionUpdateGearAliases(params: {
+  gearId: string;
+  gearSlug?: string;
+  aliases: { region: GearRegion; name: string | null }[];
+}) {
+  const { gearSlug, ...rest } = params;
+  const result = await updateGearAliasesService(rest);
+  revalidatePath("/admin/gear");
+  if (params.gearSlug) {
+    revalidatePath(`/gear/${params.gearSlug}`);
+  } else {
+    revalidatePath("/gear");
+  }
   revalidatePath("/browse");
   return result;
 }

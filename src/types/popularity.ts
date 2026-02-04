@@ -1,5 +1,7 @@
 import type { GearType } from "~/types/gear";
 
+import type { GearAlias } from "~/types/gear";
+
 export type TrendingFiltersInput = {
   brandId?: string;
   mountId?: string;
@@ -10,6 +12,7 @@ export type TrendingEntry = {
   gearId: string;
   slug: string;
   name: string;
+  regionalAliases?: GearAlias[] | null;
   brandName: string;
   gearType: GearType;
   thumbnailUrl: string | null;
@@ -44,6 +47,7 @@ export type LiveTrendingSnapshotItem = {
   gearId: string;
   slug: string;
   name: string;
+  regionalAliases?: GearAlias[] | null;
   brandName: string;
   gearType: GearType;
   thumbnailUrl: string | null;

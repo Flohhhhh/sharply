@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, desc, eq, gte, or, sql } from "drizzle-orm";
+import { and, desc, eq, gte, or, sql, inArray } from "drizzle-orm";
 import { db } from "~/server/db";
 import {
   brands,
@@ -31,11 +31,15 @@ import {
   gearAlternatives,
   rawSamples,
   gearRawSamples,
+  gearAliases,
 } from "~/server/db/schema";
 import { hasEventForUserOnUtcDay } from "~/server/validation/dedupe";
 import { incrementGearPopularityIntraday } from "~/server/popularity/data";
-import type { Gear, GearItem } from "~/types/gear";
+import type { Gear, GearAlias, GearItem, GearRegion } from "~/types/gear";
 import { fetchVideoModesByGearId } from "~/server/video-modes/data";
+import { buildGearSearchName } from "~/lib/gear/naming";
+
+type DbClient = Pick<typeof db, "select" | "update" | "insert" | "delete">;
 
 // Reads
 export async function getGearIdBySlug(slug: string): Promise<string | null> {
@@ -45,6 +49,111 @@ export async function getGearIdBySlug(slug: string): Promise<string | null> {
     .where(eq(gear.slug, slug))
     .limit(1);
   return row[0]?.id ?? null;
+}
+
+export async function fetchGearAliasesByGearIds(
+  gearIds: string[],
+): Promise<Map<string, GearAlias[]>> {
+  if (!gearIds.length) return new Map();
+
+  const rows = await db
+    .select({
+      gearId: gearAliases.gearId,
+      region: gearAliases.region,
+      name: gearAliases.name,
+      createdAt: gearAliases.createdAt,
+      updatedAt: gearAliases.updatedAt,
+    })
+    .from(gearAliases)
+    .where(inArray(gearAliases.gearId, gearIds));
+
+  const byGearId = new Map<string, GearAlias[]>();
+  for (const row of rows) {
+    const existing = byGearId.get(row.gearId) ?? [];
+    existing.push({
+      gearId: row.gearId,
+      region: row.region,
+      name: row.name,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    });
+    byGearId.set(row.gearId, existing);
+  }
+
+  return byGearId;
+}
+
+export async function fetchGearAliasesByGearId(
+  gearId: string,
+): Promise<GearAlias[]> {
+  const map = await fetchGearAliasesByGearIds([gearId]);
+  return map.get(gearId) ?? [];
+}
+
+async function buildSearchNameForGearId(
+  tx: DbClient,
+  gearId: string,
+): Promise<string> {
+  const row = await tx
+    .select({ name: gear.name, brandName: brands.name })
+    .from(gear)
+    .leftJoin(brands, eq(gear.brandId, brands.id))
+    .where(eq(gear.id, gearId))
+    .limit(1);
+
+  if (!row[0]) {
+    throw Object.assign(new Error("Gear not found"), { status: 404 });
+  }
+
+  const aliases: { name: string }[] = await tx
+    .select({ name: gearAliases.name })
+    .from(gearAliases)
+    .where(eq(gearAliases.gearId, gearId));
+
+  return buildGearSearchName({
+    name: row[0].name,
+    brandName: row[0].brandName ?? null,
+    aliases: aliases.map((alias) => alias.name),
+  });
+}
+
+export async function upsertGearAlias(params: {
+  gearId: string;
+  region: GearRegion;
+  name: string;
+}): Promise<void> {
+  const { gearId, region, name } = params;
+
+  await db.transaction(async (tx) => {
+    await tx
+      .insert(gearAliases)
+      .values({ gearId, region, name })
+      .onConflictDoUpdate({
+        target: [gearAliases.gearId, gearAliases.region],
+        set: { name, updatedAt: new Date() },
+      });
+
+    const searchName = await buildSearchNameForGearId(tx, gearId);
+    await tx.update(gear).set({ searchName }).where(eq(gear.id, gearId));
+  });
+}
+
+export async function deleteGearAlias(params: {
+  gearId: string;
+  region: GearRegion;
+}): Promise<void> {
+  const { gearId, region } = params;
+
+  await db.transaction(async (tx) => {
+    await tx
+      .delete(gearAliases)
+      .where(
+        and(eq(gearAliases.gearId, gearId), eq(gearAliases.region, region)),
+      );
+
+    const searchName = await buildSearchNameForGearId(tx, gearId);
+    await tx.update(gear).set({ searchName }).where(eq(gear.id, gearId));
+  });
 }
 
 export async function getGearLinkMpb(params: {
@@ -114,6 +223,7 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
     .from(gearMounts)
     .where(eq(gearMounts.gearId, gearItem[0]!.gear.id));
   const rawSampleRows = await fetchRawSamplesByGearId(gearItem[0]!.gear.id);
+  const aliasRows = await fetchGearAliasesByGearId(gearItem[0]!.gear.id);
 
   const base: GearItem = {
     ...gearItem[0]!.gear,
@@ -122,6 +232,7 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
     lensSpecs: null,
     fixedLensSpecs: null,
     mountIds: mountIdRows.map((r) => r.mountId),
+    regionalAliases: aliasRows,
     rawSamples: rawSampleRows,
   };
 
@@ -280,6 +391,7 @@ export type GearCardRow = {
   id: string;
   slug: string;
   name: string;
+  regionalAliases?: GearAlias[] | null;
   searchName: string | null;
   gearType: string;
   brandName: string | null;
@@ -323,7 +435,13 @@ export async function fetchLatestGearCardsData(
     .leftJoin(lensSpecs, eq(gear.id, lensSpecs.gearId))
     .orderBy(desc(gear.createdAt))
     .limit(limit);
-  return rows as unknown as GearCardRow[];
+  const aliasesById = await fetchGearAliasesByGearIds(
+    rows.map((row) => row.id),
+  );
+  return rows.map((row) => ({
+    ...row,
+    regionalAliases: aliasesById.get(row.id) ?? [],
+  })) as unknown as GearCardRow[];
 }
 
 export type BrandGearCard = GearCardRow;
@@ -389,10 +507,13 @@ export async function fetchBrandGearData(
       .push({ id: m.mountId!, value: m.mountValue! });
   }
 
+  const aliasesById = await fetchGearAliasesByGearIds(gearIds);
+
   // Attach mounts array to each gear item
   return rows.map((row) => ({
     ...row,
     mounts: mountsByGearId.get(row.id) || [],
+    regionalAliases: aliasesById.get(row.id) ?? [],
   })) as unknown as BrandGearCard[];
 }
 
@@ -851,7 +972,9 @@ export async function hasImageRequest(
   const row = await db
     .select({ userId: imageRequests.userId })
     .from(imageRequests)
-    .where(and(eq(imageRequests.userId, userId), eq(imageRequests.gearId, gearId)))
+    .where(
+      and(eq(imageRequests.userId, userId), eq(imageRequests.gearId, gearId)),
+    )
     .limit(1);
   return row.length > 0;
 }
@@ -873,7 +996,9 @@ export async function addImageRequest(gearId: string, userId: string) {
 export async function removeImageRequest(gearId: string, userId: string) {
   await db
     .delete(imageRequests)
-    .where(and(eq(imageRequests.userId, userId), eq(imageRequests.gearId, gearId)));
+    .where(
+      and(eq(imageRequests.userId, userId), eq(imageRequests.gearId, gearId)),
+    );
   return { removed: true } as const;
 }
 
@@ -1002,6 +1127,7 @@ export type GearAlternativeRow = {
   gearId: string;
   name: string;
   slug: string;
+  regionalAliases?: GearAlias[] | null;
   brandName: string | null;
   thumbnailUrl: string | null;
   gearType: string;
@@ -1038,21 +1164,21 @@ export async function fetchAlternativesByGearId(
       gearAReleaseDate: sql<string | null>`ga.release_date`.as(
         "gear_a_release_date",
       ),
-      gearAReleaseDatePrecision: sql<string | null>`ga.release_date_precision`.as(
-        "gear_a_release_date_precision",
-      ),
+      gearAReleaseDatePrecision: sql<
+        string | null
+      >`ga.release_date_precision`.as("gear_a_release_date_precision"),
       gearAAnnouncedDate: sql<string | null>`ga.announced_date`.as(
         "gear_a_announced_date",
       ),
-      gearAAnnounceDatePrecision: sql<string | null>`ga.announce_date_precision`.as(
-        "gear_a_announce_date_precision",
-      ),
+      gearAAnnounceDatePrecision: sql<
+        string | null
+      >`ga.announce_date_precision`.as("gear_a_announce_date_precision"),
       gearAMsrpNowUsdCents: sql<number | null>`ga.msrp_now_usd_cents`.as(
         "gear_a_msrp_now_usd_cents",
       ),
-      gearAMpbMaxPriceUsdCents: sql<number | null>`ga.mpb_max_price_usd_cents`.as(
-        "gear_a_mpb_max_price_usd_cents",
-      ),
+      gearAMpbMaxPriceUsdCents: sql<
+        number | null
+      >`ga.mpb_max_price_usd_cents`.as("gear_a_mpb_max_price_usd_cents"),
       // Gear B info
       gearBName: sql<string>`gb.name`.as("gear_b_name"),
       gearBSlug: sql<string>`gb.slug`.as("gear_b_slug"),
@@ -1064,21 +1190,21 @@ export async function fetchAlternativesByGearId(
       gearBReleaseDate: sql<string | null>`gb.release_date`.as(
         "gear_b_release_date",
       ),
-      gearBReleaseDatePrecision: sql<string | null>`gb.release_date_precision`.as(
-        "gear_b_release_date_precision",
-      ),
+      gearBReleaseDatePrecision: sql<
+        string | null
+      >`gb.release_date_precision`.as("gear_b_release_date_precision"),
       gearBAnnouncedDate: sql<string | null>`gb.announced_date`.as(
         "gear_b_announced_date",
       ),
-      gearBAnnounceDatePrecision: sql<string | null>`gb.announce_date_precision`.as(
-        "gear_b_announce_date_precision",
-      ),
+      gearBAnnounceDatePrecision: sql<
+        string | null
+      >`gb.announce_date_precision`.as("gear_b_announce_date_precision"),
       gearBMsrpNowUsdCents: sql<number | null>`gb.msrp_now_usd_cents`.as(
         "gear_b_msrp_now_usd_cents",
       ),
-      gearBMpbMaxPriceUsdCents: sql<number | null>`gb.mpb_max_price_usd_cents`.as(
-        "gear_b_mpb_max_price_usd_cents",
-      ),
+      gearBMpbMaxPriceUsdCents: sql<
+        number | null
+      >`gb.mpb_max_price_usd_cents`.as("gear_b_mpb_max_price_usd_cents"),
     })
     .from(gearAlternatives)
     .innerJoin(sql`${gear} AS ga`, sql`ga.id = ${gearAlternatives.gearAId}`)
@@ -1093,7 +1219,7 @@ export async function fetchAlternativesByGearId(
     );
 
   // Map to return the "other" gear item (not the one we're querying for)
-  return rows.map((row) => {
+  const mapped = rows.map((row) => {
     const isA = row.gearAId === gearId;
     return {
       gearId: isA ? row.gearBId : row.gearAId,
@@ -1119,6 +1245,15 @@ export async function fetchAlternativesByGearId(
         : row.gearAMpbMaxPriceUsdCents,
     };
   });
+
+  const aliasesById = await fetchGearAliasesByGearIds(
+    mapped.map((item) => item.gearId),
+  );
+
+  return mapped.map((item) => ({
+    ...item,
+    regionalAliases: aliasesById.get(item.gearId) ?? [],
+  }));
 }
 
 /**

@@ -50,6 +50,7 @@ export const gearTypeEnum = pgEnum("gear_type", [
   "ANALOG_CAMERA",
   "LENS",
 ]);
+export const gearRegionEnum = pgEnum("gear_region", ["GLOBAL", "EU", "JP"]);
 export const proposalStatusEnum = pgEnum("proposal_status", [
   "PENDING",
   "APPROVED",
@@ -584,6 +585,26 @@ export const gear = appSchema.table(
     index("gear_search_idx").on(t.searchName),
     index("gear_type_brand_idx").on(t.gearType, t.brandId),
     index("gear_brand_mount_idx").on(t.brandId, t.mountId),
+  ],
+);
+
+// Regional aliases for gear names (one per gear + region)
+export const gearAliases = appSchema.table(
+  "gear_aliases",
+  (d) => ({
+    gearId: d
+      .varchar("gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    region: gearRegionEnum("region").notNull(),
+    name: varchar("name", { length: 240 }).notNull(),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    primaryKey({ columns: [t.gearId, t.region] }),
+    index("gear_aliases_gear_idx").on(t.gearId),
+    index("gear_aliases_region_idx").on(t.region),
   ],
 );
 
@@ -1188,6 +1209,14 @@ export const gearRelations = relations(gear, ({ one, many }) => ({
     references: [staffVerdicts.gearId],
   }),
   rawSamples: many(gearRawSamples),
+  aliases: many(gearAliases),
+}));
+
+export const gearAliasesRelations = relations(gearAliases, ({ one }) => ({
+  gear: one(gear, {
+    fields: [gearAliases.gearId],
+    references: [gear.id],
+  }),
 }));
 
 export const gearMountsRelations = relations(gearMounts, ({ one }) => ({

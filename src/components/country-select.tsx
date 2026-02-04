@@ -30,16 +30,13 @@ import { ChevronDown, CheckIcon, Globe } from "lucide-react";
 import { CircleFlag } from "react-circle-flags";
 
 // data
-import { countries } from "country-data-list";
-
-// Country type
 import { useCountry } from "~/lib/hooks/useCountry";
-import { type Country } from "~/types/country";
+import { LOCALE_OPTIONS, type LocaleOption } from "~/lib/locale/locales";
 
 // Dropdown props
 interface CountryDropdownProps {
-  options?: Country[];
-  onChange?: (country: Country) => void;
+  options?: LocaleOption[];
+  onChange?: (option: LocaleOption) => void;
   defaultValue?: string;
   disabled?: boolean;
   placeholder?: string;
@@ -47,14 +44,9 @@ interface CountryDropdownProps {
   className?: string;
 }
 
-const forcedCountryOrder = ["US", "EU", "GB"];
-
 const CountrySelect = (
   {
-    options = countries.all.filter(
-      (country: Country) =>
-        country.emoji && country.status !== "deleted" && country.ioc !== "PRK",
-    ),
+    options = LOCALE_OPTIONS.filter((opt) => opt.id !== "global"),
     onChange,
     defaultValue,
     disabled = false,
@@ -66,46 +58,38 @@ const CountrySelect = (
   ref: React.ForwardedRef<HTMLButtonElement>,
 ) => {
   const [open, setOpen] = useState(false);
-  const { country: globallySelectedCountry, setCountry: setGlobalCountry } =
+  const { locale: globallySelectedLocale, setLocaleId: setGlobalLocaleId } =
     useCountry();
-  const [selectedCountry, setSelectedCountry] = useState<Country | undefined>(
-    () => globallySelectedCountry ?? undefined,
-  );
-  const filteredOptions = useMemo(
-    () =>
-      forcedCountryOrder
-        .map((alpha2) => options.find((country) => country.alpha2 === alpha2))
-        .filter((country): country is Country => country !== undefined),
-    [options],
-  );
+  const [selectedLocale, setSelectedLocale] = useState<
+    LocaleOption | undefined
+  >(() => globallySelectedLocale ?? undefined);
+  const filteredOptions = useMemo(() => options, [options]);
 
   useEffect(() => {
     if (defaultValue) {
-      const initialCountry = filteredOptions.find(
-        (country) => country.alpha3 === defaultValue,
+      const initialLocale = filteredOptions.find(
+        (option) => option.id === defaultValue,
       );
-      if (initialCountry) {
-        setSelectedCountry(initialCountry);
+      if (initialLocale) {
+        setSelectedLocale(initialLocale);
       } else {
-        // Reset selected country if defaultValue is not found
-        setSelectedCountry(undefined);
+        setSelectedLocale(undefined);
       }
-    } else if (globallySelectedCountry) {
-      setSelectedCountry(globallySelectedCountry);
+    } else if (globallySelectedLocale) {
+      setSelectedLocale(globallySelectedLocale);
     } else {
-      // Reset selected country if defaultValue is undefined or null
-      setSelectedCountry(undefined);
+      setSelectedLocale(undefined);
     }
-  }, [defaultValue, filteredOptions, globallySelectedCountry]);
+  }, [defaultValue, filteredOptions, globallySelectedLocale]);
 
   const handleSelect = useCallback(
-    (country: Country) => {
-      setSelectedCountry(country);
-      setGlobalCountry(country);
-      onChange?.(country);
+    (option: LocaleOption) => {
+      setSelectedLocale(option);
+      setGlobalLocaleId(option.id);
+      onChange?.(option);
       setOpen(false);
     },
-    [onChange, setGlobalCountry],
+    [onChange, setGlobalLocaleId],
   );
 
   const triggerClasses = cn(
@@ -127,17 +111,17 @@ const CountrySelect = (
         disabled={disabled}
         {...triggerProps}
       >
-        {selectedCountry ? (
+        {selectedLocale ? (
           <div className={selectedContentClasses}>
             <div className="inline-flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full">
               <CircleFlag
-                countryCode={selectedCountry.alpha2.toLowerCase()}
+                countryCode={getFlagCode(selectedLocale)}
                 height={20}
               />
             </div>
             {slim === false && (
               <span className="overflow-hidden text-ellipsis whitespace-nowrap">
-                {selectedCountry.name}
+                {selectedLocale.label}
               </span>
             )}
           </div>
@@ -158,27 +142,27 @@ const CountrySelect = (
             </div>
             <CommandEmpty>No country found.</CommandEmpty>
             <CommandGroup>
-              {filteredOptions.map((option, key: number) => (
+              {filteredOptions.map((option) => (
                 <CommandItem
                   className="flex w-full items-center gap-2"
-                  key={key}
+                  key={option.id}
                   onSelect={() => handleSelect(option)}
                 >
                   <div className="flex w-0 flex-grow space-x-2 overflow-hidden">
                     <div className="inline-flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full">
                       <CircleFlag
-                        countryCode={option.alpha2.toLowerCase()}
+                        countryCode={getFlagCode(option)}
                         height={20}
                       />
                     </div>
                     <span className="overflow-hidden text-ellipsis whitespace-nowrap">
-                      {option.name}
+                      {option.label}
                     </span>
                   </div>
                   <CheckIcon
                     className={cn(
                       "ml-auto h-4 w-4 shrink-0",
-                      option.name === selectedCountry?.name
+                      option.id === selectedLocale?.id
                         ? "opacity-100"
                         : "opacity-0",
                     )}
@@ -196,3 +180,11 @@ const CountrySelect = (
 CountrySelect.displayName = "CountrySelect";
 
 export const CountryDropdown = forwardRef(CountrySelect);
+
+function getFlagCode(option: LocaleOption): string {
+  if (option.id === "eu") return "eu";
+  if (option.countryCode) return option.countryCode.toLowerCase();
+  if (option.affiliateCountryCode)
+    return option.affiliateCountryCode.toLowerCase();
+  return "us";
+}

@@ -22,9 +22,10 @@ import { createNotificationData } from "../notifications/data";
 import type { GearItem, Mount } from "~/types/gear";
 import { headers } from "next/headers";
 import { getSessionOrThrow } from "~/server/auth";
+import { fetchGearAliasesByGearIds } from "~/server/gear/data";
 
 export async function getUserReviews(userId: string) {
-  return db
+  const rows = await db
     .select({
       id: reviews.id,
       content: reviews.content,
@@ -42,6 +43,16 @@ export async function getUserReviews(userId: string) {
     .leftJoin(brands, eq(gear.brandId, brands.id))
     .where(eq(reviews.createdById, userId))
     .orderBy(reviews.createdAt);
+
+  const gearIds = rows
+    .map((row) => row.gearId)
+    .filter((id): id is string => Boolean(id));
+  const aliasesById = await fetchGearAliasesByGearIds(gearIds);
+
+  return rows.map((row) => ({
+    ...row,
+    regionalAliases: row.gearId ? (aliasesById.get(row.gearId) ?? []) : [],
+  }));
 }
 
 export async function fetchCurrentUserReviews() {
@@ -124,7 +135,7 @@ async function fetchGearItemsForUserList(
     mountsByGearId.set(mountRow.gearId, existingMounts);
   }
 
-  return rows.map((row) => {
+  const items = rows.map((row) => {
     const gearRecord = row.gear;
     const gearMountsForItem = mountsByGearId.get(gearRecord.id) ?? [];
     const mountIdentifierList =
@@ -142,6 +153,15 @@ async function fetchGearItemsForUserList(
       fixedLensSpecs: row.fixed_lens_specs ?? null,
     };
   });
+
+  const aliasesById = await fetchGearAliasesByGearIds(
+    items.map((item) => item.id),
+  );
+
+  return items.map((item) => ({
+    ...item,
+    regionalAliases: aliasesById.get(item.id) ?? [],
+  }));
 }
 
 export async function fetchUserWishlistItems(

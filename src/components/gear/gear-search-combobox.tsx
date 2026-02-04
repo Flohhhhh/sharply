@@ -12,6 +12,9 @@ import {
 import { ChevronsUpDown, Check, Loader, X } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { useDebounce } from "~/lib/hooks/useDebounce";
+import { GetGearDisplayName } from "~/lib/gear/naming";
+import { useCountry } from "~/lib/hooks/useCountry";
+import type { GearAlias } from "~/types/gear";
 import { Button } from "~/components/ui/button";
 import {
   Command,
@@ -31,6 +34,7 @@ export type GearOption = {
   id: string;
   slug: string;
   name: string;
+  regionalAliases?: GearAlias[] | null;
   brandName?: string | null;
   gearType?: string | null;
   thumbnailUrl?: string | null;
@@ -74,6 +78,7 @@ type SearchApiResult = {
     id: string;
     slug: string;
     name: string;
+    regionalAliases?: GearAlias[] | null;
     brandName?: string | null;
     gearType?: string | null;
     thumbnailUrl?: string | null;
@@ -111,8 +116,11 @@ export function GearSearchCombobox({
   const abortRef = useRef<AbortController | null>(null);
   const debouncedQuery = useDebounce(query, 200);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
-  const [triggerWidth, setTriggerWidth] = useState<number | undefined>(undefined);
+  const [triggerWidth, setTriggerWidth] = useState<number | undefined>(
+    undefined,
+  );
   const shouldMeasureTrigger = !renderTrigger;
+  const { region } = useCountry();
 
   const brandFilter = filters?.brand;
   const mountFilter = filters?.mount;
@@ -176,6 +184,7 @@ export function GearSearchCombobox({
             id: String(item.id),
             slug: String(item.slug),
             name: String(item.name),
+            regionalAliases: item.regionalAliases ?? null,
             brandName: item.brandName ?? null,
             gearType: item.gearType ?? null,
             thumbnailUrl: item.thumbnailUrl ?? null,
@@ -234,7 +243,7 @@ export function GearSearchCombobox({
     resizeObserver.observe(node);
 
     return () => resizeObserver.disconnect();
-  }, [value, buttonClassName, open, shouldMeasureTrigger]);
+  }, [shouldMeasureTrigger]);
 
   const updateSelection = useCallback(
     (option: GearOption | null, { closePopover = true } = {}) => {
@@ -262,7 +271,12 @@ export function GearSearchCombobox({
     [updateSelection],
   );
 
-  const buttonLabel = value?.name ?? placeholder;
+  const buttonLabel = value
+    ? GetGearDisplayName(
+        { name: value.name, regionalAliases: value.regionalAliases },
+        { region },
+      )
+    : placeholder;
 
   const trimmedQuery = query.trim();
   const trimmedDebouncedQuery = debouncedQuery.trim();
@@ -288,54 +302,55 @@ export function GearSearchCombobox({
     return emptyText;
   }, [belowThreshold, emptyText, error, minChars, showLoading]);
 
-  const triggerContent = renderTrigger
-    ? renderTrigger({
-        open,
-        selection: value,
-        canClear: canClearSelection,
-      })
-    : (
-        <Button
-          type="button"
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          disabled={disabled}
-          ref={triggerRef}
-          className={cn(
-            fullWidth ? "w-full justify-between text-left" : "justify-between text-left",
-            buttonClassName,
-          )}
-        >
-          <span
-            className={cn(
-              "truncate",
-              value ? "text-foreground" : "text-muted-foreground",
-            )}
+  const triggerContent = renderTrigger ? (
+    renderTrigger({
+      open,
+      selection: value,
+      canClear: canClearSelection,
+    })
+  ) : (
+    <Button
+      type="button"
+      variant="outline"
+      role="combobox"
+      aria-expanded={open}
+      disabled={disabled}
+      ref={triggerRef}
+      className={cn(
+        fullWidth
+          ? "w-full justify-between text-left"
+          : "justify-between text-left",
+        buttonClassName,
+      )}
+    >
+      <span
+        className={cn(
+          "truncate",
+          value ? "text-foreground" : "text-muted-foreground",
+        )}
+      >
+        {buttonLabel}
+      </span>
+      <span className="flex items-center">
+        {canClearSelection ? (
+          <button
+            type="button"
+            aria-label="Clear selection"
+            className="text-muted-foreground hover:text-foreground rounded-sm p-1 transition"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              handleClear({ closePopover: false });
+            }}
           >
-            {buttonLabel}
-          </span>
-          <span className="flex items-center">
-            {canClearSelection ? (
-              <span
-                role="button"
-                tabIndex={-1}
-                aria-label="Clear selection"
-                className="text-muted-foreground hover:text-foreground rounded-sm p-1 transition"
-                onClick={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  handleClear({ closePopover: false });
-                }}
-              >
-                <X className="size-4" />
-              </span>
-            ) : (
-              <ChevronsUpDown className="size-4 opacity-50" />
-            )}
-          </span>
-        </Button>
-      );
+            <X className="size-4" />
+          </button>
+        ) : (
+          <ChevronsUpDown className="size-4 opacity-50" />
+        )}
+      </span>
+    </Button>
+  );
 
   return (
     <div
@@ -393,7 +408,13 @@ export function GearSearchCombobox({
                         />
                         <div className="flex min-w-0 flex-col">
                           <span className="truncate font-medium">
-                            {option.name}
+                            {GetGearDisplayName(
+                              {
+                                name: option.name,
+                                regionalAliases: option.regionalAliases,
+                              },
+                              { region },
+                            )}
                           </span>
                           <span className="text-muted-foreground truncate text-xs">
                             {option.brandName ?? "Unknown brand"}
@@ -401,7 +422,7 @@ export function GearSearchCombobox({
                         </div>
                         <div className="ml-auto flex items-center gap-2">
                           {option.gearType ? (
-                            <span className="text-muted-foreground rounded-full border border-muted-foreground/20 px-2 py-0.5 text-[11px] uppercase tracking-wide">
+                            <span className="text-muted-foreground border-muted-foreground/20 rounded-full border px-2 py-0.5 text-[11px] tracking-wide uppercase">
                               {option.gearType}
                             </span>
                           ) : null}
@@ -420,4 +441,3 @@ export function GearSearchCombobox({
 }
 
 export default GearSearchCombobox;
-

@@ -7,11 +7,13 @@ import { GearCard } from "~/components/gear/gear-card";
 import { Button } from "~/components/ui/button";
 import { getItemDisplayPrice } from "~/lib/mapping";
 import { useIsMobile } from "~/hooks/use-mobile";
+import type { GearAlias } from "~/types/gear";
 
 type GearListItem = {
   id: string;
   slug: string;
   name: string;
+  regionalAliases?: GearAlias[] | null;
   brandName?: string | null;
   gearType: string | null;
   thumbnailUrl: string | null;
@@ -161,6 +163,7 @@ export function BrowseResultsGrid({
             href={`/gear/${g.slug}`}
             slug={g.slug}
             name={g.name}
+            regionalAliases={g.regionalAliases}
             brandName={g.brandName ?? brandName}
             thumbnailUrl={g.thumbnailUrl ?? undefined}
             gearType={g.gearType ?? undefined}

@@ -9,6 +9,7 @@ import { getBrandNameById, stripLeadingBrand } from "~/lib/mapping/brand-map";
 import { CompareHeroScaledRow } from "~/components/compare/compare-hero-scaled";
 import { cn } from "~/lib/utils";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
+import { GetGearDisplayName } from "~/lib/gear/naming";
 
 export async function generateMetadata({
   searchParams,
@@ -31,8 +32,18 @@ export async function generateMetadata({
     slugB ? fetchGearBySlug(slugB).catch(() => null) : null,
   ]);
 
-  const nameA = a?.name ?? slugA ?? "";
-  const nameB = b?.name ?? slugB ?? "";
+  const nameA = a
+    ? GetGearDisplayName({
+        name: a.name,
+        regionalAliases: a.regionalAliases ?? [],
+      })
+    : (slugA ?? "");
+  const nameB = b
+    ? GetGearDisplayName({
+        name: b.name,
+        regionalAliases: b.regionalAliases ?? [],
+      })
+    : (slugB ?? "");
 
   return {
     title:
@@ -86,8 +97,20 @@ export default async function ComparePage({
 
   const aBrand = (getBrandNameById(a?.brandId ?? "") ?? "").trim();
   const bBrand = (getBrandNameById(b?.brandId ?? "") ?? "").trim();
-  const aName = stripLeadingBrand(a?.name ?? slugA ?? "", aBrand);
-  const bName = stripLeadingBrand(b?.name ?? slugB ?? "", bBrand);
+  const aDisplayName = a
+    ? GetGearDisplayName({
+        name: a.name,
+        regionalAliases: a.regionalAliases ?? [],
+      })
+    : (slugA ?? "");
+  const bDisplayName = b
+    ? GetGearDisplayName({
+        name: b.name,
+        regionalAliases: b.regionalAliases ?? [],
+      })
+    : (slugB ?? "");
+  const aName = stripLeadingBrand(aDisplayName, aBrand);
+  const bName = stripLeadingBrand(bDisplayName, bBrand);
 
   return (
     <CompareLoadingOverlayProvider>

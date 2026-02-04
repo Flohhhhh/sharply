@@ -148,6 +148,7 @@ export function ReleaseFeedGrid({
             href={`/gear/${g.slug}`}
             slug={g.slug}
             name={g.name}
+            regionalAliases={g.regionalAliases}
             brandName={g.brandName ?? undefined}
             thumbnailUrl={g.thumbnailUrl ?? undefined}
             gearType={g.gearType}

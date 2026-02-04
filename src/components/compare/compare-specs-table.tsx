@@ -18,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
 
 type Row = { label: string; a?: React.ReactNode; b?: React.ReactNode };
 type SpecsSection = ReturnType<typeof buildGearSpecsSections>[number];
@@ -102,6 +103,14 @@ export function CompareSpecsTable({
   const { data } = useSession();
 
   const session = data?.session;
+  const aName = useGearDisplayName({
+    name: a.name,
+    regionalAliases: a.regionalAliases,
+  });
+  const bName = useGearDisplayName({
+    name: b.name,
+    regionalAliases: b.regionalAliases,
+  });
 
   const aSections = buildGearSpecsSections(a, true);
   const bSections = buildGearSpecsSections(b, true);
@@ -166,7 +175,7 @@ export function CompareSpecsTable({
         ) : (
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <div className="rounded-md border p-3 text-left">
-              <div className="font-medium">{a.name}</div>
+              <div className="font-medium">{aName}</div>
               <div className="text-muted-foreground text-sm">
                 {missingA} specs missing
               </div>
@@ -183,7 +192,7 @@ export function CompareSpecsTable({
               </div>
             </div>
             <div className="rounded-md border p-3 text-left">
-              <div className="font-medium">{b.name}</div>
+              <div className="font-medium">{bName}</div>
               <div className="text-muted-foreground text-sm">
                 {missingB} specs missing
               </div>
@@ -260,16 +269,16 @@ export function CompareSpecsTable({
                         Spec
                       </TableHead>
                       <TableHead className="text-muted-foreground px-4 py-3 text-xs tracking-wide uppercase">
-                        {a.name}
+                        {aName}
                       </TableHead>
                       <TableHead className="text-muted-foreground px-4 py-3 text-xs tracking-wide uppercase">
-                        {b.name}
+                        {bName}
                       </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {rowsToRender.map((r, idx) => (
-                      <TableRow key={`${title}-${idx}`} className="text-sm">
+                    {rowsToRender.map((r) => (
+                      <TableRow key={`${title}-${r.label}`} className="text-sm">
                         <TableCell className="text-muted-foreground px-4 py-3 align-top">
                           {r.label}
                         </TableCell>

@@ -7,6 +7,7 @@ import { WishlistRemoveButton } from "./wishlist-remove-button";
 import type { GearItem } from "~/types/gear";
 import { getBrandNameById } from "~/lib/mapping/brand-map";
 import { getItemDisplayPrice } from "~/lib/mapping";
+import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
 
 interface WishlistGearCardProps {
   item: GearItem;
@@ -20,17 +21,21 @@ export function WishlistGearCard({
 }: WishlistGearCardProps) {
   const [isRemoved, setIsRemoved] = useState(false);
 
-  if (isRemoved) {
-    return null;
-  }
-
   const brandName = getBrandNameById(item.brandId);
-  const displayName = getDisplayName(item, brandName);
+  const displayName = useGearDisplayName({
+    name: item.name,
+    regionalAliases: item.regionalAliases,
+  });
+  const trimmedName = getDisplayName(displayName, brandName);
   const priceDisplay = getItemDisplayPrice(item, {
     style: "short",
     padWholeAmounts: true,
   });
   const brandLabel = brandName || "Unknown brand";
+
+  if (isRemoved) {
+    return null;
+  }
 
   return (
     <Link
@@ -61,7 +66,7 @@ export function WishlistGearCard({
         ) : (
           <div className="bg-muted text-muted-foreground relative aspect-4/3 w-28 shrink-0 overflow-hidden rounded-lg">
             <div className="flex h-full w-full items-center justify-center px-2 text-center text-xs font-medium">
-              {displayName}
+              {trimmedName}
             </div>
           </div>
         )}
@@ -72,7 +77,7 @@ export function WishlistGearCard({
               {brandLabel}
             </span>
             <h3 className="line-clamp-2 pr-4 text-sm leading-tight font-semibold sm:text-lg">
-              {displayName}
+              {trimmedName}
             </h3>
             <span className="text-muted-foreground mt-auto text-sm font-medium">
               {priceDisplay}
@@ -84,9 +89,9 @@ export function WishlistGearCard({
   );
 }
 
-function getDisplayName(item: GearItem, brandName?: string | null) {
-  const trimmed = stripBrandFromName(item.name, brandName);
-  return trimmed || item.name;
+function getDisplayName(name: string, brandName?: string | null) {
+  const trimmed = stripBrandFromName(name, brandName);
+  return trimmed || name;
 }
 
 function stripBrandFromName(name: string, brandName?: string | null) {

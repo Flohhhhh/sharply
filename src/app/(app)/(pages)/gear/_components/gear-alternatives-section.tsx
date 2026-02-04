@@ -33,6 +33,7 @@ export function GearAlternativesSection({
             href={`/gear/${alt.slug}`}
             slug={alt.slug}
             name={alt.name}
+            regionalAliases={alt.regionalAliases}
             brandName={alt.brandName}
             thumbnailUrl={alt.thumbnailUrl}
             gearType={alt.gearType}

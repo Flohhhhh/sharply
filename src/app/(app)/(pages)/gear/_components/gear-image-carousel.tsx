@@ -9,9 +9,12 @@ import {
   CarouselPrevious,
 } from "~/components/ui/carousel";
 import { RequestImageButton } from "./request-image-button";
+import { GetGearDisplayName } from "~/lib/gear/naming";
+import type { GearAlias } from "~/types/gear";
 
 interface GearImageCarouselProps {
   name: string;
+  regionalAliases?: GearAlias[] | null;
   thumbnailUrl: string | null;
   topViewUrl: string | null;
   slug: string;
@@ -20,11 +23,13 @@ interface GearImageCarouselProps {
 
 export function GearImageCarousel({
   name,
+  regionalAliases,
   thumbnailUrl,
   topViewUrl,
   slug,
   hasImageRequest,
 }: GearImageCarouselProps) {
+  const displayName = GetGearDisplayName({ name, regionalAliases });
   if (!thumbnailUrl && !topViewUrl) {
     return (
       <div className="bg-muted dark:bg-card flex aspect-video flex-col items-center justify-center gap-1 rounded-md">
@@ -45,7 +50,7 @@ export function GearImageCarousel({
               <div className="bg-muted dark:bg-card flex h-[300px] items-center justify-center overflow-hidden rounded-md p-8 sm:h-[600px] sm:p-12">
                 <Image
                   src={thumbnailUrl}
-                  alt={name}
+                  alt={displayName}
                   className="h-full w-full max-w-[600px] object-contain"
                   width={720}
                   height={480}
@@ -59,7 +64,7 @@ export function GearImageCarousel({
               <div className="bg-muted dark:bg-card flex h-[300px] items-center justify-center overflow-hidden rounded-md p-8 sm:h-[600px] sm:p-12">
                 <Image
                   src={topViewUrl}
-                  alt={`${name} - Top View`}
+                  alt={`${displayName} - Top View`}
                   className="h-full w-full max-w-[600px] object-contain"
                   width={720}
                   height={480}

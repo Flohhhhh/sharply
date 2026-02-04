@@ -5,6 +5,15 @@ import { type SearchResult } from "~/server/search/service";
 import { Empty, EmptyTitle, EmptyDescription } from "~/components/ui/empty";
 import { getItemDisplayPrice } from "~/lib/mapping/price-map";
 
+const INITIAL_SKELETON_KEYS = Array.from(
+  { length: 16 },
+  (_, idx) => `search-skeleton-${idx}`,
+);
+const LOADING_SKELETON_KEYS = Array.from(
+  { length: 24 },
+  (_, idx) => `search-loading-${idx}`,
+);
+
 type SearchResultsProps = {
   results: SearchResult[];
   isLoading: boolean;
@@ -34,8 +43,8 @@ export function SearchResults(props: SearchResultsProps) {
     return (
       <div className="relative grid grid-cols-1 gap-1 pt-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <div className="from-background absolute right-0 bottom-0 left-0 z-10 h-full bg-linear-to-t to-transparent" />
-        {Array.from({ length: 16 }).map((_, index) => (
-          <GearCardSkeleton key={index} />
+        {INITIAL_SKELETON_KEYS.map((key) => (
+          <GearCardSkeleton key={key} />
         ))}
       </div>
     );
@@ -59,6 +68,7 @@ export function SearchResults(props: SearchResultsProps) {
             href={`/gear/${item.slug}`}
             slug={item.slug}
             name={item.name}
+            regionalAliases={item.regionalAliases}
             brandName={item.brandName}
             thumbnailUrl={item.thumbnailUrl}
             isTrending={trendingSet.has(item.slug)}
@@ -78,8 +88,8 @@ export function SearchResults(props: SearchResultsProps) {
       </div>
       {isLoadingMore && (
         <div className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {Array.from({ length: 24 }).map((_, index) => (
-            <GearCardSkeleton key={`loading-${index}`} />
+          {LOADING_SKELETON_KEYS.map((key) => (
+            <GearCardSkeleton key={key} />
           ))}
         </div>
       )}
