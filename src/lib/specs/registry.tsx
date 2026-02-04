@@ -43,6 +43,7 @@ import {
 import type { CameraVideoMode } from "~/types/gear";
 import { supportsVideoMeaningfully } from "./helpers";
 import { Item } from "@radix-ui/react-toggle-group";
+import { type GearRegion } from "~/lib/gear/region";
 
 function coerceCameraVideoModes(
   modes?: GearItem["videoModes"],
@@ -114,9 +115,9 @@ function renderBadgeColumn(
         singleItemPerRow ? "flex-col" : "",
       )}
     >
-      {cleaned.map((value, index) => (
+      {cleaned.map((value) => (
         <Badge
-          key={`${value}-${index}`}
+          key={value}
           variant="outline"
           className={cn("text-sm", forceLeftAlign ? "text-left" : "text-right")}
         >
@@ -157,6 +158,7 @@ export type SpecFieldDef = {
     raw: unknown,
     item: GearItem,
     forceLeftAlign?: boolean,
+    viewerRegion?: GearRegion | null,
   ) => React.ReactNode; // Format for display (table, etc.)
   editElementId?: string; // DOM id to focus in the edit UI when navigating from sidebar
   condition?: (item: GearItem) => boolean; // Optional: when to show this field
@@ -352,6 +354,57 @@ export const specDictionary: SpecSectionDef[] = [
           );
         },
         editElementId: "widthMm",
+      },
+      {
+        key: "regionalAliases",
+        label: "Regional Names",
+        condenseOnMobile: true,
+        getRawValue: (item) => item.regionalAliases,
+        formatDisplay: (
+          raw,
+          item,
+          _forceLeftAlign,
+          viewerRegion = "GLOBAL",
+        ) => {
+          const aliases = Array.isArray(raw) ? raw : [];
+          if (!aliases.length) return undefined;
+
+          const viewer = viewerRegion ?? "GLOBAL";
+          const entries: Array<{ label: string; name: string }> = [];
+
+          const findAlias = (region: GearRegion) =>
+            aliases.find((a) => a.region === region)?.name?.trim();
+
+          if (viewer !== "GLOBAL") {
+            entries.push({ label: "Default Name", name: item.name });
+          }
+
+          const euAlias = findAlias("EU");
+          if (euAlias && viewer !== "EU") {
+            entries.push({ label: "EU Name", name: euAlias });
+          }
+
+          const jpAlias = findAlias("JP");
+          if (jpAlias && viewer !== "JP") {
+            entries.push({ label: "Japan Name", name: jpAlias });
+          }
+
+          if (!entries.length) return undefined;
+
+          return (
+            <div className="flex w-full max-w-[240px] flex-col gap-2">
+              {entries.map((entry) => (
+                <div
+                  key={entry.label}
+                  className="flex w-full items-center justify-between"
+                >
+                  <span className="text-muted-foreground">{entry.label}</span>
+                  <span className="font-medium">{entry.name}</span>
+                </div>
+              ))}
+            </div>
+          );
+        },
       },
     ],
   },
@@ -1805,8 +1858,8 @@ export const specDictionary: SpecSectionDef[] = [
           );
           return list.length ? (
             <ul className="text-muted-foreground list-none space-y-1 text-sm">
-              {list.map((note, idx) => (
-                <li key={idx}>{note}</li>
+              {list.map((note) => (
+                <li key={note}>{note}</li>
               ))}
             </ul>
           ) : undefined;
@@ -1825,8 +1878,10 @@ export const specDictionary: SpecSectionDef[] = [
  */
 export function buildGearSpecsSections(
   item: GearItem,
-  forceLeftAlign?: boolean,
+  options?: { forceLeftAlign?: boolean; viewerRegion?: GearRegion | null },
 ): SpecsTableSection[] {
+  const forceLeftAlign = options?.forceLeftAlign;
+  const viewerRegion = options?.viewerRegion ?? "GLOBAL";
   return specDictionary
     .filter((section) => !section.condition || section.condition(item))
     .map((section) => ({
@@ -1836,7 +1891,7 @@ export function buildGearSpecsSections(
         .map((field) => {
           const raw = field.getRawValue(item);
           const value = field.formatDisplay
-            ? field.formatDisplay(raw, item, forceLeftAlign)
+            ? field.formatDisplay(raw, item, forceLeftAlign, viewerRegion)
             : (raw as React.ReactNode);
           const label = field.labelOverride
             ? field.labelOverride(item)

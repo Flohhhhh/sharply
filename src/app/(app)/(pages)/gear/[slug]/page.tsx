@@ -60,6 +60,7 @@ import { auth } from "~/auth";
 import { headers } from "next/headers";
 import { GearDisplayName } from "~/components/gear/gear-display-name";
 import { GetGearDisplayName } from "~/lib/gear/naming";
+import { resolveRegionFromCountryCode } from "~/lib/gear/region";
 
 export const revalidate = 3600;
 
@@ -73,6 +74,7 @@ export async function generateMetadata({
   params,
 }: GearPageProps): Promise<Metadata> {
   const { slug } = await params;
+  const headerList = await headers();
 
   try {
     const item: GearItem = await fetchGearBySlug(slug);
@@ -144,6 +146,8 @@ export default async function GearPage({ params }: GearPageProps) {
   const { slug } = await params;
   // console.log("[gear/[slug]] Generating static page (build/ISR)", { slug });
 
+  const headerList = await headers();
+
   // Fetch core gear data
   const item = await fetchGearBySlug(slug).catch((err: any) => {
     if ((err as any)?.status === 404) return null;
@@ -160,7 +164,7 @@ export default async function GearPage({ params }: GearPageProps) {
 
   // Check auth status for image request feature
   const session = await auth.api.getSession({
-    headers: await headers(),
+    headers: headerList,
   });
   const isAuthenticated = !!session?.user;
 
@@ -222,7 +226,14 @@ export default async function GearPage({ params }: GearPageProps) {
     );
   }
 
-  const specSections = buildGearSpecsSections(item);
+  const countryHeader =
+    headerList.get("x-vercel-ip-country") ??
+    headerList.get("x-geo-country") ??
+    headerList.get("x-edge-country") ??
+    null;
+  const viewerRegion = resolveRegionFromCountryCode(countryHeader);
+
+  const specSections = buildGearSpecsSections(item, { viewerRegion });
   const brand = getBrandNameById(item.brandId ?? "");
 
   // console.log("[GearPage] item", item);

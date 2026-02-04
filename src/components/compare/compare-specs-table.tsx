@@ -112,8 +112,8 @@ export function CompareSpecsTable({
     regionalAliases: b.regionalAliases,
   });
 
-  const aSections = buildGearSpecsSections(a, true);
-  const bSections = buildGearSpecsSections(b, true);
+  const aSections = buildGearSpecsSections(a, { forceLeftAlign: true });
+  const bSections = buildGearSpecsSections(b, { forceLeftAlign: true });
   const missingA = countMissingSpecs(aSections);
   const missingB = countMissingSpecs(bSections);
   const aConstruction = getConstructionState(a);
