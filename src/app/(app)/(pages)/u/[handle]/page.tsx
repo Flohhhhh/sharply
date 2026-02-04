@@ -30,6 +30,7 @@ import { LibraryIcon, UserPen } from "lucide-react";
 import { ShowUserCardButton } from "~/app/(app)/(pages)/u/_components/ShowUserCardButton";
 import type { GearItem } from "~/types/gear";
 import { getBrandNameById } from "~/lib/mapping/brand-map";
+import { GetGearDisplayName } from "~/lib/gear/naming";
 import { CollectionContainer } from "~/app/(app)/(pages)/u/_components/collection/collection-container";
 import { headers } from "next/headers";
 import { HandleSetupBanner } from "~/app/(app)/(pages)/u/_components/HandleSetupBanner";
@@ -291,7 +292,11 @@ export default async function UserProfilePage({
 // Gear card component for displaying individual items
 function GearCard({ item }: { item: GearItem }) {
   const brandName = getBrandNameById(item.brandId);
-  const displayName = getDisplayName(item, brandName);
+  const displayName = GetGearDisplayName({
+    name: item.name,
+    regionalAliases: item.regionalAliases ?? [],
+  });
+  const trimmedName = getDisplayName(displayName, brandName);
   const priceDisplay = getItemDisplayPrice(item, {
     style: "short",
     padWholeAmounts: true,
@@ -317,7 +322,7 @@ function GearCard({ item }: { item: GearItem }) {
         ) : (
           <div className="bg-muted text-muted-foreground relative aspect-4/3 w-28 shrink-0 overflow-hidden rounded-lg">
             <div className="flex h-full w-full items-center justify-center px-2 text-center text-xs font-medium">
-              {displayName}
+              {trimmedName}
             </div>
           </div>
         )}
@@ -328,7 +333,7 @@ function GearCard({ item }: { item: GearItem }) {
               {brandLabel}
             </span>
             <h3 className="line-clamp-2 pr-4 text-sm leading-tight font-semibold sm:text-lg">
-              {displayName}
+              {trimmedName}
             </h3>
             <span className="text-muted-foreground mt-auto text-sm font-medium">
               {priceDisplay}
@@ -340,9 +345,9 @@ function GearCard({ item }: { item: GearItem }) {
   );
 }
 
-function getDisplayName(item: GearItem, brandName?: string | null) {
-  const trimmed = stripBrandFromName(item.name, brandName);
-  return trimmed || item.name;
+function getDisplayName(name: string, brandName?: string | null) {
+  const trimmed = stripBrandFromName(name, brandName);
+  return trimmed || name;
 }
 
 function stripBrandFromName(name: string, brandName?: string | null) {

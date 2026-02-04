@@ -34,7 +34,7 @@ export function GearLinks({
   mpbMaxPriceUsdCents,
   msrpNowUsdCents,
 }: GearLinksProps) {
-  const { countryCode } = useCountry();
+  const { countryCode, locale } = useCountry();
   const amazonAsin = parseAmazonAsin(linkAmazon) ?? null;
   const amazonRedirectHref = amazonAsin
     ? `/api/out/amazon?asin=${encodeURIComponent(
@@ -81,9 +81,10 @@ export function GearLinks({
 
   if (!hasAny) return null;
 
+  const mpbMarket = locale.affiliate.mpbMarket;
   const mpbOutLink = linkMpb
     ? `/api/out/mpb?destinationPath=${encodeURIComponent(linkMpb)}${
-        countryCode ? `&market=${encodeURIComponent(countryCode)}` : ""
+        mpbMarket ? `&market=${encodeURIComponent(mpbMarket)}` : ""
       }`
     : undefined;
 

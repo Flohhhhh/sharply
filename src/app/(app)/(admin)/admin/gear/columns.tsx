@@ -84,6 +84,7 @@ export const columns: ColumnDef<AdminGearTableRow>[] = [
             gearId={row.original.id}
             currentName={row.original.name}
             currentSlug={row.original.slug}
+            brandName={row.original.brandName}
             showNavigateOption
             onSuccess={(res) => {
               // Optimistically update any cached admin gear list pages where this row exists,
@@ -92,9 +93,11 @@ export const columns: ColumnDef<AdminGearTableRow>[] = [
                 (key) =>
                   typeof key === "string" &&
                   key.startsWith("/api/admin/gear/list?"),
-                (current:
-                  | { items: AdminGearTableRow[]; totalCount: number }
-                  | undefined) => {
+                (
+                  current:
+                    | { items: AdminGearTableRow[]; totalCount: number }
+                    | undefined,
+                ) => {
                   if (!current) return current;
                   return {
                     ...current,

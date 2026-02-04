@@ -22,6 +22,9 @@ import type { GearItem } from "~/types/gear";
 import { getBrandNameById } from "~/lib/mapping/brand-map";
 import { getItemDisplayPrice, PRICE_FALLBACK_TEXT } from "~/lib/mapping";
 import { getSpecFieldDefByKey } from "~/lib/specs/registry";
+import { useCountry } from "~/lib/hooks/useCountry";
+import { GetGearDisplayName } from "~/lib/gear/naming";
+import type { GearRegion } from "~/types/gear";
 
 export const COLLECTION_TABLE_COLUMNS_DEFAULT = [
   "name",
@@ -47,64 +50,81 @@ type CollectionTableModalProps = {
   description?: string;
 };
 
-const columnConfigMap: Record<CollectionTableColumnKey, ColumnConfig> = {
-  name: {
-    key: "name",
-    label: "Name",
-    render: (item) => {
-      const brandName = getBrandNameById(item.brandId);
-      const displayName = buildDisplayName(item, brandName);
-      const brandLabel = brandName || "Unknown brand";
+function buildColumnConfigMap(region: GearRegion) {
+  return {
+    name: {
+      key: "name",
+      label: "Name",
+      render: (item: GearItem) => {
+        const brandName = getBrandNameById(item.brandId);
+        const displayName = buildDisplayName(item, brandName, region);
+        const brandLabel = brandName || "Unknown brand";
 
-      return (
-        <div className="flex min-w-[220px] flex-col">
-          <span className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
-            {brandLabel}
+        return (
+          <div className="flex min-w-[220px] flex-col">
+            <span className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+              {brandLabel}
+            </span>
+            <span className="font-medium">{displayName}</span>
+          </div>
+        );
+      },
+    },
+    displayPrice: {
+      key: "displayPrice",
+      label: "Price",
+      render: (item: GearItem) => {
+        const displayPrice =
+          getItemDisplayPrice(item, {
+            style: "short",
+            padWholeAmounts: true,
+          }) ?? PRICE_FALLBACK_TEXT;
+        return <span className="font-medium">{displayPrice}</span>;
+      },
+    },
+    frontFilterThreadSizeMm: {
+      key: "frontFilterThreadSizeMm",
+      label: "Filter thread",
+      render: (item: GearItem) => {
+        const display = formatFilterThreadDisplay(item);
+        return (
+          <span
+            className={
+              display === "Not specified" ? "text-muted-foreground" : ""
+            }
+          >
+            {display}
           </span>
-          <span className="font-medium">{displayName}</span>
-        </div>
-      );
+        );
+      },
     },
-  },
-  displayPrice: {
-    key: "displayPrice",
-    label: "Price",
-    render: (item) => {
-      const displayPrice =
-        getItemDisplayPrice(item, {
-          style: "short",
-          padWholeAmounts: true,
-        }) ?? PRICE_FALLBACK_TEXT;
-      return <span className="font-medium">{displayPrice}</span>;
+    weightGrams: {
+      key: "weightGrams",
+      label: "Weight",
+      render: (item: GearItem) =>
+        renderSpecFieldValue({
+          item,
+          fieldKey: "weightGrams",
+          emptyFallbackLabel: "Not specified",
+        }),
     },
-  },
-  frontFilterThreadSizeMm: {
-    key: "frontFilterThreadSizeMm",
-    label: "Filter thread",
-    render: (item) => {
-      const display = formatFilterThreadDisplay(item);
-      return (
-        <span className={display === "Not specified" ? "text-muted-foreground" : ""}>
-          {display}
-        </span>
-      );
-    },
-  },
-  weightGrams: {
-    key: "weightGrams",
-    label: "Weight",
-    render: (item) =>
-      renderSpecFieldValue({
-        item,
-        fieldKey: "weightGrams",
-        emptyFallbackLabel: "Not specified",
-      }),
-  },
-};
+  } satisfies Record<CollectionTableColumnKey, ColumnConfig>;
+}
 
-function buildDisplayName(item: GearItem, brandName?: string | null) {
-  const trimmed = stripBrandFromName(item.name, brandName);
-  return trimmed || item.name;
+function buildDisplayName(
+  item: GearItem,
+  brandName: string | null | undefined,
+  region: GearRegion,
+) {
+  const resolved = GetGearDisplayName(
+    {
+      name: item.name,
+      regionalAliases: item.regionalAliases ?? [],
+    },
+    { region },
+  );
+  const trimmed = stripBrandFromName(resolved, brandName);
+  return trimmed || resolved;
 }
 
 function stripBrandFromName(name: string, brandName?: string | null) {
@@ -198,6 +218,8 @@ export function CollectionTableModal(props: CollectionTableModalProps) {
   } = props;
 
   const [isOpen, setIsOpen] = useState(false);
+  const { region } = useCountry();
+  const columnConfigMap = useMemo(() => buildColumnConfigMap(region), [region]);
 
   const columns = useMemo(() => {
     const uniqueKeys: CollectionTableColumnKey[] = [];
@@ -207,7 +229,7 @@ export function CollectionTableModal(props: CollectionTableModalProps) {
     return uniqueKeys
       .map((key) => columnConfigMap[key])
       .filter(Boolean) as ColumnConfig[];
-  }, [columnKeys]);
+  }, [columnKeys, columnConfigMap]);
 
   const modalTrigger = trigger ?? (
     <Button variant="outline" size="sm">

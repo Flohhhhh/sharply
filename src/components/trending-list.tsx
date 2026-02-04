@@ -3,6 +3,7 @@ import { Flame } from "lucide-react";
 import { fetchTrending } from "~/server/popularity/service";
 import type { TrendingEntry } from "~/types/popularity";
 import type { GearType } from "~/types/gear";
+import { GearDisplayName } from "~/components/gear/gear-display-name";
 
 export type TrendingItem = TrendingEntry;
 
@@ -13,6 +14,10 @@ function Skeleton({
   rows?: number;
   title?: string;
 }) {
+  const skeletonKeys = Array.from(
+    { length: rows },
+    (_, idx) => `trending-skeleton-${idx}`,
+  );
   return (
     <div className="space-y-3">
       <div className="flex items-baseline justify-between">
@@ -20,8 +25,8 @@ function Skeleton({
         <span className="text-muted-foreground text-xs">loading…</span>
       </div>
       <ol className="divide-border divide-y rounded-md border">
-        {Array.from({ length: rows }).map((_, idx) => (
-          <li key={idx} className="flex items-center gap-3 p-2">
+        {skeletonKeys.map((key, idx) => (
+          <li key={key} className="flex items-center gap-3 p-2">
             <div className="text-muted-foreground w-6 text-right text-sm tabular-nums">
               {idx + 1}
             </div>
@@ -98,7 +103,10 @@ export default async function TrendingList({
                 </div>
                 <div className="flex min-w-0 flex-1">
                   <span className="truncate text-sm font-medium group-hover:underline">
-                    {item.name}
+                    <GearDisplayName
+                      name={item.name}
+                      regionalAliases={item.regionalAliases}
+                    />
                   </span>
                 </div>
                 <div className="ml-auto flex items-center gap-2">

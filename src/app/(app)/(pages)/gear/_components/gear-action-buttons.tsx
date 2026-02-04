@@ -1,15 +1,21 @@
-import { fetchOwnershipStatus, fetchWishlistStatus } from "~/server/gear/service";
+import {
+  fetchOwnershipStatus,
+  fetchWishlistStatus,
+} from "~/server/gear/service";
 import { GearActionButtonsClient } from "./gear-action-buttons-client";
+import type { GearAlias } from "~/types/gear";
 
 interface GearActionButtonsProps {
   slug: string;
   name: string;
+  regionalAliases?: GearAlias[] | null;
   gearType?: string | null;
 }
 
 export async function GearActionButtons({
   slug,
   name,
+  regionalAliases,
   gearType,
 }: GearActionButtonsProps) {
   let initialInWishlist: boolean | null = null;
@@ -31,6 +37,7 @@ export async function GearActionButtons({
     <GearActionButtonsClient
       slug={slug}
       name={name}
+      regionalAliases={regionalAliases}
       gearType={gearType}
       initialInWishlist={initialInWishlist}
       initialIsOwned={initialIsOwned}

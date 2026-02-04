@@ -13,14 +13,20 @@ import {
 import { Bird, Loader2, SearchIcon } from "lucide-react";
 import { useSearchSuggestions } from "@hooks/useSearchSuggestions";
 import type { Suggestion } from "~/types/search";
+import { useCountry } from "~/lib/hooks/useCountry";
 
 export function CommandPalette() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const { countryCode } = useCountry();
   const { results, loading, debouncing, hasSearched, fetchNow } =
-    useSearchSuggestions(query, { debounceMs: 200, minLength: 2 });
+    useSearchSuggestions(query, {
+      debounceMs: 200,
+      minLength: 2,
+      countryCode,
+    });
 
   // Keyboard shortcut
   useEffect(() => {
@@ -58,7 +64,7 @@ export function CommandPalette() {
     }
 
     return () => clearTimeout(t);
-  }, [open]);
+  }, [open, query, fetchNow]);
 
   // Fire immediate fetch when the user crosses the length threshold upward (while open)
   useEffect(() => {
@@ -134,7 +140,7 @@ export function CommandPalette() {
                             </span>
                           )}
                           {s.type === "gear" && (
-                            <span className="text-muted-foreground rounded-full border border-muted-foreground/20 px-2 py-0.5 text-[11px] uppercase tracking-wide opacity-0 transition-opacity group-hover/item:opacity-100">
+                            <span className="text-muted-foreground border-muted-foreground/20 rounded-full border px-2 py-0.5 text-[11px] tracking-wide uppercase opacity-0 transition-opacity group-hover/item:opacity-100">
                               {s.type}
                             </span>
                           )}

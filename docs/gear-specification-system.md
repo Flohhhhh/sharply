@@ -23,6 +23,19 @@ The central table that stores common gear information:
 - **Core Specs**: Physical dimensions (width, height, depth in mm), weight
 - **Timestamps**: Created/updated tracking
 
+#### `gear_aliases` - Regional Display Names
+
+Stores alternate consumer-facing names used in specific regions (aliases, not localization):
+
+- **Primary Key**: Composite (`gearId`, `region`) to enforce one alias per region
+- **Gear Reference**: Foreign key to `gear.id` (cascade on delete)
+- **Region**: `gear_region` enum (`GLOBAL`, `EU`, `JP`)
+- **Name**: Alternate display name for that region
+- **Use Cases**:
+  - Canon "Kiss" line in Japan
+  - Canon EU variants (secondary)
+- **Search**: Aliases are denormalized into `gear.search_name` for query performance
+
 #### `gear_mounts` - Gear-Mount Junction Table
 
 Many-to-many relationship table for gear that supports multiple mounts (e.g., third-party lenses available in multiple mounts):

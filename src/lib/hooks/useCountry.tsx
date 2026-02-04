@@ -11,13 +11,27 @@ import {
 import { countries } from "country-data-list";
 
 import { type Country } from "~/types/country";
+import { type GearRegion } from "~/lib/gear/region";
+import {
+  getDefaultLocale,
+  getLocaleById,
+  resolveLocaleFromCountryCode,
+  type LocaleId,
+  type LocaleOption,
+} from "~/lib/locale/locales";
 import { useLocalStorage } from "./useLocalStorage";
 
 type CountryContextValue = {
-  country: Country | null;
-  countryCode: string | null;
-  setCountry: (country: Country | null) => void;
-  setCountryCode: (alpha2Code: string | null) => void;
+  locale: LocaleOption;
+  localeId: LocaleId;
+  country: Country | null; // best-effort (null for non-ISO options like EU/Global)
+  countryCode: string | null; // best-effort ISO code for affiliates
+  region: GearRegion; // gear naming region (alias resolver)
+  gearRegion: GearRegion; // alias of region for clarity
+  setLocale: (locale: LocaleOption) => void;
+  setLocaleId: (localeId: LocaleId) => void;
+  setCountry: (country: Country | null) => void; // legacy helper
+  setCountryCode: (alpha2Code: string | null) => void; // legacy helper
   clearCountry: () => void;
 };
 
@@ -56,24 +70,23 @@ export function CountryProvider({
   children: ReactNode;
   initialCountryAlpha2?: string | null;
 }) {
-  const normalizedInitialAlpha2 = useMemo(
-    () => normalizeAlpha2Code(initialCountryAlpha2),
-    [initialCountryAlpha2],
-  );
+  const initialLocale = useMemo(() => {
+    if (initialCountryAlpha2) {
+      return resolveLocaleFromCountryCode(initialCountryAlpha2);
+    }
+    return getDefaultLocale();
+  }, [initialCountryAlpha2]);
 
   const {
-    value: storedCountryAlpha2,
-    setValue: setStoredCountryAlpha2,
-    clear: clearStoredCountryAlpha2,
-  } = useLocalStorage<string | null>(
-    "country.alpha2.v1",
-    normalizedInitialAlpha2,
-  );
+    value: storedLocaleId,
+    setValue: setStoredLocaleId,
+    clear: clearStoredLocaleId,
+  } = useLocalStorage<string | null>("country.locale.v2", initialLocale.id);
 
   const hasAttemptedNavigatorDetection = useRef(false);
 
   useEffect(() => {
-    if (storedCountryAlpha2 || hasAttemptedNavigatorDetection.current) return;
+    if (storedLocaleId || hasAttemptedNavigatorDetection.current) return;
     if (typeof navigator === "undefined") return;
     const locale =
       navigator.language ??
@@ -82,32 +95,46 @@ export function CountryProvider({
     const normalizedRegion = normalizeAlpha2Code(regionPart);
     if (!normalizedRegion) return;
     hasAttemptedNavigatorDetection.current = true;
-    setStoredCountryAlpha2(normalizedRegion);
-  }, [storedCountryAlpha2, setStoredCountryAlpha2]);
+    const detectedLocale = resolveLocaleFromCountryCode(normalizedRegion);
+    setStoredLocaleId(detectedLocale.id);
+  }, [setStoredLocaleId, storedLocaleId]);
+
+  const locale = useMemo<LocaleOption>(() => {
+    const byId = getLocaleById(storedLocaleId);
+    if (byId) return byId;
+    return resolveLocaleFromCountryCode(initialCountryAlpha2 ?? null);
+  }, [initialCountryAlpha2, storedLocaleId]);
 
   const resolvedCountry = useMemo(
-    () => findCountry(storedCountryAlpha2),
-    [storedCountryAlpha2],
+    () => findCountry(locale.affiliateCountryCode ?? locale.countryCode),
+    [locale.affiliateCountryCode, locale.countryCode],
   );
+
+  const region = locale.gearRegion;
 
   const value = useMemo<CountryContextValue>(
     () => ({
+      locale,
+      localeId: locale.id,
       country: resolvedCountry,
-      countryCode: storedCountryAlpha2,
-      setCountry: (country) =>
-        setStoredCountryAlpha2(
+      countryCode: locale.affiliateCountryCode ?? locale.countryCode,
+      region,
+      gearRegion: region,
+      setLocale: (nextLocale) => setStoredLocaleId(nextLocale.id),
+      setLocaleId: (nextId) => setStoredLocaleId(nextId),
+      setCountry: (country) => {
+        const nextLocale = resolveLocaleFromCountryCode(
           country ? normalizeAlpha2Code(country.alpha2) : null,
-        ),
-      setCountryCode: (alpha2Code) =>
-        setStoredCountryAlpha2(normalizeAlpha2Code(alpha2Code)),
-      clearCountry: () => clearStoredCountryAlpha2(),
+        );
+        setStoredLocaleId(nextLocale.id);
+      },
+      setCountryCode: (alpha2Code) => {
+        const nextLocale = resolveLocaleFromCountryCode(alpha2Code);
+        setStoredLocaleId(nextLocale.id);
+      },
+      clearCountry: () => clearStoredLocaleId(),
     }),
-    [
-      resolvedCountry,
-      storedCountryAlpha2,
-      setStoredCountryAlpha2,
-      clearStoredCountryAlpha2,
-    ],
+    [region, locale, resolvedCountry, setStoredLocaleId, clearStoredLocaleId],
   );
 
   return (
@@ -122,4 +149,3 @@ export function useCountry(): CountryContextValue {
   }
   return countryContext;
 }
-

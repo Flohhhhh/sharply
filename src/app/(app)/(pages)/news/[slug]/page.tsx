@@ -30,7 +30,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const page = await getNewsPostBySlug(slug);
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "https://www.sharplyphoto.com";
+  const baseUrl =
+    process.env.NEXT_PUBLIC_BASE_URL ?? "https://www.sharplyphoto.com";
   const imageSrc =
     page.thumbnail && typeof page.thumbnail === "object"
       ? (page.thumbnail.url ?? undefined)
@@ -173,6 +174,7 @@ export default async function DynamicPage({
                     key={item.id}
                     slug={item.slug}
                     name={item.name}
+                    regionalAliases={item.regionalAliases}
                     thumbnailUrl={item.thumbnailUrl}
                     brandName={getBrandNameById(item.brandId ?? "") ?? ""}
                     gearType={item.gearType}
@@ -193,7 +195,7 @@ export default async function DynamicPage({
                 Links
               </div>
               <div className="flex flex-col gap-2 text-sm">
-                {sourceLinks.map((source) => ( 
+                {sourceLinks.map((source) => (
                   <Link
                     key={source.id ?? source.link}
                     href={source.link}

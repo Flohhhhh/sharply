@@ -1,6 +1,7 @@
 import "server-only";
 
 import { requireRole } from "~/lib/auth/auth-helpers";
+import { and, eq, inArray } from "drizzle-orm";
 import { getSessionOrThrow } from "~/server/auth";
 import {
   performFuzzySearch as performFuzzySearchData,
@@ -21,6 +22,9 @@ import { auditLogs, gearEdits } from "~/server/db/schema";
 import { updateGearThumbnailData } from "./data";
 import { clearImageRequestsForGear, getGearIdBySlug } from "~/server/gear/data";
 import { nanoid } from "nanoid";
+import { buildGearSearchName } from "~/lib/gear/naming";
+import { GEAR_REGIONS, type GearRegion } from "~/lib/gear/region";
+import { gearAliases, gear, brands } from "~/server/db/schema";
 
 export async function performFuzzySearchAdmin(params: {
   inputName: string;
@@ -124,6 +128,96 @@ export async function renameGearService(params: {
   } catch {}
 
   return updated;
+}
+
+export async function updateGearAliasesService(params: {
+  gearId: string;
+  aliases: { region: GearRegion; name: string | null }[];
+}): Promise<{
+  aliases: { region: GearRegion; name: string }[];
+  searchName: string;
+}> {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session.user, ["ADMIN", "EDITOR"])) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+
+  const allowed = new Set<GearRegion>(Array.from(GEAR_REGIONS) as GearRegion[]);
+  const desired = params.aliases
+    .filter((entry) => allowed.has(entry.region))
+    .map((entry) => ({
+      region: entry.region,
+      name: (entry.name ?? "").trim(),
+    }))
+    .filter((entry) => entry.name.length > 0);
+
+  const desiredMap = new Map<GearRegion, string>();
+  for (const entry of desired) {
+    desiredMap.set(entry.region, entry.name);
+  }
+
+  return db.transaction(async (tx) => {
+    const currentAliases = await tx
+      .select({ region: gearAliases.region, name: gearAliases.name })
+      .from(gearAliases)
+      .where(eq(gearAliases.gearId, params.gearId));
+
+    // Delete aliases that are no longer present
+    const desiredRegions = new Set(desiredMap.keys());
+    const toDelete = currentAliases
+      .filter((row) => !desiredRegions.has(row.region))
+      .map((row) => row.region);
+
+    if (toDelete.length > 0) {
+      await tx
+        .delete(gearAliases)
+        .where(
+          and(
+            eq(gearAliases.gearId, params.gearId),
+            inArray(gearAliases.region, toDelete),
+          ),
+        );
+    }
+
+    // Upsert desired aliases
+    for (const [region, name] of desiredMap.entries()) {
+      await tx
+        .insert(gearAliases)
+        .values({ gearId: params.gearId, region, name })
+        .onConflictDoUpdate({
+          target: [gearAliases.gearId, gearAliases.region],
+          set: { name, updatedAt: new Date() },
+        });
+    }
+
+    // Rebuild search name
+    const gearRow = await tx
+      .select({ name: gear.name, brandName: brands.name })
+      .from(gear)
+      .leftJoin(brands, eq(gear.brandId, brands.id))
+      .where(eq(gear.id, params.gearId))
+      .limit(1);
+
+    if (!gearRow[0]) {
+      throw Object.assign(new Error("Gear not found"), { status: 404 });
+    }
+
+    const searchName = buildGearSearchName({
+      name: gearRow[0].name,
+      brandName: gearRow[0].brandName ?? null,
+      aliases: Array.from(desiredMap.values()),
+    });
+
+    await tx.update(gear).set({ searchName }).where(eq(gear.id, params.gearId));
+
+    return {
+      aliases: desired.map((entry) => ({
+        region: entry.region,
+        name: entry.name,
+      })),
+      searchName,
+    };
+  });
 }
 
 export async function setGearThumbnailService(params: {

@@ -147,6 +147,15 @@ To add new mapping types:
 - **No caching**: Functions are pure and stateless
 - **Minimal dependencies**: Only uses built-in JavaScript methods
 
+## Gear Name Display
+
+Regional aliases are resolved through a single helper to keep UI consistent:
+
+- **Helper**: `GetGearDisplayName(item)` in `src/lib/gear/naming.ts`
+- **Inputs**: canonical `name` plus optional `regionalAliases`
+- **Resolution**: country → region (GLOBAL/EU/JP), then alias match, else canonical
+- **Usage**: all gear name surfaces should use the helper or `useGearDisplayName`
+
 ## Routing note: Mount shortName
 
 The browse routing uses `mounts.short_name` as the URL segment for mount-level pages (e.g., `/browse/nikon/lenses/z`). Ensure `short_name` is unique per brand for clean URLs.

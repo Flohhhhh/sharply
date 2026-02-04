@@ -42,6 +42,7 @@ Helper utilities for URLs live in `src/lib/utils/url.ts` (`buildSearchHref`, `me
 - Migration: `drizzle/0006_search_trgm.sql`
   - Creates extension if missing
   - Adds a GIN trigram index on `sharply_gear.search_name`
+- `gear.search_name` is denormalized to include canonical names plus any regional aliases.
 
 ## Core algorithm
 

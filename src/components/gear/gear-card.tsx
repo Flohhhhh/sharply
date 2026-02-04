@@ -38,6 +38,8 @@ import {
 import { Heart, MoreVertical, Scale } from "lucide-react";
 import { buildCompareHref } from "~/lib/utils/url";
 import { actionRecordCompareAdd } from "~/server/popularity/actions";
+import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
+import type { GearAlias } from "~/types/gear";
 
 const BASE_BRAND_NAMES = uniqueCaseInsensitive(
   BRANDS.flatMap((brand) => splitBrandNameVariants(brand.name)),
@@ -107,6 +109,7 @@ export type GearCardProps = {
   href: string;
   slug: string;
   name: string;
+  regionalAliases?: GearAlias[] | null;
   brandName?: string | null;
   thumbnailUrl?: string | null;
   gearType?: string | null;
@@ -151,6 +154,7 @@ export function GearCard(props: GearCardProps) {
     href,
     slug,
     name,
+    regionalAliases,
     brandName,
     thumbnailUrl,
     gearType,
@@ -175,7 +179,8 @@ export function GearCard(props: GearCardProps) {
     null,
   );
 
-  const trimmedName = stripBrandFromName(name, brandName);
+  const displayName = useGearDisplayName({ name, regionalAliases });
+  const trimmedName = stripBrandFromName(displayName, brandName);
   const dateLabel = formatGearDate(
     releaseDate ?? announcedDate,
     releaseDatePrecision ?? announceDatePrecision,
@@ -202,7 +207,9 @@ export function GearCard(props: GearCardProps) {
       if (res.ok) {
         setInWishlist(res.action === "added");
         toast.success(
-          res.action === "added" ? "Added to wishlist" : "Removed from wishlist",
+          res.action === "added"
+            ? "Added to wishlist"
+            : "Removed from wishlist",
         );
       }
     } catch (error) {
@@ -254,7 +261,7 @@ export function GearCard(props: GearCardProps) {
                   // Transparent gear on gray background expected
                   <Image
                     src={thumbnailUrl}
-                    alt={name}
+                    alt={displayName}
                     fill
                     sizes="(max-width: 640px) 85vw, 560px"
                     className="pointer-events-none object-contain transition-opacity group-hover:opacity-50"
@@ -286,13 +293,20 @@ export function GearCard(props: GearCardProps) {
                         <span className="sr-only">More options</span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" side="bottom" sideOffset={6}>
+                    <DropdownMenuContent
+                      align="end"
+                      side="bottom"
+                      sideOffset={6}
+                    >
                       <DropdownMenuItem
                         onClick={handleAddToWishlist}
                         disabled={wishlistLoading}
                       >
                         <Heart
-                          className={cn("size-4", inWishlist === true && "fill-current")}
+                          className={cn(
+                            "size-4",
+                            inWishlist === true && "fill-current",
+                          )}
                         />
                         {inWishlist === true
                           ? "Remove from Wishlist"
@@ -349,9 +363,9 @@ export function GearCard(props: GearCardProps) {
       <Dialog open={compareOpen} onOpenChange={setCompareOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Compare {name}</DialogTitle>
+            <DialogTitle>Compare {displayName}</DialogTitle>
             <DialogDescription>
-              Select another item to compare with {name}
+              Select another item to compare with {displayName}
             </DialogDescription>
           </DialogHeader>
           <GearSearchCombobox

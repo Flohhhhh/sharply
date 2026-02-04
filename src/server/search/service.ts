@@ -24,6 +24,9 @@ import {
   queryGearSuggestions,
   queryBrandSuggestions,
 } from "./data";
+import { fetchGearAliasesByGearIds } from "~/server/gear/data";
+import { GetGearDisplayName } from "~/lib/gear/naming";
+import type { GearAlias, GearRegion } from "~/types/gear";
 
 /**
  * Search Service Layer
@@ -66,6 +69,7 @@ export type SearchResult = {
   id: string;
   name: string;
   slug: string;
+  regionalAliases?: GearAlias[] | null;
   brandName: string | null;
   mountValue: string | null;
   gearType: string;
@@ -205,7 +209,7 @@ export async function searchGear(
     orderBy = [asc(gear.name)];
   }
 
-  const rows = await querySearchRows({
+  const rows = (await querySearchRows({
     whereClause,
     orderBy,
     pageSize,
@@ -218,7 +222,16 @@ export async function searchGear(
       filters?.megapixelsMax !== undefined,
     includeLensSpecs: Boolean(filters?.lensType),
     includeAnalogSpecs: Boolean(filters?.analogCameraType),
-  });
+  })) as unknown as Array<{ id: string }>;
+
+  const aliasesById = await fetchGearAliasesByGearIds(
+    rows.map((row) => row.id),
+  );
+
+  const results = rows.map((row) => ({
+    ...row,
+    regionalAliases: aliasesById.get(row.id) ?? [],
+  }));
 
   const total =
     includeTotal === false
@@ -236,7 +249,7 @@ export async function searchGear(
     total !== undefined ? Math.max(1, Math.ceil(total / pageSize)) : undefined;
 
   return {
-    results: rows as unknown as SearchResult[],
+    results: results as unknown as SearchResult[],
     total,
     totalPages,
     page,
@@ -247,6 +260,7 @@ export async function searchGear(
 export async function getSuggestions(
   query: string,
   limit = 8,
+  region?: GearRegion | null,
 ): Promise<Suggestion[]> {
   if (!query || query.length < 2) return [];
 
@@ -262,12 +276,21 @@ export async function getSuggestions(
   const relevanceExpr = buildRelevanceExpr(query, normalizedQueryNoPunct);
 
   const gearResults = await queryGearSuggestions(whereClause, relevanceExpr);
+  const aliasesById = await fetchGearAliasesByGearIds(
+    gearResults.map((item) => item.id),
+  );
   const brandResults = await queryBrandSuggestions(normalizedQuery);
 
   const suggestions: Suggestion[] = [
     ...gearResults.map((item) => ({
       id: `gear:${item.id}`,
-      label: `${item.name}${item.brandName ? ` (${item.brandName})` : ""}`,
+      label: `${GetGearDisplayName(
+        {
+          name: item.name,
+          regionalAliases: aliasesById.get(item.id) ?? [],
+        },
+        { region },
+      )}${item.brandName ? ` (${item.brandName})` : ""}`,
       href: `/gear/${item.slug}`,
       type: "gear" as const,
       relevance: item.relevance,

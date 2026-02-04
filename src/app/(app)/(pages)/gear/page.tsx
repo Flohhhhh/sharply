@@ -50,6 +50,7 @@ export default async function GearIndex() {
                     href={`/gear/${g.slug}`}
                     slug={g.slug}
                     name={g.name}
+                    regionalAliases={g.regionalAliases}
                     brandName={g.brandName}
                     thumbnailUrl={g.thumbnailUrl}
                     gearType={g.gearType}

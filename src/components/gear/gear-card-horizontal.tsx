@@ -37,6 +37,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { buildCompareHref } from "~/lib/utils/url";
 import { actionRecordCompareAdd } from "~/server/popularity/actions";
+import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
 
 function splitBrandNameVariants(brandName: string) {
   const normalized = brandName?.trim();
@@ -109,6 +110,7 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
     href,
     slug,
     name,
+    regionalAliases,
     brandName,
     thumbnailUrl,
     gearType,
@@ -133,7 +135,8 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
     null,
   );
 
-  const trimmedName = stripBrandFromName(name, brandName);
+  const displayName = useGearDisplayName({ name, regionalAliases });
+  const trimmedName = stripBrandFromName(displayName, brandName);
   const dateLabel = formatGearDate(
     releaseDate ?? announcedDate,
     releaseDatePrecision ?? announceDatePrecision,
@@ -160,7 +163,9 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
       if (res.ok) {
         setInWishlist(res.action === "added");
         toast.success(
-          res.action === "added" ? "Added to wishlist" : "Removed from wishlist",
+          res.action === "added"
+            ? "Added to wishlist"
+            : "Removed from wishlist",
         );
       }
     } catch (error) {
@@ -206,7 +211,7 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
                     {thumbnailUrl ? (
                       <Image
                         src={thumbnailUrl}
-                        alt={name}
+                        alt={displayName}
                         fill
                         sizes="(max-width: 768px) 192px, 192px"
                         className="pointer-events-none object-contain"
@@ -226,7 +231,9 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
               <div>
                 <div className="flex items-start justify-between gap-2">
                   <div className="text-muted-foreground flex min-w-0 flex-1 items-center gap-2 text-sm">
-                    {brandName ? <span className="shrink-0">{brandName}</span> : null}
+                    {brandName ? (
+                      <span className="shrink-0">{brandName}</span>
+                    ) : null}
                     {badgeNodes.length > 0 ? (
                       <div className="flex flex-wrap items-center gap-1">
                         {badgeNodes}
@@ -312,9 +319,9 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
       <Dialog open={compareOpen} onOpenChange={setCompareOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Compare {name}</DialogTitle>
+            <DialogTitle>Compare {displayName}</DialogTitle>
             <DialogDescription>
-              Select another item to compare with {name}
+              Select another item to compare with {displayName}
             </DialogDescription>
           </DialogHeader>
           <GearSearchCombobox

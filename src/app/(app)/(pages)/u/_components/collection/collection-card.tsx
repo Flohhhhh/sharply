@@ -7,6 +7,7 @@ import { Button } from "~/components/ui/button";
 import { actionToggleOwnership } from "~/server/gear/actions";
 import type { GearItem } from "~/types/gear";
 import { toast } from "sonner";
+import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
 
 export function CollectionCard(props: {
   item: GearItem;
@@ -23,6 +24,10 @@ export function CollectionCard(props: {
     fixedHeightPixels,
   } = props;
   const [removing, setRemoving] = useState<boolean>(false);
+  const displayName = useGearDisplayName({
+    name: item.name,
+    regionalAliases: item.regionalAliases,
+  });
 
   const handleUndo = async () => {
     if (removing) return;
@@ -30,9 +35,9 @@ export function CollectionCard(props: {
 
     const undoPromise = actionToggleOwnership(item.slug, "add");
     toast.promise(undoPromise, {
-      loading: `Adding ${item.name}...`,
-      success: `Added ${item.name}`,
-      error: `Failed to restore ${item.name}`,
+      loading: `Adding ${displayName}...`,
+      success: `Added ${displayName}`,
+      error: `Failed to restore ${displayName}`,
     });
 
     try {
@@ -48,10 +53,10 @@ export function CollectionCard(props: {
 
     const promise = actionToggleOwnership(item.slug, "remove");
     toast.promise(promise, {
-      loading: `Removing ${item.name}...`,
+      loading: `Removing ${displayName}...`,
       success: () => ({
         message: `Removed Successfully`,
-        description: `${item.name} was removed from your collection`,
+        description: `${displayName} was removed from your collection`,
         duration: 12000,
         action: {
           label: "Undo",
@@ -60,7 +65,7 @@ export function CollectionCard(props: {
           },
         },
       }),
-      error: `Failed to remove ${item.name}`,
+      error: `Failed to remove ${displayName}`,
     });
 
     try {
@@ -76,7 +81,7 @@ export function CollectionCard(props: {
         {item.thumbnailUrl ? (
           <img
             src={item.thumbnailUrl}
-            alt={item.name}
+            alt={displayName}
             style={
               useFixedHeight
                 ? {
@@ -122,10 +127,10 @@ export function CollectionCard(props: {
         </div>
       </div>
       <div className="text-foreground max-w-[240px] text-2xl leading-snug font-semibold">
-        {item.name}
+        {displayName}
       </div>
       {(item.gearType === "CAMERA" || item.gearType === "ANALOG_CAMERA") &&
-        isScaleEstimated ? (
+      isScaleEstimated ? (
         <p className="text-muted-foreground text-xs">
           Scale approximate (missing width spec)
         </p>

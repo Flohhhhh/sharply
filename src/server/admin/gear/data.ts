@@ -11,8 +11,9 @@ import {
   auditLogs,
   gearMounts,
   mounts,
+  gearAliases,
 } from "~/server/db/schema";
-import { normalizeSearchName } from "~/lib/utils";
+import { buildGearSearchName } from "~/lib/gear/naming";
 import { normalizeFuzzyTokens } from "~/lib/utils/fuzzy";
 import type { GearType } from "~/types/gear";
 export interface FuzzySearchResult {
@@ -40,7 +41,7 @@ export async function performFuzzySearch(
 }> {
   const fuzzyStopWords = new Set(["nikkor", "eos", "lumix"]);
   const { inputName, brandName, brandId } = params;
-  const normalized = normalizeSearchName(inputName, brandName);
+  const normalized = buildGearSearchName({ name: inputName, brandName });
 
   const sanitize = (s: string) =>
     s
@@ -131,7 +132,7 @@ export async function checkGearCreationData(
   const brandName = b[0]!.name;
 
   const slugPreview = buildSlug(brandName, name);
-  const normalized = normalizeSearchName(name, brandName);
+  const normalized = buildGearSearchName({ name, brandName });
 
   // Hard conflicts
   const slugHit = await db
@@ -283,7 +284,7 @@ export async function createGearData(
         linkMpb: linkMpb || null,
         linkAmazon: linkAmazon || null,
         mountId: normalizedMountIds[0] ?? null,
-        searchName: normalizeSearchName(displayName, brandName),
+        searchName: buildGearSearchName({ name: displayName, brandName }),
       })
       .returning({ id: gear.id, slug: gear.slug });
 
@@ -470,7 +471,16 @@ export async function renameGearData(
     }
 
     // Compute normalized search name
-    const search = normalizeSearchName(displayName, brandName);
+    const aliasRows = await tx
+      .select({ name: gearAliases.name })
+      .from(gearAliases)
+      .where(eq(gearAliases.gearId, gearId));
+
+    const search = buildGearSearchName({
+      name: displayName,
+      brandName,
+      aliases: aliasRows.map((alias) => alias.name),
+    });
 
     const updated = await tx
       .update(gear)

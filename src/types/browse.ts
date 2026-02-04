@@ -1,7 +1,10 @@
+import type { GearAlias } from "~/types/gear";
+
 export type BrowseFeedItem = {
   id: string;
   slug: string;
   name: string;
+  regionalAliases?: GearAlias[] | null;
   brandName: string | null;
   thumbnailUrl: string | null;
   gearType: string | null;

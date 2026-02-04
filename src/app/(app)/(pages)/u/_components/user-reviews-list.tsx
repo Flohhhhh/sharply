@@ -5,6 +5,9 @@ import { Card, CardContent, CardHeader } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { Empty, EmptyDescription, EmptyTitle } from "~/components/ui/empty";
 import Link from "next/link";
+import { useCountry } from "~/lib/hooks/useCountry";
+import { GetGearDisplayName } from "~/lib/gear/naming";
+import type { GearAlias } from "~/types/gear";
 
 interface UserReview {
   id: string;
@@ -15,6 +18,7 @@ interface UserReview {
   gearId: string;
   gearSlug: string;
   gearName: string;
+  regionalAliases?: GearAlias[] | null;
   gearType: string;
   brandName: string | null;
 }
@@ -43,6 +47,7 @@ export function UserReviewsList({
   const [reviews, setReviews] = useState<UserReview[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const { region } = useCountry();
 
   useEffect(() => {
     const fetchUserReviews = async () => {
@@ -140,40 +145,51 @@ export function UserReviewsList({
         <h3 className="text-lg font-semibold">Reviews ({reviews.length})</h3>
       </div>
 
-      {reviews.map((review) => (
-        <Card key={review.id}>
-          <CardHeader className="pb-3">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="mb-2 flex items-center gap-2">
-                  <Link
-                    href={`/gear/${review.gearSlug}`}
-                    className="text-primary font-medium hover:underline"
-                  >
-                    {review.brandName} {review.gearName}
-                  </Link>
-                  <Badge variant="outline" className="text-xs">
-                    {review.gearType}
-                  </Badge>
+      {reviews.map((review) => {
+        const displayName = GetGearDisplayName(
+          {
+            name: review.gearName,
+            regionalAliases: review.regionalAliases ?? [],
+          },
+          { region },
+        );
+        return (
+          <Card key={review.id}>
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="mb-2 flex items-center gap-2">
+                    <Link
+                      href={`/gear/${review.gearSlug}`}
+                      className="text-primary font-medium hover:underline"
+                    >
+                      {review.brandName} {displayName}
+                    </Link>
+                    <Badge variant="outline" className="text-xs">
+                      {review.gearType}
+                    </Badge>
+                  </div>
+                  <div className="mt-1 flex items-center gap-2">
+                    <Badge
+                      className={`text-xs ${getStatusColor(review.status)}`}
+                    >
+                      {getStatusText(review.status)}
+                    </Badge>
+                  </div>
                 </div>
-                <div className="mt-1 flex items-center gap-2">
-                  <Badge className={`text-xs ${getStatusColor(review.status)}`}>
-                    {getStatusText(review.status)}
+                <div className="text-right">
+                  <Badge variant="secondary" className="text-xs">
+                    {new Date(review.createdAt).toLocaleDateString()}
                   </Badge>
                 </div>
               </div>
-              <div className="text-right">
-                <Badge variant="secondary" className="text-xs">
-                  {new Date(review.createdAt).toLocaleDateString()}
-                </Badge>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <p className="text-muted-foreground text-sm">{review.content}</p>
-          </CardContent>
-        </Card>
-      ))}
+            </CardHeader>
+            <CardContent className="pt-0">
+              <p className="text-muted-foreground text-sm">{review.content}</p>
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 }

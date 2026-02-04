@@ -35,6 +35,7 @@ import {
 import type { SearchGearResult } from "./data";
 import { LENS_FOCAL_LENGTH_SORT } from "./lens-sort";
 import type { BrowseFeedPage } from "~/types/browse";
+import { fetchGearAliasesByGearIds } from "~/server/gear/data";
 
 export async function deriveDefaultBrandFromCookies() {
   const store = await cookies();
@@ -99,12 +100,20 @@ export async function loadHubData(params: {
     const lists = effectiveBrand
       ? await searchGear({ brandId: effectiveBrand.id, filters })
       : await searchGear({ filters });
-    return { depth, scope, brand: effectiveBrand, lists, filters };
+    const listsWithAliases = await attachAliasesToLists(lists);
+    return {
+      depth,
+      scope,
+      brand: effectiveBrand,
+      lists: listsWithAliases,
+      filters,
+    };
   }
 
   if (depth === 1) {
     const lists = await searchGear({ brandId: brand!.id, filters });
-    return { depth, scope, brand, lists, filters };
+    const listsWithAliases = await attachAliasesToLists(lists);
+    return { depth, scope, brand, lists: listsWithAliases, filters };
   }
 
   if (depth === 2) {
@@ -113,7 +122,8 @@ export async function loadHubData(params: {
       category: scope.categorySlug!,
       filters,
     });
-    return { depth, scope, brand, lists, filters };
+    const listsWithAliases = await attachAliasesToLists(lists);
+    return { depth, scope, brand, lists: listsWithAliases, filters };
   }
 
   const mountInfo = mount!;
@@ -123,7 +133,15 @@ export async function loadHubData(params: {
     mountId: mountInfo.id,
     filters,
   });
-  return { depth, scope, brand, mount: mountInfo, lists, filters };
+  const listsWithAliases = await attachAliasesToLists(lists);
+  return {
+    depth,
+    scope,
+    brand,
+    mount: mountInfo,
+    lists: listsWithAliases,
+    filters,
+  };
 }
 
 export async function buildSeo(params: {
@@ -203,8 +221,13 @@ export async function fetchReleaseFeedPage(params: {
     offset,
   });
 
+  const aliasesById = await fetchGearAliasesByGearIds(
+    page.items.map((item) => item.id),
+  );
+
   const items = page.items.map((item) => ({
     ...item,
+    regionalAliases: aliasesById.get(item.id) ?? [],
     releaseDate: item.releaseDate ? item.releaseDate.toISOString() : null,
     releaseDatePrecision: item.releaseDatePrecision ?? null,
     announcedDate: item.announcedDate ? item.announcedDate.toISOString() : null,
@@ -230,5 +253,18 @@ export async function fetchReleaseFeedPage(params: {
     items,
     nextCursor,
     hasMore: page.hasMore,
+  };
+}
+
+async function attachAliasesToLists(lists: SearchGearResult) {
+  const aliasesById = await fetchGearAliasesByGearIds(
+    lists.items.map((item) => item.id),
+  );
+  return {
+    ...lists,
+    items: lists.items.map((item) => ({
+      ...item,
+      regionalAliases: aliasesById.get(item.id) ?? [],
+    })),
   };
 }

@@ -15,7 +15,7 @@ import {
 import { orderBrandsWithPriority } from "~/lib/brands";
 import type { BrowseFilters } from "~/lib/browse/filters";
 import type { GearCategorySlug } from "~/lib/browse/routing";
-import type { GearType } from "~/types/gear";
+import type { GearAlias, GearType } from "~/types/gear";
 import {
   LENS_FOCAL_LENGTH_SORT,
   lensFocalLengthSortExpression,
@@ -25,6 +25,7 @@ export type BrowseGearRow = {
   id: string;
   slug: string;
   name: string;
+  regionalAliases?: GearAlias[] | null;
   brandId: string;
   brandName: string | null;
   gearType: string | null;
@@ -244,7 +245,7 @@ export async function getReleaseOrderedGearPage(params: {
       thumbnailUrl: gear.thumbnailUrl,
       gearType: gear.gearType,
       releaseDate: gear.releaseDate,
-    releaseDatePrecision: gear.releaseDatePrecision,
+      releaseDatePrecision: gear.releaseDatePrecision,
       announcedDate: gear.announcedDate,
       announceDatePrecision: gear.announceDatePrecision,
       msrpNowUsdCents: gear.msrpNowUsdCents,

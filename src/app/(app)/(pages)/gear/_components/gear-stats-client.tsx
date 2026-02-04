@@ -17,12 +17,12 @@ export default function GearStatsClient(props: Props) {
   useEffect(() => {
     function onWishlist(e: Event) {
       const detail = (e as CustomEvent<{ delta: 1 | -1; slug: string }>).detail;
-      if (!detail || detail.slug !== props.slug) return;
+      if (detail?.slug !== props.slug) return;
       setWishlistTotal((v) => Math.max(0, v + detail.delta));
     }
     function onOwnership(e: Event) {
       const detail = (e as CustomEvent<{ delta: 1 | -1; slug: string }>).detail;
-      if (!detail || detail.slug !== props.slug) return;
+      if (detail?.slug !== props.slug) return;
       setOwnershipTotal((v) => Math.max(0, v + detail.delta));
     }
 
