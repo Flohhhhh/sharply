@@ -61,6 +61,7 @@ import { headers } from "next/headers";
 import { GearDisplayName } from "~/components/gear/gear-display-name";
 import { GetGearDisplayName } from "~/lib/gear/naming";
 import { resolveRegionFromCountryCode } from "~/lib/gear/region";
+import { GearBreadcrumbNameHydrator } from "../_components/gear-breadcrumb-name-hydrator";
 
 export const revalidate = 3600;
 
@@ -75,6 +76,12 @@ export async function generateMetadata({
 }: GearPageProps): Promise<Metadata> {
   const { slug } = await params;
   const headerList = await headers();
+  const countryHeader =
+    headerList.get("x-vercel-ip-country") ??
+    headerList.get("x-geo-country") ??
+    headerList.get("x-edge-country") ??
+    null;
+  const viewerRegion = resolveRegionFromCountryCode(countryHeader);
 
   try {
     const item: GearItem = await fetchGearBySlug(slug);
@@ -85,10 +92,13 @@ export async function generateMetadata({
         "Tried to generate metadata without NEXT_PUBLIC_BASE_URL being set",
       );
     }
-    const displayName = GetGearDisplayName({
-      name: item.name,
-      regionalAliases: item.regionalAliases ?? [],
-    });
+    const displayName = GetGearDisplayName(
+      {
+        name: item.name,
+        regionalAliases: item.regionalAliases ?? [],
+      },
+      { region: viewerRegion },
+    );
     const description = verdict
       ? (verdict?.content ?? "")
       : `Sharply is the newest and most comprehensive photography gear database and review platform featuring expert reviews, real specs, and side-by-side comparisons in a modern, minimalist interface.`;
@@ -148,6 +158,13 @@ export default async function GearPage({ params }: GearPageProps) {
 
   const headerList = await headers();
 
+  const countryHeader =
+    headerList.get("x-vercel-ip-country") ??
+    headerList.get("x-geo-country") ??
+    headerList.get("x-edge-country") ??
+    null;
+  const viewerRegion = resolveRegionFromCountryCode(countryHeader);
+
   // Fetch core gear data
   const item = await fetchGearBySlug(slug).catch((err: any) => {
     if ((err as any)?.status === 404) return null;
@@ -157,10 +174,13 @@ export default async function GearPage({ params }: GearPageProps) {
   if (!item) return notFound();
 
   const priceDisplay = getItemDisplayPrice(item);
-  const displayName = GetGearDisplayName({
-    name: item.name,
-    regionalAliases: item.regionalAliases ?? [],
-  });
+  const regionalDisplayName = GetGearDisplayName(
+    {
+      name: item.name,
+      regionalAliases: item.regionalAliases ?? [],
+    },
+    { region: viewerRegion },
+  );
 
   // Check auth status for image request feature
   const session = await auth.api.getSession({
@@ -216,7 +236,7 @@ export default async function GearPage({ params }: GearPageProps) {
     return (
       <main className="mx-auto mt-24 min-h-screen max-w-4xl p-6">
         <ConstructionFullPage
-          gearName={displayName}
+          gearName={regionalDisplayName}
           missing={construction.missing}
           editHref={`/gear/${item.slug}/edit?type=${item.gearType}`}
           slug={item.slug}
@@ -226,13 +246,6 @@ export default async function GearPage({ params }: GearPageProps) {
     );
   }
 
-  const countryHeader =
-    headerList.get("x-vercel-ip-country") ??
-    headerList.get("x-geo-country") ??
-    headerList.get("x-edge-country") ??
-    null;
-  const viewerRegion = resolveRegionFromCountryCode(countryHeader);
-
   const specSections = buildGearSpecsSections(item, { viewerRegion });
   const brand = getBrandNameById(item.brandId ?? "");
 
@@ -241,7 +254,13 @@ export default async function GearPage({ params }: GearPageProps) {
   const breadCrumbItems = [
     { label: "Gear", href: "/gear" },
     brand ? { label: brand, href: `/brand/${brand.toLowerCase()}` } : null,
-    { label: displayName },
+    {
+      label: (
+        <span data-gear-breadcrumb-label data-gear-breadcrumb-slug={item.slug}>
+          {regionalDisplayName}
+        </span>
+      ),
+    },
   ].filter(Boolean) as CrumbItem[];
 
   return (
@@ -260,6 +279,11 @@ export default async function GearPage({ params }: GearPageProps) {
       <section className="space-y-4">
         <div className="hidden sm:block">
           <Breadcrumbs items={breadCrumbItems} />
+          <GearBreadcrumbNameHydrator
+            slug={item.slug}
+            name={item.name}
+            regionalAliases={item.regionalAliases ?? []}
+          />
         </div>
         {/* Item Name and Brand */}
         <div>

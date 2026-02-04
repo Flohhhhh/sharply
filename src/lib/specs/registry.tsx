@@ -1878,10 +1878,16 @@ export const specDictionary: SpecSectionDef[] = [
  */
 export function buildGearSpecsSections(
   item: GearItem,
-  options?: { forceLeftAlign?: boolean; viewerRegion?: GearRegion | null },
+  options?:
+    | boolean
+    | { forceLeftAlign?: boolean; viewerRegion?: GearRegion | null },
 ): SpecsTableSection[] {
-  const forceLeftAlign = options?.forceLeftAlign;
-  const viewerRegion = options?.viewerRegion ?? "GLOBAL";
+  const normalizedOptions =
+    typeof options === "boolean"
+      ? { forceLeftAlign: options }
+      : (options ?? {});
+  const forceLeftAlign = normalizedOptions.forceLeftAlign;
+  const viewerRegion = normalizedOptions.viewerRegion ?? "GLOBAL";
   return specDictionary
     .filter((section) => !section.condition || section.condition(item))
     .map((section) => ({

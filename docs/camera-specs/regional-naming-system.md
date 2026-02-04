@@ -29,3 +29,9 @@ Sharply now maintains a single canonical gear record while also surfacing region
 ### Outcome
 
 Aliases are now first-class: stored in the schema, surfaced in search/display, editable via the existing rename flow, and described for editors in this doc. That keeps data normalized while ensuring each viewer’s region sees the appropriate name without manual duplication.
+
+### Implementation notes
+
+- Alias rows are joined lazily (no extra joins on every query) by using `fetchGearAliasesByGearIds` whenever a gear payload is projected. That means the fetcher's graphql/resolution layer doesn’t need to know about aliases directly.
+- The rename modal writes both `gear_aliases` and the `gear.search_name` in a transaction so we don’t ship stale search tokens in the autocomplete index.
+- Breadcrumbs, metadata, compare tables, and design-system components now all call `GetGearDisplayName` with the locale-derived `gearRegion`, so switching the region/modes in `CountryProvider` automatically affects every surface.
