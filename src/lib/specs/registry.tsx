@@ -1,5 +1,5 @@
 import type { SpecsTableSection } from "~/app/(app)/(pages)/gear/_components/specs-table";
-import type { GearItem } from "~/types/gear";
+import type { GearAlias, GearItem } from "~/types/gear";
 import { cn } from "~/lib/utils";
 import { formatHumanDateWithPrecision } from "~/lib/utils";
 import {
@@ -366,7 +366,7 @@ export const specDictionary: SpecSectionDef[] = [
           _forceLeftAlign,
           viewerRegion = "GLOBAL",
         ) => {
-          const aliases = Array.isArray(raw) ? raw : [];
+          const aliases = (Array.isArray(raw) ? raw : []) as GearAlias[];
           if (!aliases.length) return undefined;
 
           const viewer = viewerRegion ?? "GLOBAL";

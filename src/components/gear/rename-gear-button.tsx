@@ -35,7 +35,7 @@ export function RenameGearButton({
       currentName={currentName}
       currentSlug={currentSlug}
       brandName={brandName}
-      regionalAliases={regionalAliases}
+      regionalAliases={regionalAliases ?? undefined}
       trigger={
         <Button variant="ghost" size="sm">
           <Pencil className="h-4 w-4" />
