@@ -105,14 +105,14 @@ export async function generateMetadata({
     const ogImage = item.thumbnailUrl
       ? {
           url: item.thumbnailUrl,
-          width: 1200,
-          height: 630,
+          // width: 1200,
+          // height: 630,
           alt: `${displayName}`,
         }
       : {
           url: `${baseUrl}/og-default.png`,
-          width: 1200,
-          height: 630,
+          // width: 1200,
+          // height: 630,
           alt: "Sharply - Photography Gear Database",
         };
     return {
