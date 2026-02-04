@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { TrashIcon } from "lucide-react";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +27,7 @@ import { getSpecFieldDefByKey } from "~/lib/specs/registry";
 import { useCountry } from "~/lib/hooks/useCountry";
 import { GetGearDisplayName } from "~/lib/gear/naming";
 import type { GearRegion } from "~/types/gear";
+import { actionToggleOwnership } from "~/server/gear/actions";
 
 export const COLLECTION_TABLE_COLUMNS_DEFAULT = [
   "name",
@@ -213,13 +216,98 @@ export function CollectionTableModal(props: CollectionTableModalProps) {
     items,
     columnKeys = COLLECTION_TABLE_COLUMNS_DEFAULT,
     trigger,
-    title = "View as table",
-    description = "Inspect your collection items in a table.",
+    title = "Manage collection",
+    description = "Inspect and manage your collection items.",
   } = props;
 
   const [isOpen, setIsOpen] = useState(false);
   const { region } = useCountry();
   const columnConfigMap = useMemo(() => buildColumnConfigMap(region), [region]);
+  const [itemsState, setItemsState] = useState<GearItem[]>(items);
+  const [removingGearItemIds, setRemovingGearItemIds] = useState<Set<string>>(
+    new Set(),
+  );
+
+  // Keep local state aligned with the latest server-provided items when opening
+  // the modal (and also when the prop changes due to a parent rerender).
+  useEffect(() => {
+    if (!isOpen) return;
+    setItemsState(items);
+  }, [isOpen, items]);
+
+  const addRemovingId = (gearItemId: string) => {
+    setRemovingGearItemIds((previousIds) => {
+      const nextIds = new Set(previousIds);
+      nextIds.add(gearItemId);
+      return nextIds;
+    });
+  };
+
+  const removeRemovingId = (gearItemId: string) => {
+    setRemovingGearItemIds((previousIds) => {
+      const nextIds = new Set(previousIds);
+      nextIds.delete(gearItemId);
+      return nextIds;
+    });
+  };
+
+  const getToastDisplayName = (item: GearItem) => {
+    const brandName = getBrandNameById(item.brandId);
+    return buildDisplayName(item, brandName, region);
+  };
+
+  const handleUndo = async (item: GearItem) => {
+    addRemovingId(item.id);
+    const itemDisplayName = getToastDisplayName(item);
+
+    const undoPromise = actionToggleOwnership(item.slug, "add");
+    toast.promise(undoPromise, {
+      loading: `Adding ${itemDisplayName}...`,
+      success: `Added ${itemDisplayName}`,
+      error: `Failed to restore ${itemDisplayName}`,
+    });
+
+    try {
+      await undoPromise;
+      setItemsState((previousItems) => {
+        if (previousItems.some((existingItem) => existingItem.id === item.id)) {
+          return previousItems;
+        }
+        return [...previousItems, item];
+      });
+    } finally {
+      removeRemovingId(item.id);
+    }
+  };
+
+  const handleRemove = async (item: GearItem) => {
+    addRemovingId(item.id);
+    const itemDisplayName = getToastDisplayName(item);
+
+    const removePromise = actionToggleOwnership(item.slug, "remove");
+    toast.promise(removePromise, {
+      loading: `Removing ${itemDisplayName}...`,
+      success: () => ({
+        message: "Removed successfully",
+        description: `${itemDisplayName} was removed from your collection`,
+        duration: 12000,
+        action: {
+          label: "Undo",
+          onClick: () => void handleUndo(item),
+        },
+      }),
+      error: `Failed to remove ${itemDisplayName}`,
+    });
+
+    try {
+      await removePromise;
+      setItemsState((previousItems) =>
+        previousItems.filter((existingItem) => existingItem.id !== item.id),
+      );
+    } finally {
+      removeRemovingId(item.id);
+    }
+  };
 
   const columns = useMemo(() => {
     const uniqueKeys: CollectionTableColumnKey[] = [];
@@ -233,7 +321,7 @@ export function CollectionTableModal(props: CollectionTableModalProps) {
 
   const modalTrigger = trigger ?? (
     <Button variant="outline" size="sm">
-      View as table
+      Manage collection
     </Button>
   );
 
@@ -253,16 +341,28 @@ export function CollectionTableModal(props: CollectionTableModalProps) {
                 {columns.map((column) => (
                   <TableHead key={column.key}>{column.label}</TableHead>
                 ))}
+                <TableHead className="w-[80px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {items.map((item) => (
-                <TableRow key={item.id}>
+              {itemsState.map((item) => (
+                <TableRow key={item.id} className="group">
                   {columns.map((column) => (
                     <TableCell key={column.key}>
                       {column.render(item)}
                     </TableCell>
                   ))}
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="opacity-0 transition-opacity group-hover:opacity-100"
+                      onClick={() => handleRemove(item)}
+                      disabled={removingGearItemIds.has(item.id)}
+                    >
+                      <TrashIcon className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
