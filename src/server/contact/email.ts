@@ -13,12 +13,14 @@ type ContactEmailPayload = ContactFormInput & {
 };
 
 export async function sendContactEmail(payload: ContactEmailPayload) {
-  if (!resend || !env.RESEND_EMAIL_FROM || !env.RESEND_EMAIL_CONTACT) {
+  if (!resend || !env.RESEND_EMAIL_FROM) {
     return {
       ok: false,
       error: "Contact email is not configured.",
     } as const;
   }
+
+  const recipient = env.RESEND_EMAIL_CONTACT ?? env.RESEND_EMAIL_FROM;
 
   const subject = `[Sharply Contact] ${contactReasonLabels[payload.reason]}: ${payload.subject}`;
   const replyTo = payload.email;
@@ -46,12 +48,10 @@ export async function sendContactEmail(payload: ContactEmailPayload) {
     `Timestamp: ${payload.timestamp}`,
   );
 
-  console.log("Sending email with replyTo:", replyTo);
-
   try {
     await resend.emails.send({
       from: env.RESEND_EMAIL_FROM,
-      to: env.RESEND_EMAIL_CONTACT,
+      to: recipient,
       replyTo,
       subject,
       text: lines.join("\n"),
