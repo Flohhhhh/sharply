@@ -14,7 +14,11 @@ export default tseslint.config(
   ...compat.extends("next/core-web-vitals"),
   {
     files: ["**/*.ts", "**/*.tsx"],
-    ignores: ["src/collections/**/*.ts", "src/collections/**/*.tsx"],
+    ignores: [
+      "src/collections/**/*.ts",
+      "src/collections/**/*.tsx",
+      "./playwright-report/**/*.js",
+    ],
     plugins: {
       drizzle,
     },

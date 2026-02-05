@@ -13,9 +13,9 @@ export default function ContactPage() {
   return (
     <div className="mt-16 sm:mt-24 sm:px-8">
       <div className="mx-auto max-w-7xl space-y-8 px-4 py-10">
-        <div className="grid grid-cols-7 gap-8">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-7">
           {/* Text left side column */}
-          <div className="col-span-5 space-y-4">
+          <div className="space-y-4 sm:col-span-5">
             <div className="space-y-4">
               <span className="text-muted-foreground pl-1 text-sm">
                 / contact
@@ -38,7 +38,7 @@ export default function ContactPage() {
             <DiscordBanner label="Community" />
           </div>
           {/* Image right side column */}
-          <div className="col-span-2">
+          <div className="col-span-2 hidden sm:block">
             <div className="relative h-full overflow-hidden rounded-lg">
               <Image
                 className="object-cover"
