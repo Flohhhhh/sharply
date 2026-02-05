@@ -14,11 +14,7 @@
     "noUncheckedIndexedAccess": true,
     "checkJs": true,
     /* Bundled projects */
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "ES2022"
-    ],
+    "lib": ["dom", "dom.iterable", "ES2022"],
     "noEmit": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
@@ -32,21 +28,11 @@
     /* Path Aliases */
     "baseUrl": ".",
     "paths": {
-      "~/*": [
-        "./src/*"
-      ],
-      "@/*": [
-        "./src/*"
-      ],
-      "@hooks/*": [
-        "./src/lib/hooks/*"
-      ],
-      "@utils/*": [
-        "./src/lib/utils/*"
-      ],
-      "@payload-config": [
-        "./src/payload.config.ts"
-      ]
+      "~/*": ["./src/*"],
+      "@/*": ["./src/*"],
+      "@hooks/*": ["./src/lib/hooks/*"],
+      "@utils/*": ["./src/lib/utils/*"],
+      "@payload-config": ["./src/payload.config.ts"]
     }
   },
   "include": [
@@ -57,7 +43,5 @@
     "**/*.js",
     ".next/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules", "playwright-report"]
 }

@@ -43,6 +43,7 @@ export const env = createEnv({
     PAYLOAD_SECRET: z.string(),
     RESEND_API_KEY: z.string().optional(),
     RESEND_EMAIL_FROM: z.string().email().optional(),
+    RESEND_EMAIL_CONTACT: z.string().email().optional(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -85,6 +86,7 @@ export const env = createEnv({
     PAYLOAD_SECRET: process.env.PAYLOAD_SECRET,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     RESEND_EMAIL_FROM: process.env.RESEND_EMAIL_FROM,
+    RESEND_EMAIL_CONTACT: process.env.RESEND_EMAIL_CONTACT,
     UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN,
     NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
     MPB_PARTNERIZE_BASE_URL: process.env.MPB_PARTNERIZE_BASE_URL,
