@@ -62,6 +62,7 @@ import { GearDisplayName } from "~/components/gear/gear-display-name";
 import { GetGearDisplayName } from "~/lib/gear/naming";
 import { resolveRegionFromCountryCode } from "~/lib/gear/region";
 import { GearBreadcrumbNameHydrator } from "../_components/gear-breadcrumb-name-hydrator";
+import { buildGearMetaDescription } from "~/lib/seo/build-gear-meta-description";
 
 export const revalidate = 3600;
 
@@ -99,9 +100,11 @@ export async function generateMetadata({
       },
       { region: viewerRegion },
     );
-    const description = verdict
-      ? (verdict?.content ?? "")
-      : `Sharply is the newest and most comprehensive photography gear database and review platform featuring expert reviews, real specs, and side-by-side comparisons in a modern, minimalist interface.`;
+    const description = buildGearMetaDescription({
+      gear: item,
+      displayName,
+      staffVerdictContent: verdict?.content ?? null,
+    });
     const ogImage = item.thumbnailUrl
       ? {
           url: item.thumbnailUrl,
