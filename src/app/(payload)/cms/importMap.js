@@ -25,7 +25,6 @@ import { default as default_a0e1d1d1fb40cf5ed5fe0177647860ef } from '../../../..
 import { default as default_92cd3e2267e666dcbd092a7db26afbf0 } from '../../../../src/payload-fields/GearMultiSelect'
 import { default as default_fad41fa71450c9e7872ed320792a2e41 } from '../../../../src/payload-fields/GearSelect'
 import { UploadthingClientUploadHandler as UploadthingClientUploadHandler_749dcaa11bb61b873d113cb6c609bc10 } from '@payloadcms/storage-uploadthing/client'
-import { CollectionCards as CollectionCards_ab83ff7e88da8d3530831f296ec4756a } from '@payloadcms/ui/rsc'
 
 export const importMap = {
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
@@ -54,6 +53,5 @@ export const importMap = {
   "../src/payload-fields/BrandSelect#default": default_a0e1d1d1fb40cf5ed5fe0177647860ef,
   "../src/payload-fields/GearMultiSelect#default": default_92cd3e2267e666dcbd092a7db26afbf0,
   "../src/payload-fields/GearSelect#default": default_fad41fa71450c9e7872ed320792a2e41,
-  "@payloadcms/storage-uploadthing/client#UploadthingClientUploadHandler": UploadthingClientUploadHandler_749dcaa11bb61b873d113cb6c609bc10,
-  "@payloadcms/ui/rsc#CollectionCards": CollectionCards_ab83ff7e88da8d3530831f296ec4756a
+  "@payloadcms/storage-uploadthing/client#UploadthingClientUploadHandler": UploadthingClientUploadHandler_749dcaa11bb61b873d113cb6c609bc10
 }
