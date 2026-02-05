@@ -2,7 +2,7 @@ import { capitalize } from "../utils";
 
 const SHUTTER_TYPE_LABELS: Record<string, string> = {
   mechanical: "Mechanical",
-  efc: "Electronic Front-Curtain",
+  efc: "Electronic First-Curtain",
   electronic: "Electronic",
 };
 
