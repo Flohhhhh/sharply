@@ -11,6 +11,7 @@ import { TableOfContents } from "~/components/rich-text/table-of-contents";
 import { GearCardHorizontal } from "~/components/gear/gear-card-horizontal";
 import { fetchGearBySlug } from "~/server/gear/service";
 import { getBrandNameById } from "~/lib/mapping/brand-map";
+import { getItemDisplayPrice } from "~/lib/mapping";
 import DiscordBanner from "~/components/discord-banner";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
 import Link from "next/link";
@@ -178,6 +179,29 @@ export default async function DynamicPage({
                     thumbnailUrl={item.thumbnailUrl}
                     brandName={getBrandNameById(item.brandId ?? "") ?? ""}
                     gearType={item.gearType}
+                    releaseDate={item.releaseDate}
+                    releaseDatePrecision={
+                      (item.releaseDatePrecision as
+                        | "DAY"
+                        | "MONTH"
+                        | "YEAR"
+                        | null) ?? null
+                    }
+                    announcedDate={item.announcedDate}
+                    announceDatePrecision={
+                      (item.announceDatePrecision as
+                        | "DAY"
+                        | "MONTH"
+                        | "YEAR"
+                        | null) ?? null
+                    }
+                    priceText={getItemDisplayPrice(
+                      {
+                        msrpNowUsdCents: item.msrpNowUsdCents,
+                        mpbMaxPriceUsdCents: item.mpbMaxPriceUsdCents,
+                      },
+                      { style: "short", padWholeAmounts: true },
+                    )}
                     href={`/gear/${item.slug}`}
                   />
                 ))}

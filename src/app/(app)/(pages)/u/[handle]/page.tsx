@@ -160,7 +160,7 @@ export default async function UserProfilePage({
                     size="sm"
                     disabled={sortedOwnedItems.length === 0}
                   >
-                    View as table
+                    Manage collection
                   </Button>
                 }
               />

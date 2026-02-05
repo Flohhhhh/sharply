@@ -33,7 +33,7 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     label: "United Kingdom",
     countryCode: "GB",
     affiliateCountryCode: "GB",
-    gearRegion: "GLOBAL",
+    gearRegion: "EU",
     affiliate: { mpbMarket: "UK", amazonHost: "www.amazon.co.uk" },
   },
   {

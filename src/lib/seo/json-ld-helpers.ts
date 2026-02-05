@@ -101,9 +101,9 @@ export function generateGearPageJsonLd(input: GearPageJsonLdInput): string {
     }
   }
 
-  if (process.env.NODE_ENV !== "production") {
-    console.log("Generated JSON-LD for product:", product);
-  }
+  // if (process.env.NODE_ENV !== "production") {
+  //   console.log("Generated JSON-LD for product:", product);
+  // }
 
   return JSON.stringify(product);
 }
