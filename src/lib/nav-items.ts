@@ -172,6 +172,13 @@ export const navItems: NavItem[] = [
     ],
   },
   {
+    title: "GitHub",
+    type: "link",
+    url: "https://github.com/Flohhhhh/sharply",
+    hideFromNavbar: true,
+    hideFromFooter: false,
+  },
+  {
     title: "Contact",
     type: "link",
     url: "/contact",
