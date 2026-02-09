@@ -55,6 +55,8 @@ import {
   fetchRawSamplesByGearId,
   insertRawSample,
   deleteRawSample,
+  fetchAllGearExportRowsData,
+  type GearExportRow,
 } from "./data";
 import { getConstructionState } from "~/lib/utils";
 import { headers } from "next/headers";
@@ -459,6 +461,10 @@ export async function fetchGearEditById(
 
 export async function fetchGearForBrand(brandId: string) {
   return fetchBrandGearData(brandId);
+}
+
+export async function fetchAllGearExportRows(): Promise<GearExportRow[]> {
+  return fetchAllGearExportRowsData();
 }
 
 const proposalInput = z
