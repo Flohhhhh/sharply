@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { env } from "~/env";
 import { fetchAllGearExportRows } from "~/server/gear/service";
 
 type ExportFormat = "csv" | "json";
+const TEMP_EXPORT_PASSWORD = "change-me";
 
 function parseFormat(value: string | null): ExportFormat | null {
   if (!value) return "csv";
@@ -21,7 +21,7 @@ function escapeCsvCell(value: string): string {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const password = searchParams.get("password");
-  if (password !== env.GEAR_EXPORT_PASSWORD) {
+  if (password !== TEMP_EXPORT_PASSWORD) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
