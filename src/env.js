@@ -56,6 +56,10 @@ export const env = createEnv({
     MPB_PARTNERIZE_PREFIX_UK: z.string().optional(),
     MPB_PARTNERIZE_PREFIX_EU: z.string().optional(),
     AMAZON_AFFILIATE_TAG: z.string().optional(),
+    GEAR_EXPORT_PASSWORD:
+      process.env.NODE_ENV === "production"
+        ? z.string()
+        : z.string().optional(),
   },
 
   /**
@@ -94,6 +98,7 @@ export const env = createEnv({
     MPB_PARTNERIZE_PREFIX_UK: process.env.MPB_PARTNERIZE_PREFIX_UK,
     MPB_PARTNERIZE_PREFIX_EU: process.env.MPB_PARTNERIZE_PREFIX_EU,
     AMAZON_AFFILIATE_TAG: process.env.AMAZON_AFFILIATE_TAG,
+    GEAR_EXPORT_PASSWORD: process.env.GEAR_EXPORT_PASSWORD,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

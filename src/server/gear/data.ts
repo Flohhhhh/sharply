@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, desc, eq, gte, or, sql, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, gte, or, sql, inArray } from "drizzle-orm";
 import { db } from "~/server/db";
 import {
   brands,
@@ -40,6 +40,12 @@ import { fetchVideoModesByGearId } from "~/server/video-modes/data";
 import { buildGearSearchName } from "~/lib/gear/naming";
 
 type DbClient = Pick<typeof db, "select" | "update" | "insert" | "delete">;
+
+export type GearExportRow = {
+  name: string;
+  brand: string | null;
+  mounts: string[];
+};
 
 // Reads
 export async function getGearIdBySlug(slug: string): Promise<string | null> {
@@ -310,6 +316,76 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
   } else {
     return base;
   }
+}
+
+export async function fetchAllGearExportRowsData(): Promise<GearExportRow[]> {
+  const rows = await db
+    .select({
+      id: gear.id,
+      name: gear.name,
+      brandName: brands.name,
+      legacyMountId: gear.mountId,
+    })
+    .from(gear)
+    .leftJoin(brands, eq(gear.brandId, brands.id))
+    .orderBy(asc(gear.name));
+
+  if (!rows.length) return [];
+
+  const gearIds = rows.map((row) => row.id);
+  const mountRows = await db
+    .select({
+      gearId: gearMounts.gearId,
+      mountValue: mounts.value,
+    })
+    .from(gearMounts)
+    .innerJoin(mounts, eq(gearMounts.mountId, mounts.id))
+    .where(inArray(gearMounts.gearId, gearIds))
+    .orderBy(asc(mounts.value));
+
+  const mountsByGearId = new Map<string, string[]>();
+  for (const row of mountRows) {
+    if (!row.mountValue) continue;
+    const existing = mountsByGearId.get(row.gearId) ?? [];
+    existing.push(row.mountValue);
+    mountsByGearId.set(row.gearId, existing);
+  }
+
+  const legacyMountIds = Array.from(
+    new Set(
+      rows
+        .filter(
+          (row) => !mountsByGearId.has(row.id) && typeof row.legacyMountId === "string",
+        )
+        .map((row) => row.legacyMountId!),
+    ),
+  );
+
+  const legacyMountMap = new Map<string, string>();
+  if (legacyMountIds.length > 0) {
+    const legacyRows = await db
+      .select({ id: mounts.id, value: mounts.value })
+      .from(mounts)
+      .where(inArray(mounts.id, legacyMountIds));
+
+    for (const row of legacyRows) {
+      legacyMountMap.set(row.id, row.value);
+    }
+  }
+
+  return rows.map((row) => {
+    const mountList = [...(mountsByGearId.get(row.id) ?? [])];
+    if (!mountList.length && row.legacyMountId) {
+      const fallbackMountName = legacyMountMap.get(row.legacyMountId);
+      if (fallbackMountName) mountList.push(fallbackMountName);
+    }
+
+    return {
+      name: row.name,
+      brand: row.brandName ?? null,
+      mounts: Array.from(new Set(mountList)),
+    };
+  });
 }
 
 export async function fetchRawSamplesByGearId(
