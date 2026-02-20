@@ -20,6 +20,7 @@ import {
   AlertDialogTrigger,
 } from "~/components/ui/alert-dialog";
 import type { LinkedAccountInfo } from "~/server/auth/account-linking";
+import { getAuthCallbackUrlForOrigin } from "~/lib/auth/callback-url";
 
 type ProviderKey = "discord" | "google";
 
@@ -91,10 +92,14 @@ export function AccountLinksSection({
       `Opening ${PROVIDER_METADATA[provider].label} to link...`,
     );
     try {
+      const authCallbackUrl = getAuthCallbackUrlForOrigin(
+        `/profile/settings?linked=${provider}`,
+        window.location.origin,
+      );
       // toast.success(`Redirecting to link ${PROVIDER_METADATA[provider].label}`);
       const res = await linkSocial({
         provider,
-        callbackURL: `/profile/settings?linked=${provider}`,
+        callbackURL: authCallbackUrl,
       });
       if (res.error) {
         throw new Error(res.error.message);

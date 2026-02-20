@@ -10,6 +10,7 @@ import { emailOtp, signIn } from "~/lib/auth/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Fingerprint } from "lucide-react";
+import { getAuthCallbackUrlForOrigin } from "~/lib/auth/callback-url";
 
 type ProviderAvailability = Record<
   "google" | "discord",
@@ -117,9 +118,13 @@ export default function SignInClient({
       provider,
     });
     try {
+      const authCallbackUrl = getAuthCallbackUrlForOrigin(
+        callbackUrl,
+        window.location.origin,
+      );
       const { data, error } = await signIn.social({
         provider,
-        callbackURL: callbackUrl,
+        callbackURL: authCallbackUrl,
         disableRedirect: true,
       });
 
