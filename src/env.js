@@ -27,6 +27,7 @@ export const env = createEnv({
       process.env.NODE_ENV === "production"
         ? z.string()
         : z.string().optional(),
+    AUTH_ADDITIONAL_TRUSTED_ORIGINS: z.string().optional(),
     DATABASE_URL: z.string().url(),
     CRON_SECRET:
       process.env.NODE_ENV === "production"
@@ -78,6 +79,8 @@ export const env = createEnv({
     AUTH_DISCORD_SECRET: process.env.AUTH_DISCORD_SECRET,
     AUTH_GOOGLE_ID: process.env.AUTH_GOOGLE_ID,
     AUTH_GOOGLE_SECRET: process.env.AUTH_GOOGLE_SECRET,
+    AUTH_ADDITIONAL_TRUSTED_ORIGINS:
+      process.env.AUTH_ADDITIONAL_TRUSTED_ORIGINS,
     DATABASE_URL: process.env.DATABASE_URL,
     CRON_SECRET: process.env.CRON_SECRET,
     DISCORD_ROLLUP_WEBHOOK_URL: process.env.DISCORD_ROLLUP_WEBHOOK_URL,

@@ -6,7 +6,7 @@ type Timeframe = (typeof TIMEFRAMES)[number];
 const isTimeframe = (value: string): value is Timeframe =>
   TIMEFRAMES.some((timeframe) => timeframe === value);
 
-const GEAR_TYPES = ["CAMERA", "LENS"] as const;
+const GEAR_TYPES = ["CAMERA", "ANALOG_CAMERA", "LENS"] as const;
 type GearType = (typeof GEAR_TYPES)[number];
 const isGearType = (value: string): value is GearType =>
   GEAR_TYPES.some((gearType) => gearType === value);

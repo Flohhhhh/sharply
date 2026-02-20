@@ -158,9 +158,15 @@ export async function searchGear(
   if (f.maxPrice != null)
     where.push(sql`${gear.msrpNowUsdCents} <= ${f.maxPrice * 100}`);
   if (f.minYear != null)
-    where.push(sql`extract(year from ${gear.releaseDate}) >= ${f.minYear}`);
+    where.push(
+      sql`extract(year from coalesce(${gear.releaseDate}, ${gear.announcedDate})) >= ${f.minYear}`,
+    );
   if (f.maxYear != null)
-    where.push(sql`extract(year from ${gear.releaseDate}) <= ${f.maxYear}`);
+    where.push(
+      sql`extract(year from coalesce(${gear.releaseDate}, ${gear.announcedDate})) <= ${f.maxYear}`,
+    );
+
+  const effectiveReleaseDate = sql`coalesce(${gear.releaseDate}, ${gear.announcedDate})`;
 
   // Sorting
   const orderBy = (() => {
@@ -180,7 +186,7 @@ export async function searchGear(
       : "newest";
     switch (sortKey) {
       case "newest":
-        return [sql`${gear.releaseDate} DESC NULLS LAST`, asc(gear.name)];
+        return [sql`${effectiveReleaseDate} DESC NULLS LAST`, asc(gear.name)];
       case "price_asc":
         return [asc(gear.msrpNowUsdCents), asc(gear.name)];
       case "price_desc":
@@ -192,7 +198,7 @@ export async function searchGear(
       case LENS_FOCAL_LENGTH_SORT:
         return [lensFocalLengthSortExpression(), asc(gear.name)];
       default:
-        return [sql`${gear.releaseDate} DESC NULLS LAST`, asc(gear.name)];
+        return [sql`${effectiveReleaseDate} DESC NULLS LAST`, asc(gear.name)];
     }
   })();
 
@@ -233,6 +239,7 @@ export async function getReleaseOrderedGearPage(params: {
   // No upper bound on offset - large offsets are expected for deep pagination
   const offset = Math.max(0, Math.floor(params.offset ?? 0));
   const where: SQL[] = [];
+  const effectiveReleaseDate = sql`coalesce(${gear.releaseDate}, ${gear.announcedDate})`;
   if (params.brandId) where.push(eq(gear.brandId, params.brandId));
   else if (params.brandSlug) where.push(eq(brands.slug, params.brandSlug));
 
@@ -254,7 +261,7 @@ export async function getReleaseOrderedGearPage(params: {
     .from(gear)
     .leftJoin(brands, eq(gear.brandId, brands.id))
     .where(where.length ? and(...where) : undefined)
-    .orderBy(sql`${gear.releaseDate} DESC NULLS LAST`, desc(gear.id))
+    .orderBy(sql`${effectiveReleaseDate} DESC NULLS LAST`, desc(gear.id))
     .limit(limit + 1)
     .offset(offset);
 

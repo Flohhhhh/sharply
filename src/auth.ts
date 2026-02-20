@@ -12,12 +12,20 @@ const emailOtpEnabled =
   !!resend &&
   !!process.env.RESEND_API_KEY &&
   !!process.env.RESEND_EMAIL_FROM;
+const additionalTrustedOrigins = process.env.AUTH_ADDITIONAL_TRUSTED_ORIGINS
+  ?.split(",")
+  .map((o) => o.trim())
+  .filter(Boolean) ?? [];
 
 export const auth = betterAuth({
   // config
   appName: "Sharply",
   baseURL: process.env.NEXT_PUBLIC_BASE_URL!,
-  trustedOrigins: ["http://localhost:3000", process.env.NEXT_PUBLIC_BASE_URL!],
+  trustedOrigins: [
+    ...(process.env.NODE_ENV !== "production" ? ["http://localhost:3000"] : []),
+    process.env.NEXT_PUBLIC_BASE_URL!,
+    ...additionalTrustedOrigins,
+  ].filter(Boolean) as string[],
   secret: process.env.AUTH_SECRET!,
 
   // database adapter
