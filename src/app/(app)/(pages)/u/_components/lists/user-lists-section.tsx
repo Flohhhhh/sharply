@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   BookOpenCheck,
   Link2,
@@ -78,8 +78,7 @@ export function UserListsSection({
   const [isPublishing, setIsPublishing] = useState(false);
   const [deleteListId, setDeleteListId] = useState<string | null>(null);
 
-  const manageList =
-    lists.find((list) => list.id === manageListId) ?? lists[0] ?? null;
+  const manageList = lists.find((list) => list.id === manageListId) ?? null;
 
   const publishedCount = useMemo(
     () => lists.filter((list) => list.shared?.isPublished).length,
@@ -232,6 +231,15 @@ export function UserListsSection({
     setManageListId(list.id);
     setIsManageOpen(true);
   };
+
+  useEffect(() => {
+    if (!isManageOpen || !manageListId) return;
+    const stillExists = lists.some((list) => list.id === manageListId);
+    if (!stillExists) {
+      setIsManageOpen(false);
+      setManageListId(null);
+    }
+  }, [isManageOpen, manageListId, lists]);
 
   return (
     <div className="space-y-4">

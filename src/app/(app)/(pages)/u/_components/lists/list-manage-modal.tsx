@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   BookOpenCheck,
   DoorOpen,
@@ -67,6 +67,7 @@ export function ListManageModal({
   const [isRenaming, setIsRenaming] = useState(false);
   const [isPublishNameOpen, setIsPublishNameOpen] = useState(false);
   const [publishName, setPublishName] = useState("");
+  const [activeListId, setActiveListId] = useState<string | null>(null);
 
   const sortableItems = useMemo<SortableUserListItem[]>(
     () => list?.items ?? [],
@@ -217,6 +218,22 @@ export function ListManageModal({
       setIsRenaming(false);
     }
   };
+
+  useEffect(() => {
+    const currentListId = list?.id ?? null;
+    const listChanged = activeListId !== currentListId;
+
+    if (!open || listChanged) {
+      setIsRenameOpen(false);
+      setRenameName("");
+      setIsPublishNameOpen(false);
+      setPublishName("");
+    }
+
+    if (listChanged) {
+      setActiveListId(currentListId);
+    }
+  }, [activeListId, list?.id, open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { UserListsSection } from "./user-lists-section";
 import type { ProfileUserListState } from "./types";
@@ -46,13 +46,16 @@ export function UserListsSectionDeferred({
     return () => observer.disconnect();
   }, [shouldLoad]);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
     try {
+      const query = new URLSearchParams({
+        profileUserId,
+      });
       const response = await fetch(
-        `/api/user-lists/profile?profileUserId=${profileUserId}`,
+        `/api/user-lists/profile?${query.toString()}`,
         { cache: "no-store" },
       );
 
@@ -67,12 +70,12 @@ export function UserListsSectionDeferred({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [profileUserId]);
 
   useEffect(() => {
     if (!shouldLoad || payload || isLoading) return;
     void load();
-  }, [shouldLoad, payload, isLoading]);
+  }, [shouldLoad, payload, isLoading, load]);
 
   return (
     <div ref={containerRef}>
