@@ -117,6 +117,16 @@ Behavior:
 - Dropdown allows per-list save/remove and inline list creation.
 - Wishlist remains separate and visible.
 
+## Future Migration Note (Wishlist -> Default List)
+
+If wishlist is later retired and replaced by user lists:
+
+- Backfill one default `Saved Items` list per user that only has wishlist data.
+- Copy wishlist entries into `app.user_list_items` for that default list, deduping by `(list_id, gear_id)` and assigning stable `position`.
+- Update reads/writes to use user-lists service as the single source for save state.
+- Remove wishlist UI controls after parity validation (counts, membership, and add/remove behavior).
+- Decommission wishlist tables/endpoints only after a monitored cutover window and rollback plan.
+
 ## Notes for Contributors
 
 - Contributors should change schema in `src/server/db/schema.ts`.
