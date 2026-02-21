@@ -95,15 +95,34 @@ export function AccountLinksSection({
       const authCallbackUrl = getAuthCallbackUrlForOrigin(
         `/profile/settings?linked=${provider}`,
         window.location.origin,
+        {
+          baseOrigin: process.env.NEXT_PUBLIC_BASE_URL,
+          debugLabel: "link_social",
+        },
       );
+      console.info("[auth-callback-debug] link_social_request", {
+        provider,
+        currentOrigin: window.location.origin,
+        baseOrigin: process.env.NEXT_PUBLIC_BASE_URL,
+        authCallbackUrl,
+      });
       // toast.success(`Redirecting to link ${PROVIDER_METADATA[provider].label}`);
       const res = await linkSocial({
         provider,
         callbackURL: authCallbackUrl,
       });
       if (res.error) {
+        console.error("[auth-callback-debug] link_social_error", {
+          provider,
+          authCallbackUrl,
+          message: res.error.message,
+        });
         throw new Error(res.error.message);
       }
+      console.info("[auth-callback-debug] link_social_success", {
+        provider,
+        authCallbackUrl,
+      });
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to start linking";
