@@ -120,9 +120,10 @@ export default async function OgImage({ params }: OgImageProps) {
         <div
           style={{
             marginTop: "32px",
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: "16px",
+            display: "flex",
+            flexWrap: "wrap",
+            columnGap: "16px",
+            rowGap: "16px",
             width: "100%",
             zIndex: 1,
             position: "relative",
@@ -132,6 +133,7 @@ export default async function OgImage({ params }: OgImageProps) {
             <div
               key={item.id}
               style={{
+                width: "calc((100% - 32px) / 3)",
                 borderRadius: "16px",
                 background: "rgba(255,255,255,0.08)",
                 border: "1px solid rgba(255,255,255,0.12)",
