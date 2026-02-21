@@ -52,6 +52,7 @@ export const NumberInput = ({
 
   const [text, setText] = useState<string>(value == null ? "" : String(value));
   const [useNumberType, setUseNumberType] = useState<boolean>(false);
+  const [isFocused, setIsFocused] = useState<boolean>(false);
 
   const regex = useMemo(
     () => ({
@@ -67,15 +68,15 @@ export const NumberInput = ({
     const externalChanged = lastExternalRef.current !== external;
     // Only sync from external when our current text is a finalized number,
     // or when the external value actually changed and our input is empty.
-    if (regex.final.test(text)) {
+    if (!isFocused && regex.final.test(text)) {
       if (external !== text) {
         setText(external);
       }
-    } else if (externalChanged && text === "") {
+    } else if (!isFocused && externalChanged && text === "") {
       setText(external);
     }
     lastExternalRef.current = external;
-  }, [value, text, regex.final]);
+  }, [value, text, regex.final, isFocused]);
 
   // Prefer type="number" on mobile to trigger numeric keyboard
   useEffect(() => {
@@ -154,6 +155,7 @@ export const NumberInput = ({
       }
     },
     onDrop: (e: React.DragEvent<HTMLInputElement>) => e.preventDefault(),
+    onFocus: () => setIsFocused(true),
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
       const next = e.target.value.trim();
       if (!isValid(next)) return;
@@ -165,6 +167,7 @@ export const NumberInput = ({
       }
     },
     onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
+      setIsFocused(false);
       const raw = e.currentTarget.value.trim();
       if (raw === "") {
         onChange(null);
