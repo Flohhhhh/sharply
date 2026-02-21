@@ -125,6 +125,7 @@ If wishlist is later retired and replaced by user lists:
 - Copy wishlist entries into `app.user_list_items` for that default list, deduping by `(list_id, gear_id)` and assigning stable `position`.
 - Update reads/writes to use user-lists service as the single source for save state.
 - Remove wishlist UI controls after parity validation (counts, membership, and add/remove behavior).
+- Publishing policy after migration: allow publishing the default migrated wishlist with an automatic public title of `"[User display name]'s Wishlist"` and keep that public title non-renameable.
 - Decommission wishlist tables/endpoints only after a monitored cutover window and rollback plan.
 
 ## Notes for Contributors
