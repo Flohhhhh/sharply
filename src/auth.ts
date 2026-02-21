@@ -4,7 +4,6 @@ import { db } from "~/server/db"; // your drizzle instance
 import * as schema from "~/server/db/schema";
 import { nextCookies } from "better-auth/next-js";
 import { emailOTP } from "better-auth/plugins";
-import { oAuthProxy } from "better-auth/plugins/oauth-proxy";
 import { passkey } from "@better-auth/passkey";
 import { resend } from "~/lib/email";
 
@@ -29,21 +28,19 @@ const additionalTrustedOrigins = process.env.AUTH_ADDITIONAL_TRUSTED_ORIGINS
   ?.split(",")
   .map(normalizeTrustedOrigin)
   .filter(Boolean) as string[] | undefined;
-const canonicalAuthBaseUrl = normalizeTrustedOrigin(
-  process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_BASE_URL ?? "",
-);
+const baseTrustedOrigin = normalizeTrustedOrigin(process.env.NEXT_PUBLIC_BASE_URL!);
+const staticAuthBaseUrl = normalizeTrustedOrigin(process.env.AUTH_BASE_URL ?? "");
 const trustedOrigins = [
   ...(process.env.NODE_ENV !== "production" ? ["http://localhost:3000"] : []),
-  ...(canonicalAuthBaseUrl ? [canonicalAuthBaseUrl] : []),
+  ...(baseTrustedOrigin ? [baseTrustedOrigin] : []),
   ...(additionalTrustedOrigins ?? []),
 ].filter(Boolean) as string[];
 
 if (process.env.NODE_ENV === "production") {
   console.info("[auth-callback-debug] trusted_origins_config", {
-    betterAuthURL: process.env.BETTER_AUTH_URL ?? null,
     nextPublicBaseURL: process.env.NEXT_PUBLIC_BASE_URL,
-    authBaseURL: canonicalAuthBaseUrl ?? null,
-    oauthProxyEnabled: true,
+    authBaseURL: staticAuthBaseUrl ?? null,
+    baseURLMode: staticAuthBaseUrl ? "static" : "dynamic_request_origin",
     additionalTrustedOrigins: process.env.AUTH_ADDITIONAL_TRUSTED_ORIGINS,
     normalizedTrustedOrigins: trustedOrigins,
   });
@@ -52,7 +49,7 @@ if (process.env.NODE_ENV === "production") {
 export const auth = betterAuth({
   // config
   appName: "Sharply",
-  baseURL: canonicalAuthBaseUrl!,
+  ...(staticAuthBaseUrl ? { baseURL: staticAuthBaseUrl } : {}),
   trustedOrigins,
   secret: process.env.AUTH_SECRET!,
 
@@ -77,18 +74,10 @@ export const auth = betterAuth({
     google: {
       clientId: process.env.AUTH_GOOGLE_ID!,
       clientSecret: process.env.AUTH_GOOGLE_SECRET!,
-      redirectURI: new URL(
-        "/api/auth/callback/google",
-        canonicalAuthBaseUrl!,
-      ).toString(),
     },
     discord: {
       clientId: process.env.AUTH_DISCORD_ID!,
       clientSecret: process.env.AUTH_DISCORD_SECRET!,
-      redirectURI: new URL(
-        "/api/auth/callback/discord",
-        canonicalAuthBaseUrl!,
-      ).toString(),
     },
   },
 
@@ -149,10 +138,6 @@ export const auth = betterAuth({
   // },
   // plugins
   plugins: [
-    oAuthProxy({
-      productionURL: canonicalAuthBaseUrl!,
-      maxAge: 60,
-    }),
     nextCookies(),
     passkey(),
     ...(emailOtpEnabled
