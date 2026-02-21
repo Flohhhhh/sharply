@@ -64,13 +64,6 @@
       "when": 1770230673060,
       "tag": "0008_misty_karen_page",
       "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1771691546876,
-      "tag": "0009_natural_energizer",
-      "breakpoints": true
     }
   ]
 }
