@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
+  BookOpenCheck,
   Link2,
   ListPlus,
   MoreVertical,
@@ -39,6 +39,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
 import {
   actionCreateUserList,
   actionDeleteUserList,
@@ -230,7 +235,7 @@ export function UserListsSection({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-1">
         <div>
           <h2 className="text-2xl font-semibold">Lists</h2>
           <p className="text-muted-foreground text-sm">
@@ -250,13 +255,48 @@ export function UserListsSection({
       </div>
 
       {lists.length ? (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-1 md:grid-cols-2">
           {lists.map((list) => (
-            <div key={list.id} className="rounded-xl border p-4">
+            <div
+              key={list.id}
+              role={myProfile ? "button" : undefined}
+              tabIndex={myProfile ? 0 : undefined}
+              className={
+                myProfile
+                  ? "hover:border-foreground/30 cursor-pointer rounded-xl border p-4 transition-colors"
+                  : "rounded-xl border p-4"
+              }
+              onClick={() => {
+                if (!myProfile) return;
+                openManage(list);
+              }}
+              onKeyDown={(event) => {
+                if (!myProfile) return;
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  openManage(list);
+                }
+              }}
+            >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <h3 className="truncate text-base font-semibold">
-                    {list.name}
+                  <h3 className="flex items-center gap-1.5 truncate text-base font-semibold">
+                    <span className="truncate">{list.name}</span>
+                    {list.shared?.isPublished ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="inline-flex">
+                            <BookOpenCheck
+                              className="text-muted-foreground size-4 shrink-0"
+                              aria-label="Published"
+                            />
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent sideOffset={8}>
+                          Published
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : null}
                   </h3>
                   <p className="text-muted-foreground text-xs">
                     {list.itemCount} items
@@ -270,12 +310,32 @@ export function UserListsSection({
                         variant="ghost"
                         size="icon"
                         disabled={listActionId === list.id}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                        }}
+                        onPointerDown={(event) => {
+                          event.stopPropagation();
+                        }}
+                        onKeyDown={(event) => {
+                          event.stopPropagation();
+                        }}
                       >
                         <MoreVertical className="size-4" />
                         <span className="sr-only">List actions</span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
+                    <DropdownMenuContent
+                      align="end"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                      }}
+                      onPointerDown={(event) => {
+                        event.stopPropagation();
+                      }}
+                      onKeyDown={(event) => {
+                        event.stopPropagation();
+                      }}
+                    >
                       <DropdownMenuItem onClick={() => openManage(list)}>
                         <List className="size-4" />
                         Manage items
@@ -287,10 +347,14 @@ export function UserListsSection({
                         </DropdownMenuItem>
                       ) : null}
                       <DropdownMenuItem
+                        disabled={
+                          !list.shared?.isPublished && list.itemCount === 0
+                        }
                         onClick={() => {
                           if (list.shared?.isPublished) {
                             void handleUnpublish(list);
                           } else {
+                            if (list.itemCount === 0) return;
                             openPublishDialog(list);
                           }
                         }}
@@ -323,35 +387,19 @@ export function UserListsSection({
                 ) : null}
               </div>
 
-              <div className="mt-3 space-y-1">
-                {list.items.slice(0, 4).map((item) => (
-                  <Link
+              <div className="mt-3 h-20 space-y-1 overflow-hidden">
+                {list.items.slice(0, 3).map((item) => (
+                  <p
                     key={item.id}
-                    href={`/gear/${item.gear.slug}`}
-                    className="text-muted-foreground hover:text-foreground block truncate text-sm"
+                    className="text-muted-foreground block truncate text-sm"
                   >
-                    {item.gear.brandName ? `${item.gear.brandName} ` : ""}
                     {item.gear.name}
-                  </Link>
-                ))}
-                {list.itemCount > 4 ? (
-                  <p className="text-muted-foreground text-xs">
-                    +{list.itemCount - 4} more
                   </p>
-                ) : null}
-              </div>
-
-              <div className="mt-4 flex flex-wrap items-center gap-2">
-                {myProfile ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    icon={<Pencil className="size-4" />}
-                    onClick={() => openManage(list)}
-                  >
-                    Manage
-                  </Button>
+                ))}
+                {list.itemCount > 3 ? (
+                  <p className="text-muted-foreground text-xs">
+                    +{list.itemCount - 3} more items
+                  </p>
                 ) : null}
               </div>
             </div>
@@ -492,7 +540,9 @@ export function UserListsSection({
             <AlertDialogCancel asChild>
               <Button
                 variant="outline"
-                disabled={Boolean(deleteListId && listActionId === deleteListId)}
+                disabled={Boolean(
+                  deleteListId && listActionId === deleteListId,
+                )}
               >
                 Cancel
               </Button>
