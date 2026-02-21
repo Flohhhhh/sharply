@@ -10,7 +10,7 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 
 type ParsedOgResult =
-  | { ok: true; ogUrl: string }
+  | { ok: true; listUrl: string }
   | { ok: false; message: string };
 
 function parseSharedListOgUrl(rawValue: string): ParsedOgResult {
@@ -43,8 +43,23 @@ function parseSharedListOgUrl(rawValue: string): ParsedOgResult {
 
   return {
     ok: true,
-    ogUrl: `${url.origin}/list/${match[1]}/opengraph-image`,
+    listUrl: `${window.location.origin}/list/${match[1]}`,
   };
+}
+
+function extractOgImageUrl(html: string, pageUrl: string): string | null {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const metadataImage = doc.querySelector(
+    'meta[property="og:image"], meta[name="twitter:image"]',
+  );
+  const imageUrl = metadataImage?.getAttribute("content");
+  if (!imageUrl) return null;
+
+  try {
+    return new URL(imageUrl, pageUrl).toString();
+  } catch {
+    return null;
+  }
 }
 
 export function SharedListOgPreviewTool() {
@@ -52,22 +67,48 @@ export function SharedListOgPreviewTool() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
+  const [loading, setLoading] = useState(false);
 
   const displayUrl = useMemo(() => {
     if (!previewUrl) return null;
     return `${previewUrl}${previewUrl.includes("?") ? "&" : "?"}v=${version}`;
   }, [previewUrl, version]);
 
-  const handlePreview = () => {
+  const handlePreview = async () => {
     const parsed = parseSharedListOgUrl(value);
     if (!parsed.ok) {
       setPreviewUrl(null);
       setError(parsed.message);
       return;
     }
+
+    setLoading(true);
     setError(null);
-    setPreviewUrl(parsed.ogUrl);
-    setVersion((prev) => prev + 1);
+    try {
+      const response = await fetch(parsed.listUrl, { cache: "no-store" });
+      if (!response.ok) {
+        setPreviewUrl(null);
+        setError(`Failed to load list page (${response.status}).`);
+        return;
+      }
+
+      const html = await response.text();
+      const ogUrl = extractOgImageUrl(html, parsed.listUrl);
+
+      if (!ogUrl) {
+        setPreviewUrl(null);
+        setError("Could not find og:image metadata on that list page.");
+        return;
+      }
+
+      setPreviewUrl(ogUrl);
+      setVersion((prev) => prev + 1);
+    } catch {
+      setPreviewUrl(null);
+      setError("Unable to fetch list metadata for OG preview.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCopy = async () => {
@@ -100,8 +141,13 @@ export function SharedListOgPreviewTool() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Button type="button" onClick={handlePreview} icon={<Search className="size-4" />}>
-            Preview OG
+          <Button
+            type="button"
+            onClick={() => void handlePreview()}
+            icon={<Search className="size-4" />}
+            disabled={loading}
+          >
+            {loading ? "Resolving..." : "Preview OG"}
           </Button>
           <Button
             type="button"
@@ -127,7 +173,7 @@ export function SharedListOgPreviewTool() {
                 rel="noreferrer"
                 className="text-primary inline-flex items-center gap-1 underline"
               >
-                Open OG URL
+                Open emitted OG URL
                 <ExternalLink className="size-3.5" />
               </a>
               <Button
@@ -158,4 +204,3 @@ export function SharedListOgPreviewTool() {
     </Card>
   );
 }
-

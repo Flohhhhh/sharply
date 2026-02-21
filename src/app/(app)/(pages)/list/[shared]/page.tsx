@@ -34,9 +34,6 @@ export async function generateMetadata({
       : "This shared list is currently unpublished.";
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-  const imageUrl = baseUrl
-    ? `${baseUrl}${payload.canonicalPath}/opengraph-image`
-    : undefined;
 
   return {
     title,
@@ -50,13 +47,11 @@ export async function generateMetadata({
       description,
       type: "website",
       url: baseUrl ? `${baseUrl}${payload.canonicalPath}` : undefined,
-      images: imageUrl ? [{ url: imageUrl, alt: title }] : undefined,
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: imageUrl ? [imageUrl] : undefined,
     },
   };
 }
