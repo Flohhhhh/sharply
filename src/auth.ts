@@ -1,4 +1,4 @@
-import { betterAuth, url } from "better-auth";
+import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "~/server/db"; // your drizzle instance
 import * as schema from "~/server/db/schema";
@@ -29,6 +29,7 @@ const additionalTrustedOrigins = process.env.AUTH_ADDITIONAL_TRUSTED_ORIGINS
   .map(normalizeTrustedOrigin)
   .filter(Boolean) as string[] | undefined;
 const baseTrustedOrigin = normalizeTrustedOrigin(process.env.NEXT_PUBLIC_BASE_URL!);
+const staticAuthBaseUrl = normalizeTrustedOrigin(process.env.AUTH_BASE_URL ?? "");
 const trustedOrigins = [
   ...(process.env.NODE_ENV !== "production" ? ["http://localhost:3000"] : []),
   ...(baseTrustedOrigin ? [baseTrustedOrigin] : []),
@@ -37,7 +38,9 @@ const trustedOrigins = [
 
 if (process.env.NODE_ENV === "production") {
   console.info("[auth-callback-debug] trusted_origins_config", {
-    baseURL: process.env.NEXT_PUBLIC_BASE_URL,
+    nextPublicBaseURL: process.env.NEXT_PUBLIC_BASE_URL,
+    authBaseURL: staticAuthBaseUrl ?? null,
+    baseURLMode: staticAuthBaseUrl ? "static" : "dynamic_request_origin",
     additionalTrustedOrigins: process.env.AUTH_ADDITIONAL_TRUSTED_ORIGINS,
     normalizedTrustedOrigins: trustedOrigins,
   });
@@ -46,7 +49,7 @@ if (process.env.NODE_ENV === "production") {
 export const auth = betterAuth({
   // config
   appName: "Sharply",
-  baseURL: process.env.NEXT_PUBLIC_BASE_URL!,
+  ...(staticAuthBaseUrl ? { baseURL: staticAuthBaseUrl } : {}),
   trustedOrigins,
   secret: process.env.AUTH_SECRET!,
 
