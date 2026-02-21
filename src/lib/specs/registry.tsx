@@ -334,11 +334,11 @@ export const specDictionary: SpecSectionDef[] = [
             const length = depth;
             return (
               <div className="flex w-fit flex-col items-end gap-1.5 text-right">
-                {diameter != null && (
-                  <DimensionRow label="Diameter" value={diameter} />
-                )}
                 {length != null && (
                   <DimensionRow label="Length" value={length} />
+                )}
+                {diameter != null && (
+                  <DimensionRow label="Diameter" value={diameter} />
                 )}
               </div>
             );
