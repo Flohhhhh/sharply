@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { withBadgeToasts } from "~/components/badges/badge-toast";
 import { CompareButton } from "~/components/compare/compare-button";
 import { AddToWishlistButton } from "~/components/gear/add-to-wishlist-button";
+import { SaveItemButton } from "~/components/gear/save-item-button";
 import { actionToggleOwnership } from "~/server/gear/actions";
 import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
 import type { GearAlias } from "~/types/gear";
@@ -19,6 +20,16 @@ interface GearActionButtonsClientProps {
   gearType?: string | null;
   initialInWishlist?: boolean | null;
   initialIsOwned?: boolean | null;
+  initialSaveState?: {
+    lists: Array<{
+      id: string;
+      name: string;
+      isDefault: boolean;
+      itemCount: number;
+    }>;
+    savedListIds: string[];
+    defaultListId: string | null;
+  } | null;
 }
 
 export function GearActionButtonsClient({
@@ -28,6 +39,7 @@ export function GearActionButtonsClient({
   gearType,
   initialInWishlist = null,
   initialIsOwned = null,
+  initialSaveState = null,
 }: GearActionButtonsClientProps) {
   const { data, isPending } = useSession();
   const displayName = useGearDisplayName({ name, regionalAliases });
@@ -97,6 +109,9 @@ export function GearActionButtonsClient({
 
   return (
     <div className="space-y-3 pt-4">
+      {/* Save Item Button */}
+      <SaveItemButton slug={slug} initialState={initialSaveState} />
+
       {/* Wishlist Button */}
       <AddToWishlistButton
         slug={slug}
