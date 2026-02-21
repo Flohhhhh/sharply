@@ -1370,6 +1370,109 @@ export const genresRelations = relations(genres, ({ many }) => ({
 }));
 
 // --- Interactions ---
+export const userLists = appSchema.table(
+  "user_lists",
+  (d) => ({
+    id: d
+      .varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    userId: d
+      .varchar("user_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: d.varchar("name", { length: 140 }).notNull(),
+    isDefault: d.boolean("is_default").notNull().default(false),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    index("user_lists_user_idx").on(t.userId),
+    index("user_lists_user_created_idx").on(t.userId, t.createdAt),
+  ],
+);
+
+export const userListItems = appSchema.table(
+  "user_list_items",
+  (d) => ({
+    id: d
+      .varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    listId: d
+      .varchar("list_id", { length: 36 })
+      .notNull()
+      .references(() => userLists.id, { onDelete: "cascade" }),
+    gearId: d
+      .varchar("gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    position: integer("position").notNull().default(0),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    uniqueIndex("user_list_items_list_gear_uq").on(t.listId, t.gearId),
+    index("user_list_items_list_position_idx").on(t.listId, t.position),
+    index("user_list_items_gear_idx").on(t.gearId),
+  ],
+);
+
+export const sharedLists = appSchema.table(
+  "shared_lists",
+  (d) => ({
+    id: d
+      .varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    listId: d
+      .varchar("list_id", { length: 36 })
+      .notNull()
+      .references(() => userLists.id, { onDelete: "cascade" }),
+    slug: d.varchar("slug", { length: 180 }).notNull(),
+    publicId: d.varchar("public_id", { length: 20 }).notNull(),
+    isPublished: d.boolean("is_published").notNull().default(true),
+    publishedAt: timestamp("published_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    unpublishedAt: timestamp("unpublished_at", { withTimezone: true }),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    uniqueIndex("shared_lists_list_uq").on(t.listId),
+    uniqueIndex("shared_lists_public_id_uq").on(t.publicId),
+    index("shared_lists_slug_idx").on(t.slug),
+  ],
+);
+
+export const userListsRelations = relations(userLists, ({ one, many }) => ({
+  user: one(users, {
+    fields: [userLists.userId],
+    references: [users.id],
+  }),
+  items: many(userListItems),
+  shared: many(sharedLists),
+}));
+
+export const userListItemsRelations = relations(userListItems, ({ one }) => ({
+  list: one(userLists, {
+    fields: [userListItems.listId],
+    references: [userLists.id],
+  }),
+  gear: one(gear, {
+    fields: [userListItems.gearId],
+    references: [gear.id],
+  }),
+}));
+
+export const sharedListsRelations = relations(sharedLists, ({ one }) => ({
+  list: one(userLists, {
+    fields: [sharedLists.listId],
+    references: [userLists.id],
+  }),
+}));
+
 export const wishlists = appSchema.table(
   "wishlists",
   (d) => ({
@@ -1822,6 +1925,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   reviews: many(reviews),
   notifications: many(notifications),
   passkeys: many(passkeys),
+  userLists: many(userLists),
 }));
 
 // Export the user type for use throughout the application

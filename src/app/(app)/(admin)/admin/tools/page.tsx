@@ -3,6 +3,7 @@ import { BadgesTestToastButton } from "../badges-test-toast";
 import { BadgesCatalog } from "../badges-catalog";
 import { AdminImageUploader } from "../admin-image-uploader";
 import { GradientImageTool } from "../gradient-image-tool";
+import { SharedListOgPreviewTool } from "../shared-list-og-preview-tool";
 import { fetchLiveBoosts } from "~/server/popularity/service";
 import Link from "next/link";
 
@@ -95,6 +96,15 @@ export default async function ToolsPage() {
         </p>
         <div className="mt-4">
           <AdminImageUploader />
+        </div>
+      </div>
+      <div>
+        <h2 className="text-2xl font-bold">Shared List OG Preview</h2>
+        <p className="text-muted-foreground mt-2">
+          Paste a published shared-list URL and preview the generated OG image.
+        </p>
+        <div className="mt-4">
+          <SharedListOgPreviewTool />
         </div>
       </div>
       {/* Badge Catalog */}

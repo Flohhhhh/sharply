@@ -66,6 +66,7 @@ export type GearSearchComboboxProps = {
   serializeValue?: (value: GearOption | null) => string;
   onSelectionChange?: (value: GearOption | null) => void;
   fullWidth?: boolean;
+  disableTriggerMeasurement?: boolean;
   renderTrigger?: (details: {
     open: boolean;
     selection: GearOption | null;
@@ -106,6 +107,7 @@ export function GearSearchCombobox({
   serializeValue = defaultSerialize,
   onSelectionChange,
   fullWidth = true,
+  disableTriggerMeasurement = false,
   renderTrigger,
 }: GearSearchComboboxProps) {
   const [open, setOpen] = useState(false);
@@ -119,7 +121,7 @@ export function GearSearchCombobox({
   const [triggerWidth, setTriggerWidth] = useState<number | undefined>(
     undefined,
   );
-  const shouldMeasureTrigger = !renderTrigger;
+  const shouldMeasureTrigger = !renderTrigger && !disableTriggerMeasurement;
   const { region } = useCountry();
 
   const brandFilter = filters?.brand;
@@ -379,6 +381,7 @@ export function GearSearchCombobox({
           <PopoverContent
             className="p-0"
             align="start"
+            onOpenAutoFocus={(event) => event.preventDefault()}
             style={shouldMeasureTrigger ? { width: triggerWidth } : undefined}
           >
             <Command shouldFilter={false}>
@@ -386,7 +389,6 @@ export function GearSearchCombobox({
                 value={query}
                 onValueChange={setQuery}
                 placeholder={searchPlaceholder}
-                autoFocus
               />
               <CommandList>
                 <CommandEmpty>{emptyStateContent}</CommandEmpty>

@@ -39,6 +39,7 @@ import {
   type CollectionTableColumnKey,
 } from "~/app/(app)/(pages)/u/_components/collection/collection-table-modal";
 import { WishlistGearCard } from "~/app/(app)/(pages)/u/_components/wishlist-gear-card";
+import { UserListsSectionDeferred } from "~/app/(app)/(pages)/u/_components/lists/user-lists-section-deferred";
 
 interface UserProfilePageProps {
   params: Promise<{
@@ -271,6 +272,11 @@ export default async function UserProfilePage({
               </EmptyDescription>
             </Empty>
           )}
+        </div>
+
+        {/* Lists */}
+        <div className="space-y-4">
+          <UserListsSectionDeferred profileUserId={profile.id} />
         </div>
 
         {/* Reviews */}
