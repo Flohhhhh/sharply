@@ -7,10 +7,11 @@ test.describe("number input", () => {
     await page.goto(`${baseUrl}/ui-demo`);
 
     const numberInput = page.getByRole("textbox", { name: "Number" });
-    await numberInput.fill("1.0");
+    await numberInput.click();
+    await numberInput.pressSequentially("1.0");
     await expect(numberInput).toHaveValue("1.0");
 
-    await numberInput.type("4");
+    await numberInput.pressSequentially("4");
     await expect(numberInput).toHaveValue("1.04");
   });
 });
