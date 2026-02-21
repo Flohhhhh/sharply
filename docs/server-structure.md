@@ -58,6 +58,11 @@ This document explains how to organize server-only code under `src/server/**`.
   - `server/gear/service.ts`: `resolveGearIdOrThrow`, `fetchGearBySlug`, `toggleWishlist`, `toggleOwnership`, `submitReview`, `fetch...Status`
   - `server/gear/actions.ts`: `actionToggleWishlist`, `actionToggleOwnership`, `actionSubmitReview`
 
+- User Lists
+  - `server/user-lists/data.ts`: list/list-item/shared-list reads+writes, ordered item queries, shared lookup by `publicId`
+  - `server/user-lists/service.ts`: `ensureDefaultSavedItemsList`, auth ownership checks, publish/unpublish orchestration, public list read models
+  - `server/user-lists/actions.ts`: thin list CRUD + publish mutations with `revalidatePath`
+
 - Search
   - `server/search/data.ts`: `buildSearchWhereClause`, `buildRelevanceExpr`, `querySearchRows`, `querySearchTotal`, suggestions queries
   - `server/search/service.ts`: `searchGear`, `getSuggestions`

@@ -21,6 +21,7 @@ export default function robots(): MetadataRoute.Robots {
         "/learn/", // TODO: finish feature and add to sitemap
         "/recommended-lenses/", // TODO: finish feature and add to sitemap
         "/focal-simulator/", // TODO: finish feature and add to sitemap
+        "/list/",
       ],
     },
     sitemap: "https://www.sharplyphoto.com/sitemap.xml",
