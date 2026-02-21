@@ -14,10 +14,7 @@ export const LearnPages: CollectionConfig = {
   access: {
     create: ({ req: { user } }) =>
       user?.role === "superadmin" || user?.role === "admin",
-    read: ({ req: { user } }) =>
-      user?.role === "superadmin" ||
-      user?.role === "admin" ||
-      user?.role === "editor",
+    read: () => true,
     update: ({ req: { user } }) =>
       user?.role === "superadmin" ||
       user?.role === "admin" ||
