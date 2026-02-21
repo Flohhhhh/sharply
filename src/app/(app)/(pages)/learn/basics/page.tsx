@@ -2,28 +2,8 @@ import { Library } from "lucide-react";
 import Link from "next/link";
 import LearnCard from "~/components/learn/learn-card";
 import { Button } from "~/components/ui/button";
-import ComingSoon from "~/components/coming-soon";
-import { auth } from "~/auth";
-import { requireRole } from "~/lib/auth/auth-helpers";
-import { headers } from "next/headers";
 
 export default async function BasicsPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  const user = session?.user;
-
-  if (!session || !requireRole(user, ["EDITOR"])) {
-    return (
-      <ComingSoon
-        title="Learn Articles"
-        description="We're working hard to bring you the best experience possible. In the meantime, you can browse our gear catalog and learn about the latest releases."
-        buttonText="Go Home"
-        buttonHref="/"
-      />
-    );
-  }
-
   const featured = [
     {
       href: "/learn/the-basics-of-modern-cameras",
@@ -35,18 +15,13 @@ export default async function BasicsPage() {
       href: "/learn/the-exposure-triangle",
       title: "The Exposure Triangle",
       description:
-        "Aperture, shutter speed, and ISO—how each affects your image.",
+        "Learn how aperture, shutter speed, and ISO work together to create the perfect exposure and give you creative control over your images.",
     },
     {
-      href: "/learn/photography-genres-and-careers",
-      title: "Photography Genres and Careers",
+      href: "/learn/every-way-to-enjoy-photography",
+      title: "Every Way to Enjoy Photography",
       description:
-        "Learn about the different genres of photography and the careers available in the industry.",
-    },
-    {
-      href: "/learn/buying-your-first-camera",
-      title: "Buying Your First Camera",
-      description: "How to choose a body, lenses, and a starter kit on budget.",
+        "Learn about the different ways to enjoy photography, from casual to professional or both!",
     },
   ];
 
