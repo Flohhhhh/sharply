@@ -27,6 +27,7 @@ export const env = createEnv({
       process.env.NODE_ENV === "production"
         ? z.string()
         : z.string().optional(),
+    BETTER_AUTH_URL: z.string().url(),
     AUTH_ADDITIONAL_TRUSTED_ORIGINS: z.string().optional(),
     DATABASE_URL: z.string().url(),
     CRON_SECRET:
@@ -79,6 +80,7 @@ export const env = createEnv({
     AUTH_DISCORD_SECRET: process.env.AUTH_DISCORD_SECRET,
     AUTH_GOOGLE_ID: process.env.AUTH_GOOGLE_ID,
     AUTH_GOOGLE_SECRET: process.env.AUTH_GOOGLE_SECRET,
+    BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
     AUTH_ADDITIONAL_TRUSTED_ORIGINS:
       process.env.AUTH_ADDITIONAL_TRUSTED_ORIGINS,
     DATABASE_URL: process.env.DATABASE_URL,
