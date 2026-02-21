@@ -334,22 +334,22 @@ export const specDictionary: SpecSectionDef[] = [
             const length = depth;
             return (
               <div className="flex w-fit flex-col items-end gap-1.5 text-right">
-                {length != null && (
-                  <DimensionRow label="Length" value={length} />
-                )}
                 {diameter != null && (
                   <DimensionRow label="Diameter" value={diameter} />
+                )}
+                {length != null && (
+                  <DimensionRow label="Length" value={length} />
                 )}
               </div>
             );
           }
 
-          // Cameras/others: show Length (depth), Width, Height as a simple column
+          // Cameras/others: show Width, Height, Length (depth) as a simple column
           return (
             <div className="flex w-fit flex-col items-end gap-1.5 text-right">
-              {depth != null && <DimensionRow label="Length" value={depth} />}
               {width != null && <DimensionRow label="Width" value={width} />}
               {height != null && <DimensionRow label="Height" value={height} />}
+              {depth != null && <DimensionRow label="Length" value={depth} />}
             </div>
           );
         },
