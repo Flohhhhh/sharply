@@ -39,8 +39,7 @@ import {
   type CollectionTableColumnKey,
 } from "~/app/(app)/(pages)/u/_components/collection/collection-table-modal";
 import { WishlistGearCard } from "~/app/(app)/(pages)/u/_components/wishlist-gear-card";
-import { UserListsSection } from "~/app/(app)/(pages)/u/_components/lists/user-lists-section";
-import { fetchUserListsForProfile } from "~/server/user-lists/service";
+import { UserListsSectionDeferred } from "~/app/(app)/(pages)/u/_components/lists/user-lists-section-deferred";
 
 interface UserProfilePageProps {
   params: Promise<{
@@ -76,13 +75,9 @@ export default async function UserProfilePage({
   if (!profile) notFound();
 
   // Wishlist and owned items via service layer
-  const [wishlistItems, ownedItems, listPayload] = await Promise.all([
+  const [wishlistItems, ownedItems] = await Promise.all([
     fetchUserWishlistItems(profile.id),
     fetchUserOwnedItems(profile.id),
-    fetchUserListsForProfile({
-      profileUserId: profile.id,
-      viewerUserId: user?.id,
-    }),
   ]);
 
   const sortedOwnedItems = sortOwnedItems(ownedItems);
@@ -281,7 +276,7 @@ export default async function UserProfilePage({
 
         {/* Lists */}
         <div className="space-y-4">
-          <UserListsSection initialLists={listPayload.lists} myProfile={myProfile} />
+          <UserListsSectionDeferred profileUserId={profile.id} />
         </div>
 
         {/* Reviews */}
