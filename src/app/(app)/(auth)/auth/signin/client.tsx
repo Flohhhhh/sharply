@@ -121,7 +121,18 @@ export default function SignInClient({
       const authCallbackUrl = getAuthCallbackUrlForOrigin(
         callbackUrl,
         window.location.origin,
+        {
+          baseOrigin: process.env.NEXT_PUBLIC_BASE_URL,
+          debugLabel: "signin_social",
+        },
       );
+      console.info("[auth-callback-debug] signin_social_request", {
+        provider,
+        callbackUrl,
+        currentOrigin: window.location.origin,
+        baseOrigin: process.env.NEXT_PUBLIC_BASE_URL,
+        authCallbackUrl,
+      });
       const { data, error } = await signIn.social({
         provider,
         callbackURL: authCallbackUrl,
@@ -129,14 +140,31 @@ export default function SignInClient({
       });
 
       if (error) {
+        console.error("[auth-callback-debug] signin_social_error", {
+          provider,
+          callbackUrl,
+          authCallbackUrl,
+          message: error.message,
+        });
         toast.error("Sign in failed.", {
           richColors: true,
           description: error.message,
         });
       } else {
+        console.info("[auth-callback-debug] signin_social_success", {
+          provider,
+          callbackUrl,
+          authCallbackUrl,
+          redirectUrl: data.url,
+        });
         router.push(data.url ?? "/");
       }
     } catch (error) {
+      console.error("[auth-callback-debug] signin_social_exception", {
+        provider,
+        callbackUrl,
+        message: error instanceof Error ? error.message : String(error),
+      });
       toast.error("An unexpected error occurred. Please try again.");
     }
   }
