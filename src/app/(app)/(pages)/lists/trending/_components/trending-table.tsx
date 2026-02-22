@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import {
@@ -116,10 +116,6 @@ export function TrendingTable({ initialData }: Props) {
   const [page, setPage] = useState(initialData.page);
   const [perPage, setPerPage] = useState(initialData.perPage);
 
-  useEffect(() => {
-    setPage(1);
-  }, [timeframe, gearType, perPage]);
-
   const requestKey = useMemo(
     () =>
       buildKey({
@@ -176,7 +172,13 @@ export function TrendingTable({ initialData }: Props) {
 
   const prevDisabled = page <= 1;
   const nextDisabled = page >= totalPages || rows.length < effectivePerPage;
-  const paginationItems = buildPaginationItems(page, totalPages);
+  let ellipsisKeyCount = 0;
+  const paginationItems = buildPaginationItems(page, totalPages).map(
+    (item): { item: number | "ellipsis"; key: string } => ({
+      item,
+      key: item === "ellipsis" ? `ellipsis-${++ellipsisKeyCount}` : String(item),
+    }),
+  );
 
   return (
     <section className="">
@@ -190,7 +192,7 @@ export function TrendingTable({ initialData }: Props) {
                   type="button"
                   size="sm"
                   variant={timeframe === option ? "default" : "outline"}
-                  onClick={() => setTimeframe(option)}
+                  onClick={() => { setTimeframe(option); setPage(1); }}
                 >
                   {option}
                 </Button>
@@ -203,7 +205,7 @@ export function TrendingTable({ initialData }: Props) {
                   type="button"
                   size="sm"
                   variant={gearType === option.value ? "default" : "outline"}
-                  onClick={() => setGearType(option.value as typeof gearType)}
+                  onClick={() => { setGearType(option.value as typeof gearType); setPage(1); }}
                 >
                   {option.label}
                 </Button>
@@ -218,7 +220,7 @@ export function TrendingTable({ initialData }: Props) {
           Rows
           <Select
             value={String(perPage)}
-            onValueChange={(value) => setPerPage(Number(value))}
+            onValueChange={(value) => { setPerPage(Number(value)); setPage(1); }}
           >
             <SelectTrigger className="h-9 w-[110px]">
               <SelectValue />
@@ -299,17 +301,17 @@ export function TrendingTable({ initialData }: Props) {
                       }
                     />
                   </PaginationItem>
-                  {paginationItems.map((item, idx) => {
+                  {paginationItems.map(({ item, key }) => {
                     if (item === "ellipsis") {
                       return (
-                        <PaginationItem key={`ellipsis-${idx}`}>
+                        <PaginationItem key={key}>
                           <PaginationEllipsis />
                         </PaginationItem>
                       );
                     }
                     const pageNumber = item;
                     return (
-                      <PaginationItem key={pageNumber}>
+                      <PaginationItem key={key}>
                         <PaginationLink
                           href="#"
                           size="default"

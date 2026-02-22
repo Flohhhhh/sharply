@@ -80,11 +80,13 @@ export function SaveItemButton({
   slug: string;
   initialState: SaveItemInitialState;
 }) {
-  const [pickerState, setPickerState] = useState(initialState);
+  const [pickerState, setPickerState] = useState(() => initialState);
   const [isMutating, setIsMutating] = useState(false);
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [newListName, setNewListName] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
+  const [createDialog, setCreateDialog] = useState({
+    open: false,
+    name: "",
+    creating: false,
+  });
 
   const savedSet = useMemo(
     () => new Set(pickerState?.savedListIds ?? []),
@@ -130,12 +132,12 @@ export function SaveItemButton({
   };
 
   const handleCreateList = async () => {
-    if (!newListName.trim() || isCreating) return;
-    setIsCreating(true);
+    if (!createDialog.name.trim() || createDialog.creating) return;
+    setCreateDialog((prev) => ({ ...prev, creating: true }));
 
     try {
       const existingListIds = new Set(pickerState.lists.map((list) => list.id));
-      const result = await actionCreateUserList(newListName);
+      const result = await actionCreateUserList(createDialog.name);
       const createdLists = result.lists as ActionListShape[];
       const createdList = createdLists.find((list) => !existingListIds.has(list.id));
 
@@ -150,13 +152,12 @@ export function SaveItemButton({
         slug,
       });
       applyActionLists(addResult.lists as ActionListShape[]);
-      setNewListName("");
-      setIsCreateOpen(false);
+      setCreateDialog({ open: false, name: "", creating: false });
       toast.success("List created and item saved");
     } catch {
       toast.error("Failed to create list and save item");
     } finally {
-      setIsCreating(false);
+      setCreateDialog((prev) => ({ ...prev, creating: false }));
     }
   };
 
@@ -203,7 +204,7 @@ export function SaveItemButton({
               </DropdownMenuCheckboxItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => setIsCreateOpen(true)}>
+            <DropdownMenuItem onClick={() => setCreateDialog((prev) => ({ ...prev, open: true }))}>
               <Plus className="size-4" />
               Create list
             </DropdownMenuItem>
@@ -211,7 +212,7 @@ export function SaveItemButton({
         </DropdownMenu>
       </ButtonGroup>
 
-      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+      <Dialog open={createDialog.open} onOpenChange={(open) => setCreateDialog((prev) => ({ ...prev, open }))}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Create a new list</DialogTitle>
@@ -221,15 +222,15 @@ export function SaveItemButton({
             <Input
               id="new-list-name"
               placeholder="My favorites"
-              value={newListName}
-              onChange={(event) => setNewListName(event.target.value)}
+              value={createDialog.name}
+              onChange={(event) => setCreateDialog((prev) => ({ ...prev, name: event.target.value }))}
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
+            <Button variant="outline" onClick={() => setCreateDialog((prev) => ({ ...prev, open: false }))}>
               Cancel
             </Button>
-            <Button onClick={handleCreateList} loading={isCreating}>
+            <Button onClick={handleCreateList} loading={createDialog.creating}>
               Create
             </Button>
           </DialogFooter>
