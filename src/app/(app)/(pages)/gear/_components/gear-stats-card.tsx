@@ -8,6 +8,7 @@ export default async function GearStatsCard({ slug }: { slug: string }) {
       <div className="mb-2 text-lg font-semibold">Popularity</div>
       <GearStatsClient
         slug={slug}
+        viewsToday={stats.viewsToday}
         lifetimeViews={stats.lifetimeViews}
         views30d={stats.views30d}
         wishlistTotal={stats.wishlistTotal}

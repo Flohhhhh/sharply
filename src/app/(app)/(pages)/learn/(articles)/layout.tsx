@@ -6,11 +6,7 @@ import LearnMobileArticleSheet, {
 import { TableOfContents } from "~/components/rich-text/table-of-contents";
 import type { LearnPage } from "~/payload-types";
 import { getLearnPages } from "~/server/payload/service";
-import { auth } from "~/auth";
-import { requireRole } from "~/lib/auth/auth-helpers";
-import ComingSoon from "~/components/coming-soon";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
-import { headers } from "next/headers";
 
 const sortByCreationDate = <T extends { createdAt: string }>(items: T[]) => {
   return [...items].sort(
@@ -51,22 +47,6 @@ export default async function ArticlesLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  const user = session?.user;
-
-  if (!session || !requireRole(user, ["EDITOR"])) {
-    return (
-      <ComingSoon
-        title="Learn Articles"
-        description="We're working hard to bring you the best experience possible. In the meantime, you can browse our gear catalog and learn about the latest releases."
-        buttonText="Go Home"
-        buttonHref="/"
-      />
-    );
-  }
-
   const pages = await getLearnPages();
   const basicPages = pages.filter((page) => page.category === "basics");
   const unassignedPages = pages.filter(

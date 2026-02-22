@@ -166,7 +166,7 @@ export function SaveItemButton({
         <Button
           type="button"
           variant={isSavedAnywhere ? "default" : "outline"}
-          className="flex-1"
+          className="flex-1 justify-start"
           icon={<Bookmark className={isSavedAnywhere ? "fill-current" : ""} />}
           loading={isMutating}
           onClick={() => void handlePrimaryClick()}

@@ -482,7 +482,7 @@ export async function fetchPublicSharedListByParam(
         items.map((item) => item.gear.slug),
         {
           timeframe: "30d",
-          limit: 200,
+          limit: 20,
         },
       )
     : new Set<string>();

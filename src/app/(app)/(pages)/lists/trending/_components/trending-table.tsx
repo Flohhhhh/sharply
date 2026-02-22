@@ -153,9 +153,10 @@ export function TrendingTable({ initialData }: Props) {
 
   const rows = data?.items ?? [];
   const total = data?.total ?? 0;
+  const effectivePerPage = data?.perPage ?? perPage;
   const totalPages =
     data && data.perPage > 0 ? Math.max(1, Math.ceil(total / data.perPage)) : 1;
-  const topScore = rows[0]?.score ?? 0;
+  const topScore = data?.topScore ?? rows[0]?.score ?? 0;
   const showLiveBoostBanner = data?.items?.some((row) => row.liveBoost);
 
   const handlePageChange = useCallback(
@@ -174,7 +175,7 @@ export function TrendingTable({ initialData }: Props) {
   );
 
   const prevDisabled = page <= 1;
-  const nextDisabled = page >= totalPages || rows.length < perPage;
+  const nextDisabled = page >= totalPages || rows.length < effectivePerPage;
   const paginationItems = buildPaginationItems(page, totalPages);
 
   return (
@@ -266,7 +267,7 @@ export function TrendingTable({ initialData }: Props) {
                   <TrendingRow
                     key={row.gearId}
                     row={row}
-                    index={(page - 1) * perPage + idx + 1}
+                    index={(page - 1) * effectivePerPage + idx + 1}
                     filledCount={getFlameFill(row.score, topScore)}
                     liveDelta={row.liveBoost ?? 0}
                   />

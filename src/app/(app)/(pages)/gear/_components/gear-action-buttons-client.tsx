@@ -118,14 +118,14 @@ export function GearActionButtonsClient({
         initialInWishlist={initialInWishlist}
         size="md"
         variant="outline"
-        fullWidth
+        className="w-full justify-start"
         showLabel
       />
 
       {/* Ownership Button */}
       <Button
         variant={!ownedActive ? "outline" : "default"}
-        className="w-full"
+        className="w-full justify-start"
         onClick={handleOwnershipToggle}
         loading={loading.ownership}
         disabled={isOwned === null}
@@ -141,7 +141,7 @@ export function GearActionButtonsClient({
         gearType={gearType}
         size="md"
         variant="outline"
-        className="w-full"
+        className="w-full justify-start"
         showLabel
       />
     </div>

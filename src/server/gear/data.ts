@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, desc, eq, gte, or, sql, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, gte, lt, or, sql, inArray } from "drizzle-orm";
 import { db } from "~/server/db";
 import {
   brands,
@@ -8,6 +8,7 @@ import {
   mounts,
   gearMounts,
   gearPopularityDaily,
+  gearPopularityIntraday,
   gearPopularityLifetime,
   gearPopularityWindows,
   ownerships,
@@ -714,10 +715,23 @@ export async function getGearStatsById(gearId: string) {
         and(
           eq(gearPopularityDaily.gearId, gearId),
           gte(gearPopularityDaily.date, sql`CURRENT_DATE - INTERVAL '30 days'`),
+          lt(gearPopularityDaily.date, sql`CURRENT_DATE`),
         ),
       );
     views30d = Number(d30Row[0]?.v ?? 0);
   }
+
+  const intradayRow = await db
+    .select({ v: gearPopularityIntraday.views })
+    .from(gearPopularityIntraday)
+    .where(
+      and(
+        eq(gearPopularityIntraday.gearId, gearId),
+        eq(gearPopularityIntraday.date, sql`CURRENT_DATE`),
+      ),
+    )
+    .limit(1);
+  const intradayViews = Number(intradayRow[0]?.v ?? 0);
 
   const [wlRow, ownRow] = await Promise.all([
     db
@@ -733,7 +747,13 @@ export async function getGearStatsById(gearId: string) {
   const wishlistTotal = Number(wlRow[0]?.c ?? 0);
   const ownershipTotal = Number(ownRow[0]?.c ?? 0);
 
-  return { lifetimeViews, views30d, wishlistTotal, ownershipTotal };
+  return {
+    viewsToday: intradayViews,
+    lifetimeViews: lifetimeViews + intradayViews,
+    views30d: views30d + intradayViews,
+    wishlistTotal,
+    ownershipTotal,
+  };
 }
 
 export async function fetchUseCaseRatingsByGearIdData(gearId: string) {

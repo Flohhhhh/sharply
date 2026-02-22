@@ -177,7 +177,7 @@ export function SearchClient({ initialPage }: SearchClientProps) {
   type TrendingResponse = { items?: { slug: string }[] };
 
   const { data: trendingData } = useSwr<TrendingResponse>(
-    "/api/trending?timeframe=30d&perPage=200",
+    "/api/trending?timeframe=30d&perPage=20",
     fetcherJson,
     {
       revalidateOnFocus: false,

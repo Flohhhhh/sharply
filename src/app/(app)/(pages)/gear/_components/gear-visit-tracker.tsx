@@ -19,7 +19,18 @@ export function GearVisitTracker({ slug }: GearVisitTrackerProps) {
               .find((c) => c.startsWith("visitorId="))
               ?.split("=")[1]
           : null;
-      await actionRecordGearView({ slug, visitorId: existing ?? null });
+      const result = await actionRecordGearView({
+        slug,
+        visitorId: existing ?? null,
+      });
+      window.dispatchEvent(
+        new CustomEvent("gear:view-recorded", {
+          detail: {
+            slug,
+            deduped: result.deduped,
+          },
+        }),
+      );
     } catch (error) {
       console.error("Failed to record visit:", error);
     }
@@ -31,7 +42,6 @@ export function GearVisitTracker({ slug }: GearVisitTrackerProps) {
       console.error("[GearVisitTracker] error", error);
     });
     // Fire once on mount for a given slug
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
   // This component doesn't render anything
