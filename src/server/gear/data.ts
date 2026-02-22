@@ -141,7 +141,10 @@ export async function upsertGearAlias(params: {
       });
 
     const searchName = await buildSearchNameForGearId(tx, gearId);
-    await tx.update(gear).set({ searchName }).where(eq(gear.id, gearId));
+    await tx
+      .update(gear)
+      .set({ searchName, updatedAt: new Date() })
+      .where(eq(gear.id, gearId));
   });
 }
 
@@ -159,7 +162,10 @@ export async function deleteGearAlias(params: {
       );
 
     const searchName = await buildSearchNameForGearId(tx, gearId);
-    await tx.update(gear).set({ searchName }).where(eq(gear.id, gearId));
+    await tx
+      .update(gear)
+      .set({ searchName, updatedAt: new Date() })
+      .where(eq(gear.id, gearId));
   });
 }
 

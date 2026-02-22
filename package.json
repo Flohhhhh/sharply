@@ -15,6 +15,7 @@
     "gear:list-missing-links": "tsx scripts/list-missing-links.ts",
     "constants:generate": "tsx scripts/generate-constants.ts",
     "users:backfill-member-numbers": "tsx scripts/backfill-member-numbers.ts",
+    "gear:backfill-updated-at": "tsx scripts/backfill-gear-updated-at.ts",
     "dev": "next dev --turbo",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
     "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",

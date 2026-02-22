@@ -168,6 +168,75 @@ export function formatHumanDate(
 }
 
 /**
+ * Formats recent dates using friendly labels, then falls back to full date.
+ * Buckets:
+ * - today
+ * - yesterday
+ * - N days ago (2-6)
+ * - last week (previous calendar week)
+ * - last month (previous calendar month)
+ * - full date beyond that
+ */
+export function formatRecentHumanDate(
+  input: Date | string | number | null | undefined,
+): string {
+  if (!input) return "";
+  const date = input instanceof Date ? input : new Date(input);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const now = new Date();
+  const nowUtcMidnight = Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate(),
+  );
+  const dateUtcMidnight = Date.UTC(
+    date.getUTCFullYear(),
+    date.getUTCMonth(),
+    date.getUTCDate(),
+  );
+  const diffDays = Math.floor(
+    (nowUtcMidnight - dateUtcMidnight) / (24 * 60 * 60 * 1000),
+  );
+
+  if (diffDays < 0) return formatHumanDate(date);
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays <= 6) return `${diffDays} days ago`;
+
+  const dayMs = 24 * 60 * 60 * 1000;
+  const nowUtcDay = new Date(nowUtcMidnight);
+  const weekStartOffset = nowUtcDay.getUTCDay(); // Sunday-based
+  const currentWeekStart = nowUtcMidnight - weekStartOffset * dayMs;
+  const previousWeekStart = currentWeekStart - 7 * dayMs;
+  if (
+    dateUtcMidnight >= previousWeekStart &&
+    dateUtcMidnight < currentWeekStart
+  ) {
+    return "Last week";
+  }
+
+  const currentMonthStart = Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    1,
+  );
+  const previousMonthStart = Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth() - 1,
+    1,
+  );
+  if (
+    dateUtcMidnight >= previousMonthStart &&
+    dateUtcMidnight < currentMonthStart
+  ) {
+    return "Last month";
+  }
+
+  return formatHumanDate(date);
+}
+
+/**
  * Precision-aware date formatter.
  * precision: 'YEAR' | 'MONTH' | 'DAY'. Defaults to DAY when unspecified.
  */
