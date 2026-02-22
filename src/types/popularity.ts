@@ -75,4 +75,5 @@ export type TrendingPageResult = {
   perPage: number;
   timeframe: "7d" | "30d";
   filters: TrendingFiltersInput;
+  topScore?: number;
 };

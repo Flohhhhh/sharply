@@ -26,6 +26,28 @@ import type {
   TrendingEntry,
 } from "~/types/popularity";
 
+const DEFAULT_TRENDING_CANDIDATE_POOL = 500;
+
+async function fetchTrendingRanking(params: {
+  timeframe: "7d" | "30d";
+  filters?: TrendingFiltersInput;
+  candidateLimit?: number;
+}): Promise<TrendingEntry[]> {
+  const timeframe = params.timeframe;
+  const filters = params.filters ?? {};
+  const candidateLimit = Math.max(
+    1,
+    params.candidateLimit ?? DEFAULT_TRENDING_CANDIDATE_POOL,
+  );
+
+  const [baseline, liveSnapshot] = await Promise.all([
+    getTrendingData(timeframe, candidateLimit, filters, 0),
+    getLiveTrendingSnapshot(candidateLimit, filters, 0),
+  ]);
+
+  return applyLiveBoostToTrending({ baseline, liveSnapshot });
+}
+
 /**
  * recordGearView(slug, identity)
  *
@@ -147,18 +169,21 @@ export async function fetchTrending(params: {
   const limit = params.limit ?? 10;
   const filters = params.filters ?? {};
   const offset = params.offset ?? 0;
-
-  const [baseline, liveSnapshot] = await Promise.all([
-    getTrendingData(timeframe, limit, filters, offset),
-    getLiveTrendingSnapshot(limit, filters, offset),
-  ]);
-
-  const merged = applyLiveBoostToTrending({ baseline, liveSnapshot, limit });
+  const candidateLimit = Math.max(
+    DEFAULT_TRENDING_CANDIDATE_POOL,
+    offset + limit,
+  );
+  const ranked = await fetchTrendingRanking({
+    timeframe,
+    filters,
+    candidateLimit,
+  });
+  const sliced = ranked.slice(offset, offset + limit);
   const aliasesById = await fetchGearAliasesByGearIds(
-    merged.map((item) => item.gearId),
+    sliced.map((item) => item.gearId),
   );
 
-  return merged.map((item) => ({
+  return sliced.map((item) => ({
     ...item,
     regionalAliases: aliasesById.get(item.gearId) ?? [],
   }));
@@ -232,27 +257,37 @@ export async function fetchTrendingPage(params: {
 }): Promise<TrendingPageResult> {
   const timeframe = params.timeframe ?? "30d";
   const page = Math.max(1, params.page ?? 1);
-  const perPage = Math.min(50, Math.max(5, params.perPage ?? 10));
+  const perPage = Math.min(100, Math.max(5, params.perPage ?? 10));
   const filters = params.filters ?? {};
   const offset = (page - 1) * perPage;
 
-  const [baseline, total, liveSnapshot] = await Promise.all([
-    getTrendingData(timeframe, perPage, filters, offset),
-    getTrendingTotalCount(timeframe, filters),
-    getLiveTrendingSnapshot(perPage, filters, offset),
-  ]);
+  const baselineTotal = await getTrendingTotalCount(timeframe, filters);
+  const candidateLimit = Math.max(
+    DEFAULT_TRENDING_CANDIDATE_POOL,
+    baselineTotal + 100,
+    offset + perPage,
+  );
+  const ranked = await fetchTrendingRanking({
+    timeframe,
+    filters,
+    candidateLimit,
+  });
+  const topScore = ranked[0]?.score ?? 0;
+  // Keep the table focused: drop rows that would render as 0 flames.
+  const minScoreForOneFlame = topScore > 0 ? topScore / 6 : 0;
+  const displayRanked = ranked.filter(
+    (item) => item.score >= minScoreForOneFlame,
+  );
+  const items = displayRanked.slice(offset, offset + perPage);
 
   return {
-    items: applyLiveBoostToTrending({
-      baseline,
-      liveSnapshot,
-      limit: perPage,
-    }),
-    total,
+    items,
+    total: displayRanked.length,
     page,
     perPage,
     timeframe,
     filters,
+    topScore,
   };
 }
 

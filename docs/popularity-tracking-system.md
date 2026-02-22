@@ -48,7 +48,7 @@ This document describes the end‑to‑end popularity tracking in Sharply: inges
 ## API Surface
 
 - `GET /api/gear/[slug]/stats`
-  - Returns: `{ lifetimeViews, views30d, wishlistTotal, ownershipTotal }`.
+  - Returns: `{ viewsToday, lifetimeViews, views30d, wishlistTotal, ownershipTotal }`.
   - Backed by `gear_popularity_lifetime`, `gear_popularity_windows` with daily fallback, and truth tables.
 
 - `GET /api/popularity/trending`
@@ -57,6 +57,8 @@ This document describes the end‑to‑end popularity tracking in Sharply: inges
     - `limit`: number (default 20, max 100)
     - `brandId?`, `mountId?`, `gearType?` (`CAMERA`|`LENS`) filters
   - Returns ordered items with `score` (window score plus any live boost), raw component stats, and optional `liveBoost` metadata.
+  - Only rows meeting a minimum weighted score threshold (`score >= 1`) are included (single-view noise and zero-signal rows are excluded).
+  - Ordering is deterministic on score + tie-break columns so pagination is stable.
   - Live boosts are automatically applied so gear that surges midday shows up before the nightly rollup.
 
 - Ingestion routes (append‑only):

@@ -21,6 +21,8 @@ import type {
   LiveTrendingSnapshot,
 } from "~/types/popularity";
 
+const MIN_TRENDING_SCORE = 1;
+
 /**
  * Popularity data access layer (server-only)
  *
@@ -72,11 +74,11 @@ export async function getTrendingData(
     async () => {
       // Composite score: simple, transparent weights; typed numeric expression
       const scoreFormula = sql<number>`(
-        views_sum * 0.1 +
-        wishlist_adds_sum * 2 +
-        owner_adds_sum * 3 +
-        compare_adds_sum * 1.5 +
-        review_submits_sum * 2.5
+        ${gearPopularityWindows.viewsSum} * 0.1 +
+        ${gearPopularityWindows.wishlistAddsSum} * 2 +
+        ${gearPopularityWindows.ownerAddsSum} * 3 +
+        ${gearPopularityWindows.compareAddsSum} * 1.5 +
+        ${gearPopularityWindows.reviewSubmitsSum} * 2.5
       )`;
 
       // Base conditions: fixed timeframe and only the most recent snapshot for that timeframe
@@ -93,6 +95,7 @@ export async function getTrendingData(
       // TODO: mountId filter will be migrated to junction-based in Phase 2
       if (filters.gearType)
         conditions.push(eq(gear.gearType, filters.gearType));
+      conditions.push(sql`${scoreFormula} >= ${MIN_TRENDING_SCORE}`);
 
       // Read a single row per gear for the latest snapshot; order by score desc; limit N
       const rows = await db
@@ -127,7 +130,11 @@ export async function getTrendingData(
           eq(gearPopularityLifetime.gearId, gear.id),
         )
         .where(and(...conditions))
-        .orderBy(desc(scoreFormula))
+        .orderBy(
+          desc(scoreFormula),
+          desc(gearPopularityWindows.viewsSum),
+          gearPopularityWindows.gearId,
+        )
         .limit(limit)
         .offset(Math.max(0, offset));
 
@@ -196,6 +203,7 @@ export async function getLiveTrendingSnapshot(
       if (filters.brandId) conditions.push(eq(gear.brandId, filters.brandId));
       if (filters.gearType)
         conditions.push(eq(gear.gearType, filters.gearType));
+      conditions.push(sql`${scoreFormula} >= ${MIN_TRENDING_SCORE}`);
 
       const rows = await db
         .select({
@@ -228,7 +236,11 @@ export async function getLiveTrendingSnapshot(
           eq(gearPopularityLifetime.gearId, gear.id),
         )
         .where(and(...conditions))
-        .orderBy(desc(scoreFormula))
+        .orderBy(
+          desc(scoreFormula),
+          desc(gearPopularityIntraday.views),
+          gearPopularityIntraday.gearId,
+        )
         .limit(limit)
         .offset(Math.max(0, offset));
 
@@ -291,9 +303,17 @@ export async function getTrendingTotalCount(
           WHERE timeframe = ${timeframe}::popularity_timeframe
         )`,
       ];
+      const scoreFormula = sql<number>`(
+        ${gearPopularityWindows.viewsSum} * 0.1 +
+        ${gearPopularityWindows.wishlistAddsSum} * 2 +
+        ${gearPopularityWindows.ownerAddsSum} * 3 +
+        ${gearPopularityWindows.compareAddsSum} * 1.5 +
+        ${gearPopularityWindows.reviewSubmitsSum} * 2.5
+      )`;
       if (filters.brandId) conditions.push(eq(gear.brandId, filters.brandId));
       if (filters.gearType)
         conditions.push(eq(gear.gearType, filters.gearType));
+      conditions.push(sql`${scoreFormula} >= ${MIN_TRENDING_SCORE}`);
 
       const countRows = await db
         .select({
