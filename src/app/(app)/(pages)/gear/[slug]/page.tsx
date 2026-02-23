@@ -554,6 +554,10 @@ export default async function GearPage({ params }: GearPageProps) {
 }
 
 export async function generateStaticParams() {
+  if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+    return [];
+  }
+
   const slugs = await fetchAllGearSlugs();
   return slugs.map((slug) => ({ slug }));
 }
