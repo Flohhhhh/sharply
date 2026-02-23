@@ -47,7 +47,7 @@ export function GearActionButtonsClient({
   const session = data?.session;
   const user = data?.user;
 
-  const [isOwned, setIsOwned] = useState<boolean | null>(initialIsOwned);
+  const [isOwned, setIsOwned] = useState<boolean | null>(() => initialIsOwned ?? null);
   const [loading, setLoading] = useState({
     ownership: false,
   });

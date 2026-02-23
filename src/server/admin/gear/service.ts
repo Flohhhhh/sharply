@@ -208,7 +208,10 @@ export async function updateGearAliasesService(params: {
       aliases: Array.from(desiredMap.values()),
     });
 
-    await tx.update(gear).set({ searchName }).where(eq(gear.id, params.gearId));
+    await tx
+      .update(gear)
+      .set({ searchName, updatedAt: new Date() })
+      .where(eq(gear.id, params.gearId));
 
     return {
       aliases: desired.map((entry) => ({

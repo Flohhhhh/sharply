@@ -504,6 +504,11 @@ export async function approveProposalData(
       }
     }
 
+    await tx
+      .update(gear)
+      .set({ updatedAt: new Date() })
+      .where(eq(gear.id, gearId));
+
     // Set all other pending proposals for the same gear to MERGED
     await tx
       .update(gearEdits)

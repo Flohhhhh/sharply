@@ -484,7 +484,12 @@ export async function renameGearData(
 
     const updated = await tx
       .update(gear)
-      .set({ name: displayName, slug: nextSlug, searchName: search })
+      .set({
+        name: displayName,
+        slug: nextSlug,
+        searchName: search,
+        updatedAt: new Date(),
+      })
       .where(eq(gear.id, gearId))
       .returning({
         id: gear.id,
@@ -523,7 +528,7 @@ export async function updateGearThumbnailData(
   const { gearId, thumbnailUrl } = params;
   const updated = await db
     .update(gear)
-    .set({ thumbnailUrl })
+    .set({ thumbnailUrl, updatedAt: new Date() })
     .where(eq(gear.id, gearId))
     .returning({
       id: gear.id,
@@ -556,7 +561,7 @@ export async function updateGearTopViewData(
   const { gearId, topViewUrl } = params;
   const updated = await db
     .update(gear)
-    .set({ topViewUrl })
+    .set({ topViewUrl, updatedAt: new Date() })
     .where(eq(gear.id, gearId))
     .returning({
       id: gear.id,

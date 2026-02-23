@@ -214,6 +214,7 @@ export const NumberInput = ({
         ) : null}
       </div>
       <div
+        role="presentation"
         className={`border-input bg-background ring-offset-background focus-within:ring-ring flex h-10 w-full items-center gap-2 rounded-md border px-3 py-2 text-sm focus-within:ring-2 focus-within:ring-offset-2 ${disabled ? "opacity-50" : ""} cursor-text`}
         onMouseDown={(e) => {
           if (disabled) return;

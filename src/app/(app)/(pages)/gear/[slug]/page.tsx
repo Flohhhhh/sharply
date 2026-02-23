@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { getItemDisplayPrice, PRICE_FALLBACK_TEXT } from "~/lib/mapping";
-import { formatHumanDate, getConstructionState } from "~/lib/utils";
+import {
+  formatHumanDate,
+  formatRecentHumanDate,
+  getConstructionState,
+} from "~/lib/utils";
 import { GearActionButtons } from "~/app/(app)/(pages)/gear/_components/gear-action-buttons";
 import { fetchPendingEditCountForGear } from "~/server/gear/service";
 import { GearVisitTracker } from "~/app/(app)/(pages)/gear/_components/gear-visit-tracker";
@@ -494,7 +498,7 @@ export default async function GearPage({ params }: GearPageProps) {
               </div>
               <div className="flex justify-between">
                 <span>Last Updated</span>
-                <span>{formatHumanDate(item.updatedAt)}</span>
+                <span>{formatRecentHumanDate(item.updatedAt)}</span>
               </div>
             </div>
           </div>
