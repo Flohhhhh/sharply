@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import useSWR from "swr";
 import { Button } from "~/components/ui/button";
 import { UserListsSection } from "./user-lists-section";
@@ -25,9 +26,12 @@ const fetcher = async (url: string): Promise<UserListsResponse> => {
 export function UserListsSectionDeferred({
   profileUserId,
 }: UserListsSectionDeferredProps) {
-  const query = new URLSearchParams({ profileUserId });
+  const query = useMemo(
+    () => new URLSearchParams({ profileUserId }).toString(),
+    [profileUserId],
+  );
   const { data, error, isLoading, mutate } = useSWR<UserListsResponse>(
-    `/api/user-lists/profile?${query.toString()}`,
+    `/api/user-lists/profile?${query}`,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -36,7 +40,6 @@ export function UserListsSectionDeferred({
       shouldRetryOnError: false,
     },
   );
-
   return (
     <div>
       {data ? (
