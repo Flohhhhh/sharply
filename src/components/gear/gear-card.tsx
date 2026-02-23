@@ -269,11 +269,11 @@ export function GearCard(props: GearCardProps) {
       const response = await fetch(
         `/api/user-lists/picker?slug=${encodeURIComponent(slug)}`,
       );
-      if (!response.ok) throw new Error("Failed to load save options");
+      if (!response.ok) throw new Error("Failed to load list options");
       const payload = (await response.json()) as { state: SavePickerState };
       setSaveState(payload.state);
     } catch {
-      toast.error("Failed to load save options");
+      toast.error("Failed to load list options");
     } finally {
       setSaveStateLoading(false);
     }
@@ -461,7 +461,7 @@ export function GearCard(props: GearCardProps) {
             <DialogTitle>Save {displayName}</DialogTitle>
           </DialogHeader>
           {saveStateLoading ? (
-            <div className="text-muted-foreground text-sm">Loading save options…</div>
+            <div className="text-muted-foreground text-sm">Loading list options…</div>
           ) : (
             <SaveItemButton slug={slug} initialState={saveState} />
           )}
