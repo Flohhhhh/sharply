@@ -67,6 +67,7 @@ import { GetGearDisplayName } from "~/lib/gear/naming";
 import { resolveRegionFromCountryCode } from "~/lib/gear/region";
 import { GearBreadcrumbNameHydrator } from "../_components/gear-breadcrumb-name-hydrator";
 import { buildGearMetaDescription } from "~/lib/seo/build-gear-meta-description";
+import { env } from "~/env";
 
 export const revalidate = 3600;
 
@@ -554,6 +555,10 @@ export default async function GearPage({ params }: GearPageProps) {
 }
 
 export async function generateStaticParams() {
+  if (env.SKIP_BUILD_STATIC_GENERATION) {
+    return [];
+  }
+
   const slugs = await fetchAllGearSlugs();
   return slugs.map((slug) => ({ slug }));
 }
