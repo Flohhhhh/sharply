@@ -35,11 +35,19 @@ import {
   GearSearchCombobox,
   type GearOption,
 } from "~/components/gear/gear-search-combobox";
-import { Heart, MoreVertical, Scale } from "lucide-react";
+import {
+  Bookmark,
+  Heart,
+  MoreVertical,
+  PackageOpen,
+  Scale,
+} from "lucide-react";
 import { buildCompareHref } from "~/lib/utils/url";
 import { actionRecordCompareAdd } from "~/server/popularity/actions";
 import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
 import type { GearAlias } from "~/types/gear";
+import { SaveItemButton } from "./save-item-button";
+import { actionToggleOwnership } from "~/server/gear/actions";
 
 const BASE_BRAND_NAMES = uniqueCaseInsensitive(
   BRANDS.flatMap((brand) => splitBrandNameVariants(brand.name)),
@@ -125,6 +133,16 @@ export type GearCardProps = {
 };
 
 type DatePrecision = "DAY" | "MONTH" | "YEAR";
+type SavePickerState = {
+  lists: Array<{
+    id: string;
+    name: string;
+    isDefault: boolean;
+    itemCount: number;
+  }>;
+  savedListIds: string[];
+  defaultListId: string | null;
+} | null;
 
 export function formatGearDate(
   dateValue?: string | Date | null,
@@ -175,6 +193,10 @@ export function GearCard(props: GearCardProps) {
   const [inWishlist, setInWishlist] = useState<boolean | null>(null);
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [compareOpen, setCompareOpen] = useState(false);
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [saveStateLoading, setSaveStateLoading] = useState(false);
+  const [saveState, setSaveState] = useState<SavePickerState>(null);
+  const [ownershipLoading, setOwnershipLoading] = useState(false);
   const [compareSelection, setCompareSelection] = useState<GearOption | null>(
     null,
   );
@@ -234,6 +256,49 @@ export function GearCard(props: GearCardProps) {
       // ignore failures
     }
     router.push(buildCompareHref([slug, option.slug]));
+  };
+
+  const handleOpenSave = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSaveOpen(true);
+    if (saveState || saveStateLoading) return;
+
+    setSaveStateLoading(true);
+    try {
+      const response = await fetch(
+        `/api/user-lists/picker?slug=${encodeURIComponent(slug)}`,
+      );
+      if (!response.ok) throw new Error("Failed to load list options");
+      const payload = (await response.json()) as { state: SavePickerState };
+      setSaveState(payload.state);
+    } catch {
+      toast.error("Failed to load list options");
+    } finally {
+      setSaveStateLoading(false);
+    }
+  };
+
+  const handleAddToCollection = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (ownershipLoading) return;
+
+    setOwnershipLoading(true);
+    try {
+      const result = await actionToggleOwnership(slug, "add");
+      if (result.ok) {
+        toast.success("Added to collection");
+      } else if (result.reason === "already_owned") {
+        toast.info("Already in collection");
+      } else {
+        toast.error("Failed to update collection");
+      }
+    } catch {
+      toast.error("Failed to update collection");
+    } finally {
+      setOwnershipLoading(false);
+    }
   };
 
   return (
@@ -316,6 +381,17 @@ export function GearCard(props: GearCardProps) {
                         <Scale className="size-4" />
                         Compare
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleOpenSave}>
+                        <Bookmark className="size-4" />
+                        Save
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={handleAddToCollection}
+                        disabled={ownershipLoading}
+                      >
+                        <PackageOpen className="size-4" />
+                        Add to Collection
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -377,6 +453,18 @@ export function GearCard(props: GearCardProps) {
             placeholder="Search for gear..."
             searchPlaceholder="Search gear to compare"
           />
+        </DialogContent>
+      </Dialog>
+      <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Save {displayName}</DialogTitle>
+          </DialogHeader>
+          {saveStateLoading ? (
+            <div className="text-muted-foreground text-sm">Loading list options…</div>
+          ) : (
+            <SaveItemButton slug={slug} initialState={saveState} />
+          )}
         </DialogContent>
       </Dialog>
     </div>
