@@ -226,7 +226,10 @@ export default async function GearPage({ params }: GearPageProps) {
   const review = await getReviewByGearSlug(item.slug);
   const relatedNews = await getNewsByRelatedGearSlug(item.slug, 9);
   const alternatives = await fetchGearAlternatives(slug);
-  const isNew = isNewRelease(item.releaseDate, item.releaseDatePrecision);
+  const isNew = isNewRelease(
+    item.releaseDate ?? item.announcedDate,
+    item.releaseDatePrecision ?? item.announceDatePrecision,
+  );
 
   // Check trending status for this item and all alternatives
   const allSlugs = [item.slug, ...alternatives.map((alt) => alt.slug)];

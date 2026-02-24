@@ -39,9 +39,15 @@ This document describes the implemented AI review summary system for gear pages.
 - OpenAI client:
   - `src/lib/open-ai/open-ai.ts` (reads `OPENAI_API_KEY`)
 
-- Admin hook (trigger generation on approvals):
+- Review hooks (trigger generation attempts):
+  - `src/server/gear/service.ts → submitReview(...)`
+    - After moderation pass + auto-approval, calls `maybeGenerateReviewSummary` in the background.
+  - `src/server/gear/service.ts → deleteOwnReview(...)`
+    - After owner deletion, calls `maybeGenerateReviewSummary` in the background.
   - `src/server/admin/reviews/service.ts → approveReview(...)`
     - After approval, calls `maybeGenerateReviewSummary` in the background.
+  - `src/server/admin/reviews/service.ts → rejectReportedReview(...)`
+    - After moderation rejection of a flagged approved review, calls `maybeGenerateReviewSummary` in the background.
 
 - UI integration:
   - Banner (server component): `src/app/(app)/(pages)/gear/_components/ai-review-banner.tsx`
@@ -71,7 +77,7 @@ Notes
 
 ### Generation Rules
 
-- Trigger: on admin approval of a user review
+- Trigger: on review events that affect approved review corpus (auto-approved submit, admin approve, owner delete, reported-review reject)
 - Conditions (in `SUMMARY_CONFIG`):
   - `minReviews`: 10 approved reviews required
   - `sampleSize`: up to 40 most recent approved reviews
@@ -157,7 +163,7 @@ E2E Test Strategy
 - Prompt surface: `src/server/reviews/summary/prompt-config.ts`
 - Generation service: `src/server/reviews/summary/service.ts`
 - Data helpers: `src/server/reviews/summary/data.ts`
-- Admin review hook: `src/server/admin/reviews/service.ts`
+- Review hooks: `src/server/gear/service.ts`, `src/server/admin/reviews/service.ts`
 - UI banner: `src/app/(app)/(pages)/gear/_components/ai-review-banner.tsx`
 - Reviews wrapper: `src/app/(app)/(pages)/gear/_components/gear-reviews.tsx`
 - Seeding script: `scripts/generate-fake-review-summary.ts`

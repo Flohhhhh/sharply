@@ -15,6 +15,9 @@ export function GearReviews({
   const [initialReviews, setInitialReviews] = useState<any[] | undefined>(
     undefined,
   );
+  const [refreshSignal, setRefreshSignal] = useState(0);
+
+  const triggerRefresh = () => setRefreshSignal((prev) => prev + 1);
 
   useEffect(() => {
     let mounted = true;
@@ -44,7 +47,11 @@ export function GearReviews({
         <span />
       </div>
       {bannerSlot}
-      <GearReviewForm gearSlug={slug} />
+      <GearReviewForm
+        gearSlug={slug}
+        onReviewSubmitted={triggerRefresh}
+        refreshSignal={refreshSignal}
+      />
       {initialReviews === undefined ? (
         <Card>
           <CardContent className="p-6">
@@ -60,6 +67,8 @@ export function GearReviews({
           gearSlug={slug}
           initialReviews={initialReviews}
           showHeader={false}
+          refreshSignal={refreshSignal}
+          onReviewDeleted={triggerRefresh}
         />
       )}
     </div>

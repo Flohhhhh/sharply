@@ -4,9 +4,7 @@ import { track } from "@vercel/analytics";
 import { useMemo, useState } from "react";
 import { useSession } from "~/lib/auth/auth-client";
 import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
 import { TextareaWithCounter } from "~/components/ui/textarea-with-counter";
-import { Card, CardContent } from "~/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -18,15 +16,18 @@ import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { GENRES } from "~/lib/constants";
 import React from "react";
 import { Pencil } from "lucide-react";
+import { Alert, AlertDescription } from "~/components/ui/alert";
 
 interface GearReviewFormProps {
   gearSlug: string;
   onReviewSubmitted?: () => void;
+  refreshSignal?: number;
 }
 
 export function GearReviewForm({
   gearSlug,
   onReviewSubmitted,
+  refreshSignal = 0,
 }: GearReviewFormProps) {
   const { data, isPending } = useSession();
 
@@ -43,8 +44,6 @@ export function GearReviewForm({
   const [open, setOpen] = useState(false);
   const [genres, setGenres] = useState<string[]>([]);
   const [recommend, setRecommend] = useState<"YES" | "NO" | null>(null);
-  const isNo = recommend === "NO";
-  const isYes = recommend === "YES";
 
   // Pre-check if the user already has a review
   React.useEffect(() => {
@@ -66,7 +65,7 @@ export function GearReviewForm({
         console.error("[GearReviewForm] error", error);
       });
     else if (!session) setHasSubmitted(false);
-  }, [gearSlug, session]);
+  }, [gearSlug, session, refreshSignal]);
 
   const formValid = useMemo(() => {
     if (genres.length < 1 || genres.length > 3) return false;
@@ -95,18 +94,55 @@ export function GearReviewForm({
           content,
           genres,
           recommend: recommend === "YES",
+          clientUserAgent:
+            typeof navigator !== "undefined" ? navigator.userAgent : undefined,
         }),
       });
 
-      const data = await response.json();
+      const data = (await response.json()) as
+        | {
+            ok: true;
+            moderation: { decision: "APPROVED" };
+          }
+        | {
+            ok: false;
+            type: "ALREADY_REVIEWED";
+            message: string;
+          }
+        | {
+            ok: false;
+            type: "MODERATION_BLOCKED";
+            code:
+              | "REVIEW_TOO_SHORT"
+              | "REVIEW_LINK_BLOCKED"
+              | "REVIEW_PROFANITY_BLOCKED"
+              | "REVIEW_BOT_UA_BLOCKED"
+              | "REVIEW_RATE_LIMITED";
+            message: string;
+            retryAfterMs?: number;
+          };
 
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to submit review");
+      if (!data.ok) {
+        if (data.type === "MODERATION_BLOCKED") {
+          const waitSuffix =
+            data.code === "REVIEW_RATE_LIMITED" &&
+            typeof data.retryAfterMs === "number"
+              ? ` Try again in ${formatRetryDuration(data.retryAfterMs)}.`
+              : "";
+          setError(`${data.message}${waitSuffix}`);
+          return;
+        }
+
+        setError(data.message || "Failed to submit review.");
+        return;
       }
 
-      setSuccess(
-        "Review submitted successfully! It will be visible after approval.",
-      );
+      if (!response.ok) {
+        setError("Failed to submit review.");
+        return;
+      }
+
+      setSuccess("Review published successfully.");
       setContent("");
       // reset composer
       setGenres([]);
@@ -115,8 +151,8 @@ export function GearReviewForm({
 
       setHasSubmitted(true);
       onReviewSubmitted?.();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to submit review");
+    } catch {
+      setError("Failed to submit review");
     } finally {
       setIsSubmitting(false);
     }
@@ -255,14 +291,14 @@ export function GearReviewForm({
 
               {/* Error/Success */}
               {error && (
-                <div className="rounded bg-red-50 p-3 text-sm text-red-600">
-                  {error}
-                </div>
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
               )}
               {success && (
-                <div className="rounded bg-green-50 p-3 text-sm text-green-600">
-                  {success}
-                </div>
+                <Alert>
+                  <AlertDescription>{success}</AlertDescription>
+                </Alert>
               )}
 
               <div className="flex items-center justify-end gap-2">
@@ -284,4 +320,11 @@ export function GearReviewForm({
       </div>
     </div>
   );
+}
+
+function formatRetryDuration(retryAfterMs: number) {
+  const totalSeconds = Math.max(1, Math.ceil(retryAfterMs / 1000));
+  if (totalSeconds < 60) return `${totalSeconds}s`;
+  const totalMinutes = Math.ceil(totalSeconds / 60);
+  return `${totalMinutes}m`;
 }

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent } from "~/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
 import {
   Pagination,
   PaginationContent,
@@ -15,6 +16,25 @@ import {
 } from "~/components/ui/pagination";
 import { GENRES } from "~/lib/constants";
 import Link from "next/link";
+import { useSession } from "~/lib/auth/auth-client";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
+import { EllipsisVertical, Flag, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "~/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 const REVIEWS_PER_PAGE = 5;
 
@@ -38,6 +58,8 @@ interface GearReviewsListProps {
   onReviewsLoaded?: (count: number) => void;
   initialReviews?: Review[];
   showHeader?: boolean;
+  refreshSignal?: number;
+  onReviewDeleted?: () => void;
 }
 
 export function GearReviewsList({
@@ -45,11 +67,18 @@ export function GearReviewsList({
   onReviewsLoaded,
   initialReviews,
   showHeader = true,
+  refreshSignal = 0,
+  onReviewDeleted,
 }: GearReviewsListProps) {
+  const { data } = useSession();
+  const session = data?.session;
+  const user = data?.user;
   const [reviews, setReviews] = useState<Review[]>(initialReviews ?? []);
   const [isLoading, setIsLoading] = useState(!initialReviews);
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
+  const [deleteTarget, setDeleteTarget] = useState<Review | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const totalPages = useMemo(
     () => Math.ceil(reviews.length / REVIEWS_PER_PAGE),
@@ -67,11 +96,12 @@ export function GearReviewsList({
   };
 
   useEffect(() => {
-    if (initialReviews) {
+    if (initialReviews && refreshSignal === 0) {
       onReviewsLoaded?.(initialReviews.length);
       return;
     }
     const fetchReviews = async () => {
+      setIsLoading(true);
       try {
         const response = await fetch(`/api/gear/${gearSlug}/reviews`);
         if (!response.ok) {
@@ -89,7 +119,79 @@ export function GearReviewsList({
     fetchReviews().catch((error) => {
       console.error("[GearReviewsList] error", error);
     });
-  }, [gearSlug, onReviewsLoaded, initialReviews]);
+  }, [gearSlug, onReviewsLoaded, initialReviews, refreshSignal]);
+
+  useEffect(() => {
+    if (currentPage < totalPages) return;
+    setCurrentPage(Math.max(totalPages - 1, 0));
+  }, [currentPage, totalPages]);
+
+  const handleFlagReview = async (review: Review) => {
+    if (!session) {
+      window.location.href = `/auth/signin?callbackUrl=${encodeURIComponent(
+        `/gear/${gearSlug}`,
+      )}`;
+      return;
+    }
+
+    if (user?.id === review.createdBy.id) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/reviews/${review.id}`, {
+        method: "POST",
+      });
+      const data = (await response.json()) as {
+        ok: boolean;
+        type?: string;
+        message?: string;
+      };
+
+      if (response.ok && data.ok) {
+        toast.success("Thanks. This review was flagged for moderation.");
+        return;
+      }
+
+      if (data.type === "FLAG_ALREADY_OPEN") {
+        toast.info("You already have an open flag for this review.");
+        return;
+      }
+
+      toast.error(data.message || "Unable to flag review.");
+    } catch {
+      toast.error("Unable to flag review.");
+    }
+  };
+
+  const handleDeleteReview = async () => {
+    if (!deleteTarget) return;
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/reviews/${deleteTarget.id}`, {
+        method: "DELETE",
+      });
+      const data = (await response.json()) as {
+        ok: boolean;
+        message?: string;
+      };
+
+      if (!response.ok || !data.ok) {
+        toast.error(data.message || "Unable to delete review.");
+        return;
+      }
+
+      setReviews((prev) => prev.filter((review) => review.id !== deleteTarget.id));
+      setDeleteTarget(null);
+      toast.success("Review deleted.");
+      onReviewDeleted?.();
+    } catch {
+      toast.error("Unable to delete review.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -134,6 +236,7 @@ export function GearReviewsList({
       )}
 
       {paginatedReviews.map((review) => {
+        const isOwnReview = user?.id === review.createdBy.id;
         const createdAt = new Date(review.createdAt);
         const formattedDate = Number.isNaN(createdAt.getTime())
           ? review.createdAt
@@ -177,18 +280,51 @@ export function GearReviewsList({
                     )}
                   </div>
                 </div>
-                {review.recommend != null && (
-                  <Badge
-                    variant="secondary"
-                    className={`border-0 px-3 py-1 text-[11px] font-semibold tracking-wide uppercase ${
-                      review.recommend
-                        ? "bg-emerald-500/15 text-emerald-500 hover:bg-emerald-500/20"
-                        : "bg-red-500/15 text-red-500 hover:bg-red-500/20"
-                    }`}
-                  >
-                    {review.recommend ? "Recommended" : "Not Recommended"}
-                  </Badge>
-                )}
+                <div className="flex items-center gap-1">
+                  {review.recommend != null && (
+                    <Badge
+                      variant="secondary"
+                      className={`border-0 px-3 py-1 text-[11px] font-semibold tracking-wide uppercase ${
+                        review.recommend
+                          ? "bg-emerald-500/15 text-emerald-500 hover:bg-emerald-500/20"
+                          : "bg-red-500/15 text-red-500 hover:bg-red-500/20"
+                      }`}
+                    >
+                      {review.recommend ? "Recommended" : "Not Recommended"}
+                    </Badge>
+                  )}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        aria-label="Review actions"
+                      >
+                        <EllipsisVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="min-w-44">
+                      {isOwnReview ? (
+                        <DropdownMenuItem
+                          variant="destructive"
+                          onSelect={() => setDeleteTarget(review)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Delete review
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem
+                          onSelect={() => void handleFlagReview(review)}
+                        >
+                          <Flag className="h-3.5 w-3.5" />
+                          Flag for moderation
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
               <p className="text-muted-foreground text-sm leading-relaxed">
                 {review.content}
@@ -289,6 +425,39 @@ export function GearReviewsList({
           </PaginationContent>
         </Pagination>
       )}
+
+      <AlertDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open && !isDeleting) setDeleteTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete your review?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This removes your review from the gear page and your profile.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {deleteTarget ? (
+            <p className="text-muted-foreground rounded-md border p-3 text-sm">
+              {deleteTarget.content}
+            </p>
+          ) : null}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(event) => {
+                event.preventDefault();
+                void handleDeleteReview();
+              }}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
