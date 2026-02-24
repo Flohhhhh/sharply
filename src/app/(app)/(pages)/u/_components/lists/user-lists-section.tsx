@@ -57,11 +57,13 @@ import type { ProfileUserListState } from "./types";
 type UserListsSectionProps = {
   initialLists: ProfileUserListState[];
   myProfile: boolean;
+  onListsChanged?: () => void;
 };
 
 export function UserListsSection({
   initialLists,
   myProfile,
+  onListsChanged,
 }: UserListsSectionProps) {
   const [lists, setLists] = useState(initialLists);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -78,6 +80,15 @@ export function UserListsSection({
   const [isPublishing, setIsPublishing] = useState(false);
   const [deleteListId, setDeleteListId] = useState<string | null>(null);
 
+  const applyListsUpdate = (nextLists: ProfileUserListState[]) => {
+    setLists(nextLists);
+    onListsChanged?.();
+  };
+
+  useEffect(() => {
+    setLists(initialLists);
+  }, [initialLists]);
+
   const manageList = lists.find((list) => list.id === manageListId) ?? null;
 
   const publishedCount = useMemo(
@@ -90,7 +101,7 @@ export function UserListsSection({
     setIsCreating(true);
     try {
       const result = await actionCreateUserList(createName);
-      setLists(result.lists);
+      applyListsUpdate(result.lists);
       setCreateName("");
       setIsCreateOpen(false);
       toast.success("List created");
@@ -111,7 +122,7 @@ export function UserListsSection({
     setIsRenaming(true);
     try {
       const result = await actionRenameUserList(renameListId, renameName);
-      setLists(result.lists);
+      applyListsUpdate(result.lists);
       setRenameListId(null);
       setRenameName("");
       toast.success("List renamed");
@@ -136,7 +147,7 @@ export function UserListsSection({
     setListActionId(listId);
     try {
       const result = await actionDeleteUserList(listId);
-      setLists(result.lists);
+      applyListsUpdate(result.lists);
       setDeleteListId(null);
       toast.success("List deleted");
     } catch {
@@ -175,11 +186,11 @@ export function UserListsSection({
 
       if (currentList.name !== nextName) {
         const renamed = await actionRenameUserList(publishListId, nextName);
-        setLists(renamed.lists);
+        applyListsUpdate(renamed.lists);
       }
 
       const result = await actionPublishUserList(publishListId);
-      setLists(result.lists);
+      applyListsUpdate(result.lists);
       setPublishListId(null);
       setPublishName("");
       toast.success("List published");
@@ -199,7 +210,7 @@ export function UserListsSection({
 
     try {
       const result = await actionUnpublishUserList(list.id);
-      setLists(result.lists);
+      applyListsUpdate(result.lists);
       toast.success("List unpublished");
     } catch (error) {
       const message =
@@ -573,7 +584,7 @@ export function UserListsSection({
         open={isManageOpen}
         onOpenChange={setIsManageOpen}
         list={manageList}
-        onListsUpdated={setLists}
+        onListsUpdated={applyListsUpdate}
       />
     </div>
   );
