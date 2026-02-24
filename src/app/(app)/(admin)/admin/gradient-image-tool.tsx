@@ -14,7 +14,7 @@ export function GradientImageTool() {
   const [width, setWidth] = useState<number>(1000);
   const [height, setHeight] = useState<number>(750);
   const [paddingPct, setPaddingPct] = useState<number>(20);
-  const [format, setFormat] = useState<"png" | "webp">("webp");
+  const [format, setFormat] = useState<"png" | "webp">("png");
 
   const onFile = useCallback((file: File) => {
     const url = URL.createObjectURL(file);
@@ -84,8 +84,9 @@ export function GradientImageTool() {
     if (!canvas) return;
     const link = document.createElement("a");
     const mime = format === "png" ? "image/png" : "image/webp";
+    const quality = format === "webp" ? 1 : undefined;
     link.download = `image-${width}x${height}.${format}`;
-    link.href = canvas.toDataURL(mime);
+    link.href = canvas.toDataURL(mime, quality);
     link.click();
   }, [width, height, format]);
 
@@ -148,8 +149,8 @@ export function GradientImageTool() {
                 value={format}
                 onChange={(e) => setFormat(e.target.value as "png" | "webp")}
               >
-                <option value="webp">WEBP (default)</option>
-                <option value="png">PNG</option>
+                <option value="png">PNG (default, lossless)</option>
+                <option value="webp">WEBP (quality 100)</option>
               </select>
             </div>
 
