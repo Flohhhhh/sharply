@@ -141,7 +141,10 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
     releaseDate ?? announcedDate,
     releaseDatePrecision ?? announceDatePrecision,
   );
-  const isNew = isNewRelease(releaseDate, releaseDatePrecision);
+  const isNew = isNewRelease(
+    releaseDate ?? announcedDate,
+    releaseDatePrecision ?? announceDatePrecision,
+  );
   const isHallOfFameItem = isInHallOfFame(slug);
   const badgeNodes: React.ReactNode[] = [];
   if (isHallOfFameItem) badgeNodes.push(<HallOfFameBadge key="hall-of-fame" />);
