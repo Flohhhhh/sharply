@@ -6,7 +6,7 @@ This document describes the end‑to‑end user review system for gear pages: da
 
 - One review per user per gear
 - Minimal, structured inputs (use cases + recommendation + freeform text)
-- Fast write with delayed publish (admin approval)
+- Fast write with automatic moderation pass/fail
 - Clean, consistent display on gear and profile pages
 
 ---
@@ -22,6 +22,16 @@ Table: `sharply_reviews` (Drizzle: `reviews`)
 - `content` (text)
 - `genres` (jsonb string[]; 1–3 values from `REVIEW_GENRES`)
 - `recommend` (boolean)
+- `created_at`, `updated_at`
+
+Table: `app.review_flags` (Drizzle: `reviewFlags`)
+
+- `id` (uuid/text)
+- `review_id` (fk → reviews)
+- `reporter_user_id` (fk → users)
+- `status` enum: `OPEN | RESOLVED_KEEP | RESOLVED_REJECTED | RESOLVED_DELETED`
+- `resolved_by_user_id` (nullable fk → users)
+- `resolved_at` (nullable timestamp)
 - `created_at`, `updated_at`
 
 Related taxonomy: `app.genres` (Drizzle: `genres`)
@@ -45,6 +55,31 @@ Constants
 
 ---
 
+### Moderation gate
+
+All review submissions pass through one backend safety function:
+
+- Module: `src/server/reviews/moderation/service.ts`
+- Entry point: `testReviewSafety({ userId, body, userAgent?, now?, skipRateLimit? })`
+
+Checks are applied in order:
+
+1. Trim + minimum length (`>= 2`)
+2. Link/domain blocking (`http(s)://`, `www.`, domain-like text)
+3. Profanity filter (`obscenity` matcher)
+4. Conservative bot UA heuristics
+5. Rate limit windows (`1/10s`, `5/60s`, `20/10m`)
+
+Failure codes:
+
+- `REVIEW_TOO_SHORT`
+- `REVIEW_LINK_BLOCKED`
+- `REVIEW_PROFANITY_BLOCKED`
+- `REVIEW_BOT_UA_BLOCKED`
+- `REVIEW_RATE_LIMITED` (with `retryAfterMs`)
+
+---
+
 ### Public API
 
 1. Create review
@@ -56,7 +91,8 @@ Constants
 {
   "content": "string (required)",
   "genres": ["portraits", "wildlife"], // 1..3
-  "recommend": true // boolean
+  "recommend": true, // boolean
+  "clientUserAgent": "optional user agent string"
 }
 ```
 
@@ -64,9 +100,42 @@ Rules:
 
 - Must be authenticated
 - Enforces 1 review per user per gear
-- New reviews are created with `PENDING` status
+- New reviews that pass moderation are created with `APPROVED` status
+- Moderation failures are returned as typed product responses (not exceptions)
 
-Response (201): `{ message, review }`
+Responses:
+
+- Success (201):
+
+```json
+{
+  "ok": true,
+  "review": { "id": "…" },
+  "moderation": { "decision": "APPROVED" }
+}
+```
+
+- Duplicate (409):
+
+```json
+{
+  "ok": false,
+  "type": "ALREADY_REVIEWED",
+  "message": "You have already reviewed this gear item."
+}
+```
+
+- Moderation blocked (400/429):
+
+```json
+{
+  "ok": false,
+  "type": "MODERATION_BLOCKED",
+  "code": "REVIEW_RATE_LIMITED",
+  "message": "You're submitting reviews too quickly. Please wait.",
+  "retryAfterMs": 42000
+}
+```
 
 2. List gear reviews
 
@@ -95,22 +164,47 @@ Response (201): `{ message, review }`
 - When authenticated, returns whether current user has a review for this gear (any status)
 
 ```json
-{ "hasReview": true, "status": "PENDING" }
+{ "hasReview": true, "status": "APPROVED" }
 ```
+
+4. Flag a review
+
+- Method: POST `/api/reviews/[id]`
+- Rules:
+  - Must be authenticated
+  - Cannot flag your own review
+  - Only one open flag per user per review
+- Behavior:
+  - Does not auto-hide the review
+  - Adds a moderation queue item for staff
+
+5. Delete own review
+
+- Method: DELETE `/api/reviews/[id]`
+- Rules:
+  - Must be authenticated
+  - Must own the review
+- Behavior:
+  - Hard deletes the review row
+  - Resolves open flags for that review as `RESOLVED_DELETED`
+  - Triggers async summary refresh attempt for the gear
 
 ---
 
 ### Admin API (moderation)
 
-All endpoints require role `EDITOR` or `ADMIN`.
+All moderation actions are available to `MODERATOR`+ roles.
 
-- GET `/api/admin/reviews` – list with gear/user context (pending and resolved)
+- GET `/api/admin/reviews` – list with gear/user context and open flag stats
 - POST `/api/admin/reviews/[id]/approve` – sets status to `APPROVED`
 - POST `/api/admin/reviews/[id]/reject` – sets status to `REJECTED`
 
 Admin UI: `ReviewsApprovalQueue` (`src/app/(app)/(admin)/admin/reviews-approval-queue.tsx`)
 
-- Shows pending cards with Approve/Reject actions
+- Shows reported reviews (open flag count + last report timestamp) with:
+  - Keep & clear flags
+  - Delete review
+- Shows pending cards with Approve/Reject actions (legacy/manual items)
 - Shows resolved section below
 
 ---
@@ -134,7 +228,11 @@ Composer: `GearReviewForm`
   - Recommend (Yes/No)
   - Your review (textarea)
 - Validation: at least 1 genre, at most 3; recommend required; non‑empty content
-- Submits to POST endpoint; shows success copy and hides the banner
+- Submits to POST endpoint with typed moderation handling
+- On moderation failure:
+  - Keeps entered input intact
+  - Shows precise feedback message
+  - Shows retry wait for rate limits
 
 List: `GearReviewsList`
 
@@ -142,6 +240,9 @@ List: `GearReviewsList`
 - Genres as pills (capitalized from constants)
 - Recommended / Not Recommended under the name
 - Newest first
+- Per-review actions menu (ellipsis):
+  - Own review: `Delete review`
+  - Other users’ review: `Flag for moderation`
 
 ---
 
@@ -182,15 +283,15 @@ API: `/api/user/reviews`
 
 ### Roles & gating
 
-- Roles are stored on `users.role` (`USER | EDITOR | ADMIN`)
-- Admin endpoints and dashboard are gated to `EDITOR` or `ADMIN`
+- Roles are stored on `users.role` (`USER | MODERATOR | EDITOR | ADMIN | SUPERADMIN`)
+- Admin moderation tooling is gated to `MODERATOR`+.
 
 ---
 
 ### UX notes
 
 - One review per user per gear is enforced server‑side
-- New reviews show success copy and remain hidden on the gear page until approved
+- New reviews are published immediately when they pass moderation
 - The banner respects current user state: signed out (signin CTA), signed in (write), already reviewed (hidden)
 - The sign‑in CTA uses a `callbackUrl` that returns the user to the same gear page after auth
 

@@ -24,11 +24,16 @@ import {
   removeImageRequest as removeImageRequestData,
   fetchAllImageRequests as fetchAllImageRequestsData,
   createReview as createReviewData,
+  deleteReviewById as deleteReviewByIdData,
+  getReviewById as getReviewByIdData,
+  hasOpenReviewFlag as hasOpenReviewFlagData,
   insertAuditLog as insertAuditLogData,
+  insertReviewFlag as insertReviewFlagData,
   getPendingEditIdData,
   hasPendingEditsForGear,
   fetchPendingEditForGear,
   countPendingEditsForGear,
+  resolveOpenReviewFlags as resolveOpenReviewFlagsData,
 } from "./data";
 import type { GearItem, RawSample } from "~/types/gear";
 import { normalizeProposalPayloadForDb } from "~/server/db/normalizers";
@@ -60,6 +65,11 @@ import {
 } from "./data";
 import { getConstructionState } from "~/lib/utils";
 import { headers } from "next/headers";
+import {
+  testReviewSafety,
+  type ReviewModerationCode,
+} from "~/server/reviews/moderation/service";
+import { maybeGenerateReviewSummary } from "~/server/reviews/summary/service";
 
 // Internal low-level reads moved to data.ts
 
@@ -106,8 +116,39 @@ async function createReview(params: {
   content: string;
   genres: string[];
   recommend: boolean;
+  status?: "PENDING" | "APPROVED" | "REJECTED";
 }) {
   return createReviewData(params);
+}
+
+async function getReviewById(reviewId: string) {
+  return getReviewByIdData(reviewId);
+}
+
+async function hasOpenReviewFlag(params: {
+  reviewId: string;
+  reporterUserId: string;
+}) {
+  return hasOpenReviewFlagData(params);
+}
+
+async function insertReviewFlag(params: {
+  reviewId: string;
+  reporterUserId: string;
+}) {
+  return insertReviewFlagData(params);
+}
+
+async function resolveOpenReviewFlags(params: {
+  reviewId: string;
+  status: "RESOLVED_KEEP" | "RESOLVED_REJECTED" | "RESOLVED_DELETED";
+  resolvedByUserId: string;
+}) {
+  return resolveOpenReviewFlagsData(params);
+}
+
+async function deleteReviewById(reviewId: string) {
+  return deleteReviewByIdData(reviewId);
 }
 
 /**
@@ -318,19 +359,69 @@ const reviewInput = z.object({
   content: z.string().min(1),
   genres: z.array(z.string()).min(1).max(3),
   recommend: z.boolean(),
+  clientUserAgent: z.string().optional(),
 });
 
-export async function submitReview(slug: string, body: unknown) {
+type SubmitReviewResult =
+  | {
+      ok: true;
+      review: {
+        id: string;
+        gearId: string;
+        createdById: string;
+        status: "PENDING" | "APPROVED" | "REJECTED";
+        genres: unknown;
+        recommend: boolean | null;
+        content: string;
+        createdAt: Date;
+        updatedAt: Date;
+      };
+      moderation: { decision: "APPROVED" };
+    }
+  | {
+      ok: false;
+      type: "ALREADY_REVIEWED";
+      message: string;
+    }
+  | {
+      ok: false;
+      type: "MODERATION_BLOCKED";
+      code: ReviewModerationCode;
+      message: string;
+      retryAfterMs?: number;
+    };
+
+export async function submitReview(
+  slug: string,
+  body: unknown,
+): Promise<SubmitReviewResult> {
   const { user } = await getSessionOrThrow();
   const userId = user.id;
   const gearId = await resolveGearIdOrThrow(slug);
   const data = reviewInput.parse(body);
+  const moderation = await testReviewSafety({
+    userId,
+    body: data.content,
+    userAgent: data.clientUserAgent,
+  });
+
+  if (!moderation.ok) {
+    return {
+      ok: false,
+      type: "MODERATION_BLOCKED",
+      code: moderation.code,
+      message: moderation.message,
+      retryAfterMs: moderation.retryAfterMs,
+    };
+  }
+
   const res = await createReview({
     gearId,
     userId,
-    content: data.content,
+    content: moderation.normalizedBody,
     genres: data.genres,
     recommend: data.recommend,
+    status: "APPROVED",
   });
   if (res.alreadyExists) {
     try {
@@ -341,7 +432,11 @@ export async function submitReview(slug: string, body: unknown) {
     } catch (eventErr) {
       console.error("Failed to record duplicate review analytics", eventErr);
     }
-    return { ok: false, reason: "already_reviewed" } as const;
+    return {
+      ok: false,
+      type: "ALREADY_REVIEWED",
+      message: "You have already reviewed this gear item.",
+    };
   }
   try {
     await track("review_submit_complete", {
@@ -351,7 +446,116 @@ export async function submitReview(slug: string, body: unknown) {
   } catch (eventErr) {
     console.error("Failed to record review completion analytics", eventErr);
   }
-  return { ok: true, review: res.review } as const;
+
+  await evaluateForEvent({ type: "review.approved", context: { gearId } }, userId);
+  void (async () => {
+    try {
+      const gearMeta = await fetchGearMetadataByIdData(gearId);
+      await maybeGenerateReviewSummary({
+        gearId,
+        gearName: gearMeta.name ?? "this gear",
+      });
+    } catch (summaryError) {
+      console.error("[submitReview] failed to refresh summary", summaryError);
+    }
+  })();
+
+  return {
+    ok: true,
+    review: res.review,
+    moderation: { decision: "APPROVED" },
+  };
+}
+
+type FlagReviewResult =
+  | { ok: true; type: "FLAG_CREATED" }
+  | { ok: false; type: "NOT_FOUND"; message: string }
+  | { ok: false; type: "OWN_REVIEW"; message: string }
+  | { ok: false; type: "NOT_FLAGGABLE"; message: string }
+  | { ok: false; type: "FLAG_ALREADY_OPEN"; message: string };
+
+export async function flagReview(reviewId: string): Promise<FlagReviewResult> {
+  const { user } = await getSessionOrThrow();
+  const review = await getReviewById(reviewId);
+  if (!review) {
+    return { ok: false, type: "NOT_FOUND", message: "Review not found." };
+  }
+  if (review.createdById === user.id) {
+    return {
+      ok: false,
+      type: "OWN_REVIEW",
+      message: "You cannot flag your own review.",
+    };
+  }
+  if (review.status !== "APPROVED") {
+    return {
+      ok: false,
+      type: "NOT_FLAGGABLE",
+      message: "Only approved reviews can be flagged.",
+    };
+  }
+
+  const alreadyOpen = await hasOpenReviewFlag({
+    reviewId,
+    reporterUserId: user.id,
+  });
+  if (alreadyOpen) {
+    return {
+      ok: false,
+      type: "FLAG_ALREADY_OPEN",
+      message: "You already have an open report for this review.",
+    };
+  }
+
+  await insertReviewFlag({
+    reviewId,
+    reporterUserId: user.id,
+  });
+  return { ok: true, type: "FLAG_CREATED" };
+}
+
+type DeleteOwnReviewResult =
+  | { ok: true; type: "DELETED" }
+  | { ok: false; type: "NOT_FOUND"; message: string }
+  | { ok: false; type: "FORBIDDEN"; message: string };
+
+export async function deleteOwnReview(
+  reviewId: string,
+): Promise<DeleteOwnReviewResult> {
+  const { user } = await getSessionOrThrow();
+  const review = await getReviewById(reviewId);
+
+  if (!review) {
+    return { ok: false, type: "NOT_FOUND", message: "Review not found." };
+  }
+  if (review.createdById !== user.id) {
+    return {
+      ok: false,
+      type: "FORBIDDEN",
+      message: "You can only delete your own review.",
+    };
+  }
+
+  await resolveOpenReviewFlags({
+    reviewId,
+    status: "RESOLVED_DELETED",
+    resolvedByUserId: user.id,
+  });
+  await deleteReviewById(reviewId);
+
+  void (async () => {
+    try {
+      const gearMeta = await fetchGearMetadataByIdData(review.gearId);
+      await maybeGenerateReviewSummary({
+        gearId: review.gearId,
+        gearName: gearMeta.name ?? "this gear",
+      });
+    } catch (summaryError) {
+      console.error("[deleteOwnReview] failed to refresh summary", summaryError);
+    }
+  })();
+
+  return { ok: true, type: "DELETED" };
 }
 
 export async function fetchApprovedReviews(slug: string) {

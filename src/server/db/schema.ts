@@ -79,6 +79,12 @@ export const reviewStatusEnum = pgEnum("review_status", [
   "APPROVED",
   "REJECTED",
 ]);
+export const reviewFlagStatusEnum = pgEnum("review_flag_status", [
+  "OPEN",
+  "RESOLVED_KEEP",
+  "RESOLVED_REJECTED",
+  "RESOLVED_DELETED",
+]);
 
 // Badges
 export const badgeAwardSourceEnum = pgEnum("badge_award_source", [
@@ -1117,6 +1123,37 @@ export const reviews = appSchema.table(
     index("reviews_status_idx").on(t.status),
     index("reviews_gear_idx").on(t.gearId),
     index("reviews_created_by_idx").on(t.createdById),
+    index("reviews_created_by_created_at_idx").on(t.createdById, t.createdAt),
+  ],
+);
+
+export const reviewFlags = appSchema.table(
+  "review_flags",
+  (d) => ({
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    reviewId: varchar("review_id", { length: 36 })
+      .notNull()
+      .references(() => reviews.id, { onDelete: "cascade" }),
+    reporterUserId: varchar("reporter_user_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    status: reviewFlagStatusEnum("status").notNull().default("OPEN"),
+    resolvedByUserId: varchar("resolved_by_user_id", { length: 255 }).references(
+      () => users.id,
+      {
+        onDelete: "set null",
+      },
+    ),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    index("review_flags_status_idx").on(t.status),
+    index("review_flags_review_status_idx").on(t.reviewId, t.status),
+    index("review_flags_reporter_status_idx").on(t.reporterUserId, t.status),
   ],
 );
 
@@ -1256,13 +1293,29 @@ export const gearEditsRelations = relations(gearEdits, ({ one }) => ({
   }),
 }));
 
-export const reviewsRelations = relations(reviews, ({ one }) => ({
+export const reviewsRelations = relations(reviews, ({ one, many }) => ({
   gear: one(gear, {
     fields: [reviews.gearId],
     references: [gear.id],
   }),
   createdBy: one(users, {
     fields: [reviews.createdById],
+    references: [users.id],
+  }),
+  flags: many(reviewFlags),
+}));
+
+export const reviewFlagsRelations = relations(reviewFlags, ({ one }) => ({
+  review: one(reviews, {
+    fields: [reviewFlags.reviewId],
+    references: [reviews.id],
+  }),
+  reporter: one(users, {
+    fields: [reviewFlags.reporterUserId],
+    references: [users.id],
+  }),
+  resolvedBy: one(users, {
+    fields: [reviewFlags.resolvedByUserId],
     references: [users.id],
   }),
 }));

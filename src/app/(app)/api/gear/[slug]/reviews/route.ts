@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import {
   fetchApprovedReviews,
   fetchMyReviewStatus,
@@ -12,6 +13,7 @@ const reviewSchema = z.object({
   content: z.string().min(1),
   genres: z.array(z.string()).min(1).max(3),
   recommend: z.boolean(),
+  clientUserAgent: z.string().optional(),
 });
 
 export async function POST(
@@ -24,17 +26,35 @@ export async function POST(
     // validate first to return 400 quickly for invalid
     reviewSchema.parse(body);
     const res = await submitReview(slug, body);
-    if (!res.ok) {
-      if (res.reason === "already_reviewed") {
+    if (res.ok) {
+      return NextResponse.json(
+        { ok: true, review: res.review, moderation: { decision: "APPROVED" } },
+        { status: 201 },
+      );
+    }
+
+    switch (res.type) {
+      case "ALREADY_REVIEWED":
         return NextResponse.json(
-          { error: "You have already reviewed this gear item" },
+          { ok: false, type: "ALREADY_REVIEWED", message: res.message },
           { status: 409 },
         );
-      }
+      case "MODERATION_BLOCKED":
+        return NextResponse.json(
+          {
+            ok: false,
+            type: "MODERATION_BLOCKED",
+            code: res.code,
+            message: res.message,
+            retryAfterMs: res.retryAfterMs,
+          },
+          { status: res.code === "REVIEW_RATE_LIMITED" ? 429 : 400 },
+        );
     }
+
     return NextResponse.json(
-      { message: "Review submitted successfully", review: res.review },
-      { status: 201 },
+      { ok: false, type: "UNKNOWN", message: "Unexpected submission result." },
+      { status: 500 },
     );
   } catch (error) {
     console.error("Error creating review:", error);

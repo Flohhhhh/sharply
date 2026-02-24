@@ -1,8 +1,8 @@
 import "server-only";
 
 import { db } from "~/server/db";
-import { reviews, gear, users } from "~/server/db/schema";
-import { and, desc, eq } from "drizzle-orm";
+import { reviewFlags, reviews, gear, users } from "~/server/db/schema";
+import { and, desc, eq, sql } from "drizzle-orm";
 
 export async function listAllReviewsWithContext() {
   return db
@@ -25,6 +25,18 @@ export async function listAllReviewsWithContext() {
     .orderBy(desc(reviews.createdAt));
 }
 
+export async function listOpenReviewFlagStats() {
+  return db
+    .select({
+      reviewId: reviewFlags.reviewId,
+      openFlagsCount: sql<number>`count(*)`,
+      latestFlagAt: sql<Date>`max(${reviewFlags.createdAt})`,
+    })
+    .from(reviewFlags)
+    .where(eq(reviewFlags.status, "OPEN"))
+    .groupBy(reviewFlags.reviewId);
+}
+
 export async function approveReviewById(id: string) {
   await db
     .update(reviews)
@@ -37,6 +49,25 @@ export async function rejectReviewById(id: string) {
     .update(reviews)
     .set({ status: "REJECTED" })
     .where(eq(reviews.id, id));
+}
+
+export async function resolveOpenFlagsForReview(params: {
+  reviewId: string;
+  status: "RESOLVED_KEEP" | "RESOLVED_REJECTED" | "RESOLVED_DELETED";
+  resolvedByUserId: string;
+}) {
+  const now = new Date();
+  await db
+    .update(reviewFlags)
+    .set({
+      status: params.status,
+      resolvedByUserId: params.resolvedByUserId,
+      resolvedAt: now,
+      updatedAt: now,
+    })
+    .where(
+      and(eq(reviewFlags.reviewId, params.reviewId), eq(reviewFlags.status, "OPEN")),
+    );
 }
 
 export async function getReviewUserAndGear(id: string) {

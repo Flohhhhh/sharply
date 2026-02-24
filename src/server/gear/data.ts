@@ -33,6 +33,7 @@ import {
   rawSamples,
   gearRawSamples,
   gearAliases,
+  reviewFlags,
 } from "~/server/db/schema";
 import { hasEventForUserOnUtcDay } from "~/server/validation/dedupe";
 import { incrementGearPopularityIntraday } from "~/server/popularity/data";
@@ -1130,6 +1131,7 @@ export async function createReview(params: {
   content: string;
   genres: string[];
   recommend: boolean;
+  status?: "PENDING" | "APPROVED" | "REJECTED";
 }) {
   const existing = await db
     .select({ id: reviews.id })
@@ -1149,6 +1151,7 @@ export async function createReview(params: {
     .values({
       gearId: params.gearId,
       createdById: params.userId,
+      status: params.status ?? "PENDING",
       content: params.content,
       genres: params.genres as any,
       recommend: params.recommend,
@@ -1166,7 +1169,77 @@ export async function createReview(params: {
     eventType: "review_submit",
   });
 
-  return { alreadyExists: false, review: inserted[0] } as const;
+  return { alreadyExists: false, review: inserted[0]! } as const;
+}
+
+export async function getReviewById(reviewId: string) {
+  const rows = await db
+    .select({
+      id: reviews.id,
+      gearId: reviews.gearId,
+      createdById: reviews.createdById,
+      status: reviews.status,
+    })
+    .from(reviews)
+    .where(eq(reviews.id, reviewId))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+export async function hasOpenReviewFlag(params: {
+  reviewId: string;
+  reporterUserId: string;
+}) {
+  const rows = await db
+    .select({ id: reviewFlags.id })
+    .from(reviewFlags)
+    .where(
+      and(
+        eq(reviewFlags.reviewId, params.reviewId),
+        eq(reviewFlags.reporterUserId, params.reporterUserId),
+        eq(reviewFlags.status, "OPEN"),
+      ),
+    )
+    .limit(1);
+  return rows.length > 0;
+}
+
+export async function insertReviewFlag(params: {
+  reviewId: string;
+  reporterUserId: string;
+}) {
+  const inserted = await db
+    .insert(reviewFlags)
+    .values({
+      reviewId: params.reviewId,
+      reporterUserId: params.reporterUserId,
+      status: "OPEN",
+    })
+    .returning({ id: reviewFlags.id });
+  return inserted[0]?.id ?? null;
+}
+
+export async function resolveOpenReviewFlags(params: {
+  reviewId: string;
+  status: "RESOLVED_KEEP" | "RESOLVED_REJECTED" | "RESOLVED_DELETED";
+  resolvedByUserId: string;
+}) {
+  const now = new Date();
+  await db
+    .update(reviewFlags)
+    .set({
+      status: params.status,
+      resolvedByUserId: params.resolvedByUserId,
+      resolvedAt: now,
+      updatedAt: now,
+    })
+    .where(
+      and(eq(reviewFlags.reviewId, params.reviewId), eq(reviewFlags.status, "OPEN")),
+    );
+}
+
+export async function deleteReviewById(reviewId: string) {
+  await db.delete(reviews).where(eq(reviews.id, reviewId));
 }
 
 /** Insert a new gear edit proposal (normalized payload should be provided by service layer) */

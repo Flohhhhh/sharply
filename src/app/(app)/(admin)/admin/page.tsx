@@ -95,7 +95,7 @@ export default async function AdminPage() {
         <div>
           <h2 className="text-2xl font-bold">User Reviews – Approval Queue</h2>
           <p className="text-muted-foreground mt-2">
-            Approve or reject user-submitted reviews.
+            Moderate pending and user-reported reviews.
           </p>
         </div>
         <Suspense fallback={<div>Loading reviews...</div>}>
