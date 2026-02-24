@@ -1330,7 +1330,7 @@ export const specDictionary: SpecSectionDef[] = [
         label: "Has Aperture Ring",
         getRawValue: (item) => item.lensSpecs?.hasApertureRing,
         formatDisplay: (raw) =>
-          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+          typeof raw === "boolean" ? yesNoNull(raw, true) : undefined,
       },
     ],
   },
