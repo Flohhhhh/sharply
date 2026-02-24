@@ -14,10 +14,15 @@ import {
 import type { BrowseFilters } from "~/lib/browse/filters";
 import type { SearchGearResult } from "~/server/gear/browse/data";
 import { fetchTrendingSlugs } from "~/server/popularity/service";
+import { env } from "~/env";
 
 export const dynamicParams = true;
 
 export async function generateStaticParams() {
+  if (env.SKIP_BUILD_STATIC_GENERATION) {
+    return [];
+  }
+
   console.log("[/browse] generateStaticParams running");
   const all: { segments: string[] }[] = [{ segments: [] }];
   const categories: Array<"cameras" | "lenses"> = ["cameras", "lenses"];
