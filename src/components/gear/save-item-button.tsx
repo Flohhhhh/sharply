@@ -1,9 +1,18 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Check, Plus } from "lucide-react";
+import { Bookmark, Check, ChevronDown, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
+import { ButtonGroup } from "~/components/ui/button-group";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import {
@@ -69,10 +78,12 @@ export function SaveItemButton({
   slug,
   initialState,
   onStateChange,
+  mode = "split",
 }: {
   slug: string;
   initialState: SaveItemInitialState;
   onStateChange?: (state: SaveItemResolvedState) => void;
+  mode?: "split" | "list";
 }) {
   const [pickerState, setPickerState] = useState(() => initialState);
   const [isMutating, setIsMutating] = useState(false);
@@ -89,6 +100,8 @@ export function SaveItemButton({
   );
 
   if (!pickerState) return null;
+  const defaultListId = pickerState.defaultListId;
+  const isSavedAnywhere = savedSet.size > 0;
 
   const applyActionLists = (lists: ActionListShape[]) => {
     const nextState = toPickerState(lists, slug);
@@ -117,6 +130,11 @@ export function SaveItemButton({
       setIsMutating(false);
       setMutatingListId(null);
     }
+  };
+
+  const handlePrimaryClick = async () => {
+    if (!defaultListId) return;
+    await toggleList(defaultListId);
   };
 
   const handleCreateList = async () => {
@@ -153,39 +171,94 @@ export function SaveItemButton({
 
   return (
     <>
-      <div className="space-y-2">
-        {pickerState.lists.map((list) => {
-          const isSaved = savedSet.has(list.id);
-          return (
-            <Button
-              key={list.id}
-              type="button"
-              variant={isSaved ? "default" : "outline"}
-              className="h-auto w-full justify-start px-3 py-2"
-              disabled={isMutating}
-              loading={mutatingListId === list.id}
-              onClick={() => void toggleList(list.id)}
-            >
-              <span className="flex min-w-0 items-center gap-2">
-                {isSaved ? <Check className="size-3.5" /> : null}
-                <span className="truncate">{list.name}</span>
-                <span className="text-muted-foreground text-xs">
-                  {list.itemCount}
+      {mode === "split" ? (
+        <ButtonGroup className="w-full">
+          <Button
+            type="button"
+            variant={isSavedAnywhere ? "default" : "outline"}
+            className="flex-1 justify-start"
+            icon={<Bookmark className={isSavedAnywhere ? "fill-current" : ""} />}
+            loading={isMutating}
+            onClick={() => void handlePrimaryClick()}
+          >
+            {isSavedAnywhere ? "Saved" : "Save Item"}
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant={isSavedAnywhere ? "default" : "outline"}
+                size="icon"
+                disabled={isMutating}
+              >
+                <ChevronDown className="size-4" />
+                <span className="sr-only">Choose list</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64">
+              {pickerState.lists.map((list) => (
+                <DropdownMenuCheckboxItem
+                  key={list.id}
+                  checked={savedSet.has(list.id)}
+                  onCheckedChange={() => {
+                    void toggleList(list.id);
+                  }}
+                >
+                  <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
+                    <span className="truncate">{list.name}</span>
+                    <span className="text-muted-foreground text-xs">
+                      {list.itemCount}
+                    </span>
+                  </div>
+                </DropdownMenuCheckboxItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() =>
+                  setCreateDialog((prev) => ({ ...prev, open: true }))
+                }
+              >
+                <Plus className="size-4" />
+                Create list
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </ButtonGroup>
+      ) : (
+        <div className="space-y-2">
+          {pickerState.lists.map((list) => {
+            const isSaved = savedSet.has(list.id);
+            return (
+              <Button
+                key={list.id}
+                type="button"
+                variant={isSaved ? "default" : "outline"}
+                className="h-auto w-full justify-start px-3 py-2"
+                disabled={isMutating}
+                loading={mutatingListId === list.id}
+                onClick={() => void toggleList(list.id)}
+              >
+                <span className="flex min-w-0 items-center gap-2">
+                  {isSaved ? <Check className="size-3.5" /> : null}
+                  <span className="truncate">{list.name}</span>
+                  <span className="text-muted-foreground text-xs">
+                    {list.itemCount}
+                  </span>
                 </span>
-              </span>
-            </Button>
-          );
-        })}
-        <Button
-          type="button"
-          variant="ghost"
-          className="w-full justify-start"
-          onClick={() => setCreateDialog((prev) => ({ ...prev, open: true }))}
-        >
-          <Plus className="size-4" />
-          Create list
-        </Button>
-      </div>
+              </Button>
+            );
+          })}
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => setCreateDialog((prev) => ({ ...prev, open: true }))}
+          >
+            <Plus className="size-4" />
+            Create list
+          </Button>
+        </div>
+      )}
 
       <Dialog
         open={createDialog.open}
