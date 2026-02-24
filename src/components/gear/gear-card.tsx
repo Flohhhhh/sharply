@@ -14,7 +14,7 @@ import { HallOfFameBadge } from "../gear-badges/hall-of-fame-badge";
 import { isInHallOfFame } from "~/lib/utils/is-in-hall-of-fame";
 import { useSession } from "~/lib/auth/auth-client";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { actionToggleWishlist } from "~/server/gear/actions";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
@@ -37,8 +37,10 @@ import {
 } from "~/components/gear/gear-search-combobox";
 import {
   Bookmark,
+  Check,
   Heart,
   MoreVertical,
+  Package,
   PackageOpen,
   Scale,
 } from "lucide-react";
@@ -194,8 +196,9 @@ export function GearCard(props: GearCardProps) {
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [compareOpen, setCompareOpen] = useState(false);
   const [saveOpen, setSaveOpen] = useState(false);
-  const [saveStateLoading, setSaveStateLoading] = useState(false);
+  const [statusFetched, setStatusFetched] = useState(false);
   const [saveState, setSaveState] = useState<SavePickerState>(null);
+  const [isOwned, setIsOwned] = useState<boolean | null>(null);
   const [ownershipLoading, setOwnershipLoading] = useState(false);
   const [compareSelection, setCompareSelection] = useState<GearOption | null>(
     null,
@@ -214,6 +217,35 @@ export function GearCard(props: GearCardProps) {
   if (isTrending) badgeNodes.push(<TrendingBadge key="trending" />);
   if (isNew) badgeNodes.push(<NewBadge key="new" />);
   if (badges) badgeNodes.push(badges);
+  useEffect(() => {
+    if (!session || statusFetched) return;
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const response = await fetch(
+          `/api/gear/${encodeURIComponent(slug)}/user-state`,
+        );
+        if (!response.ok) return;
+        const payload = (await response.json()) as {
+          inWishlist: boolean | null;
+          isOwned: boolean | null;
+          saveState: SavePickerState;
+        };
+        if (cancelled) return;
+        setInWishlist(payload.inWishlist);
+        setIsOwned(payload.isOwned);
+        setSaveState(payload.saveState);
+        setStatusFetched(true);
+      } catch {
+        // Ignore background state fetch errors; actions still work.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session, slug, statusFetched]);
 
   const handleAddToWishlist = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -258,25 +290,10 @@ export function GearCard(props: GearCardProps) {
     router.push(buildCompareHref([slug, option.slug]));
   };
 
-  const handleOpenSave = async (e: React.MouseEvent) => {
+  const handleOpenSave = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setSaveOpen(true);
-    if (saveState || saveStateLoading) return;
-
-    setSaveStateLoading(true);
-    try {
-      const response = await fetch(
-        `/api/user-lists/picker?slug=${encodeURIComponent(slug)}`,
-      );
-      if (!response.ok) throw new Error("Failed to load list options");
-      const payload = (await response.json()) as { state: SavePickerState };
-      setSaveState(payload.state);
-    } catch {
-      toast.error("Failed to load list options");
-    } finally {
-      setSaveStateLoading(false);
-    }
   };
 
   const handleAddToCollection = async (e: React.MouseEvent) => {
@@ -286,10 +303,16 @@ export function GearCard(props: GearCardProps) {
 
     setOwnershipLoading(true);
     try {
-      const result = await actionToggleOwnership(slug, "add");
+      const action = isOwned ? "remove" : "add";
+      const result = await actionToggleOwnership(slug, action);
       if (result.ok) {
-        toast.success("Added to collection");
+        const ownedNow = result.action === "added";
+        setIsOwned(ownedNow);
+        toast.success(
+          ownedNow ? "Added to collection" : "Removed from collection",
+        );
       } else if (result.reason === "already_owned") {
+        setIsOwned(true);
         toast.info("Already in collection");
       } else {
         toast.error("Failed to update collection");
@@ -364,33 +387,38 @@ export function GearCard(props: GearCardProps) {
                       sideOffset={6}
                     >
                       <DropdownMenuItem
+                        onClick={handleOpenSave}
+                      >
+                        <Bookmark className="size-4" />
+                        Save
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
                         onClick={handleAddToWishlist}
                         disabled={wishlistLoading}
                       >
-                        <Heart
-                          className={cn(
-                            "size-4",
-                            inWishlist === true && "fill-current",
-                          )}
-                        />
+                        {inWishlist === true ? (
+                          <Check className="size-4" />
+                        ) : (
+                          <Heart className="size-4" />
+                        )}
                         {inWishlist === true
                           ? "Remove from Wishlist"
                           : "Add to Wishlist"}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={handleOpenCompare}>
-                        <Scale className="size-4" />
-                        Compare
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={handleOpenSave}>
-                        <Bookmark className="size-4" />
-                        Save
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={handleAddToCollection}
                         disabled={ownershipLoading}
                       >
-                        <PackageOpen className="size-4" />
-                        Add to Collection
+                        {isOwned ? (
+                          <Check className="size-4" />
+                        ) : (
+                          <PackageOpen className="size-4" />
+                        )}
+                        {isOwned ? "Remove from Collection" : "Add to Collection"}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleOpenCompare}>
+                        <Scale className="size-4" />
+                        Compare
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -460,11 +488,11 @@ export function GearCard(props: GearCardProps) {
           <DialogHeader>
             <DialogTitle>Save {displayName}</DialogTitle>
           </DialogHeader>
-          {saveStateLoading ? (
-            <div className="text-muted-foreground text-sm">Loading list options…</div>
-          ) : (
-            <SaveItemButton slug={slug} initialState={saveState} />
-          )}
+          <SaveItemButton
+            slug={slug}
+            initialState={saveState}
+            onStateChange={(nextState) => setSaveState(nextState)}
+          />
         </DialogContent>
       </Dialog>
     </div>

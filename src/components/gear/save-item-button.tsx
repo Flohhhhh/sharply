@@ -1,18 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Bookmark, ChevronDown, Plus } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
-import { ButtonGroup } from "~/components/ui/button-group";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import {
@@ -40,6 +31,7 @@ type SaveItemInitialState = {
   savedListIds: string[];
   defaultListId: string | null;
 } | null;
+type SaveItemResolvedState = NonNullable<SaveItemInitialState>;
 
 type ActionListShape = {
   id: string;
@@ -76,12 +68,15 @@ function toPickerState(lists: ActionListShape[], slug: string) {
 export function SaveItemButton({
   slug,
   initialState,
+  onStateChange,
 }: {
   slug: string;
   initialState: SaveItemInitialState;
+  onStateChange?: (state: SaveItemResolvedState) => void;
 }) {
   const [pickerState, setPickerState] = useState(() => initialState);
   const [isMutating, setIsMutating] = useState(false);
+  const [mutatingListId, setMutatingListId] = useState<string | null>(null);
   const [createDialog, setCreateDialog] = useState({
     open: false,
     name: "",
@@ -95,22 +90,19 @@ export function SaveItemButton({
 
   if (!pickerState) return null;
 
-  const defaultListId = pickerState.defaultListId;
-  const isSavedToDefault = defaultListId ? savedSet.has(defaultListId) : false;
-  const isSavedAnywhere = savedSet.size > 0;
-
   const applyActionLists = (lists: ActionListShape[]) => {
-    setPickerState(toPickerState(lists, slug));
+    const nextState = toPickerState(lists, slug);
+    setPickerState(nextState);
+    onStateChange?.(nextState);
   };
 
   const toggleList = async (listId: string) => {
     if (isMutating) return;
+
     setIsMutating(true);
-
-    const alreadySaved = savedSet.has(listId);
-
+    setMutatingListId(listId);
     try {
-      if (alreadySaved) {
+      if (savedSet.has(listId)) {
         const result = await actionRemoveGearFromUserList({ listId, slug });
         applyActionLists(result.lists as ActionListShape[]);
         toast.success("Removed from list");
@@ -123,12 +115,8 @@ export function SaveItemButton({
       toast.error("Failed to update saved item");
     } finally {
       setIsMutating(false);
+      setMutatingListId(null);
     }
-  };
-
-  const handlePrimaryClick = async () => {
-    if (!defaultListId) return;
-    await toggleList(defaultListId);
   };
 
   const handleCreateList = async () => {
@@ -139,7 +127,9 @@ export function SaveItemButton({
       const existingListIds = new Set(pickerState.lists.map((list) => list.id));
       const result = await actionCreateUserList(createDialog.name);
       const createdLists = result.lists as ActionListShape[];
-      const createdList = createdLists.find((list) => !existingListIds.has(list.id));
+      const createdList = createdLists.find(
+        (list) => !existingListIds.has(list.id),
+      );
 
       if (!createdList) {
         applyActionLists(createdLists);
@@ -163,56 +153,44 @@ export function SaveItemButton({
 
   return (
     <>
-      <ButtonGroup className="w-full">
+      <div className="space-y-2">
+        {pickerState.lists.map((list) => {
+          const isSaved = savedSet.has(list.id);
+          return (
+            <Button
+              key={list.id}
+              type="button"
+              variant={isSaved ? "default" : "outline"}
+              className="h-auto w-full justify-start px-3 py-2"
+              disabled={isMutating}
+              loading={mutatingListId === list.id}
+              onClick={() => void toggleList(list.id)}
+            >
+              <span className="flex min-w-0 items-center gap-2">
+                {isSaved ? <Check className="size-3.5" /> : null}
+                <span className="truncate">{list.name}</span>
+                <span className="text-muted-foreground text-xs">
+                  {list.itemCount}
+                </span>
+              </span>
+            </Button>
+          );
+        })}
         <Button
           type="button"
-          variant={isSavedAnywhere ? "default" : "outline"}
-          className="flex-1 justify-start"
-          icon={<Bookmark className={isSavedAnywhere ? "fill-current" : ""} />}
-          loading={isMutating}
-          onClick={() => void handlePrimaryClick()}
+          variant="ghost"
+          className="w-full justify-start"
+          onClick={() => setCreateDialog((prev) => ({ ...prev, open: true }))}
         >
-          {isSavedAnywhere ? "Saved" : "Save Item"}
+          <Plus className="size-4" />
+          Create list
         </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              variant={isSavedAnywhere ? "default" : "outline"}
-              size="icon"
-              disabled={isMutating}
-            >
-              <ChevronDown className="size-4" />
-              <span className="sr-only">Choose list</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-64">
-            {pickerState.lists.map((list) => (
-              <DropdownMenuCheckboxItem
-                key={list.id}
-                checked={savedSet.has(list.id)}
-                onCheckedChange={() => {
-                  void toggleList(list.id);
-                }}
-              >
-                <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
-                  <span className="truncate">{list.name}</span>
-                  <span className="text-muted-foreground text-xs">
-                    {list.itemCount}
-                  </span>
-                </div>
-              </DropdownMenuCheckboxItem>
-            ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => setCreateDialog((prev) => ({ ...prev, open: true }))}>
-              <Plus className="size-4" />
-              Create list
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </ButtonGroup>
+      </div>
 
-      <Dialog open={createDialog.open} onOpenChange={(open) => setCreateDialog((prev) => ({ ...prev, open }))}>
+      <Dialog
+        open={createDialog.open}
+        onOpenChange={(open) => setCreateDialog((prev) => ({ ...prev, open }))}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Create a new list</DialogTitle>
@@ -223,11 +201,21 @@ export function SaveItemButton({
               id="new-list-name"
               placeholder="My favorites"
               value={createDialog.name}
-              onChange={(event) => setCreateDialog((prev) => ({ ...prev, name: event.target.value }))}
+              onChange={(event) =>
+                setCreateDialog((prev) => ({
+                  ...prev,
+                  name: event.target.value,
+                }))
+              }
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateDialog((prev) => ({ ...prev, open: false }))}>
+            <Button
+              variant="outline"
+              onClick={() =>
+                setCreateDialog((prev) => ({ ...prev, open: false }))
+              }
+            >
               Cancel
             </Button>
             <Button onClick={handleCreateList} loading={createDialog.creating}>
