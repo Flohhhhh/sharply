@@ -492,6 +492,7 @@ export function GearCard(props: GearCardProps) {
             slug={slug}
             initialState={saveState}
             onStateChange={(nextState) => setSaveState(nextState)}
+            mode="list"
           />
         </DialogContent>
       </Dialog>
