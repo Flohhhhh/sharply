@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   BookOpenCheck,
   DoorOpen,
@@ -299,6 +300,16 @@ export function ListManageModal({
               onClick={() => void handleCopyLink()}
             >
               Copy share link
+            </Button>
+          ) : null}
+          {list?.shared?.path ? (
+            <Button
+              asChild
+              size="sm"
+              variant="outline"
+              icon={<DoorOpen className="size-4" />}
+            >
+              <Link href={list.shared.path}>View list</Link>
             </Button>
           ) : null}
           {!canPublish && !list?.shared?.isPublished ? (

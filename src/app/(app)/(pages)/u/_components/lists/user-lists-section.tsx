@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   BookOpenCheck,
+  DoorOpen,
   Link2,
   ListPlus,
   MoreVertical,
@@ -421,6 +423,31 @@ export function UserListsSection({
                   </p>
                 ) : null}
               </div>
+              {list.shared?.path ? (
+                <div className="mt-2 flex justify-end">
+                  <Button
+                    asChild
+                    size="sm"
+                    variant="ghost"
+                    icon={<DoorOpen className="size-4" />}
+                  >
+                    <Link
+                      href={list.shared.path}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                      }}
+                      onPointerDown={(event) => {
+                        event.stopPropagation();
+                      }}
+                      onKeyDown={(event) => {
+                        event.stopPropagation();
+                      }}
+                    >
+                      Open
+                    </Link>
+                  </Button>
+                </div>
+              ) : null}
             </div>
           ))}
         </div>
