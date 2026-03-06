@@ -2,6 +2,7 @@
 
 import { relations, sql } from "drizzle-orm";
 import {
+  type AnyPgColumn,
   index,
   pgEnum,
   pgTable,
@@ -97,6 +98,24 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   "gear_spec_approved",
   "badge_awarded",
   "prompt_handle_setup",
+]);
+
+export const bingoBoardStatusEnum = pgEnum("bingo_board_status", [
+  "ACTIVE",
+  "COMPLETED",
+  "EXPIRED",
+  "ARCHIVED",
+]);
+
+export const bingoEventTypeEnum = pgEnum("bingo_event_type", [
+  "tile_completed",
+  "submission_created",
+  "score_updated",
+  "board_completed",
+  "board_expired",
+  "board_created",
+  "inactivity_timer_started",
+  "inactivity_timer_extended",
 ]);
 
 // Popularity
@@ -1837,6 +1856,156 @@ export const notifications = appSchema.table(
   ],
 );
 
+export const bingoBoards = appSchema.table(
+  "bingo_boards",
+  (d) => ({
+    id: d
+      .varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    status: bingoBoardStatusEnum("status").notNull().default("ACTIVE"),
+    inactivityDurationSeconds: integer("inactivity_duration_seconds")
+      .notNull()
+      .default(4 * 60 * 60),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    firstCompletedAt: timestamp("first_completed_at", { withTimezone: true }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    expiredAt: timestamp("expired_at", { withTimezone: true }),
+    endReason: varchar("end_reason", { length: 30 }),
+    createdByUserId: d
+      .varchar("created_by_user_id", { length: 255 })
+      .references(() => users.id, { onDelete: "set null" }),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    index("bingo_boards_status_idx").on(t.status),
+    index("bingo_boards_created_idx").on(t.createdAt),
+  ],
+);
+
+export const bingoSubmissions = appSchema.table(
+  "bingo_submissions",
+  (d) => ({
+    id: d
+      .varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    boardId: d
+      .varchar("board_id", { length: 36 })
+      .notNull()
+      .references(() => bingoBoards.id, { onDelete: "cascade" }),
+    boardTileId: d
+      .varchar("board_tile_id", { length: 36 })
+      .notNull()
+      .references((): AnyPgColumn => bingoBoardTiles.id, {
+        onDelete: "cascade",
+      }),
+    userId: d
+      .varchar("user_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    discordMessageUrl: text("discord_message_url").notNull(),
+    discordGuildId: varchar("discord_guild_id", { length: 50 }),
+    discordChannelId: varchar("discord_channel_id", { length: 50 }),
+    discordMessageId: varchar("discord_message_id", { length: 50 }),
+    validationPassed: boolean("validation_passed").notNull().default(true),
+    validationMetadata: jsonb("validation_metadata"),
+    createdAt,
+  }),
+  (t) => [
+    index("bingo_submissions_board_idx").on(t.boardId),
+    index("bingo_submissions_user_idx").on(t.userId),
+    index("bingo_submissions_tile_idx").on(t.boardTileId),
+    index("bingo_submissions_created_idx").on(t.createdAt),
+  ],
+);
+
+export const bingoBoardTiles = appSchema.table(
+  "bingo_board_tiles",
+  (d) => ({
+    id: d
+      .varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    boardId: d
+      .varchar("board_id", { length: 36 })
+      .notNull()
+      .references(() => bingoBoards.id, { onDelete: "cascade" }),
+    position: integer("position").notNull(),
+    label: text("label").notNull(),
+    isFreeTile: boolean("is_free_tile").notNull().default(false),
+    completedByUserId: d
+      .varchar("completed_by_user_id", { length: 255 })
+      .references(() => users.id, { onDelete: "set null" }),
+    completedSubmissionId: d
+      .varchar("completed_submission_id", { length: 36 })
+      .references((): AnyPgColumn => bingoSubmissions.id, {
+        onDelete: "set null",
+      }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    uniqueIndex("bingo_board_tiles_board_position_uq").on(t.boardId, t.position),
+    index("bingo_board_tiles_board_completed_idx").on(t.boardId, t.completedAt),
+  ],
+);
+
+export const bingoScores = appSchema.table(
+  "bingo_scores",
+  (d) => ({
+    id: d
+      .varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    boardId: d
+      .varchar("board_id", { length: 36 })
+      .notNull()
+      .references(() => bingoBoards.id, { onDelete: "cascade" }),
+    userId: d
+      .varchar("user_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    points: integer("points").notNull().default(0),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    uniqueIndex("bingo_scores_board_user_uq").on(t.boardId, t.userId),
+    index("bingo_scores_board_points_idx").on(t.boardId, t.points),
+  ],
+);
+
+export const bingoEvents = appSchema.table(
+  "bingo_events",
+  (d) => ({
+    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+    type: bingoEventTypeEnum("type").notNull(),
+    boardId: d
+      .varchar("board_id", { length: 36 })
+      .notNull()
+      .references(() => bingoBoards.id, { onDelete: "cascade" }),
+    boardTileId: d
+      .varchar("board_tile_id", { length: 36 })
+      .references(() => bingoBoardTiles.id, { onDelete: "set null" }),
+    submissionId: d
+      .varchar("submission_id", { length: 36 })
+      .references(() => bingoSubmissions.id, { onDelete: "set null" }),
+    userId: d
+      .varchar("user_id", { length: 255 })
+      .references(() => users.id, { onDelete: "set null" }),
+    payload: jsonb("payload"),
+    createdAt,
+  }),
+  (t) => [
+    index("bingo_events_board_idx").on(t.boardId),
+    index("bingo_events_board_id_idx").on(t.boardId, t.id),
+    index("bingo_events_created_idx").on(t.createdAt),
+  ],
+);
+
 export const passkeys = appSchema.table(
   "passkeys",
   (d) => ({
@@ -1863,6 +2032,81 @@ export const passkeys = appSchema.table(
 
 export const notificationsRelations = relations(notifications, ({ one }) => ({
   user: one(users, { fields: [notifications.userId], references: [users.id] }),
+}));
+
+export const bingoBoardsRelations = relations(bingoBoards, ({ one, many }) => ({
+  createdBy: one(users, {
+    fields: [bingoBoards.createdByUserId],
+    references: [users.id],
+  }),
+  tiles: many(bingoBoardTiles),
+  submissions: many(bingoSubmissions),
+  scores: many(bingoScores),
+  events: many(bingoEvents),
+}));
+
+export const bingoBoardTilesRelations = relations(
+  bingoBoardTiles,
+  ({ one, many }) => ({
+    board: one(bingoBoards, {
+      fields: [bingoBoardTiles.boardId],
+      references: [bingoBoards.id],
+    }),
+    completedBy: one(users, {
+      fields: [bingoBoardTiles.completedByUserId],
+      references: [users.id],
+    }),
+    submission: one(bingoSubmissions, {
+      fields: [bingoBoardTiles.completedSubmissionId],
+      references: [bingoSubmissions.id],
+    }),
+    events: many(bingoEvents),
+  }),
+);
+
+export const bingoSubmissionsRelations = relations(
+  bingoSubmissions,
+  ({ one, many }) => ({
+    board: one(bingoBoards, {
+      fields: [bingoSubmissions.boardId],
+      references: [bingoBoards.id],
+    }),
+    user: one(users, {
+      fields: [bingoSubmissions.userId],
+      references: [users.id],
+    }),
+    events: many(bingoEvents),
+  }),
+);
+
+export const bingoScoresRelations = relations(bingoScores, ({ one }) => ({
+  board: one(bingoBoards, {
+    fields: [bingoScores.boardId],
+    references: [bingoBoards.id],
+  }),
+  user: one(users, {
+    fields: [bingoScores.userId],
+    references: [users.id],
+  }),
+}));
+
+export const bingoEventsRelations = relations(bingoEvents, ({ one }) => ({
+  board: one(bingoBoards, {
+    fields: [bingoEvents.boardId],
+    references: [bingoBoards.id],
+  }),
+  tile: one(bingoBoardTiles, {
+    fields: [bingoEvents.boardTileId],
+    references: [bingoBoardTiles.id],
+  }),
+  submission: one(bingoSubmissions, {
+    fields: [bingoEvents.submissionId],
+    references: [bingoSubmissions.id],
+  }),
+  user: one(users, {
+    fields: [bingoEvents.userId],
+    references: [users.id],
+  }),
 }));
 
 // --- Badges Storage (minimal) ---
@@ -1979,6 +2223,11 @@ export const usersRelations = relations(users, ({ many }) => ({
   notifications: many(notifications),
   passkeys: many(passkeys),
   userLists: many(userLists),
+  bingoBoardsCreated: many(bingoBoards),
+  bingoTilesCompleted: many(bingoBoardTiles),
+  bingoSubmissions: many(bingoSubmissions),
+  bingoScores: many(bingoScores),
+  bingoEvents: many(bingoEvents),
 }));
 
 // Export the user type for use throughout the application
