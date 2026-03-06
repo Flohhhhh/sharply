@@ -5,6 +5,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { Button } from "~/components/ui/button";
 import type { BingoTileView } from "~/types/bingo";
 
 export default function BingoTile(props: {
@@ -51,14 +53,33 @@ export default function BingoTile(props: {
       <TooltipTrigger asChild>{button}</TooltipTrigger>
       <TooltipContent side="top" className="max-w-[300px] text-xs">
         {tile.submission ? (
-          <div className="space-y-1">
-            <p className="font-semibold">Claimed with proof</p>
-            <p className="line-clamp-1">{tile.submission.discordMessageUrl}</p>
-            {tile.completedBy?.name ? (
-              <p>By {tile.completedBy.name}</p>
-            ) : (
-              <p>By community member</p>
-            )}
+          <div className="space-y-2">
+            <p className="text-muted-foreground break-all">
+              {tile.submission.discordMessageUrl}
+            </p>
+            <Button asChild size="sm" variant="secondary" className="h-7 px-2 text-[11px]">
+              <a
+                href={tile.submission.discordMessageUrl}
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                View message
+              </a>
+            </Button>
+            <div className="flex items-center gap-2 pt-1">
+              <Avatar className="size-6">
+                <AvatarImage
+                  src={tile.completedBy?.image ?? undefined}
+                  alt={tile.completedBy?.name ?? "Community member"}
+                />
+                <AvatarFallback>
+                  {(tile.completedBy?.name ?? "?").slice(0, 1).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <p className="font-medium">
+                {tile.completedBy?.name ?? "Community member"}
+              </p>
+            </div>
           </div>
         ) : tile.isFreeTile ? (
           <p>Free center tile</p>
