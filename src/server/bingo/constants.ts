@@ -6,7 +6,7 @@ export const BINGO_DEFAULT_INACTIVITY_SECONDS = 4 * 60 * 60;
 export const BINGO_POLL_INTERVAL_MS = 5_000;
 
 export const BINGO_TEMPLATE_LABELS = [
-  "More megapixels is bettter.",
+  "More megapixels is better.",
   "Photoshop/editing is cheating.",
   "AI Art",
   "Multiple phone images to critique.",
