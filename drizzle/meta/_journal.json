@@ -78,6 +78,13 @@
       "when": 1771970903208,
       "tag": "0010_funny_thena",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1772833933882,
+      "tag": "0011_illegal_roughhouse",
+      "breakpoints": true
     }
   ]
 }

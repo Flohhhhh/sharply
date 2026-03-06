@@ -106,6 +106,9 @@ export default function DiscordBingoClient(props: {
   const [confettiBursts, setConfettiBursts] = useState<
     Array<{ id: string; x: number; y: number }>
   >([]);
+  const [fullscreenConfettiBursts, setFullscreenConfettiBursts] = useState<
+    string[]
+  >([]);
   const [optimisticTiles, setOptimisticTiles] = useState<Set<string>>(
     new Set(),
   );
@@ -125,6 +128,7 @@ export default function DiscordBingoClient(props: {
   const boardSnapshotsRef = useRef<Map<string, BingoBoardView>>(new Map());
   const transitionTimersRef = useRef<number[]>([]);
   const lastHandledCompletionEventIdRef = useRef(0);
+  const hasInitializedEventCursorRef = useRef(false);
   const pendingCompletionRef = useRef<{
     id: number;
     payload: Extract<BingoBoardCreatedPayload, { source: "completion" }>;
@@ -151,6 +155,10 @@ export default function DiscordBingoClient(props: {
     setIncomingBoard(params.nextBoard);
     setCompletedBoardPodium(params.payload.previousLeaderboardTop3);
     setCompletionPhase("collapse_out");
+    setFullscreenConfettiBursts((prev) => [
+      ...prev,
+      `completion-${params.eventId}-${Date.now()}`,
+    ]);
     setSelectedTileId(null);
     setDiscordMessageUrl("");
 
@@ -271,12 +279,15 @@ export default function DiscordBingoClient(props: {
       const tileNode = document.querySelector<HTMLElement>(
         `[data-bingo-tile-id="${id}"]`,
       );
-      if (!tileNode) continue;
-      const rect = tileNode.getBoundingClientRect();
-      const x = (rect.left + rect.width / 2) / window.innerWidth;
-      const y = (rect.top + rect.height / 2) / window.innerHeight;
-      const px = x * window.innerWidth;
-      const py = y * window.innerHeight;
+      let px = window.innerWidth * 0.5;
+      let py = window.innerHeight * 0.45;
+      if (tileNode) {
+        const rect = tileNode.getBoundingClientRect();
+        const x = (rect.left + rect.width / 2) / window.innerWidth;
+        const y = (rect.top + rect.height / 2) / window.innerHeight;
+        px = x * window.innerWidth;
+        py = y * window.innerHeight;
+      }
       const burstId = `${id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       setConfettiBursts((prev) => [...prev, { id: burstId, x: px, y: py }]);
     }
@@ -292,7 +303,9 @@ export default function DiscordBingoClient(props: {
 
   useEffect(() => {
     if (!board) return;
-    setEventCursor((prev) => Math.max(prev, board.lastEventCursor));
+    if (hasInitializedEventCursorRef.current) return;
+    hasInitializedEventCursorRef.current = true;
+    setEventCursor(board.lastEventCursor);
   }, [board]);
 
   useEffect(() => {
@@ -535,8 +548,14 @@ export default function DiscordBingoClient(props: {
 
       <BingoConfettiLayer
         bursts={confettiBursts}
+        fullscreenBursts={fullscreenConfettiBursts}
         onBurstComplete={(id) => {
           setConfettiBursts((prev) => prev.filter((burst) => burst.id !== id));
+        }}
+        onFullscreenBurstComplete={(id) => {
+          setFullscreenConfettiBursts((prev) =>
+            prev.filter((burstId) => burstId !== id),
+          );
         }}
       />
 

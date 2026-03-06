@@ -24,7 +24,9 @@ const COLORS = [
 
 export default function BingoConfettiLayer(props: {
   bursts: Burst[];
+  fullscreenBursts: string[];
   onBurstComplete: (id: string) => void;
+  onFullscreenBurstComplete: (id: string) => void;
 }) {
   const [size, setSize] = useState({ width: 0, height: 0 });
 
@@ -67,6 +69,22 @@ export default function BingoConfettiLayer(props: {
             h: 36,
           }}
           onConfettiComplete={() => props.onBurstComplete(burst.id)}
+        />
+      ))}
+      {props.fullscreenBursts.map((id) => (
+        <ReactConfetti
+          key={id}
+          width={size.width}
+          height={size.height}
+          numberOfPieces={420}
+          recycle={false}
+          gravity={0.18}
+          initialVelocityY={20}
+          initialVelocityX={9}
+          tweenDuration={340}
+          friction={0.985}
+          colors={[...COLORS]}
+          onConfettiComplete={() => props.onFullscreenBurstComplete(id)}
         />
       ))}
     </div>
