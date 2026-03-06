@@ -16,6 +16,7 @@ export default async function DiscordBingoPage() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
+  const isAuthenticated = Boolean(session?.user);
   const canSkipCard = Boolean(requireRole(session?.user, ["ADMIN"]));
   const canCompleteCard = env.NODE_ENV === "development";
 
@@ -34,6 +35,7 @@ export default async function DiscordBingoPage() {
           </p>
         </header>
         <DiscordBingoClient
+          isAuthenticated={isAuthenticated}
           canSkipCard={canSkipCard}
           canCompleteCard={canCompleteCard}
         />

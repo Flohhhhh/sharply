@@ -90,10 +90,11 @@ function formatDuration(ms: number) {
 }
 
 export default function DiscordBingoClient(props: {
+  isAuthenticated: boolean;
   canSkipCard: boolean;
   canCompleteCard: boolean;
 }) {
-  const { canSkipCard, canCompleteCard } = props;
+  const { isAuthenticated, canSkipCard, canCompleteCard } = props;
   const [selectedTileId, setSelectedTileId] = useState<string | null>(null);
   const [discordMessageUrl, setDiscordMessageUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -453,6 +454,16 @@ export default function DiscordBingoClient(props: {
     }
   }
 
+  function handleSelectTile(tileId: string) {
+    if (!isAuthenticated) {
+      const callbackPath = "/discord/bingo";
+      const signInUrl = `/auth/signin?callbackUrl=${encodeURIComponent(callbackPath)}`;
+      window.location.assign(signInUrl);
+      return;
+    }
+    setSelectedTileId(tileId);
+  }
+
   return (
     <>
       <section className="grid min-h-0 grid-rows-[auto_1fr] gap-4 overflow-hidden">
@@ -525,7 +536,7 @@ export default function DiscordBingoClient(props: {
                 optimisticTiles={optimisticTiles}
                 highlightTileIds={highlightTileIds}
                 interactionLocked={completionPhase !== "idle"}
-                onSelectTile={setSelectedTileId}
+                onSelectTile={handleSelectTile}
               />
               <BingoLeaderboard rows={leaderboard?.rows} />
             </motion.div>
