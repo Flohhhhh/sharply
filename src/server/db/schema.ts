@@ -114,6 +114,23 @@ export const popularityTimeframeEnum = pgEnum("popularity_timeframe", [
   "30d",
 ]);
 
+export const communityBingoBoardStatusEnum = pgEnum(
+  "community_bingo_board_status",
+  ["ACTIVE", "COMPLETED", "ARCHIVED", "EXPIRED"],
+);
+
+export const communityBingoEventTypeEnum = pgEnum("community_bingo_event_type", [
+  "submission_created",
+  "tile_completed",
+  "score_changed",
+  "board_completed",
+  "board_archived",
+  "new_board_created",
+  "board_expiration_timer_started",
+  "board_expiration_timer_extended",
+  "board_expired_inactivity",
+]);
+
 // Date precision for partial dates shown to users
 export const datePrecisionEnum = pgEnum("date_precision_enum", [
   "YEAR",
@@ -1783,6 +1800,145 @@ export const rollupRuns = appSchema.table(
   (t) => [index("rollup_runs_created_idx").on(t.createdAt)],
 );
 
+export const communityBingoBoards = appSchema.table(
+  "community_bingo_boards",
+  (d) => ({
+    id: d
+      .varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    title: varchar("title", { length: 150 }).notNull(),
+    status: communityBingoBoardStatusEnum("status").notNull().default("ACTIVE"),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    expiredAt: timestamp("expired_at", { withTimezone: true }),
+    inactivityExpiresAt: timestamp("inactivity_expires_at", { withTimezone: true }),
+    createdById: d.varchar("created_by_id", { length: 255 }).references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    index("community_bingo_boards_status_idx").on(t.status),
+    index("community_bingo_boards_created_idx").on(t.createdAt),
+  ],
+);
+
+export const communityBingoTiles = appSchema.table(
+  "community_bingo_tiles",
+  (d) => ({
+    id: d
+      .varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    boardId: d
+      .varchar("board_id", { length: 36 })
+      .notNull()
+      .references(() => communityBingoBoards.id, { onDelete: "cascade" }),
+    position: integer("position").notNull(),
+    label: varchar("label", { length: 240 }).notNull(),
+    completedById: d
+      .varchar("completed_by_id", { length: 255 })
+      .references(() => users.id, { onDelete: "set null" }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    proofSubmissionId: d.varchar("proof_submission_id", { length: 36 }),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    uniqueIndex("community_bingo_tiles_board_position_uq").on(t.boardId, t.position),
+    index("community_bingo_tiles_board_idx").on(t.boardId),
+    index("community_bingo_tiles_completed_idx").on(t.completedAt),
+  ],
+);
+
+export const communityBingoSubmissions = appSchema.table(
+  "community_bingo_submissions",
+  (d) => ({
+    id: d
+      .varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    boardId: d
+      .varchar("board_id", { length: 36 })
+      .notNull()
+      .references(() => communityBingoBoards.id, { onDelete: "cascade" }),
+    tileId: d
+      .varchar("tile_id", { length: 36 })
+      .notNull()
+      .references(() => communityBingoTiles.id, { onDelete: "cascade" }),
+    submittedById: d
+      .varchar("submitted_by_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    discordMessageUrl: text("discord_message_url").notNull(),
+    discordGuildId: varchar("discord_guild_id", { length: 64 }),
+    discordChannelId: varchar("discord_channel_id", { length: 64 }),
+    discordMessageId: varchar("discord_message_id", { length: 64 }),
+    note: varchar("note", { length: 500 }),
+    createdAt,
+  }),
+  (t) => [
+    uniqueIndex("community_bingo_submissions_tile_uq").on(t.tileId),
+    index("community_bingo_submissions_board_idx").on(t.boardId),
+    index("community_bingo_submissions_submitted_by_idx").on(t.submittedById),
+  ],
+);
+
+export const communityBingoScores = appSchema.table(
+  "community_bingo_scores",
+  (d) => ({
+    id: d
+      .varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    boardId: d
+      .varchar("board_id", { length: 36 })
+      .notNull()
+      .references(() => communityBingoBoards.id, { onDelete: "cascade" }),
+    userId: d
+      .varchar("user_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    points: integer("points").notNull().default(0),
+    tileClaims: integer("tile_claims").notNull().default(0),
+    updatedAt,
+    createdAt,
+  }),
+  (t) => [
+    uniqueIndex("community_bingo_scores_board_user_uq").on(t.boardId, t.userId),
+    index("community_bingo_scores_board_points_idx").on(t.boardId, t.points),
+  ],
+);
+
+export const communityBingoEvents = appSchema.table(
+  "community_bingo_events",
+  (d) => ({
+    id: d
+      .varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    boardId: d
+      .varchar("board_id", { length: 36 })
+      .notNull()
+      .references(() => communityBingoBoards.id, { onDelete: "cascade" }),
+    tileId: d.varchar("tile_id", { length: 36 }).references(() => communityBingoTiles.id, {
+      onDelete: "set null",
+    }),
+    actorUserId: d
+      .varchar("actor_user_id", { length: 255 })
+      .references(() => users.id, { onDelete: "set null" }),
+    eventType: communityBingoEventTypeEnum("event_type").notNull(),
+    metadata: jsonb("metadata"),
+    createdAt,
+  }),
+  (t) => [
+    index("community_bingo_events_board_created_idx").on(t.boardId, t.createdAt),
+    index("community_bingo_events_type_idx").on(t.eventType),
+  ],
+);
+
 // DEFAULT //
 
 // export const posts = appSchema.table(
@@ -1979,6 +2135,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   notifications: many(notifications),
   passkeys: many(passkeys),
   userLists: many(userLists),
+  communityBingoSubmissions: many(communityBingoSubmissions),
+  communityBingoScores: many(communityBingoScores),
 }));
 
 // Export the user type for use throughout the application
