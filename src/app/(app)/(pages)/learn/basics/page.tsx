@@ -1,7 +1,19 @@
 import { Library } from "lucide-react";
 import Link from "next/link";
+import type { Metadata } from "next";
 import LearnCard from "~/components/learn/learn-card";
 import { Button } from "~/components/ui/button";
+
+export const metadata: Metadata = {
+  title: "The Basics",
+  description:
+    "Start learning photography fundamentals, including modern cameras, exposure, and beginner-friendly paths.",
+  openGraph: {
+    title: "The Basics",
+    description:
+      "Start learning photography fundamentals, including modern cameras, exposure, and beginner-friendly paths.",
+  },
+};
 
 export default async function BasicsPage() {
   const featured = [

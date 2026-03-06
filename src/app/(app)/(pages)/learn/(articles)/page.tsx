@@ -1,7 +1,34 @@
 import Link from "next/link";
 import Image from "next/image";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Learn Photography",
+  description:
+    "Explore photography guides from beginner fundamentals to deeper concepts and practical techniques.",
+  openGraph: {
+    title: "Learn Photography",
+    description:
+      "Explore photography guides from beginner fundamentals to deeper concepts and practical techniques.",
+  },
+};
 
 export default function LearnPage() {
+  const basicsArticles = [
+    {
+      href: "/learn/the-basics-of-modern-cameras",
+      label: "Understanding Modern Cameras",
+    },
+    {
+      href: "/learn/the-exposure-triangle",
+      label: "The Exposure Triangle",
+    },
+    {
+      href: "/learn/every-way-to-enjoy-photography",
+      label: "Every Way to Enjoy Photography",
+    },
+  ];
+
   return (
     <>
       <h1 className="mt-2 text-2xl font-bold sm:text-4xl">Learn Photography</h1>
@@ -39,8 +66,18 @@ export default function LearnPage() {
         Below is a list of recommended reads that will help you understand the
         most important concepts in photography in no time.
       </p>
-      <div></div>
-      <></>
+      <ul className="not-prose mt-8 space-y-3">
+        {basicsArticles.map((article) => (
+          <li key={article.href}>
+            <Link
+              href={article.href}
+              className="text-base font-medium text-zinc-200 underline-offset-2 transition hover:underline"
+            >
+              {article.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
     </>
   );
 }

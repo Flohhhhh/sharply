@@ -27,7 +27,13 @@ export async function generateMetadata({
   const { slug } = await params;
   const page = await getLearnPageBySlug(slug);
   if (!page) {
-    return {};
+    return {
+      title: "Learn Article",
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
   }
   const imageSrc =
     page.thumbnail && typeof page.thumbnail === "object"
@@ -39,7 +45,7 @@ export async function generateMetadata({
     openGraph: {
       title: page.title,
       description: page.excerpt ?? "",
-      images: [imageSrc ?? ""],
+      ...(imageSrc ? { images: [imageSrc] } : {}),
     },
   };
 }
