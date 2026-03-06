@@ -7,9 +7,14 @@ import DiscordBanner from "~/components/discord-banner";
 import DiscordBingoClient from "./_components/discord-bingo-client";
 
 export const metadata: Metadata = {
-  title: "Community Bingo",
+  title: "Photography Lounge Bingo",
   description:
-    "Shared community bingo for Discord. Claim tiles with message links and keep the board active together.",
+    "A collaborative Photography Lounge bingo board. Work together with the community to claim tiles and earn points for every tile you mark off.",
+  openGraph: {
+    title: "Photography Lounge Bingo",
+    description:
+      "A collaborative Photography Lounge bingo board. Work together with the community to claim tiles and earn points for every tile you mark off.",
+  },
 };
 
 export default async function DiscordBingoPage() {
