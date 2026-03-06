@@ -292,13 +292,17 @@ export default function DiscordBingoClient(props: {
       setConfettiBursts((prev) => [...prev, { id: burstId, x: px, y: py }]);
     }
 
-    window.setTimeout(() => {
+    const timerId = window.setTimeout(() => {
       setHighlightTileIds((prev) => {
         const next = new Set(prev);
         for (const id of tileIds) next.delete(id);
         return next;
       });
     }, 1500);
+
+    return () => {
+      window.clearTimeout(timerId);
+    };
   }, [events, eventCursor, board, completionPhase]);
 
   useEffect(() => {

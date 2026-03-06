@@ -27,6 +27,10 @@ Defined in `src/server/db/schema.ts`:
   - `app.bingo_scores`
   - `app.bingo_events`
 
+Submission integrity:
+
+- `bingo_submissions.board_tile_id` is required and references `bingo_board_tiles.id` (`onDelete: cascade`)
+
 Board template behavior:
 
 - each new board samples exactly 24 random labels from `BINGO_TEMPLATE_LABELS`

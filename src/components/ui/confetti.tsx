@@ -33,12 +33,16 @@ type Props = React.ComponentPropsWithRef<"canvas"> & {
 export type ConfettiRef = Api | null
 
 const ConfettiContext = createContext<Api>({} as Api)
+const DEFAULT_GLOBAL_OPTIONS: ConfettiGlobalOptions = {
+  resize: true,
+  useWorker: true,
+}
 
 // Define component first
 const ConfettiComponent = forwardRef<ConfettiRef, Props>((props, ref) => {
   const {
     options,
-    globalOptions = { resize: true, useWorker: true },
+    globalOptions = DEFAULT_GLOBAL_OPTIONS,
     manualstart = false,
     children,
     ...rest
@@ -119,6 +123,8 @@ const ConfettiButtonComponent = ({
   children,
   ...props
 }: ConfettiButtonProps) => {
+  const { onClick: consumerOnClick, ...rest } = props
+
   const handleClick = async (event: React.MouseEvent<HTMLButtonElement>) => {
     try {
       const rect = event.currentTarget.getBoundingClientRect()
@@ -136,8 +142,14 @@ const ConfettiButtonComponent = ({
     }
   }
 
+  const composedHandler = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    consumerOnClick?.(event)
+    if (event.defaultPrevented) return
+    await handleClick(event)
+  }
+
   return (
-    <Button onClick={handleClick} {...props}>
+    <Button onClick={composedHandler} {...rest}>
       {children}
     </Button>
   )

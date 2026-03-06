@@ -85,6 +85,13 @@
       "when": 1772833933882,
       "tag": "0011_illegal_roughhouse",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1772836657645,
+      "tag": "0012_parallel_warstar",
+      "breakpoints": true
     }
   ]
 }

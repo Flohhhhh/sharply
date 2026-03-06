@@ -423,7 +423,7 @@ export function UserListsSection({
                   </p>
                 ) : null}
               </div>
-              {list.shared?.path ? (
+              {list.shared?.isPublished && list.shared?.path ? (
                 <div className="mt-2 flex justify-end">
                   <Button
                     asChild

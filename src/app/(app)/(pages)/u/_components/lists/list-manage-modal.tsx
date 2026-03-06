@@ -302,7 +302,7 @@ export function ListManageModal({
               Copy share link
             </Button>
           ) : null}
-          {list?.shared?.path ? (
+          {list?.shared?.isPublished && list?.shared?.path ? (
             <Button
               asChild
               size="sm"

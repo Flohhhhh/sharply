@@ -1,0 +1,2 @@
+ALTER TABLE "app"."bingo_submissions" ALTER COLUMN "board_tile_id" SET NOT NULL;--> statement-breakpoint
+ALTER TABLE "app"."bingo_submissions" ADD CONSTRAINT "bingo_submissions_board_tile_id_bingo_board_tiles_id_fk" FOREIGN KEY ("board_tile_id") REFERENCES "app"."bingo_board_tiles"("id") ON DELETE cascade ON UPDATE no action;

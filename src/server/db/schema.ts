@@ -2,6 +2,7 @@
 
 import { relations, sql } from "drizzle-orm";
 import {
+  type AnyPgColumn,
   index,
   pgEnum,
   pgTable,
@@ -1894,7 +1895,12 @@ export const bingoSubmissions = appSchema.table(
       .varchar("board_id", { length: 36 })
       .notNull()
       .references(() => bingoBoards.id, { onDelete: "cascade" }),
-    boardTileId: d.varchar("board_tile_id", { length: 36 }),
+    boardTileId: d
+      .varchar("board_tile_id", { length: 36 })
+      .notNull()
+      .references((): AnyPgColumn => bingoBoardTiles.id, {
+        onDelete: "cascade",
+      }),
     userId: d
       .varchar("user_id", { length: 255 })
       .notNull()
@@ -1934,7 +1940,9 @@ export const bingoBoardTiles = appSchema.table(
       .references(() => users.id, { onDelete: "set null" }),
     completedSubmissionId: d
       .varchar("completed_submission_id", { length: 36 })
-      .references(() => bingoSubmissions.id, { onDelete: "set null" }),
+      .references((): AnyPgColumn => bingoSubmissions.id, {
+        onDelete: "set null",
+      }),
     completedAt: timestamp("completed_at", { withTimezone: true }),
     createdAt,
     updatedAt,
