@@ -29,7 +29,7 @@ export default function BingoTile(props: {
       }}
       disabled={isDisabled}
       className={[
-        "border-border/80 relative flex aspect-square h-full w-full items-center justify-center overflow-visible rounded border p-4 text-center text-lg leading-tight",
+        "border-border/80 relative flex aspect-square h-full w-full items-center justify-center overflow-visible rounded border p-3 text-center leading-tight",
         completed
           ? "bg-primary text-primary-foreground"
           : "hover:bg-muted/30 cursor-pointer bg-transparent",
@@ -57,7 +57,12 @@ export default function BingoTile(props: {
             <p className="text-muted-foreground break-all">
               {tile.submission.discordMessageUrl}
             </p>
-            <Button asChild size="sm" variant="secondary" className="h-7 px-2 text-[11px]">
+            <Button
+              asChild
+              size="sm"
+              variant="secondary"
+              className="h-7 px-2 text-[11px]"
+            >
               <a
                 href={tile.submission.discordMessageUrl}
                 target="_blank"

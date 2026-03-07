@@ -529,7 +529,7 @@ export default function DiscordBingoClient(props: {
                     : COMPLETION_FADE_IN_MS / 1000,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className="grid min-h-0 grid-cols-[1fr_270px] gap-4 overflow-hidden"
+              className="grid min-h-0 grid-cols-[1fr_300px] gap-4 overflow-hidden"
             >
               <BingoBoardGrid
                 board={boardForGrid ?? undefined}
