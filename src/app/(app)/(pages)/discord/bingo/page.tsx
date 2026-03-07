@@ -26,7 +26,7 @@ export default async function DiscordBingoPage() {
   const canCompleteCard = env.NODE_ENV === "development";
 
   return (
-    <div className="mx-auto mt-24 w-full max-w-[1400px] px-4 pt-4 pb-4 sm:px-6 lg:px-8">
+    <div className="mx-auto mt-24 w-full max-w-[1200px] px-4 pt-4 pb-4 sm:px-6 lg:px-8">
       <div className="hidden grid-rows-[auto_1fr] gap-4 overflow-hidden lg:grid">
         <header className="space-y-2">
           <div className="flex items-end justify-between gap-4">
