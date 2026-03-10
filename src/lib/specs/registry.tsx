@@ -1355,10 +1355,9 @@ export const specDictionary: SpecSectionDef[] = [
         key: "focusMotorType",
         label: "Focus Motor Type",
         getRawValue: (item) => item.lensSpecs?.focusMotorType,
-        formatDisplay: (raw, item) => {
-          if (item.lensSpecs?.hasAutofocus !== true) return undefined;
-          return typeof raw === "string" ? (raw as string) : undefined;
-        },
+        formatDisplay: (raw) =>
+          typeof raw === "string" ? (raw as string) : undefined,
+        condition: (item) => item.lensSpecs?.hasAutofocus === true,
       },
       {
         key: "hasAfMfSwitch",
