@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "motion/react";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import type { BingoLeaderboardRow } from "~/types/bingo";
@@ -20,7 +21,10 @@ export default function BingoLeaderboard(props: {
               layout
               className="flex items-center justify-between border border-border/70 px-2 py-2"
             >
-              <div className="flex min-w-0 items-center gap-2">
+              <Link
+                href={`/u/${row.userId}`}
+                className="focus-visible:ring-ring/60 flex min-w-0 items-center gap-2 rounded-sm outline-none focus-visible:ring-2"
+              >
                 <Avatar className="size-8">
                   <AvatarImage src={row.image ?? undefined} alt={row.name ?? "Player"} />
                   <AvatarFallback>
@@ -30,7 +34,7 @@ export default function BingoLeaderboard(props: {
                 <span className="truncate text-sm font-semibold">
                   {row.name ?? "Community member"}
                 </span>
-              </div>
+              </Link>
               <span className="text-lg font-extrabold tabular-nums">{row.points}</span>
             </motion.div>
           ))

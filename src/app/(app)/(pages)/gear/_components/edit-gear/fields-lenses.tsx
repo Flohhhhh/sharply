@@ -11,7 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { Switch } from "~/components/ui/switch";
 import FocalLengthInput from "~/components/custom-inputs/focal-length-input";
 import LensApertureInput from "~/components/custom-inputs/lens-aperture-input";
 import { BooleanInput } from "~/components/custom-inputs";
@@ -75,6 +74,7 @@ function LensFieldsComponent({
 
   const isPrimeLens = currentSpecs?.isPrime === true;
   const hasStabilization = currentSpecs?.hasStabilization === true;
+  const hasAutofocus = currentSpecs?.hasAutofocus === true;
   const CLEAR_SENSOR_FORMAT_VALUE = "none";
   const sensorFormatOptions = useMemo(
     () =>
@@ -258,7 +258,84 @@ function LensFieldsComponent({
               checked={currentSpecs?.hasAutofocus ?? null}
               allowNull
               showStateText
-              onChange={(value) => handleFieldChange("hasAutofocus", value)}
+              onChange={(value) => {
+                handleFieldChange("hasAutofocus", value);
+                if (value !== true) {
+                  handleFieldChange("focusMotorType", null);
+                  handleFieldChange("hasAfMfSwitch", null);
+                  handleFieldChange("hasFocusLimiter", null);
+                  handleFieldChange("hasFocusRecallButton", null);
+                }
+              }}
+            />
+          )}
+
+          {/* Focus Motor Type */}
+          {showWhenMissing((initialSpecs as any)?.focusMotorType) && (
+            <div className="space-y-2">
+              <Label htmlFor="focusMotorType">Focus Motor Type</Label>
+              <Input
+                id="focusMotorType"
+                disabled={!hasAutofocus}
+                value={
+                  hasAutofocus ? (currentSpecs?.focusMotorType ?? "") : ""
+                }
+                onChange={(e) =>
+                  handleFieldChange(
+                    "focusMotorType",
+                    (e.target as HTMLInputElement).value,
+                  )
+                }
+              />
+            </div>
+          )}
+
+          {/* Has AF/MF Switch */}
+          {showWhenMissing((initialSpecs as any)?.hasAfMfSwitch) && (
+            <BooleanInput
+              id="hasAfMfSwitch"
+              label="Has AF/MF Switch"
+              checked={
+                hasAutofocus ? (currentSpecs?.hasAfMfSwitch ?? null) : null
+              }
+              disabled={!hasAutofocus}
+              allowNull
+              showStateText
+              onChange={(value) => handleFieldChange("hasAfMfSwitch", value)}
+            />
+          )}
+
+          {/* Has Focus Limiter */}
+          {showWhenMissing((initialSpecs as any)?.hasFocusLimiter) && (
+            <BooleanInput
+              id="hasFocusLimiter"
+              label="Has Focus Limiter"
+              checked={
+                hasAutofocus ? (currentSpecs?.hasFocusLimiter ?? null) : null
+              }
+              disabled={!hasAutofocus}
+              allowNull
+              showStateText
+              onChange={(value) => handleFieldChange("hasFocusLimiter", value)}
+            />
+          )}
+
+          {/* Has Focus Recall Button */}
+          {showWhenMissing((initialSpecs as any)?.hasFocusRecallButton) && (
+            <BooleanInput
+              id="hasFocusRecallButton"
+              label="Has Focus Recall Button"
+              checked={
+                hasAutofocus
+                  ? (currentSpecs?.hasFocusRecallButton ?? null)
+                  : null
+              }
+              disabled={!hasAutofocus}
+              allowNull
+              showStateText
+              onChange={(value) =>
+                handleFieldChange("hasFocusRecallButton", value)
+              }
             />
           )}
 
@@ -297,23 +374,6 @@ function LensFieldsComponent({
               ) : null}
             </div>
           )}
-          {/* Focus Motor Type */}
-          {showWhenMissing((initialSpecs as any)?.focusMotorType) && (
-            <div className="space-y-2">
-              <Label htmlFor="focusMotorType">Focus Motor Type</Label>
-              <Input
-                id="focusMotorType"
-                value={currentSpecs?.focusMotorType ?? ""}
-                onChange={(e) =>
-                  handleFieldChange(
-                    "focusMotorType",
-                    (e.target as HTMLInputElement).value,
-                  )
-                }
-              />
-            </div>
-          )}
-
           {/* Has Focus Ring */}
           {showWhenMissing((initialSpecs as any)?.hasFocusRing) && (
             <BooleanInput
@@ -323,44 +383,6 @@ function LensFieldsComponent({
               allowNull
               showStateText
               onChange={(value) => handleFieldChange("hasFocusRing", value)}
-            />
-          )}
-
-          {/* Has AF/MF Switch */}
-          {showWhenMissing((initialSpecs as any)?.hasAfMfSwitch) && (
-            <BooleanInput
-              id="hasAfMfSwitch"
-              label="Has AF/MF Switch"
-              checked={currentSpecs?.hasAfMfSwitch ?? null}
-              allowNull
-              showStateText
-              onChange={(value) => handleFieldChange("hasAfMfSwitch", value)}
-            />
-          )}
-
-          {/* Has Focus Limiter */}
-          {showWhenMissing((initialSpecs as any)?.hasFocusLimiter) && (
-            <BooleanInput
-              id="hasFocusLimiter"
-              label="Has Focus Limiter"
-              checked={currentSpecs?.hasFocusLimiter ?? null}
-              allowNull
-              showStateText
-              onChange={(value) => handleFieldChange("hasFocusLimiter", value)}
-            />
-          )}
-
-          {/* Has Focus Recall Button */}
-          {showWhenMissing((initialSpecs as any)?.hasFocusRecallButton) && (
-            <BooleanInput
-              id="hasFocusRecallButton"
-              label="Has Focus Recall Button"
-              checked={currentSpecs?.hasFocusRecallButton ?? null}
-              allowNull
-              showStateText
-              onChange={(value) =>
-                handleFieldChange("hasFocusRecallButton", value)
-              }
             />
           )}
 

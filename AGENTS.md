@@ -101,3 +101,32 @@ Sharply is a photography gear database and cataloging application built with Nex
 - **Documentation must stay synchronized with code changes**
 - **Follow existing naming conventions** for consistency
 - **Use Drizzle ORM features** instead of raw SQL when possible
+
+## Cursor Cloud specific instructions
+
+### Services
+
+| Service | How to start | Notes |
+|---|---|---|
+| PostgreSQL | `sudo pg_ctlcluster 16 main start` | Must be running before the Next.js dev server or any DB commands |
+| Next.js dev server | `npm run dev` | Runs at http://localhost:3000 with Turbopack; includes embedded Payload CMS at `/cms` |
+
+### Running lint and typecheck
+
+- `SKIP_ENV_VALIDATION=1 npm run lint` — `next lint` internally sets `NODE_ENV=production`, which makes optional env vars required. Prefix with `SKIP_ENV_VALIDATION=1` to avoid false failures.
+- `npm run typecheck` — works without special flags.
+- `npm run check` — runs both lint + typecheck; also needs `SKIP_ENV_VALIDATION=1`.
+
+### Running tests
+
+- `npm test` — runs vitest unit tests. No database or dev server required.
+
+### Database setup
+
+- After PostgreSQL is running, use `npm run db:push` to sync the schema, then optionally `npm run db:seed -- --confirm-seed` to populate sample data.
+- See `README.md` "Database" section for full details.
+
+### Environment variables
+
+- Only `DATABASE_URL`, `PAYLOAD_SECRET`, and `NEXT_PUBLIC_BASE_URL` are required for dev. See `.env.example` for the full list. `AUTH_SECRET` and auth provider keys are optional in development mode.
+- The `.env` file is gitignored and must be created per-environment.
