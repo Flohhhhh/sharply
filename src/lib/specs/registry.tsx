@@ -105,6 +105,7 @@ function renderBadgeColumn(
     .map((value) => value.trim())
     .filter((value) => value.length > 0);
   if (!cleaned.length) return undefined;
+  const keyCounts = new Map<string, number>();
   return (
     <div
       className={cn(
@@ -115,15 +116,24 @@ function renderBadgeColumn(
         singleItemPerRow ? "flex-col" : "",
       )}
     >
-      {cleaned.map((value) => (
-        <Badge
-          key={value}
-          variant="outline"
-          className={cn("text-sm", forceLeftAlign ? "text-left" : "text-right")}
-        >
-          {value}
-        </Badge>
-      ))}
+      {cleaned.map((value) => {
+        const nextCount = (keyCounts.get(value) ?? 0) + 1;
+        keyCounts.set(value, nextCount);
+        const key = nextCount === 1 ? value : `${value}-${nextCount}`;
+
+        return (
+          <Badge
+            key={key}
+            variant="outline"
+            className={cn(
+              "text-sm",
+              forceLeftAlign ? "text-left" : "text-right",
+            )}
+          >
+            {value}
+          </Badge>
+        );
+      })}
     </div>
   );
 }
@@ -153,6 +163,7 @@ export type SpecFieldDef = {
   key: string; // Stable identifier (e.g., "announcedDate", "resolutionMp")
   label: string; // Human-readable label for display
   labelOverride?: (item: GearItem) => string; // Optional per-item label
+  searchTerms?: string[]; // Optional aliases used by client-side filtering
   getRawValue: (item: GearItem) => unknown; // Extract raw value from GearItem
   formatDisplay?: (
     raw: unknown,
@@ -198,6 +209,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "mounts",
         label: "Mount",
+        searchTerms: ["lens mount", "camera mount"],
         labelOverride: (item) =>
           item.gearType === "LENS" &&
           item.mountIds?.length &&
@@ -231,6 +243,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "announcedDate",
         label: "Announced Date",
+        searchTerms: ["announcement date", "launch date", "announcement"],
         getRawValue: (item) => item.announcedDate,
         formatDisplay: (_, item) =>
           item.announcedDate
@@ -244,6 +257,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "releaseDate",
         label: "Release Date",
+        searchTerms: ["launch date", "availability date", "release"],
         getRawValue: (item) => item.releaseDate,
         formatDisplay: (_, item) =>
           item.releaseDate
@@ -257,6 +271,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "msrpAtLaunchUsdCents",
         label: "MSRP At Launch",
+        searchTerms: ["price", "launch price", "retail price", "cost", "msrp"],
         getRawValue: (item) => item.msrpAtLaunchUsdCents,
         formatDisplay: (raw) => (raw ? formatPrice(raw as number) : undefined),
         editElementId: "msrpAtLaunch",
@@ -264,6 +279,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "msrpNowUsdCents",
         label: "MSRP Now",
+        searchTerms: ["price", "current price", "retail price", "cost", "msrp"],
         getRawValue: (item) => item.msrpNowUsdCents,
         formatDisplay: (raw) => (raw ? formatPrice(raw as number) : undefined),
         editElementId: "msrpNow",
@@ -271,6 +287,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "mpbMaxPriceUsdCents",
         label: "MPB Max Price",
+        searchTerms: ["price", "used price", "market price", "cost"],
         getRawValue: (item) => item.mpbMaxPriceUsdCents,
         formatDisplay: (raw) => (raw ? formatPrice(raw as number) : undefined),
         editElementId: "mpbMaxPrice",
@@ -278,6 +295,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "weightGrams",
         label: "Weight",
+        searchTerms: ["mass"],
         getRawValue: (item) => item.weightGrams,
         formatDisplay: (raw) => {
           const n = raw == null ? NaN : Number(raw);
@@ -421,6 +439,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "resolutionMp",
         label: "Resolution",
+        searchTerms: ["megapixels", "megapixel", "mp", "sensor resolution"],
         getRawValue: (item) => item.cameraSpecs?.resolutionMp,
         formatDisplay: (raw) =>
           raw != null ? `${Number(raw).toFixed(1)} megapixels` : undefined,
@@ -449,6 +468,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "maxFpsByShutter",
         label: "Max Continuous FPS",
+        searchTerms: ["fps", "burst", "burst rate", "continuous shooting", "frame rate"],
         condenseOnMobile: true,
         getRawValue: (item) => ({
           perShutter: item.cameraSpecs?.maxFpsByShutter,
@@ -482,6 +502,12 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "hasIbis",
         label: "Has IBIS",
+        searchTerms: [
+          "stabilization",
+          "image stabilization",
+          "in-body image stabilization",
+          "in body stabilization",
+        ],
         getRawValue: (item) => item.cameraSpecs?.hasIbis,
         formatDisplay: (raw, item) =>
           typeof raw === "boolean"
@@ -491,6 +517,12 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "hasElectronicVibrationReduction",
         label: "Has Digital Stabilization",
+        searchTerms: [
+          "stabilization",
+          "digital stabilization",
+          "electronic stabilization",
+          "eis",
+        ],
         getRawValue: (item) =>
           item.cameraSpecs?.hasElectronicVibrationReduction,
         formatDisplay: (raw, item) =>
@@ -499,6 +531,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "cipaStabilizationRatingStops",
         label: "CIPA Stabilization Rating Stops",
+        searchTerms: ["stabilization", "ibis", "image stabilization"],
         getRawValue: (item) => item.cameraSpecs?.cipaStabilizationRatingStops,
         condition: (item) => item.cameraSpecs?.hasIbis === true,
         formatDisplay: (raw) =>
@@ -894,6 +927,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "focusPoints",
         label: "Focus Points",
+        searchTerms: ["autofocus", "af points", "af"],
         getRawValue: (item) => item.cameraSpecs?.focusPoints,
         formatDisplay: (raw) =>
           typeof raw === "number" || typeof raw === "string"
@@ -903,6 +937,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "hasFocusPeaking",
         label: "Has Focus Peaking",
+        searchTerms: ["manual focus", "focus assist", "mf assist"],
         getRawValue: (item) => item.cameraSpecs?.hasFocusPeaking,
         formatDisplay: (raw) =>
           typeof raw === "boolean" ? yesNoNull(raw, true) : undefined,
@@ -917,6 +952,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "afAreaModes",
         label: "AF Area Modes",
+        searchTerms: ["autofocus", "af", "focus modes", "focus areas"],
         getRawValue: (item) => item.cameraSpecs?.afAreaModes,
         formatDisplay: (raw, _, forceLeftAlign) => {
           if (!Array.isArray(raw) || raw.length === 0) return undefined;
@@ -953,6 +989,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "afSubjectCategories",
         label: "AF Subject Categories",
+        searchTerms: ["autofocus", "af", "subject detection", "subject recognition"],
         getRawValue: (item) => item.cameraSpecs?.afSubjectCategories,
         formatDisplay: (raw, _, forceLeftAlign) => {
           if (!Array.isArray(raw)) return undefined;
@@ -979,6 +1016,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "cipaBatteryShotsPerCharge",
         label: "CIPA Battery Shots Per Charge",
+        searchTerms: ["battery life", "battery", "shots per charge"],
         getRawValue: (item) => item.cameraSpecs?.cipaBatteryShotsPerCharge,
         formatDisplay: (raw) =>
           typeof raw === "number" || typeof raw === "string"
@@ -989,6 +1027,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "usbCharging",
         label: "Supports USB Charging",
+        searchTerms: ["charging", "usb-c charging", "usb charge"],
         getRawValue: (item) => item.cameraSpecs?.usbCharging,
         formatDisplay: (raw) =>
           typeof raw === "boolean" ? yesNoNull(raw, true) : undefined,
@@ -996,6 +1035,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "usbPowerDelivery",
         label: "Supports USB Power Delivery",
+        searchTerms: ["charging", "power delivery", "usb pd"],
         getRawValue: (item) => item.cameraSpecs?.usbPowerDelivery,
         formatDisplay: (raw) =>
           typeof raw === "boolean" ? yesNoNull(raw, true) : undefined,
@@ -1205,6 +1245,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "focalLength",
         label: "Focal Length",
+        searchTerms: ["zoom range", "zoom", "mm"],
         getRawValue: (item) => ({
           isPrime: item.lensSpecs?.isPrime,
           min: item.lensSpecs?.focalLengthMinMm,
@@ -1248,6 +1289,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "minimumFocusDistanceMm",
         label: "Minimum Focus Distance",
+        searchTerms: ["minimum focus distance", "close focus", "mfd"],
         getRawValue: (item) => item.lensSpecs?.minimumFocusDistanceMm,
         formatDisplay: (raw) =>
           raw != null ? formatFocusDistance(raw as number) : undefined,
@@ -1423,6 +1465,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "hasStabilization",
         label: "Has Image Stabilization",
+        searchTerms: ["stabilization", "ois", "vr", "os", "image stabilization"],
         getRawValue: (item) => item.lensSpecs?.hasStabilization,
         formatDisplay: (raw) =>
           typeof raw === "boolean" ? yesNoNull(raw) : undefined,
@@ -1430,6 +1473,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "hasStabilizationSwitch",
         label: "Has Stabilization Switch",
+        searchTerms: ["stabilization", "ois switch", "vr switch"],
         getRawValue: (item) => item.lensSpecs?.hasStabilizationSwitch,
         formatDisplay: (raw) =>
           typeof raw === "boolean" ? yesNoNull(raw) : undefined,
@@ -1438,6 +1482,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "cipaStabilizationRatingStops",
         label: "CIPA Stabilization Rating Stops",
+        searchTerms: ["stabilization", "ois", "image stabilization"],
         getRawValue: (item) => item.lensSpecs?.cipaStabilizationRatingStops,
         formatDisplay: (raw) => {
           const n = raw == null ? NaN : Number(raw);
@@ -1904,6 +1949,7 @@ export function buildGearSpecsSections(
           return {
             label,
             value: value,
+            searchTerms: field.searchTerms,
             fullWidth: !label,
             condenseOnMobile: field.condenseOnMobile,
           };
