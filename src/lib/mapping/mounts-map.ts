@@ -6,7 +6,11 @@
 import { MOUNTS } from "~/lib/constants";
 import type { Mount } from "~/types/gear";
 
-type MountConst = Pick<Mount, "id"> & { value: string };
+type MountConst = Pick<Mount, "id"> & {
+  value: string;
+  short_name?: string | null;
+  brand_id?: string | null;
+};
 const MOUNT_LIST = MOUNTS as MountConst[];
 
 /**
@@ -25,6 +29,17 @@ export function getMountDisplayName(
   // Remove everything after the dash and uppercase
   const displayName = mountValue.split("-")[0]?.toUpperCase();
   return displayName || mountValue;
+}
+
+export function getMountById(mountId: string | null | undefined) {
+  if (!mountId) return null;
+  return MOUNT_LIST.find((mount) => mount.id === mountId) ?? null;
+}
+
+export function getMountShortNameById(
+  mountId: string | null | undefined,
+): string | null {
+  return getMountById(mountId)?.short_name ?? null;
 }
 
 /**
@@ -56,7 +71,7 @@ export function getMountLongName(
  */
 export function getMountNameById(mountId: string | null | undefined): string {
   if (!mountId) return "Unknown";
-  const m = MOUNT_LIST.find((x) => x.id === mountId);
+  const m = getMountById(mountId);
   if (!m) return mountId;
   return getMountDisplayName(m.value);
 }
@@ -68,7 +83,7 @@ export function getMountLongNameById(
   mountId: string | null | undefined,
 ): string {
   if (!mountId) return "Unknown";
-  const m = MOUNT_LIST.find((x) => x.id === mountId);
+  const m = getMountById(mountId);
   if (!m) return mountId;
   return getMountLongName(m.value);
 }
@@ -100,7 +115,7 @@ export function getMountLongNamesById(
 }
 
 export const getMountSlugById = (id: string) => {
-  const m = MOUNT_LIST.find((x) => x.id === id);
+  const m = getMountById(id);
   return m?.value;
 };
 
