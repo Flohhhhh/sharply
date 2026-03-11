@@ -11,6 +11,7 @@ interface GearActionButtonsProps {
   name: string;
   regionalAliases?: GearAlias[] | null;
   gearType?: string | null;
+  initialIsAuthenticated: boolean;
 }
 
 export async function GearActionButtons({
@@ -18,6 +19,7 @@ export async function GearActionButtons({
   name,
   regionalAliases,
   gearType,
+  initialIsAuthenticated,
 }: GearActionButtonsProps) {
   let initialInWishlist: boolean | null = null;
   let initialIsOwned: boolean | null = null;
@@ -34,19 +36,21 @@ export async function GearActionButtons({
       }
     | null = null;
 
-  try {
-    const [wl, own, saveState] = await Promise.all([
-      fetchWishlistStatus(slug).catch(() => null),
-      fetchOwnershipStatus(slug).catch(() => null),
-      fetchCurrentUserListPickerStateForGear(slug).catch(() => null),
-    ]);
-    initialInWishlist = wl ? Boolean(wl.inWishlist) : null;
-    initialIsOwned = own ? Boolean(own.isOwned) : null;
-    initialSaveState = saveState;
-  } catch {
-    initialInWishlist = null;
-    initialIsOwned = null;
-    initialSaveState = null;
+  if (initialIsAuthenticated) {
+    try {
+      const [wl, own, saveState] = await Promise.all([
+        fetchWishlistStatus(slug).catch(() => null),
+        fetchOwnershipStatus(slug).catch(() => null),
+        fetchCurrentUserListPickerStateForGear(slug).catch(() => null),
+      ]);
+      initialInWishlist = wl ? Boolean(wl.inWishlist) : null;
+      initialIsOwned = own ? Boolean(own.isOwned) : null;
+      initialSaveState = saveState;
+    } catch {
+      initialInWishlist = null;
+      initialIsOwned = null;
+      initialSaveState = null;
+    }
   }
 
   return (
@@ -55,6 +59,7 @@ export async function GearActionButtons({
       name={name}
       regionalAliases={regionalAliases}
       gearType={gearType}
+      initialIsAuthenticated={initialIsAuthenticated}
       initialInWishlist={initialInWishlist}
       initialIsOwned={initialIsOwned}
       initialSaveState={initialSaveState}

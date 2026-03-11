@@ -465,6 +465,7 @@ export default async function GearPage({ params }: GearPageProps) {
               name={item.name}
               regionalAliases={item.regionalAliases}
               gearType={item.gearType}
+              initialIsAuthenticated={isAuthenticated}
             />
           </div>
           {/* Links */}
