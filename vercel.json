@@ -8,6 +8,10 @@
     {
       "path": "/api/admin/badges/anniversary",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/admin/proposals/webhook/flush",
+      "schedule": "*/5 * * * *"
     }
   ]
 }

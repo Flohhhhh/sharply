@@ -61,6 +61,7 @@ It's highly advised you set up at least one of these, otherwise you can't test o
 
 - `CRON_SECRET` – only required when hitting the secured cron routes such as `/api/admin/popularity/rollup`
 - `DISCORD_ROLLUP_WEBHOOK_URL` – used to post rollup status messages to Discord; rollups still run without it
+- `DISCORD_CHANGE_REQUEST_WEBHOOK_URL` – used for moderator alerts on new pending change requests (immediate + aggregated via `/api/admin/proposals/webhook/flush`)
 - `OPENAI_API_KEY` – enables AI review summaries; `src/server/reviews/summary/service.ts` safely no-ops if it is missing
 - `UPLOADTHING_TOKEN` – used exclusively by the Payload CMS instance (`src/payload.config.ts`); the main Next.js app does not import it
 
