@@ -381,7 +381,17 @@ export function GearSearchCombobox({
           <PopoverContent
             className="p-0"
             align="start"
-            onOpenAutoFocus={(event) => event.preventDefault()}
+            onOpenAutoFocus={(event) => {
+              event.preventDefault();
+              const popoverContentElement = event.currentTarget;
+              if (!(popoverContentElement instanceof HTMLElement)) return;
+              const searchInputElement = popoverContentElement.querySelector(
+                '[data-slot="command-input"]',
+              );
+              if (searchInputElement instanceof HTMLInputElement) {
+                searchInputElement.focus();
+              }
+            }}
             style={shouldMeasureTrigger ? { width: triggerWidth } : undefined}
           >
             <Command shouldFilter={false}>
