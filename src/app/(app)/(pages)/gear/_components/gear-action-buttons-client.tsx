@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useSession } from "~/lib/auth/auth-client";
 import { Button } from "~/components/ui/button";
-import { Package, PackageOpen } from "lucide-react";
+import { Bookmark, Heart, Package, PackageOpen } from "lucide-react";
 import { toast } from "sonner";
 import { withBadgeToasts } from "~/components/badges/badge-toast";
 import { CompareButton } from "~/components/compare/compare-button";
@@ -45,7 +45,8 @@ export function GearActionButtonsClient({
   const displayName = useGearDisplayName({ name, regionalAliases });
 
   const session = data?.session;
-  const user = data?.user;
+  const callbackUrl = `/gear/${slug}`;
+  const signInUrl = `/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`;
 
   const [isOwned, setIsOwned] = useState<boolean | null>(() => initialIsOwned ?? null);
   const [loading, setLoading] = useState({
@@ -54,8 +55,17 @@ export function GearActionButtonsClient({
 
   // Initial state comes from the server wrapper props; no client fetch
 
+  const handleRequireAuthInteraction = () => {
+    if (isPending) return;
+    window.location.href = signInUrl;
+  };
+
   const handleOwnershipToggle = async () => {
-    if (!session || isOwned === null) return;
+    if (!session) {
+      handleRequireAuthInteraction();
+      return;
+    }
+    if (isOwned === null) return;
 
     setLoading((prev) => ({ ...prev, ownership: true }));
     try {
@@ -78,7 +88,7 @@ export function GearActionButtonsClient({
       } else {
         toast.error("Failed to update collection");
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to update collection");
     } finally {
       setLoading((prev) => ({ ...prev, ownership: false }));
@@ -97,10 +107,43 @@ export function GearActionButtonsClient({
 
   if (!session) {
     return (
-      <div className="pt-4">
-        <Button variant="outline" className="w-full" disabled>
-          Sign in to interact with gear
+      <div className="space-y-3 pt-4">
+        <Button
+          variant="outline"
+          className="w-full justify-start"
+          icon={<Bookmark />}
+          onClick={handleRequireAuthInteraction}
+        >
+          Save Item
         </Button>
+
+        <Button
+          variant="outline"
+          className="w-full justify-start"
+          icon={<Heart />}
+          onClick={handleRequireAuthInteraction}
+        >
+          Add to Wishlist
+        </Button>
+
+        <Button
+          variant="outline"
+          className="w-full justify-start"
+          icon={<PackageOpen />}
+          onClick={handleRequireAuthInteraction}
+        >
+          Add to Collection
+        </Button>
+
+        <CompareButton
+          slug={slug}
+          name={displayName}
+          gearType={gearType}
+          size="md"
+          variant="outline"
+          className="w-full justify-start"
+          showLabel
+        />
       </div>
     );
   }
