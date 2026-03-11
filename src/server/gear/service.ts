@@ -39,6 +39,7 @@ import type { GearItem, RawSample } from "~/types/gear";
 import { normalizeProposalPayloadForDb } from "~/server/db/normalizers";
 import { evaluateForEvent } from "~/server/badges/service";
 import { approveProposal } from "~/server/admin/proposals/service";
+import { notifyChangeRequestModerators } from "~/server/admin/proposals/webhook";
 import {
   createGearEditProposal,
   fetchLatestGearCardsData,
@@ -739,6 +740,25 @@ export async function submitGearEditProposal(body: unknown) {
   const resultProposal = autoApproved
     ? { ...proposal, status: "APPROVED" as const }
     : proposal;
+
+  if (resultProposal.status === "PENDING") {
+    try {
+      await notifyChangeRequestModerators({
+        proposalId: resultProposal.id,
+        gearId,
+        gearType: gearMeta?.gearType ?? null,
+        gearName: gearMeta?.name ?? "Gear",
+        gearSlug: gearMeta?.slug ?? data.slug ?? gearId,
+      });
+    } catch (error) {
+      console.error("[submitGearEditProposal] moderator webhook notify failed", {
+        proposalId: resultProposal.id,
+        gearId,
+        error,
+      });
+    }
+  }
+
   return { ok: true as const, proposal: resultProposal, autoApproved };
 }
 

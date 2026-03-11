@@ -22,14 +22,13 @@ import type { GearItem } from "~/types/gear";
 import { GearContributors } from "~/app/(app)/(pages)/gear/_components/gear-contributors";
 import { UserPendingEditBanner } from "../_components/user-pending-edit-banner";
 import { SignInToEditSpecsCta } from "../_components/sign-in-to-edit-cta";
-import { SuggestEditButton } from "../_components/suggest-edit-button";
 import { GearLinks } from "~/app/(app)/(pages)/gear/_components/gear-links";
 import GearStatsCard from "../_components/gear-stats-card";
 import { TrendingBadge } from "~/components/gear-badges/trending-badge";
 import { NewBadge } from "~/components/gear-badges/new-badge";
 import { isNewRelease } from "~/lib/utils/is-new";
 import { getTrendingStatusForSlugs } from "~/server/popularity/service";
-import SpecsTable from "../_components/specs-table";
+import { SpecsSection } from "../_components/specs-section";
 import { buildGearSpecsSections } from "~/lib/specs/registry";
 import type { GearType } from "~/types/gear";
 import type { Metadata } from "next";
@@ -385,16 +384,12 @@ export default async function GearPage({ params }: GearPageProps) {
           <StaffVerdictSection slug={slug} verdict={verdict} />
 
           {/* Specifications */}
-          <section className="scroll-mt-24" id="specs">
-            <div className="mb-2 flex items-center justify-between">
-              <h2 className="mb-2 text-lg font-semibold">Specifications</h2>
-              <SuggestEditButton
-                slug={item.slug}
-                gearType={item.gearType as GearType}
-              />
-            </div>
-            <SpecsTable sections={specSections} item={item} />
-          </section>
+          <SpecsSection
+            item={item}
+            sections={specSections}
+            slug={item.slug}
+            gearType={item.gearType as GearType}
+          />
           {/* Sign-in CTA banner for editing specs (client, only when signed out) */}
           <SignInToEditSpecsCta
             slug={item.slug}
@@ -470,6 +465,7 @@ export default async function GearPage({ params }: GearPageProps) {
               name={item.name}
               regionalAliases={item.regionalAliases}
               gearType={item.gearType}
+              initialIsAuthenticated={isAuthenticated}
             />
           </div>
           {/* Links */}

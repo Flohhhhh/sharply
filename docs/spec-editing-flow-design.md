@@ -247,6 +247,14 @@ On approval, the UI builds a merged, filtered payload composed of only the selec
   - Applies updates across `core`, `camera`, `lens`, and `cameraCardSlots` (replace set) as provided.
   - Marks all other pending proposals for the same gear as `MERGED` to prevent stale follow-up conflicts.
 
+### Moderator webhook notifications
+
+- New pending change requests trigger moderator Discord webhook notifications via `src/server/admin/proposals/webhook.ts`.
+- First request after idle sends immediately and opens a 60-minute aggregation window in Upstash Redis.
+- Additional requests during the active window are counted and sampled (up to 5 compact items) for one follow-up summary.
+- A serverless cron route (`/api/admin/proposals/webhook/flush`) runs every 5 minutes, flushes only after the window expires, and sends the aggregated summary when pending count is greater than zero.
+- Flush uses a short-lived Redis lock to avoid duplicate summary sends under concurrent cron invocations.
+
 ### Guardrails
 
 - Approve button disabled until all conflicts have an explicit selection.

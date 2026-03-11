@@ -68,7 +68,19 @@ export function CompareButton({
         {showLabel ? "Compare" : <span className="sr-only">Compare</span>}
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent
+          onOpenAutoFocus={(event) => {
+            event.preventDefault();
+            const dialogContentElement = event.currentTarget as HTMLDivElement;
+            window.requestAnimationFrame(() => {
+              const triggerElement =
+                dialogContentElement.querySelector<HTMLButtonElement>(
+                  '[role="combobox"]',
+                );
+              triggerElement?.click();
+            });
+          }}
+        >
           <DialogHeader>
             <DialogTitle>Compare {name}</DialogTitle>
             <DialogDescription>

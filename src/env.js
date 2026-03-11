@@ -37,6 +37,7 @@ export const env = createEnv({
       process.env.NODE_ENV === "production"
         ? z.string().url()
         : z.string().url().optional(),
+    DISCORD_CHANGE_REQUEST_WEBHOOK_URL: z.string().url().optional(),
     OPENAI_API_KEY:
       process.env.NODE_ENV === "production"
         ? z.string()
@@ -85,6 +86,8 @@ export const env = createEnv({
     DATABASE_URL: process.env.DATABASE_URL,
     CRON_SECRET: process.env.CRON_SECRET,
     DISCORD_ROLLUP_WEBHOOK_URL: process.env.DISCORD_ROLLUP_WEBHOOK_URL,
+    DISCORD_CHANGE_REQUEST_WEBHOOK_URL:
+      process.env.DISCORD_CHANGE_REQUEST_WEBHOOK_URL,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     NODE_ENV: process.env.NODE_ENV,
     PAYLOAD_SECRET: process.env.PAYLOAD_SECRET,
