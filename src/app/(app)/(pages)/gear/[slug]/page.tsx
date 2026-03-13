@@ -478,7 +478,7 @@ export default async function GearPage({ params }: GearPageProps) {
           <div className="mb-8">
             <GearLinks
               slug={item.slug}
-              brandName={brand ?? null}
+              brandName={item.brands?.name ?? brand?.name ?? null}
               linkManufacturer={item.linkManufacturer ?? null}
               linkMpb={item.linkMpb ?? null}
               linkBh={item.linkBh ?? null}
