@@ -13,6 +13,7 @@
     "db:seed": "tsx scripts/seed.ts",
     "reviews:generate-fake-summary": "tsx scripts/generate-fake-review-summary.ts",
     "gear:list-missing-links": "tsx scripts/list-missing-links.ts",
+    "raw-samples:cleanup": "tsx scripts/cleanup-deleted-raw-samples.ts",
     "constants:generate": "tsx scripts/generate-constants.ts",
     "users:backfill-member-numbers": "tsx scripts/backfill-member-numbers.ts",
     "gear:backfill-updated-at": "tsx scripts/backfill-gear-updated-at.ts",
