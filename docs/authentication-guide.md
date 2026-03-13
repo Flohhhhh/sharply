@@ -180,6 +180,16 @@ if (!error) {
 await signOut({ callbackURL: "/" });
 ```
 
+## Development auth bypass
+
+Sharply includes an opt-in dev login route for local work and automation:
+
+- Set `DEV_AUTH=true` to enable it.
+- Optionally set `DEV_AUTH_EMAIL` to choose which user email to sign in as. If no user exists, Sharply creates a default `"Development User"` row with that email through the existing Drizzle schema.
+- Visit `/api/dev-login` to create a real Better Auth session and redirect to `/`.
+
+This bypass is hard-disabled when `NODE_ENV=production`, even if `DEV_AUTH=true` is present. The route returns `404` outside approved non-production environments so open-source deployments do not accidentally expose it.
+
 ## Protected layout pattern
 
 ```tsx
