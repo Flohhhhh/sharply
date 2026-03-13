@@ -134,3 +134,10 @@ Sharply is a photography gear database and cataloging application built with Nex
 - Secrets are injected as environment variables (`DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `AUTH_SECRET`, `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`, `UPLOADTHING_TOKEN`, etc.). Write them into `.env` for the Next.js dev server to pick up.
 - `PAYLOAD_SECRET` and `NEXT_PUBLIC_BASE_URL` are not injected and must be set manually in `.env` (any arbitrary string works for `PAYLOAD_SECRET` in dev).
 - The `.env` file is gitignored and must be created per-environment.
+
+### Auth for gated feature testing
+
+- When a dev or CI agent needs auth to test a gated feature, prefer the dev bypass instead of OAuth or email flows.
+- Set `DEV_AUTH=true` in `.env`; optionally set `DEV_AUTH_EMAIL` to choose the test user.
+- Start the app locally and hit `/api/dev-login`, then continue testing with the issued Better Auth session cookie.
+- `DEV_AUTH` is ignored in production. `DEV_AUTH_LOCALHOST_ONLY` defaults to `true`, so use `localhost` hosts unless you intentionally set it to `false` for another dev/CI hostname.
