@@ -48,6 +48,7 @@ export const env = createEnv({
     RESEND_EMAIL_CONTACT: z.string().email().optional(),
     DEV_AUTH: z.enum(["true", "false"]).optional(),
     DEV_AUTH_EMAIL: z.string().email().optional(),
+    DEV_AUTH_LOCALHOST_ONLY: z.enum(["true", "false"]).optional(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -98,6 +99,7 @@ export const env = createEnv({
     RESEND_EMAIL_CONTACT: process.env.RESEND_EMAIL_CONTACT,
     DEV_AUTH: process.env.DEV_AUTH,
     DEV_AUTH_EMAIL: process.env.DEV_AUTH_EMAIL,
+    DEV_AUTH_LOCALHOST_ONLY: process.env.DEV_AUTH_LOCALHOST_ONLY,
     UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN,
     NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
     MPB_PARTNERIZE_BASE_URL: process.env.MPB_PARTNERIZE_BASE_URL,

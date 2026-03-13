@@ -14,6 +14,7 @@ type DevelopmentAuthConfig = {
   nodeEnv: "development" | "test" | "production";
   devAuthFlag?: string;
   devAuthEmail?: string;
+  localhostOnlyFlag?: string;
 };
 
 export function isDevelopmentAuthEnabledForConfig({
@@ -44,6 +45,26 @@ export function getDevelopmentAuthEmail() {
     devAuthFlag: env.DEV_AUTH,
     devAuthEmail: env.DEV_AUTH_EMAIL,
   });
+}
+
+export function isDevelopmentAuthHostAllowed(
+  host: string | null | undefined,
+  localhostOnlyFlag = env.DEV_AUTH_LOCALHOST_ONLY,
+) {
+  if (localhostOnlyFlag === "false") {
+    return true;
+  }
+
+  if (!host) {
+    return false;
+  }
+
+  const hostname = host.split(":")[0]?.toLowerCase();
+  return hostname === "localhost";
+}
+
+export function isDevelopmentAuthRequestAllowed(host: string | null | undefined) {
+  return isDevelopmentAuthEnabled() && isDevelopmentAuthHostAllowed(host);
 }
 
 export async function getOrCreateDevelopmentAuthUser(): Promise<User> {

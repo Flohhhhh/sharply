@@ -7,7 +7,7 @@ import type { NextRequest } from "next/server";
 import { auth } from "~/auth";
 import {
   getOrCreateDevelopmentAuthUser,
-  isDevelopmentAuthEnabled,
+  isDevelopmentAuthRequestAllowed,
 } from "~/server/auth/dev-auth/service";
 
 type DevelopmentAuthContext = Awaited<typeof auth.$context>;
@@ -30,7 +30,11 @@ const developmentLoginEndpoint = createEndpoint(
     return runWithEndpointContext(developmentContext, async () => {
       // This route is intentionally fail-closed: even if DEV_AUTH is configured
       // in a public deployment, production code paths still refuse to run it.
-      if (!isDevelopmentAuthEnabled()) {
+      if (
+        !isDevelopmentAuthRequestAllowed(
+          developmentContext.request.headers.get("host"),
+        )
+      ) {
         throw ctx.error(404, { message: "Not found" });
       }
 
@@ -58,7 +62,7 @@ const developmentLoginEndpoint = createEndpoint(
 );
 
 export async function GET(request: NextRequest) {
-  if (!isDevelopmentAuthEnabled()) {
+  if (!isDevelopmentAuthRequestAllowed(request.headers.get("host"))) {
     return new Response("Not found", { status: 404 });
   }
 
