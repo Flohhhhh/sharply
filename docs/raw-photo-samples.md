@@ -44,8 +44,9 @@ Raw photo samples are unprocessed camera files (DNG, CR2, NEF, etc.) that users 
 3. The `raw_samples` row is soft-deleted via `isDeleted = true` and `deletedAt = now()`
 4. Weekly cron `GET /api/admin/raw-samples/cleanup` loads soft-deleted rows
 5. Cleanup service extracts the UploadThing file key from each stored `fileUrl`
-6. UploadThing `UTApi.deleteFiles()` permanently removes the blob
-7. The corresponding `raw_samples` row is hard-deleted after UploadThing confirms deletion
+6. Cleanup service performs a final guard check that the sample has no remaining `gear_raw_samples` associations
+7. UploadThing `UTApi.deleteFiles()` permanently removes the blob
+8. The corresponding `raw_samples` row is hard-deleted after UploadThing confirms deletion
 
 ## Service Functions
 

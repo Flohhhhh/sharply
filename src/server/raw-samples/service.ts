@@ -1,5 +1,6 @@
 import { UTApi } from "uploadthing/server";
 import {
+  countGearAssociationsForRawSample,
   fetchDeletedRawSamplesForCleanup,
   hardDeleteRawSampleById,
   type DeletedRawSampleCandidate,
@@ -13,6 +14,7 @@ type CleanupDeletedRawSampleStatus =
   | "dry_run"
   | "deleted"
   | "invalid_url"
+  | "still_associated"
   | "delete_failed";
 
 export type CleanupDeletedRawSamplesItemResult = Pick<
@@ -88,6 +90,18 @@ export async function cleanupDeletedRawSamples(params?: {
         ...item,
         fileKey,
         status: "dry_run",
+      });
+      continue;
+    }
+
+    const associationCount = await countGearAssociationsForRawSample(item.id);
+    if (associationCount > 0) {
+      skipped++;
+      results.push({
+        ...item,
+        fileKey,
+        status: "still_associated",
+        error: `Raw sample still has ${associationCount} gear association${associationCount === 1 ? "" : "s"}`,
       });
       continue;
     }

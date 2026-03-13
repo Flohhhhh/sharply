@@ -1,6 +1,7 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const dataMocks = vi.hoisted(() => ({
+  countGearAssociationsForRawSample: vi.fn(),
   fetchDeletedRawSamplesForCleanup: vi.fn(),
   hardDeleteRawSampleById: vi.fn(),
 }));
@@ -29,6 +30,7 @@ describe("cleanupDeletedRawSamples", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.UPLOADTHING_TOKEN = "uploadthing-token";
+    dataMocks.countGearAssociationsForRawSample.mockResolvedValue(0);
   });
 
   it("returns dry-run results without deleting files", async () => {
@@ -88,6 +90,30 @@ describe("cleanupDeletedRawSamples", () => {
       "deleted",
       "invalid_url",
     ]);
+  });
+
+  it("skips file deletion when the raw sample is still associated to gear", async () => {
+    dataMocks.fetchDeletedRawSamplesForCleanup.mockResolvedValue([
+      {
+        id: "sample-1",
+        fileUrl: "https://utfs.io/f/sample-1.jpg",
+        originalFilename: "sample-1.jpg",
+        deletedAt: new Date("2025-01-01T00:00:00.000Z"),
+      },
+    ]);
+    dataMocks.countGearAssociationsForRawSample.mockResolvedValue(1);
+
+    const result = await cleanupDeletedRawSamples({ dryRun: false });
+
+    expect(uploadThingMocks.deleteFiles).not.toHaveBeenCalled();
+    expect(dataMocks.hardDeleteRawSampleById).not.toHaveBeenCalled();
+    expect(result.deleted).toBe(0);
+    expect(result.skipped).toBe(1);
+    expect(result.failed).toBe(0);
+    expect(result.items[0]).toMatchObject({
+      id: "sample-1",
+      status: "still_associated",
+    });
   });
 
   it("requires an UploadThing token for apply mode", async () => {

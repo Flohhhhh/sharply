@@ -1,6 +1,6 @@
-import { and, asc, eq, isNotNull, lte } from "drizzle-orm";
+import { and, asc, eq, isNotNull, lte, sql } from "drizzle-orm";
 import { db } from "~/server/db";
-import { rawSamples } from "~/server/db/schema";
+import { gearRawSamples, rawSamples } from "~/server/db/schema";
 
 export type DeletedRawSampleCandidate = {
   id: string;
@@ -37,4 +37,15 @@ export async function fetchDeletedRawSamplesForCleanup(params?: {
 
 export async function hardDeleteRawSampleById(sampleId: string): Promise<void> {
   await db.delete(rawSamples).where(eq(rawSamples.id, sampleId));
+}
+
+export async function countGearAssociationsForRawSample(
+  sampleId: string,
+): Promise<number> {
+  const rows = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(gearRawSamples)
+    .where(eq(gearRawSamples.rawSampleId, sampleId));
+
+  return Number(rows[0]?.count ?? 0);
 }
