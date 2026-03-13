@@ -50,10 +50,15 @@ const developmentLoginEndpoint = createEndpoint(
       const session = await developmentContext.context.internalAdapter.createSession(
         user.id,
       );
+      const sessionUser = {
+        ...user,
+        image: user.image ?? undefined,
+        name: user.name ?? "Development User",
+      };
 
       await setSessionCookie(developmentContext, {
         session,
-        user,
+        user: sessionUser,
       });
 
       throw ctx.redirect(new URL("/", developmentContext.request.url).toString());
