@@ -35,7 +35,7 @@ const sizeVariants = {
     removeIcon: "h-2.5 w-2.5",
   },
   md: {
-    input: "h-10 text-sm rounded-md",
+    input: "h-10 rounded-md",
     icon: "size-4",
     button: "h-6 px-1.5 text-[10px]",
     dropdown: "mt-1 max-h-64",
