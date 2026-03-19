@@ -8,6 +8,11 @@ import { Badge } from "~/components/ui/badge";
 import { Check, X } from "lucide-react";
 import Link from "next/link";
 import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "~/components/ui/avatar";
+import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -37,6 +42,7 @@ interface GearProposal {
   gearSlug: string;
   createdById: string;
   createdByName: string | null;
+  createdByImage: string | null;
   status: "PENDING" | "APPROVED" | "REJECTED" | "MERGED";
   payload: {
     core?: Record<string, any>;
@@ -68,6 +74,7 @@ type ProposalGroupDto = {
     gearId: string;
     createdById: string;
     createdByName: string | null;
+    createdByImage: string | null;
     status: string;
     payload: unknown;
     beforeCore?: Record<string, unknown>;
@@ -120,6 +127,9 @@ export function GearProposalsList() {
     Record<string, Record<string, boolean>>
   >({});
   const [loadingByGearId, setLoadingByGearId] = useState<
+    Record<string, "approve" | "reject" | null>
+  >({});
+  const [loadingByProposalId, setLoadingByProposalId] = useState<
     Record<string, boolean>
   >({});
   const [resolvedLoaded, setResolvedLoaded] = useState(false);
@@ -186,6 +196,7 @@ export function GearProposalsList() {
         gearSlug: g.gearSlug,
         createdById: p.createdById,
         createdByName: p.createdByName,
+        createdByImage: p.createdByImage,
         status:
           p.status === "PENDING" ||
           p.status === "APPROVED" ||
@@ -614,7 +625,6 @@ export function GearProposalsList() {
     }
     setSelectedByGroup(next);
     setIncludedByGroup(nextIncluded);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groups]);
 
   const handleAction = async (
@@ -622,6 +632,7 @@ export function GearProposalsList() {
     action: "approve" | "reject",
   ) => {
     try {
+      setLoadingByProposalId((prev) => ({ ...prev, [proposalId]: true }));
       const { actionApproveProposal, actionRejectProposal } =
         await import("~/server/admin/proposals/actions");
 
@@ -647,8 +658,12 @@ export function GearProposalsList() {
           return proposal;
         });
       });
+      void mutatePending();
+      if (resolvedLoaded) void mutateResolved();
     } catch (error) {
       console.error(`Failed to ${action} proposal:`, error);
+    } finally {
+      setLoadingByProposalId((prev) => ({ ...prev, [proposalId]: false }));
     }
   };
 
@@ -800,7 +815,7 @@ export function GearProposalsList() {
 
   const handleApproveGroup = async (group: Group) => {
     try {
-      setLoadingByGearId((prev) => ({ ...prev, [group.gearId]: true }));
+      setLoadingByGearId((prev) => ({ ...prev, [group.gearId]: "approve" }));
       const mergedPayload = buildMergedPayloadForGroup(group);
       // Choose an anchor proposal to approve (latest pending)
       const anchor = [...group.proposals]
@@ -830,7 +845,34 @@ export function GearProposalsList() {
     } catch (e) {
       console.error("Failed to approve group:", e);
     } finally {
-      setLoadingByGearId((prev) => ({ ...prev, [group.gearId]: false }));
+      setLoadingByGearId((prev) => ({ ...prev, [group.gearId]: null }));
+    }
+  };
+
+  const handleRejectGroup = async (group: Group) => {
+    const pendingProposals = getPendingProposals(group);
+    if (pendingProposals.length === 0) return;
+
+    try {
+      setLoadingByGearId((prev) => ({ ...prev, [group.gearId]: "reject" }));
+      const { actionRejectProposal } =
+        await import("~/server/admin/proposals/actions");
+      await Promise.all(
+        pendingProposals.map((proposal) => actionRejectProposal(proposal.id)),
+      );
+      setProposals((prev) =>
+        prev.map((proposal) =>
+          proposal.gearId === group.gearId && proposal.status === "PENDING"
+            ? { ...proposal, status: "REJECTED" }
+            : proposal,
+        ),
+      );
+      void mutatePending();
+      if (resolvedLoaded) void mutateResolved();
+    } catch (error) {
+      console.error("Failed to reject group:", error);
+    } finally {
+      setLoadingByGearId((prev) => ({ ...prev, [group.gearId]: null }));
     }
   };
 
@@ -849,14 +891,75 @@ export function GearProposalsList() {
   const showEmpty =
     !pendingLoading && !pendingErrorMessage && proposals.length === 0;
 
+  const getPendingProposals = (group: Group) =>
+    group.proposals.filter((p) => p.status === "PENDING");
+
+  const formatContributorName = (name: string | null | undefined) =>
+    name?.trim() || "Unknown contributor";
+
+  const getInitials = (name: string | null | undefined) =>
+    formatContributorName(name)
+      .split(" ")
+      .filter(Boolean)
+      .map((part) => part[0]!)
+      .slice(0, 2)
+      .join("")
+      .toUpperCase();
+
   // Split pending and resolved
 
   // Grouped card for pending approval (one per gear item)
   const renderGroupCard = (group: Group) => {
+    const pendingProposals = getPendingProposals(group);
     const conflicts = computeConflictsForGroup(group);
     const nonConflicts = computeNonConflictsForGroup(group);
     const selections = selectedByGroup[group.gearId] || {};
     const hasUnresolved = conflicts.some((c) => selections[c.fieldKey] == null);
+    const groupAction = loadingByGearId[group.gearId] ?? null;
+    const contributors = Array.from(
+      pendingProposals.reduce(
+        (map, proposal) => {
+          const existing = map.get(proposal.createdById);
+          if (existing) {
+            existing.count += 1;
+            if (
+              new Date(proposal.createdAt as any).getTime() >
+              new Date(existing.latestCreatedAt as any).getTime()
+            ) {
+              existing.latestCreatedAt = proposal.createdAt;
+            }
+            if (proposal.note?.trim()) {
+              existing.notes.push(proposal.note.trim());
+            }
+          } else {
+            map.set(proposal.createdById, {
+              id: proposal.createdById,
+              name: proposal.createdByName,
+              image: proposal.createdByImage,
+              count: 1,
+              latestCreatedAt: proposal.createdAt,
+              notes: proposal.note?.trim() ? [proposal.note.trim()] : [],
+            });
+          }
+          return map;
+        },
+        new Map<
+          string,
+          {
+            id: string;
+            name: string | null;
+            image: string | null;
+            count: number;
+            latestCreatedAt: string | Date;
+            notes: string[];
+          }
+        >(),
+      ).values(),
+    ).sort(
+      (a, b) =>
+        new Date(b.latestCreatedAt as any).getTime() -
+        new Date(a.latestCreatedAt as any).getTime(),
+    );
     return (
       <Card key={group.gearId}>
         <CardContent className="p-4">
@@ -872,10 +975,60 @@ export function GearProposalsList() {
                   </Link>
                 </h3>
                 <p className="text-muted-foreground text-xs">
-                  {group.proposals.filter((p) => p.status === "PENDING").length}{" "}
-                  pending request(s)
+                  {pendingProposals.length} pending request(s)
                 </p>
               </div>
+            </div>
+
+            <div className="border-input rounded border p-3">
+              <div className="text-muted-foreground mb-3 text-xs font-medium">
+                Authors
+              </div>
+              <div className="flex flex-wrap gap-3.5">
+                {contributors.map((contributor) => (
+                  <div
+                    key={contributor.id}
+                    className="bg-muted/35 border-input/70 flex min-w-[220px] items-center gap-3 rounded-2xl border px-3 py-3 shadow-sm"
+                  >
+                    <Avatar className="size-10 rounded-xl">
+                      <AvatarImage
+                        src={contributor.image ?? undefined}
+                        alt={formatContributorName(contributor.name)}
+                      />
+                      <AvatarFallback className="rounded-xl text-sm font-semibold">
+                        {getInitials(contributor.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 space-y-1">
+                      <div className="truncate text-sm font-semibold leading-none">
+                        {formatContributorName(contributor.name)}
+                      </div>
+                      <div className="text-muted-foreground text-xs leading-tight">
+                        {contributor.count} request
+                        {contributor.count === 1 ? "" : "s"} ·{" "}
+                        {formatHumanDate(contributor.latestCreatedAt as any)}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {contributors.some((contributor) => contributor.notes.length > 0) && (
+                <div className="mt-3 space-y-2">
+                  {contributors.flatMap((contributor) =>
+                    contributor.notes.map((note, index) => (
+                      <div
+                        key={`${contributor.id}-${index}`}
+                        className="bg-muted rounded p-2 text-xs"
+                      >
+                        <span className="font-medium">
+                          {formatContributorName(contributor.name)}:
+                        </span>{" "}
+                        {note}
+                      </div>
+                    )),
+                  )}
+                </div>
+              )}
             </div>
 
             {conflicts.length > 0 ? (
@@ -965,6 +1118,10 @@ export function GearProposalsList() {
                         <div className="text-muted-foreground mb-1 text-[11px]">
                           Card Slots
                         </div>
+                        <div className="text-muted-foreground mb-2 text-xs">
+                          From {formatContributorName(n.provider.createdByName)}{" "}
+                          on {formatHumanDate(n.provider.createdAt as any)}
+                        </div>
                         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                           <div className="text-muted-foreground text-sm">
                             - Empty
@@ -1014,6 +1171,10 @@ export function GearProposalsList() {
                       >
                         <div className="text-muted-foreground mb-2 text-[11px]">
                           Video Modes
+                        </div>
+                        <div className="text-muted-foreground mb-2 text-xs">
+                          From {formatContributorName(n.provider.createdByName)}{" "}
+                          on {formatHumanDate(n.provider.createdAt as any)}
                         </div>
                         {bundle ? (
                           <VideoSpecsSummary
@@ -1079,6 +1240,10 @@ export function GearProposalsList() {
                       <div className="text-muted-foreground mb-1 text-[11px]">
                         {humanizeKey(key!)}
                       </div>
+                      <div className="text-muted-foreground mb-2 text-xs">
+                        From {formatContributorName(n.provider.createdByName)} on{" "}
+                        {formatHumanDate(n.provider.createdAt as any)}
+                      </div>
                       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                         <span
                           className={
@@ -1118,13 +1283,25 @@ export function GearProposalsList() {
               </div>
             )}
 
-            <div className="flex items-center justify-end">
+            <div className="flex items-center justify-end gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleRejectGroup(group)}
+                loading={groupAction === "reject"}
+                disabled={groupAction !== null}
+              >
+                <X className="mr-2 h-4 w-4" />
+                {pendingProposals.length === 1
+                  ? "Reject Request"
+                  : "Reject Requests"}
+              </Button>
               <Button
                 size="sm"
                 onClick={() => handleApproveGroup(group)}
-                loading={Boolean(loadingByGearId[group.gearId])}
+                loading={groupAction === "approve"}
                 disabled={
-                  Boolean(loadingByGearId[group.gearId]) || hasUnresolved
+                  groupAction !== null || hasUnresolved
                 }
               >
                 <Check className="mr-2 h-4 w-4" /> Approve Selected

@@ -19,6 +19,7 @@ type EnrichedProposal = GearEditProposal & {
   gearName: string;
   gearSlug: string;
   createdByName: string | null;
+  createdByImage: string | null;
   beforeCore?: Record<string, unknown>;
   beforeCamera?: Record<string, unknown>;
   beforeLens?: Record<string, unknown>;
