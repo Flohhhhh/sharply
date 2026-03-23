@@ -222,12 +222,12 @@ export default async function Home() {
                 </div>
                 <Button
                   // asChild
-                  className="w-full"
-                  disabled={true}
+                  className="w-full cursor-pointer"
+                  // disabled={true}
                   icon={<BookOpenIcon className="h-4 w-4" />}
                 >
-                  {/* <Link href="/learn/basics">Get Started</Link> */}
-                  Coming Soon
+                  <Link href="/learn/basics">Get Started</Link>
+                  {/* Coming Soon */}
                 </Button>
               </div>
               <DiscordBanner vertical />
