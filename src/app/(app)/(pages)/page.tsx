@@ -8,8 +8,10 @@ import { Separator } from "~/components/ui/separator";
 import { Suspense } from "react";
 import { NewsCard as HomeNewsCard } from "~/components/home/news-card";
 import { ReviewCard, type ReviewPost } from "~/components/home/review-card";
+import { ActivityList } from "~/components/home/activity-list";
 import TrendingList from "~/components/trending-list";
 import { getNewsPosts, getReviews } from "~/server/payload/service";
+import { fetchHomeActivity } from "~/server/gear/service";
 import { formatHumanDate } from "~/lib/utils";
 import type { News, Review } from "~/payload-types";
 import DiscordBanner from "~/components/discord-banner";
@@ -56,7 +58,11 @@ function stripHtml(html: string | null | undefined, maxLength = 160) {
 // Using reusable HomeNewsCard component from ~/components/home/news-card
 
 export default async function Home() {
-  const posts: News[] = await getNewsPosts();
+  const [posts, payloadReviews, activityItems] = await Promise.all([
+    getNewsPosts(),
+    getReviews(),
+    fetchHomeActivity(5),
+  ]);
 
   const toHomePost = (p: (typeof posts)[number]) => {
     const thumbId =
@@ -77,9 +83,6 @@ export default async function Home() {
 
   const featuredPost = posts[0] ? toHomePost(posts[0]!) : null;
   const otherPosts = posts.slice(1, 7).map(toHomePost);
-
-  // Editorial reviews from Payload
-  const payloadReviews: Review[] = await getReviews();
 
   const calculateRatingPercent = (
     genreRatings: Review["genreRatings"] | undefined,
@@ -229,6 +232,8 @@ export default async function Home() {
               </div>
               <DiscordBanner vertical />
               <Separator className="my-2" />
+              <ActivityList items={activityItems} />
+              {activityItems.length ? <Separator className="my-2" /> : null}
               {/* Latest Reviews */}
               <div className="space-y-4">
                 <h2 className="text-lg font-bold">Latest Reviews</h2>

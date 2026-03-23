@@ -40,6 +40,7 @@ import { incrementGearPopularityIntraday } from "~/server/popularity/data";
 import type { Gear, GearAlias, GearItem, GearRegion } from "~/types/gear";
 import { fetchVideoModesByGearId } from "~/server/video-modes/data";
 import { buildGearSearchName } from "~/lib/gear/naming";
+import type { GearActivityRow } from "./home-activity";
 
 type DbClient = Pick<typeof db, "select" | "update" | "insert" | "delete">;
 
@@ -526,6 +527,25 @@ export async function fetchLatestGearCardsData(
     ...row,
     regionalAliases: aliasesById.get(row.id) ?? [],
   })) as unknown as GearCardRow[];
+}
+
+export async function fetchRecentGearActivityRows(
+  limit: number,
+): Promise<GearActivityRow[]> {
+  const eventAt = sql<Date>`greatest(${gear.updatedAt}, ${gear.createdAt})`;
+
+  return db
+    .select({
+      id: gear.id,
+      slug: gear.slug,
+      name: gear.name,
+      createdAt: gear.createdAt,
+      updatedAt: gear.updatedAt,
+      eventAt,
+    })
+    .from(gear)
+    .orderBy(desc(eventAt), desc(gear.updatedAt), desc(gear.createdAt))
+    .limit(limit);
 }
 
 export type BrandGearCard = GearCardRow;
