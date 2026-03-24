@@ -56,10 +56,6 @@ export const env = createEnv({
       process.env.NODE_ENV === "production"
         ? z.string()
         : z.string().optional(),
-    MPB_PARTNERIZE_BASE_URL: z.string().url().optional(),
-    MPB_PARTNERIZE_PREFIX_US: z.string().optional(),
-    MPB_PARTNERIZE_PREFIX_UK: z.string().optional(),
-    MPB_PARTNERIZE_PREFIX_EU: z.string().optional(),
     AMAZON_AFFILIATE_TAG: z.string().optional(),
     SKIP_BUILD_STATIC_GENERATION: z.string().optional(),
   },
@@ -102,10 +98,6 @@ export const env = createEnv({
     DEV_AUTH_LOCALHOST_ONLY: process.env.DEV_AUTH_LOCALHOST_ONLY,
     UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN,
     NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
-    MPB_PARTNERIZE_BASE_URL: process.env.MPB_PARTNERIZE_BASE_URL,
-    MPB_PARTNERIZE_PREFIX_US: process.env.MPB_PARTNERIZE_PREFIX_US,
-    MPB_PARTNERIZE_PREFIX_UK: process.env.MPB_PARTNERIZE_PREFIX_UK,
-    MPB_PARTNERIZE_PREFIX_EU: process.env.MPB_PARTNERIZE_PREFIX_EU,
     AMAZON_AFFILIATE_TAG: process.env.AMAZON_AFFILIATE_TAG,
     SKIP_BUILD_STATIC_GENERATION: process.env.SKIP_BUILD_STATIC_GENERATION,
   },

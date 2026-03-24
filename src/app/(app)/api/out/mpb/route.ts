@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 
-import { buildMpbPartnerizeUrl, type Market } from "~/lib/links/mpb";
+import { getMpbDestinationUrl, type Market } from "~/lib/links/mpb";
 import { resolveGearLinkMpb } from "~/server/gear/service";
 
 const EU_COUNTRIES = new Set([
@@ -72,7 +72,6 @@ export async function GET(request: NextRequest) {
   const params = url.searchParams;
   console.log("MPB out request received", { url: request.url });
   const marketParam = parseMarketParam(params.get("market"));
-  const pubref = params.get("pubref") ?? undefined;
   const destinationPathParam = params.get("destinationPath");
   const gearSlug = params.get("gearSlug");
   const gearId = params.get("gearId");
@@ -113,16 +112,27 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const redirectUrl = buildMpbPartnerizeUrl({
-    market,
-    destinationPath,
-    pubref,
-  });
-  console.log("MPB out redirecting", {
-    destinationPath,
-    pubref,
-    redirectUrl,
-  });
+  try {
+    const redirectUrl = getMpbDestinationUrl({
+      market,
+      destinationPath,
+    });
+    console.log("MPB out redirecting", {
+      destinationPath,
+      redirectUrl,
+    });
 
-  return NextResponse.redirect(redirectUrl);
+    return NextResponse.redirect(redirectUrl, 307);
+  } catch (error) {
+    console.error("MPB out rejected destinationPath", {
+      destinationPath,
+      error,
+    });
+    return NextResponse.json(
+      {
+        message: "Invalid MPB destinationPath.",
+      },
+      { status: 400 },
+    );
+  }
 }

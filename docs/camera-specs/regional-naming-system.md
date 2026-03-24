@@ -12,7 +12,7 @@ Sharply now maintains a single canonical gear record while also surfacing region
 
 - `src/lib/locale/locales.ts` defines the five supported UI locales (US, UK, EU, JP, Global) with affiliate market mappings (`mpbMarket`, Amazon host) and canonical `gearRegion`. `CountryProvider` stores the locale id, resolves geo headers (including `EU`/`UK` pseudo codes), and exposes `locale`, `localeId`, `countryCode`, and `gearRegion`. The legacy `countryCode` setters now resolve to the locale map.
 - `CountrySelect` consumes this list (minus the Global option) so editors can choose US, UK, EU, or JP — each with consistent labels/flags — while `resolveRegionFromCountryCode` remains tolerant of `EU`/`UK` to keep alias resolution stable.
-- Gear affiliate links (`gear/_components/gear-links.tsx`) now pass the locale’s MPB market rather than the raw country code so JP or EU selections go through the right storefront.
+- Gear commerce links (`gear/_components/gear-links.tsx`) now pass the locale’s MPB market rather than the raw country code so JP or EU selections go through the right storefront.
 
 ### Editor experience and alias persistence
 
