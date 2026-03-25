@@ -173,6 +173,8 @@ export async function searchGear(
     // Default sort is resolved upstream; coerce invalid values to newest
     const allowed = [
       "newest",
+      "oldest",
+      "recently_added",
       "price_asc",
       "price_desc",
       "rating",
@@ -187,6 +189,10 @@ export async function searchGear(
     switch (sortKey) {
       case "newest":
         return [sql`${effectiveReleaseDate} DESC NULLS LAST`, asc(gear.name)];
+      case "oldest":
+        return [sql`${effectiveReleaseDate} ASC NULLS LAST`, asc(gear.name)];
+      case "recently_added":
+        return [desc(gear.createdAt), asc(gear.name)];
       case "price_asc":
         return [asc(gear.msrpNowUsdCents), asc(gear.name)];
       case "price_desc":
