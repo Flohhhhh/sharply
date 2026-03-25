@@ -216,13 +216,16 @@ The admin approval queue groups pending edit proposals by gear item and lets edi
 ### Grouped UI
 
 - **One card per gear item**: All pending requests for a given gear are shown together, with a count of pending requests.
+- **Author strip**: Each grouped card shows the contributing authors at the top with avatars, names, request counts, and latest submission time.
 - **Conflicts section**: For any field where multiple proposals suggest different values, the UI renders a radio group to select exactly one value to apply.
   - Options are labeled with contributor name and submission date.
   - A dedicated "Skip (do not apply this field)" option is available to intentionally exclude a conflicting field.
   - The Approve button remains disabled until every conflicting field has a selection (including an explicit Skip).
 - **Additional changes (no conflicts)**: Fields proposed by only one request are listed below conflicts.
+  - Each field keeps the contributor attribution visible so moderators can see who supplied the value being merged.
   - Each non-conflicting field has an "Apply this field" checkbox (checked by default). Unchecking excludes the field from application.
-- **Processing state**: The Approve button reflects `loading=true` while the approval action runs.
+- **Footer actions**: `Reject Request` sits beside `Approve Selected` at the bottom of the grouped card.
+- **Processing state**: Footer actions reflect loading state while approval or rejection runs.
 
 ### What gets applied
 

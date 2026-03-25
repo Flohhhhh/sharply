@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useDebounce } from "~/lib/hooks/useDebounce";
 import { toast } from "sonner";
 import { Input } from "~/components/ui/input";
@@ -17,6 +18,7 @@ export function UserHandleForm({
   initialHandle,
   memberNumber,
 }: UserHandleFormProps) {
+  const router = useRouter();
   const [handle, setHandle] = useState(initialHandle ?? "");
   const debouncedHandle = useDebounce(handle, 500);
   const [isChecking, setIsChecking] = useState(false);
@@ -77,7 +79,9 @@ export function UserHandleForm({
       const res = await actionUpdateUserHandle(handle);
       if (res.ok) {
         toast.success("Handle updated successfully!");
+        setHandle(res.handle);
         setAvailability(null);
+        router.refresh();
       }
     } catch (err: any) {
       toast.error(err.message || "Failed to update handle");

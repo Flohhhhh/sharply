@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useState, useTransition, type FormEvent } from "react";
+import {
+  useState,
+  useTransition,
+  type FormEvent,
+} from "react";
+import { useRouter } from "next/navigation";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Button } from "~/components/ui/button";
@@ -15,13 +20,10 @@ export function DisplayNameForm({
   defaultName,
   onSuccess,
 }: DisplayNameFormProps) {
+  const router = useRouter();
   const [name, setName] = useState(defaultName);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setName(defaultName);
-  }, [defaultName]);
 
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -32,6 +34,7 @@ export function DisplayNameForm({
         if (res.ok) {
           setName(res.name);
           onSuccess?.(res.name);
+          router.refresh();
         } else {
           setError("Could not update your display name. Please try again.");
         }

@@ -33,7 +33,7 @@ import { buildGearSpecsSections } from "~/lib/specs/registry";
 import type { GearType } from "~/types/gear";
 import type { Metadata } from "next";
 import { Breadcrumbs, type CrumbItem } from "~/components/layout/breadcrumbs";
-import { getBrandNameById } from "~/lib/mapping/brand-map";
+import { getBrandById } from "~/lib/mapping/brand-map";
 import { RenameGearButton } from "~/components/gear/rename-gear-button";
 import {
   getReviewByGearSlug,
@@ -67,6 +67,7 @@ import { resolveRegionFromCountryCode } from "~/lib/gear/region";
 import { GearBreadcrumbNameHydrator } from "../_components/gear-breadcrumb-name-hydrator";
 import { buildGearMetaDescription } from "~/lib/seo/build-gear-meta-description";
 import { env } from "~/env";
+import { buildGearBreadcrumbItems } from "../_components/gear-breadcrumb-items";
 
 export const revalidate = 3600;
 
@@ -257,13 +258,18 @@ export default async function GearPage({ params }: GearPageProps) {
   }
 
   const specSections = buildGearSpecsSections(item, { viewerRegion });
-  const brand = getBrandNameById(item.brandId ?? "");
+  const brand = getBrandById(item.brandId ?? "");
 
   // console.log("[GearPage] item", item);
 
   const breadCrumbItems = [
-    { label: "Gear", href: "/gear" },
-    brand ? { label: brand, href: `/brand/${brand.toLowerCase()}` } : null,
+    ...buildGearBreadcrumbItems({
+      brandName: brand?.name ?? null,
+      brandSlug: brand?.slug ?? null,
+      gearType: item.gearType,
+      mountId: item.mountId,
+      mountIds: item.mountIds,
+    }),
     {
       label: (
         <span data-gear-breadcrumb-label data-gear-breadcrumb-slug={item.slug}>
@@ -321,7 +327,7 @@ export default async function GearPage({ params }: GearPageProps) {
               gearId={item.id}
               currentName={item.name}
               currentSlug={item.slug}
-              brandName={item.brands?.name ?? brand ?? null}
+              brandName={item.brands?.name ?? brand?.name ?? null}
               regionalAliases={item.regionalAliases ?? undefined}
             />
           </div>
@@ -472,7 +478,7 @@ export default async function GearPage({ params }: GearPageProps) {
           <div className="mb-8">
             <GearLinks
               slug={item.slug}
-              brandName={brand ?? null}
+              brandName={item.brands?.name ?? brand?.name ?? null}
               linkManufacturer={item.linkManufacturer ?? null}
               linkMpb={item.linkMpb ?? null}
               linkBh={item.linkBh ?? null}

@@ -43,6 +43,7 @@ import { notifyChangeRequestModerators } from "~/server/admin/proposals/webhook"
 import {
   createGearEditProposal,
   fetchLatestGearCardsData,
+  fetchRecentGearActivityRows,
   type GearCardRow,
   fetchContributorsByGearIdData,
   type ContributorRow,
@@ -71,6 +72,10 @@ import {
   type ReviewModerationCode,
 } from "~/server/reviews/moderation/service";
 import { maybeGenerateReviewSummary } from "~/server/reviews/summary/service";
+import {
+  mapGearRowsToHomeActivityItems,
+  type HomeActivityItem,
+} from "./home-activity";
 
 // Internal low-level reads moved to data.ts
 
@@ -607,6 +612,13 @@ export async function fetchLatestGearCards(
   limit: number,
 ): Promise<GearCardRow[]> {
   return fetchLatestGearCardsData(limit);
+}
+
+export async function fetchHomeActivity(
+  limit = 5,
+): Promise<HomeActivityItem[]> {
+  const rows = await fetchRecentGearActivityRows(limit);
+  return mapGearRowsToHomeActivityItems(rows, limit);
 }
 
 export async function fetchContributorsByGearIdService(

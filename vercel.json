@@ -10,6 +10,10 @@
       "schedule": "0 0 * * *"
     },
     {
+      "path": "/api/admin/raw-samples/cleanup",
+      "schedule": "0 2 * * 1"
+    },
+    {
       "path": "/api/admin/proposals/webhook/flush",
       "schedule": "*/5 * * * *"
     }

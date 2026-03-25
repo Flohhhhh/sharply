@@ -71,10 +71,13 @@ export function GearLinks({
           style: "short",
         })} • New`
       : "New";
+  const normalizedBrandName =
+    typeof brandName === "string" ? brandName.trim() : "";
   const brandSlug =
-    brandName != null
+    normalizedBrandName
       ? (BRANDS.find(
-          (brand) => brand.name.toLowerCase() === brandName.toLowerCase(),
+          (brand) =>
+            brand.name.toLowerCase() === normalizedBrandName.toLowerCase(),
         )?.slug ?? "")
       : "";
   const manufacturerStyles = getManufacturerStyles(brandSlug);

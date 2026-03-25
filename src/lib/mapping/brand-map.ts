@@ -1,8 +1,20 @@
 import { BRANDS } from "../constants";
+import type { Brand } from "~/types/gear";
+
+type BrandConst = Pick<Brand, "id" | "name" | "slug">;
+const BRAND_LIST = BRANDS as BrandConst[];
 
 export function getBrandNameById(id: string) {
-  const brand = BRANDS.find((b) => b.id === id);
+  const brand = BRAND_LIST.find((brandEntry) => brandEntry.id === id);
   return brand?.name;
+}
+
+export function getBrandById(id: string) {
+  return BRAND_LIST.find((brand) => brand.id === id);
+}
+
+export function getBrandSlugById(id: string) {
+  return getBrandById(id)?.slug;
 }
 
 // Escapes a string for safe use inside a RegExp

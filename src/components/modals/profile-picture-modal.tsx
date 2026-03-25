@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useSession } from "~/lib/auth/auth-client";
 import {
   Dialog,
@@ -12,7 +13,7 @@ import {
 } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import { toast } from "sonner";
-import { ImageIcon, Upload, User } from "lucide-react";
+import { ImageIcon, Upload } from "lucide-react";
 import { actionUpdateProfileImage } from "~/server/users/actions";
 import { genUploader } from "uploadthing/client";
 import type { OurFileRouter } from "~/app/(app)/api/uploadthing/core";
@@ -26,6 +27,7 @@ export interface ProfilePictureModalProps {
 }
 
 export function ProfilePictureModal(props: ProfilePictureModalProps) {
+  const router = useRouter();
   const { data } = useSession();
 
   const session = data?.session;
@@ -184,6 +186,7 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
 
       toast.success("Profile picture updated.");
       props.onSuccess?.({ url });
+      router.refresh();
       await new Promise((r) => setTimeout(r, CLOSE_MODAL_DELAY_MS));
       setOpen(false);
     } catch (e) {

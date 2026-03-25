@@ -17,12 +17,21 @@ import {
   ownerships,
   notifications,
 } from "~/server/db/schema";
-import { updateUserImage, updateUserSocialLinks } from "./data";
+import { updateUserSocialLinks } from "./data";
 import { createNotificationData } from "../notifications/data";
 import type { GearItem, Mount } from "~/types/gear";
 import { headers } from "next/headers";
 import { getSessionOrThrow } from "~/server/auth";
 import { fetchGearAliasesByGearIds } from "~/server/gear/data";
+
+async function updateCurrentAuthUser(
+  data: Partial<Pick<AuthUser, "handle" | "image" | "name">>,
+) {
+  await auth.api.updateUser({
+    headers: await headers(),
+    body: data,
+  });
+}
 
 export async function getUserReviews(userId: string) {
   const rows = await db
@@ -193,9 +202,9 @@ const displayNameSchema = z
   .max(50, "Display name must be at most 50 characters");
 
 export async function updateDisplayName(rawName: string) {
-  const { user } = await getSessionOrThrow();
+  await getSessionOrThrow();
   const name = displayNameSchema.parse(rawName);
-  await db.update(users).set({ name }).where(eq(users.id, user.id));
+  await updateCurrentAuthUser({ name });
   return { ok: true as const, name };
 }
 
@@ -212,7 +221,7 @@ export async function updateProfileImage(imageUrl: string) {
   const currentUser = await fetchUserById(user.id);
   const oldImageUrl = currentUser?.image ?? null;
 
-  await updateUserImage(user.id, validatedUrl);
+  await updateCurrentAuthUser({ image: validatedUrl });
 
   return { ok: true as const, imageUrl: validatedUrl, oldImageUrl };
 }
@@ -417,7 +426,7 @@ export async function checkHandleAvailability(handle: string) {
 }
 
 export async function updateUserHandle(rawHandle: string) {
-  const { user } = await getSessionOrThrow();
+  await getSessionOrThrow();
   const handle = handleSchema.parse(rawHandle);
 
   const availability = await checkHandleAvailability(handle);
@@ -425,7 +434,7 @@ export async function updateUserHandle(rawHandle: string) {
     throw new Error(availability.reason ?? "Handle unavailable");
   }
 
-  await db.update(users).set({ handle }).where(eq(users.id, user.id));
+  await updateCurrentAuthUser({ handle });
   return { ok: true as const, handle };
 }
 

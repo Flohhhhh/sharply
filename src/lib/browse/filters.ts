@@ -1,6 +1,8 @@
 export type SortOption =
   | "relevance"
   | "newest"
+  | "oldest"
+  | "recently_added"
   | "rating"
   | "price_asc"
   | "price_desc"
@@ -62,6 +64,8 @@ export function parseFilters(
     const allowed: SortOption[] = [
       "relevance",
       "newest",
+      "oldest",
+      "recently_added",
       "rating",
       "price_asc",
       "price_desc",

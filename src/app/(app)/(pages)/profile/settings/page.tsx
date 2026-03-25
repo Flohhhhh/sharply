@@ -92,6 +92,7 @@ export default async function SettingsPage() {
             numbers, hyphens, and underscores.
           </p>
           <UserHandleForm
+            key={user.handle ?? `user-${user.memberNumber ?? "unknown"}`}
             initialHandle={user.handle ?? null}
             memberNumber={user.memberNumber}
           />
@@ -99,7 +100,10 @@ export default async function SettingsPage() {
 
         <section className="border-border space-y-3 rounded-lg border p-4">
           <h2 className="text-lg font-semibold">Display Name</h2>
-          <DisplayNameForm defaultName={user.name ?? ""} />
+          <DisplayNameForm
+            key={user.name ?? ""}
+            defaultName={user.name ?? ""}
+          />
         </section>
 
         <section className="border-border space-y-3 rounded-lg border p-4">

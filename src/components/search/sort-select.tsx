@@ -21,6 +21,8 @@ type SortValue =
   | "relevance"
   | "name"
   | "newest"
+  | "oldest"
+  | "recently_added"
   | "price_asc"
   | "price_desc"
   | typeof LENS_FOCAL_LENGTH_SORT;
@@ -61,6 +63,10 @@ export function SortSelect({ category, hasMount }: SortSelectProps) {
           </SelectItem>
         )}
         <SelectItem value="newest">Newest</SelectItem>
+        {isBrowse && <SelectItem value="oldest">Oldest</SelectItem>}
+        {isBrowse && (
+          <SelectItem value="recently_added">Recently added</SelectItem>
+        )}
         <SelectItem value="price_asc">Price: Low → High</SelectItem>
         <SelectItem value="price_desc">Price: High → Low</SelectItem>
         {!isBrowse && <SelectItem value="name">Name</SelectItem>}

@@ -41,4 +41,8 @@ export const hallOfFameItems: HallOfFameItem[] = [
     slug: "nikon-d90",
     text: "The Nikon D90 was the first DSLR to feature 720p video recording, and was a major turning point for DSLR video.",
   },
+  {
+    slug: "nikon-af-s-nikkor-50mm-f-1-8g",
+    text: "In the ultra-competitive 50mm prime lens market, Nikon's AF-S 50mm f/1.8G is one of the most well-known options. It is an excellent, budget-friendly full-frame 50mm prime lens for F-mount. As one of Nikon's best-selling lenses, it delivers so much value that most photographers have little reason to consider pricier options unless they specifically need top-tier professional performance. Many years later, it is still frequently recommended to new photographers and used by professionals.",
+  },
 ];

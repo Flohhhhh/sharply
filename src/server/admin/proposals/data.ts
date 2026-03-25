@@ -28,6 +28,7 @@ type ProposalSelect = {
   gearSlug: string;
   createdById: string;
   createdByName: string | null;
+  createdByImage: string | null;
   status: GearEditProposal["status"];
   payload: GearEditProposal["payload"];
   note: string | null;
@@ -72,6 +73,7 @@ async function fetchEnrichedProposals(
       gearSlug: gear.slug,
       createdById: gearEdits.createdById,
       createdByName: users.name,
+      createdByImage: users.image,
       status: gearEdits.status,
       payload: gearEdits.payload,
       note: gearEdits.note,
@@ -182,6 +184,7 @@ export async function fetchRecentResolvedProposalsData(
       gearSlug: gear.slug,
       createdById: gearEdits.createdById,
       createdByName: users.name,
+      createdByImage: users.image,
       status: gearEdits.status,
       payload: gearEdits.payload,
       note: gearEdits.note,

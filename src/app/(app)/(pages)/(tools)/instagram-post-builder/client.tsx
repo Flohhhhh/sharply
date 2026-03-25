@@ -2,8 +2,26 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { CSS } from "@dnd-kit/utilities";
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  horizontalListSortingStrategy,
+  sortableKeyboardCoordinates,
+  useSortable,
+} from "@dnd-kit/sortable";
 import {
   Download,
+  GripVertical,
   Image as ImageIcon,
   Layers,
   PanelLeft,
@@ -54,6 +72,21 @@ type FrameRect = {
   y: number;
   w: number;
   h: number;
+};
+
+type SortableFrameProps = {
+  frame: Frame;
+  rect: FrameRect;
+  totalWidth: number;
+  totalHeight: number;
+  totalSpan: number;
+  slideLabel: string;
+  isActive: boolean;
+  onSelect: (frameId: number) => void;
+  onRemove: (frameId: number) => void;
+  onUpload: (frameId: number) => void;
+  onSetSpan: (frameId: number, span: number) => void;
+  children: React.ReactNode;
 };
 
 const FRAME_WIDTH = 1080;
@@ -126,6 +159,141 @@ const dataUrlToBlob = async (dataUrl: string) => {
 
 const getNextFrameId = (frames: Frame[]) =>
   frames.length === 0 ? 1 : Math.max(...frames.map((frame) => frame.id)) + 1;
+
+function SortableFrame({
+  frame,
+  rect,
+  totalWidth,
+  totalHeight,
+  totalSpan,
+  slideLabel,
+  isActive,
+  onSelect,
+  onRemove,
+  onUpload,
+  onSetSpan,
+  children,
+}: SortableFrameProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({
+      id: frame.id,
+      disabled: totalSpan <= 1,
+    });
+
+  const leftPct = (rect.x / totalWidth) * 100;
+  const topPct = (rect.y / totalHeight) * 100;
+  const widthPct = (rect.w / totalWidth) * 100;
+  const heightPct = (rect.h / totalHeight) * 100;
+
+  return (
+    <div
+      ref={setNodeRef}
+      className="absolute z-10"
+      style={{
+        left: `${leftPct}%`,
+        top: `${topPct}%`,
+        width: `${widthPct}%`,
+        height: `${heightPct}%`,
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 40 : isActive ? 20 : 10,
+      }}
+    >
+      {totalSpan > 1 ? (
+        <div
+          className={`border-border bg-background/95 text-foreground absolute top-0 left-1/2 z-30 flex -translate-x-1/2 -translate-y-[140%] items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold shadow transition-shadow ${
+            isDragging ? "shadow-xl" : ""
+          }`}
+        >
+          <button
+            type="button"
+            aria-label={`Reorder ${slideLabel}`}
+            className="text-muted-foreground hover:text-foreground cursor-grab rounded-full p-1 transition active:cursor-grabbing"
+            onClick={(event) => event.stopPropagation()}
+            {...attributes}
+            {...listeners}
+          >
+            <GripVertical size={14} />
+            <span className="sr-only">Drag to reorder</span>
+          </button>
+          <span>{slideLabel}</span>
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            aria-label={`Delete ${slideLabel}`}
+            className="text-destructive hover:bg-destructive/10 hover:text-destructive h-6 w-6"
+            onClick={(event) => {
+              event.stopPropagation();
+              onRemove(frame.id);
+            }}
+          >
+            <Trash2 size={14} />
+          </Button>
+        </div>
+      ) : null}
+
+      <div
+        className={`absolute inset-0 overflow-hidden transition duration-200 ${
+          isActive ? "ring-primary ring-2" : ""
+        }`}
+        onClick={() => onSelect(frame.id)}
+      >
+        {children}
+      </div>
+
+      {isActive ? (
+        <div className="absolute top-full left-1/2 z-20 flex -translate-x-1/2 translate-y-3 flex-col gap-2">
+          <div className="border-border bg-popover/80 flex items-center gap-2 rounded-lg border p-1.5 shadow-lg">
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => onUpload(frame.id)}
+              className="flex items-center gap-1"
+            >
+              <Layers size={14} /> Add Image
+            </Button>
+            <div className="flex items-center gap-1">
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                disabled={frame.images.length === 0}
+                onClick={() => onSetSpan(frame.id, 2)}
+                className="flex items-center gap-1"
+              >
+                Extend (panorama)
+              </Button>
+              {PANORAMA_SPAN_OPTIONS.map((spanOption) => (
+                <Button
+                  key={spanOption}
+                  type="button"
+                  size="icon"
+                  variant={frame.span === spanOption ? "default" : "ghost"}
+                  disabled={frame.images.length === 0}
+                  onClick={() => onSetSpan(frame.id, spanOption)}
+                  className="min-w-10"
+                >
+                  {spanOption}x
+                </Button>
+              ))}
+              <Button
+                type="button"
+                size="icon"
+                variant={frame.span === 1 ? "default" : "ghost"}
+                disabled={frame.images.length === 0}
+                onClick={() => onSetSpan(frame.id, 1)}
+                className="min-w-10"
+              >
+                1x
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 const InstagramPostBuilderPage = () => {
   const isMobile = useIsMobile();
@@ -205,6 +373,15 @@ const InstagramPostBuilderPage = () => {
     return Math.max(canvasHeight * 0.7, 260);
   }, [canvasHeight]);
 
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  const frameIds = useMemo(() => frames.map((frame) => frame.id), [frames]);
+
   const addFrame = () => {
     const newId = getNextFrameId(frames);
     setFrames((prev) => [...prev, { id: newId, span: 1, images: [] }]);
@@ -251,6 +428,24 @@ const InstagramPostBuilderPage = () => {
         frame.id === frameId ? { ...frame, span: safeSpan } : frame,
       ),
     );
+  };
+
+  const handleFrameReorder = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    setFrames((prev) => {
+      const oldIndex = prev.findIndex((frame) => frame.id === active.id);
+      const newIndex = prev.findIndex((frame) => frame.id === over.id);
+
+      if (oldIndex === -1 || newIndex === -1) {
+        return prev;
+      }
+
+      return arrayMove(prev, oldIndex, newIndex);
+    });
   };
 
   const handleFileChange = async (
@@ -602,147 +797,70 @@ const InstagramPostBuilderPage = () => {
                       style={{ backgroundColor: settings.bgColor }}
                     />
 
-                    {frames.map((frame, index) => {
-                      const frameOffset = frameOffsets[index] ?? 0;
-                      const frameWidth = frame.span * FRAME_WIDTH;
-                      const rect = getFrameRect(
-                        frameOffset,
-                        frameWidth,
-                        index,
-                        frames.length,
-                        settings,
-                      );
-                      const leftPct = (rect.x / totalWidth) * 100;
-                      const topPct = (rect.y / totalHeight) * 100;
-                      const widthPct = (rect.w / totalWidth) * 100;
-                      const heightPct = (rect.h / totalHeight) * 100;
-                      const isActive = activeFrameId === frame.id;
-                      const slideStart = Math.round(frameOffset / FRAME_WIDTH + 1);
-                      const slideEnd = slideStart + frame.span - 1;
-                      const slideLabel =
-                        frame.span === 1
-                          ? `Slide ${slideStart}`
-                          : `Slides ${slideStart}-${slideEnd}`;
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleFrameReorder}
+                    >
+                      <SortableContext
+                        items={frameIds}
+                        strategy={horizontalListSortingStrategy}
+                      >
+                        {frames.map((frame, index) => {
+                          const frameOffset = frameOffsets[index] ?? 0;
+                          const frameWidth = frame.span * FRAME_WIDTH;
+                          const rect = getFrameRect(
+                            frameOffset,
+                            frameWidth,
+                            index,
+                            frames.length,
+                            settings,
+                          );
+                          const isActive = activeFrameId === frame.id;
+                          const slideStart = Math.round(
+                            frameOffset / FRAME_WIDTH + 1,
+                          );
+                          const slideEnd = slideStart + frame.span - 1;
+                          const slideLabel =
+                            frame.span === 1
+                              ? `Slide ${slideStart}`
+                              : `Slides ${slideStart}-${slideEnd}`;
 
-                      return (
-                        <div key={frame.id} className="group">
-                          {totalSpan > 1 && (
-                            <div
-                              className="border-border bg-background/95 text-foreground absolute z-30 flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold shadow"
-                              style={{
-                                left: `${leftPct + widthPct / 2}%`,
-                                top: `${topPct}%`,
-                                transform: "translate(-50%, -140%)",
-                              }}
+                          return (
+                            <SortableFrame
+                              key={frame.id}
+                              frame={frame}
+                              rect={rect}
+                              totalWidth={totalWidth}
+                              totalHeight={totalHeight}
+                              totalSpan={totalSpan}
+                              slideLabel={slideLabel}
+                              isActive={isActive}
+                              onSelect={setActiveFrameId}
+                              onRemove={removeFrame}
+                              onUpload={triggerUpload}
+                              onSetSpan={setFrameSpan}
                             >
-                              <span>{slideLabel}</span>
-                              <Button
-                                type="button"
-                                size="icon"
-                                variant="ghost"
-                                aria-label={`Delete ${slideLabel}`}
-                                className="text-destructive hover:bg-destructive/10 hover:text-destructive h-6 w-6"
-                                onClick={() => removeFrame(frame.id)}
-                              >
-                                <Trash2 size={14} />
-                              </Button>
-                            </div>
-                          )}
-
-                          <div
-                            className={`absolute overflow-hidden transition duration-200 ${
-                              isActive ? "ring-primary ring-2" : ""
-                            }`}
-                            style={{
-                              left: `${leftPct}%`,
-                              top: `${topPct}%`,
-                              width: `${widthPct}%`,
-                              height: `${heightPct}%`,
-                            }}
-                            onClick={() => setActiveFrameId(frame.id)}
-                          >
-                            {frame.images.length === 0 ? (
-                              <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => triggerUpload(frame.id)}
-                                className="border-border bg-background text-muted-foreground hover:border-primary/60 hover:text-primary flex h-full w-full items-center justify-center rounded-none border border-dashed transition"
-                              >
-                                <div className="flex flex-col items-center gap-2 text-sm font-medium">
-                                  <ImageIcon size={20} />
-                                  Add Images
-                                </div>
-                              </Button>
-                            ) : (
-                              renderFrameContent(frame)
-                            )}
-                          </div>
-
-                          {isActive && (
-                            <div
-                              className="absolute z-20 flex flex-col gap-2"
-                              style={{
-                                left: `${leftPct + widthPct / 2}%`,
-                                top: `${topPct + heightPct}%`,
-                                transform: "translate(-50%, 12px)",
-                              }}
-                            >
-                              <div className="border-border bg-popover/80 flex items-center gap-2 rounded-lg border p-1.5 shadow-lg">
+                              {frame.images.length === 0 ? (
                                 <Button
                                   type="button"
-                                  size="sm"
+                                  variant="outline"
                                   onClick={() => triggerUpload(frame.id)}
-                                  className="flex items-center gap-1"
+                                  className="border-border bg-background text-muted-foreground hover:border-primary/60 hover:text-primary flex h-full w-full items-center justify-center rounded-none border border-dashed transition"
                                 >
-                                  <Layers size={14} /> Add Image
+                                  <div className="flex flex-col items-center gap-2 text-sm font-medium">
+                                    <ImageIcon size={20} />
+                                    Add Images
+                                  </div>
                                 </Button>
-                                <div className="flex items-center gap-1">
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="secondary"
-                                    disabled={frame.images.length === 0}
-                                    onClick={() => setFrameSpan(frame.id, 2)}
-                                    className="flex items-center gap-1"
-                                  >
-                                    Extend (panorama)
-                                  </Button>
-                                  {PANORAMA_SPAN_OPTIONS.map((spanOption) => (
-                                    <Button
-                                      key={spanOption}
-                                      type="button"
-                                      size="icon"
-                                      variant={
-                                        frame.span === spanOption
-                                          ? "default"
-                                          : "ghost"
-                                      }
-                                      disabled={frame.images.length === 0}
-                                      onClick={() =>
-                                        setFrameSpan(frame.id, spanOption)
-                                      }
-                                      className="min-w-10"
-                                    >
-                                      {spanOption}x
-                                    </Button>
-                                  ))}
-                                  <Button
-                                    type="button"
-                                    size="icon"
-                                    variant={frame.span === 1 ? "default" : "ghost"}
-                                    disabled={frame.images.length === 0}
-                                    onClick={() => setFrameSpan(frame.id, 1)}
-                                    className="min-w-10"
-                                  >
-                                    1x
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                              ) : (
+                                renderFrameContent(frame)
+                              )}
+                            </SortableFrame>
+                          );
+                        })}
+                      </SortableContext>
+                    </DndContext>
 
                     {settings.showGuides &&
                       Array.from({

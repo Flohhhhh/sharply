@@ -1,13 +1,6 @@
-import { env } from "~/env";
-
 export type Market = "US" | "UK" | "EU";
 
 const MPB_HOSTNAME = "www.mpb.com";
-const MPB_CAMPAIGN_REFERENCE_ENV_NAME: Record<Market, string> = {
-  US: "MPB_PARTNERIZE_PREFIX_US",
-  UK: "MPB_PARTNERIZE_PREFIX_UK",
-  EU: "MPB_PARTNERIZE_PREFIX_EU",
-};
 
 const MPB_MARKET_PATH_SEGMENT: Record<Market, string> = {
   US: "en-us",
@@ -15,50 +8,16 @@ const MPB_MARKET_PATH_SEGMENT: Record<Market, string> = {
   EU: "en-eu",
 };
 
-const MPB_CAMPAIGN_REFERENCE_GETTER: Record<Market, () => string | undefined> =
-  {
-    US: () => env.MPB_PARTNERIZE_PREFIX_US,
-    UK: () => env.MPB_PARTNERIZE_PREFIX_UK,
-    EU: () => env.MPB_PARTNERIZE_PREFIX_EU,
-  };
-
-interface BuildMpbPartnerizeUrlInput {
+interface GetMpbDestinationUrlInput {
   market: Market;
   destinationPath: string;
-  pubref?: string;
 }
 
 /**
- * Build a Partnerize deep link for MPB using the configured campaign reference for the
- * requested market and encode the region-specific destination.
+ * Build a direct MPB destination URL using the requested storefront path prefix.
  */
-export function buildMpbPartnerizeUrl(input: BuildMpbPartnerizeUrlInput) {
-  const destinationAddress = buildDestinationAddress(
-    input.destinationPath,
-    input.market,
-  );
-  const campaignReference = getCampaignReferenceForMarket(input.market);
-
-  const partnerizeAddressParts = [
-    `${env.MPB_PARTNERIZE_BASE_URL ?? "https://sharplyphoto.prf.hn/click"}/camref:${encodeURIComponent(campaignReference)}`,
-    `destination:${encodeURIComponent(destinationAddress)}`,
-  ];
-
-  if (input.pubref) {
-    partnerizeAddressParts.push(`pubref:${encodeURIComponent(input.pubref)}`);
-  }
-
-  return partnerizeAddressParts.join("/");
-}
-
-function getCampaignReferenceForMarket(market: Market) {
-  const campaignReference = MPB_CAMPAIGN_REFERENCE_GETTER[market]();
-  if (!campaignReference) {
-    throw new Error(
-      `Missing ${MPB_CAMPAIGN_REFERENCE_ENV_NAME[market]} for ${market} MPB links.`,
-    );
-  }
-  return campaignReference;
+export function getMpbDestinationUrl(input: GetMpbDestinationUrlInput) {
+  return buildDestinationAddress(input.destinationPath, input.market);
 }
 
 function buildDestinationAddress(destinationPath: string, market: Market) {
@@ -82,23 +41,32 @@ function isHttpAddress(value: string) {
 function buildDestinationAddressFromAbsolute(address: string, market: Market) {
   const parsedAddress = new URL(address);
   if (!isMpbHostname(parsedAddress.hostname)) {
-    return parsedAddress.toString();
+    throw new Error("MPB destination must use an MPB hostname.");
   }
 
-  const normalizedSegment = stripMarketSegmentFromPath(parsedAddress.pathname);
-  parsedAddress.pathname = `/${MPB_MARKET_PATH_SEGMENT[market]}${normalizedSegment}`;
+  parsedAddress.protocol = "https:";
+  parsedAddress.hostname = MPB_HOSTNAME;
+  parsedAddress.port = "";
+  parsedAddress.pathname = buildMarketPath(parsedAddress.pathname, market);
   return parsedAddress.toString();
 }
 
 function buildDestinationAddressFromRelative(address: string, market: Market) {
-  const pathWithLeadingSlash = ensureLeadingSlash(address);
-  const normalizedSegment = stripMarketSegmentFromPath(pathWithLeadingSlash);
-  const marketPath = `/${MPB_MARKET_PATH_SEGMENT[market]}${normalizedSegment}`;
-  return new URL(marketPath, `https://${MPB_HOSTNAME}`).toString();
+  const parsedAddress = new URL(
+    ensureLeadingSlash(address),
+    `https://${MPB_HOSTNAME}`,
+  );
+  parsedAddress.pathname = buildMarketPath(parsedAddress.pathname, market);
+  return parsedAddress.toString();
+}
+
+function buildMarketPath(pathname: string, market: Market) {
+  const normalizedSegment = stripMarketSegmentFromPath(pathname);
+  return `/${MPB_MARKET_PATH_SEGMENT[market]}${normalizedSegment}`;
 }
 
 function stripMarketSegmentFromPath(path: string) {
-  return path.replace(/^\/en-[^/]+/i, "");
+  return ensureLeadingSlash(path).replace(/^\/en-[^/]+/i, "");
 }
 
 function ensureLeadingSlash(value: string) {
@@ -106,5 +74,6 @@ function ensureLeadingSlash(value: string) {
 }
 
 function isMpbHostname(hostname: string) {
-  return hostname === MPB_HOSTNAME;
+  const normalizedHostname = hostname.toLowerCase();
+  return normalizedHostname === MPB_HOSTNAME || normalizedHostname === "mpb.com";
 }

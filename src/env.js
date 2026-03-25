@@ -46,6 +46,9 @@ export const env = createEnv({
     RESEND_API_KEY: z.string().optional(),
     RESEND_EMAIL_FROM: z.string().email().optional(),
     RESEND_EMAIL_CONTACT: z.string().email().optional(),
+    DEV_AUTH: z.enum(["true", "false"]).optional(),
+    DEV_AUTH_EMAIL: z.string().email().optional(),
+    DEV_AUTH_LOCALHOST_ONLY: z.enum(["true", "false"]).optional(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -53,10 +56,6 @@ export const env = createEnv({
       process.env.NODE_ENV === "production"
         ? z.string()
         : z.string().optional(),
-    MPB_PARTNERIZE_BASE_URL: z.string().url().optional(),
-    MPB_PARTNERIZE_PREFIX_US: z.string().optional(),
-    MPB_PARTNERIZE_PREFIX_UK: z.string().optional(),
-    MPB_PARTNERIZE_PREFIX_EU: z.string().optional(),
     AMAZON_AFFILIATE_TAG: z.string().optional(),
     SKIP_BUILD_STATIC_GENERATION: z.string().optional(),
   },
@@ -94,12 +93,11 @@ export const env = createEnv({
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     RESEND_EMAIL_FROM: process.env.RESEND_EMAIL_FROM,
     RESEND_EMAIL_CONTACT: process.env.RESEND_EMAIL_CONTACT,
+    DEV_AUTH: process.env.DEV_AUTH,
+    DEV_AUTH_EMAIL: process.env.DEV_AUTH_EMAIL,
+    DEV_AUTH_LOCALHOST_ONLY: process.env.DEV_AUTH_LOCALHOST_ONLY,
     UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN,
     NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
-    MPB_PARTNERIZE_BASE_URL: process.env.MPB_PARTNERIZE_BASE_URL,
-    MPB_PARTNERIZE_PREFIX_US: process.env.MPB_PARTNERIZE_PREFIX_US,
-    MPB_PARTNERIZE_PREFIX_UK: process.env.MPB_PARTNERIZE_PREFIX_UK,
-    MPB_PARTNERIZE_PREFIX_EU: process.env.MPB_PARTNERIZE_PREFIX_EU,
     AMAZON_AFFILIATE_TAG: process.env.AMAZON_AFFILIATE_TAG,
     SKIP_BUILD_STATIC_GENERATION: process.env.SKIP_BUILD_STATIC_GENERATION,
   },
