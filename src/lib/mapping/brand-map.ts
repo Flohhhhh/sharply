@@ -5,7 +5,7 @@ type BrandConst = Pick<Brand, "id" | "name" | "slug">;
 const BRAND_LIST = BRANDS as BrandConst[];
 
 export function getBrandNameById(id: string) {
-  const brand = BRAND_LIST.find((b) => b.id === id);
+  const brand = BRAND_LIST.find((brandEntry) => brandEntry.id === id);
   return brand?.name;
 }
 
