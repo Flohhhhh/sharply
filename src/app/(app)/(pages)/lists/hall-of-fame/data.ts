@@ -43,6 +43,6 @@ export const hallOfFameItems: HallOfFameItem[] = [
   },
   {
     slug: "nikon-af-s-nikkor-50mm-f-1-8g",
-    text: "In an ultra-competitive slice of the lens market, 50mm prime lenses, Nikon's AF-S 50mm 1.8G could be one of the most well-known. It is an excellent and budget friendly full frame 50mm prime lens option for F-Mount. As possibly one of Nikon's best selling lenses ever, it has such good value that there's almost no reason to even look at any of the pricier options unless you're a professional looking for the most performance. Many years later it's still very often recommended to new photographers, and used by professionals.",
+    text: "In the ultra-competitive 50mm prime lens market, Nikon's AF-S 50mm f/1.8G is one of the most well-known options. It is an excellent, budget-friendly full-frame 50mm prime lens for F-mount. As one of Nikon's best-selling lenses, it delivers so much value that most photographers have little reason to consider pricier options unless they specifically need top-tier professional performance. Many years later, it is still frequently recommended to new photographers and used by professionals.",
   },
 ];
