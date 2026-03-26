@@ -52,14 +52,12 @@ type GearCardMoreMenuProps = {
   slug: string;
   displayName: string;
   gearType?: string | null;
-  mode?: "inline" | "overlay";
 };
 
 export function GearCardMoreMenu({
   slug,
   displayName,
   gearType,
-  mode = "inline",
 }: GearCardMoreMenuProps) {
   const { data } = useSession();
   const router = useRouter();
@@ -191,19 +189,14 @@ export function GearCardMoreMenu({
     router.push(buildCompareHref([slug, option.slug]));
   };
 
-  const triggerVariant = mode === "overlay" ? "secondary" : "ghost";
-
   return (
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
-            variant={triggerVariant}
+            variant="secondary"
             size="icon"
-            className={cn(
-              "size-8 shrink-0 rounded-full",
-              mode === "overlay" && "shadow-md",
-            )}
+            className={cn("size-8 shrink-0 rounded-full shadow-md")}
             onClick={handleMenuButtonClick}
           >
             <MoreVertical className="size-4" />
