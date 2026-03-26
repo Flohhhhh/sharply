@@ -14,17 +14,17 @@ type GlobalSearchBarProps = {
 
 const sizeVariants = {
   sm: {
-    trigger: "h-8 rounded-lg text-sm",
+    trigger: "h-8 rounded-lg text-sm pr-2",
     icon: "size-3",
     hint: "hidden sm:inline-flex",
   },
   md: {
-    trigger: "h-11 rounded-xl text-sm",
+    trigger: "h-11 rounded-xl text-sm pr-2",
     icon: "size-4",
     hint: "inline-flex",
   },
   lg: {
-    trigger: "h-16 rounded-2xl text-base",
+    trigger: "h-16 rounded-2xl text-base pr-4",
     icon: "size-5",
     hint: "inline-flex",
   },

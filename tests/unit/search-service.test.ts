@@ -5,6 +5,7 @@ This keeps the tests fast while still proving the important search wiring works.
 */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { GearSuggestion } from "~/types/search";
 
 const searchDataMocks = vi.hoisted(() => ({
   buildSearchWhereClause: vi.fn(),
@@ -256,6 +257,47 @@ describe("search service high-impact behavior", () => {
       title: "Nikon Z6 III",
       subtitle: "Camera",
     });
+  });
+
+  it("marks only the unique exact row as best match when similar variants also match partially", async () => {
+    searchDataMocks.queryGearSuggestions.mockResolvedValue([
+      {
+        id: "gear-1",
+        name: "Nikon Z6",
+        slug: "nikon-z6",
+        brandName: "Nikon",
+        gearType: "CAMERA",
+        relevance: 0.95,
+      },
+      {
+        id: "gear-2",
+        name: "Nikon Z6II",
+        slug: "nikon-z6ii",
+        brandName: "Nikon",
+        gearType: "CAMERA",
+        relevance: 0.92,
+      },
+      {
+        id: "gear-3",
+        name: "Nikon Z6III",
+        slug: "nikon-z6iii",
+        brandName: "Nikon",
+        gearType: "CAMERA",
+        relevance: 0.9,
+      },
+    ]);
+
+    const suggestions = await getSuggestions("nikon z6", 8, "GLOBAL");
+    const gearSuggestions = suggestions.filter(
+      (suggestion): suggestion is GearSuggestion =>
+        suggestion.kind === "camera" || suggestion.kind === "lens",
+    );
+
+    expect(gearSuggestions.map((suggestion) => suggestion.isBestMatch)).toEqual([
+      true,
+      false,
+      false,
+    ]);
   });
 
   it("prepends a compare smart action when both sides resolve strongly", async () => {

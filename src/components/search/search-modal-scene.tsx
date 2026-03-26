@@ -256,9 +256,10 @@ export function SearchModalScene({
         height: showResultsSection ? 480 : 64,
       }}
       transition={shellTransition}
-      className="bg-background dark:supports-backdrop-filter:bg-background/50 flex overflow-hidden rounded-2xl border border-black/40 dark:border-white/40 shadow-[0_28px_90px_-42px_rgba(0,0,0,0.88),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl"
+      className="relative flex overflow-hidden rounded-2xl border border-black/40 dark:border-white/40 shadow-[0_28px_90px_-42px_rgba(0,0,0,0.88),inset_0_1px_0_rgba(255,255,255,0.06)]"
     >
-      <div className="flex min-h-0 flex-1 flex-col">
+      <div className="bg-background dark:supports-backdrop-filter:bg-background/50 pointer-events-none absolute inset-0 backdrop-blur-xl" />
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col">
         <div className="flex h-16 shrink-0 items-center gap-3 px-5">
           <SearchIcon className="text-muted-foreground size-5 md:size-6 shrink-0" />
           <input
@@ -298,7 +299,7 @@ export function SearchModalScene({
               transition={panelTransition}
               className="min-h-0 flex-1 overflow-hidden origin-top"
             >
-              <div className="border-t border-white/8">
+              <div className="h-full border-t border-white/8">
                 <div className="h-full overflow-y-auto px-1 py-2">
                   {hasQuery ? (
                     <div className="space-y-1 px-1 py-1">
@@ -354,6 +355,11 @@ export function SearchModalScene({
                                     : "default"
                               }
                               title={item.title}
+                              brandName={
+                                item.suggestion.kind === "smart-action"
+                                  ? undefined
+                                  : item.suggestion.brandName ?? undefined
+                              }
                               subtitle={item.subtitle}
                               meta={item.meta}
                               badge={item.badge}

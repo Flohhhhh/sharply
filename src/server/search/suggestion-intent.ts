@@ -186,7 +186,11 @@ export function applyExactMatchMetadata(
   const exactHits = new Map<string, number>();
   const metadataBySuggestionId = new Map<
     string,
-    { matchedName: string; matchSource: GearSuggestionMatchSource }
+    {
+      matchedName: string;
+      matchSource: GearSuggestionMatchSource;
+      rank: number;
+    }
   >();
 
   for (const suggestion of suggestions) {
@@ -205,6 +209,7 @@ export function applyExactMatchMetadata(
     metadataBySuggestionId.set(suggestion.id, {
       matchedName: bestMatch.value,
       matchSource: bestMatch.source,
+      rank: bestMatch.rank,
     });
 
     if (bestMatch.rank >= 300) {
@@ -222,7 +227,7 @@ export function applyExactMatchMetadata(
       ...suggestion,
       matchedName: metadata.matchedName,
       matchSource: metadata.matchSource,
-      isBestMatch: uniqueExactMatch,
+      isBestMatch: uniqueExactMatch && metadata.rank >= 300,
     };
   });
 }
