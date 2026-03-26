@@ -64,11 +64,13 @@ export function GearCardMoreMenu({
   const { data } = useSession();
   const router = useRouter();
   const session = data?.session;
+  const activeUserId = session?.userId ?? null;
+  const fetchKey = activeUserId ? `${activeUserId}:${slug}` : null;
   const [inWishlist, setInWishlist] = useState<boolean | null>(null);
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [compareOpen, setCompareOpen] = useState(false);
   const [saveOpen, setSaveOpen] = useState(false);
-  const [statusFetched, setStatusFetched] = useState(false);
+  const [fetchedKey, setFetchedKey] = useState<string | null>(null);
   const [saveState, setSaveState] = useState<SavePickerState>(null);
   const [isOwned, setIsOwned] = useState<boolean | null>(null);
   const [ownershipLoading, setOwnershipLoading] = useState(false);
@@ -77,7 +79,16 @@ export function GearCardMoreMenu({
   );
 
   useEffect(() => {
-    if (!session || statusFetched) return;
+    if (!fetchKey) {
+      setFetchedKey(null);
+      setInWishlist(null);
+      setIsOwned(null);
+      setSaveState(null);
+      return;
+    }
+
+    if (fetchedKey === fetchKey) return;
+
     let cancelled = false;
 
     void (async () => {
@@ -95,7 +106,7 @@ export function GearCardMoreMenu({
         setInWishlist(payload.inWishlist);
         setIsOwned(payload.isOwned);
         setSaveState(payload.saveState);
-        setStatusFetched(true);
+        setFetchedKey(fetchKey);
       } catch {
         // Ignore background state fetch errors; actions still work.
       }
@@ -104,7 +115,7 @@ export function GearCardMoreMenu({
     return () => {
       cancelled = true;
     };
-  }, [session, slug, statusFetched]);
+  }, [fetchKey, fetchedKey, slug]);
 
   if (!session) return null;
 
