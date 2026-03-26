@@ -12,44 +12,9 @@ import { NewBadge } from "../gear-badges/new-badge";
 import { isNewRelease } from "~/lib/utils/is-new";
 import { HallOfFameBadge } from "../gear-badges/hall-of-fame-badge";
 import { isInHallOfFame } from "~/lib/utils/is-in-hall-of-fame";
-import { useSession } from "~/lib/auth/auth-client";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { actionToggleWishlist } from "~/server/gear/actions";
-import { toast } from "sonner";
-import { Button } from "../ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "../ui/dialog";
-import {
-  GearSearchCombobox,
-  type GearOption,
-} from "~/components/gear/gear-search-combobox";
-import {
-  Bookmark,
-  Check,
-  Heart,
-  MoreVertical,
-  Package,
-  PackageOpen,
-  Scale,
-} from "lucide-react";
-import { buildCompareHref } from "~/lib/utils/url";
-import { actionRecordCompareAdd } from "~/server/popularity/actions";
 import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
 import type { GearAlias } from "~/types/gear";
-import { SaveItemButton } from "./save-item-button";
-import { actionToggleOwnership } from "~/server/gear/actions";
+import { GearCardMoreMenu } from "./gear-card-more-menu";
 
 const BASE_BRAND_NAMES = uniqueCaseInsensitive(
   BRANDS.flatMap((brand) => splitBrandNameVariants(brand.name)),
@@ -135,16 +100,6 @@ export type GearCardProps = {
 };
 
 type DatePrecision = "DAY" | "MONTH" | "YEAR";
-type SavePickerState = {
-  lists: Array<{
-    id: string;
-    name: string;
-    isDefault: boolean;
-    itemCount: number;
-  }>;
-  savedListIds: string[];
-  defaultListId: string | null;
-} | null;
 
 export function formatGearDate(
   dateValue?: string | Date | null,
@@ -189,21 +144,6 @@ export function GearCard(props: GearCardProps) {
     className,
   } = props;
 
-  const { data } = useSession();
-  const router = useRouter();
-  const session = data?.session;
-  const [inWishlist, setInWishlist] = useState<boolean | null>(null);
-  const [wishlistLoading, setWishlistLoading] = useState(false);
-  const [compareOpen, setCompareOpen] = useState(false);
-  const [saveOpen, setSaveOpen] = useState(false);
-  const [statusFetched, setStatusFetched] = useState(false);
-  const [saveState, setSaveState] = useState<SavePickerState>(null);
-  const [isOwned, setIsOwned] = useState<boolean | null>(null);
-  const [ownershipLoading, setOwnershipLoading] = useState(false);
-  const [compareSelection, setCompareSelection] = useState<GearOption | null>(
-    null,
-  );
-
   const displayName = useGearDisplayName({ name, regionalAliases });
   const trimmedName = stripBrandFromName(displayName, brandName);
   const dateLabel = formatGearDate(
@@ -220,112 +160,6 @@ export function GearCard(props: GearCardProps) {
   if (isTrending) badgeNodes.push(<TrendingBadge key="trending" />);
   if (isNew) badgeNodes.push(<NewBadge key="new" />);
   if (badges) badgeNodes.push(badges);
-  useEffect(() => {
-    if (!session || statusFetched) return;
-    let cancelled = false;
-
-    void (async () => {
-      try {
-        const response = await fetch(
-          `/api/gear/${encodeURIComponent(slug)}/user-state`,
-        );
-        if (!response.ok) return;
-        const payload = (await response.json()) as {
-          inWishlist: boolean | null;
-          isOwned: boolean | null;
-          saveState: SavePickerState;
-        };
-        if (cancelled) return;
-        setInWishlist(payload.inWishlist);
-        setIsOwned(payload.isOwned);
-        setSaveState(payload.saveState);
-        setStatusFetched(true);
-      } catch {
-        // Ignore background state fetch errors; actions still work.
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [session, slug, statusFetched]);
-
-  const handleAddToWishlist = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (!session || wishlistLoading) return;
-
-    setWishlistLoading(true);
-    const action = inWishlist ? "remove" : "add";
-
-    try {
-      const res = await actionToggleWishlist(slug, action);
-      if (res.ok) {
-        setInWishlist(res.action === "added");
-        toast.success(
-          res.action === "added"
-            ? "Added to wishlist"
-            : "Removed from wishlist",
-        );
-      }
-    } catch (error) {
-      toast.error("Failed to update wishlist");
-    } finally {
-      setWishlistLoading(false);
-    }
-  };
-
-  const handleOpenCompare = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setCompareOpen(true);
-  };
-
-  const handleCompareSelect = async (option: GearOption | null) => {
-    if (!option) return;
-    setCompareOpen(false);
-    try {
-      await actionRecordCompareAdd({ slug: option.slug });
-    } catch {
-      // ignore failures
-    }
-    router.push(buildCompareHref([slug, option.slug]));
-  };
-
-  const handleOpenSave = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setSaveOpen(true);
-  };
-
-  const handleAddToCollection = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (ownershipLoading) return;
-
-    setOwnershipLoading(true);
-    try {
-      const action = isOwned ? "remove" : "add";
-      const result = await actionToggleOwnership(slug, action);
-      if (result.ok) {
-        const ownedNow = result.action === "added";
-        setIsOwned(ownedNow);
-        toast.success(
-          ownedNow ? "Added to collection" : "Removed from collection",
-        );
-      } else if (result.reason === "already_owned") {
-        setIsOwned(true);
-        toast.info("Already in collection");
-      } else {
-        toast.error("Failed to update collection");
-      }
-    } catch {
-      toast.error("Failed to update collection");
-    } finally {
-      setOwnershipLoading(false);
-    }
-  };
 
   return (
     <div className={cn("group relative", className)}>
@@ -366,68 +200,16 @@ export function GearCard(props: GearCardProps) {
             </div>
 
             {/* Hover actions overlay */}
-            {session ? (
-              <div className="pointer-events-none absolute inset-0 flex items-start justify-end p-2 opacity-0 transition-opacity group-hover:opacity-100">
-                <div className="pointer-events-auto">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="secondary"
-                        size="icon"
-                        className="shadow-md"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                        }}
-                      >
-                        <MoreVertical className="size-4" />
-                        <span className="sr-only">More options</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      align="end"
-                      side="bottom"
-                      sideOffset={6}
-                    >
-                      <DropdownMenuItem
-                        onClick={handleOpenSave}
-                      >
-                        <Bookmark className="size-4" />
-                        Save
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={handleAddToWishlist}
-                        disabled={wishlistLoading}
-                      >
-                        {inWishlist === true ? (
-                          <Check className="size-4" />
-                        ) : (
-                          <Heart className="size-4" />
-                        )}
-                        {inWishlist === true
-                          ? "Remove from Wishlist"
-                          : "Add to Wishlist"}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={handleAddToCollection}
-                        disabled={ownershipLoading}
-                      >
-                        {isOwned ? (
-                          <Check className="size-4" />
-                        ) : (
-                          <PackageOpen className="size-4" />
-                        )}
-                        {isOwned ? "Remove from Collection" : "Add to Collection"}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={handleOpenCompare}>
-                        <Scale className="size-4" />
-                        Compare
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+            <div className="pointer-events-none absolute inset-0 flex items-start justify-end p-2 opacity-0 transition-opacity group-hover:opacity-100">
+              <div className="pointer-events-auto">
+                <GearCardMoreMenu
+                  slug={slug}
+                  displayName={displayName}
+                  gearType={gearType}
+                  mode="overlay"
+                />
               </div>
-            ) : null}
+            </div>
           </div>
 
           {/* Content below image */}
@@ -466,39 +248,6 @@ export function GearCard(props: GearCardProps) {
         </div>
       </Link>
 
-      {/* Compare Dialog - rendered outside the Link to work properly */}
-      <Dialog open={compareOpen} onOpenChange={setCompareOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Compare {displayName}</DialogTitle>
-            <DialogDescription>
-              Select another item to compare with {displayName}
-            </DialogDescription>
-          </DialogHeader>
-          <GearSearchCombobox
-            value={compareSelection}
-            setValue={setCompareSelection}
-            onSelectionChange={handleCompareSelect}
-            filters={gearType ? { gearType } : undefined}
-            excludeIds={[slug]}
-            placeholder="Search for gear..."
-            searchPlaceholder="Search gear to compare"
-          />
-        </DialogContent>
-      </Dialog>
-      <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Save {displayName}</DialogTitle>
-          </DialogHeader>
-          <SaveItemButton
-            slug={slug}
-            initialState={saveState}
-            onStateChange={(nextState) => setSaveState(nextState)}
-            mode="list"
-          />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
