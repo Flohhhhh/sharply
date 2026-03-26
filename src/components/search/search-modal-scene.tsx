@@ -256,10 +256,9 @@ export function SearchModalScene({
         height: showResultsSection ? 480 : 64,
       }}
       transition={shellTransition}
-      className="relative flex overflow-hidden rounded-2xl border border-black/40 dark:border-white/40 shadow-[0_28px_90px_-42px_rgba(0,0,0,0.88),inset_0_1px_0_rgba(255,255,255,0.06)]"
+      className="bg-background dark:supports-backdrop-filter:bg-background/50 flex overflow-hidden rounded-2xl border border-black/40 dark:border-white/40 shadow-[0_28px_90px_-42px_rgba(0,0,0,0.88),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl"
     >
-      <div className="bg-background dark:supports-backdrop-filter:bg-background/50 pointer-events-none absolute inset-0 backdrop-blur-xl" />
-      <div className="relative z-10 flex min-h-0 flex-1 flex-col">
+      <div className="flex min-h-0 flex-1 flex-col">
         <div className="flex h-16 shrink-0 items-center gap-3 px-5">
           <SearchIcon className="text-muted-foreground size-5 md:size-6 shrink-0" />
           <input
