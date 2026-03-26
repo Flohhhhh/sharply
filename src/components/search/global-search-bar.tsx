@@ -1,17 +1,10 @@
 "use client";
 
-import { track } from "@vercel/analytics";
-import { useEffect, useMemo, useState, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Search as SearchIcon, Clock, X, Loader2 } from "lucide-react";
-import { Input } from "~/components/ui/input";
-import { Button } from "~/components/ui/button";
-import { mergeSearchParams } from "@utils/url";
+import { useEffect, useState } from "react";
+import { Search as SearchIcon } from "lucide-react";
+import { Kbd } from "~/components/ui/kbd";
 import { cn } from "~/lib/utils";
-import { useSearchSuggestions } from "@hooks/useSearchSuggestions";
-import { GlobalSearchSuggestion } from "~/components/search/global-search-suggestion";
-import type { Suggestion } from "~/types/search";
-import { useCountry } from "~/lib/hooks/useCountry";
+import { dispatchOpenSearchSurface } from "./search-events";
 
 type GlobalSearchBarProps = {
   placeholder?: string;
@@ -19,457 +12,61 @@ type GlobalSearchBarProps = {
   size?: "sm" | "md" | "lg";
 };
 
-const RECENT_SEARCHES_KEY = "sharply-recent-searches";
-const MAX_RECENT_SEARCHES = 8;
-
 const sizeVariants = {
   sm: {
-    input: "h-8 text-sm rounded-md",
+    trigger: "h-8 rounded-lg text-sm",
     icon: "size-3",
-    button: "h-5 px-1 text-[9px]",
-    dropdown: "mt-1 max-h-48",
-    recentItem: "px-2 py-1.5",
-    recentIcon: "h-3 w-3",
-    clearButton: "h-5 px-1.5 text-xs",
-    removeButton: "h-5 w-5",
-    removeIcon: "h-2.5 w-2.5",
+    hint: "hidden sm:inline-flex",
   },
   md: {
-    input: "h-10 rounded-md",
+    trigger: "h-11 rounded-xl text-sm",
     icon: "size-4",
-    button: "h-6 px-1.5 text-[10px]",
-    dropdown: "mt-1 max-h-64",
-    recentItem: "px-3 py-2",
-    recentIcon: "h-4 w-4",
-    clearButton: "h-6 px-2 text-xs",
-    removeButton: "h-6 w-6",
-    removeIcon: "h-3 w-3",
+    hint: "inline-flex",
   },
   lg: {
-    input: "h-16 text-base rounded-xl",
+    trigger: "h-16 rounded-2xl text-base",
     icon: "size-5",
-    button: "h-7 px-2 text-xs",
-    dropdown: "mt-1 max-h-80",
-    recentItem: "px-4 py-2.5",
-    recentIcon: "h-5 w-5",
-    clearButton: "h-7 px-2.5 text-sm",
-    removeButton: "h-7 w-7",
-    removeIcon: "h-3.5 w-3.5",
+    hint: "inline-flex",
   },
-};
+} as const;
 
 export function GlobalSearchBar({
   placeholder = "Search gear…",
   className,
   size = "md",
 }: GlobalSearchBarProps) {
-  const router = useRouter();
-  const sp = useSearchParams();
-  const [value, setValue] = useState<string>(sp.get("q") ?? "");
-  const [showRecent, setShowRecent] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
-  const [recentSearches, setRecentSearches] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { countryCode } = useCountry();
-
   const sizes = sizeVariants[size];
+  const [isMac, setIsMac] = useState(true);
 
-  // Load recent searches from localStorage
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(RECENT_SEARCHES_KEY);
-      if (stored) {
-        setRecentSearches(JSON.parse(stored));
-      }
-    } catch {
-      // Ignore localStorage errors
-    }
+    setIsMac(navigator.platform.toUpperCase().includes("MAC"));
   }, []);
-
-  // Save recent searches to localStorage
-  const saveRecentSearch = (query: string) => {
-    if (!query.trim()) return;
-
-    const trimmed = query.trim();
-    setRecentSearches((prev) => {
-      const filtered = prev.filter((q) => q !== trimmed);
-      const newRecent = [trimmed, ...filtered].slice(0, MAX_RECENT_SEARCHES);
-
-      try {
-        localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(newRecent));
-      } catch {
-        // Ignore localStorage errors
-      }
-
-      return newRecent;
-    });
-  };
-
-  const queryParam = sp.get("q") ?? "";
-
-  // Keep input in sync when navigating via back/forward
-  useEffect(() => {
-    setValue(queryParam);
-  }, [queryParam]);
-
-  // Handle click outside to close dropdown
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (!containerRef.current) return;
-      if (!containerRef.current.contains(event.target as Node)) {
-        setShowRecent(false);
-        setIsFocused(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const isMac = useMemo(() => {
-    if (typeof window === "undefined") return true;
-    return navigator.platform.toUpperCase().includes("MAC");
-  }, []);
-
-  const logSearchEvent = (
-    event: string,
-    payload: Record<string, string | number | boolean | null | undefined>,
-  ) => {
-    try {
-      void track(event, payload);
-    } catch (err) {
-      console.error("[GlobalSearchBar] analytics error", err);
-    }
-  };
-
-  async function submit(
-    query: string,
-    options?: { forceSearchPage?: boolean },
-  ) {
-    const trimmed = query.trim();
-    if (!trimmed) return;
-
-    saveRecentSearch(trimmed);
-    setShowRecent(false);
-    setLoading(true); // Start loading
-
-    const forceSearchPage = options?.forceSearchPage === true;
-
-    // If not forcing the search page, try a direct redirect when there's exactly one suggestion.
-    if (!forceSearchPage) {
-      try {
-        // Prefer already-loaded suggestions if they're current and stable
-        if (
-          trimmed.length >= 2 &&
-          hasSearched &&
-          !suggestLoading &&
-          !debouncing &&
-          suggestions.length === 1
-        ) {
-          logSearchEvent("search_direct_navigate", {
-            query: trimmed,
-            suggestionId: suggestions[0]!.id,
-          });
-          router.push(suggestions[0]!.href);
-          setTimeout(() => {
-            setLoading(false);
-          }, 500);
-          return;
-        }
-
-        // Fallback: perform an immediate suggestion fetch (limit=2) to confirm single match
-        if (trimmed.length >= 2) {
-          const countryParam = countryCode
-            ? `&country=${encodeURIComponent(countryCode)}`
-            : "";
-          const res = await fetch(
-            `/api/search/suggest?q=${encodeURIComponent(trimmed)}&limit=2${countryParam}`,
-          );
-          if (res.ok) {
-            const data = (await res.json()) as {
-              suggestions?: Suggestion[];
-            };
-            const fresh = Array.isArray(data.suggestions)
-              ? data.suggestions
-              : [];
-            if (fresh.length === 1) {
-              logSearchEvent("search_direct_navigate", {
-                query: trimmed,
-                suggestionId: fresh[0]!.id,
-              });
-              router.push(fresh[0]!.href);
-              setTimeout(() => {
-                setLoading(false);
-              }, 500);
-              return;
-            }
-          }
-        }
-      } catch {
-        // Swallow errors and fall back to the search page navigation below
-      }
-    }
-
-    const existing = new URLSearchParams(sp.toString());
-    const qs = mergeSearchParams(existing, { q: trimmed, page: 1 });
-    const href = qs ? `${"/search"}?${qs}` : "/search";
-
-    logSearchEvent("search_view_results", {
-      query: trimmed,
-    });
-
-    // Navigate and clear loading after a short delay
-    router.push(href);
-    setTimeout(() => {
-      setLoading(false);
-    }, 500); // Clear loading after 500ms
-  }
-
-  function handleRecentSearchClick(recentQuery: string) {
-    setValue(recentQuery);
-    setLoading(true); // Start loading
-    logSearchEvent("search_recent_click", {
-      query: recentQuery,
-    });
-    void submit(recentQuery, { forceSearchPage: true });
-  }
-
-  function removeRecentSearch(queryToRemove: string, e: React.MouseEvent) {
-    e.stopPropagation();
-    setRecentSearches((prev) => {
-      const filtered = prev.filter((q) => q !== queryToRemove);
-      try {
-        localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(filtered));
-      } catch {
-        // Ignore localStorage errors
-      }
-      return filtered;
-    });
-  }
-
-  function clearAllRecent() {
-    setRecentSearches([]);
-    try {
-      localStorage.removeItem(RECENT_SEARCHES_KEY);
-    } catch {
-      // Ignore localStorage errors
-    }
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      void submit(value);
-    }
-  }
-
-  // Suggestions hook (shared with command palette)
-  const {
-    results: suggestions,
-    loading: suggestLoading,
-    debouncing,
-    hasSearched,
-    fetchNow,
-  } = useSearchSuggestions(value, {
-    debounceMs: 200,
-    minLength: 2,
-    countryCode,
-  });
-
-  // Kick an immediate fetch exactly when crossing threshold to reduce perceived lag
-  useEffect(() => {
-    if (!isFocused) return;
-    if (value.length === 2) {
-      void fetchNow();
-    }
-  }, [value, isFocused, fetchNow]);
 
   return (
-    <div className={className}>
-      <div className="dark:bg-background relative bg-white" ref={containerRef}>
-        <SearchIcon
-          className={cn(
-            "text-muted-foreground pointer-events-none absolute top-1/2 left-3 -translate-y-1/2",
-            sizes.icon,
-          )}
-        />
-
-        {/* Input wrapper - not a form to avoid nested button issues */}
-        <div className="relative">
-          <Input
-            ref={inputRef}
-            value={value}
-            onChange={(e) => {
-              setValue(e.target.value);
-              const next = e.target.value;
-              setShowRecent(next.length < 2);
-            }}
-            onFocus={() => {
-              setIsFocused(true);
-              if (value.length < 2) {
-                setShowRecent(true);
-              } else if (value.length >= 2) {
-                void fetchNow();
-              }
-            }}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholder}
-            className={cn("pr-14 pl-10", sizes.input)}
-            aria-label="Global search"
-          />
-        </div>
-
-        {/* Loading spinner */}
-        {loading && (
-          <div className="absolute top-1/2 right-12 -translate-y-1/2">
-            <Loader2 className={cn("animate-spin", sizes.icon)} />
-          </div>
+    <button
+      type="button"
+      onClick={dispatchOpenSearchSurface}
+      className={cn(
+        "border-border bg-accent/20 cursor-text text-muted-foreground hover:text-foreground flex w-full items-center gap-3 border pl-3 pr-4 shadow-lg backdrop-blur-sm transition-[border-color,box-shadow,background-color,color]",
+        "focus-visible:ring-primary/15 focus-visible:border-primary/40 focus-visible:outline-none focus-visible:ring-4",
+        sizes.trigger,
+        className,
+      )}
+      aria-label="Open search"
+      aria-haspopup="dialog"
+    >
+      <SearchIcon className={cn("shrink-0", sizes.icon)} />
+      <span className="min-w-0 flex-1 truncate text-left">{placeholder}</span>
+      <span className={cn("shrink-0", sizes.hint)}>
+        {isMac ? (
+          <Kbd>
+            <span className="mr-1 text-lg leading-none">⌘</span>
+            <span className="text-sm leading-none">K</span>
+          </Kbd>
+        ) : (
+          <Kbd>Ctrl K</Kbd>
         )}
-
-        <button
-          type="button"
-          onClick={() => {
-            logSearchEvent("search_open_palette", { source: "global_search" });
-            // Hint button triggers command palette via custom event
-            document.dispatchEvent(
-              new CustomEvent("sharply:open-command-palette"),
-            );
-          }}
-          className={cn(
-            "text-muted-foreground absolute top-1/2 right-2 -translate-y-1/2 rounded-md border",
-            sizes.button,
-          )}
-          aria-label="Open command palette"
-          title={isMac ? "Command Palette (⌘K)" : "Command Palette (Ctrl+K)"}
-        >
-          {isMac ? "⌘K" : "Ctrl K"}
-        </button>
-
-        {/* Dropdown - recent or suggestions */}
-        {showRecent && recentSearches.length > 0 && (
-          <div
-            className={cn(
-              "bg-background absolute top-full right-0 left-0 z-50 overflow-y-auto rounded-md border shadow-lg",
-              sizes.dropdown,
-            )}
-          >
-            <div className="border-b p-2">
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground text-sm font-medium">
-                  Recent searches
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearAllRecent}
-                  className={cn("text-xs", sizes.clearButton)}
-                >
-                  Clear all
-                </Button>
-              </div>
-            </div>
-
-            <div className="py-1">
-              {recentSearches.map((recentQuery) => (
-                <div
-                  key={recentQuery}
-                  className={cn(
-                    "hover:bg-accent group flex w-full items-center justify-between",
-                    sizes.recentItem,
-                  )}
-                >
-                  <button
-                    type="button"
-                    onClick={() => handleRecentSearchClick(recentQuery)}
-                    className="flex min-w-0 flex-1 items-center text-left"
-                  >
-                    <Clock
-                      className={cn(
-                        "text-muted-foreground mr-2 flex-shrink-0",
-                        sizes.recentIcon,
-                      )}
-                    />
-                    <span className="truncate">{recentQuery}</span>
-                  </button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => removeRecentSearch(recentQuery, e)}
-                    className={cn(
-                      "p-0 opacity-0 transition-opacity group-hover:opacity-100",
-                      sizes.removeButton,
-                    )}
-                  >
-                    <X className={sizes.removeIcon} />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {isFocused && value.length >= 2 && (
-          <div
-            className={cn(
-              "bg-background absolute top-full right-0 left-0 z-50 overflow-y-auto rounded-md border shadow-lg",
-              sizes.dropdown,
-            )}
-          >
-            <div className="border-b p-2">
-              <button
-                type="button"
-                className={cn(
-                  "hover:bg-accent w-full cursor-pointer rounded px-3 py-2 text-left text-sm",
-                )}
-                onClick={() => void submit(value, { forceSearchPage: true })}
-              >
-                <div className="flex items-center">
-                  <SearchIcon className="mr-2 h-4 w-4" />
-                  See all results for "{value}"
-                </div>
-              </button>
-            </div>
-
-            {(suggestLoading || debouncing) && (
-              <div className="flex items-center justify-center py-3">
-                <Loader2 className="h-4 w-4 animate-spin" />
-              </div>
-            )}
-
-            {hasSearched && !suggestLoading && !debouncing && (
-              <div className="py-1">
-                {suggestions.length > 0 ? (
-                  suggestions.map((s) => (
-                    <GlobalSearchSuggestion
-                      key={s.id}
-                      id={s.id}
-                      label={s.label}
-                      href={s.href}
-                      type={s.type}
-                      relevance={s.relevance}
-                      className={sizes.recentItem}
-                      onClick={() => {
-                        logSearchEvent("search_suggestion_click", {
-                          query: value,
-                          suggestionId: s.label,
-                        });
-                        setIsFocused(false);
-                        router.push(s.href);
-                      }}
-                    />
-                  ))
-                ) : (
-                  <div className="text-muted-foreground py-3 text-center text-sm">
-                    No suggestions.
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
+      </span>
+    </button>
   );
 }

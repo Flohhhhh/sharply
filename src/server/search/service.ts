@@ -15,7 +15,7 @@ import {
   fixedLensSpecs,
   analogCameraSpecs,
 } from "~/server/db/schema";
-import { asc, desc, sql, and, type SQL } from "drizzle-orm";
+import { asc, desc, sql, type SQL } from "drizzle-orm";
 import {
   buildSearchWhereClause,
   buildRelevanceExpr,
@@ -25,8 +25,19 @@ import {
   queryBrandSuggestions,
 } from "./data";
 import { fetchGearAliasesByGearIds } from "~/server/gear/data";
-import { GetGearDisplayName } from "~/lib/gear/naming";
 import type { GearAlias, GearRegion } from "~/types/gear";
+import { buildCompareHref } from "~/lib/utils/url";
+import type {
+  BrandSuggestion,
+  CompareSmartActionSuggestion,
+  GearSuggestion,
+  Suggestion,
+} from "~/types/search";
+import {
+  applyExactMatchMetadata,
+  buildGearSuggestion,
+  parseCompareIntent,
+} from "./suggestion-intent";
 
 /**
  * Search Service Layer
@@ -90,14 +101,6 @@ export type SearchResponse = {
   totalPages?: number;
   page: number;
   pageSize: number;
-};
-
-export type Suggestion = {
-  id: string;
-  label: string;
-  href: string;
-  type: "gear" | "brand";
-  relevance?: number;
 };
 
 // use buildSearchWhereClause directly from data.ts
@@ -264,47 +267,126 @@ export async function getSuggestions(
 ): Promise<Suggestion[]> {
   if (!query || query.length < 2) return [];
 
+  const compareIntent = parseCompareIntent(query);
+  const smartAction = compareIntent
+    ? await buildCompareSmartAction(compareIntent.left, compareIntent.right, region)
+    : null;
+
+  const rankedSuggestions = await buildRankedSuggestions(query, region);
+
+  return (smartAction
+    ? [smartAction, ...rankedSuggestions]
+    : rankedSuggestions
+  ).slice(0, limit);
+}
+
+type SuggestGearRow = {
+  id: string;
+  name: string;
+  slug: string;
+  brandName: string | null;
+  gearType: string;
+  relevance?: number;
+};
+
+async function buildRankedSuggestions(
+  query: string,
+  region?: GearRegion | null,
+): Promise<Suggestion[]> {
   const normalizedQuery = query.toLowerCase().trim();
   const normalizedQueryNoPunct = normalizedQuery.replace(/[\s\-_.]+/g, "");
-
-  const parts = normalizedQuery
-    .split(/[\s_]+/)
-    .filter((part) => part.length > 0)
-    .map((part) => part.trim());
-
   const whereClause = buildSearchWhereClause(query)!;
   const relevanceExpr = buildRelevanceExpr(query, normalizedQueryNoPunct);
 
   const gearResults = await queryGearSuggestions(whereClause, relevanceExpr);
+  const gearSuggestions = await buildGearSuggestions(gearResults, query, region);
+  const brandResults = await queryBrandSuggestions(normalizedQuery);
+  const brandSuggestions: BrandSuggestion[] = brandResults.map((item) => ({
+    id: `brand:${item.id}`,
+    kind: "brand",
+    type: "brand",
+    brandId: item.id,
+    brandName: item.name,
+    title: item.name,
+    label: item.name,
+    subtitle: "Brand",
+    href: `/brand/${item.slug}`,
+    relevance: item.relevance,
+  }));
+
+  return [...gearSuggestions, ...brandSuggestions].sort(
+    (a, b) => (b.relevance ?? 0) - (a.relevance ?? 0),
+  );
+}
+
+async function buildGearSuggestions(
+  gearResults: SuggestGearRow[],
+  query: string,
+  region?: GearRegion | null,
+): Promise<GearSuggestion[]> {
   const aliasesById = await fetchGearAliasesByGearIds(
     gearResults.map((item) => item.id),
   );
-  const brandResults = await queryBrandSuggestions(normalizedQuery);
 
-  const suggestions: Suggestion[] = [
-    ...gearResults.map((item) => ({
-      id: `gear:${item.id}`,
-      label: `${GetGearDisplayName(
-        {
-          name: item.name,
-          regionalAliases: aliasesById.get(item.id) ?? [],
-        },
-        { region },
-      )}${item.brandName ? ` (${item.brandName})` : ""}`,
-      href: `/gear/${item.slug}`,
-      type: "gear" as const,
-      relevance: item.relevance,
-    })),
-    ...brandResults.map((item) => ({
-      id: `brand:${item.id}`,
-      label: `${item.name} (Brand)`,
-      href: `/brand/${item.slug}`,
-      type: "brand" as const,
-      relevance: item.relevance,
-    })),
-  ]
-    .sort((a, b) => (b.relevance ?? 0) - (a.relevance ?? 0))
-    .slice(0, limit);
+  const suggestionInputs = new Map<
+    string,
+    SuggestGearRow & { regionalAliases: GearAlias[] }
+  >();
 
-  return suggestions;
+  const baseSuggestions = gearResults.map((item) => {
+    const regionalAliases = aliasesById.get(item.id) ?? [];
+    suggestionInputs.set(item.id, { ...item, regionalAliases });
+    return buildGearSuggestion({ ...item, regionalAliases }, region);
+  });
+
+  return applyExactMatchMetadata(query, baseSuggestions, suggestionInputs, region);
+}
+
+async function buildCompareSmartAction(
+  leftQuery: string,
+  rightQuery: string,
+  region?: GearRegion | null,
+): Promise<CompareSmartActionSuggestion | null> {
+  const [left, right] = await Promise.all([
+    resolveStrongGearMatch(leftQuery, region),
+    resolveStrongGearMatch(rightQuery, region),
+  ]);
+
+  if (!left || !right) return null;
+  if (left.gearId === right.gearId) return null;
+
+  return {
+    id: `smart-action:compare:${left.gearId}:${right.gearId}`,
+    kind: "smart-action",
+    type: "smart-action",
+    action: "compare",
+    title: `Compare ${left.title} and ${right.title}`,
+    label: `Compare ${left.title} and ${right.title}`,
+    subtitle: `${left.canonicalName} vs ${right.canonicalName}`,
+    href: buildCompareHref([left.href.replace("/gear/", ""), right.href.replace("/gear/", "")], {
+      preserveOrder: true,
+    }),
+    compareSlugs: [
+      left.href.replace("/gear/", ""),
+      right.href.replace("/gear/", ""),
+    ],
+    compareTitles: [left.title, right.title],
+    relevance: Math.max(left.relevance ?? 0, right.relevance ?? 0),
+  };
+}
+
+async function resolveStrongGearMatch(
+  query: string,
+  region?: GearRegion | null,
+): Promise<GearSuggestion | null> {
+  const ranked = await buildRankedSuggestions(query, region);
+  const exactGearMatches = ranked.filter(
+    (suggestion): suggestion is GearSuggestion =>
+      (suggestion.kind === "camera" || suggestion.kind === "lens") &&
+      suggestion.isBestMatch,
+  );
+
+  if (exactGearMatches.length !== 1) return null;
+
+  return exactGearMatches[0] ?? null;
 }
