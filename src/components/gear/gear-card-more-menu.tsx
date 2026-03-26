@@ -52,12 +52,14 @@ type GearCardMoreMenuProps = {
   slug: string;
   displayName: string;
   gearType?: string | null;
+  onOpenChange?: (open: boolean) => void;
 };
 
 export function GearCardMoreMenu({
   slug,
   displayName,
   gearType,
+  onOpenChange,
 }: GearCardMoreMenuProps) {
   const { data } = useSession();
   const router = useRouter();
@@ -191,7 +193,7 @@ export function GearCardMoreMenu({
 
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu onOpenChange={onOpenChange}>
         <DropdownMenuTrigger asChild>
           <Button
             variant="secondary"

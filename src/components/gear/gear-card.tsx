@@ -4,6 +4,7 @@ import type React from "react";
 import Link from "next/link";
 import { cn } from "~/lib/utils";
 import Image from "next/image";
+import { useState } from "react";
 import { BRANDS } from "~/lib/constants";
 import { PRICE_FALLBACK_TEXT } from "~/lib/mapping";
 import { Spinner } from "../ui/spinner";
@@ -160,6 +161,7 @@ export function GearCard(props: GearCardProps) {
   if (isTrending) badgeNodes.push(<TrendingBadge key="trending" />);
   if (isNew) badgeNodes.push(<NewBadge key="new" />);
   if (badges) badgeNodes.push(badges);
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 
   return (
     <div className={cn("group relative", className)}>
@@ -200,13 +202,18 @@ export function GearCard(props: GearCardProps) {
             </div>
 
             {/* Hover actions overlay */}
-            <div className="pointer-events-none absolute inset-0 flex items-start justify-end p-2 opacity-0 transition-opacity group-hover:opacity-100">
+            <div
+              className={cn(
+                "pointer-events-none absolute inset-0 flex items-start justify-end p-2 transition-opacity",
+                moreMenuOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100",
+              )}
+            >
               <div className="pointer-events-auto">
                 <GearCardMoreMenu
                   slug={slug}
                   displayName={displayName}
                   gearType={gearType}
-                  mode="overlay"
+                  onOpenChange={setMoreMenuOpen}
                 />
               </div>
             </div>
