@@ -142,6 +142,8 @@ export function GearCardMoreMenu({
             ? "Added to wishlist"
             : "Removed from wishlist",
         );
+      } else {
+        toast.error(result.error || "Failed to update wishlist");
       }
     } catch {
       toast.error("Failed to update wishlist");
