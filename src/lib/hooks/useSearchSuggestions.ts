@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDebounce } from "@hooks/useDebounce";
+import { fetchSearchSuggestions } from "./fetch-search-suggestions";
 import type { Suggestion } from "~/types/search";
 
 type UseSearchSuggestionsOptions = {
@@ -16,8 +17,11 @@ type UseSearchSuggestionsOptions = {
 type UseSearchSuggestionsReturn = {
   results: Suggestion[];
   loading: boolean;
+  networkLoading: boolean;
   debouncing: boolean;
+  typingPending: boolean;
   hasSearched: boolean;
+  hasShownResultsForCurrentInput: boolean;
   fetchNow: () => Promise<void>;
   error: Error | null;
 };
@@ -30,93 +34,165 @@ export function useSearchSuggestions(
     minLength = 2,
     limit = 8,
     enabled = true,
-    debounceMs = 200,
+    debounceMs = 180,
     endpoint = "/api/search/suggest",
     countryCode,
   } = options;
 
   const [results, setResults] = useState<Suggestion[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [networkLoading, setNetworkLoading] = useState(false);
   const [debouncing, setDebouncing] = useState(false);
+  const [typingPending, setTypingPending] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [hasShownResultsForCurrentInput, setHasShownResultsForCurrentInput] =
+    useState(false);
   const [error, setError] = useState<Error | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
-  const lastRawQueryRef = useRef<string>("");
+  const latestQueryRef = useRef<string>("");
+  const inFlightQueryRef = useRef<string | null>(null);
+  const lastCompletedQueryRef = useRef<string>("");
   const debouncingGuardTimeoutRef = useRef<number | null>(null);
+  const prevLenRef = useRef<number>(0);
 
   const debounced = useDebounce(query, debounceMs);
 
-  // Track typing state for debouncing indicator
+  const clearDebouncingGuard = useCallback(() => {
+    if (debouncingGuardTimeoutRef.current) {
+      window.clearTimeout(debouncingGuardTimeoutRef.current);
+      debouncingGuardTimeoutRef.current = null;
+    }
+  }, []);
+
+  const resetForClearedQuery = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    inFlightQueryRef.current = null;
+    lastCompletedQueryRef.current = "";
+    prevLenRef.current = 0;
+    clearDebouncingGuard();
+    setResults([]);
+    setError(null);
+    setDebouncing(false);
+    setTypingPending(false);
+    setNetworkLoading(false);
+    setHasSearched(false);
+    setHasShownResultsForCurrentInput(false);
+  }, [clearDebouncingGuard]);
+
+  // Track typing state for debouncing and pending-fetch indicators.
   useEffect(() => {
     if (!enabled) {
+      cancelOngoing();
+      clearDebouncingGuard();
       setDebouncing(false);
+      setTypingPending(false);
+      setNetworkLoading(false);
       return;
     }
 
-    if (query && query.length >= minLength) {
-      // If raw query changed and meets length threshold, show debouncing
-      if (query !== lastRawQueryRef.current) {
-        setDebouncing(true);
-        // Safety: clear debouncing if fetch doesn't start (e.g., background tab throttling)
-        if (debouncingGuardTimeoutRef.current) {
-          window.clearTimeout(debouncingGuardTimeoutRef.current);
-        }
-        debouncingGuardTimeoutRef.current = window.setTimeout(() => {
-          setDebouncing(false);
-        }, debounceMs + 800);
-      }
+    latestQueryRef.current = query;
+
+    if (!query) {
+      resetForClearedQuery();
     } else {
-      setDebouncing(false);
-      setHasSearched(false);
-      setResults([]);
-      setError(null);
-      if (debouncingGuardTimeoutRef.current) {
-        window.clearTimeout(debouncingGuardTimeoutRef.current);
-        debouncingGuardTimeoutRef.current = null;
+      setTypingPending(true);
+
+      if (query.length >= minLength) {
+        setDebouncing(true);
+        clearDebouncingGuard();
+        const queryAtSchedule = query;
+        debouncingGuardTimeoutRef.current = window.setTimeout(() => {
+          if (latestQueryRef.current !== queryAtSchedule) return;
+          if (inFlightQueryRef.current === queryAtSchedule) return;
+          setDebouncing(false);
+          setTypingPending(false);
+          debouncingGuardTimeoutRef.current = null;
+        }, debounceMs + 800);
+      } else {
+        cancelOngoing();
+        lastCompletedQueryRef.current = "";
+        setResults([]);
+        setDebouncing(false);
+        clearDebouncingGuard();
+        const queryAtSchedule = query;
+        debouncingGuardTimeoutRef.current = window.setTimeout(() => {
+          if (latestQueryRef.current !== queryAtSchedule) return;
+          if (inFlightQueryRef.current === queryAtSchedule) return;
+          setTypingPending(false);
+          debouncingGuardTimeoutRef.current = null;
+        }, debounceMs);
       }
     }
-
-    lastRawQueryRef.current = query;
-  }, [query, enabled, minLength, debounceMs]);
+  }, [
+    clearDebouncingGuard,
+    debounceMs,
+    enabled,
+    minLength,
+    query,
+    resetForClearedQuery,
+  ]);
 
   const cancelOngoing = useCallback(() => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
+      abortControllerRef.current = null;
     }
+    inFlightQueryRef.current = null;
   }, []);
 
   const doFetch = useCallback(
-    async (q: string, immediate = false) => {
+    async (q: string) => {
       if (!enabled) return;
       if (!q || q.length < minLength) return;
+      if (lastCompletedQueryRef.current === q) return;
 
       cancelOngoing();
-      abortControllerRef.current = new AbortController();
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+      inFlightQueryRef.current = q;
 
       setError(null);
-      // Clear debouncing state when we actually start fetching, regardless of trigger type
       setDebouncing(false);
-      setLoading(true);
+      setNetworkLoading(true);
+      setTypingPending(true);
 
       try {
-        const countryParam = countryCode
-          ? `&country=${encodeURIComponent(countryCode)}`
-          : "";
-        const url = `${endpoint}?q=${encodeURIComponent(q)}${limit ? `&limit=${limit}` : ""}${countryParam}`;
-        const res = await fetch(url, {
-          signal: abortControllerRef.current.signal,
+        const { suggestions } = await fetchSearchSuggestions({
+          endpoint,
+          query: q,
+          limit,
+          countryCode,
+          signal: controller.signal,
         });
-        const data = res.ok
-          ? ((await res.json()) as { suggestions?: Suggestion[] })
-          : { suggestions: [] };
-        setResults(Array.isArray(data.suggestions) ? data.suggestions : []);
+        if (controller.signal.aborted || latestQueryRef.current !== q) {
+          return;
+        }
+        setResults(suggestions);
         setHasSearched(true);
+        if (suggestions.length > 0) {
+          setHasShownResultsForCurrentInput(true);
+        }
+        lastCompletedQueryRef.current = q;
       } catch (err) {
+        if (controller.signal.aborted || latestQueryRef.current !== q) {
+          return;
+        }
         setResults([]);
         setHasSearched(true);
         setError(err instanceof Error ? err : new Error(String(err)));
       } finally {
-        setLoading(false);
+        if (abortControllerRef.current === controller) {
+          abortControllerRef.current = null;
+          setNetworkLoading(false);
+          if (latestQueryRef.current === q) {
+            setTypingPending(false);
+          }
+        }
+        if (inFlightQueryRef.current === q) {
+          inFlightQueryRef.current = null;
+        }
       }
     },
     [enabled, endpoint, limit, minLength, countryCode, cancelOngoing],
@@ -128,18 +204,24 @@ export function useSearchSuggestions(
     if (!debounced || debounced.length < minLength) {
       return;
     }
-    void doFetch(debounced, false);
+    if (lastCompletedQueryRef.current === debounced) {
+      return;
+    }
+    void doFetch(debounced);
   }, [debounced, enabled, minLength, doFetch]);
 
   // Immediate fetch when crossing threshold upward (reduces perceived lag)
-  const prevLenRef = useRef<number>(0);
   useEffect(() => {
     if (!enabled) return;
     const prevLen = prevLenRef.current;
     const currLen = query.length;
     // Detect transition from below threshold to >= threshold
     if (prevLen < minLength && currLen >= minLength) {
-      void doFetch(query, true);
+      if (lastCompletedQueryRef.current === query) {
+        prevLenRef.current = currLen;
+        return;
+      }
+      void doFetch(query);
     }
     prevLenRef.current = currLen;
   }, [query, enabled, minLength, doFetch]);
@@ -150,8 +232,18 @@ export function useSearchSuggestions(
   }, [cancelOngoing]);
 
   const fetchNow = useCallback(async () => {
-    await doFetch(query, true);
+    await doFetch(query);
   }, [doFetch, query]);
 
-  return { results, loading, debouncing, hasSearched, fetchNow, error };
+  return {
+    results,
+    loading: networkLoading,
+    networkLoading,
+    debouncing,
+    typingPending,
+    hasSearched,
+    hasShownResultsForCurrentInput,
+    fetchNow,
+    error,
+  };
 }
