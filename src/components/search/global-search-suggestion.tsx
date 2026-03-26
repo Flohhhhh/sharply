@@ -21,6 +21,8 @@ export function GlobalSearchSuggestion({
   className,
   onClick,
 }: Props) {
+  const kind = type === "gear" ? "camera" : "brand";
+
   return (
     <button
       type="button"
@@ -33,7 +35,7 @@ export function GlobalSearchSuggestion({
     >
       <SearchSuggestionRow
         title={label}
-        kind={type}
+        kind={kind}
         badge={type === "gear" ? "Gear" : "Brand"}
         leadingIcon={
           type === "gear" ? (
