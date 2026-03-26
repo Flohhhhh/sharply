@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   BookOpenCheck,
@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
+import { Empty, EmptyDescription, EmptyTitle } from "~/components/ui/empty";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import {
@@ -59,12 +60,14 @@ import type { ProfileUserListState } from "./types";
 type UserListsSectionProps = {
   initialLists: ProfileUserListState[];
   myProfile: boolean;
+  profileName?: string | null;
   onListsChanged?: () => void;
 };
 
 export function UserListsSection({
   initialLists,
   myProfile,
+  profileName,
   onListsChanged,
 }: UserListsSectionProps) {
   const [lists, setLists] = useState(initialLists);
@@ -87,16 +90,9 @@ export function UserListsSection({
     onListsChanged?.();
   };
 
-  useEffect(() => {
-    setLists(initialLists);
-  }, [initialLists]);
-
   const manageList = lists.find((list) => list.id === manageListId) ?? null;
 
-  const publishedCount = useMemo(
-    () => lists.filter((list) => list.shared?.isPublished).length,
-    [lists],
-  );
+  const publishedCount = lists.filter((list) => list.shared?.isPublished).length;
 
   const handleCreate = async () => {
     if (!createName.trim() || isCreating) return;
@@ -451,10 +447,22 @@ export function UserListsSection({
             </div>
           ))}
         </div>
+      ) : myProfile ? (
+        <Empty className="border-border rounded-lg border-2 border-dashed p-8">
+          <EmptyTitle>No lists yet</EmptyTitle>
+          <EmptyDescription>
+            Create a list to organize gear you want to save or share.
+          </EmptyDescription>
+        </Empty>
       ) : (
-        <div className="text-muted-foreground rounded-lg border border-dashed p-6 text-sm">
-          No lists yet.
-        </div>
+        <Empty className="border-border rounded-lg border-2 border-dashed p-8">
+          <EmptyTitle>
+            {profileName ? `${profileName} has no public lists yet` : "No public lists yet"}
+          </EmptyTitle>
+          <EmptyDescription>
+            Check back later to see any lists they choose to share.
+          </EmptyDescription>
+        </Empty>
       )}
 
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>

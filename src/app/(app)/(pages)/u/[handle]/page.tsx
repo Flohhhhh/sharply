@@ -278,7 +278,11 @@ export default async function UserProfilePage({
 
         {/* Lists */}
         <div className="space-y-4">
-          <UserListsSectionDeferred profileUserId={profile.id} />
+          <UserListsSectionDeferred
+            profileUserId={profile.id}
+            myProfile={myProfile}
+            profileName={profile.name}
+          />
         </div>
 
         {/* Reviews */}
