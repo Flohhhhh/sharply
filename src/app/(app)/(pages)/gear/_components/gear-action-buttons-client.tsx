@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "~/lib/auth/auth-client";
 import { Button } from "~/components/ui/button";
 import { ButtonGroup } from "~/components/ui/button-group";
@@ -40,6 +40,17 @@ interface GearActionButtonsClientProps {
   } | null;
 }
 
+type GearActionSaveState = Exclude<
+  GearActionButtonsClientProps["initialSaveState"],
+  undefined
+>;
+
+type GearActionUserState = {
+  inWishlist: boolean | null;
+  isOwned: boolean | null;
+  saveState: GearActionSaveState;
+};
+
 function GearCompareActionButton({
   slug,
   name,
@@ -74,17 +85,81 @@ export function GearActionButtonsClient({
   const displayName = useGearDisplayName({ name, regionalAliases });
 
   const session = data?.session;
+  const activeUserId = session?.userId ?? null;
+  const fetchKey = activeUserId ? `${activeUserId}:${slug}` : null;
   const callbackUrl = `/gear/${slug}`;
   const signInUrl = `/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`;
-  const saveButtonActive = (initialSaveState?.savedListIds.length ?? 0) > 0;
-  const wishlistActive = initialInWishlist === true;
-
-  const [isOwned, setIsOwned] = useState<boolean | null>(() => initialIsOwned ?? null);
+  const [userState, setUserState] = useState<GearActionUserState>(() => ({
+    inWishlist: initialInWishlist,
+    isOwned: initialIsOwned,
+    saveState: initialSaveState ?? null,
+  }));
+  const [fetchedKey, setFetchedKey] = useState<string | null>(null);
+  const [isHydratingUserState, setIsHydratingUserState] = useState(false);
   const [loading, setLoading] = useState({
     ownership: false,
   });
 
-  // Initial state comes from the server wrapper props; no client fetch
+  useEffect(() => {
+    if (!fetchKey || fetchedKey === fetchKey) return;
+
+    const missingInitialState =
+      userState.inWishlist === null ||
+      userState.isOwned === null ||
+      userState.saveState === null;
+
+    if (!missingInitialState) {
+      setFetchedKey(fetchKey);
+      return;
+    }
+
+    let isCancelled = false;
+    setIsHydratingUserState(true);
+
+    void (async () => {
+      try {
+        const response = await fetch(
+          `/api/gear/${encodeURIComponent(slug)}/user-state`,
+        );
+        if (!response.ok) return;
+
+        const payload = (await response.json()) as {
+          inWishlist: boolean | null;
+          isOwned: boolean | null;
+          saveState: GearActionSaveState;
+        };
+
+        if (isCancelled) return;
+        setUserState({
+          inWishlist: payload.inWishlist,
+          isOwned: payload.isOwned,
+          saveState: payload.saveState ?? null,
+        });
+      } catch {
+        // Ignore background hydration failures and keep fallback auth controls.
+      } finally {
+        if (!isCancelled) {
+          setFetchedKey(fetchKey);
+          setIsHydratingUserState(false);
+        }
+      }
+    })();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [
+    fetchKey,
+    fetchedKey,
+    slug,
+    userState.inWishlist,
+    userState.isOwned,
+    userState.saveState,
+  ]);
+
+  const { inWishlist, isOwned, saveState } = userState;
+  const saveButtonActive = (saveState?.savedListIds.length ?? 0) > 0;
+  const wishlistActive = inWishlist === true;
 
   const handleRequireAuthInteraction = () => {
     if (isPending) return;
@@ -103,7 +178,7 @@ export function GearActionButtonsClient({
       const action = isOwned ? "remove" : ("add" as const);
       const res = await withBadgeToasts(actionToggleOwnership(slug, action));
       if (res.ok) {
-        setIsOwned(!isOwned);
+        setUserState((prev) => ({ ...prev, isOwned: !isOwned }));
 
         // Optimistic stats update event
         const delta = res.action === "added" ? 1 : -1;
@@ -127,7 +202,7 @@ export function GearActionButtonsClient({
   };
 
   const renderPendingAuthenticatedButtons = () => (
-    <div className="space-y-3 pt-4">
+    <div className="space-y-2 pt-4">
       <ButtonGroup className="w-full">
         <Button
           type="button"
@@ -165,12 +240,12 @@ export function GearActionButtonsClient({
       </Button>
 
       <Button
-        variant={initialIsOwned ? "default" : "outline"}
+        variant={isOwned ? "default" : "outline"}
         className="w-full justify-start"
         disabled
-        icon={initialIsOwned ? <Package /> : <PackageOpen />}
+        icon={isOwned ? <Package /> : <PackageOpen />}
       >
-        {initialIsOwned ? "Remove from Collection" : "Add to Collection"}
+        {isOwned ? "Remove from Collection" : "Add to Collection"}
       </Button>
 
       <GearCompareActionButton
@@ -182,7 +257,7 @@ export function GearActionButtonsClient({
   );
 
   const renderSignedOutButtons = (authButtonsDisabled: boolean) => (
-    <div className="space-y-3 pt-4">
+    <div className="space-y-2 pt-4">
       <Button
         variant="outline"
         className="w-full justify-start"
@@ -232,17 +307,29 @@ export function GearActionButtonsClient({
     return renderSignedOutButtons(false);
   }
 
+  if (isHydratingUserState) {
+    return renderPendingAuthenticatedButtons();
+  }
+
   const ownedActive = isOwned === true;
 
   return (
-    <div className="space-y-3 pt-4">
+    <div className="space-y-2 pt-4">
       {/* Save Item Button */}
-      <SaveItemButton slug={slug} initialState={initialSaveState} />
+      <SaveItemButton
+        key={`${fetchKey ?? "anonymous"}:${saveState?.savedListIds.join(",") ?? "none"}`}
+        slug={slug}
+        initialState={saveState}
+        onStateChange={(nextState) =>
+          setUserState((prev) => ({ ...prev, saveState: nextState }))
+        }
+      />
 
       {/* Wishlist Button */}
       <AddToWishlistButton
+        key={`${fetchKey ?? "anonymous"}:${String(inWishlist)}`}
         slug={slug}
-        initialInWishlist={initialInWishlist}
+        initialInWishlist={inWishlist}
         size="md"
         variant="outline"
         className="w-full justify-start"
