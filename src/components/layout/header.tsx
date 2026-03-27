@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import HeaderClient, {
   type HeaderNotificationsData,
   type HeaderUser,
@@ -53,5 +53,9 @@ export default function Header() {
     };
   }, [user?.id]);
 
-  return <HeaderClient user={user} notifications={notifications} />;
+  return (
+    <Suspense fallback={<div className="bg-background fixed top-0 right-0 left-0 z-50 h-16" />}>
+      <HeaderClient user={user} notifications={notifications} />
+    </Suspense>
+  );
 }
