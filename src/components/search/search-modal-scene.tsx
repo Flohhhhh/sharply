@@ -185,7 +185,13 @@ export function SearchModalScene({
   const showResultsSection = hasQuery ? hasRevealedPanelForInput : false;
   const shellTransition = reduceMotion
     ? { duration: 0 }
-    : { type: "spring" as const, duration: 100, stiffness: 400, damping: 30, mass: 0.95 };
+    : {
+        type: "spring" as const,
+        duration: 100,
+        stiffness: 400,
+        damping: 30,
+        mass: 0.95,
+      };
   const panelTransition = reduceMotion
     ? { duration: 0 }
     : { type: "spring" as const, duration: 100, stiffness: 400, damping: 30, mass: 0.82 };
@@ -251,12 +257,24 @@ export function SearchModalScene({
 
   return (
     <motion.div
-      initial={false}
+      initial={
+        reduceMotion
+          ? false
+          : {
+              opacity: 0,
+              scale: 0.96,
+              y: 12,
+              height: 64,
+            }
+      }
       animate={{
+        opacity: 1,
+        scale: 1,
+        y: 0,
         height: showResultsSection ? 480 : 64,
       }}
       transition={shellTransition}
-      className="bg-background dark:supports-backdrop-filter:bg-background/50 flex overflow-hidden rounded-2xl border border-black/40 dark:border-white/40 shadow-[0_28px_90px_-42px_rgba(0,0,0,0.88),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl"
+      className="bg-background dark:supports-backdrop-filter:bg-background/50 flex origin-top overflow-hidden rounded-2xl border border-black/40 dark:border-white/40 shadow-[0_28px_90px_-42px_rgba(0,0,0,0.88),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl"
     >
       <div className="flex min-h-0 flex-1 flex-col">
         <div className="flex h-16 shrink-0 items-center gap-3 px-5">
