@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { ClockIcon, FlameIcon, LinkIcon, TrendingUpIcon } from "lucide-react";
+import { ClockIcon, FlameIcon, TrendingUpIcon } from "lucide-react";
 import Link from "next/link";
 import { GearCard, GearCardSkeleton } from "~/components/gear/gear-card";
 import { Button } from "~/components/ui/button";
@@ -10,28 +10,14 @@ import { fetchTrending, fetchTrendingSlugs } from "~/server/popularity/service";
 import { getItemDisplayPrice } from "~/lib/mapping";
 import { fetchReleaseFeedPage } from "~/server/gear/browse/service";
 import { ReleaseFeedGrid } from "./release-feed-grid";
-import { BrowseResultsGrid, type BrowseListPage } from "./browse-results-grid";
-import type { BrowseFilters } from "~/lib/browse/filters";
-import { loadHubData } from "~/server/gear/browse/service";
-import {
-  getBrandBySlug,
-  type SearchGearResult,
-} from "~/server/gear/browse/data";
+import { getBrandBySlug } from "~/server/gear/browse/data";
 
 export default async function AllGearContent({
   brandSlug,
   showBrandPicker = true,
-  initialBrowsePage,
-  browseBaseQuery,
-  brandName,
-  searchParams = {},
 }: {
   brandSlug?: string;
   showBrandPicker?: boolean;
-  initialBrowsePage?: BrowseListPage;
-  browseBaseQuery?: string;
-  brandName?: string;
-  searchParams?: Record<string, string | string[] | undefined>;
 } = {}) {
   // return <Loading />;
   const brand = brandSlug ? await getBrandBySlug(brandSlug) : null;
@@ -49,13 +35,6 @@ export default async function AllGearContent({
   const featured = brandOptions.filter((b) => featuredNames.includes(b.name));
 
   const prioritizedBrands = splitBrandsWithPriority(brandOptions);
-  // const { listPage, baseQuery, brandLabel } = await ensureBrowseData({
-  //   brandSlug,
-  //   initialBrowsePage,
-  //   browseBaseQuery,
-  //   brandName,
-  //   searchParams,
-  // });
   const initialReleasePage = await fetchReleaseFeedPage({
     limit: 12,
     brandSlug,
@@ -215,100 +194,4 @@ function TrendingSkeleton() {
       ))}
     </div>
   );
-}
-
-// Release section renders with initial data; no suspense needed to avoid duplicate headings.
-
-async function ensureBrowseData(params: {
-  brandSlug?: string;
-  initialBrowsePage?: BrowseListPage;
-  browseBaseQuery?: string;
-  brandName?: string;
-  searchParams?: Record<string, string | string[] | undefined>;
-}): Promise<{
-  listPage: BrowseListPage;
-  baseQuery: string;
-  brandLabel?: string;
-}> {
-  if (params.initialBrowsePage && params.browseBaseQuery) {
-    return {
-      listPage: params.initialBrowsePage,
-      baseQuery: params.browseBaseQuery,
-      brandLabel: params.brandName,
-    };
-  }
-
-  const { lists, filters, brand } = await loadHubData({
-    segments: params.brandSlug ? [params.brandSlug] : [],
-    searchParams: params.searchParams ?? {},
-  });
-
-  return {
-    listPage: buildInitialPage(lists, filters),
-    baseQuery: buildBaseQuery({
-      searchParams: params.searchParams ?? {},
-      perPage: filters.perPage,
-      brandSlug: params.brandSlug,
-      category: null,
-      mountShort: null,
-    }),
-    brandLabel: params.brandName ?? brand?.name,
-  };
-}
-
-function buildInitialPage(
-  lists: SearchGearResult,
-  filters: BrowseFilters,
-): BrowseListPage {
-  return {
-    items: lists.items.map((g) => ({
-      ...g,
-      releaseDate: g.releaseDate ? g.releaseDate.toISOString() : null,
-      releaseDatePrecision: g.releaseDatePrecision ?? null,
-      announcedDate: g.announcedDate ? g.announcedDate.toISOString() : null,
-      announceDatePrecision: g.announceDatePrecision ?? null,
-      thumbnailUrl: g.thumbnailUrl ?? null,
-      brandName: g.brandName ?? null,
-      gearType: g.gearType ?? null,
-      msrpNowUsdCents:
-        typeof g.msrpNowUsdCents === "number" ? g.msrpNowUsdCents : null,
-      mpbMaxPriceUsdCents:
-        typeof g.mpbMaxPriceUsdCents === "number"
-          ? g.mpbMaxPriceUsdCents
-          : null,
-    })),
-    total: lists.total,
-    page: filters.page,
-    perPage: filters.perPage,
-    hasMore: filters.page * filters.perPage < lists.total,
-  };
-}
-
-function buildBaseQuery(params: {
-  searchParams: Record<string, string | string[] | undefined>;
-  perPage: number;
-  brandSlug?: string | null;
-  category?: string | null;
-  mountShort?: string | null;
-}) {
-  const qs = new URLSearchParams();
-  qs.set("view", "list");
-  if (params.brandSlug) qs.set("brandSlug", params.brandSlug);
-  if (params.category) qs.set("category", params.category);
-  if (params.mountShort) qs.set("mount", params.mountShort);
-  qs.set("perPage", String(params.perPage));
-
-  for (const [key, value] of Object.entries(params.searchParams)) {
-    if (key === "page" || key === "perPage") continue;
-    if (value == null) continue;
-    if (Array.isArray(value)) {
-      value.forEach((v) => {
-        qs.append(key, v);
-      });
-    } else {
-      qs.set(key, value);
-    }
-  }
-
-  return qs.toString();
 }

@@ -323,6 +323,7 @@ export async function queryGearSuggestions(
       name: gear.name,
       slug: gear.slug,
       brandName: brands.name,
+      gearType: gear.gearType,
       relevance: relevanceExpr,
     })
     .from(gear)

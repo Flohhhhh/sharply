@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { actionToggleImageRequest } from "~/server/gear/actions";
 import { toast } from "sonner";
@@ -15,10 +15,55 @@ export function RequestImageButton({
   slug,
   initialHasRequested,
 }: RequestImageButtonProps) {
-  const [hasRequested, setHasRequested] = useState(
-    initialHasRequested ?? false,
-  );
+  const [hasRequested, setHasRequested] = useState(initialHasRequested ?? false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isHydrationCheckDone, setIsHydrationCheckDone] = useState(
+    initialHasRequested !== null,
+  );
+  const [canRequestImage, setCanRequestImage] = useState(
+    initialHasRequested !== null,
+  );
+
+  useEffect(() => {
+    if (initialHasRequested !== null) {
+      setCanRequestImage(true);
+      setIsHydrationCheckDone(true);
+      return;
+    }
+
+    let isCancelled = false;
+    void (async () => {
+      try {
+        const response = await fetch(
+          `/api/gear/${encodeURIComponent(slug)}/user-state`,
+        );
+        if (!response.ok) return;
+        const payload = (await response.json()) as {
+          hasImageRequest: boolean | null;
+        };
+        if (isCancelled) return;
+        if (typeof payload.hasImageRequest === "boolean") {
+          setCanRequestImage(true);
+          setHasRequested(payload.hasImageRequest);
+        } else {
+          setCanRequestImage(false);
+        }
+      } catch {
+        // Ignore background fetch failures; button remains hidden for signed-out users.
+        if (!isCancelled) {
+          setCanRequestImage(false);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsHydrationCheckDone(true);
+        }
+      }
+    })();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [initialHasRequested, slug]);
 
   const handleToggle = async () => {
     if (hasRequested) {
@@ -52,8 +97,11 @@ export function RequestImageButton({
     }
   };
 
-  // Don't show button if user is not logged in
-  if (initialHasRequested === null) {
+  // Keep the control hidden until we know whether the viewer is authenticated.
+  if (!isHydrationCheckDone) {
+    return null;
+  }
+  if (!canRequestImage) {
     return null;
   }
 

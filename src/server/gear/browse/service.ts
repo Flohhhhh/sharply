@@ -1,5 +1,4 @@
 import "server-only";
-import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import {
   parseSegments,
@@ -7,11 +6,11 @@ import {
   getDepth,
   formatScopeTitle,
 } from "~/lib/browse/routing";
+import type { BrowseFilters } from "~/lib/browse/filters";
 import {
-  parseFilters,
-  type BrowseFilters,
-  type SortOption,
-} from "~/lib/browse/filters";
+  normalizeBrowseFilters,
+  type BrowseSearchParamsRecord,
+} from "~/lib/browse/query";
 // Category labels are defined locally to avoid a separate constants module
 const gearCategoryLabels = {
   cameras: "Cameras",
@@ -33,15 +32,8 @@ import {
   getReleaseOrderedGearPage,
 } from "./data";
 import type { SearchGearResult } from "./data";
-import { LENS_FOCAL_LENGTH_SORT } from "./lens-sort";
-import type { BrowseFeedPage } from "~/types/browse";
+import type { BrowseFeedPage, BrowseListItem, BrowseListPage } from "~/types/browse";
 import { fetchGearAliasesByGearIds } from "~/server/gear/data";
-
-export async function deriveDefaultBrandFromCookies() {
-  const store = await cookies();
-  const slug = store.get("brand_affinity")?.value;
-  return slug ?? null;
-}
 
 export async function resolveScopeOrThrow(segments: string[]): Promise<{
   depth: 0 | 1 | 2 | 3;
@@ -70,26 +62,14 @@ export async function resolveScopeOrThrow(segments: string[]): Promise<{
 
 export async function loadHubData(params: {
   segments: string[];
-  searchParams: Record<string, string | string[] | undefined>;
+  searchParams: BrowseSearchParamsRecord;
 }): Promise<LoadHubDataResult> {
   const { depth, scope, brand, mount } = await resolveScopeOrThrow(
     params.segments,
   );
-  const defaultSort = getDefaultSortForScope(scope);
-  const isLensMountScope =
-    scope.categorySlug === "lenses" && !!scope.mountShort;
-  const filters = (() => {
-    const base = parseFilters(params.searchParams, { defaultSort });
-    if (isLensMountScope) {
-      // Lens + mount pages are narrow enough to return all items in one request.
-      return { ...base, perPage: 500, page: 1 };
-    }
-    return base;
-  })();
+  const filters = normalizeBrowseFilters(params.searchParams, scope);
 
-  const cookieSlug = await deriveDefaultBrandFromCookies();
-  const effectiveBrandSlug =
-    scope.brandSlug ?? filters.brandOverride ?? cookieSlug ?? undefined;
+  const effectiveBrandSlug = scope.brandSlug ?? filters.brandOverride ?? undefined;
   const effectiveBrand = scope.brandSlug
     ? brand
     : effectiveBrandSlug
@@ -144,15 +124,12 @@ export async function loadHubData(params: {
   };
 }
 
-export async function buildSeo(params: {
-  segments: string[];
-  searchParams: Record<string, string | string[] | undefined>;
-}) {
+export async function buildSeo(params: { segments: string[] }) {
   console.log("[/browse] buildSeo running", { segments: params.segments });
   // Load data once to obtain scope + total for descriptive metadata
   const { scope, brand, mount, lists } = await loadHubData({
     segments: params.segments,
-    searchParams: params.searchParams,
+    searchParams: {},
   });
 
   // Special-case the browse index for clearer SEO
@@ -173,30 +150,18 @@ export async function buildSeo(params: {
   });
   const title = `${plainTitle}`;
   const description = `Explore all ${lists.total} ${plainTitle}`;
-  const canonical = buildCanonical(
-    scope,
-    parseFilters(params.searchParams, {
-      defaultSort: getDefaultSortForScope(scope),
-    }),
-  );
+  const canonical = buildCanonical(scope);
   const openGraph = { title, description, url: canonical };
   return { title, description, canonical, openGraph };
 }
 
-function buildCanonical(scope: RouteScope, _filters: BrowseFilters) {
+function buildCanonical(scope: RouteScope) {
   const base = process.env.NEXT_PUBLIC_BASE_URL!;
   const segs: string[] = ["browse"];
   if (scope.brandSlug) segs.push(scope.brandSlug);
   if (scope.categorySlug) segs.push(scope.categorySlug);
   if (scope.mountShort) segs.push(scope.mountShort);
   return `${base}/${segs.join("/")}`;
-}
-
-function getDefaultSortForScope(scope: RouteScope): SortOption {
-  if (scope.categorySlug === "lenses" && scope.mountShort) {
-    return LENS_FOCAL_LENGTH_SORT;
-  }
-  return "newest";
 }
 
 // Deprecated: static params are generated directly in the page route
@@ -253,6 +218,50 @@ export async function fetchReleaseFeedPage(params: {
     items,
     nextCursor,
     hasMore: page.hasMore,
+  };
+}
+
+export async function fetchBrowseListPage(params: {
+  segments: string[];
+  searchParams: BrowseSearchParamsRecord;
+}): Promise<BrowseListPage> {
+  const { lists, filters } = await loadHubData(params);
+  return serializeBrowseListPage(lists, filters);
+}
+
+export function serializeBrowseListPage(
+  lists: SearchGearResult,
+  filters: BrowseFilters,
+): BrowseListPage {
+  return {
+    items: lists.items.map(serializeBrowseListItem),
+    total: lists.total,
+    page: filters.page,
+    perPage: filters.perPage,
+    hasMore: filters.page * filters.perPage < lists.total,
+  };
+}
+
+function serializeBrowseListItem(
+  item: SearchGearResult["items"][number],
+): BrowseListItem {
+  return {
+    ...item,
+    releaseDate: item.releaseDate ? item.releaseDate.toISOString() : null,
+    releaseDatePrecision: item.releaseDatePrecision ?? null,
+    announcedDate: item.announcedDate
+      ? item.announcedDate.toISOString()
+      : null,
+    announceDatePrecision: item.announceDatePrecision ?? null,
+    thumbnailUrl: item.thumbnailUrl ?? null,
+    brandName: item.brandName ?? null,
+    gearType: item.gearType ?? null,
+    msrpNowUsdCents:
+      typeof item.msrpNowUsdCents === "number" ? item.msrpNowUsdCents : null,
+    mpbMaxPriceUsdCents:
+      typeof item.mpbMaxPriceUsdCents === "number"
+        ? item.mpbMaxPriceUsdCents
+        : null,
   };
 }
 

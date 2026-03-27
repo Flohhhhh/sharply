@@ -1,42 +1,36 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import useSWRInfinite from "swr/infinite";
 import { Loader } from "lucide-react";
-import { GearCard } from "~/components/gear/gear-card";
+import {
+  usePathname,
+  useSearchParams,
+} from "next/navigation";
+import { GearCard, GearCardSkeleton } from "~/components/gear/gear-card";
 import { Button } from "~/components/ui/button";
 import { getItemDisplayPrice } from "~/lib/mapping";
 import { useIsMobile } from "~/hooks/use-mobile";
-import type { GearAlias } from "~/types/gear";
-
-type GearListItem = {
-  id: string;
-  slug: string;
-  name: string;
-  regionalAliases?: GearAlias[] | null;
-  brandName?: string | null;
-  gearType: string | null;
-  thumbnailUrl: string | null;
-  releaseDate: string | null;
-  releaseDatePrecision: "DAY" | "MONTH" | "YEAR" | null;
-  announcedDate: string | null;
-  announceDatePrecision: "DAY" | "MONTH" | "YEAR" | null;
-  msrpNowUsdCents: number | null;
-  mpbMaxPriceUsdCents: number | null;
-};
-
-export type BrowseListPage = {
-  items: GearListItem[];
-  total: number;
-  page: number;
-  perPage: number;
-  hasMore: boolean;
-};
+import { mergeSearchParams } from "@utils/url";
+import {
+  buildBrowseListApiPath,
+  normalizeBrowseFilters,
+  urlSearchParamsToRecord,
+} from "~/lib/browse/query";
+import type { RouteScope } from "~/lib/browse/routing";
+import type { BrowseListPage } from "~/types/browse";
 
 type BrowseResultsGridProps = {
   initialPage: BrowseListPage;
   brandName?: string;
-  baseQuery: string;
+  scope: RouteScope;
   trendingSlugs?: string[];
 };
 
@@ -53,38 +47,94 @@ const MAX_AUTO_SCROLL_LOADS = 5;
 export function BrowseResultsGrid({
   initialPage,
   brandName,
-  baseQuery,
+  scope,
   trendingSlugs,
 }: BrowseResultsGridProps) {
   const isMobile = useIsMobile();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [isPending] = useTransition();
   const [infiniteActive, setInfiniteActive] = useState(false);
   const [autoScrollLoads, setAutoScrollLoads] = useState(0);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const currentPageRef = useRef(1);
   const loadingRef = useRef(false);
   const autoScrollLoadsRef = useRef(0);
+  const searchParamsString = searchParams.toString();
 
-  const buildKey = useCallback(
-    (pageIndex: number) => {
-      const params = new URLSearchParams(baseQuery);
-      params.set("view", "list");
-      params.set("page", String(initialPage.page + pageIndex));
-      const qs = params.toString();
-      return `/api/gear/browse${qs ? `?${qs}` : ""}`;
+  const filters = useMemo(
+    () => normalizeBrowseFilters(urlSearchParamsToRecord(searchParams), scope),
+    [
+      scope.brandSlug,
+      scope.categorySlug,
+      scope.mountShort,
+      searchParamsString,
+      searchParams,
+    ],
+  );
+
+  const defaultFilters = useMemo(
+    () => normalizeBrowseFilters({}, scope),
+    [scope.brandSlug, scope.categorySlug, scope.mountShort],
+  );
+
+  const targetPage = filters.page;
+  const defaultBrowsePath = useMemo(
+    () =>
+      buildBrowseListApiPath({
+        scope,
+        filters: defaultFilters,
+      }),
+    [defaultFilters, scope],
+  );
+  const currentBrowsePath = useMemo(
+    () =>
+      buildBrowseListApiPath({
+        scope,
+        filters,
+      }),
+    [filters, scope],
+  );
+  const shouldUseFallbackData =
+    targetPage === initialPage.page && currentBrowsePath === defaultBrowsePath;
+
+  const updatePage = useCallback(
+    (nextPage: number) => {
+      const query = mergeSearchParams(new URLSearchParams(searchParamsString), {
+        page: nextPage > 1 ? nextPage : null,
+      });
+      const href = query ? `${pathname}?${query}` : pathname;
+      window.history.pushState(null, "", href);
     },
-    [baseQuery, initialPage.page],
+    [pathname, searchParamsString],
   );
 
   const { data, error, size, setSize, isValidating } = useSWRInfinite<
     BrowseListPage,
     Error
-  >((pageIndex) => buildKey(pageIndex), fetcher, {
-    fallbackData: [initialPage],
-    revalidateFirstPage: false,
-    revalidateIfStale: false,
-    revalidateOnFocus: false,
-  });
+  >(
+    (pageIndex, previousPageData) => {
+      if (previousPageData && !previousPageData.hasMore) return null;
+      return buildBrowseListApiPath({
+        scope,
+        filters: {
+          ...filters,
+          page: pageIndex + 1,
+        },
+      });
+    },
+    fetcher,
+    {
+      initialSize: targetPage,
+      fallbackData: shouldUseFallbackData ? [initialPage] : undefined,
+      revalidateFirstPage: true,
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+    },
+  );
 
-  const pages = data ?? [initialPage];
+  const rawPages = data ?? (shouldUseFallbackData ? [initialPage] : []);
+  const pages = rawPages.slice(0, targetPage);
   const items = useMemo(
     () => pages.flatMap((page) => page?.items ?? []),
     [pages],
@@ -93,14 +143,34 @@ export function BrowseResultsGrid({
     () => new Set(trendingSlugs ?? []),
     [trendingSlugs],
   );
-  const lastPage = pages[pages.length - 1] ?? initialPage;
+  const lastPage = pages[pages.length - 1];
   const hasMore = lastPage?.hasMore ?? false;
-  const isLoadingMore = isValidating && pages.length < size;
-  const showEmpty = !items.length && !error && !isValidating;
+  const isLoadingMore = isPending || (isValidating && rawPages.length < size);
+  const isLoadingInitial = !rawPages.length && !error;
+  const showEmpty = !items.length && !error && !isLoadingMore;
+  const total = pages[0]?.total ?? (shouldUseFallbackData ? initialPage.total : 0);
 
   useEffect(() => {
     loadingRef.current = isLoadingMore;
   }, [isLoadingMore]);
+
+  useEffect(() => {
+    currentPageRef.current = targetPage;
+  }, [targetPage]);
+
+  useEffect(() => {
+    if (size !== targetPage) {
+      void setSize(targetPage);
+    }
+  }, [setSize, size, targetPage]);
+
+  useEffect(() => {
+    if (targetPage <= 1) {
+      setInfiniteActive(false);
+      autoScrollLoadsRef.current = 0;
+      setAutoScrollLoads(0);
+    }
+  }, [targetPage]);
 
   const hasReachedAutoLoadLimit = autoScrollLoads >= MAX_AUTO_SCROLL_LOADS;
 
@@ -122,7 +192,7 @@ export function BrowseResultsGrid({
           if (nextAutoLoadCount >= MAX_AUTO_SCROLL_LOADS) {
             setInfiniteActive(false);
           }
-          void setSize((current) => current + 1);
+          updatePage(currentPageRef.current + 1);
         }
       },
       { rootMargin: "200px 0px" },
@@ -130,7 +200,7 @@ export function BrowseResultsGrid({
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [hasMore, infiniteActive, setSize, isMobile, hasReachedAutoLoadLimit]);
+  }, [hasMore, infiniteActive, isMobile, hasReachedAutoLoadLimit, updatePage]);
 
   const handleLoadMore = useCallback(() => {
     if (!hasMore || isLoadingMore) return;
@@ -139,13 +209,19 @@ export function BrowseResultsGrid({
       autoScrollLoadsRef.current = 0;
       setAutoScrollLoads(0);
     }
-    void setSize((current) => current + 1);
-  }, [hasMore, isLoadingMore, setSize, isMobile]);
+    updatePage(targetPage + 1);
+  }, [hasMore, isLoadingMore, isMobile, targetPage, updatePage]);
 
   const errorText = error ? "Unable to load more gear right now." : null;
 
   return (
     <div className="space-y-4">
+      <p className="text-muted-foreground text-sm">
+        {isLoadingInitial
+          ? "Loading results..."
+          : `Showing ${total} result${total === 1 ? "" : "s"}`}
+      </p>
+
       {errorText ? (
         <div className="text-destructive text-sm">{errorText}</div>
       ) : null}
@@ -157,6 +233,11 @@ export function BrowseResultsGrid({
       ) : null}
 
       <div className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
+        {isLoadingInitial
+          ? Array.from({ length: 12 }, (_, index) => (
+              <GearCardSkeleton key={index} />
+            ))
+          : null}
         {items.map((g) => (
           <GearCard
             key={g.id}

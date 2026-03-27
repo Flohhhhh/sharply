@@ -603,6 +603,13 @@ export const BRANDS = [
     "slug": "mamiya",
     "created_at": "2026-02-04 17:12:42.107769+00",
     "updated_at": "2026-02-04 17:12:42.107769+00"
+  },
+  {
+    "id": "f02cb887-3bf8-4fbb-9743-f0fc86b68a24",
+    "name": "Ricoh",
+    "slug": "ricoh",
+    "created_at": "2026-02-23 16:08:20.706598+00",
+    "updated_at": "2026-02-23 16:08:20.706598+00"
   }
 ];
 export const GENRES = [
@@ -1121,6 +1128,22 @@ export const ENUMS = {
     "auto",
     "manual"
   ],
+  "bingo_board_status": [
+    "ACTIVE",
+    "COMPLETED",
+    "EXPIRED",
+    "ARCHIVED"
+  ],
+  "bingo_event_type": [
+    "tile_completed",
+    "submission_created",
+    "score_updated",
+    "board_completed",
+    "board_expired",
+    "board_created",
+    "inactivity_timer_started",
+    "inactivity_timer_extended"
+  ],
   "camera_af_subject_categories_enum": [
     "people",
     "animals",
@@ -1321,6 +1344,12 @@ export const ENUMS = {
     "best performance",
     "situational",
     "balanced"
+  ],
+  "review_flag_status": [
+    "OPEN",
+    "RESOLVED_KEEP",
+    "RESOLVED_REJECTED",
+    "RESOLVED_DELETED"
   ],
   "review_status": [
     "PENDING",

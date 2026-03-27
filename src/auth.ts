@@ -29,7 +29,12 @@ const additionalTrustedOrigins = process.env.AUTH_ADDITIONAL_TRUSTED_ORIGINS
   .map(normalizeTrustedOrigin)
   .filter(Boolean) as string[] | undefined;
 const baseTrustedOrigin = normalizeTrustedOrigin(process.env.NEXT_PUBLIC_BASE_URL!);
-const staticAuthBaseUrl = normalizeTrustedOrigin(process.env.AUTH_BASE_URL ?? "");
+const staticAuthBaseUrl = normalizeTrustedOrigin(
+  process.env.AUTH_BASE_URL ??
+    process.env.BETTER_AUTH_BASE_URL ??
+    process.env.NEXT_PUBLIC_BASE_URL ??
+    "",
+);
 const trustedOrigins = [
   ...(process.env.NODE_ENV !== "production" ? ["http://localhost:3000"] : []),
   ...(baseTrustedOrigin ? [baseTrustedOrigin] : []),

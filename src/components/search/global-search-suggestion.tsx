@@ -1,6 +1,8 @@
 "use client";
 
+import { Camera, SearchIcon } from "lucide-react";
 import { cn } from "~/lib/utils";
+import { SearchSuggestionRow } from "~/components/search/search-suggestion-row";
 
 type Props = {
   id: string;
@@ -15,34 +17,35 @@ type Props = {
 export function GlobalSearchSuggestion({
   id,
   label,
-  href,
   type,
-  relevance,
   className,
   onClick,
 }: Props) {
+  const kind = type === "gear" ? "camera" : "brand";
+
   return (
-    <div
+    <button
+      type="button"
       key={id}
       className={cn(
-        "hover:bg-accent group/item flex w-full cursor-pointer items-center justify-between px-3",
+        "group/item w-full rounded-2xl text-left outline-none",
         className,
       )}
       onClick={onClick}
     >
-      <div className="flex min-w-0 items-center gap-2">
-        <span className="truncate">{label}</span>
-        {relevance !== undefined && (
-          <span className="text-muted-foreground ml-2 text-xs">
-            {Math.round(relevance * 100)}%
-          </span>
-        )}
-      </div>
-      {type === "gear" && (
-        <span className="text-muted-foreground rounded-full border border-muted-foreground/20 px-2 py-0.5 text-[11px] uppercase tracking-wide opacity-0 transition-opacity group-hover/item:opacity-100">
-          {type}
-        </span>
-      )}
-    </div>
+      <SearchSuggestionRow
+        title={label}
+        kind={kind}
+        badge={type === "gear" ? "Gear" : "Brand"}
+        leadingIcon={
+          type === "gear" ? (
+            <Camera className="size-4" />
+          ) : (
+            <SearchIcon className="size-4" />
+          )
+        }
+        className="group-hover/item:border-border/80 group-hover/item:bg-accent/60"
+      />
+    </button>
   );
 }

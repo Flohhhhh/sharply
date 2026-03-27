@@ -1,23 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 import {
   fetchReleaseFeedPage,
-  loadHubData,
+  fetchBrowseListPage,
 } from "~/server/gear/browse/service";
+import { urlSearchParamsToRecord } from "~/lib/browse/query";
 
 const DEFAULT_LIMIT = 12;
 const MAX_LIMIT = 60;
-
-type SearchParamsRecord = Record<string, string | string[] | undefined>;
-
-function toRecord(sp: URLSearchParams): SearchParamsRecord {
-  const record: SearchParamsRecord = {};
-  for (const key of sp.keys()) {
-    const values = sp.getAll(key);
-    if (!values.length) continue;
-    record[key] = values.length === 1 ? values[0] : values;
-  }
-  return record;
-}
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -36,42 +25,19 @@ export async function GET(request: NextRequest) {
     const segmentParams = searchParams.getAll("segments[]");
     if (segmentParams.length) segments.push(...segmentParams);
 
-    const searchParamsRecord = toRecord(searchParams);
+    const searchParamsRecord = urlSearchParamsToRecord(searchParams);
     delete searchParamsRecord.view;
     delete searchParamsRecord.brandSlug;
     delete searchParamsRecord.category;
     delete searchParamsRecord.mount;
 
-    const { lists, filters } = await loadHubData({
+    const page = await fetchBrowseListPage({
       segments,
       searchParams: searchParamsRecord,
     });
 
-    const items = lists.items.map((item) => ({
-      ...item,
-      releaseDate: item.releaseDate ? item.releaseDate.toISOString() : null,
-      releaseDatePrecision: item.releaseDatePrecision ?? null,
-      thumbnailUrl: item.thumbnailUrl ?? null,
-      gearType: item.gearType ?? null,
-      brandName: item.brandName ?? null,
-      msrpNowUsdCents:
-        typeof item.msrpNowUsdCents === "number" ? item.msrpNowUsdCents : null,
-      mpbMaxPriceUsdCents:
-        typeof item.mpbMaxPriceUsdCents === "number"
-          ? item.mpbMaxPriceUsdCents
-          : null,
-    }));
-
-    const hasMore = filters.page * filters.perPage < lists.total;
-
     return NextResponse.json(
-      {
-        items,
-        total: lists.total,
-        page: filters.page,
-        perPage: filters.perPage,
-        hasMore,
-      },
+      page,
       {
         headers: {
           "Cache-Control": "no-store",

@@ -144,28 +144,30 @@ export default async function UserProfilePage({
                 {sortedOwnedItems.length} items
               </span>
             </div>
-            <div className="flex items-center gap-2">
-              <CollectionTableModal
-                items={sortedOwnedItems}
-                columnKeys={
-                  [
-                    "name",
-                    "displayPrice",
-                    "frontFilterThreadSizeMm",
-                    "weightGrams",
-                  ] satisfies CollectionTableColumnKey[]
-                }
-                trigger={
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={sortedOwnedItems.length === 0}
-                  >
-                    Manage collection
-                  </Button>
-                }
-              />
-            </div>
+            {myProfile ? (
+              <div className="flex items-center gap-2">
+                <CollectionTableModal
+                  items={sortedOwnedItems}
+                  columnKeys={
+                    [
+                      "name",
+                      "displayPrice",
+                      "frontFilterThreadSizeMm",
+                      "weightGrams",
+                    ] satisfies CollectionTableColumnKey[]
+                  }
+                  trigger={
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={sortedOwnedItems.length === 0}
+                    >
+                      Manage collection
+                    </Button>
+                  }
+                />
+              </div>
+            ) : null}
           </div>
 
           {ownedItems.length > 0 ? (
@@ -276,7 +278,11 @@ export default async function UserProfilePage({
 
         {/* Lists */}
         <div className="space-y-4">
-          <UserListsSectionDeferred profileUserId={profile.id} />
+          <UserListsSectionDeferred
+            profileUserId={profile.id}
+            myProfile={myProfile}
+            profileName={profile.name}
+          />
         </div>
 
         {/* Reviews */}

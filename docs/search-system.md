@@ -5,11 +5,15 @@ This document explains how search works in Sharply: routing, URL model, UI surfa
 ## Surfaces
 
 - `Header` global search: `src/components/layout/header.tsx`
-  - Input submits to `/search?q=...`, preserves existing params, resets `page=1`.
-  - “⌘K/Ctrl K” hint opens the command palette.
+  - Spotlight-style inline search with a floating preview panel.
+  - Empty focus opens recent searches only when history exists.
+  - Non-empty input stays visually closed until useful suggestions arrive.
+  - After non-empty suggestions have appeared once, the panel stays open until the input is cleared.
+  - Plain `Enter` prioritizes arrow-key selection, then smart action, then best-match gear, then `/search?q=...`.
 - Command palette: `src/components/search/command-palette.tsx`
   - Opens with ⌘K/Ctrl+K or programmatically via `document.dispatchEvent(new CustomEvent("sharply:open-command-palette"))`.
   - Debounced typeahead (200ms) calling `/api/search/suggest`.
+  - Uses the same suggestion contract and Enter priority as the header search.
   - Built-in cmdk filtering is disabled so server-ranked results always render.
 - Search results page: `src/app/(app)/(pages)/search/page.tsx`
   - Server component; fully driven by `searchParams`.
@@ -34,7 +38,12 @@ Helper utilities for URLs live in `src/lib/utils/url.ts` (`buildSearchHref`, `me
   - Returns: `{ results, total, totalPages, page, pageSize }`
 - Suggest (used by palette): `src/app/(app)/api/search/suggest/route.ts`
   - GET `q`
-  - Returns: `{ suggestions: Array<{ id, label, href, type, relevance? }>} `
+  - Returns: `{ suggestions: Suggestion[] }`
+  - `Suggestion` is a discriminated union:
+    - `gear`: region-aware item suggestion with `title`, `subtitle`, `canonicalName`, `localizedName`, `matchedName`, `matchSource`, `brandName`, `relevance`, `isBestMatch`
+    - `brand`: brand suggestion with `title`, `subtitle`, `brandName`, `relevance`
+    - `smart-action`: currently compare actions with `action: "compare"`, compare slugs/titles, and compare href
+  - Compatibility fields `label` and `type` are still emitted for older consumers.
 
 ## Database prerequisites
 
@@ -92,6 +101,26 @@ Final score uses `GREATEST(...)` to emphasize the strongest signal:
 
 Sort order: `DESC(relevance), ASC(name)` for `relevance`; otherwise `ASC(name)` or `DESC(release_date)`.
 
+### Best-match classification
+
+- Best-match is computed server-side for gear suggestions only.
+- A gear result is marked `isBestMatch` only when the normalized query exactly matches one candidate name and no competing gear suggestion shares that exact normalized match.
+- Exact candidates include:
+  - canonical gear name
+  - region-localized display name
+  - regional aliases
+  - brand-stripped variants for exact item-name entry (for example `z50ii` matching `Nikon Z50 II`)
+- Brands never receive implicit direct-open behavior.
+
+### Smart compare parsing
+
+- Suggestion parsing recognizes:
+  - `A vs B`
+  - `A versus B`
+  - `compare A vs B`
+- When both sides resolve to strong exact gear matches, the suggest API prepends a `smart-action` row that routes directly to `/compare?...`.
+- If either side is ambiguous or weak, no smart action is emitted and the query falls back to normal ranked suggestions.
+
 ### Filters
 
 Optional ANDed filters for brand/mount/gearType/price range/sensor format. These are layered on top of the text matching WHERE clause.
@@ -107,7 +136,31 @@ Optional ANDed filters for brand/mount/gearType/price range/sensor format. These
   - `CommandDialog` passes `shouldFilter={false}` to cmdk to prevent client-side filtering from hiding server suggestions.
 - Behavior: `src/components/search/command-palette.tsx`
   - Debounced fetch while typing (200ms)
-  - On open: focus input, clear results if query is empty, and eagerly fetch if current query length ≥ 2 (prevents “no results until reopen”).
+  - On open: focus input and eagerly fetch if current query length ≥ 2.
+  - Empty input shows recent searches when available.
+  - Non-empty input shows smart action rows, best match rows, fallback search action, then remaining suggestions.
+
+## Interaction model
+
+- Loading indicator:
+  - The inline header search shows a persistent spinner inside the input as soon as the user starts typing and keeps it visible through the debounced fetch lifecycle.
+- Dropdown/panel behavior:
+  - Empty input: only recent-search history may open the panel.
+  - Non-empty input: the panel waits for useful content before opening.
+  - Once useful non-empty content has appeared, the panel remains open until the query is cleared, even if later requests return no direct suggestions.
+- Enter behavior:
+  - If the user has moved selection with arrow keys, Enter accepts the selected row.
+  - Otherwise, smart action wins.
+  - Otherwise, a `gear` suggestion with `isBestMatch` wins.
+  - Otherwise, Enter navigates to `/search?q=...`.
+- Search actions:
+  - The UI no longer renders a standalone submit button.
+  - Instead it renders a selectable fallback row: `Search for "..."`.
+- Naming:
+  - Gear rows prefer the localized display name.
+  - If the matched alias differs materially from the localized display name, the alias can lead and canonical/localized context moves to secondary text.
+- Debug UI:
+  - Relevance remains in the payload for ranking/diagnostics but is not shown in production UI.
 
 ## SSR & Suspense
 
@@ -145,4 +198,7 @@ Manual checks (examples):
 - Z6iii → includes “Nikon Z6 III” high; may include “Z6” lower; excludes “Z50ii”.
 - 70-200 → includes 70–200 variants; excludes 24–70.
 - Brand bias → typing brand alone should not flood irrelevant models.
-- Palette open with 2+ char query shows immediate suggestions; empty opens show “No results” until typing.
+- `Lumix GF9` → surfaces the GX850 record with alias-aware labeling and canonical/local-name context.
+- `z50ii vs a6700` → shows a compare smart action and Enter opens the comparison page.
+- Header search stays closed on non-empty input until useful content arrives, then stays open until the input is cleared.
+- Plain Enter on a strong exact gear match opens the gear page directly; otherwise it opens `/search?q=...`.

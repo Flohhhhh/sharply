@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Button, type ButtonProps } from "~/components/ui/button";
+import { dispatchOpenSearchSurface } from "./search-events";
 
 export interface OpenSearchButtonProps extends ButtonProps {
   children?: React.ReactNode;
@@ -16,11 +17,7 @@ export function OpenSearchButton({
       {...props}
       onClick={(e) => {
         props.onClick?.(e);
-        try {
-          document.dispatchEvent(
-            new CustomEvent("sharply:open-command-palette"),
-          );
-        } catch {}
+        dispatchOpenSearchSurface();
       }}
     >
       {children ?? "Open search"}
