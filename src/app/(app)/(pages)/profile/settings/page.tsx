@@ -1,5 +1,6 @@
 import { auth } from "~/auth";
 import type { Passkey } from "@better-auth/passkey";
+import { Suspense } from "react";
 import { DisplayNameForm } from "./display-name-form";
 import { UserHandleForm } from "./user-handle-form";
 import type { Metadata } from "next";
@@ -115,11 +116,13 @@ export default async function SettingsPage() {
           <SocialLinksForm defaultLinks={socialLinks} />
         </section>
 
-        <AccountLinksSection
-          linkedAccounts={linkedAccounts}
-          providerAvailability={providerAvailability}
-          userEmail={userEmail}
-        />
+        <Suspense fallback={<section className="rounded-lg border p-4" />}>
+          <AccountLinksSection
+            linkedAccounts={linkedAccounts}
+            providerAvailability={providerAvailability}
+            userEmail={userEmail}
+          />
+        </Suspense>
 
         <PasskeySection initialPasskeys={passkeys} />
       </div>
