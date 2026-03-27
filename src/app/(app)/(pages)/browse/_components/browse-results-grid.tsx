@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -10,10 +11,7 @@ import {
 } from "react";
 import useSWRInfinite from "swr/infinite";
 import { Loader } from "lucide-react";
-import {
-  usePathname,
-  useSearchParams,
-} from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { GearCard, GearCardSkeleton } from "~/components/gear/gear-card";
 import { Button } from "~/components/ui/button";
 import { getItemDisplayPrice } from "~/lib/mapping";
@@ -43,8 +41,30 @@ const fetcher = async (url: string) => {
 };
 
 const MAX_AUTO_SCROLL_LOADS = 5;
+const BROWSE_RESULTS_SKELETON_KEYS = Array.from(
+  { length: 12 },
+  (_, index) => `browse-results-skeleton-${index + 1}`,
+);
 
 export function BrowseResultsGrid({
+  initialPage,
+  brandName,
+  scope,
+  trendingSlugs,
+}: BrowseResultsGridProps) {
+  return (
+    <Suspense fallback={<BrowseResultsGridFallback />}>
+      <BrowseResultsGridContent
+        initialPage={initialPage}
+        brandName={brandName}
+        scope={scope}
+        trendingSlugs={trendingSlugs}
+      />
+    </Suspense>
+  );
+}
+
+function BrowseResultsGridContent({
   initialPage,
   brandName,
   scope,
@@ -148,7 +168,8 @@ export function BrowseResultsGrid({
   const isLoadingMore = isPending || (isValidating && rawPages.length < size);
   const isLoadingInitial = !rawPages.length && !error;
   const showEmpty = !items.length && !error && !isLoadingMore;
-  const total = pages[0]?.total ?? (shouldUseFallbackData ? initialPage.total : 0);
+  const total =
+    pages[0]?.total ?? (shouldUseFallbackData ? initialPage.total : 0);
 
   useEffect(() => {
     loadingRef.current = isLoadingMore;
@@ -234,8 +255,8 @@ export function BrowseResultsGrid({
 
       <div className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
         {isLoadingInitial
-          ? Array.from({ length: 12 }, (_, index) => (
-              <GearCardSkeleton key={index} />
+          ? BROWSE_RESULTS_SKELETON_KEYS.map((key) => (
+              <GearCardSkeleton key={key} />
             ))
           : null}
         {items.map((g) => (
@@ -292,6 +313,19 @@ export function BrowseResultsGrid({
           <div ref={sentinelRef} className="h-6 w-full" />
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function BrowseResultsGridFallback() {
+  return (
+    <div className="space-y-4">
+      <p className="text-muted-foreground text-sm">Loading results...</p>
+      <div className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
+        {BROWSE_RESULTS_SKELETON_KEYS.map((key) => (
+          <GearCardSkeleton key={key} />
+        ))}
+      </div>
     </div>
   );
 }

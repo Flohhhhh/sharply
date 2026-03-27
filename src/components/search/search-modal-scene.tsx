@@ -18,7 +18,13 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import {
+  AnimatePresence,
+  LazyMotion,
+  domAnimation,
+  m,
+  useReducedMotion,
+} from "motion/react";
 import { useSearchSuggestions } from "@hooks/useSearchSuggestions";
 import { useCountry } from "~/lib/hooks/useCountry";
 import { cn } from "~/lib/utils";
@@ -87,15 +93,20 @@ export function SearchModalScene({
   const rowRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [hasRevealedPanelForInput, setHasRevealedPanelForInput] = useState(false);
+  const [hasRevealedPanelForInput, setHasRevealedPanelForInput] =
+    useState(false);
   const { countryCode } = useCountry();
 
-  const { results, networkLoading, typingPending, hasShownResultsForCurrentInput } =
-    useSearchSuggestions(query, {
-      debounceMs: 180,
-      minLength: 2,
-      countryCode,
-    });
+  const {
+    results,
+    networkLoading,
+    typingPending,
+    hasShownResultsForCurrentInput,
+  } = useSearchSuggestions(query, {
+    debounceMs: 180,
+    minLength: 2,
+    countryCode,
+  });
 
   const trimmedQuery = query.trim();
   const hasQuery = trimmedQuery.length >= 2;
@@ -132,12 +143,7 @@ export function SearchModalScene({
     if (!typingPending && !networkLoading) {
       setHasRevealedPanelForInput(true);
     }
-  }, [
-    hasQuery,
-    hasShownResultsForCurrentInput,
-    networkLoading,
-    typingPending,
-  ]);
+  }, [hasQuery, hasShownResultsForCurrentInput, networkLoading, typingPending]);
 
   const suggestionRows = useMemo(() => {
     const mapped: SuggestionRow[] = results.map((suggestion) => ({
@@ -156,7 +162,9 @@ export function SearchModalScene({
     }));
 
     return {
-      smartRows: mapped.filter((row) => isSmartActionSuggestion(row.suggestion)),
+      smartRows: mapped.filter((row) =>
+        isSmartActionSuggestion(row.suggestion),
+      ),
       bestRows: mapped.filter((row) => isBestMatchSuggestion(row.suggestion)),
       remainingRows: mapped.filter(
         (row) =>
@@ -187,7 +195,9 @@ export function SearchModalScene({
   const showResultsSection = hasQuery ? hasRevealedPanelForInput : false;
   const listboxId = `${comboboxId}-listbox`;
   const activeOptionId =
-    showResultsSection && selectedIndex >= 0 && selectedIndex < selectableItems.length
+    showResultsSection &&
+    selectedIndex >= 0 &&
+    selectedIndex < selectableItems.length
       ? `${comboboxId}-option-${selectedIndex}`
       : undefined;
   const shellTransition = reduceMotion
@@ -201,7 +211,13 @@ export function SearchModalScene({
       };
   const panelTransition = reduceMotion
     ? { duration: 0 }
-    : { type: "spring" as const, duration: 100, stiffness: 400, damping: 30, mass: 0.82 };
+    : {
+        type: "spring" as const,
+        duration: 100,
+        stiffness: 400,
+        damping: 30,
+        mass: 0.82,
+      };
 
   useEffect(() => {
     rowRefs.current = rowRefs.current.slice(0, selectableItems.length);
@@ -263,86 +279,123 @@ export function SearchModalScene({
   };
 
   return (
-    <motion.div
-      initial={
-        reduceMotion
-          ? false
-          : {
-              opacity: 0,
-              scale: 0.96,
-              y: 12,
-              height: 64,
-            }
-      }
-      animate={{
-        opacity: 1,
-        scale: 1,
-        y: 0,
-        height: showResultsSection ? 480 : 64,
-      }}
-      transition={shellTransition}
-      className="bg-background dark:supports-backdrop-filter:bg-background/50 flex origin-top overflow-hidden rounded-2xl border border-black/40 dark:border-white/40 shadow-[0_28px_90px_-42px_rgba(0,0,0,0.88),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl"
-    >
-      <div className="flex min-h-0 flex-1 flex-col">
-        <div className="flex h-16 shrink-0 items-center gap-3 px-5">
-          <SearchIcon className="text-muted-foreground size-5 md:size-6 shrink-0" />
-          <input
-            ref={inputRef}
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            onKeyDown={handleInputKeyDown}
-            aria-label="Search Sharply"
-            aria-activedescendant={activeOptionId}
-            aria-autocomplete="list"
-            aria-controls={showResultsSection ? listboxId : undefined}
-            aria-expanded={showResultsSection}
-            aria-haspopup="listbox"
-            placeholder="Search Sharply"
-            className="placeholder:text-muted-foreground dark:placeholder:text-muted-foreground/60 text-foreground flex-1 bg-transparent text-sm outline-none md:text-lg"
-            role="combobox"
-            spellCheck={false}
-            autoCorrect="off"
-            autoCapitalize="none"
-          />
-          <div className="flex min-w-8 justify-end">
-            {isSearching ? (
-              <Loader2 className="text-muted-foreground size-4 animate-spin" />
-            ) : query ? (
-              <button
-                type="button"
-                onClick={() => setQuery("")}
-                className="text-muted-foreground hover:text-foreground inline-flex size-8 items-center justify-center rounded-full transition-colors"
-                aria-label="Clear search"
-              >
-                <X className="size-4" />
-              </button>
-            ) : null}
-          </div>
-        </div>
-
-        <AnimatePresence initial={false}>
-          {showResultsSection ? (
-            <motion.div
-              key="results-panel"
-              initial={reduceMotion ? false : { opacity: 0, y: -10, scaleY: 0.985 }}
-              animate={{ opacity: 1, y: 0, scaleY: 1 }}
-              exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -8, scaleY: 0.985 }}
-              transition={panelTransition}
-              className="min-h-0 flex-1 overflow-hidden origin-top"
-            >
-              <div className="h-full border-t border-white/8">
-                <div
-                  id={listboxId}
-                  role="listbox"
-                  className="h-full overflow-y-auto px-1 py-2"
+    <LazyMotion features={domAnimation}>
+      <m.div
+        initial={
+          reduceMotion
+            ? false
+            : {
+                opacity: 0,
+                scale: 0.96,
+                y: 12,
+                height: 64,
+              }
+        }
+        animate={{
+          opacity: 1,
+          scale: 1,
+          y: 0,
+          height: showResultsSection ? 480 : 64,
+        }}
+        transition={shellTransition}
+        className="bg-background dark:supports-backdrop-filter:bg-background/50 flex origin-top overflow-hidden rounded-2xl border border-black/40 shadow-[0_28px_90px_-42px_rgba(0,0,0,0.88),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl dark:border-white/40"
+      >
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="flex h-16 shrink-0 items-center gap-3 px-5">
+            <SearchIcon className="text-muted-foreground size-5 shrink-0 md:size-6" />
+            <input
+              ref={inputRef}
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              onKeyDown={handleInputKeyDown}
+              aria-label="Search Sharply"
+              aria-activedescendant={activeOptionId}
+              aria-autocomplete="list"
+              aria-controls={showResultsSection ? listboxId : undefined}
+              aria-expanded={showResultsSection}
+              aria-haspopup="listbox"
+              placeholder="Search Sharply"
+              className="placeholder:text-muted-foreground dark:placeholder:text-muted-foreground/60 text-foreground flex-1 bg-transparent text-sm outline-none md:text-lg"
+              role="combobox"
+              spellCheck={false}
+              autoCorrect="off"
+              autoCapitalize="none"
+            />
+            <div className="flex min-w-8 justify-end">
+              {isSearching ? (
+                <Loader2 className="text-muted-foreground size-4 animate-spin" />
+              ) : query ? (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  className="text-muted-foreground hover:text-foreground inline-flex size-8 items-center justify-center rounded-full transition-colors"
+                  aria-label="Clear search"
                 >
-                  {hasQuery ? (
-                    <div className="space-y-1 px-1 py-1">
-                      {selectableItems.map((item, index) => {
-                        const selected = index === selectedIndex;
-                        const optionId = `${comboboxId}-option-${index}`;
+                  <X className="size-4" />
+                </button>
+              ) : null}
+            </div>
+          </div>
 
-                        if (item.kind === "search-action") {
+          <AnimatePresence initial={false}>
+            {showResultsSection ? (
+              <m.div
+                key="results-panel"
+                initial={
+                  reduceMotion ? false : { opacity: 0, y: -10, scaleY: 0.985 }
+                }
+                animate={{ opacity: 1, y: 0, scaleY: 1 }}
+                exit={
+                  reduceMotion
+                    ? { opacity: 0 }
+                    : { opacity: 0, y: -8, scaleY: 0.985 }
+                }
+                transition={panelTransition}
+                className="min-h-0 flex-1 origin-top overflow-hidden"
+              >
+                <div className="h-full border-t border-white/8">
+                  <div
+                    id={listboxId}
+                    role="listbox"
+                    className="h-full overflow-y-auto px-1 py-2"
+                  >
+                    {hasQuery ? (
+                      <div className="space-y-1 px-1 py-1">
+                        {selectableItems.map((item, index) => {
+                          const selected = index === selectedIndex;
+                          const optionId = `${comboboxId}-option-${index}`;
+
+                          if (item.kind === "search-action") {
+                            return (
+                              <button
+                                id={optionId}
+                                key={item.id}
+                                ref={(element) => {
+                                  rowRefs.current[index] = element;
+                                }}
+                                type="button"
+                                role="option"
+                                aria-selected={selected}
+                                onMouseEnter={() => setSelectedIndex(index)}
+                                onFocus={() => setSelectedIndex(index)}
+                                onClick={() => executeItem(item)}
+                                className="block w-full text-left outline-none"
+                              >
+                                <SearchSuggestionRow
+                                  kind="search-action"
+                                  tone="search-action"
+                                  surface="inline"
+                                  title={item.title}
+                                  actionLabel="Search"
+                                  selected={selected}
+                                  leadingIcon={
+                                    <ArrowUpRight className="size-5" />
+                                  }
+                                />
+                              </button>
+                            );
+                          }
+
                           return (
                             <button
                               id={optionId}
@@ -359,75 +412,48 @@ export function SearchModalScene({
                               className="block w-full text-left outline-none"
                             >
                               <SearchSuggestionRow
-                                kind="search-action"
-                                tone="search-action"
+                                kind={getSuggestionKind(item.suggestion)}
                                 surface="inline"
+                                tone={
+                                  isSmartActionSuggestion(item.suggestion)
+                                    ? "smart-action"
+                                    : isBestMatchSuggestion(item.suggestion)
+                                      ? "best-match"
+                                      : "default"
+                                }
                                 title={item.title}
-                                actionLabel="Search"
+                                brandName={
+                                  item.suggestion.kind === "smart-action"
+                                    ? undefined
+                                    : (item.suggestion.brandName ?? undefined)
+                                }
+                                subtitle={item.subtitle}
+                                meta={item.meta}
+                                badge={item.badge}
+                                actionLabel={
+                                  isSmartActionSuggestion(item.suggestion)
+                                    ? "Compare items"
+                                    : isBestMatchSuggestion(item.suggestion)
+                                      ? "Best match"
+                                      : item.suggestion.kind === "brand"
+                                        ? "Open brand"
+                                        : "Go to gear item"
+                                }
                                 selected={selected}
-                                leadingIcon={<ArrowUpRight className="size-5" />}
+                                leadingIcon={getLeadingIcon(item.suggestion)}
                               />
                             </button>
                           );
-                        }
-
-                        return (
-                          <button
-                            id={optionId}
-                            key={item.id}
-                            ref={(element) => {
-                              rowRefs.current[index] = element;
-                            }}
-                            type="button"
-                            role="option"
-                            aria-selected={selected}
-                            onMouseEnter={() => setSelectedIndex(index)}
-                            onFocus={() => setSelectedIndex(index)}
-                            onClick={() => executeItem(item)}
-                            className="block w-full text-left outline-none"
-                          >
-                            <SearchSuggestionRow
-                              kind={getSuggestionKind(item.suggestion)}
-                              surface="inline"
-                              tone={
-                                isSmartActionSuggestion(item.suggestion)
-                                  ? "smart-action"
-                                  : isBestMatchSuggestion(item.suggestion)
-                                    ? "best-match"
-                                    : "default"
-                              }
-                              title={item.title}
-                              brandName={
-                                item.suggestion.kind === "smart-action"
-                                  ? undefined
-                                  : item.suggestion.brandName ?? undefined
-                              }
-                              subtitle={item.subtitle}
-                              meta={item.meta}
-                              badge={item.badge}
-                              actionLabel={
-                                isSmartActionSuggestion(item.suggestion)
-                                  ? "Compare items"
-                                  : isBestMatchSuggestion(item.suggestion)
-                                    ? "Best match"
-                                  : item.suggestion.kind === "brand"
-                                    ? "Open brand"
-                                    : "Go to gear item"
-                              }
-                              selected={selected}
-                              leadingIcon={getLeadingIcon(item.suggestion)}
-                            />
-                          </button>
-                        );
-                      })}
-                    </div>
-                  ) : null}
+                        })}
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
-      </div>
-    </motion.div>
+              </m.div>
+            ) : null}
+          </AnimatePresence>
+        </div>
+      </m.div>
+    </LazyMotion>
   );
 }

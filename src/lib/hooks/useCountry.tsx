@@ -9,7 +9,9 @@ import {
   type ReactNode,
 } from "react";
 import { countries } from "country-data-list";
+import useSWR from "swr";
 
+import { fetchJson } from "~/lib/fetch-json";
 import { type Country } from "~/types/country";
 import { type GearRegion } from "~/lib/gear/region";
 import {
@@ -36,6 +38,10 @@ type CountryContextValue = {
 };
 
 const CountryContext = createContext<CountryContextValue | null>(null);
+
+type CountryDetectionResponse = {
+  countryAlpha2?: string | null;
+};
 
 function normalizeAlpha2Code(
   alpha2Code: string | null | undefined,
@@ -84,54 +90,62 @@ export function CountryProvider({
   } = useLocalStorage<string | null>("country.locale.v2", initialLocale.id);
 
   const hasAttemptedNavigatorDetection = useRef(false);
-
-  useEffect(() => {
-    if (storedLocaleId || hasAttemptedNavigatorDetection.current) return;
-    hasAttemptedNavigatorDetection.current = true;
-
-    let cancelled = false;
-    void (async () => {
-      try {
-        const response = await fetch("/api/geo/country", {
+  const shouldDetectLocale = !storedLocaleId;
+  const { data: detectedCountryData, isLoading: isDetectingCountry } =
+    useSWR<CountryDetectionResponse>(
+      shouldDetectLocale ? "/api/geo/country" : null,
+      (url: string) =>
+        fetchJson<CountryDetectionResponse>(url, {
           method: "GET",
           credentials: "same-origin",
           cache: "no-store",
-        });
-        if (response.ok) {
-          const payload = (await response.json()) as {
-            countryAlpha2?: string | null;
-          };
-          const normalizedCountryCode = normalizeAlpha2Code(
-            payload.countryAlpha2 ?? null,
-          );
-          if (!cancelled && normalizedCountryCode) {
-            const detectedLocale =
-              resolveLocaleFromCountryCode(normalizedCountryCode);
-            setStoredLocaleId(detectedLocale.id);
-            return;
-          }
-        }
-      } catch {
-        // Fall back to browser locale detection below.
-      }
+        }),
+      {
+        revalidateOnFocus: false,
+        revalidateIfStale: false,
+        shouldRetryOnError: false,
+      },
+    );
 
-      if (typeof navigator === "undefined" || cancelled) return;
-      const browserLocale =
-        navigator.language ??
-        (Array.isArray(navigator.languages) ? navigator.languages[0] : "");
-      const browserRegion = browserLocale?.split("-")[1];
-      const normalizedBrowserRegion = normalizeAlpha2Code(browserRegion);
-      if (!normalizedBrowserRegion) return;
+  useEffect(() => {
+    if (!shouldDetectLocale || isDetectingCountry) return;
+
+    const normalizedCountryCode = normalizeAlpha2Code(
+      detectedCountryData?.countryAlpha2 ?? null,
+    );
+    if (normalizedCountryCode) {
       const detectedLocale = resolveLocaleFromCountryCode(
-        normalizedBrowserRegion,
+        normalizedCountryCode,
       );
       setStoredLocaleId(detectedLocale.id);
-    })();
+      return;
+    }
 
-    return () => {
-      cancelled = true;
-    };
-  }, [setStoredLocaleId, storedLocaleId]);
+    if (hasAttemptedNavigatorDetection.current) return;
+    hasAttemptedNavigatorDetection.current = true;
+
+    if (typeof navigator === "undefined") return;
+    const browserLocale =
+      navigator.language ??
+      (Array.isArray(navigator.languages) ? navigator.languages[0] : "");
+    const browserRegion = browserLocale?.split("-")[1];
+    const normalizedBrowserRegion = normalizeAlpha2Code(browserRegion);
+    if (!normalizedBrowserRegion) return;
+    const detectedLocale = resolveLocaleFromCountryCode(
+      normalizedBrowserRegion,
+    );
+    setStoredLocaleId(detectedLocale.id);
+  }, [
+    detectedCountryData?.countryAlpha2,
+    isDetectingCountry,
+    setStoredLocaleId,
+    shouldDetectLocale,
+  ]);
+
+  useEffect(() => {
+    if (shouldDetectLocale) return;
+    hasAttemptedNavigatorDetection.current = false;
+  }, [shouldDetectLocale]);
 
   const locale = useMemo<LocaleOption>(() => {
     const byId = getLocaleById(storedLocaleId);

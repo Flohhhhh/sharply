@@ -192,9 +192,11 @@ export default async function GearPage({ params }: GearPageProps) {
   ratings.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
   const verdict = staffVerdictRows?.[0] ?? null;
 
-  const review = await getReviewByGearSlug(item.slug);
-  const relatedNews = await getNewsByRelatedGearSlug(item.slug, 9);
-  const alternatives = await fetchGearAlternatives(slug);
+  const [review, relatedNews, alternatives] = await Promise.all([
+    getReviewByGearSlug(item.slug),
+    getNewsByRelatedGearSlug(item.slug, 9),
+    fetchGearAlternatives(slug),
+  ]);
   const isNew = isNewRelease(
     item.releaseDate ?? item.announcedDate,
     item.releaseDatePrecision ?? item.announceDatePrecision,

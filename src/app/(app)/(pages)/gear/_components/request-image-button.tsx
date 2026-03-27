@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import useSWR from "swr";
 import { Button } from "~/components/ui/button";
 import { actionToggleImageRequest } from "~/server/gear/actions";
 import { toast } from "sonner";
 import { ImagePlus, Check } from "lucide-react";
+import { fetchJson } from "~/lib/fetch-json";
 
 interface RequestImageButtonProps {
   slug: string;
@@ -15,55 +17,44 @@ export function RequestImageButton({
   slug,
   initialHasRequested,
 }: RequestImageButtonProps) {
-  const [hasRequested, setHasRequested] = useState(initialHasRequested ?? false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isHydrationCheckDone, setIsHydrationCheckDone] = useState(
-    initialHasRequested !== null,
+  const [hasRequested, setHasRequested] = useState(
+    initialHasRequested ?? false,
   );
-  const [canRequestImage, setCanRequestImage] = useState(
-    initialHasRequested !== null,
+  const [isLoading, setIsLoading] = useState(false);
+  const shouldHydrateRequestState = initialHasRequested === null;
+  const { data: requestStateData, error: requestStateError } = useSWR<{
+    hasImageRequest: boolean | null;
+  }>(
+    shouldHydrateRequestState
+      ? `/api/gear/${encodeURIComponent(slug)}/user-state`
+      : null,
+    (url: string) =>
+      fetchJson<{
+        hasImageRequest: boolean | null;
+      }>(url, {
+        credentials: "same-origin",
+        cache: "no-store",
+      }),
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+      shouldRetryOnError: false,
+    },
   );
 
   useEffect(() => {
-    if (initialHasRequested !== null) {
-      setCanRequestImage(true);
-      setIsHydrationCheckDone(true);
-      return;
+    if (typeof requestStateData?.hasImageRequest === "boolean") {
+      setHasRequested(requestStateData.hasImageRequest);
     }
+  }, [requestStateData?.hasImageRequest]);
 
-    let isCancelled = false;
-    void (async () => {
-      try {
-        const response = await fetch(
-          `/api/gear/${encodeURIComponent(slug)}/user-state`,
-        );
-        if (!response.ok) return;
-        const payload = (await response.json()) as {
-          hasImageRequest: boolean | null;
-        };
-        if (isCancelled) return;
-        if (typeof payload.hasImageRequest === "boolean") {
-          setCanRequestImage(true);
-          setHasRequested(payload.hasImageRequest);
-        } else {
-          setCanRequestImage(false);
-        }
-      } catch {
-        // Ignore background fetch failures; button remains hidden for signed-out users.
-        if (!isCancelled) {
-          setCanRequestImage(false);
-        }
-      } finally {
-        if (!isCancelled) {
-          setIsHydrationCheckDone(true);
-        }
-      }
-    })();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [initialHasRequested, slug]);
+  const isHydrationCheckDone =
+    !shouldHydrateRequestState ||
+    requestStateData !== undefined ||
+    Boolean(requestStateError);
+  const canRequestImage =
+    !shouldHydrateRequestState ||
+    typeof requestStateData?.hasImageRequest === "boolean";
 
   const handleToggle = async () => {
     if (hasRequested) {

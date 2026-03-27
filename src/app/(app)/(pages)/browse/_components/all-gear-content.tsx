@@ -12,6 +12,12 @@ import { fetchReleaseFeedPage } from "~/server/gear/browse/service";
 import { ReleaseFeedGrid } from "./release-feed-grid";
 import { getBrandBySlug } from "~/server/gear/browse/data";
 
+const TRENDING_SKELETON_KEYS = [
+  "trending-skeleton-1",
+  "trending-skeleton-2",
+  "trending-skeleton-3",
+] as const;
+
 export default async function AllGearContent({
   brandSlug,
   showBrandPicker = true,
@@ -189,8 +195,8 @@ async function ReleaseSection({
 function TrendingSkeleton() {
   return (
     <div className="grid w-full grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
-      {[0, 1, 2].map((i) => (
-        <GearCardSkeleton key={i} />
+      {TRENDING_SKELETON_KEYS.map((key) => (
+        <GearCardSkeleton key={key} />
       ))}
     </div>
   );

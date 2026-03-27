@@ -60,6 +60,10 @@ export async function generateMetadata({
 }
 
 export const revalidate = 3600;
+const BROWSE_PAGE_SKELETON_KEYS = Array.from(
+  { length: 12 },
+  (_, index) => `browse-page-skeleton-${index + 1}`,
+);
 
 export default async function BrowseCatchAll({
   params,
@@ -173,12 +177,10 @@ function SortSelectFallback() {
 function BrowseResultsLoading() {
   return (
     <div className="space-y-4">
-      <p className="text-muted-foreground text-sm">
-        Loading results...
-      </p>
+      <p className="text-muted-foreground text-sm">Loading results...</p>
       <div className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
-        {Array.from({ length: 12 }, (_, index) => (
-          <GearCardSkeleton key={index} />
+        {BROWSE_PAGE_SKELETON_KEYS.map((key) => (
+          <GearCardSkeleton key={key} />
         ))}
       </div>
     </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { RefreshCcwDot } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Button } from "~/components/ui/button";
@@ -16,6 +17,17 @@ type BrowseQueryControlsProps = {
 };
 
 export function BrowseQueryControls({
+  category,
+  hasMount,
+}: BrowseQueryControlsProps) {
+  return (
+    <Suspense fallback={<BrowseQueryControlsFallback />}>
+      <BrowseQueryControlsContent category={category} hasMount={hasMount} />
+    </Suspense>
+  );
+}
+
+function BrowseQueryControlsContent({
   category,
   hasMount,
 }: BrowseQueryControlsProps) {
@@ -48,6 +60,16 @@ export function BrowseQueryControls({
         </Tooltip>
       ) : null}
       <SortSelect category={category} hasMount={hasMount} />
+    </div>
+  );
+}
+
+function BrowseQueryControlsFallback() {
+  return (
+    <div className="mb-2 flex items-center justify-end gap-2">
+      <div className="border-input text-muted-foreground inline-flex h-10 w-[200px] items-center rounded-md border px-3 text-sm">
+        Sort by
+      </div>
     </div>
   );
 }

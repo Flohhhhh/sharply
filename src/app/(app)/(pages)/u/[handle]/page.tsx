@@ -98,9 +98,11 @@ export default async function UserProfilePage({
       <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div className="flex items-center gap-4">
           {profile.image && (
-            <img
+            <Image
               src={profile.image}
               alt={profile.name || "User"}
+              width={64}
+              height={64}
               className="h-16 w-16 rounded-full"
             />
           )}

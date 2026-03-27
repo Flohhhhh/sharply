@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import {
   Select,
@@ -28,6 +29,14 @@ type SortValue =
   | typeof LENS_FOCAL_LENGTH_SORT;
 
 export function SortSelect({ category, hasMount }: SortSelectProps) {
+  return (
+    <Suspense fallback={<SortSelectFallback />}>
+      <SortSelectContent category={category} hasMount={hasMount} />
+    </Suspense>
+  );
+}
+
+function SortSelectContent({ category, hasMount }: SortSelectProps) {
   const sp = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -38,8 +47,7 @@ export function SortSelect({ category, hasMount }: SortSelectProps) {
       : "newest"
     : "relevance";
   const incoming = (sp.get("sort") ?? defaultSort) as SortValue;
-  const current =
-    isBrowse && incoming === "name" ? defaultSort : incoming;
+  const current = isBrowse && incoming === "name" ? defaultSort : incoming;
 
   function onChange(next: string) {
     const existing = new URLSearchParams(sp.toString());
@@ -76,5 +84,14 @@ export function SortSelect({ category, hasMount }: SortSelectProps) {
         {!isBrowse && <SelectItem value="name">Name</SelectItem>}
       </SelectContent>
     </Select>
+  );
+}
+
+function SortSelectFallback() {
+  return (
+    <div className="border-input text-muted-foreground inline-flex h-10 w-[200px] items-center rounded-md border px-3 text-sm">
+      <ArrowUpDown className="mr-2 h-4 w-4 opacity-60" />
+      Sort by
+    </div>
   );
 }
