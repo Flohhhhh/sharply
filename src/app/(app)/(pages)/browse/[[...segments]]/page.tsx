@@ -1,18 +1,19 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
-import { loadHubData, buildSeo } from "~/server/gear/browse/service";
+import {
+  buildSeo,
+  fetchBrowseListPage,
+  resolveScopeOrThrow,
+} from "~/server/gear/browse/service";
 import { BRANDS, MOUNTS } from "~/lib/constants";
 import AllGearContent from "../_components/all-gear-content";
 import BrandContent from "../_components/brand-content";
-import { SortSelect } from "~/components/search/sort-select";
 import MountButtons from "../_components/mount-buttons";
 import Breadcrumbs from "../_components/breadcrumbs";
+import { GearCardSkeleton } from "~/components/gear/gear-card";
 import { getMountDisplayName } from "~/lib/mapping/mounts-map";
-import {
-  BrowseResultsGrid,
-  type BrowseListPage,
-} from "../_components/browse-results-grid";
-import type { BrowseFilters } from "~/lib/browse/filters";
-import type { SearchGearResult } from "~/server/gear/browse/data";
+import { BrowseResultsGrid } from "../_components/browse-results-grid";
+import { BrowseQueryControls } from "../_components/browse-query-controls";
 import { fetchTrendingSlugs } from "~/server/popularity/service";
 import { env } from "~/env";
 
@@ -45,14 +46,11 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({
   params,
-  searchParams,
 }: {
   params: Promise<{ segments?: string[] }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<Metadata> {
   const { segments = [] } = await params;
-  const sp = await searchParams;
-  const meta = await buildSeo({ segments, searchParams: sp });
+  const meta = await buildSeo({ segments });
   return {
     title: meta.title,
     description: meta.description,
@@ -65,23 +63,16 @@ export const revalidate = 3600;
 
 export default async function BrowseCatchAll({
   params,
-  searchParams,
 }: {
   params: Promise<{ segments?: string[] }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { segments = [] } = await params;
-  const sp = await searchParams;
-  // console.log("[/browse] Generating static page (build/ISR)", { segments, sp });
-  const { depth, scope, brand, mount, lists, filters } = await loadHubData({
-    segments,
-    searchParams: sp,
-  });
+  const { depth, scope, brand, mount } = await resolveScopeOrThrow(segments);
 
   if (depth === 0) {
     return (
       <main className="space-y-6 pb-24">
-        <AllGearContent searchParams={sp} />
+        <AllGearContent />
       </main>
     );
   }
@@ -91,19 +82,17 @@ export default async function BrowseCatchAll({
       <main className="space-y-6 pb-24">
         <Breadcrumbs brand={{ name: brand!.name, slug: brand!.slug }} />
         <h1 className="text-3xl font-semibold">{brand!.name}</h1>
-        <BrandContent brandSlug={brand!.slug} searchParams={sp} />
+        <BrandContent brandSlug={brand!.slug} />
       </main>
     );
   }
 
+  const initialPage = await fetchBrowseListPage({
+    segments,
+    searchParams: {},
+  });
+
   if (depth === 2) {
-    const initialPage = buildInitialPage(lists, filters);
-    const baseQuery = buildBaseQuery({
-      searchParams: sp,
-      perPage: filters.perPage,
-      brandSlug: brand!.slug,
-      category: scope.categorySlug,
-    });
     const trendingSlugs = await fetchTrendingSlugs({
       timeframe: "30d",
       limit: 20,
@@ -124,18 +113,17 @@ export default async function BrowseCatchAll({
           brandSlug={brand!.slug}
           category={scope.categorySlug!}
         />
-        <div className="mb-2 flex items-center justify-end gap-2">
-          <SortSelect category={scope.categorySlug} hasMount={false} />
-        </div>
-        <p className="text-muted-foreground text-sm">
-          Showing {lists.total} result{lists.total === 1 ? "" : "s"}
-        </p>
-        <BrowseResultsGrid
-          initialPage={initialPage}
-          brandName={brand!.name}
-          baseQuery={baseQuery}
-          trendingSlugs={trendingSlugs}
-        />
+        <Suspense fallback={<SortSelectFallback />}>
+          <BrowseQueryControls category={scope.categorySlug} hasMount={false} />
+        </Suspense>
+        <Suspense fallback={<BrowseResultsLoading />}>
+          <BrowseResultsGrid
+            initialPage={initialPage}
+            brandName={brand!.name}
+            scope={scope}
+            trendingSlugs={trendingSlugs}
+          />
+        </Suspense>
       </main>
     );
   }
@@ -157,76 +145,42 @@ export default async function BrowseCatchAll({
         {brand!.name} {getMountDisplayName(mount?.value)} Mount{" "}
         {scope.categorySlug === "cameras" ? "Cameras" : "Lenses"}
       </h1>
-      <div className="mb-2 flex items-center justify-end gap-2">
-        <SortSelect category={scope.categorySlug} hasMount={!!mount} />
-      </div>
-      <p className="text-muted-foreground text-sm">
-        Showing {lists.total} result{lists.total === 1 ? "" : "s"}
-      </p>
-      <BrowseResultsGrid
-        initialPage={buildInitialPage(lists, filters)}
-        brandName={brand!.name}
-        baseQuery={buildBaseQuery({
-          searchParams: sp,
-          perPage: filters.perPage,
-          brandSlug: brand!.slug,
-          category: scope.categorySlug,
-          mountShort: mount?.shortName ?? null,
-        })}
-        trendingSlugs={trendingSlugs}
-      />
+      <Suspense fallback={<SortSelectFallback />}>
+        <BrowseQueryControls category={scope.categorySlug} hasMount={!!mount} />
+      </Suspense>
+      <Suspense fallback={<BrowseResultsLoading />}>
+        <BrowseResultsGrid
+          initialPage={initialPage}
+          brandName={brand!.name}
+          scope={scope}
+          trendingSlugs={trendingSlugs}
+        />
+      </Suspense>
     </main>
   );
 }
 
-function buildInitialPage(
-  lists: SearchGearResult,
-  filters: BrowseFilters,
-): BrowseListPage {
-  return {
-    items: lists.items.map((g) => ({
-      ...g,
-      releaseDate: g.releaseDate ? g.releaseDate.toISOString() : null,
-      releaseDatePrecision: g.releaseDatePrecision ?? null,
-      announcedDate: g.announcedDate ? g.announcedDate.toISOString() : null,
-      announceDatePrecision: g.announceDatePrecision ?? null,
-      thumbnailUrl: g.thumbnailUrl ?? null,
-      brandName: g.brandName ?? null,
-      gearType: g.gearType ?? null,
-      msrpNowUsdCents:
-        typeof g.msrpNowUsdCents === "number" ? g.msrpNowUsdCents : null,
-      mpbMaxPriceUsdCents:
-        typeof g.mpbMaxPriceUsdCents === "number"
-          ? g.mpbMaxPriceUsdCents
-          : null,
-    })),
-    total: lists.total,
-    page: filters.page,
-    perPage: filters.perPage,
-    hasMore: filters.page * filters.perPage < lists.total,
-  };
+function SortSelectFallback() {
+  return (
+    <div className="mb-2 flex items-center justify-end gap-2">
+      <div className="border-input text-muted-foreground inline-flex h-10 w-[200px] items-center rounded-md border px-3 text-sm">
+        Sort by
+      </div>
+    </div>
+  );
 }
 
-function buildBaseQuery(params: {
-  searchParams: Record<string, string | string[] | undefined>;
-  perPage: number;
-  brandSlug?: string;
-  category?: string | null;
-  mountShort?: string | null;
-}) {
-  const qs = new URLSearchParams();
-  qs.set("view", "list");
-  if (params.brandSlug) qs.set("brandSlug", params.brandSlug);
-  if (params.category) qs.set("category", params.category);
-  if (params.mountShort) qs.set("mount", params.mountShort);
-  qs.set("perPage", String(params.perPage));
-
-  Object.entries(params.searchParams).forEach(([key, value]) => {
-    if (key === "page" || key === "perPage") return;
-    if (value == null) return;
-    if (Array.isArray(value)) value.forEach((v) => qs.append(key, v));
-    else qs.set(key, value);
-  });
-
-  return qs.toString();
+function BrowseResultsLoading() {
+  return (
+    <div className="space-y-4">
+      <p className="text-muted-foreground text-sm">
+        Loading results...
+      </p>
+      <div className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 12 }, (_, index) => (
+          <GearCardSkeleton key={index} />
+        ))}
+      </div>
+    </div>
+  );
 }

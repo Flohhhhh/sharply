@@ -46,6 +46,10 @@ export function SortSelect({ category, hasMount }: SortSelectProps) {
     const qs = mergeSearchParams(existing, { sort: next, page: 1 });
     const base = isBrowse ? pathname : "/search";
     const href = qs ? `${base}?${qs}` : base;
+    if (isBrowse) {
+      window.history.pushState(null, "", href);
+      return;
+    }
     router.replace(href);
   }
 

@@ -3,10 +3,8 @@ import AllGearContent from "./all-gear-content";
 
 export default function BrandContent({
   brandSlug,
-  searchParams,
 }: {
   brandSlug: string;
-  searchParams?: Record<string, string | string[] | undefined>;
 }) {
   const items = [
     { label: "Cameras", href: `/browse/${brandSlug}/cameras` },
@@ -31,11 +29,7 @@ export default function BrandContent({
         ))}
       </div>
       {/* Brand-specific latest and trending */}
-      <AllGearContent
-        brandSlug={brandSlug}
-        showBrandPicker={false}
-        searchParams={searchParams}
-      />
+      <AllGearContent brandSlug={brandSlug} showBrandPicker={false} />
     </div>
   );
 }

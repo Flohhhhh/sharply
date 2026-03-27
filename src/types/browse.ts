@@ -23,3 +23,13 @@ export type BrowseFeedPage = {
   } | null;
   hasMore: boolean;
 };
+
+export type BrowseListItem = BrowseFeedItem;
+
+export type BrowseListPage = {
+  items: BrowseListItem[];
+  total: number;
+  page: number;
+  perPage: number;
+  hasMore: boolean;
+};

@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Bookmark,
@@ -78,6 +78,28 @@ export function GearCardMoreMenu({
     null,
   );
 
+  const ensureUserStateLoaded = useCallback(async () => {
+    if (!fetchKey || fetchedKey === fetchKey) return;
+
+    try {
+      const response = await fetch(
+        `/api/gear/${encodeURIComponent(slug)}/user-state`,
+      );
+      if (!response.ok) return;
+      const payload = (await response.json()) as {
+        inWishlist: boolean | null;
+        isOwned: boolean | null;
+        saveState: SavePickerState;
+      };
+      setInWishlist(payload.inWishlist);
+      setIsOwned(payload.isOwned);
+      setSaveState(payload.saveState);
+      setFetchedKey(fetchKey);
+    } catch {
+      // Ignore background state fetch errors; actions still work.
+    }
+  }, [fetchKey, fetchedKey, slug]);
+
   useEffect(() => {
     if (!fetchKey) {
       setFetchedKey(null);
@@ -87,35 +109,13 @@ export function GearCardMoreMenu({
       return;
     }
 
-    if (fetchedKey === fetchKey) return;
-
-    let cancelled = false;
-
-    void (async () => {
-      try {
-        const response = await fetch(
-          `/api/gear/${encodeURIComponent(slug)}/user-state`,
-        );
-        if (!response.ok) return;
-        const payload = (await response.json()) as {
-          inWishlist: boolean | null;
-          isOwned: boolean | null;
-          saveState: SavePickerState;
-        };
-        if (cancelled) return;
-        setInWishlist(payload.inWishlist);
-        setIsOwned(payload.isOwned);
-        setSaveState(payload.saveState);
-        setFetchedKey(fetchKey);
-      } catch {
-        // Ignore background state fetch errors; actions still work.
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [fetchKey, fetchedKey, slug]);
+    if (fetchedKey && fetchedKey !== fetchKey) {
+      setFetchedKey(null);
+      setInWishlist(null);
+      setIsOwned(null);
+      setSaveState(null);
+    }
+  }, [fetchKey, fetchedKey]);
 
   if (!session) return null;
 
@@ -194,6 +194,7 @@ export function GearCardMoreMenu({
   const handleOpenSave = (event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
+    void ensureUserStateLoaded();
     setSaveOpen(true);
   };
 
@@ -210,13 +211,22 @@ export function GearCardMoreMenu({
 
   return (
     <>
-      <DropdownMenu onOpenChange={onOpenChange}>
+      <DropdownMenu
+        onOpenChange={(open) => {
+          onOpenChange?.(open);
+          if (open) {
+            void ensureUserStateLoaded();
+          }
+        }}
+      >
         <DropdownMenuTrigger asChild>
           <Button
             variant="secondary"
             size="icon"
             className={cn("size-8 shrink-0 rounded-full shadow-md")}
             onClick={handleMenuButtonClick}
+            onMouseEnter={() => void ensureUserStateLoaded()}
+            onFocus={() => void ensureUserStateLoaded()}
           >
             <MoreVertical className="size-4" />
             <span className="sr-only">More options</span>
