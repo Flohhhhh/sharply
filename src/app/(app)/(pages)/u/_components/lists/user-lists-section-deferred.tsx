@@ -68,13 +68,26 @@ export function UserListsSectionDeferred({
   }
 
   if (error && !myProfile) {
+    const displayName = profileName?.trim() || "This user";
+
     return (
       <div>
-        <UserListsSection
-          initialLists={[]}
-          myProfile={false}
-          profileName={profileName}
-        />
+        <div className="space-y-2 rounded-lg border border-dashed p-6">
+          <p className="text-sm font-medium">Lists</p>
+          <p className="text-muted-foreground text-sm">
+            {`Unable to load ${displayName}'s public lists right now.`}
+          </p>
+          <Button
+            size="sm"
+            variant="outline"
+            loading={isLoading}
+            onClick={() => {
+              void mutate();
+            }}
+          >
+            Retry
+          </Button>
+        </div>
       </div>
     );
   }
