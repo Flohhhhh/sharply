@@ -87,16 +87,50 @@ export function CountryProvider({
 
   useEffect(() => {
     if (storedLocaleId || hasAttemptedNavigatorDetection.current) return;
-    if (typeof navigator === "undefined") return;
-    const locale =
-      navigator.language ??
-      (Array.isArray(navigator.languages) ? navigator.languages[0] : "");
-    const regionPart = locale?.split("-")[1];
-    const normalizedRegion = normalizeAlpha2Code(regionPart);
-    if (!normalizedRegion) return;
     hasAttemptedNavigatorDetection.current = true;
-    const detectedLocale = resolveLocaleFromCountryCode(normalizedRegion);
-    setStoredLocaleId(detectedLocale.id);
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        const response = await fetch("/api/geo/country", {
+          method: "GET",
+          credentials: "same-origin",
+          cache: "no-store",
+        });
+        if (response.ok) {
+          const payload = (await response.json()) as {
+            countryAlpha2?: string | null;
+          };
+          const normalizedCountryCode = normalizeAlpha2Code(
+            payload.countryAlpha2 ?? null,
+          );
+          if (!cancelled && normalizedCountryCode) {
+            const detectedLocale =
+              resolveLocaleFromCountryCode(normalizedCountryCode);
+            setStoredLocaleId(detectedLocale.id);
+            return;
+          }
+        }
+      } catch {
+        // Fall back to browser locale detection below.
+      }
+
+      if (typeof navigator === "undefined" || cancelled) return;
+      const browserLocale =
+        navigator.language ??
+        (Array.isArray(navigator.languages) ? navigator.languages[0] : "");
+      const browserRegion = browserLocale?.split("-")[1];
+      const normalizedBrowserRegion = normalizeAlpha2Code(browserRegion);
+      if (!normalizedBrowserRegion) return;
+      const detectedLocale = resolveLocaleFromCountryCode(
+        normalizedBrowserRegion,
+      );
+      setStoredLocaleId(detectedLocale.id);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [setStoredLocaleId, storedLocaleId]);
 
   const locale = useMemo<LocaleOption>(() => {

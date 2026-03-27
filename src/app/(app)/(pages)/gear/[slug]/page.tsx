@@ -59,8 +59,6 @@ import {
   ItemTitle,
 } from "~/components/ui/item";
 import { GearItemDock } from "~/components/gear/gear-tools-dock/gear-item-dock";
-import { auth } from "~/auth";
-import { headers } from "next/headers";
 import { GearDisplayName } from "~/components/gear/gear-display-name";
 import { GetGearDisplayName } from "~/lib/gear/naming";
 import { resolveRegionFromCountryCode } from "~/lib/gear/region";
@@ -81,13 +79,7 @@ export async function generateMetadata({
   params,
 }: GearPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const headerList = await headers();
-  const countryHeader =
-    headerList.get("x-vercel-ip-country") ??
-    headerList.get("x-geo-country") ??
-    headerList.get("x-edge-country") ??
-    null;
-  const viewerRegion = resolveRegionFromCountryCode(countryHeader);
+  const viewerRegion = resolveRegionFromCountryCode(null);
 
   try {
     const item: GearItem = await fetchGearBySlug(slug);
@@ -163,15 +155,7 @@ export async function generateMetadata({
 export default async function GearPage({ params }: GearPageProps) {
   const { slug } = await params;
   // console.log("[gear/[slug]] Generating static page (build/ISR)", { slug });
-
-  const headerList = await headers();
-
-  const countryHeader =
-    headerList.get("x-vercel-ip-country") ??
-    headerList.get("x-geo-country") ??
-    headerList.get("x-edge-country") ??
-    null;
-  const viewerRegion = resolveRegionFromCountryCode(countryHeader);
+  const viewerRegion = resolveRegionFromCountryCode(null);
 
   // Fetch core gear data
   const item = await fetchGearBySlug(slug).catch((err: any) => {
@@ -190,23 +174,8 @@ export default async function GearPage({ params }: GearPageProps) {
     { region: viewerRegion },
   );
 
-  // Check auth status for image request feature
-  const session = await auth.api.getSession({
-    headers: headerList,
-  });
-  const isAuthenticated = !!session?.user;
-
-  // Fetch image request status only for authenticated users
-  let hasImageRequest: boolean | null = null;
-  if (isAuthenticated) {
-    try {
-      const { fetchImageRequestStatus } = await import("~/server/gear/service");
-      const status = await fetchImageRequestStatus(slug).catch(() => null);
-      hasImageRequest = status ? status.hasRequested : false;
-    } catch {
-      hasImageRequest = false;
-    }
-  }
+  const isAuthenticated = false;
+  const hasImageRequest: boolean | null = null;
 
   // Fetch editorial content
   const [ratingsRows, staffVerdictRows, pendingChangeRequests] =

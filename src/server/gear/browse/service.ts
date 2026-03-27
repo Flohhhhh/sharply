@@ -1,5 +1,4 @@
 import "server-only";
-import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import {
   parseSegments,
@@ -36,12 +35,6 @@ import type { SearchGearResult } from "./data";
 import { LENS_FOCAL_LENGTH_SORT } from "./lens-sort";
 import type { BrowseFeedPage } from "~/types/browse";
 import { fetchGearAliasesByGearIds } from "~/server/gear/data";
-
-export async function deriveDefaultBrandFromCookies() {
-  const store = await cookies();
-  const slug = store.get("brand_affinity")?.value;
-  return slug ?? null;
-}
 
 export async function resolveScopeOrThrow(segments: string[]): Promise<{
   depth: 0 | 1 | 2 | 3;
@@ -87,9 +80,7 @@ export async function loadHubData(params: {
     return base;
   })();
 
-  const cookieSlug = await deriveDefaultBrandFromCookies();
-  const effectiveBrandSlug =
-    scope.brandSlug ?? filters.brandOverride ?? cookieSlug ?? undefined;
+  const effectiveBrandSlug = scope.brandSlug ?? filters.brandOverride ?? undefined;
   const effectiveBrand = scope.brandSlug
     ? brand
     : effectiveBrandSlug

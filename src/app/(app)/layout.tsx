@@ -1,7 +1,6 @@
 import "~/styles/globals.css";
 
 import { type Metadata } from "next";
-import { headers } from "next/headers";
 // import { Geist } from "next/font/google";
 import { Archivo, Crimson_Text } from "next/font/google";
 import { Providers } from "./providers";
@@ -71,10 +70,6 @@ const crimsonText = Crimson_Text({
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const headerList = await headers();
-  const initialCountryAlpha2 =
-    headerList.get("x-vercel-ip-country") ?? headerList.get("x-geo-country");
-
   return (
     // <html lang="en" className={`${geist.variable}`}>
     <html
@@ -84,7 +79,7 @@ export default async function RootLayout({
     >
       <Analytics />
       <body>
-        <Providers initialCountryAlpha2={initialCountryAlpha2}>
+        <Providers>
           {children}
           <Toaster />
         </Providers>
