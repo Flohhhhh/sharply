@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Bookmark,
@@ -77,27 +77,49 @@ export function GearCardMoreMenu({
   const [compareSelection, setCompareSelection] = useState<GearOption | null>(
     null,
   );
+  const inFlightUserStateRequestsRef = useRef<Map<string, Promise<void>>>(
+    new Map(),
+  );
+  const currentFetchKeyRef = useRef<string | null>(fetchKey);
+  currentFetchKeyRef.current = fetchKey;
 
   const ensureUserStateLoaded = useCallback(async () => {
     if (!fetchKey || fetchedKey === fetchKey) return;
 
-    try {
-      const response = await fetch(
-        `/api/gear/${encodeURIComponent(slug)}/user-state`,
-      );
-      if (!response.ok) return;
-      const payload = (await response.json()) as {
-        inWishlist: boolean | null;
-        isOwned: boolean | null;
-        saveState: SavePickerState;
-      };
-      setInWishlist(payload.inWishlist);
-      setIsOwned(payload.isOwned);
-      setSaveState(payload.saveState);
-      setFetchedKey(fetchKey);
-    } catch {
-      // Ignore background state fetch errors; actions still work.
+    const existingRequest = inFlightUserStateRequestsRef.current.get(fetchKey);
+    if (existingRequest) {
+      await existingRequest;
+      return;
     }
+
+    const request = (async () => {
+      try {
+        const response = await fetch(
+          `/api/gear/${encodeURIComponent(slug)}/user-state`,
+        );
+        if (!response.ok) return;
+        const payload = (await response.json()) as {
+          inWishlist: boolean | null;
+          isOwned: boolean | null;
+          saveState: SavePickerState;
+        };
+        if (currentFetchKeyRef.current !== fetchKey) {
+          return;
+        }
+        setInWishlist(payload.inWishlist);
+        setIsOwned(payload.isOwned);
+        setSaveState(payload.saveState);
+        setFetchedKey(fetchKey);
+      } catch {
+        // Ignore background state fetch errors; actions still work.
+      } finally {
+        inFlightUserStateRequestsRef.current.delete(fetchKey);
+      }
+    })();
+
+    inFlightUserStateRequestsRef.current.set(fetchKey, request);
+
+    await request;
   }, [fetchKey, fetchedKey, slug]);
 
   useEffect(() => {
