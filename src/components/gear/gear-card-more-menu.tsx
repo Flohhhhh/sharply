@@ -142,12 +142,14 @@ export function GearCardMoreMenu({
             ? "Added to wishlist"
             : "Removed from wishlist",
         );
+      } else if (result.reason === "already_in_wishlist") {
+        setInWishlist(true);
+        toast.error("Already in wishlist");
+      } else if (result.reason === "not_in_wishlist") {
+        setInWishlist(false);
+        toast.error("Not in wishlist");
       } else {
-        const errorMessage =
-          result.reason === "already_in_wishlist"
-            ? "Already in wishlist"
-            : "Failed to update wishlist";
-        toast.error(errorMessage);
+        toast.error("Failed to update wishlist");
       }
     } catch {
       toast.error("Failed to update wishlist");
