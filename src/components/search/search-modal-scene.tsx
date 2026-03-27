@@ -3,6 +3,7 @@
 import {
   type KeyboardEvent as ReactKeyboardEvent,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -81,6 +82,7 @@ export function SearchModalScene({
 }: SearchModalSceneProps) {
   const reduceMotion = useReducedMotion();
   const router = useRouter();
+  const comboboxId = useId();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const rowRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const [query, setQuery] = useState("");
@@ -183,6 +185,11 @@ export function SearchModalScene({
   }, [hasQuery, searchHref, suggestionRows, trimmedQuery]);
 
   const showResultsSection = hasQuery ? hasRevealedPanelForInput : false;
+  const listboxId = `${comboboxId}-listbox`;
+  const activeOptionId =
+    showResultsSection && selectedIndex >= 0 && selectedIndex < selectableItems.length
+      ? `${comboboxId}-option-${selectedIndex}`
+      : undefined;
   const shellTransition = reduceMotion
     ? { duration: 0 }
     : {
@@ -284,8 +291,15 @@ export function SearchModalScene({
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={handleInputKeyDown}
+            aria-label="Search Sharply"
+            aria-activedescendant={activeOptionId}
+            aria-autocomplete="list"
+            aria-controls={showResultsSection ? listboxId : undefined}
+            aria-expanded={showResultsSection}
+            aria-haspopup="listbox"
             placeholder="Search Sharply"
             className="placeholder:text-muted-foreground dark:placeholder:text-muted-foreground/60 text-foreground flex-1 bg-transparent text-sm outline-none md:text-lg"
+            role="combobox"
             spellCheck={false}
             autoCorrect="off"
             autoCapitalize="none"
@@ -317,20 +331,28 @@ export function SearchModalScene({
               className="min-h-0 flex-1 overflow-hidden origin-top"
             >
               <div className="h-full border-t border-white/8">
-                <div className="h-full overflow-y-auto px-1 py-2">
+                <div
+                  id={listboxId}
+                  role="listbox"
+                  className="h-full overflow-y-auto px-1 py-2"
+                >
                   {hasQuery ? (
                     <div className="space-y-1 px-1 py-1">
                       {selectableItems.map((item, index) => {
                         const selected = index === selectedIndex;
+                        const optionId = `${comboboxId}-option-${index}`;
 
                         if (item.kind === "search-action") {
                           return (
                             <button
+                              id={optionId}
                               key={item.id}
                               ref={(element) => {
                                 rowRefs.current[index] = element;
                               }}
                               type="button"
+                              role="option"
+                              aria-selected={selected}
                               onMouseEnter={() => setSelectedIndex(index)}
                               onFocus={() => setSelectedIndex(index)}
                               onClick={() => executeItem(item)}
@@ -351,11 +373,14 @@ export function SearchModalScene({
 
                         return (
                           <button
+                            id={optionId}
                             key={item.id}
                             ref={(element) => {
                               rowRefs.current[index] = element;
                             }}
                             type="button"
+                            role="option"
+                            aria-selected={selected}
                             onMouseEnter={() => setSelectedIndex(index)}
                             onFocus={() => setSelectedIndex(index)}
                             onClick={() => executeItem(item)}
