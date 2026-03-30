@@ -38,7 +38,7 @@ export function CommandPalette() {
       <DialogContent
         showCloseButton={false}
         disableAnimation
-        className="top-[27vh] translate-y-0 max-w-[min(44rem,calc(100%-1.5rem))] gap-0 overflow-visible border-none bg-transparent p-0 shadow-none duration-100 sm:max-w-[44rem]"
+        className="top-[calc(env(safe-area-inset-top)+0.75rem)] translate-y-0 max-w-[min(44rem,calc(100%-1.5rem))] gap-0 overflow-visible border-none bg-transparent p-0 shadow-none duration-100 sm:top-[27vh] sm:max-w-[44rem]"
       >
         <DialogTitle className="sr-only">Search Sharply</DialogTitle>
         <DialogDescription className="sr-only">
