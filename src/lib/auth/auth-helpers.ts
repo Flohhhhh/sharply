@@ -28,5 +28,5 @@ export function requireRole(
     ...allowed.map((allowedRole) => rolePriority[allowedRole] ?? 0),
   );
 
-  return rolePriority[role] ?? 0 >= minimumAllowedPriority;
+  return (rolePriority[role] ?? 0) >= minimumAllowedPriority;
 }

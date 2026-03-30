@@ -7,6 +7,7 @@ import { fetchPendingEditId } from "~/server/gear/service";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { requireRole } from "~/lib/auth/auth-helpers";
 
 interface EditGearPageProps {
   params: Promise<{
@@ -91,6 +92,7 @@ export default async function EditGearPage({
   return (
     <div className="container mx-auto max-w-4xl p-6 pt-20">
       <EditGearClient
+        canToggleAutoSubmit={requireRole(session.user, ["EDITOR"])}
         gearType={resolvedGearType}
         gearData={gearDataWithMountIds}
         gearSlug={slug}

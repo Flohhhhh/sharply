@@ -25,6 +25,7 @@ import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 
 interface EditGearModalProps {
+  canToggleAutoSubmit?: boolean;
   gearType?: GearType;
   gearData: GearItem;
   gearSlug: string;
@@ -33,6 +34,7 @@ interface EditGearModalProps {
 }
 
 export function EditGearModal({
+  canToggleAutoSubmit = false,
   gearType,
   gearData,
   gearSlug,
@@ -72,6 +74,7 @@ export function EditGearModal({
     <Dialog defaultOpen open onOpenChange={handleOpenChange}>
       <DialogContent className="p-0 sm:max-w-4xl" showCloseButton={false}>
         <EditModalContent
+          canToggleAutoSubmit={canToggleAutoSubmit}
           gearType={gearType}
           gearData={gearData}
           gearSlug={gearSlug}

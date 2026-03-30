@@ -4,6 +4,7 @@ import type { GearItem } from "~/types/gear";
 import { auth } from "~/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { requireRole } from "~/lib/auth/auth-helpers";
 
 interface EditGearModalPageProps {
   params: Promise<{
@@ -59,6 +60,7 @@ export default async function EditGearModalPage({
 
   return (
     <EditGearModal
+      canToggleAutoSubmit={requireRole(session.user, ["EDITOR"])}
       gearType={gearDataResult.gearType}
       gearData={gearData}
       gearSlug={slug}

@@ -690,6 +690,7 @@ const proposalInput = z
     slug: z.string().min(1).optional(),
     payload: z.record(z.unknown()),
     note: z.string().max(500).nullish(),
+    autoSubmit: z.boolean().optional(),
   })
   .refine((v) => Boolean(v.gearId || v.slug), {
     message: "Either gearId or slug must be provided",
@@ -699,7 +700,6 @@ const proposalInput = z
 export async function submitGearEditProposal(body: unknown) {
   const { user } = await getSessionOrThrow();
   const userId = user.id;
-  const role = user.role ?? "USER";
   const data = proposalInput.parse(body);
   const normalizedPayload = normalizeProposalPayloadForDb(
     data.payload as Record<string, unknown>,
@@ -718,10 +718,8 @@ export async function submitGearEditProposal(body: unknown) {
     note: data.note ?? null,
   });
   let autoApproved = false;
-  if (
-    !hasPending &&
-    (role === "SUPERADMIN" || role === "ADMIN" || role === "EDITOR")
-  ) {
+  const canAutoApprove = requireRole(user, ["EDITOR"]);
+  if (!hasPending && canAutoApprove && data.autoSubmit !== false) {
     try {
       await approveProposal(proposal.id, normalizedPayload, {
         gearName: gearMeta?.name ?? "Gear",

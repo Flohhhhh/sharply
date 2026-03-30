@@ -31,10 +31,12 @@ type Row = {
 type Option = { value: string; label: string };
 
 export default function UnderConstructionClient({
+  canToggleAutoSubmit = false,
   items,
   brands,
   types,
 }: {
+  canToggleAutoSubmit?: boolean;
   items: Row[];
   brands: Option[];
   types: readonly string[];
@@ -103,7 +105,10 @@ export default function UnderConstructionClient({
         </div>
       </div>
       <div className="mt-8">
-        <UnderConstructionTable items={filtered as any} />
+        <UnderConstructionTable
+          canToggleAutoSubmit={canToggleAutoSubmit}
+          items={filtered as any}
+        />
       </div>
     </>
   );
