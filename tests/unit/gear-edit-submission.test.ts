@@ -77,7 +77,12 @@ describe("gear edit submission", () => {
     vi.clearAllMocks();
 
     authMocks.getSessionOrThrow.mockResolvedValue({
-      user: { id: "user-1", role: "EDITOR" },
+      user: {
+        id: "user-1",
+        role: "EDITOR",
+        name: "Alex Photographer",
+        email: "alex@example.com",
+      },
     });
 
     normalizerMocks.normalizeProposalPayloadForDb.mockImplementation(
@@ -133,6 +138,10 @@ describe("gear edit submission", () => {
       gearType: "CAMERA",
       gearName: "Nikon Zf",
       gearSlug: "nikon-zf",
+      createdByLabel: "Alex Photographer",
+      changedFieldCount: 1,
+      changedSectionCount: 1,
+      hasNote: false,
     });
   });
 

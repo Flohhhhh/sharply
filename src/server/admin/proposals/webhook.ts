@@ -25,6 +25,10 @@ export type ChangeRequestWebhookItemSummary = {
   gearType: string | null;
   gearName: string;
   gearSlug: string;
+  createdByLabel: string | null;
+  changedFieldCount: number;
+  changedSectionCount: number;
+  hasNote: boolean;
 };
 
 type DiscordWebhookPayload = {
@@ -166,6 +170,11 @@ function parsePendingItems(rawItems: string[]): ChangeRequestWebhookItemSummary[
             typeof item.gearType === "string" ? item.gearType : item.gearType ?? null,
           gearName: item.gearName,
           gearSlug: item.gearSlug,
+          createdByLabel:
+            typeof item.createdByLabel === "string" ? item.createdByLabel : null,
+          changedFieldCount: toPositiveInt(item.changedFieldCount),
+          changedSectionCount: toPositiveInt(item.changedSectionCount),
+          hasNote: item.hasNote === true,
         });
       }
     } catch {
@@ -175,9 +184,43 @@ function parsePendingItems(rawItems: string[]): ChangeRequestWebhookItemSummary[
   return parsed;
 }
 
+function pluralize(count: number, singular: string, plural = `${singular}s`) {
+  return `${count} ${count === 1 ? singular : plural}`;
+}
+
+function shortProposalId(proposalId: string) {
+  return proposalId.slice(0, 8);
+}
+
+function formatChangeSummary(item: Pick<
+  ChangeRequestWebhookItemSummary,
+  "changedFieldCount" | "changedSectionCount"
+>) {
+  if (item.changedFieldCount > 0 && item.changedSectionCount > 0) {
+    return `${pluralize(item.changedFieldCount, "field")} across ${pluralize(item.changedSectionCount, "section")}`;
+  }
+
+  if (item.changedFieldCount > 0) {
+    return pluralize(item.changedFieldCount, "field");
+  }
+
+  if (item.changedSectionCount > 0) {
+    return pluralize(item.changedSectionCount, "section");
+  }
+
+  return "Change details unavailable";
+}
+
 function formatItemSummaryLine(item: ChangeRequestWebhookItemSummary) {
   const typeLabel = item.gearType ? ` (${item.gearType})` : "";
-  return `${item.gearName}${typeLabel} • /gear/${item.gearSlug}`;
+  const metadata = [formatChangeSummary(item)];
+  if (item.createdByLabel) {
+    metadata.push(`by ${item.createdByLabel}`);
+  }
+  if (item.hasNote) {
+    metadata.push("note included");
+  }
+  return `${item.gearName}${typeLabel} • ${metadata.join(" • ")}`;
 }
 
 function buildImmediateWebhookContent(params: {
@@ -189,9 +232,14 @@ function buildImmediateWebhookContent(params: {
   return [
     "**New change request submitted**",
     `- Gear: ${item.gearName}${typeLabel}`,
-    `- Proposal ID: \`${item.proposalId}\``,
-    `- Review queue: ${moderationUrl}`,
-  ].join("\n");
+    `- Changes: ${formatChangeSummary(item)}`,
+    item.createdByLabel ? `- Submitted by: ${item.createdByLabel}` : undefined,
+    item.hasNote ? "- Submitter note: included" : undefined,
+    `-# Proposal: \`${shortProposalId(item.proposalId)}\``,
+    `-# Admin: <${moderationUrl}>`,
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 function buildAggregatedWebhookContent(params: {
@@ -202,22 +250,26 @@ function buildAggregatedWebhookContent(params: {
 }) {
   const headerLines = [
     "**Change request summary**",
-    `- Pending requests in last window: ${params.pendingCount}`,
+    `- ${pluralize(params.pendingCount, "pending request")} in the last ${CHANGE_REQUEST_WEBHOOK_WINDOW_MINUTES}-minute window`,
     params.windowStartedAt
       ? `- Window started: ${params.windowStartedAt}`
       : undefined,
-    `- Review queue: ${params.moderationUrl}`,
   ].filter(Boolean) as string[];
 
   if (params.pendingItems.length === 0) {
-    return headerLines.join("\n");
+    return [...headerLines, `-# Admin: <${params.moderationUrl}>`].join("\n");
   }
 
   const sampleLines = params.pendingItems
     .slice(0, CHANGE_REQUEST_WEBHOOK_PENDING_ITEM_LIMIT)
     .map((item, index) => `${index + 1}. ${formatItemSummaryLine(item)}`);
 
-  return [...headerLines, "- Sample items:", ...sampleLines].join("\n");
+  return [
+    ...headerLines,
+    "- Sample items:",
+    ...sampleLines,
+    `-# Admin: <${params.moderationUrl}>`,
+  ].join("\n");
 }
 
 async function sendDiscordWebhook(
