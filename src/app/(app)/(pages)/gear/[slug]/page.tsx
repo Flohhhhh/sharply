@@ -66,6 +66,7 @@ import { GearBreadcrumbNameHydrator } from "../_components/gear-breadcrumb-name-
 import { buildGearMetaDescription } from "~/lib/seo/build-gear-meta-description";
 import { env } from "~/env";
 import { buildGearBreadcrumbItems } from "../_components/gear-breadcrumb-items";
+import { buildGearSectionNavItems } from "../_components/gear-section-nav";
 
 export const revalidate = 3600;
 
@@ -249,6 +250,17 @@ export default async function GearPage({ params }: GearPageProps) {
       ),
     },
   ].filter(Boolean) as CrumbItem[];
+  const sectionNavItems = buildGearSectionNavItems({
+    hasEditorialReview: Boolean(review),
+    hasRawSamples: Boolean(
+      item.gearType === "CAMERA" &&
+        item.rawSamples &&
+        item.rawSamples.length > 0,
+    ),
+    hasAlternatives: alternatives.length > 0,
+    hasRelatedArticles: relatedNews.length > 0,
+    verdict,
+  });
 
   return (
     <main className="mx-auto max-w-7xl space-y-8 px-4 pt-20 sm:px-6">
@@ -329,29 +341,21 @@ export default async function GearPage({ params }: GearPageProps) {
       </section>
 
       {/* Intra-page nav bar */}
-      <section className="bg-background sticky top-16 z-10 border-b py-2">
-        <div className="flex items-center justify-center gap-8">
-          {/* specs, reviews, contributors */}
-          <Link
-            href={`#staff-verdict`}
-            className="text-muted-foreground hover:text-primary text-sm transition-all hover:underline"
-          >
-            Staff Verdict
-          </Link>
-          <Link
-            href={`#specs`}
-            className="text-muted-foreground hover:text-primary text-sm transition-all hover:underline"
-          >
-            Specs
-          </Link>
-          <Link
-            href={`#reviews`}
-            className="text-muted-foreground hover:text-primary text-sm transition-all hover:underline"
-          >
-            Reviews
-          </Link>
-        </div>
-      </section>
+      {sectionNavItems.length > 0 && (
+        <section className="bg-background sticky top-16 z-10 hidden border-b py-2 md:block">
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
+            {sectionNavItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="text-muted-foreground hover:text-primary text-sm transition-all hover:underline"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-10">
         <div className="col-span-1 space-y-4 md:col-span-7">
@@ -374,7 +378,7 @@ export default async function GearPage({ params }: GearPageProps) {
           />
           {/* Editorial Reviews*/}
           {review && (
-            <section id="reviews" className="scroll-mt-24">
+            <section id="editorial-review" className="scroll-mt-24">
               {/* <h2 className="mb-2 text-lg font-semibold">Our Review</h2> */}
               <Link href={`/reviews/${review.slug}`}>
                 <div className="flex flex-col gap-2 rounded-md border p-4">
@@ -395,7 +399,7 @@ export default async function GearPage({ params }: GearPageProps) {
           {item.gearType === "CAMERA" &&
             item.rawSamples &&
             item.rawSamples.length > 0 && (
-              <div className="space-y-3">
+              <section id="raw-samples" className="space-y-3 scroll-mt-24">
                 <h3 className="text-lg font-semibold">Raw Samples</h3>
                 <div className="space-y-2">
                   {item.rawSamples.map((sample) => (
@@ -425,7 +429,7 @@ export default async function GearPage({ params }: GearPageProps) {
                     </Item>
                   ))}
                 </div>
-              </div>
+              </section>
             )}
           {/* Alternatives */}
           <GearAlternativesSection
