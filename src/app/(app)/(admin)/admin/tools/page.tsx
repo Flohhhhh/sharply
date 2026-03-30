@@ -4,6 +4,7 @@ import { BadgesCatalog } from "../badges-catalog";
 import { AdminImageUploader } from "../admin-image-uploader";
 import { GradientImageTool } from "../gradient-image-tool";
 import { SharedListOgPreviewTool } from "../shared-list-og-preview-tool";
+import { ManualGearRevalidateTool } from "../manual-gear-revalidate-tool";
 import { fetchLiveBoosts } from "~/server/popularity/service";
 import Link from "next/link";
 
@@ -96,6 +97,16 @@ export default async function ToolsPage() {
         </p>
         <div className="mt-4">
           <AdminImageUploader />
+        </div>
+      </div>
+      <div>
+        <h2 className="text-2xl font-bold">Manual Gear Revalidation</h2>
+        <p className="text-muted-foreground mt-2">
+          Manually invalidate a selected public gear page when you need a fresh
+          render immediately.
+        </p>
+        <div className="mt-4">
+          <ManualGearRevalidateTool />
         </div>
       </div>
       <div>
