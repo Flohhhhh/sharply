@@ -6,6 +6,7 @@ import { UserListsSection } from "./user-lists-section";
 import type { ProfileUserListState } from "./types";
 
 type UserListsSectionDeferredProps = {
+  initialData: UserListsResponse;
   profileUserId: string;
   myProfile: boolean;
   profileName?: string | null;
@@ -35,6 +36,7 @@ const fetcher = async (url: string): Promise<UserListsResponse> => {
 };
 
 export function UserListsSectionDeferred({
+  initialData,
   profileUserId,
   myProfile,
   profileName,
@@ -44,6 +46,7 @@ export function UserListsSectionDeferred({
     `/api/user-lists/profile?${query}`,
     fetcher,
     {
+      fallbackData: initialData,
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       revalidateIfStale: false,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -94,7 +94,7 @@ export function UserListsSection({
     onListsChanged?.();
   };
 
-  const clearListQueryParam = () => {
+  const clearListQueryParam = useCallback(() => {
     const requestedListId = searchParams.get("list");
     if (!requestedListId) return;
 
@@ -105,7 +105,7 @@ export function UserListsSection({
       ? `${pathname}?${nextSearchParams.toString()}`
       : pathname;
     router.replace(nextUrl, { scroll: false });
-  };
+  }, [pathname, router, searchParams]);
 
   const manageList = lists.find((list) => list.id === manageListId) ?? null;
 
