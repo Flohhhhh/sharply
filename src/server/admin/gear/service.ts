@@ -8,7 +8,6 @@ import {
   checkGearCreationData,
   createGearData,
   fetchAdminGearItemsData,
-  deleteGearData,
   type FetchAdminGearItemsParams,
   type FetchAdminGearItemsResult,
   type GearCreationCheckParams,
@@ -394,18 +393,40 @@ export async function deleteGearService(
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
 
-  const deleted = await deleteGearData(gearId);
+  return db.transaction(async (tx) => {
+    const existing = await tx
+      .select({ id: gear.id })
+      .from(gear)
+      .where(eq(gear.id, gearId))
+      .limit(1);
 
-  try {
-    await db.insert(auditLogs).values({
-      action: "GEAR_DELETE",
-      actorUserId: session.user.id,
-      gearId: deleted.id,
-    });
-  } catch {
-    // Audit log failures are intentionally non-fatal — the deletion has already
-    // succeeded and rolling back would be worse than a missing log entry.
-  }
+    const capturedId = existing[0]?.id;
+    if (!capturedId) {
+      throw Object.assign(new Error("Gear not found"), { status: 404 });
+    }
 
-  return deleted;
+    try {
+      // Use a savepoint so audit failures do not abort the delete transaction.
+      await tx.transaction(async (auditTx) => {
+        await auditTx.insert(auditLogs).values({
+          action: "GEAR_DELETE",
+          actorUserId: session.user.id,
+          gearId: capturedId,
+        });
+      });
+    } catch {
+      // Audit log failures are intentionally non-fatal.
+    }
+
+    const deleted = await tx
+      .delete(gear)
+      .where(eq(gear.id, gearId))
+      .returning({ id: gear.id, slug: gear.slug });
+
+    if (!deleted[0]) {
+      throw Object.assign(new Error("Gear not found"), { status: 404 });
+    }
+
+    return deleted[0];
+  });
 }
