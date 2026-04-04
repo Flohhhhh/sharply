@@ -92,6 +92,13 @@
       "when": 1772836657645,
       "tag": "0012_parallel_warstar",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1775333434167,
+      "tag": "0013_burly_rogue",
+      "breakpoints": true
     }
   ]
 }
