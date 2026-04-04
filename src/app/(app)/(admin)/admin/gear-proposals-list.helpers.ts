@@ -198,10 +198,27 @@ export function buildInitialSelectedByProposal(
 
 function serialize(value: unknown): string {
   try {
-    return JSON.stringify(value, Object.keys((value as any) ?? {}).sort());
+    return JSON.stringify(normalize(value));
   } catch {
     return String(value);
   }
+}
+
+function normalize(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((item) => normalize(item));
+  }
+
+  if (value && typeof value === "object") {
+    return Object.keys(value)
+      .sort()
+      .reduce<Record<string, unknown>>((acc, key) => {
+        acc[key] = normalize((value as Record<string, unknown>)[key]);
+        return acc;
+      }, {});
+  }
+
+  return value;
 }
 
 function addFieldItems(
