@@ -139,6 +139,13 @@ npm run db:seed -- --confirm-seed --allow-gear-overwrite
 ```
 
 ### Development Server
+Make sure you're using correct node version, `.nvmrc` is available.
+```bash
+nvm use
+```
+```bash
+npm i
+```
 
 ```bash
 npm run dev

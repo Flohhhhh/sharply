@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   BookOpenCheck,
   DoorOpen,
@@ -70,6 +71,9 @@ export function UserListsSection({
   profileName,
   onListsChanged,
 }: UserListsSectionProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [lists, setLists] = useState(initialLists);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [createName, setCreateName] = useState("");
@@ -89,6 +93,19 @@ export function UserListsSection({
     setLists(nextLists);
     onListsChanged?.();
   };
+
+  const clearListQueryParam = useCallback(() => {
+    const requestedListId = searchParams.get("list");
+    if (!requestedListId) return;
+
+    const nextSearchParams = new URLSearchParams(searchParams.toString());
+    nextSearchParams.delete("list");
+
+    const nextUrl = nextSearchParams.toString()
+      ? `${pathname}?${nextSearchParams.toString()}`
+      : pathname;
+    router.replace(nextUrl, { scroll: false });
+  }, [pathname, router, searchParams]);
 
   const manageList = lists.find((list) => list.id === manageListId) ?? null;
 
@@ -241,6 +258,14 @@ export function UserListsSection({
     setIsManageOpen(true);
   };
 
+  const handleManageOpenChange = (open: boolean) => {
+    setIsManageOpen(open);
+    if (open) return;
+
+    setManageListId(null);
+    clearListQueryParam();
+  };
+
   useEffect(() => {
     if (!isManageOpen || !manageListId) return;
     const stillExists = lists.some((list) => list.id === manageListId);
@@ -249,6 +274,31 @@ export function UserListsSection({
       setManageListId(null);
     }
   }, [isManageOpen, manageListId, lists]);
+
+  useEffect(() => {
+    if (!myProfile) return;
+
+    const requestedListId = searchParams.get("list");
+    if (!requestedListId) return;
+
+    const requestedList = lists.find((list) => list.id === requestedListId);
+    if (!requestedList) {
+      clearListQueryParam();
+      return;
+    }
+
+    if (isManageOpen && manageListId === requestedListId) return;
+
+    setManageListId(requestedListId);
+    setIsManageOpen(true);
+  }, [
+    clearListQueryParam,
+    isManageOpen,
+    lists,
+    manageListId,
+    myProfile,
+    searchParams,
+  ]);
 
   return (
     <div className="space-y-4">
@@ -617,7 +667,7 @@ export function UserListsSection({
 
       <ListManageModal
         open={isManageOpen}
-        onOpenChange={setIsManageOpen}
+        onOpenChange={handleManageOpenChange}
         list={manageList}
         onListsUpdated={applyListsUpdate}
       />

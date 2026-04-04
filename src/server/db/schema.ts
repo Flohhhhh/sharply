@@ -61,6 +61,7 @@ export const proposalStatusEnum = pgEnum("proposal_status", [
 export const auditActionEnum = pgEnum("audit_action", [
   "GEAR_CREATE",
   "GEAR_RENAME",
+  "GEAR_DELETE",
   "GEAR_IMAGE_UPLOAD",
   "GEAR_IMAGE_REPLACE",
   "GEAR_IMAGE_REMOVE",
@@ -499,6 +500,9 @@ export const sensorFormats = appSchema.table("sensor_formats", (d) => ({
   name: varchar("name", { length: 200 }).notNull().unique(),
   slug: varchar("slug", { length: 200 }).notNull().unique(),
   cropFactor: decimal("crop_factor", { precision: 4, scale: 2 }).notNull(),
+  widthMm: decimal("width_mm", { precision: 6, scale: 2 }),
+  heightMm: decimal("height_mm", { precision: 6, scale: 2 }),
+  areaMm2: decimal("area_mm_2", { precision: 8, scale: 2 }),
   description: varchar("description", { length: 500 }),
   createdAt,
   updatedAt,

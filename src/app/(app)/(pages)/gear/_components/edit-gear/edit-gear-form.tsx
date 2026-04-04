@@ -4,6 +4,7 @@ import { track } from "@vercel/analytics";
 import React, { useState, useCallback } from "react";
 import { Crop } from "lucide-react";
 import { Button } from "~/components/ui/button";
+import { Checkbox } from "~/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
+import { Label } from "~/components/ui/label";
 import { CoreFields } from "./fields-core";
 import { LensFields } from "./fields-lenses";
 import CameraFields from "./fields-cameras";
@@ -103,9 +105,12 @@ function formatMaxFpsByShutter(value: unknown): string {
 }
 
 interface EditGearFormProps {
+  autoSubmit?: boolean;
+  canToggleAutoSubmit?: boolean;
   gearType?: GearType;
   gearSlug: string;
   gearData: GearItem;
+  onAutoSubmitChange?: (autoSubmit: boolean) => void;
   onDirtyChange?: (dirty: boolean) => void;
   onRequestClose?: (opts?: { force?: boolean }) => void;
   onSubmittingChange?: (submitting: boolean) => void;
@@ -116,9 +121,12 @@ interface EditGearFormProps {
 }
 
 function EditGearForm({
+  autoSubmit,
+  canToggleAutoSubmit = false,
   gearType,
   gearData,
   gearSlug,
+  onAutoSubmitChange,
   onDirtyChange,
   onRequestClose,
   onSubmittingChange,
@@ -128,6 +136,9 @@ function EditGearForm({
   onFormDataChange,
 }: EditGearFormProps) {
   const router = useRouter();
+  const [internalAutoSubmit, setInternalAutoSubmit] = useState(
+    Boolean(canToggleAutoSubmit),
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
@@ -135,6 +146,8 @@ function EditGearForm({
   const [diffPreview, setDiffPreview] = useState<Record<string, any> | null>(
     null,
   );
+  const effectiveAutoSubmit =
+    typeof autoSubmit === "boolean" ? autoSubmit : internalAutoSubmit;
   type VideoModesDiff = {
     added: VideoModeNormalized[];
     removed: VideoModeNormalized[];
@@ -150,6 +163,26 @@ function EditGearForm({
   React.useEffect(() => {
     onFormDataChange?.(formData as any);
   }, [formData, onFormDataChange]);
+
+  React.useEffect(() => {
+    if (!isDirty) {
+      setFormData(gearData);
+    }
+  }, [gearData, isDirty]);
+
+  React.useEffect(() => {
+    onAutoSubmitChange?.(effectiveAutoSubmit);
+  }, [effectiveAutoSubmit, onAutoSubmitChange]);
+
+  const handleAutoSubmitChange = useCallback(
+    (checked: boolean) => {
+      if (typeof autoSubmit !== "boolean") {
+        setInternalAutoSubmit(checked);
+      }
+      onAutoSubmitChange?.(checked);
+    },
+    [autoSubmit, onAutoSubmitChange],
+  );
 
   // console.log("[EditGearForm] formData", formData);
 
@@ -670,7 +703,11 @@ function EditGearForm({
       });
       console.time(`[EditGearForm] submit ${gearSlug}`);
 
-      const res = await actionSubmitGearProposal({ slug: gearSlug, payload });
+      const res = await actionSubmitGearProposal({
+        slug: gearSlug,
+        payload,
+        autoSubmit: effectiveAutoSubmit,
+      });
       console.timeEnd(`[EditGearForm] submit ${gearSlug}`);
       if (res?.ok) {
         setIsDirty(false);
@@ -860,6 +897,18 @@ function EditGearForm({
 
       {showActions && (
         <div className="flex justify-end space-x-4">
+          {canToggleAutoSubmit ? (
+            <div className="mr-auto flex items-center gap-2">
+              <Checkbox
+                id="edit-gear-auto-submit"
+                checked={effectiveAutoSubmit}
+                onCheckedChange={(checked) =>
+                  handleAutoSubmitChange(checked === true)
+                }
+              />
+              <Label htmlFor="edit-gear-auto-submit">Auto-Submit</Label>
+            </div>
+          ) : null}
           <Button
             type="button"
             variant="outline"
@@ -885,9 +934,11 @@ function EditGearForm({
           <DialogHeader>
             <DialogTitle>Submit suggestion?</DialogTitle>
             <DialogDescription>
-              Are you sure you want to submit these changes for review? You will
-              not be able to make adjustments or make a new change request until
-              this one is reviewed by an admin.
+              {canToggleAutoSubmit
+                ? effectiveAutoSubmit
+                  ? "These changes will be auto-approved and applied to the gear page immediately."
+                  : "These changes will be submitted for moderator review, just like a normal user submission."
+                : "Are you sure you want to submit these changes for review? You will not be able to make adjustments or make a new change request until this one is reviewed by an admin."}
             </DialogDescription>
           </DialogHeader>
           {/* Diff preview */}
@@ -1180,6 +1231,20 @@ function EditGearForm({
             </div>
           )}
           <DialogFooter>
+            {canToggleAutoSubmit ? (
+              <div className="mr-auto flex items-center gap-2">
+                <Checkbox
+                  id="edit-gear-confirm-auto-submit"
+                  checked={effectiveAutoSubmit}
+                  onCheckedChange={(checked) =>
+                    handleAutoSubmitChange(checked === true)
+                  }
+                />
+                <Label htmlFor="edit-gear-confirm-auto-submit">
+                  Auto-Submit
+                </Label>
+              </div>
+            ) : null}
             <Button
               type="button"
               variant="outline"
@@ -1197,7 +1262,9 @@ function EditGearForm({
               disabled={isSubmitting}
               loading={isSubmitting}
             >
-              Confirm Submit
+              {canToggleAutoSubmit && effectiveAutoSubmit
+                ? "Apply Now"
+                : "Confirm Submit"}
             </Button>
           </DialogFooter>
         </DialogContent>

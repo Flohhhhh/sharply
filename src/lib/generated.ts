@@ -267,7 +267,10 @@ export const SENSOR_FORMATS = [
     "crop_factor": "1.00",
     "description": "35mm equivalent",
     "created_at": "2025-08-19 01:55:27.132642+00",
-    "updated_at": "2025-08-19 01:55:27.132642+00"
+    "updated_at": "2025-08-19 01:55:27.132642+00",
+    "width_mm": null,
+    "height_mm": null,
+    "area_mm_2": null
   },
   {
     "id": "116924b7-a4ee-4f7b-8ddf-38b33454c550",
@@ -276,7 +279,10 @@ export const SENSOR_FORMATS = [
     "crop_factor": "1.50",
     "description": "Nikon, Sony, Fujifilm",
     "created_at": "2025-08-19 01:55:27.374007+00",
-    "updated_at": "2025-08-19 01:55:27.374007+00"
+    "updated_at": "2025-08-19 01:55:27.374007+00",
+    "width_mm": null,
+    "height_mm": null,
+    "area_mm_2": null
   },
   {
     "id": "4df33822-edc9-4a93-9519-dd0050a7f8ee",
@@ -285,7 +291,10 @@ export const SENSOR_FORMATS = [
     "crop_factor": "1.60",
     "description": "Canon specific",
     "created_at": "2025-08-19 01:55:27.602979+00",
-    "updated_at": "2025-08-19 01:55:27.602979+00"
+    "updated_at": "2025-08-19 01:55:27.602979+00",
+    "width_mm": null,
+    "height_mm": null,
+    "area_mm_2": null
   },
   {
     "id": "a5b24cc2-4b36-47d4-8765-777a5c2e10ca",
@@ -294,7 +303,10 @@ export const SENSOR_FORMATS = [
     "crop_factor": "2.70",
     "description": "Compact cameras",
     "created_at": "2025-08-19 01:55:28.397056+00",
-    "updated_at": "2025-08-19 01:55:28.397056+00"
+    "updated_at": "2025-08-19 01:55:28.397056+00",
+    "width_mm": null,
+    "height_mm": null,
+    "area_mm_2": null
   },
   {
     "id": "26b5a709-9810-42d7-9a76-0c876043f224",
@@ -303,7 +315,10 @@ export const SENSOR_FORMATS = [
     "crop_factor": "1.30",
     "description": "Canon intermediate format",
     "created_at": "2025-08-19 01:55:28.630193+00",
-    "updated_at": "2025-08-19 01:55:28.630193+00"
+    "updated_at": "2025-08-19 01:55:28.630193+00",
+    "width_mm": null,
+    "height_mm": null,
+    "area_mm_2": null
   },
   {
     "id": "670ac585-aa5d-4e4d-88a0-c6ee2f7e036e",
@@ -312,7 +327,10 @@ export const SENSOR_FORMATS = [
     "crop_factor": "0.79",
     "description": "Larger than full frame",
     "created_at": "2025-08-19 01:55:27.905001+00",
-    "updated_at": "2025-08-19 01:55:27.905001+00"
+    "updated_at": "2025-08-19 01:55:27.905001+00",
+    "width_mm": null,
+    "height_mm": null,
+    "area_mm_2": null
   },
   {
     "id": "a36483f6-2c69-40d1-9b2a-d7ae3c149603",
@@ -321,7 +339,10 @@ export const SENSOR_FORMATS = [
     "crop_factor": "0.66",
     "description": null,
     "created_at": "2026-01-02 17:24:17.478933+00",
-    "updated_at": "2026-01-02 17:24:17.478933+00"
+    "updated_at": "2026-01-02 17:24:17.478933+00",
+    "width_mm": null,
+    "height_mm": null,
+    "area_mm_2": null
   },
   {
     "id": "9ee34d66-036b-4598-bbb9-d80a1b96c512",
@@ -330,7 +351,10 @@ export const SENSOR_FORMATS = [
     "crop_factor": "2.00",
     "description": "Panasonic, Olympus",
     "created_at": "2025-08-19 01:55:28.154644+00",
-    "updated_at": "2025-08-19 01:55:28.154644+00"
+    "updated_at": "2025-08-19 01:55:28.154644+00",
+    "width_mm": null,
+    "height_mm": null,
+    "area_mm_2": null
   },
   {
     "id": "0d97617b-ec5a-47d6-bd60-010b3337e375",
@@ -339,7 +363,10 @@ export const SENSOR_FORMATS = [
     "crop_factor": "11.50",
     "description": null,
     "created_at": "2026-01-11 00:36:54.959034+00",
-    "updated_at": "2026-01-11 00:36:54.959034+00"
+    "updated_at": "2026-01-11 00:36:54.959034+00",
+    "width_mm": null,
+    "height_mm": null,
+    "area_mm_2": null
   },
   {
     "id": "ac4bc86d-501a-4eec-9817-d17a3b2d37a0",
@@ -348,7 +375,10 @@ export const SENSOR_FORMATS = [
     "crop_factor": "1.00",
     "description": "Catch-all for various larger than full-frame wide and large format cinema camera sensors",
     "created_at": "2026-01-20 12:14:13.604012+00",
-    "updated_at": "2026-01-20 12:14:13.604012+00"
+    "updated_at": "2026-01-20 12:14:13.604012+00",
+    "width_mm": null,
+    "height_mm": null,
+    "area_mm_2": null
   }
 ];
 export const BRANDS = [
@@ -1111,6 +1141,7 @@ export const ENUMS = {
   "audit_action": [
     "GEAR_CREATE",
     "GEAR_RENAME",
+    "GEAR_DELETE",
     "GEAR_IMAGE_UPLOAD",
     "GEAR_IMAGE_REPLACE",
     "GEAR_IMAGE_REMOVE",

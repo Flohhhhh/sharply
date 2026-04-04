@@ -34,57 +34,20 @@ import {
   type VideoModeNormalized,
 } from "~/lib/video/mode-schema";
 import { buildVideoDisplayBundle } from "~/lib/video/transform";
-
-interface GearProposal {
-  id: string;
-  gearId: string;
-  gearName: string;
-  gearSlug: string;
-  createdById: string;
-  createdByName: string | null;
-  createdByImage: string | null;
-  status: "PENDING" | "APPROVED" | "REJECTED" | "MERGED";
-  payload: {
-    core?: Record<string, any>;
-    camera?: Record<string, any>;
-    lens?: Record<string, any>;
-    fixedLens?: Record<string, any>;
-    cameraCardSlots?: Array<{
-      slotIndex: number;
-      supportedFormFactors: string[];
-      supportedBuses: string[];
-      supportedSpeedClasses?: string[];
-    }>;
-    videoModes?: VideoModeNormalized[];
-  };
-  beforeCore?: Record<string, any>;
-  beforeCamera?: Record<string, any>;
-  beforeLens?: Record<string, any>;
-  beforeFixedLens?: Record<string, any>;
-  note?: string | null;
-  createdAt: string | Date;
-}
-
-type ProposalGroupDto = {
-  gearId: string;
-  gearName: string;
-  gearSlug: string;
-  proposals: Array<{
-    id: string;
-    gearId: string;
-    createdById: string;
-    createdByName: string | null;
-    createdByImage: string | null;
-    status: string;
-    payload: unknown;
-    beforeCore?: Record<string, unknown>;
-    beforeCamera?: Record<string, unknown>;
-    beforeLens?: Record<string, unknown>;
-    beforeFixedLens?: Record<string, unknown>;
-    note?: string | null;
-    createdAt: string | Date;
-  }>;
-};
+import {
+  buildInitialSelectedByProposal,
+  buildMergedPayloadForGroup,
+  buildSelectedPayload,
+  computeConflictsForGroup,
+  computeNonConflictsForGroup,
+  flattenProposalGroups,
+  groupGearProposals,
+  mergeProposalDiffsForDisplay,
+  type GearProposal,
+  type NonConflictEntry,
+  type ProposalGroup,
+  type ProposalGroupDto,
+} from "./gear-proposals-list.helpers";
 
 type PendingResponse = { groups: ProposalGroupDto[] };
 type ResolvedResponse = {
@@ -187,49 +150,9 @@ export function GearProposalsList() {
         ? "Failed to load resolved proposals"
         : null;
 
-  const flattenGroups = (groups: ProposalGroupDto[]): GearProposal[] =>
-    groups.flatMap((g) =>
-      g.proposals.map((p) => ({
-        id: p.id,
-        gearId: p.gearId,
-        gearName: g.gearName,
-        gearSlug: g.gearSlug,
-        createdById: p.createdById,
-        createdByName: p.createdByName,
-        createdByImage: p.createdByImage,
-        status:
-          p.status === "PENDING" ||
-          p.status === "APPROVED" ||
-          p.status === "REJECTED" ||
-          p.status === "MERGED"
-            ? (p.status as any)
-            : ("APPROVED" as const),
-        payload:
-          (p.payload as {
-            core?: Record<string, any>;
-            camera?: Record<string, any>;
-            lens?: Record<string, any>;
-            fixedLens?: Record<string, any>;
-            cameraCardSlots?: Array<{
-              slotIndex: number;
-              supportedFormFactors: string[];
-              supportedBuses: string[];
-              supportedSpeedClasses?: string[];
-            }>;
-            videoModes?: VideoModeNormalized[];
-          }) || {},
-        beforeCore: p.beforeCore as Record<string, any> | undefined,
-        beforeCamera: p.beforeCamera as Record<string, any> | undefined,
-        beforeLens: p.beforeLens as Record<string, any> | undefined,
-        beforeFixedLens: p.beforeFixedLens as Record<string, any> | undefined,
-        note: p.note,
-        createdAt: p.createdAt,
-      })),
-    );
-
   useEffect(() => {
     if (!pendingData?.groups) return;
-    const pendingFlat = flattenGroups(pendingData.groups).filter(
+    const pendingFlat = flattenProposalGroups(pendingData.groups).filter(
       (p) => p.status === "PENDING",
     );
     setProposals((prev) => {
@@ -240,7 +163,7 @@ export function GearProposalsList() {
 
   useEffect(() => {
     if (!resolvedData?.groups) return;
-    const resolvedFlat = flattenGroups(resolvedData.groups).filter(
+    const resolvedFlat = flattenProposalGroups(resolvedData.groups).filter(
       (p) => p.status !== "PENDING",
     );
     setResolvedCount(resolvedData.count ?? resolvedFlat.length);
@@ -264,83 +187,14 @@ export function GearProposalsList() {
   // Initialize field selections (all selected by default) when proposals load
   useEffect(() => {
     if (proposals.length === 0) return;
-    setSelectedByProposal((prev) => {
-      const next = { ...prev };
-      for (const p of proposals) {
-        if (!next[p.id]) {
-          const coreKeys = Object.keys(p.payload.core ?? {});
-          const cameraKeys = Object.keys(p.payload.camera ?? {});
-          const lensKeys = Object.keys(p.payload.lens ?? {});
-          const fixedLensKeys = Object.keys((p.payload as any).fixedLens ?? {});
-          const allKeys = [
-            ...coreKeys,
-            ...cameraKeys,
-            ...lensKeys,
-            ...fixedLensKeys,
-          ];
-          const initial: Record<string, boolean> = {};
-          for (const k of allKeys) initial[k] = true;
-          next[p.id] = initial;
-        }
-      }
-      return next;
-    });
+    setSelectedByProposal((prev) => buildInitialSelectedByProposal(proposals, prev));
   }, [proposals]);
 
   // Build groups from initialProposals (for pending UI)
-  type Group = {
-    gearId: string;
-    gearName: string;
-    gearSlug: string;
-    proposals: GearProposal[];
-  };
-  const groups: Group[] = useMemo(() => {
-    const grouped = Array.from(
-      proposals.reduce((map, proposal) => {
-        const existing = map.get(proposal.gearId);
-        if (existing) {
-          existing.proposals.push(proposal);
-        } else {
-          map.set(proposal.gearId, {
-            gearId: proposal.gearId,
-            gearName: proposal.gearName,
-            gearSlug: proposal.gearSlug,
-            proposals: [proposal],
-          });
-        }
-        return map;
-      }, new Map<string, Group>()),
-    )
-      .map(([, group]) => ({
-        ...group,
-        proposals: group.proposals
-          .slice()
-          .sort(
-            (a, b) =>
-              new Date(b.createdAt as any).getTime() -
-              new Date(a.createdAt as any).getTime(),
-          ),
-      }))
-      .sort((a, b) => {
-        const aLatest = Math.max(
-          ...a.proposals.map((p) => new Date(p.createdAt as any).getTime()),
-        );
-        const bLatest = Math.max(
-          ...b.proposals.map((p) => new Date(p.createdAt as any).getTime()),
-        );
-        return bLatest - aLatest;
-      });
-    return grouped;
-  }, [proposals]);
-
-  // Helpers for conflict detection and formatting
-  const serialize = (v: unknown): string => {
-    try {
-      return JSON.stringify(v, Object.keys(v as any).sort());
-    } catch {
-      return String(v);
-    }
-  };
+  const groups: ProposalGroup[] = useMemo(
+    () => groupGearProposals(proposals),
+    [proposals],
+  );
 
   const formatValueForKey = (k: string, v: any): string => {
     const isEmpty = v === null || v === undefined || v === "";
@@ -385,219 +239,6 @@ export function GearProposalsList() {
     }
     if (k === "maxFpsByShutter") return formatMaxFpsPlain(v);
     return String(v ?? "Empty");
-  };
-
-  type ConflictEntry = {
-    fieldKey: string; // e.g. core.name or cameraCardSlots
-    area:
-      | "core"
-      | "camera"
-      | "analogCamera"
-      | "lens"
-      | "fixedLens"
-      | "cameraCardSlots"
-      | "videoModes";
-    key?: string; // inner key when area != cameraCardSlots
-    options: Array<{
-      proposalId: string;
-      createdByName: string | null;
-      createdAt: string | Date;
-      value: any;
-    }>;
-  };
-  type NonConflictEntry = {
-    fieldKey: string;
-    area:
-      | "core"
-      | "camera"
-      | "analogCamera"
-      | "lens"
-      | "fixedLens"
-      | "cameraCardSlots"
-      | "videoModes";
-    key?: string;
-    provider: {
-      proposalId: string;
-      createdByName: string | null;
-      createdAt: string | Date;
-    };
-    value: any;
-  };
-  const computeNonConflictsForGroup = (group: Group): NonConflictEntry[] => {
-    const map = new Map<
-      string,
-      {
-        area: NonConflictEntry["area"];
-        key?: string;
-        items: ConflictEntry["options"];
-      }
-    >();
-    for (const p of group.proposals.filter((x) => x.status === "PENDING")) {
-      const add = (
-        area: NonConflictEntry["area"],
-        obj?: Record<string, any>,
-      ) => {
-        if (!obj) return;
-        Object.entries(obj).forEach(([k, v]) => {
-          const fieldKey = `${area}.${k}`;
-          const rec = map.get(fieldKey) ?? { area, key: k, items: [] };
-          rec.items.push({
-            proposalId: p.id,
-            createdByName: p.createdByName ?? null,
-            createdAt: p.createdAt,
-            value: v,
-          });
-          map.set(fieldKey, rec);
-        });
-      };
-      add("core", p.payload.core);
-      add("camera", p.payload.camera);
-      add("analogCamera", (p.payload as any).analogCamera);
-      add("lens", p.payload.lens);
-      add("fixedLens", (p.payload as any).fixedLens);
-      add("fixedLens", (p.payload as any).fixedLens);
-      if (Array.isArray(p.payload.cameraCardSlots)) {
-        const fieldKey = "cameraCardSlots";
-        const rec:
-          | {
-              area: NonConflictEntry["area"];
-              key?: string;
-              items: ConflictEntry["options"];
-            }
-          | undefined = map.get(fieldKey);
-        const nextRec = rec ?? {
-          area: "cameraCardSlots",
-          items: [] as ConflictEntry["options"],
-        };
-        nextRec.items.push({
-          proposalId: p.id,
-          createdByName: p.createdByName ?? null,
-          createdAt: p.createdAt,
-          value: p.payload.cameraCardSlots,
-        });
-        map.set(fieldKey, nextRec);
-      }
-      if (Array.isArray((p.payload as any).videoModes)) {
-        const fieldKey = "videoModes";
-        const rec = map.get(fieldKey) ?? {
-          area: "videoModes" as NonConflictEntry["area"],
-          items: [] as ConflictEntry["options"],
-        };
-        rec.items.push({
-          proposalId: p.id,
-          createdByName: p.createdByName ?? null,
-          createdAt: p.createdAt,
-          value: (p.payload as any).videoModes,
-        });
-        map.set(fieldKey, rec);
-      }
-    }
-    const results: NonConflictEntry[] = [];
-    for (const [fieldKey, rec] of map.entries()) {
-      const uniqueValueKeySet = new Set<string>();
-      let representative: ConflictEntry["options"][number] | null = null;
-      for (const opt of rec.items) {
-        const key = serialize(opt.value);
-        uniqueValueKeySet.add(key);
-        if (!representative) representative = opt;
-      }
-      if (rec.items.length >= 1 && uniqueValueKeySet.size === 1) {
-        const opt = representative!;
-        results.push({
-          fieldKey,
-          area: rec.area as any,
-          key: rec.key,
-          provider: {
-            proposalId: opt.proposalId,
-            createdByName: opt.createdByName ?? null,
-            createdAt: opt.createdAt,
-          },
-          value: opt.value,
-        });
-      }
-    }
-    return results;
-  };
-
-  const computeConflictsForGroup = (group: Group): ConflictEntry[] => {
-    const map = new Map<
-      string,
-      {
-        area: ConflictEntry["area"];
-        key?: string;
-        items: ConflictEntry["options"];
-      }
-    >();
-
-    for (const p of group.proposals.filter((x) => x.status === "PENDING")) {
-      const add = (
-        area: ConflictEntry["area"],
-        obj?: Record<string, unknown>,
-      ) => {
-        if (!obj) return;
-        Object.entries(obj).forEach(([k, v]) => {
-          const fieldKey = `${area}.${k}`;
-          const rec = map.get(fieldKey) ?? {
-            area,
-            key: k,
-            items: [],
-          };
-          rec.items.push({
-            proposalId: p.id,
-            createdByName: p.createdByName ?? null,
-            createdAt: p.createdAt,
-            value: v as unknown,
-          });
-          map.set(fieldKey, rec);
-        });
-      };
-      add("core", p.payload.core);
-      add("camera", p.payload.camera);
-      add("lens", p.payload.lens);
-      if (Array.isArray(p.payload.cameraCardSlots)) {
-        const fieldKey = "cameraCardSlots";
-        const rec = map.get(fieldKey) ?? { area: "cameraCardSlots", items: [] };
-        rec.items.push({
-          proposalId: p.id,
-          createdByName: p.createdByName ?? null,
-          createdAt: p.createdAt,
-          value: p.payload.cameraCardSlots,
-        });
-        map.set(fieldKey, rec as any);
-      }
-      if (Array.isArray((p.payload as any).videoModes)) {
-        const fieldKey = "videoModes";
-        const rec = map.get(fieldKey) ?? {
-          area: "videoModes" as ConflictEntry["area"],
-          items: [],
-        };
-        rec.items.push({
-          proposalId: p.id,
-          createdByName: p.createdByName ?? null,
-          createdAt: p.createdAt,
-          value: (p.payload as any).videoModes,
-        });
-        map.set(fieldKey, rec as any);
-      }
-    }
-
-    const conflicts: ConflictEntry[] = [];
-    for (const [fieldKey, rec] of map.entries()) {
-      const uniques = new Map<string, ConflictEntry["options"][number]>();
-      for (const opt of rec.items) {
-        const key = serialize(opt.value);
-        if (!uniques.has(key)) uniques.set(key, opt);
-      }
-      if (rec.items.length > 1 && uniques.size > 1) {
-        conflicts.push({
-          fieldKey,
-          area: rec.area as any,
-          key: rec.key,
-          options: rec.items,
-        });
-      }
-    }
-    return conflicts;
   };
 
   // Ensure conflict selections initialized to null (no default)
@@ -667,38 +308,12 @@ export function GearProposalsList() {
     }
   };
 
-  const buildSelectedPayload = (proposal: GearProposal) => {
-    const selected = selectedByProposal[proposal.id] || {};
-    const pick = (
-      obj: Record<string, any> | undefined,
-    ): Record<string, any> | undefined => {
-      if (!obj) return undefined;
-      const out: Record<string, any> = {};
-      for (const [k, v] of Object.entries(obj)) {
-        if (selected[k]) out[k] = v;
-      }
-      return Object.keys(out).length ? out : undefined;
-    };
-    return {
-      core: pick(proposal.payload.core),
-      camera: pick(proposal.payload.camera),
-      lens: pick(proposal.payload.lens),
-      fixedLens: pick((proposal.payload as any).fixedLens),
-      cameraCardSlots: Array.isArray(proposal.payload.cameraCardSlots)
-        ? proposal.payload.cameraCardSlots
-        : undefined,
-    } as {
-      core?: Record<string, any>;
-      camera?: Record<string, any>;
-      lens?: Record<string, any>;
-      fixedLens?: Record<string, any>;
-      cameraCardSlots?: unknown;
-    };
-  };
-
   const handleApprove = async (proposal: GearProposal) => {
     try {
-      const filteredPayload = buildSelectedPayload(proposal);
+      const filteredPayload = buildSelectedPayload(
+        proposal,
+        selectedByProposal[proposal.id] || {},
+      );
 
       const { actionApproveProposal } =
         await import("~/server/admin/proposals/actions");
@@ -714,6 +329,8 @@ export function GearProposalsList() {
           const nextPayload = {
             core: (filteredPayload as any)?.core ?? p.payload.core,
             camera: (filteredPayload as any)?.camera ?? p.payload.camera,
+            analogCamera:
+              (filteredPayload as any)?.analogCamera ?? p.payload.analogCamera,
             lens: (filteredPayload as any)?.lens ?? p.payload.lens,
             fixedLens:
               (filteredPayload as any)?.fixedLens ?? p.payload.fixedLens,
@@ -723,6 +340,10 @@ export function GearProposalsList() {
               ? ((filteredPayload as any)
                   .cameraCardSlots as GearProposal["payload"]["cameraCardSlots"])
               : p.payload.cameraCardSlots,
+            videoModes: Array.isArray((filteredPayload as any)?.videoModes)
+              ? ((filteredPayload as any)
+                  .videoModes as GearProposal["payload"]["videoModes"])
+              : p.payload.videoModes,
           };
           return {
             ...p,
@@ -748,75 +369,14 @@ export function GearProposalsList() {
     return <Badge variant={variants[status] || "default"}>{status}</Badge>;
   };
 
-  // Build merged payload for a group from selections
-  const buildMergedPayloadForGroup = (group: Group) => {
-    const conflicts = computeConflictsForGroup(group);
-    const nonConflicts = computeNonConflictsForGroup(group);
-    const selectedMap = selectedByGroup[group.gearId] || {};
-    const includedMap = includedByGroup[group.gearId] || {};
-
-    // Collect field providers: fieldKey -> proposalId
-    const providerByField = new Map<string, string>();
-    // Conflicts: use selection (skip if selected skip)
-    for (const c of conflicts) {
-      const sel = selectedMap[c.fieldKey];
-      if (sel && sel !== "__SKIP__") providerByField.set(c.fieldKey, sel);
-    }
-    // Non-conflicts: include only if included
-    for (const n of nonConflicts) {
-      const included = includedMap[n.fieldKey];
-      if (included !== false && !providerByField.has(n.fieldKey)) {
-        providerByField.set(n.fieldKey, n.provider.proposalId);
-      }
-    }
-
-    // Build nested payload
-    const out: {
-      core?: Record<string, any>;
-      camera?: Record<string, any>;
-      lens?: Record<string, any>;
-      fixedLens?: Record<string, any>;
-      cameraCardSlots?: any;
-      videoModes?: VideoModeNormalized[];
-    } = {};
-
-    const getProposalById = (id: string) =>
-      group.proposals.find((p) => p.id === id)!;
-
-    for (const [fieldKey, providerId] of providerByField.entries()) {
-      if (fieldKey === "cameraCardSlots") {
-        const p = getProposalById(providerId);
-        if (p && Array.isArray(p.payload.cameraCardSlots)) {
-          out.cameraCardSlots = p.payload.cameraCardSlots;
-        }
-        continue;
-      }
-      if (fieldKey === "videoModes") {
-        const p = getProposalById(providerId);
-        if (p && Array.isArray(p.payload.videoModes)) {
-          out.videoModes = p.payload.videoModes;
-        }
-        continue;
-      }
-      const parts = fieldKey.split(".");
-      const area = parts[0] as "core" | "camera" | "lens" | "fixedLens";
-      const key = parts[1] as string | undefined;
-      if (!key) continue;
-      const p = getProposalById(providerId);
-      if (!p) continue;
-      const src = (p.payload as any)[area] || {};
-      if (Object.prototype.hasOwnProperty.call(src, key)) {
-        (out as any)[area] = (out as any)[area] || {};
-        (out as any)[area][key] = src[key];
-      }
-    }
-    return out;
-  };
-
-  const handleApproveGroup = async (group: Group) => {
+  const handleApproveGroup = async (group: ProposalGroup) => {
     try {
       setLoadingByGearId((prev) => ({ ...prev, [group.gearId]: "approve" }));
-      const mergedPayload = buildMergedPayloadForGroup(group);
+      const mergedPayload = buildMergedPayloadForGroup(
+        group,
+        selectedByGroup[group.gearId] || {},
+        includedByGroup[group.gearId] || {},
+      );
       // Choose an anchor proposal to approve (latest pending)
       const anchor = [...group.proposals]
         .filter((p) => p.status === "PENDING")
@@ -849,7 +409,7 @@ export function GearProposalsList() {
     }
   };
 
-  const handleRejectGroup = async (group: Group) => {
+  const handleRejectGroup = async (group: ProposalGroup) => {
     const pendingProposals = getPendingProposals(group);
     if (pendingProposals.length === 0) return;
 
@@ -891,7 +451,7 @@ export function GearProposalsList() {
   const showEmpty =
     !pendingLoading && !pendingErrorMessage && proposals.length === 0;
 
-  const getPendingProposals = (group: Group) =>
+  const getPendingProposals = (group: ProposalGroup) =>
     group.proposals.filter((p) => p.status === "PENDING");
 
   const formatContributorName = (name: string | null | undefined) =>
@@ -909,7 +469,7 @@ export function GearProposalsList() {
   // Split pending and resolved
 
   // Grouped card for pending approval (one per gear item)
-  const renderGroupCard = (group: Group) => {
+  const renderGroupCard = (group: ProposalGroup) => {
     const pendingProposals = getPendingProposals(group);
     const conflicts = computeConflictsForGroup(group);
     const nonConflicts = computeNonConflictsForGroup(group);
@@ -1314,17 +874,10 @@ export function GearProposalsList() {
   };
 
   const renderCard = (proposal: GearProposal) => {
-    const beforeMerged = {
-      ...(proposal.beforeCore || {}),
-      ...(proposal.beforeCamera || {}),
-      ...(proposal.beforeLens || {}),
-      ...(proposal.beforeFixedLens || {}),
-    };
+    const { beforeMerged, afterMerged: mergedAfter } =
+      mergeProposalDiffsForDisplay(proposal);
     const afterMerged = {
-      ...(proposal.payload.core || {}),
-      ...(proposal.payload.camera || {}),
-      ...(proposal.payload.lens || {}),
-      ...(proposal.payload.fixedLens || {}),
+      ...mergedAfter,
       ...(Array.isArray(proposal.payload.cameraCardSlots)
         ? { cameraCardSlots: proposal.payload.cameraCardSlots }
         : {}),
@@ -1619,18 +1172,7 @@ export function GearProposalsList() {
   };
 
   const renderResolvedCard = (proposal: GearProposal) => {
-    const beforeMerged = {
-      ...(proposal.beforeCore || {}),
-      ...(proposal.beforeCamera || {}),
-      ...(proposal.beforeLens || {}),
-      ...(proposal.beforeFixedLens || {}),
-    };
-    const afterMerged = {
-      ...(proposal.payload.core || {}),
-      ...(proposal.payload.camera || {}),
-      ...(proposal.payload.lens || {}),
-      ...(proposal.payload.fixedLens || {}),
-    };
+    const { beforeMerged, afterMerged } = mergeProposalDiffsForDisplay(proposal);
     const formatValue = (k: string, v: any): string => {
       const isEmpty = v === null || v === undefined || v === "";
       if (isEmpty) return "Empty";

@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
-import { DialogClose, DialogHeader, DialogTitle } from "~/components/ui/dialog";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { DialogHeader, DialogTitle } from "~/components/ui/dialog";
+import { Checkbox } from "~/components/ui/checkbox";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 import { EditGearForm } from "./edit-gear-form";
@@ -12,7 +13,6 @@ import {
   ChevronRight,
   ArrowRight,
   X,
-  ArrowLeft,
 } from "lucide-react";
 import type { GearItem, CameraSpecs } from "~/types/gear";
 import type { GearType } from "~/types/gear";
@@ -21,6 +21,7 @@ import { sensorTypeLabel } from "~/lib/mapping/sensor-map";
 import { Button } from "~/components/ui/button";
 
 interface EditModalContentProps {
+  canToggleAutoSubmit?: boolean;
   gearType?: GearType;
   gearSlug: string;
   gearName?: string;
@@ -32,6 +33,7 @@ interface EditModalContentProps {
 }
 
 export function EditModalContent({
+  canToggleAutoSubmit = false,
   gearType,
   gearSlug,
   gearName,
@@ -44,6 +46,7 @@ export function EditModalContent({
   const [showMissingOnly, setShowMissingOnly] = useState(
     Boolean(initialShowMissingOnly),
   );
+  const [autoSubmit, setAutoSubmit] = useState(Boolean(canToggleAutoSubmit));
   const [isDirty, setIsDirty] = useState(false);
 
   const preparedData: GearItem = useMemo(() => {
@@ -57,10 +60,12 @@ export function EditModalContent({
 
   // Live form snapshot to drive sidebar state
   const [liveItem, setLiveItem] = useState<GearItem>(preparedData);
-  // Keep in sync if the underlying item changes (route change or server refresh)
-  if (liveItem !== preparedData) {
-    // noop runtime check to avoid unused var; actual sync handled below in memo usage
-  }
+
+  useEffect(() => {
+    if (!isDirty) {
+      setLiveItem(preparedData);
+    }
+  }, [isDirty, preparedData]);
 
   // Helpers to check if a field is filled (supports aggregated registry values)
   const isValueFilled = (v: unknown): boolean => {
@@ -407,9 +412,12 @@ export function EditModalContent({
           className="min-h-0 overflow-y-auto p-6 pb-36"
         >
           <EditGearForm
+            autoSubmit={autoSubmit}
+            canToggleAutoSubmit={canToggleAutoSubmit}
             gearType={gearType}
             gearData={preparedData}
             gearSlug={gearSlug}
+            onAutoSubmitChange={setAutoSubmit}
             onDirtyChange={(dirty) => {
               setIsDirty(dirty);
               onDirtyChange?.(dirty);
@@ -424,15 +432,27 @@ export function EditModalContent({
       </div>
       <div className="bg-background border-t px-4 py-3">
         <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Label htmlFor="edit-modal-show-missing-only">
-              Show missing only
-            </Label>
-            <Switch
-              id="edit-modal-show-missing-only"
-              checked={showMissingOnly}
-              onCheckedChange={setShowMissingOnly}
-            />
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Label htmlFor="edit-modal-show-missing-only">
+                Show missing only
+              </Label>
+              <Switch
+                id="edit-modal-show-missing-only"
+                checked={showMissingOnly}
+                onCheckedChange={setShowMissingOnly}
+              />
+            </div>
+            {canToggleAutoSubmit ? (
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="edit-modal-auto-submit"
+                  checked={autoSubmit}
+                  onCheckedChange={(checked) => setAutoSubmit(checked === true)}
+                />
+                <Label htmlFor="edit-modal-auto-submit">Auto-Submit</Label>
+              </div>
+            ) : null}
           </div>
           <div className="flex items-center gap-2">
             <Button

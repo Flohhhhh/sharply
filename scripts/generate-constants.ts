@@ -37,7 +37,9 @@ async function generateConstants() {
       throw new Error("DATABASE_URL not found in environment");
     }
 
-    const client = postgres(connectionString);
+    // Neon/pooler: prepared statements can stick to a backend whose plan no longer
+    // matches the table shape after migrations — Postgres raises 0A000 "cached plan must not change result type".
+    const client = postgres(connectionString, { max: 1, prepare: false });
     const db = drizzle(client);
 
     // Fetch data directly with SQL queries from the app schema

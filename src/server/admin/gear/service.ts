@@ -8,12 +8,14 @@ import {
   checkGearCreationData,
   createGearData,
   fetchAdminGearItemsData,
+  deleteGearData,
   type FetchAdminGearItemsParams,
   type FetchAdminGearItemsResult,
   type GearCreationCheckParams,
   type GearCreationCheckResult,
   type GearCreationParams,
   type GearCreationResult,
+  type DeleteGearResult,
 } from "./data";
 import { shouldBlockFuzzyResults } from "~/lib/utils/gear-creation";
 import { renameGearData } from "./data";
@@ -382,4 +384,41 @@ export async function clearGearTopViewService(params: {
   slug?: string;
 }): Promise<{ id: string; slug: string; topViewUrl: string | null }> {
   return setGearTopViewService({ ...params, topViewUrl: null });
+}
+
+export async function deleteGearService(
+  gearId: string,
+): Promise<DeleteGearResult> {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session.user, ["ADMIN"])) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+
+  return db.transaction(async (tx) => {
+    const existing = await tx
+      .select({ id: gear.id })
+      .from(gear)
+      .where(eq(gear.id, gearId))
+      .limit(1);
+
+    const capturedId = existing[0]?.id;
+    if (!capturedId) {
+      throw Object.assign(new Error("Gear not found"), { status: 404 });
+    }
+
+    try {
+      // Use a savepoint so audit failures do not abort the delete transaction.
+      await tx.transaction(async (auditTx) => {
+        await auditTx.insert(auditLogs).values({
+          action: "GEAR_DELETE",
+          actorUserId: session.user.id,
+          gearId: capturedId,
+        });
+      });
+    } catch {
+      // Audit log failures are intentionally non-fatal.
+    }
+
+    return deleteGearData(gearId, tx);
+  });
 }

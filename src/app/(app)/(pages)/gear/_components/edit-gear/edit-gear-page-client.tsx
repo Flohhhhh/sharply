@@ -10,6 +10,7 @@ import { sensorTypeLabel } from "~/lib/mapping/sensor-map";
 import { Check, CheckCircle, Circle, ChevronRight } from "lucide-react";
 
 interface Props {
+  canToggleAutoSubmit?: boolean;
   gearType?: "CAMERA" | "ANALOG_CAMERA" | "LENS";
   gearSlug: string;
   gearData: GearItem;
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export default function EditGearClient({
+  canToggleAutoSubmit = false,
   gearType,
   gearSlug,
   gearData,
@@ -385,6 +387,7 @@ export default function EditGearClient({
         </aside>
         <div className="p-6 pb-36">
           <EditGearForm
+            canToggleAutoSubmit={canToggleAutoSubmit}
             gearType={gearType}
             gearData={preparedData}
             gearSlug={gearSlug}

@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Bookmark, Check, ChevronDown, Plus } from "lucide-react";
 import { toast } from "sonner";
+import { useSession } from "~/lib/auth/auth-client";
 import { Button } from "~/components/ui/button";
 import { ButtonGroup } from "~/components/ui/button-group";
 import {
@@ -88,6 +90,8 @@ export function SaveItemButton({
   const [pickerState, setPickerState] = useState(() => initialState);
   const [isMutating, setIsMutating] = useState(false);
   const [mutatingListId, setMutatingListId] = useState<string | null>(null);
+  const router = useRouter();
+  const { data } = useSession();
   const [createDialog, setCreateDialog] = useState({
     open: false,
     name: "",
@@ -102,11 +106,31 @@ export function SaveItemButton({
   if (!pickerState) return null;
   const defaultListId = pickerState.defaultListId;
   const isSavedAnywhere = savedSet.size > 0;
+  const profilePath = data?.user
+    ? `/u/${data.user.handle || `user-${data.user.memberNumber}`}`
+    : null;
 
   const applyActionLists = (lists: ActionListShape[]) => {
     const nextState = toPickerState(lists, slug);
     setPickerState(nextState);
     onStateChange?.(nextState);
+  };
+
+  const showSavedToast = (message: string, listId: string) => {
+    const listHref = profilePath
+      ? `${profilePath}?list=${encodeURIComponent(listId)}`
+      : null;
+
+    toast.success(message, {
+      action: listHref
+        ? {
+            label: "View list",
+            onClick: () => {
+              router.push(listHref);
+            },
+          }
+        : undefined,
+    });
   };
 
   const toggleList = async (listId: string) => {
@@ -122,7 +146,7 @@ export function SaveItemButton({
       } else {
         const result = await actionAddGearToUserList({ listId, slug });
         applyActionLists(result.lists as ActionListShape[]);
-        toast.success("Saved to list");
+        showSavedToast("Saved to list", listId);
       }
     } catch {
       toast.error("Failed to update saved item");
@@ -161,7 +185,7 @@ export function SaveItemButton({
       });
       applyActionLists(addResult.lists as ActionListShape[]);
       setCreateDialog({ open: false, name: "", creating: false });
-      toast.success("List created and item saved");
+      showSavedToast("List created and item saved", createdList.id);
     } catch {
       toast.error("Failed to create list and save item");
     } finally {

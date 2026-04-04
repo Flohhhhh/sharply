@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import useSWR from "swr";
 import { useSession } from "~/lib/auth/auth-client";
 import { Button } from "~/components/ui/button";
 import { ButtonGroup } from "~/components/ui/button-group";
@@ -17,6 +18,7 @@ import { CompareButton } from "~/components/compare/compare-button";
 import { AddToWishlistButton } from "~/components/gear/add-to-wishlist-button";
 import { SaveItemButton } from "~/components/gear/save-item-button";
 import { actionToggleOwnership } from "~/server/gear/actions";
+import { fetchJson } from "~/lib/fetch-json";
 import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
 import type { GearAlias } from "~/types/gear";
 
@@ -95,67 +97,60 @@ export function GearActionButtonsClient({
     saveState: initialSaveState ?? null,
   }));
   const [fetchedKey, setFetchedKey] = useState<string | null>(null);
-  const [isHydratingUserState, setIsHydratingUserState] = useState(false);
   const [loading, setLoading] = useState({
     ownership: false,
   });
+  const missingInitialState =
+    userState.inWishlist === null ||
+    userState.isOwned === null ||
+    userState.saveState === null;
+  const shouldHydrateUserState = Boolean(
+    fetchKey && fetchedKey !== fetchKey && missingInitialState,
+  );
+  const { data: hydratedUserState, isLoading: isHydratingUserState } = useSWR<{
+    inWishlist: boolean | null;
+    isOwned: boolean | null;
+    saveState: GearActionSaveState;
+  }>(
+    shouldHydrateUserState
+      ? `/api/gear/${encodeURIComponent(slug)}/user-state`
+      : null,
+    (url: string) =>
+      fetchJson<{
+        inWishlist: boolean | null;
+        isOwned: boolean | null;
+        saveState: GearActionSaveState;
+      }>(url, {
+        credentials: "same-origin",
+        cache: "no-store",
+      }),
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+      shouldRetryOnError: false,
+    },
+  );
 
   useEffect(() => {
-    if (!fetchKey || fetchedKey === fetchKey) return;
-
-    const missingInitialState =
-      userState.inWishlist === null ||
-      userState.isOwned === null ||
-      userState.saveState === null;
+    if (!fetchKey) {
+      setFetchedKey(null);
+      return;
+    }
 
     if (!missingInitialState) {
       setFetchedKey(fetchKey);
       return;
     }
 
-    let isCancelled = false;
-    setIsHydratingUserState(true);
+    if (!hydratedUserState) return;
 
-    void (async () => {
-      try {
-        const response = await fetch(
-          `/api/gear/${encodeURIComponent(slug)}/user-state`,
-        );
-        if (!response.ok) return;
-
-        const payload = (await response.json()) as {
-          inWishlist: boolean | null;
-          isOwned: boolean | null;
-          saveState: GearActionSaveState;
-        };
-
-        if (isCancelled) return;
-        setUserState({
-          inWishlist: payload.inWishlist,
-          isOwned: payload.isOwned,
-          saveState: payload.saveState ?? null,
-        });
-      } catch {
-        // Ignore background hydration failures and keep fallback auth controls.
-      } finally {
-        if (!isCancelled) {
-          setFetchedKey(fetchKey);
-          setIsHydratingUserState(false);
-        }
-      }
-    })();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [
-    fetchKey,
-    fetchedKey,
-    slug,
-    userState.inWishlist,
-    userState.isOwned,
-    userState.saveState,
-  ]);
+    setUserState({
+      inWishlist: hydratedUserState.inWishlist,
+      isOwned: hydratedUserState.isOwned,
+      saveState: hydratedUserState.saveState ?? null,
+    });
+    setFetchedKey(fetchKey);
+  }, [fetchKey, fetchedKey, hydratedUserState, missingInitialState]);
 
   const { inWishlist, isOwned, saveState } = userState;
   const saveButtonActive = (saveState?.savedListIds.length ?? 0) > 0;

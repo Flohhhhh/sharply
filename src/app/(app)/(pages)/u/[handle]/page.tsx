@@ -22,6 +22,7 @@ import {
   fetchUserWishlistItems,
   triggerHandleSetupNotification,
 } from "~/server/users/service";
+import { fetchUserListsForProfile } from "~/server/user-lists/service";
 // Note: page is a Server Component and reads from the service layer only.
 import type { Metadata } from "next";
 import { auth } from "~/auth";
@@ -75,9 +76,13 @@ export default async function UserProfilePage({
   if (!profile) notFound();
 
   // Wishlist and owned items via service layer
-  const [wishlistItems, ownedItems] = await Promise.all([
+  const [wishlistItems, ownedItems, userLists] = await Promise.all([
     fetchUserWishlistItems(profile.id),
     fetchUserOwnedItems(profile.id),
+    fetchUserListsForProfile({
+      profileUserId: profile.id,
+      viewerUserId: user?.id,
+    }),
   ]);
 
   const sortedOwnedItems = sortOwnedItems(ownedItems);
@@ -98,9 +103,11 @@ export default async function UserProfilePage({
       <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div className="flex items-center gap-4">
           {profile.image && (
-            <img
+            <Image
               src={profile.image}
               alt={profile.name || "User"}
+              width={64}
+              height={64}
               className="h-16 w-16 rounded-full"
             />
           )}
@@ -279,6 +286,10 @@ export default async function UserProfilePage({
         {/* Lists */}
         <div className="space-y-4">
           <UserListsSectionDeferred
+            initialData={{
+              lists: userLists.lists,
+              myProfile: userLists.isOwner,
+            }}
             profileUserId={profile.id}
             myProfile={myProfile}
             profileName={profile.name}

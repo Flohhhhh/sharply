@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
+import useSWR from "swr";
 import { Badge } from "~/components/ui/badge";
 import {
   Table,
@@ -52,18 +53,38 @@ type Row = {
   underConstruction: boolean;
 };
 
-export function UnderConstructionTable({ items }: { items: Row[] }) {
+async function fetchGearEditData(url: string): Promise<GearItem> {
+  const res = await fetch(url, { method: "GET" });
+  if (!res.ok) throw new Error(`Failed: ${res.status}`);
+  return (await res.json()) as GearItem;
+}
+
+export function UnderConstructionTable({
+  canToggleAutoSubmit = false,
+  items,
+}: {
+  canToggleAutoSubmit?: boolean;
+  items: Row[];
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<{
     slug: string;
     type: GearType;
   } | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [gearData, setGearData] = useState<GearItem | null>(null);
   const [isDirty, setIsDirty] = useState(false);
   const [confirmExitOpen, setConfirmExitOpen] = useState(false);
   const [showMissingOnly, setShowMissingOnly] = useState(true);
+  const selectedEditDataUrl =
+    open && selected ? `/api/gear/${selected.slug}/edit-data` : null;
+  const { data: gearData, error, isLoading: loading } = useSWR<GearItem>(
+    selectedEditDataUrl,
+    fetchGearEditData,
+  );
+
+  if (error) {
+    console.error("[UnderConstructionTable] fetch edit-data error", error);
+  }
 
   const requestClose = useCallback(
     (opts?: { force?: boolean }) => {
@@ -84,35 +105,6 @@ export function UnderConstructionTable({ items }: { items: Row[] }) {
     setOpen(true);
   }, []);
 
-  useEffect(() => {
-    let aborted = false;
-    async function load() {
-      if (!open || !selected) return;
-      setLoading(true);
-      // Reset dirty when loading a fresh item/session
-      setIsDirty(false);
-      try {
-        const res = await fetch(`/api/gear/${selected.slug}/edit-data`, {
-          method: "GET",
-        });
-        if (!res.ok) throw new Error(`Failed: ${res.status}`);
-        const data = (await res.json()) as GearItem;
-        if (!aborted) setGearData(data);
-      } catch (err) {
-        console.error("[UnderConstructionTable] fetch edit-data error", err);
-        if (!aborted) setGearData(null);
-      } finally {
-        if (!aborted) setLoading(false);
-      }
-    }
-    void load();
-    return () => {
-      aborted = true;
-    };
-  }, [open, selected]);
-
-  const rows = useMemo(() => items, [items]);
-
   return (
     <>
       <div className="rounded-md border">
@@ -128,7 +120,7 @@ export function UnderConstructionTable({ items }: { items: Row[] }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rows.map((it, idx) => {
+            {items.map((it, idx) => {
               return (
                 <TableRow
                   key={it.id}
@@ -217,6 +209,7 @@ export function UnderConstructionTable({ items }: { items: Row[] }) {
           <div className="flex max-h-[90vh] flex-col">
             {selected && !loading && gearData && (
               <EditModalContent
+                canToggleAutoSubmit={canToggleAutoSubmit}
                 gearType={selected.type as any}
                 gearSlug={selected.slug}
                 gearData={gearData}

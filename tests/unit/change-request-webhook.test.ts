@@ -123,6 +123,10 @@ const baseItem: ChangeRequestWebhookItemSummary = {
   gearType: "CAMERA",
   gearName: "Nikon Z6 III",
   gearSlug: "nikon-z6-iii",
+  createdByLabel: "Alex Photographer",
+  changedFieldCount: 3,
+  changedSectionCount: 1,
+  hasNote: true,
 };
 
 function makeItem(overrides: Partial<ChangeRequestWebhookItemSummary> = {}) {
@@ -146,6 +150,18 @@ describe("change request webhook aggregation", () => {
 
     expect(result).toEqual({ status: "sent_immediate" });
     expect(sendWebhook).toHaveBeenCalledTimes(1);
+    expect(sendWebhook).toHaveBeenCalledWith({
+      username: "Sharply Change Requests",
+      content: [
+        "**New change request submitted**",
+        "- Gear: Nikon Z6 III (CAMERA)",
+        "- Changes: 3 fields across 1 section",
+        "- Submitted by: Alex Photographer",
+        "- Submitter note: included",
+        "-# Proposal: `11111111`",
+        "-# Admin: <https://sharply.example/admin>",
+      ].join("\n"),
+    });
     expect(await redis.get(CHANGE_REQUEST_WEBHOOK_KEYS.windowActive)).toBe("1");
     expect(await redis.get(CHANGE_REQUEST_WEBHOOK_KEYS.pendingCount)).toBe("0");
   });
@@ -284,6 +300,22 @@ describe("change request webhook aggregation", () => {
 
     expect(result).toEqual({ status: "sent_aggregate", pendingCount: 2 });
     expect(sendWebhook).toHaveBeenCalledTimes(2);
+    const aggregatePayload = sendWebhook.mock.calls[1]?.[0];
+    expect(aggregatePayload?.username).toBe("Sharply Change Requests");
+    expect(aggregatePayload?.content).toContain("**Change request summary**");
+    expect(aggregatePayload?.content).toContain(
+      "- 2 pending requests in the last 60-minute window",
+    );
+    expect(aggregatePayload?.content).toContain("- Window started: ");
+    expect(aggregatePayload?.content).toContain(
+      "1. Nikon Z6 III (CAMERA) • 3 fields across 1 section • by Alex Photographer • note included",
+    );
+    expect(aggregatePayload?.content).toContain(
+      "2. Nikon Z6 III (CAMERA) • 3 fields across 1 section • by Alex Photographer • note included",
+    );
+    expect(aggregatePayload?.content).toContain(
+      "-# Admin: <https://sharply.example/admin>",
+    );
     expect(await redis.get(CHANGE_REQUEST_WEBHOOK_KEYS.pendingCount)).toBeNull();
     expect(await redis.get(CHANGE_REQUEST_WEBHOOK_KEYS.windowStartedAt)).toBeNull();
   });

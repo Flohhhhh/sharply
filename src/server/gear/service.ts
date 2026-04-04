@@ -690,20 +690,55 @@ const proposalInput = z
     slug: z.string().min(1).optional(),
     payload: z.record(z.unknown()),
     note: z.string().max(500).nullish(),
+    autoSubmit: z.boolean().optional(),
   })
   .refine((v) => Boolean(v.gearId || v.slug), {
     message: "Either gearId or slug must be provided",
     path: ["gearId"],
   });
 
+function summarizeProposalPayload(payload: Record<string, unknown>) {
+  let changedFieldCount = 0;
+  let changedSectionCount = 0;
+
+  for (const key of [
+    "core",
+    "camera",
+    "analogCamera",
+    "lens",
+    "fixedLens",
+  ] as const) {
+    const value = payload[key];
+    if (!value || typeof value !== "object" || Array.isArray(value)) continue;
+
+    const fieldCount = Object.keys(value as Record<string, unknown>).length;
+    if (fieldCount <= 0) continue;
+
+    changedFieldCount += fieldCount;
+    changedSectionCount += 1;
+  }
+
+  for (const key of ["cameraCardSlots", "videoModes"] as const) {
+    if (!Object.prototype.hasOwnProperty.call(payload, key)) continue;
+    changedFieldCount += 1;
+    changedSectionCount += 1;
+  }
+
+  return { changedFieldCount, changedSectionCount };
+}
+
+function formatProposalSubmitterLabel(user: { name?: string | null; email?: string | null }) {
+  return user.name?.trim() || null;
+}
+
 export async function submitGearEditProposal(body: unknown) {
   const { user } = await getSessionOrThrow();
   const userId = user.id;
-  const role = user.role ?? "USER";
   const data = proposalInput.parse(body);
   const normalizedPayload = normalizeProposalPayloadForDb(
     data.payload as Record<string, unknown>,
   );
+  const proposalStats = summarizeProposalPayload(normalizedPayload);
   const gearId =
     data.gearId ??
     (data.slug ? await resolveGearIdOrThrow(data.slug) : undefined);
@@ -718,10 +753,8 @@ export async function submitGearEditProposal(body: unknown) {
     note: data.note ?? null,
   });
   let autoApproved = false;
-  if (
-    !hasPending &&
-    (role === "SUPERADMIN" || role === "ADMIN" || role === "EDITOR")
-  ) {
+  const canAutoApprove = requireRole(user, ["EDITOR"]);
+  if (!hasPending && canAutoApprove && data.autoSubmit !== false) {
     try {
       await approveProposal(proposal.id, normalizedPayload, {
         gearName: gearMeta?.name ?? "Gear",
@@ -761,6 +794,10 @@ export async function submitGearEditProposal(body: unknown) {
         gearType: gearMeta?.gearType ?? null,
         gearName: gearMeta?.name ?? "Gear",
         gearSlug: gearMeta?.slug ?? data.slug ?? gearId,
+        createdByLabel: formatProposalSubmitterLabel(user),
+        changedFieldCount: proposalStats.changedFieldCount,
+        changedSectionCount: proposalStats.changedSectionCount,
+        hasNote: Boolean(data.note?.trim()),
       });
     } catch (error) {
       console.error("[submitGearEditProposal] moderator webhook notify failed", {

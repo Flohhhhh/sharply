@@ -1,8 +1,10 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { listUnderConstruction } from "~/server/gear/service";
 import UnderConstructionClient from "./_components/under-construction-client";
 import { BRANDS } from "~/lib/generated";
+import { auth } from "~/auth";
+import { headers } from "next/headers";
+import { requireRole } from "~/lib/auth/auth-helpers";
 // Avoid importing runtime schema in pages; use a local constant
 const GEAR_TYPES = ["CAMERA", "ANALOG_CAMERA", "LENS"] as const;
 
@@ -15,7 +17,10 @@ export const metadata: Metadata = {
 
 export default async function Page() {
   // Include items with at least 1 missing key OR less than 20% completion overall
-  const items = await listUnderConstruction(1, 40);
+  const [items, session] = await Promise.all([
+    listUnderConstruction(1, 40),
+    auth.api.getSession({ headers: await headers() }),
+  ]);
 
   return (
     <div className="mx-auto mt-24 min-h-screen max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
@@ -40,6 +45,7 @@ export default async function Page() {
       </header>
 
       <UnderConstructionClient
+        canToggleAutoSubmit={requireRole(session?.user, ["EDITOR"])}
         items={items}
         brands={BRANDS.map((b) => ({ value: b.id, label: b.name }))}
         types={GEAR_TYPES}
