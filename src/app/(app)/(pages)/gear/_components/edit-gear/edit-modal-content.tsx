@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { DialogHeader, DialogTitle } from "~/components/ui/dialog";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Label } from "~/components/ui/label";
@@ -60,10 +60,12 @@ export function EditModalContent({
 
   // Live form snapshot to drive sidebar state
   const [liveItem, setLiveItem] = useState<GearItem>(preparedData);
-  // Keep in sync if the underlying item changes (route change or server refresh)
-  if (liveItem !== preparedData) {
-    // noop runtime check to avoid unused var; actual sync handled below in memo usage
-  }
+
+  useEffect(() => {
+    if (!isDirty) {
+      setLiveItem(preparedData);
+    }
+  }, [isDirty, preparedData]);
 
   // Helpers to check if a field is filled (supports aggregated registry values)
   const isValueFilled = (v: unknown): boolean => {

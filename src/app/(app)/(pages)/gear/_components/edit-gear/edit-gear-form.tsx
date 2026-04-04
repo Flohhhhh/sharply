@@ -165,6 +165,12 @@ function EditGearForm({
   }, [formData, onFormDataChange]);
 
   React.useEffect(() => {
+    if (!isDirty) {
+      setFormData(gearData);
+    }
+  }, [gearData, isDirty]);
+
+  React.useEffect(() => {
     onAutoSubmitChange?.(effectiveAutoSubmit);
   }, [effectiveAutoSubmit, onAutoSubmitChange]);
 
