@@ -196,28 +196,26 @@ export function SearchModalScene({
   const listboxId = `${comboboxId}-listbox`;
   const activeOptionId =
     showResultsSection &&
-    selectedIndex >= 0 &&
-    selectedIndex < selectableItems.length
+      selectedIndex >= 0 &&
+      selectedIndex < selectableItems.length
       ? `${comboboxId}-option-${selectedIndex}`
       : undefined;
   const shellTransition = reduceMotion
     ? { duration: 0 }
     : {
-        type: "spring" as const,
-        duration: 100,
-        stiffness: 400,
-        damping: 30,
-        mass: 0.95,
-      };
+      type: "spring" as const,
+      stiffness: 400,
+      damping: 30,
+      mass: 0.95,
+    };
   const panelTransition = reduceMotion
     ? { duration: 0 }
     : {
-        type: "spring" as const,
-        duration: 100,
-        stiffness: 400,
-        damping: 30,
-        mass: 0.82,
-      };
+      type: "spring" as const,
+      stiffness: 400,
+      damping: 30,
+      mass: 0.82,
+    };
 
   useEffect(() => {
     rowRefs.current = rowRefs.current.slice(0, selectableItems.length);
@@ -285,11 +283,11 @@ export function SearchModalScene({
           reduceMotion
             ? false
             : {
-                opacity: 0,
-                scale: 0.96,
-                y: 12,
-                height: 64,
-              }
+              opacity: 0,
+              scale: 0.96,
+              y: 12,
+              height: 64,
+            }
         }
         animate={{
           opacity: 1,
