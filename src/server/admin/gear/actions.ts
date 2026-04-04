@@ -10,6 +10,7 @@ import {
   setGearTopViewService,
   clearGearTopViewService,
   updateGearAliasesService,
+  deleteGearService,
 } from "./service";
 import { type GearRegion } from "~/lib/gear/region";
 import type { GearCreationParams } from "./data";
@@ -90,6 +91,14 @@ export async function actionClearGearTopView(params: {
   slug?: string;
 }) {
   const result = await clearGearTopViewService(params);
+  revalidatePath("/admin/gear");
+  revalidatePath(`/gear/${result.slug}`);
+  revalidatePath("/browse");
+  return result;
+}
+
+export async function actionDeleteGear(gearId: string) {
+  const result = await deleteGearService(gearId);
   revalidatePath("/admin/gear");
   revalidatePath(`/gear/${result.slug}`);
   revalidatePath("/browse");

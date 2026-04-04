@@ -8,12 +8,14 @@ import {
   checkGearCreationData,
   createGearData,
   fetchAdminGearItemsData,
+  deleteGearData,
   type FetchAdminGearItemsParams,
   type FetchAdminGearItemsResult,
   type GearCreationCheckParams,
   type GearCreationCheckResult,
   type GearCreationParams,
   type GearCreationResult,
+  type DeleteGearResult,
 } from "./data";
 import { shouldBlockFuzzyResults } from "~/lib/utils/gear-creation";
 import { renameGearData } from "./data";
@@ -382,4 +384,28 @@ export async function clearGearTopViewService(params: {
   slug?: string;
 }): Promise<{ id: string; slug: string; topViewUrl: string | null }> {
   return setGearTopViewService({ ...params, topViewUrl: null });
+}
+
+export async function deleteGearService(
+  gearId: string,
+): Promise<DeleteGearResult> {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session.user, ["ADMIN"])) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+
+  const deleted = await deleteGearData(gearId);
+
+  try {
+    await db.insert(auditLogs).values({
+      action: "GEAR_DELETE",
+      actorUserId: session.user.id,
+      gearId: deleted.id,
+    });
+  } catch {
+    // Audit log failures are intentionally non-fatal — the deletion has already
+    // succeeded and rolling back would be worse than a missing log entry.
+  }
+
+  return deleted;
 }

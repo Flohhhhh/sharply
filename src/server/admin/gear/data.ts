@@ -546,6 +546,28 @@ export interface UpdateGearTopViewParams {
   topViewUrl: string | null;
 }
 
+export interface DeleteGearResult {
+  id: string;
+  slug: string;
+}
+
+/**
+ * Delete a gear item by id. All related records (specs, aliases, mounts, etc.)
+ * are removed automatically via ON DELETE CASCADE constraints.
+ */
+export async function deleteGearData(
+  gearId: string,
+): Promise<DeleteGearResult> {
+  const deleted = await db
+    .delete(gear)
+    .where(eq(gear.id, gearId))
+    .returning({ id: gear.id, slug: gear.slug });
+  if (!deleted[0]) {
+    throw Object.assign(new Error("Gear not found"), { status: 404 });
+  }
+  return deleted[0];
+}
+
 export interface UpdateGearTopViewResult {
   id: string;
   slug: string;
