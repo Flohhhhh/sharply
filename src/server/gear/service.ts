@@ -728,7 +728,7 @@ function summarizeProposalPayload(payload: Record<string, unknown>) {
 }
 
 function formatProposalSubmitterLabel(user: { name?: string | null; email?: string | null }) {
-  return user.name?.trim() || user.email?.trim() || null;
+  return user.name?.trim() || null;
 }
 
 export async function submitGearEditProposal(body: unknown) {
