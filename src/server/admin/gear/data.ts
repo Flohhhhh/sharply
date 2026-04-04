@@ -8,14 +8,34 @@ import {
   cameraSpecs,
   analogCameraSpecs,
   lensSpecs,
-  auditLogs,
   gearMounts,
   mounts,
   gearAliases,
+  recommendationItems,
 } from "~/server/db/schema";
 import { buildGearSearchName } from "~/lib/gear/naming";
 import { normalizeFuzzyTokens } from "~/lib/utils/fuzzy";
 import type { GearType } from "~/types/gear";
+
+type DbTx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+type DbLike = typeof db | DbTx;
+
+function isForeignKeyViolation(
+  error: unknown,
+): error is {
+  code: string;
+  constraint?: string;
+  constraint_name?: string;
+  table?: string;
+  table_name?: string;
+} {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: string }).code === "23503"
+  );
+}
 export interface FuzzySearchResult {
   id: string;
   name: string;
@@ -551,14 +571,15 @@ export interface DeleteGearResult {
   slug: string;
 }
 
-/**
- * Delete a gear item by id. All related records (specs, aliases, mounts, etc.)
- * are removed automatically via ON DELETE CASCADE constraints.
- */
-export async function deleteGearData(
+async function deleteGearDataWithConn(
+  conn: DbLike,
   gearId: string,
 ): Promise<DeleteGearResult> {
-  const deleted = await db
+  await conn
+    .delete(recommendationItems)
+    .where(eq(recommendationItems.gearId, gearId));
+
+  const deleted = await conn
     .delete(gear)
     .where(eq(gear.id, gearId))
     .returning({ id: gear.id, slug: gear.slug });
@@ -566,6 +587,36 @@ export async function deleteGearData(
     throw Object.assign(new Error("Gear not found"), { status: 404 });
   }
   return deleted[0];
+}
+
+/**
+ * Delete a gear item by id. Restricting references are cleared explicitly and
+ * the remaining related rows are removed by their ON DELETE actions.
+ */
+export async function deleteGearData(
+  gearId: string,
+  conn: DbLike = db,
+): Promise<DeleteGearResult> {
+  try {
+    if (conn === db) {
+      return await db.transaction(async (tx) => deleteGearDataWithConn(tx, gearId));
+    }
+
+    return await deleteGearDataWithConn(conn, gearId);
+  } catch (error) {
+    if (isForeignKeyViolation(error)) {
+      throw Object.assign(
+        new Error("Cannot delete gear because related records still reference it"),
+        {
+          status: 409,
+          constraint: error.constraint_name ?? error.constraint ?? null,
+          table: error.table_name ?? error.table ?? null,
+        },
+      );
+    }
+
+    throw error;
+  }
 }
 
 export interface UpdateGearTopViewResult {

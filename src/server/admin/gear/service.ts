@@ -8,6 +8,7 @@ import {
   checkGearCreationData,
   createGearData,
   fetchAdminGearItemsData,
+  deleteGearData,
   type FetchAdminGearItemsParams,
   type FetchAdminGearItemsResult,
   type GearCreationCheckParams,
@@ -418,15 +419,6 @@ export async function deleteGearService(
       // Audit log failures are intentionally non-fatal.
     }
 
-    const deleted = await tx
-      .delete(gear)
-      .where(eq(gear.id, gearId))
-      .returning({ id: gear.id, slug: gear.slug });
-
-    if (!deleted[0]) {
-      throw Object.assign(new Error("Gear not found"), { status: 404 });
-    }
-
-    return deleted[0];
+    return deleteGearData(gearId, tx);
   });
 }
