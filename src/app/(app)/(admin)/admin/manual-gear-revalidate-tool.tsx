@@ -9,6 +9,7 @@ import GearCombobox, {
 } from "~/components/custom-inputs/gear-combobox";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
+import { actionRevalidateGearPage } from "~/server/admin/tools/actions";
 
 export function ManualGearRevalidateTool() {
   const [selectedGear, setSelectedGear] = useState<GearSuggestion | null>(null);
@@ -23,9 +24,6 @@ export function ManualGearRevalidateTool() {
 
     startTransition(async () => {
       try {
-        const { actionRevalidateGearPage } = await import(
-          "~/server/admin/tools/actions"
-        );
         const result = await actionRevalidateGearPage({
           gearSlug: selectedGear.slug,
         });
