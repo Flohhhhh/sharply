@@ -157,15 +157,23 @@ export function ManageCreatorVideosModal({
     }
   }
 
+  function resetManualOverrides() {
+    setManualTitle("");
+    setManualThumbnailUrl("");
+    setManualPublishedAt("");
+  }
+
+  function resetResolvedVideoState() {
+    resetManualOverrides();
+    setResolution(null);
+    setResolutionError(null);
+  }
+
   function resetAddForm() {
     setSelectedCreatorId("");
     setVideoUrl("");
     setEditorNote("");
-    setManualTitle("");
-    setManualThumbnailUrl("");
-    setManualPublishedAt("");
-    setResolution(null);
-    setResolutionError(null);
+    resetResolvedVideoState();
   }
 
   useEffect(() => {
@@ -174,8 +182,7 @@ export function ManageCreatorVideosModal({
   }, [open, canManage, slug]);
 
   useEffect(() => {
-    setResolution(null);
-    setResolutionError(null);
+    resetResolvedVideoState();
   }, [selectedCreatorId, videoUrl]);
 
   if (!data || isSessionPending || error || !canManage) {
@@ -194,7 +201,7 @@ export function ManageCreatorVideosModal({
     }
 
     setIsResolving(true);
-    setResolutionError(null);
+    resetResolvedVideoState();
 
     try {
       const response = await fetch("/api/gear/creator-videos/resolve", {
