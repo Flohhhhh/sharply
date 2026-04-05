@@ -1,4 +1,5 @@
 import { type Metadata } from "next";
+import Link from "next/link";
 import { CompareClient } from "~/components/compare/compare-client";
 import { CompareEmptyState } from "~/components/compare/compare-empty-state";
 import { ComparePairTracker } from "./_components/compare-pair-tracker";
@@ -128,7 +129,16 @@ export default async function ComparePage({
                   currentGearType={a?.gearType}
                   currentName={aName}
                 />
-                <p className="leading-tight">{aName || slugA}</p>
+                {slugA ? (
+                  <Link
+                    href={`/gear/${slugA}`}
+                    className="leading-tight transition-colors hover:underline"
+                  >
+                    {aName || slugA}
+                  </Link>
+                ) : (
+                  <p className="leading-tight">{aName || slugA}</p>
+                )}
               </div>
             </div>
             <div className="flex flex-col items-start text-left">
@@ -136,7 +146,16 @@ export default async function ComparePage({
                 {bBrand || "Unknown brand"}
               </p>
               <div className="flex w-full items-center justify-between gap-5">
-                <p className="leading-tight">{bName || slugB}</p>
+                {slugB ? (
+                  <Link
+                    href={`/gear/${slugB}`}
+                    className="leading-tight transition-colors hover:underline"
+                  >
+                    {bName || slugB}
+                  </Link>
+                ) : (
+                  <p className="leading-tight">{bName || slugB}</p>
+                )}
                 <CompareReplaceButton
                   currentSlug={slugB}
                   otherSlug={slugA}

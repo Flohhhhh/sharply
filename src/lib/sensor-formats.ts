@@ -12,7 +12,7 @@ type SensorFormatLike = {
   name: string;
 };
 
-const prioritySensorFormatOrder = new Map(
+const prioritySensorFormatOrder = new Map<string, number>(
   PRIORITY_SENSOR_FORMAT_SLUGS.map((slug, index) => [slug, index]),
 );
 
