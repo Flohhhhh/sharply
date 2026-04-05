@@ -34,6 +34,7 @@ describe("buildGearSectionNavItems", () => {
     expect(
       buildGearSectionNavItems({
         hasEditorialReview: false,
+        hasCreatorVideos: false,
         hasRawSamples: false,
         hasAlternatives: true,
         hasRelatedArticles: true,
@@ -51,6 +52,7 @@ describe("buildGearSectionNavItems", () => {
     expect(
       buildGearSectionNavItems({
         hasEditorialReview: true,
+        hasCreatorVideos: false,
         hasRawSamples: true,
         hasAlternatives: false,
         hasRelatedArticles: false,
@@ -64,6 +66,24 @@ describe("buildGearSectionNavItems", () => {
       { href: "#editorial-review", label: "Review" },
       { href: "#reviews", label: "Reviews" },
       { href: "#raw-samples", label: "Raw Samples" },
+    ]);
+  });
+
+  it("includes the creator videos section when present", () => {
+    expect(
+      buildGearSectionNavItems({
+        hasEditorialReview: false,
+        hasCreatorVideos: true,
+        hasRawSamples: false,
+        hasAlternatives: false,
+        hasRelatedArticles: true,
+        verdict: null,
+      }),
+    ).toEqual([
+      { href: "#specs", label: "Specs" },
+      { href: "#reviews", label: "Reviews" },
+      { href: "#creator-videos", label: "Creator Videos" },
+      { href: "#related-articles", label: "Articles" },
     ]);
   });
 });

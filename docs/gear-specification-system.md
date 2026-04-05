@@ -99,6 +99,18 @@ UI: On the edit form, when the Mount is `fixed-lens` (via `mountIds[0]` or `moun
 
 Rendering: On gear pages for cameras with `fixed-lens`, a dedicated "Integrated Lens" specs section is displayed.
 
+#### Supporting Editorial Tables
+
+Gear pages can also include curated supporting editorial data that is separate
+from the specifications registry itself.
+
+- `staff_verdicts`: Sharply-authored editorial summaries for a gear item
+- `approved_creators`: Admin-managed allowlist of creator sources
+- `gear_creator_videos`: Gear-linked curated videos from approved creators only
+
+The creator video system is documented in
+[`docs/respected-creators-videos.md`](./respected-creators-videos.md).
+
 ## Database Schema
 
 The system uses three main tables with the following structure:
@@ -146,6 +158,7 @@ CREATE TABLE sharply_lens_specs (
 
 - **Gear → Brands**: Required relationship (restrict delete)
 - **Gear → Mounts**: Optional relationship (set null on delete)
+- **Gear Creator Videos → Approved Creators**: Required relationship (restrict delete)
 - **Camera Specs → Sensor Formats**: Optional relationship (set null on delete)
 - **Lens Specs → Sensor Formats** (`imageCircleSizeId`): Optional relationship (set null on delete)
 - **Fixed-lens Specs → Sensor Formats** (`imageCircleSizeId`): Optional relationship (set null on delete)

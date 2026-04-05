@@ -67,6 +67,8 @@ import { buildGearMetaDescription } from "~/lib/seo/build-gear-meta-description"
 import { env } from "~/env";
 import { buildGearBreadcrumbItems } from "../_components/gear-breadcrumb-items";
 import { buildGearSectionNavItems } from "../_components/gear-section-nav";
+import { fetchPublicGearCreatorVideos } from "~/server/creator-videos/service";
+import { CreatorVideosSection } from "../_components/creator-videos-section";
 
 export const revalidate = 3600;
 
@@ -191,10 +193,11 @@ export default async function GearPage({ params }: GearPageProps) {
   ratings.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
   const verdict = staffVerdictRows?.[0] ?? null;
 
-  const [review, relatedNews, alternatives] = await Promise.all([
+  const [review, relatedNews, alternatives, creatorVideos] = await Promise.all([
     getReviewByGearSlug(item.slug),
     getNewsByRelatedGearSlug(item.slug, 9),
     fetchGearAlternatives(slug),
+    fetchPublicGearCreatorVideos(slug),
   ]);
   const isNew = isNewRelease(
     item.releaseDate ?? item.announcedDate,
@@ -250,6 +253,7 @@ export default async function GearPage({ params }: GearPageProps) {
   ].filter(Boolean) as CrumbItem[];
   const sectionNavItems = buildGearSectionNavItems({
     hasEditorialReview: Boolean(review),
+    hasCreatorVideos: creatorVideos.length > 0,
     hasRawSamples: Boolean(
       item.gearType === "CAMERA" &&
         item.rawSamples &&
@@ -270,6 +274,7 @@ export default async function GearPage({ params }: GearPageProps) {
         currentTopViewUrl={item.topViewUrl ?? null}
         alternatives={alternatives}
         rawSamples={item.rawSamples ?? []}
+        hasCreatorVideos={creatorVideos.length > 0}
       />
       {/* Track page visit for popularity */}
       <GearVisitTracker slug={slug} />
@@ -434,6 +439,8 @@ export default async function GearPage({ params }: GearPageProps) {
             alternatives={alternatives}
             trendingSlugs={trendingSlugs}
           />
+
+          <CreatorVideosSection videos={creatorVideos} />
         </div>
         {/* Right column */}
         <div className="static top-28 col-span-1 -mt-4 w-full space-y-8 self-start sm:sticky md:col-span-3">

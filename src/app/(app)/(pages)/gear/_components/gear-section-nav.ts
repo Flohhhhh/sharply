@@ -14,6 +14,7 @@ export interface GearSectionNavItem {
 
 interface BuildGearSectionNavItemsInput {
   hasEditorialReview: boolean;
+  hasCreatorVideos: boolean;
   hasRawSamples: boolean;
   hasAlternatives: boolean;
   hasRelatedArticles: boolean;
@@ -50,6 +51,7 @@ export function hasStaffVerdictContent(
 
 export function buildGearSectionNavItems({
   hasEditorialReview,
+  hasCreatorVideos,
   hasRawSamples,
   hasAlternatives,
   hasRelatedArticles,
@@ -75,6 +77,10 @@ export function buildGearSectionNavItems({
 
   if (hasAlternatives) {
     items.push({ href: "#alternatives", label: "Alternatives" });
+  }
+
+  if (hasCreatorVideos) {
+    items.push({ href: "#creator-videos", label: "Creator Videos" });
   }
 
   if (hasRelatedArticles) {
