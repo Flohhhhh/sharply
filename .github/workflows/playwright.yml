@@ -1,0 +1,165 @@
+name: Playwright
+
+on:
+  pull_request:
+    branches:
+      - main
+      - development
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: Playwright E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+      NEON_PARENT_BRANCH: ${{ vars.NEON_PARENT_BRANCH || '' }}
+      NEON_DATABASE_NAME: ${{ vars.NEON_DATABASE_NAME || 'neondb' }}
+      NEON_ROLE_NAME: ${{ vars.NEON_ROLE_NAME || 'neondb_owner' }}
+      NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+      AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+      PAYLOAD_SECRET: ${{ secrets.PAYLOAD_SECRET }}
+      NEXT_PUBLIC_BASE_URL: http://127.0.0.1:3000
+      SKIP_ENV_VALIDATION: "1"
+      CI: "true"
+      NEON_BRANCH_NAME: pr-${{ github.event.pull_request.number }}-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+
+      - name: Validate required CI configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          missing=()
+
+          for name in NEON_PROJECT_ID NEON_API_KEY AUTH_SECRET PAYLOAD_SECRET NEON_DATABASE_NAME NEON_ROLE_NAME NEON_BRANCH_NAME; do
+            if [[ -z "${!name:-}" ]]; then
+              missing+=("$name")
+            fi
+          done
+
+          if (( ${#missing[@]} > 0 )); then
+            printf 'Missing required GitHub Actions configuration: %s\n' "${missing[*]}" >&2
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Install Neon CLI
+        run: npm install -g neonctl
+
+      - name: Create Neon branch for this PR run
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          expires_at="$(date -u -d '+1 day' '+%Y-%m-%dT%H:%M:%SZ')"
+
+          create_args=(
+            branches create
+            --name "$NEON_BRANCH_NAME"
+            --project-id "$NEON_PROJECT_ID" \
+            --api-key "$NEON_API_KEY" \
+            --expires-at "$expires_at" \
+            --output json \
+            --no-color
+          )
+
+          if [[ -n "$NEON_PARENT_BRANCH" ]]; then
+            create_args+=(--parent "$NEON_PARENT_BRANCH")
+          fi
+
+          neon "${create_args[@]}"
+
+      - name: Wait for Neon branch to become ready
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          branch_state=""
+
+          for attempt in {1..40}; do
+            branch_json="$(neon branches get "$NEON_BRANCH_NAME" \
+              --project-id "$NEON_PROJECT_ID" \
+              --api-key "$NEON_API_KEY" \
+              --output json \
+              --no-color)"
+
+            branch_state="$(
+              printf '%s' "$branch_json" | python3 -c 'import json,sys; print(json.load(sys.stdin)["current_state"])'
+            )"
+
+            if [[ "$branch_state" == "ready" ]]; then
+              echo "Neon branch '$NEON_BRANCH_NAME' is ready."
+              exit 0
+            fi
+
+            echo "Neon branch '$NEON_BRANCH_NAME' state: $branch_state (attempt $attempt/40)"
+            sleep 15
+          done
+
+          echo "Timed out waiting for Neon branch '$NEON_BRANCH_NAME' to become ready. Last state: $branch_state" >&2
+          exit 1
+
+      - name: Resolve Neon connection string for this branch
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          database_url="$(
+            neon connection-string "$NEON_BRANCH_NAME" \
+              --project-id "$NEON_PROJECT_ID" \
+              --api-key "$NEON_API_KEY" \
+              --database-name "$NEON_DATABASE_NAME" \
+              --role-name "$NEON_ROLE_NAME" \
+              --no-color
+          )"
+
+          database_url="$(printf '%s' "$database_url" | tr -d '\r')"
+
+          echo "::add-mask::$database_url"
+          echo "DATABASE_URL=$database_url" >> "$GITHUB_ENV"
+
+      - name: Sync schema to Neon PR branch
+        run: npm run db:push
+
+      - name: Run Playwright tests
+        run: npm run test:e2e
+
+      - name: Delete Neon branch for this PR run
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          neon branches delete "$NEON_BRANCH_NAME" \
+            --project-id "$NEON_PROJECT_ID" \
+            --api-key "$NEON_API_KEY" \
+            --output json \
+            --yes \
+            --no-color
+
+      - name: Upload Playwright artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts
+          path: |
+            playwright-report
+            test-results
+          if-no-files-found: ignore

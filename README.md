@@ -167,6 +167,27 @@ This starts Next.js on `http://localhost:3000`.
 - If you already have the app running, set `PLAYWRIGHT_BASE_URL` to reuse that server instead of starting another one.
 - If you want a production-like server instead of `next dev`, set `PLAYWRIGHT_SERVER_COMMAND="npm run preview:e2e"` before running Playwright.
 
+### Playwright CI
+
+The repository includes a GitHub Actions workflow at `.github/workflows/playwright.yml` that creates a fresh Neon branch for each pull request run, waits for it to become ready, resolves a branch-specific `DATABASE_URL`, applies the current `schema.ts` with `npm run db:push`, runs Playwright, and deletes the branch afterward.
+
+Set these GitHub Actions values before enabling the workflow:
+
+- Secret: `NEON_API_KEY` — Neon API key with branch-management access for the target project
+- Secret: `AUTH_SECRET` — any strong random value for Better Auth in CI
+- Secret: `PAYLOAD_SECRET` — any strong random value for Payload in CI
+- Variable: `NEON_PROJECT_ID` — Neon project ID for the target project
+- Optional variable: `NEON_PARENT_BRANCH` — parent branch name to clone from; if omitted, Neon uses the project default branch
+- Optional variable: `NEON_DATABASE_NAME` — database name for the generated connection string; defaults to `neondb`
+- Optional variable: `NEON_ROLE_NAME` — role name for the generated connection string; defaults to `neondb_owner`
+
+Notes:
+
+- If you use the Neon GitHub integration, it can automatically create the `NEON_API_KEY` secret and `NEON_PROJECT_ID` variable for the connected repository.
+- The workflow creates a unique branch per PR run and sets a one-day Neon expiration as a cleanup backstop. It also deletes the branch at the end of the job.
+- The workflow runs `npm run db:push` against the ephemeral Neon branch before Playwright so schema-changing pull requests are tested against the current `src/server/db/schema.ts`.
+- Secret-backed workflows on `pull_request` do not run with repository secrets for PRs from forks. If fork PR coverage matters, use a different trust model or a separate internal validation flow.
+
 ## Project Structure
 
 - `src/app` – Next.js App Router routes, layouts, and pages
