@@ -22,6 +22,7 @@ const dataMocks = vi.hoisted(() => ({
 }));
 
 const metadataMocks = vi.hoisted(() => ({
+  normalizeYouTubeVideoUrl: vi.fn(),
   resolveCreatorVideoMetadata: vi.fn(),
 }));
 
@@ -53,6 +54,13 @@ describe("creator videos service", () => {
     creatorMocks.fetchActiveApprovedCreatorsForPlatform.mockResolvedValue([]);
     dataMocks.fetchManageGearCreatorVideosByGearIdData.mockResolvedValue([]);
     dataMocks.upsertGearCreatorVideoData.mockResolvedValue({ id: "video-1" });
+    metadataMocks.normalizeYouTubeVideoUrl.mockReturnValue({
+      platform: "YOUTUBE",
+      sourceUrl: "https://youtu.be/dQw4w9WgXcQ",
+      normalizedUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+      externalVideoId: "dQw4w9WgXcQ",
+    });
   });
 
   it("requires editor role to fetch modal data", async () => {
@@ -81,24 +89,23 @@ describe("creator videos service", () => {
   });
 
   it("requires a manual title when automatic metadata lookup fails", async () => {
-    metadataMocks.resolveCreatorVideoMetadata.mockResolvedValue({
-      platform: "YOUTUBE",
-      sourceUrl: "https://youtu.be/dQw4w9WgXcQ",
-      normalizedUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-      externalVideoId: "dQw4w9WgXcQ",
-      title: null,
-      thumbnailUrl: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
-      publishedAt: null,
-      metadataStatus: "manual_required",
-      message: "Automatic title lookup failed",
-    });
-
     await expect(
       createGearCreatorVideo("gear-slug", {
         creatorId: "creator-1",
         url: "https://youtu.be/dQw4w9WgXcQ",
         title: "",
+        resolution: {
+          platform: "YOUTUBE",
+          sourceUrl: "https://youtu.be/dQw4w9WgXcQ",
+          normalizedUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+          externalVideoId: "dQw4w9WgXcQ",
+          title: null,
+          thumbnailUrl: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
+          publishedAt: null,
+          metadataStatus: "manual_required",
+          message: "Automatic title lookup failed",
+        },
       }),
     ).rejects.toMatchObject({
       message: "Add a video title when automatic metadata lookup fails",
