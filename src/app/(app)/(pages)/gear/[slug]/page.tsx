@@ -237,6 +237,7 @@ export default async function GearPage({ params }: GearPageProps) {
 
   const breadCrumbItems = [
     ...buildGearBreadcrumbItems({
+      brandId: brand?.id ?? item.brandId ?? null,
       brandName: brand?.name ?? null,
       brandSlug: brand?.slug ?? null,
       gearType: item.gearType,
