@@ -9,7 +9,6 @@ export const getNewsPostsData = async (): Promise<News[]> => {
     collection: "news",
     limit: -1,
   });
-  console.log("[payload:data] getNewsPostsData fetched", newsPosts.docs.length);
   return newsPosts.docs;
 };
 
@@ -28,7 +27,6 @@ export const getReviewsData = async (): Promise<Review[]> => {
     collection: "review",
     limit: -1,
   });
-  console.log("[payload:data] getReviewsData fetched", reviews.docs.length);
   return reviews.docs;
 };
 
@@ -77,10 +75,6 @@ export const getLearnPagesData = async (): Promise<LearnPage[]> => {
     limit: -1,
     depth: 1,
   });
-  console.log(
-    "[payload:data] getLearnPagesData fetched",
-    learnPages.docs.length,
-  );
   return learnPages.docs;
 };
 

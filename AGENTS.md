@@ -112,11 +112,13 @@ Sharply is a photography gear database and cataloging application built with Nex
 | PostgreSQL (local fallback) | `sudo pg_ctlcluster 16 main start` | Only if no `DATABASE_URL` secret is injected |
 | Next.js dev server | `npm run dev` | Runs at http://localhost:3000 with Turbopack; includes embedded Payload CMS at `/cms` |
 
-### Running lint and typecheck
+### Running checks
 
 - `SKIP_ENV_VALIDATION=1 npm run lint` — `next lint` internally sets `NODE_ENV=production`, which makes optional env vars required. Prefix with `SKIP_ENV_VALIDATION=1` to avoid false failures.
 - `npm run typecheck` — works without special flags.
-- `npm run check` — runs both lint + typecheck; also needs `SKIP_ENV_VALIDATION=1`.
+- `npm run test:unit` — runs vitest unit tests. No database or dev server required.
+- `npm run check` — runs lint, typecheck, and unit tests. It also supports opt-in Playwright by setting `CHECK_E2E=true`.
+- Agents should default to `npm run check` after code changes. Run `CHECK_E2E=true npm run check` only for large or high-risk changes that materially affect end-to-end behavior.
 
 ### Running tests
 

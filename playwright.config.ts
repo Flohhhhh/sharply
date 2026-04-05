@@ -35,7 +35,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   timeout: 60_000,
   retries: process.env.CI ? 2 : 0,
-  workers: Number.parseInt(process.env.PLAYWRIGHT_WORKERS ?? "1", 10),
+  workers: Number.parseInt(process.env.PLAYWRIGHT_WORKERS ?? "2", 10),
   reporter: process.env.CI ? "html" : "list",
   use: {
     baseURL,

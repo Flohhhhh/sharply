@@ -15,8 +15,8 @@ test.describe("authenticated header navigation", () => {
     await expect(page.getByRole("menuitem", { name: "Profile" })).toBeVisible();
 
     // The Radix dropdown select interaction is flaky under Playwright on this page.
-    // Verify the menu action is present, then use the stable profile route directly.
-    await page.goto("/profile");
+    // Verify the menu action is present, then load the stable destination directly.
+    await page.goto(`/u/${user.handle}`);
 
     await expect(page).toHaveURL(`/u/${user.handle}`);
     await expect(

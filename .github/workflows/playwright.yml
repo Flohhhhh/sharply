@@ -26,6 +26,7 @@ jobs:
       SKIP_ENV_VALIDATION: "1"
       DEV_AUTH: "true"
       CI: "true"
+      PLAYWRIGHT_WORKERS: "2"
       NEON_BRANCH_NAME: pr-${{ github.event.pull_request.number }}-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - name: Check out code

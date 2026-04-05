@@ -17,6 +17,7 @@ const envMocks = vi.hoisted(() => ({
 const dataMocks = vi.hoisted(() => ({
   findUserByEmailData: vi.fn(),
   createDevelopmentUserData: vi.fn(),
+  updateDevelopmentUserData: vi.fn(),
 }));
 
 vi.mock("server-only", () => ({}));
@@ -130,11 +131,17 @@ describe("development auth service", () => {
     envMocks.env.DEV_AUTH = "true";
     envMocks.env.DEV_AUTH_EMAIL = baseUser.email;
     dataMocks.findUserByEmailData.mockResolvedValue(baseUser);
+    dataMocks.updateDevelopmentUserData.mockResolvedValue(baseUser);
 
     const result = await getOrCreateDevelopmentAuthUser();
 
     expect(result).toEqual(baseUser);
     expect(dataMocks.findUserByEmailData).toHaveBeenCalledWith(baseUser.email);
+    expect(dataMocks.updateDevelopmentUserData).toHaveBeenCalledWith(baseUser.id, {
+      name: "Development User",
+      role: "USER",
+      handle: null,
+    });
     expect(dataMocks.createDevelopmentUserData).not.toHaveBeenCalled();
   });
 
@@ -150,7 +157,12 @@ describe("development auth service", () => {
       "dev@sharply.local",
     );
     expect(dataMocks.createDevelopmentUserData).toHaveBeenCalledWith(
-      "dev@sharply.local",
+      {
+        email: "dev@sharply.local",
+        name: "Development User",
+        role: "USER",
+        handle: null,
+      },
     );
   });
 
