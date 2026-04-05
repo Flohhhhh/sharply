@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {
+  FileBadge,
   FilePlus,
   ImageIcon,
   Pencil,
@@ -27,10 +28,11 @@ import { AlternativesManager } from "~/app/(app)/(pages)/gear/_components/altern
 import type { AuthUser } from "~/auth";
 import {
   Tooltip,
-  TooltipTrigger,
   TooltipContent,
+  TooltipTrigger,
 } from "~/components/ui/tooltip";
 import { ManageCreatorVideosModal } from "~/app/(app)/(pages)/gear/_components/manage-creator-videos-modal";
+import { ManageStaffVerdictModal } from "~/app/(app)/(pages)/gear/_components/manage-staff-verdict-modal";
 
 type DockSample = Omit<RawSample, "createdAt" | "updatedAt"> & {
   createdAt?: string | null;
@@ -171,6 +173,29 @@ export function buildDockButtons({
             }
           />
           <TooltipContent sideOffset={10}>Creator Videos</TooltipContent>
+        </Tooltip>
+      ),
+    },
+    {
+      id: "staff verdict",
+      allowed: (currentUser) =>
+        Boolean(requireRole(currentUser, ["ADMIN", "SUPERADMIN"])),
+      render: () => (
+        <Tooltip key="staff verdict">
+          <ManageStaffVerdictModal
+            slug={slug}
+            trigger={
+              <TooltipTrigger asChild>
+                <button
+                  className={baseTriggerClass}
+                  aria-label="Manage Staff Verdict"
+                >
+                  <FileBadge className="text-foreground/70 size-4.5" />
+                </button>
+              </TooltipTrigger>
+            }
+          />
+          <TooltipContent sideOffset={10}>Staff Verdict</TooltipContent>
         </Tooltip>
       ),
     },

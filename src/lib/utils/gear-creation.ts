@@ -1,30 +1,7 @@
-import { performFuzzySearchAdmin } from "~/server/admin/gear/service";
-
 export interface FuzzySearchResult {
   id: string;
   name: string;
   slug: string;
-}
-
-export interface FuzzySearchParams {
-  inputName: string;
-  brandName: string;
-  brandId: string;
-}
-
-/**
- * Performs fuzzy search for similar gear items within the same brand.
- * Excludes brand tokens, splits letter-digit boundaries, and requires all tokens to match.
- */
-export async function performFuzzySearch(params: FuzzySearchParams): Promise<{
-  results: FuzzySearchResult[];
-  tokens: string[];
-  normalized: string;
-}> {
-  // Delegate to server data layer
-  const { inputName, brandName, brandId } = params;
-  const res = await performFuzzySearchAdmin({ inputName, brandName, brandId });
-  return res;
 }
 
 /**

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getMountsForBrand } from "~/server/gear/browse/data";
+import { fetchMountsForBrand } from "~/server/gear/browse/service";
 import { mountUIConfig } from "~/lib/browse/mount-ui";
 import {
   Popover,
@@ -18,7 +18,7 @@ export default async function MountButtons({
   brandSlug: string;
   category: "cameras" | "lenses";
 }) {
-  let mounts = await getMountsForBrand(brandId);
+  let mounts = await fetchMountsForBrand(brandId);
   let hiddenMounts: typeof mounts = [];
   const rules = mountUIConfig[brandSlug]?.[category];
   // Auto-hide mounts without a shortName

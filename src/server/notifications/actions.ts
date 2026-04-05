@@ -6,8 +6,8 @@ import {
   deleteNotification,
   markNotificationRead,
   createNotification,
+  type CreateNotificationParams,
 } from "./service";
-import type { CreateNotificationParams } from "./data";
 import { getSessionOrThrow } from "~/server/auth";
 
 export async function actionMarkNotificationRead(id: string) {

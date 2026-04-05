@@ -11,9 +11,9 @@ import {
   clearGearTopViewService,
   updateGearAliasesService,
   deleteGearService,
+  type GearCreationParams,
 } from "./service";
 import { type GearRegion } from "~/lib/gear/region";
-import type { GearCreationParams } from "./data";
 
 export async function actionCreateGear(params: GearCreationParams) {
   const result = await createGearAdmin(params);

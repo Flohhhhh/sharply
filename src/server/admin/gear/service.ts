@@ -28,6 +28,8 @@ import { buildGearSearchName } from "~/lib/gear/naming";
 import { GEAR_REGIONS, type GearRegion } from "~/lib/gear/region";
 import { gearAliases, gear, brands } from "~/server/db/schema";
 
+export type { AdminGearTableRow, GearCreationParams } from "./data";
+
 export async function performFuzzySearchAdmin(params: {
   inputName: string;
   brandName: string;
