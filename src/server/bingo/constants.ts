@@ -61,4 +61,9 @@ export const BINGO_TEMPLATE_LABELS = [
   ":sob: emoji",
   "Wilted rose emoji",
   "Leica mentioned",
+  "Sony & Car Rollers",
+  "Sony has a big lens selection",
+  "Wants Z9 for no reason",
+  "Is A7ii good?/worth ____?",
+  "Mousepad/Keyboard discussion"
 ] as const;
