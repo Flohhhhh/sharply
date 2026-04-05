@@ -115,12 +115,30 @@ async function fetchYouTubeOEmbed(normalizedUrl: string) {
   endpoint.searchParams.set("url", normalizedUrl);
   endpoint.searchParams.set("format", "json");
 
-  const response = await fetch(endpoint.toString(), {
-    method: "GET",
-    headers: {
-      Accept: "application/json",
-    },
-  });
+  const controller = new AbortController();
+  const timeoutMs = 5_000;
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  let response: Response;
+  try {
+    response = await fetch(endpoint.toString(), {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error(`Metadata lookup timed out after ${timeoutMs}ms`, {
+        cause: error,
+      });
+    }
+
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!response.ok) {
     throw new Error(`Metadata lookup failed with status ${response.status}`);
