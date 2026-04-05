@@ -2,9 +2,9 @@ const PRIORITY_SENSOR_FORMAT_SLUGS = [
   "full-frame",
   "aps-c",
   "micro-4-3",
-  "medium-format-crop",
-  "medium-format-full",
-  "cinema-large-format",
+  "medium-format-44x33",
+  "medium-format-45x30",
+  "medium-format-55x40",
 ] as const;
 
 type SensorFormatLike = {
