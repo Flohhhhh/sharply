@@ -6,7 +6,7 @@ import type { NextRequest } from "next/server";
 
 import { auth } from "~/auth";
 import {
-  getOrCreateDevelopmentAuthUser,
+  getOrCreateDevelopmentAuthUserWithOverrides,
   isDevelopmentAuthRequestAllowed,
 } from "~/server/auth/dev-auth/service";
 
@@ -41,12 +41,25 @@ const developmentLoginEndpoint = createEndpoint(
       const existingSession = await auth.api.getSession({
         headers: developmentContext.headers,
       });
+      const requestUrl = new URL(developmentContext.request.url);
+      const redirectTo = requestUrl.searchParams.get("redirectTo") || "/";
+      const email = requestUrl.searchParams.get("email") || undefined;
+      const name = requestUrl.searchParams.get("name") || undefined;
+      const role = requestUrl.searchParams.get("role") || undefined;
+      const handle = requestUrl.searchParams.get("handle") || undefined;
 
       if (existingSession) {
-        throw ctx.redirect(new URL("/", developmentContext.request.url).toString());
+        throw ctx.redirect(
+          new URL(redirectTo, developmentContext.request.url).toString(),
+        );
       }
 
-      const user = await getOrCreateDevelopmentAuthUser();
+      const user = await getOrCreateDevelopmentAuthUserWithOverrides({
+        email,
+        name,
+        role,
+        handle,
+      });
       const session = await developmentContext.context.internalAdapter.createSession(
         user.id,
       );
@@ -61,7 +74,9 @@ const developmentLoginEndpoint = createEndpoint(
         user: sessionUser,
       });
 
-      throw ctx.redirect(new URL("/", developmentContext.request.url).toString());
+      throw ctx.redirect(
+        new URL(redirectTo, developmentContext.request.url).toString(),
+      );
     });
   },
 );

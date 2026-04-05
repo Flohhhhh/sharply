@@ -10,8 +10,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import Link from "next/link";
 import { LogOut, Settings, ShieldCheck, User as UserIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import type { UserRole } from "~/auth";
 import { logOut } from "~/lib/auth";
 import { Spinner } from "~/components/ui/spinner";
@@ -27,6 +27,7 @@ export type UserMenuUser = {
 } | null;
 
 export function UserMenu({ user }: { user: UserMenuUser }) {
+  const router = useRouter();
   const initials = useMemo(() => {
     const source = user?.name || user?.email || "?";
     return source.trim().charAt(0).toUpperCase();
@@ -43,7 +44,10 @@ export function UserMenu({ user }: { user: UserMenuUser }) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="focus-visible:ring-ring data-[state=open]:ring-ring ring-offset-background inline-flex h-8 w-8 items-center justify-center rounded-full outline-hidden transition focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none">
+      <DropdownMenuTrigger
+        aria-label="Open user menu"
+        className="focus-visible:ring-ring data-[state=open]:ring-ring ring-offset-background inline-flex h-8 w-8 items-center justify-center rounded-full outline-hidden transition focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+      >
         <Avatar>
           {user.image ? (
             <AvatarImage src={user.image} alt={user.name ?? "User"} />
@@ -73,30 +77,30 @@ export function UserMenu({ user }: { user: UserMenuUser }) {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link
-            href={`/u/${user.handle || `user-${user.memberNumber}`}`}
-            className="flex w-full items-center gap-2"
-          >
-            <UserIcon className="size-4" />
-            <span>Profile</span>
-          </Link>
+        <DropdownMenuItem
+          onSelect={() => {
+            router.push(`/u/${user.handle || `user-${user.memberNumber}`}`);
+          }}
+        >
+          <UserIcon className="size-4" />
+          <span>Profile</span>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link
-            href="/profile/settings"
-            className="flex w-full items-center gap-2"
-          >
-            <Settings className="size-4" />
-            <span>Account</span>
-          </Link>
+        <DropdownMenuItem
+          onSelect={() => {
+            router.push("/profile/settings");
+          }}
+        >
+          <Settings className="size-4" />
+          <span>Account</span>
         </DropdownMenuItem>
         {false && isAdminOrEditor && (
-          <DropdownMenuItem asChild>
-            <Link href="/admin" className="flex w-full items-center gap-2">
-              <ShieldCheck className="size-4" />
-              <span>Admin</span>
-            </Link>
+          <DropdownMenuItem
+            onSelect={() => {
+              router.push("/admin");
+            }}
+          >
+            <ShieldCheck className="size-4" />
+            <span>Admin</span>
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />

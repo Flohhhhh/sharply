@@ -22,8 +22,9 @@ jobs:
       NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
       AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
       PAYLOAD_SECRET: ${{ secrets.PAYLOAD_SECRET }}
-      NEXT_PUBLIC_BASE_URL: http://127.0.0.1:3000
+      NEXT_PUBLIC_BASE_URL: http://localhost:3000
       SKIP_ENV_VALIDATION: "1"
+      DEV_AUTH: "true"
       CI: "true"
       NEON_BRANCH_NAME: pr-${{ github.event.pull_request.number }}-${{ github.run_id }}-${{ github.run_attempt }}
     steps:

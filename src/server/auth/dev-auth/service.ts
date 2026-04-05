@@ -1,11 +1,12 @@
 import "server-only";
 
 import { env } from "~/env";
-import type { User } from "~/server/db/schema";
+import { userRoleEnum, type User } from "~/server/db/schema";
 
 import {
   createDevelopmentUserData,
   findUserByEmailData,
+  updateDevelopmentUserData,
 } from "./data";
 
 const DEFAULT_DEV_AUTH_EMAIL = "dev@sharply.local";
@@ -60,7 +61,7 @@ export function isDevelopmentAuthHostAllowed(
   }
 
   const hostname = host.split(":")[0]?.toLowerCase();
-  return hostname === "localhost";
+  return hostname === "localhost" || hostname === "127.0.0.1";
 }
 
 export function isDevelopmentAuthRequestAllowed(host: string | null | undefined) {
@@ -68,18 +69,44 @@ export function isDevelopmentAuthRequestAllowed(host: string | null | undefined)
 }
 
 export async function getOrCreateDevelopmentAuthUser(): Promise<User> {
+  return getOrCreateDevelopmentAuthUserWithOverrides();
+}
+
+export async function getOrCreateDevelopmentAuthUserWithOverrides(params?: {
+  email?: string;
+  name?: string;
+  role?: string;
+  handle?: string | null;
+}): Promise<User> {
   if (!isDevelopmentAuthEnabled()) {
     throw new Error(
       "Development auth bypass is disabled. Set DEV_AUTH=true outside production to enable it.",
     );
   }
 
-  const email = getDevelopmentAuthEmail();
+  const email = params?.email ?? getDevelopmentAuthEmail();
+  const name = params?.name ?? "Development User";
+  const requestedRole = params?.role ?? "USER";
+  const role = userRoleEnum.enumValues.includes(
+    requestedRole as (typeof userRoleEnum.enumValues)[number],
+  )
+    ? (requestedRole as (typeof userRoleEnum.enumValues)[number])
+    : "USER";
+  const handle = params?.handle ?? null;
   const existingUser = await findUserByEmailData(email);
 
   if (existingUser) {
-    return existingUser;
+    return updateDevelopmentUserData(existingUser.id, {
+      name,
+      role,
+      handle,
+    });
   }
 
-  return createDevelopmentUserData(email);
+  return createDevelopmentUserData({
+    email,
+    name,
+    role,
+    handle,
+  });
 }

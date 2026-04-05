@@ -36,7 +36,9 @@ const staticAuthBaseUrl = normalizeTrustedOrigin(
     "",
 );
 const trustedOrigins = [
-  ...(process.env.NODE_ENV !== "production" ? ["http://localhost:3000"] : []),
+  ...(process.env.NODE_ENV !== "production"
+    ? ["http://localhost:3000", "http://127.0.0.1:3000"]
+    : []),
   ...(baseTrustedOrigin ? [baseTrustedOrigin] : []),
   ...(additionalTrustedOrigins ?? []),
 ].filter(Boolean) as string[];

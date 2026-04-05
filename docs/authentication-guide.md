@@ -186,10 +186,18 @@ Sharply includes an opt-in dev login route for local work and automation:
 
 - Set `DEV_AUTH=true` to enable it.
 - Optionally set `DEV_AUTH_EMAIL` to choose which user email to sign in as. If no user exists, Sharply creates a default `"Development User"` row with that email through the existing Drizzle schema.
-- `DEV_AUTH_LOCALHOST_ONLY` defaults to a localhost-only host check. Leave it enabled to require the incoming `Host` header to resolve to `localhost`; set it to `false` only when a non-localhost dev or CI hostname must use the bypass.
+- `DEV_AUTH_LOCALHOST_ONLY` defaults to a localhost-only host check. Leave it enabled to require the incoming `Host` header to resolve to `localhost` or `127.0.0.1`; set it to `false` only when a non-localhost dev or CI hostname must use the bypass.
 - Visit `/api/dev-login` to create a real Better Auth session and redirect to `/`.
 
 This bypass is hard-disabled when `NODE_ENV=production`, even if `DEV_AUTH=true` is present. The route also returns `404` when the host check fails, so open-source deployments do not accidentally expose it on public domains.
+
+## Automated E2E auth
+
+For Playwright and other automation, Sharply's `/api/dev-login` route also accepts test-friendly query parameters outside production.
+
+- Supported overrides: `email`, `name`, `role`, `handle`, and `redirectTo`
+- If a user with the requested email exists, Sharply updates that user to match the requested role/name/handle before creating the Better Auth session.
+- This allows E2E tests to choose roles such as `USER`, `EDITOR`, or `ADMIN` without configuring OAuth providers.
 
 ## Protected layout pattern
 

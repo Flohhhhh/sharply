@@ -1,5 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000";
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
 const runFullBrowserMatrix = process.env.PLAYWRIGHT_ALL_PROJECTS === "true";
 const shouldManageServer = !process.env.PLAYWRIGHT_BASE_URL;
 
@@ -31,10 +31,11 @@ const projects = runFullBrowserMatrix
 
 export default defineConfig({
   testDir: "./tests/playwright",
-  fullyParallel: true,
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
+  timeout: 60_000,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: Number.parseInt(process.env.PLAYWRIGHT_WORKERS ?? "1", 10),
   reporter: process.env.CI ? "html" : "list",
   use: {
     baseURL,
