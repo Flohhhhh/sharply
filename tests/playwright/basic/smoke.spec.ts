@@ -6,15 +6,18 @@ test.describe("smoke", () => {
   test("landing renders hero and search", async ({ page }) => {
     await page.goto(`${baseUrl}/`);
 
-    // Ensure headline and search surface render.
+    // Ensure headline and search trigger render, then opening search shows the dialog.
     await expect(
       page.getByRole("heading", {
         name: "Real specs, real reviews, real fast.",
       }),
     ).toBeVisible();
-    await expect(page.getByLabel("Global search")).toBeVisible();
+    const searchTrigger = page.getByRole("button", { name: "Open search" });
+    await expect(searchTrigger).toBeVisible();
+    await searchTrigger.click();
+    await expect(page.getByRole("dialog")).toBeVisible();
     await expect(
-      page.getByRole("button", { name: "Open command palette" }),
+      page.getByRole("combobox", { name: "Search Sharply" }),
     ).toBeVisible();
   });
 
