@@ -10,6 +10,7 @@ import {
 } from "~/components/ui/select";
 import { SENSOR_FORMATS } from "~/lib/constants";
 import { sensorSlugFromId } from "~/lib/mapping/sensor-map";
+import { sortSensorFormats } from "~/lib/sensor-formats";
 
 // Types for the sensor format input
 export interface SensorFormatInputProps {
@@ -58,9 +59,9 @@ const SensorFormatInput = ({
   const displayName = displaySlug
     ? SENSOR_FORMATS.find((f) => f.slug === displaySlug)?.name
     : undefined;
-  const formats = filterFormats
-    ? SENSOR_FORMATS.filter(filterFormats)
-    : SENSOR_FORMATS;
+  const formats = sortSensorFormats(
+    filterFormats ? SENSOR_FORMATS.filter(filterFormats) : SENSOR_FORMATS,
+  );
 
   return (
     <div className={`w-full space-y-2 ${className}`}>

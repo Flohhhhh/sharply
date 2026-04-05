@@ -20,6 +20,7 @@ import { ENUMS, SENSOR_FORMATS } from "~/lib/constants";
 import { MultiSelect } from "~/components/ui/multi-select";
 import { formatFilterType } from "~/lib/mapping/filter-types-map";
 import { formatFocusDistance } from "~/lib/mapping/focus-distance-map";
+import { sortSensorFormats } from "~/lib/sensor-formats";
 
 interface LensFieldsProps {
   currentSpecs: typeof lensSpecs.$inferSelect | null | undefined;
@@ -78,7 +79,7 @@ function LensFieldsComponent({
   const CLEAR_SENSOR_FORMAT_VALUE = "none";
   const sensorFormatOptions = useMemo(
     () =>
-      (Array.isArray(SENSOR_FORMATS) ? SENSOR_FORMATS : [])
+      sortSensorFormats(Array.isArray(SENSOR_FORMATS) ? SENSOR_FORMATS : [])
         .map((format) => {
           if (
             !format ||

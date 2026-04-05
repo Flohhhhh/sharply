@@ -175,7 +175,11 @@ export function CompareSpecsTable({
         ) : (
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <div className="rounded-md border p-3 text-left">
-              <div className="font-medium">{aName}</div>
+              <CompareGearNameLink
+                slug={a.slug}
+                name={aName}
+                className="font-medium"
+              />
               <div className="text-muted-foreground text-sm">
                 {missingA} specs missing
               </div>
@@ -192,7 +196,11 @@ export function CompareSpecsTable({
               </div>
             </div>
             <div className="rounded-md border p-3 text-left">
-              <div className="font-medium">{bName}</div>
+              <CompareGearNameLink
+                slug={b.slug}
+                name={bName}
+                className="font-medium"
+              />
               <div className="text-muted-foreground text-sm">
                 {missingB} specs missing
               </div>
@@ -269,10 +277,10 @@ export function CompareSpecsTable({
                         Spec
                       </TableHead>
                       <TableHead className="text-muted-foreground px-4 py-3 text-xs tracking-wide uppercase">
-                        {aName}
+                        <CompareGearNameLink slug={a.slug} name={aName} />
                       </TableHead>
                       <TableHead className="text-muted-foreground px-4 py-3 text-xs tracking-wide uppercase">
-                        {bName}
+                        <CompareGearNameLink slug={b.slug} name={bName} />
                       </TableHead>
                     </TableRow>
                   </TableHeader>
@@ -303,5 +311,24 @@ export function CompareSpecsTable({
         </div>
       )}
     </div>
+  );
+}
+
+function CompareGearNameLink({
+  slug,
+  name,
+  className,
+}: {
+  slug: string;
+  name: string;
+  className?: string;
+}) {
+  return (
+    <Link
+      href={`/gear/${slug}`}
+      className={cn("transition-colors hover:text-foreground hover:underline", className)}
+    >
+      {name}
+    </Link>
   );
 }

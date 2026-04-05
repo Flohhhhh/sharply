@@ -113,7 +113,7 @@ export function UserHandleForm({
               setIsChecking(true);
             }}
             placeholder={initialHandle || `user-${memberNumber ?? "?"}`}
-            className="pl-[26px]"
+            className="pl-12 pr-10"
             maxLength={50}
           />
           <div className="absolute top-1/2 right-3 -translate-y-1/2">

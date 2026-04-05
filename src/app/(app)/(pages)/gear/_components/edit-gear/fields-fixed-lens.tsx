@@ -15,6 +15,7 @@ import FocalLengthInput from "~/components/custom-inputs/focal-length-input";
 import LensApertureInput from "~/components/custom-inputs/lens-aperture-input";
 import { BooleanInput, NumberInput } from "~/components/custom-inputs";
 import { SENSOR_FORMATS } from "~/lib/constants";
+import { sortSensorFormats } from "~/lib/sensor-formats";
 
 interface FixedLensFieldsProps {
   currentSpecs: typeof fixedLensSpecs.$inferSelect | null | undefined;
@@ -66,7 +67,7 @@ function FixedLensFieldsComponent({
   const CLEAR_SENSOR_FORMAT_VALUE = "none";
   const sensorFormatOptions = useMemo(
     () =>
-      (Array.isArray(SENSOR_FORMATS) ? SENSOR_FORMATS : [])
+      sortSensorFormats(Array.isArray(SENSOR_FORMATS) ? SENSOR_FORMATS : [])
         .map((format) => {
           if (
             !format ||

@@ -23,6 +23,7 @@ import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { mergeSearchParams } from "@utils/url";
 import { SENSOR_FORMATS, MOUNTS, BRANDS } from "~/lib/constants";
 import { getMountLongName } from "~/lib/mapping/mounts-map";
+import { sortSensorFormats } from "~/lib/sensor-formats";
 
 // Slider curve: 1 = linear, higher = more weight to low prices (exponential).
 const PRICE_SLIDER_CURVE = 2;
@@ -42,11 +43,13 @@ function sliderToPrice(value: number, maxPrice: number) {
 
 // Narrow generated constants to safe shapes to avoid `any`
 const MOUNT_OPTIONS = MOUNTS as Array<{ id: string; value: string }>;
-const SENSOR_OPTIONS = SENSOR_FORMATS as Array<{
-  id: string;
-  slug: string;
-  name: string;
-}>;
+const SENSOR_OPTIONS = sortSensorFormats(
+  SENSOR_FORMATS as Array<{
+    id: string;
+    slug: string;
+    name: string;
+  }>,
+);
 const BRAND_OPTIONS = BRANDS as Array<{ id: string; name: string }>;
 
 function useSyncedParam(key: string, fallback: string | undefined = undefined) {

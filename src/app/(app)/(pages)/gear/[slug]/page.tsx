@@ -103,19 +103,17 @@ export async function generateMetadata({
       displayName,
       staffVerdictContent: verdict?.content ?? null,
     });
-    const ogImage = item.thumbnailUrl
-      ? {
-          url: item.thumbnailUrl,
-          // width: 1200,
-          // height: 630,
-          alt: `${displayName}`,
-        }
-      : {
-          url: `${baseUrl}/og-default.png`,
-          // width: 1200,
-          // height: 630,
-          alt: "Sharply - Photography Gear Database",
-        };
+    const ogImages = item.thumbnailUrl
+      ? [
+          {
+            url: item.thumbnailUrl,
+            // width: 1200,
+            // height: 630,
+            alt: `${displayName}`,
+          },
+        ]
+      : [];
+    const twitterImages = item.thumbnailUrl ? [item.thumbnailUrl] : [];
     return {
       title: `${displayName} | Specs & Reviews`,
       description,
@@ -125,7 +123,7 @@ export async function generateMetadata({
       openGraph: {
         type: "website",
         title: `${displayName} | Specs & Reviews`,
-        images: [ogImage],
+        images: ogImages,
         url: `${baseUrl}/gear/${slug}`,
         description,
       },
@@ -133,7 +131,7 @@ export async function generateMetadata({
         card: "summary_large_image",
         title: `${displayName} | Specs & Reviews`,
         description,
-        images: [ogImage.url],
+        images: twitterImages,
       },
     };
   } catch (err: any) {
