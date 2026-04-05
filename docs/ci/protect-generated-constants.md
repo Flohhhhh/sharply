@@ -1,6 +1,6 @@
 # Protect Generated Constants CI
 
-Workflow file: [/Users/camerongustavson/CodeProjects/sharply/.github/workflows/protect-generated.yml](/Users/camerongustavson/CodeProjects/sharply/.github/workflows/protect-generated.yml)
+Workflow file: `.github/workflows/protect-generated.yml`
 
 ## Purpose
 
