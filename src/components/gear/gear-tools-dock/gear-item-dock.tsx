@@ -19,6 +19,7 @@ export interface GearItemDockProps {
   currentTopViewUrl?: string | null;
   alternatives?: GearAlternativeRow[];
   rawSamples?: RawSample[];
+  hasCreatorVideos?: boolean;
 }
 
 export function GearItemDock({
@@ -29,6 +30,7 @@ export function GearItemDock({
   currentTopViewUrl = null,
   alternatives = [],
   rawSamples = [],
+  hasCreatorVideos = false,
 }: GearItemDockProps) {
   return (
     <GearItemDockClient
@@ -39,6 +41,7 @@ export function GearItemDock({
       currentTopViewUrl={currentTopViewUrl}
       alternatives={alternatives}
       rawSamples={rawSamples}
+      hasCreatorVideos={hasCreatorVideos}
     />
   );
 }

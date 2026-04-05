@@ -29,7 +29,7 @@ describe("video mode schema utilities", () => {
         fps: 60,
         codecLabel: "H.265",
         bitDepth: 10,
-        cropFactor: "true",
+        cropFactor: true,
         notes: null,
       },
       {

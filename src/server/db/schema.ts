@@ -311,6 +311,9 @@ export const recommendationRatingEnum = pgEnum("rec_rating", [
   "balanced",
 ]);
 export const recommendationGroupEnum = pgEnum("rec_group", ["prime", "zoom"]);
+export const creatorVideoPlatformEnum = pgEnum("creator_video_platform", [
+  "YOUTUBE",
+]);
 
 // Analog Camera Types
 export const analogTypesEnum = pgEnum("analog_types_enum", [
@@ -1241,6 +1244,77 @@ export const staffVerdicts = appSchema.table(
   (t) => [index("staff_verdicts_author_idx").on(t.authorUserId)],
 );
 
+export const approvedCreators = appSchema.table(
+  "approved_creators",
+  (d) => ({
+    id: d
+      .varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    name: d.varchar("name", { length: 200 }).notNull(),
+    platform: creatorVideoPlatformEnum("platform").notNull(),
+    channelUrl: d.text("channel_url").notNull(),
+    avatarUrl: d.text("avatar_url"),
+    isActive: d.boolean("is_active").notNull().default(true),
+    internalNotes: d.text("internal_notes"),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    index("approved_creators_name_idx").on(t.name),
+    index("approved_creators_platform_active_idx").on(t.platform, t.isActive),
+  ],
+);
+
+export const gearCreatorVideos = appSchema.table(
+  "gear_creator_videos",
+  (d) => ({
+    id: d
+      .varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    gearId: d
+      .varchar("gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    creatorId: d
+      .varchar("creator_id", { length: 36 })
+      .notNull()
+      .references(() => approvedCreators.id, { onDelete: "restrict" }),
+    sourceUrl: d.text("source_url").notNull(),
+    normalizedUrl: d.text("normalized_url").notNull(),
+    embedUrl: d.text("embed_url").notNull(),
+    platform: creatorVideoPlatformEnum("platform").notNull(),
+    externalVideoId: d.varchar("external_video_id", { length: 64 }).notNull(),
+    title: d.text("title").notNull(),
+    thumbnailUrl: d.text("thumbnail_url"),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    editorNote: d.text("editor_note"),
+    isActive: d.boolean("is_active").notNull().default(true),
+    createdByUserId: d
+      .varchar("created_by_user_id", { length: 255 })
+      .references(() => users.id, { onDelete: "set null" }),
+    updatedByUserId: d
+      .varchar("updated_by_user_id", { length: 255 })
+      .references(() => users.id, { onDelete: "set null" }),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    index("gear_creator_videos_gear_active_idx").on(t.gearId, t.isActive),
+    index("gear_creator_videos_creator_idx").on(t.creatorId),
+    index("gear_creator_videos_platform_external_idx").on(
+      t.platform,
+      t.externalVideoId,
+    ),
+    uniqueIndex("gear_creator_videos_gear_platform_external_uidx").on(
+      t.gearId,
+      t.platform,
+      t.externalVideoId,
+    ),
+  ],
+);
+
 // --- Gear Relations ---
 export const gearRelations = relations(gear, ({ one, many }) => ({
   cameraSpecs: one(cameraSpecs, {
@@ -1268,6 +1342,7 @@ export const gearRelations = relations(gear, ({ one, many }) => ({
     fields: [gear.id],
     references: [staffVerdicts.gearId],
   }),
+  creatorVideos: many(gearCreatorVideos),
   rawSamples: many(gearRawSamples),
   aliases: many(gearAliases),
 }));
@@ -1359,6 +1434,37 @@ export const staffVerdictsRelations = relations(staffVerdicts, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+export const approvedCreatorsRelations = relations(
+  approvedCreators,
+  ({ many }) => ({
+    gearVideos: many(gearCreatorVideos),
+  }),
+);
+
+export const gearCreatorVideosRelations = relations(
+  gearCreatorVideos,
+  ({ one }) => ({
+    gear: one(gear, {
+      fields: [gearCreatorVideos.gearId],
+      references: [gear.id],
+    }),
+    creator: one(approvedCreators, {
+      fields: [gearCreatorVideos.creatorId],
+      references: [approvedCreators.id],
+    }),
+    createdBy: one(users, {
+      relationName: "gear_creator_video_created_by",
+      fields: [gearCreatorVideos.createdByUserId],
+      references: [users.id],
+    }),
+    updatedBy: one(users, {
+      relationName: "gear_creator_video_updated_by",
+      fields: [gearCreatorVideos.updatedByUserId],
+      references: [users.id],
+    }),
+  }),
+);
 
 // Relations declared AFTER table declarations below
 

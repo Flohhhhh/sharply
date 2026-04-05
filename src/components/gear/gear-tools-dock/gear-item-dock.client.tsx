@@ -28,6 +28,7 @@ interface GearItemDockClientProps {
   currentTopViewUrl?: string | null;
   alternatives?: GearAlternativeRow[];
   rawSamples?: RawSample[];
+  hasCreatorVideos?: boolean;
 }
 
 type ManagedSampleState = Omit<RawSample, "createdAt" | "updatedAt"> & {
@@ -63,6 +64,7 @@ export function GearItemDockClient({
   currentTopViewUrl = null,
   alternatives = [],
   rawSamples = [],
+  hasCreatorVideos = false,
 }: GearItemDockClientProps) {
   const { data, isPending } = useSession();
   const user = data?.user;
@@ -154,6 +156,7 @@ export function GearItemDockClient({
         currentThumbnailUrl,
         currentTopViewUrl,
         alternatives,
+        hasCreatorVideos,
         managedSamples,
         isManagerOpen,
         setIsManagerOpen,
@@ -168,6 +171,7 @@ export function GearItemDockClient({
       currentTopViewUrl,
       gearId,
       gearType,
+      hasCreatorVideos,
       isManagerOpen,
       managedSamples,
       deletingSampleId,

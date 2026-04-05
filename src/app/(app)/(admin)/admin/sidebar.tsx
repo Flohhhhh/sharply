@@ -47,6 +47,7 @@ import {
   Plus,
   HelpCircle,
   Wrench,
+  Video,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
@@ -93,6 +94,12 @@ const sidebarItems: SidebarItem[] = [
     href: "/admin/leaderboard",
     icon: <Users className="size-5" />,
     allowed: ["ADMIN", "SUPERADMIN", "EDITOR"],
+  },
+  {
+    label: "Creators",
+    href: "/admin/approved-creators",
+    icon: <Video className="size-5" />,
+    allowed: ["ADMIN", "SUPERADMIN"],
   },
   {
     label: "Logs",

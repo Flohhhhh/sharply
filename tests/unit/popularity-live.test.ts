@@ -13,7 +13,7 @@ function makeBaseline(overrides?: Partial<any>) {
     slug: "gear-1",
     name: "Gear One",
     brandName: "Nikon",
-    gearType: "CAMERA",
+    gearType: "CAMERA" as const,
     thumbnailUrl: null,
     releaseDate: null,
     releaseDatePrecision: null,
@@ -41,7 +41,7 @@ function makeLiveItem(overrides?: Partial<any>) {
     slug: "gear-1",
     name: "Gear One",
     brandName: "Nikon",
-    gearType: "CAMERA",
+    gearType: "CAMERA" as const,
     thumbnailUrl: null,
     releaseDate: null,
     releaseDatePrecision: null,
@@ -129,4 +129,3 @@ describe("live trending merge behavior", () => {
     expect(merged.map((item) => item.gearId)).toEqual(["g3", "g2"]);
   });
 });
-

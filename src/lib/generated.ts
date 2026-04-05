@@ -139,6 +139,14 @@ export const MOUNTS = [
     "short_name": "z"
   },
   {
+    "id": "40db9737-a74d-4779-aa8d-b794ea7ed984",
+    "value": "v-sigma",
+    "brand_id": "c58b9ef7-4aa6-46c9-b1bb-5a9779b2a424",
+    "created_at": "2025-08-19 01:55:26.767151+00",
+    "updated_at": "2025-08-19 01:55:26.767151+00",
+    "short_name": "v"
+  },
+  {
     "id": "37b64f6a-5ac3-448e-8d85-75f4ae96aefd",
     "value": "q-pentax",
     "brand_id": "584d6aaf-4222-4caf-8570-e6476e2e13c0",
@@ -203,6 +211,14 @@ export const MOUNTS = [
     "short_name": "s"
   },
   {
+    "id": "d1bfb0a3-3fe7-417f-b808-f25c0e26923e",
+    "value": "h-sigma",
+    "brand_id": "c58b9ef7-4aa6-46c9-b1bb-5a9779b2a424",
+    "created_at": "2025-08-19 01:55:26.608497+00",
+    "updated_at": "2025-08-19 01:55:26.608497+00",
+    "short_name": "h"
+  },
+  {
     "id": "cc96046e-4f03-4307-b1c3-13c6598289ae",
     "value": "x-fujifilm",
     "brand_id": "14807c17-227f-4349-a56d-401c1d5d4626",
@@ -245,6 +261,102 @@ export const MOUNTS = [
 ];
 export const SENSOR_FORMATS = [
   {
+    "id": "40e9d5bd-62ef-4ec1-8f8f-b5d232f2a603",
+    "name": "Full-frame",
+    "slug": "full-frame",
+    "crop_factor": "1.00",
+    "description": "35mm equivalent",
+    "created_at": "2025-08-19 01:55:27.132642+00",
+    "updated_at": "2025-08-19 01:55:27.132642+00",
+    "width_mm": null,
+    "height_mm": null,
+    "area_mm_2": null
+  },
+  {
+    "id": "116924b7-a4ee-4f7b-8ddf-38b33454c550",
+    "name": "APS-C",
+    "slug": "aps-c",
+    "crop_factor": "1.50",
+    "description": "Nikon, Sony, Fujifilm",
+    "created_at": "2025-08-19 01:55:27.374007+00",
+    "updated_at": "2025-08-19 01:55:27.374007+00",
+    "width_mm": null,
+    "height_mm": null,
+    "area_mm_2": null
+  },
+  {
+    "id": "4df33822-edc9-4a93-9519-dd0050a7f8ee",
+    "name": "Canon APS-C",
+    "slug": "canon-aps-c",
+    "crop_factor": "1.60",
+    "description": "Canon specific",
+    "created_at": "2025-08-19 01:55:27.602979+00",
+    "updated_at": "2025-08-19 01:55:27.602979+00",
+    "width_mm": null,
+    "height_mm": null,
+    "area_mm_2": null
+  },
+  {
+    "id": "a5b24cc2-4b36-47d4-8765-777a5c2e10ca",
+    "name": "1\"",
+    "slug": "1-inch",
+    "crop_factor": "2.70",
+    "description": "Compact cameras",
+    "created_at": "2025-08-19 01:55:28.397056+00",
+    "updated_at": "2025-08-19 01:55:28.397056+00",
+    "width_mm": null,
+    "height_mm": null,
+    "area_mm_2": null
+  },
+  {
+    "id": "26b5a709-9810-42d7-9a76-0c876043f224",
+    "name": "Canon APS-H",
+    "slug": "canon-aps-h",
+    "crop_factor": "1.30",
+    "description": "Canon intermediate format",
+    "created_at": "2025-08-19 01:55:28.630193+00",
+    "updated_at": "2025-08-19 01:55:28.630193+00",
+    "width_mm": null,
+    "height_mm": null,
+    "area_mm_2": null
+  },
+  {
+    "id": "670ac585-aa5d-4e4d-88a0-c6ee2f7e036e",
+    "name": "Medium Format (Crop)",
+    "slug": "medium-format-crop",
+    "crop_factor": "0.79",
+    "description": "Larger than full frame",
+    "created_at": "2025-08-19 01:55:27.905001+00",
+    "updated_at": "2025-08-19 01:55:27.905001+00",
+    "width_mm": null,
+    "height_mm": null,
+    "area_mm_2": null
+  },
+  {
+    "id": "a36483f6-2c69-40d1-9b2a-d7ae3c149603",
+    "name": "Medium Format (Full)",
+    "slug": "medium-format-full",
+    "crop_factor": "0.66",
+    "description": null,
+    "created_at": "2026-01-02 17:24:17.478933+00",
+    "updated_at": "2026-01-02 17:24:17.478933+00",
+    "width_mm": null,
+    "height_mm": null,
+    "area_mm_2": null
+  },
+  {
+    "id": "9ee34d66-036b-4598-bbb9-d80a1b96c512",
+    "name": "4/3",
+    "slug": "micro-4-3",
+    "crop_factor": "2.00",
+    "description": "Panasonic, Olympus",
+    "created_at": "2025-08-19 01:55:28.154644+00",
+    "updated_at": "2025-08-19 01:55:28.154644+00",
+    "width_mm": null,
+    "height_mm": null,
+    "area_mm_2": null
+  },
+  {
     "id": "0d97617b-ec5a-47d6-bd60-010b3337e375",
     "name": "1/5\"",
     "slug": "fifth-inch",
@@ -264,126 +376,6 @@ export const SENSOR_FORMATS = [
     "description": "Catch-all for various larger than full-frame wide and large format cinema camera sensors",
     "created_at": "2026-01-20 12:14:13.604012+00",
     "updated_at": "2026-01-20 12:14:13.604012+00",
-    "width_mm": null,
-    "height_mm": null,
-    "area_mm_2": null
-  },
-  {
-    "id": "6bd783f5-13ab-4d3e-bf0e-70da085ba3c9",
-    "name": "1.5\"",
-    "slug": "canon-powershot-g1-x-mark-2-sensor",
-    "crop_factor": "1.85",
-    "description": "For Canon PowerShot G1 X Mark II",
-    "created_at": "2026-04-04 20:50:02.743416+00",
-    "updated_at": "2026-04-04 20:50:02.743416+00",
-    "width_mm": "18.70",
-    "height_mm": "14.00",
-    "area_mm_2": null
-  },
-  {
-    "id": "a99df2aa-98da-4556-aacd-b15b4418bd2b",
-    "name": "Medium Format (44x33)",
-    "slug": "medium-format-44x33",
-    "crop_factor": "0.79",
-    "description": "Cropped medium format",
-    "created_at": "2026-04-04 20:50:02.745991+00",
-    "updated_at": "2026-04-04 20:50:02.745991+00",
-    "width_mm": null,
-    "height_mm": null,
-    "area_mm_2": null
-  },
-  {
-    "id": "116924b7-a4ee-4f7b-8ddf-38b33454c550",
-    "name": "APS-C",
-    "slug": "aps-c",
-    "crop_factor": "1.50",
-    "description": "Nikon, Sony, Fujifilm",
-    "created_at": "2025-08-19 01:55:27.374007+00",
-    "updated_at": "2025-08-19 01:55:27.374007+00",
-    "width_mm": "23.50",
-    "height_mm": "15.60",
-    "area_mm_2": "366.60"
-  },
-  {
-    "id": "a36483f6-2c69-40d1-9b2a-d7ae3c149603",
-    "name": "Medium Format (55x40)",
-    "slug": "medium-format-55x40",
-    "crop_factor": "0.65",
-    "description": "Full size medium format",
-    "created_at": "2026-01-02 17:24:17.478933+00",
-    "updated_at": "2026-01-02 17:24:17.478933+00",
-    "width_mm": "53.40",
-    "height_mm": "40.00",
-    "area_mm_2": "2136.00"
-  },
-  {
-    "id": "9ee34d66-036b-4598-bbb9-d80a1b96c512",
-    "name": "4/3",
-    "slug": "micro-4-3",
-    "crop_factor": "2.00",
-    "description": "Panasonic, Olympus",
-    "created_at": "2025-08-19 01:55:28.154644+00",
-    "updated_at": "2025-08-19 01:55:28.154644+00",
-    "width_mm": "17.30",
-    "height_mm": "13.00",
-    "area_mm_2": "224.90"
-  },
-  {
-    "id": "40e9d5bd-62ef-4ec1-8f8f-b5d232f2a603",
-    "name": "Full-frame",
-    "slug": "full-frame",
-    "crop_factor": "1.00",
-    "description": "35mm equivalent",
-    "created_at": "2025-08-19 01:55:27.132642+00",
-    "updated_at": "2025-08-19 01:55:27.132642+00",
-    "width_mm": "36.00",
-    "height_mm": "24.00",
-    "area_mm_2": "864.00"
-  },
-  {
-    "id": "4df33822-edc9-4a93-9519-dd0050a7f8ee",
-    "name": "Canon APS-C",
-    "slug": "canon-aps-c",
-    "crop_factor": "1.60",
-    "description": "Canon specific",
-    "created_at": "2025-08-19 01:55:27.602979+00",
-    "updated_at": "2025-08-19 01:55:27.602979+00",
-    "width_mm": "22.30",
-    "height_mm": "14.90",
-    "area_mm_2": "332.30"
-  },
-  {
-    "id": "a5b24cc2-4b36-47d4-8765-777a5c2e10ca",
-    "name": "1\"",
-    "slug": "1-inch",
-    "crop_factor": "2.70",
-    "description": "Compact cameras",
-    "created_at": "2025-08-19 01:55:28.397056+00",
-    "updated_at": "2025-08-19 01:55:28.397056+00",
-    "width_mm": "13.20",
-    "height_mm": "8.80",
-    "area_mm_2": "116.20"
-  },
-  {
-    "id": "670ac585-aa5d-4e4d-88a0-c6ee2f7e036e",
-    "name": "Leica Medium Format",
-    "slug": "medium-format-45x30",
-    "crop_factor": "0.80",
-    "description": "Cropped medium format commonly used by Leica S line",
-    "created_at": "2025-08-19 01:55:27.905001+00",
-    "updated_at": "2025-08-19 01:55:27.905001+00",
-    "width_mm": "45.00",
-    "height_mm": "30.00",
-    "area_mm_2": "1350.00"
-  },
-  {
-    "id": "26b5a709-9810-42d7-9a76-0c876043f224",
-    "name": "APS-H",
-    "slug": "aps-h",
-    "crop_factor": "1.30",
-    "description": "Canon intermediate format, also used by a few other cameras",
-    "created_at": "2025-08-19 01:55:28.630193+00",
-    "updated_at": "2025-08-19 01:55:28.630193+00",
     "width_mm": null,
     "height_mm": null,
     "area_mm_2": null
@@ -1251,6 +1243,9 @@ export const ENUMS = {
     "vpg_20",
     "vpg_65",
     "vpg_130"
+  ],
+  "creator_video_platform": [
+    "YOUTUBE"
   ],
   "date_precision_enum": [
     "YEAR",

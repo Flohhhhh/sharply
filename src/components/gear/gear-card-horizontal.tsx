@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useState } from "react";
 import { cn } from "~/lib/utils";
 import { formatGearDate, type GearCardProps } from "./gear-card";
 import { TrendingBadge } from "../gear-badges/trending-badge";
@@ -11,7 +12,6 @@ import { PRICE_FALLBACK_TEXT } from "~/lib/mapping";
 import { HallOfFameBadge } from "../gear-badges/hall-of-fame-badge";
 import { isInHallOfFame } from "~/lib/utils/is-in-hall-of-fame";
 import { isNewRelease } from "~/lib/utils/is-new";
-import { useSession } from "~/lib/auth/auth-client";
 import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
 import { GearCardMoreMenu } from "./gear-card-more-menu";
 
@@ -101,8 +101,6 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
     className,
   } = props;
 
-  const { data } = useSession();
-  const session = data?.session;
   const displayName = useGearDisplayName({ name, regionalAliases });
   const trimmedName = stripBrandFromName(displayName, brandName);
   const dateLabel = formatGearDate(
@@ -119,20 +117,21 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
   if (isTrending) badgeNodes.push(<TrendingBadge key="trending" />);
   if (isNew) badgeNodes.push(<NewBadge key="new" />);
   if (badges) badgeNodes.push(badges);
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 
   return (
     <div className={cn("group relative", className)}>
       <Link
         href={href}
         className={cn(
-          "border-input bg-card/50 hover:border-foreground/40 block rounded-2xl border transition-all",
+          "border-input bg-card/50 hover:border-foreground/40 block rounded-lg border transition-all",
           "shadow-sm hover:shadow-md",
         )}
       >
-        <div className="bg-background rounded-2xl p-2">
+        <div className="bg-background rounded-lg p-2">
           <div className="flex gap-3">
             {/* Image / left side */}
-            <div className="bg-muted dark:bg-card relative w-48 shrink-0 overflow-hidden rounded-xl">
+            <div className="bg-muted dark:bg-card relative w-48 shrink-0 overflow-hidden rounded">
               <div className="relative aspect-video">
                 <div className="h-full w-full p-4">
                   <div className="relative h-full w-full">
@@ -155,56 +154,71 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
             </div>
 
             {/* Right content */}
-            <div className="flex min-w-0 flex-1 flex-col justify-between px-1.5 py-2">
+            <div className="flex min-w-0 flex-1 flex-col justify-between px-1.5 py-1">
               <div>
-                <div className="flex items-start justify-between gap-2">
-                  <div className="text-muted-foreground flex min-w-0 flex-1 items-center gap-2 text-sm">
-                    {brandName ? (
-                      <span className="shrink-0">{brandName}</span>
-                    ) : null}
-                    {badgeNodes.length > 0 ? (
-                      <div className="flex flex-wrap items-center gap-1">
-                        {badgeNodes}
-                      </div>
-                    ) : null}
-                  </div>
-                  <div className="flex shrink-0 items-center gap-1">
+                <div className="relative pr-10">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1" />
                     {metaRight ? (
-                      <span className="bg-secondary rounded-full px-2 py-1 text-xs">
+                      <span className="bg-secondary shrink-0 rounded-full px-2 py-1 text-xs">
                         {metaRight}
                       </span>
                     ) : null}
-                    {session ? (
+                  </div>
+
+                  <div
+                    className={cn(
+                      "pointer-events-none absolute top-0 right-0 transition-opacity",
+                      moreMenuOpen
+                        ? "opacity-100"
+                        : "opacity-0 group-hover:opacity-100",
+                    )}
+                  >
+                    <div className="pointer-events-auto">
                       <GearCardMoreMenu
                         slug={slug}
                         displayName={displayName}
                         gearType={gearType}
+                        onOpenChange={setMoreMenuOpen}
                       />
-                    ) : null}
+                    </div>
                   </div>
                 </div>
 
-                <div className="text-foreground mt-2 line-clamp-2 text-lg font-semibold">
-                  {trimmedName}
+                <div className="text-foreground line-clamp-2 font-semibold">
+                  {brandName ? (
+                    <span className="text-muted-foreground mr-1.5 font-medium">
+                      {brandName}
+                    </span>
+                  ) : null}
+                  <span>{trimmedName}</span>
                 </div>
               </div>
 
-              <div className="mt-2 flex items-center gap-2">
-                <div className="text-muted-foreground text-xs">{dateLabel}</div>
-                {priceText && dateLabel !== "---" ? (
-                  <>
-                    <span className="text-muted-foreground text-xs">·</span>
-                    <span
-                      className={cn(
-                        "text-xs font-semibold",
-                        priceText === PRICE_FALLBACK_TEXT
-                          ? "text-muted-foreground"
-                          : "text-foreground",
-                      )}
-                    >
-                      {priceText}
-                    </span>
-                  </>
+              <div className="flex items-end justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2">
+                  <div className="text-muted-foreground text-xs">{dateLabel}</div>
+                  {priceText && dateLabel !== "---" ? (
+                    <>
+                      <span className="text-muted-foreground text-xs">·</span>
+                      <span
+                        className={cn(
+                          "text-xs font-semibold",
+                          priceText === PRICE_FALLBACK_TEXT
+                            ? "text-muted-foreground"
+                            : "text-foreground",
+                        )}
+                      >
+                        {priceText}
+                      </span>
+                    </>
+                  ) : null}
+                </div>
+
+                {badgeNodes.length > 0 ? (
+                  <div className="hidden shrink-0 flex-wrap items-center justify-end gap-1 md:flex">
+                    {badgeNodes}
+                  </div>
                 ) : null}
               </div>
             </div>

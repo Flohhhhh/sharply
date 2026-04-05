@@ -6,6 +6,7 @@ import {
   Swords,
   Trash,
   Upload,
+  Video,
 } from "lucide-react";
 
 import { Button } from "~/components/ui/button";
@@ -29,6 +30,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "~/components/ui/tooltip";
+import { ManageCreatorVideosModal } from "~/app/(app)/(pages)/gear/_components/manage-creator-videos-modal";
 
 type DockSample = Omit<RawSample, "createdAt" | "updatedAt"> & {
   createdAt?: string | null;
@@ -48,6 +50,7 @@ export interface BuildDockButtonsParams {
   currentThumbnailUrl?: string | null;
   currentTopViewUrl?: string | null;
   alternatives: GearAlternativeRow[];
+  hasCreatorVideos: boolean;
   managedSamples: DockSample[];
   isManagerOpen: boolean;
   setIsManagerOpen: (value: boolean) => void;
@@ -68,6 +71,7 @@ export function buildDockButtons({
   currentThumbnailUrl,
   currentTopViewUrl,
   alternatives,
+  hasCreatorVideos,
   managedSamples,
   isManagerOpen,
   setIsManagerOpen,
@@ -147,6 +151,28 @@ export function buildDockButtons({
             <TooltipContent sideOffset={10}>Alternatives</TooltipContent>
           </Tooltip>
         ) : null,
+    },
+    {
+      id: "videos",
+      allowed: (currentUser) => Boolean(requireRole(currentUser, ["EDITOR"])),
+      render: () => (
+        <Tooltip key="videos">
+          <ManageCreatorVideosModal
+            slug={slug}
+            trigger={
+              <TooltipTrigger asChild>
+                <button
+                  className={baseTriggerClass}
+                  aria-label="Manage Creator Videos"
+                >
+                  <Video className="text-foreground/70 size-4.5" />
+                </button>
+              </TooltipTrigger>
+            }
+          />
+          <TooltipContent sideOffset={10}>Creator Videos</TooltipContent>
+        </Tooltip>
+      ),
     },
     {
       id: "samples",
