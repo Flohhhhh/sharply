@@ -35,11 +35,13 @@ export function shouldGateSingleNumericToken(params: {
 }): boolean {
   const { numericTokens, strongParts, normalizedQueryNoPunct } = params;
   const singleNumericToken = numericTokens[0];
+  const isStandaloneDecimalToken =
+    singleNumericToken !== undefined &&
+    singleNumericToken.includes(".") &&
+    normalizedQueryNoPunct === singleNumericToken.replace(".", "");
 
   return (
     numericTokens.length === 1 &&
-    (strongParts.length >= 1 ||
-      (singleNumericToken?.includes(".") &&
-        normalizedQueryNoPunct === singleNumericToken.replace(".", "")))
+    (strongParts.length >= 1 || isStandaloneDecimalToken)
   );
 }
