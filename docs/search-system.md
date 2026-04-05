@@ -55,7 +55,7 @@ Helper utilities for URLs live in `src/lib/utils/url.ts` (`buildSearchHref`, `me
 
 ## Core algorithm
 
-Implemented in `src/lib/utils/search.ts` (export: `searchGear`).
+Implemented in `src/server/search/data.ts`, `src/server/search/service.ts`, and `src/server/search/query-normalization.ts`.
 
 ### Goals
 
@@ -66,7 +66,7 @@ Implemented in `src/lib/utils/search.ts` (export: `searchGear`).
 
 ### Normalization
 
-- Query normalization: lowercase, trim, remove spaces/underscores/dots/hyphens → `normalizedQueryNoPunct`.
+- Query normalization: lowercase, trim, remove spaces/underscores/dots/slashes/hyphens → `normalizedQueryNoPunct`.
 - Column forms:
   - `searchLower` = `lower(gear.search_name)`
   - `normalizedCol` = `regexp_replace(searchLower, '[[:space:]_.-]+', '', 'g')`
@@ -129,6 +129,7 @@ Optional ANDed filters for brand/mount/gearType/price range/sensor format. These
 
 - If a query contains two or more significant numeric tokens (integers with ≥3 digits like `400` or decimals like `4.5`), the search additionally requires that all numeric tokens appear in the item’s `search_name`.
 - If a query contains exactly one significant numeric token and at least one alphabetic “strong token” (e.g., `nikon z 400`), the match is gated on that numeric token appearing in the item’s `search_name`. This makes mixed queries surface the expected lenses (e.g., `400mm`) without broadly relaxing other matches.
+- Decimal numeric tokens are matched with a digit-sequence regex so `f/1.4`, `F1.4`, and the normalized `search_name` form (`f1 4`) all satisfy the same gate.
 
 ## Command palette specifics
 
@@ -174,7 +175,7 @@ Optional ANDed filters for brand/mount/gearType/price range/sensor format. These
 
 ## Tuning knobs
 
-Located in `src/lib/utils/search.ts`:
+Located in `src/server/search/data.ts` and `src/server/search/query-normalization.ts`:
 
 - Token gate: letter presence and `length ≥ 3` for substring ILIKE
 - Similarity thresholds: `> 0.25` (brand-agnostic), `> 0.33` (raw column)
