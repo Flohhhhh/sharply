@@ -24,6 +24,10 @@ import {
   queryGearSuggestions,
   queryBrandSuggestions,
 } from "./data";
+import {
+  normalizeSearchQuery,
+  normalizeSearchQueryNoPunct,
+} from "./query-normalization";
 import { fetchGearAliasesByGearIds } from "~/server/gear/data";
 import type { GearAlias, GearRegion } from "~/types/gear";
 import { buildCompareHref } from "~/lib/utils/url";
@@ -115,10 +119,7 @@ export async function searchGear(
   let normalizedQueryNoPunct: string | null = null;
   if (query && query.trim().length > 0) {
     whereClause = buildSearchWhereClause(query);
-    normalizedQueryNoPunct = query
-      .toLowerCase()
-      .trim()
-      .replace(/[\s\-_.]+/g, "");
+    normalizedQueryNoPunct = normalizeSearchQueryNoPunct(query);
   }
 
   if (filters) {
@@ -293,8 +294,8 @@ async function buildRankedSuggestions(
   query: string,
   region?: GearRegion | null,
 ): Promise<Suggestion[]> {
-  const normalizedQuery = query.toLowerCase().trim();
-  const normalizedQueryNoPunct = normalizedQuery.replace(/[\s\-_.]+/g, "");
+  const normalizedQuery = normalizeSearchQuery(query);
+  const normalizedQueryNoPunct = normalizeSearchQueryNoPunct(query);
   const whereClause = buildSearchWhereClause(query)!;
   const relevanceExpr = buildRelevanceExpr(query, normalizedQueryNoPunct);
 

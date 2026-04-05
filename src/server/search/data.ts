@@ -33,6 +33,25 @@ import {
   analogCameraSpecs,
 } from "~/server/db/schema";
 import { asc, desc, ilike, sql, and, eq, type SQL } from "drizzle-orm";
+import {
+  buildDecimalNumericTokenRegex,
+  getSignificantNumericTokens,
+  normalizeSearchQuery,
+  normalizeSearchQueryNoPunct,
+  shouldGateSingleNumericToken,
+} from "./query-normalization";
+
+function buildNumericTokenMatchClause(
+  searchLower: SQL,
+  token: string,
+): SQL {
+  const decimalPattern = buildDecimalNumericTokenRegex(token);
+  if (decimalPattern) {
+    return sql`${searchLower} ~ ${decimalPattern}`;
+  }
+
+  return ilike(gear.searchName, `%${token}%`);
+}
 
 /**
  * Build a strict WHERE clause for free-text search.
@@ -41,8 +60,8 @@ import { asc, desc, ilike, sql, and, eq, type SQL } from "drizzle-orm";
  * - Combines brand-agnostic and normalized contains with conservative fuzzy thresholds.
  */
 export function buildSearchWhereClause(query: string): SQL | undefined {
-  const normalizedQuery = query.toLowerCase().trim();
-  const normalizedQueryNoPunct = normalizedQuery.replace(/[\s\-_.\/]+/g, "");
+  const normalizedQuery = normalizeSearchQuery(query);
+  const normalizedQueryNoPunct = normalizeSearchQueryNoPunct(query);
 
   const parts = normalizedQuery
     .split(/[\s_]+/)
@@ -108,45 +127,50 @@ export function buildSearchWhereClause(query: string): SQL | undefined {
 
   // Numeric token handling
   // - If there are 2+ numeric tokens (e.g., "400 4.5"), require ALL of them
-  //   to appear in the raw search name (AND). This is appended to the OR set
-  //   to avoid over-broad fuzzy matches.
+  //   to appear in the normalized search name form (AND). Decimal tokens are
+  //   matched as digit sequences so "1.4" still matches the stored "f1 4".
+  //   This is appended to the OR set to avoid over-broad fuzzy matches.
   // - If there is exactly 1 significant numeric token (e.g., "400") AND the
   //   query also contains at least one alphabetic "strong" token (e.g., "nikon"),
   //   gate the whole match on that numeric token appearing as well. This helps
   //   queries like "nikon z 400" surface the corresponding 400mm lenses instead
   //   of only camera bodies.
-  const numericMatches = Array.from(
-    normalizedQuery.matchAll(/\d+(?:\.\d+)?/g),
-  ).map((m) => m[0]);
-  const numericTokens = numericMatches.filter(
-    (t) => t.includes(".") || t.length >= 3,
-  );
+  const numericTokens = getSignificantNumericTokens(query);
 
   // Make numeric tokens contribute positively to OR conditions as well.
   // This helps lens queries like "50 1.8" where punctuation/letters (e.g., "f/")
   // in names would otherwise break contiguous substring matches.
   if (numericTokens.length >= 2) {
-    const andClauses = numericTokens.map((t) =>
-      ilike(gear.searchName, `%${t}%`),
+    const andClauses = numericTokens.map((token) =>
+      buildNumericTokenMatchClause(searchLower, token),
     );
     const numericAndForOr = sql`(${sql.join(andClauses as unknown as SQL[], sql` AND `)})`;
     conditions.push(numericAndForOr);
   } else if (numericTokens.length === 1) {
-    conditions.push(ilike(gear.searchName, `%${numericTokens[0]}%`));
+    conditions.push(buildNumericTokenMatchClause(searchLower, numericTokens[0]!));
   }
 
   const baseOr = sql`(${sql.join(conditions, sql` OR `)})`;
+  const singleNumericToken = numericTokens[0];
+  const shouldGateSingleNumeric = shouldGateSingleNumericToken({
+    numericTokens,
+    strongParts,
+    normalizedQueryNoPunct,
+  });
 
   if (numericTokens.length >= 2) {
-    const andClauses = numericTokens.map((t) =>
-      ilike(gear.searchName, `%${t}%`),
+    const andClauses = numericTokens.map((token) =>
+      buildNumericTokenMatchClause(searchLower, token),
     );
     const numericAnd = sql`(${sql.join(andClauses as unknown as SQL[], sql` AND `)})`;
     return sql`(${baseOr}) AND (${numericAnd})`;
   }
 
-  if (numericTokens.length === 1 && strongParts.length >= 1) {
-    const singleNumeric = ilike(gear.searchName, `%${numericTokens[0]}%`);
+  if (shouldGateSingleNumeric) {
+    const singleNumeric = buildNumericTokenMatchClause(
+      searchLower,
+      singleNumericToken!,
+    );
     return sql`(${baseOr}) AND (${singleNumeric})`;
   }
 
