@@ -5,7 +5,7 @@ if (process.env.NEXT_RUNTIME) {
   });
 }
 
-import { openai } from "~/lib/open-ai/open-ai";
+import { getOpenAIClient } from "~/lib/open-ai/open-ai";
 import {
   SUMMARY_MODEL,
   SUMMARY_TEMPERATURE,
@@ -93,6 +93,11 @@ export async function maybeGenerateReviewSummary(params: {
     model: SUMMARY_MODEL,
     promptChars: prompt.length,
   });
+  const openai = getOpenAIClient();
+  if (!openai) {
+    console.log("[ai-summary] missing OPENAI client");
+    return { generated: false, reason: "missing_openai_key" } as const;
+  }
 
   const resp = await openai.chat.completions.create({
     model: SUMMARY_MODEL,
@@ -140,6 +145,8 @@ export async function generateReviewSummaryFromProvidedReviews(params: {
     sampleSize: params.reviews.length,
   });
   if (!process.env.OPENAI_API_KEY) throw new Error("OPENAI_API_KEY missing");
+  const openai = getOpenAIClient();
+  if (!openai) throw new Error("OPENAI_API_KEY missing");
   const prompt = buildSummaryPrompt({
     gearName: params.gearName,
     previousSummary: params.previousSummary ?? null,
