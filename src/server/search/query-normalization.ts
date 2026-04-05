@@ -27,3 +27,19 @@ export function buildDecimalNumericTokenRegex(token: string): string | null {
 
   return `(^|[^0-9])${digitGroups.join("[^0-9]+")}([^0-9]|$)`;
 }
+
+export function shouldGateSingleNumericToken(params: {
+  numericTokens: string[];
+  strongParts: string[];
+  normalizedQueryNoPunct: string;
+}): boolean {
+  const { numericTokens, strongParts, normalizedQueryNoPunct } = params;
+  const singleNumericToken = numericTokens[0];
+
+  return (
+    numericTokens.length === 1 &&
+    (strongParts.length >= 1 ||
+      (singleNumericToken?.includes(".") &&
+        normalizedQueryNoPunct === singleNumericToken.replace(".", "")))
+  );
+}

@@ -4,6 +4,7 @@ import {
   buildDecimalNumericTokenRegex,
   getSignificantNumericTokens,
   normalizeSearchQueryNoPunct,
+  shouldGateSingleNumericToken,
 } from "~/server/search/query-normalization";
 
 describe("search query normalization", () => {
@@ -25,5 +26,25 @@ describe("search query normalization", () => {
     expect(pattern).toBe("(^|[^0-9])1[^0-9]+4([^0-9]|$)");
     expect("sigma 15mm f1 4 dc contemporary").toMatch(new RegExp(pattern!));
     expect("sigma 15mm f14 dc contemporary").not.toMatch(new RegExp(pattern!));
+  });
+
+  it("gates lone decimal queries even without strong parts", () => {
+    expect(
+      shouldGateSingleNumericToken({
+        numericTokens: ["1.4"],
+        strongParts: [],
+        normalizedQueryNoPunct: "14",
+      }),
+    ).toBe(true);
+  });
+
+  it("does not gate lone short integers without strong parts", () => {
+    expect(
+      shouldGateSingleNumericToken({
+        numericTokens: ["14"],
+        strongParts: [],
+        normalizedQueryNoPunct: "14",
+      }),
+    ).toBe(false);
   });
 });

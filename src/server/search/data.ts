@@ -38,6 +38,7 @@ import {
   getSignificantNumericTokens,
   normalizeSearchQuery,
   normalizeSearchQueryNoPunct,
+  shouldGateSingleNumericToken,
 } from "./query-normalization";
 
 function buildNumericTokenMatchClause(
@@ -150,6 +151,12 @@ export function buildSearchWhereClause(query: string): SQL | undefined {
   }
 
   const baseOr = sql`(${sql.join(conditions, sql` OR `)})`;
+  const singleNumericToken = numericTokens[0];
+  const shouldGateSingleNumeric = shouldGateSingleNumericToken({
+    numericTokens,
+    strongParts,
+    normalizedQueryNoPunct,
+  });
 
   if (numericTokens.length >= 2) {
     const andClauses = numericTokens.map((token) =>
@@ -159,10 +166,10 @@ export function buildSearchWhereClause(query: string): SQL | undefined {
     return sql`(${baseOr}) AND (${numericAnd})`;
   }
 
-  if (numericTokens.length === 1 && strongParts.length >= 1) {
+  if (shouldGateSingleNumeric) {
     const singleNumeric = buildNumericTokenMatchClause(
       searchLower,
-      numericTokens[0]!,
+      singleNumericToken!,
     );
     return sql`(${baseOr}) AND (${singleNumeric})`;
   }
