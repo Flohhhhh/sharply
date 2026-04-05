@@ -247,6 +247,7 @@ export function ManageCreatorVideosModal({
           thumbnailUrl: manualThumbnailUrl,
           publishedAt: manualPublishedAt,
           editorNote,
+          resolution,
         });
         toast.success("Creator video saved");
         resetAddForm();

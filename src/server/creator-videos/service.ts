@@ -12,9 +12,25 @@ import {
   updateGearCreatorVideoEditorialData,
   upsertGearCreatorVideoData,
 } from "./data";
-import { resolveCreatorVideoMetadata } from "./metadata";
+import {
+  normalizeYouTubeVideoUrl,
+  resolveCreatorVideoMetadata,
+} from "./metadata";
 import { fetchActiveApprovedCreatorsForPlatform } from "~/server/admin/approved-creators/service";
 export type { PublicGearCreatorVideoRow } from "./data";
+
+const creatorVideoMetadataResolutionInput = z.object({
+  platform: z.literal("YOUTUBE"),
+  sourceUrl: z.string().trim().min(1),
+  normalizedUrl: z.string().trim().url(),
+  embedUrl: z.string().trim().url(),
+  externalVideoId: z.string().trim().min(1),
+  title: z.string().trim().max(500).nullable(),
+  thumbnailUrl: z.string().trim().url().nullable(),
+  publishedAt: z.string().trim().nullable(),
+  metadataStatus: z.enum(["resolved", "manual_required"]),
+  message: z.string().trim().nullable(),
+});
 
 const gearCreatorVideoInput = z.object({
   creatorId: z.string().trim().min(1),
@@ -23,6 +39,7 @@ const gearCreatorVideoInput = z.object({
   thumbnailUrl: z.string().trim().url().optional().or(z.literal("")),
   publishedAt: z.string().trim().optional().or(z.literal("")),
   editorNote: z.string().trim().max(1000).optional().or(z.literal("")),
+  resolution: creatorVideoMetadataResolutionInput.optional(),
 });
 
 const gearCreatorVideoEditorialInput = z.object({
@@ -99,7 +116,27 @@ export async function createGearCreatorVideo(slug: string, input: unknown) {
     });
   }
 
-  const resolution = await resolveCreatorVideoMetadata(parsed.url);
+  if (!parsed.resolution) {
+    throw Object.assign(new Error("Fetch the video details before saving"), {
+      status: 400,
+    });
+  }
+
+  const normalized = normalizeYouTubeVideoUrl(parsed.url);
+  const resolution = parsed.resolution;
+
+  if (
+    resolution.platform !== normalized.platform ||
+    resolution.normalizedUrl !== normalized.normalizedUrl ||
+    resolution.embedUrl !== normalized.embedUrl ||
+    resolution.externalVideoId !== normalized.externalVideoId
+  ) {
+    throw Object.assign(
+      new Error("Video details are out of date. Fetch the video details again."),
+      { status: 400 },
+    );
+  }
+
   if (resolution.platform !== creator.platform) {
     throw Object.assign(new Error("Video platform must match the selected creator"), {
       status: 400,
@@ -130,11 +167,11 @@ export async function createGearCreatorVideo(slug: string, input: unknown) {
   const video = await upsertGearCreatorVideoData({
     gearId,
     creatorId: creator.id,
-    sourceUrl: resolution.sourceUrl,
-    normalizedUrl: resolution.normalizedUrl,
-    embedUrl: resolution.embedUrl,
-    platform: resolution.platform,
-    externalVideoId: resolution.externalVideoId,
+    sourceUrl: normalized.sourceUrl,
+    normalizedUrl: normalized.normalizedUrl,
+    embedUrl: normalized.embedUrl,
+    platform: normalized.platform,
+    externalVideoId: normalized.externalVideoId,
     title,
     thumbnailUrl,
     publishedAt,
