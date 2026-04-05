@@ -159,6 +159,14 @@ This starts Next.js on `http://localhost:3000`.
 - `npm run typecheck` – TypeScript with `--noEmit`
 - `npm run check` – Combined lint + typecheck
 
+### Playwright E2E
+
+- `npm run test:e2e` starts its own local Next server and runs the Playwright suite in Chromium only. This is the default runner for local agents because it is the least flaky path.
+- `npm run test:e2e:all` runs the full browser/device matrix.
+- `npm run test:e2e:headed` runs Chromium headed for local debugging.
+- If you already have the app running, set `PLAYWRIGHT_BASE_URL` to reuse that server instead of starting another one.
+- If you want a production-like server instead of `next dev`, set `PLAYWRIGHT_SERVER_COMMAND="npm run preview:e2e"` before running Playwright.
+
 ## Project Structure
 
 - `src/app` – Next.js App Router routes, layouts, and pages
