@@ -33,6 +33,7 @@ import {
   hasPendingEditsForGear,
   fetchPendingEditForGear,
   countPendingEditsForGear,
+  countApprovedGearEditsByUser,
   resolveOpenReviewFlags as resolveOpenReviewFlagsData,
 } from "./data";
 import type { GearItem, RawSample } from "~/types/gear";
@@ -727,8 +728,161 @@ function summarizeProposalPayload(payload: Record<string, unknown>) {
   return { changedFieldCount, changedSectionCount };
 }
 
-function formatProposalSubmitterLabel(user: { name?: string | null; email?: string | null }) {
+function formatProposalSubmitterLabel(user: {
+  name?: string | null;
+  email?: string | null;
+}) {
   return user.name?.trim() || null;
+}
+
+type NormalizedProposalPayload = Record<string, unknown> & {
+  core?: Record<string, unknown>;
+  camera?: Record<string, unknown>;
+  analogCamera?: Record<string, unknown>;
+  lens?: Record<string, unknown>;
+  fixedLens?: Record<string, unknown>;
+  cameraCardSlots?: unknown;
+  videoModes?: unknown;
+};
+
+function isEmptyProposalValue(value: unknown): boolean {
+  if (value == null) return true;
+  if (typeof value === "string") return value.trim().length === 0;
+  if (Array.isArray(value)) return value.length === 0;
+  if (value instanceof Date) return false;
+  if (typeof value === "object") return Object.keys(value).length === 0;
+  return false;
+}
+
+function normalizeCurrentProposalValue(
+  currentValue: unknown,
+  fieldKey?: string,
+): unknown {
+  if (fieldKey === "afAreaModes" && Array.isArray(currentValue)) {
+    return currentValue
+      .map((entry) => {
+        if (typeof entry === "string") return entry;
+        if (
+          entry &&
+          typeof entry === "object" &&
+          "id" in entry &&
+          typeof (entry as { id?: unknown }).id === "string"
+        ) {
+          return (entry as { id: string }).id;
+        }
+        return null;
+      })
+      .filter((entry): entry is string => Boolean(entry));
+  }
+
+  return currentValue;
+}
+
+function getCurrentProposalFieldValue(
+  gearItem: GearItem,
+  sectionKey: keyof Pick<
+    NormalizedProposalPayload,
+    "core" | "camera" | "analogCamera" | "lens" | "fixedLens"
+  >,
+  fieldKey: string,
+): unknown {
+  switch (sectionKey) {
+    case "core":
+      return normalizeCurrentProposalValue(
+        (gearItem as Record<string, unknown>)[fieldKey],
+        fieldKey,
+      );
+    case "camera":
+      return normalizeCurrentProposalValue(
+        (gearItem.cameraSpecs as Record<string, unknown> | null)?.[fieldKey],
+        fieldKey,
+      );
+    case "analogCamera":
+      return normalizeCurrentProposalValue(
+        (gearItem.analogCameraSpecs as Record<string, unknown> | null)?.[fieldKey],
+        fieldKey,
+      );
+    case "lens":
+      return normalizeCurrentProposalValue(
+        (gearItem.lensSpecs as Record<string, unknown> | null)?.[fieldKey],
+        fieldKey,
+      );
+    case "fixedLens":
+      return normalizeCurrentProposalValue(
+        (gearItem.fixedLensSpecs as Record<string, unknown> | null)?.[fieldKey],
+        fieldKey,
+      );
+    default:
+      return undefined;
+  }
+}
+
+function isAddOnlyProposal(
+  gearItem: GearItem,
+  payload: NormalizedProposalPayload,
+): boolean {
+  const sectionKeys = [
+    "core",
+    "camera",
+    "analogCamera",
+    "lens",
+    "fixedLens",
+  ] as const;
+
+  for (const sectionKey of sectionKeys) {
+    const section = payload[sectionKey];
+    if (!section || typeof section !== "object" || Array.isArray(section)) {
+      continue;
+    }
+
+    for (const [fieldKey, proposedValue] of Object.entries(section)) {
+      const currentValue = getCurrentProposalFieldValue(
+        gearItem,
+        sectionKey,
+        fieldKey,
+      );
+      if (
+        !isEmptyProposalValue(currentValue) ||
+        isEmptyProposalValue(proposedValue)
+      ) {
+        return false;
+      }
+    }
+  }
+
+  for (const fieldKey of ["cameraCardSlots", "videoModes"] as const) {
+    if (!Object.prototype.hasOwnProperty.call(payload, fieldKey)) continue;
+    const currentValue = normalizeCurrentProposalValue(
+      (gearItem as Record<string, unknown>)[fieldKey],
+      fieldKey,
+    );
+    const proposedValue = payload[fieldKey];
+    if (
+      !isEmptyProposalValue(currentValue) ||
+      isEmptyProposalValue(proposedValue)
+    ) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+async function isTrustedAddOnlyAutoApprovalEligible(params: {
+  userId: string;
+  gearSlug: string | null | undefined;
+  payload: NormalizedProposalPayload;
+}): Promise<boolean> {
+  if (!params.gearSlug) return false;
+
+  const approvedEdits = await countApprovedGearEditsByUser(params.userId);
+  if (approvedEdits < 1) return false;
+
+  const gearItem = await fetchGearBySlugData(params.gearSlug);
+  const construction = getConstructionState(gearItem);
+  if (!construction.underConstruction) return false;
+
+  return isAddOnlyProposal(gearItem, params.payload);
 }
 
 export async function submitGearEditProposal(body: unknown) {
@@ -753,8 +907,22 @@ export async function submitGearEditProposal(body: unknown) {
     note: data.note ?? null,
   });
   let autoApproved = false;
-  const canAutoApprove = requireRole(user, ["EDITOR"]);
-  if (!hasPending && canAutoApprove && data.autoSubmit !== false) {
+  const canAutoApproveStaff = requireRole(user, ["EDITOR"]);
+  let canAutoApproveTrusted = false;
+
+  if (!hasPending && !canAutoApproveStaff && data.autoSubmit !== false) {
+    canAutoApproveTrusted = await isTrustedAddOnlyAutoApprovalEligible({
+      userId,
+      gearSlug: gearMeta?.slug,
+      payload: normalizedPayload,
+    });
+  }
+
+  if (
+    !hasPending &&
+    data.autoSubmit !== false &&
+    (canAutoApproveStaff || canAutoApproveTrusted)
+  ) {
     try {
       await approveProposal(proposal.id, normalizedPayload, {
         gearName: gearMeta?.name ?? "Gear",

@@ -127,7 +127,11 @@ export default async function EditSuccessPage({
       </div>
 
       <div className="space-y-3">
-        <h1 className="text-2xl font-semibold">Thanks for your suggestion!</h1>
+        <h1 className="text-2xl font-semibold">
+          {edit?.status === "APPROVED"
+            ? "Your change request was automatically approved!"
+            : "Thanks for your suggestion!"}
+        </h1>
         <p className="text-muted-foreground">Submission ID: {id}</p>
         {edit?.status ? (
           <p className="text-muted-foreground">Current status: {edit.status}</p>
@@ -140,8 +144,8 @@ export default async function EditSuccessPage({
         )}
         {edit?.status === "APPROVED" && (
           <p className="text-muted-foreground">
-            Your suggestion was approved and applied to the gear page. Thank you
-            for contributing!
+            Your suggestion was approved and applied immediately, so the gear
+            page is already updated. Thank you for contributing.
           </p>
         )}
         {edit?.status === "REJECTED" && (
