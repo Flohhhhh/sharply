@@ -1,8 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { CONTACT_OPTIONS } from "~/app/(app)/(pages)/contact/contact-options";
 
-const baseUrl = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
-
 const options = CONTACT_OPTIONS.map((option) => ({
   label: option.label,
   reason: option.value,
@@ -29,7 +27,7 @@ async function getContactContainer(page: import("@playwright/test").Page) {
 
 test.describe("contact page", () => {
   test("option cards open modal with defaults", async ({ page }) => {
-    await page.goto(`${baseUrl}/contact`);
+    await page.goto("/contact");
 
     for (const option of options) {
       await page.getByRole("button", { name: option.label }).click();
@@ -64,7 +62,7 @@ test.describe("contact page", () => {
   });
 
   test("validation blocks empty submit", async ({ page }) => {
-    await page.goto(`${baseUrl}/contact`);
+    await page.goto("/contact");
     await page.getByRole("button", { name: "Data Errors" }).click();
     const container = await getContactContainer(page);
     await expect(container).toBeVisible();
@@ -93,7 +91,7 @@ test.describe("contact page", () => {
       });
     });
 
-    await page.goto(`${baseUrl}/contact`);
+    await page.goto("/contact");
     await page.getByRole("button", { name: "Data Errors" }).click();
     const container = await getContactContainer(page);
     await expect(container).toBeVisible();

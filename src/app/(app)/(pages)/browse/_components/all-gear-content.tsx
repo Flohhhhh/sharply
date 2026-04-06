@@ -8,9 +8,11 @@ import { splitBrandsWithPriority } from "~/lib/brands";
 import { OtherBrandsSelect } from "./other-brands-select";
 import { fetchTrending, fetchTrendingSlugs } from "~/server/popularity/service";
 import { getItemDisplayPrice } from "~/lib/mapping";
-import { fetchReleaseFeedPage } from "~/server/gear/browse/service";
+import {
+  fetchBrandBySlug,
+  fetchReleaseFeedPage,
+} from "~/server/gear/browse/service";
 import { ReleaseFeedGrid } from "./release-feed-grid";
-import { getBrandBySlug } from "~/server/gear/browse/data";
 
 const TRENDING_SKELETON_KEYS = [
   "trending-skeleton-1",
@@ -26,7 +28,7 @@ export default async function AllGearContent({
   showBrandPicker?: boolean;
 } = {}) {
   // return <Loading />;
-  const brand = brandSlug ? await getBrandBySlug(brandSlug) : null;
+  const brand = brandSlug ? await fetchBrandBySlug(brandSlug) : null;
   if (brandSlug && !brand) {
     throw new Error(`Brand not found: ${brandSlug}`);
   }

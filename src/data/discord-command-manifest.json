@@ -1,0 +1,108 @@
+[
+  {
+    "name": "ping",
+    "commandType": "slash",
+    "category": "Utility",
+    "description": "Replies with pong. Used to test if the bot is responsive.",
+    "examples": ["/ping"],
+    "options": []
+  },
+  {
+    "name": "gear",
+    "commandType": "slash",
+    "category": "Search",
+    "description": "Get details about a single gear item. Searches based on provided text and returns the top result.",
+    "examples": [
+      "/gear search query:Sony A7 IV",
+      "/gear price query:Canon EOS R5"
+    ],
+    "options": [
+      {
+        "name": "search",
+        "type": "subcommand",
+        "description": "Search for gear",
+        "options": [
+          {
+            "name": "query",
+            "type": "string",
+            "description": "Gear search text",
+            "required": true
+          }
+        ]
+      },
+      {
+        "name": "price",
+        "type": "subcommand",
+        "description": "Show stored prices for a gear item",
+        "options": [
+          {
+            "name": "query",
+            "type": "string",
+            "description": "Gear search text",
+            "required": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "leaderboard",
+    "commandType": "slash",
+    "category": "Community",
+    "description": "Show top contributors to gear specs.",
+    "examples": ["/leaderboard"],
+    "options": []
+  },
+  {
+    "name": "compare",
+    "commandType": "slash",
+    "category": "Search",
+    "description": "Fetch a comparison between two provided gear items.",
+    "examples": ["/compare one:Sony A7 IV two:Canon EOS R5"],
+    "options": [
+      {
+        "name": "one",
+        "type": "string",
+        "description": "First gear (name or slug)",
+        "required": true
+      },
+      {
+        "name": "two",
+        "type": "string",
+        "description": "Second gear (name or slug)",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "totals",
+    "commandType": "slash",
+    "category": "Community",
+    "description": "Show the total number of gear items in the database and contributions to gear specs all-time.",
+    "examples": ["/totals"],
+    "options": []
+  },
+  {
+    "name": "trending",
+    "commandType": "slash",
+    "category": "Lists",
+    "description": "Show the top 10 trending gear items from the last 7 or 30 days. Defaults to 7 days.",
+    "examples": ["/trending", "/trending window:30d"],
+    "options": [
+      {
+        "name": "window",
+        "type": "string",
+        "description": "Time window (7d or 30d)",
+        "required": false
+      }
+    ]
+  },
+  {
+    "name": "Search Gear",
+    "commandType": "message",
+    "category": "Search",
+    "description": "Search for gear mentioned in a message. Right-click a message and run Search Gear.",
+    "examples": ["Right-click a message → Apps → Search Gear"],
+    "options": []
+  }
+]

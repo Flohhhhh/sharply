@@ -33,7 +33,7 @@ import {
   actionSetApprovedCreatorActive,
   actionUpdateApprovedCreator,
 } from "~/server/admin/approved-creators/actions";
-import type { ApprovedCreatorRow } from "~/server/admin/approved-creators/data";
+import type { ApprovedCreatorRow } from "~/server/admin/approved-creators/service";
 
 type ApprovedCreatorsManagerProps = {
   initialCreators: ApprovedCreatorRow[];

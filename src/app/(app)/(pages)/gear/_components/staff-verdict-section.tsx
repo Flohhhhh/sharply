@@ -1,6 +1,5 @@
 import { ManageStaffVerdictModal } from "./manage-staff-verdict-modal";
 import { hasStaffVerdictContent } from "./gear-section-nav";
-import { StaffVerdictEmptyState } from "./staff-verdict-empty-state";
 
 interface StaffVerdict {
   content?: string | null;
@@ -19,7 +18,7 @@ export async function StaffVerdictSection({
   verdict: StaffVerdict | null;
 }) {
   if (!hasStaffVerdictContent(verdict) || !verdict) {
-    return <StaffVerdictEmptyState slug={slug} />;
+    return null;
   }
 
   const pros = Array.isArray(verdict.pros) ? (verdict.pros as string[]) : null;

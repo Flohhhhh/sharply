@@ -14,6 +14,8 @@ import {
   updateApprovedCreatorData,
 } from "./data";
 
+export type { ApprovedCreatorRow } from "./data";
+
 const approvedCreatorInput = z.object({
   name: z.string().trim().min(1).max(200),
   platform: z.literal("YOUTUBE"),

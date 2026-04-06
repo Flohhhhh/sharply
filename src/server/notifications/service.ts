@@ -14,6 +14,8 @@ import {
   type NotificationRow,
 } from "./data";
 
+export type { CreateNotificationParams } from "./data";
+
 export type NotificationType = NotificationRow["type"];
 
 export type NotificationView = {

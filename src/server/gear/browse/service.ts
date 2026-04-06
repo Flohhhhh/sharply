@@ -28,12 +28,21 @@ type LoadHubDataResult = {
 import {
   getBrandBySlug,
   getMountByShortName,
+  getMountsForBrand,
   searchGear,
   getReleaseOrderedGearPage,
 } from "./data";
 import type { SearchGearResult } from "./data";
 import type { BrowseFeedPage, BrowseListItem, BrowseListPage } from "~/types/browse";
 import { fetchGearAliasesByGearIds } from "~/server/gear/data";
+
+export async function fetchBrandBySlug(slug: string) {
+  return getBrandBySlug(slug);
+}
+
+export async function fetchMountsForBrand(brandId: string) {
+  return getMountsForBrand(brandId);
+}
 
 export async function resolveScopeOrThrow(segments: string[]): Promise<{
   depth: 0 | 1 | 2 | 3;

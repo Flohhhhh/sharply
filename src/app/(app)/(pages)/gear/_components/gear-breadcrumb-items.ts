@@ -1,8 +1,13 @@
 import type { CrumbItem } from "~/components/layout/breadcrumbs";
 import { getCategoryLabel, type GearCategorySlug } from "~/lib/browse/routing";
-import { getMountNameById, getMountShortNameById } from "~/lib/mapping/mounts-map";
+import {
+  getMountById,
+  getMountNameById,
+  getMountShortNameById,
+} from "~/lib/mapping/mounts-map";
 
 type GearBreadcrumbInput = {
+  brandId?: string | null;
   brandName?: string | null;
   brandSlug?: string | null;
   gearType?: string | null;
@@ -23,6 +28,21 @@ function getPrimaryMountId(
 ) {
   if (input.mountId) return input.mountId;
   return input.mountIds?.find(Boolean) ?? null;
+}
+
+function hasMultipleMounts(
+  mountIds: GearBreadcrumbInput["mountIds"],
+): boolean {
+  if (!mountIds?.length) return false;
+  return new Set(mountIds.filter(Boolean)).size > 1;
+}
+
+function isNativeMountForBrand(
+  mountId: string | null,
+  brandId: string | null | undefined,
+): boolean {
+  if (!mountId || !brandId) return false;
+  return getMountById(mountId)?.brand_id === brandId;
 }
 
 export function buildGearBreadcrumbItems(
@@ -51,8 +71,13 @@ export function buildGearBreadcrumbItems(
   const mountShortName = primaryMountId
     ? getMountShortNameById(primaryMountId)
     : null;
+  const includeMountBreadcrumb =
+    !!mountShortName &&
+    !!primaryMountId &&
+    !hasMultipleMounts(input.mountIds) &&
+    isNativeMountForBrand(primaryMountId, input.brandId);
 
-  if (!mountShortName || !primaryMountId) {
+  if (!includeMountBreadcrumb) {
     items.push({
       label: categoryLabel,
       href: `/browse/${brandSlug}/${category}`,

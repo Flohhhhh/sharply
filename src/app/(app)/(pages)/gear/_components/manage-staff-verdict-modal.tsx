@@ -27,6 +27,7 @@ import { Separator } from "~/components/ui/separator";
 import { actionUpsertStaffVerdict } from "~/server/gear/actions";
 import { Pencil } from "lucide-react";
 import { requireRole } from "~/lib/auth/auth-helpers";
+import type { ReactNode } from "react";
 
 const verdictSchema = z.object({
   content: z.string().max(5000).optional(),
@@ -46,7 +47,13 @@ function parseLines(value: string | undefined): string[] | null {
   return arr.length ? arr : null;
 }
 
-export function ManageStaffVerdictModal({ slug }: { slug: string }) {
+export function ManageStaffVerdictModal({
+  slug,
+  trigger,
+}: {
+  slug: string;
+  trigger?: ReactNode;
+}) {
   const { data, isPending, error } = useSession();
 
   const [open, setOpen] = useState(false);
@@ -174,9 +181,11 @@ export function ManageStaffVerdictModal({ slug }: { slug: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" icon={<Pencil />}>
-          Manage Staff Verdict
-        </Button>
+        {trigger ?? (
+          <Button size="sm" icon={<Pencil />}>
+            Manage Staff Verdict
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
