@@ -69,12 +69,16 @@ import { buildGearBreadcrumbItems } from "../_components/gear-breadcrumb-items";
 import { buildGearSectionNavItems } from "../_components/gear-section-nav";
 import { fetchPublicGearCreatorVideos } from "~/server/creator-videos/service";
 import { CreatorVideosSection } from "../_components/creator-videos-section";
+import { EditAppliedToast } from "../_components/edit-applied-toast";
 
 export const revalidate = 3600;
 
 interface GearPageProps {
   params: Promise<{
     slug: string;
+  }>;
+  searchParams: Promise<{
+    editApplied?: string;
   }>;
 }
 
@@ -153,8 +157,12 @@ export async function generateMetadata({
   }
 }
 
-export default async function GearPage({ params }: GearPageProps) {
+export default async function GearPage({
+  params,
+  searchParams,
+}: GearPageProps) {
   const { slug } = await params;
+  const { editApplied } = await searchParams;
   // console.log("[gear/[slug]] Generating static page (build/ISR)", { slug });
   const viewerRegion = resolveRegionFromCountryCode(null);
 
@@ -267,6 +275,7 @@ export default async function GearPage({ params }: GearPageProps) {
 
   return (
     <main className="mx-auto max-w-7xl space-y-8 px-4 pt-20 sm:px-6">
+      {editApplied === "1" ? <EditAppliedToast /> : null}
       <GearItemDock
         slug={slug}
         gearId={item.id}

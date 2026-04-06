@@ -5,7 +5,9 @@ const authMocks = vi.hoisted(() => ({
 }));
 
 const gearDataMocks = vi.hoisted(() => ({
+  countApprovedGearEditsByUser: vi.fn(),
   createGearEditProposal: vi.fn(),
+  fetchGearBySlug: vi.fn(),
   fetchGearMetadataById: vi.fn(),
   getGearIdBySlug: vi.fn(),
   hasPendingEditsForGear: vi.fn(),
@@ -72,6 +74,31 @@ function makeProposal(overrides: Record<string, unknown> = {}) {
   };
 }
 
+function makeUnderConstructionGear(overrides: Record<string, unknown> = {}) {
+  return {
+    id: "22222222-2222-4222-8222-222222222222",
+    slug: "nikon-zf",
+    name: "Nikon Zf",
+    gearType: "CAMERA",
+    brandId: null,
+    mountId: null,
+    mountIds: [],
+    cameraSpecs: {
+      sensorFormatId: null,
+      resolutionMp: null,
+      afAreaModes: [],
+      supportedBatteries: [],
+      availableShutterTypes: [],
+    },
+    analogCameraSpecs: null,
+    lensSpecs: null,
+    fixedLensSpecs: null,
+    cameraCardSlots: [],
+    videoModes: [],
+    ...overrides,
+  };
+}
+
 describe("gear edit submission", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -90,6 +117,8 @@ describe("gear edit submission", () => {
     );
 
     gearDataMocks.hasPendingEditsForGear.mockResolvedValue(false);
+    gearDataMocks.countApprovedGearEditsByUser.mockResolvedValue(0);
+    gearDataMocks.fetchGearBySlug.mockResolvedValue(makeUnderConstructionGear());
     gearDataMocks.fetchGearMetadataById.mockResolvedValue({
       gearType: "CAMERA",
       name: "Nikon Zf",
@@ -153,6 +182,103 @@ describe("gear edit submission", () => {
     const result = await submitGearEditProposal({
       gearId: "22222222-2222-4222-8222-222222222222",
       payload: { core: { name: "Updated name" } },
+      autoSubmit: true,
+    });
+
+    expect(result.autoApproved).toBe(false);
+    expect(result.proposal.status).toBe("PENDING");
+    expect(proposalServiceMocks.approveProposal).not.toHaveBeenCalled();
+    expect(webhookMocks.notifyChangeRequestModerators).toHaveBeenCalledTimes(1);
+  });
+
+  it("auto-approves trusted contributors for add-only under-construction edits", async () => {
+    authMocks.getSessionOrThrow.mockResolvedValue({
+      user: { id: "user-1", role: "USER", name: "Alex Photographer" },
+    });
+    gearDataMocks.countApprovedGearEditsByUser.mockResolvedValue(1);
+
+    const result = await submitGearEditProposal({
+      gearId: "22222222-2222-4222-8222-222222222222",
+      payload: { core: { brandId: "brand-1" } },
+      autoSubmit: true,
+    });
+
+    expect(result.autoApproved).toBe(true);
+    expect(result.proposal.status).toBe("APPROVED");
+    expect(proposalServiceMocks.approveProposal).toHaveBeenCalledTimes(1);
+    expect(webhookMocks.notifyChangeRequestModerators).not.toHaveBeenCalled();
+  });
+
+  it("keeps trusted contributors pending when they overwrite an existing value", async () => {
+    authMocks.getSessionOrThrow.mockResolvedValue({
+      user: { id: "user-1", role: "USER", name: "Alex Photographer" },
+    });
+    gearDataMocks.countApprovedGearEditsByUser.mockResolvedValue(1);
+    gearDataMocks.fetchGearBySlug.mockResolvedValue(
+      makeUnderConstructionGear({ brandId: "existing-brand" }),
+    );
+
+    const result = await submitGearEditProposal({
+      gearId: "22222222-2222-4222-8222-222222222222",
+      payload: { core: { brandId: "brand-1" } },
+      autoSubmit: true,
+    });
+
+    expect(result.autoApproved).toBe(false);
+    expect(result.proposal.status).toBe("PENDING");
+    expect(proposalServiceMocks.approveProposal).not.toHaveBeenCalled();
+    expect(webhookMocks.notifyChangeRequestModerators).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps trusted contributors pending when they clear a value", async () => {
+    authMocks.getSessionOrThrow.mockResolvedValue({
+      user: { id: "user-1", role: "USER", name: "Alex Photographer" },
+    });
+    gearDataMocks.countApprovedGearEditsByUser.mockResolvedValue(1);
+
+    const result = await submitGearEditProposal({
+      gearId: "22222222-2222-4222-8222-222222222222",
+      payload: { core: { brandId: null } },
+      autoSubmit: true,
+    });
+
+    expect(result.autoApproved).toBe(false);
+    expect(result.proposal.status).toBe("PENDING");
+    expect(proposalServiceMocks.approveProposal).not.toHaveBeenCalled();
+    expect(webhookMocks.notifyChangeRequestModerators).toHaveBeenCalledTimes(1);
+  });
+
+  it("auto-approves trusted contributors for empty-to-filled collection fields", async () => {
+    authMocks.getSessionOrThrow.mockResolvedValue({
+      user: { id: "user-1", role: "USER", name: "Alex Photographer" },
+    });
+    gearDataMocks.countApprovedGearEditsByUser.mockResolvedValue(1);
+
+    const result = await submitGearEditProposal({
+      gearId: "22222222-2222-4222-8222-222222222222",
+      payload: { videoModes: [{ resolutionKey: "4k-uhd", fps: 24 }] },
+      autoSubmit: true,
+    });
+
+    expect(result.autoApproved).toBe(true);
+    expect(result.proposal.status).toBe("APPROVED");
+    expect(proposalServiceMocks.approveProposal).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps trusted contributors pending when collection fields already contain values", async () => {
+    authMocks.getSessionOrThrow.mockResolvedValue({
+      user: { id: "user-1", role: "USER", name: "Alex Photographer" },
+    });
+    gearDataMocks.countApprovedGearEditsByUser.mockResolvedValue(1);
+    gearDataMocks.fetchGearBySlug.mockResolvedValue(
+      makeUnderConstructionGear({
+        videoModes: [{ resolutionKey: "fhd", fps: 30 }],
+      }),
+    );
+
+    const result = await submitGearEditProposal({
+      gearId: "22222222-2222-4222-8222-222222222222",
+      payload: { videoModes: [{ resolutionKey: "4k-uhd", fps: 24 }] },
       autoSubmit: true,
     });
 

@@ -719,7 +719,9 @@ function EditGearForm({
           autoApproved,
         });
         toast.success(
-          autoApproved ? "Changes applied" : "Suggestion submitted",
+          autoApproved
+            ? "Your change request was automatically approved!"
+            : "Suggestion submitted",
           {
             description: autoApproved
               ? "Your update is live now."

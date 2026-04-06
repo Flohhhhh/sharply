@@ -1,6 +1,17 @@
 import "server-only";
 
-import { and, asc, desc, eq, gte, lt, or, sql, inArray } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  gte,
+  lt,
+  or,
+  sql,
+  inArray,
+} from "drizzle-orm";
 import { db } from "~/server/db";
 import {
   brands,
@@ -1280,6 +1291,22 @@ export async function createGearEditProposal(params: {
     })
     .returning();
   return inserted[0]!;
+}
+
+export async function countApprovedGearEditsByUser(
+  userId: string,
+): Promise<number> {
+  const [row] = await db
+    .select({ count: count() })
+    .from(gearEdits)
+    .where(
+      and(
+        eq(gearEdits.createdById, userId),
+        eq(gearEdits.status, "APPROVED"),
+      ),
+    );
+
+  return Number(row?.count ?? 0);
 }
 
 /** Insert audit log entry */

@@ -206,7 +206,8 @@ type ComponentName = keyof typeof SPEC_INPUT_COMPONENTS;
 - **Notes**: Optional explanation of why changes are needed
 - **Role-Aware Submit**:
   - Editors/Admins: If there are no existing change requests, their submission applies immediately—no review queue, preventing stale merges
-  - Everyone else (or staff when another request is open): Submission enters the proposal queue (`status: PENDING`) for review
+  - Trusted contributors: If they have at least one approved spec edit, the gear is currently under construction, there are no existing change requests, and the proposal is strictly add-only (fills empty values without overwriting or clearing existing data), the submission applies immediately
+  - Everyone else (or staff when another request is open, or trusted contributors whose proposal is not add-only): Submission enters the proposal queue (`status: PENDING`) for review
 - **Completion Handling**: Confirmation page for queued submissions; instant redirect back to the gear page with a success banner when changes are auto-applied
 
 ## Admin Approval Workflow (Grouped by Gear Item)
