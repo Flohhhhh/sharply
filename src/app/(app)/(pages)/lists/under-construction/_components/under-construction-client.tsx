@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Progress } from "~/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -29,15 +30,23 @@ type Row = {
 };
 
 type Option = { value: string; label: string };
+type Summary = {
+  totalCount: number;
+  underConstructionCount: number;
+  completedCount: number;
+  completedPercent: number;
+};
 
 export default function UnderConstructionClient({
   canToggleAutoSubmit = false,
   items,
+  summary,
   brands,
   types,
 }: {
   canToggleAutoSubmit?: boolean;
   items: Row[];
+  summary: Summary;
   brands: Option[];
   types: readonly string[];
 }) {
@@ -56,6 +65,25 @@ export default function UnderConstructionClient({
 
   return (
     <>
+      <div className="bg-card mb-6 rounded-lg border p-4">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium">Catalog completion</p>
+            <p className="text-muted-foreground text-xs">
+              {summary.completedCount} completed •{" "}
+              {summary.underConstructionCount} under construction •{" "}
+              {summary.totalCount} total
+            </p>
+          </div>
+          <p className="text-sm font-semibold">{summary.completedPercent}%</p>
+        </div>
+        <Progress value={summary.completedPercent} className="h-2.5" />
+        <p className="text-muted-foreground mt-2 text-xs">
+          {summary.underConstructionCount} under construction out of{" "}
+          {summary.totalCount} total items
+        </p>
+      </div>
+
       <div className="mb-3 flex flex-wrap items-center gap-4">
         <div className="flex items-center gap-2">
           <span className="text-muted-foreground text-xs">Brand</span>
