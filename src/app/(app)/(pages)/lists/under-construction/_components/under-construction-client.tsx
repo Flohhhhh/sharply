@@ -70,7 +70,6 @@ export default function UnderConstructionClient({
           <div>
             <p className="text-sm font-medium">Catalog completion</p>
             <p className="text-muted-foreground text-xs">
-              {summary.completedCount} completed •{" "}
               {summary.underConstructionCount} under construction •{" "}
               {summary.totalCount} total
             </p>
@@ -78,10 +77,7 @@ export default function UnderConstructionClient({
           <p className="text-sm font-semibold">{summary.completedPercent}%</p>
         </div>
         <Progress value={summary.completedPercent} className="h-2.5" />
-        <p className="text-muted-foreground mt-2 text-xs">
-          {summary.underConstructionCount} under construction out of{" "}
-          {summary.totalCount} total items
-        </p>
+
       </div>
 
       <div className="mb-3 flex flex-wrap items-center gap-4">
