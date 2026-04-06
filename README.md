@@ -62,6 +62,7 @@ It's highly advised you set up at least one of these, otherwise you can't test o
 - `CRON_SECRET` – only required when hitting the secured cron routes such as `/api/admin/popularity/rollup`
 - `DISCORD_ROLLUP_WEBHOOK_URL` – used to post rollup status messages to Discord; rollups still run without it
 - `DISCORD_CHANGE_REQUEST_WEBHOOK_URL` – used for moderator alerts on new pending change requests (immediate + aggregated via `/api/admin/proposals/webhook/flush`)
+- `DISCORD_BOT_INTERNAL_API_TOKEN` – shared bearer token that authorizes internal bot requests under `/api/internal/discord/**`
 - `OPENAI_API_KEY` – enables AI review summaries; `src/server/reviews/summary/service.ts` safely no-ops if it is missing
 - `UPLOADTHING_TOKEN` – used by the Payload CMS instance and the raw-sample cleanup job that permanently deletes UploadThing files
 

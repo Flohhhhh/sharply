@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import type {
-  APIApplicationCommandOption,
-  APIApplicationCommandSubcommandOption,
-} from "discord-api-types/v10";
-import { ApplicationCommandType } from "discord-api-types/v10";
-import { commandMetadata } from "~/server/discord-bot";
 import { Bot, MessageSquare } from "lucide-react";
 import DiscordBanner from "~/components/discord-banner";
+import commandManifest from "~/data/discord-command-manifest.json";
+import type {
+  DiscordCommandManifestEntry,
+  DiscordCommandManifestOption,
+} from "~/types/discord-command-manifest";
 
 export const metadata: Metadata = {
   title: "Discord Bot Commands",
@@ -20,8 +19,10 @@ export const metadata: Metadata = {
 };
 
 export default function BotCommandsPage() {
+  const commands = commandManifest as DiscordCommandManifestEntry[];
+
   // Group commands by category
-  const commandsByCategory = commandMetadata.reduce(
+  const commandsByCategory = commands.reduce(
     (acc, cmd) => {
       const category = cmd.category ?? "Other";
       if (!acc[category]) {
@@ -30,7 +31,7 @@ export default function BotCommandsPage() {
       acc[category].push(cmd);
       return acc;
     },
-    {} as Record<string, typeof commandMetadata>,
+    {} as Record<string, DiscordCommandManifestEntry[]>,
   );
 
   // Sort categories
@@ -56,17 +57,10 @@ export default function BotCommandsPage() {
             <h2 className="text-2xl font-semibold">{category}</h2>
             <div className="grid gap-4">
               {commandsByCategory[category]?.map((cmd) => {
-                const isContextMenu =
-                  cmd.definition.type === ApplicationCommandType.Message;
-                const commandName = cmd.definition.name;
-                const description =
-                  "description" in cmd.definition
-                    ? cmd.definition.description
-                    : undefined;
-                const options =
-                  "options" in cmd.definition
-                    ? cmd.definition.options
-                    : undefined;
+                const isContextMenu = cmd.commandType === "message";
+                const commandName = cmd.name;
+                const description = cmd.description;
+                const options = cmd.options;
 
                 return (
                   <div
@@ -85,13 +79,8 @@ export default function BotCommandsPage() {
                       {options && options.length > 0 && (
                         <div className="flex flex-wrap items-center gap-2 pl-2 text-base">
                           {options.map(
-                            (
-                              opt:
-                                | APIApplicationCommandOption
-                                | APIApplicationCommandSubcommandOption,
-                            ) => {
-                              const isRequired =
-                                "required" in opt && Boolean(opt.required);
+                            (opt: DiscordCommandManifestOption) => {
+                              const isRequired = Boolean(opt.required);
                               return (
                                 <span
                                   key={opt.name}
@@ -112,14 +101,9 @@ export default function BotCommandsPage() {
                       {options && options.length > 0 && (
                         <div className="space-y-2">
                           <ul className="space-y-1">
-                            {options.map(
-                              (
-                                opt:
-                                  | APIApplicationCommandOption
-                                  | APIApplicationCommandSubcommandOption,
-                              ) => {
-                                const isRequired =
-                                  "required" in opt && Boolean(opt.required);
+                          {options.map(
+                              (opt: DiscordCommandManifestOption) => {
+                                const isRequired = Boolean(opt.required);
                                 return (
                                   <li key={opt.name} className="text-sm">
                                     <span
@@ -127,12 +111,23 @@ export default function BotCommandsPage() {
                                     >
                                       [{opt.name}]
                                     </span>
-                                    {"description" in opt &&
-                                      opt.description && (
-                                        <span className="text-muted-foreground ml-2">
-                                          — {opt.description}
-                                        </span>
-                                      )}
+                                    {opt.description && (
+                                      <span className="text-muted-foreground ml-2">
+                                        — {opt.description}
+                                      </span>
+                                    )}
+                                    {opt.options && opt.options.length > 0 && (
+                                      <div className="text-muted-foreground mt-1 pl-5 text-xs">
+                                        {opt.options.map((child) => (
+                                          <div key={`${opt.name}-${child.name}`}>
+                                            [{child.name}]
+                                            {child.description
+                                              ? ` — ${child.description}`
+                                              : ""}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
                                   </li>
                                 );
                               },
