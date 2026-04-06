@@ -265,8 +265,8 @@ export default async function GearPage({
     hasCreatorVideos: creatorVideos.length > 0,
     hasRawSamples: Boolean(
       item.gearType === "CAMERA" &&
-        item.rawSamples &&
-        item.rawSamples.length > 0,
+      item.rawSamples &&
+      item.rawSamples.length > 0,
     ),
     hasAlternatives: alternatives.length > 0,
     hasRelatedArticles: relatedNews.length > 0,
@@ -412,7 +412,7 @@ export default async function GearPage({
           {item.gearType === "CAMERA" &&
             item.rawSamples &&
             item.rawSamples.length > 0 && (
-              <section id="raw-samples" className="space-y-3 scroll-mt-24">
+              <section id="raw-samples" className="scroll-mt-24 space-y-3">
                 <h3 className="text-lg font-semibold">Raw Samples</h3>
                 <div className="space-y-2">
                   {item.rawSamples.map((sample) => (
@@ -468,6 +468,8 @@ export default async function GearPage({
           <div className="mb-8">
             <GearLinks
               slug={item.slug}
+              gearType={item.gearType}
+              mountIds={item.mountIds ?? null}
               brandName={item.brands?.name ?? brand?.name ?? null}
               linkManufacturer={item.linkManufacturer ?? null}
               linkMpb={item.linkMpb ?? null}

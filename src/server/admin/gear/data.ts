@@ -14,15 +14,14 @@ import {
   recommendationItems,
 } from "~/server/db/schema";
 import { buildGearSearchName } from "~/lib/gear/naming";
+import { normalizeMpbLinkForStorage } from "~/lib/links/mpb";
 import { normalizeFuzzyTokens } from "~/lib/utils/fuzzy";
 import type { GearType } from "~/types/gear";
 
 type DbTx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 type DbLike = typeof db | DbTx;
 
-function isForeignKeyViolation(
-  error: unknown,
-): error is {
+function isForeignKeyViolation(error: unknown): error is {
   code: string;
   constraint?: string;
   constraint_name?: string;
@@ -225,6 +224,8 @@ export async function createGearData(
     linkAmazon,
   } = params;
 
+  const normalizedLinkMpb = normalizeMpbLinkForStorage(linkMpb);
+
   // Validate brand exists
   const b = await db
     .select()
@@ -301,7 +302,7 @@ export async function createGearData(
         brandId,
         modelNumber: modelNumber || null,
         linkManufacturer: linkManufacturer || null,
-        linkMpb: linkMpb || null,
+        linkMpb: normalizedLinkMpb,
         linkAmazon: linkAmazon || null,
         mountId: normalizedMountIds[0] ?? null,
         searchName: buildGearSearchName({ name: displayName, brandName }),
@@ -599,14 +600,18 @@ export async function deleteGearData(
 ): Promise<DeleteGearResult> {
   try {
     if (conn === db) {
-      return await db.transaction(async (tx) => deleteGearDataWithConn(tx, gearId));
+      return await db.transaction(async (tx) =>
+        deleteGearDataWithConn(tx, gearId),
+      );
     }
 
     return await deleteGearDataWithConn(conn, gearId);
   } catch (error) {
     if (isForeignKeyViolation(error)) {
       throw Object.assign(
-        new Error("Cannot delete gear because related records still reference it"),
+        new Error(
+          "Cannot delete gear because related records still reference it",
+        ),
         {
           status: 409,
           constraint: error.constraint_name ?? error.constraint ?? null,

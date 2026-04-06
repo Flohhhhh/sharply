@@ -4,7 +4,11 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 
-import { getMpbDestinationUrl, type Market } from "~/lib/links/mpb";
+import {
+  getMpbDestinationUrl,
+  isMpbSearchInput,
+  type Market,
+} from "~/lib/links/mpb";
 import { resolveGearLinkMpb } from "~/server/gear/service";
 
 const EU_COUNTRIES = new Set([
@@ -73,6 +77,7 @@ export async function GET(request: NextRequest) {
   console.log("MPB out request received", { url: request.url });
   const marketParam = parseMarketParam(params.get("market"));
   const destinationPathParam = params.get("destinationPath");
+  const mountId = params.get("mountId");
   const gearSlug = params.get("gearSlug");
   const gearId = params.get("gearId");
 
@@ -112,13 +117,36 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  if (isMpbSearchInput(destinationPath)) {
+    try {
+      const redirectUrl = getMpbDestinationUrl({
+        market,
+        destinationPath,
+      });
+      return NextResponse.redirect(redirectUrl, 307);
+    } catch (error) {
+      console.error("MPB out rejected legacy search destinationPath", {
+        destinationPath,
+        error,
+      });
+      return NextResponse.json(
+        {
+          message: "Invalid MPB destinationPath.",
+        },
+        { status: 400 },
+      );
+    }
+  }
+
   try {
     const redirectUrl = getMpbDestinationUrl({
       market,
       destinationPath,
+      mountId,
     });
     console.log("MPB out redirecting", {
       destinationPath,
+      mountId,
       redirectUrl,
     });
 
