@@ -1015,6 +1015,10 @@ export const lensSpecs = appSchema.table(
     hasBuiltInTeleconverter: boolean("has_built_in_teleconverter"),
     hasLensHood: boolean("has_lens_hood"),
     hasTripodCollar: boolean("has_tripod_collar"),
+    // tilt-shift
+    isTiltShift: boolean("is_tilt_shift"),
+    tiltDegrees: decimal("tilt_degrees", { precision: 4, scale: 1 }),
+    shiftMm: decimal("shift_mm", { precision: 5, scale: 1 }),
     extra: jsonb("extra"),
     createdAt,
     updatedAt,

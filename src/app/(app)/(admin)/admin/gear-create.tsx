@@ -5,6 +5,11 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
+import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -27,6 +32,8 @@ import type { GearType } from "~/types/gear";
 import { ENUMS } from "~/lib/constants";
 import { humanizeKey } from "~/lib/utils";
 import { splitBrandsWithPriority } from "~/lib/brands";
+import { normalizeMpbLinkInput } from "~/lib/links/mpb";
+import { InfoIcon } from "lucide-react";
 
 type Brand = { id: string; name: string };
 type FuzzyItem = { id: string; slug: string; name: string };
@@ -37,6 +44,9 @@ export function GearCreateCard() {
   const [linkManufacturer, setLinkManufacturer] = useState("");
   const [linkMpb, setLinkMpb] = useState("");
   const [linkAmazon, setLinkAmazon] = useState("");
+  const [mpbNoticeUrl, setMpbNoticeUrl] = useState<string | null>(null);
+  const [mpbPreviewUrl, setMpbPreviewUrl] = useState<string | null>(null);
+  const [mpbError, setMpbError] = useState<string | null>(null);
   const [brandId, setBrandId] = useState<string>("");
   const [gearType, setGearType] = useState<GearType | "">("");
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -91,6 +101,9 @@ export function GearCreateCard() {
     setLinkManufacturer("");
     setLinkMpb("");
     setLinkAmazon("");
+    setMpbNoticeUrl(null);
+    setMpbPreviewUrl(null);
+    setMpbError(null);
     setSlugPreview("");
     setProceedAnyway(false);
     setHardSlugConflict(false);
@@ -132,6 +145,18 @@ export function GearCreateCard() {
 
   const onSubmit = async () => {
     try {
+      const normalizedMpbResult = normalizeMpbLinkInput(linkMpb);
+      if (normalizedMpbResult.kind === "search") {
+        setMpbError(
+          "MPB search URLs are no longer supported. Paste the MPB link with any fit instead.",
+        );
+        return;
+      }
+      if (normalizedMpbResult.kind === "invalid") {
+        setMpbError("Paste an MPB product link or relative product path.");
+        return;
+      }
+
       setLoading(true);
       setCreatedSlug(null);
       const { actionCreateGear } = await import("~/server/admin/gear/actions");
@@ -141,7 +166,10 @@ export function GearCreateCard() {
         gearType: gearType as "CAMERA" | "LENS",
         modelNumber: modelNumber.trim() || undefined,
         linkManufacturer: linkManufacturer.trim() || undefined,
-        linkMpb: linkMpb.trim() || undefined,
+        linkMpb:
+          normalizedMpbResult.kind === "product"
+            ? normalizedMpbResult.normalizedPath
+            : undefined,
         linkAmazon: linkAmazon.trim() || undefined,
         force: proceedAnyway,
       });
@@ -153,6 +181,9 @@ export function GearCreateCard() {
       setLinkManufacturer("");
       setLinkMpb("");
       setLinkAmazon("");
+      setMpbNoticeUrl(null);
+      setMpbPreviewUrl(null);
+      setMpbError(null);
       setSlugPreview("");
       setHardSlugConflict(false);
       setHardModelConflict(false);
@@ -163,6 +194,48 @@ export function GearCreateCard() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleMpbLinkInputChange = (value: string) => {
+    setLinkMpb(value);
+    setMpbNoticeUrl(null);
+    setMpbError(null);
+
+    const result = normalizeMpbLinkInput(value);
+    if (result.kind === "product" && result.wasNormalized) {
+      setMpbPreviewUrl(result.normalizedPath);
+      return;
+    }
+
+    setMpbPreviewUrl(null);
+  };
+
+  const handleMpbLinkBlur = (value: string) => {
+    const result = normalizeMpbLinkInput(value);
+
+    if (result.kind === "empty") {
+      setLinkMpb("");
+      setMpbNoticeUrl(null);
+      setMpbPreviewUrl(null);
+      setMpbError(null);
+      return;
+    }
+
+    if (result.kind === "product") {
+      setLinkMpb(result.normalizedPath);
+      setMpbNoticeUrl(result.wasNormalized ? result.normalizedPath : null);
+      setMpbPreviewUrl(null);
+      setMpbError(null);
+      return;
+    }
+
+    setMpbNoticeUrl(null);
+    setMpbPreviewUrl(null);
+    setMpbError(
+      result.kind === "search"
+        ? "MPB search URLs are no longer supported. Paste the MPB link with any fit instead."
+        : "Paste an MPB product link or relative product path.",
+    );
   };
 
   // Debounced preflight check
@@ -361,15 +434,65 @@ export function GearCreateCard() {
             />
           </div>
           <div className="space-y-1 md:col-span-3">
-            <Label htmlFor="link-mpb">MPB Link</Label>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="link-mpb">MPB Link</Label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="text-muted-foreground hover:text-foreground inline-flex"
+                    aria-label="How MPB link saving works"
+                  >
+                    <InfoIcon className="size-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs text-xs">
+                  We trim the fit from the pasted MPB link, store the base path,
+                  then rebuild the fit-specific destination later based on the
+                  mount the user wants to visit.
+                </TooltipContent>
+              </Tooltip>
+            </div>
             <Input
               id="link-mpb"
-              type="url"
+              type="text"
               value={linkMpb}
-              onChange={(e) => setLinkMpb(e.target.value)}
-              placeholder="https://www.mpb.com/..."
+              onChange={(e) => handleMpbLinkInputChange(e.target.value)}
+              onBlur={(e) => handleMpbLinkBlur(e.target.value)}
+              placeholder="paste the mpb link with any fit"
               disabled={!brandId || !gearType}
             />
+            {mpbError ? (
+              <p className="text-xs text-red-600">{mpbError}</p>
+            ) : mpbNoticeUrl ? (
+              <p className="text-muted-foreground mt-1 text-xs">
+                This link will be saved as{" "}
+                <a
+                  href={mpbNoticeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                >
+                  {mpbNoticeUrl}
+                </a>
+                .
+              </p>
+            ) : (
+              mpbPreviewUrl && (
+                <p className="text-muted-foreground mt-1 text-xs">
+                  This link will be saved as{" "}
+                  <a
+                    href={mpbPreviewUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline"
+                  >
+                    {mpbPreviewUrl}
+                  </a>
+                  .
+                </p>
+              )
+            )}
           </div>
           <div className="space-y-1 md:col-span-3">
             <Label htmlFor="link-amazon">Amazon Link</Label>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { listUnderConstruction } from "~/server/gear/service";
+import { fetchGearCount } from "~/server/metrics/service";
 import UnderConstructionClient from "./_components/under-construction-client";
 import { BRANDS } from "~/lib/generated";
 import { auth } from "~/auth";
@@ -16,11 +17,18 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  // Include items with at least 1 missing key OR less than 20% completion overall
-  const [items, session] = await Promise.all([
+  // Include items with at least 1 missing key OR less than 40% completion overall
+  // fetchGearCount is non-critical: fall back to 0 so a metrics failure never
+  // breaks the whole route.
+  const [items, session, totalCount] = await Promise.all([
     listUnderConstruction(1, 40),
     auth.api.getSession({ headers: await headers() }),
+    fetchGearCount().catch(() => 0),
   ]);
+  const underConstructionCount = items.length;
+  const completedCount = Math.max(totalCount - underConstructionCount, 0);
+  const completedPercent =
+    totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   return (
     <div className="mx-auto mt-24 min-h-screen max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
@@ -47,6 +55,12 @@ export default async function Page() {
       <UnderConstructionClient
         canToggleAutoSubmit={requireRole(session?.user, ["EDITOR"])}
         items={items}
+        summary={{
+          totalCount,
+          underConstructionCount,
+          completedCount,
+          completedPercent,
+        }}
         brands={BRANDS.map((b) => ({ value: b.id, label: b.name }))}
         types={GEAR_TYPES}
       />

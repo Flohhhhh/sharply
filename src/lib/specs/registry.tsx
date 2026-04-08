@@ -1648,6 +1648,51 @@ export const specDictionary: SpecSectionDef[] = [
   },
 
   // ==========================================================================
+  // LENS: TILT-SHIFT
+  // ==========================================================================
+  {
+    id: "lens-tilt-shift",
+    title: "Tilt-Shift",
+    sectionAnchor: "lens-section",
+    condition: (item) => item.gearType === "LENS",
+    fields: [
+      {
+        key: "isTiltShift",
+        label: "Is Tilt-Shift",
+        getRawValue: (item) => item.lensSpecs?.isTiltShift,
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw, true) : undefined,
+      },
+      {
+        key: "tiltDegrees",
+        label: "Tilt Range",
+        getRawValue: (item) => item.lensSpecs?.tiltDegrees,
+        formatDisplay: (raw) => {
+          if (raw == null) return undefined;
+          const n = Number(raw);
+          return Number.isFinite(n)
+            ? `±${Number.isInteger(n) ? n : n.toFixed(1)}°`
+            : undefined;
+        },
+        condition: (item) => item.lensSpecs?.isTiltShift === true,
+      },
+      {
+        key: "shiftMm",
+        label: "Shift Range",
+        getRawValue: (item) => item.lensSpecs?.shiftMm,
+        formatDisplay: (raw) => {
+          if (raw == null) return undefined;
+          const n = Number(raw);
+          return Number.isFinite(n)
+            ? `±${Number.isInteger(n) ? n : n.toFixed(1)}mm`
+            : undefined;
+        },
+        condition: (item) => item.lensSpecs?.isTiltShift === true,
+      },
+    ],
+  },
+
+  // ==========================================================================
   // ANALOG CAMERAS
   // ==========================================================================
   {

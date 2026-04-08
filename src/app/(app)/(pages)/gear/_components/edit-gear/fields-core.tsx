@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, memo, useMemo, useState } from "react";
+import { useCallback, useEffect, memo, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
 import { DateInput } from "~/components/custom-inputs";
@@ -22,6 +22,7 @@ import {
   toDisplayAmazonProductLink,
 } from "~/lib/validation/amazon";
 import { normalizeBhProductLink } from "~/lib/validation/bhphoto";
+import { normalizeMpbLinkInput } from "~/lib/links/mpb";
 import { useSession } from "~/lib/auth/auth-client";
 import { requireRole } from "~/lib/auth/auth-helpers";
 
@@ -165,6 +166,16 @@ function CoreFieldsComponent({
 
   const [amazonNoticeUrl, setAmazonNoticeUrl] = useState<string | null>(null);
   const [amazonPreviewUrl, setAmazonPreviewUrl] = useState<string | null>(null);
+  const [mpbInputValue, setMpbInputValue] = useState(
+    currentSpecs.linkMpb || "",
+  );
+  const [mpbNoticeUrl, setMpbNoticeUrl] = useState<string | null>(null);
+  const [mpbPreviewUrl, setMpbPreviewUrl] = useState<string | null>(null);
+  const [mpbError, setMpbError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setMpbInputValue(currentSpecs.linkMpb || "");
+  }, [currentSpecs.linkMpb]);
 
   const handleAmazonLinkInputChange = useCallback(
     (value: string) => {
@@ -212,6 +223,53 @@ function CoreFieldsComponent({
         return;
       }
       onChange("linkBh", trimmed.length ? trimmed : null);
+    },
+    [onChange],
+  );
+
+  const handleMpbLinkInputChange = useCallback((value: string) => {
+    setMpbInputValue(value);
+    setMpbNoticeUrl(null);
+    setMpbError(null);
+
+    const result = normalizeMpbLinkInput(value);
+    if (result.kind === "product" && result.wasNormalized) {
+      setMpbPreviewUrl(result.normalizedPath);
+      return;
+    }
+
+    setMpbPreviewUrl(null);
+  }, []);
+
+  const handleMpbLinkBlur = useCallback(
+    (value: string) => {
+      const result = normalizeMpbLinkInput(value);
+
+      if (result.kind === "empty") {
+        setMpbInputValue("");
+        setMpbNoticeUrl(null);
+        setMpbPreviewUrl(null);
+        setMpbError(null);
+        onChange("linkMpb", null);
+        return;
+      }
+
+      if (result.kind === "product") {
+        setMpbInputValue(result.normalizedPath);
+        setMpbNoticeUrl(result.wasNormalized ? result.normalizedPath : null);
+        setMpbPreviewUrl(null);
+        setMpbError(null);
+        onChange("linkMpb", result.normalizedPath);
+        return;
+      }
+
+      setMpbNoticeUrl(null);
+      setMpbPreviewUrl(null);
+      setMpbError(
+        result.kind === "search"
+          ? "MPB search URLs are no longer supported. Paste the MPB link with any fit instead."
+          : "Paste an MPB product link or relative product path.",
+      );
     },
     [onChange],
   );
@@ -688,15 +746,65 @@ function CoreFieldsComponent({
 
           {showWhenMissing((initialSpecs as any)?.linkMpb) && (
             <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="linkMpb">MPB Link</Label>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="linkMpb">MPB Link</Label>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      className="text-muted-foreground hover:text-foreground inline-flex"
+                      aria-label="How MPB link saving works"
+                    >
+                      <InfoIcon className="size-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs text-xs">
+                    We trim the fit from the pasted MPB link, store the base
+                    path, then rebuild the fit-specific destination later based
+                    on the mount the user wants to visit.
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <input
                 id="linkMpb"
-                type="url"
-                value={currentSpecs.linkMpb || ""}
-                onChange={(e) => handleLinkChange("linkMpb", e.target.value)}
+                type="text"
+                value={mpbInputValue}
+                onChange={(e) => handleMpbLinkInputChange(e.target.value)}
+                onBlur={(e) => handleMpbLinkBlur(e.target.value)}
                 className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                placeholder="https://www.mpb.com/..."
+                placeholder="paste the mpb link with any fit"
               />
+              {mpbError ? (
+                <p className="mt-1 text-xs text-red-600">{mpbError}</p>
+              ) : mpbNoticeUrl ? (
+                <p className="text-muted-foreground mt-1 text-xs">
+                  This link will be saved as{" "}
+                  <a
+                    href={mpbNoticeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline"
+                  >
+                    {mpbNoticeUrl}
+                  </a>
+                  .
+                </p>
+              ) : (
+                mpbPreviewUrl && (
+                  <p className="text-muted-foreground mt-1 text-xs">
+                    This link will be saved as{" "}
+                    <a
+                      href={mpbPreviewUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline"
+                    >
+                      {mpbPreviewUrl}
+                    </a>
+                    .
+                  </p>
+                )
+              )}
             </div>
           )}
 

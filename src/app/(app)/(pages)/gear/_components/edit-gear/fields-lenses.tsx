@@ -76,6 +76,7 @@ function LensFieldsComponent({
   const isPrimeLens = currentSpecs?.isPrime === true;
   const hasStabilization = currentSpecs?.hasStabilization === true;
   const hasAutofocus = currentSpecs?.hasAutofocus === true;
+  const isTiltShift = currentSpecs?.isTiltShift === true;
   const CLEAR_SENSOR_FORMAT_VALUE = "none";
   const sensorFormatOptions = useMemo(
     () =>
@@ -676,6 +677,53 @@ function LensFieldsComponent({
               allowNull
               showStateText
               onChange={(value) => handleFieldChange("hasTripodCollar", value)}
+            />
+          )}
+
+          {/* Is Tilt-Shift */}
+          {showWhenMissing((initialSpecs as any)?.isTiltShift) && (
+            <BooleanInput
+              id="isTiltShift"
+              label="Is Tilt-Shift"
+              checked={currentSpecs?.isTiltShift ?? null}
+              allowNull
+              showStateText
+              onChange={(value) => {
+                handleFieldChange("isTiltShift", value);
+                if (value !== true) {
+                  // Clear dependent fields when not a tilt-shift lens
+                  handleFieldChange("tiltDegrees", null);
+                  handleFieldChange("shiftMm", null);
+                }
+              }}
+            />
+          )}
+
+          {/* Tilt Degrees */}
+          {showWhenMissing((initialSpecs as any)?.tiltDegrees) && (
+            <NumberInput
+              id="tiltDegrees"
+              label="Tilt"
+              suffix="°"
+              disabled={!isTiltShift}
+              value={isTiltShift ? numOrNull(currentSpecs?.tiltDegrees) : null}
+              onChange={(value) => handleFieldChange("tiltDegrees", value)}
+              step={0.1}
+              min={0}
+            />
+          )}
+
+          {/* Shift mm */}
+          {showWhenMissing((initialSpecs as any)?.shiftMm) && (
+            <NumberInput
+              id="shiftMm"
+              label="Shift"
+              suffix="mm"
+              disabled={!isTiltShift}
+              value={isTiltShift ? numOrNull(currentSpecs?.shiftMm) : null}
+              onChange={(value) => handleFieldChange("shiftMm", value)}
+              step={0.1}
+              min={0}
             />
           )}
         </div>

@@ -1,5 +1,6 @@
 import { SENSOR_FORMATS, ENUMS } from "~/lib/constants";
 import { normalizeBhProductLink } from "~/lib/validation/bhphoto";
+import { normalizeMpbLinkForStorage } from "~/lib/links/mpb";
 import {
   videoModeInputSchema,
   normalizeVideoModes,
@@ -264,8 +265,7 @@ export function normalizeProposalPayloadForDb(
         .preprocess((value) => {
           if (value === null) return null;
           if (typeof value === "string") {
-            const trimmed = value.trim();
-            return trimmed.length > 0 ? trimmed : null;
+            return normalizeMpbLinkForStorage(value);
           }
           return undefined;
         }, z.string().nullable().optional())
@@ -1251,6 +1251,27 @@ export function normalizeProposalPayloadForDb(
           z.boolean().nullable().optional(),
         )
         .optional(),
+      isTiltShift: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      tiltDegrees: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.round(num * 10) / 10;
+        }, z.number().nullable().optional())
+        .optional(),
+      shiftMm: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.round(num * 10) / 10;
+        }, z.number().nullable().optional())
+        .optional(),
     })
     .catchall(z.unknown())
     .transform((lens) => {
@@ -1354,20 +1375,21 @@ export function normalizeProposalPayloadForDb(
             return num === null ? undefined : num;
           }, z.number().nullable().optional())
           .optional(),
-      imageCircleSizeId: z
-        .preprocess((value) => {
-          if (value === null) return null;
-          if (typeof value !== "string") return undefined;
-          if (isUuid(value)) return value;
-          const match = SENSOR_FORMATS.find(
-            (format) =>
-              format &&
-              typeof format === "object" &&
-              ((format as any).slug === value || (format as any).id === value),
-          ) as { id?: string } | undefined;
-          return match?.id ?? undefined;
-        }, z.string().uuid().nullable().optional())
-        .optional(),
+        imageCircleSizeId: z
+          .preprocess((value) => {
+            if (value === null) return null;
+            if (typeof value !== "string") return undefined;
+            if (isUuid(value)) return value;
+            const match = SENSOR_FORMATS.find(
+              (format) =>
+                format &&
+                typeof format === "object" &&
+                ((format as any).slug === value ||
+                  (format as any).id === value),
+            ) as { id?: string } | undefined;
+            return match?.id ?? undefined;
+          }, z.string().uuid().nullable().optional())
+          .optional(),
         maxApertureWide: z
           .preprocess((value) => {
             if (value === null) return null;

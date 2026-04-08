@@ -14,6 +14,8 @@ vi.mock("server-only", () => ({}));
 
 import { GET } from "../../src/app/(app)/api/out/mpb/route";
 
+const NIKON_F_MOUNT_ID = "1e930c0c-aadb-4dd3-93ae-7f691cc93296";
+
 describe("MPB out route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -102,6 +104,19 @@ describe("MPB out route", () => {
     );
   });
 
+  it("builds a mount-specific redirect from the stored base path", async () => {
+    const response = await GET(
+      new Request(
+        `http://localhost/api/out/mpb?destinationPath=%2Fproduct%2Fnikon-af-s-50mm-f-1-8g&mountId=${encodeURIComponent(NIKON_F_MOUNT_ID)}&market=EU`,
+      ) as any,
+    );
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://www.mpb.com/en-eu/product/nikon-af-s-50mm-f-1-8g-nikon-fit",
+    );
+  });
+
   it("returns 400 when no destination can be resolved", async () => {
     const response = await GET(
       new Request("http://localhost/api/out/mpb?gearSlug=nikon-z6-iii") as any,
@@ -110,7 +125,8 @@ describe("MPB out route", () => {
 
     expect(response.status).toBe(400);
     expect(payload).toEqual({
-      message: "Missing destinationPath or gear reference with a valid MPB link.",
+      message:
+        "Missing destinationPath or gear reference with a valid MPB link.",
     });
   });
 
@@ -118,6 +134,33 @@ describe("MPB out route", () => {
     const response = await GET(
       new Request(
         "http://localhost/api/out/mpb?destinationPath=https%3A%2F%2Fexample.com%2Fproduct%2Fnikon-z6-iii",
+      ) as any,
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(payload).toEqual({
+      message: "Invalid MPB destinationPath.",
+    });
+  });
+
+  it("keeps legacy MPB search URLs working", async () => {
+    const response = await GET(
+      new Request(
+        "http://localhost/api/out/mpb?destinationPath=https%3A%2F%2Fwww.mpb.com%2Fen-us%2Fsearch%3Fq%3Dcanon",
+      ) as any,
+    );
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://www.mpb.com/en-us/search?q=canon",
+    );
+  });
+
+  it("returns 400 for non-product MPB paths", async () => {
+    const response = await GET(
+      new Request(
+        "http://localhost/api/out/mpb?destinationPath=https%3A%2F%2Fwww.mpb.com%2Fen-us%2Fhelp%2Fshipping",
       ) as any,
     );
     const payload = await response.json();
