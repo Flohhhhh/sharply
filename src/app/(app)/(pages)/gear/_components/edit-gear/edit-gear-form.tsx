@@ -459,6 +459,9 @@ function EditGearForm({
         "hasBuiltInTeleconverter",
         "hasLensHood",
         "hasTripodCollar",
+        "isTiltShift",
+        "tiltDegrees",
+        "shiftMm",
       ] as const;
 
       // Submit-time safeguard: if focal-length min and max are equal, treat as prime

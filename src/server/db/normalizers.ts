@@ -1251,6 +1251,27 @@ export function normalizeProposalPayloadForDb(
           z.boolean().nullable().optional(),
         )
         .optional(),
+      isTiltShift: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
+      tiltDegrees: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.round(num * 10) / 10;
+        }, z.number().nullable().optional())
+        .optional(),
+      shiftMm: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.round(num * 10) / 10;
+        }, z.number().nullable().optional())
+        .optional(),
     })
     .catchall(z.unknown())
     .transform((lens) => {
