@@ -18,10 +18,12 @@ export const metadata: Metadata = {
 
 export default async function Page() {
   // Include items with at least 1 missing key OR less than 40% completion overall
-  const [items, totalCount, session] = await Promise.all([
+  // fetchGearCount is non-critical: fall back to 0 so a metrics failure never
+  // breaks the whole route.
+  const [items, session, totalCount] = await Promise.all([
     listUnderConstruction(1, 40),
-    fetchGearCount(),
     auth.api.getSession({ headers: await headers() }),
+    fetchGearCount().catch(() => 0),
   ]);
   const underConstructionCount = items.length;
   const completedCount = Math.max(totalCount - underConstructionCount, 0);
