@@ -166,7 +166,7 @@ export default function HeaderClient({
                       asChild
                       icon={<LayoutDashboard />}
                     >
-                      <Link href="/admin">Admin</Link>
+                      <Link href="/admin">Admin Panel</Link>
                     </Button>
                   )}
                   <UserMenu user={user} />
