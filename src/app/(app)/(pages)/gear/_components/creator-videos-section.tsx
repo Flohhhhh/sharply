@@ -1,5 +1,5 @@
 import { ExternalLink, InfoIcon } from "lucide-react";
-import { Badge } from "~/components/ui/badge";
+import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import type { PublicGearCreatorVideoRow } from "~/server/creator-videos/service";
 import {
@@ -8,16 +8,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
-
-function formatDate(value: Date | null) {
-  if (!value) return null;
-
-  return new Intl.DateTimeFormat(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  }).format(value);
-}
 
 function getInitials(name: string) {
   return name
@@ -58,22 +48,24 @@ export function CreatorVideosSection({
 
       <div className="space-y-3">
         {videos.map((video) => {
-          const publishedLabel = formatDate(video.publishedAt);
           return (
             <a
               key={video.id}
               href={video.normalizedUrl}
               target="_blank"
               rel="noreferrer"
+              aria-label={`${video.title} by ${video.creator.name} (opens in new tab)`}
               className="group block overflow-hidden rounded-lg border border-border bg-transparent shadow-sm transition-colors"
             >
-              <div className="flex flex-col gap-2 p-2 md:flex-row md:items-stretch">
-                <div className="aspect-video overflow-hidden rounded-md border max-h-30">
+              <div className="flex flex-col gap-0 p-0 md:flex-row md:items-stretch md:gap-2 md:p-2">
+                <div className="relative aspect-video w-full shrink-0 overflow-hidden rounded-t-lg border-b border-border md:max-h-30 md:w-44 md:shrink-0 md:rounded-md md:border md:border-border">
                   {video.thumbnailUrl ? (
-                    <img
+                    <Image
                       src={video.thumbnailUrl}
-                      alt={video.title}
-                      className="h-full w-full object-cover"
+                      alt=""
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 767px) 100vw, 11rem"
                     />
                   ) : (
                     <div className="text-muted-foreground flex aspect-video h-full items-center justify-center text-sm">
@@ -82,7 +74,7 @@ export function CreatorVideosSection({
                   )}
                 </div>
 
-                <div className="min-w-0 flex-1 md:flex md:flex-col">
+                <div className="flex min-w-0 flex-1 flex-col px-3 py-3 md:px-2 md:py-0">
                   {/* <div className="flex flex-wrap items-center gap-2">
                     <Badge variant="secondary">YouTube</Badge>
                     {publishedLabel ? (
@@ -92,7 +84,7 @@ export function CreatorVideosSection({
                     ) : null}
                   </div> */}
 
-                  <div className="space-y-2 p-2">
+                  <div className="space-y-2">
                     <div className="line-clamp-2 font-semibold">
                       {video.title}
                     </div>
@@ -113,8 +105,8 @@ export function CreatorVideosSection({
                     </div>
                   </div>
 
-                  <div className="mt-auto flex justify-end pt-2">
-                    <span className="text-muted-foreground inline-flex items-center gap-2 rounded-md px-3 py-1.5  text-sm transition-colors group-hover:bg-accent/60 group-hover:text-foreground">
+                  <div className="mt-auto hidden justify-end pt-2 md:flex">
+                    <span className="text-muted-foreground inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors group-hover:bg-accent/60 group-hover:text-foreground">
                       <ExternalLink className="size-4" />
                       Watch
                     </span>
