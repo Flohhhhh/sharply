@@ -44,7 +44,7 @@ export async function GearContributors({ gearId }: GearContributorsProps) {
       handle: r.handle,
       memberNumber: r.memberNumber,
       image: r.image,
-      count: 0,
+      count: r.videoContributionCount,
     };
     prev.count += countFields(r.payload as any);
     contributions.set(r.userId, prev);
