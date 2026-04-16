@@ -39,6 +39,13 @@ export type ExifViewerTagEntry = {
   value: unknown;
 };
 
+export type ExifViewerMetadataRow = {
+  key: string;
+  group: string;
+  tag: string;
+  value: string;
+};
+
 export type ExifViewerCandidateCheck = {
   countType: ExifViewerCountType;
   candidateTag: string;
@@ -93,6 +100,9 @@ export type ExifViewerResponse = {
       tag: string;
       value: unknown;
     }>;
+  };
+  metadata: {
+    rows: ExifViewerMetadataRow[];
   };
   debug: {
     parser: "exiftool-vendored";

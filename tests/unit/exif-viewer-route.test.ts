@@ -3,6 +3,14 @@ import { EXIF_VIEWER_MAX_FILE_BYTES } from "../../src/app/(app)/(pages)/(tools)/
 
 const exiftoolMocks = vi.hoisted(() => ({
   readExifToolTags: vi.fn(),
+  toExifViewerMetadataRows: vi.fn((tagEntries) =>
+    tagEntries.map((entry: any) => ({
+      key: entry.key,
+      group: entry.group,
+      tag: entry.tag,
+      value: String(entry.value ?? ""),
+    })),
+  ),
 }));
 
 vi.mock(
@@ -16,6 +24,38 @@ describe("exif viewer parse route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     exiftoolMocks.readExifToolTags.mockResolvedValue({
+      allTags: [
+        {
+          key: "EXIF:Make",
+          group: "EXIF",
+          tag: "Make",
+          value: "NIKON CORPORATION",
+        },
+        {
+          key: "EXIF:Model",
+          group: "EXIF",
+          tag: "Model",
+          value: "Zf",
+        },
+        {
+          key: "MakerNotes:ShutterCount",
+          group: "MakerNotes",
+          tag: "ShutterCount",
+          value: "3456",
+        },
+        {
+          key: "Nikon:MechanicalShutterCount",
+          group: "Nikon",
+          tag: "MechanicalShutterCount",
+          value: "3000",
+        },
+        {
+          key: "EXIF:ISO",
+          group: "EXIF",
+          tag: "ISO",
+          value: "800",
+        },
+      ],
       rawTags: {
         "EXIF:Make": "NIKON CORPORATION",
         "EXIF:Model": "Zf",
@@ -65,6 +105,7 @@ describe("exif viewer parse route", () => {
 
     expect(response.status).toBe(400);
     expect(payload.status).toBe("unsupported_format");
+    expect(payload.metadata.rows).toEqual([]);
     expect(exiftoolMocks.readExifToolTags).not.toHaveBeenCalled();
   });
 
@@ -83,6 +124,7 @@ describe("exif viewer parse route", () => {
     expect(response.status).toBe(400);
     expect(payload.status).toBe("parse_error");
     expect(payload.message).toBe("The uploaded file is empty.");
+    expect(payload.metadata.rows).toEqual([]);
   });
 
   it("rejects files that exceed the size limit", async () => {
@@ -123,6 +165,7 @@ describe("exif viewer parse route", () => {
     expect(response.status).toBe(500);
     expect(payload.status).toBe("parse_error");
     expect(payload.message).toBe("ExifTool blew up");
+    expect(payload.metadata.rows).toEqual([]);
   });
 
   it("returns the expected success shape", async () => {
@@ -150,7 +193,40 @@ describe("exif viewer parse route", () => {
     expect(payload.extractor.countType).toBe("total");
     expect(payload.extractor.totalShutterCount).toBe(3456);
     expect(payload.extractor.mechanicalShutterCount).toBe(3000);
+    expect(payload.metadata.rows).toEqual([
+      {
+        key: "EXIF:Make",
+        group: "EXIF",
+        tag: "Make",
+        value: "NIKON CORPORATION",
+      },
+      {
+        key: "EXIF:Model",
+        group: "EXIF",
+        tag: "Model",
+        value: "Zf",
+      },
+      {
+        key: "MakerNotes:ShutterCount",
+        group: "MakerNotes",
+        tag: "ShutterCount",
+        value: "3456",
+      },
+      {
+        key: "Nikon:MechanicalShutterCount",
+        group: "Nikon",
+        tag: "MechanicalShutterCount",
+        value: "3000",
+      },
+      {
+        key: "EXIF:ISO",
+        group: "EXIF",
+        tag: "ISO",
+        value: "800",
+      },
+    ]);
     expect(payload.debug.tagCount).toBe(3);
     expect(payload.debug.warnings).toEqual(["minor warning"]);
+    expect(payload.debug.relevantTags).toHaveLength(4);
   });
 });

@@ -10,7 +10,7 @@ type ExifLoadingStateProps = {
   className?: string;
 };
 
-const SKELETON_COUNT = 4;
+const SKELETON_IDS = ["count-1", "count-2", "count-3", "count-4"] as const;
 
 export default function ExifLoadingState({
   stageLabel,
@@ -30,9 +30,9 @@ export default function ExifLoadingState({
     >
       <div className="mx-auto flex max-w-md flex-col items-center gap-6">
         <div className="flex items-end justify-center gap-4">
-          {Array.from({ length: SKELETON_COUNT }, (_, index) => (
+          {SKELETON_IDS.map((id, index) => (
             <motion.div
-              key={index}
+              key={id}
               className="relative h-24 w-14 overflow-hidden rounded-xl bg-muted/20"
               initial={
                 isReducedMotion

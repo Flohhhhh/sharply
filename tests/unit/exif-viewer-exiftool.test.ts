@@ -14,7 +14,10 @@ const exiftoolMocks = vi.hoisted(() => ({
 vi.mock("node:fs/promises", () => fsMocks);
 vi.mock("exiftool-vendored", () => exiftoolMocks);
 
-import { readExifToolTags } from "../../src/app/(app)/(pages)/(tools)/exif-viewer/parse/exiftool";
+import {
+  readExifToolTags,
+  toExifViewerMetadataRows,
+} from "../../src/app/(app)/(pages)/(tools)/exif-viewer/parse/exiftool";
 
 describe("exif viewer exiftool bridge", () => {
   beforeEach(() => {
@@ -23,11 +26,12 @@ describe("exif viewer exiftool bridge", () => {
     fsMocks.unlink.mockResolvedValue(undefined);
   });
 
-  it("returns group-prefixed tags and cleans up temp files on success", async () => {
+  it("returns all tag rows, relevant tag rows, and cleans up temp files on success", async () => {
     exiftoolMocks.exiftool.readRaw.mockResolvedValue({
       "EXIF:Make": "SONY",
       "EXIF:Model": "ILCE-7M4",
       "Sony:ShutterCount": "5432",
+      "File:FileType": "ARW",
       warnings: ["minor warning"],
     });
 
@@ -45,6 +49,16 @@ describe("exif viewer exiftool bridge", () => {
     );
     expect(fsMocks.unlink).toHaveBeenCalledTimes(1);
     expect(result.warnings).toEqual(["minor warning"]);
+    expect(result.allTags).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          key: "File:FileType",
+          group: "File",
+          tag: "FileType",
+          value: "ARW",
+        }),
+      ]),
+    );
     expect(result.relevantTags).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -52,6 +66,14 @@ describe("exif viewer exiftool bridge", () => {
           group: "Sony",
           tag: "ShutterCount",
           value: "5432",
+        }),
+      ]),
+    );
+    expect(toExifViewerMetadataRows(result.allTags)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          key: "EXIF:Make",
+          value: "SONY",
         }),
       ]),
     );

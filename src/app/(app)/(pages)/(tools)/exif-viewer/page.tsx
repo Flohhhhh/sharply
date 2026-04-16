@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import ExifPreviewTrigger from "./_components/exif-preview-trigger";
 import ExifViewerClient from "./client";
 
 export const metadata: Metadata = {
@@ -13,5 +14,19 @@ export const metadata: Metadata = {
 };
 
 export default function ExifViewerPage() {
-  return (<div className="min-h-screen"><ExifViewerClient /></div>);
+  const isLocalPreviewMode = process.env.NODE_ENV !== "production";
+
+  return (
+    <div className="min-h-screen">
+      <div className="mx-auto mt-20 max-w-4xl space-y-8 px-4 py-8">
+        <div className="mb-12 flex items-start justify-between gap-4">
+          <h1 className="text-2xl font-semibold sm:text-4xl">
+            Shutter Count & EXIF Viewer
+          </h1>
+          {isLocalPreviewMode ? <ExifPreviewTrigger /> : null}
+        </div>
+        <ExifViewerClient />
+      </div>
+    </div>
+  );
 }

@@ -1,3 +1,4 @@
+import { motion } from "motion/react";
 import { Upload } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
@@ -22,13 +23,17 @@ export default function ExifEmptyState({
   onDrop,
 }: ExifEmptyStateProps) {
   return (
-    <div
+    <motion.div
       role="button"
       tabIndex={0}
       className={cn(
         "border-muted-foreground/30 hover:bg-muted/10 flex min-h-72 cursor-pointer items-center justify-center rounded-xl border-2 border-dotted px-6 py-12 text-center transition-colors",
         isDragging && "border-foreground/50 bg-muted/50",
       )}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
       onClick={onBrowse}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
@@ -59,6 +64,6 @@ export default function ExifEmptyState({
           Browse files
         </Button>
       </div>
-    </div>
+    </motion.div>
   );
 }

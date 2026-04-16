@@ -4,7 +4,7 @@ import {
   EXIF_VIEWER_MAX_FILE_BYTES,
   type ExifViewerResponse,
 } from "../types";
-import { readExifToolTags } from "./exiftool";
+import { readExifToolTags, toExifViewerMetadataRows } from "./exiftool";
 import { extractShutterCount } from "./extractors";
 
 export const runtime = "nodejs";
@@ -58,6 +58,9 @@ function createErrorResponse(params: {
         failureReason: params.message,
         candidateTagsChecked: [],
         rawValuesInspected: [],
+      },
+      metadata: {
+        rows: [],
       },
       debug: {
         parser: "exiftool-vendored",
@@ -125,7 +128,7 @@ export async function POST(request: Request) {
 
   try {
     const arrayBuffer = await file.arrayBuffer();
-    const { rawTags, relevantTags, warnings } = await readExifToolTags({
+    const { allTags, rawTags, relevantTags, warnings } = await readExifToolTags({
       fileName: file.name,
       buffer: new Uint8Array(arrayBuffer),
     });
@@ -155,6 +158,9 @@ export async function POST(request: Request) {
           failureReason: extraction.failureReason,
           candidateTagsChecked: extraction.candidateTagsChecked,
           rawValuesInspected: extraction.rawValuesInspected,
+        },
+        metadata: {
+          rows: toExifViewerMetadataRows(allTags),
         },
         debug: {
           parser: "exiftool-vendored",
