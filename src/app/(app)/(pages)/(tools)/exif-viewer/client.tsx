@@ -1,12 +1,30 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { AnimatePresence, useReducedMotion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+import { Button } from "~/components/ui/button";
 import ExifEmptyState from "./_components/exif-empty-state";
+import ExifLoadingState from "./_components/exif-loading-state";
 import {
   EXIF_VIEWER_ALLOWED_EXTENSIONS,
   EXIF_VIEWER_MAX_FILE_BYTES,
   type ExifViewerResponse,
 } from "./types";
+
+type LoadingStage = {
+  label: string;
+  minDurationMs: number;
+};
+
+const LOADING_STAGES: LoadingStage[] = [
+  { label: "Uploading file...", minDurationMs: 550 },
+  { label: "Processing metadata...", minDurationMs: 700 },
+  { label: "Generating report...", minDurationMs: 1_150 },
+];
+
+function sleep(ms: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
 
 function formatFileSize(size: number) {
   if (size < 1024) return `${size} B`;
@@ -19,36 +37,127 @@ function formatJson(value: unknown) {
 }
 
 export default function ExifViewerClient() {
+  const reduceMotion = useReducedMotion();
+  const isLocalPreviewMode = process.env.NODE_ENV !== "production";
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const loadingRunIdRef = useRef(0);
+  const mountedRef = useRef(true);
   const [isDragging, setIsDragging] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
+  const [loadingStageIndex, setLoadingStageIndex] = useState(0);
   const [activeFileName, setActiveFileName] = useState<string | null>(null);
+  const [pendingResult, setPendingResult] = useState<ExifViewerResponse | null>(
+    null,
+  );
   const [result, setResult] = useState<ExifViewerResponse | null>(null);
   const [requestError, setRequestError] = useState<string | null>(null);
 
-  async function parseFile(file: File) {
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+      loadingRunIdRef.current += 1;
+    };
+  }, []);
+
+  async function runLoadingStages(runId: number) {
+    for (let index = 0; index < LOADING_STAGES.length; index += 1) {
+      if (!mountedRef.current || loadingRunIdRef.current !== runId) return false;
+      setLoadingStageIndex(index);
+      await sleep(LOADING_STAGES[index]!.minDurationMs);
+    }
+
+    return mountedRef.current && loadingRunIdRef.current === runId;
+  }
+
+  function commitRunResult(params: {
+    runId: number;
+    payload: ExifViewerResponse | null;
+    errorMessage: string | null;
+  }) {
+    if (!mountedRef.current || loadingRunIdRef.current !== params.runId) return;
+
+    setPendingResult(null);
+    setIsParsing(false);
+    setLoadingStageIndex(0);
+
+    if (params.errorMessage) {
+      setResult(null);
+      setRequestError(params.errorMessage);
+      return;
+    }
+
+    setRequestError(null);
+    setResult(params.payload);
+  }
+
+  async function previewLoadingState() {
+    const runId = loadingRunIdRef.current + 1;
+    loadingRunIdRef.current = runId;
+
     setIsParsing(true);
+    setLoadingStageIndex(0);
+    setActiveFileName("Preview loading run");
+    setRequestError(null);
+    setResult(null);
+    setPendingResult(null);
+    setIsDragging(false);
+
+    const stagesCompleted = await runLoadingStages(runId);
+    if (!stagesCompleted) return;
+
+    commitRunResult({
+      runId,
+      payload: null,
+      errorMessage: null,
+    });
+  }
+
+  async function parseFile(file: File) {
+    const runId = loadingRunIdRef.current + 1;
+    loadingRunIdRef.current = runId;
+
+    setIsParsing(true);
+    setLoadingStageIndex(0);
     setActiveFileName(file.name);
     setRequestError(null);
     setResult(null);
+    setPendingResult(null);
+    setIsDragging(false);
 
     const formData = new FormData();
     formData.set("file", file);
 
-    try {
+    const requestPromise = (async () => {
       const response = await fetch("/exif-viewer/parse", {
         method: "POST",
         body: formData,
       });
-      const payload = (await response.json()) as ExifViewerResponse;
-      setResult(payload);
+      return (await response.json()) as ExifViewerResponse;
+    })();
+
+    const stagePromise = runLoadingStages(runId);
+
+    let payload: ExifViewerResponse | null = null;
+    let errorMessage: string | null = null;
+
+    try {
+      payload = await requestPromise;
+      if (mountedRef.current && loadingRunIdRef.current === runId) {
+        setPendingResult(payload);
+      }
     } catch (error) {
-      setRequestError(
-        error instanceof Error ? error.message : "Request failed.",
-      );
-    } finally {
-      setIsParsing(false);
+      errorMessage =
+        error instanceof Error ? error.message : "Request failed.";
     }
+
+    const stagesCompleted = await stagePromise;
+    if (!stagesCompleted) return;
+
+    commitRunResult({
+      runId,
+      payload,
+      errorMessage,
+    });
   }
 
   function handleSelectedFile(file: File | null) {
@@ -58,8 +167,19 @@ export default function ExifViewerClient() {
 
   return (
     <div className="mx-auto mt-20 max-w-4xl space-y-6 px-4 py-8">
-      <div className="space-y-2">
+      <div className="flex items-start justify-between gap-4">
         <h1 className="text-2xl sm:text-4xl font-semibold">Shutter Count & EXIF Viewer</h1>
+        {isLocalPreviewMode ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={isParsing}
+            onClick={() => void previewLoadingState()}
+          >
+            Preview loading
+          </Button>
+        ) : null}
       </div>
 
       <div className="space-y-3">
@@ -72,41 +192,43 @@ export default function ExifViewerClient() {
             handleSelectedFile(event.currentTarget.files?.[0] ?? null)
           }
         />
-        <ExifEmptyState
-          isDragging={isDragging}
-          supportedExtensions={EXIF_VIEWER_ALLOWED_EXTENSIONS}
-          maxFileBytes={EXIF_VIEWER_MAX_FILE_BYTES}
-          onBrowse={() => inputRef.current?.click()}
-          onDragOver={(event) => {
-            event.preventDefault();
-            setIsDragging(true);
-          }}
-          onDragLeave={(event) => {
-            event.preventDefault();
-            setIsDragging(false);
-          }}
-          onDrop={(event) => {
-            event.preventDefault();
-            setIsDragging(false);
-            handleSelectedFile(event.dataTransfer.files?.[0] ?? null);
-          }}
-        />
+        <AnimatePresence mode="wait" initial={false}>
+          {isParsing ? (
+            <ExifLoadingState
+              key="loading"
+              stageLabel={LOADING_STAGES[loadingStageIndex]?.label ?? "Processing..."}
+              isReducedMotion={Boolean(reduceMotion)}
+            />
+          ) : (
+            <ExifEmptyState
+              key="empty"
+              isDragging={isDragging}
+              supportedExtensions={EXIF_VIEWER_ALLOWED_EXTENSIONS}
+              maxFileBytes={EXIF_VIEWER_MAX_FILE_BYTES}
+              onBrowse={() => inputRef.current?.click()}
+              onDragOver={(event) => {
+                event.preventDefault();
+                setIsDragging(true);
+              }}
+              onDragLeave={(event) => {
+                event.preventDefault();
+                setIsDragging(false);
+              }}
+              onDrop={(event) => {
+                event.preventDefault();
+                setIsDragging(false);
+                handleSelectedFile(event.dataTransfer.files?.[0] ?? null);
+              }}
+            />
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* TODO: show this only in development at the top of the page later */}
-      {/* <div className="border p-4 text-sm">
-        {isParsing ? (
-          <p>Parsing {activeFileName ?? "file"}...</p>
-        ) : result ? (
-          <p>
-            Status: <strong>{result.status}</strong> - {result.message}
-          </p>
-        ) : requestError ? (
-          <p className="text-red-600">{requestError}</p>
-        ) : (
-          <p>No file parsed yet.</p>
-        )}
-      </div> */}
+      {requestError ? (
+        <div className="border border-red-500/30 bg-red-500/5 p-4 text-sm text-red-200">
+          {requestError}
+        </div>
+      ) : null}
 
       {result ? (
         <>
