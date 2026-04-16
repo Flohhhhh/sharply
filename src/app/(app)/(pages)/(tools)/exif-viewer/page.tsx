@@ -13,5 +13,5 @@ export const metadata: Metadata = {
 };
 
 export default function ExifViewerPage() {
-  return <ExifViewerClient />;
+  return (<div className="min-h-screen"><ExifViewerClient /></div>);
 }

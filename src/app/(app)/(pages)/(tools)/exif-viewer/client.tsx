@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import ExifEmptyState from "./_components/exif-empty-state";
 import {
   EXIF_VIEWER_ALLOWED_EXTENSIONS,
   EXIF_VIEWER_MAX_FILE_BYTES,
@@ -58,27 +59,24 @@ export default function ExifViewerClient() {
   return (
     <div className="mx-auto mt-20 max-w-4xl space-y-6 px-4 py-8">
       <div className="space-y-2">
-        <h1 className="text-3xl font-semibold">Camera Shutter Count Tool</h1>
-        <p className="text-muted-foreground text-sm">
-          Upload a JPG or supported RAW file and inspect the maker-note metadata
-          path used to find shutter count.
-        </p>
+        <h1 className="text-2xl sm:text-4xl font-semibold">Shutter Count & EXIF Viewer</h1>
       </div>
 
-      <div className="space-y-3 border p-4">
+      <div className="space-y-3">
         <input
           ref={inputRef}
           type="file"
           accept={EXIF_VIEWER_ALLOWED_EXTENSIONS.map((extension) => `.${extension}`).join(",")}
-          className="block w-full text-sm"
+          className="sr-only"
           onChange={(event) =>
             handleSelectedFile(event.currentTarget.files?.[0] ?? null)
           }
         />
-        <div
-          className={`border px-4 py-8 text-sm ${
-            isDragging ? "border-foreground bg-muted/40" : "border-dashed"
-          }`}
+        <ExifEmptyState
+          isDragging={isDragging}
+          supportedExtensions={EXIF_VIEWER_ALLOWED_EXTENSIONS}
+          maxFileBytes={EXIF_VIEWER_MAX_FILE_BYTES}
+          onBrowse={() => inputRef.current?.click()}
           onDragOver={(event) => {
             event.preventDefault();
             setIsDragging(true);
@@ -92,23 +90,11 @@ export default function ExifViewerClient() {
             setIsDragging(false);
             handleSelectedFile(event.dataTransfer.files?.[0] ?? null);
           }}
-        >
-          <p>Drop a file here or use the file picker above.</p>
-          <p className="text-muted-foreground mt-2 text-xs">
-            Supported: {EXIF_VIEWER_ALLOWED_EXTENSIONS.join(", ")}. Max file
-            size: {Math.round(EXIF_VIEWER_MAX_FILE_BYTES / 1024 / 1024)}MB.
-          </p>
-          <button
-            type="button"
-            className="mt-4 border px-3 py-2 text-sm"
-            onClick={() => inputRef.current?.click()}
-          >
-            Choose file
-          </button>
-        </div>
+        />
       </div>
 
-      <div className="border p-4 text-sm">
+      {/* TODO: show this only in development at the top of the page later */}
+      {/* <div className="border p-4 text-sm">
         {isParsing ? (
           <p>Parsing {activeFileName ?? "file"}...</p>
         ) : result ? (
@@ -120,7 +106,7 @@ export default function ExifViewerClient() {
         ) : (
           <p>No file parsed yet.</p>
         )}
-      </div>
+      </div> */}
 
       {result ? (
         <>
