@@ -115,6 +115,12 @@ export const navItems: NavItem[] = [
         iconKey: "scale",
       },
       {
+        title: "Shutter Count & EXIF Viewer",
+        url: "/exif-viewer",
+        description: "Inspect EXIF metadata and track shutter count history",
+        iconKey: "file",
+      },
+      {
         title: "Instagram Post Builder",
         url: "/instagram-post-builder",
         description: "Create Instagram posts with multiple images",
