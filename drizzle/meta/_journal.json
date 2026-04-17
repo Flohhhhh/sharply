@@ -113,6 +113,13 @@
       "when": 1775663751545,
       "tag": "0015_moaning_angel",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1776455221768,
+      "tag": "0016_stale_weapon_omega",
+      "breakpoints": true
     }
   ]
 }
