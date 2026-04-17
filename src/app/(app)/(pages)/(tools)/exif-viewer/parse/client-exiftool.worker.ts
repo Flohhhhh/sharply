@@ -62,43 +62,43 @@ function postMessageToMainThread(message: ExifToolWorkerResponse) {
 
 self.addEventListener("message", (event: MessageEvent<ExifToolWorkerRequest>) => {
   void (async () => {
-  if (event.data?.type !== "parse") {
-    return;
-  }
-
-  try {
-    const response = await parseMetadata<unknown>(event.data.file, {
-      args: EXIFTOOL_JSON_ARGS,
-      fetch: exifToolFetch,
-      transform: (data) => JSON.parse(data) as unknown,
-    });
-
-    if (!response.success) {
-      throw new Error(response.error || "Failed to parse metadata locally.");
+    if (event.data?.type !== "parse") {
+      return;
     }
 
-    const { rawTags, warnings } = extractExifToolJsonTagMap(response.data);
-    const allTags = normalizeExifToolTagEntries(rawTags);
+    try {
+      const response = await parseMetadata<unknown>(event.data.file, {
+        args: EXIFTOOL_JSON_ARGS,
+        fetch: exifToolFetch,
+        transform: (data) => JSON.parse(data) as unknown,
+      });
 
-    postMessageToMainThread({
-      id: event.data.id,
-      ok: true,
-      result: {
-        parser: "exiftool-wasm",
-        allTags,
-        warnings,
-      },
-    });
-  } catch (error) {
-    postMessageToMainThread({
-      id: event.data.id,
-      ok: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Failed to parse metadata locally.",
-    });
-  }
+      if (!response.success) {
+        throw new Error(response.error || "Failed to parse metadata locally.");
+      }
+
+      const { rawTags, warnings } = extractExifToolJsonTagMap(response.data);
+      const allTags = normalizeExifToolTagEntries(rawTags);
+
+      postMessageToMainThread({
+        id: event.data.id,
+        ok: true,
+        result: {
+          parser: "exiftool-wasm",
+          allTags,
+          warnings,
+        },
+      });
+    } catch (error) {
+      postMessageToMainThread({
+        id: event.data.id,
+        ok: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to parse metadata locally.",
+      });
+    }
   })();
 });
 
