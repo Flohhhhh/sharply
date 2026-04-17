@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
-import { auth } from "~/auth";
 import ExifPreviewTrigger from "./_components/exif-preview-trigger";
 import ExifViewerClient from "./client";
 
@@ -17,9 +15,6 @@ export const metadata: Metadata = {
 
 export default async function ExifViewerPage() {
   const isLocalPreviewMode = process.env.NODE_ENV !== "production";
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
   const stripeMask =
     "radial-gradient(78% 72% at 50% 4%, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.72) 42%, rgba(0,0,0,0.18) 72%, transparent 100%), linear-gradient(to bottom, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.88) 46%, rgba(0,0,0,0.24) 78%, transparent 100%)";
 
@@ -49,7 +44,7 @@ export default async function ExifViewerPage() {
             </div>
           ) : null}
         </div>
-        <ExifViewerClient isLoggedIn={Boolean(session?.user)} />
+        <ExifViewerClient />
       </div>
     </div>
   );

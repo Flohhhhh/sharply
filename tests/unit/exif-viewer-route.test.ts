@@ -13,16 +13,49 @@ const exiftoolMocks = vi.hoisted(() => ({
   ),
 }));
 
+const authMocks = vi.hoisted(() => ({
+  auth: {
+    api: {
+      getSession: vi.fn().mockResolvedValue(null),
+    },
+  },
+}));
+
+const trackingMocks = vi.hoisted(() => ({
+  buildTrackingPreviewFromParseResult: vi.fn().mockResolvedValue({
+    eligible: true,
+    reason: "not_signed_in",
+    saveToken: null,
+    matchedGear: null,
+    trackedCamera: null,
+    currentReadingSaved: false,
+  }),
+}));
+
 vi.mock(
   "../../src/app/(app)/(pages)/(tools)/exif-viewer/parse/exiftool",
   () => exiftoolMocks,
 );
+vi.mock("~/auth", () => authMocks);
+vi.mock("next/headers", () => ({
+  headers: vi.fn(async () => new Headers()),
+}));
+vi.mock("~/server/exif-tracking/service", () => trackingMocks);
 
 import { POST } from "../../src/app/(app)/(pages)/(tools)/exif-viewer/parse/route";
 
 describe("exif viewer parse route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    authMocks.auth.api.getSession.mockResolvedValue(null);
+    trackingMocks.buildTrackingPreviewFromParseResult.mockResolvedValue({
+      eligible: true,
+      reason: "not_signed_in",
+      saveToken: null,
+      matchedGear: null,
+      trackedCamera: null,
+      currentReadingSaved: false,
+    });
     exiftoolMocks.readExifToolTags.mockResolvedValue({
       allTags: [
         {
@@ -106,6 +139,14 @@ describe("exif viewer parse route", () => {
     expect(response.status).toBe(400);
     expect(payload.status).toBe("unsupported_format");
     expect(payload.metadata.rows).toEqual([]);
+    expect(payload.tracking).toEqual({
+      eligible: false,
+      reason: "unsupported_result",
+      saveToken: null,
+      matchedGear: null,
+      trackedCamera: null,
+      currentReadingSaved: false,
+    });
     expect(exiftoolMocks.readExifToolTags).not.toHaveBeenCalled();
   });
 
@@ -125,6 +166,7 @@ describe("exif viewer parse route", () => {
     expect(payload.status).toBe("parse_error");
     expect(payload.message).toBe("The uploaded file is empty.");
     expect(payload.metadata.rows).toEqual([]);
+    expect(payload.tracking.reason).toBe("unsupported_result");
   });
 
   it("rejects files that exceed the size limit", async () => {
@@ -166,6 +208,7 @@ describe("exif viewer parse route", () => {
     expect(payload.status).toBe("parse_error");
     expect(payload.message).toBe("ExifTool blew up");
     expect(payload.metadata.rows).toEqual([]);
+    expect(payload.tracking.reason).toBe("unsupported_result");
   });
 
   it("returns the expected success shape", async () => {
@@ -193,6 +236,14 @@ describe("exif viewer parse route", () => {
     expect(payload.extractor.countType).toBe("total");
     expect(payload.extractor.totalShutterCount).toBe(3456);
     expect(payload.extractor.mechanicalShutterCount).toBe(3000);
+    expect(payload.tracking).toEqual({
+      eligible: true,
+      reason: "not_signed_in",
+      saveToken: null,
+      matchedGear: null,
+      trackedCamera: null,
+      currentReadingSaved: false,
+    });
     expect(payload.metadata.rows).toEqual([
       {
         key: "EXIF:Make",
@@ -228,5 +279,6 @@ describe("exif viewer parse route", () => {
     expect(payload.debug.tagCount).toBe(3);
     expect(payload.debug.warnings).toEqual(["minor warning"]);
     expect(payload.debug.relevantTags).toHaveLength(4);
+    expect(trackingMocks.buildTrackingPreviewFromParseResult).toHaveBeenCalled();
   });
 });

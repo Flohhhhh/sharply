@@ -55,6 +55,15 @@ function createResponse(
       rawValuesInspected: [],
       ...overrides.extractor,
     },
+    tracking: {
+      eligible: true,
+      reason: null,
+      saveToken: "token",
+      matchedGear: null,
+      trackedCamera: null,
+      currentReadingSaved: false,
+      ...overrides.tracking,
+    },
     metadata: {
       rows: [
         metadataRow("Composite:LensID", "NIKKOR Z 24-70mm f/4 S"),
@@ -185,7 +194,7 @@ describe("exif viewer result helpers", () => {
     const summary = buildSummaryItems(createResponse());
 
     expect(summary).toEqual([
-      { label: "Camera Model", value: "Nikon Z6III" },
+      { label: "Camera Model", value: "Z6III" },
       { label: "Lens", value: "NIKKOR Z 24-70mm f/4 S" },
       {
         label: "Capture Date",

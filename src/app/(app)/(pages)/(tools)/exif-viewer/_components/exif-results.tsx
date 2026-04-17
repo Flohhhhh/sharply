@@ -3,14 +3,20 @@
 import NumberFlow, { continuous } from "@number-flow/react";
 import { RotateCcw } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import type {
+  ExifTrackedCameraHistoryEntry,
+  ExifTrackingDeleteResponse,
+  ExifTrackingHistoryResponse,
+  ExifTrackingSaveResponse,
   ExifViewerMetadataRow,
   ExifViewerResponse,
 } from "../types";
+import { EXIF_VIEWER_CAPTURE_DATE_CANDIDATE_KEYS } from "../types";
 import ExifMetadataTable from "./exif-metadata-table";
-import { TooltipContent, Tooltip, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import ExifTrackingHistoryDialog from "./exif-tracking-history-dialog";
 
 type ExifSummaryItem = {
   label: string;
@@ -24,11 +30,17 @@ type ExifHeroMetric = {
   secondaryValue: number | null;
 };
 
+type ExifReadingIdentity = {
+  captureAt: string | null;
+  primaryCountType: ExifTrackedCameraHistoryEntry["primaryCountType"];
+  primaryCountValue: number;
+};
+
 const EMPTY_VALUE = "—";
 
 function findMetadataValue(
   rows: ExifViewerMetadataRow[],
-  candidateKeys: string[],
+  candidateKeys: readonly string[],
 ): string | null {
   const matches = new Set(candidateKeys.map((key) => key.toLowerCase()));
   const match = rows.find((row) => matches.has(row.key.toLowerCase()));
@@ -81,6 +93,22 @@ function formatDisplayValue(value: string | null): string {
   return value?.trim() || EMPTY_VALUE;
 }
 
+function normalizeCaptureAtValue(value: string | null): string | null {
+  if (!value) return null;
+
+  const normalized = value.replace(
+    /^(\d{4}):(\d{2}):(\d{2})\s/,
+    "$1-$2-$3T",
+  );
+  const parsed = new Date(normalized);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return parsed.toISOString();
+}
+
 function findCameraSerialNumber(rows: ExifViewerMetadataRow[]): string {
   return formatDisplayValue(
     findMetadataValue(rows, [
@@ -95,6 +123,54 @@ function findCameraSerialNumber(rows: ExifViewerMetadataRow[]): string {
       "Sony:SerialNumber",
       "FujiFilm:SerialNumber",
     ]),
+  );
+}
+
+function resolveCurrentReadingIdentity(
+  result: ExifViewerResponse,
+): ExifReadingIdentity | null {
+  const primaryCount =
+    result.extractor.totalShutterCount !== null
+      ? {
+          primaryCountType: "total" as const,
+          primaryCountValue: result.extractor.totalShutterCount,
+        }
+      : result.extractor.mechanicalShutterCount !== null
+        ? {
+            primaryCountType: "mechanical" as const,
+            primaryCountValue: result.extractor.mechanicalShutterCount,
+          }
+        : result.extractor.shutterCount !== null
+          ? {
+              primaryCountType: "generic" as const,
+              primaryCountValue: result.extractor.shutterCount,
+            }
+          : null;
+
+  if (!primaryCount) {
+    return null;
+  }
+
+  return {
+    ...primaryCount,
+    captureAt: normalizeCaptureAtValue(
+      findMetadataValue(result.metadata.rows, EXIF_VIEWER_CAPTURE_DATE_CANDIDATE_KEYS),
+    ),
+  };
+}
+
+function isMatchingReading(
+  currentReading: ExifReadingIdentity | null,
+  reading: ExifTrackedCameraHistoryEntry,
+) {
+  if (!currentReading) {
+    return false;
+  }
+
+  return (
+    currentReading.primaryCountType === reading.primaryCountType &&
+    currentReading.primaryCountValue === reading.primaryCountValue &&
+    currentReading.captureAt === reading.captureAt
   );
 }
 
@@ -288,13 +364,37 @@ function AnimatedCount({ value, className }: AnimatedCountProps) {
 
 type ExifResultsProps = {
   result: ExifViewerResponse;
-  isLoggedIn: boolean;
   onStartOver: () => void;
 };
 
+function formatTrackingSummary(result: ExifViewerResponse) {
+  const trackedCamera = result.tracking.trackedCamera;
+  if (!trackedCamera) return null;
+
+  const latestCount =
+    trackedCamera.latestPrimaryCountValue !== null
+      ? `Latest ${trackedCamera.latestPrimaryCountValue.toLocaleString()}`
+      : null;
+  const readingCount = `${trackedCamera.readingCount} saved reading${trackedCamera.readingCount === 1 ? "" : "s"}`;
+
+  return [readingCount, latestCount].filter(Boolean).join(" · ");
+}
+
+function getTrackingUnavailableMessage(result: ExifViewerResponse) {
+  switch (result.tracking.reason) {
+    case "missing_serial":
+      return "Tracking requires a serial number.";
+    case "missing_count":
+      return "Tracking requires a shutter count.";
+    case "unsupported_result":
+      return "Tracking is unavailable for this result.";
+    default:
+      return "Tracking is unavailable.";
+  }
+}
+
 export default function ExifResults({
   result,
-  isLoggedIn,
   onStartOver,
 }: ExifResultsProps) {
   const reduceMotion = Boolean(useReducedMotion());
@@ -305,6 +405,191 @@ export default function ExifResults({
     () => findCameraSerialNumber(result.metadata.rows),
     [result.metadata.rows],
   );
+  const currentReadingIdentity = useMemo(
+    () => resolveCurrentReadingIdentity(result),
+    [result],
+  );
+  const autoSaveAttemptedTokensRef = useRef(new Set<string>());
+  const suppressedAutoSaveTokensRef = useRef(new Set<string>());
+  const [trackingState, setTrackingState] = useState(result.tracking);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyData, setHistoryData] = useState<ExifTrackingHistoryResponse | null>(
+    null,
+  );
+  const [historyError, setHistoryError] = useState<string | null>(null);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+  const [deletingReadingId, setDeletingReadingId] = useState<string | null>(null);
+  const signInHref = `/auth/signin?callbackUrl=${encodeURIComponent("/exif-viewer")}`;
+
+  useEffect(() => {
+    autoSaveAttemptedTokensRef.current.clear();
+    suppressedAutoSaveTokensRef.current.clear();
+    setTrackingState(result.tracking);
+    setSaveError(null);
+    setHistoryOpen(false);
+    setHistoryData(null);
+    setHistoryError(null);
+    setIsHistoryLoading(false);
+    setDeletingReadingId(null);
+  }, [result]);
+
+  async function handleSaveTracking(tokenOverride?: string) {
+    const saveToken = tokenOverride ?? trackingState.saveToken;
+    if (!saveToken || isSaving) {
+      return;
+    }
+
+    setIsSaving(true);
+    setSaveError(null);
+
+    try {
+      const response = await fetch("/api/exif-tracking/save", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          token: saveToken,
+        }),
+      });
+      const payload = (await response.json()) as ExifTrackingSaveResponse;
+
+      if (!response.ok || !payload.ok || !payload.tracking) {
+        throw new Error(payload.message || "Failed to save EXIF tracking history.");
+      }
+
+      setTrackingState(payload.tracking);
+    } catch (error) {
+      setSaveError(
+        error instanceof Error ? error.message : "Failed to save EXIF tracking history.",
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  useEffect(() => {
+    const saveToken = trackingState.saveToken;
+
+    if (
+      isSaving ||
+      trackingState.reason === "not_signed_in" ||
+      !trackingState.trackedCamera ||
+      !saveToken ||
+      trackingState.currentReadingSaved ||
+      suppressedAutoSaveTokensRef.current.has(saveToken) ||
+      autoSaveAttemptedTokensRef.current.has(saveToken)
+    ) {
+      return;
+    }
+
+    autoSaveAttemptedTokensRef.current.add(saveToken);
+    void handleSaveTracking(saveToken);
+  }, [
+    isSaving,
+    trackingState.currentReadingSaved,
+    trackingState.reason,
+    trackingState.saveToken,
+    trackingState.trackedCamera,
+  ]);
+
+  async function loadHistory(trackedCameraId: string) {
+    setIsHistoryLoading(true);
+    setHistoryError(null);
+
+    try {
+      const response = await fetch(
+        `/api/exif-tracking/cameras/${trackedCameraId}/history`,
+      );
+      const payload = (await response.json()) as ExifTrackingHistoryResponse & {
+        message?: string;
+      };
+
+      if (!response.ok || !payload.ok || !payload.trackedCamera) {
+        throw new Error(payload.message || "Failed to load tracking history.");
+      }
+
+      setHistoryData(payload);
+    } catch (error) {
+      setHistoryError(
+        error instanceof Error ? error.message : "Failed to load tracking history.",
+      );
+    } finally {
+      setIsHistoryLoading(false);
+    }
+  }
+
+  async function handleHistoryOpenChange(open: boolean) {
+    setHistoryOpen(open);
+
+    if (!open || !trackingState.trackedCamera) {
+      return;
+    }
+
+    if (
+      historyData?.trackedCamera?.id === trackingState.trackedCamera.id &&
+      !historyError
+    ) {
+      return;
+    }
+
+    await loadHistory(trackingState.trackedCamera.id);
+  }
+
+  async function handleDeleteReading(readingId: string) {
+    const readingToDelete =
+      historyData?.readings.find((reading) => reading.id === readingId) ?? null;
+
+    setDeletingReadingId(readingId);
+    setHistoryError(null);
+
+    try {
+      const response = await fetch(`/api/exif-tracking/readings/${readingId}`, {
+        method: "DELETE",
+      });
+      const payload = (await response.json()) as ExifTrackingDeleteResponse;
+
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.message || "Failed to delete EXIF tracking history.");
+      }
+
+      const deletedCurrentReading =
+        readingToDelete !== null &&
+        isMatchingReading(currentReadingIdentity, readingToDelete);
+
+      if (deletedCurrentReading && result.tracking.saveToken) {
+        suppressedAutoSaveTokensRef.current.add(result.tracking.saveToken);
+      }
+
+      setTrackingState((currentTrackingState) => ({
+        ...currentTrackingState,
+        matchedGear: payload.matchedGear ?? currentTrackingState.matchedGear,
+        trackedCamera: payload.trackedCamera,
+        currentReadingSaved: deletedCurrentReading
+          ? false
+          : currentTrackingState.currentReadingSaved,
+        saveToken: deletedCurrentReading
+          ? result.tracking.saveToken
+          : currentTrackingState.saveToken,
+      }));
+
+      if (!payload.trackedCamera) {
+        setHistoryData(null);
+        setHistoryOpen(false);
+        return;
+      }
+
+      await loadHistory(payload.trackedCamera.id);
+    } catch (error) {
+      setHistoryError(
+        error instanceof Error ? error.message : "Failed to delete saved reading.",
+      );
+    } finally {
+      setDeletingReadingId(null);
+    }
+  }
 
   return (
     <div className="space-y-2">
@@ -370,29 +655,65 @@ export default function ExifResults({
         {...getEnterAnimation(reduceMotion, reduceMotion ? 0 : 0.1)}
       >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="">
+          <div>
             <p className="text-sm">{cameraModel}</p>
             <p className="text-muted-foreground text-sm">
               {cameraSerialNumber}
             </p>
           </div>
-          {!isLoggedIn ? (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  {/* #TODO: add tracking for exif */}
-                  <span className="inline-flex">
-                    <Button type="button" disabled size="sm">
-                      Log in to track
-                    </Button>
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent sideOffset={8}>
-                  <p>Coming soon</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          ) : null}
+          <div className="flex flex-col items-start gap-2 sm:items-end">
+            {trackingState.trackedCamera ? (
+              <p className="text-muted-foreground text-sm">
+                {formatTrackingSummary({
+                  ...result,
+                  tracking: trackingState,
+                }) ?? "Tracking enabled"}
+              </p>
+            ) : !trackingState.eligible ? (
+              <p className="text-muted-foreground text-sm">
+                {getTrackingUnavailableMessage({
+                  ...result,
+                  tracking: trackingState,
+                })}
+              </p>
+            ) : null}
+
+            <div className="flex flex-wrap items-center gap-2">
+              {trackingState.reason === "not_signed_in" ? (
+                <Button type="button" size="sm" asChild>
+                  <Link href={signInHref}>Log in to save history</Link>
+                </Button>
+              ) : null}
+
+              {trackingState.eligible &&
+              trackingState.saveToken &&
+              trackingState.reason !== "not_signed_in" ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => void handleSaveTracking()}
+                  loading={isSaving}
+                >
+                  {trackingState.trackedCamera ? "Save reading" : "Save to track"}
+                </Button>
+              ) : null}
+
+              {trackingState.trackedCamera ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => void handleHistoryOpenChange(true)}
+                >
+                  View history
+                </Button>
+              ) : null}
+            </div>
+
+            {saveError ? (
+              <p className="text-sm text-red-300">{saveError}</p>
+            ) : null}
+          </div>
         </div>
       </motion.section>
 
@@ -420,6 +741,16 @@ export default function ExifResults({
       <motion.div {...getEnterAnimation(reduceMotion, reduceMotion ? 0 : 0.18)}>
         <ExifMetadataTable rows={result.metadata.rows} />
       </motion.div>
+
+      <ExifTrackingHistoryDialog
+        open={historyOpen}
+        onOpenChange={(open) => void handleHistoryOpenChange(open)}
+        data={historyData}
+        loading={isHistoryLoading}
+        error={historyError}
+        deletingReadingId={deletingReadingId}
+        onDeleteReading={(readingId) => void handleDeleteReading(readingId)}
+      />
     </div>
   );
 }

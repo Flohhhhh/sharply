@@ -26,6 +26,7 @@ All route logic remains colocated under the route:
 - `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-loading-state.tsx`
 - `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-results.tsx`
 - `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-metadata-table.tsx`
+- `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-tracking-history-dialog.tsx`
 - `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-preview-trigger.tsx`
 
 ## Rendering split
@@ -35,13 +36,11 @@ All route logic remains colocated under the route:
 `page.tsx` is the server-rendered shell. It is responsible for:
 
 - page metadata
-- auth session lookup
 - top-of-page decorative background treatment
 - persistent page heading
 - local-only preview trigger for the loading state
-- passing `isLoggedIn` into the client component
 
-This keeps the actual tool logic out of the server shell while still letting the page respond to auth state. The server shell does not parse files and does not own any tool-state transitions.
+This keeps the actual tool logic out of the server shell. The server shell does not parse files and does not own any tool-state transitions.
 
 ### `client.tsx`
 
@@ -138,9 +137,15 @@ Server responsibilities:
 - read metadata via ExifTool with maker-note-friendly args
 - normalize metadata rows
 - run brand-specific shutter extraction
+- build tracking preview state for the current user
 - return a stable JSON payload for both success and failure
 
-The route always returns a consistent response shape. Error responses include empty metadata rows rather than changing the payload contract.
+The route always returns a consistent response shape. Error responses include empty metadata rows rather than changing the payload contract. Successful responses now also include a tracking block that lets the results banner render the right save/login/history state without a second round-trip.
+
+For signed-in users, that tracking block now supports two save modes:
+
+- an explicit first save when the serial has never been tracked before
+- automatic saving for later uploads once that serial is already tracked and the new reading is unique
 
 ### 3. Client-side completion
 
@@ -215,6 +220,17 @@ The current reset action is owned by the results UI, not the page header.
 - resets the hidden file input value
 
 This returns the tool to a clean empty state.
+
+## Result tracking flow
+
+The result surface owns the EXIF tracking actions rather than bouncing the user to another page.
+
+The current behavior is:
+
+- first save stays explicit
+- later matching uploads for an already-tracked serial auto-save in the results view
+- auto-save is limited to one attempt per parse-issued save token
+- deleting the currently displayed reading suppresses auto-save for that same parse result so the deleted row is not recreated immediately
 
 ## Empty state
 
@@ -403,6 +419,7 @@ The frontend currently depends on these main response areas:
 - `message`
 - `camera`
 - `extractor`
+- `tracking`
 - `metadata.rows`
 
 ### `extractor`
@@ -427,6 +444,44 @@ The result UI derives display content from full metadata rows for:
 - full metadata table
 
 This keeps the route payload generic and lets the frontend format presentation-specific summaries without server-side UI coupling.
+
+### `tracking`
+
+The tracking block now drives the EXIF banner state. It tells the client:
+
+- whether the current result is trackable
+- whether auth is required
+- whether the parsed serial is already tracked by the current user
+- whether the current reading is already saved
+- whether a save token is available
+- whether the parsed make/model mapped to a known gear item
+
+The client uses this to render the correct CTA state without guessing from auth props or local heuristics.
+
+## Tracking UI
+
+Tracking is implemented directly inside the results banner rather than as a separate screen.
+
+Current banner behavior:
+
+- signed out + eligible result: `Log in to save history`
+- signed in + eligible + never saved: `Save to track`
+- signed in + tracked camera + current reading unsaved: auto-save, then `View history`
+- signed in + current reading already saved: `View history`
+- ineligible result: muted explanation
+
+The save action posts the short-lived save token returned by the parse route to `/api/exif-tracking/save`.
+
+History is lazy-loaded from `/api/exif-tracking/cameras/[trackedCameraId]/history` and rendered in `_components/exif-tracking-history-dialog.tsx`.
+
+The history dialog is intentionally simple in v1:
+
+- title from mapped gear name or parsed model
+- summary fields for latest count, latest capture, first seen, and last seen
+- plain readings table
+- per-reading delete action
+- no sparkline
+- no chart modal
 
 ## Visual shell
 
@@ -453,16 +508,17 @@ This decoration is contained in `page.tsx` and does not interact with the parsin
 ## Current limitations
 
 - error handling is still visually lightweight and not yet elevated into its own full surface
-- the track action is not wired up yet
 - the empty-state copy is still more descriptive than the final polished version will likely be
 - summary-field extraction is client-side and intentionally simple rather than fully normalized in a shared mapping layer
+- EXIF history is list-first; charting is intentionally deferred until the saved-data model is proven
 
 ## Future frontend directions
 
 Likely next steps if the tool expands:
 
-- wire the tracking CTA into auth/catalog flows
+- refine the private history presentation now that save/history flows exist
 - refine the empty-state copy and spacing
 - improve error-state presentation
 - add richer result affordances for linking parsed metadata to catalog gear
+- add charting to the private history dialog once the data model and sample size justify it
 - extract client-side metadata summary helpers if the result UI grows beyond the current scope

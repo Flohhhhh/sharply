@@ -11,6 +11,25 @@ export const EXIF_VIEWER_ALLOWED_EXTENSIONS = [
 
 export const EXIF_VIEWER_MAX_FILE_BYTES = 100 * 1024 * 1024;
 
+export const EXIF_VIEWER_SERIAL_CANDIDATE_KEYS = [
+  "MakerNotes:SerialNumber",
+  "MakerNotes:InternalSerialNumber",
+  "MakerNotes:CameraSerialNumber",
+  "EXIF:SerialNumber",
+  "ExifIFD:SerialNumber",
+  "Composite:SerialNumber",
+  "Nikon:SerialNumber",
+  "Canon:SerialNumber",
+  "Sony:SerialNumber",
+  "FujiFilm:SerialNumber",
+] as const;
+
+export const EXIF_VIEWER_CAPTURE_DATE_CANDIDATE_KEYS = [
+  "Composite:SubSecDateTimeOriginal",
+  "EXIF:DateTimeOriginal",
+  "EXIF:CreateDate",
+] as const;
+
 export type SupportedExifViewerExtension =
   (typeof EXIF_VIEWER_ALLOWED_EXTENSIONS)[number];
 
@@ -32,6 +51,10 @@ export type ExifViewerStatus =
 
 export type ExifViewerCountType = "total" | "mechanical";
 
+export type ExifTrackingPrimaryCountType =
+  | ExifViewerCountType
+  | "generic";
+
 export type ExifViewerTagEntry = {
   key: string;
   group: string;
@@ -44,6 +67,75 @@ export type ExifViewerMetadataRow = {
   group: string;
   tag: string;
   value: string;
+};
+
+export type ExifViewerMatchedGear = {
+  id: string;
+  slug: string;
+  name: string;
+};
+
+export type ExifTrackedCameraSummary = {
+  id: string;
+  readingCount: number;
+  latestPrimaryCountValue: number | null;
+  latestCaptureAt: string | null;
+};
+
+export type ExifViewerTrackingReason =
+  | "missing_serial"
+  | "missing_count"
+  | "not_signed_in"
+  | "unsupported_result"
+  | null;
+
+export type ExifViewerTrackingState = {
+  eligible: boolean;
+  reason: ExifViewerTrackingReason;
+  saveToken: string | null;
+  matchedGear: ExifViewerMatchedGear | null;
+  trackedCamera: ExifTrackedCameraSummary | null;
+  currentReadingSaved: boolean;
+};
+
+export type ExifTrackingSaveResponse = {
+  ok: boolean;
+  message: string;
+  tracking: ExifViewerTrackingState | null;
+};
+
+export type ExifTrackedCameraHistoryEntry = {
+  id: string;
+  captureAt: string | null;
+  primaryCountType: ExifTrackingPrimaryCountType;
+  primaryCountValue: number;
+  shutterCount: number | null;
+  totalShutterCount: number | null;
+  mechanicalShutterCount: number | null;
+  createdAt: string;
+};
+
+export type ExifTrackingHistoryResponse = {
+  ok: boolean;
+  trackedCamera: {
+    id: string;
+    title: string;
+    matchedGear: ExifViewerMatchedGear | null;
+    readingCount: number;
+    latestPrimaryCountValue: number | null;
+    latestCaptureAt: string | null;
+    firstSeenAt: string | null;
+    lastSeenAt: string | null;
+  } | null;
+  readings: ExifTrackedCameraHistoryEntry[];
+};
+
+export type ExifTrackingDeleteResponse = {
+  ok: boolean;
+  message: string;
+  deletedReadingId: string | null;
+  trackedCamera: ExifTrackedCameraSummary | null;
+  matchedGear: ExifViewerMatchedGear | null;
 };
 
 export type ExifViewerCandidateCheck = {
@@ -101,6 +193,7 @@ export type ExifViewerResponse = {
       value: unknown;
     }>;
   };
+  tracking: ExifViewerTrackingState;
   metadata: {
     rows: ExifViewerMetadataRow[];
   };

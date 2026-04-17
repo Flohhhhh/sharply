@@ -27,13 +27,7 @@ function sleep(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
-type ExifViewerClientProps = {
-  isLoggedIn: boolean;
-};
-
-export default function ExifViewerClient({
-  isLoggedIn,
-}: ExifViewerClientProps) {
+export default function ExifViewerClient() {
   const reduceMotion = useReducedMotion();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const loadingRunIdRef = useRef(0);
@@ -251,7 +245,6 @@ export default function ExifViewerClient({
           <ExifResults
             key="results"
             result={result}
-            isLoggedIn={isLoggedIn}
             onStartOver={resetToolState}
           />
         ) : null}

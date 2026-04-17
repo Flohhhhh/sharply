@@ -1,4 +1,6 @@
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import { auth } from "~/auth";
 import {
   EXIF_VIEWER_ALLOWED_EXTENSIONS,
   EXIF_VIEWER_MAX_FILE_BYTES,
@@ -6,6 +8,7 @@ import {
 } from "../types";
 import { readExifToolTags, toExifViewerMetadataRows } from "./exiftool";
 import { extractShutterCount } from "./extractors";
+import { buildTrackingPreviewFromParseResult } from "~/server/exif-tracking/service";
 
 export const runtime = "nodejs";
 
@@ -58,6 +61,14 @@ function createErrorResponse(params: {
         failureReason: params.message,
         candidateTagsChecked: [],
         rawValuesInspected: [],
+      },
+      tracking: {
+        eligible: false,
+        reason: "unsupported_result",
+        saveToken: null,
+        matchedGear: null,
+        trackedCamera: null,
+        currentReadingSaved: false,
       },
       metadata: {
         rows: [],
@@ -133,6 +144,30 @@ export async function POST(request: Request) {
       buffer: new Uint8Array(arrayBuffer),
     });
     const extraction = extractShutterCount(relevantTags);
+    const metadataRows = toExifViewerMetadataRows(allTags);
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    const tracking = await buildTrackingPreviewFromParseResult({
+      status: extraction.status,
+      camera: extraction.camera,
+      extractor: {
+        selected: extraction.selectedExtractor,
+        primary: extraction.primaryExtractor,
+        fallbackUsed: extraction.fallbackUsed,
+        countType: extraction.countType,
+        sourceTag: extraction.sourceTag,
+        mechanicalSourceTag: extraction.mechanicalSourceTag,
+        shutterCount: extraction.shutterCount,
+        totalShutterCount: extraction.totalShutterCount,
+        mechanicalShutterCount: extraction.mechanicalShutterCount,
+        failureReason: extraction.failureReason,
+        candidateTagsChecked: extraction.candidateTagsChecked,
+        rawValuesInspected: extraction.rawValuesInspected,
+      },
+      metadataRows,
+      userId: session?.user.id ?? null,
+    });
 
     return createResponse(
       {
@@ -159,8 +194,9 @@ export async function POST(request: Request) {
           candidateTagsChecked: extraction.candidateTagsChecked,
           rawValuesInspected: extraction.rawValuesInspected,
         },
+        tracking,
         metadata: {
-          rows: toExifViewerMetadataRows(allTags),
+          rows: metadataRows,
         },
         debug: {
           parser: "exiftool-vendored",
