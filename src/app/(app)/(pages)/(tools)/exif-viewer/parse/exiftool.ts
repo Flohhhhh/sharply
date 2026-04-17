@@ -1,14 +1,8 @@
-import { randomUUID } from "node:crypto";
-import { unlink, writeFile } from "node:fs/promises";
-import path from "node:path";
-import { tmpdir } from "node:os";
-import { exiftool, type RawTags } from "exiftool-vendored";
 import {
   type ExifViewerMetadataRow,
   type ExifViewerTagEntry,
 } from "../types";
 
-const EXIFTOOL_READ_ARGS = ["-G1", "-a", "-s", "-u", "-sort"];
 const RELEVANT_GROUPS = new Set([
   "exif",
   "ifd0",
@@ -22,7 +16,65 @@ const RELEVANT_GROUPS = new Set([
   "file",
 ]);
 
-function compactValue(value: unknown): unknown {
+type ExifToolTagMap = Record<string, unknown>;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function collectWarningValues(
+  key: string,
+  value: unknown,
+  warnings: string[],
+) {
+  const lowerKey = key.toLowerCase();
+  const isWarningLike =
+    lowerKey === "warnings" ||
+    lowerKey === "warning" ||
+    lowerKey === "error" ||
+    lowerKey === "errors" ||
+    lowerKey.endsWith(":warning") ||
+    lowerKey.endsWith(":error");
+
+  if (!isWarningLike) {
+    return false;
+  }
+
+  const pushWarning = (warningValue: unknown) => {
+    if (warningValue === null || warningValue === undefined) {
+      return;
+    }
+
+    if (
+      typeof warningValue === "string" ||
+      typeof warningValue === "number" ||
+      typeof warningValue === "boolean" ||
+      typeof warningValue === "bigint"
+    ) {
+      warnings.push(String(warningValue));
+      return;
+    }
+
+    const serialized = JSON.stringify(warningValue);
+    if (serialized) {
+      warnings.push(serialized);
+    }
+  };
+
+  if (Array.isArray(value)) {
+    for (const warning of value) {
+      pushWarning(warning);
+    }
+
+    return true;
+  }
+
+  pushWarning(value);
+
+  return true;
+}
+
+export function compactValue(value: unknown): unknown {
   if (typeof value === "string") {
     return value.length > 200 ? `${value.slice(0, 200)}...` : value;
   }
@@ -42,14 +94,16 @@ function compactValue(value: unknown): unknown {
   return value;
 }
 
-function parseTagEntry(key: string, value: unknown): ExifViewerTagEntry {
+export function parseTagEntry(key: string, value: unknown): ExifViewerTagEntry {
+  const compactedValue = compactValue(value);
   const separatorIndex = key.indexOf(":");
+
   if (separatorIndex === -1) {
     return {
       key,
       group: "Unknown",
       tag: key,
-      value: compactValue(value),
+      value: compactedValue,
     };
   }
 
@@ -57,8 +111,14 @@ function parseTagEntry(key: string, value: unknown): ExifViewerTagEntry {
     key,
     group: key.slice(0, separatorIndex),
     tag: key.slice(separatorIndex + 1),
-    value: compactValue(value),
+    value: compactedValue,
   };
+}
+
+export function sanitizeExifViewerTagEntries(
+  tagEntries: ExifViewerTagEntry[],
+): ExifViewerTagEntry[] {
+  return tagEntries.map((entry) => parseTagEntry(entry.key, entry.value));
 }
 
 function isRelevantTag(entry: ExifViewerTagEntry) {
@@ -76,7 +136,7 @@ function isRelevantTag(entry: ExifViewerTagEntry) {
   );
 }
 
-function formatMetadataValue(value: unknown): string {
+export function formatMetadataValue(value: unknown): string {
   if (value === null || value === undefined) {
     return "";
   }
@@ -85,12 +145,12 @@ function formatMetadataValue(value: unknown): string {
     return value.length > 1_000 ? `${value.slice(0, 1_000)}...` : value;
   }
 
-  if (typeof value === "number" || typeof value === "boolean") {
+  if (
+    typeof value === "number" ||
+    typeof value === "boolean" ||
+    typeof value === "bigint"
+  ) {
     return String(value);
-  }
-
-  if (typeof value === "bigint") {
-    return value.toString();
   }
 
   if (Array.isArray(value)) {
@@ -114,10 +174,33 @@ function formatMetadataValue(value: unknown): string {
   return "";
 }
 
-export function normalizeExifToolTagEntries(rawTags: RawTags): ExifViewerTagEntry[] {
-  return Object.entries(rawTags)
-    .filter(([key]) => key !== "errors" && key !== "warnings")
-    .map(([key, value]) => parseTagEntry(key, value));
+export function extractExifToolJsonTagMap(rawOutput: unknown): {
+  rawTags: ExifToolTagMap;
+  warnings: string[];
+} {
+  const warnings: string[] = [];
+  const rawRecord = Array.isArray(rawOutput)
+    ? rawOutput.find(isRecord) ?? {}
+    : isRecord(rawOutput)
+      ? rawOutput
+      : {};
+
+  const rawTags = Object.fromEntries(
+    Object.entries(rawRecord).filter(([key, value]) => {
+      return !collectWarningValues(key, value, warnings);
+    }),
+  );
+
+  return {
+    rawTags,
+    warnings,
+  };
+}
+
+export function normalizeExifToolTagEntries(
+  rawTags: ExifToolTagMap,
+): ExifViewerTagEntry[] {
+  return Object.entries(rawTags).map(([key, value]) => parseTagEntry(key, value));
 }
 
 export function filterRelevantExifToolTags(tagEntries: ExifViewerTagEntry[]) {
@@ -133,36 +216,4 @@ export function toExifViewerMetadataRows(
     tag: entry.tag,
     value: formatMetadataValue(entry.value),
   }));
-}
-
-export async function readExifToolTags(params: {
-  fileName: string;
-  buffer: Uint8Array;
-}) {
-  const extension = path.extname(params.fileName).toLowerCase();
-  const tempFilePath = path.join(
-    tmpdir(),
-    `exif-viewer-${randomUUID()}${extension}`,
-  );
-
-  await writeFile(tempFilePath, Buffer.from(params.buffer));
-
-  try {
-    const rawTags = await exiftool.readRaw<RawTags>(tempFilePath, {
-      readArgs: EXIFTOOL_READ_ARGS,
-    });
-    const allTags = normalizeExifToolTagEntries(rawTags);
-
-    return {
-      allTags,
-      rawTags,
-      warnings:
-        Array.isArray(rawTags.warnings) && rawTags.warnings.length > 0
-          ? rawTags.warnings.map(String)
-          : [],
-      relevantTags: filterRelevantExifToolTags(allTags),
-    };
-  } finally {
-    await unlink(tempFilePath).catch(() => undefined);
-  }
 }

@@ -1,9 +1,14 @@
 import { withPayload } from "@payloadcms/next/withPayload";
+import { fileURLToPath } from "node:url";
 /**
  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
  * for Docker builds.
  */
 import "./src/env.js";
+
+const emptyNodeFsPromisesPath = fileURLToPath(
+  new URL("./src/lib/empty-node-fs-promises.js", import.meta.url),
+);
 
 /** @type {import("next").NextConfig} */
 const config = {
@@ -59,6 +64,18 @@ const config = {
         hostname: "img.youtube.com",
       },
     ],
+  },
+  webpack: (config, { isServer, webpack }) => {
+    if (!isServer) {
+      config.plugins.push(
+        new webpack.NormalModuleReplacementPlugin(
+          /^node:fs\/promises$/,
+          emptyNodeFsPromisesPath,
+        ),
+      );
+    }
+
+    return config;
   },
 };
 

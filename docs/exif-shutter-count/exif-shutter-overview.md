@@ -13,9 +13,9 @@ The focus here is the metadata itself:
 
 ## Parser Source
 
-The parser runs server-side with `exiftool-vendored`.
+Metadata is now extracted locally in the browser with ExifTool/WASM, then sent to `/exif-viewer/parse` as normalized JSON metadata instead of as an uploaded image file.
 
-This is required because shutter-count values often live in maker notes or brand-specific groups rather than in generic EXIF fields. Current examples include:
+This still matters because shutter-count values often live in maker notes or brand-specific groups rather than in generic EXIF fields. Current examples include:
 
 - `Sony:*`
 - `Nikon:*`
@@ -23,8 +23,9 @@ This is required because shutter-count values often live in maker notes or brand
 - `FujiFilm:*`
 - `MakerNotes:*`
 
-The ExifTool bridge currently calls `readRaw()` with:
+The browser worker currently runs ExifTool with:
 
+- `-json`
 - `-G1`
 - `-a`
 - `-s`
@@ -38,6 +39,7 @@ This gives us:
 - short tag names
 - unknown tags when ExifTool can still expose them
 - stable enough raw output for extractor iteration
+- a JSON payload small enough to send to the server without sending file bytes
 
 ## Accepted File Types
 
@@ -74,9 +76,9 @@ Example:
 }
 ```
 
-The bridge currently keeps two normalized views:
+The worker and parse route keep two normalized views:
 
-- `allTags`: the full sanitized ExifTool output, excluding `errors` and `warnings`
+- `allTags`: the full sanitized ExifTool output, excluding warning/error pseudo-tags
 - `relevantTags`: a filtered subset used for extraction-focused debug output
 
 The relevant-tag filter currently includes:
@@ -85,12 +87,18 @@ The relevant-tag filter currently includes:
 - any tag named `Make` or `Model`
 - any tag name containing `shutter`, `count`, `image`, or `exposure`
 
-## Temporary File Handling
+## Parse Transport
 
-- temp files are written to `os.tmpdir()` and deleted in a `finally` block
-- no metadata is persisted
-- no parsed output is stored in the database
-- temp files exist only for the duration of one parse request
+- the selected image or RAW file is not uploaded to `/exif-viewer/parse`
+- the browser worker returns normalized `allTags` plus warnings
+- the client posts a JSON payload containing:
+  - `file.name`
+  - `file.size`
+  - `exiftool.parser`
+  - `exiftool.allTags`
+  - `exiftool.warnings`
+- the server rebuilds `metadata.rows`, `relevantTags`, extraction state, and tracking preview from those normalized tags
+- save/history persistence remains server-derived even though the metadata source is client-produced
 
 ## Brand Detection
 
@@ -309,11 +317,13 @@ These tests currently cover:
 - Sony, Nikon, Canon, and Fujifilm extraction paths
 - Nikon total vs mechanical distinction
 - generic fallback behavior
+- JSON parse-route validation
+- unsupported parser rejection
 - unsupported format rejection
-- empty file rejection
+- empty file-envelope rejection
 - file-size rejection
-- structured parse failures
-- temp-file cleanup in the ExifTool bridge
+- shared normalization and warning extraction
+- client worker-wrapper behavior
 - `.dng` acceptance through the parse route
 
 ## Current Known Limitations
@@ -327,7 +337,7 @@ These tests currently cover:
 
 The current parser is strongest when:
 
-- ExifTool can expose maker-note-backed shutter data directly
+- ExifTool/WASM can expose maker-note-backed shutter data directly in the browser
 - brand detection is clear from `Make` and `Model`
 - the count lives in one of the explicit brand candidate tags
 

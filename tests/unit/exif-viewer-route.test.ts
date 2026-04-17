@@ -1,17 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { EXIF_VIEWER_MAX_FILE_BYTES } from "../../src/app/(app)/(pages)/(tools)/exif-viewer/types";
-
-const exiftoolMocks = vi.hoisted(() => ({
-  readExifToolTags: vi.fn(),
-  toExifViewerMetadataRows: vi.fn((tagEntries) =>
-    tagEntries.map((entry: any) => ({
-      key: entry.key,
-      group: entry.group,
-      tag: entry.tag,
-      value: String(entry.value ?? ""),
-    })),
-  ),
-}));
+import {
+  EXIF_VIEWER_MAX_FILE_BYTES,
+  type ExifViewerParseRequest,
+} from "../../src/app/(app)/(pages)/(tools)/exif-viewer/types";
 
 const authMocks = vi.hoisted(() => ({
   auth: {
@@ -32,10 +23,6 @@ const trackingMocks = vi.hoisted(() => ({
   }),
 }));
 
-vi.mock(
-  "../../src/app/(app)/(pages)/(tools)/exif-viewer/parse/exiftool",
-  () => exiftoolMocks,
-);
 vi.mock("~/auth", () => authMocks);
 vi.mock("next/headers", () => ({
   headers: vi.fn(async () => new Headers()),
@@ -44,19 +31,17 @@ vi.mock("~/server/exif-tracking/service", () => trackingMocks);
 
 import { POST } from "../../src/app/(app)/(pages)/(tools)/exif-viewer/parse/route";
 
-describe("exif viewer parse route", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    authMocks.auth.api.getSession.mockResolvedValue(null);
-    trackingMocks.buildTrackingPreviewFromParseResult.mockResolvedValue({
-      eligible: true,
-      reason: "not_signed_in",
-      saveToken: null,
-      matchedGear: null,
-      trackedCamera: null,
-      currentReadingSaved: false,
-    });
-    exiftoolMocks.readExifToolTags.mockResolvedValue({
+function createRequestBody(
+  overrides: Partial<ExifViewerParseRequest> = {},
+): ExifViewerParseRequest {
+  return {
+    file: {
+      name: "sample.nef",
+      size: 1024,
+      ...overrides.file,
+    },
+    exiftool: {
+      parser: "exiftool-wasm",
       allTags: [
         {
           key: "EXIF:Make",
@@ -88,51 +73,53 @@ describe("exif viewer parse route", () => {
           tag: "ISO",
           value: "800",
         },
-      ],
-      rawTags: {
-        "EXIF:Make": "NIKON CORPORATION",
-        "EXIF:Model": "Zf",
-        "MakerNotes:ShutterCount": "3456",
-      },
-      relevantTags: [
         {
-          key: "EXIF:Make",
-          group: "EXIF",
-          tag: "Make",
-          value: "NIKON CORPORATION",
-        },
-        {
-          key: "EXIF:Model",
-          group: "EXIF",
-          tag: "Model",
-          value: "Zf",
-        },
-        {
-          key: "MakerNotes:ShutterCount",
-          group: "MakerNotes",
-          tag: "ShutterCount",
-          value: "3456",
-        },
-        {
-          key: "Nikon:MechanicalShutterCount",
-          group: "Nikon",
-          tag: "MechanicalShutterCount",
-          value: "3000",
+          key: "XMP:Creator",
+          group: "XMP",
+          tag: "Creator",
+          value: "Camera Owner",
         },
       ],
       warnings: ["minor warning"],
+      ...overrides.exiftool,
+    },
+  };
+}
+
+function createJsonRequest(body: unknown) {
+  return new Request("http://localhost/exif-viewer/parse", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+}
+
+describe("exif viewer parse route", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    authMocks.auth.api.getSession.mockResolvedValue(null);
+    trackingMocks.buildTrackingPreviewFromParseResult.mockResolvedValue({
+      eligible: true,
+      reason: "not_signed_in",
+      saveToken: null,
+      matchedGear: null,
+      trackedCamera: null,
+      currentReadingSaved: false,
     });
   });
 
-  it("rejects unsupported extensions", async () => {
-    const formData = new FormData();
-    formData.set("file", new File(["x"], "sample.png", { type: "image/png" }));
-
+  it("rejects unsupported extensions derived from file name", async () => {
     const response = await POST(
-      new Request("http://localhost/exif-viewer/parse", {
-        method: "POST",
-        body: formData,
-      }) as any,
+      createJsonRequest(
+        createRequestBody({
+          file: {
+            name: "sample.png",
+            size: 1024,
+          },
+        }),
+      ) as any,
     );
     const payload = await response.json();
 
@@ -147,85 +134,102 @@ describe("exif viewer parse route", () => {
       trackedCamera: null,
       currentReadingSaved: false,
     });
-    expect(exiftoolMocks.readExifToolTags).not.toHaveBeenCalled();
   });
 
-  it("rejects empty files", async () => {
-    const formData = new FormData();
-    formData.set("file", new File([], "sample.jpg", { type: "image/jpeg" }));
-
+  it("rejects zero-size file envelopes", async () => {
     const response = await POST(
-      new Request("http://localhost/exif-viewer/parse", {
-        method: "POST",
-        body: formData,
-      }) as any,
+      createJsonRequest(
+        createRequestBody({
+          file: {
+            name: "sample.jpg",
+            size: 0,
+          },
+        }),
+      ) as any,
     );
     const payload = await response.json();
 
     expect(response.status).toBe(400);
     expect(payload.status).toBe("parse_error");
-    expect(payload.message).toBe("The uploaded file is empty.");
+    expect(payload.message).toBe("The selected file is empty.");
     expect(payload.metadata.rows).toEqual([]);
     expect(payload.tracking.reason).toBe("unsupported_result");
   });
 
-  it("rejects files that exceed the size limit", async () => {
-    const oversizedFile = new File(["x"], "sample.jpg", { type: "image/jpeg" });
-    Object.defineProperty(oversizedFile, "size", {
-      value: EXIF_VIEWER_MAX_FILE_BYTES + 1,
-    });
-
-    const formData = new FormData();
-    formData.set("file", oversizedFile);
-
-    const response = await POST({
-      formData: async () => formData,
-    } as any);
+  it("rejects claimed file sizes above the limit", async () => {
+    const response = await POST(
+      createJsonRequest(
+        createRequestBody({
+          file: {
+            name: "sample.jpg",
+            size: EXIF_VIEWER_MAX_FILE_BYTES + 1,
+          },
+        }),
+      ) as any,
+    );
     const payload = await response.json();
 
     expect(response.status).toBe(400);
     expect(payload.status).toBe("file_too_large");
-    expect(exiftoolMocks.readExifToolTags).not.toHaveBeenCalled();
+    expect(payload.message).toContain("100MB");
   });
 
-  it("returns structured parse errors from the ExifTool bridge", async () => {
-    exiftoolMocks.readExifToolTags.mockRejectedValueOnce(
-      new Error("ExifTool blew up"),
-    );
-
-    const formData = new FormData();
-    formData.set("file", new File(["x"], "sample.jpg", { type: "image/jpeg" }));
-
+  it("rejects malformed metadata payloads", async () => {
     const response = await POST(
-      new Request("http://localhost/exif-viewer/parse", {
-        method: "POST",
-        body: formData,
+      createJsonRequest({
+        file: {
+          name: "sample.nef",
+          size: 1024,
+        },
+        exiftool: {
+          parser: "exiftool-wasm",
+          allTags: [
+            {
+              key: "",
+              group: "EXIF",
+              tag: "Make",
+              value: "Nikon",
+            },
+          ],
+          warnings: [],
+        },
       }) as any,
     );
     const payload = await response.json();
 
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(400);
     expect(payload.status).toBe("parse_error");
-    expect(payload.message).toBe("ExifTool blew up");
-    expect(payload.metadata.rows).toEqual([]);
-    expect(payload.tracking.reason).toBe("unsupported_result");
+    expect(payload.message).toBe("Invalid EXIF metadata payload.");
   });
 
-  it("returns the expected success shape", async () => {
-    const formData = new FormData();
-    formData.set("file", new File(["x"], "sample.dng", { type: "image/x-adobe-dng" }));
-
+  it("rejects unsupported parser ids", async () => {
     const response = await POST(
-      new Request("http://localhost/exif-viewer/parse", {
-        method: "POST",
-        body: formData,
+      createJsonRequest({
+        file: {
+          name: "sample.nef",
+          size: 1024,
+        },
+        exiftool: {
+          parser: "something-else",
+          allTags: [],
+          warnings: [],
+        },
       }) as any,
     );
+    const payload = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(payload.status).toBe("parse_error");
+    expect(payload.message).toBe("Invalid EXIF metadata payload.");
+  });
+
+  it("returns the expected success shape from client-sent tags", async () => {
+    const response = await POST(createJsonRequest(createRequestBody()) as any);
     const payload = await response.json();
 
     expect(response.status).toBe(200);
     expect(payload.status).toBe("success");
-    expect(payload.file.extension).toBe("dng");
+    expect(payload.file.extension).toBe("nef");
     expect(payload.camera).toEqual({
       make: "NIKON CORPORATION",
       model: "Zf",
@@ -275,10 +279,52 @@ describe("exif viewer parse route", () => {
         tag: "ISO",
         value: "800",
       },
+      {
+        key: "XMP:Creator",
+        group: "XMP",
+        tag: "Creator",
+        value: "Camera Owner",
+      },
     ]);
-    expect(payload.debug.tagCount).toBe(3);
-    expect(payload.debug.warnings).toEqual(["minor warning"]);
-    expect(payload.debug.relevantTags).toHaveLength(4);
-    expect(trackingMocks.buildTrackingPreviewFromParseResult).toHaveBeenCalled();
+    expect(payload.debug).toMatchObject({
+      parser: "exiftool-wasm",
+      tagCount: 6,
+      warnings: ["minor warning"],
+    });
+    expect(payload.debug.relevantTags).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          key: "MakerNotes:ShutterCount",
+          value: "3456",
+        }),
+      ]),
+    );
+    expect(trackingMocks.buildTrackingPreviewFromParseResult).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadataRows: payload.metadata.rows,
+        userId: null,
+      }),
+    );
+  });
+
+  it("returns metadata rows from the full sanitized tag list, not only relevant tags", async () => {
+    const response = await POST(createJsonRequest(createRequestBody()) as any);
+    const payload = await response.json();
+
+    expect(payload.metadata.rows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          key: "XMP:Creator",
+          value: "Camera Owner",
+        }),
+      ]),
+    );
+    expect(payload.debug.relevantTags).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          key: "XMP:Creator",
+        }),
+      ]),
+    );
   });
 });

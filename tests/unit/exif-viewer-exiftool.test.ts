@@ -1,55 +1,43 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
-const fsMocks = vi.hoisted(() => ({
-  unlink: vi.fn(),
-  writeFile: vi.fn(),
-}));
-
-const exiftoolMocks = vi.hoisted(() => ({
-  exiftool: {
-    readRaw: vi.fn(),
-  },
-}));
-
-vi.mock("node:fs/promises", () => fsMocks);
-vi.mock("exiftool-vendored", () => exiftoolMocks);
-
+import { describe, expect, it } from "vitest";
 import {
-  readExifToolTags,
+  compactValue,
+  extractExifToolJsonTagMap,
+  filterRelevantExifToolTags,
+  normalizeExifToolTagEntries,
+  sanitizeExifViewerTagEntries,
   toExifViewerMetadataRows,
 } from "../../src/app/(app)/(pages)/(tools)/exif-viewer/parse/exiftool";
 
-describe("exif viewer exiftool bridge", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    fsMocks.writeFile.mockResolvedValue(undefined);
-    fsMocks.unlink.mockResolvedValue(undefined);
+describe("exif viewer exiftool normalization", () => {
+  it("extracts tag maps and warning strings from JSON output", () => {
+    const extracted = extractExifToolJsonTagMap([
+      {
+        SourceFile: "sample.nef",
+        "EXIF:Make": "NIKON CORPORATION",
+        "EXIF:Model": "Zf",
+        "Nikon:MechanicalShutterCount": 9371,
+        "ExifTool:Warning": "Minor warning",
+      },
+    ]);
+
+    expect(extracted.warnings).toEqual(["Minor warning"]);
+    expect(extracted.rawTags).toEqual({
+      SourceFile: "sample.nef",
+      "EXIF:Make": "NIKON CORPORATION",
+      "EXIF:Model": "Zf",
+      "Nikon:MechanicalShutterCount": 9371,
+    });
   });
 
-  it("returns all tag rows, relevant tag rows, and cleans up temp files on success", async () => {
-    exiftoolMocks.exiftool.readRaw.mockResolvedValue({
+  it("normalizes raw exiftool tags into viewer tag entries and filters relevant tags", () => {
+    const allTags = normalizeExifToolTagEntries({
       "EXIF:Make": "SONY",
       "EXIF:Model": "ILCE-7M4",
       "Sony:ShutterCount": "5432",
       "File:FileType": "ARW",
-      warnings: ["minor warning"],
     });
 
-    const result = await readExifToolTags({
-      fileName: "sample.arw",
-      buffer: new Uint8Array([1, 2, 3]),
-    });
-
-    expect(fsMocks.writeFile).toHaveBeenCalledTimes(1);
-    expect(exiftoolMocks.exiftool.readRaw).toHaveBeenCalledWith(
-      expect.stringMatching(/exif-viewer-.*\.arw$/),
-      {
-        readArgs: ["-G1", "-a", "-s", "-u", "-sort"],
-      },
-    );
-    expect(fsMocks.unlink).toHaveBeenCalledTimes(1);
-    expect(result.warnings).toEqual(["minor warning"]);
-    expect(result.allTags).toEqual(
+    expect(allTags).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           key: "File:FileType",
@@ -59,7 +47,7 @@ describe("exif viewer exiftool bridge", () => {
         }),
       ]),
     );
-    expect(result.relevantTags).toEqual(
+    expect(filterRelevantExifToolTags(allTags)).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           key: "Sony:ShutterCount",
@@ -69,27 +57,60 @@ describe("exif viewer exiftool bridge", () => {
         }),
       ]),
     );
-    expect(toExifViewerMetadataRows(result.allTags)).toEqual(
+  });
+
+  it("formats full metadata rows from normalized tag entries", () => {
+    const rows = toExifViewerMetadataRows(
+      normalizeExifToolTagEntries({
+        "EXIF:Make": "SONY",
+        "Composite:LensSpec": ["24-70mm", "f/2.8"],
+      }),
+    );
+
+    expect(rows).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           key: "EXIF:Make",
           value: "SONY",
         }),
+        expect.objectContaining({
+          key: "Composite:LensSpec",
+          value: "24-70mm, f/2.8",
+        }),
       ]),
     );
   });
 
-  it("cleans up temp files when exiftool fails", async () => {
-    exiftoolMocks.exiftool.readRaw.mockRejectedValue(new Error("read failed"));
+  it("compacts nested values and re-sanitizes client tag entries", () => {
+    const longString = "x".repeat(240);
+    const compacted = compactValue({
+      alpha: longString,
+      beta: [longString, { gamma: longString }],
+    });
+    const sanitized = sanitizeExifViewerTagEntries([
+      {
+        key: "Composite:NestedValue",
+        group: "Composite",
+        tag: "NestedValue",
+        value: compacted,
+      },
+    ]);
 
-    await expect(
-      readExifToolTags({
-        fileName: "sample.cr3",
-        buffer: new Uint8Array([9, 8, 7]),
-      }),
-    ).rejects.toThrow("read failed");
-
-    expect(fsMocks.writeFile).toHaveBeenCalledTimes(1);
-    expect(fsMocks.unlink).toHaveBeenCalledTimes(1);
+    expect(sanitized).toEqual([
+      {
+        key: "Composite:NestedValue",
+        group: "Composite",
+        tag: "NestedValue",
+        value: {
+          alpha: `${"x".repeat(200)}...`,
+          beta: [
+            `${"x".repeat(200)}...`,
+            {
+              gamma: `${"x".repeat(200)}...`,
+            },
+          ],
+        },
+      },
+    ]);
   });
 });

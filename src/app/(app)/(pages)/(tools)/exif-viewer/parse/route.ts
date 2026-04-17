@@ -1,16 +1,55 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { auth } from "~/auth";
+import { buildTrackingPreviewFromParseResult } from "~/server/exif-tracking/service";
 import {
   EXIF_VIEWER_ALLOWED_EXTENSIONS,
   EXIF_VIEWER_MAX_FILE_BYTES,
+  EXIF_VIEWER_MAX_JSON_BODY_BYTES,
+  EXIF_VIEWER_MAX_TAG_ENTRIES,
+  EXIF_VIEWER_MAX_TAG_FIELD_LENGTH,
+  EXIF_VIEWER_MAX_WARNING_COUNT,
+  EXIF_VIEWER_MAX_WARNING_LENGTH,
+  type ExifViewerParseRequest,
   type ExifViewerResponse,
 } from "../types";
-import { readExifToolTags, toExifViewerMetadataRows } from "./exiftool";
+import {
+  filterRelevantExifToolTags,
+  sanitizeExifViewerTagEntries,
+  toExifViewerMetadataRows,
+} from "./exiftool";
 import { extractShutterCount } from "./extractors";
-import { buildTrackingPreviewFromParseResult } from "~/server/exif-tracking/service";
 
 export const runtime = "nodejs";
+
+const trimmedStringSchema = z
+  .string()
+  .min(1)
+  .max(EXIF_VIEWER_MAX_TAG_FIELD_LENGTH)
+  .transform((value) => value.trim())
+  .refine((value) => value.length > 0);
+
+const exifViewerTagEntrySchema = z.object({
+  key: trimmedStringSchema,
+  group: trimmedStringSchema,
+  tag: trimmedStringSchema,
+  value: z.unknown(),
+});
+
+const exifViewerParseRequestSchema = z.object({
+  file: z.object({
+    name: z.string().min(1).max(512),
+    size: z.number().int().nonnegative(),
+  }),
+  exiftool: z.object({
+    parser: z.literal("exiftool-wasm"),
+    allTags: z.array(exifViewerTagEntrySchema).max(EXIF_VIEWER_MAX_TAG_ENTRIES),
+    warnings: z
+      .array(z.string().max(EXIF_VIEWER_MAX_WARNING_LENGTH))
+      .max(EXIF_VIEWER_MAX_WARNING_COUNT),
+  }),
+});
 
 function getExtension(fileName: string) {
   const parts = fileName.split(".");
@@ -74,7 +113,7 @@ function createErrorResponse(params: {
         rows: [],
       },
       debug: {
-        parser: "exiftool-vendored",
+        parser: "exiftool-wasm",
         tagCount: 0,
         warnings: [],
         relevantTags: [],
@@ -94,57 +133,89 @@ function createErrorResponse(params: {
   );
 }
 
-export async function POST(request: Request) {
-  const formData = await request.formData();
-  const file = formData.get("file");
+async function parseRequestBody(request: Request): Promise<ExifViewerParseRequest> {
+  const body = await request.text();
 
-  if (!(file instanceof File)) {
+  if (!body.trim()) {
+    throw new Error("Missing EXIF metadata payload.");
+  }
+
+  if (new TextEncoder().encode(body).length > EXIF_VIEWER_MAX_JSON_BODY_BYTES) {
+    throw new Error("Metadata payload is too large.");
+  }
+
+  let parsedBody: unknown;
+
+  try {
+    parsedBody = JSON.parse(body);
+  } catch {
+    throw new Error("Invalid EXIF metadata payload.");
+  }
+
+  const result = exifViewerParseRequestSchema.safeParse(parsedBody);
+
+  if (!result.success) {
+    throw new Error("Invalid EXIF metadata payload.");
+  }
+
+  return result.data as ExifViewerParseRequest;
+}
+
+export async function POST(request: Request) {
+  let parsedRequest: ExifViewerParseRequest;
+
+  try {
+    parsedRequest = await parseRequestBody(request);
+  } catch (error) {
     return createErrorResponse({
       status: "parse_error",
-      message: "Missing file upload.",
+      message:
+        error instanceof Error ? error.message : "Invalid EXIF metadata payload.",
       fileName: "unknown",
       fileSize: 0,
       httpStatus: 400,
     });
   }
 
-  const extension = getExtension(file.name);
+  const {
+    file: { name: fileName, size: fileSize },
+    exiftool,
+  } = parsedRequest;
+  const extension = getExtension(fileName);
+
   if (!EXIF_VIEWER_ALLOWED_EXTENSIONS.includes(extension as never)) {
     return createErrorResponse({
       status: "unsupported_format",
       message: `Unsupported file type. Supported extensions: ${EXIF_VIEWER_ALLOWED_EXTENSIONS.join(", ")}.`,
-      fileName: file.name,
-      fileSize: file.size,
+      fileName,
+      fileSize,
     });
   }
 
-  if (file.size === 0) {
+  if (fileSize === 0) {
     return createErrorResponse({
       status: "parse_error",
-      message: "The uploaded file is empty.",
-      fileName: file.name,
-      fileSize: file.size,
+      message: "The selected file is empty.",
+      fileName,
+      fileSize,
       httpStatus: 400,
     });
   }
 
-  if (file.size > EXIF_VIEWER_MAX_FILE_BYTES) {
+  if (fileSize > EXIF_VIEWER_MAX_FILE_BYTES) {
     return createErrorResponse({
       status: "file_too_large",
       message: `File exceeds the ${Math.round(EXIF_VIEWER_MAX_FILE_BYTES / 1024 / 1024)}MB limit.`,
-      fileName: file.name,
-      fileSize: file.size,
+      fileName,
+      fileSize,
     });
   }
 
   try {
-    const arrayBuffer = await file.arrayBuffer();
-    const { allTags, rawTags, relevantTags, warnings } = await readExifToolTags({
-      fileName: file.name,
-      buffer: new Uint8Array(arrayBuffer),
-    });
-    const extraction = extractShutterCount(relevantTags);
+    const allTags = sanitizeExifViewerTagEntries(exiftool.allTags);
+    const relevantTags = filterRelevantExifToolTags(allTags);
     const metadataRows = toExifViewerMetadataRows(allTags);
+    const extraction = extractShutterCount(relevantTags);
     const session = await auth.api.getSession({
       headers: await headers(),
     });
@@ -169,47 +240,42 @@ export async function POST(request: Request) {
       userId: session?.user.id ?? null,
     });
 
-    return createResponse(
-      {
-        ok: extraction.status === "success",
-        status: extraction.status,
-        message: extraction.message,
-        file: {
-          name: file.name,
-          extension,
-          size: file.size,
-        },
-        camera: extraction.camera,
-        extractor: {
-          selected: extraction.selectedExtractor,
-          primary: extraction.primaryExtractor,
-          fallbackUsed: extraction.fallbackUsed,
-          countType: extraction.countType,
-          sourceTag: extraction.sourceTag,
-          mechanicalSourceTag: extraction.mechanicalSourceTag,
-          shutterCount: extraction.shutterCount,
-          totalShutterCount: extraction.totalShutterCount,
-          mechanicalShutterCount: extraction.mechanicalShutterCount,
-          failureReason: extraction.failureReason,
-          candidateTagsChecked: extraction.candidateTagsChecked,
-          rawValuesInspected: extraction.rawValuesInspected,
-        },
-        tracking,
-        metadata: {
-          rows: metadataRows,
-        },
-        debug: {
-          parser: "exiftool-vendored",
-          tagCount: Object.keys(rawTags).length,
-          warnings,
-          relevantTags,
-          attempts: extraction.attempts,
-        },
+    return createResponse({
+      ok: extraction.status === "success",
+      status: extraction.status,
+      message: extraction.message,
+      file: {
+        name: fileName,
+        extension,
+        size: fileSize,
       },
-      {
-        status: extraction.status === "success" ? 200 : 200,
+      camera: extraction.camera,
+      extractor: {
+        selected: extraction.selectedExtractor,
+        primary: extraction.primaryExtractor,
+        fallbackUsed: extraction.fallbackUsed,
+        countType: extraction.countType,
+        sourceTag: extraction.sourceTag,
+        mechanicalSourceTag: extraction.mechanicalSourceTag,
+        shutterCount: extraction.shutterCount,
+        totalShutterCount: extraction.totalShutterCount,
+        mechanicalShutterCount: extraction.mechanicalShutterCount,
+        failureReason: extraction.failureReason,
+        candidateTagsChecked: extraction.candidateTagsChecked,
+        rawValuesInspected: extraction.rawValuesInspected,
       },
-    );
+      tracking,
+      metadata: {
+        rows: metadataRows,
+      },
+      debug: {
+        parser: exiftool.parser,
+        tagCount: allTags.length,
+        warnings: exiftool.warnings,
+        relevantTags,
+        attempts: extraction.attempts,
+      },
+    });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to parse metadata.";
@@ -217,8 +283,8 @@ export async function POST(request: Request) {
     return createErrorResponse({
       status: "parse_error",
       message,
-      fileName: file.name,
-      fileSize: file.size,
+      fileName,
+      fileSize,
     });
   }
 }

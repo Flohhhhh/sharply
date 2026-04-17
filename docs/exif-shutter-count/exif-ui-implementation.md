@@ -105,7 +105,7 @@ Allowed extensions and size constraints are shared through `types.ts`:
 - `raf`
 - max size: `100 MB`
 
-The file input `accept` attribute is generated from the same extension allowlist used by the server.
+The file input `accept` attribute is generated from the same extension allowlist used by the client and parse route.
 
 ## Request flow
 
@@ -117,25 +117,39 @@ When a file is selected:
 2. old result and old error are cleared
 3. loading is activated
 4. the staged loading sequence starts immediately
-5. the real network request starts immediately
+5. the browser worker starts local ExifTool/WASM parsing immediately
+6. the client posts normalized JSON metadata to the parse route
 
-The request is sent as `multipart/form-data` to:
+The request sent to the server is now `application/json`, not a file upload.
 
-- `POST /exif-viewer/parse`
+### 2. Client-side metadata parse
 
-### 2. Server-side parse route
+`parse/client-exiftool.worker.ts` owns the browser-local ExifTool execution.
 
-`parse/route.ts` is a Node route and uses `exiftool-vendored` through `parse/exiftool.ts`.
+Worker responsibilities:
+
+- receive the selected `File`
+- run ExifTool/WASM with maker-note-friendly args
+- normalize raw ExifTool JSON into flat tag entries
+- collect warning strings
+- return normalized metadata to the main thread without exposing extractor logic
+
+`client.tsx` stays as the orchestrator:
+
+- validate extension and file size before parsing
+- call the worker through `parse/client-exiftool.ts`
+- post normalized JSON metadata to `POST /exif-viewer/parse`
+- keep the staged loading flow and the tracking finalization flow
+
+### 3. Server-side parse route
+
+`parse/route.ts` is still a Node route, but it now ingests normalized metadata instead of uploaded file bytes.
 
 Server responsibilities:
 
-- validate file presence
-- validate extension
-- reject empty files
-- reject oversized uploads
-- write the uploaded file to a temp file
-- read metadata via ExifTool with maker-note-friendly args
-- normalize metadata rows
+- validate JSON request shape and size bounds
+- validate extension and claimed file size
+- rebuild full metadata rows and relevant-tag subset
 - run brand-specific shutter extraction
 - build tracking preview state for the current user
 - return a stable JSON payload for both success and failure
@@ -147,7 +161,7 @@ For signed-in users, that tracking block now supports two save modes:
 - an explicit first save when the serial has never been tracked before
 - automatic saving for later uploads once that serial is already tracked and the new reading is unique
 
-### 3. Client-side completion
+### 4. Client-side completion
 
 The client does not render the response as soon as the network call resolves. Instead it waits for both conditions:
 
@@ -162,7 +176,7 @@ This prevents the loading UI from flashing away too early and keeps the transiti
 
 The loading experience is not a simple spinner. It is a staged sequence with minimum durations:
 
-- `Uploading file...` for `550ms`
+- `Reading file...` for `550ms`
 - `Processing metadata...` for `700ms`
 - `Generating report...` for `1150ms`
 
@@ -231,6 +245,30 @@ The current behavior is:
 - later matching uploads for an already-tracked serial auto-save in the results view
 - auto-save is limited to one attempt per parse-issued save token
 - deleting the currently displayed reading suppresses auto-save for that same parse result so the deleted row is not recreated immediately
+
+## Current parse contract
+
+`POST /exif-viewer/parse` now accepts:
+
+```ts
+{
+  file: {
+    name: string;
+    size: number;
+  };
+  exiftool: {
+    parser: "exiftool-wasm";
+    allTags: ExifViewerTagEntry[];
+    warnings: string[];
+  };
+}
+```
+
+Important behavior:
+
+- file bytes never hit the parse route
+- the server still derives extraction, tracking eligibility, serial hashing, dedupe, and save tokens itself
+- the response shape used by the UI stays materially the same
 
 ## Empty state
 

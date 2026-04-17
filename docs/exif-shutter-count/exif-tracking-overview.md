@@ -27,6 +27,7 @@ This keeps EXIF-derived identity, private tracking, and catalog ownership concer
 - Tracking is explicit first, automatic later. The first save is user-triggered; later matching uploads can auto-save once the camera is already tracked.
 - Plaintext serial numbers are not persisted in tracking tables.
 - EXIF model matching is best-effort. Gear matching improves the experience but is not required for tracking to work.
+- Saved readings are client-asserted. The server trusts client-produced normalized metadata enough to derive tracking state and persistence inputs.
 
 ## System boundaries
 
@@ -163,6 +164,14 @@ Responsibility split:
 
 `/exif-viewer/parse` returns an EXIF result plus a tracking block so the results UI can render the correct tracking state without an extra round-trip.
 
+That parse result is now built from browser-local ExifTool/WASM metadata. The server still recomputes:
+
+- normalized serial identity
+- gear alias match
+- primary count selection
+- dedupe inputs
+- save token payload
+
 Current tracking payload:
 
 ```ts
@@ -221,11 +230,10 @@ The save API accepts only this token.
 
 ### 1. Parse
 
-The user uploads a file to `/exif-viewer`.
+The user selects a file locally. The browser parses it with ExifTool/WASM and sends only normalized metadata to `/exif-viewer/parse`.
 
 The parse route:
 
-- extracts EXIF and maker-note metadata
 - computes shutter-count results
 - checks whether the result is eligible for tracking
 - checks whether the signed-in user already tracks the camera

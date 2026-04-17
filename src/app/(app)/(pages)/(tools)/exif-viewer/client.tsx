@@ -6,11 +6,13 @@ import ExifEmptyState from "./_components/exif-empty-state";
 import ExifLoadingState from "./_components/exif-loading-state";
 import { getExifViewerPreviewEventName } from "./_components/exif-preview-trigger";
 import ExifResults from "./_components/exif-results";
+import { parseFileWithClientExifTool } from "./parse/client-exiftool";
 import {
   EXIF_VIEWER_ALLOWED_EXTENSIONS,
   EXIF_VIEWER_MAX_FILE_BYTES,
   type ExifTrackingHistoryResponse,
   type ExifTrackingSaveResponse,
+  type ExifViewerParseRequest,
   type ExifViewerResponse,
 } from "./types";
 
@@ -20,7 +22,7 @@ type LoadingStage = {
 };
 
 const LOADING_STAGES: LoadingStage[] = [
-  { label: "Uploading file...", minDurationMs: 550 },
+  { label: "Reading file...", minDurationMs: 550 },
   { label: "Processing metadata...", minDurationMs: 700 },
   { label: "Generating report...", minDurationMs: 1_150 },
 ];
@@ -41,6 +43,29 @@ async function readJsonResponse<T>(response: Response): Promise<T> {
 
     throw new Error("Request returned an invalid JSON response.");
   }
+}
+
+function getFileExtension(fileName: string) {
+  const parts = fileName.split(".");
+  return parts.length > 1 ? parts.at(-1)!.toLowerCase() : "";
+}
+
+function validateSelectedFile(file: File): string | null {
+  const extension = getFileExtension(file.name);
+
+  if (!EXIF_VIEWER_ALLOWED_EXTENSIONS.includes(extension as never)) {
+    return `Unsupported file type. Supported extensions: ${EXIF_VIEWER_ALLOWED_EXTENSIONS.join(", ")}.`;
+  }
+
+  if (file.size === 0) {
+    return "The selected file is empty.";
+  }
+
+  if (file.size > EXIF_VIEWER_MAX_FILE_BYTES) {
+    return `File exceeds the ${Math.round(EXIF_VIEWER_MAX_FILE_BYTES / 1024 / 1024)}MB limit.`;
+  }
+
+  return null;
 }
 
 export default function ExifViewerClient() {
@@ -234,6 +259,15 @@ export default function ExifViewerClient() {
   }
 
   async function parseFile(file: File) {
+    const validationMessage = validateSelectedFile(file);
+    if (validationMessage) {
+      setRequestError(validationMessage);
+      setResult(null);
+      setHistoryData(null);
+      setIsDragging(false);
+      return;
+    }
+
     const runId = loadingRunIdRef.current + 1;
     loadingRunIdRef.current = runId;
 
@@ -244,15 +278,24 @@ export default function ExifViewerClient() {
     setHistoryData(null);
     setIsDragging(false);
 
-    const formData = new FormData();
-    formData.set("file", file);
-
     const requestPromise = (async () => {
+      const exiftoolPayload = await parseFileWithClientExifTool(file);
+      const requestBody: ExifViewerParseRequest = {
+        file: {
+          name: file.name,
+          size: file.size,
+        },
+        exiftool: exiftoolPayload,
+      };
       const response = await fetch("/exif-viewer/parse", {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
       });
-      return (await response.json()) as ExifViewerResponse;
+
+      return await readJsonResponse<ExifViewerResponse>(response);
     })();
 
     const stagePromise = runLoadingStages(runId);
