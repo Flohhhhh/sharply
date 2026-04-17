@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   EXIF_VIEWER_MAX_FILE_BYTES,
+  EXIF_VIEWER_MAX_JSON_BODY_BYTES,
   type ExifViewerParseRequest,
 } from "../../src/app/(app)/(pages)/(tools)/exif-viewer/types";
 
@@ -172,6 +173,42 @@ describe("exif viewer parse route", () => {
     expect(response.status).toBe(400);
     expect(payload.status).toBe("file_too_large");
     expect(payload.message).toContain("100MB");
+  });
+
+  it("rejects empty request bodies before JSON parsing", async () => {
+    const response = await POST(
+      new Request("http://localhost/exif-viewer/parse", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: "",
+      }) as any,
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(payload.status).toBe("parse_error");
+    expect(payload.message).toBe("Missing EXIF metadata payload.");
+    expect(payload.metadata.rows).toEqual([]);
+  });
+
+  it("rejects oversized JSON request bodies before parsing", async () => {
+    const response = await POST(
+      new Request("http://localhost/exif-viewer/parse", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: "x".repeat(EXIF_VIEWER_MAX_JSON_BODY_BYTES + 1),
+      }) as any,
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(payload.status).toBe("parse_error");
+    expect(payload.message).toBe("Metadata payload is too large.");
+    expect(payload.metadata.rows).toEqual([]);
   });
 
   it("rejects malformed metadata payloads", async () => {
