@@ -10,6 +10,11 @@ export const EXIF_VIEWER_ALLOWED_EXTENSIONS = [
 ] as const;
 
 export const EXIF_VIEWER_MAX_FILE_BYTES = 100 * 1024 * 1024;
+export const EXIF_VIEWER_MAX_JSON_BODY_BYTES = 3 * 1024 * 1024;
+export const EXIF_VIEWER_MAX_TAG_ENTRIES = 4000;
+export const EXIF_VIEWER_MAX_TAG_FIELD_LENGTH = 512;
+export const EXIF_VIEWER_MAX_WARNING_COUNT = 100;
+export const EXIF_VIEWER_MAX_WARNING_LENGTH = 500;
 
 export const EXIF_VIEWER_SERIAL_CANDIDATE_KEYS = [
   "MakerNotes:SerialNumber",
@@ -50,6 +55,7 @@ export type ExifViewerStatus =
   | "invalid_value";
 
 export type ExifViewerCountType = "total" | "mechanical";
+export type ExifViewerParser = "exiftool-wasm";
 
 export type ExifTrackingPrimaryCountType =
   | ExifViewerCountType
@@ -65,6 +71,18 @@ export type ExifViewerTagEntry = {
   group: string;
   tag: string;
   value: unknown;
+};
+
+export type ExifViewerParseRequest = {
+  file: {
+    name: string;
+    size: number;
+  };
+  exiftool: {
+    parser: ExifViewerParser;
+    allTags: ExifViewerTagEntry[];
+    warnings: string[];
+  };
 };
 
 export type ExifViewerMetadataRow = {
@@ -203,7 +221,7 @@ export type ExifViewerResponse = {
     rows: ExifViewerMetadataRow[];
   };
   debug: {
-    parser: "exiftool-vendored";
+    parser: ExifViewerParser;
     tagCount: number;
     warnings: string[];
     relevantTags: ExifViewerTagEntry[];

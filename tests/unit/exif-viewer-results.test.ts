@@ -78,7 +78,7 @@ function createResponse(
       ...overrides.metadata,
     },
     debug: {
-      parser: "exiftool-vendored",
+      parser: "exiftool-wasm",
       tagCount: 5,
       warnings: [],
       relevantTags: [],
