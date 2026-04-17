@@ -58,9 +58,9 @@ export default async function ExifViewerPage() {
     "repeating-linear-gradient(-45deg, oklch(from var(--foreground) l c h / 0.16) 0px, oklch(from var(--foreground) l c h / 0.16) 1px, transparent 1px, transparent 14px)";
   const featureCards = [
     {
-      title: "No Image Storage Required",
+      title: "Private by Default",
       icon: FileLock,
-      description: "Files are parsed then discarded immediately after extraction.",
+      description: "Your files are processed on your device, we only see the results.",
     },
     {
       title: "100% Anonymous History Tracking",
@@ -84,7 +84,7 @@ export default async function ExifViewerPage() {
           }}
         />
         <div
-          className="absolute inset-0"
+          className="absolute inset-0 opacity-30"
           style={{
             backgroundImage: stripePattern,
             maskImage: stripeMask,
