@@ -3,14 +3,48 @@ import { ChartLine, FileLock, ScanSearch } from "lucide-react";
 import ExifPreviewTrigger from "./_components/exif-preview-trigger";
 import ExifViewerClient from "./client";
 
+const baseUrl =
+  process.env.NEXT_PUBLIC_BASE_URL ?? "https://www.sharplyphoto.com";
+const canonicalUrl = `${baseUrl}/exif-viewer`;
+const metadataTitle = "Shutter Count & EXIF Viewer";
+const metadataDescription =
+  "Check camera shutter count and inspect EXIF metadata from JPG and supported RAW files, including maker notes and private history tracking.";
+
 export const metadata: Metadata = {
-  title: "Camera Shutter Count Tool",
-  description:
-    "Upload a JPG or supported RAW file to inspect EXIF and maker-note metadata and find shutter count.",
+  title: metadataTitle,
+  description: metadataDescription,
+  alternates: {
+    canonical: canonicalUrl,
+  },
+  keywords: [
+    "camera shutter count",
+    "shutter count checker",
+    "EXIF viewer",
+    "EXIF metadata viewer",
+    "RAW metadata viewer",
+    "camera metadata",
+    "maker notes",
+    "photo metadata tool",
+  ],
   openGraph: {
-    title: "Camera Shutter Count Tool",
-    description:
-      "Upload a JPG or supported RAW file to inspect EXIF and maker-note metadata and find shutter count.",
+    type: "website",
+    url: canonicalUrl,
+    title: metadataTitle,
+    description: metadataDescription,
+    images: [
+      {
+        url: `${baseUrl}/og-default.png`,
+        width: 1200,
+        height: 630,
+        alt: "Sharply shutter count and EXIF viewer",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: metadataTitle,
+    description: metadataDescription,
+    images: [`${baseUrl}/og-default.png`],
   },
 };
 
