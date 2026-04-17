@@ -56,7 +56,7 @@ The current size cap is `100 MB`.
 
 ## Normalized Tag Model
 
-Raw ExifTool output is normalized into a flat tag-entry array:
+Raw ExifTool output is normalized into flat tag-entry rows shaped as:
 
 - `key`
 - `group`
@@ -74,7 +74,12 @@ Example:
 }
 ```
 
-Only tags considered relevant to count extraction are kept in this normalized set. Current relevance rules include:
+The bridge currently keeps two normalized views:
+
+- `allTags`: the full sanitized ExifTool output, excluding `errors` and `warnings`
+- `relevantTags`: a filtered subset used for extraction-focused debug output
+
+The relevant-tag filter currently includes:
 
 - metadata groups such as `EXIF`, `IFD0`, `Composite`, `MakerNotes`, `Sony`, `Nikon`, `Canon`, `FujiFilm`, `FujiIFD`, and `File`
 - any tag named `Make` or `Model`
@@ -204,11 +209,13 @@ This is useful for:
 
 ## Returned Data Shape
 
-The parse route returns one JSON payload with four main sections:
+The parse route returns one JSON payload with these main sections:
 
 - `file`
 - `camera`
 - `extractor`
+- `tracking`
+- `metadata`
 - `debug`
 
 Important fields:
@@ -242,6 +249,12 @@ Debug fields:
 - `debug.warnings`
 - `debug.relevantTags`
 - `debug.attempts`
+
+Metadata fields:
+
+- `metadata.rows`
+
+`metadata.rows` contains the full sanitized metadata row list, not only the extractor-relevant subset. This is what powers the summary card and full metadata table in the UI.
 
 ## Attempt-Level Debug Data
 

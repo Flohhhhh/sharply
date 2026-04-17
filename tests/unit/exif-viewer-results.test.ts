@@ -233,6 +233,33 @@ describe("exif viewer result helpers", () => {
     ]);
   });
 
+  it("falls back to metadata model and ExifIFD ISO when camera fields are missing", () => {
+    const summary = buildSummaryItems(
+      createResponse({
+        camera: {
+          make: null,
+          model: null,
+          normalizedBrand: "unknown",
+        },
+        metadata: {
+          rows: [
+            metadataRow("IFD0:Model", "Canon EOS R5"),
+            metadataRow("ExifIFD:ISO", "36000", "ExifIFD", "ISO"),
+          ],
+        },
+      }),
+    );
+
+    expect(summary).toEqual([
+      { label: "Camera Model", value: "Canon EOS R5" },
+      { label: "Lens", value: "—" },
+      { label: "Capture Date", value: "—" },
+      { label: "Exposure Time", value: "—" },
+      { label: "Aperture", value: "—" },
+      { label: "ISO", value: "ISO 36000" },
+    ]);
+  });
+
   it("uses a deterministic number-flow seed based on digit count", () => {
     expect(getNumberFlowSeed(9377)).toBe(1000);
     expect(getNumberFlowSeed(81)).toBe(10);

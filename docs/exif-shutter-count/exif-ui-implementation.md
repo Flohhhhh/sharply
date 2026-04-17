@@ -342,15 +342,15 @@ The bordered banner above the summary card shows:
 
 - camera model on the left
 - camera serial number below it
-- `Log in to track` action on the right for signed-out users
+- tracking state on the right
 
-The tracking button is currently presentational:
+The right side is stateful:
 
-- shown only when logged out
-- disabled
-- wrapped in a tooltip with `Coming soon`
+- signed-out eligible results show `Log in to save history`
+- signed-in eligible but untracked results show `Save to track`
+- tracked-camera results show the mini chart plus a compact saved-reading summary
 
-Signed-in users do not see this button.
+When a tracked camera is shown, the banner itself becomes the history trigger. It is keyboard-activatable and opens the history dialog without a separate `View history` button.
 
 ### Camera model source
 
@@ -408,6 +408,8 @@ Current behavior:
   - tag
   - muted group name
 - right column shows the formatted value with wrapping enabled
+- the expanded table uses an internal scroll area rather than extending the full page indefinitely
+- the table header is sticky while scrolling
 
 The table uses the complete sanitized metadata row list returned by the server, not only extractor debug tags. This preserves maker-note-backed fields for inspection.
 
@@ -466,8 +468,8 @@ Current banner behavior:
 
 - signed out + eligible result: `Log in to save history`
 - signed in + eligible + never saved: `Save to track`
-- signed in + tracked camera + current reading unsaved: auto-save, then mini chart + `View history`
-- signed in + current reading already saved: `View history`
+- signed in + tracked camera + current reading unsaved: auto-save during the unified loading flow, then tracked summary + mini chart
+- signed in + current reading already saved: tracked summary + mini chart
 - ineligible result: muted explanation
 
 The save action posts the short-lived save token returned by the parse route to `/api/exif-tracking/save`.
@@ -494,8 +496,9 @@ The history dialog is intentionally simple in v1:
 - title from mapped gear name or parsed model
 - summary fields for latest count, latest capture, first seen, and last seen
 - full shutter-count chart above the table
-- plain readings table
+- collapsed-by-default readings table
 - per-reading delete action
+- bounded dialog height with an internally scrolling readings table
 - no separate chart modal beyond the history dialog itself
 
 ## Visual shell
@@ -525,7 +528,7 @@ This decoration is contained in `page.tsx` and does not interact with the parsin
 - error handling is still visually lightweight and not yet elevated into its own full surface
 - the empty-state copy is still more descriptive than the final polished version will likely be
 - summary-field extraction is client-side and intentionally simple rather than fully normalized in a shared mapping layer
-- EXIF history is list-first; charting is intentionally deferred until the saved-data model is proven
+- some explanatory content on the static page is still compact and utilitarian rather than fully editorialized
 
 ## Future frontend directions
 
@@ -535,5 +538,4 @@ Likely next steps if the tool expands:
 - refine the empty-state copy and spacing
 - improve error-state presentation
 - add richer result affordances for linking parsed metadata to catalog gear
-- add charting to the private history dialog once the data model and sample size justify it
 - extract client-side metadata summary helpers if the result UI grows beyond the current scope
