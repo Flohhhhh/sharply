@@ -36,6 +36,7 @@ import {
   lensSpecs,
   fixedLensSpecs,
   gearEdits,
+  gearCreatorVideos,
   useCaseRatings,
   staffVerdicts,
   genres,
@@ -912,12 +913,13 @@ export type ContributorRow = {
   memberNumber: number;
   image: string | null;
   payload: unknown;
+  videoContributionCount: number;
 };
 
 export async function fetchContributorsByGearIdData(
   gearId: string,
 ): Promise<ContributorRow[]> {
-  const rows = await db
+  const editRows = await db
     .select({
       userId: users.id,
       name: users.name,
@@ -925,11 +927,65 @@ export async function fetchContributorsByGearIdData(
       memberNumber: users.memberNumber,
       image: users.image,
       payload: gearEdits.payload,
+      videoContributionCount: sql<number>`0`,
     })
     .from(gearEdits)
     .innerJoin(users, eq(gearEdits.createdById, users.id))
     .where(eq(gearEdits.gearId, gearId));
-  return rows as unknown as ContributorRow[];
+
+  const videoRows = await db
+    .select({
+      userId: users.id,
+      name: users.name,
+      handle: users.handle,
+      memberNumber: users.memberNumber,
+      image: users.image,
+      videoContributionCount: count(gearCreatorVideos.id),
+    })
+    .from(gearCreatorVideos)
+    .innerJoin(users, eq(gearCreatorVideos.createdByUserId, users.id))
+    .where(
+      and(
+        eq(gearCreatorVideos.gearId, gearId),
+        eq(gearCreatorVideos.isActive, true),
+      ),
+    )
+    .groupBy(users.id, users.name, users.handle, users.memberNumber, users.image);
+
+  const contributorRows: ContributorRow[] = editRows.map((row) => ({
+    ...row,
+    payload: row.payload,
+    videoContributionCount: 0,
+  }));
+
+  const contributorByUserId = new Map<string, ContributorRow[]>();
+  for (const row of contributorRows) {
+    const existing = contributorByUserId.get(row.userId) ?? [];
+    existing.push(row);
+    contributorByUserId.set(row.userId, existing);
+  }
+
+  for (const videoRow of videoRows) {
+    const existingRows = contributorByUserId.get(videoRow.userId);
+    if (existingRows && existingRows.length > 0) {
+      for (const row of existingRows) {
+        row.videoContributionCount = Number(videoRow.videoContributionCount ?? 0);
+      }
+      continue;
+    }
+
+    contributorRows.push({
+      userId: videoRow.userId,
+      name: videoRow.name,
+      handle: videoRow.handle,
+      memberNumber: videoRow.memberNumber,
+      image: videoRow.image,
+      payload: null,
+      videoContributionCount: Number(videoRow.videoContributionCount ?? 0),
+    });
+  }
+
+  return contributorRows;
 }
 
 /** Minimal fields across ALL gear needed to evaluate construction state */

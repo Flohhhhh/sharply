@@ -39,7 +39,10 @@ import {
 import type { GearItem, RawSample } from "~/types/gear";
 import { normalizeProposalPayloadForDb } from "~/server/db/normalizers";
 import { evaluateForEvent } from "~/server/badges/service";
-import { approveProposal } from "~/server/admin/proposals/service";
+import {
+  approveProposal,
+  applyTrustedContributorProposalApproval,
+} from "~/server/admin/proposals/service";
 import { notifyChangeRequestModerators } from "~/server/admin/proposals/webhook";
 import {
   createGearEditProposal,
@@ -924,10 +927,21 @@ export async function submitGearEditProposal(body: unknown) {
     (canAutoApproveStaff || canAutoApproveTrusted)
   ) {
     try {
-      await approveProposal(proposal.id, normalizedPayload, {
-        gearName: gearMeta?.name ?? "Gear",
-        gearSlug: gearMeta?.slug ?? data.slug ?? gearId,
-      });
+      if (canAutoApproveStaff) {
+        await approveProposal(proposal.id, normalizedPayload, {
+          gearName: gearMeta?.name ?? "Gear",
+          gearSlug: gearMeta?.slug ?? data.slug ?? gearId,
+        });
+      } else {
+        await applyTrustedContributorProposalApproval(
+          proposal.id,
+          normalizedPayload,
+          {
+            gearName: gearMeta?.name ?? "Gear",
+            gearSlug: gearMeta?.slug ?? data.slug ?? gearId,
+          },
+        );
+      }
       autoApproved = true;
     } catch (error) {
       console.error("[submitGearEditProposal] auto-approve failed", error);

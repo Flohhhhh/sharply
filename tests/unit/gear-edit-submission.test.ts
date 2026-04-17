@@ -16,6 +16,7 @@ const gearDataMocks = vi.hoisted(() => ({
 
 const proposalServiceMocks = vi.hoisted(() => ({
   approveProposal: vi.fn(),
+  applyTrustedContributorProposalApproval: vi.fn(),
 }));
 
 const webhookMocks = vi.hoisted(() => ({
@@ -128,6 +129,9 @@ describe("gear edit submission", () => {
     gearDataMocks.insertAuditLog.mockResolvedValue(undefined);
 
     proposalServiceMocks.approveProposal.mockResolvedValue(undefined);
+    proposalServiceMocks.applyTrustedContributorProposalApproval.mockResolvedValue(
+      undefined,
+    );
     webhookMocks.notifyChangeRequestModerators.mockResolvedValue(undefined);
     analyticsMocks.track.mockResolvedValue(undefined);
   });
@@ -148,6 +152,9 @@ describe("gear edit submission", () => {
         gearSlug: "nikon-zf",
       },
     );
+    expect(
+      proposalServiceMocks.applyTrustedContributorProposalApproval,
+    ).not.toHaveBeenCalled();
     expect(webhookMocks.notifyChangeRequestModerators).not.toHaveBeenCalled();
   });
 
@@ -161,6 +168,9 @@ describe("gear edit submission", () => {
     expect(result.autoApproved).toBe(false);
     expect(result.proposal.status).toBe("PENDING");
     expect(proposalServiceMocks.approveProposal).not.toHaveBeenCalled();
+    expect(
+      proposalServiceMocks.applyTrustedContributorProposalApproval,
+    ).not.toHaveBeenCalled();
     expect(webhookMocks.notifyChangeRequestModerators).toHaveBeenCalledWith({
       proposalId: "11111111-1111-4111-8111-111111111111",
       gearId: "22222222-2222-4222-8222-222222222222",
@@ -188,6 +198,9 @@ describe("gear edit submission", () => {
     expect(result.autoApproved).toBe(false);
     expect(result.proposal.status).toBe("PENDING");
     expect(proposalServiceMocks.approveProposal).not.toHaveBeenCalled();
+    expect(
+      proposalServiceMocks.applyTrustedContributorProposalApproval,
+    ).not.toHaveBeenCalled();
     expect(webhookMocks.notifyChangeRequestModerators).toHaveBeenCalledTimes(1);
   });
 
@@ -205,7 +218,10 @@ describe("gear edit submission", () => {
 
     expect(result.autoApproved).toBe(true);
     expect(result.proposal.status).toBe("APPROVED");
-    expect(proposalServiceMocks.approveProposal).toHaveBeenCalledTimes(1);
+    expect(
+      proposalServiceMocks.applyTrustedContributorProposalApproval,
+    ).toHaveBeenCalledTimes(1);
+    expect(proposalServiceMocks.approveProposal).not.toHaveBeenCalled();
     expect(webhookMocks.notifyChangeRequestModerators).not.toHaveBeenCalled();
   });
 
@@ -227,6 +243,9 @@ describe("gear edit submission", () => {
     expect(result.autoApproved).toBe(false);
     expect(result.proposal.status).toBe("PENDING");
     expect(proposalServiceMocks.approveProposal).not.toHaveBeenCalled();
+    expect(
+      proposalServiceMocks.applyTrustedContributorProposalApproval,
+    ).not.toHaveBeenCalled();
     expect(webhookMocks.notifyChangeRequestModerators).toHaveBeenCalledTimes(1);
   });
 
@@ -245,6 +264,9 @@ describe("gear edit submission", () => {
     expect(result.autoApproved).toBe(false);
     expect(result.proposal.status).toBe("PENDING");
     expect(proposalServiceMocks.approveProposal).not.toHaveBeenCalled();
+    expect(
+      proposalServiceMocks.applyTrustedContributorProposalApproval,
+    ).not.toHaveBeenCalled();
     expect(webhookMocks.notifyChangeRequestModerators).toHaveBeenCalledTimes(1);
   });
 
@@ -262,7 +284,10 @@ describe("gear edit submission", () => {
 
     expect(result.autoApproved).toBe(true);
     expect(result.proposal.status).toBe("APPROVED");
-    expect(proposalServiceMocks.approveProposal).toHaveBeenCalledTimes(1);
+    expect(
+      proposalServiceMocks.applyTrustedContributorProposalApproval,
+    ).toHaveBeenCalledTimes(1);
+    expect(proposalServiceMocks.approveProposal).not.toHaveBeenCalled();
   });
 
   it("keeps trusted contributors pending when collection fields already contain values", async () => {
@@ -285,6 +310,9 @@ describe("gear edit submission", () => {
     expect(result.autoApproved).toBe(false);
     expect(result.proposal.status).toBe("PENDING");
     expect(proposalServiceMocks.approveProposal).not.toHaveBeenCalled();
+    expect(
+      proposalServiceMocks.applyTrustedContributorProposalApproval,
+    ).not.toHaveBeenCalled();
     expect(webhookMocks.notifyChangeRequestModerators).toHaveBeenCalledTimes(1);
   });
 
@@ -300,6 +328,9 @@ describe("gear edit submission", () => {
     expect(result.autoApproved).toBe(false);
     expect(result.proposal.status).toBe("PENDING");
     expect(proposalServiceMocks.approveProposal).not.toHaveBeenCalled();
+    expect(
+      proposalServiceMocks.applyTrustedContributorProposalApproval,
+    ).not.toHaveBeenCalled();
     expect(webhookMocks.notifyChangeRequestModerators).toHaveBeenCalledTimes(1);
   });
 });

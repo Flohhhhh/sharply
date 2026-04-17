@@ -137,6 +137,73 @@ export async function fetchResolvedProposalGroupsWithCount(
   };
 }
 
+async function notifyContributorOfApprovedGearEdit(params: {
+  gearId: string;
+  proposalId: string;
+  createdById: string | null;
+  gearContext: { gearName: string; gearSlug: string };
+}) {
+  if (!params.createdById) return;
+
+  await evaluateForEvent(
+    { type: "edit.approved", context: { gearId: params.gearId } },
+    params.createdById,
+  );
+
+  await createNotification({
+    userId: params.createdById,
+    type: "gear_spec_approved",
+    title: "Your spec edit was approved!",
+    body: `${params.gearContext.gearName ?? "Gear"} is now updated. Click to view the page.`,
+    linkUrl: `/gear/${params.gearContext.gearSlug}`,
+    sourceType: "gear",
+    sourceId: params.gearId,
+    metadata: { proposalId: params.proposalId },
+  });
+}
+
+/**
+ * Applies a pending proposal for the contributor who created it, without staff role.
+ * Only intended for trusted add-only auto-approval from `submitGearEditProposal`
+ * after eligibility checks; enforces that the session user owns the proposal.
+ */
+export async function applyTrustedContributorProposalApproval(
+  proposalId: string,
+  filteredPayload: unknown = undefined,
+  gearContext: { gearName: string; gearSlug: string },
+) {
+  const { user } = await getSessionOrThrow();
+  const proposal = (await getProposalData(proposalId)) as
+    | (EnrichedProposal & { payload: unknown })
+    | null;
+  if (!proposal) {
+    throw new Error("Proposal not found");
+  }
+
+  if (proposal.status !== "PENDING") {
+    throw new Error("Proposal is not pending");
+  }
+
+  if (proposal.createdById !== user.id) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+
+  await approveProposalData(
+    proposalId,
+    proposal.gearId,
+    proposal.payload,
+    user.id,
+    filteredPayload,
+  );
+
+  await notifyContributorOfApprovedGearEdit({
+    gearId: proposal.gearId,
+    proposalId: proposal.id,
+    createdById: proposal.createdById,
+    gearContext,
+  });
+}
+
 export async function approveProposal(
   id: string,
   filteredPayload: unknown = undefined,
@@ -166,29 +233,12 @@ export async function approveProposal(
     filteredPayload,
   );
 
-  const gearRow = {
-    name: gearContext.gearName,
-    slug: gearContext.gearSlug,
-  };
-
-  // Emit badge event for contributor who created the proposal
-  if (proposal.createdById) {
-    await evaluateForEvent(
-      { type: "edit.approved", context: { gearId: proposal.gearId } },
-      proposal.createdById,
-    );
-
-    await createNotification({
-      userId: proposal.createdById,
-      type: "gear_spec_approved",
-      title: "Your spec edit was approved!",
-      body: `${gearRow.name ?? "Gear"} is now updated. Click to view the page.`,
-      linkUrl: `/gear/${gearRow.slug}`,
-      sourceType: "gear",
-      sourceId: proposal.gearId,
-      metadata: { proposalId: proposal.id },
-    });
-  }
+  await notifyContributorOfApprovedGearEdit({
+    gearId: proposal.gearId,
+    proposalId: proposal.id,
+    createdById: proposal.createdById,
+    gearContext,
+  });
 }
 
 export async function mergeProposal(id: string) {
