@@ -255,6 +255,12 @@ export const shutterTypesEnum = pgEnum("shutter_types_enum", [
   "electronic",
 ]);
 
+export const exifPrimaryCountTypeEnum = pgEnum("exif_primary_count_type_enum", [
+  "total",
+  "mechanical",
+  "generic",
+]);
+
 export const sensorStackingTypesEnum = pgEnum("sensor_stacking_types_enum", [
   "unstacked",
   "partially-stacked",
@@ -1716,6 +1722,137 @@ export const imageRequests = appSchema.table(
   ],
 );
 
+export const gearExifAliases = appSchema.table(
+  "gear_exif_aliases",
+  (d) => ({
+    id: d
+      .varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    gearId: d
+      .varchar("gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    normalizedBrand: d.varchar("normalized_brand", { length: 32 }),
+    makeRaw: d.varchar("make_raw", { length: 255 }),
+    modelRaw: d.varchar("model_raw", { length: 255 }).notNull(),
+    makeNormalized: d.text("make_normalized"),
+    modelNormalized: d.text("model_normalized").notNull(),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    index("gear_exif_aliases_gear_idx").on(t.gearId),
+    index("gear_exif_aliases_make_model_idx").on(
+      t.makeNormalized,
+      t.modelNormalized,
+    ),
+    uniqueIndex("gear_exif_aliases_gear_make_model_uq").on(
+      t.gearId,
+      t.makeNormalized,
+      t.modelNormalized,
+    ),
+  ],
+);
+
+export const gearExifAliasesRelations = relations(gearExifAliases, ({ one }) => ({
+  gear: one(gear, {
+    fields: [gearExifAliases.gearId],
+    references: [gear.id],
+  }),
+}));
+
+export const exifTrackedCameras = appSchema.table(
+  "exif_tracked_cameras",
+  (d) => ({
+    id: d
+      .varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    userId: d
+      .varchar("user_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    gearId: d
+      .varchar("gear_id", { length: 36 })
+      .references(() => gear.id, { onDelete: "set null" }),
+    normalizedBrand: d.varchar("normalized_brand", { length: 32 }),
+    makeRaw: d.varchar("make_raw", { length: 255 }),
+    modelRaw: d.varchar("model_raw", { length: 255 }),
+    serialHash: d.text("serial_hash").notNull(),
+    firstSeenAt: timestamp("first_seen_at", { withTimezone: true }),
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    uniqueIndex("exif_tracked_cameras_user_serial_uq").on(
+      t.userId,
+      t.serialHash,
+    ),
+    index("exif_tracked_cameras_gear_idx").on(t.gearId),
+    index("exif_tracked_cameras_user_idx").on(t.userId),
+  ],
+);
+
+export const exifShutterReadings = appSchema.table(
+  "exif_shutter_readings",
+  (d) => ({
+    id: d
+      .varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    trackedCameraId: d
+      .varchar("tracked_camera_id", { length: 36 })
+      .notNull()
+      .references(() => exifTrackedCameras.id, { onDelete: "cascade" }),
+    dedupeKey: d.text("dedupe_key").notNull(),
+    captureAt: timestamp("capture_at", { withTimezone: true }),
+    primaryCountType: exifPrimaryCountTypeEnum("primary_count_type").notNull(),
+    primaryCountValue: integer("primary_count_value").notNull(),
+    shutterCount: integer("shutter_count"),
+    totalShutterCount: integer("total_shutter_count"),
+    mechanicalShutterCount: integer("mechanical_shutter_count"),
+    sourceTag: d.varchar("source_tag", { length: 255 }),
+    mechanicalSourceTag: d.varchar("mechanical_source_tag", { length: 255 }),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    uniqueIndex("exif_shutter_readings_dedupe_uq").on(t.dedupeKey),
+    index("exif_shutter_readings_tracked_camera_idx").on(t.trackedCameraId),
+    index("exif_shutter_readings_camera_capture_idx").on(
+      t.trackedCameraId,
+      t.captureAt,
+    ),
+  ],
+);
+
+export const exifTrackedCamerasRelations = relations(
+  exifTrackedCameras,
+  ({ one, many }) => ({
+    user: one(users, {
+      fields: [exifTrackedCameras.userId],
+      references: [users.id],
+    }),
+    gear: one(gear, {
+      fields: [exifTrackedCameras.gearId],
+      references: [gear.id],
+    }),
+    readings: many(exifShutterReadings),
+  }),
+);
+
+export const exifShutterReadingsRelations = relations(
+  exifShutterReadings,
+  ({ one }) => ({
+    trackedCamera: one(exifTrackedCameras, {
+      fields: [exifShutterReadings.trackedCameraId],
+      references: [exifTrackedCameras.id],
+    }),
+  }),
+);
+
 // Popularity events table
 export const popularityEvents = appSchema.table(
   "popularity_events",
@@ -2337,6 +2474,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   notifications: many(notifications),
   passkeys: many(passkeys),
   userLists: many(userLists),
+  trackedExifCameras: many(exifTrackedCameras),
   bingoBoardsCreated: many(bingoBoards),
   bingoTilesCompleted: many(bingoBoardTiles),
   bingoSubmissions: many(bingoSubmissions),

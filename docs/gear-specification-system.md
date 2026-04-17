@@ -36,6 +36,20 @@ Stores alternate consumer-facing names used in specific regions (aliases, not lo
   - Canon EU variants (secondary)
 - **Search**: Aliases are denormalized into `gear.search_name` for query performance
 
+#### `gear_exif_aliases` - EXIF Metadata Model Aliases
+
+Stores EXIF-oriented make/model identifiers used to map uploaded metadata back to a canonical gear item.
+
+- **Purpose**:
+  - map EXIF model strings to `gear`
+  - keep metadata identifiers separate from camera specs and regional display aliases
+- **Examples**:
+  - `NIKON CORPORATION` + `Zf`
+  - `Canon` + `Canon EOS R5`
+- **Important**:
+  - this table is for metadata matching, not for public display naming
+  - this is intentionally separate from `camera_specs`; EXIF model names are external identifiers, not specifications
+
 #### `gear_mounts` - Gear-Mount Junction Table
 
 Many-to-many relationship table for gear that supports multiple mounts (e.g., third-party lenses available in multiple mounts):
