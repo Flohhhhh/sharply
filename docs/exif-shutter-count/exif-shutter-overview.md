@@ -302,6 +302,7 @@ Current unit coverage lives in:
 - `tests/unit/exif-viewer-extractors.test.ts`
 - `tests/unit/exif-viewer-route.test.ts`
 - `tests/unit/exif-viewer-exiftool.test.ts`
+- `tests/unit/exif-viewer-results.test.ts`
 
 These tests currently cover:
 
