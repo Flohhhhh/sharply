@@ -26,7 +26,10 @@ All route logic remains colocated under the route:
 - `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-loading-state.tsx`
 - `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-results.tsx`
 - `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-metadata-table.tsx`
+- `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-tracking-mini-chart.tsx`
 - `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-tracking-history-dialog.tsx`
+- `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-tracking-history-chart.tsx`
+- `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-tracking-chart-utils.ts`
 - `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-preview-trigger.tsx`
 
 ## Rendering split
@@ -35,7 +38,7 @@ All route logic remains colocated under the route:
 
 `page.tsx` is the server-rendered shell. It is responsible for:
 
-- page metadata
+- page metadata following the app's title/description/canonical/open graph/twitter conventions
 - top-of-page decorative background treatment
 - persistent page heading
 - local-only preview trigger for the loading state
@@ -280,7 +283,7 @@ When reduced motion is enabled:
 
 `_components/exif-results.tsx` owns the result presentation once parsing succeeds or returns a structured no-count result.
 
-It is composed of four sections:
+It is composed of five sections:
 
 1. hero result
 2. reset control
@@ -474,7 +477,7 @@ Current banner behavior:
 
 The save action posts the short-lived save token returned by the parse route to `/api/exif-tracking/save`.
 
-History is lazy-loaded from `/api/exif-tracking/cameras/[trackedCameraId]/history` and rendered in `_components/exif-tracking-history-dialog.tsx`.
+For tracked cameras, history is loaded during the same tracked-result finalization flow from `/api/exif-tracking/cameras/[trackedCameraId]/history`. That single payload is then reused by both the banner mini chart and `_components/exif-tracking-history-dialog.tsx`.
 
 Tracked-camera results now also use that same history payload to render a compact banner sparkline. The chart data is derived client-side from saved readings using:
 
