@@ -1,0 +1,14 @@
+- we will store each shutter count check in a table
+  - rows should be unique by serial number and shutter count, and image capture date
+    - this makes sure we dont have history points in time for the same result
+- we will use this stored data to eventually show statistics about the cameras
+  - we will need to map gear items to model names in the metadata to do this reliably
+  - will look like "55% of Nikon Z6iii users have higher shutter counts"
+  - "Your Nikon Z6iii is around 5% of its expected shutter life"
+    - we will need to store this on the spec tables for cameras too
+- allow logged in users to track shutter count over time for their cameras
+- when they upload an image to check shutter count a logged in user will see "click to save this camera and track over time" or similar
+- need to add a note that this is explicitly anonymous metrics, the only thing we store is the serial number for identification
+- probably we can remove "sign in to track" functionality, and just show the history for any item that has more than one record, image ownership should not be implied, people may try to check for other people
+  - should find some way to make this more private though, just to prevent the rare case where someone may maliciously want to find out someone's shutter count? idk maybe this is never a problem
+- show a mini chart in the place of the current sign in to track button, make that whole banner clickable to open a modal with a larger line chart
