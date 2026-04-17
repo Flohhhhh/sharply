@@ -9,6 +9,8 @@ import ExifResults from "./_components/exif-results";
 import {
   EXIF_VIEWER_ALLOWED_EXTENSIONS,
   EXIF_VIEWER_MAX_FILE_BYTES,
+  type ExifTrackingHistoryResponse,
+  type ExifTrackingSaveResponse,
   type ExifViewerResponse,
 } from "./types";
 
@@ -27,6 +29,20 @@ function sleep(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
+async function readJsonResponse<T>(response: Response): Promise<T> {
+  const body = await response.text();
+
+  try {
+    return JSON.parse(body) as T;
+  } catch {
+    if (body.trim().startsWith("<")) {
+      throw new Error("Request returned HTML instead of JSON.");
+    }
+
+    throw new Error("Request returned an invalid JSON response.");
+  }
+}
+
 export default function ExifViewerClient() {
   const reduceMotion = useReducedMotion();
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -34,11 +50,15 @@ export default function ExifViewerClient() {
   const mountedRef = useRef(true);
   const isParsingRef = useRef(false);
   const resultRef = useRef<ExifViewerResponse | null>(null);
+  const historyDataRef = useRef<ExifTrackingHistoryResponse | null>(null);
   const requestErrorRef = useRef<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
   const [loadingStageIndex, setLoadingStageIndex] = useState(0);
   const [result, setResult] = useState<ExifViewerResponse | null>(null);
+  const [historyData, setHistoryData] = useState<ExifTrackingHistoryResponse | null>(
+    null,
+  );
   const [requestError, setRequestError] = useState<string | null>(null);
   const viewState = isParsing
     ? "loading"
@@ -55,6 +75,10 @@ export default function ExifViewerClient() {
   useEffect(() => {
     resultRef.current = result;
   }, [result]);
+
+  useEffect(() => {
+    historyDataRef.current = historyData;
+  }, [historyData]);
 
   useEffect(() => {
     requestErrorRef.current = requestError;
@@ -97,33 +121,34 @@ export default function ExifViewerClient() {
   function commitRunResult(params: {
     runId: number;
     payload: ExifViewerResponse | null;
+    historyData: ExifTrackingHistoryResponse | null;
     errorMessage: string | null;
   }) {
     if (!mountedRef.current || loadingRunIdRef.current !== params.runId) return;
 
     setIsParsing(false);
     setLoadingStageIndex(0);
-
-    if (params.errorMessage) {
-      setResult(null);
-      setRequestError(params.errorMessage);
-      return;
-    }
-
-    setRequestError(null);
     setResult(params.payload);
+    setHistoryData(params.historyData);
+    setRequestError(params.errorMessage);
+
+    if (!params.payload && params.errorMessage) {
+      setHistoryData(null);
+    }
   }
 
   async function previewLoadingState() {
     const runId = loadingRunIdRef.current + 1;
     loadingRunIdRef.current = runId;
     const previousResult = resultRef.current;
+    const previousHistoryData = historyDataRef.current;
     const previousError = requestErrorRef.current;
 
     setIsParsing(true);
     setLoadingStageIndex(0);
     setRequestError(null);
     setResult(null);
+    setHistoryData(null);
     setIsDragging(false);
 
     const stagesCompleted = await runLoadingStages(runId);
@@ -132,8 +157,80 @@ export default function ExifViewerClient() {
     commitRunResult({
       runId,
       payload: previousResult,
+      historyData: previousHistoryData,
       errorMessage: previousError,
     });
+  }
+
+  async function finalizeTrackingState(params: {
+    payload: ExifViewerResponse;
+  }) {
+    let payload = params.payload;
+    let resolvedHistoryData: ExifTrackingHistoryResponse | null = null;
+    let errorMessage: string | null = null;
+
+    try {
+      if (
+        payload.tracking.trackedCamera &&
+        payload.tracking.saveToken &&
+        payload.tracking.reason !== "not_signed_in" &&
+        !payload.tracking.currentReadingSaved
+      ) {
+        const saveResponse = await fetch("/api/exif-tracking/save", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            token: payload.tracking.saveToken,
+          }),
+        });
+        const savePayload =
+          await readJsonResponse<ExifTrackingSaveResponse>(saveResponse);
+
+        if (!saveResponse.ok || !savePayload.ok || !savePayload.tracking) {
+          throw new Error(
+            savePayload.message || "Failed to save EXIF tracking history.",
+          );
+        }
+
+        payload = {
+          ...payload,
+          tracking: savePayload.tracking,
+        };
+      }
+
+      if (payload.tracking.trackedCamera) {
+        const historyResponse = await fetch(
+          `/api/exif-tracking/cameras/${payload.tracking.trackedCamera.id}/history`,
+        );
+        const historyPayload =
+          await readJsonResponse<ExifTrackingHistoryResponse & {
+            message?: string;
+          }>(historyResponse);
+
+        if (
+          !historyResponse.ok ||
+          !historyPayload.ok ||
+          !historyPayload.trackedCamera
+        ) {
+          throw new Error(
+            historyPayload.message || "Failed to load tracking history.",
+          );
+        }
+
+        resolvedHistoryData = historyPayload;
+      }
+    } catch (error) {
+      errorMessage =
+        error instanceof Error ? error.message : "Failed to finalize EXIF result.";
+    }
+
+    return {
+      payload,
+      historyData: resolvedHistoryData,
+      errorMessage,
+    };
   }
 
   async function parseFile(file: File) {
@@ -144,6 +241,7 @@ export default function ExifViewerClient() {
     setLoadingStageIndex(0);
     setRequestError(null);
     setResult(null);
+    setHistoryData(null);
     setIsDragging(false);
 
     const formData = new FormData();
@@ -160,10 +258,18 @@ export default function ExifViewerClient() {
     const stagePromise = runLoadingStages(runId);
 
     let payload: ExifViewerResponse | null = null;
+    let finalizedHistoryData: ExifTrackingHistoryResponse | null = null;
     let errorMessage: string | null = null;
 
     try {
-      payload = await requestPromise;
+      const parsedPayload = await requestPromise;
+      const finalized = await finalizeTrackingState({
+        payload: parsedPayload,
+      });
+
+      payload = finalized.payload;
+      finalizedHistoryData = finalized.historyData;
+      errorMessage = finalized.errorMessage;
     } catch (error) {
       errorMessage =
         error instanceof Error ? error.message : "Request failed.";
@@ -175,6 +281,7 @@ export default function ExifViewerClient() {
     commitRunResult({
       runId,
       payload,
+      historyData: finalizedHistoryData,
       errorMessage,
     });
   }
@@ -188,6 +295,7 @@ export default function ExifViewerClient() {
     loadingRunIdRef.current += 1;
     isParsingRef.current = false;
     resultRef.current = null;
+    historyDataRef.current = null;
     requestErrorRef.current = null;
     if (inputRef.current) {
       inputRef.current.value = "";
@@ -195,6 +303,7 @@ export default function ExifViewerClient() {
     setIsParsing(false);
     setLoadingStageIndex(0);
     setResult(null);
+    setHistoryData(null);
     setRequestError(null);
     setIsDragging(false);
   }
@@ -245,6 +354,7 @@ export default function ExifViewerClient() {
           <ExifResults
             key="results"
             result={result}
+            initialHistoryData={historyData}
             onStartOver={resetToolState}
           />
         ) : null}

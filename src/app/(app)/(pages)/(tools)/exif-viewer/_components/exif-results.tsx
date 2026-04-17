@@ -16,6 +16,7 @@ import type {
 } from "../types";
 import { EXIF_VIEWER_CAPTURE_DATE_CANDIDATE_KEYS } from "../types";
 import ExifMetadataTable from "./exif-metadata-table";
+import ExifTrackingMiniChart from "./exif-tracking-mini-chart";
 import ExifTrackingHistoryDialog from "./exif-tracking-history-dialog";
 
 type ExifSummaryItem = {
@@ -132,19 +133,19 @@ function resolveCurrentReadingIdentity(
   const primaryCount =
     result.extractor.totalShutterCount !== null
       ? {
-          primaryCountType: "total" as const,
-          primaryCountValue: result.extractor.totalShutterCount,
-        }
+        primaryCountType: "total" as const,
+        primaryCountValue: result.extractor.totalShutterCount,
+      }
       : result.extractor.mechanicalShutterCount !== null
         ? {
-            primaryCountType: "mechanical" as const,
-            primaryCountValue: result.extractor.mechanicalShutterCount,
-          }
+          primaryCountType: "mechanical" as const,
+          primaryCountValue: result.extractor.mechanicalShutterCount,
+        }
         : result.extractor.shutterCount !== null
           ? {
-              primaryCountType: "generic" as const,
-              primaryCountValue: result.extractor.shutterCount,
-            }
+            primaryCountType: "generic" as const,
+            primaryCountValue: result.extractor.shutterCount,
+          }
           : null;
 
   if (!primaryCount) {
@@ -364,6 +365,7 @@ function AnimatedCount({ value, className }: AnimatedCountProps) {
 
 type ExifResultsProps = {
   result: ExifViewerResponse;
+  initialHistoryData: ExifTrackingHistoryResponse | null;
   onStartOver: () => void;
 };
 
@@ -371,13 +373,14 @@ function formatTrackingSummary(result: ExifViewerResponse) {
   const trackedCamera = result.tracking.trackedCamera;
   if (!trackedCamera) return null;
 
-  const latestCount =
-    trackedCamera.latestPrimaryCountValue !== null
-      ? `Latest ${trackedCamera.latestPrimaryCountValue.toLocaleString()}`
-      : null;
+  // const latestCount =
+  //   trackedCamera.latestPrimaryCountValue !== null
+  //     ? `Latest ${trackedCamera.latestPrimaryCountValue.toLocaleString()}`
+  //     : null;
   const readingCount = `${trackedCamera.readingCount} saved reading${trackedCamera.readingCount === 1 ? "" : "s"}`;
 
-  return [readingCount, latestCount].filter(Boolean).join(" · ");
+  // return [readingCount, latestCount].filter(Boolean).join(" · ");
+  return readingCount;
 }
 
 function getTrackingUnavailableMessage(result: ExifViewerResponse) {
@@ -393,8 +396,23 @@ function getTrackingUnavailableMessage(result: ExifViewerResponse) {
   }
 }
 
+async function readJsonResponse<T>(response: Response): Promise<T> {
+  const body = await response.text();
+
+  try {
+    return JSON.parse(body) as T;
+  } catch {
+    if (body.trim().startsWith("<")) {
+      throw new Error("Request returned HTML instead of JSON.");
+    }
+
+    throw new Error("Request returned an invalid JSON response.");
+  }
+}
+
 export default function ExifResults({
   result,
+  initialHistoryData,
   onStartOver,
 }: ExifResultsProps) {
   const reduceMotion = Boolean(useReducedMotion());
@@ -409,31 +427,36 @@ export default function ExifResults({
     () => resolveCurrentReadingIdentity(result),
     [result],
   );
-  const autoSaveAttemptedTokensRef = useRef(new Set<string>());
   const suppressedAutoSaveTokensRef = useRef(new Set<string>());
+  const backgroundHistoryRequestedIdsRef = useRef(new Set<string>());
   const [trackingState, setTrackingState] = useState(result.tracking);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyData, setHistoryData] = useState<ExifTrackingHistoryResponse | null>(
-    null,
+    initialHistoryData,
   );
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const [deletingReadingId, setDeletingReadingId] = useState<string | null>(null);
   const signInHref = `/auth/signin?callbackUrl=${encodeURIComponent("/exif-viewer")}`;
+  const trackedHistoryData =
+    trackingState.trackedCamera &&
+      historyData?.trackedCamera?.id === trackingState.trackedCamera.id
+      ? historyData
+      : null;
 
   useEffect(() => {
-    autoSaveAttemptedTokensRef.current.clear();
     suppressedAutoSaveTokensRef.current.clear();
+    backgroundHistoryRequestedIdsRef.current.clear();
     setTrackingState(result.tracking);
     setSaveError(null);
     setHistoryOpen(false);
-    setHistoryData(null);
+    setHistoryData(initialHistoryData);
     setHistoryError(null);
     setIsHistoryLoading(false);
     setDeletingReadingId(null);
-  }, [result]);
+  }, [initialHistoryData, result]);
 
   async function handleSaveTracking(tokenOverride?: string) {
     const saveToken = tokenOverride ?? trackingState.saveToken;
@@ -454,13 +477,19 @@ export default function ExifResults({
           token: saveToken,
         }),
       });
-      const payload = (await response.json()) as ExifTrackingSaveResponse;
+      const payload = await readJsonResponse<ExifTrackingSaveResponse>(response);
 
       if (!response.ok || !payload.ok || !payload.tracking) {
         throw new Error(payload.message || "Failed to save EXIF tracking history.");
       }
 
       setTrackingState(payload.tracking);
+
+      if (payload.tracking.trackedCamera) {
+        await loadHistory(payload.tracking.trackedCamera.id, {
+          silent: true,
+        });
+      }
     } catch (error) {
       setSaveError(
         error instanceof Error ? error.message : "Failed to save EXIF tracking history.",
@@ -471,41 +500,40 @@ export default function ExifResults({
   }
 
   useEffect(() => {
-    const saveToken = trackingState.saveToken;
+    const trackedCameraId = trackingState.trackedCamera?.id;
 
     if (
-      isSaving ||
-      trackingState.reason === "not_signed_in" ||
-      !trackingState.trackedCamera ||
-      !saveToken ||
-      trackingState.currentReadingSaved ||
-      suppressedAutoSaveTokensRef.current.has(saveToken) ||
-      autoSaveAttemptedTokensRef.current.has(saveToken)
+      !trackedCameraId ||
+      trackedHistoryData ||
+      isHistoryLoading ||
+      backgroundHistoryRequestedIdsRef.current.has(trackedCameraId)
     ) {
       return;
     }
 
-    autoSaveAttemptedTokensRef.current.add(saveToken);
-    void handleSaveTracking(saveToken);
-  }, [
-    isSaving,
-    trackingState.currentReadingSaved,
-    trackingState.reason,
-    trackingState.saveToken,
-    trackingState.trackedCamera,
-  ]);
+    backgroundHistoryRequestedIdsRef.current.add(trackedCameraId);
+    void loadHistory(trackedCameraId, {
+      silent: true,
+    });
+  }, [isHistoryLoading, trackedHistoryData, trackingState.trackedCamera]);
 
-  async function loadHistory(trackedCameraId: string) {
+  async function loadHistory(
+    trackedCameraId: string,
+    options?: { silent?: boolean },
+  ) {
     setIsHistoryLoading(true);
-    setHistoryError(null);
+
+    if (!options?.silent) {
+      setHistoryError(null);
+    }
 
     try {
       const response = await fetch(
         `/api/exif-tracking/cameras/${trackedCameraId}/history`,
       );
-      const payload = (await response.json()) as ExifTrackingHistoryResponse & {
+      const payload = await readJsonResponse<ExifTrackingHistoryResponse & {
         message?: string;
-      };
+      }>(response);
 
       if (!response.ok || !payload.ok || !payload.trackedCamera) {
         throw new Error(payload.message || "Failed to load tracking history.");
@@ -513,9 +541,11 @@ export default function ExifResults({
 
       setHistoryData(payload);
     } catch (error) {
-      setHistoryError(
-        error instanceof Error ? error.message : "Failed to load tracking history.",
-      );
+      if (!options?.silent) {
+        setHistoryError(
+          error instanceof Error ? error.message : "Failed to load tracking history.",
+        );
+      }
     } finally {
       setIsHistoryLoading(false);
     }
@@ -538,6 +568,14 @@ export default function ExifResults({
     await loadHistory(trackingState.trackedCamera.id);
   }
 
+  function handleTrackedBannerActivate() {
+    if (!trackingState.trackedCamera) {
+      return;
+    }
+
+    void handleHistoryOpenChange(true);
+  }
+
   async function handleDeleteReading(readingId: string) {
     const readingToDelete =
       historyData?.readings.find((reading) => reading.id === readingId) ?? null;
@@ -549,7 +587,7 @@ export default function ExifResults({
       const response = await fetch(`/api/exif-tracking/readings/${readingId}`, {
         method: "DELETE",
       });
-      const payload = (await response.json()) as ExifTrackingDeleteResponse;
+      const payload = await readJsonResponse<ExifTrackingDeleteResponse>(response);
 
       if (!response.ok || !payload.ok) {
         throw new Error(payload.message || "Failed to delete EXIF tracking history.");
@@ -626,7 +664,7 @@ export default function ExifResults({
           </motion.div>
         ) : (
           <motion.div
-            className="max-w-lg rounded-xl border border-white/10 bg-white/5 px-5 py-4 text-sm"
+            className="max-w-lg rounded-xl border border-border bg-white/5 px-5 py-4 text-sm"
             {...getEnterAnimation(reduceMotion, reduceMotion ? 0 : 0.1)}
           >
             {result.message}
@@ -650,8 +688,26 @@ export default function ExifResults({
         </Button>
       </motion.div>
 
+      {/* tracked camera banner section */}
       <motion.section
-        className="rounded-xl border border-white/10 p-2 sm:p-4 "
+        className={
+          trackingState.trackedCamera
+            ? "rounded-xl border border-border p-2 transition-colors cursor-pointer hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20 sm:p-4"
+            : "rounded-xl border border-border p-2 sm:p-4"
+        }
+        role={trackingState.trackedCamera ? "button" : undefined}
+        tabIndex={trackingState.trackedCamera ? 0 : undefined}
+        onClick={trackingState.trackedCamera ? handleTrackedBannerActivate : undefined}
+        onKeyDown={
+          trackingState.trackedCamera
+            ? (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                handleTrackedBannerActivate();
+              }
+            }
+            : undefined
+        }
         {...getEnterAnimation(reduceMotion, reduceMotion ? 0 : 0.1)}
       >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -661,54 +717,59 @@ export default function ExifResults({
               {cameraSerialNumber}
             </p>
           </div>
-          <div className="flex flex-col items-start gap-2 sm:items-end">
+          <div className="flex flex-col items-start sm:items-end">
             {trackingState.trackedCamera ? (
-              <p className="text-muted-foreground text-sm">
-                {formatTrackingSummary({
-                  ...result,
-                  tracking: trackingState,
-                }) ?? "Tracking enabled"}
-              </p>
-            ) : !trackingState.eligible ? (
-              <p className="text-muted-foreground text-sm">
-                {getTrackingUnavailableMessage({
-                  ...result,
-                  tracking: trackingState,
-                })}
-              </p>
-            ) : null}
+              <>
+                <div className="relative h-12 w-[136px]">
+                  {trackedHistoryData ? (
+                    <ExifTrackingMiniChart
+                      readings={trackedHistoryData.readings}
+                      className="h-12 w-[136px] [mask-image:linear-gradient(to_right,transparent,white_12%,white_88%,transparent)]"
+                    />
+                  ) : (
+                    <div className="h-12 w-[136px]" />
+                  )}
+                </div>
+                <p className="text-muted-foreground text-xs">
+                  {formatTrackingSummary({
+                    ...result,
+                    tracking: trackingState,
+                  }) ?? "Tracking enabled"}
+                </p>
+              </>
+            ) : (
+              <>
+                {!trackingState.eligible ? (
+                  <p className="text-muted-foreground text-sm">
+                    {getTrackingUnavailableMessage({
+                      ...result,
+                      tracking: trackingState,
+                    })}
+                  </p>
+                ) : null}
 
-            <div className="flex flex-wrap items-center gap-2">
-              {trackingState.reason === "not_signed_in" ? (
-                <Button type="button" size="sm" asChild>
-                  <Link href={signInHref}>Log in to save history</Link>
-                </Button>
-              ) : null}
+                <div className="flex flex-wrap items-center gap-2">
+                  {trackingState.reason === "not_signed_in" ? (
+                    <Button type="button" size="sm" asChild>
+                      <Link href={signInHref}>Log in to save history</Link>
+                    </Button>
+                  ) : null}
 
-              {trackingState.eligible &&
-              trackingState.saveToken &&
-              trackingState.reason !== "not_signed_in" ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => void handleSaveTracking()}
-                  loading={isSaving}
-                >
-                  {trackingState.trackedCamera ? "Save reading" : "Save to track"}
-                </Button>
-              ) : null}
-
-              {trackingState.trackedCamera ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => void handleHistoryOpenChange(true)}
-                >
-                  View history
-                </Button>
-              ) : null}
-            </div>
+                  {trackingState.eligible &&
+                    trackingState.saveToken &&
+                    trackingState.reason !== "not_signed_in" ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => void handleSaveTracking()}
+                      loading={isSaving}
+                    >
+                      Save to track
+                    </Button>
+                  ) : null}
+                </div>
+              </>
+            )}
 
             {saveError ? (
               <p className="text-sm text-red-300">{saveError}</p>
@@ -719,7 +780,7 @@ export default function ExifResults({
 
       {/* summary section */}
       <motion.section
-        className="rounded-xl border border-white/10 p-2 sm:p-4"
+        className="rounded-xl border border-border p-2 sm:p-4"
         {...getEnterAnimation(reduceMotion, reduceMotion ? 0 : 0.12)}
       >
         <dl className="grid gap-x-10 gap-y-4 md:grid-cols-2">

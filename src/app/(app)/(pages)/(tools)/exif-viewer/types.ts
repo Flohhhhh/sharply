@@ -55,6 +55,11 @@ export type ExifTrackingPrimaryCountType =
   | ExifViewerCountType
   | "generic";
 
+export type ExifTrackingChartSeries =
+  | "generic"
+  | "total"
+  | "mechanical";
+
 export type ExifViewerTagEntry = {
   key: string;
   group: string;

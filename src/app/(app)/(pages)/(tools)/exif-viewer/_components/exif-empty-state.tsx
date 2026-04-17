@@ -27,7 +27,7 @@ export default function ExifEmptyState({
       role="button"
       tabIndex={0}
       className={cn(
-        "border-muted-foreground/30 hover:bg-muted/10 flex min-h-72 cursor-pointer items-center justify-center rounded-xl border-2 border-dotted px-6 py-12 text-center transition-colors",
+        "bg-background border-muted-foreground/30 hover:brightness-95 dark:hover:brightness-110 flex min-h-72 cursor-pointer items-center justify-center rounded-lg border-2 border-dotted px-6 py-12 text-center transition-all",
         isDragging && "border-foreground/50 bg-muted/50",
       )}
       initial={{ opacity: 0 }}
@@ -50,8 +50,8 @@ export default function ExifEmptyState({
           <Upload className="size-6" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-lg font-medium">Drop a Raw file here</h2>
-          <p className="text-muted-foreground text-sm">We will extract your camera's shutter count and other info from the metadata stored in the image file.</p>
+          <h2 className="text-lg font-medium">Upload an image file</h2>
+          <p className="text-muted-foreground text-sm">Provide a Raw or JPG file straight from your camera (not edited). We will extract your camera's shutter count and other metadata.</p>
         </div>
         <Button
           type="button"

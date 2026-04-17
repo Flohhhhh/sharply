@@ -466,7 +466,7 @@ Current banner behavior:
 
 - signed out + eligible result: `Log in to save history`
 - signed in + eligible + never saved: `Save to track`
-- signed in + tracked camera + current reading unsaved: auto-save, then `View history`
+- signed in + tracked camera + current reading unsaved: auto-save, then mini chart + `View history`
 - signed in + current reading already saved: `View history`
 - ineligible result: muted explanation
 
@@ -474,14 +474,29 @@ The save action posts the short-lived save token returned by the parse route to 
 
 History is lazy-loaded from `/api/exif-tracking/cameras/[trackedCameraId]/history` and rendered in `_components/exif-tracking-history-dialog.tsx`.
 
+Tracked-camera results now also use that same history payload to render a compact banner sparkline. The chart data is derived client-side from saved readings using:
+
+- `captureAt` when available
+- `createdAt` as a fallback when EXIF capture time is missing
+- daily aggregation rather than one point per saved reading
+- highest available value per day for each plotted series
+
+The banner mini chart is intentionally non-interactive and single-series. It prefers:
+
+1. total shutter count
+2. mechanical shutter count
+3. generic shutter count
+
+The history modal now adds a full line chart above the saved-readings table. When the saved dataset contains both total and mechanical values, the modal renders both series. Otherwise it falls back to a single line.
+
 The history dialog is intentionally simple in v1:
 
 - title from mapped gear name or parsed model
 - summary fields for latest count, latest capture, first seen, and last seen
+- full shutter-count chart above the table
 - plain readings table
 - per-reading delete action
-- no sparkline
-- no chart modal
+- no separate chart modal beyond the history dialog itself
 
 ## Visual shell
 

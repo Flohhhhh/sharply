@@ -33,7 +33,7 @@ export default function ExifLoadingState({
           {SKELETON_IDS.map((id, index) => (
             <motion.div
               key={id}
-              className="relative h-24 w-14 overflow-hidden rounded-xl bg-muted/20"
+              className="relative h-24 w-14 overflow-hidden rounded-xl border border-border/60 bg-muted/60"
               initial={
                 isReducedMotion
                   ? { opacity: 0 }
@@ -51,7 +51,11 @@ export default function ExifLoadingState({
               }}
             >
               <motion.div
-                className="absolute inset-x-0 -bottom-1/2 h-full bg-[linear-gradient(180deg,transparent,rgba(255,255,255,0.1),transparent)]"
+                className="absolute inset-x-0 -bottom-1/2 h-full"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(180deg, transparent, oklch(from var(--foreground) l c h / 0.12), transparent)",
+                }}
                 animate={isReducedMotion ? undefined : { y: ["120%", "-300%"] }}
                 transition={
                   isReducedMotion
