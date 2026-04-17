@@ -27,7 +27,13 @@ function sleep(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
-export default function ExifViewerClient() {
+type ExifViewerClientProps = {
+  isLoggedIn: boolean;
+};
+
+export default function ExifViewerClient({
+  isLoggedIn,
+}: ExifViewerClientProps) {
   const reduceMotion = useReducedMotion();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const loadingRunIdRef = useRef(0);
@@ -40,7 +46,13 @@ export default function ExifViewerClient() {
   const [loadingStageIndex, setLoadingStageIndex] = useState(0);
   const [result, setResult] = useState<ExifViewerResponse | null>(null);
   const [requestError, setRequestError] = useState<string | null>(null);
-  const viewState = isParsing ? "loading" : result ? "results" : "empty";
+  const viewState = isParsing
+    ? "loading"
+    : result
+      ? "results"
+      : requestError
+        ? "error"
+        : "empty";
 
   useEffect(() => {
     isParsingRef.current = isParsing;
@@ -178,6 +190,21 @@ export default function ExifViewerClient() {
     void parseFile(file);
   }
 
+  function resetToolState() {
+    loadingRunIdRef.current += 1;
+    isParsingRef.current = false;
+    resultRef.current = null;
+    requestErrorRef.current = null;
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
+    setIsParsing(false);
+    setLoadingStageIndex(0);
+    setResult(null);
+    setRequestError(null);
+    setIsDragging(false);
+  }
+
   return (
     <div className="space-y-8">
       <input
@@ -221,7 +248,12 @@ export default function ExifViewerClient() {
           />
         ) : null}
         {viewState === "results" && result ? (
-          <ExifResults key="results" result={result} />
+          <ExifResults
+            key="results"
+            result={result}
+            isLoggedIn={isLoggedIn}
+            onStartOver={resetToolState}
+          />
         ) : null}
       </AnimatePresence>
 

@@ -1,13 +1,16 @@
 "use client";
 
-import NumberFlow from "@number-flow/react";
+import NumberFlow, { continuous } from "@number-flow/react";
+import { RotateCcw } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
+import { Button } from "~/components/ui/button";
 import type {
   ExifViewerMetadataRow,
   ExifViewerResponse,
 } from "../types";
 import ExifMetadataTable from "./exif-metadata-table";
+import { TooltipContent, Tooltip, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 type ExifSummaryItem = {
   label: string;
@@ -37,16 +40,8 @@ function formatCameraLabel(
   make: string | null | undefined,
   model: string | null | undefined,
 ): string | null {
-  const trimmedMake = make?.trim() || null;
   const trimmedModel = model?.trim() || null;
-
-  if (trimmedMake && trimmedModel) {
-    if (trimmedModel.toLowerCase().startsWith(trimmedMake.toLowerCase())) {
-      return trimmedModel;
-    }
-
-    return `${trimmedMake} ${trimmedModel}`;
-  }
+  const trimmedMake = make?.trim() || null;
 
   return trimmedModel ?? trimmedMake ?? null;
 }
@@ -84,6 +79,23 @@ function formatIso(value: string | null): string {
 
 function formatDisplayValue(value: string | null): string {
   return value?.trim() || EMPTY_VALUE;
+}
+
+function findCameraSerialNumber(rows: ExifViewerMetadataRow[]): string {
+  return formatDisplayValue(
+    findMetadataValue(rows, [
+      "MakerNotes:SerialNumber",
+      "MakerNotes:InternalSerialNumber",
+      "MakerNotes:CameraSerialNumber",
+      "EXIF:SerialNumber",
+      "ExifIFD:SerialNumber",
+      "Composite:SerialNumber",
+      "Nikon:SerialNumber",
+      "Canon:SerialNumber",
+      "Sony:SerialNumber",
+      "FujiFilm:SerialNumber",
+    ]),
+  );
 }
 
 function getEnterAnimation(
@@ -215,7 +227,13 @@ export function buildSummaryItems(
     },
     {
       label: "ISO",
-      value: formatIso(findMetadataValue(rows, ["EXIF:ISO", "Composite:ISO"])),
+      value: formatIso(
+        findMetadataValue(rows, [
+          "EXIF:ISO",
+          "ExifIFD:ISO",
+          "Composite:ISO",
+        ]),
+      ),
     },
   ];
 }
@@ -251,16 +269,18 @@ function AnimatedCount({ value, className }: AnimatedCountProps) {
     <NumberFlow
       value={displayedValue}
       className={className}
+      plugins={[continuous]}
       format={{ useGrouping: true }}
       transformTiming={{
         duration: 1_250,
         easing: "cubic-bezier(0.22, 1, 0.36, 1)",
       }}
       spinTiming={{
-        duration: 1_250,
-        easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+        duration: 1000,
+        easing: "linear(0, 0.0012 0.47%, 0.0061 1.09%, 0.0264, 0.0581 3.59%, 0.1043 4.99%, 0.212 7.65%, 0.4614 13.11%, 0.5758, 0.6782, 0.7662, 0.8393, 0.8979 26.37%, 0.9454 29.18%, 0.9642 30.58%, 0.9816 32.14%, 1.0027 34.64%, 1.0183 37.45%, 1.0278 40.57%, 1.0314 44%, 1.0291 49%, 1.0105 62.89%, 1.0028 71.78%, 0.9994 82.55%, 0.9993 99.87%)",
       }}
       opacityTiming={{ duration: 360, easing: "ease-out" }}
+
       willChange
     />
   );
@@ -268,56 +288,57 @@ function AnimatedCount({ value, className }: AnimatedCountProps) {
 
 type ExifResultsProps = {
   result: ExifViewerResponse;
+  isLoggedIn: boolean;
+  onStartOver: () => void;
 };
 
-export default function ExifResults({ result }: ExifResultsProps) {
+export default function ExifResults({
+  result,
+  isLoggedIn,
+  onStartOver,
+}: ExifResultsProps) {
   const reduceMotion = Boolean(useReducedMotion());
   const heroMetric = useMemo(() => resolveHeroMetric(result), [result]);
   const summaryItems = useMemo(() => buildSummaryItems(result), [result]);
-  const cameraLabel = summaryItems[0]?.value || EMPTY_VALUE;
+  const cameraModel = summaryItems[0]?.value || EMPTY_VALUE;
+  const cameraSerialNumber = useMemo(
+    () => findCameraSerialNumber(result.metadata.rows),
+    [result.metadata.rows],
+  );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-2">
       <motion.section
-        className="flex flex-col items-center gap-3 py-4 text-center"
+        className="flex flex-col items-center py-4 text-center"
         {...getEnterAnimation(reduceMotion)}
       >
-        <motion.p
-          className="text-muted-foreground text-sm sm:text-base"
-          {...getEnterAnimation(reduceMotion, reduceMotion ? 0 : 0.04)}
-        >
-          {cameraLabel}
-        </motion.p>
-
         {heroMetric ? (
-          <>
-            <motion.div {...getEnterAnimation(reduceMotion, reduceMotion ? 0 : 0.1)}>
+          <motion.div
+            className="flex flex-col gap-4 items-center"
+            {...getEnterAnimation(reduceMotion, reduceMotion ? 0 : 0.1)}
+          >
+            <div className="flex flex-col gap-2 items-center">
               <AnimatedCount
                 value={heroMetric.value}
-                className="text-foreground text-6xl font-semibold tracking-tight tabular-nums sm:text-8xl"
+                className="text-foreground text-6xl font-semibold tracking-tight tabular-nums sm:text-8xl my-0 py-0 leading-0"
               />
-            </motion.div>
-            <motion.p
-              className="text-muted-foreground text-sm font-medium"
-              {...getEnterAnimation(reduceMotion, reduceMotion ? 0 : 0.14)}
-            >
-              {heroMetric.label}
-            </motion.p>
+              <p className="text-muted-foreground -mt-6">
+                {heroMetric.label}
+              </p>
+            </div>
+
             {heroMetric.secondaryValue !== null &&
-            heroMetric.secondaryLabel !== null ? (
-              <motion.div
-                className="pt-3"
-                {...getEnterAnimation(reduceMotion, reduceMotion ? 0 : 0.2)}
-              >
-                <p className="text-lg font-semibold tabular-nums">
+              heroMetric.secondaryLabel !== null ? (
+              <div className="space-y-2">
+                <p className="text-3xl font-semibold tabular-nums">
                   {heroMetric.secondaryValue.toLocaleString()}
                 </p>
-                <p className="text-muted-foreground text-xs">
+                <p className="text-muted-foreground">
                   {heroMetric.secondaryLabel}
                 </p>
-              </motion.div>
+              </div>
             ) : null}
-          </>
+          </motion.div>
         ) : (
           <motion.div
             className="max-w-lg rounded-xl border border-white/10 bg-white/5 px-5 py-4 text-sm"
@@ -328,21 +349,69 @@ export default function ExifResults({ result }: ExifResultsProps) {
         )}
       </motion.section>
 
+      {/* controls section */}
+      <motion.div
+        className="flex justify-end mt-8"
+        {...getEnterAnimation(reduceMotion, reduceMotion ? 0 : 0.08)}
+      >
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          icon={<RotateCcw />}
+          onClick={onStartOver}
+        >
+          Start Over
+        </Button>
+      </motion.div>
+
       <motion.section
-        className="rounded-xl border border-white/10 bg-white/5 p-5 sm:p-6"
+        className="rounded-xl border border-white/10 p-2 sm:p-4 "
+        {...getEnterAnimation(reduceMotion, reduceMotion ? 0 : 0.1)}
+      >
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="">
+            <p className="text-sm">{cameraModel}</p>
+            <p className="text-muted-foreground text-sm">
+              {cameraSerialNumber}
+            </p>
+          </div>
+          {!isLoggedIn ? (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  {/* #TODO: add tracking for exif */}
+                  <span className="inline-flex">
+                    <Button type="button" disabled size="sm">
+                      Log in to track
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent sideOffset={8}>
+                  <p>Coming soon</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ) : null}
+        </div>
+      </motion.section>
+
+      {/* summary section */}
+      <motion.section
+        className="rounded-xl border border-white/10 p-2 sm:p-4"
         {...getEnterAnimation(reduceMotion, reduceMotion ? 0 : 0.12)}
       >
-        <dl className="grid gap-x-10 gap-y-6 md:grid-cols-2">
+        <dl className="grid gap-x-10 gap-y-4 md:grid-cols-2">
           {summaryItems.map((item) => (
             <motion.div
               key={item.label}
-              className="space-y-1.5"
+              className="space-y-1"
               {...getEnterAnimation(reduceMotion, reduceMotion ? 0 : 0.16)}
             >
               <dt className="text-muted-foreground text-sm">
                 {item.label}
               </dt>
-              <dd className="text-base font-semibold">{item.value}</dd>
+              <dd className="text-sm">{item.value}</dd>
             </motion.div>
           ))}
         </dl>
