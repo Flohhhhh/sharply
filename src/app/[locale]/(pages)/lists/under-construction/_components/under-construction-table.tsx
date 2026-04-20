@@ -1,0 +1,299 @@
+"use client";
+
+import { useCallback, useState } from "react";
+import { useRouter } from "next/navigation";
+import useSWR from "swr";
+import { Badge } from "~/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "~/components/ui/table";
+import { Progress } from "~/components/ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "~/components/ui/alert-dialog";
+import EditModalContent from "~/app/[locale]/(pages)/gear/_components/edit-gear/edit-modal-content";
+import type { GearItem } from "~/types/gear";
+import { Label } from "~/components/ui/label";
+import { Switch } from "~/components/ui/switch";
+import { ImageOff, Loader2 } from "lucide-react";
+import { Button } from "~/components/ui/button";
+import type { GearType } from "~/types/gear";
+import { GEAR_TYPE_LABELS } from "~/lib/constants";
+
+type Row = {
+  id: string;
+  slug: string;
+  name: string;
+  brandName: string | null;
+  thumbnailUrl: string | null;
+  hasImage: boolean;
+  gearType: string;
+  missingCount: number;
+  missing: string[];
+  completionPercent: number;
+  createdAt: string | Date;
+  underConstruction: boolean;
+};
+
+async function fetchGearEditData(url: string): Promise<GearItem> {
+  const res = await fetch(url, { method: "GET" });
+  if (!res.ok) throw new Error(`Failed: ${res.status}`);
+  return (await res.json()) as GearItem;
+}
+
+export function UnderConstructionTable({
+  canToggleAutoSubmit = false,
+  items,
+}: {
+  canToggleAutoSubmit?: boolean;
+  items: Row[];
+}) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState<{
+    slug: string;
+    type: GearType;
+  } | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
+  const [confirmExitOpen, setConfirmExitOpen] = useState(false);
+  const [showMissingOnly, setShowMissingOnly] = useState(true);
+  const selectedEditDataUrl =
+    open && selected ? `/api/gear/${selected.slug}/edit-data` : null;
+  const { data: gearData, error, isLoading: loading } = useSWR<GearItem>(
+    selectedEditDataUrl,
+    fetchGearEditData,
+  );
+
+  if (error) {
+    console.error("[UnderConstructionTable] fetch edit-data error", error);
+  }
+
+  const requestClose = useCallback(
+    (opts?: { force?: boolean }) => {
+      if (isDirty && !opts?.force) {
+        setConfirmExitOpen(true);
+        return;
+      }
+      setOpen(false);
+      setIsDirty(false);
+    },
+    [isDirty],
+  );
+
+  const handleOpen = useCallback((slug: string, type: GearType) => {
+    setSelected({ slug, type });
+    setIsDirty(false);
+    setShowMissingOnly(true); // default to missing-only when launched from this page
+    setOpen(true);
+  }, []);
+
+  return (
+    <>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Item</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Missing</TableHead>
+              <TableHead>Progress</TableHead>
+              <TableHead className="text-right">Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {items.map((it, idx) => {
+              return (
+                <TableRow
+                  key={it.id}
+                  className={`cursor-pointer overflow-visible ${idx % 2 === 0 ? "hover:bg-accent/25" : "hover:bg-accent/60"}`}
+                  onClick={() => router.push(`/gear/${it.slug}`)}
+                  role="button"
+                >
+                  <TableCell className="max-w-[360px]">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium underline-offset-2 group-hover:underline">
+                        {it.name}
+                      </span>
+                      {!it.hasImage && (
+                        <Badge
+                          variant="outline"
+                          className="flex items-center gap-1"
+                        >
+                          <ImageOff className="h-3 w-3" />
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="text-muted-foreground text-xs">
+                      {it.brandName ?? ""}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-xs whitespace-nowrap">
+                    {/* Type cast needed because gearType is string from server data */}
+                    {GEAR_TYPE_LABELS[it.gearType as keyof typeof GEAR_TYPE_LABELS] ?? it.gearType}
+                  </TableCell>
+                  <TableCell className="align-top">
+                    <div className="flex flex-wrap gap-1">
+                      {it.missing.slice(0, 6).map((m) => (
+                        <Badge key={m} variant="outline" className="text-xs">
+                          {m}
+                        </Badge>
+                      ))}
+                      {it.missing.length > 6 ? (
+                        <Badge variant="outline" className="text-xs">
+                          +{it.missing.length - 6} more
+                        </Badge>
+                      ) : null}
+                    </div>
+                  </TableCell>
+                  <TableCell className="w-[240px]">
+                    <div className="flex items-center gap-2">
+                      <Progress value={it.completionPercent} className="h-2" />
+                      <span className="text-muted-foreground w-10 text-right text-xs">
+                        {it.completionPercent}%
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {it.underConstruction ? (
+                      <Badge variant="destructive">Under construction</Badge>
+                    ) : (
+                      <Badge variant="secondary">Low completeness</Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpen(it.slug, it.gearType as GearType);
+                      }}
+                    >
+                      Open modal
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
+
+      <Dialog
+        open={open}
+        onOpenChange={(v) => {
+          if (!v) requestClose();
+          else setOpen(true);
+        }}
+      >
+        <DialogContent className="p-0 sm:max-w-4xl" showCloseButton={false}>
+          <div className="flex max-h-[90vh] flex-col">
+            {selected && !loading && gearData && (
+              <EditModalContent
+                canToggleAutoSubmit={canToggleAutoSubmit}
+                gearType={selected.type as any}
+                gearSlug={selected.slug}
+                gearData={gearData}
+                onDirtyChange={setIsDirty}
+                onRequestClose={requestClose}
+                initialShowMissingOnly={showMissingOnly}
+                formId="edit-gear-form"
+              />
+            )}
+            {selected && loading && (
+              <div className="flex max-h-[90vh] flex-col">
+                <div className="px-6 pt-6 pb-4">
+                  <DialogHeader>
+                    <DialogTitle>Edit {selected?.slug}</DialogTitle>
+                  </DialogHeader>
+                </div>
+                <div className="flex min-h-[400px] flex-1 items-center justify-center p-6">
+                  <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
+                  <span className="text-muted-foreground ml-2 text-sm">
+                    Loading…
+                  </span>
+                </div>
+                <div className="bg-background border-t px-6 py-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="uc-loading-missing-only">
+                        Show missing only
+                      </Label>
+                      <Switch
+                        id="uc-loading-missing-only"
+                        checked={showMissingOnly}
+                        onCheckedChange={setShowMissingOnly}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        className="border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md border px-4 text-sm"
+                        onClick={() => requestClose()}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        disabled
+                        className="bg-primary text-primary-foreground/60 h-9 cursor-not-allowed rounded-md px-4 text-sm"
+                      >
+                        Continue
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={confirmExitOpen} onOpenChange={setConfirmExitOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Discard unsaved changes?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have unsaved changes. If you exit now, your edits will be
+              lost.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setConfirmExitOpen(false)}>
+              Stay
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setConfirmExitOpen(false);
+                requestClose({ force: true });
+              }}
+            >
+              Discard & Exit
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
+
+export default UnderConstructionTable;

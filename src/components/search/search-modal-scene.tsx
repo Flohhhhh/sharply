@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import {
   ArrowUpRight,
@@ -27,7 +28,6 @@ import {
 } from "motion/react";
 import { useSearchSuggestions } from "@hooks/useSearchSuggestions";
 import { useCountry } from "~/lib/hooks/useCountry";
-import { cn } from "~/lib/utils";
 import { buildSearchHref } from "~/lib/utils/url";
 import type { Suggestion } from "~/types/search";
 import { SearchSuggestionRow } from "./search-suggestion-row";
@@ -39,6 +39,8 @@ import {
   isBestMatchSuggestion,
   isSmartActionSuggestion,
 } from "./search-suggestion-utils";
+import type { Locale } from "~/i18n/config";
+import { localizePathname } from "~/i18n/routing";
 
 type SearchModalSceneProps = {
   open: boolean;
@@ -86,6 +88,8 @@ export function SearchModalScene({
   open,
   onOpenChange,
 }: SearchModalSceneProps) {
+  const t = useTranslations("search");
+  const locale = useLocale() as Locale;
   const reduceMotion = useReducedMotion();
   const router = useRouter();
   const comboboxId = useId();
@@ -183,39 +187,39 @@ export function SearchModalScene({
       {
         id: "search-action",
         kind: "search-action",
-        title: `Search for “${trimmedQuery}”`,
+        title: t("searchFor", { query: trimmedQuery }),
         href: searchHref,
       },
       ...suggestionRows.remainingRows,
     ];
 
     return items;
-  }, [hasQuery, searchHref, suggestionRows, trimmedQuery]);
+  }, [hasQuery, searchHref, suggestionRows, t, trimmedQuery]);
 
   const showResultsSection = hasQuery ? hasRevealedPanelForInput : false;
   const listboxId = `${comboboxId}-listbox`;
   const activeOptionId =
     showResultsSection &&
-      selectedIndex >= 0 &&
-      selectedIndex < selectableItems.length
+    selectedIndex >= 0 &&
+    selectedIndex < selectableItems.length
       ? `${comboboxId}-option-${selectedIndex}`
       : undefined;
   const shellTransition = reduceMotion
     ? { duration: 0 }
     : {
-      type: "spring" as const,
-      stiffness: 400,
-      damping: 30,
-      mass: 0.95,
-    };
+        type: "spring" as const,
+        stiffness: 400,
+        damping: 30,
+        mass: 0.95,
+      };
   const panelTransition = reduceMotion
     ? { duration: 0 }
     : {
-      type: "spring" as const,
-      stiffness: 400,
-      damping: 30,
-      mass: 0.82,
-    };
+        type: "spring" as const,
+        stiffness: 400,
+        damping: 30,
+        mass: 0.82,
+      };
 
   useEffect(() => {
     rowRefs.current = rowRefs.current.slice(0, selectableItems.length);
@@ -240,9 +244,9 @@ export function SearchModalScene({
     });
   }, [selectedIndex]);
 
-  const navigateTo = (href: string, queryForHistory?: string) => {
+  const navigateTo = (href: string) => {
     onOpenChange(false);
-    router.push(href);
+    router.push(localizePathname(href, locale));
   };
 
   const executeItem = (item: SelectableItem | undefined) => {
@@ -283,11 +287,11 @@ export function SearchModalScene({
           reduceMotion
             ? false
             : {
-              opacity: 0,
-              scale: 0.96,
-              y: 12,
-              height: 64,
-            }
+                opacity: 0,
+                scale: 0.96,
+                y: 12,
+                height: 64,
+              }
         }
         animate={{
           opacity: 1,
@@ -306,13 +310,13 @@ export function SearchModalScene({
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               onKeyDown={handleInputKeyDown}
-              aria-label="Search Sharply"
+              aria-label={t("dialogTitle")}
               aria-activedescendant={activeOptionId}
               aria-autocomplete="list"
               aria-controls={showResultsSection ? listboxId : undefined}
               aria-expanded={showResultsSection}
               aria-haspopup="listbox"
-              placeholder="Search Sharply"
+              placeholder={t("inputPlaceholder")}
               className="placeholder:text-muted-foreground dark:placeholder:text-muted-foreground/60 text-foreground flex-1 bg-transparent text-sm outline-none md:text-lg"
               role="combobox"
               spellCheck={false}
@@ -327,7 +331,7 @@ export function SearchModalScene({
                   type="button"
                   onClick={() => setQuery("")}
                   className="text-muted-foreground hover:text-foreground inline-flex size-8 items-center justify-center rounded-full transition-colors"
-                  aria-label="Clear search"
+                  aria-label={t("clearSearch")}
                 >
                   <X className="size-4" />
                 </button>
@@ -384,7 +388,7 @@ export function SearchModalScene({
                                   tone="search-action"
                                   surface="inline"
                                   title={item.title}
-                                  actionLabel="Search"
+                                  actionLabel={t("searchAction")}
                                   selected={selected}
                                   leadingIcon={
                                     <ArrowUpRight className="size-5" />
@@ -430,12 +434,12 @@ export function SearchModalScene({
                                 badge={item.badge}
                                 actionLabel={
                                   isSmartActionSuggestion(item.suggestion)
-                                    ? "Compare items"
+                                    ? t("compareItems")
                                     : isBestMatchSuggestion(item.suggestion)
-                                      ? "Best match"
+                                      ? t("bestMatch")
                                       : item.suggestion.kind === "brand"
-                                        ? "Open brand"
-                                        : "Go to gear item"
+                                        ? t("openBrand")
+                                        : t("goToGearItem")
                                 }
                                 selected={selected}
                                 leadingIcon={getLeadingIcon(item.suggestion)}

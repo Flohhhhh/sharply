@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,11 +11,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import Link from "next/link";
 import { LogOut, Settings, ShieldCheck, User as UserIcon } from "lucide-react";
 import type { UserRole } from "~/auth";
 import { logOut } from "~/lib/auth";
 import { Spinner } from "~/components/ui/spinner";
+import { LocaleLink } from "~/components/locale-link";
 
 export type UserMenuUser = {
   id: string;
@@ -27,6 +28,7 @@ export type UserMenuUser = {
 } | null;
 
 export function UserMenu({ user }: { user: UserMenuUser }) {
+  const t = useTranslations("common");
   const initials = useMemo(() => {
     const source = user?.name || user?.email || "?";
     return source.trim().charAt(0).toUpperCase();
@@ -62,7 +64,7 @@ export function UserMenu({ user }: { user: UserMenuUser }) {
             </Avatar>
             <div className="min-w-0">
               <div className="truncate text-sm font-medium">
-                {user.name || "Anonymous"}
+                {user.name || t("anonymous")}
               </div>
               {user.email && (
                 <div className="text-muted-foreground truncate text-xs">
@@ -74,29 +76,32 @@ export function UserMenu({ user }: { user: UserMenuUser }) {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link
+          <LocaleLink
             href={`/u/${user.handle || `user-${user.memberNumber}`}`}
             className="flex w-full items-center gap-2"
           >
             <UserIcon className="size-4" />
-            <span>Profile</span>
-          </Link>
+            <span>{t("profile")}</span>
+          </LocaleLink>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link
+          <LocaleLink
             href="/profile/settings"
             className="flex w-full items-center gap-2"
           >
             <Settings className="size-4" />
-            <span>Account</span>
-          </Link>
+            <span>{t("account")}</span>
+          </LocaleLink>
         </DropdownMenuItem>
         {false && isAdminOrEditor && (
           <DropdownMenuItem asChild>
-            <Link href="/admin" className="flex w-full items-center gap-2">
+            <LocaleLink
+              href="/admin"
+              className="flex w-full items-center gap-2"
+            >
               <ShieldCheck className="size-4" />
               <span>Admin</span>
-            </Link>
+            </LocaleLink>
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
@@ -115,7 +120,7 @@ export function UserMenu({ user }: { user: UserMenuUser }) {
           ) : (
             <>
               <LogOut className="size-4" />
-              <span>Log out</span>
+              <span>{t("logOut")}</span>
             </>
           )}
         </DropdownMenuItem>

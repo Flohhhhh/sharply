@@ -1,0 +1,41 @@
+"use client";
+
+import { NextIntlClientProvider, type AbstractIntlMessages } from "next-intl";
+import { type ReactNode } from "react";
+import { CommandPalette } from "~/components/search/command-palette";
+import { CountryProvider } from "~/lib/hooks/useCountry";
+import { ThemeProvider } from "~/lib/providers/theme-provider";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
+import type { Locale } from "~/i18n/config";
+
+export function Providers({
+  children,
+  initialCountryAlpha2,
+  locale,
+  messages,
+  timeZone,
+}: {
+  children: ReactNode;
+  initialCountryAlpha2?: string | null;
+  locale: Locale;
+  messages: AbstractIntlMessages;
+  timeZone: string;
+}) {
+  return (
+    <NextIntlClientProvider
+      locale={locale}
+      messages={messages}
+      timeZone={timeZone}
+    >
+      <ThemeProvider attribute="class" defaultTheme="system">
+        <CountryProvider initialCountryAlpha2={initialCountryAlpha2}>
+          <NuqsAdapter>
+            {children}
+            {/* Mount a single global Command Palette so ⌘K/Ctrl+K works app-wide */}
+            <CommandPalette />
+          </NuqsAdapter>
+        </CountryProvider>
+      </ThemeProvider>
+    </NextIntlClientProvider>
+  );
+}

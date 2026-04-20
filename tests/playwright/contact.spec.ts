@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { CONTACT_OPTIONS } from "~/app/(app)/(pages)/contact/contact-options";
+import { CONTACT_OPTIONS } from "~/app/[locale]/(pages)/contact/contact-options";
 
 const options = CONTACT_OPTIONS.map((option) => ({
   label: option.label,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildGearBreadcrumbItems } from "~/app/(app)/(pages)/gear/_components/gear-breadcrumb-items";
+import { buildGearBreadcrumbItems } from "~/app/[locale]/(pages)/gear/_components/gear-breadcrumb-items";
 
 describe("buildGearBreadcrumbItems", () => {
   it("builds the full breadcrumb for a Nikon native Z lens", () => {

@@ -24,6 +24,7 @@ import { mergeSearchParams } from "@utils/url";
 import { SENSOR_FORMATS, MOUNTS, BRANDS } from "~/lib/constants";
 import { getMountLongName } from "~/lib/mapping/mounts-map";
 import { sortSensorFormats } from "~/lib/sensor-formats";
+import { useLocalePathnames } from "~/i18n/client";
 
 // Slider curve: 1 = linear, higher = more weight to low prices (exponential).
 const PRICE_SLIDER_CURVE = 2;
@@ -65,7 +66,8 @@ function useSyncedParam(key: string, fallback: string | undefined = undefined) {
 export function FiltersModal() {
   const router = useRouter();
   const sp = useSearchParams();
-  const pathname = usePathname();
+  const rawPathname = usePathname();
+  const { pathname } = useLocalePathnames();
   const [open, setOpen] = useState(false);
 
   // Controlled filter values synced from URL
@@ -99,7 +101,7 @@ export function FiltersModal() {
   ) {
     const existing = new URLSearchParams(sp.toString());
     const qs = mergeSearchParams(existing, { ...updates, page: 1 });
-    const href = qs ? `${pathname}?${qs}` : pathname;
+    const href = qs ? `${rawPathname}?${qs}` : rawPathname;
     router.replace(href);
   }
 
@@ -229,7 +231,10 @@ export function FiltersModal() {
           <div className="text-sm font-medium">Price range</div>
           <Slider
             value={[
-              priceToSlider(Number.isFinite(price[0]) ? Number(price[0]) : 0, PRICE_MAX),
+              priceToSlider(
+                Number.isFinite(price[0]) ? Number(price[0]) : 0,
+                PRICE_MAX,
+              ),
               priceToSlider(
                 Number.isFinite(price[1]) && price[1] !== 0
                   ? Number(price[1])

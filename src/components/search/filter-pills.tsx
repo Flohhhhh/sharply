@@ -3,11 +3,13 @@
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { X } from "lucide-react";
 import { mergeSearchParams } from "@utils/url";
+import { useLocalePathnames } from "~/i18n/client";
 
 export function FilterPills() {
   const sp = useSearchParams();
   const router = useRouter();
-  const pathname = usePathname();
+  const rawPathname = usePathname();
+  const { pathname } = useLocalePathnames();
 
   const entries: { key: string; label: string; value: string }[] = [];
   const q = sp.get("q") ?? "";
@@ -48,7 +50,7 @@ export function FilterPills() {
           : { priceMin: null, priceMax: null, page: 1 }
         : { [key]: null, page: 1 },
     );
-    const href = qs ? `${pathname}?${qs}` : pathname;
+    const href = qs ? `${rawPathname}?${qs}` : rawPathname;
     router.replace(href);
   }
 

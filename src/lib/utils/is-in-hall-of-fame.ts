@@ -1,4 +1,4 @@
-import { hallOfFameItems } from "~/app/(app)/(pages)/lists/hall-of-fame/data";
+import { hallOfFameItems } from "~/app/[locale]/(pages)/lists/hall-of-fame/data";
 
 // Precompute slugs for quick hall of fame membership checks.
 const hallOfFameSlugs = new Set(

@@ -33,13 +33,13 @@ vi.mock("~/auth", () => authMocks);
 vi.mock("next/headers", () => headerMocks);
 vi.mock("~/lib/auth/auth-helpers", () => authHelperMocks);
 vi.mock(
-  "~/app/(app)/(pages)/lists/under-construction/_components/under-construction-client",
+  "~/app/[locale]/(pages)/lists/under-construction/_components/under-construction-client",
   () => ({
     default: clientComponentMock,
   }),
 );
 
-import Page from "~/app/(app)/(pages)/lists/under-construction/page";
+import Page from "~/app/[locale]/(pages)/lists/under-construction/page";
 
 type ClientProps = {
   canToggleAutoSubmit: boolean;

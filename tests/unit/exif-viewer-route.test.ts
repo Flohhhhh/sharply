@@ -3,7 +3,7 @@ import {
   EXIF_VIEWER_MAX_FILE_BYTES,
   EXIF_VIEWER_MAX_JSON_BODY_BYTES,
   type ExifViewerParseRequest,
-} from "../../src/app/(app)/(pages)/(tools)/exif-viewer/types";
+} from "../../src/app/[locale]/(pages)/(tools)/exif-viewer/types";
 
 const authMocks = vi.hoisted(() => ({
   auth: {
@@ -30,7 +30,7 @@ vi.mock("next/headers", () => ({
 }));
 vi.mock("~/server/exif-tracking/service", () => trackingMocks);
 
-import { POST } from "../../src/app/(app)/(pages)/(tools)/exif-viewer/parse/route";
+import { POST } from "../../src/app/[locale]/(pages)/(tools)/exif-viewer/parse/route";
 
 function createRequestBody(
   overrides: Partial<ExifViewerParseRequest> = {},

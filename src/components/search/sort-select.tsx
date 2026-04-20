@@ -12,6 +12,7 @@ import {
 import { mergeSearchParams } from "@utils/url";
 import { LENS_FOCAL_LENGTH_SORT } from "~/lib/browse/sort-constants";
 import { ArrowUpDown } from "lucide-react";
+import { useLocalePathnames } from "~/i18n/client";
 
 type SortSelectProps = {
   category?: "cameras" | "lenses" | null;
@@ -39,7 +40,8 @@ export function SortSelect({ category, hasMount }: SortSelectProps) {
 function SortSelectContent({ category, hasMount }: SortSelectProps) {
   const sp = useSearchParams();
   const router = useRouter();
-  const pathname = usePathname();
+  const rawPathname = usePathname();
+  const { pathname } = useLocalePathnames();
   const isBrowse = pathname.startsWith("/browse");
   const defaultSort: SortValue = isBrowse
     ? category === "lenses" && hasMount
@@ -52,7 +54,7 @@ function SortSelectContent({ category, hasMount }: SortSelectProps) {
   function onChange(next: string) {
     const existing = new URLSearchParams(sp.toString());
     const qs = mergeSearchParams(existing, { sort: next, page: 1 });
-    const base = isBrowse ? pathname : "/search";
+    const base = isBrowse ? rawPathname : "/search";
     const href = qs ? `${base}?${qs}` : base;
     if (isBrowse) {
       window.history.pushState(null, "", href);

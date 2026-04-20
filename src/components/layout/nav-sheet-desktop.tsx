@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { getFooterItems } from "~/lib/nav-items";
+import type { Locale } from "~/i18n/config";
+import { localizePathname } from "~/i18n/routing";
 
 interface NavSheetDesktopProps {
   children: React.ReactNode;
@@ -12,8 +15,10 @@ interface NavSheetDesktopProps {
 
 export function NavSheetDesktop({ children, topClass }: NavSheetDesktopProps) {
   const [open, setOpen] = useState(false);
+  const tNav = useTranslations("nav");
+  const locale = useLocale() as Locale;
   const router = useRouter();
-  const footerItems = useMemo(() => getFooterItems(), []);
+  const footerItems = useMemo(() => getFooterItems(tNav), [tNav]);
   const mountRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -30,7 +35,7 @@ export function NavSheetDesktop({ children, topClass }: NavSheetDesktopProps) {
 
   function handleNavigate(href: string) {
     setOpen(false);
-    router.push(href);
+    router.push(localizePathname(href, locale));
   }
 
   return (
@@ -88,7 +93,7 @@ export function NavSheetDesktop({ children, topClass }: NavSheetDesktopProps) {
                       {/* More column */}
                       <div>
                         <h3 className="text-foreground mb-3 text-sm font-semibold tracking-wide uppercase">
-                          More
+                          {tNav("more")}
                         </h3>
                         <ul className="text-muted-foreground space-y-2 text-sm">
                           {footerItems.bottomLinks.map((l, i) => (

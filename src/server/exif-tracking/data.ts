@@ -14,7 +14,7 @@ import type {
   ExifTrackingHistoryResponse,
   ExifTrackingPrimaryCountType,
   ExifViewerMatchedGear,
-} from "~/app/(app)/(pages)/(tools)/exif-viewer/types";
+} from "~/app/[locale]/(pages)/(tools)/exif-viewer/types";
 
 type SelectExecutor = Pick<typeof db, "select">;
 type UpdateExecutor = SelectExecutor & Pick<typeof db, "update">;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import {
   Sheet,
@@ -24,6 +24,9 @@ import type { UserMenuUser } from "./user-menu";
 import { LogOut, Settings, User as UserIcon } from "lucide-react";
 import { track } from "@vercel/analytics";
 import { logOut } from "~/lib/auth";
+import type { Locale } from "~/i18n/config";
+import { localizePathname } from "~/i18n/routing";
+import { LocaleLink } from "~/components/locale-link";
 
 interface NavMenuMobileProps {
   children: React.ReactNode;
@@ -32,10 +35,13 @@ interface NavMenuMobileProps {
 
 export function NavMenuMobile({ children, user = null }: NavMenuMobileProps) {
   const [open, setOpen] = useState(false);
+  const t = useTranslations("common");
+  const tNav = useTranslations("nav");
+  const locale = useLocale() as Locale;
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const navItems = getNavItems();
+  const navItems = getNavItems(tNav);
 
   const callbackUrl = (() => {
     const qs = searchParams?.toString();
@@ -44,7 +50,7 @@ export function NavMenuMobile({ children, user = null }: NavMenuMobileProps) {
 
   const handleNavigation = (url: string) => {
     setOpen(false);
-    router.push(url);
+    router.push(localizePathname(url, locale));
   };
 
   const handleSignInClick = () => {
@@ -75,14 +81,14 @@ export function NavMenuMobile({ children, user = null }: NavMenuMobileProps) {
                 className="hover:bg-accent hover:text-accent-foreground flex w-full items-center gap-3 rounded-md p-3 text-left transition-colors"
               >
                 <UserIcon className="text-muted-foreground h-4 w-4" />
-                <span>Profile</span>
+                <span>{t("profile")}</span>
               </button>
               <button
                 onClick={() => handleNavigation("/profile/settings")}
                 className="hover:bg-accent hover:text-accent-foreground flex w-full items-center gap-3 rounded-md p-3 text-left transition-colors"
               >
                 <Settings className="text-muted-foreground h-4 w-4" />
-                <span>Account</span>
+                <span>{t("account")}</span>
               </button>
               <button
                 onClick={() => {
@@ -93,19 +99,19 @@ export function NavMenuMobile({ children, user = null }: NavMenuMobileProps) {
                 className="hover:bg-accent hover:text-accent-foreground flex w-full items-center gap-3 rounded-md p-3 text-left text-red-600 transition-colors"
               >
                 <LogOut className="h-4 w-4" />
-                <span>Log out</span>
+                <span>{t("logOut")}</span>
               </button>
             </div>
           </div>
         ) : (
           <div className="border-b px-4 py-3">
             <Button asChild size="sm" icon={<LogIn />} className="w-full">
-              <Link
+              <LocaleLink
                 href={`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`}
                 onClick={handleSignInClick}
               >
-                Sign In
-              </Link>
+                {t("signIn")}
+              </LocaleLink>
             </Button>
           </div>
         )}

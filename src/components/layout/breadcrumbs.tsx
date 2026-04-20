@@ -1,4 +1,3 @@
-import Link from "next/link";
 import * as React from "react";
 
 import {
@@ -9,6 +8,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "~/components/ui/breadcrumb";
+import { LocaleLink } from "~/components/locale-link";
 
 export interface CrumbItem {
   label: React.ReactNode;
@@ -33,7 +33,7 @@ export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
                   <BreadcrumbPage>{item.label}</BreadcrumbPage>
                 ) : item.href ? (
                   <BreadcrumbLink asChild>
-                    <Link href={item.href}>{item.label}</Link>
+                    <LocaleLink href={item.href}>{item.label}</LocaleLink>
                   </BreadcrumbLink>
                 ) : (
                   <BreadcrumbLink>{item.label}</BreadcrumbLink>
