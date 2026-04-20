@@ -3,11 +3,30 @@ import type { Locale } from "./config";
 import { defaultLocale } from "./config";
 
 type Messages = typeof defaultMessages;
+type MessageOverrides = Record<string, unknown>;
 
-const messageLoaders: Record<Locale, () => Promise<{ default: Messages }>> = {
-  en: () => import("../../messages/en.json"),
-  ja: () => import("../../messages/ja.json"),
-  de: () => import("../../messages/de.json"),
+const messageLoaders: Record<
+  Locale,
+  () => Promise<{ default: MessageOverrides }>
+> = {
+  en: () => import("../../messages/en.json") as Promise<{
+    default: MessageOverrides;
+  }>,
+  ja: () => import("../../messages/ja.json") as Promise<{
+    default: MessageOverrides;
+  }>,
+  de: () => import("../../messages/de.json") as Promise<{
+    default: MessageOverrides;
+  }>,
+  fr: () => import("../../messages/fr.json") as Promise<{
+    default: MessageOverrides;
+  }>,
+  es: () => import("../../messages/es.json") as Promise<{
+    default: MessageOverrides;
+  }>,
+  it: () => import("../../messages/it.json") as Promise<{
+    default: MessageOverrides;
+  }>,
 };
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -35,7 +54,7 @@ function mergeMessages(
 }
 
 export async function getMessagesForLocale(locale: Locale): Promise<Messages> {
-  const baseMessages = (await messageLoaders.en()).default;
+  const baseMessages = (await messageLoaders.en()).default as Messages;
 
   if (locale === defaultLocale) {
     return baseMessages;
