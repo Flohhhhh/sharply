@@ -3,13 +3,14 @@ import { Separator } from "~/components/ui/separator";
 import NewsListItem from "./_components/news-list-item";
 import type { Metadata } from "next";
 import type { News } from "~/payload-types";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildLocalizedMetadata("/news", {
   title: "News",
   openGraph: {
     title: "News",
   },
-};
+});
 
 export default async function NewsPage() {
   const posts: News[] = await getNewsPosts();

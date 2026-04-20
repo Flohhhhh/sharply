@@ -7,10 +7,11 @@ import { WreathIcon } from "./WreathIcon";
 import { BlurFade } from "@/components/ui/blur-fade";
 import { Separator } from "@/components/ui/separator";
 import type { Metadata } from "next";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
 export const dynamic = "force-static";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildLocalizedMetadata("/lists/hall-of-fame", {
   title: "Hall of Fame",
   description:
     "Explore Sharply’s Hall of Fame, a curated collection of the most iconic and influential cameras and lenses in photography history, highlighting the gear that shaped the industry and remains relevant today.",
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
     description:
       "Explore Sharply’s Hall of Fame, a curated collection of the most iconic and influential cameras and lenses in photography history, highlighting the gear that shaped the industry and remains relevant today.",
   },
-};
+});
 
 type DatePrecision = "DAY" | "MONTH" | "YEAR";
 

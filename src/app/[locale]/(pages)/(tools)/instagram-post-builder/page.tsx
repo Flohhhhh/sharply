@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import InstagramPostBuilderPage from "./client";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildLocalizedMetadata(
+  "/instagram-post-builder",
+  {
   title: "Instagram Post Builder",
   description:
     "Create Instagram carousel posts with precise frame controls, guides, and export-ready slide downloads.",
@@ -10,7 +13,8 @@ export const metadata: Metadata = {
     description:
       "Create Instagram carousel posts with precise frame controls, guides, and export-ready slide downloads.",
   },
-};
+  },
+);
 
 export default function Page() {
   return <InstagramPostBuilderPage />;

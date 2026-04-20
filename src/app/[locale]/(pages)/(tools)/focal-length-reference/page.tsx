@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { ResponsiveFocalLengthClient } from "./_components/responsive-focal-length-client";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildLocalizedMetadata(
+  "/focal-length-reference",
+  {
   title: "Field of View Reference",
   description:
     "See how different focal lengths and sensor sizes affect the field of view with different scenes.",
@@ -17,7 +20,8 @@ export const metadata: Metadata = {
       },
     ],
   },
-};
+  },
+);
 
 export default function FocalLengthReferencePage() {
   return <ResponsiveFocalLengthClient />;

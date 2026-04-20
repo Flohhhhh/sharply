@@ -1,10 +1,23 @@
 import { env } from "~/env";
+import type { Metadata } from "next";
 import { Separator } from "~/components/ui/separator";
 import ContactClient from "./_components/contact-client";
 import Image from "next/image";
 import Link from "next/link";
 import DiscordBanner from "~/components/discord-banner";
 import EmailCopyButton from "./_components/email-copy-button";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+
+export const metadata: Metadata = buildLocalizedMetadata("/contact", {
+  title: "Contact",
+  description:
+    "Get in touch with Sharply for questions, corrections, partnership requests, or thoughtful feedback.",
+  openGraph: {
+    title: "Contact",
+    description:
+      "Get in touch with Sharply for questions, corrections, partnership requests, or thoughtful feedback.",
+  },
+});
 
 export default function ContactPage() {
   const email =

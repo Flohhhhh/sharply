@@ -11,6 +11,7 @@ import { CompareHeroScaledRow } from "~/components/compare/compare-hero-scaled";
 import { cn } from "~/lib/utils";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
 import { GetGearDisplayName } from "~/lib/gear/naming";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
 export async function generateMetadata({
   searchParams,
@@ -46,14 +47,14 @@ export async function generateMetadata({
       })
     : (slugB ?? "");
 
-  return {
+  return buildLocalizedMetadata("/compare", {
     title:
       pair.length === 1 ? `Compare ${nameA}` : `Compare ${nameA} vs ${nameB}`,
     openGraph: {
       title:
         pair.length === 1 ? `Compare ${nameA}` : `Compare ${nameA} vs ${nameB}`,
     },
-  };
+  });
 }
 
 function getPairFromParams(searchParams: URLSearchParams): string[] {

@@ -2,17 +2,18 @@ import Link from "next/link";
 import { serviceListCharts } from "~/server/recommendations/service";
 import { BrandBrowser } from "./_components/BrandBrowser";
 import type { Metadata } from "next";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
 type ChartListItem = Awaited<ReturnType<typeof serviceListCharts>>[number];
 
 export const revalidate = 86400;
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildLocalizedMetadata("/recommended-lenses", {
   title: "Recommended Lenses",
   openGraph: {
     title: "Recommended Lenses",
   },
-};
+});
 
 export default async function Page() {
   const charts = await serviceListCharts();

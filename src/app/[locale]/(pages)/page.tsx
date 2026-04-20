@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { GlobalSearchBar } from "~/components/search/global-search-bar";
 import { GearCounter } from "~/components/home/gear-counter";
@@ -17,8 +18,13 @@ import type { News, Review } from "~/payload-types";
 import DiscordBanner from "~/components/discord-banner";
 import { LocaleLink } from "~/components/locale-link";
 import { defaultLocale, isLocale } from "~/i18n/config";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
 export const revalidate = 60;
+
+export async function generateMetadata(): Promise<Metadata> {
+  return buildLocalizedMetadata("/", {});
+}
 
 function stripHtml(html: string | null | undefined, maxLength = 160) {
   if (!html) return "";

@@ -10,6 +10,7 @@ import { notFound } from "next/navigation";
 import { GenreRatings } from "../_components/genre-ratings";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
 import type { Metadata } from "next";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
 export async function generateMetadata({
   params,
@@ -53,12 +54,9 @@ export async function generateMetadata({
           alt: "Sharply - Photography Gear Reviews",
         };
 
-    return {
+    return buildLocalizedMetadata(`/reviews/${slug}`, {
       title,
       description,
-      alternates: {
-        canonical: `${baseUrl}/reviews/${slug}`,
-      },
       openGraph: {
         type: "article",
         title,
@@ -72,7 +70,7 @@ export async function generateMetadata({
         description,
         images: [ogImage.url],
       },
-    };
+    });
   } catch (err: any) {
     if (err?.status === 404) {
       return {

@@ -1,8 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildLocalizedMetadata("/learn", {
   title: "Learn Photography",
   description:
     "Explore photography guides from beginner fundamentals to deeper concepts and practical techniques.",
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
     description:
       "Explore photography guides from beginner fundamentals to deeper concepts and practical techniques.",
   },
-};
+});
 
 export default function LearnPage() {
   const basicsArticles = [

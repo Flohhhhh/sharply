@@ -6,8 +6,11 @@ import type {
   DiscordCommandManifestEntry,
   DiscordCommandManifestOption,
 } from "~/types/discord-command-manifest";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildLocalizedMetadata(
+  "/discord/bot-commands",
+  {
   title: "Discord Bot Commands",
   description:
     "Complete list of available Discord bot commands for the Sharply bot",
@@ -16,7 +19,8 @@ export const metadata: Metadata = {
     description:
       "Complete list of available Discord bot commands for the Sharply bot",
   },
-};
+  },
+);
 
 export default function BotCommandsPage() {
   const commands = commandManifest as DiscordCommandManifestEntry[];

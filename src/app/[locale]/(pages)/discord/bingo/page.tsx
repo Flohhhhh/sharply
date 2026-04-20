@@ -5,8 +5,9 @@ import { env } from "~/env";
 import { requireRole } from "~/lib/auth/auth-helpers";
 import DiscordBanner from "~/components/discord-banner";
 import DiscordBingoClient from "./_components/discord-bingo-client";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildLocalizedMetadata("/discord/bingo", {
   title: "Photography Lounge Bingo",
   description:
     "A collaborative Photography Lounge bingo board. Work together with the community to claim tiles and earn points for every tile you mark off.",
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
     description:
       "A collaborative Photography Lounge bingo board. Work together with the community to claim tiles and earn points for every tile you mark off.",
   },
-};
+});
 
 export default async function DiscordBingoPage() {
   const session = await auth.api.getSession({

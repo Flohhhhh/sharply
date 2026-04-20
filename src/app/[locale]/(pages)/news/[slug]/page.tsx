@@ -16,6 +16,7 @@ import DiscordBanner from "~/components/discord-banner";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
 import Link from "next/link";
 import { Separator } from "~/components/ui/separator";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
 export const revalidate = 60;
 
@@ -50,7 +51,7 @@ export async function generateMetadata({
         height: 630,
         alt: "Sharply - Photography News",
       };
-  return {
+  return buildLocalizedMetadata(`/news/${slug}`, {
     title: `${page.title}`,
     description: page.excerpt ?? "",
     openGraph: {
@@ -66,7 +67,7 @@ export async function generateMetadata({
       description: page.excerpt ?? "",
       images: [ogImage.url],
     },
-  };
+  });
 }
 
 export default async function DynamicPage({

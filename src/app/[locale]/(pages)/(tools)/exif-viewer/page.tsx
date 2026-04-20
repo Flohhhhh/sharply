@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ChartLine, FileLock, ScanSearch } from "lucide-react";
 import ExifPreviewTrigger from "./_components/exif-preview-trigger";
 import ExifViewerClient from "./client";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_BASE_URL ?? "https://www.sharplyphoto.com";
@@ -10,12 +11,9 @@ const metadataTitle = "Shutter Count & EXIF Viewer";
 const metadataDescription =
   "Check camera shutter count and inspect EXIF metadata from JPG and supported RAW files, including Panasonic RW2, maker notes, and private history tracking.";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildLocalizedMetadata("/exif-viewer", {
   title: metadataTitle,
   description: metadataDescription,
-  alternates: {
-    canonical: canonicalUrl,
-  },
   keywords: [
     "camera shutter count",
     "shutter count checker",
@@ -46,7 +44,7 @@ export const metadata: Metadata = {
     description: metadataDescription,
     images: [`${baseUrl}/og-default.png`],
   },
-};
+});
 
 export default async function ExifViewerPage() {
   const isLocalPreviewMode = process.env.NODE_ENV !== "production";

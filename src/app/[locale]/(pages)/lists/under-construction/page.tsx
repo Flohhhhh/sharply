@@ -6,15 +6,19 @@ import { BRANDS } from "~/lib/generated";
 import { auth } from "~/auth";
 import { headers } from "next/headers";
 import { requireRole } from "~/lib/auth/auth-helpers";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 // Avoid importing runtime schema in pages; use a local constant
 const GEAR_TYPES = ["CAMERA", "ANALOG_CAMERA", "LENS"] as const;
 
 export const revalidate = 3600;
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildLocalizedMetadata(
+  "/lists/under-construction",
+  {
   title: "Under Construction",
   openGraph: { title: "Under Construction" },
-};
+  },
+);
 
 export default async function Page() {
   // Include items with at least 1 missing key OR less than 40% completion overall

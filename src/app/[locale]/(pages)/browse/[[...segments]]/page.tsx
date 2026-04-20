@@ -16,6 +16,7 @@ import { BrowseResultsGrid } from "../_components/browse-results-grid";
 import { BrowseQueryControls } from "../_components/browse-query-controls";
 import { fetchTrendingSlugs } from "~/server/popularity/service";
 import { env } from "~/env";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
 export const dynamicParams = true;
 
@@ -51,12 +52,14 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { segments = [] } = await params;
   const meta = await buildSeo({ segments });
-  return {
+  const pathname =
+    segments.length > 0 ? `/browse/${segments.join("/")}` : "/browse";
+  return buildLocalizedMetadata(pathname, {
     title: meta.title,
     description: meta.description,
     alternates: { canonical: meta.canonical },
     openGraph: meta.openGraph,
-  };
+  });
 }
 
 export const revalidate = 3600;

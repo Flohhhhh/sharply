@@ -5,6 +5,7 @@ import {
 } from "~/server/recommendations/service";
 import { ChartView } from "../../_components/ChartView";
 import type { Metadata } from "next";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
 export const revalidate = 86400;
 
@@ -28,10 +29,12 @@ export async function generateMetadata({
     };
   }
   return {
-    title: result.title,
-    openGraph: {
+    ...buildLocalizedMetadata(`/recommended-lenses/${brand}/${slug}`, {
       title: result.title,
-    },
+      openGraph: {
+        title: result.title,
+      },
+    }),
   };
 }
 

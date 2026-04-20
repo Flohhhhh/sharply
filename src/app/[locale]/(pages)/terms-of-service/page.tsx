@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import { LocaleLink } from "~/components/locale-link";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildLocalizedMetadata("/terms-of-service", {
   title: "Terms of Service",
   openGraph: {
     title: "Terms of Service",
   },
-};
+});
 
 export default function TermsOfServicePage() {
   return (

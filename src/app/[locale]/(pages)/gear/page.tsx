@@ -7,10 +7,11 @@ import { GearCard } from "~/components/gear/gear-card";
 import type { Metadata } from "next";
 import { getMountDisplayName } from "~/lib/mapping";
 import { fetchTrendingSlugs } from "~/server/popularity/service";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildLocalizedMetadata("/gear", {
   title: "Gear",
-};
+});
 
 export const revalidate = 3600; // ISR: re-generate every hour
 

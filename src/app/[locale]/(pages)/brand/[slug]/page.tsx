@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import { GearCard } from "~/components/gear/gear-card";
 import BrandTrendingList from "./_components/brand-trending-list";
 import { fetchTrendingSlugs } from "~/server/popularity/service";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
 interface BrandPageProps {
   params: Promise<{
@@ -25,8 +26,10 @@ export async function generateMetadata({
     };
   }
   return {
-    title: `${brand.name} Gear`,
-    openGraph: { title: `${brand.name} Gear` },
+    ...buildLocalizedMetadata(`/brand/${slug}`, {
+      title: `${brand.name} Gear`,
+      openGraph: { title: `${brand.name} Gear` },
+    }),
   };
 }
 

@@ -3,8 +3,9 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import LearnCard from "~/components/learn/learn-card";
 import { Button } from "~/components/ui/button";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildLocalizedMetadata("/learn/basics", {
   title: "The Basics",
   description:
     "Start learning photography fundamentals, including modern cameras, exposure, and beginner-friendly paths.",
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
     description:
       "Start learning photography fundamentals, including modern cameras, exposure, and beginner-friendly paths.",
   },
-};
+});
 
 export default async function BasicsPage() {
   const featured = [

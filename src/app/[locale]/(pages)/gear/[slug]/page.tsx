@@ -64,6 +64,7 @@ import { GetGearDisplayName } from "~/lib/gear/naming";
 import { resolveRegionFromCountryCode } from "~/lib/gear/region";
 import { GearBreadcrumbNameHydrator } from "../_components/gear-breadcrumb-name-hydrator";
 import { buildGearMetaDescription } from "~/lib/seo/build-gear-meta-description";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import { env } from "~/env";
 import { buildGearBreadcrumbItems } from "../_components/gear-breadcrumb-items";
 import { buildGearSectionNavItems } from "../_components/gear-section-nav";
@@ -120,12 +121,9 @@ export async function generateMetadata({
         ]
       : [];
     const twitterImages = item.thumbnailUrl ? [item.thumbnailUrl] : [];
-    return {
+    return buildLocalizedMetadata(`/gear/${slug}`, {
       title: `${displayName} | Specs & Reviews`,
       description,
-      alternates: {
-        canonical: `${baseUrl}/gear/${slug}`,
-      },
       openGraph: {
         type: "website",
         title: `${displayName} | Specs & Reviews`,
@@ -139,7 +137,7 @@ export async function generateMetadata({
         description,
         images: twitterImages,
       },
-    };
+    });
   } catch (err: any) {
     if (err?.status === 404) {
       return {

@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { GearCard } from "~/components/gear/gear-card";
 import { getItemDisplayPrice } from "~/lib/mapping";
 import { fetchPublicSharedListByParam } from "~/server/user-lists/service";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
 export const dynamic = "force-dynamic";
 
@@ -35,13 +36,10 @@ export async function generateMetadata({
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
-  return {
+  return buildLocalizedMetadata(payload.canonicalPath, {
     title,
     description,
     robots: { index: false, follow: false },
-    alternates: {
-      canonical: baseUrl ? `${baseUrl}${payload.canonicalPath}` : undefined,
-    },
     openGraph: {
       title,
       description,
@@ -53,7 +51,7 @@ export async function generateMetadata({
       title,
       description,
     },
-  };
+  });
 }
 
 export default async function SharedListPage({ params }: SharedListPageProps) {

@@ -7,6 +7,7 @@ import {
   getAllPublishedLearnPages,
 } from "~/server/payload/service";
 import type { Metadata } from "next";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
 export const revalidate = 60;
 
@@ -39,7 +40,7 @@ export async function generateMetadata({
     page.thumbnail && typeof page.thumbnail === "object"
       ? ((page.thumbnail as any).url ?? undefined)
       : undefined;
-  return {
+  return buildLocalizedMetadata(`/learn/${slug}`, {
     title: page.title,
     description: page.excerpt ?? "",
     openGraph: {
@@ -47,7 +48,7 @@ export async function generateMetadata({
       description: page.excerpt ?? "",
       ...(imageSrc ? { images: [imageSrc] } : {}),
     },
-  };
+  });
 }
 
 export default async function LearnArticlePage({

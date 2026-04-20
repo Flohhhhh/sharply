@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildLocalizedMetadata("/privacy-policy", {
   title: "Privacy Policy",
   openGraph: {
     title: "Privacy Policy",
   },
-};
+});
 
 export default function PrivacyPolicyPage() {
   return (

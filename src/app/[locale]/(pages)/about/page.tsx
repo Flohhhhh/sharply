@@ -15,13 +15,14 @@ import { GearCounter } from "~/components/home/gear-counter";
 import type { Metadata } from "next";
 import DiscordBanner from "~/components/discord-banner";
 import { LocaleLink } from "~/components/locale-link";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildLocalizedMetadata("/about", {
   title: "About",
   openGraph: {
     title: "About",
   },
-};
+});
 
 export default function About() {
   return (

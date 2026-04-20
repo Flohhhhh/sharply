@@ -1,5 +1,14 @@
 import { getReviews } from "~/server/payload/service";
 import Link from "next/link";
+import type { Metadata } from "next";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+
+export const metadata: Metadata = buildLocalizedMetadata("/reviews", {
+  title: "Reviews",
+  openGraph: {
+    title: "Reviews",
+  },
+});
 
 export default async function ReviewsPage() {
   const reviews = await getReviews();

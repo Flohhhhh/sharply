@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { SearchClient } from "./search-client";
 import { searchGear } from "~/server/search/service";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildLocalizedMetadata("/search", {
   title: "Search",
   openGraph: {
     title: "Search",
   },
-};
+});
 
 type SearchPageProps = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;

@@ -1,11 +1,12 @@
 import { fetchTrendingPage } from "~/server/popularity/service";
 import { TrendingTable } from "./_components/trending-table";
 import type { Metadata } from "next";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
 const DEFAULT_TIMEFRAME: "7d" | "30d" = "30d";
 const DEFAULT_PER_PAGE = 20;
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildLocalizedMetadata("/lists/trending", {
   title: "Trending Gear",
   description:
     "We track the popularity of cameras and lenses based on daily views, wishlist, ownership, and comparison activity on Sharply.",
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
     description:
       "We track the popularity of cameras and lenses based on daily views, wishlist, ownership, and comparison activity on Sharply.",
   },
-};
+});
 
 export default async function TrendingPage() {
   const initialData = await fetchTrendingPage({
