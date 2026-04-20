@@ -106,6 +106,7 @@ Allowed extensions and size constraints are shared through `types.ts`:
 - `cr2`
 - `cr3`
 - `raf`
+- `rw2`
 - max size: `100 MB`
 
 The file input `accept` attribute is generated from the same extension allowlist used by the client and parse route.
@@ -137,6 +138,8 @@ Worker responsibilities:
 - collect warning strings
 - return normalized metadata to the main thread without exposing extractor logic
 
+Panasonic `.rw2` files follow the same client-side parse path as the other supported RAW formats.
+
 `client.tsx` stays as the orchestrator:
 
 - validate extension and file size before parsing
@@ -156,6 +159,14 @@ Server responsibilities:
 - run brand-specific shutter extraction
 - build tracking preview state for the current user
 - return a stable JSON payload for both success and failure
+
+The relevant-tag subset now retains Panasonic-specific groups as well:
+
+- `Panasonic`
+- `PanasonicRaw`
+
+This makes Panasonic RW2 metadata visible in debug output even when no trusted shutter-count field
+is found.
 
 The route always returns a consistent response shape. Error responses include empty metadata rows rather than changing the payload contract. Successful responses now also include a tracking block that lets the results banner render the right save/login/history state without a second round-trip.
 

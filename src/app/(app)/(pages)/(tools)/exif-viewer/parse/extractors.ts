@@ -65,7 +65,9 @@ function findTagValue(
 ): ExifViewerTagEntry | null {
   for (const candidate of candidates) {
     const lowerCandidate = candidate.toLowerCase();
-    const exact = tagEntries.find((entry) => entry.key.toLowerCase() === lowerCandidate);
+    const exact = tagEntries.find(
+      (entry) => entry.key.toLowerCase() === lowerCandidate,
+    );
     if (exact) return exact;
   }
 
@@ -115,7 +117,8 @@ function buildAttempt(
   if (winningCheck) {
     reason = "Resolved a valid shutter count.";
   } else if (matchedChecks.length > 0) {
-    reason = "Found candidate tags, but none contained a valid positive integer.";
+    reason =
+      "Found candidate tags, but none contained a valid positive integer.";
   }
 
   return {
@@ -131,7 +134,9 @@ function buildAttempt(
     totalShutterCount:
       countType === "total" ? (winningCheck?.normalizedValue ?? null) : null,
     mechanicalShutterCount:
-      countType === "mechanical" ? (winningCheck?.normalizedValue ?? null) : null,
+      countType === "mechanical"
+        ? (winningCheck?.normalizedValue ?? null)
+        : null,
     reason,
   };
 }
@@ -152,7 +157,9 @@ export function detectCameraBrand(
     "Model",
   ]);
 
-  const haystack = `${make ?? ""} ${model ?? ""}`.toUpperCase();
+  const makeUpper = (make ?? "").toUpperCase();
+  const modelUpper = (model ?? "").toUpperCase();
+  const haystack = `${makeUpper} ${modelUpper}`;
 
   let normalizedBrand: NormalizedCameraBrand = "unknown";
   if (
@@ -183,6 +190,14 @@ export function detectCameraBrand(
     haystack.includes("X100")
   ) {
     normalizedBrand = "fujifilm";
+  } else if (
+    makeUpper.includes("PANASONIC") ||
+    makeUpper.includes("LUMIX") ||
+    modelUpper.includes("LUMIX") ||
+    modelUpper.startsWith("DC-") ||
+    modelUpper.startsWith("DMC-")
+  ) {
+    normalizedBrand = "panasonic";
   }
 
   return {
@@ -216,16 +231,15 @@ export function extractNikonShutterCount(tagEntries: ExifViewerTagEntry[]) {
   );
   const mechanicalAttempt = buildAttempt(
     "nikon",
-    [
-      "Nikon:MechanicalShutterCount",
-      "MakerNotes:MechanicalShutterCount",
-    ],
+    ["Nikon:MechanicalShutterCount", "MakerNotes:MechanicalShutterCount"],
     tagEntries,
     "mechanical",
   );
 
   const checks = [...totalAttempt.checks, ...mechanicalAttempt.checks];
-  const matchedTagCount = checks.filter((check) => check.matchedTag !== null).length;
+  const matchedTagCount = checks.filter(
+    (check) => check.matchedTag !== null,
+  ).length;
   const totalShutterCount = totalAttempt.shutterCount;
   const mechanicalShutterCount = mechanicalAttempt.shutterCount;
   const countType: ExifViewerCountType | null =
@@ -266,11 +280,7 @@ export function extractNikonShutterCount(tagEntries: ExifViewerTagEntry[]) {
 export function extractCanonShutterCount(tagEntries: ExifViewerTagEntry[]) {
   return buildAttempt(
     "canon",
-    [
-      "Canon:ShutterCount",
-      "FileInfo:ShutterCount",
-      "MakerNotes:ShutterCount",
-    ],
+    ["Canon:ShutterCount", "FileInfo:ShutterCount", "MakerNotes:ShutterCount"],
     tagEntries,
   );
 }
@@ -287,6 +297,24 @@ export function extractFujifilmShutterCount(tagEntries: ExifViewerTagEntry[]) {
     ],
     tagEntries,
   );
+}
+
+export function extractPanasonicShutterCount(): ExifViewerExtractorAttempt {
+  return {
+    extractorId: "panasonic",
+    candidateTags: [],
+    checks: [],
+    matchedTagCount: 0,
+    countType: null,
+    sourceTag: null,
+    mechanicalSourceTag: null,
+    rawValue: null,
+    shutterCount: null,
+    totalShutterCount: null,
+    mechanicalShutterCount: null,
+    reason:
+      "Panasonic RW2 metadata is supported, but no Panasonic-specific shutter-count tag has been validated yet.",
+  };
 }
 
 export function extractGenericShutterCount(tagEntries: ExifViewerTagEntry[]) {
@@ -331,6 +359,11 @@ const EXTRACTOR_REGISTRY: Record<
     id: "fujifilm",
     candidateTags: [],
     run: extractFujifilmShutterCount,
+  },
+  panasonic: {
+    id: "panasonic",
+    candidateTags: [],
+    run: extractPanasonicShutterCount,
   },
 };
 
@@ -425,10 +458,12 @@ export function extractShutterCount(
   let message = "No shutter count tag was found.";
   if (hasInvalidValue) {
     status = "invalid_value";
-    message = "Candidate shutter-count tags were found, but the values were unusable.";
+    message =
+      "Candidate shutter-count tags were found, but the values were unusable.";
   } else if (camera.normalizedBrand === "unknown") {
     status = "unsupported_brand";
-    message = "Camera brand could not be identified for a brand-specific extractor.";
+    message =
+      "Camera brand could not be identified for a brand-specific extractor.";
   }
 
   return {

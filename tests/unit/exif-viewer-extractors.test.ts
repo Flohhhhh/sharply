@@ -126,6 +126,37 @@ describe("exif viewer extractors", () => {
     expect(result.shutterCount).toBe(88);
   });
 
+  it("detects Panasonic and Lumix bodies as Panasonic brand", () => {
+    expect(
+      detectCameraBrand([
+        tag("EXIF:Make", "Panasonic"),
+        tag("EXIF:Model", "DC-S5M2"),
+      ]).normalizedBrand,
+    ).toBe("panasonic");
+
+    expect(
+      detectCameraBrand([
+        tag("EXIF:Make", "LUMIX"),
+        tag("EXIF:Model", "DC-GH6"),
+      ]).normalizedBrand,
+    ).toBe("panasonic");
+  });
+
+  it("does not treat Panasonic sequence counters as shutter count", () => {
+    const result = extractShutterCount([
+      tag("EXIF:Make", "Panasonic"),
+      tag("EXIF:Model", "DC-G9M2"),
+      tag("Panasonic:SequenceNumber", 412),
+      tag("Panasonic:ShutterType", "Mechanical"),
+    ]);
+
+    expect(result.status).toBe("not_found");
+    expect(result.camera.normalizedBrand).toBe("panasonic");
+    expect(result.primaryExtractor).toBe("panasonic");
+    expect(result.selectedExtractor).toBe("generic");
+    expect(result.shutterCount).toBeNull();
+  });
+
   it("rejects invalid numeric values", () => {
     const result = extractShutterCount([
       tag("EXIF:Make", "NIKON CORPORATION"),

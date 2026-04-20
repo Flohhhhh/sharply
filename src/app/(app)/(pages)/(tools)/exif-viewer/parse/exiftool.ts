@@ -1,7 +1,4 @@
-import {
-  type ExifViewerMetadataRow,
-  type ExifViewerTagEntry,
-} from "../types";
+import { type ExifViewerMetadataRow, type ExifViewerTagEntry } from "../types";
 
 const RELEVANT_GROUPS = new Set([
   "exif",
@@ -13,6 +10,8 @@ const RELEVANT_GROUPS = new Set([
   "canon",
   "fujifilm",
   "fujiifd",
+  "panasonic",
+  "panasonicraw",
   "file",
 ]);
 
@@ -22,11 +21,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function collectWarningValues(
-  key: string,
-  value: unknown,
-  warnings: string[],
-) {
+function collectWarningValues(key: string, value: unknown, warnings: string[]) {
   const lowerKey = key.toLowerCase();
   const isWarningLike =
     lowerKey === "warnings" ||
@@ -180,7 +175,7 @@ export function extractExifToolJsonTagMap(rawOutput: unknown): {
 } {
   const warnings: string[] = [];
   const rawRecord = Array.isArray(rawOutput)
-    ? rawOutput.find(isRecord) ?? {}
+    ? (rawOutput.find(isRecord) ?? {})
     : isRecord(rawOutput)
       ? rawOutput
       : {};
@@ -200,7 +195,9 @@ export function extractExifToolJsonTagMap(rawOutput: unknown): {
 export function normalizeExifToolTagEntries(
   rawTags: ExifToolTagMap,
 ): ExifViewerTagEntry[] {
-  return Object.entries(rawTags).map(([key, value]) => parseTagEntry(key, value));
+  return Object.entries(rawTags).map(([key, value]) =>
+    parseTagEntry(key, value),
+  );
 }
 
 export function filterRelevantExifToolTags(tagEntries: ExifViewerTagEntry[]) {

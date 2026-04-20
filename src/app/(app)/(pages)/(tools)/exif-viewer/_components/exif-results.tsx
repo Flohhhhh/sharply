@@ -14,7 +14,10 @@ import type {
   ExifViewerMetadataRow,
   ExifViewerResponse,
 } from "../types";
-import { EXIF_VIEWER_CAPTURE_DATE_CANDIDATE_KEYS } from "../types";
+import {
+  EXIF_VIEWER_CAPTURE_DATE_CANDIDATE_KEYS,
+  EXIF_VIEWER_SERIAL_CANDIDATE_KEYS,
+} from "../types";
 import ExifMetadataTable from "./exif-metadata-table";
 import ExifTrackingMiniChart from "./exif-tracking-mini-chart";
 import ExifTrackingHistoryDialog from "./exif-tracking-history-dialog";
@@ -62,10 +65,7 @@ function formatCameraLabel(
 function formatCaptureDate(value: string | null): string {
   if (!value) return EMPTY_VALUE;
 
-  const normalized = value.replace(
-    /^(\d{4}):(\d{2}):(\d{2})\s/,
-    "$1-$2-$3T",
-  );
+  const normalized = value.replace(/^(\d{4}):(\d{2}):(\d{2})\s/, "$1-$2-$3T");
   const parsed = new Date(normalized);
 
   if (Number.isNaN(parsed.getTime())) {
@@ -97,10 +97,7 @@ function formatDisplayValue(value: string | null): string {
 function normalizeCaptureAtValue(value: string | null): string | null {
   if (!value) return null;
 
-  const normalized = value.replace(
-    /^(\d{4}):(\d{2}):(\d{2})\s/,
-    "$1-$2-$3T",
-  );
+  const normalized = value.replace(/^(\d{4}):(\d{2}):(\d{2})\s/, "$1-$2-$3T");
   const parsed = new Date(normalized);
 
   if (Number.isNaN(parsed.getTime())) {
@@ -112,18 +109,7 @@ function normalizeCaptureAtValue(value: string | null): string | null {
 
 function findCameraSerialNumber(rows: ExifViewerMetadataRow[]): string {
   return formatDisplayValue(
-    findMetadataValue(rows, [
-      "MakerNotes:SerialNumber",
-      "MakerNotes:InternalSerialNumber",
-      "MakerNotes:CameraSerialNumber",
-      "EXIF:SerialNumber",
-      "ExifIFD:SerialNumber",
-      "Composite:SerialNumber",
-      "Nikon:SerialNumber",
-      "Canon:SerialNumber",
-      "Sony:SerialNumber",
-      "FujiFilm:SerialNumber",
-    ]),
+    findMetadataValue(rows, EXIF_VIEWER_SERIAL_CANDIDATE_KEYS),
   );
 }
 
@@ -133,19 +119,19 @@ function resolveCurrentReadingIdentity(
   const primaryCount =
     result.extractor.totalShutterCount !== null
       ? {
-        primaryCountType: "total" as const,
-        primaryCountValue: result.extractor.totalShutterCount,
-      }
+          primaryCountType: "total" as const,
+          primaryCountValue: result.extractor.totalShutterCount,
+        }
       : result.extractor.mechanicalShutterCount !== null
         ? {
-          primaryCountType: "mechanical" as const,
-          primaryCountValue: result.extractor.mechanicalShutterCount,
-        }
+            primaryCountType: "mechanical" as const,
+            primaryCountValue: result.extractor.mechanicalShutterCount,
+          }
         : result.extractor.shutterCount !== null
           ? {
-            primaryCountType: "generic" as const,
-            primaryCountValue: result.extractor.shutterCount,
-          }
+              primaryCountType: "generic" as const,
+              primaryCountValue: result.extractor.shutterCount,
+            }
           : null;
 
   if (!primaryCount) {
@@ -155,7 +141,10 @@ function resolveCurrentReadingIdentity(
   return {
     ...primaryCount,
     captureAt: normalizeCaptureAtValue(
-      findMetadataValue(result.metadata.rows, EXIF_VIEWER_CAPTURE_DATE_CANDIDATE_KEYS),
+      findMetadataValue(
+        result.metadata.rows,
+        EXIF_VIEWER_CAPTURE_DATE_CANDIDATE_KEYS,
+      ),
     ),
   };
 }
@@ -175,10 +164,7 @@ function isMatchingReading(
   );
 }
 
-function getEnterAnimation(
-  reduceMotion: boolean,
-  delay = 0,
-) {
+function getEnterAnimation(reduceMotion: boolean, delay = 0) {
   return {
     initial: reduceMotion ? { opacity: 0 } : { opacity: 0, y: 16 },
     animate: reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 },
@@ -198,12 +184,8 @@ export function getNumberFlowSeed(value: number): number {
 export function resolveHeroMetric(
   result: ExifViewerResponse,
 ): ExifHeroMetric | null {
-  const {
-    shutterCount,
-    totalShutterCount,
-    mechanicalShutterCount,
-    selected,
-  } = result.extractor;
+  const { shutterCount, totalShutterCount, mechanicalShutterCount, selected } =
+    result.extractor;
 
   if (
     selected === "generic" &&
@@ -305,11 +287,7 @@ export function buildSummaryItems(
     {
       label: "ISO",
       value: formatIso(
-        findMetadataValue(rows, [
-          "EXIF:ISO",
-          "ExifIFD:ISO",
-          "Composite:ISO",
-        ]),
+        findMetadataValue(rows, ["EXIF:ISO", "ExifIFD:ISO", "Composite:ISO"]),
       ),
     },
   ];
@@ -354,10 +332,10 @@ function AnimatedCount({ value, className }: AnimatedCountProps) {
       }}
       spinTiming={{
         duration: 1000,
-        easing: "linear(0, 0.0012 0.47%, 0.0061 1.09%, 0.0264, 0.0581 3.59%, 0.1043 4.99%, 0.212 7.65%, 0.4614 13.11%, 0.5758, 0.6782, 0.7662, 0.8393, 0.8979 26.37%, 0.9454 29.18%, 0.9642 30.58%, 0.9816 32.14%, 1.0027 34.64%, 1.0183 37.45%, 1.0278 40.57%, 1.0314 44%, 1.0291 49%, 1.0105 62.89%, 1.0028 71.78%, 0.9994 82.55%, 0.9993 99.87%)",
+        easing:
+          "linear(0, 0.0012 0.47%, 0.0061 1.09%, 0.0264, 0.0581 3.59%, 0.1043 4.99%, 0.212 7.65%, 0.4614 13.11%, 0.5758, 0.6782, 0.7662, 0.8393, 0.8979 26.37%, 0.9454 29.18%, 0.9642 30.58%, 0.9816 32.14%, 1.0027 34.64%, 1.0183 37.45%, 1.0278 40.57%, 1.0314 44%, 1.0291 49%, 1.0105 62.89%, 1.0028 71.78%, 0.9994 82.55%, 0.9993 99.87%)",
       }}
       opacityTiming={{ duration: 360, easing: "ease-out" }}
-
       willChange
     />
   );
@@ -433,16 +411,17 @@ export default function ExifResults({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [historyData, setHistoryData] = useState<ExifTrackingHistoryResponse | null>(
-    initialHistoryData,
-  );
+  const [historyData, setHistoryData] =
+    useState<ExifTrackingHistoryResponse | null>(initialHistoryData);
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
-  const [deletingReadingId, setDeletingReadingId] = useState<string | null>(null);
+  const [deletingReadingId, setDeletingReadingId] = useState<string | null>(
+    null,
+  );
   const signInHref = `/auth/signin?callbackUrl=${encodeURIComponent("/exif-viewer")}`;
   const trackedHistoryData =
     trackingState.trackedCamera &&
-      historyData?.trackedCamera?.id === trackingState.trackedCamera.id
+    historyData?.trackedCamera?.id === trackingState.trackedCamera.id
       ? historyData
       : null;
 
@@ -477,10 +456,13 @@ export default function ExifResults({
           token: saveToken,
         }),
       });
-      const payload = await readJsonResponse<ExifTrackingSaveResponse>(response);
+      const payload =
+        await readJsonResponse<ExifTrackingSaveResponse>(response);
 
       if (!response.ok || !payload.ok || !payload.tracking) {
-        throw new Error(payload.message || "Failed to save EXIF tracking history.");
+        throw new Error(
+          payload.message || "Failed to save EXIF tracking history.",
+        );
       }
 
       setTrackingState(payload.tracking);
@@ -492,7 +474,9 @@ export default function ExifResults({
       }
     } catch (error) {
       setSaveError(
-        error instanceof Error ? error.message : "Failed to save EXIF tracking history.",
+        error instanceof Error
+          ? error.message
+          : "Failed to save EXIF tracking history.",
       );
     } finally {
       setIsSaving(false);
@@ -531,9 +515,11 @@ export default function ExifResults({
       const response = await fetch(
         `/api/exif-tracking/cameras/${trackedCameraId}/history`,
       );
-      const payload = await readJsonResponse<ExifTrackingHistoryResponse & {
-        message?: string;
-      }>(response);
+      const payload = await readJsonResponse<
+        ExifTrackingHistoryResponse & {
+          message?: string;
+        }
+      >(response);
 
       if (!response.ok || !payload.ok || !payload.trackedCamera) {
         throw new Error(payload.message || "Failed to load tracking history.");
@@ -543,7 +529,9 @@ export default function ExifResults({
     } catch (error) {
       if (!options?.silent) {
         setHistoryError(
-          error instanceof Error ? error.message : "Failed to load tracking history.",
+          error instanceof Error
+            ? error.message
+            : "Failed to load tracking history.",
         );
       }
     } finally {
@@ -587,10 +575,13 @@ export default function ExifResults({
       const response = await fetch(`/api/exif-tracking/readings/${readingId}`, {
         method: "DELETE",
       });
-      const payload = await readJsonResponse<ExifTrackingDeleteResponse>(response);
+      const payload =
+        await readJsonResponse<ExifTrackingDeleteResponse>(response);
 
       if (!response.ok || !payload.ok) {
-        throw new Error(payload.message || "Failed to delete EXIF tracking history.");
+        throw new Error(
+          payload.message || "Failed to delete EXIF tracking history.",
+        );
       }
 
       const deletedCurrentReading =
@@ -622,7 +613,9 @@ export default function ExifResults({
       await loadHistory(payload.trackedCamera.id);
     } catch (error) {
       setHistoryError(
-        error instanceof Error ? error.message : "Failed to delete saved reading.",
+        error instanceof Error
+          ? error.message
+          : "Failed to delete saved reading.",
       );
     } finally {
       setDeletingReadingId(null);
@@ -637,21 +630,19 @@ export default function ExifResults({
       >
         {heroMetric ? (
           <motion.div
-            className="flex flex-col gap-4 items-center"
+            className="flex flex-col items-center gap-4"
             {...getEnterAnimation(reduceMotion, reduceMotion ? 0 : 0.1)}
           >
-            <div className="flex flex-col gap-2 items-center">
+            <div className="flex flex-col items-center gap-2">
               <AnimatedCount
                 value={heroMetric.value}
-                className="text-foreground text-6xl font-semibold tracking-tight tabular-nums sm:text-8xl my-0 py-0 leading-0"
+                className="text-foreground my-0 py-0 text-6xl leading-0 font-semibold tracking-tight tabular-nums sm:text-8xl"
               />
-              <p className="text-muted-foreground -mt-6">
-                {heroMetric.label}
-              </p>
+              <p className="text-muted-foreground -mt-6">{heroMetric.label}</p>
             </div>
 
             {heroMetric.secondaryValue !== null &&
-              heroMetric.secondaryLabel !== null ? (
+            heroMetric.secondaryLabel !== null ? (
               <div className="space-y-2">
                 <p className="text-3xl font-semibold tabular-nums">
                   {heroMetric.secondaryValue.toLocaleString()}
@@ -664,7 +655,7 @@ export default function ExifResults({
           </motion.div>
         ) : (
           <motion.div
-            className="max-w-lg rounded-xl border border-border bg-white/5 px-5 py-4 text-sm"
+            className="border-border max-w-lg rounded-xl border bg-white/5 px-5 py-4 text-sm"
             {...getEnterAnimation(reduceMotion, reduceMotion ? 0 : 0.1)}
           >
             {result.message}
@@ -674,7 +665,7 @@ export default function ExifResults({
 
       {/* controls section */}
       <motion.div
-        className="flex justify-end mt-8"
+        className="mt-8 flex justify-end"
         {...getEnterAnimation(reduceMotion, reduceMotion ? 0 : 0.08)}
       >
         <Button
@@ -692,20 +683,22 @@ export default function ExifResults({
       <motion.section
         className={
           trackingState.trackedCamera
-            ? "rounded-xl border border-border p-2 transition-colors cursor-pointer hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20 sm:p-4"
-            : "rounded-xl border border-border p-2 sm:p-4"
+            ? "border-border hover:bg-muted/50 cursor-pointer rounded-xl border p-2 transition-colors focus-visible:ring-1 focus-visible:ring-white/20 focus-visible:outline-none sm:p-4"
+            : "border-border rounded-xl border p-2 sm:p-4"
         }
         role={trackingState.trackedCamera ? "button" : undefined}
         tabIndex={trackingState.trackedCamera ? 0 : undefined}
-        onClick={trackingState.trackedCamera ? handleTrackedBannerActivate : undefined}
+        onClick={
+          trackingState.trackedCamera ? handleTrackedBannerActivate : undefined
+        }
         onKeyDown={
           trackingState.trackedCamera
             ? (event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                handleTrackedBannerActivate();
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  handleTrackedBannerActivate();
+                }
               }
-            }
             : undefined
         }
         {...getEnterAnimation(reduceMotion, reduceMotion ? 0 : 0.1)}
@@ -756,8 +749,8 @@ export default function ExifResults({
                   ) : null}
 
                   {trackingState.eligible &&
-                    trackingState.saveToken &&
-                    trackingState.reason !== "not_signed_in" ? (
+                  trackingState.saveToken &&
+                  trackingState.reason !== "not_signed_in" ? (
                     <Button
                       type="button"
                       size="sm"
@@ -780,7 +773,7 @@ export default function ExifResults({
 
       {/* summary section */}
       <motion.section
-        className="rounded-xl border border-border p-2 sm:p-4"
+        className="border-border rounded-xl border p-2 sm:p-4"
         {...getEnterAnimation(reduceMotion, reduceMotion ? 0 : 0.12)}
       >
         <dl className="grid gap-x-10 gap-y-4 md:grid-cols-2">
@@ -790,9 +783,7 @@ export default function ExifResults({
               className="space-y-1"
               {...getEnterAnimation(reduceMotion, reduceMotion ? 0 : 0.16)}
             >
-              <dt className="text-muted-foreground text-sm">
-                {item.label}
-              </dt>
+              <dt className="text-muted-foreground text-sm">{item.label}</dt>
               <dd className="text-sm">{item.value}</dd>
             </motion.div>
           ))}

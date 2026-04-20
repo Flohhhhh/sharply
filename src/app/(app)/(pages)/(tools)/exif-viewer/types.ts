@@ -7,6 +7,7 @@ export const EXIF_VIEWER_ALLOWED_EXTENSIONS = [
   "cr2",
   "cr3",
   "raf",
+  "rw2",
 ] as const;
 
 export const EXIF_VIEWER_MAX_FILE_BYTES = 100 * 1024 * 1024;
@@ -27,6 +28,7 @@ export const EXIF_VIEWER_SERIAL_CANDIDATE_KEYS = [
   "Canon:SerialNumber",
   "Sony:SerialNumber",
   "FujiFilm:SerialNumber",
+  "Panasonic:InternalSerialNumber",
 ] as const;
 
 export const EXIF_VIEWER_CAPTURE_DATE_CANDIDATE_KEYS = [
@@ -43,6 +45,7 @@ export type NormalizedCameraBrand =
   | "nikon"
   | "canon"
   | "fujifilm"
+  | "panasonic"
   | "unknown";
 
 export type ExifViewerStatus =
@@ -57,14 +60,9 @@ export type ExifViewerStatus =
 export type ExifViewerCountType = "total" | "mechanical";
 export type ExifViewerParser = "exiftool-wasm";
 
-export type ExifTrackingPrimaryCountType =
-  | ExifViewerCountType
-  | "generic";
+export type ExifTrackingPrimaryCountType = ExifViewerCountType | "generic";
 
-export type ExifTrackingChartSeries =
-  | "generic"
-  | "total"
-  | "mechanical";
+export type ExifTrackingChartSeries = "generic" | "total" | "mechanical";
 
 export type ExifViewerTagEntry = {
   key: string;
