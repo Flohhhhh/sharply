@@ -500,6 +500,15 @@ export const specDictionary: SpecSectionDef[] = [
             : undefined,
       },
       {
+        key: "maxRawBitDepth",
+        label: "Max Raw Bit Depth",
+        searchTerms: ["raw", "raw photo", "photo bit depth", "stills bit depth"],
+        getRawValue: (item) => item.cameraSpecs?.maxRawBitDepth,
+        formatDisplay: (raw) =>
+          typeof raw === "string" ? `${raw}-bit` : undefined,
+        editElementId: "maxRawBitDepth",
+      },
+      {
         key: "hasIbis",
         label: "Has IBIS",
         searchTerms: [
