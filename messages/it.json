@@ -448,7 +448,39 @@
     "intro": "Questa lista Hall of Fame raccoglie alcune delle attrezzature più iconiche e influenti nella storia della fotografia. La curiamo per mettere in evidenza le fotocamere e gli obiettivi che hanno avuto il maggiore impatto sull’industria e sulla community nel corso degli anni e che sono ancora molto conosciuti oggi nonostante l’età.",
     "emptyTitle": "Non ci sono ancora elementi disponibili nella Hall of Fame.",
     "emptyDescription": "Aggiungi dati di attrezzatura al tuo database locale e ricarica questa pagina per celebrare attrezzatura leggendaria.",
-    "noImageAvailable": "Nessuna immagine disponibile"
+    "noImageAvailable": "Nessuna immagine disponibile",
+    "items": {
+      "sony-a9-iii": {
+        "text": "Dotata del primo otturatore globale al mondo, la Sony A9 III si guadagna il suo posto nella hall of fame come corpo macchina che ha spinto oltre i limiti di ciò che una fotocamera poteva fare."
+      },
+      "tamron-35-150mm-f-2-2-8-di-iii-vxd": {
+        "text": "Il Tamron 35-150mm f/2-2.8, davvero innovativo e impressionante, si guadagna il suo posto nella hall of fame per la sua versatilità unica e per la sua rivoluzionaria escursione focale con un’apertura luminosa. Vedere un design e una scheda tecnica così originali, insieme a prestazioni solide a un prezzo ragionevole, è raro e merita di essere celebrato. Anche se può essere stato progettato inizialmente per la fotografia di viaggio, molti possono trovarlo utile in altri generi, inclusi sport, video e lavori per eventi o matrimoni."
+      },
+      "nikon-d500": {
+        "text": "Celebrata per l’autofocus rapido e affidabile e per la costruzione robusta, la Nikon D500 si guadagna il suo posto nella hall of fame come una delle fotocamere APS-C più capaci mai vendute. Ancora oggi rimane una scelta popolare per la fotografia naturalistica e sportiva."
+      },
+      "nikon-af-s-dx-nikkor-35mm-f-1-8g": {
+        "text": "Il primo obiettivo Nikon DX con apertura f/1.8, perfetto per scatti in condizioni di scarsa luce e per il ritratto."
+      },
+      "nikon-nikkor-z-24-70mm-f-2-8-s-ii": {
+        "text": "Essendo il primo zoom standard f/2.8 con meccanismo di zoom interno, il Nikkor Z 24-70 f/2.8 S II si guadagna il suo posto nella nostra hall of fame come eccezionale zoom standard professionale, pur offrendo solo miglioramenti marginali rispetto al suo già impressionante predecessore. È un obiettivo versatile, ancora molto apprezzato oggi, e un ottimo tuttofare."
+      },
+      "canon-rf28-70mm-f2-l-usm": {
+        "text": "Il Canon RF 28-70mm f/2 L USM è il primo zoom standard a apertura costante f/2 per fotocamere full frame."
+      },
+      "nikon-nikkor-z-58mm-f-0-95-s-noct": {
+        "text": "L’obiettivo più luminoso di Nikon, e il primo obiettivo full frame con prestazioni di livello flagship a offrire un’apertura f/0.95. Questo obiettivo a fuoco manuale si guadagna un posto nella hall of fame come pioniere delle prestazioni ad ampia apertura."
+      },
+      "canon-eos-5d-mark-ii": {
+        "text": "Essendo la prima DSLR a offrire registrazione video Full HD 1080p, la Canon EOS 5D Mark II si guadagna un posto nella hall of fame come la fotocamera che ha avviato la spinta verso corpi macchina ibridi capaci di scattare foto e registrare video."
+      },
+      "nikon-d90": {
+        "text": "La Nikon D90 è stata la prima DSLR a offrire registrazione video 720p ed è stata un punto di svolta importante per il video con DSLR."
+      },
+      "nikon-af-s-nikkor-50mm-f-1-8g": {
+        "text": "Nel mercato estremamente competitivo dei 50 mm a focale fissa, il Nikon AF-S 50mm f/1.8G è una delle opzioni più conosciute. È un eccellente 50 mm full frame per F-mount, conveniente e ricco di valore. Essendo uno degli obiettivi Nikon più venduti, offre così tanto valore che la maggior parte dei fotografi ha poche ragioni per considerare alternative più costose, a meno che non abbia bisogno di prestazioni professionali di altissimo livello. Molti anni dopo, continua a essere consigliato spesso ai nuovi fotografi e utilizzato anche dai professionisti."
+      }
+    }
   },
   "notifications": {
     "title": "Notifiche",

@@ -448,7 +448,39 @@
     "intro": "Diese Hall-of-Fame-Liste versammelt einige der ikonischsten und einflussreichsten Ausrüstungsstücke in der Geschichte der Fotografie. Wir kuratieren diese Auswahl, um Kameras und Objektive hervorzuheben, die die Branche und die Community über Jahre hinweg besonders geprägt haben und trotz ihres Alters bis heute bekannt sind.",
     "emptyTitle": "Es sind noch keine Hall-of-Fame-Einträge verfügbar.",
     "emptyDescription": "Füge deiner lokalen Datenbank Ausrüstungsdaten hinzu und lade diese Seite neu, um legendäre Ausrüstung zu feiern.",
-    "noImageAvailable": "Kein Bild verfügbar"
+    "noImageAvailable": "Kein Bild verfügbar",
+    "items": {
+      "sony-a9-iii": {
+        "text": "Mit dem weltweit ersten Global Shutter verdient sich die Sony A9 III ihren Platz in der Hall of Fame als Kameragehäuse, das die Grenzen dessen verschoben hat, was eine Kamera leisten kann."
+      },
+      "tamron-35-150mm-f-2-2-8-di-iii-vxd": {
+        "text": "Das wirklich innovative und beeindruckende Tamron 35-150mm f/2-2.8 verdient seinen Platz in der Hall of Fame durch seine einzigartige Vielseitigkeit und seinen bahnbrechenden Brennweitenbereich bei hoher Lichtstärke. Ein so originelles Design und Datenblatt in Verbindung mit solider Leistung zu einem vernünftigen Preis ist selten und verdient Anerkennung. Auch wenn es ursprünglich vielleicht für die Reisefotografie entwickelt wurde, können viele es in anderen Genres einsetzen, darunter Sport, Video sowie Event- oder Hochzeitsfotografie."
+      },
+      "nikon-d500": {
+        "text": "Geschätzt für schnellen, zuverlässigen Autofokus und ein robustes Gehäuse verdient sich die Nikon D500 ihren Platz in der Hall of Fame als eine der leistungsfähigsten APS-C-Kameras, die je verkauft wurden. Noch heute ist sie eine beliebte Wahl für Wildlife- und Sportfotografie."
+      },
+      "nikon-af-s-dx-nikkor-35mm-f-1-8g": {
+        "text": "Das erste Nikon-DX-Objektiv mit einer f/1.8-Blende, perfekt für Aufnahmen bei wenig Licht und Porträts."
+      },
+      "nikon-nikkor-z-24-70mm-f-2-8-s-ii": {
+        "text": "Als erstes f/2.8-Standardzoom mit internem Zoommechanismus verdient sich das Nikkor Z 24-70 f/2.8 S II seinen Platz in unserer Hall of Fame als außergewöhnliches professionelles Standardzoom, obwohl es gegenüber seinem bereits beeindruckenden Vorgänger nur geringfügige Verbesserungen bietet. Es ist ein vielseitiges Objektiv, das bis heute beliebt ist und sich als echter Allrounder bewährt."
+      },
+      "canon-rf28-70mm-f2-l-usm": {
+        "text": "Das Canon RF 28-70mm f/2 L USM ist das erste Standardzoom mit konstanter f/2-Blende für Vollformatkameras."
+      },
+      "nikon-nikkor-z-58mm-f-0-95-s-noct": {
+        "text": "Nikons lichtstärkstes Objektiv und das erste Vollformatobjektiv mit Spitzenleistung, das eine f/0.95-Blende bietet. Dieses manuell fokussierte Objektiv verdient sich einen Platz in der Hall of Fame als Pionier für Leistung bei extrem großer Blendenöffnung."
+      },
+      "canon-eos-5d-mark-ii": {
+        "text": "Als erste DSLR mit 1080p-Full-HD-Videoaufzeichnung verdient sich die Canon EOS 5D Mark II einen Platz in der Hall of Fame als Kamera, die den Weg zu hybriden Kameragehäusen ebnete, die sowohl Fotos als auch Videos aufnehmen können."
+      },
+      "nikon-d90": {
+        "text": "Die Nikon D90 war die erste DSLR mit 720p-Videoaufzeichnung und markierte einen wichtigen Wendepunkt für DSLR-Video."
+      },
+      "nikon-af-s-nikkor-50mm-f-1-8g": {
+        "text": "Im hart umkämpften Markt der 50-mm-Festbrennweiten gehört Nikons AF-S 50mm f/1.8G zu den bekanntesten Optionen. Es ist ein hervorragendes, preisgünstiges 50-mm-Vollformatobjektiv für F-Mount. Als eines der meistverkauften Objektive von Nikon bietet es so viel Gegenwert, dass die meisten Fotografen kaum einen Grund haben, teurere Optionen in Betracht zu ziehen, es sei denn, sie benötigen ausdrücklich professionelle Spitzenleistung. Viele Jahre später wird es neuen Fotografen noch immer häufig empfohlen und auch von Profis verwendet."
+      }
+    }
   },
   "notifications": {
     "title": "Benachrichtigungen",

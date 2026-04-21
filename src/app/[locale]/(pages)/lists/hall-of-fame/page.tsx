@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import type { Metadata } from "next";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import { getTranslations } from "next-intl/server";
+import { defaultLocale } from "~/i18n/config";
 
 export const dynamic = "force-static";
 
@@ -121,7 +122,10 @@ export default async function HallOfFamePage({
       return best
         ? {
             slug: item.slug,
-            text: item.text,
+            text:
+              locale === defaultLocale || !t.has(item.textKey)
+                ? item.defaultText
+                : t(item.textKey),
             gear,
             bestDate: best.date,
             bestPrecision: best.precision,

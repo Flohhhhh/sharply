@@ -448,7 +448,39 @@
     "intro": "Esta lista Hall of Fame reúne algunos de los equipos más icónicos e influyentes de la historia de la fotografía. La curamos para destacar las cámaras y lentes que más impacto han tenido en la industria y en la comunidad a lo largo de los años, y que siguen siendo muy conocidas incluso hoy.",
     "emptyTitle": "Todavía no hay entradas disponibles en el Hall of Fame.",
     "emptyDescription": "Añade datos de equipo a tu base de datos local y vuelve a cargar esta página para celebrar equipo legendario.",
-    "noImageAvailable": "No hay imagen disponible"
+    "noImageAvailable": "No hay imagen disponible",
+    "items": {
+      "sony-a9-iii": {
+        "text": "Con el primer obturador global del mundo, la Sony A9 III se gana su lugar en el hall of fame como una cámara que amplió los límites de lo que una cámara podía hacer."
+      },
+      "tamron-35-150mm-f-2-2-8-di-iii-vxd": {
+        "text": "El Tamron 35-150mm f/2-2.8, verdaderamente innovador e impresionante, se gana su lugar en el hall of fame por su versatilidad única y su revolucionario rango focal con una apertura luminosa. Ver un diseño y una hoja de especificaciones tan originales, junto con un rendimiento sólido a un precio razonable, es algo poco común y digno de celebrarse. Aunque originalmente pudo haberse creado para fotografía de viaje, muchos pueden encontrarlo útil en otros géneros, incluidos deportes, video y trabajos de eventos o bodas."
+      },
+      "nikon-d500": {
+        "text": "Celebrada por su autoenfoque rápido y fiable y su construcción resistente, la Nikon D500 se gana su lugar en el hall of fame como una de las cámaras APS-C más capaces jamás vendidas. Incluso hoy sigue siendo una opción popular para fotografía de naturaleza y deportes."
+      },
+      "nikon-af-s-dx-nikkor-35mm-f-1-8g": {
+        "text": "El primer objetivo Nikon DX con apertura f/1.8, perfecto para fotografía con poca luz y retratos."
+      },
+      "nikon-nikkor-z-24-70mm-f-2-8-s-ii": {
+        "text": "Como el primer zoom estándar f/2.8 con un mecanismo de zoom interno, el Nikkor Z 24-70 f/2.8 S II se gana su lugar en nuestro hall of fame como un excepcional zoom estándar profesional, a pesar de ofrecer solo mejoras marginales sobre su ya impresionante predecesor. Es un objetivo versátil que sigue siendo popular hoy y funciona muy bien en casi cualquier situación."
+      },
+      "canon-rf28-70mm-f2-l-usm": {
+        "text": "El Canon RF 28-70mm f/2 L USM es el primer zoom estándar de apertura constante f/2 para cámaras de fotograma completo."
+      },
+      "nikon-nikkor-z-58mm-f-0-95-s-noct": {
+        "text": "El objetivo más luminoso de Nikon, y el primer objetivo de fotograma completo con rendimiento de nivel insignia en ofrecer una apertura f/0.95. Este objetivo de enfoque manual se gana un lugar en el hall of fame como pionero del rendimiento con aperturas ultra amplias."
+      },
+      "canon-eos-5d-mark-ii": {
+        "text": "Como la primera DSLR en ofrecer grabación de video Full HD de 1080p, la Canon EOS 5D Mark II se gana un lugar en el hall of fame como la cámara que impulsó el avance hacia cuerpos híbridos capaces de capturar fotos y video."
+      },
+      "nikon-d90": {
+        "text": "La Nikon D90 fue la primera DSLR en ofrecer grabación de video 720p y supuso un gran punto de inflexión para el video con DSLR."
+      },
+      "nikon-af-s-nikkor-50mm-f-1-8g": {
+        "text": "En el ultracompetitivo mercado de los objetivos fijos de 50 mm, el AF-S 50mm f/1.8G de Nikon es una de las opciones más conocidas. Es un excelente objetivo fijo de 50 mm para fotograma completo y montura F, asequible y de gran valor. Como uno de los objetivos más vendidos de Nikon, ofrece tanto valor que la mayoría de los fotógrafos apenas tienen motivos para considerar opciones más caras, salvo que necesiten un rendimiento profesional de primer nivel. Muchos años después, sigue recomendándose con frecuencia a fotógrafos nuevos y siendo utilizado por profesionales."
+      }
+    }
   },
   "notifications": {
     "title": "Notificaciones",

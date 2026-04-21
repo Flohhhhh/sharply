@@ -448,7 +448,39 @@
     "intro": "Cette liste Hall of Fame rassemble certains des équipements les plus iconiques et influents de l’histoire de la photographie. Nous la sélectionnons pour mettre en avant les appareils et objectifs qui ont eu le plus d’impact sur l’industrie et la communauté au fil des années, et qui restent connus encore aujourd’hui malgré leur âge.",
     "emptyTitle": "Aucune entrée Hall of Fame n’est encore disponible.",
     "emptyDescription": "Ajoutez des données de matériel à votre base locale puis rechargez cette page pour mettre à l’honneur du matériel légendaire.",
-    "noImageAvailable": "Aucune image disponible"
+    "noImageAvailable": "Aucune image disponible",
+    "items": {
+      "sony-a9-iii": {
+        "text": "Doté du tout premier obturateur global au monde, le Sony A9 III mérite sa place au hall of fame en tant que boîtier qui a repoussé les limites de ce qu’un appareil photo pouvait accomplir."
+      },
+      "tamron-35-150mm-f-2-2-8-di-iii-vxd": {
+        "text": "Le Tamron 35-150mm f/2-2.8, véritablement innovant et impressionnant, mérite sa place au hall of fame pour sa polyvalence unique et sa plage focale révolutionnaire avec une ouverture lumineuse. Voir un design et une fiche technique aussi originaux, associés à de solides performances à un prix raisonnable, est rare et mérite d’être célébré. Même s’il a peut-être été conçu à l’origine pour la photographie de voyage, beaucoup peuvent le trouver utile dans d’autres genres, notamment le sport, la vidéo et l’événementiel ou le mariage."
+      },
+      "nikon-d500": {
+        "text": "Réputé pour son autofocus rapide et fiable ainsi que pour sa construction robuste, le Nikon D500 mérite sa place au hall of fame comme l’un des appareils APS-C les plus performants jamais commercialisés. Encore aujourd’hui, il reste un choix populaire pour la photographie animalière et sportive."
+      },
+      "nikon-af-s-dx-nikkor-35mm-f-1-8g": {
+        "text": "Le premier objectif Nikon DX à proposer une ouverture f/1.8, parfait pour la basse lumière et le portrait."
+      },
+      "nikon-nikkor-z-24-70mm-f-2-8-s-ii": {
+        "text": "En tant que premier zoom standard f/2.8 doté d’un mécanisme de zoom interne, le Nikkor Z 24-70 f/2.8 S II gagne sa place dans notre hall of fame comme un zoom standard professionnel exceptionnel, malgré seulement de légères améliorations par rapport à son déjà impressionnant prédécesseur. C’est un objectif polyvalent, toujours populaire aujourd’hui, et un excellent passe-partout."
+      },
+      "canon-rf28-70mm-f2-l-usm": {
+        "text": "Le Canon RF 28-70mm f/2 L USM est le premier zoom standard à ouverture constante f/2 pour les appareils plein format."
+      },
+      "nikon-nikkor-z-58mm-f-0-95-s-noct": {
+        "text": "L’objectif le plus lumineux de Nikon, et le premier objectif plein format aux performances de niveau phare à proposer une ouverture f/0.95. Cet objectif à mise au point manuelle gagne sa place au hall of fame comme pionnier des performances à très grande ouverture."
+      },
+      "canon-eos-5d-mark-ii": {
+        "text": "Premier reflex à proposer l’enregistrement vidéo Full HD 1080p, le Canon EOS 5D Mark II gagne sa place au hall of fame comme l’appareil qui a lancé la transition vers des boîtiers hybrides capables de capturer à la fois photo et vidéo."
+      },
+      "nikon-d90": {
+        "text": "Le Nikon D90 a été le premier reflex à proposer l’enregistrement vidéo 720p, marquant un tournant majeur pour la vidéo sur reflex."
+      },
+      "nikon-af-s-nikkor-50mm-f-1-8g": {
+        "text": "Dans le marché ultra concurrentiel des focales fixes 50 mm, le Nikon AF-S 50mm f/1.8G est l’une des options les plus connues. C’est un excellent 50 mm plein format à monture F, abordable et offrant un excellent rapport qualité-prix. En tant qu’un des objectifs les plus vendus de Nikon, il apporte une telle valeur que la plupart des photographes ont peu de raisons de considérer des options plus coûteuses, sauf s’ils ont besoin de performances professionnelles haut de gamme. Des années plus tard, il reste fréquemment recommandé aux nouveaux photographes et utilisé par des professionnels."
+      }
+    }
   },
   "notifications": {
     "title": "Notifications",
