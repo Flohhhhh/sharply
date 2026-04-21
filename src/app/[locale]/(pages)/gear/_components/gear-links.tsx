@@ -112,8 +112,8 @@ export function GearLinks({
     gearType,
     linkMpb,
     mountIds,
-    mpbAvailable: locale.affiliate.mpbAvailable,
-    mpbMarket: locale.affiliate.mpbMarket,
+    isMpbSupported: locale.mpb.isSupported,
+    market: locale.mpb.market,
   });
   const uniqueMountIds = useMemo(
     () => Array.from(new Set((mountIds ?? []).filter(Boolean))),
@@ -139,7 +139,7 @@ export function GearLinks({
 
   function handleMpbMountSelection(mountId: string) {
     if (!linkMpb) return;
-    const href = buildMpbOutHref(linkMpb, locale.affiliate.mpbMarket, mountId);
+    const href = buildMpbOutHref(linkMpb, locale.mpb.market, mountId);
     if (!href) return;
 
     void track("gear_link_click", {

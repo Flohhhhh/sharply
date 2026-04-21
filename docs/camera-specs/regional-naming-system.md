@@ -8,9 +8,9 @@ Sharply now maintains a single canonical gear record while also surfacing region
 - Display helpers (`GetGearDisplayName`, `buildGearSearchName`, `normalizeGearSearchText`) consume `regionalAliases` so alias names can influence both the rendered label and the normalized search index. Search suggestions and commands now accept `countryCode`/locale to resolve the right alias.
 - Search metadata (`metadata.tsx`, JSON-LD) now uses `GetGearDisplayName`, and rename workflows rebuild `search_name` after alias updates so results stay consistent.
 
-### Locale tooling & affiliate alignment
+### Locale tooling & regional routing
 
-- `src/lib/locale/locales.ts` defines the supported locale options (US, UK, EU, DE, FR, ES, IT, MY, JP, Global) with affiliate mappings (`mpbAvailable`, `mpbMarket`, Amazon host) and canonical `gearRegion`. `CountryProvider` stores the locale id, resolves geo headers (including `EU`/`UK` pseudo codes), and exposes `locale`, `localeId`, `countryCode`, and `gearRegion`. The legacy `countryCode` setters now resolve to the locale map.
+- `src/lib/locale/locales.ts` defines the supported locale options (US, UK, EU, DE, FR, ES, IT, MY, JP, Global) with explicit MPB routing config and canonical `gearRegion`. `CountryProvider` stores the locale id, resolves geo headers (including `EU`/`UK` pseudo codes), and exposes `locale`, `localeId`, `countryCode`, and `gearRegion`. The legacy `countryCode` setters now resolve to the locale map.
 - `CountrySelect` consumes this list (minus the Global option) so editors can choose US, UK, EU, or JP — each with consistent labels/flags — while `resolveRegionFromCountryCode` remains tolerant of `EU`/`UK` to keep alias resolution stable.
 - Gear commerce links (`gear/_components/gear-links.tsx`) now pass the locale’s MPB market rather than the raw country code so JP or EU selections go through the right storefront.
 

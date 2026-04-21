@@ -10,8 +10,8 @@ interface ResolveMpbLinkStateParams {
   gearType: GearType;
   linkMpb: string | null;
   mountIds?: string[] | null;
-  mpbAvailable: boolean;
-  mpbMarket: Market | null;
+  isMpbSupported: boolean;
+  market: Market | null;
 }
 
 export interface MpbLinkState {
@@ -46,10 +46,10 @@ export function resolveMpbLinkState({
   gearType,
   linkMpb,
   mountIds,
-  mpbAvailable,
-  mpbMarket,
+  isMpbSupported,
+  market,
 }: ResolveMpbLinkStateParams): MpbLinkState {
-  if (!linkMpb || !mpbAvailable) {
+  if (!linkMpb || !isMpbSupported) {
     return {
       directMountId: null,
       isUnavailable: false,
@@ -75,13 +75,13 @@ export function resolveMpbLinkState({
   let directHref: string | undefined;
   if (!shouldShowChooser) {
     if (isLegacyMpbSearchLink) {
-      directHref = buildMpbOutHref(linkMpb, mpbMarket, null);
+      directHref = buildMpbOutHref(linkMpb, market, null);
     } else if (gearType !== "LENS") {
-      directHref = buildMpbOutHref(linkMpb, mpbMarket, null);
+      directHref = buildMpbOutHref(linkMpb, market, null);
     } else if (supportedMpbMounts.length === 1 && directMountId) {
-      directHref = buildMpbOutHref(linkMpb, mpbMarket, directMountId);
+      directHref = buildMpbOutHref(linkMpb, market, directMountId);
     } else if (hasLegacyMountedLink) {
-      directHref = buildMpbOutHref(linkMpb, mpbMarket, null);
+      directHref = buildMpbOutHref(linkMpb, market, null);
     }
   }
 

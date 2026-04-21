@@ -12,8 +12,8 @@ describe("resolveMpbLinkState", () => {
       gearType: "LENS",
       linkMpb: "/product/nikon-af-s-50mm-f-1-8g",
       mountIds: [NIKON_F_MOUNT_ID],
-      mpbAvailable: true,
-      mpbMarket: "EU",
+      isMpbSupported: true,
+      market: "EU",
     });
 
     expect(result.shouldRenderCard).toBe(true);
@@ -29,8 +29,8 @@ describe("resolveMpbLinkState", () => {
       gearType: "LENS",
       linkMpb: "/product/nikon-af-s-50mm-f-1-8g",
       mountIds: [NIKON_F_MOUNT_ID],
-      mpbAvailable: false,
-      mpbMarket: null,
+      isMpbSupported: false,
+      market: null,
     });
 
     expect(result.shouldRenderCard).toBe(false);

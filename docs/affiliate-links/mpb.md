@@ -7,7 +7,7 @@
   - market-specific storefront prefixes (`en-us`, `en-uk`, `en-eu`)
   - mount-suffix normalization for storage
   - mount-suffix reconstruction for outbound clicks
-- Locale and country options now explicitly model MPB support with `affiliate.mpbAvailable`.
+- Locale and country options now model MPB as storefront routing config, separate from affiliate settings.
 - The gear page renders an MPB button only when the selected locale supports MPB. Supported clicks point to `/api/out/mpb?destinationPath=<basePath>&market=<marketCode>` and, when needed, append `mountId=<mountId>`.
 - `src/app/(app)/api/out/mpb/route.ts` handles the redirection:
   - It resolves the `market` by prioritizing the query parameter (manually selected by the user), then falling back to server-side IP detection via Vercel edge headers.
@@ -21,20 +21,20 @@
 - If more than one supported mount suffix is available, clicking the MPB card opens a modal so the user can choose the mount they want.
 - If a mount exists on the gear item but does not yet have an MPB suffix mapping, it is shown in the chooser as unavailable instead of redirecting to a broken URL.
 - If only one supported mount is available, the MPB card still opens directly without a modal.
-- If the selected locale has `affiliate.mpbAvailable: false`, the MPB card is omitted entirely, even when the gear record has a saved `linkMpb`.
+- If the selected locale has `mpb.isSupported: false`, the MPB card is omitted entirely, even when the gear record has a saved `linkMpb`.
 
 ### Market Detection & Internationalization
 
 - The system currently supports dedicated MPB storefront routing for **US**, **UK**, **EU**, **DE**, **FR**, **ES**, and **IT**.
 - User selection is managed via a global `CountryProvider` and persisted in Local Storage.
 - Japan (`jp`) and Malaysia (`my`) are currently explicit no-MPB locales. They do not fall back to geo-detected MPB.
-- `mpbMarket: null` must not be treated as an implicit "send the user somewhere anyway" signal. The UI must first check `affiliate.mpbAvailable`.
+- `mpb.market: null` must not be treated as an implicit "send the user somewhere anyway" signal. The UI must first check `mpb.isSupported`.
 
 ```text
 MPB product link input
   -> normalize to stored base path
   -> GearLinks
-  -> check affiliate.mpbAvailable
+  -> check mpb.isSupported
   -> optional mount picker for multi-mount lenses
   -> /api/out/mpb?destinationPath=<basePath>&market=<market>&mountId=<mountId?>
   -> getMpbDestinationUrl()

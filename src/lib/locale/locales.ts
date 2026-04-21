@@ -24,10 +24,9 @@ export type LocaleOption = {
   /** Canonical country code for affiliate fallback */
   affiliateCountryCode: string | null;
   gearRegion: GearRegion;
-  affiliate: {
-    mpbAvailable: boolean;
-    mpbMarket: "US" | "UK" | "EU" | "DE" | "FR" | "ES" | "IT" | null;
-    amazonHost?: string | null;
+  mpb: {
+    isSupported: boolean;
+    market: "US" | "UK" | "EU" | "DE" | "FR" | "ES" | "IT" | null;
   };
 };
 
@@ -46,10 +45,9 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     countryCode: "US",
     affiliateCountryCode: "US",
     gearRegion: "GLOBAL",
-    affiliate: {
-      mpbAvailable: true,
-      mpbMarket: "US",
-      amazonHost: "www.amazon.com",
+    mpb: {
+      isSupported: true,
+      market: "US",
     },
   },
   {
@@ -58,10 +56,9 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     countryCode: "GB",
     affiliateCountryCode: "GB",
     gearRegion: "EU",
-    affiliate: {
-      mpbAvailable: true,
-      mpbMarket: "UK",
-      amazonHost: "www.amazon.co.uk",
+    mpb: {
+      isSupported: true,
+      market: "UK",
     },
   },
   {
@@ -70,10 +67,9 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     countryCode: "EU", // not ISO, used for flag selection
     affiliateCountryCode: "FR", // representative ISO for storage/geo
     gearRegion: "EU",
-    affiliate: {
-      mpbAvailable: true,
-      mpbMarket: "EU",
-      amazonHost: "www.amazon.de",
+    mpb: {
+      isSupported: true,
+      market: "EU",
     },
   },
   {
@@ -82,10 +78,9 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     countryCode: "DE",
     affiliateCountryCode: "DE",
     gearRegion: "EU",
-    affiliate: {
-      mpbAvailable: true,
-      mpbMarket: "DE",
-      amazonHost: "www.amazon.de",
+    mpb: {
+      isSupported: true,
+      market: "DE",
     },
   },
   {
@@ -94,10 +89,9 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     countryCode: "FR",
     affiliateCountryCode: "FR",
     gearRegion: "EU",
-    affiliate: {
-      mpbAvailable: true,
-      mpbMarket: "FR",
-      amazonHost: "www.amazon.fr",
+    mpb: {
+      isSupported: true,
+      market: "FR",
     },
   },
   {
@@ -106,10 +100,9 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     countryCode: "ES",
     affiliateCountryCode: "ES",
     gearRegion: "EU",
-    affiliate: {
-      mpbAvailable: true,
-      mpbMarket: "ES",
-      amazonHost: "www.amazon.es",
+    mpb: {
+      isSupported: true,
+      market: "ES",
     },
   },
   {
@@ -118,10 +111,9 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     countryCode: "IT",
     affiliateCountryCode: "IT",
     gearRegion: "EU",
-    affiliate: {
-      mpbAvailable: true,
-      mpbMarket: "IT",
-      amazonHost: "www.amazon.it",
+    mpb: {
+      isSupported: true,
+      market: "IT",
     },
   },
   {
@@ -130,10 +122,9 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     countryCode: "MY",
     affiliateCountryCode: "MY",
     gearRegion: "GLOBAL",
-    affiliate: {
-      mpbAvailable: false,
-      mpbMarket: null,
-      amazonHost: null,
+    mpb: {
+      isSupported: false,
+      market: null,
     },
   },
   {
@@ -142,10 +133,9 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     countryCode: "JP",
     affiliateCountryCode: "JP",
     gearRegion: "JP",
-    affiliate: {
-      mpbAvailable: false,
-      mpbMarket: null,
-      amazonHost: "www.amazon.co.jp",
+    mpb: {
+      isSupported: false,
+      market: null,
     },
   },
   {
@@ -154,10 +144,9 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     countryCode: null,
     affiliateCountryCode: null,
     gearRegion: "GLOBAL",
-    affiliate: {
-      mpbAvailable: true,
-      mpbMarket: "US",
-      amazonHost: "www.amazon.com",
+    mpb: {
+      isSupported: true,
+      market: "US",
     },
   },
 ];
