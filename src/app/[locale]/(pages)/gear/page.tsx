@@ -8,14 +8,33 @@ import type { Metadata } from "next";
 import { getMountDisplayName } from "~/lib/mapping";
 import { fetchTrendingSlugs } from "~/server/popularity/service";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import { getTranslations } from "next-intl/server";
 
-export const metadata: Metadata = buildLocalizedMetadata("/gear", {
-  title: "Gear",
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "browsePage" });
+
+  return buildLocalizedMetadata("/gear", {
+    title: t("legacyGearTitle"),
+    openGraph: {
+      title: t("legacyGearTitle"),
+    },
+  });
+}
 
 export const revalidate = 3600; // ISR: re-generate every hour
 
-export default async function GearIndex() {
+export default async function GearIndex({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "browsePage" });
   // This page is legacy. It will be redirected to /browse
   // Use statically generated brand constants; fetch latest gear per brand
   const brandSections = await Promise.all(
@@ -39,7 +58,7 @@ export default async function GearIndex() {
 
   return (
     <main className="mx-auto min-h-screen max-w-7xl p-6 pt-20">
-      <h1 className="mb-8 text-3xl font-semibold">Gear</h1>
+      <h1 className="mb-8 text-3xl font-semibold">{t("legacyGearTitle")}</h1>
       <div className="space-y-12">
         {sectionsWithItems.map(({ brand, items }) => (
           <section key={brand.id}>
@@ -66,9 +85,9 @@ export default async function GearIndex() {
               <Button asChild variant="secondary">
                 <Link
                   href={`/brand/${brand.slug}`}
-                  aria-label={`Show more ${brand.name}`}
+                  aria-label={t("showMoreBrand", { brand: brand.name })}
                 >
-                  Show more
+                  {t("showMore")}
                 </Link>
               </Button>
             </div>

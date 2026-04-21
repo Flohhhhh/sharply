@@ -3,6 +3,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@radix-ui/react-tooltip";
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { InfoIcon } from "lucide-react";
 import { SpecsMissingNote } from "./specs-missing-note";
@@ -29,6 +30,7 @@ export default function SpecsTable({
   item: GearItem;
   emptyMessage?: string;
 }) {
+  const t = useTranslations("gearDetail");
   const hasVisibleRows = sections.some((section) =>
     section.data.some((row) => row.value !== undefined),
   );
@@ -98,7 +100,7 @@ export default function SpecsTable({
           ))
         ) : (
           <div className="text-muted-foreground px-4 py-6 text-sm">
-            {emptyMessage ?? "No specifications available."}
+            {emptyMessage ?? t("noSpecificationsAvailable")}
           </div>
         )}
       </div>

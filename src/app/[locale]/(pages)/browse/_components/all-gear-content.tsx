@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import { Suspense } from "react";
 import { ClockIcon, FlameIcon, TrendingUpIcon } from "lucide-react";
 import Link from "next/link";
@@ -8,6 +9,7 @@ import { splitBrandsWithPriority } from "~/lib/brands";
 import { OtherBrandsSelect } from "./other-brands-select";
 import { fetchTrending, fetchTrendingSlugs } from "~/server/popularity/service";
 import { getItemDisplayPrice } from "~/lib/mapping";
+import { getTranslations } from "next-intl/server";
 import {
   fetchBrandBySlug,
   fetchReleaseFeedPage,
@@ -27,6 +29,7 @@ export default async function AllGearContent({
   brandSlug?: string;
   showBrandPicker?: boolean;
 } = {}) {
+  const t = await getTranslations("browsePage");
   // return <Loading />;
   const brand = brandSlug ? await fetchBrandBySlug(brandSlug) : null;
   if (brandSlug && !brand) {
@@ -58,11 +61,11 @@ export default async function AllGearContent({
       {/* browse hero only on root browse page*/}
       {brandSlug ? null : (
         <section className="max-w-3xl space-y-4">
-          <h1 className="text-3xl font-bold sm:text-5xl">All Gear</h1>
+          <h1 className="text-3xl font-bold sm:text-5xl">
+            {t("allGearTitle")}
+          </h1>
           <p className="text-muted-foreground">
-            Browse our comprehensive gear catalog featuring the latest cameras
-            and lenses from all major brands. Results are ordered by release
-            date by default with newer items appearing first.
+            {t("allGearDescription")}
           </p>
         </section>
       )}
@@ -81,7 +84,7 @@ export default async function AllGearContent({
                       {b.name}
                     </div>
                     <div className="text-muted-foreground mt-1 text-sm">
-                      Browse {b.name}
+                      {t("browseBrand", { brand: b.name })}
                     </div>
                   </Link>
                 ))}
@@ -107,7 +110,7 @@ export default async function AllGearContent({
             <span>
               <FlameIcon className="size-5 text-orange-500" />
             </span>
-            Trending Gear
+            {t("trendingTitle")}
           </h2>
           <Button
             variant="link"
@@ -116,7 +119,7 @@ export default async function AllGearContent({
             iconPosition="right"
             className="text-muted-foreground pr-1"
           >
-            <Link href="/lists/trending">View Trending List</Link>
+            <Link href="/lists/trending">{t("viewTrendingList")}</Link>
           </Button>
         </div>
 
@@ -129,6 +132,7 @@ export default async function AllGearContent({
         brandSlug={brandSlug}
         initialReleasePage={initialReleasePage}
         trendingSlugs={trendingSlugs}
+        latestReleasesLabel={t("latestReleases")}
       />
     </main>
   );
@@ -172,17 +176,19 @@ async function ReleaseSection({
   brandSlug,
   initialReleasePage,
   trendingSlugs,
+  latestReleasesLabel,
 }: {
   brandSlug?: string;
   initialReleasePage: Awaited<ReturnType<typeof fetchReleaseFeedPage>>;
   trendingSlugs: string[];
-}) {
+  latestReleasesLabel: string;
+}): Promise<JSX.Element> {
   return (
     <section className="space-y-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="flex items-center gap-2 text-2xl font-semibold">
           <ClockIcon className="text-muted-foreground size-5" />
-          Latest releases
+          {latestReleasesLabel}
         </h2>
       </div>
       <ReleaseFeedGrid

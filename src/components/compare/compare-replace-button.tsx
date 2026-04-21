@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Pencil } from "lucide-react";
 import { toast } from "sonner";
@@ -26,6 +27,7 @@ export function CompareReplaceButton({
   currentGearType,
   currentName,
 }: CompareReplaceButtonProps) {
+  const t = useTranslations("compare");
   const router = useRouter();
   const { show, hide } = useCompareLoadingOverlay();
   const [selection, setSelection] = useState<GearOption | null>(null);
@@ -40,7 +42,7 @@ export function CompareReplaceButton({
         option.gearType &&
         currentGearType !== option.gearType
       ) {
-        toast.warning("Types must match to compare");
+        toast.warning(t("typesMustMatch"));
         return;
       }
 
@@ -72,17 +74,17 @@ export function CompareReplaceButton({
   );
 
   const placeholderText = currentName
-    ? `Replace ${currentName}`
+    ? t("replaceItem", { name: currentName })
     : currentSlug
-      ? `Replace ${currentSlug}`
-      : "Search gear";
+      ? t("replaceItem", { name: currentSlug })
+      : t("searchGear");
 
   return (
     <GearSearchCombobox
       value={selection}
       setValue={setSelection}
       placeholder={placeholderText}
-      searchPlaceholder="Search gear to compare"
+      searchPlaceholder={t("searchGearToCompare")}
       allowClear={false}
       fullWidth={false}
       filters={currentGearType ? { gearType: currentGearType } : undefined}
@@ -99,7 +101,7 @@ export function CompareReplaceButton({
           data-state={open ? "open" : "closed"}
         >
           <Pencil className="mr-2 size-4" aria-hidden="true" />
-          Replace
+          {t("replace")}
         </Button>
       )}
     />

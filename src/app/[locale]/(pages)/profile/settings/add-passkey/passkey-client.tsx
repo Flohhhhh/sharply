@@ -7,14 +7,15 @@ import { Input } from "~/components/ui/input";
 import { Fingerprint, Loader, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
+import { LocaleLink } from "~/components/locale-link";
 
 type AddPasskeyClientProps = {
   userEmail?: string;
 };
 
-function computeDefaultPasskeyName(): string {
-  if (typeof navigator === "undefined") return "New passkey";
+function computeDefaultPasskeyName(t: ReturnType<typeof useTranslations>): string {
+  if (typeof navigator === "undefined") return t("newPasskey");
   const ua = navigator.userAgent.toLowerCase();
   const brandList: string[] =
     ((navigator as any).userAgentData?.brands as Array<{ brand: string }>)?.map(
@@ -33,7 +34,7 @@ function computeDefaultPasskeyName(): string {
         ? "iOS"
         : isAndroid
           ? "Android"
-          : "Unknown OS";
+          : t("unknownOs");
 
   const browser = brandList.find((b) => b.includes("chrome"))
     ? "Chrome"
@@ -45,31 +46,33 @@ function computeDefaultPasskeyName(): string {
           ? "Firefox"
           : ua.includes("safari")
             ? "Safari"
-            : "Browser";
+            : t("genericBrowser");
 
-  return `${browser} on ${os}`;
+  return t("browserOnOs", { browser, os });
 }
 
 export function AddPasskeyClient({ userEmail }: AddPasskeyClientProps) {
+  const t = useTranslations("profileSettings");
+  const locale = useLocale();
   const router = useRouter();
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const suggested = computeDefaultPasskeyName();
+    const suggested = computeDefaultPasskeyName(t);
     setName((prev) => prev || suggested);
-  }, []);
+  }, [t]);
 
   const handleAdd = async () => {
     if (loading) return;
-    const finalName = name.trim() || computeDefaultPasskeyName();
+    const finalName = name.trim() || computeDefaultPasskeyName(t);
 
     setLoading(true);
     const toastId = toast.loading(
-      "Waiting for your device to create a passkey...",
+      t("waitingForPasskeyCreation"),
     );
     try {
-      const { data, error } = await passkey.addPasskey({
+      const { error } = await passkey.addPasskey({
         name: finalName,
       });
 
@@ -77,15 +80,15 @@ export function AddPasskeyClient({ userEmail }: AddPasskeyClientProps) {
         throw new Error(error.message);
       }
 
-      toast.success("Passkey added");
+      toast.success(t("passkeyAdded"));
 
-      router.push("/profile/settings");
+      router.push(`/${locale}/profile/settings`);
       router.refresh();
     } catch (err) {
       const message =
         err instanceof Error
           ? err.message
-          : "Failed to add passkey. Please try again.";
+          : t("addPasskeyFailed");
       toast.error(message);
     } finally {
       toast.dismiss(toastId);
@@ -97,21 +100,20 @@ export function AddPasskeyClient({ userEmail }: AddPasskeyClientProps) {
     <main className="mx-auto min-h-screen max-w-2xl px-4 py-12 md:py-16">
       <div className="mb-8 flex items-center gap-2">
         <Button variant="ghost" size="sm" asChild>
-          <Link href="/profile/settings">
+          <LocaleLink href="/profile/settings">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to settings
-          </Link>
+            {t("backToSettings")}
+          </LocaleLink>
         </Button>
         <div className="flex-1" />
       </div>
 
       <div className="space-y-6 rounded-lg border p-6">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">Add a passkey</h1>
+          <h1 className="text-2xl font-semibold">{t("addPasskeyTitle")}</h1>
           <p className="text-muted-foreground text-sm">
-            We will prefill a device-friendly name based on your browser and OS.
-            You can keep it or rename it before creating the passkey.{" "}
-            {userEmail ? `Signed in as ${userEmail}.` : null}
+            {t("addPasskeyDescription")}{" "}
+            {userEmail ? t("signedInAs", { email: userEmail }) : null}
           </p>
         </div>
 
@@ -120,7 +122,7 @@ export function AddPasskeyClient({ userEmail }: AddPasskeyClientProps) {
             className="text-foreground text-sm font-medium"
             htmlFor="passkey-name"
           >
-            Passkey name
+            {t("passkeyName")}
           </label>
           <Input
             id="passkey-name"
@@ -128,21 +130,20 @@ export function AddPasskeyClient({ userEmail }: AddPasskeyClientProps) {
             onChange={(e) => setName(e.target.value)}
             autoComplete="webauthn"
             disabled={loading}
-            placeholder="e.g. Firefox on Windows"
+            placeholder={t("passkeyNameExample")}
           />
           <p className="text-muted-foreground text-sm">
-            This helps you recognize the device later if you add multiple
-            passkeys.
+            {t("passkeyNameHelp")}
           </p>
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Button
             variant="outline"
-            onClick={() => router.push("/profile/settings")}
+            onClick={() => router.push(`/${locale}/profile/settings`)}
             disabled={loading}
           >
-            Cancel
+            {t("cancel")}
           </Button>
           <Button onClick={handleAdd} disabled={loading}>
             {loading ? (
@@ -150,7 +151,7 @@ export function AddPasskeyClient({ userEmail }: AddPasskeyClientProps) {
             ) : (
               <Fingerprint className="mr-2 h-4 w-4" />
             )}
-            Save & create passkey
+            {t("saveAndCreatePasskey")}
           </Button>
         </div>
       </div>

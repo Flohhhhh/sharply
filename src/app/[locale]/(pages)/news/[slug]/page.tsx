@@ -17,6 +17,7 @@ import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
 import Link from "next/link";
 import { Separator } from "~/components/ui/separator";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import { getTranslations } from "next-intl/server";
 
 export const revalidate = 60;
 
@@ -28,9 +29,10 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
+  const { locale, slug } = await params;
+  const t = await getTranslations({ locale, namespace: "newsPage" });
   const page = await getNewsPostBySlug(slug);
   const baseUrl =
     process.env.NEXT_PUBLIC_BASE_URL ?? "https://www.sharplyphoto.com";
@@ -49,7 +51,7 @@ export async function generateMetadata({
         url: `${baseUrl}/og-default.png`,
         width: 1200,
         height: 630,
-        alt: "Sharply - Photography News",
+        alt: t("newsOgAlt"),
       };
   return buildLocalizedMetadata(`/news/${slug}`, {
     title: `${page.title}`,
@@ -73,13 +75,14 @@ export async function generateMetadata({
 export default async function DynamicPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }) {
-  const { slug } = await params;
+  const { locale, slug } = await params;
+  const t = await getTranslations({ locale, namespace: "newsPage" });
   const page = await getNewsPostBySlug(slug);
   if (!page) return notFound();
 
-  const category = "News";
+  const category = t("category");
   // Add a timestamp to the image src to ensure it's revalidated when page is rebuilt
   const imageSrc =
     page.thumbnail && typeof page.thumbnail === "object"
@@ -168,7 +171,7 @@ export default async function DynamicPage({
           {relatedGearItems.length > 0 ? (
             <div className="mt-6">
               <h2 className="mb-3 py-8 text-2xl font-semibold opacity-90 sm:text-4xl">
-                Gear in This Article
+                {t("gearInThisArticle")}
               </h2>
               <div className="grid grid-cols-1 gap-3">
                 {relatedGearItems.map((item: any) => (
@@ -217,7 +220,7 @@ export default async function DynamicPage({
           {sourceLinks.length > 0 ? (
             <div className="space-y-3">
               <div className="text-muted-foreground text-sm font-semibold">
-                Links
+                {t("links")}
               </div>
               <div className="flex flex-col gap-2 text-sm">
                 {sourceLinks.map((source) => (
@@ -237,7 +240,10 @@ export default async function DynamicPage({
           ) : null}
         </aside>
       </div>
-      <DiscordBanner label="Join the Discussion" className="w-full max-w-5xl" />
+      <DiscordBanner
+        label={t("joinDiscussion")}
+        className="w-full max-w-5xl"
+      />
     </div>
   );
 }

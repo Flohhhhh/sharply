@@ -1,18 +1,19 @@
 import Link from "next/link";
-import { ArrowLeft, Book, BookOpen, Wrench, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, BookOpen, Wrench } from "lucide-react";
 import { Button } from "~/components/ui/button";
-import { Progress } from "~/components/ui/progress";
 import { SuggestEditButton } from "./suggest-edit-button";
 import { TypingAnimation } from "~/components/ui/typing-animation";
 import { Badge } from "~/components/ui/badge";
+import { getTranslations } from "next-intl/server";
 
-export function ConstructionFullPage(props: {
+export async function ConstructionFullPage(props: {
   gearName: string;
   missing: string[];
   editHref: string;
   slug: string;
   gearType: "CAMERA" | "ANALOG_CAMERA" | "LENS";
 }) {
+  const t = await getTranslations("underConstructionPage");
   const { gearName, missing, editHref, slug, gearType } = props;
   const missingCount = missing.length;
   const totalChecks = (() => {
@@ -48,8 +49,7 @@ export function ConstructionFullPage(props: {
       {missing.length > 0 && (
         <div className="w-full max-w-lg text-center">
           <div className="mx-auto mb-2 max-w-sm text-sm font-semibold">
-            This page is under construction because we are missing the following
-            key specs:
+            {t("missingKeySpecsLong")}
           </div>
           <div className="bg-accent/30 dark:bg-card/50 border-border rounded-lg border px-4 py-3">
             <div className="flex flex-col items-center justify-center gap-2">
@@ -79,18 +79,15 @@ export function ConstructionFullPage(props: {
       <SuggestEditButton
         slug={slug}
         gearType={gearType}
-        label="Contribute missing information!"
+        label={t("contributeMissingInformation")}
       />
 
       <div className="mt-2 max-w-xl text-center">
         <h2 className="mb-2 text-sm font-semibold">
-          Sharply is crowd-sourced!
+          {t("crowdSourcedTitle")}
         </h2>
         <p className="text-muted-foreground text-sm">
-          We have a contributor-driven gear database with controlled
-          crowd-sourcing. Members propose updates to technical specs, which are
-          reviewed before going live. Approved contributions are credited on the
-          page and count toward contributor recognition.
+          {t("crowdSourcedDescription")}
         </p>
       </div>
 
@@ -101,7 +98,7 @@ export function ConstructionFullPage(props: {
           size="sm"
           icon={<ArrowLeft className="size-4" />}
         >
-          <Link href="/gear">Back to Gear</Link>
+          <Link href="/gear">{t("backToGear")}</Link>
         </Button>
         <Button
           asChild
@@ -109,7 +106,7 @@ export function ConstructionFullPage(props: {
           size="sm"
           icon={<BookOpen className="size-4" />}
         >
-          <Link href="/about">Learn more</Link>
+          <Link href="/about">{t("learnMore")}</Link>
         </Button>
       </div>
     </div>

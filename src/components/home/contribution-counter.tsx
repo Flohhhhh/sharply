@@ -1,8 +1,10 @@
+import { getTranslations } from "next-intl/server";
 import { fetchContributionCount } from "~/server/metrics/service";
 import { ContributionCounterValue } from "./contribution-counter-value";
 
-export async function ContributionCounter() {
+export async function ContributionCounter({ locale }: { locale: string }) {
   const totalContributions = await fetchContributionCount();
+  const t = await getTranslations({ locale, namespace: "home" });
 
   return (
     <div className="space-y-2">
@@ -11,7 +13,7 @@ export async function ContributionCounter() {
         className="text-5xl font-bold"
       />
       <p className="text-muted-foreground py-0 text-sm leading-0">
-        Contributions by members
+        {t("contributionCounterLabel")}
       </p>
     </div>
   );

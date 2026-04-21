@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { GearCardHorizontal } from "~/components/gear/gear-card-horizontal";
 import type { GearAlternativeRow } from "~/server/gear/service";
 import { getItemDisplayPrice } from "~/lib/mapping";
@@ -11,6 +12,7 @@ export function GearAlternativesSection({
   alternatives,
   trendingSlugs = new Set(),
 }: GearAlternativesSectionProps) {
+  const t = useTranslations("gearDetail");
   if (alternatives.length === 0) {
     return null;
   }
@@ -25,7 +27,7 @@ export function GearAlternativesSection({
 
   return (
     <section id="alternatives" className="scroll-mt-24">
-      <h2 className="mb-2 text-lg font-semibold">Alternatives</h2>
+      <h2 className="mb-2 text-lg font-semibold">{t("alternatives")}</h2>
       <div className="grid grid-cols-1 gap-3">
         {sorted.map((alt) => (
           <GearCardHorizontal

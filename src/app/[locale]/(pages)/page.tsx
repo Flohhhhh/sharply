@@ -196,8 +196,8 @@ export default async function Home({
                 <h2 className="text-3xl font-bold">{t("aboutTitle")}</h2>
                 <p className="text-muted-foreground">{t("aboutDescription")}</p>
                 <div className="flex flex-col items-start gap-3 py-2">
-                  <GearCounter />
-                  <ContributionCounter />
+                  <GearCounter locale={locale} />
+                  <ContributionCounter locale={locale} />
                 </div>
                 <div className="mt-4 flex items-center gap-4">
                   <Button asChild icon={<Library className="h-4 w-4" />}>
@@ -217,8 +217,8 @@ export default async function Home({
               {/* Stats */}
               <div className="flex flex-col gap-2 px-4"></div>
               <Separator className="my-2" />
-              <Suspense fallback={<TrendingList loading rows={10} />}>
-                <TrendingList timeframe="7d" limit={10} />
+              <Suspense fallback={<TrendingList locale={locale} loading rows={10} />}>
+                <TrendingList locale={locale} timeframe="7d" limit={10} />
               </Suspense>
               <Separator className="my-2" />
               {/* Banner link: New to Photography? */}
@@ -243,7 +243,7 @@ export default async function Home({
               </div>
               <DiscordBanner vertical />
               <Separator className="my-2" />
-              <ActivityList items={activityItems} />
+              <ActivityList items={activityItems} locale={locale} />
               {activityItems.length ? <Separator className="my-2" /> : null}
               {/* Latest Reviews */}
               <div className="space-y-4">

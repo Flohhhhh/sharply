@@ -3,6 +3,7 @@
 import { TableOfContentsIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 type HeadingItem = {
   id: string;
@@ -40,6 +41,7 @@ export function TableOfContents(props: {
   contentSelector?: string;
   className?: string;
 }) {
+  const t = useTranslations("common");
   const { contentSelector = ".prose", className = "" } = props;
   const [headings, setHeadings] = useState<HeadingItem[]>([]);
   const [activeId, setActiveId] = useState<string>("");
@@ -80,11 +82,11 @@ export function TableOfContents(props: {
   return (
     <nav
       className={["text-sm", className].filter(Boolean).join(" ")}
-      aria-label="Table of contents"
+      aria-label={t("tableOfContents")}
     >
       <div className="mb-2 flex items-center gap-2">
         <TableOfContentsIcon className="text-muted-foreground size-4" />
-        <span className="text-muted-foreground">On this page</span>
+        <span className="text-muted-foreground">{t("onThisPage")}</span>
       </div>
 
       <ul className="space-y-1">

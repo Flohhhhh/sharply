@@ -1,6 +1,7 @@
 "use client";
 
 import { useDeferredValue, useId, useState } from "react";
+import { useTranslations } from "next-intl";
 import type { GearItem, GearType } from "~/types/gear";
 import type { SpecsTableSection } from "./specs-table";
 import SpecsTable from "./specs-table";
@@ -21,25 +22,26 @@ export function SpecsSection({
   slug,
   gearType,
 }: SpecsSectionProps) {
+  const t = useTranslations("gearDetail");
   const [query, setQuery] = useState("");
   const inputId = useId();
   const deferredQuery = useDeferredValue(query);
   const filteredSections = filterSpecsSections(sections, deferredQuery);
   const normalizedQuery = deferredQuery.trim();
   const emptyMessage = normalizedQuery
-    ? `No specifications match "${normalizedQuery}".`
+    ? t("noSpecificationsMatch", { query: normalizedQuery })
     : undefined;
 
   return (
     <section className="scroll-mt-24" id="specs">
       <div className="mb-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-lg font-semibold">Specifications</h2>
+        <h2 className="text-lg font-semibold">{t("specifications")}</h2>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
           <Input
             id={inputId}
             type="search"
-            aria-label="Filter specifications"
-            placeholder="Filter specs"
+            aria-label={t("filterSpecifications")}
+            placeholder={t("filterSpecs")}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             className="h-8 rounded text-sm sm:w-[260px]"

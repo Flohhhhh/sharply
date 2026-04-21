@@ -155,12 +155,19 @@ export function SearchModalScene({
       kind: suggestion.kind,
       suggestion,
       title: getSuggestionTitle(suggestion),
-      subtitle: getSuggestionSubtitle(suggestion),
-      meta: getSuggestionMeta(suggestion),
+      subtitle: getSuggestionSubtitle(suggestion, {
+        camera: t("camera"),
+        lens: t("lens"),
+        analogCamera: t("analogCamera"),
+        brand: t("brand"),
+      }),
+      meta: getSuggestionMeta(suggestion, {
+        brand: t("brand"),
+      }),
       badge: isSmartActionSuggestion(suggestion)
-        ? "Compare"
+        ? t("compareItems")
         : isBestMatchSuggestion(suggestion)
-          ? "Best match"
+          ? t("bestMatch")
           : undefined,
       href: suggestion.href,
     }));

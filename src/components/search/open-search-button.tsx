@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { Button, type ButtonProps } from "~/components/ui/button";
 import { dispatchOpenSearchSurface } from "./search-events";
 
@@ -12,6 +13,7 @@ export function OpenSearchButton({
   children,
   ...props
 }: OpenSearchButtonProps) {
+  const t = useTranslations("search");
   return (
     <Button
       {...props}
@@ -19,8 +21,8 @@ export function OpenSearchButton({
         props.onClick?.(e);
         dispatchOpenSearchSurface();
       }}
-    >
-      {children ?? "Open search"}
+      >
+      {children ?? t("openSearch")}
     </Button>
   );
 }

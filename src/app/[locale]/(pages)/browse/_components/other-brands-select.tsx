@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   Select,
   SelectContent,
@@ -16,6 +17,7 @@ type Brand = { id: string; name: string; slug: string };
 
 export function OtherBrandsSelect({ brands }: { brands: Brand[] }) {
   const router = useRouter();
+  const t = useTranslations("browsePage");
   const { hoisted, remaining } = useMemo(
     () => splitBrandsWithPriority(brands),
     [brands],
@@ -26,7 +28,7 @@ export function OtherBrandsSelect({ brands }: { brands: Brand[] }) {
     <div className="flex w-full justify-center sm:w-fit">
       <Select onValueChange={(slug) => router.push(`/browse/${slug}`)}>
         <SelectTrigger className="w-full sm:w-64">
-          <SelectValue placeholder="Other brands" />
+          <SelectValue placeholder={t("otherBrands")} />
         </SelectTrigger>
         <SelectContent>
           {hoisted.map((brand) => (

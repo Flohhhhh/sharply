@@ -32,6 +32,7 @@ import { SpecsSection } from "../_components/specs-section";
 import { buildGearSpecsSections } from "~/lib/specs/registry";
 import type { GearType } from "~/types/gear";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { Breadcrumbs, type CrumbItem } from "~/components/layout/breadcrumbs";
 import { getBrandById } from "~/lib/mapping/brand-map";
 import { RenameGearButton } from "~/components/gear/rename-gear-button";
@@ -76,6 +77,7 @@ export const revalidate = 3600;
 
 interface GearPageProps {
   params: Promise<{
+    locale: string;
     slug: string;
   }>;
   searchParams: Promise<{
@@ -86,8 +88,9 @@ interface GearPageProps {
 export async function generateMetadata({
   params,
 }: GearPageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const { locale, slug } = await params;
   const viewerRegion = resolveRegionFromCountryCode(null);
+  const t = await getTranslations({ locale, namespace: "gearDetail" });
 
   try {
     const item: GearItem = await fetchGearBySlug(slug);
@@ -122,18 +125,18 @@ export async function generateMetadata({
       : [];
     const twitterImages = item.thumbnailUrl ? [item.thumbnailUrl] : [];
     return buildLocalizedMetadata(`/gear/${slug}`, {
-      title: `${displayName} | Specs & Reviews`,
+      title: `${displayName} | ${t("metaTitleSuffix")}`,
       description,
       openGraph: {
         type: "website",
-        title: `${displayName} | Specs & Reviews`,
+        title: `${displayName} | ${t("metaTitleSuffix")}`,
         images: ogImages,
         url: `${baseUrl}/gear/${slug}`,
         description,
       },
       twitter: {
         card: "summary_large_image",
-        title: `${displayName} | Specs & Reviews`,
+        title: `${displayName} | ${t("metaTitleSuffix")}`,
         description,
         images: twitterImages,
       },
@@ -141,13 +144,13 @@ export async function generateMetadata({
   } catch (err: any) {
     if (err?.status === 404) {
       return {
-        title: "Item not found",
-        description: "The requested gear could not be found.",
+        title: t("itemNotFoundTitle"),
+        description: t("itemNotFoundDescription"),
         robots: { index: false, follow: false },
         openGraph: {
-          title: "Item not found",
+          title: t("itemNotFoundTitle"),
           images: [],
-          description: "The requested gear could not be found.",
+          description: t("itemNotFoundDescription"),
         },
       };
     }
@@ -159,10 +162,77 @@ export default async function GearPage({
   params,
   searchParams,
 }: GearPageProps) {
-  const { slug } = await params;
+  const { locale, slug } = await params;
   const { editApplied } = await searchParams;
+  const t = await getTranslations({ locale, namespace: "gearDetail" });
   // console.log("[gear/[slug]] Generating static page (build/ISR)", { slug });
   const viewerRegion = resolveRegionFromCountryCode(null);
+
+  const formatFullDate = (input: Date | string | number | null | undefined) => {
+    if (!input) return "";
+    const date = input instanceof Date ? input : new Date(input);
+    if (Number.isNaN(date.getTime())) return "";
+    return new Intl.DateTimeFormat(locale, { dateStyle: "long" }).format(date);
+  };
+
+  const formatRecentDate = (
+    input: Date | string | number | null | undefined,
+  ) => {
+    if (!input) return "";
+    const date = input instanceof Date ? input : new Date(input);
+    if (Number.isNaN(date.getTime())) return "";
+
+    const now = new Date();
+    const nowUtcMidnight = Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+    );
+    const dateUtcMidnight = Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate(),
+    );
+    const diffDays = Math.floor(
+      (nowUtcMidnight - dateUtcMidnight) / (24 * 60 * 60 * 1000),
+    );
+
+    if (diffDays < 0) return formatFullDate(date);
+    if (diffDays === 0) return t("today");
+    if (diffDays === 1) return t("yesterday");
+    if (diffDays <= 6) return t("daysAgo", { count: diffDays });
+
+    const dayMs = 24 * 60 * 60 * 1000;
+    const nowUtcDay = new Date(nowUtcMidnight);
+    const weekStartOffset = nowUtcDay.getUTCDay();
+    const currentWeekStart = nowUtcMidnight - weekStartOffset * dayMs;
+    const previousWeekStart = currentWeekStart - 7 * dayMs;
+    if (
+      dateUtcMidnight >= previousWeekStart &&
+      dateUtcMidnight < currentWeekStart
+    ) {
+      return t("lastWeek");
+    }
+
+    const currentMonthStart = Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      1,
+    );
+    const previousMonthStart = Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth() - 1,
+      1,
+    );
+    if (
+      dateUtcMidnight >= previousMonthStart &&
+      dateUtcMidnight < currentMonthStart
+    ) {
+      return t("lastMonth");
+    }
+
+    return formatFullDate(date);
+  };
 
   // Fetch core gear data
   const item = await fetchGearBySlug(slug).catch((err: any) => {
@@ -249,6 +319,11 @@ export default async function GearPage({
       gearType: item.gearType,
       mountId: item.mountId,
       mountIds: item.mountIds,
+      labels: {
+        gear: t("gear"),
+        cameras: t("cameras"),
+        lenses: t("lenses"),
+      },
     }),
     {
       label: (
@@ -269,6 +344,16 @@ export default async function GearPage({
     hasAlternatives: alternatives.length > 0,
     hasRelatedArticles: relatedNews.length > 0,
     verdict,
+    labels: {
+      staffVerdict: t("staffVerdict"),
+      specs: t("specs"),
+      review: t("review"),
+      reviews: t("reviews"),
+      rawSamples: t("rawSamples"),
+      alternatives: t("alternatives"),
+      creatorVideos: t("creatorVideos"),
+      articles: t("articles"),
+    },
   });
 
   return (
@@ -399,7 +484,7 @@ export default async function GearPage({
                   </p>
                   <div className="mt-2">
                     <Button variant="outline" className="hover:cursor-pointer">
-                      Read Full Review
+                      {t("readFullReview")}
                     </Button>
                   </div>
                 </div>
@@ -411,7 +496,7 @@ export default async function GearPage({
             item.rawSamples &&
             item.rawSamples.length > 0 && (
               <section id="raw-samples" className="scroll-mt-24 space-y-3">
-                <h3 className="text-lg font-semibold">Raw Samples</h3>
+                <h3 className="text-lg font-semibold">{t("rawSamples")}</h3>
                 <div className="space-y-2">
                   {item.rawSamples.map((sample) => (
                     <Item key={sample.id} variant="outline" size="sm">
@@ -433,7 +518,7 @@ export default async function GearPage({
                             rel="noreferrer"
                             download
                           >
-                            Download
+                            {t("download")}
                           </a>
                         </Button>
                       </ItemActions>
@@ -485,16 +570,16 @@ export default async function GearPage({
           <div className="mt-8 border-t pt-6">
             <div className="text-muted-foreground space-y-2 text-sm">
               <div className="flex justify-between">
-                Open Change Requests
+                {t("openChangeRequests")}
                 <span>{pendingChangeRequests}</span>
               </div>
               <div className="flex justify-between">
-                <span>Item Created</span>
-                <span>{formatHumanDate(item.createdAt)}</span>
+                <span>{t("itemCreated")}</span>
+                <span>{formatFullDate(item.createdAt)}</span>
               </div>
               <div className="flex justify-between">
-                <span>Last Updated</span>
-                <span>{formatRecentHumanDate(item.updatedAt)}</span>
+                <span>{t("lastUpdated")}</span>
+                <span>{formatRecentDate(item.updatedAt)}</span>
               </div>
             </div>
           </div>
@@ -514,9 +599,7 @@ export default async function GearPage({
       {/* Articles about this item */}
       {relatedNews.length > 0 && (
         <section id="related-articles" className="scroll-mt-24">
-          <h2 className="mb-2 text-lg font-semibold">
-            Articles about this item
-          </h2>
+          <h2 className="mb-2 text-lg font-semibold">{t("articlesAboutItem")}</h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
             {relatedNews.map((post) => {
               const image =
@@ -532,9 +615,9 @@ export default async function GearPage({
                     excerpt: (post.excerpt as any) ?? undefined,
                     href: `/news/${post.slug}`,
                     image,
-                    date: new Date(
-                      post.override_date || post.createdAt,
-                    ).toLocaleDateString(),
+                    date: new Intl.DateTimeFormat(locale, {
+                      dateStyle: "medium",
+                    }).format(new Date(post.override_date || post.createdAt)),
                   }}
                   size="sm"
                 />

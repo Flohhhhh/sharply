@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useReducer } from "react";
+import { useTranslations } from "next-intl";
 import useSWR from "swr";
 
 type Props = {
@@ -57,6 +58,7 @@ const fetcher = async (url: string): Promise<Partial<StatsState>> => {
 };
 
 export default function GearStatsClient(props: Props) {
+  const t = useTranslations("gearDetail");
   const [stats, dispatch] = useReducer(statsReducer, {
     viewsToday: props.viewsToday,
     lifetimeViews: props.lifetimeViews,
@@ -114,23 +116,23 @@ export default function GearStatsClient(props: Props) {
   return (
     <div className="divide-border divide-y text-sm">
       <div className="flex items-center justify-between py-2">
-        <div className="text-muted-foreground">Views (All Time)</div>
+        <div className="text-muted-foreground">{t("viewsAllTime")}</div>
         <div className="font-medium tabular-nums">{stats.lifetimeViews}</div>
       </div>
       <div className="flex items-center justify-between py-2">
-        <div className="text-muted-foreground">Views (30 Days)</div>
+        <div className="text-muted-foreground">{t("views30Days")}</div>
         <div className="font-medium tabular-nums">{stats.views30d}</div>
       </div>
       <div className="flex items-center justify-between py-2">
-        <div className="text-muted-foreground">Views (Today)</div>
+        <div className="text-muted-foreground">{t("viewsToday")}</div>
         <div className="font-medium tabular-nums">{stats.viewsToday}</div>
       </div>
       <div className="flex items-center justify-between py-2">
-        <div className="text-muted-foreground">Wishlists</div>
+        <div className="text-muted-foreground">{t("wishlists")}</div>
         <div className="font-medium tabular-nums">{stats.wishlistTotal}</div>
       </div>
       <div className="flex items-center justify-between py-2">
-        <div className="text-muted-foreground">Owners</div>
+        <div className="text-muted-foreground">{t("owners")}</div>
         <div className="font-medium tabular-nums">{stats.ownershipTotal}</div>
       </div>
     </div>

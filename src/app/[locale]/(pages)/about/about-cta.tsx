@@ -1,12 +1,14 @@
 "use client";
 
 import { Search, UserPlus } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "~/components/ui/button";
 import { LocaleLink } from "~/components/locale-link";
 import { useSession } from "~/lib/auth/auth-client";
 
 export function AboutCta() {
   const { data: session } = useSession();
+  const t = useTranslations("aboutPage");
 
   if (session) {
     return (
@@ -16,7 +18,7 @@ export function AboutCta() {
         iconPosition="right"
         className="mt-4"
       >
-        <LocaleLink href="/gear">Browse gear</LocaleLink>
+        <LocaleLink href="/gear">{t("ctaBrowseGear")}</LocaleLink>
       </Button>
     );
   }
@@ -28,7 +30,7 @@ export function AboutCta() {
       iconPosition="right"
       className="mt-4"
     >
-      <LocaleLink href="/auth/signup">Create an account</LocaleLink>
+      <LocaleLink href="/auth/signup">{t("ctaCreateAccount")}</LocaleLink>
     </Button>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import useSWR from "swr";
 import { useSession } from "~/lib/auth/auth-client";
 import { Button } from "~/components/ui/button";
@@ -83,6 +84,7 @@ export function GearActionButtonsClient({
   initialIsOwned = null,
   initialSaveState = null,
 }: GearActionButtonsClientProps) {
+  const t = useTranslations("gearDetail");
   const { data, isPending } = useSession();
   const displayName = useGearDisplayName({ name, regionalAliases });
 
@@ -182,15 +184,15 @@ export function GearActionButtonsClient({
         );
 
         if (res.action === "added") {
-          toast.success("Added to collection");
+          toast.success(t("addedToCollection"));
         } else {
-          toast.success("Removed from collection");
+          toast.success(t("removedFromCollection"));
         }
       } else {
-        toast.error("Failed to update collection");
+        toast.error(t("failedToUpdateCollection"));
       }
     } catch {
-      toast.error("Failed to update collection");
+      toast.error(t("failedToUpdateCollection"));
     } finally {
       setLoading((prev) => ({ ...prev, ownership: false }));
     }
@@ -206,7 +208,7 @@ export function GearActionButtonsClient({
           disabled
           icon={<Bookmark className={saveButtonActive ? "fill-current" : ""} />}
         >
-          {saveButtonActive ? "Saved" : "Save Item"}
+          {saveButtonActive ? t("saved") : t("saveItem")}
         </Button>
         <Button
           type="button"
@@ -215,7 +217,7 @@ export function GearActionButtonsClient({
           disabled
         >
           <ChevronDown className="size-4" />
-          <span className="sr-only">Choose list</span>
+          <span className="sr-only">{t("chooseList")}</span>
         </Button>
       </ButtonGroup>
 
@@ -231,7 +233,7 @@ export function GearActionButtonsClient({
           )
         }
       >
-        {wishlistActive ? "Remove from Wishlist" : "Add to Wishlist"}
+        {wishlistActive ? t("removeFromWishlist") : t("addToWishlist")}
       </Button>
 
       <Button
@@ -240,7 +242,7 @@ export function GearActionButtonsClient({
         disabled
         icon={isOwned ? <Package /> : <PackageOpen />}
       >
-        {isOwned ? "Remove from Collection" : "Add to Collection"}
+        {isOwned ? t("removeFromCollection") : t("addToCollection")}
       </Button>
 
       <GearCompareActionButton
@@ -260,7 +262,7 @@ export function GearActionButtonsClient({
         onClick={handleRequireAuthInteraction}
         disabled={authButtonsDisabled}
       >
-        Save Item
+        {t("saveItem")}
       </Button>
 
       <Button
@@ -270,7 +272,7 @@ export function GearActionButtonsClient({
         onClick={handleRequireAuthInteraction}
         disabled={authButtonsDisabled}
       >
-        Add to Wishlist
+        {t("addToWishlist")}
       </Button>
 
       <Button
@@ -280,7 +282,7 @@ export function GearActionButtonsClient({
         onClick={handleRequireAuthInteraction}
         disabled={authButtonsDisabled}
       >
-        Add to Collection
+        {t("addToCollection")}
       </Button>
 
       <GearCompareActionButton
@@ -340,7 +342,7 @@ export function GearActionButtonsClient({
         disabled={isOwned === null}
         icon={ownedActive ? <Package /> : <PackageOpen />}
       >
-        {ownedActive ? "Remove from Collection" : "Add to Collection"}
+        {ownedActive ? t("removeFromCollection") : t("addToCollection")}
       </Button>
 
       {/* Compare Button */}

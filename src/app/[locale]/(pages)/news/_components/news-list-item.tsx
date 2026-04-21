@@ -5,34 +5,8 @@ import { ArrowRight } from "lucide-react";
 
 type NewsListItemProps = {
   post: News;
+  locale: string;
 };
-
-function getOrdinalSuffix(day: number) {
-  const mod100 = day % 100;
-  if (mod100 >= 11 && mod100 <= 13) return "th";
-  switch (day % 10) {
-    case 1:
-      return "st";
-    case 2:
-      return "nd";
-    case 3:
-      return "rd";
-    default:
-      return "th";
-  }
-}
-
-function formatDotDate(input: string | Date) {
-  const d = new Date(input);
-  const dayNumber = d.getUTCDate();
-  const monthName = d.toLocaleString("en-US", {
-    month: "long",
-    timeZone: "UTC",
-  });
-  const year = d.getUTCFullYear();
-  const suffix = getOrdinalSuffix(dayNumber);
-  return `${monthName} ${dayNumber}${suffix}, ${year}`;
-}
 
 function stripHtml(html: string | null | undefined, maxLength = 160) {
   if (!html) return "";
@@ -44,7 +18,7 @@ function stripHtml(html: string | null | undefined, maxLength = 160) {
   return text.slice(0, maxLength - 1).trimEnd() + "…";
 }
 
-export function NewsListItem({ post }: NewsListItemProps) {
+export function NewsListItem({ post, locale }: NewsListItemProps) {
   const href = `/news/${post.slug}`;
 
   // console.log(post);
@@ -56,6 +30,10 @@ export function NewsListItem({ post }: NewsListItemProps) {
     post.thumbnail && typeof post.thumbnail === "object"
       ? (post.thumbnail.url ?? undefined)
       : undefined;
+  const formattedDate = new Intl.DateTimeFormat(locale, {
+    dateStyle: "long",
+    timeZone: "UTC",
+  }).format(new Date(date));
 
   return (
     <Link href={href} className="group">
@@ -76,7 +54,7 @@ export function NewsListItem({ post }: NewsListItemProps) {
 
         <div className="flex h-full flex-col">
           <span className="text-muted-foreground mb-4 text-xs sm:mt-0">
-            {formatDotDate(date)}
+            {formattedDate}
           </span>
           <div className="mt-auto flex flex-col gap-2">
             <h3 className="line-clamp-2 text-lg leading-snug font-semibold tracking-tight group-hover:underline sm:text-2xl">

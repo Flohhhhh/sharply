@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import useSWR from "swr";
 import { Badge } from "~/components/ui/badge";
 import {
@@ -67,6 +68,7 @@ export function UnderConstructionTable({
   items: Row[];
 }) {
   const router = useRouter();
+  const t = useTranslations("underConstructionPage");
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<{
     slug: string;
@@ -111,12 +113,12 @@ export function UnderConstructionTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Item</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Missing</TableHead>
-              <TableHead>Progress</TableHead>
-              <TableHead className="text-right">Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("item")}</TableHead>
+              <TableHead>{t("type")}</TableHead>
+              <TableHead>{t("missing")}</TableHead>
+              <TableHead>{t("progress")}</TableHead>
+              <TableHead className="text-right">{t("status")}</TableHead>
+              <TableHead className="text-right">{t("actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -159,7 +161,7 @@ export function UnderConstructionTable({
                       ))}
                       {it.missing.length > 6 ? (
                         <Badge variant="outline" className="text-xs">
-                          +{it.missing.length - 6} more
+                          {t("moreMissing", { count: it.missing.length - 6 })}
                         </Badge>
                       ) : null}
                     </div>
@@ -174,9 +176,13 @@ export function UnderConstructionTable({
                   </TableCell>
                   <TableCell className="text-right">
                     {it.underConstruction ? (
-                      <Badge variant="destructive">Under construction</Badge>
+                      <Badge variant="destructive">
+                        {t("statusUnderConstruction")}
+                      </Badge>
                     ) : (
-                      <Badge variant="secondary">Low completeness</Badge>
+                      <Badge variant="secondary">
+                        {t("statusLowCompleteness")}
+                      </Badge>
                     )}
                   </TableCell>
                   <TableCell className="text-right">
@@ -188,7 +194,7 @@ export function UnderConstructionTable({
                         handleOpen(it.slug, it.gearType as GearType);
                       }}
                     >
-                      Open modal
+                      {t("openModal")}
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -223,20 +229,22 @@ export function UnderConstructionTable({
               <div className="flex max-h-[90vh] flex-col">
                 <div className="px-6 pt-6 pb-4">
                   <DialogHeader>
-                    <DialogTitle>Edit {selected?.slug}</DialogTitle>
+                    <DialogTitle>
+                      {t("editItem", { slug: selected?.slug ?? "" })}
+                    </DialogTitle>
                   </DialogHeader>
                 </div>
                 <div className="flex min-h-[400px] flex-1 items-center justify-center p-6">
                   <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
                   <span className="text-muted-foreground ml-2 text-sm">
-                    Loading…
+                    {t("loading")}
                   </span>
                 </div>
                 <div className="bg-background border-t px-6 py-4">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <Label htmlFor="uc-loading-missing-only">
-                        Show missing only
+                        {t("showMissingOnly")}
                       </Label>
                       <Switch
                         id="uc-loading-missing-only"
@@ -250,14 +258,14 @@ export function UnderConstructionTable({
                         className="border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md border px-4 text-sm"
                         onClick={() => requestClose()}
                       >
-                        Cancel
+                        {t("cancel")}
                       </button>
                       <button
                         type="button"
                         disabled
                         className="bg-primary text-primary-foreground/60 h-9 cursor-not-allowed rounded-md px-4 text-sm"
                       >
-                        Continue
+                        {t("continue")}
                       </button>
                     </div>
                   </div>
@@ -271,15 +279,14 @@ export function UnderConstructionTable({
       <AlertDialog open={confirmExitOpen} onOpenChange={setConfirmExitOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Discard unsaved changes?</AlertDialogTitle>
+            <AlertDialogTitle>{t("discardTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              You have unsaved changes. If you exit now, your edits will be
-              lost.
+              {t("discardDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setConfirmExitOpen(false)}>
-              Stay
+              {t("stay")}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
@@ -287,7 +294,7 @@ export function UnderConstructionTable({
                 requestClose({ force: true });
               }}
             >
-              Discard & Exit
+              {t("discardAndExit")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

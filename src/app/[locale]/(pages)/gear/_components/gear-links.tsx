@@ -2,6 +2,7 @@
 
 import { track } from "@vercel/analytics";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useMemo, useState, type ReactNode } from "react";
 import { FaAmazon } from "react-icons/fa";
 import { SiFujifilm, SiLeica, SiNikon, SiSony } from "react-icons/si";
@@ -60,6 +61,7 @@ export function GearLinks({
   mpbMaxPriceUsdCents,
   msrpNowUsdCents,
 }: GearLinksProps) {
+  const t = useTranslations("gearDetail");
   const { locale } = useCountry();
   const [isMpbDialogOpen, setIsMpbDialogOpen] = useState(false);
 
@@ -82,23 +84,29 @@ export function GearLinks({
   );
   const bhPriceDescription =
     msrpNowUsdCents != null
-      ? `Around ${formatPrice(truncateToWholeDollars(msrpNowUsdCents), {
-          style: "short",
-        })} • New and Used`
-      : "New and Used";
+      ? t("aroundPriceNewUsed", {
+          price: formatPrice(truncateToWholeDollars(msrpNowUsdCents), {
+            style: "short",
+          }),
+        })
+      : t("newAndUsed");
   const mpbPriceDescription =
     mpbMaxPriceUsdCents != null
-      ? `From ${formatPrice(truncateToWholeDollars(mpbMaxPriceUsdCents), {
-          style: "short",
-        })} • Used`
-      : "Used";
+      ? t("fromPriceUsed", {
+          price: formatPrice(truncateToWholeDollars(mpbMaxPriceUsdCents), {
+            style: "short",
+          }),
+        })
+      : t("usedOnly");
 
   const amazonPriceDescription =
     msrpNowUsdCents != null
-      ? `Around ${formatPrice(truncateToWholeDollars(msrpNowUsdCents), {
-          style: "short",
-        })} • New`
-      : "New";
+      ? t("aroundPriceNew", {
+          price: formatPrice(truncateToWholeDollars(msrpNowUsdCents), {
+            style: "short",
+          }),
+        })
+      : t("newOnly");
   const normalizedBrandName =
     typeof brandName === "string" ? brandName.trim() : "";
   const brandSlug = normalizedBrandName
@@ -107,7 +115,7 @@ export function GearLinks({
           brand.name.toLowerCase() === normalizedBrandName.toLowerCase(),
       )?.slug ?? "")
     : "";
-  const manufacturerStyles = getManufacturerStyles(brandSlug);
+  const manufacturerStyles = getManufacturerStyles(brandSlug, t);
 
   const mpbMarket = locale.affiliate.mpbMarket;
   const isLegacyMpbSearchLink = isMpbSearchInput(linkMpb);
@@ -188,14 +196,14 @@ export function GearLinks({
     <>
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Links</h2>
+          <h2 className="text-lg font-semibold">{t("links")}</h2>
         </div>
 
         {linkManufacturer && (
           <AffiliateLinkCard
             href={linkManufacturer}
             title={manufacturerStyles.title}
-            description="Official site"
+            description={t("officialSite")}
             backgroundClass={manufacturerStyles.backgroundClass}
             textColorClass={manufacturerStyles.textColorClass}
             logo={manufacturerStyles.logo}
@@ -210,10 +218,10 @@ export function GearLinks({
         {linkMpb && (
           <AffiliateLinkCard
             href={directMpbHref}
-            title="See on MPB"
+            title={t("seeOnMPB")}
             description={
               isMpbUnavailable
-                ? "Used • Mount-specific MPB link unavailable"
+                ? t("usedMountUnavailable")
                 : mpbPriceDescription
             }
             backgroundClass="bg-[#0b002b] hover:bg-[#0b002b]/80"
@@ -237,7 +245,7 @@ export function GearLinks({
         {amazonAsin && amazonRedirectHref && (
           <AffiliateLinkCard
             href={amazonRedirectHref}
-            title="Buy on Amazon"
+            title={t("buyOnAmazon")}
             description={amazonPriceDescription}
             backgroundClass="bg-[#ffd814] hover:bg-[#ffd814]/70"
             textColorClass="text-black"
@@ -253,7 +261,7 @@ export function GearLinks({
         {bhRedirectHref && (
           <AffiliateLinkCard
             href={bhRedirectHref}
-            title="Buy at B&H Photo"
+            title={t("buyAtBH")}
             description={bhPriceDescription}
             backgroundClass="bg-[#b03734] hover:bg-[#b03734]/80"
             textColorClass="text-white"
@@ -271,10 +279,9 @@ export function GearLinks({
       <Dialog open={isMpbDialogOpen} onOpenChange={setIsMpbDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Choose MPB Mount</DialogTitle>
+            <DialogTitle>{t("chooseMpbMount")}</DialogTitle>
             <DialogDescription>
-              This item has multiple MPB mount listings. Pick the mount you want
-              to open.
+              {t("chooseMpbMountDescription")}
             </DialogDescription>
           </DialogHeader>
 
@@ -289,7 +296,7 @@ export function GearLinks({
                 onClick={() => handleMpbMountSelection(mount.id)}
               >
                 {mount.label}
-                {!mount.supported ? " (Unavailable)" : ""}
+                {!mount.supported ? t("unavailableSuffix") : ""}
               </Button>
             ))}
           </div>
@@ -396,7 +403,10 @@ function buildMpbOutHref(
   return `/api/out/mpb?${params.toString()}`;
 }
 
-function getManufacturerStyles(brandSlug: string): {
+function getManufacturerStyles(
+  brandSlug: string,
+  t: ReturnType<typeof useTranslations<"gearDetail">>,
+): {
   title: string;
   backgroundClass: string;
   textColorClass: string;
@@ -405,7 +415,7 @@ function getManufacturerStyles(brandSlug: string): {
   switch (brandSlug) {
     case "nikon":
       return {
-        title: "Visit Nikon",
+        title: t("visitBrand", { brand: "Nikon" }),
         backgroundClass: "bg-accent hover:bg-accent/70",
         textColorClass: "text-primary",
         logo: (
@@ -416,14 +426,14 @@ function getManufacturerStyles(brandSlug: string): {
       };
     case "canon":
       return {
-        title: "Visit Canon",
+        title: t("visitBrand", { brand: "Canon" }),
         backgroundClass: "bg-accent hover:bg-accent/70",
         textColorClass: "text-primary",
         logo: <CanonLogo className="h-4" />,
       };
     case "sony":
       return {
-        title: "Visit Sony",
+        title: t("visitBrand", { brand: "Sony" }),
         backgroundClass: "bg-accent hover:bg-accent/70",
         textColorClass: "text-primary",
         logo: (
@@ -434,7 +444,7 @@ function getManufacturerStyles(brandSlug: string): {
       };
     case "fujifilm":
       return {
-        title: "Visit Fujifilm",
+        title: t("visitBrand", { brand: "Fujifilm" }),
         backgroundClass: "bg-accent hover:bg-accent/70",
         textColorClass: "text-primary",
         logo: (
@@ -459,14 +469,14 @@ function getManufacturerStyles(brandSlug: string): {
       };
     case "leica":
       return {
-        title: "Visit Leica",
+        title: t("visitBrand", { brand: "Leica" }),
         backgroundClass: "bg-accent hover:bg-accent/70",
         textColorClass: "text-primary",
         logo: <SiLeica className="size-8 text-red-500" />,
       };
     default:
       return {
-        title: "Visit manufacturer",
+        title: t("visitManufacturer"),
         backgroundClass: "bg-accent hover:bg-accent/70",
         textColorClass: "text-primary",
         logo: <CircleQuestionMark className="h-4 w-4" />,

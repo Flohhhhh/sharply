@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Scale } from "lucide-react";
 import {
@@ -16,6 +17,7 @@ import { GetGearDisplayName } from "~/lib/gear/naming";
 import { useCountry } from "~/lib/hooks/useCountry";
 
 export function CompareEmptyState() {
+  const t = useTranslations("compare");
   const router = useRouter();
   const [slot0, setSlot0] = useState<GearOption | null>(null);
   const [slot1, setSlot1] = useState<GearOption | null>(null);
@@ -66,11 +68,10 @@ export function CompareEmptyState() {
     <div className="mx-auto mt-24 min-h-screen max-w-5xl space-y-10 px-4 py-16">
       <div className="space-y-3 text-center">
         <h1 className="text-3xl font-semibold md:text-4xl">
-          Nothing to compare yet
+          {t("nothingToCompareYet")}
         </h1>
         <p className="text-muted-foreground mx-auto max-w-2xl text-sm md:text-base">
-          Use the selectors below to search the catalog and lock in two matching
-          items, or open the global search to explore gear first.
+          {t("emptyStateDescription")}
         </p>
       </div>
 
@@ -95,11 +96,11 @@ export function CompareEmptyState() {
 
       <div className="flex flex-wrap items-center justify-center gap-3">
         <Button size="lg" disabled={!isFull} onClick={handleCompare}>
-          Compare selected gear
+          {t("compareSelectedGear")}
         </Button>
         {selectionCount > 0 ? (
           <Button variant="ghost" onClick={handleClear}>
-            Clear slots
+            {t("clearSlots")}
           </Button>
         ) : null}
       </div>
@@ -122,15 +123,16 @@ function CompareEmptyColumn({
   gearTypeFilter?: string | null;
   excludeIds: string[];
 }) {
+  const t = useTranslations("compare");
   const { region } = useCountry();
   const placeholders = [
     {
-      title: "Pick the first item",
-      body: "Search for any camera, lens, or accessory to start a comparison.",
+      title: t("pickFirstItem"),
+      body: t("pickFirstItemBody"),
     },
     {
-      title: "Pick the second item",
-      body: "Match it with another item of the same type to unlock the table.",
+      title: t("pickSecondItem"),
+      body: t("pickSecondItemBody"),
     },
   ];
 
@@ -142,10 +144,10 @@ function CompareEmptyColumn({
     : null;
 
   const title = hasSelection
-    ? (displayName ?? "Selected item")
+    ? (displayName ?? t("selectedItem"))
     : placeholders[index]?.title;
   const body = hasSelection
-    ? "Use the selector above to swap or clear this slot."
+    ? t("swapOrClearSlot")
     : placeholders[index]?.body;
 
   const hasImage = Boolean(value?.thumbnailUrl);
@@ -157,7 +159,7 @@ function CompareEmptyColumn({
           value={value}
           setValue={onChange}
           placeholder={
-            index === 0 ? "Select first gear item" : "Select second gear item"
+            index === 0 ? t("selectFirstGearItem") : t("selectSecondGearItem")
           }
           buttonClassName="text-base font-medium"
           filters={gearTypeFilter ? { gearType: gearTypeFilter } : undefined}
@@ -170,7 +172,7 @@ function CompareEmptyColumn({
             <div className="bg-muted relative h-36 w-full max-w-[220px] overflow-hidden rounded-2xl">
               <Image
                 src={value?.thumbnailUrl ?? "/image-temp.png"}
-                alt={displayName ?? "Selected gear"}
+                alt={displayName ?? t("selectedGear")}
                 fill
                 sizes="220px"
                 className="object-contain object-center"
@@ -179,7 +181,7 @@ function CompareEmptyColumn({
             </div>
           ) : (
             <div className="text-muted-foreground flex h-32 w-full max-w-[220px] items-center justify-center rounded-2xl border border-dashed text-xs tracking-wide uppercase">
-              Image coming soon
+              {t("imageComingSoon")}
             </div>
           )
         ) : (

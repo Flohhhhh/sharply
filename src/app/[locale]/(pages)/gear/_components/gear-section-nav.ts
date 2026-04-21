@@ -19,6 +19,16 @@ interface BuildGearSectionNavItemsInput {
   hasAlternatives: boolean;
   hasRelatedArticles: boolean;
   verdict: StaffVerdictNavigationData | null;
+  labels?: {
+    staffVerdict: string;
+    specs: string;
+    review: string;
+    reviews: string;
+    rawSamples: string;
+    alternatives: string;
+    creatorVideos: string;
+    articles: string;
+  };
 }
 
 function hasNonEmptyString(value: string | null | undefined) {
@@ -56,35 +66,46 @@ export function buildGearSectionNavItems({
   hasAlternatives,
   hasRelatedArticles,
   verdict,
+  labels,
 }: BuildGearSectionNavItemsInput): GearSectionNavItem[] {
+  const resolvedLabels = {
+    staffVerdict: labels?.staffVerdict ?? "Staff Verdict",
+    specs: labels?.specs ?? "Specs",
+    review: labels?.review ?? "Review",
+    reviews: labels?.reviews ?? "Reviews",
+    rawSamples: labels?.rawSamples ?? "Raw Samples",
+    alternatives: labels?.alternatives ?? "Alternatives",
+    creatorVideos: labels?.creatorVideos ?? "Creator Videos",
+    articles: labels?.articles ?? "Articles",
+  };
   const items: GearSectionNavItem[] = [];
 
   if (hasStaffVerdictContent(verdict)) {
-    items.push({ href: "#staff-verdict", label: "Staff Verdict" });
+    items.push({ href: "#staff-verdict", label: resolvedLabels.staffVerdict });
   }
 
-  items.push({ href: "#specs", label: "Specs" });
+  items.push({ href: "#specs", label: resolvedLabels.specs });
 
   if (hasEditorialReview) {
-    items.push({ href: "#editorial-review", label: "Review" });
+    items.push({ href: "#editorial-review", label: resolvedLabels.review });
   }
 
-  items.push({ href: "#reviews", label: "Reviews" });
+  items.push({ href: "#reviews", label: resolvedLabels.reviews });
 
   if (hasRawSamples) {
-    items.push({ href: "#raw-samples", label: "Raw Samples" });
+    items.push({ href: "#raw-samples", label: resolvedLabels.rawSamples });
   }
 
   if (hasAlternatives) {
-    items.push({ href: "#alternatives", label: "Alternatives" });
+    items.push({ href: "#alternatives", label: resolvedLabels.alternatives });
   }
 
   if (hasCreatorVideos) {
-    items.push({ href: "#creator-videos", label: "Creator Videos" });
+    items.push({ href: "#creator-videos", label: resolvedLabels.creatorVideos });
   }
 
   if (hasRelatedArticles) {
-    items.push({ href: "#related-articles", label: "Articles" });
+    items.push({ href: "#related-articles", label: resolvedLabels.articles });
   }
 
   return items;

@@ -4,19 +4,33 @@ import type { Metadata } from "next";
 import LearnCard from "~/components/learn/learn-card";
 import { Button } from "~/components/ui/button";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import { getTranslations } from "next-intl/server";
 
-export const metadata: Metadata = buildLocalizedMetadata("/learn/basics", {
-  title: "The Basics",
-  description:
-    "Start learning photography fundamentals, including modern cameras, exposure, and beginner-friendly paths.",
-  openGraph: {
-    title: "The Basics",
-    description:
-      "Start learning photography fundamentals, including modern cameras, exposure, and beginner-friendly paths.",
-  },
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "learnBasicsPage" });
 
-export default async function BasicsPage() {
+  return buildLocalizedMetadata("/learn/basics", {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+    openGraph: {
+      title: t("metaTitle"),
+      description: t("metaDescription"),
+    },
+  });
+}
+
+export default async function BasicsPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "learnBasicsPage" });
   const featured = [
     {
       href: "/learn/the-basics-of-modern-cameras",
@@ -42,19 +56,16 @@ export default async function BasicsPage() {
     <main className="mx-auto min-h-screen max-w-7xl p-6 pt-36">
       <div className="grid gap-4 sm:gap-12 md:grid-cols-[360px_1fr]">
         <aside className="space-y-3">
-          <h1 className="text-3xl font-bold sm:text-5xl">The Basics</h1>
+          <h1 className="text-3xl font-bold sm:text-5xl">{t("pageTitle")}</h1>
           <p className="text-muted-foreground text-sm">
-            Here you can find a comprehensive guide to the basics of photography
-            and photography gear. These guides will set you up for success with
-            your first camera, and help you understand the basics of
-            photography.
+            {t("pageDescription")}
           </p>
           <Button
             asChild
             icon={<Library className="size-4" />}
             className="mt-8"
           >
-            <Link href="/learn">View all learning</Link>
+            <Link href="/learn">{t("viewAllLearning")}</Link>
           </Button>
         </aside>
 

@@ -11,21 +11,23 @@ import { GenreRatings } from "../_components/genre-ratings";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
 import type { Metadata } from "next";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import { getTranslations } from "next-intl/server";
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
+  const { locale, slug } = await params;
+  const t = await getTranslations({ locale, namespace: "reviewPage" });
 
   try {
     const review = await getReviewBySlug(slug);
 
     if (!review) {
       return {
-        title: "Review not found",
-        description: "The requested review could not be found.",
+        title: t("reviewNotFoundTitle"),
+        description: t("reviewNotFoundDescription"),
         robots: { index: false, follow: false },
       };
     }
@@ -38,7 +40,7 @@ export async function generateMetadata({
       );
     }
 
-    const title = `${gearItem.name} Review`;
+    const title = t("reviewTitle", { name: gearItem.name });
     const description = review.review_summary || review.title;
     const ogImage = gearItem.thumbnailUrl
       ? {
@@ -51,7 +53,7 @@ export async function generateMetadata({
           url: `${baseUrl}/og-default.png`,
           width: 1200,
           height: 630,
-          alt: "Sharply - Photography Gear Reviews",
+          alt: t("reviewsOgAlt"),
         };
 
     return buildLocalizedMetadata(`/reviews/${slug}`, {
@@ -74,8 +76,8 @@ export async function generateMetadata({
   } catch (err: any) {
     if (err?.status === 404) {
       return {
-        title: "Review not found",
-        description: "The requested review could not be found.",
+        title: t("reviewNotFoundTitle"),
+        description: t("reviewNotFoundDescription"),
         robots: { index: false, follow: false },
       };
     }
@@ -86,9 +88,10 @@ export async function generateMetadata({
 export default async function ReviewPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }) {
-  const { slug } = await params;
+  const { locale, slug } = await params;
+  const t = await getTranslations({ locale, namespace: "reviewPage" });
   const review = await getReviewBySlug(slug);
 
   if (!review) {
@@ -103,7 +106,7 @@ export default async function ReviewPage({
       <ScrollProgress bottomOffset={300} />
       <div className="flex flex-col items-center gap-3 text-center">
         <h1 className="text-center text-4xl font-bold sm:text-6xl">
-          {`${gearItem.name} Review`}
+          {t("reviewTitle", { name: gearItem.name })}
         </h1>
         <p className="text-muted-foreground max-w-3xl text-base sm:text-lg">
           {review.title}
@@ -125,7 +128,7 @@ export default async function ReviewPage({
         ) : (
           <div className="bg-muted dark:bg-card flex aspect-video items-center justify-center rounded-md">
             <div className="text-muted-foreground text-lg">
-              No image available
+              {t("noImageAvailable")}
             </div>
           </div>
         )}
@@ -135,18 +138,20 @@ export default async function ReviewPage({
             <section id="review-content" className="space-y-6 lg:space-y-8">
               {/* Summary */}
               <div className="space-y-2">
-                <h2 className="scroll-mt-24 text-lg font-semibold">Summary</h2>
+                <h2 className="scroll-mt-24 text-lg font-semibold">
+                  {t("summary")}
+                </h2>
                 <p className="text-muted-foreground">{review.review_summary}</p>
               </div>
 
               {/* Pros & Cons */}
               <div className="space-y-4">
                 <h2 className="scroll-mt-24 text-lg font-semibold">
-                  Pros &amp; Cons
+                  {t("prosAndCons")}
                 </h2>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div className="rounded border border-green-400/50 bg-green-400/5 p-3">
-                    <h3 className="text-lg font-semibold">The Good</h3>
+                    <h3 className="text-lg font-semibold">{t("theGood")}</h3>
                     <ul className="my-4 list-disc space-y-3 pl-5 text-sm text-green-600 dark:text-green-400">
                       {review.goodPoints.map((point) => (
                         <li key={point.id}>{point.goodNote}</li>
@@ -156,7 +161,7 @@ export default async function ReviewPage({
 
                   <div className="rounded border border-red-400/50 bg-red-400/5 p-3">
                     <h3 className="scroll-mt-24 text-lg font-semibold">
-                      The Bad
+                      {t("theBad")}
                     </h3>
                     <ul className="my-4 list-disc space-y-3 pl-5 text-sm text-red-600 dark:text-red-400">
                       {review.badPoints.map((point) => (
@@ -170,7 +175,7 @@ export default async function ReviewPage({
               {/* Gear Specs */}
               <div className="space-y-3">
                 <h3 className="scroll-mt-24 text-lg font-semibold">
-                  View {GetGearDisplayName(gearItem)} specs
+                  {t("viewSpecs", { name: GetGearDisplayName(gearItem) })}
                 </h3>
                 <GearCardHorizontal
                   slug={gearItem.slug}
@@ -186,7 +191,7 @@ export default async function ReviewPage({
               {/* Review Content */}
               <div className="space-y-4">
                 <h2 className="scroll-mt-24 text-lg font-semibold">
-                  My Experience
+                  {t("myExperience")}
                 </h2>
                 <RichText
                   data={review.reviewContent}

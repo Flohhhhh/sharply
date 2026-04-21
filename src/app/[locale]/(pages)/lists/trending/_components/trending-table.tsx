@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import useSWR from "swr";
 import {
   Loader,
@@ -64,12 +65,6 @@ import { actionRecordCompareAdd } from "~/server/popularity/actions";
 import type { GearType } from "~/types/gear";
 
 const WINDOW_OPTIONS: Array<"7d" | "30d"> = ["7d", "30d"];
-const TYPE_OPTIONS = [
-  { label: "All gear", value: "ALL" },
-  { label: "Cameras", value: "CAMERA" },
-  { label: "Analog Cameras", value: "ANALOG_CAMERA" },
-  { label: "Lenses", value: "LENS" },
-] as const;
 const PER_PAGE_OPTIONS = [20, 50, 100];
 
 const fetcher = async (url: string) => {
@@ -101,12 +96,9 @@ function buildKey(params: {
   return `/api/trending?${search.toString()}`;
 }
 
-const numberFormatter = new Intl.NumberFormat("en-US");
-const liveDeltaFormatter = new Intl.NumberFormat("en-US", {
-  maximumFractionDigits: 1,
-  minimumFractionDigits: 0,
-});
 export function TrendingTable({ initialData }: Props) {
+  const t = useTranslations("trendingPage");
+  const locale = useLocale();
   const [timeframe, setTimeframe] = useState<"7d" | "30d">(
     initialData.timeframe,
   );
@@ -154,6 +146,13 @@ export function TrendingTable({ initialData }: Props) {
     data && data.perPage > 0 ? Math.max(1, Math.ceil(total / data.perPage)) : 1;
   const topScore = data?.topScore ?? rows[0]?.score ?? 0;
   const showLiveBoostBanner = data?.items?.some((row) => row.liveBoost);
+  const typeOptions = [
+    { label: t("allGear"), value: "ALL" },
+    { label: t("cameras"), value: "CAMERA" },
+    { label: t("analogCameras"), value: "ANALOG_CAMERA" },
+    { label: t("lenses"), value: "LENS" },
+  ] as const;
+  const numberFormatter = useMemo(() => new Intl.NumberFormat(locale), [locale]);
 
   const handlePageChange = useCallback(
     (direction: "prev" | "next") => {
@@ -199,7 +198,7 @@ export function TrendingTable({ initialData }: Props) {
               ))}
             </ButtonGroup>
             <ButtonGroup>
-              {TYPE_OPTIONS.map((option) => (
+              {typeOptions.map((option) => (
                 <Button
                   key={option.value}
                   type="button"
@@ -217,7 +216,7 @@ export function TrendingTable({ initialData }: Props) {
           </div>
         </div>
         <div className="text-muted-foreground flex items-center gap-2 text-sm">
-          Rows
+          {t("rows")}
           <Select
             value={String(perPage)}
             onValueChange={(value) => { setPerPage(Number(value)); setPage(1); }}
@@ -228,7 +227,7 @@ export function TrendingTable({ initialData }: Props) {
             <SelectContent>
               {PER_PAGE_OPTIONS.map((option) => (
                 <SelectItem key={option} value={String(option)}>
-                  {option} / page
+                  {t("perPageOption", { count: option })}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -238,13 +237,13 @@ export function TrendingTable({ initialData }: Props) {
 
       {error ? (
         <div className="border-destructive/40 bg-destructive/10 text-destructive-foreground rounded-xl border p-6 text-sm">
-          Failed to load trending data. Please try again in a moment.
+          {t("failedToLoad")}
         </div>
       ) : (
         <>
           {showLiveBoostBanner ? (
             <div className="text-muted-foreground mb-2 text-xs">
-              Includes same-day live boosts
+              {t("includesSameDayLiveBoosts")}
             </div>
           ) : null}
           <div className="bg-background overflow-hidden rounded-md border">
@@ -254,13 +253,17 @@ export function TrendingTable({ initialData }: Props) {
                   <TableHead className="text-muted-foreground w-12">
                     #
                   </TableHead>
-                  <TableHead className="text-muted-foreground">Gear</TableHead>
-                  <TableHead className="text-muted-foreground">Heat</TableHead>
                   <TableHead className="text-muted-foreground">
-                    Views ({timeframe})
+                    {t("gear")}
                   </TableHead>
                   <TableHead className="text-muted-foreground">
-                    Views (lifetime)
+                    {t("heat")}
+                  </TableHead>
+                  <TableHead className="text-muted-foreground">
+                    {t("viewsTimeframe", { timeframe })}
+                  </TableHead>
+                  <TableHead className="text-muted-foreground">
+                    {t("viewsLifetime")}
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -280,7 +283,7 @@ export function TrendingTable({ initialData }: Props) {
                       colSpan={6}
                       className="text-muted-foreground py-16 text-center"
                     >
-                      No gear matches this filter yet.
+                      {t("noGearMatches")}
                     </TableCell>
                   </TableRow>
                 )}
@@ -361,7 +364,10 @@ function TrendingRow({
   filledCount: number;
   liveDelta?: number;
 }) {
+  const t = useTranslations("trendingPage");
+  const locale = useLocale();
   const router = useRouter();
+  const numberFormatter = useMemo(() => new Intl.NumberFormat(locale), [locale]);
   const zebraClass =
     "group border-border/50 bg-background px-4 py-2 transition-colors hover:bg-zinc-200/70 dark:hover:bg-accent/50 even:bg-accent/20";
   const cellBase = "px-4 py-2";
@@ -459,13 +465,13 @@ function TrendingRow({
                   icon={<ExternalLink className="h-4 w-4" />}
                 >
                   <Link target="_blank" href={`/gear/${row.slug}`}>
-                    View gear
+                    {t("viewGear")}
                   </Link>
                 </Button>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleOpenCompare}>
                 <Scale className="h-4 w-4" />
-                Compare
+                {t("compare")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -476,9 +482,9 @@ function TrendingRow({
       <Dialog open={compareOpen} onOpenChange={setCompareOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Compare {row.name}</DialogTitle>
+            <DialogTitle>{t("compareTitle", { name: row.name })}</DialogTitle>
             <DialogDescription>
-              Select another item to compare with {row.name}
+              {t("compareDescription", { name: row.name })}
             </DialogDescription>
           </DialogHeader>
           <GearSearchCombobox
@@ -487,8 +493,8 @@ function TrendingRow({
             onSelectionChange={handleCompareSelect}
             filters={row.gearType ? { gearType: row.gearType } : undefined}
             excludeIds={[row.slug]}
-            placeholder="Search for gear..."
-            searchPlaceholder="Search gear to compare"
+            placeholder={t("searchForGear")}
+            searchPlaceholder={t("searchGearToCompare")}
           />
         </DialogContent>
       </Dialog>

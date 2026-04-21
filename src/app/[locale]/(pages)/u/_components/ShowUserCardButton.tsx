@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -17,12 +18,13 @@ type ShowUserCardButtonProps = {
 };
 
 export function ShowUserCardButton({ user }: ShowUserCardButtonProps) {
+  const t = useTranslations("userProfile");
   const [open, setOpen] = useState(false);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button type="button">Show User Card</Button>
+        <Button type="button">{t("showUserCard")}</Button>
       </DialogTrigger>
       <DialogContent
         showCloseButton={false}
@@ -35,7 +37,7 @@ export function ShowUserCardButton({ user }: ShowUserCardButtonProps) {
               type="button"
               variant="outline"
               size="icon"
-              aria-label="Close"
+              aria-label={t("close")}
             >
               <XIcon />
             </Button>

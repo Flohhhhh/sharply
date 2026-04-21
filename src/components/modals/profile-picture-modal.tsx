@@ -19,6 +19,7 @@ import { genUploader } from "uploadthing/client";
 import type { OurFileRouter } from "~/app/(app)/api/uploadthing/core";
 import { Progress } from "~/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { useTranslations } from "next-intl";
 
 export interface ProfilePictureModalProps {
   trigger?: React.ReactNode;
@@ -27,6 +28,7 @@ export interface ProfilePictureModalProps {
 }
 
 export function ProfilePictureModal(props: ProfilePictureModalProps) {
+  const t = useTranslations("profileSettings");
   const router = useRouter();
   const { data } = useSession();
 
@@ -132,7 +134,7 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
 
   async function handleUploadSelected(file: File) {
     if (file.size > 4 * 1024 * 1024) {
-      toast.error("Image exceeds 4MB. Choose a smaller file.");
+      toast.error(t("imageExceedsLimit"));
       return;
     }
     try {
@@ -163,7 +165,7 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
         Array.isArray(res) ? res[0] : res
       ) as UploadResponse;
       const url = uploadResult?.serverData?.fileUrl ?? uploadResult?.url ?? "";
-      if (!url) throw new Error("Upload failed. Please try again.");
+      if (!url) throw new Error(t("uploadFailedTryAgain"));
       setIsUpdating(true);
       setProgressMode("save");
       setCombinedProgress(75);
@@ -184,13 +186,13 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
       // TODO: check if we need to do anything here with betterAuth
       // await updateSession();
 
-      toast.success("Profile picture updated.");
+      toast.success(t("profilePictureUpdated"));
       props.onSuccess?.({ url });
       router.refresh();
       await new Promise((r) => setTimeout(r, CLOSE_MODAL_DELAY_MS));
       setOpen(false);
     } catch (e) {
-      const message = e instanceof Error ? e.message : "Failed to upload";
+      const message = e instanceof Error ? e.message : t("failedToUpload");
       toast.error(message);
     } finally {
       setIsUploading(false);
@@ -208,7 +210,7 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
 
   const handleOpenChange = (next: boolean) => {
     if (next && !session) {
-      toast.error("You must be signed in to update your profile picture.");
+      toast.error(t("mustBeSignedInToUpdateProfilePicture"));
       setOpen(false);
       return;
     }
@@ -217,7 +219,7 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
 
   if (!session || !user) return null;
 
-  const userName = user.name ?? "User";
+  const userName = user.name ?? t("user");
   const userInitial = userName.charAt(0).toUpperCase();
   const displayedImageUrl = previewImageUrl ?? localImageUrl;
 
@@ -226,21 +228,21 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
       <DialogTrigger asChild>
         {props.trigger ?? (
           <Button icon={<ImageIcon className="h-4 w-4" />} variant="outline">
-            Update Profile Picture
+            {t("updateProfilePicture")}
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Update Profile Picture</DialogTitle>
+          <DialogTitle>{t("updateProfilePicture")}</DialogTitle>
           <DialogDescription>
-            Upload a profile picture. It will be displayed on your account.
+            {t("uploadProfilePictureDescription")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <div className="text-muted-foreground text-xs">Current picture</div>
+            <div className="text-muted-foreground text-xs">{t("currentPicture")}</div>
             <div className="bg-muted dark:bg-card flex h-32 w-full items-center justify-center overflow-hidden rounded border">
               <Avatar className="h-24 w-24">
                 <AvatarImage
@@ -257,7 +259,7 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
           {!displayedImageUrl && (
             <div className="space-y-2">
               <div className="text-muted-foreground text-xs">
-                Upload new picture
+                {t("uploadNewPicture")}
               </div>
               <div
                 className="bg-muted/40 dark:bg-card/60 flex h-32 w-full cursor-pointer items-center justify-center rounded border-2 border-dashed"
@@ -274,7 +276,7 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
                 }}
               >
                 <div className="text-muted-foreground text-sm">
-                  Drop image here or click to upload
+                  {t("dropImageHere")}
                 </div>
               </div>
             </div>
@@ -304,10 +306,12 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
               className="w-full"
             >
               {isUploading
-                ? `Uploading ${Math.min(100, Math.round(uploadProgress))}%`
+                ? t("uploadingProgress", {
+                    percent: Math.min(100, Math.round(uploadProgress)),
+                  })
                 : displayedImageUrl
-                  ? "Replace"
-                  : "Upload"}
+                  ? t("replace")
+                  : t("upload")}
             </Button>
           </div>
 
@@ -316,17 +320,19 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
               <Progress value={combinedProgress} />
               <div className="text-muted-foreground mt-1 text-xs">
                 {progressMode === "upload"
-                  ? `Uploading ${Math.min(100, Math.round(uploadProgress))}%`
+                  ? t("uploadingProgress", {
+                      percent: Math.min(100, Math.round(uploadProgress)),
+                    })
                   : combinedProgress < 100
-                    ? "Saving…"
-                    : "Done"}
+                    ? t("saving")
+                    : t("done")}
               </div>
             </div>
           )}
         </div>
 
         <div className="text-muted-foreground text-xs">
-          Max 1 file, 4MB. Images will be resized to 256px for optimal display.
+          {t("profilePictureLimits")}
         </div>
       </DialogContent>
     </Dialog>

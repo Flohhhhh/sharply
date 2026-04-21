@@ -114,13 +114,16 @@ describe("mapGearRowsToHomeActivityItems", () => {
 describe("ActivityList", () => {
   it("renders nothing when there are no items", () => {
     expect(
-      renderToStaticMarkup(createElement(ActivityList, { items: [] })),
+      renderToStaticMarkup(
+        createElement(ActivityList, { items: [], locale: "en" }),
+      ),
     ).toBe("");
   });
 
   it("renders the activity heading and gear links", () => {
     const html = renderToStaticMarkup(
       createElement(ActivityList, {
+        locale: "en",
         items: [
           {
             id: "gear-1",

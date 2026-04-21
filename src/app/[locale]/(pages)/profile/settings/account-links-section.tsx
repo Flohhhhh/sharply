@@ -21,6 +21,7 @@ import {
 } from "~/components/ui/alert-dialog";
 import type { LinkedAccountInfo } from "~/server/auth/account-linking";
 import { getAuthCallbackUrlForOrigin } from "~/lib/auth/callback-url";
+import { useLocale, useTranslations } from "next-intl";
 
 type ProviderKey = "discord" | "google";
 
@@ -59,6 +60,8 @@ export function AccountLinksSection({
   providerAvailability,
   userEmail,
 }: AccountLinksSectionProps) {
+  const t = useTranslations("profileSettings");
+  const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [localLinks, setLocalLinks] = useState(linkedAccounts);
@@ -80,20 +83,22 @@ export function AccountLinksSection({
     if (!linkedProvider) return;
     if (linkedProvider === "discord" || linkedProvider === "google") {
       const meta = PROVIDER_METADATA[linkedProvider];
-      toast.success(`${meta.label} linked`);
+      toast.success(t("providerLinked", { provider: meta.label }));
     }
-    router.replace("/profile/settings");
-  }, [router, searchParams]);
+    router.replace(`/${locale}/profile/settings`);
+  }, [locale, router, searchParams, t]);
 
   const handleConnect = async (provider: ProviderKey) => {
     setError(null);
     setConnecting(provider);
     const toastId = toast.loading(
-      `Opening ${PROVIDER_METADATA[provider].label} to link...`,
+      t("openingProviderToLink", {
+        provider: PROVIDER_METADATA[provider].label,
+      }),
     );
     try {
       const authCallbackUrl = getAuthCallbackUrlForOrigin(
-        `/profile/settings?linked=${provider}`,
+        `/${locale}/profile/settings?linked=${provider}`,
         window.location.origin,
         {
           baseOrigin: process.env.NEXT_PUBLIC_BASE_URL,
@@ -125,7 +130,7 @@ export function AccountLinksSection({
       });
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "Failed to start linking";
+        err instanceof Error ? err.message : t("failedToStartLinking");
       setError(message);
       toast.error(message);
       toast.dismiss(toastId);
@@ -137,10 +142,12 @@ export function AccountLinksSection({
     if (isBusy) return;
     setError(null);
     const toastId = toast.loading(
-      `Disconnecting ${PROVIDER_METADATA[provider].label}...`,
+      t("disconnectingProvider", {
+        provider: PROVIDER_METADATA[provider].label,
+      }),
     );
     startTransition(async () => {
-      const { data, error } = await unlinkAccount({
+      const { error } = await unlinkAccount({
         providerId: provider,
         accountId: accountId,
       });
@@ -148,7 +155,11 @@ export function AccountLinksSection({
         throw new Error(error.message);
       }
       setLocalLinks((prev) => ({ ...prev, [provider]: null }));
-      toast.success(`${PROVIDER_METADATA[provider].label} disconnected`);
+      toast.success(
+        t("providerDisconnected", {
+          provider: PROVIDER_METADATA[provider].label,
+        }),
+      );
       toast.dismiss(toastId);
       setConnecting(null);
     });
@@ -157,7 +168,7 @@ export function AccountLinksSection({
   return (
     <section className="border-border space-y-4 rounded-lg border p-4">
       <div className="space-y-1">
-        <h2 className="text-lg font-semibold">Connected Accounts</h2>
+        <h2 className="text-lg font-semibold">{t("connectedAccounts")}</h2>
       </div>
 
       <div className="space-y-3">
@@ -185,12 +196,12 @@ export function AccountLinksSection({
                     <Icon className={`${meta.accentClass} h-4 w-4`} />
                   )}
                   {available
-                    ? `Link a ${meta.label} account`
-                    : `${meta.label} linking disabled`}
+                    ? t("linkProviderAccount", { provider: meta.label })
+                    : t("providerLinkingDisabled", { provider: meta.label })}
                 </Button>
                 {!available ? (
                   <p className="text-muted-foreground text-xs">
-                    This provider is not configured for this environment.
+                    {t("providerNotConfigured")}
                   </p>
                 ) : null}
               </div>
@@ -207,7 +218,9 @@ export function AccountLinksSection({
                 <div className="space-y-0.5">
                   <p className="font-medium">{meta.label}</p>
                   <p className="text-muted-foreground text-sm">
-                    Connected as {userEmail || link.providerAccountId}
+                    {t("connectedAs", {
+                      account: userEmail || link.providerAccountId,
+                    })}
                   </p>
                 </div>
               </div>
@@ -219,32 +232,25 @@ export function AccountLinksSection({
                       {isPending ? (
                         <Loader className="h-4 w-4 animate-spin" />
                       ) : (
-                        "Disconnect"
+                        t("disconnect")
                       )}
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>
-                        Disconnect {meta.label}?
+                        {t("disconnectProviderTitle", { provider: meta.label })}
                       </AlertDialogTitle>
                       <AlertDialogDescription className="space-y-2">
-                        <p>
-                          You will not be able to sign in with this provider
-                          until you link it again.
-                        </p>
+                        <p>{t("disconnectProviderDescription")}</p>
                         {isLastLinkedOAuth ? (
-                          <p>
-                            This is your last linked OAuth account. If you
-                            continue, you will need to sign in using your
-                            email/magic link.
-                          </p>
+                          <p>{t("disconnectLastOauthWarning")}</p>
                         ) : null}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel disabled={isBusy}>
-                        Cancel
+                        {t("cancel")}
                       </AlertDialogCancel>
                       <AlertDialogAction
                         onClick={() =>
@@ -252,7 +258,7 @@ export function AccountLinksSection({
                         }
                         disabled={isBusy}
                       >
-                        Disconnect
+                        {t("disconnect")}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>

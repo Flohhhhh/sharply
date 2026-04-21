@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Menu } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   Sheet,
   SheetContent,
@@ -23,6 +24,7 @@ export default function LearnMobileArticleSheet({
 }: {
   groups: LearnMobileArticleGroup[];
 }) {
+  const t = useTranslations("learnBasicsPage");
   if (!groups.length) {
     return null;
   }
@@ -32,21 +34,21 @@ export default function LearnMobileArticleSheet({
       <div className="mx-auto flex max-w-[1500px] items-center justify-between px-4 py-3">
         <div>
           <p className="text-foreground text-sm font-semibold">
-            Learn articles
+            {t("learnArticles")}
           </p>
-          <p className="text-muted-foreground text-xs">Browse by category</p>
+          <p className="text-muted-foreground text-xs">{t("browseByCategory")}</p>
         </div>
         <Sheet>
           <SheetTrigger className="border-input hover:border-foreground inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold shadow-sm transition">
             <Menu className="size-4" />
-            Open list
+            {t("openList")}
           </SheetTrigger>
           <SheetContent
             side="bottom"
             className="max-h-[80vh] overflow-y-auto px-0"
           >
             <SheetHeader>
-              <SheetTitle>Browse all articles</SheetTitle>
+              <SheetTitle>{t("browseAllArticles")}</SheetTitle>
             </SheetHeader>
             <div className="space-y-6 px-6 pb-24">
               {groups.map((group) => (

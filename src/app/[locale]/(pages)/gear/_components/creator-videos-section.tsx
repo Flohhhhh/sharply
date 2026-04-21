@@ -1,5 +1,6 @@
 import { ExternalLink, InfoIcon } from "lucide-react";
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import type { PublicGearCreatorVideoRow } from "~/server/creator-videos/service";
 import {
@@ -17,11 +18,12 @@ function getInitials(name: string) {
     .join("");
 }
 
-export function CreatorVideosSection({
+export async function CreatorVideosSection({
   videos,
 }: {
   videos: PublicGearCreatorVideoRow[];
 }) {
+  const t = await getTranslations("gearDetail");
   if (!videos.length) {
     return null;
   }
@@ -31,15 +33,13 @@ export function CreatorVideosSection({
       <div className="space-y-2">
         <TooltipProvider>
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold">Trusted Coverage</h2>
+            <h2 className="text-lg font-semibold">{t("trustedCoverage")}</h2>
             <Tooltip>
               <TooltipTrigger>
                 <InfoIcon className="size-4 text-muted-foreground" />
               </TooltipTrigger>
               <TooltipContent>
-                <p>
-                  Videos from respected creators that feature this item.
-                </p>
+                <p>{t("trustedCoverageDescription")}</p>
               </TooltipContent>
             </Tooltip>
           </div>
@@ -69,7 +69,7 @@ export function CreatorVideosSection({
                     />
                   ) : (
                     <div className="text-muted-foreground flex aspect-video h-full items-center justify-center text-sm">
-                      No thumbnail
+                      {t("noThumbnail")}
                     </div>
                   )}
                 </div>
@@ -108,7 +108,7 @@ export function CreatorVideosSection({
                   <div className="mt-auto hidden justify-end pt-2 md:flex">
                     <span className="text-muted-foreground inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors group-hover:bg-accent/60 group-hover:text-foreground">
                       <ExternalLink className="size-4" />
-                      Watch
+                      {t("watch")}
                     </span>
                   </div>
                 </div>

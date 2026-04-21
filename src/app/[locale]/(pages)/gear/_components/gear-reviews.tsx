@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { GearReviewForm } from "./gear-review-form";
 import { GearReviewsList } from "./gear-reviews-list";
 import { Card, CardContent } from "~/components/ui/card";
@@ -12,6 +13,7 @@ export function GearReviews({
   slug: string;
   bannerSlot?: React.ReactNode;
 }) {
+  const t = useTranslations("gearDetail");
   const [initialReviews, setInitialReviews] = useState<any[] | undefined>(
     undefined,
   );
@@ -43,7 +45,7 @@ export function GearReviews({
   return (
     <div className="mt-12 space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Reviews</h3>
+        <h3 className="text-lg font-semibold">{t("reviews")}</h3>
         <span />
       </div>
       {bannerSlot}

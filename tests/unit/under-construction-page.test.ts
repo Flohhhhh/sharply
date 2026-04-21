@@ -26,6 +26,9 @@ const authHelperMocks = vi.hoisted(() => ({
 }));
 
 const clientComponentMock = vi.hoisted(() => vi.fn((_props: unknown) => null));
+const pageParams = {
+  params: Promise.resolve({ locale: "en" }),
+};
 
 vi.mock("~/server/gear/service", () => gearServiceMocks);
 vi.mock("~/server/metrics/service", () => metricsMocks);
@@ -76,7 +79,7 @@ describe("under construction page", () => {
     gearServiceMocks.listUnderConstruction.mockResolvedValue(items);
     metricsMocks.fetchGearCount.mockResolvedValue(10);
 
-    renderToStaticMarkup(await Page());
+    renderToStaticMarkup(await Page(pageParams));
     const props = getClientProps();
 
     expect(gearServiceMocks.listUnderConstruction).toHaveBeenCalledWith(1, 40);
@@ -95,7 +98,7 @@ describe("under construction page", () => {
     gearServiceMocks.listUnderConstruction.mockResolvedValue([]);
     metricsMocks.fetchGearCount.mockResolvedValue(0);
 
-    renderToStaticMarkup(await Page());
+    renderToStaticMarkup(await Page(pageParams));
     const props = getClientProps();
 
     expect(props.summary).toEqual({
@@ -114,7 +117,7 @@ describe("under construction page", () => {
     ]);
     metricsMocks.fetchGearCount.mockResolvedValue(3);
 
-    renderToStaticMarkup(await Page());
+    renderToStaticMarkup(await Page(pageParams));
     const props = getClientProps();
 
     expect(props.summary).toEqual({

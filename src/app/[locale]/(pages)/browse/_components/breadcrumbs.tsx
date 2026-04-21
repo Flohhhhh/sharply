@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { getCategoryLabel, type GearCategorySlug } from "~/lib/browse/routing";
 import { getMountDisplayName } from "~/lib/mapping/mounts-map";
 
@@ -8,9 +9,10 @@ type Props = {
   mountValue?: string | null;
 };
 
-export default function Breadcrumbs({ brand, category, mountValue }: Props) {
+export default async function Breadcrumbs({ brand, category, mountValue }: Props) {
+  const t = await getTranslations("browsePage");
   const items: Array<{ label: string; href?: string }> = [];
-  items.push({ label: "Browse", href: "/browse" });
+  items.push({ label: t("browse"), href: "/browse" });
 
   if (brand) {
     items.push({ label: brand.name, href: `/browse/${brand.slug}` });
@@ -23,7 +25,7 @@ export default function Breadcrumbs({ brand, category, mountValue }: Props) {
   }
   if (brand && category && mountValue) {
     items.push({
-      label: `${getMountDisplayName(mountValue)} Mount`,
+      label: t("mountLabel", { mount: getMountDisplayName(mountValue) }),
       // final crumb has no link
     });
   }

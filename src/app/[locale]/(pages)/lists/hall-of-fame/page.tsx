@@ -8,19 +8,27 @@ import { BlurFade } from "@/components/ui/blur-fade";
 import { Separator } from "@/components/ui/separator";
 import type { Metadata } from "next";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-static";
 
-export const metadata: Metadata = buildLocalizedMetadata("/lists/hall-of-fame", {
-  title: "Hall of Fame",
-  description:
-    "Explore Sharply’s Hall of Fame, a curated collection of the most iconic and influential cameras and lenses in photography history, highlighting the gear that shaped the industry and remains relevant today.",
-  openGraph: {
-    title: "Hall of Fame",
-    description:
-      "Explore Sharply’s Hall of Fame, a curated collection of the most iconic and influential cameras and lenses in photography history, highlighting the gear that shaped the industry and remains relevant today.",
-  },
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "hallOfFamePage" });
+
+  return buildLocalizedMetadata("/lists/hall-of-fame", {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+    openGraph: {
+      title: t("metaTitle"),
+      description: t("metaDescription"),
+    },
+  });
+}
 
 type DatePrecision = "DAY" | "MONTH" | "YEAR";
 
@@ -58,21 +66,25 @@ function normalizeForSort(date: Date, precision: DatePrecision): Date {
   return new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
 }
 
-function formatForDisplay(date: Date, precision: DatePrecision): string {
+function formatForDisplay(
+  date: Date,
+  precision: DatePrecision,
+  locale: string,
+): string {
   if (precision === "DAY") {
-    return date.toLocaleDateString(undefined, {
+    return date.toLocaleDateString(locale, {
       year: "numeric",
       month: "short",
       day: "2-digit",
     });
   }
   if (precision === "MONTH") {
-    return date.toLocaleDateString(undefined, {
+    return date.toLocaleDateString(locale, {
       year: "numeric",
       month: "short",
     });
   }
-  return date.toLocaleDateString(undefined, { year: "numeric" });
+  return date.toLocaleDateString(locale, { year: "numeric" });
 }
 
 function isNotFoundError(error: unknown): error is { status?: number } {
@@ -84,7 +96,13 @@ function isNotFoundError(error: unknown): error is { status?: number } {
   return typeof status === "number" && status === 404;
 }
 
-export default async function HallOfFamePage() {
+export default async function HallOfFamePage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "hallOfFamePage" });
   // Fetch gear for each entry at build time
   const rawEntries = await Promise.all(
     hallOfFameItems.map(async (item) => {
@@ -134,7 +152,7 @@ export default async function HallOfFamePage() {
         </BlurFade>
         <BlurFade delay={0.1}>
           <h1 className="font-fancy mt-12 text-[4rem] leading-normal tracking-tight italic sm:text-[10rem] sm:leading-16">
-            hall of fame
+            {t("pageTitle")}
           </h1>
         </BlurFade>
         {/* 
@@ -143,11 +161,7 @@ export default async function HallOfFamePage() {
         */}
         <BlurFade delay={0.2}>
           <p className="text-muted-foreground max-w-xl text-center text-sm sm:text-left sm:text-base md:columns-2 md:gap-8">
-            This hall of fame list collects some of the most iconic and
-            influential gear in the history of photography. We curate this list
-            to highlight the cameras and lenses that have had the most impact on
-            the industry and the community over the years and those that are
-            well known even today despite their age.
+            {t("intro")}
           </p>
         </BlurFade>
       </div>
@@ -162,11 +176,10 @@ export default async function HallOfFamePage() {
               <div className="text-muted-foreground flex flex-col items-center gap-4 rounded-lg border border-dashed px-6 py-12 text-center">
                 <TbLaurelWreath className="text-primary size-12" />
                 <p className="text-lg font-medium">
-                  No hall of fame entries are available yet.
+                  {t("emptyTitle")}
                 </p>
                 <p className="text-sm">
-                  Add gear data to your local database and reload this page to
-                  celebrate legendary equipment.
+                  {t("emptyDescription")}
                 </p>
               </div>
             </BlurFade>
@@ -178,6 +191,7 @@ export default async function HallOfFamePage() {
               const formattedDate = formatForDisplay(
                 entry.bestDate,
                 entry.bestPrecision,
+                locale,
               );
               return (
                 <BlurFade
@@ -227,7 +241,7 @@ export default async function HallOfFamePage() {
                           ) : (
                             <div className="flex aspect-video items-center justify-center">
                               <div className="text-muted-foreground text-lg">
-                                No image available
+                                {t("noImageAvailable")}
                               </div>
                             </div>
                           )}

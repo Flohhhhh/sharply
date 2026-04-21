@@ -1,4 +1,5 @@
 import { ManageStaffVerdictModal } from "./manage-staff-verdict-modal";
+import { getTranslations } from "next-intl/server";
 import { hasStaffVerdictContent } from "./gear-section-nav";
 
 interface StaffVerdict {
@@ -17,6 +18,7 @@ export async function StaffVerdictSection({
   slug: string;
   verdict: StaffVerdict | null;
 }) {
+  const t = await getTranslations("gearDetail");
   if (!hasStaffVerdictContent(verdict) || !verdict) {
     return null;
   }
@@ -30,7 +32,7 @@ export async function StaffVerdictSection({
   return (
     <section id="staff-verdict" className="scroll-mt-24 space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Staff Verdict</h3>
+        <h3 className="text-lg font-semibold">{t("staffVerdict")}</h3>
         <ManageStaffVerdictModal slug={slug} />
       </div>
 
@@ -54,7 +56,7 @@ export async function StaffVerdictSection({
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             {Array.isArray(pros) && pros.length > 0 && (
               <div className="rounded border border-green-400/50 bg-green-400/5 p-3">
-                <div className="text-lg font-semibold">The Good</div>
+                <div className="text-lg font-semibold">{t("theGood")}</div>
                 <ul className="my-3 list-disc space-y-2 pl-5 text-sm text-green-600 dark:text-green-400">
                   {pros.map((p: string, i: number) => (
                     <li key={i}>{p}</li>
@@ -64,7 +66,7 @@ export async function StaffVerdictSection({
             )}
             {Array.isArray(cons) && cons.length > 0 && (
               <div className="rounded border border-red-400/50 bg-red-400/5 p-3">
-                <div className="text-lg font-semibold">The Bad</div>
+                <div className="text-lg font-semibold">{t("theBad")}</div>
                 <ul className="my-3 list-disc space-y-2 pl-5 text-sm text-red-600 dark:text-red-400">
                   {cons.map((c: string, i: number) => (
                     <li key={i}>{c}</li>
@@ -79,13 +81,15 @@ export async function StaffVerdictSection({
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             {verdict.whoFor && (
               <div className="border-border rounded border p-3">
-                <div className="text-lg font-semibold">Who it's for</div>
+                <div className="text-lg font-semibold">{t("whoItsFor")}</div>
                 <p className="mt-4 text-sm leading-relaxed">{verdict.whoFor}</p>
               </div>
             )}
             {verdict.notFor && (
               <div className="border-border rounded border p-3">
-                <div className="text-lg font-semibold">Who it's not for</div>
+                <div className="text-lg font-semibold">
+                  {t("whoItsNotFor")}
+                </div>
                 <p className="mt-4 text-sm leading-relaxed">{verdict.notFor}</p>
               </div>
             )}
@@ -94,7 +98,7 @@ export async function StaffVerdictSection({
 
         {Array.isArray(alternatives) && alternatives.length > 0 && (
           <div className="mt-4">
-            <div className="text-lg font-semibold">Top alternatives</div>
+            <div className="text-lg font-semibold">{t("topAlternatives")}</div>
             <ul className="list-disc pl-5 text-sm">
               {alternatives.map((a: string, i: number) => (
                 <li key={i}>{a}</li>

@@ -7,6 +7,7 @@ import { Button } from "~/components/ui/button";
 import { actionUpdateSocialLinks } from "~/server/users/actions";
 import { Globe, Instagram } from "lucide-react";
 import type { SocialLink } from "~/server/users/service";
+import { useTranslations } from "next-intl";
 
 type SocialLinksFormProps = {
   defaultLinks: SocialLink[];
@@ -61,6 +62,7 @@ export function SocialLinksForm({
   defaultLinks,
   onSuccess,
 }: SocialLinksFormProps) {
+  const t = useTranslations("profileSettings");
   const [instagramSlug, setInstagramSlug] = useState("");
   const [portfolioUrl, setPortfolioUrl] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -110,7 +112,7 @@ export function SocialLinksForm({
         setTimeout(() => setSuccess(false), 3000);
       } catch (err) {
         const errorMessage =
-          err instanceof Error ? err.message : "An error occurred";
+          err instanceof Error ? err.message : t("genericError");
         setError(errorMessage);
       }
     });
@@ -120,39 +122,40 @@ export function SocialLinksForm({
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-3">
         <div className="space-y-1.5">
-          <Label htmlFor="instagram">Instagram</Label>
+          <Label htmlFor="instagram">{t("instagram")}</Label>
           <div className="relative">
             <Instagram className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
             <Input
               id="instagram"
               value={instagramSlug}
               onChange={(e) => setInstagramSlug(e.target.value)}
-              placeholder="username"
+              placeholder={t("instagramPlaceholder")}
               className="pl-9"
-              aria-label="Instagram username"
+              aria-label={t("instagramUsername")}
             />
           </div>
           <p className="text-muted-foreground text-xs">
-            Will save: {instagramUrlPreview || "Add a username to create link"}
+            {t("willSave")}:{" "}
+            {instagramUrlPreview || t("addUsernameToCreateLink")}
           </p>
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="portfolio">Portfolio</Label>
+          <Label htmlFor="portfolio">{t("portfolio")}</Label>
           <div className="relative">
             <Globe className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
             <Input
               id="portfolio"
               value={portfolioUrl}
               onChange={(e) => setPortfolioUrl(e.target.value)}
-              placeholder="https://your-portfolio.com"
+              placeholder={t("portfolioPlaceholder")}
               className="pl-9"
-              aria-label="Portfolio URL"
+              aria-label={t("portfolioUrl")}
               type="url"
             />
           </div>
           <p className="text-muted-foreground text-xs">
-            Will save: {portfolioUrlPreview || "Add a URL to create link"}
+            {t("willSave")}: {portfolioUrlPreview || t("addUrlToCreateLink")}
           </p>
         </div>
       </div>
@@ -160,12 +163,12 @@ export function SocialLinksForm({
       {error ? <p className="text-destructive text-sm">{error}</p> : null}
       {success ? (
         <p className="text-green-600 dark:text-green-400 text-sm">
-          Social links updated successfully!
+          {t("socialLinksUpdated")}
         </p>
       ) : null}
 
       <Button type="submit" disabled={isPending} loading={isPending}>
-        Save Changes
+        {t("saveChanges")}
       </Button>
     </form>
   );

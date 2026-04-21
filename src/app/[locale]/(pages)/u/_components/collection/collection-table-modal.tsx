@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { TrashIcon } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -212,12 +213,13 @@ function renderSpecFieldValue(params: {
 }
 
 export function CollectionTableModal(props: CollectionTableModalProps) {
+  const t = useTranslations("userProfile");
   const {
     items,
     columnKeys = COLLECTION_TABLE_COLUMNS_DEFAULT,
     trigger,
-    title = "Manage collection",
-    description = "Inspect and manage your collection items.",
+    title,
+    description,
   } = props;
 
   const [isOpen, setIsOpen] = useState(false);
@@ -321,17 +323,21 @@ export function CollectionTableModal(props: CollectionTableModalProps) {
 
   const modalTrigger = trigger ?? (
     <Button variant="outline" size="sm">
-      Manage collection
+      {t("manageCollection")}
     </Button>
   );
+
+  const resolvedTitle = title ?? t("manageCollection");
+  const resolvedDescription =
+    description ?? t("inspectAndManageCollectionItems");
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger>{modalTrigger}</DialogTrigger>
       <DialogContent className="sm:max-w-5xl">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+          <DialogTitle>{resolvedTitle}</DialogTitle>
+          <DialogDescription>{resolvedDescription}</DialogDescription>
         </DialogHeader>
 
         <div className="max-h-[70vh] overflow-auto rounded border">

@@ -16,28 +16,84 @@ import type { Metadata } from "next";
 import DiscordBanner from "~/components/discord-banner";
 import { LocaleLink } from "~/components/locale-link";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import { getTranslations } from "next-intl/server";
 
-export const metadata: Metadata = buildLocalizedMetadata("/about", {
-  title: "About",
-  openGraph: {
-    title: "About",
-  },
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "aboutPage" });
 
-export default function About() {
+  return buildLocalizedMetadata("/about", {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+    openGraph: {
+      title: t("metaTitle"),
+      description: t("metaDescription"),
+    },
+  });
+}
+
+export default async function About({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "aboutPage" });
+  const valueCards = [
+    {
+      icon: Heart,
+      title: t("valuesOpenTitle"),
+      description: t("valuesOpenDescription"),
+    },
+    {
+      icon: ScanHeart,
+      title: t("valuesCommunityTitle"),
+      description: t("valuesCommunityDescription"),
+    },
+    {
+      icon: Flame,
+      title: t("valuesModernTitle"),
+      description: t("valuesModernDescription"),
+    },
+    {
+      icon: BadgeCheck,
+      title: t("valuesReliableTitle"),
+      description: t("valuesReliableDescription"),
+    },
+  ];
+  const timelineItems: [
+    { title: string; description: string },
+    { title: string; description: string },
+    { title: string; description: string },
+  ] = [
+    {
+      title: t("timelineStep1Title"),
+      description: t("timelineStep1Description"),
+    },
+    {
+      title: t("timelineStep2Title"),
+      description: t("timelineStep2Description"),
+    },
+    {
+      title: t("timelineStep3Title"),
+      description: t("timelineStep3Description"),
+    },
+  ];
+
   return (
     <div className="mt-36 min-h-screen space-y-16">
-      <h1 className="sr-only text-2xl font-bold">About</h1>
+      <h1 className="sr-only text-2xl font-bold">{t("pageTitle")}</h1>
       <section className="mx-auto w-full max-w-7xl space-y-8 px-4 sm:px-8">
         <div className="mb-12 grid grid-cols-1 gap-8 sm:grid-cols-2">
           <h2 className="max-w-lg text-4xl font-bold sm:text-6xl">
-            Photography for Everyone
+            {t("heroTitle")}
           </h2>
           <p className="text-muted-foreground max-w-lg self-end">
-            Sharply is building a modern reference for photography knowledge. We
-            bring together accurate, open-source gear data, structured community
-            insight, and focused editorial context to make photography
-            information clear, reliable, and accessible for every photographer.
+            {t("heroDescription")}
           </p>
         </div>
 
@@ -52,7 +108,7 @@ export default function About() {
           <div className="bg-primary flex items-center justify-center gap-4 rounded-b-2xl p-4">
             <ScanHeart className="size-5 animate-pulse" />
             <p className="text-primary-foreground text-center text-sm">
-              Photography knowledge made open and accessible for everyone!
+              {t("heroBanner")}
             </p>
           </div>
         </div>
@@ -61,85 +117,32 @@ export default function About() {
       <section className="mx-auto w-full max-w-7xl space-y-8 px-4 pt-8 pb-16 sm:px-8">
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
           <div className="top-24 max-w-lg space-y-4">
-            <Badge>Our Mission</Badge>
-            <h3 className="text-3xl font-bold">
-              We're building a better way to learn about & find gear.
-            </h3>
-            <p className="text-muted-foreground">
-              Sharply is built to be a clear, reliable reference for photography
-              gear, designed around how people actually research and use
-              equipment. Instead of prioritizing long-form opinion, Sharply
-              focuses on structured specifications, real-world samples, and
-              precise answers to specific questions, making it easy to find the
-              exact information you need without friction. By organizing gear
-              data, comparisons, and editorial insight into a searchable,
-              consistent system, Sharply aims to become the first place
-              photographers turn when evaluating cameras, lenses, and tools,
-              complementing existing reviews with clarity, depth, and
-              accessibility rather than replacing them.
-            </p>
+            <Badge>{t("missionBadge")}</Badge>
+            <h3 className="text-3xl font-bold">{t("missionTitle")}</h3>
+            <p className="text-muted-foreground">{t("missionBody")}</p>
           </div>
           <div className="flex flex-col gap-3">
-            {/* Open Access */}
-            <div className="bg-card flex items-start gap-4 rounded-md border p-5">
-              <div className="bg-secondary flex h-12 w-12 shrink-0 items-center justify-center rounded">
-                <Heart className="text-foreground-muted w-8" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold">Open and Transparent</h3>
-                <p className="text-muted-foreground text-sm">
-                  All our data, specs, and insights are freely accessible and
-                  explained in plain language.
-                </p>
-              </div>
-            </div>
-            {/* Community Insight */}
-            <div className="bg-card flex items-start gap-4 rounded-md border p-5">
-              <div className="bg-secondary flex h-12 w-12 shrink-0 items-center justify-center rounded">
-                <ScanHeart className="text-foreground-muted w-8" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold">
-                  Shaped by Photographers
-                </h3>
-                <p className="text-muted-foreground text-sm">
-                  Contributions come from photographers just like you, and are
-                  validated and approved by trusted editors so you can trust the
-                  information you find.
-                </p>
-              </div>
-            </div>
-            {/* Modern Experience */}
-            <div className="bg-card flex items-start gap-4 rounded-md border p-5">
-              <div className="bg-secondary flex h-12 w-12 shrink-0 items-center justify-center rounded">
-                {/* Using a camera icon for modern experience */}
-                <Flame className="text-foreground-muted w-8" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold">Built for Today</h3>
-                <p className="text-muted-foreground text-sm">
-                  Our modern & modest design combined with the latest technology
-                  meets the most current user experience standards making
-                  exploring gear and knowledge effortless.
-                </p>
-              </div>
-            </div>
-            {/* Trusted Knowledge */}
-            <div className="bg-card flex items-start gap-4 rounded-md border p-5">
-              <div className="bg-secondary flex h-12 w-12 shrink-0 items-center justify-center rounded">
-                {/* Using a check-circle icon for trust */}
-                <BadgeCheck className="text-foreground-muted w-8" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold">Accurate and Reliable</h3>
-                <p className="text-muted-foreground text-sm">
-                  Verified specs and curated reviews ensure clarity and
-                  confidence in every decision.
-                </p>
-              </div>
-            </div>
+            {valueCards.map((card) => {
+              const Icon = card.icon;
+              return (
+                <div
+                  key={card.title}
+                  className="bg-card flex items-start gap-4 rounded-md border p-5"
+                >
+                  <div className="bg-secondary flex h-12 w-12 shrink-0 items-center justify-center rounded">
+                    <Icon className="text-foreground-muted w-8" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold">{card.title}</h3>
+                    <p className="text-muted-foreground text-sm">
+                      {card.description}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
             <Button asChild>
-              <LocaleLink href="/gear">View the gear database</LocaleLink>
+              <LocaleLink href="/gear">{t("databaseCta")}</LocaleLink>
             </Button>
           </div>
         </div>
@@ -148,62 +151,19 @@ export default function About() {
       <section className="dark:bg-accent/50 w-full space-y-8 bg-white">
         <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 px-4 py-24 sm:grid-cols-2 sm:px-8">
           <div className="max-w-lg space-y-4">
-            <Badge>The Problem</Badge>
-            <h2 className="text-3xl font-bold">Why it Matters</h2>
-            <p className="text-muted-foreground">
-              Photography knowledge today is scattered and inconsistent. Specs
-              are locked away on manufacturer sites, reviews are spread across
-              dozens of platforms, and testing methods vary so much that it’s
-              hard to make meaningful comparisons. For photographers, this
-              creates frustration, wasted time, and uncertainty when choosing
-              gear.
-            </p>
-            <p className="text-muted-foreground">
-              Many of the existing standards are also difficult to access.
-              They’re designed for labs or institutions, often hidden behind
-              technical jargon or paywalls, and they feel out of reach for
-              everyday photographers. Instead of making knowledge easier to
-              understand, these systems unintentionally create barriers.
-            </p>
-            <p className="text-muted-foreground">
-              The result is a landscape where information is fragmented, trust
-              is hard to earn, and too often, only insiders or dedicated
-              enthusiasts can truly make sense of it all.
-            </p>
+            <Badge>{t("problemBadge")}</Badge>
+            <h2 className="text-3xl font-bold">{t("problemTitle")}</h2>
+            <p className="text-muted-foreground">{t("problemBody1")}</p>
+            <p className="text-muted-foreground">{t("problemBody2")}</p>
+            <p className="text-muted-foreground">{t("problemBody3")}</p>
           </div>
           <div className="max-w-lg space-y-4">
-            <Badge>The Solution</Badge>
-            <h2 className="text-3xl font-bold">Our Vision for the Future</h2>
-            <p className="text-muted-foreground">
-              We believe photography knowledge should be open, transparent, and
-              accessible to everyone, whether you are buying your first camera
-              or evaluating a flagship system for professional work. Our
-              platform brings together accurate gear data, structured community
-              insights, and thoughtful editorial to make learning and comparing
-              simple and seamless.
-            </p>
-            <p className="text-muted-foreground">
-              We do not just want to present information, we want to reshape how
-              it is created and shared. Our long-term vision is to pioneer open
-              and accessible standards for photography testing and data
-              practices. Instead of each site or brand using their own closed
-              method, we hope to lead the way in creating a shared approach that
-              is clear, replicable, and available to the entire community.
-            </p>
-            <p className="text-muted-foreground">
-              Our goal is consistent and in-depth technical analysis with clear
-              charts across the catalog. Building this requires careful
-              standards, reliable tooling, and a lot of real-world data, so we
-              will roll it out steadily over time. You will see coverage deepen
-              as we publish new tests and visualizations.
-            </p>
-            <p className="text-muted-foreground">
-              This future is about clarity, accessibility, and collaboration. By
-              working together with like-minded photographers, contributors, and
-              brands, we believe Sharply can not only provide the modern
-              platform photographers need today but also set the stage for
-              tomorrow’s open photography standards.
-            </p>
+            <Badge>{t("solutionBadge")}</Badge>
+            <h2 className="text-3xl font-bold">{t("solutionTitle")}</h2>
+            <p className="text-muted-foreground">{t("solutionBody1")}</p>
+            <p className="text-muted-foreground">{t("solutionBody2")}</p>
+            <p className="text-muted-foreground">{t("solutionBody3")}</p>
+            <p className="text-muted-foreground">{t("solutionBody4")}</p>
           </div>
         </div>
       </section>
@@ -211,30 +171,24 @@ export default function About() {
       <section className="mx-auto w-full max-w-7xl space-y-8 px-4 py-16 sm:px-8">
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
           <div className="top-24 max-w-lg space-y-4">
-            <Badge>Crowd-sourced</Badge>
-            <h3 className="text-3xl font-bold">How it Works</h3>
+            <Badge>{t("workflowBadge")}</Badge>
+            <h3 className="text-3xl font-bold">{t("workflowTitle")}</h3>
             <p className="text-muted-foreground max-w-lg">
-              Anyone can contribute to the database by submitting changes or
-              suggestions. This allows us to have the most accurate and up to
-              date information compared to review sites.
+              {t("workflowDescription")}
             </p>
             <div className="mt-12 flex gap-8">
-              <GearCounter />
-              <ContributionCounter />
+              <GearCounter locale={locale} />
+              <ContributionCounter locale={locale} />
             </div>
           </div>
-          <Timeline />
+          <Timeline items={timelineItems} />
         </div>
       </section>
 
       <section className="dark:bg-accent/50 mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 rounded-xl bg-white px-8 py-12 sm:grid-cols-2 sm:px-12">
         <div className="space-y-4">
-          <h2 className="text-3xl font-bold">Let's Get Started</h2>
-          <p className="text-muted-foreground">
-            We are always looking for like-minded people who share our mission.
-            Whether you are a reviewer, developer, or simply passionate about
-            photography, you can be a part of the future of photography.
-          </p>
+          <h2 className="text-3xl font-bold">{t("ctaTitle")}</h2>
+          <p className="text-muted-foreground">{t("ctaDescription")}</p>
 
           <AboutCta />
         </div>
@@ -242,19 +196,19 @@ export default function About() {
           <ul className="list-inside list-none space-y-4 pl-12">
             <li className="flex items-center gap-2">
               <CheckCircle2 className="size-4 text-emerald-400" />
-              Suggest gear spec changes
+              {t("checklistEditSpecs")}
             </li>
             <li className="flex items-center gap-2">
               <CheckCircle2 className="size-4 text-emerald-400" />
-              Save gear to your collection
+              {t("checklistSaveCollection")}
             </li>
             <li className="flex items-center gap-2">
               <CheckCircle2 className="size-4 text-emerald-400" />
-              Write reviews and share your experiences
+              {t("checklistWriteReviews")}
             </li>
             <li className="flex items-center gap-2">
               <CheckCircle2 className="size-4 text-emerald-400" />
-              Add items to your wishlist
+              {t("checklistWishlist")}
             </li>
           </ul>
         </div>

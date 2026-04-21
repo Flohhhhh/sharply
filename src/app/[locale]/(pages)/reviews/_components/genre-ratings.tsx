@@ -16,6 +16,7 @@ import {
 import { GENRES } from "~/lib/generated";
 import { cn } from "~/lib/utils";
 import { Separator } from "~/components/ui/separator";
+import { useTranslations } from "next-intl";
 
 type GenreRatingsMap = Record<string, string | null | undefined>;
 
@@ -26,6 +27,7 @@ export function GenreRatings({
   genreRatings: GenreRatingsMap;
   gearName: string;
 }) {
+  const t = useTranslations("reviewPage");
   const bySlug = React.useMemo(
     () => new Map((GENRES as any[]).map((g: any) => [g.slug as string, g])),
     [],
@@ -44,27 +46,27 @@ export function GenreRatings({
   const getMeta = (v: string | null | undefined) => {
     if (v === "3")
       return {
-        label: "Excels",
+        label: t("excels"),
         color: "text-blue-600 dark:text-blue-400",
         bg: "bg-blue-500/5 border-blue-500/40",
         Icon: Sparkles,
       } as const;
     if (v === "2")
       return {
-        label: "Acceptable",
+        label: t("acceptable"),
         color: "text-green-600 dark:text-green-400",
         bg: "bg-green-500/5 border-green-500/40",
         Icon: CircleCheck,
       } as const;
     if (v === "1")
       return {
-        label: "Underperforms",
+        label: t("underperforms"),
         color: "text-amber-600 dark:text-amber-400",
         bg: "bg-amber-500/5 border-amber-500/40",
         Icon: AlertTriangle,
       } as const;
     return {
-      label: "N/A",
+      label: t("notApplicable"),
       color: "text-muted-foreground",
       bg: "",
       Icon: Circle,
@@ -95,16 +97,16 @@ export function GenreRatings({
   }, [visible, bySlug]);
 
   const columns: Array<{ key: "3" | "2" | "1"; title: string }> = [
-    { key: "3", title: "Excels" },
-    { key: "2", title: "Acceptable" },
-    { key: "1", title: "Underperforms" },
+    { key: "3", title: t("excels") },
+    { key: "2", title: t("acceptable") },
+    { key: "1", title: t("underperforms") },
   ];
 
   return (
     <div className="mx-auto mt-4 max-w-3xl">
       <div className="mb-2">
         <h3 className="scroll-mt-24 text-lg font-semibold">
-          {gearName} <span className="sr-only">-</span> Genre Ratings
+          {gearName} <span className="sr-only">-</span> {t("genreRatings")}
         </h3>
       </div>
 
@@ -162,7 +164,7 @@ export function GenreRatings({
 
                   {list.length === 0 ? (
                     <div className="text-muted-foreground rounded-md border border-dashed p-3 text-xs">
-                      No items
+                      {t("noItems")}
                     </div>
                   ) : null}
                 </div>

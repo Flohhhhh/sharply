@@ -6,6 +6,7 @@ import {
   type FormEvent,
 } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Button } from "~/components/ui/button";
@@ -20,6 +21,7 @@ export function DisplayNameForm({
   defaultName,
   onSuccess,
 }: DisplayNameFormProps) {
+  const t = useTranslations("profileSettings");
   const router = useRouter();
   const [name, setName] = useState(defaultName);
   const [isPending, startTransition] = useTransition();
@@ -36,10 +38,10 @@ export function DisplayNameForm({
           onSuccess?.(res.name);
           router.refresh();
         } else {
-          setError("Could not update your display name. Please try again.");
+          setError(t("displayNameUpdateError"));
         }
       } catch (err) {
-        setError("Failed to update display name. Please try again.");
+        setError(t("displayNameUpdateFailed"));
       }
     });
   };
@@ -47,23 +49,22 @@ export function DisplayNameForm({
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="displayName">Display Name</Label>
+        <Label htmlFor="displayName">{t("displayName")}</Label>
         <Input
           id="displayName"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Your display name"
-          aria-label="Display Name"
+          placeholder={t("displayNamePlaceholder")}
+          aria-label={t("displayName")}
         />
         <p className="text-muted-foreground text-xs">
-          This is what other users will see when they visit your profile or when
-          you write reviews.
+          {t("displayNameHelp")}
         </p>
       </div>
       {error ? <p className="text-destructive text-sm">{error}</p> : null}
 
       <Button type="submit" disabled={isPending} loading={isPending}>
-        Save Changes
+        {t("saveChanges")}
       </Button>
     </form>
   );

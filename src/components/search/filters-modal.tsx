@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Filter as FilterIcon } from "lucide-react";
 import {
@@ -64,6 +65,7 @@ function useSyncedParam(key: string, fallback: string | undefined = undefined) {
 }
 
 export function FiltersModal() {
+  const t = useTranslations("search");
   const router = useRouter();
   const sp = useSearchParams();
   const rawPathname = usePathname();
@@ -138,17 +140,17 @@ export function FiltersModal() {
           size="sm"
           icon={<FilterIcon className="h-4 w-4" />}
         >
-          Filters
+          {t("filters")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Filters</DialogTitle>
+          <DialogTitle>{t("filters")}</DialogTitle>
         </DialogHeader>
 
         {/* Gear Type */}
         <div className="space-y-2">
-          <div className="text-sm font-medium">Type of gear</div>
+          <div className="text-sm font-medium">{t("typeOfGear")}</div>
           <RadioGroup
             value={gearType}
             onValueChange={onChangeGearType}
@@ -156,28 +158,28 @@ export function FiltersModal() {
           >
             <label className="inline-flex items-center gap-2 rounded-md border px-3 py-2">
               <RadioGroupItem value="" id="gt-all" />
-              <span>Any</span>
+              <span>{t("any")}</span>
             </label>
             <label className="inline-flex items-center gap-2 rounded-md border px-3 py-2">
               <RadioGroupItem value="CAMERA" id="gt-camera" />
-              <span>Camera</span>
+              <span>{t("camera")}</span>
             </label>
             <label className="inline-flex items-center gap-2 rounded-md border px-3 py-2">
               <RadioGroupItem value="LENS" id="gt-lens" />
-              <span>Lens</span>
+              <span>{t("lens")}</span>
             </label>
           </RadioGroup>
         </div>
 
         {/* Mount */}
         <div className="space-y-2">
-          <div className="text-sm font-medium">Mount</div>
+          <div className="text-sm font-medium">{t("mount")}</div>
           <Select value={mount} onValueChange={onChangeMount}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Any mount" />
+              <SelectValue placeholder={t("anyMount")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__any__">Any mount</SelectItem>
+              <SelectItem value="__any__">{t("anyMount")}</SelectItem>
               {MOUNT_OPTIONS.map((m) => (
                 <SelectItem key={m.id} value={m.value}>
                   {getMountLongName(m.value)}
@@ -189,13 +191,13 @@ export function FiltersModal() {
 
         {/* Sensor Format */}
         <div className="space-y-2">
-          <div className="text-sm font-medium">Sensor format</div>
+          <div className="text-sm font-medium">{t("sensorFormat")}</div>
           <Select value={sensorFormat} onValueChange={onChangeSensor}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Any sensor" />
+              <SelectValue placeholder={t("anySensor")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__any__">Any sensor</SelectItem>
+              <SelectItem value="__any__">{t("anySensor")}</SelectItem>
               {SENSOR_OPTIONS.map((s) => (
                 <SelectItem key={s.id} value={s.slug}>
                   {s.name}
@@ -207,16 +209,16 @@ export function FiltersModal() {
 
         {/* Brand */}
         <div className="space-y-2">
-          <div className="text-sm font-medium">Brand</div>
+          <div className="text-sm font-medium">{t("brand")}</div>
           <Select
             value={brand || "__any__"}
             onValueChange={(v) => onChangeBrand(v === "__any__" ? "" : v)}
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Any brand" />
+              <SelectValue placeholder={t("anyBrand")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__any__">Any brand</SelectItem>
+              <SelectItem value="__any__">{t("anyBrand")}</SelectItem>
               {BRAND_OPTIONS.map((b) => (
                 <SelectItem key={b.id} value={b.name}>
                   {b.name}
@@ -228,7 +230,7 @@ export function FiltersModal() {
 
         {/* Price range */}
         <div className="space-y-2">
-          <div className="text-sm font-medium">Price range</div>
+          <div className="text-sm font-medium">{t("priceRange")}</div>
           <Slider
             value={[
               priceToSlider(
@@ -270,7 +272,7 @@ export function FiltersModal() {
           />
           <div className="text-muted-foreground flex items-center justify-between text-sm">
             <span>${price[0]}</span>
-            <span>{price[1] ? `$${price[1]}` : "No max"}</span>
+            <span>{price[1] ? `$${price[1]}` : t("noMax")}</span>
           </div>
         </div>
 
@@ -304,9 +306,9 @@ export function FiltersModal() {
               setPrice([0, 0]);
             }}
           >
-            Clear all
+            {t("clearAll")}
           </Button>
-          <Button onClick={() => setOpen(false)}>Close</Button>
+          <Button onClick={() => setOpen(false)}>{t("close")}</Button>
         </div>
       </DialogContent>
     </Dialog>

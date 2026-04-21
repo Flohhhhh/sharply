@@ -1,26 +1,21 @@
 import { CheckCircle, MailWarning, UserStar } from "lucide-react";
 
-export default function Timeline() {
+type TimelineItem = {
+  title: string;
+  description: string;
+};
+
+type TimelineProps = {
+  items: [TimelineItem, TimelineItem, TimelineItem];
+};
+
+export default function Timeline({ items }: TimelineProps) {
   const data = [
-    {
-      title: "You submit a change request",
-      description:
-        "If you see missing or incorrect data on a gear page, you are able to submit a change request for it.",
-      icon: MailWarning,
-    },
-    {
-      title: "Our team reviews the change request",
-      description:
-        "Our team will review the change request and either approve it or request additional information.",
-      icon: UserStar,
-    },
-    {
-      title: "The change is approved",
-      description:
-        "Once the change is approved, it will be live on the site for everyone to see! We'll credit you for your contribution.",
-      icon: CheckCircle,
-    },
+    { ...items[0], icon: MailWarning },
+    { ...items[1], icon: UserStar },
+    { ...items[2], icon: CheckCircle },
   ];
+
   return (
     <div className="relative">
       {/* Vertical rail */}

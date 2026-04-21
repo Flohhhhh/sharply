@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { fetchMountsForBrand } from "~/server/gear/browse/service";
 import { mountUIConfig } from "~/lib/browse/mount-ui";
 import {
@@ -18,6 +19,7 @@ export default async function MountButtons({
   brandSlug: string;
   category: "cameras" | "lenses";
 }) {
+  const t = await getTranslations("browsePage");
   let mounts = await fetchMountsForBrand(brandId);
   let hiddenMounts: typeof mounts = [];
   const rules = mountUIConfig[brandSlug]?.[category];
@@ -70,10 +72,12 @@ export default async function MountButtons({
               className="border-border hover:bg-accent/40 group block rounded-lg border p-2 text-center sm:p-6"
             >
               <div className="text-lg font-semibold group-hover:underline sm:text-2xl">
-                {getMountDisplayName(m.value)} Mount
+                {t("mountLabel", { mount: getMountDisplayName(m.value) })}
               </div>
               <div className="text-muted-foreground mt-1 text-sm">
-                Browse {category}
+                {t("browseCategory", {
+                  category: category === "cameras" ? t("cameras") : t("lenses"),
+                })}
               </div>
             </Link>
           ))}
@@ -84,7 +88,7 @@ export default async function MountButtons({
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="link" className="text-muted-foreground">
-                Other mounts
+                {t("otherMounts")}
               </Button>
             </PopoverTrigger>
             <PopoverContent align="center" className="w-64">
@@ -95,7 +99,7 @@ export default async function MountButtons({
                     href={`/browse/${brandSlug}/${category}/${m.shortName ?? m.value}`}
                     className="hover:bg-accent/40 rounded-md px-3 py-2 text-center"
                   >
-                    {getMountDisplayName(m.value)} Mount
+                    {t("mountLabel", { mount: getMountDisplayName(m.value) })}
                   </Link>
                 ))}
               </div>

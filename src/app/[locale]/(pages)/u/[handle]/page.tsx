@@ -25,6 +25,7 @@ import {
 import { fetchUserListsForProfile } from "~/server/user-lists/service";
 // Note: page is a Server Component and reads from the service layer only.
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { auth } from "~/auth";
 import { Button } from "~/components/ui/button";
 import { LibraryIcon, UserPen } from "lucide-react";
@@ -44,6 +45,7 @@ import { UserListsSectionDeferred } from "~/app/[locale]/(pages)/u/_components/l
 
 interface UserProfilePageProps {
   params: Promise<{
+    locale: string;
     handle: string;
   }>;
 }
@@ -51,12 +53,14 @@ interface UserProfilePageProps {
 export async function generateMetadata({
   params,
 }: UserProfilePageProps): Promise<Metadata> {
-  const { handle } = await params;
+  const { locale, handle } = await params;
+  const t = await getTranslations({ locale, namespace: "userProfile" });
   const user = await fetchUserByHandle(handle);
+  const displayName = user?.name ?? t("anonymousUser");
   return {
-    title: `${user?.name}'s Profile`,
+    title: t("profileMetaTitle", { name: displayName }),
     openGraph: {
-      title: `${user?.name}'s Profile`,
+      title: t("profileMetaTitle", { name: displayName }),
     },
   };
 }
@@ -64,7 +68,8 @@ export async function generateMetadata({
 export default async function UserProfilePage({
   params,
 }: UserProfilePageProps) {
-  const { handle } = await params;
+  const { locale, handle } = await params;
+  const t = await getTranslations({ locale, namespace: "userProfile" });
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -105,7 +110,7 @@ export default async function UserProfilePage({
           {profile.image && (
             <Image
               src={profile.image}
-              alt={profile.name || "User"}
+              alt={profile.name || t("userAlt")}
               width={64}
               height={64}
               className="h-16 w-16 rounded-full"
@@ -113,15 +118,15 @@ export default async function UserProfilePage({
           )}
           <div>
             <h1 className="text-3xl font-bold">
-              {profile.name || "Anonymous User"}
+              {profile.name || t("anonymousUser")}
             </h1>
-            <p className="text-muted-foreground">Gear Collection & Wishlist</p>
+            <p className="text-muted-foreground">{t("gearCollectionWishlist")}</p>
           </div>
         </div>
         {myProfile && (
           <div className="flex items-center gap-2">
             <Button asChild icon={<UserPen />} className="self-end">
-              <Link href="/profile/settings">Edit Profile</Link>
+              <Link href="/profile/settings">{t("editProfile")}</Link>
             </Button>
             <ShowUserCardButton user={profile} />
           </div>
@@ -146,9 +151,9 @@ export default async function UserProfilePage({
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <h2 className="text-2xl font-semibold">Collection</h2>
+              <h2 className="text-2xl font-semibold">{t("collection")}</h2>
               <span className="bg-secondary rounded px-3 py-1 text-sm font-medium">
-                {sortedOwnedItems.length} items
+                {t("itemsCount", { count: sortedOwnedItems.length })}
               </span>
             </div>
             {myProfile ? (
@@ -169,7 +174,7 @@ export default async function UserProfilePage({
                       size="sm"
                       disabled={sortedOwnedItems.length === 0}
                     >
-                      Manage collection
+                      {t("manageCollection")}
                     </Button>
                   }
                 />
@@ -235,9 +240,9 @@ export default async function UserProfilePage({
         {/* Wishlist */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-semibold">Wishlist</h2>
+            <h2 className="text-2xl font-semibold">{t("wishlist")}</h2>
             <span className="bg-secondary rounded-full px-3 py-1 text-sm font-medium">
-              {wishlistItems.length} items
+              {t("itemsCount", { count: wishlistItems.length })}
             </span>
           </div>
 
@@ -253,9 +258,9 @@ export default async function UserProfilePage({
             </div>
           ) : myProfile ? (
             <Empty className="border-border rounded-lg border-2 border-dashed p-8">
-              <EmptyTitle>Your wishlist is empty</EmptyTitle>
+              <EmptyTitle>{t("wishlistEmptyOwnTitle")}</EmptyTitle>
               <EmptyDescription>
-                Browse gear to add items you want to keep an eye on.
+                {t("wishlistEmptyOwnDescription")}
               </EmptyDescription>
               <EmptyContent>
                 <div className="flex flex-col items-center gap-2">
@@ -264,7 +269,7 @@ export default async function UserProfilePage({
                     size="sm"
                     icon={<LibraryIcon className="size-4" />}
                   >
-                    <Link href="/gear">Browse gear</Link>
+                    <Link href="/gear">{t("browseGear")}</Link>
                   </Button>
                 </div>
               </EmptyContent>
@@ -273,11 +278,11 @@ export default async function UserProfilePage({
             <Empty className="border-border rounded-lg border-2 border-dashed p-8">
               <EmptyTitle>
                 {profile.name
-                  ? `${profile.name}'s wishlist is empty`
-                  : "Wishlist is empty"}
+                  ? t("wishlistEmptyOtherNamed", { name: profile.name })
+                  : t("wishlistEmptyOtherTitle")}
               </EmptyTitle>
               <EmptyDescription>
-                Check back later to see what gear they are interested in.
+                {t("wishlistEmptyOtherDescription")}
               </EmptyDescription>
             </Empty>
           )}
@@ -299,7 +304,7 @@ export default async function UserProfilePage({
         {/* Reviews */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-semibold">Reviews</h2>
+            <h2 className="text-2xl font-semibold">{t("reviews")}</h2>
           </div>
           <UserReviewsList
             userId={profile.id}

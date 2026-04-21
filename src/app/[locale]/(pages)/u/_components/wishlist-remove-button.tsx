@@ -6,6 +6,7 @@ import { Button } from "~/components/ui/button";
 import { X } from "lucide-react";
 import { toast } from "sonner";
 import { actionToggleWishlist } from "~/server/gear/actions";
+import { useTranslations } from "next-intl";
 
 interface WishlistRemoveButtonProps {
   slug: string;
@@ -21,6 +22,7 @@ export function WishlistRemoveButton({
   onRemoved,
   onUndo,
 }: WishlistRemoveButtonProps) {
+  const t = useTranslations("userProfile");
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const isUndoInFlightRef = useRef(false);
@@ -32,15 +34,15 @@ export function WishlistRemoveButton({
 
     setIsLoading(true);
 
-    const gearNameLabel = gearName ?? "Item";
+    const gearNameLabel = gearName ?? t("itemFallback");
     const togglePromise = actionToggleWishlist(slug, "remove");
 
     toast.promise(togglePromise, {
-      loading: `Removing ${gearNameLabel}...`,
+      loading: t("removingWishlistItem", { name: gearNameLabel }),
       success: () => ({
-        message: `${gearNameLabel} removed from wishlist`,
+        message: t("removedFromWishlist", { name: gearNameLabel }),
         action: {
-          label: "Undo",
+          label: t("undo"),
           onClick: () => {
             if (isUndoInFlightRef.current) return;
             isUndoInFlightRef.current = true;
@@ -56,7 +58,7 @@ export function WishlistRemoveButton({
           },
         },
       }),
-      error: `Failed to update wishlist`,
+      error: t("failedToUpdateWishlist"),
     });
 
     try {
@@ -79,7 +81,7 @@ export function WishlistRemoveButton({
         void handleRemoveClick(event);
       }}
       loading={isLoading}
-      aria-label="Remove from wishlist"
+      aria-label={t("removeFromWishlist")}
     >
       <X className="h-4 w-4" />
     </Button>

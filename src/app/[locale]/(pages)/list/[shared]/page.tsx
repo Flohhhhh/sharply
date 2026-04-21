@@ -6,33 +6,38 @@ import { GearCard } from "~/components/gear/gear-card";
 import { getItemDisplayPrice } from "~/lib/mapping";
 import { fetchPublicSharedListByParam } from "~/server/user-lists/service";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
 type SharedListPageProps = {
-  params: Promise<{ shared: string }>;
+  params: Promise<{ locale: string; shared: string }>;
 };
 
 export async function generateMetadata({
   params,
 }: SharedListPageProps): Promise<Metadata> {
-  const { shared } = await params;
+  const { locale, shared } = await params;
+  const t = await getTranslations({ locale, namespace: "sharedList" });
   const payload = await fetchPublicSharedListByParam(shared).catch(() => null);
 
   if (!payload) {
     return {
-      title: "List not found",
+      title: t("listNotFound"),
       robots: { index: false, follow: false },
     };
   }
 
   const ownerName =
-    payload.owner.name || payload.owner.handle || "Sharply member";
-  const title = `${payload.list.name} by ${ownerName}`;
+    payload.owner.name || payload.owner.handle || t("sharplyMember");
+  const title = t("listByOwner", {
+    list: payload.list.name,
+    owner: ownerName,
+  });
   const description =
     payload.status === "published"
-      ? `Shared gear list from ${ownerName}`
-      : "This shared list is currently unpublished.";
+      ? t("sharedGearListFromOwner", { owner: ownerName })
+      : t("currentlyUnpublished");
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
@@ -55,7 +60,8 @@ export async function generateMetadata({
 }
 
 export default async function SharedListPage({ params }: SharedListPageProps) {
-  const { shared } = await params;
+  const { locale, shared } = await params;
+  const t = await getTranslations({ locale, namespace: "sharedList" });
   const payload = await fetchPublicSharedListByParam(shared).catch(() => null);
   if (!payload) return notFound();
 
@@ -64,7 +70,7 @@ export default async function SharedListPage({ params }: SharedListPageProps) {
   }
 
   const ownerName =
-    payload.owner.name || payload.owner.handle || "Sharply member";
+    payload.owner.name || payload.owner.handle || t("sharplyMember");
   const profilePath = `/u/${payload.owner.handle}`;
   const trendingSet = new Set(payload.trendingSlugs);
 
@@ -82,7 +88,7 @@ export default async function SharedListPage({ params }: SharedListPageProps) {
           </Link>
         </div>
         <div className="text-muted-foreground rounded-lg border border-dashed p-6">
-          This list has been unpublished by its owner.
+          {t("unpublishedByOwner")}
         </div>
       </main>
     );

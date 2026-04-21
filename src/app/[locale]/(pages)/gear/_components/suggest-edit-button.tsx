@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useSession } from "~/lib/auth/auth-client";
 import { Button } from "~/components/ui/button";
 import { Clock, Pencil } from "lucide-react";
@@ -26,10 +27,11 @@ export function SuggestEditButton({
   slug,
   gearType,
   variant = "primary",
-  label = "Suggest Edit",
+  label,
   searchParams,
   compact,
 }: SuggestEditButtonProps) {
+  const t = useTranslations("gearDetail");
   const { data } = useSession();
 
   const session = data?.session;
@@ -75,7 +77,7 @@ export function SuggestEditButton({
         <Clock
           className={compact || buttonVariant === "link" ? "size-3" : "size-4"}
         />
-        <span>Edit Request Pending</span>
+        <span>{t("editRequestPending")}</span>
       </>
     );
 
@@ -89,7 +91,7 @@ export function SuggestEditButton({
             </span>
           </TooltipTrigger>
           <TooltipContent>
-            You already have an open change request for this item.
+            {t("existingOpenChangeRequest")}
           </TooltipContent>
         </Tooltip>
       );
@@ -106,12 +108,12 @@ export function SuggestEditButton({
               variant={buttonVariant}
               icon={<Clock className="size-4" />}
             >
-              Edit Request Pending
+              {t("editRequestPending")}
             </Button>
           </span>
         </TooltipTrigger>
         <TooltipContent>
-          You already have an open change request for this item.
+          {t("existingOpenChangeRequest")}
         </TooltipContent>
       </Tooltip>
     );
@@ -120,7 +122,7 @@ export function SuggestEditButton({
   return (
     <Button asChild size="sm" icon={<Pencil />} variant={buttonVariant as any}>
       <Link scroll={false} href={targetUrl}>
-        {label}
+        {label ?? t("suggestEdit")}
       </Link>
     </Button>
   );

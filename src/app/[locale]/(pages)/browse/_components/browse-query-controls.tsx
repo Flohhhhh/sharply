@@ -2,6 +2,7 @@
 
 import { Suspense } from "react";
 import { RefreshCcwDot } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Button } from "~/components/ui/button";
 import { SortSelect } from "~/components/search/sort-select";
@@ -32,6 +33,7 @@ function BrowseQueryControlsContent({
   category,
   hasMount,
 }: BrowseQueryControlsProps) {
+  const t = useTranslations("browsePage");
   const rawPathname = usePathname();
   const searchParams = useSearchParams();
   const hasQueryParams = searchParams.toString().length > 0;
@@ -51,13 +53,13 @@ function BrowseQueryControlsContent({
               variant="ghost"
               size="icon"
               onClick={handleReset}
-              aria-label="Reset"
+              aria-label={t("reset")}
             >
               <RefreshCcwDot className="size-4" />
-              <span className="sr-only">Reset</span>
+              <span className="sr-only">{t("reset")}</span>
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Reset</TooltipContent>
+          <TooltipContent>{t("reset")}</TooltipContent>
         </Tooltip>
       ) : null}
       <SortSelect category={category} hasMount={hasMount} />
@@ -66,10 +68,11 @@ function BrowseQueryControlsContent({
 }
 
 function BrowseQueryControlsFallback() {
+  const t = useTranslations("browsePage");
   return (
     <div className="mb-2 flex items-center justify-end gap-2">
       <div className="border-input text-muted-foreground inline-flex h-10 w-[200px] items-center rounded-md border px-3 text-sm">
-        Sort by
+        {t("sortBy")}
       </div>
     </div>
   );

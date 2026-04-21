@@ -8,6 +8,7 @@ import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Check, Loader2, X } from "lucide-react";
 import { actionUpdateUserHandle } from "~/server/users/actions";
+import { useTranslations } from "next-intl";
 
 interface UserHandleFormProps {
   initialHandle: string | null;
@@ -18,6 +19,7 @@ export function UserHandleForm({
   initialHandle,
   memberNumber,
 }: UserHandleFormProps) {
+  const t = useTranslations("profileSettings");
   const router = useRouter();
   const [handle, setHandle] = useState(initialHandle ?? "");
   const debouncedHandle = useDebounce(handle, 500);
@@ -36,7 +38,7 @@ export function UserHandleForm({
         return;
       }
       if (h.length < 3) {
-        setAvailability({ available: false, reason: "Too short" });
+        setAvailability({ available: false, reason: t("handleTooShort") });
         setIsChecking(false);
         return;
       }
@@ -65,10 +67,10 @@ export function UserHandleForm({
     if (debouncedHandle.length >= 3) {
       void checkAvailability(debouncedHandle);
     } else {
-      setAvailability({ available: false, reason: "Too short" });
+      setAvailability({ available: false, reason: t("handleTooShort") });
       setIsChecking(false);
     }
-  }, [debouncedHandle, initialHandle, checkAvailability]);
+  }, [debouncedHandle, initialHandle, checkAvailability, t]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -78,13 +80,13 @@ export function UserHandleForm({
     try {
       const res = await actionUpdateUserHandle(handle);
       if (res.ok) {
-        toast.success("Handle updated successfully!");
+        toast.success(t("handleUpdated"));
         setHandle(res.handle);
         setAvailability(null);
         router.refresh();
       }
     } catch (err: any) {
-      toast.error(err.message || "Failed to update handle");
+      toast.error(err.message || t("handleUpdateFailed"));
     } finally {
       setIsUpdating(false);
     }
@@ -112,7 +114,10 @@ export function UserHandleForm({
               setAvailability(null);
               setIsChecking(true);
             }}
-            placeholder={initialHandle || `user-${memberNumber ?? "?"}`}
+            placeholder={
+              initialHandle ??
+              t("handlePlaceholder", { memberNumber: memberNumber ?? "?" })
+            }
             className="pl-12 pr-10"
             maxLength={50}
           />
@@ -129,7 +134,9 @@ export function UserHandleForm({
         )}
         {!availability && !initialHandle && handle === "" && (
           <p className="text-muted-foreground text-xs">
-            Currently using default: user-{memberNumber ?? "?"}
+            {t("currentlyUsingDefaultHandle", {
+              handle: `user-${memberNumber ?? "?"}`,
+            })}
           </p>
         )}
       </div>
@@ -138,7 +145,7 @@ export function UserHandleForm({
         disabled={!showSuccess || isUpdating}
         loading={isChecking || isUpdating}
       >
-        Update Handle
+        {t("updateHandle")}
       </Button>
     </form>
   );

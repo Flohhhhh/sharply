@@ -1,14 +1,16 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import AllGearContent from "./all-gear-content";
 
-export default function BrandContent({
+export default async function BrandContent({
   brandSlug,
 }: {
   brandSlug: string;
 }) {
+  const t = await getTranslations("browsePage");
   const items = [
-    { label: "Cameras", href: `/browse/${brandSlug}/cameras` },
-    { label: "Lenses", href: `/browse/${brandSlug}/lenses` },
+    { label: t("cameras"), href: `/browse/${brandSlug}/cameras` },
+    { label: t("lenses"), href: `/browse/${brandSlug}/lenses` },
   ];
   return (
     <div className="space-y-6">
@@ -23,7 +25,7 @@ export default function BrandContent({
               {i.label}
             </div>
             <div className="text-muted-foreground mt-1 text-sm">
-              Browse {i.label}
+              {t("browseCategory", { category: i.label })}
             </div>
           </Link>
         ))}

@@ -7,9 +7,11 @@ import { GearCard } from "~/components/gear/gear-card";
 import BrandTrendingList from "./_components/brand-trending-list";
 import { fetchTrendingSlugs } from "~/server/popularity/service";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import { getTranslations } from "next-intl/server";
 
 interface BrandPageProps {
   params: Promise<{
+    locale: string;
     slug: string;
   }>;
 }
@@ -17,24 +19,26 @@ interface BrandPageProps {
 export async function generateMetadata({
   params,
 }: BrandPageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const { locale, slug } = await params;
+  const t = await getTranslations({ locale, namespace: "brandPage" });
   const brand = await fetchBrandBySlug(slug);
   if (!brand) {
     return {
-      title: "Brand Not Found",
-      openGraph: { title: "Brand Not Found" },
+      title: t("brandNotFound"),
+      openGraph: { title: t("brandNotFound") },
     };
   }
   return {
     ...buildLocalizedMetadata(`/brand/${slug}`, {
-      title: `${brand.name} Gear`,
-      openGraph: { title: `${brand.name} Gear` },
+      title: t("brandGearTitle", { brand: brand.name }),
+      openGraph: { title: t("brandGearTitle", { brand: brand.name }) },
     }),
   };
 }
 
 export default async function BrandPage({ params }: BrandPageProps) {
-  const { slug } = await params;
+  const { locale, slug } = await params;
+  const t = await getTranslations({ locale, namespace: "brandPage" });
 
   // Get brand information
   const brand = await fetchBrandBySlug(slug);
@@ -58,14 +62,14 @@ export default async function BrandPage({ params }: BrandPageProps) {
           href="/gear"
           className="text-primary flex items-center gap-2 text-sm"
         >
-          ← Back to Gear
+          {t("backToGear")}
         </Link>
       </div>
 
       <div className="mb-8">
         <h1 className="text-4xl font-bold">{brand.name}</h1>
         <p className="text-muted-foreground mt-2 text-lg">
-          {brandGear.length} piece{brandGear.length !== 1 ? "s" : ""} of gear
+          {t("gearCount", { count: brandGear.length })}
         </p>
       </div>
 
@@ -76,7 +80,7 @@ export default async function BrandPage({ params }: BrandPageProps) {
       {brandGear.length === 0 ? (
         <div className="py-12 text-center">
           <p className="text-muted-foreground text-lg">
-            No gear found for this brand.
+            {t("noGearFound")}
           </p>
         </div>
       ) : (

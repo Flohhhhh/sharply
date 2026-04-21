@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Progress } from "~/components/ui/progress";
 import {
   Select,
@@ -50,6 +51,7 @@ export default function UnderConstructionClient({
   brands: Option[];
   types: readonly string[];
 }) {
+  const t = useTranslations("underConstructionPage");
   const [brandId, setBrandId] = useState<string>("all");
   const [gearType, setGearType] = useState<string>("all");
   const [missingImagesOnly, setMissingImagesOnly] = useState(false);
@@ -68,10 +70,12 @@ export default function UnderConstructionClient({
       <div className="bg-card mb-6 rounded-lg border p-4">
         <div className="mb-2 flex items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-medium">Catalog completion</p>
+            <p className="text-sm font-medium">{t("catalogCompletion")}</p>
             <p className="text-muted-foreground text-xs">
-              {summary.underConstructionCount} under construction •{" "}
-              {summary.totalCount} total
+              {t("catalogSummary", {
+                underConstructionCount: summary.underConstructionCount,
+                totalCount: summary.totalCount,
+              })}
             </p>
           </div>
           <p className="text-sm font-semibold">{summary.completedPercent}%</p>
@@ -82,13 +86,13 @@ export default function UnderConstructionClient({
 
       <div className="mb-3 flex flex-wrap items-center gap-4">
         <div className="flex items-center gap-2">
-          <span className="text-muted-foreground text-xs">Brand</span>
+          <span className="text-muted-foreground text-xs">{t("brand")}</span>
           <Select value={brandId} onValueChange={setBrandId}>
             <SelectTrigger className="w-[220px]">
-              <SelectValue placeholder="All brands" />
+              <SelectValue placeholder={t("allBrands")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All brands</SelectItem>
+              <SelectItem value="all">{t("allBrands")}</SelectItem>
               {brands.map((b) => (
                 <SelectItem key={b.value} value={b.value}>
                   {b.label}
@@ -98,13 +102,13 @@ export default function UnderConstructionClient({
           </Select>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-muted-foreground text-xs">Type</span>
+          <span className="text-muted-foreground text-xs">{t("type")}</span>
           <Select value={gearType} onValueChange={setGearType}>
             <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="All types" />
+              <SelectValue placeholder={t("allTypes")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All types</SelectItem>
+              <SelectItem value="all">{t("allTypes")}</SelectItem>
               {types.map((t) => (
                 <SelectItem key={t} value={t}>
                   {/* Type cast needed because types is readonly string[] from server data */}
@@ -124,7 +128,7 @@ export default function UnderConstructionClient({
             htmlFor="missing-images"
             className="text-muted-foreground text-xs"
           >
-            Show items without images
+            {t("showItemsWithoutImages")}
           </label>
         </div>
       </div>

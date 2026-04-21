@@ -11,6 +11,7 @@ import {
 } from "react";
 import useSWRInfinite from "swr/infinite";
 import { Loader } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { usePathname, useSearchParams } from "next/navigation";
 import { GearCard, GearCardSkeleton } from "~/components/gear/gear-card";
 import { Button } from "~/components/ui/button";
@@ -71,6 +72,7 @@ function BrowseResultsGridContent({
   scope,
   trendingSlugs,
 }: BrowseResultsGridProps) {
+  const t = useTranslations("browsePage");
   const isMobile = useIsMobile();
   const rawPathname = usePathname();
   const { pathname } = useLocalePathnames();
@@ -235,14 +237,14 @@ function BrowseResultsGridContent({
     updatePage(targetPage + 1);
   }, [hasMore, isLoadingMore, isMobile, targetPage, updatePage]);
 
-  const errorText = error ? "Unable to load more gear right now." : null;
+  const errorText = error ? t("loadError") : null;
 
   return (
     <div className="space-y-4">
       <p className="text-muted-foreground text-sm">
         {isLoadingInitial
-          ? "Loading results..."
-          : `Showing ${total} result${total === 1 ? "" : "s"}`}
+          ? t("loadingResults")
+          : t("showingResults", { count: total })}
       </p>
 
       {errorText ? (
@@ -251,7 +253,7 @@ function BrowseResultsGridContent({
 
       {showEmpty ? (
         <div className="text-muted-foreground text-sm">
-          No gear found yet. Try adjusting your filters.
+          {t("noGearFound")}
         </div>
       ) : null}
 
@@ -295,10 +297,10 @@ function BrowseResultsGridContent({
             {isLoadingMore ? (
               <>
                 <Loader className="mr-2 h-4 w-4 animate-spin" />
-                Loading...
+                {t("loading")}
               </>
             ) : (
-              "Load more"
+              t("loadMore")
             )}
           </Button>
         </div>
@@ -309,7 +311,7 @@ function BrowseResultsGridContent({
           {isLoadingMore ? (
             <div className="text-muted-foreground flex items-center gap-2 text-sm">
               <Loader className="h-4 w-4 animate-spin" />
-              Loading more gear...
+              {t("loadingMoreGear")}
             </div>
           ) : null}
           <div ref={sentinelRef} className="h-6 w-full" />
@@ -320,9 +322,10 @@ function BrowseResultsGridContent({
 }
 
 function BrowseResultsGridFallback() {
+  const t = useTranslations("browsePage");
   return (
     <div className="space-y-4">
-      <p className="text-muted-foreground text-sm">Loading results...</p>
+      <p className="text-muted-foreground text-sm">{t("loadingResults")}</p>
       <div className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
         {BROWSE_RESULTS_SKELETON_KEYS.map((key) => (
           <GearCardSkeleton key={key} />

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import {
   Dialog,
@@ -24,6 +25,7 @@ export function GearContributorsClient({
 }: {
   contributors: ContributorItem[];
 }) {
+  const t = useTranslations("gearDetail");
   if (!contributors || contributors.length === 0) return null;
 
   const topFive = contributors.slice(0, 5);
@@ -42,11 +44,11 @@ export function GearContributorsClient({
 
   return (
     <div className="mt-12">
-      <h2 className="mb-4 text-lg font-semibold">Contributors</h2>
+      <h2 className="mb-4 text-lg font-semibold">{t("contributors")}</h2>
       <Dialog>
         <DialogTrigger
           asChild
-          title="View all contributors"
+          title={t("viewAllContributors")}
           className="hover:cursor-pointer"
         >
           <button className="hover:bg-muted/50 flex w-full items-center justify-center gap-3 rounded-md border px-3 py-2 text-left">
@@ -56,7 +58,7 @@ export function GearContributorsClient({
                   <Avatar className="ring-background size-8 ring-2">
                     <AvatarImage
                       src={u.image ?? undefined}
-                      alt={u.name ?? "User"}
+                      alt={u.name ?? t("userAlt")}
                     />
                     <AvatarFallback>{getInitials(u.name)}</AvatarFallback>
                   </Avatar>
@@ -75,7 +77,7 @@ export function GearContributorsClient({
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Contributors</DialogTitle>
+            <DialogTitle>{t("contributors")}</DialogTitle>
           </DialogHeader>
           <div className="max-h-[60vh] overflow-auto">
             <ul className="divide-border divide-y">
@@ -91,14 +93,14 @@ export function GearContributorsClient({
                     <Avatar className="size-8">
                       <AvatarImage
                         src={u.image ?? undefined}
-                        alt={u.name ?? "User"}
+                        alt={u.name ?? t("userAlt")}
                       />
                       <AvatarFallback>{getInitials(u.name)}</AvatarFallback>
                     </Avatar>
                     <span className="truncate text-sm">{u.name || u.id}</span>
                   </Link>
                   <span className="text-muted-foreground text-sm">
-                    {u.count} field{u.count === 1 ? "" : "s"}
+                    {t("fieldsContributed", { count: u.count })}
                   </span>
                 </li>
               ))}

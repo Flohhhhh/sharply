@@ -1,4 +1,5 @@
 import { BADGE_CATALOG } from "~/lib/badges/catalog";
+import { getTranslations } from "next-intl/server";
 import { fetchUserBadges } from "~/server/badges/service";
 import * as Lucide from "lucide-react";
 import { toRomanNumeral } from "~/lib/utils";
@@ -10,6 +11,7 @@ import {
 } from "~/components/ui/tooltip";
 
 export async function UserBadges({ userId }: { userId: string }) {
+  const t = await getTranslations("userProfile");
   const rows = await fetchUserBadges(userId);
   if (!rows.length) return null;
 
@@ -23,7 +25,7 @@ export async function UserBadges({ userId }: { userId: string }) {
 
   return (
     <div className="space-y-2">
-      <h2 className="text-2xl font-semibold">Badges</h2>
+      <h2 className="text-2xl font-semibold">{t("badges")}</h2>
       <TooltipProvider>
         <div className="flex flex-wrap gap-2">
           {rows

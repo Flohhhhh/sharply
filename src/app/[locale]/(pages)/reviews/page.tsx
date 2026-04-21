@@ -2,13 +2,23 @@ import { getReviews } from "~/server/payload/service";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import { getTranslations } from "next-intl/server";
 
-export const metadata: Metadata = buildLocalizedMetadata("/reviews", {
-  title: "Reviews",
-  openGraph: {
-    title: "Reviews",
-  },
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "reviewPage" });
+
+  return buildLocalizedMetadata("/reviews", {
+    title: t("reviewsTitle"),
+    openGraph: {
+      title: t("reviewsTitle"),
+    },
+  });
+}
 
 export default async function ReviewsPage() {
   const reviews = await getReviews();

@@ -6,6 +6,13 @@ import type {
   SuggestionKind,
 } from "~/types/search";
 
+type SearchTranslations = {
+  camera: string;
+  lens: string;
+  analogCamera: string;
+  brand: string;
+};
+
 export function normalizeSearchText(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
 }
@@ -18,7 +25,10 @@ export function getSuggestionTitle(suggestion: Suggestion): string {
   return suggestion.title ?? suggestion.label;
 }
 
-export function getSuggestionSubtitle(suggestion: Suggestion): string | undefined {
+export function getSuggestionSubtitle(
+  suggestion: Suggestion,
+  t: SearchTranslations,
+): string | undefined {
   if (typeof suggestion.subtitle === "string" && suggestion.subtitle.trim()) {
     return suggestion.subtitle.trim();
   }
@@ -30,25 +40,28 @@ export function getSuggestionSubtitle(suggestion: Suggestion): string | undefine
     ) {
       return suggestion.canonicalName;
     }
-    if (suggestion.gearType === "LENS") return "Lens";
-    if (suggestion.gearType === "ANALOG_CAMERA") return "Analog Camera";
-    return "Camera";
+    if (suggestion.gearType === "LENS") return t.lens;
+    if (suggestion.gearType === "ANALOG_CAMERA") return t.analogCamera;
+    return t.camera;
   }
 
   if (suggestion.kind === "brand") {
-    return "Brand";
+    return t.brand;
   }
 
   return undefined;
 }
 
-export function getSuggestionMeta(suggestion: Suggestion): string | undefined {
+export function getSuggestionMeta(
+  suggestion: Suggestion,
+  t: Pick<SearchTranslations, "brand">,
+): string | undefined {
   if (suggestion.kind === "camera" || suggestion.kind === "lens") {
     return undefined;
   }
 
   if (suggestion.kind === "brand") {
-    return "Brand";
+    return t.brand;
   }
 
   return undefined;

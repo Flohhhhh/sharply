@@ -10,19 +10,36 @@ import { AccountLinksSection } from "./account-links-section";
 import { SocialLinksForm } from "./social-links-form";
 import type { SocialLink } from "~/server/users/service";
 import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import { fetchLinkedAccountsForUser } from "~/server/auth/account-linking";
 import { headers } from "next/headers";
 import { PasskeySection } from "./passkey-section";
+import { getTranslations } from "next-intl/server";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import { LocaleLink } from "~/components/locale-link";
 
-export const metadata: Metadata = {
-  title: "Account Settings",
-  openGraph: {
-    title: "Account Settings",
-  },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "profileSettings" });
 
-export default async function SettingsPage() {
+  return buildLocalizedMetadata("/profile/settings", {
+    title: t("metaTitle"),
+    openGraph: {
+      title: t("metaTitle"),
+    },
+  });
+}
+
+export default async function SettingsPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "profileSettings" });
   const requestHeaders = await headers();
   const session = await auth.api.getSession({
     headers: requestHeaders,
@@ -31,11 +48,11 @@ export default async function SettingsPage() {
   const user = session?.user;
 
   if (!session) {
-    redirect("/auth/signin?callbackUrl=/profile/settings");
+    redirect(`/${locale}/auth/signin?callbackUrl=/${locale}/profile/settings`);
   }
 
   if (!user) {
-    redirect("/auth/signin?callbackUrl=/profile/settings");
+    redirect(`/${locale}/auth/signin?callbackUrl=/${locale}/profile/settings`);
   }
 
   const linkedAccounts = await fetchLinkedAccountsForUser(user.id);
@@ -65,32 +82,31 @@ export default async function SettingsPage() {
   return (
     <main className="mx-auto min-h-screen max-w-5xl p-6 pt-24">
       <div className="mb-6 space-y-2">
-        <Link
+        <LocaleLink
           href={`/u/${user.handle || `user-${user.memberNumber}`}`}
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-2 text-sm font-medium"
         >
           <ArrowLeft className="h-4 w-4" />
-          View profile
-        </Link>
-        <h1 className="text-2xl font-bold">Account Settings</h1>
+          {t("viewProfile")}
+        </LocaleLink>
+        <h1 className="text-2xl font-bold">{t("pageTitle")}</h1>
         {userEmail ? (
           <p className="text-muted-foreground text-sm">
-            Signed in as {userEmail}
+            {t("signedInAs", { email: userEmail })}
           </p>
         ) : null}
       </div>
 
       <div className="space-y-6">
         <section className="border-border space-y-3 rounded-lg border p-4">
-          <h2 className="text-lg font-semibold">Profile Picture</h2>
+          <h2 className="text-lg font-semibold">{t("profilePicture")}</h2>
           <ProfilePictureSettingsSection initialImageUrl={user.image ?? null} />
         </section>
 
         <section className="border-border space-y-3 rounded-lg border p-4">
-          <h2 className="text-lg font-semibold">Username / Handle</h2>
+          <h2 className="text-lg font-semibold">{t("usernameHandle")}</h2>
           <p className="text-muted-foreground text-sm">
-            This is your unique address on Sharply. It can only contain letters,
-            numbers, hyphens, and underscores.
+            {t("usernameHandleDescription")}
           </p>
           <UserHandleForm
             key={user.handle ?? `user-${user.memberNumber ?? "unknown"}`}
@@ -100,7 +116,7 @@ export default async function SettingsPage() {
         </section>
 
         <section className="border-border space-y-3 rounded-lg border p-4">
-          <h2 className="text-lg font-semibold">Display Name</h2>
+          <h2 className="text-lg font-semibold">{t("displayName")}</h2>
           <DisplayNameForm
             key={user.name ?? ""}
             defaultName={user.name ?? ""}
@@ -108,10 +124,9 @@ export default async function SettingsPage() {
         </section>
 
         <section className="border-border space-y-3 rounded-lg border p-4">
-          <h2 className="text-lg font-semibold">Social Links</h2>
+          <h2 className="text-lg font-semibold">{t("socialLinks")}</h2>
           <p className="text-muted-foreground text-sm">
-            Add links to your social media profiles and personal website. These
-            will be displayed on your public profile.
+            {t("socialLinksDescription")}
           </p>
           <SocialLinksForm defaultLinks={socialLinks} />
         </section>

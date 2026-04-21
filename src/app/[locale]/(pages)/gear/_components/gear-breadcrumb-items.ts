@@ -13,6 +13,11 @@ type GearBreadcrumbInput = {
   gearType?: string | null;
   mountId?: string | null;
   mountIds?: string[] | null;
+  labels?: {
+    gear: string;
+    cameras: string;
+    lenses: string;
+  };
 };
 
 function getBrowseCategory(
@@ -48,7 +53,9 @@ function isNativeMountForBrand(
 export function buildGearBreadcrumbItems(
   input: GearBreadcrumbInput,
 ): CrumbItem[] {
-  const items: CrumbItem[] = [{ label: "Gear", href: "/browse" }];
+  const items: CrumbItem[] = [
+    { label: input.labels?.gear ?? "Gear", href: "/browse" },
+  ];
   const brandName = input.brandName?.trim();
   const brandSlug = input.brandSlug?.trim();
 
@@ -66,7 +73,10 @@ export function buildGearBreadcrumbItems(
     return items;
   }
 
-  const categoryLabel = getCategoryLabel(category);
+  const categoryLabel =
+    category === "cameras"
+      ? (input.labels?.cameras ?? getCategoryLabel(category))
+      : (input.labels?.lenses ?? getCategoryLabel(category));
   const primaryMountId = getPrimaryMountId(input);
   const mountShortName = primaryMountId
     ? getMountShortNameById(primaryMountId)
