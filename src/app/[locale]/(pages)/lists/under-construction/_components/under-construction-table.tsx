@@ -1,25 +1,11 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { ImageOff,Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { useCallback,useState } from "react";
 import useSWR from "swr";
-import { Badge } from "~/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "~/components/ui/table";
-import { Progress } from "~/components/ui/progress";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "~/components/ui/dialog";
+import EditModalContent from "~/app/[locale]/(pages)/gear/_components/edit-gear/edit-modal-content";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,14 +16,27 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
-import EditModalContent from "~/app/[locale]/(pages)/gear/_components/edit-gear/edit-modal-content";
-import type { GearItem } from "~/types/gear";
-import { Label } from "~/components/ui/label";
-import { Switch } from "~/components/ui/switch";
-import { ImageOff, Loader2 } from "lucide-react";
+import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
-import type { GearType } from "~/types/gear";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog";
+import { Label } from "~/components/ui/label";
+import { Progress } from "~/components/ui/progress";
+import { Switch } from "~/components/ui/switch";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "~/components/ui/table";
 import { GEAR_TYPE_LABELS } from "~/lib/constants";
+import type { GearItem,GearType } from "~/types/gear";
 
 type Row = {
   id: string;

@@ -1,31 +1,20 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   BookOpenCheck,
   DoorOpen,
   Link2,
+  List,
   ListPlus,
   MoreVertical,
   Pencil,
   Share2,
   Trash2,
-  List,
 } from "lucide-react";
+import { usePathname,useRouter,useSearchParams } from "next/navigation";
+import { useCallback,useEffect,useState } from "react";
 import { toast } from "sonner";
-import { Button } from "~/components/ui/button";
-import { Empty, EmptyDescription, EmptyTitle } from "~/components/ui/empty";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "~/components/ui/dialog";
+import { LocaleLink } from "~/components/locale-link";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -35,6 +24,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
+import { Button } from "~/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,6 +40,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import { Empty,EmptyDescription,EmptyTitle } from "~/components/ui/empty";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 import {
   Tooltip,
   TooltipContent,
@@ -56,8 +57,6 @@ import {
 } from "~/server/user-lists/actions";
 import { ListManageModal } from "./list-manage-modal";
 import type { ProfileUserListState } from "./types";
-import { LocaleLink } from "~/components/locale-link";
-import { useLocalePathnames } from "~/i18n/client";
 
 type UserListsSectionProps = {
   initialLists: ProfileUserListState[];

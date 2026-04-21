@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
+import { useCompareRowScale } from "~/components/compare/use-compare-row-scale";
 import type { GearItem } from "~/types/gear";
 import { CollectionCard } from "./collection-card";
-import { useCompareRowScale } from "~/components/compare/use-compare-row-scale";
 
 function computeColumnCount(itemCount: number) {
 	if (itemCount <= 1) {

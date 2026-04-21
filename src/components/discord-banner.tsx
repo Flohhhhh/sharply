@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
-import DiscordLink from "./discord-link";
 import { cn } from "~/lib/utils";
+import DiscordLink from "./discord-link";
 
 export default async function DiscordBanner(props: {
   vertical?: boolean;

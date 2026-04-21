@@ -1,11 +1,11 @@
-import Link from "next/link";
 import { Flame } from "lucide-react";
 import { getTranslations } from "next-intl/server";
-import { fetchTrending } from "~/server/popularity/service";
-import type { TrendingEntry } from "~/types/popularity";
-import type { GearType } from "~/types/gear";
+import Link from "next/link";
 import { GearDisplayName } from "~/components/gear/gear-display-name";
 import { formatDate } from "~/lib/format/date";
+import { fetchTrending } from "~/server/popularity/service";
+import type { GearType } from "~/types/gear";
+import type { TrendingEntry } from "~/types/popularity";
 
 export type TrendingItem = TrendingEntry;
 

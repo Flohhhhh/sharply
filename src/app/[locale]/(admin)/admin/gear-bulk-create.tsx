@@ -1,11 +1,28 @@
 "use client";
 
+import { CheckCircle,Loader2 } from "lucide-react";
 import * as React from "react";
-import { useDebounce } from "~/lib/hooks/useDebounce";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { useEffect,useState } from "react";
+import { z } from "zod";
+import { BrandSelect } from "~/components/custom-inputs/brand-select";
+import { MountSelect } from "~/components/custom-inputs/mount-select";
+import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
+import { Card,CardContent,CardHeader,CardTitle } from "~/components/ui/card";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "~/components/ui/collapsible";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
+import { Select,SelectContent,SelectItem,SelectTrigger,SelectValue } from "~/components/ui/select";
 import {
   Table,
   TableBody,
@@ -14,36 +31,17 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { Badge } from "~/components/ui/badge";
-import { BRANDS } from "~/lib/constants";
-import {
-  isBrandNameOnly as isBrandOnlyName,
-  getNameSoftWarnings,
-} from "~/lib/validation/gear-creation-validations";
-import { Loader2, CheckCircle } from "lucide-react";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "~/components/ui/collapsible";
-import { useState, useEffect } from "react";
-import { z } from "zod";
-import { MountSelect } from "~/components/custom-inputs/mount-select";
-import { BrandSelect } from "~/components/custom-inputs/brand-select";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "~/components/ui/dialog";
 import { Textarea } from "~/components/ui/textarea";
-import { parseSingleColumnCsv } from "~/lib/utils/csv";
-import type { GearType } from "~/types/gear";
-import { ENUMS } from "~/lib/constants";
+import { BRANDS,ENUMS } from "~/lib/constants";
+import { useDebounce } from "~/lib/hooks/useDebounce";
 import { humanizeKey } from "~/lib/utils";
+import { parseSingleColumnCsv } from "~/lib/utils/csv";
+import {
+  getNameSoftWarnings,
+  isBrandNameOnly as isBrandOnlyName,
+} from "~/lib/validation/gear-creation-validations";
+import type { GearType } from "~/types/gear";
 
-type Brand = { id: string; name: string };
 type RowValidation = {
   slugPreview: string;
   slugConflict: boolean;

@@ -1,23 +1,23 @@
 "use client";
 
-import { track } from "@vercel/analytics";
-import { useTranslations } from "next-intl";
 import { useScrollState } from "@/lib/hooks/useScrollState";
-import { Button } from "../ui/button";
-import { LayoutDashboard, LogIn, Menu } from "lucide-react";
+import { track } from "@vercel/analytics";
+import { LayoutDashboard,LogIn,Menu } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { usePathname,useSearchParams } from "next/navigation";
+import Logo from "public/logo";
+import type { UserRole } from "~/auth";
+import { LocaleLink } from "~/components/locale-link";
+import { useLocalePathnames } from "~/i18n/client";
+import type { NotificationView } from "~/server/notifications/service";
 import { GlobalSearchBar } from "../search/global-search-bar";
-import { usePathname, useSearchParams } from "next/navigation";
+import { ThemeSwitcher } from "../theme-switcher";
+import { Button } from "../ui/button";
 import { NavMenuDesktop } from "./nav-menu-desktop";
 import { NavMenuMobile } from "./nav-menu-mobile";
 import { NavSheetDesktop } from "./nav-sheet-desktop";
-import Logo from "public/logo";
-import { UserMenu } from "./user-menu";
-import { ThemeSwitcher } from "../theme-switcher";
-import type { UserRole } from "~/auth";
-import type { NotificationView } from "~/server/notifications/service";
 import { NotificationsDropdown } from "./notifications/notifications-dropdown";
-import { LocaleLink } from "~/components/locale-link";
-import { useLocalePathnames } from "~/i18n/client";
+import { UserMenu } from "./user-menu";
 
 export type HeaderUser = {
   id: string;

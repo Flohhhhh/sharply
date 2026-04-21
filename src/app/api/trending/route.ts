@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse,type NextRequest } from "next/server";
 import { fetchTrendingPage } from "~/server/popularity/service";
 
 const TIMEFRAMES = ["7d", "30d"] as const;

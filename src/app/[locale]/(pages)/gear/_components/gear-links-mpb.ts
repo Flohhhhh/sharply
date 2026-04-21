@@ -1,10 +1,10 @@
-import type { GearType } from "~/types/gear";
 import {
   getMpbMountSuffix,
   hasKnownMpbMountSuffix,
   isMpbSearchInput,
   type Market,
 } from "~/lib/links/mpb";
+import type { GearType } from "~/types/gear";
 
 interface ResolveMpbLinkStateParams {
   gearType: GearType;

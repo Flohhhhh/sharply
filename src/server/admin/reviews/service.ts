@@ -1,21 +1,21 @@
 import "server-only";
 
+import { eq } from "drizzle-orm";
+import { headers } from "next/headers";
 import { auth } from "~/auth";
 import { requireRole } from "~/lib/auth/auth-helpers";
-import { headers } from "next/headers";
-import {
-  approveReviewById,
-  rejectReviewById,
-  listAllReviewsWithContext,
-  getReviewUserAndGear,
-  listOpenReviewFlagStats,
-  resolveOpenFlagsForReview,
-} from "./data";
 import { evaluateForEvent } from "~/server/badges/service";
-import { maybeGenerateReviewSummary } from "~/server/reviews/summary/service";
 import { db } from "~/server/db";
 import { gear as gearTable } from "~/server/db/schema";
-import { eq } from "drizzle-orm";
+import { maybeGenerateReviewSummary } from "~/server/reviews/summary/service";
+import {
+  approveReviewById,
+  getReviewUserAndGear,
+  listAllReviewsWithContext,
+  listOpenReviewFlagStats,
+  rejectReviewById,
+  resolveOpenFlagsForReview,
+} from "./data";
 
 export async function fetchAdminReviews() {
   const session = await auth.api.getSession({

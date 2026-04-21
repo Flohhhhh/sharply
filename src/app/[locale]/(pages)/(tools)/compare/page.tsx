@@ -2,16 +2,15 @@ import { type Metadata } from "next";
 import Link from "next/link";
 import { CompareClient } from "~/components/compare/compare-client";
 import { CompareEmptyState } from "~/components/compare/compare-empty-state";
-import { ComparePairTracker } from "./_components/compare-pair-tracker";
-import { CompareReplaceButton } from "~/components/compare/compare-replace-button";
-import { CompareLoadingOverlayProvider } from "~/components/compare/compare-loading-overlay";
-import { fetchGearBySlug } from "~/server/gear/service";
-import { getBrandNameById, stripLeadingBrand } from "~/lib/mapping/brand-map";
 import { CompareHeroScaledRow } from "~/components/compare/compare-hero-scaled";
-import { cn } from "~/lib/utils";
+import { CompareLoadingOverlayProvider } from "~/components/compare/compare-loading-overlay";
+import { CompareReplaceButton } from "~/components/compare/compare-replace-button";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
 import { GetGearDisplayName } from "~/lib/gear/naming";
+import { getBrandNameById,stripLeadingBrand } from "~/lib/mapping/brand-map";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import { fetchGearBySlug } from "~/server/gear/service";
+import { ComparePairTracker } from "./_components/compare-pair-tracker";
 
 export async function generateMetadata({
   searchParams,

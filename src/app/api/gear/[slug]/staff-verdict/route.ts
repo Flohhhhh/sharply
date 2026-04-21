@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { type NextRequest,NextResponse } from "next/server";
 import { fetchStaffVerdict } from "~/server/gear/service";
 
 export async function GET(
@@ -9,7 +9,7 @@ export async function GET(
     const { slug } = await params;
     const verdict = await fetchStaffVerdict(slug);
     return NextResponse.json({ verdict });
-  } catch (e) {
+  } catch {
     return NextResponse.json({ verdict: null }, { status: 200 });
   }
 }

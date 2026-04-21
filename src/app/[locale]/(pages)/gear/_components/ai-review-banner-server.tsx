@@ -1,8 +1,8 @@
 import "server-only";
 
+import { Sparkles } from "lucide-react";
 import { resolveGearIdOrThrow } from "~/server/gear/service";
 import { fetchReviewSummary } from "~/server/reviews/summary/service";
-import { Sparkles } from "lucide-react";
 
 export async function AiReviewBanner({ gearSlug }: { gearSlug: string }) {
   const gearId = await resolveGearIdOrThrow(gearSlug);

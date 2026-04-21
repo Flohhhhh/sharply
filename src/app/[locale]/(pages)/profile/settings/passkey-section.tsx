@@ -1,12 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useLocale } from "next-intl";
-import { Button } from "~/components/ui/button";
-import { Fingerprint, Trash, Loader, ChevronDown, Pencil } from "lucide-react";
-import { passkey } from "~/lib/auth/auth-client";
 import type { Passkey } from "@better-auth/passkey";
+import { ChevronDown,Fingerprint,Loader,Pencil,Trash } from "lucide-react";
+import { useLocale,useTranslations } from "next-intl";
+import { useMemo,useState } from "react";
 import { toast } from "sonner";
+import { LocaleLink } from "~/components/locale-link";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,6 +17,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "~/components/ui/alert-dialog";
+import { Button } from "~/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -28,8 +28,7 @@ import {
   DialogTrigger,
 } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
-import { useTranslations } from "next-intl";
-import { LocaleLink } from "~/components/locale-link";
+import { passkey } from "~/lib/auth/auth-client";
 import { formatDate } from "~/lib/format/date";
 
 type PasskeySectionProps = {

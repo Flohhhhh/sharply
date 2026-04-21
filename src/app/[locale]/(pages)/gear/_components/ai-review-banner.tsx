@@ -1,7 +1,7 @@
 import "server-only";
 
-import { fetchReviewSummary } from "~/server/reviews/summary/service";
 import { Sparkles } from "lucide-react";
+import { fetchReviewSummary } from "~/server/reviews/summary/service";
 
 export async function AiReviewBanner({ gearId }: { gearId: string }) {
   const summary = await fetchReviewSummary(gearId);

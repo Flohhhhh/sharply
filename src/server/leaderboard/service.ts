@@ -2,7 +2,6 @@ import "server-only";
 
 import { requireRole } from "~/lib/auth/auth-helpers";
 import { getSessionOrThrow } from "~/server/auth";
-import type { UserRole } from "~/auth";
 import { fetchContributorLeaderboardData } from "./data";
 
 export async function fetchContributorLeaderboard(limit = 10) {

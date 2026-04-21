@@ -1,10 +1,10 @@
 "use client";
 
 import { track } from "@vercel/analytics";
-import { useMemo, useState } from "react";
-import { useSession } from "~/lib/auth/auth-client";
+import { Pencil } from "lucide-react";
+import React,{ useMemo,useState } from "react";
+import { Alert,AlertDescription } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
-import { TextareaWithCounter } from "~/components/ui/textarea-with-counter";
 import {
   Dialog,
   DialogContent,
@@ -12,11 +12,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
-import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
+import { RadioGroup,RadioGroupItem } from "~/components/ui/radio-group";
+import { TextareaWithCounter } from "~/components/ui/textarea-with-counter";
+import { useSession } from "~/lib/auth/auth-client";
 import { GENRES } from "~/lib/constants";
-import React from "react";
-import { Pencil } from "lucide-react";
-import { Alert, AlertDescription } from "~/components/ui/alert";
 
 interface GearReviewFormProps {
   gearSlug: string;
@@ -228,7 +227,7 @@ export function GearReviewForm({
                               if (genres.length < 3)
                                 setGenres([
                                   ...genres,
-                                  ((g.slug as string) ?? (g.id as string))!,
+                                  ((g.slug as string) ?? (g.id as string)),
                                 ]);
                             } else {
                               const key =

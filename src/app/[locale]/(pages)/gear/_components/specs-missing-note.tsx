@@ -1,5 +1,5 @@
-import type { GearItem } from "~/types/gear";
 import { getConstructionState } from "~/lib/utils";
+import type { GearItem } from "~/types/gear";
 import { SuggestEditButton } from "./suggest-edit-button";
 
 function isUnfilled(value: unknown): boolean {

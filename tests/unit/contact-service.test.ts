@@ -4,7 +4,7 @@ They verify spam blocks, minimum wait-time checks, and success/failure email beh
 That gives confidence the contact flow stays safe and user-friendly.
 */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach,beforeEach,describe,expect,it,vi } from "vitest";
 import { CONTACT_MIN_SUBMIT_MS } from "~/lib/contact/contact-schema";
 
 const emailMocks = vi.hoisted(() => ({

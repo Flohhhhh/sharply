@@ -2,10 +2,10 @@
 
 import Image from "next/image";
 import { useMemo } from "react";
-import type { GearItem } from "~/types/gear";
-import { cn } from "~/lib/utils";
-import { useCompareRowScale } from "./use-compare-row-scale";
 import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
+import { cn } from "~/lib/utils";
+import type { GearItem } from "~/types/gear";
+import { useCompareRowScale } from "./use-compare-row-scale";
 
 type CompareHeroScaledRowProps = {
   leftItem: GearItem | null;

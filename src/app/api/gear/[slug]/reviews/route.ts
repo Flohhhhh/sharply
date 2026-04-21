@@ -1,11 +1,11 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import {
   fetchApprovedReviews,
   fetchMyReviewStatus,
   submitReview,
 } from "~/server/gear/service";
-import { z } from "zod";
 // No points; event_type enum values enforced in schema. Route delegates to server logic.
 
 // Validation schema for review submission

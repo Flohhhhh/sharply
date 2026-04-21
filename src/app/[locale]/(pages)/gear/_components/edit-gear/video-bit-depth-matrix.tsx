@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useCallback, useRef, useState } from "react";
 import { Crop } from "lucide-react";
+import { useCallback,useMemo,useRef,useState } from "react";
 import { cn } from "~/lib/utils";
 import { bitDepthClass } from "~/lib/video/colors";
 
@@ -11,7 +11,6 @@ type VideoBitDepthMatrixProps = {
   resolutions: { key: string; label: string }[];
   fpsSelections: Record<string, number[]>;
   bitDepthOptions: number[];
-  maxBitDepth: number;
   assignments: Record<string, Record<string, number>>;
   cropAssignments: Record<string, Record<string, boolean>>;
   onBitDepthChange: (resolutionKey: string, fps: number, value: string) => void;
@@ -22,7 +21,6 @@ export function VideoBitDepthMatrix({
   resolutions,
   fpsSelections,
   bitDepthOptions,
-  maxBitDepth,
   assignments,
   cropAssignments,
   onBitDepthChange,

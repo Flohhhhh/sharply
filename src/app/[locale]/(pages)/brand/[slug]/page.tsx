@@ -1,13 +1,13 @@
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { GearCard } from "~/components/gear/gear-card";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import { fetchBrandBySlug } from "~/server/brands/service";
 import { fetchGearForBrand } from "~/server/gear/service";
-import { notFound } from "next/navigation";
-import Link from "next/link";
-import type { Metadata } from "next";
-import { GearCard } from "~/components/gear/gear-card";
-import BrandTrendingList from "./_components/brand-trending-list";
 import { fetchTrendingSlugs } from "~/server/popularity/service";
-import { buildLocalizedMetadata } from "~/lib/seo/metadata";
-import { getTranslations } from "next-intl/server";
+import BrandTrendingList from "./_components/brand-trending-list";
 
 interface BrandPageProps {
   params: Promise<{

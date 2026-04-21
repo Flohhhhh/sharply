@@ -1,5 +1,4 @@
-import { BRANDS, MOUNTS, SENSOR_FORMATS } from "~/lib/constants";
-import type { GearItem } from "~/types/gear";
+import { BRANDS } from "~/lib/constants";
 import type { GearType } from "~/types/gear";
 
 export type GearJsonLdSpec = {

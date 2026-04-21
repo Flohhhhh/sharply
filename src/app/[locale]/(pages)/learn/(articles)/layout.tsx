@@ -1,12 +1,12 @@
-import LearnSidebar from "~/app/[locale]/(pages)/learn/_components/learn-sidebar";
 import LearnBreadcrumbs from "~/app/[locale]/(pages)/learn/_components/learn-breadcrumbs";
-import LearnMobileArticleSheet, {
+import LearnMobileArticleSheet,{
   type LearnMobileArticleGroup,
 } from "~/app/[locale]/(pages)/learn/_components/learn-mobile-article-sheet";
+import LearnSidebar from "~/app/[locale]/(pages)/learn/_components/learn-sidebar";
 import { TableOfContents } from "~/components/rich-text/table-of-contents";
+import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
 import type { LearnPage } from "~/payload-types";
 import { getLearnPages } from "~/server/payload/service";
-import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
 
 const sortByCreationDate = <T extends { createdAt: string }>(items: T[]) => {
   return [...items].sort(

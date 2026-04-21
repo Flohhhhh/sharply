@@ -1,5 +1,5 @@
 import { SENSOR_FORMATS } from "~/lib/constants";
-import type { CameraSpecs, SensorFormat } from "~/types/gear";
+import type { CameraSpecs } from "~/types/gear";
 
 // const FORMATS = SENSOR_FORMATS as Array<
 //   Pick<SensorFormat, "id" | "name" | "slug">

@@ -1,7 +1,7 @@
 "use client";
 
+import { ArrowUpRight,Clock3,Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
-import { ArrowUpRight, Clock3, Sparkles } from "lucide-react";
 import { cn } from "~/lib/utils";
 
 export type SearchSuggestionKind =

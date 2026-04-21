@@ -1,9 +1,9 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Breadcrumbs, type CrumbItem } from "~/components/layout/breadcrumbs";
-import type { LearnPage } from "~/payload-types";
+import { useEffect,useMemo,useState } from "react";
+import { Breadcrumbs,type CrumbItem } from "~/components/layout/breadcrumbs";
 import { useLocalePathnames } from "~/i18n/client";
+import type { LearnPage } from "~/payload-types";
 
 function humanizeSegment(segment: string): string {
   const known: Record<string, string> = {
@@ -12,7 +12,7 @@ function humanizeSegment(segment: string): string {
     "all-about-gear": "All About Gear",
   };
   if (segment in known) {
-    const mapped = known[segment as keyof typeof known];
+    const mapped = known[segment];
     if (mapped !== undefined) return mapped;
   }
   return segment

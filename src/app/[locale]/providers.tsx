@@ -1,12 +1,12 @@
 "use client";
 
-import { NextIntlClientProvider, type AbstractIntlMessages } from "next-intl";
+import { NextIntlClientProvider,type AbstractIntlMessages } from "next-intl";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { type ReactNode } from "react";
 import { CommandPalette } from "~/components/search/command-palette";
+import type { Locale } from "~/i18n/config";
 import { CountryProvider } from "~/lib/hooks/useCountry";
 import { ThemeProvider } from "~/lib/providers/theme-provider";
-import { NuqsAdapter } from "nuqs/adapters/next/app";
-import type { Locale } from "~/i18n/config";
 
 export function Providers({
   children,

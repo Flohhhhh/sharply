@@ -1,5 +1,5 @@
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Avatar,AvatarFallback,AvatarImage } from "~/components/ui/avatar";
+import { Card,CardContent,CardHeader,CardTitle } from "~/components/ui/card";
 import { fetchContributorLeaderboard } from "~/server/leaderboard/service";
 
 export default async function AdminLeaderboardPage() {

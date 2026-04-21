@@ -1,13 +1,11 @@
 "use client";
 
 import { LinkIcon } from "lucide-react";
+import { useEffect,useMemo,useRef,useState } from "react";
 import { toast } from "sonner";
-import { useEffect, useMemo, useRef, useState } from "react";
 
-import { ImageSets } from "../data";
-import { ScrollItem } from "./scroll-item";
 import SensorFormatInput from "~/components/custom-inputs/sensor-format-input";
-import { SENSOR_FORMATS } from "~/lib/constants";
+import { Button } from "~/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -15,7 +13,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { Button } from "~/components/ui/button";
+import { SENSOR_FORMATS } from "~/lib/constants";
+import { ImageSets } from "../data";
+import { ScrollItem } from "./scroll-item";
 
 export function FocalLengthClientMobile() {
   const [selectedSetKey, setSelectedSetKey] = useState(ImageSets[0]!.key);
@@ -45,20 +45,10 @@ export function FocalLengthClientMobile() {
     return match ? parseFloat(match.crop_factor) : null;
   }, [leftSensorFormat]);
 
-  const rightCropFactor = useMemo(() => {
-    const match = SENSOR_FORMATS.find((f) => f.slug === rightSensorFormat);
-    return match ? parseFloat(match.crop_factor) : null;
-  }, [rightSensorFormat]);
-
   const leftCropLabel = useMemo(() => {
     const match = SENSOR_FORMATS.find((f) => f.slug === leftSensorFormat);
     return match ? `${match.name} (${match.crop_factor}x)` : null;
   }, [leftSensorFormat]);
-
-  const rightCropLabel = useMemo(() => {
-    const match = SENSOR_FORMATS.find((f) => f.slug === rightSensorFormat);
-    return match ? `${match.name} (${match.crop_factor}x)` : null;
-  }, [rightSensorFormat]);
 
   const selectedSet = useMemo(
     () => ImageSets.find((set) => set.key === selectedSetKey) ?? ImageSets[0]!,

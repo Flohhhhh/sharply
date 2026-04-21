@@ -1,9 +1,9 @@
 "use client";
 
-import React from "react";
-import type { ComponentPropsWithoutRef } from "react";
+import type { Transition,Variants } from "motion/react";
 import { motion } from "motion/react";
-import type { Transition, Variants } from "motion/react";
+import type { ComponentPropsWithoutRef } from "react";
+import React from "react";
 
 import { cn } from "~/lib/utils";
 

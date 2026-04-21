@@ -1,5 +1,5 @@
-import GearStatsClient from "~/app/[locale]/(pages)/gear/_components/gear-stats-client";
 import { getTranslations } from "next-intl/server";
+import GearStatsClient from "~/app/[locale]/(pages)/gear/_components/gear-stats-client";
 import { fetchGearStats } from "~/server/gear/service";
 
 export default async function GearStatsCard({ slug }: { slug: string }) {

@@ -2,7 +2,7 @@ import "server-only";
 
 import { sql } from "drizzle-orm";
 import { db } from "~/server/db";
-import { gear, reviews, gearEdits } from "~/server/db/schema";
+import { gear,gearEdits,reviews } from "~/server/db/schema";
 
 /** Count all gear items */
 export async function getGearCount(): Promise<number> {

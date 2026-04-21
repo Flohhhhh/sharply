@@ -1,6 +1,5 @@
 import "server-only";
 
-import { and, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 
 import { auth } from "~/auth";
@@ -23,8 +22,9 @@ const emptyLinkedMap = (): LinkedAccountMap => ({
 
 // fetch linked accounts for a user
 export async function fetchLinkedAccountsForUser(
-  _userId: string,
+  userId?: string,
 ): Promise<LinkedAccountMap> {
+  void userId;
   const result = emptyLinkedMap();
 
   const apiResult: unknown = await auth.api.listUserAccounts({

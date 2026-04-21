@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { deleteOwnReview, flagReview } from "~/server/gear/service";
+import { deleteOwnReview,flagReview } from "~/server/gear/service";
 
 export async function POST(
   _request: NextRequest,

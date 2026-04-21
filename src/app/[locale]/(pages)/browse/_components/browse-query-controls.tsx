@@ -1,17 +1,16 @@
 "use client";
 
-import { Suspense } from "react";
 import { RefreshCcwDot } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { usePathname, useSearchParams } from "next/navigation";
-import { Button } from "~/components/ui/button";
+import { usePathname,useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { SortSelect } from "~/components/search/sort-select";
+import { Button } from "~/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
-import { useLocalePathnames } from "~/i18n/client";
 
 type BrowseQueryControlsProps = {
   category?: "cameras" | "lenses" | null;

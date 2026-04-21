@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { Card, CardContent } from "~/components/ui/card";
 import { useLocale } from "next-intl";
+import Link from "next/link";
+import { useEffect,useState } from "react";
+import { Card,CardContent } from "~/components/ui/card";
 import { formatDate } from "~/lib/format/date";
 
 type AuditRow = {
@@ -19,6 +19,10 @@ type AuditRow = {
   editStatus: string | null;
 };
 
+type AuditLogResponse = {
+  items?: AuditRow[];
+};
+
 // TODO: seems to not be working, did not show a review approval, and i want to give this tabs possibly, and show the badge logs here
 export function AuditLogList() {
   const locale = useLocale();
@@ -30,8 +34,8 @@ export function AuditLogList() {
       try {
         const res = await fetch("/api/admin/audit?limit=25");
         if (res.ok) {
-          const data = await res.json();
-          setItems(data.items || []);
+          const data: AuditLogResponse = await res.json();
+          setItems(Array.isArray(data.items) ? data.items : []);
         }
       } catch {}
       setLoading(false);

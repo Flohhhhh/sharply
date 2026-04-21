@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
 import { useLocale } from "next-intl";
-import { Line, LineChart, XAxis, YAxis } from "recharts";
-import { ChartContainer, type ChartConfig } from "~/components/ui/chart";
+import { useMemo } from "react";
+import { Line,LineChart,XAxis,YAxis } from "recharts";
+import { ChartContainer,type ChartConfig } from "~/components/ui/chart";
 import type {
   ExifTrackedCameraHistoryEntry,
   ExifTrackingChartSeries,

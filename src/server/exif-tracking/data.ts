@@ -1,6 +1,13 @@
 import "server-only";
 
-import { and, count, desc, eq, min, max, or, sql } from "drizzle-orm";
+import { and,count,desc,eq,max,min,or,sql } from "drizzle-orm";
+import type {
+  ExifTrackedCameraHistoryEntry,
+  ExifTrackedCameraSummary,
+  ExifTrackingHistoryResponse,
+  ExifTrackingPrimaryCountType,
+  ExifViewerMatchedGear,
+} from "~/app/[locale]/(pages)/(tools)/exif-viewer/types";
 import { db } from "~/server/db";
 import {
   exifShutterReadings,
@@ -8,13 +15,6 @@ import {
   gear,
   gearExifAliases,
 } from "~/server/db/schema";
-import type {
-  ExifTrackedCameraSummary,
-  ExifTrackedCameraHistoryEntry,
-  ExifTrackingHistoryResponse,
-  ExifTrackingPrimaryCountType,
-  ExifViewerMatchedGear,
-} from "~/app/[locale]/(pages)/(tools)/exif-viewer/types";
 
 type SelectExecutor = Pick<typeof db, "select">;
 type UpdateExecutor = SelectExecutor & Pick<typeof db, "update">;

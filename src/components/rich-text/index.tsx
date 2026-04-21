@@ -1,7 +1,7 @@
-import React from "react";
-import { RichText as LexicalRichText } from "@payloadcms/richtext-lexical/react";
 import type { DefaultNodeTypes } from "@payloadcms/richtext-lexical";
 import type { JSXConvertersFunction } from "@payloadcms/richtext-lexical/react";
+import { RichText as LexicalRichText } from "@payloadcms/richtext-lexical/react";
+import React from "react";
 import type { News } from "~/payload-types";
 
 // Keep heading tags intact (with optional demotion); TOC will assign IDs client-side if missing

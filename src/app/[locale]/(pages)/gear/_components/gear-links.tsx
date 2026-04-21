@@ -1,13 +1,15 @@
 "use client";
 
 import { track } from "@vercel/analytics";
-import Link from "next/link";
-import { useTranslations } from "next-intl";
-import { useMemo, useState, type ReactNode } from "react";
-import { FaAmazon } from "react-icons/fa";
-import { SiFujifilm, SiLeica, SiNikon, SiSony } from "react-icons/si";
 import { CircleQuestionMark } from "lucide-react";
+import { useTranslations } from "next-intl";
+import Link from "next/link";
+import { useMemo,useState,type ReactNode } from "react";
+import { FaAmazon } from "react-icons/fa";
+import { SiFujifilm,SiLeica,SiNikon,SiSony } from "react-icons/si";
 
+import { CanonLogo } from "public/canon-logo";
+import MpbLogo from "public/mpb-logo";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -16,16 +18,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
+import { BRANDS } from "~/lib/generated";
 import { useCountry } from "~/lib/hooks/useCountry";
 import { getMpbMountSuffix } from "~/lib/links/mpb";
-import { getMountLongNameById } from "~/lib/mapping/mounts-map";
 import { formatPrice } from "~/lib/mapping";
+import { getMountLongNameById } from "~/lib/mapping/mounts-map";
 import { parseAmazonAsin } from "~/lib/validation/amazon";
-import { BRANDS } from "~/lib/generated";
 import type { GearType } from "~/types/gear";
-import { buildMpbOutHref, resolveMpbLinkState } from "./gear-links-mpb";
-import { CanonLogo } from "public/canon-logo";
-import MpbLogo from "public/mpb-logo";
+import { buildMpbOutHref,resolveMpbLinkState } from "./gear-links-mpb";
 
 interface GearLinksProps {
   slug: string;

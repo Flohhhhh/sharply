@@ -1,9 +1,9 @@
-import { toast } from "sonner";
-import { GearCard, GearCardSkeleton } from "~/components/gear/gear-card";
 import { useEffect } from "react";
-import { type SearchResult } from "~/server/search/service";
-import { Empty, EmptyTitle, EmptyDescription } from "~/components/ui/empty";
+import { toast } from "sonner";
+import { GearCard,GearCardSkeleton } from "~/components/gear/gear-card";
+import { Empty,EmptyDescription,EmptyTitle } from "~/components/ui/empty";
 import { getItemDisplayPrice } from "~/lib/mapping/price-map";
+import { type SearchResult } from "~/server/search/service";
 
 const INITIAL_SKELETON_KEYS = Array.from(
   { length: 16 },

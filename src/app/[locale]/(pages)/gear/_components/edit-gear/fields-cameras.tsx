@@ -1,8 +1,18 @@
 "use client";
 
-import { useCallback, memo, useEffect, useMemo, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import {
+  BatteryFullIcon,
+  Grid3X3,
+  ZapIcon
+} from "lucide-react";
+import { memo,useCallback,useEffect,useMemo,useState } from "react";
+import { BooleanInput,MultiTextInput,NumberInput } from "~/components/custom-inputs";
+import IsoInput from "~/components/custom-inputs/iso-input";
+import SensorFormatInput from "~/components/custom-inputs/sensor-format-input";
+import { Card,CardContent,CardHeader,CardTitle } from "~/components/ui/card";
+import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { MultiSelect } from "~/components/ui/multi-select";
 import {
   Select,
   SelectContent,
@@ -10,25 +20,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import type { cameraSpecs, sensorFormats } from "~/server/db/schema";
-import { SENSOR_FORMATS, ENUMS, AF_AREA_MODES } from "~/lib/constants";
-import { formatCameraType, PRECAPTURE_SUPPORT_OPTIONS } from "~/lib/mapping";
-import IsoInput from "~/components/custom-inputs/iso-input";
-import SensorFormatInput from "~/components/custom-inputs/sensor-format-input";
-import { NumberInput, MultiTextInput } from "~/components/custom-inputs";
 import { Switch } from "~/components/ui/switch";
-import { BooleanInput } from "~/components/custom-inputs";
-import {
-  BatteryFullIcon,
-  BatteryIcon,
-  Grid3X3,
-  InfoIcon,
-  ZapIcon,
-} from "lucide-react";
-import { Input } from "~/components/ui/input";
-import { MultiSelect } from "~/components/ui/multi-select";
-import type { EnrichedCameraSpecs, GearItem } from "~/types/gear";
-import CardSlotsManager, { type CardSlot } from "./card-slots-manager";
+import { AF_AREA_MODES,ENUMS } from "~/lib/constants";
+import { formatCameraType,PRECAPTURE_SUPPORT_OPTIONS } from "~/lib/mapping";
+import type { EnrichedCameraSpecs,GearItem } from "~/types/gear";
+import CardSlotsManager,{ type CardSlot } from "./card-slots-manager";
 import { VideoModesManager } from "./video-modes-manager";
 // Integrated lens UI moved to edit form level
 
@@ -47,7 +43,6 @@ const shutterTypeOrder = ["mechanical", "efc", "electronic"] as const;
 type ShutterType = (typeof shutterTypeOrder)[number];
 type ShutterFpsEntry = { raw?: number | null; jpg?: number | null };
 type ShutterFpsByType = Partial<Record<ShutterType, ShutterFpsEntry>>;
-
 const shutterTypeLabels: Record<ShutterType, string> = {
   mechanical: "Mechanical shutter",
   efc: "Electronic first curtain",
@@ -361,9 +356,7 @@ function CameraFieldsComponent({
 
   // AF Subject Categories (enum-backed)
   const afSubjectCategoryOptions = useMemo(() => {
-    const list = (ENUMS as any)?.camera_af_subject_categories_enum as
-      | string[]
-      | undefined;
+    const list = ENUMS.camera_af_subject_categories_enum;
     if (!Array.isArray(list)) return [] as { id: string; name: string }[];
     return list.map((v) => ({
       id: v,
@@ -427,7 +420,7 @@ function CameraFieldsComponent({
       <CardContent className="space-y-4 px-0">
         <div className="flex flex-col gap-3">
           {/* Sensor Format */}
-          {showWhenMissing((initialSpecs as any)?.sensorFormatId) && (
+          {showWhenMissing(initialSpecs?.sensorFormatId) && (
             <SensorFormatInput
               id="sensorFormatId"
               label="Sensor Format"
@@ -437,7 +430,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Resolution - Standard Number Input */}
-          {showWhenMissing((initialSpecs as any)?.resolutionMp) && (
+          {showWhenMissing(initialSpecs?.resolutionMp) && (
             <NumberInput
               id="resolutionMp"
               label="Resolution (megapixels)"
@@ -456,7 +449,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Sensor Stacking Type */}
-          {showWhenMissing((initialSpecs as any)?.sensorStackingType) && (
+          {showWhenMissing(initialSpecs?.sensorStackingType) && (
             <div className="space-y-2">
               <Label htmlFor="sensorStackingType">Sensor Stacking Type</Label>
               <Select
@@ -487,7 +480,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Sensor Tech Type */}
-          {showWhenMissing((initialSpecs as any)?.sensorTechType) && (
+          {showWhenMissing(initialSpecs?.sensorTechType) && (
             <div className="space-y-2">
               <Label htmlFor="sensorTechType">Sensor Tech Type</Label>
               <Select
@@ -511,7 +504,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Camera Type */}
-          {showWhenMissing((initialSpecs as any)?.cameraType) && (
+          {showWhenMissing(initialSpecs?.cameraType) && (
             <div className="space-y-2">
               <Label htmlFor="cameraType">Camera Type</Label>
               <Select
@@ -536,7 +529,7 @@ function CameraFieldsComponent({
 
           {/* Is Back Side Illuminated */}
 
-          {showWhenMissing((initialSpecs as any)?.isBackSideIlluminated) && (
+          {showWhenMissing(initialSpecs?.isBackSideIlluminated) && (
             <BooleanInput
               id="isBackSideIlluminated"
               label="Back Side Illuminated"
@@ -551,7 +544,7 @@ function CameraFieldsComponent({
 
           {/* Sensor Readout Speed */}
 
-          {showWhenMissing((initialSpecs as any)?.sensorReadoutSpeedMs) && (
+          {showWhenMissing(initialSpecs?.sensorReadoutSpeedMs) && (
             <NumberInput
               id="sensorReadoutSpeedMs"
               label="Sensor Readout Speed (ms)"
@@ -571,7 +564,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Precapture Support */}
-          {showWhenMissing((initialSpecs as any)?.precaptureSupportLevel) && (
+          {showWhenMissing(initialSpecs?.precaptureSupportLevel) && (
             <div className="space-y-2">
               <Label htmlFor="precaptureSupportLevel">
                 Precapture Buffer Support
@@ -607,7 +600,7 @@ function CameraFieldsComponent({
           <div id="isoRange" className="h-0" aria-hidden />
 
           {/* ISO Min */}
-          {showWhenMissing((initialSpecs as any)?.isoMin) && (
+          {showWhenMissing(initialSpecs?.isoMin) && (
             <IsoInput
               id="isoMin"
               label="ISO Min (Native)"
@@ -617,7 +610,7 @@ function CameraFieldsComponent({
           )}
 
           {/* ISO Max */}
-          {showWhenMissing((initialSpecs as any)?.isoMax) && (
+          {showWhenMissing(initialSpecs?.isoMax) && (
             <IsoInput
               id="isoMax"
               label="ISO Max (Native)"
@@ -627,7 +620,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Rear Display Type */}
-          {showWhenMissing((initialSpecs as any)?.rearDisplayType) && (
+          {showWhenMissing(initialSpecs?.rearDisplayType) && (
             <div className="space-y-2">
               <Label htmlFor="rearDisplayType">Rear Display Type</Label>
               <Select
@@ -657,9 +650,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Rear Display Resolution (million dots) */}
-          {showWhenMissing(
-            (initialSpecs as any)?.rearDisplayResolutionMillionDots,
-          ) && (
+          {showWhenMissing(initialSpecs?.rearDisplayResolutionMillionDots) && (
             <NumberInput
               id="rearDisplayResolutionMillionDots"
               label="Rear Display Resolution"
@@ -679,7 +670,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Rear Display Size (inches) */}
-          {showWhenMissing((initialSpecs as any)?.rearDisplaySizeInches) && (
+          {showWhenMissing(initialSpecs?.rearDisplaySizeInches) && (
             <NumberInput
               id="rearDisplaySizeInches"
               label="Rear Display Size"
@@ -699,7 +690,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Viewfinder Type */}
-          {showWhenMissing((initialSpecs as any)?.viewfinderType) && (
+          {showWhenMissing(initialSpecs?.viewfinderType) && (
             <div className="space-y-2">
               <Label htmlFor="viewfinderType">Viewfinder Type</Label>
               <Select
@@ -722,7 +713,7 @@ function CameraFieldsComponent({
 
           {/* Viewfinder Magnification (x) */}
           {(currentSpecs?.viewfinderType ?? "") !== "none" &&
-            showWhenMissing((initialSpecs as any)?.viewfinderMagnification) && (
+            showWhenMissing(initialSpecs?.viewfinderMagnification) && (
               <NumberInput
                 id="viewfinderMagnification"
                 label="Viewfinder Magnification"
@@ -743,9 +734,7 @@ function CameraFieldsComponent({
 
           {/* Viewfinder Resolution (million dots) */}
           {(currentSpecs?.viewfinderType ?? "") === "electronic" &&
-            showWhenMissing(
-              (initialSpecs as any)?.viewfinderResolutionMillionDots,
-            ) && (
+            showWhenMissing(initialSpecs?.viewfinderResolutionMillionDots) && (
               <NumberInput
                 id="viewfinderResolutionMillionDots"
                 label="Viewfinder Resolution"
@@ -765,7 +754,7 @@ function CameraFieldsComponent({
             )}
 
           {/* Has Top Display */}
-          {showWhenMissing((initialSpecs as any)?.hasTopDisplay) && (
+          {showWhenMissing(initialSpecs?.hasTopDisplay) && (
             <BooleanInput
               id="hasTopDisplay"
               label="Has Top Display"
@@ -777,7 +766,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Has Rear Touchscreen */}
-          {showWhenMissing((initialSpecs as any)?.hasRearTouchscreen) && (
+          {showWhenMissing(initialSpecs?.hasRearTouchscreen) && (
             <BooleanInput
               id="hasRearTouchscreen"
               label="Has Rear Touchscreen"
@@ -791,7 +780,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Max Raw Bit Depth */}
-          {showWhenMissing((initialSpecs as any)?.maxRawBitDepth) && (
+          {showWhenMissing(initialSpecs?.maxRawBitDepth) && (
             <div className="space-y-2">
               <Label htmlFor="maxRawBitDepth">Max Raw Bit Depth</Label>
               <Select
@@ -815,7 +804,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Has Ibis */}
-          {showWhenMissing((initialSpecs as any)?.hasIbis) && (
+          {showWhenMissing(initialSpecs?.hasIbis) && (
             <BooleanInput
               id="hasIbis"
               label="Has IBIS (Physical)"
@@ -827,9 +816,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Has Electronic Vibration Reduction */}
-          {showWhenMissing(
-            (initialSpecs as any)?.hasElectronicVibrationReduction,
-          ) && (
+          {showWhenMissing(initialSpecs?.hasElectronicVibrationReduction) && (
             <BooleanInput
               id="hasElectronicVibrationReduction"
               label="Has Electronic VR (Digital)"
@@ -843,9 +830,7 @@ function CameraFieldsComponent({
           )}
 
           {/* CIPA Stabilization Rating Stops */}
-          {showWhenMissing(
-            (initialSpecs as any)?.cipaStabilizationRatingStops,
-          ) && (
+          {showWhenMissing(initialSpecs?.cipaStabilizationRatingStops) && (
             <NumberInput
               id="cipaStabilizationRatingStops"
               label="CIPA Stabilization Rating Stops"
@@ -862,7 +847,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Has Pixel Shift Shooting */}
-          {showWhenMissing((initialSpecs as any)?.hasPixelShiftShooting) && (
+          {showWhenMissing(initialSpecs?.hasPixelShiftShooting) && (
             <BooleanInput
               id="hasPixelShiftShooting"
               label="Has Pixel Shift Shooting"
@@ -876,7 +861,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Has Anti Aliasing Filter */}
-          {showWhenMissing((initialSpecs as any)?.hasAntiAliasingFilter) && (
+          {showWhenMissing(initialSpecs?.hasAntiAliasingFilter) && (
             <BooleanInput
               id="hasAntiAliasingFilter"
               label="Has Anti Aliasing Filter"
@@ -891,18 +876,13 @@ function CameraFieldsComponent({
 
           {/* Card Slots Manager */}
           {(() => {
-            const hadSlots = Array.isArray(
-              (initialGearItem as any)?.cameraCardSlots,
-            )
-              ? (((initialGearItem as any)?.cameraCardSlots as unknown[]) ?? [])
-                  .length > 0
+            const hadSlots = Array.isArray(initialGearItem?.cameraCardSlots)
+              ? initialGearItem.cameraCardSlots.length > 0
               : false;
             if (showMissingOnly && hadSlots) return null;
             return (
               <CardSlotsManager
-                value={
-                  (gearItem as any)?.cameraCardSlots as CardSlot[] | undefined
-                }
+                value={gearItem.cameraCardSlots as CardSlot[] | undefined}
                 onChange={(slots) =>
                   onChangeTopLevel?.("cameraCardSlots", slots)
                 }
@@ -911,7 +891,7 @@ function CameraFieldsComponent({
           })()}
 
           {/* Processor Name */}
-          {showWhenMissing((initialSpecs as any)?.processorName) && (
+          {showWhenMissing(initialSpecs?.processorName) && (
             <div className="space-y-2">
               <Label htmlFor="processorName">Processor Name</Label>
               <Input
@@ -925,7 +905,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Has Weather Sealing */}
-          {showWhenMissing((initialSpecs as any)?.hasWeatherSealing) && (
+          {showWhenMissing(initialSpecs?.hasWeatherSealing) && (
             <BooleanInput
               id="hasWeatherSealing"
               label="Has Weather Sealing"
@@ -939,7 +919,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Focus Points */}
-          {showWhenMissing((initialSpecs as any)?.focusPoints) && (
+          {showWhenMissing(initialSpecs?.focusPoints) && (
             <NumberInput
               id="focusPoints"
               label="Focus Points"
@@ -950,7 +930,7 @@ function CameraFieldsComponent({
 
           {/* AF Area Modes */}
           {/* TODO: add a way for creating new af area modes (review plan)*/}
-          {showWhenMissing((initialSpecs as any)?.afAreaModes) && (
+          {showWhenMissing(initialSpecs?.afAreaModes) && (
             <div id="afAreaModes" className="space-y-2">
               <Label htmlFor="afAreaModes">AF Area Modes</Label>
               <MultiSelect
@@ -962,7 +942,7 @@ function CameraFieldsComponent({
           )}
 
           {/* AF Subject Categories */}
-          {showWhenMissing((initialSpecs as any)?.afSubjectCategories) && (
+          {showWhenMissing(initialSpecs?.afSubjectCategories) && (
             <div id="afSubjectCategories" className="space-y-2">
               <Label htmlFor="afSubjectCategories">AF Subject Categories</Label>
               <MultiSelect
@@ -976,7 +956,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Has Focus Peaking */}
-          {showWhenMissing((initialSpecs as any)?.hasFocusPeaking) && (
+          {showWhenMissing(initialSpecs?.hasFocusPeaking) && (
             <BooleanInput
               id="hasFocusPeaking"
               label="Has Focus Peaking"
@@ -988,7 +968,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Has Focus Bracketing */}
-          {showWhenMissing((initialSpecs as any)?.hasFocusBracketing) && (
+          {showWhenMissing(initialSpecs?.hasFocusBracketing) && (
             <BooleanInput
               id="hasFocusBracketing"
               label="Has Focus Bracketing"
@@ -1002,7 +982,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Shutter Speed Max */}
-          {showWhenMissing((initialSpecs as any)?.shutterSpeedMax) && (
+          {showWhenMissing(initialSpecs?.shutterSpeedMax) && (
             <NumberInput
               id="shutterSpeedMax"
               label="Longest Shutter Speed"
@@ -1013,7 +993,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Shutter Speed Min */}
-          {showWhenMissing((initialSpecs as any)?.shutterSpeedMin) && (
+          {showWhenMissing(initialSpecs?.shutterSpeedMin) && (
             <NumberInput
               id="shutterSpeedMin"
               label="Shortest Shutter Speed"
@@ -1024,7 +1004,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Flash Sync Speed */}
-          {showWhenMissing((initialSpecs as any)?.flashSyncSpeed) && (
+          {showWhenMissing(initialSpecs?.flashSyncSpeed) && (
             <NumberInput
               id="flashSyncSpeed"
               label="Flash Sync Speed"
@@ -1036,9 +1016,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Has Silent Shooting Available */}
-          {showWhenMissing(
-            (initialSpecs as any)?.hasSilentShootingAvailable,
-          ) && (
+          {showWhenMissing(initialSpecs?.hasSilentShootingAvailable) && (
             <BooleanInput
               id="hasSilentShootingAvailable"
               label="Has Silent Shooting Available"
@@ -1052,7 +1030,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Available Shutter Types */}
-          {showWhenMissing((initialSpecs as any)?.availableShutterTypes) && (
+          {showWhenMissing(initialSpecs?.availableShutterTypes) && (
             <div id="availableShutterTypes" className="space-y-2">
               <Label htmlFor="availableShutterTypes">
                 Available Shutter Types
@@ -1073,8 +1051,8 @@ function CameraFieldsComponent({
           )}
 
           {/* Max Continuous FPS */}
-          {(showWhenMissing((initialSpecs as any)?.maxFpsRaw) ||
-            showWhenMissing((initialSpecs as any)?.maxFpsJpg)) && (
+          {(showWhenMissing(initialSpecs?.maxFpsRaw) ||
+            showWhenMissing(initialSpecs?.maxFpsJpg)) && (
             <div id="maxFpsByShutter" className="space-y-3">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <Label>Max Continuous FPS (Photo)</Label>
@@ -1166,7 +1144,7 @@ function CameraFieldsComponent({
           )}
 
           {/* CIPA Battery Shots Per Charge */}
-          {showWhenMissing((initialSpecs as any)?.internalStorageGb) && (
+          {showWhenMissing(initialSpecs?.internalStorageGb) && (
             <NumberInput
               id="internalStorageGb"
               label="Internal Storage"
@@ -1185,9 +1163,7 @@ function CameraFieldsComponent({
             />
           )}
 
-          {showWhenMissing(
-            (initialSpecs as any)?.cipaBatteryShotsPerCharge,
-          ) && (
+          {showWhenMissing(initialSpecs?.cipaBatteryShotsPerCharge) && (
             <NumberInput
               id="cipaBatteryShotsPerCharge"
               label="CIPA Battery Shots Per Charge"
@@ -1200,7 +1176,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Supported Batteries */}
-          {showWhenMissing((initialSpecs as any)?.supportedBatteries) && (
+          {showWhenMissing(initialSpecs?.supportedBatteries) && (
             <div
               id="supportedBatteries"
               data-force-ring-container
@@ -1210,10 +1186,10 @@ function CameraFieldsComponent({
                 id="supportedBatteries"
                 label="Supported Batteries"
                 values={
-                  Array.isArray((currentSpecs as any)?.supportedBatteries)
-                    ? (
-                        (currentSpecs as any).supportedBatteries as unknown[]
-                      ).filter((x): x is string => typeof x === "string")
+                  Array.isArray(currentSpecs?.supportedBatteries)
+                    ? currentSpecs.supportedBatteries.filter(
+                        (x): x is string => typeof x === "string",
+                      )
                     : []
                 }
                 onChange={(value) =>
@@ -1225,7 +1201,7 @@ function CameraFieldsComponent({
           )}
 
           {/* USB Charging */}
-          {showWhenMissing((initialSpecs as any)?.usbCharging) && (
+          {showWhenMissing(initialSpecs?.usbCharging) && (
             <BooleanInput
               id="usbCharging"
               label="USB Charging"
@@ -1238,7 +1214,7 @@ function CameraFieldsComponent({
           )}
 
           {/* USB Power Delivery */}
-          {showWhenMissing((initialSpecs as any)?.usbPowerDelivery) && (
+          {showWhenMissing(initialSpecs?.usbPowerDelivery) && (
             <BooleanInput
               id="usbPowerDelivery"
               label="USB Power Delivery"
@@ -1251,7 +1227,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Has Log Color Profile */}
-          {showWhenMissing((initialSpecs as any)?.hasLogColorProfile) && (
+          {showWhenMissing(initialSpecs?.hasLogColorProfile) && (
             <BooleanInput
               id="hasLogColorProfile"
               label="Has Log Color Profile"
@@ -1265,7 +1241,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Has 10 Bit Video */}
-          {showWhenMissing((initialSpecs as any)?.has10BitVideo) && (
+          {showWhenMissing(initialSpecs?.has10BitVideo) && (
             <BooleanInput
               id="has10BitVideo"
               label="Has 10 Bit Video"
@@ -1277,7 +1253,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Has 12 Bit Video */}
-          {showWhenMissing((initialSpecs as any)?.has12BitVideo) && (
+          {showWhenMissing(initialSpecs?.has12BitVideo) && (
             <BooleanInput
               id="has12BitVideo"
               label="Has 12 Bit Video"
@@ -1289,7 +1265,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Has Open Gate Video */}
-          {showWhenMissing((initialSpecs as any)?.hasOpenGateVideo) && (
+          {showWhenMissing(initialSpecs?.hasOpenGateVideo) && (
             <BooleanInput
               id="hasOpenGateVideo"
               label="Has Open Gate Video"
@@ -1301,9 +1277,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Supports External Recording */}
-          {showWhenMissing(
-            (initialSpecs as any)?.supportsExternalRecording,
-          ) && (
+          {showWhenMissing(initialSpecs?.supportsExternalRecording) && (
             <BooleanInput
               id="supportsExternalRecording"
               label="Supports External Recording"
@@ -1317,7 +1291,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Supports Recording to Drive */}
-          {showWhenMissing((initialSpecs as any)?.supportsRecordToDrive) && (
+          {showWhenMissing(initialSpecs?.supportsRecordToDrive) && (
             <BooleanInput
               id="supportsRecordToDrive"
               label="Supports Recording to Drive"
@@ -1339,7 +1313,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Has Intervalometer */}
-          {showWhenMissing((initialSpecs as any)?.hasIntervalometer) && (
+          {showWhenMissing(initialSpecs?.hasIntervalometer) && (
             <BooleanInput
               id="hasIntervalometer"
               label="Has Intervalometer"
@@ -1353,7 +1327,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Has Self Timer */}
-          {showWhenMissing((initialSpecs as any)?.hasSelfTimer) && (
+          {showWhenMissing(initialSpecs?.hasSelfTimer) && (
             <BooleanInput
               id="hasSelfTimer"
               label="Has Self Timer"
@@ -1365,7 +1339,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Has Built In Flash */}
-          {showWhenMissing((initialSpecs as any)?.hasBuiltInFlash) && (
+          {showWhenMissing(initialSpecs?.hasBuiltInFlash) && (
             <BooleanInput
               id="hasBuiltInFlash"
               label="Has Built In Flash"
@@ -1377,7 +1351,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Has Hot Shoe */}
-          {showWhenMissing((initialSpecs as any)?.hasHotShoe) && (
+          {showWhenMissing(initialSpecs?.hasHotShoe) && (
             <BooleanInput
               id="hasHotShoe"
               label="Has Hot Shoe"
@@ -1389,7 +1363,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Has USB File Transfer */}
-          {showWhenMissing((initialSpecs as any)?.hasUsbFileTransfer) && (
+          {showWhenMissing(initialSpecs?.hasUsbFileTransfer) && (
             <BooleanInput
               id="hasUsbFileTransfer"
               label="Has USB File Transfer"

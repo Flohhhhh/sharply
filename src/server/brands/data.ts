@@ -1,8 +1,8 @@
 import "server-only";
 
+import { eq } from "drizzle-orm";
 import { db } from "~/server/db";
 import { brands } from "~/server/db/schema";
-import { eq } from "drizzle-orm";
 
 export type BrandRow = { id: string; name: string; slug: string };
 

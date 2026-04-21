@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 import { GearCardHorizontal } from "~/components/gear/gear-card-horizontal";
-import type { GearAlternativeRow } from "~/server/gear/service";
 import { getItemDisplayPrice } from "~/lib/mapping";
+import type { GearAlternativeRow } from "~/server/gear/service";
 
 interface GearAlternativesSectionProps {
   alternatives: GearAlternativeRow[];

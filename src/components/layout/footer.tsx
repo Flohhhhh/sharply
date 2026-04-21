@@ -1,12 +1,12 @@
 "use client";
 
-import React from "react";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { FaDiscord, FaInstagram, FaGithub, FaTwitter } from "react-icons/fa";
-import { getFooterItems } from "~/lib/nav-items";
+import Image from "next/image";
+import React from "react";
+import { FaDiscord,FaGithub,FaInstagram,FaTwitter } from "react-icons/fa";
 import { LanguageSwitcher } from "~/components/language-switcher";
 import { LocaleLink } from "~/components/locale-link";
+import { getFooterItems } from "~/lib/nav-items";
 
 interface Footer7Props {
   logo?: {

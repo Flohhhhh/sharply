@@ -1,12 +1,10 @@
 "use client";
-import { useEffect, useMemo, useRef, useState } from "react";
 import { LinkIcon } from "lucide-react";
+import { useEffect,useMemo,useRef,useState } from "react";
 import { toast } from "sonner";
-import { ScrollBox } from "./scroll-box";
-import { ImageSets } from "../data";
-import { ScrollItem } from "./scroll-item";
 import SensorFormatInput from "~/components/custom-inputs/sensor-format-input";
-import { SENSOR_FORMATS } from "~/lib/constants";
+import { BlurFade } from "~/components/ui/blur-fade";
+import { Button } from "~/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -14,8 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { BlurFade } from "~/components/ui/blur-fade";
-import { Button } from "~/components/ui/button";
+import { SENSOR_FORMATS } from "~/lib/constants";
+import { ImageSets } from "../data";
+import { ScrollBox } from "./scroll-box";
+import { ScrollItem } from "./scroll-item";
 
 export function FocalLengthClient() {
   const [selectedSetKey, setSelectedSetKey] = useState(ImageSets[0]!.key);

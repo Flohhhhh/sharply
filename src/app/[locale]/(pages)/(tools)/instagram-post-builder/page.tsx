@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import InstagramPostBuilderPage from "./client";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import InstagramPostBuilderPage from "./client";
 
 export const metadata: Metadata = buildLocalizedMetadata(
   "/instagram-post-builder",

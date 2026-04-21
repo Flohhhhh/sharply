@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect,useMemo } from "react";
 import { GetGearDisplayName } from "~/lib/gear/naming";
 import { useCountry } from "~/lib/hooks/useCountry";
 import type { GearAlias } from "~/types/gear";

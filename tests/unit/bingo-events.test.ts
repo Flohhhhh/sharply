@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe,expect,it } from "vitest";
 import { createBoardCreatedPayload } from "~/server/bingo/events";
 
 describe("bingo board_created payloads", () => {

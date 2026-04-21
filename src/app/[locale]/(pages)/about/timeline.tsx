@@ -1,4 +1,4 @@
-import { CheckCircle, MailWarning, UserStar } from "lucide-react";
+import { CheckCircle,MailWarning,UserStar } from "lucide-react";
 
 type TimelineItem = {
   title: string;

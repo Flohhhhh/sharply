@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { getSuggestions } from "~/server/search/service";
 import { resolveRegionFromCountryCode } from "~/lib/gear/region";
+import { getSuggestions } from "~/server/search/service";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);

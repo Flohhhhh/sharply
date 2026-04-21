@@ -1,5 +1,5 @@
 import { SENSOR_FORMATS } from "~/lib/constants";
-import { getMountNameById, getMountNamesById } from "~/lib/mapping/mounts-map";
+import { getMountNameById } from "~/lib/mapping/mounts-map";
 import type { GearItem } from "~/types/gear";
 
 type BuildGearMetaDescriptionParams = {
@@ -96,12 +96,6 @@ export function buildGearMetaDescription(
   }
 
   const name = params.displayName;
-  const mountNamesRaw = getMountNamesById(params.gear.mountIds);
-  const mountClause =
-    mountNamesRaw && mountNamesRaw !== "Unknown"
-      ? ` (${mountNamesRaw} mount)`
-      : "";
-
   const generic = `See specs and reviews for ${name} on Sharply.`;
 
   if (params.gear.gearType === "CAMERA") {

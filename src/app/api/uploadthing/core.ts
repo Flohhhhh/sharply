@@ -1,7 +1,7 @@
-import { createUploadthing, type FileRouter } from "uploadthing/next";
+import { headers } from "next/headers";
+import { createUploadthing,type FileRouter } from "uploadthing/next";
 import { UploadThingError } from "uploadthing/server";
 import { auth } from "~/auth";
-import { headers } from "next/headers";
 import { requireRole } from "~/lib/auth/auth-helpers";
 
 const f = createUploadthing();

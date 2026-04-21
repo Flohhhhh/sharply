@@ -1,7 +1,7 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { track } from "@vercel/analytics/server";
+import { type NextRequest,NextResponse } from "next/server";
 import { getAmazonDestinationUrl } from "~/lib/links/amazon";
 import { parseAmazonAsin } from "~/lib/validation/amazon";
-import { track } from "@vercel/analytics/server";
 
 const ASIN_QUERY_PARAMETER = "asin";
 const SLUG_QUERY_PARAMETER = "slug";

@@ -1,6 +1,6 @@
-import { permanentRedirect } from "next/navigation";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import { permanentRedirect } from "next/navigation";
 import type { Locale } from "~/i18n/config";
 import { localizePathname } from "~/i18n/routing";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";

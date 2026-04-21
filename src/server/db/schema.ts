@@ -1,24 +1,22 @@
  
 
-import { relations, sql } from "drizzle-orm";
+import { relations,sql } from "drizzle-orm";
 import {
   type AnyPgColumn,
-  index,
-  pgEnum,
-  pgTable,
-  pgTableCreator,
-  primaryKey,
-  timestamp,
-  text,
-  varchar,
-  decimal,
-  integer,
   boolean,
-  jsonb,
-  pgSchema,
   date as dateCol,
+  decimal,
+  index,
+  integer,
+  jsonb,
+  pgEnum,
+  pgSchema,
+  primaryKey,
+  text,
+  timestamp,
   uniqueIndex,
   uuid,
+  varchar
 } from "drizzle-orm/pg-core";
 // Popularity event enum will be defined below for strong typing in DB
 
@@ -479,7 +477,7 @@ const updatedAt = timestamp("updated_at", { withTimezone: true })
   .notNull();
 
 // --- Taxonomy tables ---
-export const brands = appSchema.table("brands", (d) => ({
+export const brands = appSchema.table("brands", () => ({
   id: varchar("id", { length: 36 })
     .primaryKey()
     .default(sql`gen_random_uuid()::text`),
@@ -489,7 +487,7 @@ export const brands = appSchema.table("brands", (d) => ({
   updatedAt,
 }));
 
-export const mounts = appSchema.table("mounts", (d) => ({
+export const mounts = appSchema.table("mounts", () => ({
   id: varchar("id", { length: 36 })
     .primaryKey()
     .default(sql`gen_random_uuid()::text`),
@@ -502,7 +500,7 @@ export const mounts = appSchema.table("mounts", (d) => ({
   updatedAt,
 }));
 
-export const sensorFormats = appSchema.table("sensor_formats", (d) => ({
+export const sensorFormats = appSchema.table("sensor_formats", () => ({
   id: varchar("id", { length: 36 })
     .primaryKey()
     .default(sql`gen_random_uuid()::text`),
@@ -518,7 +516,7 @@ export const sensorFormats = appSchema.table("sensor_formats", (d) => ({
 }));
 
 // --- Genres (Use-cases) ---
-export const genres = appSchema.table("genres", (d) => ({
+export const genres = appSchema.table("genres", () => ({
   id: varchar("id", { length: 36 })
     .primaryKey()
     .default(sql`gen_random_uuid()::text`),
@@ -537,7 +535,7 @@ export const genres = appSchema.table("genres", (d) => ({
 // No brandless default fallback. Duplicates allowed; admins merge later.
 export const afAreaModes = appSchema.table(
   "af_area_modes",
-  (d) => ({
+  () => ({
     id: varchar("id", { length: 36 })
       .primaryKey()
       .default(sql`gen_random_uuid()::text`),
@@ -566,7 +564,7 @@ export const afAreaModes = appSchema.table(
 // --- Gear core ---
 export const gear = appSchema.table(
   "gear",
-  (d) => ({
+  () => ({
     id: varchar("id", { length: 36 })
       .primaryKey()
       .default(sql`gen_random_uuid()::text`),
@@ -692,7 +690,7 @@ export const gearMounts = appSchema.table(
 // Raw sample artifacts that can be attached to gear via a junction table.
 export const rawSamples = appSchema.table(
   "raw_samples",
-  (d) => ({
+  () => ({
     id: varchar("id", { length: 36 })
       .primaryKey()
       .default(sql`gen_random_uuid()::text`),
@@ -736,7 +734,7 @@ export const gearRawSamples = appSchema.table(
 // --- Gear Specification Tables ---
 export const cameraSpecs = appSchema.table(
   "camera_specs",
-  (d) => ({
+  () => ({
     gearId: varchar("gear_id", { length: 36 })
       .primaryKey()
       .references(() => gear.id, { onDelete: "cascade" }),
@@ -840,7 +838,7 @@ export const cameraSpecs = appSchema.table(
 
 export const cameraVideoModes = appSchema.table(
   "camera_video_modes",
-  (d) => ({
+  () => ({
     id: uuid("id").defaultRandom().primaryKey(),
     gearId: varchar("gear_id", { length: 36 })
       .notNull()
@@ -864,7 +862,7 @@ export const cameraVideoModes = appSchema.table(
 // Which AF area modes are assigned to which camera (gear_type = CAMERA)
 export const cameraAfAreaSpecs = appSchema.table(
   "camera_af_area_specs",
-  (d) => ({
+  () => ({
     gearId: varchar("gear_id", { length: 36 })
       .notNull()
       .references(() => gear.id, { onDelete: "cascade" }),
@@ -883,7 +881,7 @@ export const cameraAfAreaSpecs = appSchema.table(
 
 export const cameraCardSlots = appSchema.table(
   "camera_card_slots",
-  (d) => ({
+  () => ({
     id: uuid("id").defaultRandom().primaryKey(),
     // Replace `cameras` with your actual cameras table
     gearId: uuid("gear_id").notNull(),
@@ -905,7 +903,7 @@ export const cameraCardSlots = appSchema.table(
 // Analog Camera Specs
 export const analogCameraSpecs = appSchema.table(
   "analog_camera_specs",
-  (d) => ({
+  () => ({
     gearId: varchar("gear_id", { length: 36 })
       .primaryKey()
       .references(() => gear.id, { onDelete: "cascade" }),
@@ -955,7 +953,7 @@ export const analogCameraSpecs = appSchema.table(
 // Lenses
 export const lensSpecs = appSchema.table(
   "lens_specs",
-  (d) => ({
+  () => ({
     gearId: varchar("gear_id", { length: 36 })
       .primaryKey()
       .references(() => gear.id, { onDelete: "cascade" }),
@@ -1037,7 +1035,7 @@ export const lensSpecs = appSchema.table(
 // Fixed-lens specs (for cameras with integrated lenses)
 export const fixedLensSpecs = appSchema.table(
   "fixed_lens_specs",
-  (d) => ({
+  () => ({
     gearId: varchar("gear_id", { length: 36 })
       .primaryKey()
       .references(() => gear.id, { onDelete: "cascade" }),
@@ -1081,7 +1079,7 @@ export const fixedLensSpecs = appSchema.table(
 // --- Gear Edits ---
 export const gearEdits = appSchema.table(
   "gear_edits",
-  (d) => ({
+  () => ({
     id: varchar("id", { length: 36 })
       .primaryKey()
       .default(sql`gen_random_uuid()::text`),
@@ -1108,7 +1106,7 @@ export const gearEdits = appSchema.table(
 // --- Audit Logs ---
 export const auditLogs = appSchema.table(
   "audit_logs",
-  (d) => ({
+  () => ({
     id: varchar("id", { length: 36 })
       .primaryKey()
       .default(sql`gen_random_uuid()::text`),
@@ -1137,7 +1135,7 @@ export const auditLogs = appSchema.table(
 // --- Personal Reviews ---
 export const reviews = appSchema.table(
   "reviews",
-  (d) => ({
+  () => ({
     id: varchar("id", { length: 36 })
       .primaryKey()
       .default(sql`gen_random_uuid()::text`),
@@ -1165,7 +1163,7 @@ export const reviews = appSchema.table(
 
 export const reviewFlags = appSchema.table(
   "review_flags",
-  (d) => ({
+  () => ({
     id: varchar("id", { length: 36 })
       .primaryKey()
       .default(sql`gen_random_uuid()::text`),

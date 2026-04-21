@@ -3,8 +3,8 @@
 import { CircleQuestionMark } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import type { GearItem } from "~/types/gear";
 import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
+import type { GearItem } from "~/types/gear";
 
 export function CollectionCard(props: {
   item: GearItem;

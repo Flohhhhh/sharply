@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "~/auth";
-import { AddPasskeyClient } from "./passkey-client";
-import { getTranslations } from "next-intl/server";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import { AddPasskeyClient } from "./passkey-client";
 
 export async function generateMetadata({
   params,

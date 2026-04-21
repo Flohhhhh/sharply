@@ -1,6 +1,6 @@
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "~/auth";
-import { headers } from "next/headers";
 
 export default async function ProfileRedirectPage() {
   const session = await auth.api.getSession({

@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Check,ImagePlus } from "lucide-react";
+import { useEffect,useState } from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
 import { Button } from "~/components/ui/button";
-import { actionToggleImageRequest } from "~/server/gear/actions";
-import { toast } from "sonner";
-import { ImagePlus, Check } from "lucide-react";
 import { fetchJson } from "~/lib/fetch-json";
+import { actionToggleImageRequest } from "~/server/gear/actions";
 
 interface RequestImageButtonProps {
   slug: string;

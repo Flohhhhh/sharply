@@ -4,7 +4,7 @@ They verify score math, live-only entries, sort order, and result limits with fi
 If this breaks, the trending list users see can become misleading.
 */
 
-import { describe, expect, it } from "vitest";
+import { describe,expect,it } from "vitest";
 import { applyLiveBoostToTrending } from "~/server/popularity/live";
 
 function makeBaseline(overrides?: Partial<any>) {

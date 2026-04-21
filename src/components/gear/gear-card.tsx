@@ -1,26 +1,26 @@
 "use client";
 
-import type React from "react";
-import Link from "next/link";
 import { useLocale } from "next-intl";
-import { cn } from "~/lib/utils";
 import Image from "next/image";
+import Link from "next/link";
+import type React from "react";
 import { useState } from "react";
 import { BRANDS } from "~/lib/constants";
-import { PRICE_FALLBACK_TEXT } from "~/lib/mapping";
-import { Spinner } from "../ui/spinner";
-import { TrendingBadge } from "../gear-badges/trending-badge";
-import { NewBadge } from "../gear-badges/new-badge";
-import { isNewRelease } from "~/lib/utils/is-new";
-import { HallOfFameBadge } from "../gear-badges/hall-of-fame-badge";
-import { isInHallOfFame } from "~/lib/utils/is-in-hall-of-fame";
-import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
-import type { GearAlias } from "~/types/gear";
-import { GearCardMoreMenu } from "./gear-card-more-menu";
 import {
   formatDateWithPrecision,
   type DatePrecision,
 } from "~/lib/format/date";
+import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
+import { PRICE_FALLBACK_TEXT } from "~/lib/mapping";
+import { cn } from "~/lib/utils";
+import { isInHallOfFame } from "~/lib/utils/is-in-hall-of-fame";
+import { isNewRelease } from "~/lib/utils/is-new";
+import type { GearAlias } from "~/types/gear";
+import { HallOfFameBadge } from "../gear-badges/hall-of-fame-badge";
+import { NewBadge } from "../gear-badges/new-badge";
+import { TrendingBadge } from "../gear-badges/trending-badge";
+import { Spinner } from "../ui/spinner";
+import { GearCardMoreMenu } from "./gear-card-more-menu";
 
 const BASE_BRAND_NAMES = uniqueCaseInsensitive(
   BRANDS.flatMap((brand) => splitBrandNameVariants(brand.name)),

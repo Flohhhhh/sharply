@@ -1,6 +1,6 @@
+import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { headers } from "next/headers";
 import { z } from "zod";
 import { auth } from "~/auth";
 import { fetchUserListsForProfile } from "~/server/user-lists/service";

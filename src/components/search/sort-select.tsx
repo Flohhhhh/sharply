@@ -1,8 +1,10 @@
 "use client";
 
-import { Suspense } from "react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { mergeSearchParams } from "@utils/url";
+import { ArrowUpDown } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { usePathname,useRouter,useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import {
   Select,
   SelectContent,
@@ -10,10 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { mergeSearchParams } from "@utils/url";
-import { LENS_FOCAL_LENGTH_SORT } from "~/lib/browse/sort-constants";
-import { ArrowUpDown } from "lucide-react";
 import { useLocalePathnames } from "~/i18n/client";
+import { LENS_FOCAL_LENGTH_SORT } from "~/lib/browse/sort-constants";
 
 type SortSelectProps = {
   category?: "cameras" | "lenses" | null;

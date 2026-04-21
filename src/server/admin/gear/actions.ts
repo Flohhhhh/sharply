@@ -2,18 +2,18 @@
 import "server-only";
 
 import { revalidatePath } from "next/cache";
+import { type GearRegion } from "~/lib/gear/region";
 import {
+  clearGearThumbnailService,
+  clearGearTopViewService,
   createGearAdmin,
+  deleteGearService,
   renameGearService,
   setGearThumbnailService,
-  clearGearThumbnailService,
   setGearTopViewService,
-  clearGearTopViewService,
   updateGearAliasesService,
-  deleteGearService,
   type GearCreationParams,
 } from "./service";
-import { type GearRegion } from "~/lib/gear/region";
 
 export async function actionCreateGear(params: GearCreationParams) {
   const result = await createGearAdmin(params);
@@ -39,7 +39,7 @@ export async function actionUpdateGearAliases(params: {
   gearSlug?: string;
   aliases: { region: GearRegion; name: string | null }[];
 }) {
-  const { gearSlug, ...rest } = params;
+  const { ...rest } = params;
   const result = await updateGearAliasesService(rest);
   revalidatePath("/admin/gear");
   if (params.gearSlug) {

@@ -2,12 +2,12 @@
 
 import { Suspense } from "react";
 import useSWR from "swr";
-import HeaderClient, {
+import { useSession } from "~/lib/auth/auth-client";
+import { fetchJson } from "~/lib/fetch-json";
+import HeaderClient,{
   type HeaderNotificationsData,
   type HeaderUser,
 } from "./header-client";
-import { useSession } from "~/lib/auth/auth-client";
-import { fetchJson } from "~/lib/fetch-json";
 
 export default function Header() {
   const { data: sessionData } = useSession();

@@ -1,8 +1,8 @@
 "use client";
 
-import type { BadgeDefinition } from "~/types/badges";
 import * as Lucide from "lucide-react";
 import { toRomanNumeral } from "~/lib/utils";
+import type { BadgeDefinition } from "~/types/badges";
 
 export function BadgeTile({ badge }: { badge: BadgeDefinition }) {
   const Icon = (badge.iconComponent ?? Lucide.Award) as React.ComponentType<{

@@ -1,4 +1,4 @@
-import type { ComponentType, SVGProps } from "react";
+import type { ComponentType,SVGProps } from "react";
 import type { AllowedTrigger } from "~/lib/badges/constants";
 export type UserSnapshot = {
   approvedEdits: number;

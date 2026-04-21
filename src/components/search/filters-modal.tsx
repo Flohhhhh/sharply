@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { mergeSearchParams } from "@utils/url";
 import { Filter as FilterIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { usePathname,useRouter,useSearchParams } from "next/navigation";
+import { useEffect,useMemo,useState } from "react";
+import { Button } from "~/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
-import { Button } from "~/components/ui/button";
+import { RadioGroup,RadioGroupItem } from "~/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -20,12 +22,10 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Slider } from "~/components/ui/slider";
-import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
-import { mergeSearchParams } from "@utils/url";
-import { SENSOR_FORMATS, MOUNTS, BRANDS } from "~/lib/constants";
+import { useLocalePathnames } from "~/i18n/client";
+import { BRANDS,MOUNTS,SENSOR_FORMATS } from "~/lib/constants";
 import { getMountLongName } from "~/lib/mapping/mounts-map";
 import { sortSensorFormats } from "~/lib/sensor-formats";
-import { useLocalePathnames } from "~/i18n/client";
 
 // Slider curve: 1 = linear, higher = more weight to low prices (exponential).
 const PRICE_SLIDER_CURVE = 2;

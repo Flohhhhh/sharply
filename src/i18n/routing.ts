@@ -1,6 +1,6 @@
 import type { LinkProps } from "next/link";
 import type { Locale } from "./config";
-import { defaultLocale, isLocale, locales } from "./config";
+import { defaultLocale,isLocale,locales } from "./config";
 
 export const localePrefixHeaderName = "x-sharply-locale-prefix";
 export const normalizedPathHeaderName = "x-sharply-normalized-pathname";

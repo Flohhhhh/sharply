@@ -1,10 +1,10 @@
 import { Library } from "lucide-react";
-import Link from "next/link";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import Link from "next/link";
 import LearnCard from "~/components/learn/learn-card";
 import { Button } from "~/components/ui/button";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
-import { getTranslations } from "next-intl/server";
 
 export async function generateMetadata({
   params,

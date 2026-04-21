@@ -5,9 +5,9 @@ if (process.env.NEXT_RUNTIME) {
   });
 }
 
-import { and, desc, eq, gt, sql } from "drizzle-orm";
+import { and,desc,eq,gt,sql } from "drizzle-orm";
 import { db } from "~/server/db";
-import { reviews, reviewSummaries } from "~/server/db/schema";
+import { reviews,reviewSummaries } from "~/server/db/schema";
 
 export async function countApprovedReviewsForGear(
   gearId: string,

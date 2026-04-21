@@ -1,21 +1,20 @@
-import { auth } from "~/auth";
-import type { Passkey } from "@better-auth/passkey";
-import { Suspense } from "react";
-import { DisplayNameForm } from "./display-name-form";
-import { UserHandleForm } from "./user-handle-form";
-import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-import { ProfilePictureSettingsSection } from "~/components/profile/profile-picture-settings-section";
-import { AccountLinksSection } from "./account-links-section";
-import { SocialLinksForm } from "./social-links-form";
-import type { SocialLink } from "~/server/users/service";
 import { ArrowLeft } from "lucide-react";
-import { fetchLinkedAccountsForUser } from "~/server/auth/account-linking";
-import { headers } from "next/headers";
-import { PasskeySection } from "./passkey-section";
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { Suspense } from "react";
+import { auth } from "~/auth";
 import { LocaleLink } from "~/components/locale-link";
+import { ProfilePictureSettingsSection } from "~/components/profile/profile-picture-settings-section";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import { fetchLinkedAccountsForUser } from "~/server/auth/account-linking";
+import type { SocialLink } from "~/server/users/service";
+import { AccountLinksSection } from "./account-links-section";
+import { DisplayNameForm } from "./display-name-form";
+import { PasskeySection } from "./passkey-section";
+import { SocialLinksForm } from "./social-links-form";
+import { UserHandleForm } from "./user-handle-form";
 
 export async function generateMetadata({
   params,

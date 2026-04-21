@@ -1,5 +1,5 @@
+import { ExternalLink,Globe,Instagram } from "lucide-react";
 import Link from "next/link";
-import { Instagram, Globe, ExternalLink } from "lucide-react";
 import type { SocialLink } from "~/server/users/service";
 
 type SocialLinksDisplayProps = {

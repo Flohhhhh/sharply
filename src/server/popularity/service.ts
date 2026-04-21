@@ -1,31 +1,31 @@
 import "server-only";
 
+import { eq } from "drizzle-orm";
 import { unstable_cache } from "next/cache";
+import { headers } from "next/headers";
+import { auth } from "~/auth";
 import { db } from "~/server/db";
 import { gear } from "~/server/db/schema";
-import { eq } from "drizzle-orm";
+import { fetchGearAliasesByGearIds } from "~/server/gear/data";
+import type {
+  TrendingEntry,
+  TrendingFiltersInput,
+  TrendingPageResult,
+} from "~/types/popularity";
 import {
-  hasViewEventForIdentityToday,
-  insertViewEvent,
+  fetchHighTrafficGearSlugsData,
+  fetchTopComparePairs as fetchTopComparePairsData,
+  getLiveTrendingSnapshot,
   getTrendingData,
   getTrendingTotalCount,
-  getLiveTrendingSnapshot,
   hasEventForIdentityToday as hasEventForIdentityTodayGeneric,
-  insertCompareAddEvent,
+  hasViewEventForIdentityToday,
   incrementComparePairCountBySlugs,
-  fetchTopComparePairs as fetchTopComparePairsData,
-  fetchHighTrafficGearSlugsData,
+  insertCompareAddEvent,
+  insertViewEvent,
 } from "./data";
 import { applyLiveBoostToTrending } from "./live";
 export { applyLiveBoostToTrending } from "./live";
-import { auth } from "~/auth";
-import { headers } from "next/headers";
-import { fetchGearAliasesByGearIds } from "~/server/gear/data";
-import type {
-  TrendingFiltersInput,
-  TrendingPageResult,
-  TrendingEntry,
-} from "~/types/popularity";
 
 const DEFAULT_TRENDING_CANDIDATE_POOL = 500;
 

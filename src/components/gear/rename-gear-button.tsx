@@ -1,9 +1,9 @@
 "use client";
 
-import { useSession } from "~/lib/auth/auth-client";
+import { Pencil } from "lucide-react";
 import { RenameGearDialog } from "~/components/gear/rename-gear-dialog";
 import { Button } from "~/components/ui/button";
-import { Pencil } from "lucide-react";
+import { useSession } from "~/lib/auth/auth-client";
 import { requireRole } from "~/lib/auth/auth-helpers";
 import type { GearAlias } from "~/types/gear";
 

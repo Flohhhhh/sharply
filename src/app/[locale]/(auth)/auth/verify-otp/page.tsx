@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { defaultLocale, isLocale } from "~/i18n/config";
+import { defaultLocale,isLocale } from "~/i18n/config";
 import VerifyOtpClient from "./client";
 
 export async function generateMetadata({

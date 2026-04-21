@@ -1,8 +1,8 @@
 "use client";
 
+import { showBadgeToast } from "~/components/badges/badge-toast";
 import { Button } from "~/components/ui/button";
 import { BADGE_CATALOG } from "~/lib/badges/catalog";
-import { showBadgeToast } from "~/components/badges/badge-toast";
 
 export function BadgesTestToastButton() {
   function handleClick() {

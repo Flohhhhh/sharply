@@ -1,8 +1,8 @@
 import "server-only";
 
 import {
-  getGearCount as getGearCountData,
   getContributionCount as getContributionCountData,
+  getGearCount as getGearCountData,
 } from "./data";
 
 export async function fetchGearCount(): Promise<number> {

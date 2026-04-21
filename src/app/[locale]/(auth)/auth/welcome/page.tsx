@@ -1,16 +1,14 @@
-import type { Metadata } from "next";
-import { cookies } from "next/headers";
-import { getTranslations } from "next-intl/server";
-import { auth } from "~/auth";
-import { fetchFullUserById } from "~/server/users/service";
-import UserCard from "./user-card";
-import { Button } from "~/components/ui/button";
 import { ArrowRight } from "lucide-react";
-import { claimInvite } from "~/server/invites/service";
-import { headers } from "next/headers";
-import { triggerHandleSetupNotification } from "~/server/users/service";
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { cookies,headers } from "next/headers";
+import { auth } from "~/auth";
 import { LocaleLink } from "~/components/locale-link";
-import { defaultLocale, isLocale } from "~/i18n/config";
+import { Button } from "~/components/ui/button";
+import { defaultLocale,isLocale } from "~/i18n/config";
+import { claimInvite } from "~/server/invites/service";
+import { triggerHandleSetupNotification } from "~/server/users/service";
+import UserCard from "./user-card";
 
 export async function generateMetadata({
   params,

@@ -1,8 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { ImageIcon,Upload } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useSession } from "~/lib/auth/auth-client";
+import { useEffect,useRef,useState } from "react";
+import { toast } from "sonner";
+import { genUploader } from "uploadthing/client";
+import type { OurFileRouter } from "~/app/api/uploadthing/core";
+import { Avatar,AvatarFallback,AvatarImage } from "~/components/ui/avatar";
+import { Button } from "~/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,15 +17,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
-import { Button } from "~/components/ui/button";
-import { toast } from "sonner";
-import { ImageIcon, Upload } from "lucide-react";
-import { actionUpdateProfileImage } from "~/server/users/actions";
-import { genUploader } from "uploadthing/client";
-import type { OurFileRouter } from "~/app/api/uploadthing/core";
 import { Progress } from "~/components/ui/progress";
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import { useTranslations } from "next-intl";
+import { useSession } from "~/lib/auth/auth-client";
+import { actionUpdateProfileImage } from "~/server/users/actions";
 
 export interface ProfilePictureModalProps {
   trigger?: React.ReactNode;

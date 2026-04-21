@@ -1,11 +1,11 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import {
   serviceGetChart,
   serviceListChartParams,
 } from "~/server/recommendations/service";
 import { ChartView } from "../../_components/ChartView";
-import type { Metadata } from "next";
-import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
 export const revalidate = 86400;
 

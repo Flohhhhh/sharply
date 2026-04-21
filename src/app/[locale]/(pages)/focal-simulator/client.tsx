@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import Image from "next/image";
-import { Label } from "~/components/ui/label";
+import { useMemo,useState } from "react";
 import { Button } from "~/components/ui/button";
+import { Card,CardContent,CardHeader,CardTitle } from "~/components/ui/card";
+import { Label } from "~/components/ui/label";
 import { Slider } from "~/components/ui/slider";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { cn } from "~/lib/utils";
 import { SCENES } from "./scenes";
 

@@ -1,8 +1,14 @@
 "use client";
 
+import { ChevronDown,Home } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { ChevronDown, Home } from "lucide-react";
 
+import { LocaleLink } from "~/components/locale-link";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "~/components/ui/collapsible";
 import {
   Sidebar,
   SidebarContent,
@@ -10,17 +16,11 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarProvider,
   SidebarMenuSub,
-  SidebarMenuSubItem,
   SidebarMenuSubButton,
+  SidebarMenuSubItem,
+  SidebarProvider,
 } from "~/components/ui/sidebar";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "~/components/ui/collapsible";
-import { LocaleLink } from "~/components/locale-link";
 import { useLocalePathnames } from "~/i18n/client";
 
 export type LearnNavItem = {

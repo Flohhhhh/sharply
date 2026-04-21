@@ -1,9 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useSession } from "~/lib/auth/auth-client";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Pencil } from "lucide-react";
+import type { ReactNode } from "react";
+import { useEffect,useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+import { Button } from "~/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +14,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
-import { Button } from "~/components/ui/button";
 import {
   Form,
   FormControl,
@@ -21,13 +23,11 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
-import { Textarea } from "~/components/ui/textarea";
-import { toast } from "sonner";
 import { Separator } from "~/components/ui/separator";
-import { actionUpsertStaffVerdict } from "~/server/gear/actions";
-import { Pencil } from "lucide-react";
+import { Textarea } from "~/components/ui/textarea";
+import { useSession } from "~/lib/auth/auth-client";
 import { requireRole } from "~/lib/auth/auth-helpers";
-import type { ReactNode } from "react";
+import { actionUpsertStaffVerdict } from "~/server/gear/actions";
 
 const verdictSchema = z.object({
   content: z.string().max(5000).optional(),
@@ -122,7 +122,7 @@ export function ManageStaffVerdictModal({
           setInitial(empty);
           form.reset(empty);
         }
-      } catch (e) {
+      } catch {
         const empty = {
           content: "",
           pros: "",

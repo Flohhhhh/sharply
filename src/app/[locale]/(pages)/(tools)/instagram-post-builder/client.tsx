@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import NextImage from "next/image";
-import Link from "next/link";
-import { CSS } from "@dnd-kit/utilities";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   DndContext,
   KeyboardSensor,
@@ -20,6 +19,8 @@ import {
   sortableKeyboardCoordinates,
   useSortable,
 } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import JSZip from "jszip";
 import {
   Download,
   GripVertical,
@@ -31,10 +32,9 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import JSZip from "jszip";
-import { useIsMobile } from "@/hooks/use-mobile";
+import NextImage from "next/image";
+import Link from "next/link";
+import { useEffect,useMemo,useRef,useState } from "react";
 
 type FrameImage = {
   id: number;

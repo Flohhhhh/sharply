@@ -1,13 +1,13 @@
 import "server-only";
 
+import { headers } from "next/headers";
+import { auth } from "~/auth";
 import { requireRole } from "~/lib/auth/auth-helpers";
 import {
   fetchAuditLogsData,
-  type FetchAuditLogsParams,
   type AuditLogRow,
+  type FetchAuditLogsParams,
 } from "./data";
-import { auth } from "~/auth";
-import { headers } from "next/headers";
 
 export async function fetchAuditLogs(
   params: FetchAuditLogsParams,

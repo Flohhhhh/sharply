@@ -1,10 +1,10 @@
-import { getNewsPosts } from "~/server/payload/service";
-import { Separator } from "~/components/ui/separator";
-import NewsListItem from "./_components/news-list-item";
 import type { Metadata } from "next";
-import type { News } from "~/payload-types";
-import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import { getTranslations } from "next-intl/server";
+import { Separator } from "~/components/ui/separator";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import type { News } from "~/payload-types";
+import { getNewsPosts } from "~/server/payload/service";
+import NewsListItem from "./_components/news-list-item";
 
 export async function generateMetadata({
   params,

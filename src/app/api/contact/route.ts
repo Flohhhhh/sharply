@@ -26,7 +26,7 @@ export async function POST(request: Request) {
   let body: ContactRequestBody | null = null;
   try {
     body = (await request.json()) as ContactRequestBody;
-  } catch (error) {
+  } catch {
     body = null;
   }
 

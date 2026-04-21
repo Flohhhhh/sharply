@@ -1,10 +1,18 @@
 import "server-only";
 
-import { db } from "~/server/db";
-import { getSessionOrThrow } from "~/server/auth";
 import { z } from "zod";
-import { requireRole } from "~/lib/auth/auth-helpers";
 import { env } from "~/env";
+import { requireRole } from "~/lib/auth/auth-helpers";
+import { getSessionOrThrow } from "~/server/auth";
+import { db } from "~/server/db";
+import type {
+  BingoBoardCreatedPayload,
+  BingoBoardView,
+  BingoClaimInput,
+  BingoEventView,
+  BingoEventsResponse,
+  BingoLeaderboardRow,
+} from "~/types/bingo";
 import {
   BINGO_DEFAULT_INACTIVITY_SECONDS,
   BINGO_FREE_TILE_INDEX,
@@ -13,6 +21,7 @@ import {
   BINGO_TILE_COUNT,
 } from "./constants";
 import {
+  completeTileIfOpenData,
   createBingoEventData,
   createBoardData,
   createSubmissionData,
@@ -29,29 +38,20 @@ import {
   insertBoardTilesData,
   markBoardCompletedData,
   markBoardExpiredData,
-  completeTileIfOpenData,
   updateBoardInactivityData,
 } from "./data";
-import {
-  CheckSubmissionValidity,
-  parseDiscordMessageUrl,
-  type CheckSubmissionValidityInput,
-} from "./validation";
+import { createBoardCreatedPayload } from "./events";
 import {
   calculateInactivityExpiry,
   hasBingoLine,
   shouldExpireForInactivity,
 } from "./lifecycle";
-import { createBoardCreatedPayload } from "./events";
-import { isBoardTileShapeValid, selectBoardLabels } from "./template";
-import type {
-  BingoBoardCreatedPayload,
-  BingoBoardView,
-  BingoClaimInput,
-  BingoEventView,
-  BingoEventsResponse,
-  BingoLeaderboardRow,
-} from "~/types/bingo";
+import { isBoardTileShapeValid,selectBoardLabels } from "./template";
+import {
+  CheckSubmissionValidity,
+  parseDiscordMessageUrl,
+  type CheckSubmissionValidityInput,
+} from "./validation";
 
 const claimInputSchema = z.object({
   boardTileId: z.string().min(1),

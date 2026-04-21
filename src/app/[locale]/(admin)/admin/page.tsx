@@ -1,17 +1,9 @@
+import { headers } from "next/headers";
 import { Suspense } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { Button } from "~/components/ui/button";
-import { FileText, Users, Settings } from "lucide-react";
+import { auth } from "~/auth";
+import { fetchAdminReviews } from "~/server/admin/reviews/service";
 import { GearProposalsList } from "./gear-proposals-list";
 import { ReviewsApprovalQueue } from "./reviews-approval-queue";
-import { BadgesCatalog } from "./badges-catalog";
-import { BadgesTestToastButton } from "./badges-test-toast";
-import { TopComparePairs } from "./top-compare-pairs";
-import { AdminImageUploader } from "./admin-image-uploader";
-import { fetchAdminReviews } from "~/server/admin/reviews/service";
-import type { GearEditProposal } from "~/types/gear";
-import { auth } from "~/auth";
-import { headers } from "next/headers";
 
 export default async function AdminPage() {
   const session = await auth.api.getSession({

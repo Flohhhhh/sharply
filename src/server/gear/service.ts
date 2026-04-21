@@ -1,82 +1,79 @@
 import "server-only";
 
-import { z } from "zod";
 import { track } from "@vercel/analytics/server";
+import { headers } from "next/headers";
+import { z } from "zod";
 import { auth } from "~/auth";
 import { requireRole } from "~/lib/auth/auth-helpers";
-import { getSessionOrThrow } from "~/server/auth";
+import { getConstructionState } from "~/lib/utils";
 import {
-  getGearIdBySlug as getGearIdBySlugData,
-  fetchGearBySlug as fetchGearBySlugData,
-  fetchGearMetadataById as fetchGearMetadataByIdData,
-  getGearLinkMpb as getGearLinkMpbData,
-  isInWishlist as isInWishlistData,
-  isOwned as isOwnedData,
-  hasImageRequest as hasImageRequestData,
-  getApprovedReviewsByGearId as getApprovedReviewsByGearIdData,
-  getMyReviewStatus as getMyReviewStatusData,
-  getGearStatsById as getGearStatsByIdData,
-  addToWishlist as addToWishlistData,
-  removeFromWishlist as removeFromWishlistData,
-  addOwnership as addOwnershipData,
-  removeOwnership as removeOwnershipData,
-  addImageRequest as addImageRequestData,
-  removeImageRequest as removeImageRequestData,
-  fetchAllImageRequests as fetchAllImageRequestsData,
-  createReview as createReviewData,
-  deleteReviewById as deleteReviewByIdData,
-  getReviewById as getReviewByIdData,
-  hasOpenReviewFlag as hasOpenReviewFlagData,
-  insertAuditLog as insertAuditLogData,
-  insertReviewFlag as insertReviewFlagData,
-  getPendingEditIdData,
-  hasPendingEditsForGear,
-  fetchPendingEditForGear,
-  countPendingEditsForGear,
-  countApprovedGearEditsByUser,
-  resolveOpenReviewFlags as resolveOpenReviewFlagsData,
-} from "./data";
-import type { GearItem, RawSample } from "~/types/gear";
-import { normalizeProposalPayloadForDb } from "~/server/db/normalizers";
-import { evaluateForEvent } from "~/server/badges/service";
-import {
-  approveProposal,
   applyTrustedContributorProposalApproval,
+  approveProposal,
 } from "~/server/admin/proposals/service";
 import { notifyChangeRequestModerators } from "~/server/admin/proposals/webhook";
-import {
-  createGearEditProposal,
-  fetchLatestGearCardsData,
-  fetchRecentGearActivityRows,
-  type GearCardRow,
-  fetchContributorsByGearIdData,
-  type ContributorRow,
-  fetchUseCaseRatingsByGearIdData,
-  fetchStaffVerdictByGearIdData,
-  upsertStaffVerdictByGearIdData,
-  fetchAllGearSlugsData,
-  fetchNewestGearSlugsData,
-  fetchGearEditByIdData,
-  type GearEditView,
-  fetchBrandGearData,
-  fetchAllGearForConstructionData,
-  type ConstructionMinimalRow,
-  fetchAlternativesByGearId,
-  setGearAlternatives as setGearAlternativesData,
-  type GearAlternativeRow,
-  fetchRawSamplesByGearId,
-  insertRawSample,
-  deleteRawSample,
-  fetchAllGearExportRowsData,
-  type GearExportRow,
-} from "./data";
-import { getConstructionState } from "~/lib/utils";
-import { headers } from "next/headers";
+import { getSessionOrThrow } from "~/server/auth";
+import { evaluateForEvent } from "~/server/badges/service";
+import { normalizeProposalPayloadForDb } from "~/server/db/normalizers";
 import {
   testReviewSafety,
   type ReviewModerationCode,
 } from "~/server/reviews/moderation/service";
 import { maybeGenerateReviewSummary } from "~/server/reviews/summary/service";
+import type { GearItem,RawSample } from "~/types/gear";
+import {
+  addImageRequest as addImageRequestData,
+  addOwnership as addOwnershipData,
+  addToWishlist as addToWishlistData,
+  countApprovedGearEditsByUser,
+  countPendingEditsForGear,
+  createGearEditProposal,
+  createReview as createReviewData,
+  deleteRawSample,
+  deleteReviewById as deleteReviewByIdData,
+  fetchAllGearExportRowsData,
+  fetchAllGearForConstructionData,
+  fetchAllGearSlugsData,
+  fetchAllImageRequests as fetchAllImageRequestsData,
+  fetchAlternativesByGearId,
+  fetchBrandGearData,
+  fetchContributorsByGearIdData,
+  fetchGearBySlug as fetchGearBySlugData,
+  fetchGearEditByIdData,
+  fetchGearMetadataById as fetchGearMetadataByIdData,
+  fetchLatestGearCardsData,
+  fetchNewestGearSlugsData,
+  fetchPendingEditForGear,
+  fetchRawSamplesByGearId,
+  fetchRecentGearActivityRows,
+  fetchStaffVerdictByGearIdData,
+  fetchUseCaseRatingsByGearIdData,
+  getApprovedReviewsByGearId as getApprovedReviewsByGearIdData,
+  getGearIdBySlug as getGearIdBySlugData,
+  getGearLinkMpb as getGearLinkMpbData,
+  getGearStatsById as getGearStatsByIdData,
+  getMyReviewStatus as getMyReviewStatusData,
+  getPendingEditIdData,
+  getReviewById as getReviewByIdData,
+  hasImageRequest as hasImageRequestData,
+  hasOpenReviewFlag as hasOpenReviewFlagData,
+  hasPendingEditsForGear,
+  insertAuditLog as insertAuditLogData,
+  insertRawSample,
+  insertReviewFlag as insertReviewFlagData,
+  isInWishlist as isInWishlistData,
+  isOwned as isOwnedData,
+  removeFromWishlist as removeFromWishlistData,
+  removeImageRequest as removeImageRequestData,
+  removeOwnership as removeOwnershipData,
+  resolveOpenReviewFlags as resolveOpenReviewFlagsData,
+  setGearAlternatives as setGearAlternativesData,
+  upsertStaffVerdictByGearIdData,
+  type ContributorRow,
+  type GearAlternativeRow,
+  type GearCardRow,
+  type GearEditView,
+  type GearExportRow,
+} from "./data";
 import {
   mapGearRowsToHomeActivityItems,
   type HomeActivityItem,
@@ -898,7 +895,7 @@ export async function submitGearEditProposal(body: unknown) {
   const userId = user.id;
   const data = proposalInput.parse(body);
   const normalizedPayload = normalizeProposalPayloadForDb(
-    data.payload as Record<string, unknown>,
+    data.payload,
   );
   const proposalStats = summarizeProposalPayload(normalizedPayload);
   const gearId =

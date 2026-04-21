@@ -1,13 +1,13 @@
 "use client";
 
-import { useDeferredValue, useId, useState } from "react";
 import { useTranslations } from "next-intl";
-import type { GearItem, GearType } from "~/types/gear";
+import { useDeferredValue,useId,useState } from "react";
+import { Input } from "~/components/ui/input";
+import { filterSpecsSections } from "~/lib/specs/filter";
+import type { GearItem,GearType } from "~/types/gear";
 import type { SpecsTableSection } from "./specs-table";
 import SpecsTable from "./specs-table";
 import { SuggestEditButton } from "./suggest-edit-button";
-import { Input } from "~/components/ui/input";
-import { filterSpecsSections } from "~/lib/specs/filter";
 
 interface SpecsSectionProps {
   item: GearItem;

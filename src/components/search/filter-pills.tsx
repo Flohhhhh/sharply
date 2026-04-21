@@ -1,9 +1,9 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { X } from "lucide-react";
 import { mergeSearchParams } from "@utils/url";
+import { X } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { usePathname,useRouter,useSearchParams } from "next/navigation";
 import { useLocalePathnames } from "~/i18n/client";
 
 export function FilterPills() {

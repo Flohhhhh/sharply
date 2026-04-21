@@ -1,6 +1,5 @@
 import { db } from "../src/server/db";
-import { useCaseRatings, staffVerdicts, genres } from "../src/server/db/schema";
-import { eq } from "drizzle-orm";
+import { genres,staffVerdicts,useCaseRatings } from "../src/server/db/schema";
 
 async function seedEditorialData() {
   console.log("🌱 Seeding editorial data...");

@@ -1,15 +1,15 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import {
   useState,
   useTransition,
   type FormEvent,
 } from "react";
-import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { Button } from "~/components/ui/button";
 import { actionUpdateDisplayName } from "~/server/users/actions";
 
 type DisplayNameFormProps = {
@@ -40,7 +40,7 @@ export function DisplayNameForm({
         } else {
           setError(t("displayNameUpdateError"));
         }
-      } catch (err) {
+      } catch {
         setError(t("displayNameUpdateFailed"));
       }
     });

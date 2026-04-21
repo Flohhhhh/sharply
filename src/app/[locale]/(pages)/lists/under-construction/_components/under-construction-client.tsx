@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useMemo,useState } from "react";
+import { Checkbox } from "~/components/ui/checkbox";
 import { Progress } from "~/components/ui/progress";
 import {
   Select,
@@ -10,9 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { Checkbox } from "~/components/ui/checkbox";
-import UnderConstructionTable from "./under-construction-table";
 import { GEAR_TYPE_LABELS } from "~/lib/constants";
+import UnderConstructionTable from "./under-construction-table";
 
 type Row = {
   id: string;

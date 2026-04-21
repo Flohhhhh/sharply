@@ -1,11 +1,11 @@
+import { getLocale } from "next-intl/server";
+import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "~/auth";
-import { serviceListCharts } from "~/server/recommendations/service";
-import { headers } from "next/headers";
 import { requireRole } from "~/lib/auth/auth-helpers";
-import { getLocale } from "next-intl/server";
 import { formatDate } from "~/lib/format/date";
+import { serviceListCharts } from "~/server/recommendations/service";
 
 export const revalidate = 0;
 

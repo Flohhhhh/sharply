@@ -5,15 +5,14 @@ if (process.env.NEXT_RUNTIME) {
   });
 }
 
+import { and,eq } from "drizzle-orm";
 import { db } from "~/server/db";
 import {
-  recommendationCharts,
-  recommendationItems,
   gear,
   lensSpecs,
-  type recommendationRatingEnum,
+  recommendationCharts,
+  recommendationItems
 } from "~/server/db/schema";
-import { and, eq, count } from "drizzle-orm";
 
 export async function listRecommendationCharts() {
   const charts = await db
@@ -34,7 +33,7 @@ export async function listRecommendationCharts() {
       updatedDate: string;
     }[];
   // For now only return minimal fields; counts can be added later if needed
-  return charts.map(({ id, ...rest }) => rest);
+  return charts.map(({ ...rest }) => rest);
 }
 
 export async function listRecommendationChartParams() {

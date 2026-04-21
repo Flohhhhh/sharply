@@ -1,12 +1,12 @@
+import { Bot,MessageSquare } from "lucide-react";
 import type { Metadata } from "next";
-import { Bot, MessageSquare } from "lucide-react";
 import DiscordBanner from "~/components/discord-banner";
 import commandManifest from "~/data/discord-command-manifest.json";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import type {
   DiscordCommandManifestEntry,
   DiscordCommandManifestOption,
 } from "~/types/discord-command-manifest";
-import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
 export const metadata: Metadata = buildLocalizedMetadata(
   "/discord/bot-commands",

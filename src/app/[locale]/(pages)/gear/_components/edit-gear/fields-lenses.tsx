@@ -1,9 +1,13 @@
 "use client";
 
-import { useCallback, memo, useMemo } from "react";
-import type { lensSpecs } from "~/server/db/schema";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { memo,useCallback,useMemo } from "react";
+import { BooleanInput,NumberInput } from "~/components/custom-inputs";
+import FocalLengthInput from "~/components/custom-inputs/focal-length-input";
+import LensApertureInput from "~/components/custom-inputs/lens-aperture-input";
+import { Card,CardContent,CardHeader,CardTitle } from "~/components/ui/card";
+import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { MultiSelect } from "~/components/ui/multi-select";
 import {
   Select,
   SelectContent,
@@ -11,16 +15,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import FocalLengthInput from "~/components/custom-inputs/focal-length-input";
-import LensApertureInput from "~/components/custom-inputs/lens-aperture-input";
-import { BooleanInput } from "~/components/custom-inputs";
-import { NumberInput } from "~/components/custom-inputs";
-import { Input } from "~/components/ui/input";
-import { ENUMS, SENSOR_FORMATS } from "~/lib/constants";
-import { MultiSelect } from "~/components/ui/multi-select";
+import { ENUMS,SENSOR_FORMATS } from "~/lib/constants";
 import { formatFilterType } from "~/lib/mapping/filter-types-map";
 import { formatFocusDistance } from "~/lib/mapping/focus-distance-map";
 import { sortSensorFormats } from "~/lib/sensor-formats";
+import type { lensSpecs } from "~/server/db/schema";
+
+type SensorFormatOption = {
+  id: string;
+  name: string;
+  slug: string;
+};
 
 interface LensFieldsProps {
   currentSpecs: typeof lensSpecs.$inferSelect | null | undefined;
@@ -80,24 +85,10 @@ function LensFieldsComponent({
   const CLEAR_SENSOR_FORMAT_VALUE = "none";
   const sensorFormatOptions = useMemo(
     () =>
-      sortSensorFormats(Array.isArray(SENSOR_FORMATS) ? SENSOR_FORMATS : [])
-        .map((format) => {
-          if (
-            !format ||
-            typeof format !== "object" ||
-            typeof (format as any).id !== "string" ||
-            typeof (format as any).name !== "string"
-          )
-            return null;
-          return {
-            id: (format as any).id as string,
-            name: (format as any).name as string,
-          };
-        })
-        .filter(
-          (item): item is { id: string; name: string } =>
-            !!item && item.id.length > 0 && item.name.length > 0,
-        ),
+      sortSensorFormats(SENSOR_FORMATS as SensorFormatOption[]).map((format) => ({
+        id: format.id,
+        name: format.name,
+      })),
     [],
   );
 
@@ -112,8 +103,7 @@ function LensFieldsComponent({
       <CardContent className="space-y-4 px-0">
         <div className="flex flex-col gap-3">
           {showWhenMissing(
-            (initialSpecs as any)?.focalLengthMinMm ??
-              (initialSpecs as any)?.focalLengthMaxMm,
+            initialSpecs?.focalLengthMinMm ?? initialSpecs?.focalLengthMaxMm,
           ) && (
             <FocalLengthInput
               className="col-span-2"
@@ -133,7 +123,7 @@ function LensFieldsComponent({
           )}
 
           {/* Image Circle Size */}
-          {showWhenMissing((initialSpecs as any)?.imageCircleSizeId) && (
+          {showWhenMissing(initialSpecs?.imageCircleSizeId) && (
             <div className="space-y-2">
               <Label htmlFor="imageCircleSize">Image Circle Size</Label>
               <Select
@@ -166,10 +156,10 @@ function LensFieldsComponent({
 
           {/* Aperture input */}
           {showWhenMissing(
-            (initialSpecs as any)?.maxApertureWide ??
-              (initialSpecs as any)?.maxApertureTele ??
-              (initialSpecs as any)?.minApertureWide ??
-              (initialSpecs as any)?.minApertureTele,
+            initialSpecs?.maxApertureWide ??
+              initialSpecs?.maxApertureTele ??
+              initialSpecs?.minApertureWide ??
+              initialSpecs?.minApertureTele,
           ) && (
             <LensApertureInput
               className="col-span-2"
@@ -194,7 +184,7 @@ function LensFieldsComponent({
           )}
 
           {/* Image Stabilization */}
-          {showWhenMissing((initialSpecs as any)?.hasStabilization) && (
+          {showWhenMissing(initialSpecs?.hasStabilization) && (
             <BooleanInput
               id="hasStabilization"
               label="Has Image Stabilization"
@@ -213,7 +203,7 @@ function LensFieldsComponent({
           )}
 
           {/* Has Stabilization Switch */}
-          {showWhenMissing((initialSpecs as any)?.hasStabilizationSwitch) && (
+          {showWhenMissing(initialSpecs?.hasStabilizationSwitch) && (
             <BooleanInput
               id="hasStabilizationSwitch"
               label="Has Stabilization Switch"
@@ -232,9 +222,7 @@ function LensFieldsComponent({
           )}
 
           {/* CIPA Stabilization Rating Stops */}
-          {showWhenMissing(
-            (initialSpecs as any)?.cipaStabilizationRatingStops,
-          ) && (
+          {showWhenMissing(initialSpecs?.cipaStabilizationRatingStops) && (
             <NumberInput
               className="col-span-2"
               id="cipaStabilizationRatingStops"
@@ -253,7 +241,7 @@ function LensFieldsComponent({
           )}
 
           {/* Has Autofocus */}
-          {showWhenMissing((initialSpecs as any)?.hasAutofocus) && (
+          {showWhenMissing(initialSpecs?.hasAutofocus) && (
             <BooleanInput
               id="hasAutofocus"
               label="Has Autofocus"
@@ -273,7 +261,7 @@ function LensFieldsComponent({
           )}
 
           {/* Focus Motor Type */}
-          {showWhenMissing((initialSpecs as any)?.focusMotorType) && (
+          {showWhenMissing(initialSpecs?.focusMotorType) && (
             <div className="space-y-2">
               <Label htmlFor="focusMotorType">Focus Motor Type</Label>
               <Input
@@ -293,7 +281,7 @@ function LensFieldsComponent({
           )}
 
           {/* Has AF/MF Switch */}
-          {showWhenMissing((initialSpecs as any)?.hasAfMfSwitch) && (
+          {showWhenMissing(initialSpecs?.hasAfMfSwitch) && (
             <BooleanInput
               id="hasAfMfSwitch"
               label="Has AF/MF Switch"
@@ -308,7 +296,7 @@ function LensFieldsComponent({
           )}
 
           {/* Has Focus Limiter */}
-          {showWhenMissing((initialSpecs as any)?.hasFocusLimiter) && (
+          {showWhenMissing(initialSpecs?.hasFocusLimiter) && (
             <BooleanInput
               id="hasFocusLimiter"
               label="Has Focus Limiter"
@@ -323,7 +311,7 @@ function LensFieldsComponent({
           )}
 
           {/* Has Focus Recall Button */}
-          {showWhenMissing((initialSpecs as any)?.hasFocusRecallButton) && (
+          {showWhenMissing(initialSpecs?.hasFocusRecallButton) && (
             <BooleanInput
               id="hasFocusRecallButton"
               label="Has Focus Recall Button"
@@ -342,7 +330,7 @@ function LensFieldsComponent({
           )}
 
           {/* Magnification */}
-          {showWhenMissing((initialSpecs as any)?.magnification) && (
+          {showWhenMissing(initialSpecs?.magnification) && (
             <NumberInput
               id="magnification"
               label="Magnification"
@@ -353,7 +341,7 @@ function LensFieldsComponent({
           )}
 
           {/* Minimum Focus Distance */}
-          {showWhenMissing((initialSpecs as any)?.minimumFocusDistanceMm) && (
+          {showWhenMissing(initialSpecs?.minimumFocusDistanceMm) && (
             <div className="space-y-1">
               <NumberInput
                 id="minimumFocusDistanceMm"
@@ -377,7 +365,7 @@ function LensFieldsComponent({
             </div>
           )}
           {/* Has Focus Ring */}
-          {showWhenMissing((initialSpecs as any)?.hasFocusRing) && (
+          {showWhenMissing(initialSpecs?.hasFocusRing) && (
             <BooleanInput
               id="hasFocusRing"
               label="Has Focus Ring"
@@ -389,7 +377,7 @@ function LensFieldsComponent({
           )}
 
           {/* Number of Elements */}
-          {showWhenMissing((initialSpecs as any)?.numberElements) && (
+          {showWhenMissing(initialSpecs?.numberElements) && (
             <NumberInput
               id="numberElements"
               label="Number of Elements"
@@ -399,7 +387,7 @@ function LensFieldsComponent({
           )}
 
           {/* Number of Element Groups */}
-          {showWhenMissing((initialSpecs as any)?.numberElementGroups) && (
+          {showWhenMissing(initialSpecs?.numberElementGroups) && (
             <NumberInput
               id="numberElementGroups"
               label="Number of Element Groups"
@@ -411,7 +399,7 @@ function LensFieldsComponent({
           )}
 
           {/* Has Diffractive Optics */}
-          {showWhenMissing((initialSpecs as any)?.hasDiffractiveOptics) && (
+          {showWhenMissing(initialSpecs?.hasDiffractiveOptics) && (
             <BooleanInput
               id="hasDiffractiveOptics"
               label="Has Diffractive Optics"
@@ -425,7 +413,7 @@ function LensFieldsComponent({
           )}
 
           {/* Number of Diaphragm Blades */}
-          {showWhenMissing((initialSpecs as any)?.numberDiaphragmBlades) && (
+          {showWhenMissing(initialSpecs?.numberDiaphragmBlades) && (
             <NumberInput
               id="numberDiaphragmBlades"
               label="Number of Diaphragm Blades"
@@ -437,9 +425,7 @@ function LensFieldsComponent({
           )}
 
           {/* Has Rounded Diaphragm Blades */}
-          {showWhenMissing(
-            (initialSpecs as any)?.hasRoundedDiaphragmBlades,
-          ) && (
+          {showWhenMissing(initialSpecs?.hasRoundedDiaphragmBlades) && (
             <BooleanInput
               id="hasRoundedDiaphragmBlades"
               label="Has Rounded Diaphragm Blades"
@@ -453,7 +439,7 @@ function LensFieldsComponent({
           )}
 
           {/* Has Internal Zoom */}
-          {showWhenMissing((initialSpecs as any)?.hasInternalZoom) && (
+          {showWhenMissing(initialSpecs?.hasInternalZoom) && (
             <BooleanInput
               id="hasInternalZoom"
               label="Has Internal Zoom"
@@ -468,7 +454,7 @@ function LensFieldsComponent({
           )}
 
           {/* Has Internal Focus */}
-          {showWhenMissing((initialSpecs as any)?.hasInternalFocus) && (
+          {showWhenMissing(initialSpecs?.hasInternalFocus) && (
             <BooleanInput
               id="hasInternalFocus"
               label="Has Internal Focus"
@@ -480,7 +466,7 @@ function LensFieldsComponent({
           )}
 
           {/* Front Element Rotates */}
-          {showWhenMissing((initialSpecs as any)?.frontElementRotates) && (
+          {showWhenMissing(initialSpecs?.frontElementRotates) && (
             <BooleanInput
               id="frontElementRotates"
               label="Front Element Rotates"
@@ -494,7 +480,7 @@ function LensFieldsComponent({
           )}
 
           {/* Mount Material */}
-          {showWhenMissing((initialSpecs as any)?.mountMaterial) && (
+          {showWhenMissing(initialSpecs?.mountMaterial) && (
             <div className="space-y-2">
               <Label htmlFor="mountMaterial">Mount Material</Label>
               <Select
@@ -519,7 +505,7 @@ function LensFieldsComponent({
           )}
 
           {/* Has Weather Sealing */}
-          {showWhenMissing((initialSpecs as any)?.hasWeatherSealing) && (
+          {showWhenMissing(initialSpecs?.hasWeatherSealing) && (
             <BooleanInput
               id="hasWeatherSealing"
               label="Has Weather Sealing"
@@ -533,7 +519,7 @@ function LensFieldsComponent({
           )}
 
           {/* Has Aperture Ring */}
-          {showWhenMissing((initialSpecs as any)?.hasApertureRing) && (
+          {showWhenMissing(initialSpecs?.hasApertureRing) && (
             <BooleanInput
               id="hasApertureRing"
               label="Has Aperture Ring"
@@ -545,7 +531,7 @@ function LensFieldsComponent({
           )}
 
           {/* Number of Custom Control Rings */}
-          {showWhenMissing((initialSpecs as any)?.numberCustomControlRings) && (
+          {showWhenMissing(initialSpecs?.numberCustomControlRings) && (
             <NumberInput
               id="numberCustomControlRings"
               label="Number of Custom Control Rings"
@@ -557,7 +543,7 @@ function LensFieldsComponent({
           )}
 
           {/* Number of Function Buttons */}
-          {showWhenMissing((initialSpecs as any)?.numberFunctionButtons) && (
+          {showWhenMissing(initialSpecs?.numberFunctionButtons) && (
             <NumberInput
               id="numberFunctionButtons"
               label="Number of Function Buttons"
@@ -569,7 +555,7 @@ function LensFieldsComponent({
           )}
 
           {/* Accepts Filter Types */}
-          {showWhenMissing((initialSpecs as any)?.acceptsFilterTypes) && (
+          {showWhenMissing(initialSpecs?.acceptsFilterTypes) && (
             <div
               id="acceptsFilterTypes"
               data-force-ring-container
@@ -583,8 +569,8 @@ function LensFieldsComponent({
                   name: formatFilterType(type),
                 }))}
                 value={
-                  Array.isArray((currentSpecs as any)?.acceptsFilterTypes)
-                    ? ((currentSpecs as any).acceptsFilterTypes as string[])
+                  Array.isArray(currentSpecs?.acceptsFilterTypes)
+                    ? currentSpecs.acceptsFilterTypes
                     : []
                 }
                 onChange={(value) =>
@@ -595,7 +581,7 @@ function LensFieldsComponent({
           )}
 
           {/* Front Filter Thread Size */}
-          {showWhenMissing((initialSpecs as any)?.frontFilterThreadSizeMm) && (
+          {showWhenMissing(initialSpecs?.frontFilterThreadSizeMm) && (
             <NumberInput
               id="frontFilterThreadSizeMm"
               label="Front Filter Thread Size"
@@ -611,7 +597,7 @@ function LensFieldsComponent({
           )}
 
           {/* Rear Filter Thread Size */}
-          {showWhenMissing((initialSpecs as any)?.rearFilterThreadSizeMm) && (
+          {showWhenMissing(initialSpecs?.rearFilterThreadSizeMm) && (
             <NumberInput
               id="rearFilterThreadSizeMm"
               label="Rear Filter Thread Size"
@@ -627,7 +613,7 @@ function LensFieldsComponent({
           )}
 
           {/* Drop In Filter Size */}
-          {showWhenMissing((initialSpecs as any)?.dropInFilterSizeMm) && (
+          {showWhenMissing(initialSpecs?.dropInFilterSizeMm) && (
             <NumberInput
               id="dropInFilterSizeMm"
               label="Drop In Filter Size"
@@ -643,7 +629,7 @@ function LensFieldsComponent({
           )}
 
           {/* Has Built In Teleconverter */}
-          {showWhenMissing((initialSpecs as any)?.hasBuiltInTeleconverter) && (
+          {showWhenMissing(initialSpecs?.hasBuiltInTeleconverter) && (
             <BooleanInput
               id="hasBuiltInTeleconverter"
               label="Has Built In Teleconverter"
@@ -657,7 +643,7 @@ function LensFieldsComponent({
           )}
 
           {/* Has Lens Hood */}
-          {showWhenMissing((initialSpecs as any)?.hasLensHood) && (
+          {showWhenMissing(initialSpecs?.hasLensHood) && (
             <BooleanInput
               id="hasLensHood"
               label="Has Lens Hood"
@@ -669,7 +655,7 @@ function LensFieldsComponent({
           )}
 
           {/* Has Tripod Collar */}
-          {showWhenMissing((initialSpecs as any)?.hasTripodCollar) && (
+          {showWhenMissing(initialSpecs?.hasTripodCollar) && (
             <BooleanInput
               id="hasTripodCollar"
               label="Has Tripod Collar"
@@ -681,7 +667,7 @@ function LensFieldsComponent({
           )}
 
           {/* Is Tilt-Shift */}
-          {showWhenMissing((initialSpecs as any)?.isTiltShift) && (
+          {showWhenMissing(initialSpecs?.isTiltShift) && (
             <BooleanInput
               id="isTiltShift"
               label="Is Tilt-Shift"
@@ -700,7 +686,7 @@ function LensFieldsComponent({
           )}
 
           {/* Tilt Degrees */}
-          {showWhenMissing((initialSpecs as any)?.tiltDegrees) && (
+          {showWhenMissing(initialSpecs?.tiltDegrees) && (
             <NumberInput
               id="tiltDegrees"
               label="Tilt"
@@ -714,7 +700,7 @@ function LensFieldsComponent({
           )}
 
           {/* Shift mm */}
-          {showWhenMissing((initialSpecs as any)?.shiftMm) && (
+          {showWhenMissing(initialSpecs?.shiftMm) && (
             <NumberInput
               id="shiftMm"
               label="Shift"

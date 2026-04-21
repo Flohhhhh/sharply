@@ -4,7 +4,7 @@ They test the service with mocked data calls, then check which options and resul
 This keeps the tests fast while still proving the important search wiring works.
 */
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach,describe,expect,it,vi } from "vitest";
 import type { GearSuggestion } from "~/types/search";
 
 const searchDataMocks = vi.hoisted(() => ({
@@ -23,7 +23,7 @@ const gearDataMocks = vi.hoisted(() => ({
 vi.mock("~/server/search/data", () => searchDataMocks);
 vi.mock("~/server/gear/data", () => gearDataMocks);
 
-import { getSuggestions, searchGear } from "~/server/search/service";
+import { getSuggestions,searchGear } from "~/server/search/service";
 
 describe("search service high-impact behavior", () => {
   beforeEach(() => {

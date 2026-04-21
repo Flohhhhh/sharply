@@ -1,7 +1,7 @@
 export const runtime = "nodejs";
 
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { env } from "~/env";
 import { flushChangeRequestModeratorWebhookAggregation } from "~/server/admin/proposals/webhook";
 

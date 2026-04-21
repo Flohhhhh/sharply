@@ -1,9 +1,8 @@
 "use client";
 
+import { usePathname,useRouter,useSearchParams } from "next/navigation";
 import { useEffect } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { useLocalePathnames } from "~/i18n/client";
 
 export function EditAppliedToast() {
   const rawPathname = usePathname();

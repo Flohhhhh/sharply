@@ -1,12 +1,12 @@
 import type { MetadataRoute } from "next";
+import { getLocaleAlternates,getLocalizedUrl } from "~/i18n/routing";
+import { BRANDS,MOUNTS } from "~/lib/generated";
 import { fetchAllGearSlugs } from "~/server/gear/service";
-import { BRANDS, MOUNTS } from "~/lib/generated";
 import {
   getLearnPages,
   getNewsPosts,
   getReviews,
 } from "~/server/payload/service";
-import { getLocaleAlternates, getLocalizedUrl } from "~/i18n/routing";
 
 export const revalidate = 3600; // Revalidate every hour
 
@@ -27,10 +27,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const slugs = await fetchAllGearSlugs();
   const newsPosts = await getNewsPosts();
   const publishedNewsPosts = newsPosts.filter((p) => p._status === "published");
-  const learnPages = await getLearnPages();
-  const publishedLearnPages = learnPages.filter(
-    (p) => p._status === "published",
-  );
+  await getLearnPages();
   const reviews = await getReviews();
   const publishedReviews = reviews.filter((r) => r._status === "published");
 

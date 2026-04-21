@@ -1,7 +1,7 @@
-import "server-only";
 import { getPayload } from "payload";
+import "server-only";
+import type { LearnPage,News,Review } from "~/payload-types";
 import config from "~/payload.config";
-import type { LearnPage, News, Review } from "~/payload-types";
 
 export const getNewsPostsData = async (): Promise<News[]> => {
   const payload = await getPayload({ config });

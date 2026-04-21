@@ -1,5 +1,6 @@
 "use client";
 
+import { Check,ChevronsUpDown,Loader,X } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -9,12 +10,6 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { ChevronsUpDown, Check, Loader, X } from "lucide-react";
-import { cn } from "~/lib/utils";
-import { useDebounce } from "~/lib/hooks/useDebounce";
-import { GetGearDisplayName } from "~/lib/gear/naming";
-import { useCountry } from "~/lib/hooks/useCountry";
-import type { GearAlias } from "~/types/gear";
 import { Button } from "~/components/ui/button";
 import {
   Command,
@@ -29,6 +24,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
+import { GetGearDisplayName } from "~/lib/gear/naming";
+import { useCountry } from "~/lib/hooks/useCountry";
+import { useDebounce } from "~/lib/hooks/useDebounce";
+import { cn } from "~/lib/utils";
+import type { GearAlias } from "~/types/gear";
 
 export type GearOption = {
   id: string;

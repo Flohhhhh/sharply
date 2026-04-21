@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { Globe,Instagram } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useEffect,useState,useTransition } from "react";
+import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { Button } from "~/components/ui/button";
 import { actionUpdateSocialLinks } from "~/server/users/actions";
-import { Globe, Instagram } from "lucide-react";
 import type { SocialLink } from "~/server/users/service";
-import { useTranslations } from "next-intl";
 
 type SocialLinksFormProps = {
   defaultLinks: SocialLink[];

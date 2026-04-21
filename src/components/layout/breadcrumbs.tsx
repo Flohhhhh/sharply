@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import { LocaleLink } from "~/components/locale-link";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -8,7 +9,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "~/components/ui/breadcrumb";
-import { LocaleLink } from "~/components/locale-link";
 
 export interface CrumbItem {
   label: React.ReactNode;

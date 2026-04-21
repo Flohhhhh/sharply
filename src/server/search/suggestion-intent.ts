@@ -1,5 +1,5 @@
-import { GetGearDisplayName, normalizeGearSearchText } from "~/lib/gear/naming";
-import type { GearAlias, GearRegion } from "~/types/gear";
+import { GetGearDisplayName,normalizeGearSearchText } from "~/lib/gear/naming";
+import type { GearAlias,GearRegion } from "~/types/gear";
 import type {
   GearSuggestion,
   GearSuggestionKind,

@@ -1,22 +1,26 @@
-import "server-only";
 import { notFound } from "next/navigation";
-import {
-  parseSegments,
-  type RouteScope,
-  getDepth,
-  formatScopeTitle,
-} from "~/lib/browse/routing";
+import "server-only";
 import type { BrowseFilters } from "~/lib/browse/filters";
 import {
   normalizeBrowseFilters,
   type BrowseSearchParamsRecord,
 } from "~/lib/browse/query";
-// Category labels are defined locally to avoid a separate constants module
-const gearCategoryLabels = {
-  cameras: "Cameras",
-  lenses: "Lenses",
-} as const;
-
+import {
+  formatScopeTitle,
+  getDepth,
+  parseSegments,
+  type RouteScope,
+} from "~/lib/browse/routing";
+import { fetchGearAliasesByGearIds } from "~/server/gear/data";
+import type { BrowseFeedPage,BrowseListItem,BrowseListPage } from "~/types/browse";
+import type { SearchGearResult } from "./data";
+import {
+  getBrandBySlug,
+  getMountByShortName,
+  getMountsForBrand,
+  getReleaseOrderedGearPage,
+  searchGear,
+} from "./data";
 type LoadHubDataResult = {
   depth: 0 | 1 | 2 | 3;
   scope: RouteScope;
@@ -25,16 +29,6 @@ type LoadHubDataResult = {
   lists: SearchGearResult;
   filters: BrowseFilters;
 };
-import {
-  getBrandBySlug,
-  getMountByShortName,
-  getMountsForBrand,
-  searchGear,
-  getReleaseOrderedGearPage,
-} from "./data";
-import type { SearchGearResult } from "./data";
-import type { BrowseFeedPage, BrowseListItem, BrowseListPage } from "~/types/browse";
-import { fetchGearAliasesByGearIds } from "~/server/gear/data";
 
 export async function fetchBrandBySlug(slug: string) {
   return getBrandBySlug(slug);

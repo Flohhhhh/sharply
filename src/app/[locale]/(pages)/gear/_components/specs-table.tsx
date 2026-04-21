@@ -1,14 +1,14 @@
 import {
   Tooltip,
-  TooltipTrigger,
   TooltipContent,
+  TooltipTrigger,
 } from "@radix-ui/react-tooltip";
+import { InfoIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
-import { InfoIcon } from "lucide-react";
-import { SpecsMissingNote } from "./specs-missing-note";
-import type { GearItem } from "~/types/gear";
 import { cn } from "~/lib/utils";
+import type { GearItem } from "~/types/gear";
+import { SpecsMissingNote } from "./specs-missing-note";
 
 export type SpecsTableSection = {
   title: string;

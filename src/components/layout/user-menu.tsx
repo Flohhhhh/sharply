@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
+import { Avatar,AvatarFallback,AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,12 +9,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, Settings, ShieldCheck, User as UserIcon } from "lucide-react";
+import { LogOut,Settings,ShieldCheck,User as UserIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useMemo,useState } from "react";
 import type { UserRole } from "~/auth";
-import { logOut } from "~/lib/auth";
-import { Spinner } from "~/components/ui/spinner";
 import { LocaleLink } from "~/components/locale-link";
+import { Spinner } from "~/components/ui/spinner";
+import { logOut } from "~/lib/auth";
 
 export type UserMenuUser = {
   id: string;

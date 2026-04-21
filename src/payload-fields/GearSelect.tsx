@@ -1,12 +1,11 @@
 "use client";
-import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-  useField,
-  SelectInput,
-  FieldLabel,
   FieldDescription,
+  FieldLabel,
+  SelectInput,
+  useField,
 } from "@payloadcms/ui";
-import { Loader2 } from "lucide-react";
+import React,{ useEffect,useMemo,useRef,useState } from "react";
 
 type Suggestion = {
   id: string;

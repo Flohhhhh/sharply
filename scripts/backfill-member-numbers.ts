@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { asc, eq } from "drizzle-orm";
+import { asc,eq } from "drizzle-orm";
 import { db } from "../src/server/db";
 import { users } from "../src/server/db/schema";
 

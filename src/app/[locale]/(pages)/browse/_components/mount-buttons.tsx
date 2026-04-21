@@ -1,14 +1,14 @@
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { fetchMountsForBrand } from "~/server/gear/browse/service";
-import { mountUIConfig } from "~/lib/browse/mount-ui";
+import Link from "next/link";
+import { Button } from "~/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { Button } from "~/components/ui/button";
+import { mountUIConfig } from "~/lib/browse/mount-ui";
 import { getMountDisplayName } from "~/lib/mapping/mounts-map";
+import { fetchMountsForBrand } from "~/server/gear/browse/service";
 
 export default async function MountButtons({
   brandId,
@@ -49,7 +49,7 @@ export default async function MountButtons({
           : Number.MAX_SAFE_INTEGER,
       }))
       .sort((a, b) => a._r - b._r || a.value.localeCompare(b.value))
-      .map(({ _r, ...rest }) => rest);
+      .map(({ ...rest }) => rest);
   }
   const visibleCount = mounts?.length ?? 0;
   const gridCols = (() => {

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe,expect,it } from "vitest";
 
 import { buildGearBreadcrumbItems } from "~/app/[locale]/(pages)/gear/_components/gear-breadcrumb-items";
 

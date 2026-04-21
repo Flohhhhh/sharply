@@ -10,8 +10,8 @@ import {
   fetchGearSlugsByCreatorIdData,
   insertApprovedCreatorData,
   setApprovedCreatorActiveData,
-  type ApprovedCreatorPlatform,
   updateApprovedCreatorData,
+  type ApprovedCreatorPlatform,
 } from "./data";
 
 export type { ApprovedCreatorRow } from "./data";

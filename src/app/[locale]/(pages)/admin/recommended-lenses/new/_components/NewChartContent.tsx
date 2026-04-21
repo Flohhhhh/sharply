@@ -1,14 +1,14 @@
 "use client";
 
-import { useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { actionCreateRecommendationChart } from "~/server/recommendations/actions";
-import { Input } from "~/components/ui/input";
-import { Textarea } from "~/components/ui/textarea";
-import { Label } from "~/components/ui/label";
-import { Button } from "~/components/ui/button";
 import { BRANDS } from "@/lib/generated";
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
+import { toast } from "sonner";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import { Textarea } from "~/components/ui/textarea";
+import { actionCreateRecommendationChart } from "~/server/recommendations/actions";
 import BrandSelectField from "../../_components/BrandSelectField";
 
 export default function NewChartContent() {

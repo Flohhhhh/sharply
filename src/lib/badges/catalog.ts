@@ -1,7 +1,8 @@
+import { Heart,Star,Telescope } from "lucide-react";
 import type { BadgeDefinition } from "~/types/badges";
-import { Star, Heart, Telescope } from "lucide-react";
-import { createThresholdBadgeLadder, createTimeBadgeLadder } from "./generator";
+import type { AllowedTrigger } from "./constants";
 import { ALLOWED_TRIGGERS } from "./constants";
+import { createThresholdBadgeLadder,createTimeBadgeLadder } from "./generator";
 
 export function validateBadgeCatalog(catalog: BadgeDefinition[]) {
   const keys = new Set<string>();
@@ -19,7 +20,6 @@ export function validateBadgeCatalog(catalog: BadgeDefinition[]) {
       throw new Error(`Badge ${def.key} missing test function`);
   }
 }
-import type { AllowedTrigger } from "./constants";
 
 export const BADGE_CATALOG: BadgeDefinition[] = [
   // Temporary time-limited badge for early members
@@ -147,7 +147,7 @@ export function buildTriggerIndex(catalog: BadgeDefinition[]) {
   const index = new Map<AllowedTrigger, BadgeDefinition[]>();
   for (const def of catalog) {
     for (const t of def.triggers) {
-      const list = (index.get(t as AllowedTrigger) ?? []) as BadgeDefinition[];
+      const list = (index.get(t as AllowedTrigger) ?? []);
       list.push(def);
       index.set(t as AllowedTrigger, list);
     }

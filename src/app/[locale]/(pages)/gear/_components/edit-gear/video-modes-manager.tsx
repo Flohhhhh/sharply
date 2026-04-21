@@ -1,6 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Loader,Plus,Trash2 } from "lucide-react";
+import { useCallback,useEffect,useMemo,useRef,useState } from "react";
+import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -10,6 +12,7 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
+import { MultiSelect } from "~/components/ui/multi-select";
 import {
   Select,
   SelectContent,
@@ -19,25 +22,21 @@ import {
 } from "~/components/ui/select";
 import {
   COMMON_VIDEO_RESOLUTIONS,
-  VIDEO_FRAME_RATES,
   VIDEO_COLOR_DEPTHS,
+  VIDEO_FRAME_RATES,
 } from "~/lib/constants/video-constants";
-import { Loader, Trash2, Plus, Crop } from "lucide-react";
-import { toast } from "sonner";
-import { MultiSelect } from "~/components/ui/multi-select";
-import { VideoBitDepthMatrix } from "./video-bit-depth-matrix";
 import {
-  videoModeInputSchema,
+  normalizedToCameraVideoModes,
   normalizeVideoModes,
   slugifyResolutionKey,
-  type VideoModeNormalized,
   type VideoModeInput,
+  videoModeInputSchema,
+  type VideoModeNormalized,
   videoModesEqual,
-  normalizedToCameraVideoModes,
 } from "~/lib/video/mode-schema";
 import { buildVideoDisplayBundle } from "~/lib/video/transform";
 import { VideoSpecsSummary } from "../video/video-summary";
-import type { CameraVideoMode } from "~/types/gear";
+import { VideoBitDepthMatrix } from "./video-bit-depth-matrix";
 
 type EditableVideoMode = {
   id: string;
@@ -154,45 +153,6 @@ function normalizeVideoModesFromLike(
   return normalizeVideoModes(parsed);
 }
 
-function coerceCameraVideoModes(list: VideoModeLike[]): CameraVideoMode[] {
-  return list.map((mode, index) => {
-    if (
-      typeof mode.gearId === "string" &&
-      typeof mode.codecLabel === "string" &&
-      typeof mode.bitDepth === "number" &&
-      typeof mode.fps === "number"
-    ) {
-      return mode as CameraVideoMode;
-    }
-    return {
-      id: mode.id ?? `preview-${index}`,
-      gearId: mode.gearId ?? "preview",
-      resolutionKey:
-        mode.resolutionKey ??
-        slugifyResolutionKey(mode.resolutionLabel ?? "custom"),
-      resolutionLabel:
-        mode.resolutionLabel ??
-        mode.resolutionKey ??
-        slugifyResolutionKey("custom"),
-      resolutionHorizontal:
-        mode.resolutionHorizontal != null
-          ? Number(mode.resolutionHorizontal)
-          : null,
-      resolutionVertical:
-        mode.resolutionVertical != null
-          ? Number(mode.resolutionVertical)
-          : null,
-      fps: Number(mode.fps ?? 0),
-      codecLabel: mode.codecLabel ?? "Unknown",
-      bitDepth: Number(mode.bitDepth ?? 0),
-      cropFactor: Boolean(mode.cropFactor),
-      notes: mode.notes ?? null,
-      createdAt: mode.createdAt instanceof Date ? mode.createdAt : new Date(0),
-      updatedAt: mode.updatedAt instanceof Date ? mode.updatedAt : new Date(0),
-    } as CameraVideoMode;
-  });
-}
-
 function serializeGuidedModes(
   modes: EditableVideoMode[],
 ): VideoModeNormalized[] {
@@ -298,13 +258,12 @@ function deriveInitialCodecPairs(rows: EditableVideoMode[]): CodecPair[] {
 
 function deriveInitialAssignments(
   rows: EditableVideoMode[],
-  codecPairs: CodecPair[],
 ): GuidedAssignments {
   const assignments: GuidedAssignments = {};
   for (const row of rows) {
     const resolutionKey = row.resolutionKey;
     assignments[resolutionKey] = assignments[resolutionKey] ?? {};
-    const bucket = assignments[resolutionKey]!;
+    const bucket = assignments[resolutionKey];
     const fpsKey = String(row.fps);
     const bitDepth = Number(row.bitDepth) || 0;
     const current = bucket[fpsKey];
@@ -321,7 +280,7 @@ function deriveInitialCropFactors(
     if (!row.cropFactor) continue;
     const key = row.resolutionKey;
     crop[key] = crop[key] ?? {};
-    const bucket = crop[key]!;
+    const bucket = crop[key];
     bucket[String(row.fps)] = true;
   }
   return crop;
@@ -338,60 +297,6 @@ function resolveAssignedCodecIds(
   return codecPairs
     .filter((pair) => pair.bitDepth <= threshold)
     .map((pair) => pair.id);
-}
-
-function generateGuidedPreview(
-  resolutions: GuidedResolution[],
-  fpsSelections: GuidedFpsSelections,
-  codecPairs: CodecPair[],
-  assignments: GuidedAssignments,
-  cropFactors: GuidedCropFactors,
-): EditableVideoMode[] {
-  if (!resolutions.length || !codecPairs.length) return [];
-  const codecMap = new Map(codecPairs.map((pair) => [pair.id, pair]));
-
-  const preview: EditableVideoMode[] = [];
-  const maxBitDepth =
-    codecPairs.reduce(
-      (acc, pair) => (pair.bitDepth > acc ? pair.bitDepth : acc),
-      codecPairs[0]?.bitDepth ?? 0,
-    ) || 0;
-  for (const resolution of resolutions) {
-    const fpsList = fpsSelections[resolution.key] ?? [];
-    for (const fps of fpsList) {
-      const assignedList = resolveAssignedCodecIds(
-        assignments,
-        resolution.key,
-        fps,
-        codecPairs,
-        maxBitDepth,
-      );
-      let bestCodec: CodecPair | null = null;
-      for (const codecId of assignedList) {
-        const pair = codecMap.get(codecId);
-        if (!pair) continue;
-        if (!bestCodec || pair.bitDepth > bestCodec.bitDepth) {
-          bestCodec = pair;
-        }
-      }
-      const codec = bestCodec ?? codecMap.get(codecPairs[0]!.id ?? "");
-      if (!codec) continue;
-      const isCropped = cropFactors[resolution.key]?.[String(fps)] === true;
-      preview.push({
-        id: createId(),
-        resolutionKey: resolution.key,
-        resolutionLabel: resolution.label,
-        resolutionHorizontal: resolution.horizontal,
-        resolutionVertical: resolution.vertical,
-        fps,
-        codecLabel: codec.label,
-        bitDepth: codec.bitDepth,
-        cropFactor: isCropped,
-        notes: "",
-      });
-    }
-  }
-  return preview;
 }
 
 function generateGuidedModesDetailed(
@@ -474,7 +379,7 @@ export function VideoModesManager({
     sortCodecPairsDesc(seedCodecPairs),
   );
   const [codecAssignments, setCodecAssignments] = useState<GuidedAssignments>(
-    () => deriveInitialAssignments(seedRows, seedCodecPairs),
+    () => deriveInitialAssignments(seedRows),
   );
   const [cropAssignments, setCropAssignments] = useState<GuidedCropFactors>(
     () => deriveInitialCropFactors(seedRows),
@@ -514,7 +419,7 @@ export function VideoModesManager({
     setGuidedResolutions(deriveInitialGuidedResolutions(normalizedRows));
     setFpsSelections(deriveInitialFpsSelections(normalizedRows));
     setCodecPairs(sortCodecPairsDesc(safePairs));
-    setCodecAssignments(deriveInitialAssignments(normalizedRows, safePairs));
+    setCodecAssignments(deriveInitialAssignments(normalizedRows));
     setCropAssignments(deriveInitialCropFactors(normalizedRows));
   }, []);
 
@@ -581,24 +486,6 @@ export function VideoModesManager({
       return next;
     });
   };
-
-  const guidedPreview = useMemo(
-    () =>
-      generateGuidedPreview(
-        guidedResolutions,
-        fpsSelections,
-        codecPairs,
-        codecAssignments,
-        cropAssignments,
-      ),
-    [
-      guidedResolutions,
-      fpsSelections,
-      codecPairs,
-      codecAssignments,
-      cropAssignments,
-    ],
-  );
 
   const guidedDetailedModes = useMemo(
     () =>
@@ -1159,7 +1046,6 @@ export function VideoModesManager({
                     resolutions={guidedResolutions}
                     fpsSelections={fpsSelections}
                     bitDepthOptions={bitDepthOptions}
-                    maxBitDepth={maxAvailableBitDepth}
                     assignments={codecAssignments}
                     cropAssignments={cropAssignments}
                     onBitDepthChange={handleMaxBitDepthChange}

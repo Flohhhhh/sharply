@@ -1,11 +1,5 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
-import Image from "next/image";
-import { useLocale } from "next-intl";
-import { useSession } from "~/lib/auth/auth-client";
-import { requireRole } from "~/lib/auth/auth-helpers";
-import { toast } from "sonner";
 import {
   ExternalLink,
   Loader2,
@@ -15,6 +9,11 @@ import {
   Trash2,
   Video,
 } from "lucide-react";
+import { useLocale } from "next-intl";
+import Image from "next/image";
+import { useEffect,useMemo,useState,useTransition } from "react";
+import { toast } from "sonner";
+import { Avatar,AvatarFallback,AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import {
@@ -36,14 +35,15 @@ import {
 } from "~/components/ui/select";
 import { Separator } from "~/components/ui/separator";
 import { Textarea } from "~/components/ui/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { useSession } from "~/lib/auth/auth-client";
+import { requireRole } from "~/lib/auth/auth-helpers";
+import { formatDate } from "~/lib/format/date";
 import {
   actionCreateGearCreatorVideo,
   actionDeactivateGearCreatorVideo,
   actionUpdateGearCreatorVideoEditorialNote,
 } from "~/server/creator-videos/actions";
 import type { CreatorVideoMetadataResolution } from "~/server/creator-videos/metadata";
-import { formatDate } from "~/lib/format/date";
 
 type ManageCreatorVideosModalProps = {
   slug: string;

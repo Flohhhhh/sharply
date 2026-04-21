@@ -1,8 +1,8 @@
+import { ChartLine,FileLock,ScanSearch } from "lucide-react";
 import type { Metadata } from "next";
-import { ChartLine, FileLock, ScanSearch } from "lucide-react";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import ExifPreviewTrigger from "./_components/exif-preview-trigger";
 import ExifViewerClient from "./client";
-import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_BASE_URL ?? "https://www.sharplyphoto.com";

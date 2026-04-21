@@ -1,14 +1,13 @@
+import type { Metadata } from "next";
+import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { requireRole } from "~/lib/auth/auth-helpers";
 import { auth } from "~/auth";
-import type { Metadata } from "next";
-import { SidebarInset, SidebarProvider } from "~/components/ui/sidebar";
-import { AppSidebar } from "./sidebar";
-import { SiteHeader } from "./admin-header";
-import type { AuthUser } from "~/auth";
+import { SidebarInset,SidebarProvider } from "~/components/ui/sidebar";
+import { requireRole } from "~/lib/auth/auth-helpers";
 import { fetchNotificationsForUser } from "~/server/notifications/service";
-import { headers } from "next/headers";
+import { SiteHeader } from "./admin-header";
+import { AppSidebar } from "./sidebar";
 
 export const metadata: Metadata = {
   title: {

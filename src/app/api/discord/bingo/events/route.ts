@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { type NextRequest,NextResponse } from "next/server";
 import { getActiveBoardEventsSince } from "~/server/bingo/service";
 
 export async function GET(request: NextRequest) {

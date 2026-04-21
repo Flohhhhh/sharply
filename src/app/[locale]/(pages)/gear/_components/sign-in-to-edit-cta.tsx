@@ -1,8 +1,8 @@
 "use client";
 
-import { useSession } from "~/lib/auth/auth-client";
 import Link from "next/link";
 import React from "react";
+import { useSession } from "~/lib/auth/auth-client";
 
 interface SignInToEditSpecsCtaProps {
   slug: string;
@@ -13,7 +13,7 @@ export function SignInToEditSpecsCta({
   slug,
   gearType,
 }: SignInToEditSpecsCtaProps) {
-  const { data, isPending, error } = useSession();
+  const { data } = useSession();
   const session = data?.session;
 
   const callbackUrl = React.useMemo(

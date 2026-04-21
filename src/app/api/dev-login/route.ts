@@ -1,5 +1,5 @@
-import type { AuthContext, GenericEndpointContext } from "@better-auth/core";
-import { runWithAdapter, runWithEndpointContext } from "@better-auth/core/context";
+import type { AuthContext,GenericEndpointContext } from "@better-auth/core";
+import { runWithAdapter,runWithEndpointContext } from "@better-auth/core/context";
 import { setSessionCookie } from "better-auth/cookies";
 import { createEndpoint } from "better-call";
 import type { NextRequest } from "next/server";

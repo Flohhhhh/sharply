@@ -1,7 +1,7 @@
 "use client";
 
-import Link, { type LinkProps } from "next/link";
 import { useLocale } from "next-intl";
+import Link from "next/link";
 import * as React from "react";
 import type { Locale } from "~/i18n/config";
 import { localizeHref } from "~/i18n/routing";
@@ -15,7 +15,7 @@ export const LocaleLink = React.forwardRef<HTMLAnchorElement, LocaleLinkProps>(
     return (
       <Link
         ref={ref}
-        href={localizeHref(href as LinkProps["href"], locale)}
+        href={localizeHref(href, locale)}
         {...props}
       />
     );

@@ -19,7 +19,7 @@ export async function GET(
     const { slug } = await params;
     const pendingEdit = await fetchPendingEdit(slug);
     return NextResponse.json({ pendingEdit });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ pendingEdit: null });
   }
 }

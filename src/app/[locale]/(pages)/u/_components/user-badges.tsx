@@ -1,14 +1,14 @@
-import { BADGE_CATALOG } from "~/lib/badges/catalog";
-import { getTranslations } from "next-intl/server";
-import { fetchUserBadges } from "~/server/badges/service";
 import * as Lucide from "lucide-react";
-import { toRomanNumeral } from "~/lib/utils";
+import { getTranslations } from "next-intl/server";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
+import { BADGE_CATALOG } from "~/lib/badges/catalog";
+import { toRomanNumeral } from "~/lib/utils";
+import { fetchUserBadges } from "~/server/badges/service";
 
 export async function UserBadges({ userId }: { userId: string }) {
   const t = await getTranslations("userProfile");
@@ -16,13 +16,6 @@ export async function UserBadges({ userId }: { userId: string }) {
   if (!rows.length) return null;
 
   const keyToMeta = new Map(BADGE_CATALOG.map((b) => [b.key, b] as const));
-  const toPascal = (s: string) =>
-    s
-      .split(/[^a-zA-Z0-9]+/)
-      .filter(Boolean)
-      .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
-      .join("");
-
   return (
     <div className="space-y-2">
       <h2 className="text-2xl font-semibold">{t("badges")}</h2>
@@ -33,10 +26,10 @@ export async function UserBadges({ userId }: { userId: string }) {
             .sort((a, b) => {
               const aScore = (a.row.sortOverride ??
                 a.meta?.sortScore ??
-                0) as number;
+                0);
               const bScore = (b.row.sortOverride ??
                 b.meta?.sortScore ??
-                0) as number;
+                0);
               if (bScore !== aScore) return bScore - aScore;
               const aTs = new Date(
                 a.row.awardedAt as unknown as string,

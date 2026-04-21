@@ -1,5 +1,7 @@
 "use client";
 
+import { ClipboardCopy } from "lucide-react";
+import Logo from "public/logo";
 import {
   useCallback,
   useEffect,
@@ -7,15 +9,13 @@ import {
   useRef,
   useState,
 } from "react";
-import { ClipboardCopy, Loader } from "lucide-react";
 import { toast } from "sonner";
+import type { AuthUser } from "~/auth";
+import { Avatar,AvatarFallback,AvatarImage } from "~/components/ui/avatar";
+import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 import type { GearItem } from "~/types/gear";
 import { CollectionGrid } from "./collection-grid";
-import Logo from "public/logo";
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import { Button } from "~/components/ui/button";
-import type { AuthUser } from "~/auth";
 
 const designWidth = 1920;
 const designHeight = 1080;

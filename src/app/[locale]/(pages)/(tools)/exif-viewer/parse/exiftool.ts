@@ -1,4 +1,4 @@
-import { type ExifViewerMetadataRow, type ExifViewerTagEntry } from "../types";
+import { type ExifViewerMetadataRow,type ExifViewerTagEntry } from "../types";
 
 const RELEVANT_GROUPS = new Set([
   "exif",

@@ -8,9 +8,9 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "~/components/ui/carousel";
-import { RequestImageButton } from "./request-image-button";
 import { GetGearDisplayName } from "~/lib/gear/naming";
 import type { GearAlias } from "~/types/gear";
+import { RequestImageButton } from "./request-image-button";
 
 interface GearImageCarouselProps {
   name: string;

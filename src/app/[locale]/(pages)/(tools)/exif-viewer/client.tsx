@@ -1,7 +1,7 @@
 "use client";
 
-import { AnimatePresence, useReducedMotion } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { AnimatePresence,useReducedMotion } from "motion/react";
+import { useEffect,useRef,useState } from "react";
 import ExifEmptyState from "./_components/exif-empty-state";
 import ExifLoadingState from "./_components/exif-loading-state";
 import { getExifViewerPreviewEventName } from "./_components/exif-preview-trigger";
@@ -375,8 +375,6 @@ export default function ExifViewerClient() {
           <ExifEmptyState
             key="empty"
             isDragging={isDragging}
-            supportedExtensions={EXIF_VIEWER_ALLOWED_EXTENSIONS}
-            maxFileBytes={EXIF_VIEWER_MAX_FILE_BYTES}
             onBrowse={() => inputRef.current?.click()}
             onDragOver={(event) => {
               event.preventDefault();

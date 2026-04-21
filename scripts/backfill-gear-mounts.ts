@@ -9,9 +9,9 @@
  */
 
 import "dotenv/config";
-import postgres from "postgres";
-import { drizzle } from "drizzle-orm/postgres-js";
 import { sql } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 
 async function backfillGearMounts() {
   console.log("[backfill-gear-mounts] Starting backfill...");

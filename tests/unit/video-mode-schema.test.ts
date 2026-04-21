@@ -4,7 +4,7 @@ They use simple sample inputs to confirm normalization, sorting, strict validati
 This catches malformed mode data before it leaks into stored or displayed results.
 */
 
-import { describe, expect, it } from "vitest";
+import { describe,expect,it } from "vitest";
 import {
   coerceVideoModeList,
   normalizeVideoModes,

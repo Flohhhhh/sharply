@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { getCategoryLabel, type GearCategorySlug } from "~/lib/browse/routing";
+import Link from "next/link";
+import { getCategoryLabel,type GearCategorySlug } from "~/lib/browse/routing";
 import { getMountDisplayName } from "~/lib/mapping/mounts-map";
 
 type Props = {

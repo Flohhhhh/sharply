@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useLocale, useTranslations } from "next-intl";
-import { createPortal } from "react-dom";
+import { useLocale,useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { getFooterItems } from "~/lib/nav-items";
+import { useEffect,useMemo,useRef,useState } from "react";
+import { createPortal } from "react-dom";
 import type { Locale } from "~/i18n/config";
 import { localizePathname } from "~/i18n/routing";
+import { getFooterItems } from "~/lib/nav-items";
 
 interface NavSheetDesktopProps {
   children: React.ReactNode;

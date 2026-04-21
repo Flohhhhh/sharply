@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronsUpDownIcon, CheckIcon, SearchIcon } from "lucide-react";
-import { cn } from "~/lib/utils";
+import { CheckIcon,ChevronsUpDownIcon } from "lucide-react";
+import { useEffect,useMemo,useRef,useState } from "react";
 import { Button } from "~/components/ui/button";
 import {
   Command,
@@ -17,6 +16,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
+import { cn } from "~/lib/utils";
 
 export type GearSuggestion = {
   id: string; // gear id
@@ -36,6 +36,32 @@ export type GearComboboxProps = {
   onSelectedChange?: (item: GearSuggestion | null) => void;
   // Optional filter: only show lenses
   onlyLenses?: boolean; // kept for API compatibility; currently filters to gear results only
+};
+
+type SearchResultRow = {
+  id?: string;
+  name?: string;
+  slug?: string;
+  gearType?: string | null;
+  brandName?: string | null;
+};
+
+type SearchResponse = {
+  results?: SearchResultRow[];
+};
+
+type SuggestionRow = {
+  id?: string;
+  label?: string;
+  name?: string;
+  slug?: string;
+  gearType?: string | null;
+  brandName?: string | null;
+  type?: "gear" | "brand";
+};
+
+type SuggestResponse = {
+  suggestions?: SuggestionRow[];
 };
 
 function useDebounced<T>(value: T, ms: number) {
@@ -84,17 +110,17 @@ export function GearCombobox({
             `/api/search?q=${encodeURIComponent(q)}&page=1&pageSize=${limit}&sort=relevance`,
             { signal: aborter.signal },
           );
-          const data = (await (r.ok ? r.json() : { results: [] })) as {
-            results?: any[];
-          };
-          const rows = Array.isArray(data?.results) ? data.results : [];
+          const data: SearchResponse = r.ok
+            ? await r.json()
+            : { results: [] };
+          const rows = Array.isArray(data.results) ? data.results : [];
           const mapped: GearSuggestion[] = rows
-            .map((s: any) => ({
-              id: String(s?.id ?? ""),
-              name: String(s?.name ?? s?.slug ?? ""),
-              slug: String(s?.slug ?? ""),
-              gearType: s?.gearType ?? null,
-              brandName: s?.brandName ?? null,
+            .map((row) => ({
+              id: String(row.id ?? ""),
+              name: String(row.name ?? row.slug ?? ""),
+              slug: String(row.slug ?? ""),
+              gearType: row.gearType ?? null,
+              brandName: row.brandName ?? null,
               type: "gear" as const,
             }))
             .filter((s) => s.id && s.name);
@@ -104,20 +130,20 @@ export function GearCombobox({
             `/api/search/suggest?q=${encodeURIComponent(q)}&limit=${limit}`,
             { signal: aborter.signal },
           );
-          const data = (await (r.ok ? r.json() : { suggestions: [] })) as {
-            suggestions?: any[];
-          };
-          const raw = Array.isArray(data?.suggestions) ? data.suggestions : [];
+          const data: SuggestResponse = r.ok
+            ? await r.json()
+            : { suggestions: [] };
+          const raw = Array.isArray(data.suggestions) ? data.suggestions : [];
           const mapped: GearSuggestion[] = raw
-            .map((s: any) => ({
-              id: String(s?.id ?? "").replace(/^gear:/, ""),
-              name: String(s?.label ?? s?.name ?? s?.slug ?? ""),
-              slug: String(s?.slug ?? ""),
-              gearType: s?.gearType ?? null,
-              brandName: s?.brandName ?? null,
+            .map((row) => ({
+              id: String(row.id ?? "").replace(/^gear:/, ""),
+              name: String(row.label ?? row.name ?? row.slug ?? ""),
+              slug: String(row.slug ?? ""),
+              gearType: row.gearType ?? null,
+              brandName: row.brandName ?? null,
               type:
-                (s?.type as "gear" | "brand" | undefined) ||
-                (String(s?.id ?? "").startsWith("gear:") ? "gear" : undefined),
+                row.type ||
+                (String(row.id ?? "").startsWith("gear:") ? "gear" : undefined),
             }))
             .filter((s) => s.id && s.name);
           setOptions(mapped.filter((m) => m.type === "gear"));

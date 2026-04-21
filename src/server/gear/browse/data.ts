@@ -1,21 +1,20 @@
+import { and,asc,desc,eq,inArray,sql,type SQL } from "drizzle-orm";
 import "server-only";
-import { and, asc, desc, eq, ilike, inArray, sql, type SQL } from "drizzle-orm";
-import { db } from "~/server/db";
-import {
-  brands,
-  gear,
-  mounts,
-  gearMounts,
-  lensSpecs,
-} from "~/server/db/schema";
+import { orderBrandsWithPriority } from "~/lib/brands";
+import type { BrowseFilters } from "~/lib/browse/filters";
+import type { GearCategorySlug } from "~/lib/browse/routing";
 import {
   BRANDS as BRAND_CONSTANTS,
   MOUNTS as MOUNT_CONSTANTS,
 } from "~/lib/constants";
-import { orderBrandsWithPriority } from "~/lib/brands";
-import type { BrowseFilters } from "~/lib/browse/filters";
-import type { GearCategorySlug } from "~/lib/browse/routing";
-import type { GearAlias, GearType } from "~/types/gear";
+import { db } from "~/server/db";
+import {
+  brands,
+  gear,
+  gearMounts,
+  lensSpecs
+} from "~/server/db/schema";
+import type { GearAlias,GearType } from "~/types/gear";
 import {
   LENS_FOCAL_LENGTH_SORT,
   lensFocalLengthSortExpression,
@@ -183,8 +182,8 @@ export async function searchGear(
       LENS_FOCAL_LENGTH_SORT,
     ] as const;
     type SortKey = (typeof allowed)[number];
-    const sortKey: SortKey = allowed.includes(f.sort as SortKey)
-      ? (f.sort as SortKey)
+    const sortKey: SortKey = allowed.includes(f.sort)
+      ? (f.sort)
       : "newest";
     switch (sortKey) {
       case "newest":

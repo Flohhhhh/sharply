@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { ResponsiveFocalLengthClient } from "./_components/responsive-focal-length-client";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import { ResponsiveFocalLengthClient } from "./_components/responsive-focal-length-client";
 
 export const metadata: Metadata = buildLocalizedMetadata(
   "/focal-length-reference",

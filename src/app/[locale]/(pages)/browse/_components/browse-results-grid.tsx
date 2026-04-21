@@ -1,5 +1,9 @@
 "use client";
 
+import { mergeSearchParams } from "@utils/url";
+import { Loader } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { usePathname,useSearchParams } from "next/navigation";
 import {
   Suspense,
   useCallback,
@@ -10,22 +14,17 @@ import {
   useTransition,
 } from "react";
 import useSWRInfinite from "swr/infinite";
-import { Loader } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { usePathname, useSearchParams } from "next/navigation";
-import { GearCard, GearCardSkeleton } from "~/components/gear/gear-card";
+import { GearCard,GearCardSkeleton } from "~/components/gear/gear-card";
 import { Button } from "~/components/ui/button";
-import { getItemDisplayPrice } from "~/lib/mapping";
 import { useIsMobile } from "~/hooks/use-mobile";
-import { mergeSearchParams } from "@utils/url";
 import {
   buildBrowseListApiPath,
   normalizeBrowseFilters,
   urlSearchParamsToRecord,
 } from "~/lib/browse/query";
 import type { RouteScope } from "~/lib/browse/routing";
+import { getItemDisplayPrice } from "~/lib/mapping";
 import type { BrowseListPage } from "~/types/browse";
-import { useLocalePathnames } from "~/i18n/client";
 
 type BrowseResultsGridProps = {
   initialPage: BrowseListPage;
@@ -75,7 +74,6 @@ function BrowseResultsGridContent({
   const t = useTranslations("browsePage");
   const isMobile = useIsMobile();
   const rawPathname = usePathname();
-  const { pathname } = useLocalePathnames();
   const searchParams = useSearchParams();
   const [isPending] = useTransition();
   const [infiniteActive, setInfiniteActive] = useState(false);

@@ -1,12 +1,12 @@
-import { Suspense } from "react";
-import { BadgesTestToastButton } from "../badges-test-toast";
-import { BadgesCatalog } from "../badges-catalog";
-import { AdminImageUploader } from "../admin-image-uploader";
-import { GradientImageTool } from "../gradient-image-tool";
-import { SharedListOgPreviewTool } from "../shared-list-og-preview-tool";
-import { ManualGearRevalidateTool } from "../manual-gear-revalidate-tool";
-import { fetchLiveBoosts } from "~/server/popularity/service";
 import Link from "next/link";
+import { Suspense } from "react";
+import { fetchLiveBoosts } from "~/server/popularity/service";
+import { AdminImageUploader } from "../admin-image-uploader";
+import { BadgesCatalog } from "../badges-catalog";
+import { BadgesTestToastButton } from "../badges-test-toast";
+import { GradientImageTool } from "../gradient-image-tool";
+import { ManualGearRevalidateTool } from "../manual-gear-revalidate-tool";
+import { SharedListOgPreviewTool } from "../shared-list-og-preview-tool";
 
 export default async function ToolsPage() {
   const liveBoosts = await fetchLiveBoosts({ limit: 100 });

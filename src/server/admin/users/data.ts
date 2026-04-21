@@ -1,9 +1,9 @@
 import "server-only";
 
 import { desc } from "drizzle-orm";
+import type { UserRole } from "~/auth";
 import { db } from "~/server/db";
 import { users } from "~/server/db/schema";
-import type { UserRole } from "~/auth";
 
 export type AdminUserListItem = {
   id: string;

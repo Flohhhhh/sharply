@@ -1,8 +1,8 @@
+import type { Locale } from "~/i18n/config";
 import {
   resolveRegionFromCountryCode,
   type GearRegion,
 } from "~/lib/gear/region";
-import type { Locale } from "~/i18n/config";
 
 export type LocaleId =
   | "us"

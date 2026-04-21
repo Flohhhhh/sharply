@@ -1,7 +1,7 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { NotificationsDropdown } from "~/components/layout/notifications/notifications-dropdown";
 import { GlobalSearchBar } from "~/components/search/global-search-bar";
 import { ThemeSwitcher } from "~/components/theme-switcher";
-import { NotificationsDropdown } from "~/components/layout/notifications/notifications-dropdown";
 import type { NotificationView } from "~/server/notifications/service";
 
 type SiteHeaderProps = {

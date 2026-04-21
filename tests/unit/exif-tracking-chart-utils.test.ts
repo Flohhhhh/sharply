@@ -1,5 +1,4 @@
-import { describe, expect, it } from "vitest";
-import type { ExifTrackedCameraHistoryEntry } from "../../src/app/[locale]/(pages)/(tools)/exif-viewer/types";
+import { describe,expect,it } from "vitest";
 import {
   buildExifTrackingChartPoints,
   countSeriesPoints,
@@ -10,6 +9,7 @@ import {
   resolveMiniChartSeries,
   resolveReadingPlotTimestamp,
 } from "../../src/app/[locale]/(pages)/(tools)/exif-viewer/_components/exif-tracking-chart-utils";
+import type { ExifTrackedCameraHistoryEntry } from "../../src/app/[locale]/(pages)/(tools)/exif-viewer/types";
 
 function createReading(
   overrides: Partial<ExifTrackedCameraHistoryEntry> = {},

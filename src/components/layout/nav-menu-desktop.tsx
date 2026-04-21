@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { LocaleLink } from "~/components/locale-link";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -10,8 +11,7 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "~/components/ui/navigation-menu";
-import { LocaleLink } from "~/components/locale-link";
-import { getNavItems, iconMap } from "~/lib/nav-items";
+import { getNavItems,iconMap } from "~/lib/nav-items";
 import { cn } from "~/lib/utils";
 
 export function NavMenuDesktop() {

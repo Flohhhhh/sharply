@@ -1,4 +1,4 @@
-import type { AuthUser, UserRole } from "~/auth";
+import type { AuthUser,UserRole } from "~/auth";
 
 export const USER_ROLE_ORDER: UserRole[] = [
   "USER",

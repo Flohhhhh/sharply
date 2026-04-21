@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, count, desc, eq, isNotNull, isNull } from "drizzle-orm";
+import { and,count,desc,eq,isNotNull,isNull } from "drizzle-orm";
 import { db } from "~/server/db";
 import { notifications } from "~/server/db/schema";
 

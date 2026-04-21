@@ -1,15 +1,15 @@
+import { and,count,desc,eq } from "drizzle-orm";
 import "server-only";
 import { db } from "~/server/db";
 import {
-  users,
-  reviews,
-  gearEdits,
-  wishlists,
-  ownerships,
-  userBadges,
   badgeAwardsLog,
+  gearEdits,
+  ownerships,
+  reviews,
+  userBadges,
+  users,
+  wishlists,
 } from "~/server/db/schema";
-import { and, count, eq, desc } from "drizzle-orm";
 import type { UserSnapshot } from "~/types/badges";
 
 export async function getUserSnapshot(userId: string): Promise<UserSnapshot> {

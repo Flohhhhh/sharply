@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useEffect,useState } from "react";
+import { Card,CardContent } from "~/components/ui/card";
 import { GearReviewForm } from "./gear-review-form";
 import { GearReviewsList } from "./gear-reviews-list";
-import { Card, CardContent } from "~/components/ui/card";
 
 export function GearReviews({
   slug,

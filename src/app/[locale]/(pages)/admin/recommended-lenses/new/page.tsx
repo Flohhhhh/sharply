@@ -1,8 +1,8 @@
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "~/auth";
 import { requireRole } from "~/lib/auth/auth-helpers";
 import NewChartContent from "./_components/NewChartContent";
-import { headers } from "next/headers";
 
 export default async function Page() {
   const session = await auth.api.getSession({

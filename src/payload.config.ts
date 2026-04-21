@@ -1,19 +1,19 @@
 // storage-adapter-import-placeholder
 import { postgresAdapter } from "@payloadcms/db-postgres";
+import { resendAdapter } from "@payloadcms/email-resend";
 import { payloadCloudPlugin } from "@payloadcms/payload-cloud";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
+import { uploadthingStorage } from "@payloadcms/storage-uploadthing";
 import path from "path";
 import { buildConfig } from "payload";
-import { fileURLToPath } from "url";
 import sharp from "sharp";
-import { uploadthingStorage } from "@payloadcms/storage-uploadthing";
-import { resendAdapter } from "@payloadcms/email-resend";
+import { fileURLToPath } from "url";
 
-import { Users } from "./collections/Users";
+import { LearnPages } from "./collections/LearnPages";
 import { Media } from "./collections/Media";
 import { News } from "./collections/News";
 import { Review } from "./collections/Review";
-import { LearnPages } from "./collections/LearnPages";
+import { Users } from "./collections/Users";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);

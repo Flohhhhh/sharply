@@ -1,9 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { searchGear, type SearchFilters } from "~/server/search/service";
 import { getMountIdFromSlug } from "~/lib/mapping/mounts-map";
-
-const PRICE_DOLLAR_UI_MAX = 20000; // matches Filters slider cap
+import { searchGear,type SearchFilters } from "~/server/search/service";
 
 function parsePriceParam(value: string | null) {
   if (value === null) return undefined;

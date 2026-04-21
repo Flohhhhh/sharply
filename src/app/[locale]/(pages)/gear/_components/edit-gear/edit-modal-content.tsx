@@ -1,24 +1,23 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { DialogHeader, DialogTitle } from "~/components/ui/dialog";
-import { Checkbox } from "~/components/ui/checkbox";
-import { Label } from "~/components/ui/label";
-import { Switch } from "~/components/ui/switch";
-import { EditGearForm } from "./edit-gear-form";
 import {
+  ArrowRight,
   Check,
   CheckCircle,
-  Circle,
   ChevronRight,
-  ArrowRight,
+  Circle,
   X,
 } from "lucide-react";
-import type { GearItem, CameraSpecs } from "~/types/gear";
-import type { GearType } from "~/types/gear";
-import { buildEditSidebarSections } from "~/lib/specs/registry";
-import { sensorTypeLabel } from "~/lib/mapping/sensor-map";
+import { useEffect,useMemo,useRef,useState } from "react";
 import { Button } from "~/components/ui/button";
+import { Checkbox } from "~/components/ui/checkbox";
+import { DialogHeader,DialogTitle } from "~/components/ui/dialog";
+import { Label } from "~/components/ui/label";
+import { Switch } from "~/components/ui/switch";
+import { sensorTypeLabel } from "~/lib/mapping/sensor-map";
+import { buildEditSidebarSections } from "~/lib/specs/registry";
+import type { CameraSpecs,GearItem,GearType } from "~/types/gear";
+import { EditGearForm } from "./edit-gear-form";
 
 interface EditModalContentProps {
   canToggleAutoSubmit?: boolean;
@@ -230,7 +229,7 @@ export function EditModalContent({
     const el = (candidates
       .map((id) => document.getElementById(id))
       .find((n) => n) ||
-      document.getElementById(sectionId)) as HTMLElement | null;
+      document.getElementById(sectionId));
     if (!el) return;
     // Prefer inputs/selects/comboboxes; fallback to any focusable
     const primarySelector =
@@ -240,10 +239,10 @@ export function EditModalContent({
     const focusEl: HTMLElement | null =
       (el.matches(primarySelector)
         ? el
-        : (el.querySelector(primarySelector) as HTMLElement | null)) ||
+        : (el.querySelector(primarySelector))) ||
       (el.matches(fallbackSelector)
         ? el
-        : (el.querySelector(fallbackSelector) as HTMLElement | null)) ||
+        : (el.querySelector(fallbackSelector))) ||
       el;
     const doFocus = () => {
       try {
@@ -254,7 +253,7 @@ export function EditModalContent({
             const ringContainer =
               (focusEl.closest(
                 "[data-force-ring-container]",
-              ) as HTMLElement | null) || null;
+              )) || null;
             if (ringContainer) ringContainer.classList.add("force-focus");
             setTimeout(() => {
               focusEl.classList.remove("force-focus");

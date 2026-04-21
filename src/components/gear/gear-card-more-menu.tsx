@@ -1,8 +1,5 @@
 "use client";
 
-import type React from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   Bookmark,
   Check,
@@ -11,11 +8,14 @@ import {
   PackageOpen,
   Scale,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import type React from "react";
+import { useCallback,useEffect,useRef,useState } from "react";
 import { toast } from "sonner";
 import { useSession } from "~/lib/auth/auth-client";
-import { buildCompareHref } from "~/lib/utils/url";
 import { cn } from "~/lib/utils";
-import { actionToggleOwnership, actionToggleWishlist } from "~/server/gear/actions";
+import { buildCompareHref } from "~/lib/utils/url";
+import { actionToggleOwnership,actionToggleWishlist } from "~/server/gear/actions";
 import { actionRecordCompareAdd } from "~/server/popularity/actions";
 import { Button } from "../ui/button";
 import {

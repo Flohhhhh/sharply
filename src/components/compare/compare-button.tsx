@@ -1,10 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
 import { Scale } from "lucide-react";
-import { Button, type ButtonProps } from "~/components/ui/button";
+import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import {
+  GearSearchCombobox,
+  type GearOption,
+} from "~/components/gear/gear-search-combobox";
+import { Button,type ButtonProps } from "~/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -12,10 +16,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
-import {
-  GearSearchCombobox,
-  type GearOption,
-} from "~/components/gear/gear-search-combobox";
 import { buildCompareHref } from "~/lib/utils/url";
 import { actionRecordCompareAdd } from "~/server/popularity/actions";
 

@@ -1,5 +1,5 @@
-import type { BadgeDefinition, UserSnapshot } from "~/types/badges";
 import { toRomanNumeral } from "~/lib/utils";
+import type { BadgeDefinition,UserSnapshot } from "~/types/badges";
 
 export function createThresholdBadgeLadder(params: {
   baseKey: string;

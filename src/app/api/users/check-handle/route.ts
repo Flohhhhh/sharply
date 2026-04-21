@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { type NextRequest,NextResponse } from "next/server";
 import { checkHandleAvailability } from "~/server/users/service";
 
 export async function GET(req: NextRequest) {

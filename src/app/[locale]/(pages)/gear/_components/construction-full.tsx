@@ -1,37 +1,19 @@
-import Link from "next/link";
-import { ArrowLeft, BookOpen, Wrench } from "lucide-react";
-import { Button } from "~/components/ui/button";
-import { SuggestEditButton } from "./suggest-edit-button";
-import { TypingAnimation } from "~/components/ui/typing-animation";
-import { Badge } from "~/components/ui/badge";
+import { ArrowLeft,BookOpen,Wrench } from "lucide-react";
 import { getTranslations } from "next-intl/server";
+import Link from "next/link";
+import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
+import { TypingAnimation } from "~/components/ui/typing-animation";
+import { SuggestEditButton } from "./suggest-edit-button";
 
 export async function ConstructionFullPage(props: {
   gearName: string;
   missing: string[];
-  editHref: string;
   slug: string;
   gearType: "CAMERA" | "ANALOG_CAMERA" | "LENS";
 }) {
   const t = await getTranslations("underConstructionPage");
-  const { gearName, missing, editHref, slug, gearType } = props;
-  const missingCount = missing.length;
-  const totalChecks = (() => {
-    if (gearType === "LENS") return 5; // Brand, Mount, Focal length, Prime/Zoom, Max aperture
-    if (gearType === "ANALOG_CAMERA") {
-      let base = 4; // Brand, Mount, Camera type, Capture medium
-      if (missing.includes("Integrated lens focal length")) base += 1;
-      return base;
-    }
-    let base = 4; // Brand, Mount, Sensor type, Sensor resolution
-    if (missing.includes("Integrated lens focal length")) base += 1;
-    return base;
-  })();
-  const completed = Math.max(0, totalChecks - missingCount);
-  const progress = Math.max(
-    0,
-    Math.min(100, Math.round((completed / totalChecks) * 100)),
-  );
+  const { gearName, missing, slug, gearType } = props;
   return (
     <div className="mx-auto flex min-h-[60vh] flex-col items-center justify-center gap-6 py-8">
       <Wrench className="text-muted-foreground h-8 w-8" aria-hidden="true" />

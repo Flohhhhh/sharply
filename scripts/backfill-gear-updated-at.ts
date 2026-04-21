@@ -1,7 +1,7 @@
 import "dotenv/config";
-import postgres from "postgres";
-import { drizzle } from "drizzle-orm/postgres-js";
 import { sql } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 
 const MUTATING_AUDIT_ACTIONS = [
   "GEAR_RENAME",

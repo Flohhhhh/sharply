@@ -1,10 +1,15 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { toast } from "sonner";
-import { X, Plus, Swords } from "lucide-react";
+import { Plus,Swords,X } from "lucide-react";
 import Link from "next/link";
+import { useState,useTransition } from "react";
+import { toast } from "sonner";
+import {
+  GearSearchCombobox,
+  type GearOption,
+} from "~/components/gear/gear-search-combobox";
 import { Button } from "~/components/ui/button";
+import { Checkbox } from "~/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -14,12 +19,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
-import { Checkbox } from "~/components/ui/checkbox";
 import { Label } from "~/components/ui/label";
-import {
-  GearSearchCombobox,
-  type GearOption,
-} from "~/components/gear/gear-search-combobox";
 import { actionUpdateGearAlternatives } from "~/server/gear/actions";
 import type { GearAlternativeRow } from "~/server/gear/service";
 

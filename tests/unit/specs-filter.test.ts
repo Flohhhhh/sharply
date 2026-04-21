@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
-import { filterSpecsSections } from "~/lib/specs/filter";
+import { describe,expect,it } from "vitest";
 import type { SpecsTableSection } from "~/app/[locale]/(pages)/gear/_components/specs-table";
+import { filterSpecsSections } from "~/lib/specs/filter";
 
 const sections: SpecsTableSection[] = [
   {

@@ -16,32 +16,6 @@ const ARCHIVO_500_FONT_URL =
 const ARCHIVO_700_FONT_URL =
   "https://cdn.jsdelivr.net/fontsource/fonts/archivo@latest/latin-700-normal.woff";
 
-const GRADIENT_PALETTES = [
-  ["rgba(252, 231, 243, 0.68)", "rgba(219, 234, 254, 0.36)"],
-  ["rgba(254, 240, 138, 0.58)", "rgba(191, 219, 254, 0.34)"],
-  ["rgba(224, 231, 255, 0.62)", "rgba(254, 205, 211, 0.36)"],
-  ["rgba(220, 252, 231, 0.58)", "rgba(216, 180, 254, 0.34)"],
-  ["rgba(255, 228, 230, 0.62)", "rgba(186, 230, 253, 0.34)"],
-  ["rgba(254, 243, 199, 0.58)", "rgba(221, 214, 254, 0.34)"],
-] as const;
-
-function hashString(value: string) {
-  let hash = 2166136261;
-  for (let i = 0; i < value.length; i += 1) {
-    hash ^= value.charCodeAt(i);
-    hash = Math.imul(hash, 16777619);
-  }
-  return hash >>> 0;
-}
-
-function createRng(seed: number) {
-  let state = seed || 1;
-  return () => {
-    state = (Math.imul(1664525, state) + 1013904223) >>> 0;
-    return state / 4294967296;
-  };
-}
-
 function getTitleSize(title: string) {
   if (title.length <= 24) return 112;
   if (title.length <= 44) return 94;
@@ -151,11 +125,6 @@ export default async function OgImage({ params }: OgImageProps) {
 
   const ownerName =
     payload.owner.name || payload.owner.handle || "Sharply member";
-  const seed = hashString(`${shared}:${payload.list.name}:${ownerName}`);
-  const rng = createRng(seed);
-  const gradientPalette =
-    GRADIENT_PALETTES[Math.floor(rng() * GRADIENT_PALETTES.length)] ??
-    GRADIENT_PALETTES[0];
   const titleSize = getTitleSize(payload.list.name);
   const footerText = `${ownerName}'s list on sharplyphoto.com`;
   const archivoFonts = await getArchivoFonts();

@@ -1,18 +1,16 @@
 "use client";
 
-import Tilt from "react-parallax-tilt";
+import { ClipboardCopy,UserPen } from "lucide-react";
 import { useLocale } from "next-intl";
-import { useIsMobile } from "~/hooks/use-mobile";
-import { Avatar, AvatarImage, AvatarFallback } from "~/components/ui/avatar";
+import { useRouter } from "next/navigation";
+import { useCallback,useMemo,useRef,useState } from "react";
+import Tilt from "react-parallax-tilt";
+import { toast } from "sonner";
+import { DisplayNameForm } from "~/app/[locale]/(pages)/profile/settings/display-name-form";
 import type { AuthUser } from "~/auth";
-import { cn } from "~/lib/utils";
-import { useCallback, useMemo, useRef } from "react";
-import QrCode from "~/components/qr-code";
-import { HyperText } from "~/components/ui/hyper-text";
-import { Button } from "~/components/ui/button";
-import { ClipboardCopy, UserPen } from "lucide-react";
 import { BadgeTile } from "~/components/badges/badge-tile";
-import { BADGE_CATALOG } from "~/lib/badges/catalog";
+import QrCode from "~/components/qr-code";
+import { Button } from "~/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -21,11 +19,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
-import { DisplayNameForm } from "~/app/[locale]/(pages)/profile/settings/display-name-form";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { HyperText } from "~/components/ui/hyper-text";
+import { useIsMobile } from "~/hooks/use-mobile";
+import { BADGE_CATALOG } from "~/lib/badges/catalog";
 import { formatDate } from "~/lib/format/date";
+import { cn } from "~/lib/utils";
 
 export default function UserCard(props: {
   user: AuthUser;
@@ -46,24 +44,10 @@ export default function UserCard(props: {
       })
     : "Unknown";
 
-  const handle = (() => {
-    const fromEmail = props.user?.email?.split("@")[0];
-    if (fromEmail) return `@${fromEmail}`;
-    const fromName = props.user?.name?.toLowerCase().replace(/[^a-z0-9]+/g, "");
-    if (fromName && fromName.length >= 3) return `@${fromName}`;
-    return `@${props.user?.id?.slice(0, 8) ?? "user"}`;
-  })();
-
   const memberId =
     props.user?.memberNumber != null
       ? String(props.user.memberNumber).padStart(6, "0")
       : "?";
-
-  const avatarSrc = props.user?.image
-    ? props.user.image.startsWith("http")
-      ? `/api/proxy-image?src=${encodeURIComponent(props.user.image)}`
-      : props.user.image
-    : "";
 
   const pioneerDef = BADGE_CATALOG.find((b) => b.key === "pioneer");
 

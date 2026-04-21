@@ -19,11 +19,6 @@ function trimZeros(n: number | null | undefined): string {
     .replace(/(\.\d*[1-9])0+$/, "$1");
 }
 
-function formatApertureSingle(n: number | null | undefined): string {
-  const s = trimZeros(n);
-  return s ? `f/${s}` : "";
-}
-
 function formatApertureRange(
   wide: number | null | undefined,
   tele: number | null | undefined,

@@ -1,8 +1,7 @@
-import Link from "next/link";
-import { serviceListCharts } from "~/server/recommendations/service";
-import { BrandBrowser } from "./_components/BrandBrowser";
 import type { Metadata } from "next";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import { serviceListCharts } from "~/server/recommendations/service";
+import { BrandBrowser } from "./_components/BrandBrowser";
 
 type ChartListItem = Awaited<ReturnType<typeof serviceListCharts>>[number];
 
@@ -17,7 +16,6 @@ export const metadata: Metadata = buildLocalizedMetadata("/recommended-lenses", 
 
 export default async function Page() {
   const charts = await serviceListCharts();
-  const brands = Array.from(new Set(charts.map((c: ChartListItem) => c.brand)));
   return (
     <div className="mx-auto mt-24 min-h-screen max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
       <div className="space-y-10">

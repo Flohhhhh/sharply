@@ -1,15 +1,14 @@
 import "server-only";
-import { BADGE_CATALOG, validateBadgeCatalog } from "~/lib/badges/catalog";
+import { BADGE_CATALOG,buildTriggerIndex,validateBadgeCatalog } from "~/lib/badges/catalog";
+import { createNotification } from "~/server/notifications/service";
+import type { BadgeEvent } from "~/types/badges";
+import { fetchUserById } from "../users/service";
 import {
+  fetchRecentBadgeAwards,
+  fetchUserBadgesData,
   getUserSnapshot,
   upsertUserBadge,
-  fetchRecentBadgeAwards,
 } from "./data";
-import { fetchUserBadgesData } from "./data";
-import type { BadgeEvent } from "~/types/badges";
-import { buildTriggerIndex } from "~/lib/badges/catalog";
-import { createNotification } from "~/server/notifications/service";
-import { fetchUserById } from "../users/service";
 
 // Boot-time validation of the catalog
 validateBadgeCatalog(BADGE_CATALOG);

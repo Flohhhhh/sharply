@@ -1,11 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
-import useSWR from "swr";
-import { useSession } from "~/lib/auth/auth-client";
-import { Button } from "~/components/ui/button";
-import { ButtonGroup } from "~/components/ui/button-group";
 import {
   Bookmark,
   ChevronDown,
@@ -13,14 +7,20 @@ import {
   Package,
   PackageOpen,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useEffect,useState } from "react";
 import { toast } from "sonner";
+import useSWR from "swr";
 import { withBadgeToasts } from "~/components/badges/badge-toast";
 import { CompareButton } from "~/components/compare/compare-button";
 import { AddToWishlistButton } from "~/components/gear/add-to-wishlist-button";
 import { SaveItemButton } from "~/components/gear/save-item-button";
-import { actionToggleOwnership } from "~/server/gear/actions";
+import { Button } from "~/components/ui/button";
+import { ButtonGroup } from "~/components/ui/button-group";
+import { useSession } from "~/lib/auth/auth-client";
 import { fetchJson } from "~/lib/fetch-json";
 import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
+import { actionToggleOwnership } from "~/server/gear/actions";
 import type { GearAlias } from "~/types/gear";
 
 interface GearActionButtonsClientProps {

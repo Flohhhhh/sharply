@@ -3,15 +3,15 @@ import "server-only";
 
 import { revalidatePath } from "next/cache";
 import {
-  submitReview,
-  submitGearEditProposal,
-  toggleOwnership,
-  toggleWishlist,
-  toggleImageRequest,
-  upsertStaffVerdict,
-  updateGearAlternatives,
   addRawSampleToGear,
   removeRawSampleFromGear,
+  submitGearEditProposal,
+  submitReview,
+  toggleImageRequest,
+  toggleOwnership,
+  toggleWishlist,
+  updateGearAlternatives,
+  upsertStaffVerdict,
   type RawSamplePayload,
 } from "./service";
 

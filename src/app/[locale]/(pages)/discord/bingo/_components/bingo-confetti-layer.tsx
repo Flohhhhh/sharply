@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect,useState } from "react";
 import ReactConfetti from "react-confetti";
 
 type Burst = {

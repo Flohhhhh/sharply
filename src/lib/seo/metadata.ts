@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { defaultLocale, locales } from "~/i18n/config";
+import { defaultLocale,locales } from "~/i18n/config";
 import { getLocalizedUrl } from "~/i18n/routing";
 
 export function getCanonicalUrl(pathname: string) {

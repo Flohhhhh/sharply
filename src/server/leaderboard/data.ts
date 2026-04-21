@@ -1,8 +1,8 @@
 import "server-only";
 
-import { and, count, eq, inArray } from "drizzle-orm";
+import { count,eq,inArray } from "drizzle-orm";
 import { db } from "~/server/db";
-import { users, gearEdits, auditLogs } from "~/server/db/schema";
+import { auditLogs,gearEdits,users } from "~/server/db/schema";
 
 export interface LeaderboardRow {
   id: string;
@@ -43,7 +43,7 @@ export async function fetchContributorLeaderboardData(
     let total = 0;
     const sections = ["core", "camera", "lens"] as const;
     for (const key of sections) {
-      const section = (payload as any)[key];
+      const section = (payload)[key];
       if (section && typeof section === "object") {
         total += Object.keys(section).length;
       }

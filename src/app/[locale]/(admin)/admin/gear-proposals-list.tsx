@@ -1,73 +1,57 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Check,X } from "lucide-react";
 import { useLocale } from "next-intl";
-import useSWR from "swr";
-import { Card, CardContent } from "~/components/ui/card";
-import { Button } from "~/components/ui/button";
-import { Badge } from "~/components/ui/badge";
-import { Check, X } from "lucide-react";
 import Link from "next/link";
+import { useEffect,useMemo,useState } from "react";
+import useSWR from "swr";
+import { VideoSpecsSummary } from "~/app/[locale]/(pages)/gear/_components/video/video-summary";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "~/components/ui/avatar";
+import { Button } from "~/components/ui/button";
+import { Card,CardContent } from "~/components/ui/card";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "~/components/ui/collapsible";
-import { humanizeKey } from "~/lib/utils";
+import { Label } from "~/components/ui/label";
+import { RadioGroup,RadioGroupItem } from "~/components/ui/radio-group";
+import { formatDate } from "~/lib/format/date";
 import {
-  formatPrice,
   formatCardSlotDetails,
   formatPrecaptureSupport,
+  formatPrice,
 } from "~/lib/mapping";
 import { formatMaxFpsPlain } from "~/lib/mapping/max-fps-map";
-import { sensorNameFromSlug, sensorNameFromId } from "~/lib/mapping/sensor-map";
 import { getMountLongNameById } from "~/lib/mapping/mounts-map";
-import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
-import { Label } from "~/components/ui/label";
-import { VideoSpecsSummary } from "~/app/[locale]/(pages)/gear/_components/video/video-summary";
+import { sensorNameFromId,sensorNameFromSlug } from "~/lib/mapping/sensor-map";
+import { humanizeKey } from "~/lib/utils";
 import {
   normalizedToCameraVideoModes,
   type VideoModeNormalized,
 } from "~/lib/video/mode-schema";
 import { buildVideoDisplayBundle } from "~/lib/video/transform";
 import {
-  buildInitialSelectedByProposal,
   buildMergedPayloadForGroup,
-  buildSelectedPayload,
   computeConflictsForGroup,
   computeNonConflictsForGroup,
   flattenProposalGroups,
   groupGearProposals,
-  mergeProposalDiffsForDisplay,
   type GearProposal,
   type NonConflictEntry,
   type ProposalGroup,
   type ProposalGroupDto,
 } from "./gear-proposals-list.helpers";
-import { formatDate } from "~/lib/format/date";
 
 type PendingResponse = { groups: ProposalGroupDto[] };
 type ResolvedResponse = {
   groups: ProposalGroupDto[];
   count?: number;
   days?: number;
-};
-
-const formatStorageValue = (value: unknown): string => {
-  const num = typeof value === "number" ? value : Number(value);
-  if (!Number.isFinite(num)) return String(value);
-  if (num >= 1000) {
-    const tb = num / 1000;
-    const formattedTb = Number.isInteger(tb) ? tb.toFixed(0) : tb.toFixed(1);
-    return `${formattedTb} TB`;
-  }
-  const formattedGb = Number.isInteger(num) ? num.toFixed(0) : num.toFixed(1);
-  return `${formattedGb} GB`;
 };
 
 export function GearProposalsList() {
@@ -87,9 +71,6 @@ export function GearProposalsList() {
       return null;
     }
   };
-  const [selectedByProposal, setSelectedByProposal] = useState<
-    Record<string, Record<string, boolean>>
-  >({});
   // Group-level selection state for conflict resolution radios
   const [selectedByGroup, setSelectedByGroup] = useState<
     Record<string, Record<string, string | null>>
@@ -99,9 +80,6 @@ export function GearProposalsList() {
   >({});
   const [loadingByGearId, setLoadingByGearId] = useState<
     Record<string, "approve" | "reject" | null>
-  >({});
-  const [loadingByProposalId, setLoadingByProposalId] = useState<
-    Record<string, boolean>
   >({});
   const [resolvedLoaded, setResolvedLoaded] = useState(false);
   const [resolvedCount, setResolvedCount] = useState(0);
@@ -193,11 +171,6 @@ export function GearProposalsList() {
   }, [resolvedData]);
 
   // Initialize field selections (all selected by default) when proposals load
-  useEffect(() => {
-    if (proposals.length === 0) return;
-    setSelectedByProposal((prev) => buildInitialSelectedByProposal(proposals, prev));
-  }, [proposals]);
-
   // Build groups from initialProposals (for pending UI)
   const groups: ProposalGroup[] = useMemo(
     () => groupGearProposals(proposals),
@@ -276,107 +249,6 @@ export function GearProposalsList() {
     setIncludedByGroup(nextIncluded);
   }, [groups]);
 
-  const handleAction = async (
-    proposalId: string,
-    action: "approve" | "reject",
-  ) => {
-    try {
-      setLoadingByProposalId((prev) => ({ ...prev, [proposalId]: true }));
-      const { actionApproveProposal, actionRejectProposal } =
-        await import("~/server/admin/proposals/actions");
-
-      if (action === "approve") {
-        const current = proposals.find((p) => p.id === proposalId);
-        await actionApproveProposal(proposalId, undefined, {
-          gearName: current?.gearName ?? "Gear",
-          gearSlug: current?.gearSlug ?? current?.gearId ?? "",
-        });
-      } else {
-        await actionRejectProposal(proposalId);
-      }
-
-      // Update local state to reflect the action
-      setProposals((prev) => {
-        return prev.map((proposal) => {
-          if (proposal.id === proposalId) {
-            return {
-              ...proposal,
-              status: action === "approve" ? "APPROVED" : "REJECTED",
-            };
-          }
-          return proposal;
-        });
-      });
-      void mutatePending();
-      if (resolvedLoaded) void mutateResolved();
-    } catch (error) {
-      console.error(`Failed to ${action} proposal:`, error);
-    } finally {
-      setLoadingByProposalId((prev) => ({ ...prev, [proposalId]: false }));
-    }
-  };
-
-  const handleApprove = async (proposal: GearProposal) => {
-    try {
-      const filteredPayload = buildSelectedPayload(
-        proposal,
-        selectedByProposal[proposal.id] || {},
-      );
-
-      const { actionApproveProposal } =
-        await import("~/server/admin/proposals/actions");
-      await actionApproveProposal(proposal.id, filteredPayload, {
-        gearName: proposal.gearName ?? "Gear",
-        gearSlug: proposal.gearSlug ?? proposal.gearId ?? "",
-      });
-
-      // Reflect status and filtered payload locally
-      setProposals((prev): GearProposal[] =>
-        prev.map((p) => {
-          if (p.id !== proposal.id) return p;
-          const nextPayload = {
-            core: (filteredPayload as any)?.core ?? p.payload.core,
-            camera: (filteredPayload as any)?.camera ?? p.payload.camera,
-            analogCamera:
-              (filteredPayload as any)?.analogCamera ?? p.payload.analogCamera,
-            lens: (filteredPayload as any)?.lens ?? p.payload.lens,
-            fixedLens:
-              (filteredPayload as any)?.fixedLens ?? p.payload.fixedLens,
-            cameraCardSlots: Array.isArray(
-              (filteredPayload as any)?.cameraCardSlots,
-            )
-              ? ((filteredPayload as any)
-                  .cameraCardSlots as GearProposal["payload"]["cameraCardSlots"])
-              : p.payload.cameraCardSlots,
-            videoModes: Array.isArray((filteredPayload as any)?.videoModes)
-              ? ((filteredPayload as any)
-                  .videoModes as GearProposal["payload"]["videoModes"])
-              : p.payload.videoModes,
-          };
-          return {
-            ...p,
-            status: "APPROVED",
-            payload: nextPayload,
-          } as GearProposal;
-        }),
-      );
-      void mutatePending();
-    } catch (error) {
-      console.error("Failed to approve proposal:", error);
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, "secondary" | "default" | "destructive"> = {
-      PENDING: "secondary",
-      APPROVED: "default",
-      MERGED: "default",
-      REJECTED: "destructive",
-    };
-
-    return <Badge variant={variants[status] || "default"}>{status}</Badge>;
-  };
-
   const handleApproveGroup = async (group: ProposalGroup) => {
     try {
       setLoadingByGearId((prev) => ({ ...prev, [group.gearId]: "approve" }));
@@ -452,7 +324,6 @@ export function GearProposalsList() {
     void mutateResolved();
   };
 
-  const pending = proposals.filter((p) => p.status === "PENDING");
   const resolved = proposals.filter((p) => p.status !== "PENDING");
 
   const showLoading = pendingLoading && proposals.length === 0;
@@ -475,6 +346,31 @@ export function GearProposalsList() {
       .toUpperCase();
 
   // Split pending and resolved
+
+  const renderResolvedCard = (proposal: GearProposal) => (
+    <Card key={proposal.id}>
+      <CardContent className="space-y-2 p-3">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="font-medium">{proposal.gearName}</div>
+            <div className="text-muted-foreground text-xs">
+              {proposal.status} by{" "}
+              {formatContributorName(proposal.createdByName)} on{" "}
+              {formatDisplayDate(proposal.createdAt)}
+            </div>
+          </div>
+          {proposal.gearSlug ? (
+            <Button asChild size="sm" variant="outline">
+              <Link href={`/gear/${proposal.gearSlug}`}>View Gear</Link>
+            </Button>
+          ) : null}
+        </div>
+        {proposal.note?.trim() ? (
+          <p className="text-muted-foreground text-sm">{proposal.note.trim()}</p>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
 
   // Grouped card for pending approval (one per gear item)
   const renderGroupCard = (group: ProposalGroup) => {
@@ -875,421 +771,6 @@ export function GearProposalsList() {
                 <Check className="mr-2 h-4 w-4" /> Approve Selected
               </Button>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
-
-  const renderCard = (proposal: GearProposal) => {
-    const { beforeMerged, afterMerged: mergedAfter } =
-      mergeProposalDiffsForDisplay(proposal);
-    const afterMerged = {
-      ...mergedAfter,
-      ...(Array.isArray(proposal.payload.cameraCardSlots)
-        ? { cameraCardSlots: proposal.payload.cameraCardSlots }
-        : {}),
-    };
-    const formatValue = (k: string, v: any): string => {
-      const isEmpty = v === null || v === undefined || v === "";
-      if (isEmpty) return "Empty";
-      if (
-        k === "msrpUsdCents" ||
-        k === "msrpNowUsdCents" ||
-        k === "msrpAtLaunchUsdCents"
-      )
-        return formatPrice(v as number);
-      if (k === "releaseDate") return formatDisplayDate(v);
-      if (k === "sensorFormatId") return sensorNameFromSlug(v as string);
-      if (k === "mountId") return getMountLongNameById(v as string);
-      if (k === "mountIds") {
-        return Array.isArray(v)
-          ? v.map((id) => getMountLongNameById(id as string)).join(", ")
-          : getMountLongNameById(v as string);
-      }
-      if (k === "internalStorageGb") return formatStorageValue(v);
-      return String(v);
-    };
-    const formatBeforeValue = (k: string, v: any): string => {
-      if (
-        k === "msrpUsdCents" ||
-        k === "msrpNowUsdCents" ||
-        k === "msrpAtLaunchUsdCents"
-      )
-        return formatPrice(v as number);
-      if (k === "releaseDate") return formatDisplayDate(v);
-      if (k === "sensorFormatId") return sensorNameFromId(v as string);
-      if (k === "mountId") return getMountLongNameById(v as string);
-      if (k === "mountIds") {
-        return Array.isArray(v)
-          ? v.map((id) => getMountLongNameById(id as string)).join(", ")
-          : getMountLongNameById(v as string);
-      }
-      if (k === "internalStorageGb") return formatStorageValue(v);
-      return String(v);
-    };
-    const renderFieldDiffs = (
-      before: Record<string, any>,
-      after: Record<string, any>,
-    ) => {
-      const keys = Array.from(
-        new Set([...Object.keys(before), ...Object.keys(after)]),
-      );
-      return (
-        <div className="grid grid-cols-1 gap-2">
-          {keys.map((k) => {
-            const b = before[k];
-            const a = after[k];
-            if (k === "cameraCardSlots") {
-              const toNormalizedSlot = (s: unknown) => {
-                const obj =
-                  s && typeof s === "object"
-                    ? (s as {
-                        slotIndex?: unknown;
-                        supportedFormFactors?: unknown;
-                        supportedBuses?: unknown;
-                        supportedSpeedClasses?: unknown;
-                      })
-                    : ({} as {
-                        slotIndex?: unknown;
-                        supportedFormFactors?: unknown;
-                        supportedBuses?: unknown;
-                        supportedSpeedClasses?: unknown;
-                      });
-                const slotIndexRaw = obj.slotIndex;
-                const indexNum =
-                  typeof slotIndexRaw === "number"
-                    ? slotIndexRaw
-                    : Number(slotIndexRaw ?? 0);
-                const toStringArray = (v: unknown): string[] =>
-                  Array.isArray(v)
-                    ? (v as unknown[]).filter(
-                        (x): x is string => typeof x === "string",
-                      )
-                    : [];
-                return {
-                  slotIndex:
-                    Number.isFinite(indexNum) && indexNum > 0
-                      ? Math.trunc(indexNum)
-                      : null,
-                  supportedFormFactors: toStringArray(obj.supportedFormFactors),
-                  supportedBuses: toStringArray(obj.supportedBuses),
-                  supportedSpeedClasses: toStringArray(
-                    obj.supportedSpeedClasses,
-                  ),
-                };
-              };
-              const slots = Array.isArray(a) ? a.map(toNormalizedSlot) : [];
-              const beforeSlots = Array.isArray(b)
-                ? b.map(toNormalizedSlot)
-                : [];
-              const selected = selectedByProposal[proposal.id]?.[k] ?? true;
-              const toggle = () => {
-                setSelectedByProposal((prev) => ({
-                  ...prev,
-                  [proposal.id]: {
-                    ...(prev[proposal.id] || {}),
-                    [k]: !selected,
-                  },
-                }));
-              };
-              return (
-                <button
-                  key={k}
-                  type="button"
-                  onClick={toggle}
-                  className={`border-input hover:bg-muted/30 flex w-full items-start justify-between rounded border p-2 text-left transition ${selected ? "" : "opacity-60"}`}
-                >
-                  <div className="mr-2 w-full">
-                    <div className="text-muted-foreground mb-1 text-[11px]">
-                      Card Slots
-                    </div>
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                      <div className="text-muted-foreground text-sm">
-                        -{" "}
-                        {beforeSlots.length
-                          ? beforeSlots
-                              .map(
-                                (s, idx) =>
-                                  `S${s.slotIndex ?? idx + 1}: ${formatCardSlotDetails(s)}`,
-                              )
-                              .join("; ")
-                          : "Empty"}
-                      </div>
-                      <div className="text-sm">
-                        +{" "}
-                        {slots
-                          .map(
-                            (s, idx) =>
-                              `S${s.slotIndex ?? idx + 1}: ${formatCardSlotDetails(s)}`,
-                          )
-                          .join("; ")}
-                      </div>
-                    </div>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={selected}
-                    onChange={(e) => {
-                      e.stopPropagation();
-                      toggle();
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                    className="mt-0.5 h-4 w-4"
-                  />
-                </button>
-              );
-            }
-            const beforeIsEmpty = b === null || b === undefined || b === "";
-            const beforeDisplay = beforeIsEmpty
-              ? "Empty"
-              : formatBeforeValue(k, b);
-            const afterDisplay = formatValue(k, a);
-            const selected = selectedByProposal[proposal.id]?.[k] ?? true;
-            const toggle = () => {
-              setSelectedByProposal((prev) => ({
-                ...prev,
-                [proposal.id]: {
-                  ...(prev[proposal.id] || {}),
-                  [k]: !selected,
-                },
-              }));
-            };
-            return (
-              <button
-                key={k}
-                type="button"
-                onClick={toggle}
-                className={`border-input hover:bg-muted/30 flex w-full items-start justify-between rounded border p-2 text-left transition ${selected ? "" : "opacity-60"}`}
-              >
-                <div className="mr-2 w-full">
-                  <div className="text-muted-foreground mb-1 text-[11px]">
-                    {humanizeKey(k)}
-                  </div>
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    <span
-                      className={
-                        beforeIsEmpty
-                          ? "text-muted-foreground text-sm italic"
-                          : "rounded bg-red-50 px-2 py-0.5 text-sm font-medium text-red-400 dark:bg-red-950/30"
-                      }
-                    >
-                      - {beforeDisplay}
-                    </span>
-                    <span className="w-full rounded bg-emerald-50 px-2 py-0.5 text-sm font-medium text-emerald-600 dark:bg-emerald-950/30">
-                      + {afterDisplay}
-                    </span>
-                  </div>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={selected}
-                  onChange={(e) => {
-                    e.stopPropagation();
-                    toggle();
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                  className="mt-0.5 h-4 w-4"
-                />
-              </button>
-            );
-          })}
-        </div>
-      );
-    };
-    return (
-      <Card key={proposal.id}>
-        <CardContent className="p-4">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-semibold">
-                  <Link
-                    href={`/gear/${proposal.gearSlug}`}
-                    className="hover:underline"
-                  >
-                    {proposal.gearName}
-                  </Link>
-                </h3>
-                <p className="text-muted-foreground text-xs">
-                  Proposed by {proposal.createdByName}
-                </p>
-              </div>
-              <div className="flex items-center space-x-3">
-                {getStatusBadge(proposal.status)}
-                <div className="text-muted-foreground text-xs">
-                  {formatDisplayDate(proposal.createdAt as any)}
-                </div>
-              </div>
-            </div>
-
-            {proposal.note && (
-              <div className="border-input bg-muted rounded border p-2 text-xs">
-                <span className="font-medium">Note:</span> {proposal.note}
-              </div>
-            )}
-
-            {renderFieldDiffs(beforeMerged, afterMerged)}
-
-            {Array.isArray(proposal.payload.videoModes) &&
-              proposal.payload.videoModes.length > 0 && (
-                <div className="space-y-2">
-                  <div className="text-muted-foreground text-xs font-medium uppercase">
-                    Video Modes
-                  </div>
-                  {(() => {
-                    const bundle = getVideoBundle(proposal.payload.videoModes);
-                    if (!bundle) {
-                      return (
-                        <div className="text-muted-foreground text-xs">
-                          No video summary available.
-                        </div>
-                      );
-                    }
-                    return (
-                      <VideoSpecsSummary
-                        summaryLines={bundle.summaryLines}
-                        matrix={bundle.matrix}
-                        codecLabels={bundle.codecLabels}
-                      />
-                    );
-                  })()}
-                </div>
-              )}
-
-            {proposal.status === "PENDING" && (
-              <div className="flex items-center justify-end space-x-2 pt-1">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleAction(proposal.id, "reject")}
-                >
-                  <X className="mr-2 h-4 w-4" />
-                  Reject All Changes
-                </Button>
-                <Button size="sm" onClick={() => handleApprove(proposal)}>
-                  <Check className="mr-2 h-4 w-4" />
-                  Apply Selected Changes
-                </Button>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
-
-  const renderResolvedCard = (proposal: GearProposal) => {
-    const { beforeMerged, afterMerged } = mergeProposalDiffsForDisplay(proposal);
-    const formatValue = (k: string, v: any): string => {
-      const isEmpty = v === null || v === undefined || v === "";
-      if (isEmpty) return "Empty";
-      if (
-        k === "msrpUsdCents" ||
-        k === "msrpNowUsdCents" ||
-        k === "msrpAtLaunchUsdCents"
-      )
-        return formatPrice(v as number);
-      if (k === "releaseDate") return formatDisplayDate(v as any);
-      if (k === "sensorFormatId") return sensorNameFromSlug(v as string);
-      if (k === "mountId") return getMountLongNameById(v as string);
-      if (k === "mountIds") {
-        return Array.isArray(v)
-          ? v.map((id) => getMountLongNameById(id as string)).join(", ")
-          : getMountLongNameById(v as string);
-      }
-      if (k === "maxFpsByShutter") return formatMaxFpsPlain(v);
-      return String(v);
-    };
-    const formatBeforeValue = (k: string, v: any): string => {
-      if (k === "msrpUsdCents") return formatPrice(v as number);
-      if (k === "releaseDate") return formatDisplayDate(v as any);
-      if (k === "sensorFormatId") return sensorNameFromId(v as string);
-      if (k === "mountId") return getMountLongNameById(v as string);
-      if (k === "mountIds") {
-        return Array.isArray(v)
-          ? v.map((id) => getMountLongNameById(id as string)).join(", ")
-          : getMountLongNameById(v as string);
-      }
-      if (k === "maxFpsByShutter") return formatMaxFpsPlain(v);
-      return String(v);
-    };
-    const renderStaticDiffs = (
-      before: Record<string, any>,
-      after: Record<string, any>,
-    ) => {
-      const keys = Array.from(
-        new Set([...Object.keys(before), ...Object.keys(after)]),
-      );
-      return (
-        <div className="grid grid-cols-1 gap-2">
-          {keys.map((k) => {
-            const b = before[k];
-            const a = after[k];
-            const beforeIsEmpty = b === null || b === undefined || b === "";
-            const beforeDisplay = beforeIsEmpty
-              ? "Empty"
-              : formatBeforeValue(k, b);
-            const afterDisplay = formatValue(k, a);
-            return (
-              <div key={k} className="border-input rounded border p-2">
-                <div className="text-muted-foreground mb-1 text-[11px]">
-                  {humanizeKey(k)}
-                </div>
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  <span
-                    className={
-                      beforeIsEmpty
-                        ? "text-muted-foreground text-sm italic"
-                        : "rounded bg-red-50 px-2 py-0.5 text-sm font-medium text-red-400 dark:bg-red-950/30"
-                    }
-                  >
-                    - {beforeDisplay}
-                  </span>
-                  <span className="w-full rounded bg-emerald-50 px-2 py-0.5 text-sm font-medium text-emerald-600 dark:bg-emerald-950/30">
-                    + {afterDisplay}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      );
-    };
-
-    return (
-      <Card key={proposal.id}>
-        <CardContent className="p-4">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-semibold">
-                  <Link
-                    href={`/gear/${proposal.gearSlug}`}
-                    className="hover:underline"
-                  >
-                    {proposal.gearName}
-                  </Link>
-                </h3>
-                <p className="text-muted-foreground text-xs">
-                  Proposed by {proposal.createdByName}
-                </p>
-              </div>
-              <div className="flex items-center space-x-3">
-                {getStatusBadge(proposal.status)}
-                <div className="text-muted-foreground text-xs">
-                  {formatDisplayDate(proposal.createdAt as any)}
-                </div>
-              </div>
-            </div>
-
-            {proposal.note && (
-              <div className="border-input bg-muted rounded border p-2 text-xs">
-                <span className="font-medium">Note:</span> {proposal.note}
-              </div>
-            )}
-
-            {renderStaticDiffs(beforeMerged, afterMerged)}
           </div>
         </CardContent>
       </Card>

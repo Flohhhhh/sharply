@@ -1,5 +1,5 @@
 "use client";
-import { CircleQuestionMark, CircleSlash, InfoIcon } from "lucide-react";
+import { CircleQuestionMark,InfoIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import {
   Tooltip,

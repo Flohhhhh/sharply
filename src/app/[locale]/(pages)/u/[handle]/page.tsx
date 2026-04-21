@@ -1,6 +1,9 @@
-import { notFound } from "next/navigation";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { SocialLinksDisplay } from "~/app/[locale]/(pages)/u/_components/social-links-display";
+import { UserBadges } from "~/app/[locale]/(pages)/u/_components/user-badges";
+import { UserReviewsList } from "~/app/[locale]/(pages)/u/_components/user-reviews-list";
 import {
   Empty,
   EmptyContent,
@@ -8,13 +11,9 @@ import {
   EmptyTitle,
 } from "~/components/ui/empty";
 import {
-  getItemDisplayPrice,
-  getMountDisplayName,
-  PRICE_FALLBACK_TEXT,
+  getItemDisplayPrice
 } from "~/lib/mapping";
-import { UserReviewsList } from "~/app/[locale]/(pages)/u/_components/user-reviews-list";
-import { UserBadges } from "~/app/[locale]/(pages)/u/_components/user-badges";
-import { SocialLinksDisplay } from "~/app/[locale]/(pages)/u/_components/social-links-display";
+import { fetchUserListsForProfile } from "~/server/user-lists/service";
 import type { SocialLink } from "~/server/users/service";
 import {
   fetchUserByHandle,
@@ -22,26 +21,25 @@ import {
   fetchUserWishlistItems,
   triggerHandleSetupNotification,
 } from "~/server/users/service";
-import { fetchUserListsForProfile } from "~/server/user-lists/service";
 // Note: page is a Server Component and reads from the service layer only.
+import { LibraryIcon,UserPen } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { auth } from "~/auth";
-import { Button } from "~/components/ui/button";
-import { LibraryIcon, UserPen } from "lucide-react";
-import { ShowUserCardButton } from "~/app/[locale]/(pages)/u/_components/ShowUserCardButton";
-import type { GearItem } from "~/types/gear";
-import { getBrandNameById } from "~/lib/mapping/brand-map";
-import { GetGearDisplayName } from "~/lib/gear/naming";
-import { CollectionContainer } from "~/app/[locale]/(pages)/u/_components/collection/collection-container";
 import { headers } from "next/headers";
 import { HandleSetupBanner } from "~/app/[locale]/(pages)/u/_components/HandleSetupBanner";
+import { ShowUserCardButton } from "~/app/[locale]/(pages)/u/_components/ShowUserCardButton";
+import { CollectionContainer } from "~/app/[locale]/(pages)/u/_components/collection/collection-container";
 import {
   CollectionTableModal,
   type CollectionTableColumnKey,
 } from "~/app/[locale]/(pages)/u/_components/collection/collection-table-modal";
-import { WishlistGearCard } from "~/app/[locale]/(pages)/u/_components/wishlist-gear-card";
 import { UserListsSectionDeferred } from "~/app/[locale]/(pages)/u/_components/lists/user-lists-section-deferred";
+import { WishlistGearCard } from "~/app/[locale]/(pages)/u/_components/wishlist-gear-card";
+import { auth } from "~/auth";
+import { Button } from "~/components/ui/button";
+import { GetGearDisplayName } from "~/lib/gear/naming";
+import { getBrandNameById } from "~/lib/mapping/brand-map";
+import type { GearItem } from "~/types/gear";
 
 interface UserProfilePageProps {
   params: Promise<{

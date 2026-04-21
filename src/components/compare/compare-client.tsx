@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import type { GearItem } from "~/types/gear";
-import { useIsMobile } from "~/lib/hooks/useIsMobile";
-import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
 import { CompareSpecsTable } from "~/components/compare/compare-specs-table";
+import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
+import { useIsMobile } from "~/lib/hooks/useIsMobile";
+import type { GearItem } from "~/types/gear";
 
 export function CompareClient({
   slugs,

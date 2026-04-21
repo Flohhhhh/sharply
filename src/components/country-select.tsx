@@ -1,10 +1,10 @@
 "use client";
-import React, {
+import React,{
+  forwardRef,
   useCallback,
   useEffect,
   useMemo,
   useState,
-  forwardRef,
 } from "react";
 
 // shadcn
@@ -26,12 +26,12 @@ import {
 import { cn } from "@/lib/utils";
 
 // assets
-import { ChevronDown, CheckIcon, Globe } from "lucide-react";
+import { CheckIcon,ChevronDown,Globe } from "lucide-react";
 import { CircleFlag } from "react-circle-flags";
 
 // data
 import { useCountry } from "~/lib/hooks/useCountry";
-import { LOCALE_OPTIONS, type LocaleOption } from "~/lib/locale/locales";
+import { LOCALE_OPTIONS,type LocaleOption } from "~/lib/locale/locales";
 
 // Dropdown props
 interface CountryDropdownProps {

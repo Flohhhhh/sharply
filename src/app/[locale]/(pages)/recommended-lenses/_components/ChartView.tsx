@@ -1,9 +1,9 @@
 "use client";
-import React from "react";
-import type { Rating, Chart } from "@/lib/recommendations/types";
-import Link from "next/link";
 import { mergeDefaultColumns } from "@/lib/recommendations/bucketing";
+import type { Chart,Rating } from "@/lib/recommendations/types";
 import { useLocale } from "next-intl";
+import Link from "next/link";
+import React from "react";
 import { formatDate } from "~/lib/format/date";
 
 const ratingClass = (r: Rating) =>

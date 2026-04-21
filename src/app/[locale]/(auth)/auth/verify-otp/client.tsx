@@ -1,12 +1,13 @@
 "use client";
 
 import { track } from "@vercel/analytics";
+import { Loader2,ShieldCheck } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { useRouter,useSearchParams } from "next/navigation";
+import { useMemo,useState } from "react";
 import { toast } from "sonner";
 
+import { LocaleLink } from "~/components/locale-link";
 import { Button } from "~/components/ui/button";
 import {
   InputOTP,
@@ -15,7 +16,6 @@ import {
   InputOTPSlot,
 } from "~/components/ui/input-otp";
 import { signIn } from "~/lib/auth/auth-client";
-import { LocaleLink } from "~/components/locale-link";
 
 export default function VerifyOtpClient() {
   const t = useTranslations("auth");

@@ -1,21 +1,19 @@
 "use client";
 
+import { RefreshCcwDot,SearchIcon } from "lucide-react";
 import { useQueryState } from "nuqs";
-import { GlobalSearchBar } from "~/components/search/global-search-bar";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
+import { useEffect,useMemo,useRef } from "react";
 import useSwr from "swr";
 import useSWRInfinite from "swr/infinite";
-import { SearchResults } from "./search-results";
-import { useEffect, useMemo, useRef } from "react";
-import { buildSearchHref } from "~/lib/utils/url";
-import { useDebounce } from "~/lib/hooks/useDebounce";
-import { SearchIcon, RefreshCcwDot } from "lucide-react";
-import { Spinner } from "~/components/ui/spinner";
-import { FiltersSidebar } from "./filters-sidebar";
-import { Separator } from "~/components/ui/separator";
 import { SortSelect } from "~/components/search/sort-select";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Spinner } from "~/components/ui/spinner";
+import { useDebounce } from "~/lib/hooks/useDebounce";
+import { buildSearchHref } from "~/lib/utils/url";
 import type { SearchResponse } from "~/server/search/service";
+import { FiltersSidebar } from "./filters-sidebar";
+import { SearchResults } from "./search-results";
 
 const fetcher = <T,>(url: string): Promise<T> =>
   fetch(url).then((res) => res.json() as Promise<T>);
@@ -35,7 +33,7 @@ type SearchClientProps = {
 
 export function SearchClient({ initialPage }: SearchClientProps) {
   const [q, setQ] = useQueryState("q");
-  const [sort, setSort] = useQueryState("sort");
+  const [sort] = useQueryState("sort");
   const [brand, setBrand] = useQueryState("brand");
   const [mount, setMount] = useQueryState("mount");
   const [gearType, setGearType] = useQueryState("gearType");
@@ -133,7 +131,7 @@ export function SearchClient({ initialPage }: SearchClientProps) {
     megapixelsMax,
   ]);
 
-  const { data, error, size, setSize, isValidating } = useSWRInfinite<
+  const { data, error, size, setSize } = useSWRInfinite<
     SearchResponse
   >(getKey, fetcher, {
     initialSize: 1,

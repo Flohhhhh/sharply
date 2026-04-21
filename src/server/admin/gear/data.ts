@@ -1,21 +1,21 @@
 import "server-only";
 
-import { and, ilike, eq, sql, desc, count, ne, or, inArray } from "drizzle-orm";
-import { db } from "~/server/db";
-import {
-  gear,
-  brands,
-  cameraSpecs,
-  analogCameraSpecs,
-  lensSpecs,
-  gearMounts,
-  mounts,
-  gearAliases,
-  recommendationItems,
-} from "~/server/db/schema";
+import { and,count,desc,eq,ilike,inArray,ne,or,sql } from "drizzle-orm";
 import { buildGearSearchName } from "~/lib/gear/naming";
 import { normalizeMpbLinkForStorage } from "~/lib/links/mpb";
 import { normalizeFuzzyTokens } from "~/lib/utils/fuzzy";
+import { db } from "~/server/db";
+import {
+  analogCameraSpecs,
+  brands,
+  cameraSpecs,
+  gear,
+  gearAliases,
+  gearMounts,
+  lensSpecs,
+  mounts,
+  recommendationItems,
+} from "~/server/db/schema";
 import type { GearType } from "~/types/gear";
 
 type DbTx = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -151,8 +151,6 @@ export async function checkGearCreationData(
   const brandName = b[0]!.name;
 
   const slugPreview = buildSlug(brandName, name);
-  const normalized = buildGearSearchName({ name, brandName });
-
   // Hard conflicts
   const slugHit = await db
     .select({ id: gear.id, name: gear.name, slug: gear.slug })
@@ -559,7 +557,7 @@ export async function updateGearThumbnailData(
   if (!updated[0]) {
     throw Object.assign(new Error("Gear not found"), { status: 404 });
   }
-  return updated[0]!;
+  return updated[0];
 }
 
 export interface UpdateGearTopViewParams {
@@ -649,5 +647,5 @@ export async function updateGearTopViewData(
   if (!updated[0]) {
     throw Object.assign(new Error("Gear not found"), { status: 404 });
   }
-  return updated[0]!;
+  return updated[0];
 }

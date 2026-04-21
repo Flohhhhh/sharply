@@ -1,8 +1,8 @@
 import "server-only";
 
+import { desc } from "drizzle-orm";
 import { db } from "~/server/db";
 import { rollupRuns } from "~/server/db/schema";
-import { desc } from "drizzle-orm";
 
 export type RollupRunRow = typeof rollupRuns.$inferSelect;
 

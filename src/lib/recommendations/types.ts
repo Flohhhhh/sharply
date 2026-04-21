@@ -53,20 +53,20 @@ export function assertChart(input: unknown): Chart {
       throw new Error("Invalid chart item");
     return {
       name: it.name,
-      rating: it.rating as Rating,
+      rating: it.rating,
       note: typeof it.note === "string" ? it.note : undefined,
       group:
         it.group === "prime" || it.group === "zoom"
-          ? (it.group as "prime" | "zoom")
+          ? (it.group)
           : undefined,
-      column: typeof it.column === "string" ? (it.column as string) : undefined,
+      column: typeof it.column === "string" ? (it.column) : undefined,
       priceLow:
-        typeof it.priceLow === "number" ? (it.priceLow as number) : undefined,
+        typeof it.priceLow === "number" ? (it.priceLow) : undefined,
       priceHigh:
-        typeof it.priceHigh === "number" ? (it.priceHigh as number) : undefined,
+        typeof it.priceHigh === "number" ? (it.priceHigh) : undefined,
       priceDisplay:
         typeof it.priceDisplay === "string"
-          ? (it.priceDisplay as string)
+          ? (it.priceDisplay)
           : undefined,
     };
   });
@@ -84,7 +84,7 @@ export function assertChart(input: unknown): Chart {
           key: c.key as string,
           label: c.label as string,
           group: c.group as "prime" | "zoom",
-          order: typeof c.order === "number" ? (c.order as number) : undefined,
+          order: typeof c.order === "number" ? (c.order) : undefined,
         }))
     : undefined;
 

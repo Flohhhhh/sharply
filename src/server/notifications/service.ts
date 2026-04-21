@@ -1,7 +1,7 @@
 import "server-only";
 
-import { auth } from "~/auth";
 import { headers } from "next/headers";
+import { auth } from "~/auth";
 import { getSessionOrThrow } from "~/server/auth";
 import {
   archiveNotificationData,

@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
-import { db } from "~/server/db";
 import { env } from "~/env";
+import { db } from "~/server/db";
 import { rollupRuns } from "~/server/db/schema";
 
 type SqlClient = { execute: (q: any) => Promise<any> };

@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { UploadButton, UploadDropzone } from "~/lib/utils/uploadthing";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { Button } from "~/components/ui/button";
 import { Copy } from "lucide-react";
+import { useState } from "react";
+import { Button } from "~/components/ui/button";
+import { Card,CardContent,CardHeader,CardTitle } from "~/components/ui/card";
+import { UploadDropzone } from "~/lib/utils/uploadthing";
 
 export function AdminImageUploader() {
   const [uploadedUrls, setUploadedUrls] = useState<string[]>([]);
@@ -18,7 +18,7 @@ export function AdminImageUploader() {
         <UploadDropzone
           endpoint="imageUploader"
           onClientUploadComplete={(res) => {
-            const urls = res?.map((f) => f.ufsUrl).filter(Boolean) as string[];
+            const urls = res?.map((f) => f.ufsUrl).filter(Boolean);
             setUploadedUrls((prev) => [...prev, ...urls]);
           }}
           onUploadError={(error) => {

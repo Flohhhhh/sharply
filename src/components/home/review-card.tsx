@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { Avatar, AvatarImage, AvatarFallback } from "~/components/ui/avatar";
-import { Separator } from "~/components/ui/separator";
+import { Avatar,AvatarFallback,AvatarImage } from "~/components/ui/avatar";
 import { Progress } from "~/components/ui/progress";
+import { Separator } from "~/components/ui/separator";
 
 // TODO: Replace this with Payload type
 export type ReviewPost = {

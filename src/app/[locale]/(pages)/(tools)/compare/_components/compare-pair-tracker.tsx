@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect,useMemo } from "react";
 import { actionIncrementComparePairCount } from "~/server/popularity/actions";
 
 export function ComparePairTracker({ slugs }: { slugs: string[] }) {

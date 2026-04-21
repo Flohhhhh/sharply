@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import FocalSimulatorClient from "./client";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import FocalSimulatorClient from "./client";
 
 export const metadata: Metadata = buildLocalizedMetadata("/focal-simulator", {
   title: "Focal Length Simulator",

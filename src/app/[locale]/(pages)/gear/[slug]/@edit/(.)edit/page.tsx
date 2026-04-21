@@ -1,10 +1,10 @@
-import { EditGearModal } from "~/app/[locale]/(pages)/gear/_components/edit-gear/edit-gear-modal";
-import { fetchGearBySlug, fetchPendingEditId } from "~/server/gear/service";
-import type { GearItem } from "~/types/gear";
-import { auth } from "~/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { EditGearModal } from "~/app/[locale]/(pages)/gear/_components/edit-gear/edit-gear-modal";
+import { auth } from "~/auth";
 import { requireRole } from "~/lib/auth/auth-helpers";
+import { fetchGearBySlug,fetchPendingEditId } from "~/server/gear/service";
+import type { GearItem } from "~/types/gear";
 
 interface EditGearModalPageProps {
   params: Promise<{

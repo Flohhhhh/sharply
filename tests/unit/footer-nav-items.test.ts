@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { getAllNavItems, getFooterItems } from "~/lib/nav-items";
+import { describe,expect,it } from "vitest";
+import { getAllNavItems,getFooterItems } from "~/lib/nav-items";
 
 const t = (key: string) => key;
 

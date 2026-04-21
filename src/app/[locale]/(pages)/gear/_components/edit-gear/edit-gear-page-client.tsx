@@ -1,13 +1,12 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { Check,CheckCircle,ChevronRight,Circle } from "lucide-react";
+import { useMemo,useRef,useState } from "react";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
-import { EditGearForm } from "./edit-gear-form";
-import type { GearItem, CameraSpecs } from "~/types/gear";
 import { buildEditSidebarSections } from "~/lib/specs/registry";
-import { sensorTypeLabel } from "~/lib/mapping/sensor-map";
-import { Check, CheckCircle, Circle, ChevronRight } from "lucide-react";
+import type { CameraSpecs,GearItem } from "~/types/gear";
+import { EditGearForm } from "./edit-gear-form";
 
 interface Props {
   canToggleAutoSubmit?: boolean;
@@ -44,49 +43,6 @@ export default function EditGearClient({
       return false;
     }
     return false;
-  };
-
-  const isFieldFilled = (key: string, rawValue: unknown): boolean => {
-    if (key === "dimensions") {
-      const obj = (rawValue || {}) as Record<string, unknown>;
-      const isNumLike = (x: unknown) =>
-        x != null && !Number.isNaN(Number(x as any));
-      return (
-        isNumLike(obj.widthMm) &&
-        isNumLike(obj.heightMm) &&
-        isNumLike(obj.depthMm)
-      );
-    }
-    if (key === "sensorType") {
-      const rec =
-        rawValue && typeof rawValue === "object"
-          ? (rawValue as Partial<
-              Pick<
-                CameraSpecs,
-                | "sensorStackingType"
-                | "sensorTechType"
-                | "isBackSideIlluminated"
-              >
-            >)
-          : {};
-      const stacking =
-        typeof rec.sensorStackingType === "string"
-          ? rec.sensorStackingType
-          : undefined;
-      const tech =
-        typeof rec.sensorTechType === "string" ? rec.sensorTechType : undefined;
-      const bsi =
-        typeof rec.isBackSideIlluminated === "boolean"
-          ? rec.isBackSideIlluminated
-          : undefined;
-      const label = sensorTypeLabel({
-        sensorStackingType: stacking,
-        sensorTechType: tech,
-        isBackSideIlluminated: bsi,
-      } as unknown as CameraSpecs);
-      return label.trim().length > 0;
-    }
-    return isValueFilled(rawValue);
   };
 
   type Completion = "empty" | "partial" | "complete";
@@ -203,7 +159,7 @@ export default function EditGearClient({
     const el = (candidates
       .map((id) => document.getElementById(id))
       .find((n) => n) ||
-      document.getElementById(sectionId)) as HTMLElement | null;
+      document.getElementById(sectionId));
     if (!el) return;
     // Prefer inputs/selects/comboboxes; fallback to any focusable
     const primarySelector =
@@ -213,10 +169,10 @@ export default function EditGearClient({
     const focusEl: HTMLElement | null =
       (el.matches(primarySelector)
         ? el
-        : (el.querySelector(primarySelector) as HTMLElement | null)) ||
+        : (el.querySelector(primarySelector))) ||
       (el.matches(fallbackSelector)
         ? el
-        : (el.querySelector(fallbackSelector) as HTMLElement | null)) ||
+        : (el.querySelector(fallbackSelector))) ||
       el;
     const headerOffset = 64; // page header spacing
     if (container) {
@@ -233,7 +189,7 @@ export default function EditGearClient({
             const ringContainer =
               (focusEl?.closest(
                 "[data-force-ring-container]",
-              ) as HTMLElement | null) || null;
+              )) || null;
             if (ringContainer) ringContainer.classList.add("force-focus");
             setTimeout(() => {
               focusEl?.classList.remove("force-focus");
@@ -253,7 +209,7 @@ export default function EditGearClient({
             const ringContainer =
               (focusEl?.closest(
                 "[data-force-ring-container]",
-              ) as HTMLElement | null) || null;
+              )) || null;
             if (ringContainer) ringContainer.classList.add("force-focus");
             setTimeout(() => {
               focusEl?.classList.remove("force-focus");

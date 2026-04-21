@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { useCallback,useEffect,useRef,useState } from "react";
+import { Button } from "~/components/ui/button";
+import { Card,CardContent,CardHeader,CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { Button } from "~/components/ui/button";
 import { Slider } from "~/components/ui/slider";
 
 export function GradientImageTool() {
@@ -190,21 +190,4 @@ export function GradientImageTool() {
       </CardContent>
     </Card>
   );
-}
-
-function hexToRgba(hex: string, alpha: number) {
-  const sanitized = hex.replace("#", "");
-  const bigint = parseInt(
-    sanitized.length === 3
-      ? sanitized
-          .split("")
-          .map((c) => c + c)
-          .join("")
-      : sanitized,
-    16,
-  );
-  const r = (bigint >> 16) & 255;
-  const g = (bigint >> 8) & 255;
-  const b = bigint & 255;
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }

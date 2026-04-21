@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
 import { useLocale } from "next-intl";
+import { useMemo } from "react";
 import {
   CartesianGrid,
   Line,

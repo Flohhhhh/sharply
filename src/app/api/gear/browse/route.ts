@@ -1,9 +1,9 @@
-import { NextResponse, type NextRequest } from "next/server";
-import {
-  fetchReleaseFeedPage,
-  fetchBrowseListPage,
-} from "~/server/gear/browse/service";
+import { NextResponse,type NextRequest } from "next/server";
 import { urlSearchParamsToRecord } from "~/lib/browse/query";
+import {
+  fetchBrowseListPage,
+  fetchReleaseFeedPage,
+} from "~/server/gear/browse/service";
 
 const DEFAULT_LIMIT = 12;
 const MAX_LIMIT = 60;

@@ -1,7 +1,7 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
 import { Loader2 } from "lucide-react";
+import { AnimatePresence,motion } from "motion/react";
 import { cn } from "~/lib/utils";
 
 type ExifLoadingStateProps = {

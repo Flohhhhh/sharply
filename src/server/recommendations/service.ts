@@ -7,60 +7,21 @@ if (process.env.NEXT_RUNTIME) {
   });
 }
 
-import {
-  fetchRecommendationChartByBrandSlug,
-  listRecommendationCharts,
-  listRecommendationChartParams,
-  insertRecommendationChart,
-  type InsertChartParams,
-  getChartIdByBrandSlug,
-  upsertRecommendationItem,
-  deleteRecommendationItemById,
-  updateRecommendationChartMeta,
-} from "./data";
-import { mergeDefaultColumns } from "@/lib/recommendations/bucketing";
-import { computeColumnKeyFromLensSpecs } from "@/lib/recommendations/bucketing";
+import { computeColumnKeyFromLensSpecs,mergeDefaultColumns } from "@/lib/recommendations/bucketing";
 import type { Rating } from "@/lib/recommendations/types";
 import { requireRole } from "~/lib/auth/auth-helpers";
 import { getSessionOrThrow } from "~/server/auth";
-
-type ItemRow = NonNullable<
-  Awaited<ReturnType<typeof fetchRecommendationChartByBrandSlug>>
->["items"][number];
-
-function bucketFromSpecs(
-  row: ItemRow,
-): { group: "prime" | "zoom"; key: string } | null {
-  const isPrime = row.lensIsPrime ?? false;
-  const focalMin = row.focalMin ?? null;
-  const focalMax = row.focalMax ?? null;
-  if (isPrime) {
-    const f = focalMin ?? focalMax;
-    if (!f) return null;
-    if (f <= 16) return { group: "prime", key: "prime-ultrawide" };
-    if (f <= 24) return { group: "prime", key: "prime-24" };
-    if (f <= 35) return { group: "prime", key: "prime-35" };
-    if (f <= 50) return { group: "prime", key: "prime-50" };
-    if (f <= 85) return { group: "prime", key: "prime-85" };
-    if (f <= 200) return { group: "prime", key: "prime-short-telephoto" };
-    if (f <= 450) return { group: "prime", key: "prime-telephoto" };
-    if (f <= 650) return { group: "prime", key: "prime-600" };
-    return { group: "prime", key: "prime-800" };
-  }
-  // Zooms
-  if (focalMin == null || focalMax == null) return null;
-  const range = focalMax - focalMin;
-  const ratio = focalMax / Math.max(1, focalMin);
-  if (focalMin < 16) return { group: "zoom", key: "zoom-ultrawide" };
-  if (focalMin <= 30) return { group: "zoom", key: "zoom-wide" };
-  if (focalMin <= 28 && focalMax >= 120 && ratio >= 4)
-    return { group: "zoom", key: "zoom-superzoom" };
-  if (focalMin <= 35 && focalMax <= 105)
-    return { group: "zoom", key: "zoom-standard" };
-  if (focalMin <= 100 && focalMax <= 250)
-    return { group: "zoom", key: "zoom-telephoto" };
-  return { group: "zoom", key: "zoom-supertelephoto" };
-}
+import {
+  deleteRecommendationItemById,
+  fetchRecommendationChartByBrandSlug,
+  getChartIdByBrandSlug,
+  insertRecommendationChart,
+  listRecommendationChartParams,
+  listRecommendationCharts,
+  updateRecommendationChartMeta,
+  upsertRecommendationItem,
+  type InsertChartParams,
+} from "./data";
 
 export async function serviceListCharts() {
   return listRecommendationCharts();
@@ -97,9 +58,7 @@ export async function serviceGetChart(brand: string, slug: string) {
     .map((i) => ({
       key: i.customColumn!,
       label: i.customColumn!,
-      group: (i.groupOverride ?? (i.lensIsPrime ? "prime" : "zoom")) as
-        | "prime"
-        | "zoom",
+      group: (i.groupOverride ?? (i.lensIsPrime ? "prime" : "zoom")),
       order: 1000,
     }));
 
@@ -152,13 +111,13 @@ export async function serviceGetChart(brand: string, slug: string) {
         row.priceMinOverride != null && row.priceMaxOverride != null
           ? `$${row.priceMinOverride}-${row.priceMaxOverride}`
           : row.gearMsrpCents != null
-            ? `$${Math.round((row.gearMsrpCents as number) / 100)}`
+            ? `$${Math.round((row.gearMsrpCents) / 100)}`
             : undefined,
       priceLow:
         row.priceMinOverride != null
           ? row.priceMinOverride
           : row.gearMsrpCents != null
-            ? (row.gearMsrpCents as number) / 100
+            ? (row.gearMsrpCents) / 100
             : undefined,
       thumbnailUrl:
         "gearThumb" in row &&

@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useTranslations } from "next-intl";
-import { Button } from "~/components/ui/button";
-import type { ButtonProps } from "~/components/ui/button";
 import { Heart } from "lucide-react";
-import { useSession } from "~/lib/auth/auth-client";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
 import { toast } from "sonner";
 import { withBadgeToasts } from "~/components/badges/badge-toast";
+import type { ButtonProps } from "~/components/ui/button";
+import { Button } from "~/components/ui/button";
+import { useSession } from "~/lib/auth/auth-client";
 import { actionToggleWishlist } from "~/server/gear/actions";
 
 export function AddToWishlistButton({
@@ -109,7 +109,7 @@ export function AddToWishlistButton({
       if (!res.ok && res.reason !== "already_in_wishlist") {
         setInWishlist(wasInWishlist); // Reset state on failure
       }
-    } catch (error) {
+    } catch {
       setInWishlist(wasInWishlist); // Reset state on error
     } finally {
       setLoading(false);

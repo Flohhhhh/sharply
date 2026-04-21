@@ -1,15 +1,6 @@
 "use client";
 
-import {
-  type KeyboardEvent as ReactKeyboardEvent,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { useLocale, useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
+import { useSearchSuggestions } from "@hooks/useSearchSuggestions";
 import {
   ArrowUpRight,
   Camera,
@@ -26,7 +17,18 @@ import {
   m,
   useReducedMotion,
 } from "motion/react";
-import { useSearchSuggestions } from "@hooks/useSearchSuggestions";
+import { useLocale,useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import {
+  type KeyboardEvent as ReactKeyboardEvent,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import type { Locale } from "~/i18n/config";
+import { localizePathname } from "~/i18n/routing";
 import { useCountry } from "~/lib/hooks/useCountry";
 import { buildSearchHref } from "~/lib/utils/url";
 import type { Suggestion } from "~/types/search";
@@ -39,8 +41,6 @@ import {
   isBestMatchSuggestion,
   isSmartActionSuggestion,
 } from "./search-suggestion-utils";
-import type { Locale } from "~/i18n/config";
-import { localizePathname } from "~/i18n/routing";
 
 type SearchModalSceneProps = {
   open: boolean;
@@ -78,10 +78,6 @@ function getLeadingIcon(suggestion: Suggestion) {
     return <CircleDot className="size-5" />;
   }
   return <SearchIcon className="size-5" />;
-}
-
-function isSuggestionRow(item: SelectableItem): item is SuggestionRow {
-  return "suggestion" in item;
 }
 
 export function SearchModalScene({

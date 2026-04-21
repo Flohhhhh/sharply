@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useEffect,useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
 } from "~/components/ui/dialog";
-import { SearchModalScene } from "./search-modal-scene";
 import { SEARCH_OPEN_EVENT } from "./search-events";
+import { SearchModalScene } from "./search-modal-scene";
 
 export function CommandPalette() {
   const t = useTranslations("search");

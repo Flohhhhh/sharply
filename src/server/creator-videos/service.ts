@@ -2,8 +2,8 @@ import "server-only";
 
 import { z } from "zod";
 import { requireRole } from "~/lib/auth/auth-helpers";
+import { fetchActiveApprovedCreatorsForPlatform,fetchApprovedCreatorById } from "~/server/admin/approved-creators/service";
 import { getSessionOrThrow } from "~/server/auth";
-import { fetchApprovedCreatorById } from "~/server/admin/approved-creators/service";
 import { resolveGearIdOrThrow } from "~/server/gear/service";
 import {
   deactivateGearCreatorVideoData,
@@ -16,7 +16,6 @@ import {
   normalizeYouTubeVideoUrl,
   resolveCreatorVideoMetadata,
 } from "./metadata";
-import { fetchActiveApprovedCreatorsForPlatform } from "~/server/admin/approved-creators/service";
 export type { PublicGearCreatorVideoRow } from "./data";
 
 const creatorVideoMetadataResolutionInput = z.object({

@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { auth } from "~/auth";
+import DiscordBanner from "~/components/discord-banner";
 import { env } from "~/env";
 import { requireRole } from "~/lib/auth/auth-helpers";
-import DiscordBanner from "~/components/discord-banner";
-import DiscordBingoClient from "./_components/discord-bingo-client";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import DiscordBingoClient from "./_components/discord-bingo-client";
 
 export const metadata: Metadata = buildLocalizedMetadata("/discord/bingo", {
   title: "Photography Lounge Bingo",
