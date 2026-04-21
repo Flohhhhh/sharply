@@ -8,6 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { useTranslations } from "next-intl";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Loader } from "lucide-react";
 
@@ -24,6 +25,7 @@ export function CompareLoadingOverlayProvider({
 }: {
   children: React.ReactNode;
 }) {
+  const t = useTranslations("compare");
   const [visible, setVisible] = useState(false);
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -57,7 +59,9 @@ export function CompareLoadingOverlayProvider({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur">
           <div className="flex flex-col items-center gap-3">
             <Loader className="size-8 animate-spin text-primary" />
-            <p className="text-muted-foreground text-sm">Loading comparison…</p>
+            <p className="text-muted-foreground text-sm">
+              {t("loadingComparison")}
+            </p>
           </div>
         </div>
       ) : null}
@@ -74,4 +78,3 @@ export function useCompareLoadingOverlay() {
   }
   return ctx;
 }
-

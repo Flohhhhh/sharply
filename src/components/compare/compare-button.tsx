@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Scale } from "lucide-react";
 import { Button, type ButtonProps } from "~/components/ui/button";
 import {
@@ -37,6 +38,7 @@ export function CompareButton({
   className,
   showLabel = false,
 }: CompareButtonProps) {
+  const t = useTranslations("gearDetail");
   const [open, setOpen] = useState(false);
   const [selection, setSelection] = useState<GearOption | null>(null);
   const router = useRouter();
@@ -65,7 +67,7 @@ export function CompareButton({
         }}
         icon={<Scale className="size-4" />}
       >
-        {showLabel ? "Compare" : <span className="sr-only">Compare</span>}
+        {showLabel ? t("compare") : <span className="sr-only">{t("compare")}</span>}
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
@@ -82,9 +84,9 @@ export function CompareButton({
           }}
         >
           <DialogHeader>
-            <DialogTitle>Compare {name}</DialogTitle>
+            <DialogTitle>{t("compareTitle", { name })}</DialogTitle>
             <DialogDescription>
-              Select another item to compare with {name}
+              {t("compareDescription", { name })}
             </DialogDescription>
           </DialogHeader>
           <GearSearchCombobox
@@ -93,8 +95,8 @@ export function CompareButton({
             onSelectionChange={handleSelect}
             filters={gearType ? { gearType } : undefined}
             excludeIds={[slug]}
-            placeholder="Search for gear..."
-            searchPlaceholder="Search gear to compare"
+            placeholder={t("searchForGear")}
+            searchPlaceholder={t("searchGearToCompare")}
           />
         </DialogContent>
       </Dialog>

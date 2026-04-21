@@ -1,4 +1,4 @@
-import type { SpecsTableSection } from "~/app/(app)/(pages)/gear/_components/specs-table";
+import type { SpecsTableSection } from "~/app/[locale]/(pages)/gear/_components/specs-table";
 import type { GearAlias, GearItem } from "~/types/gear";
 import { cn } from "~/lib/utils";
 import { formatHumanDateWithPrecision } from "~/lib/utils";
@@ -34,7 +34,7 @@ import { formatFilterType } from "~/lib/mapping/filter-types-map";
 import { formatFocalLengthRangeDisplay } from "~/lib/mapping/focal-length-map";
 import { MOUNTS, AF_AREA_MODES } from "~/lib/generated";
 import { buildVideoDisplayBundle } from "~/lib/video/transform";
-import { VideoSpecsSummary } from "~/app/(app)/(pages)/gear/_components/video/video-summary";
+import { VideoSpecsSummary } from "~/app/[locale]/(pages)/gear/_components/video/video-summary";
 import { Badge } from "~/components/ui/badge";
 import {
   normalizedToCameraVideoModes,

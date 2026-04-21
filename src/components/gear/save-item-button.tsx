@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Bookmark, Check, ChevronDown, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useSession } from "~/lib/auth/auth-client";
@@ -87,6 +88,7 @@ export function SaveItemButton({
   onStateChange?: (state: SaveItemResolvedState) => void;
   mode?: "split" | "list";
 }) {
+  const t = useTranslations("gearDetail");
   const [pickerState, setPickerState] = useState(() => initialState);
   const [isMutating, setIsMutating] = useState(false);
   const [mutatingListId, setMutatingListId] = useState<string | null>(null);
@@ -124,7 +126,7 @@ export function SaveItemButton({
     toast.success(message, {
       action: listHref
         ? {
-            label: "View list",
+            label: t("viewList"),
             onClick: () => {
               router.push(listHref);
             },
@@ -142,14 +144,14 @@ export function SaveItemButton({
       if (savedSet.has(listId)) {
         const result = await actionRemoveGearFromUserList({ listId, slug });
         applyActionLists(result.lists as ActionListShape[]);
-        toast.success("Removed from list");
+        toast.success(t("removedFromList"));
       } else {
         const result = await actionAddGearToUserList({ listId, slug });
         applyActionLists(result.lists as ActionListShape[]);
-        showSavedToast("Saved to list", listId);
+        showSavedToast(t("savedToList"), listId);
       }
     } catch {
-      toast.error("Failed to update saved item");
+      toast.error(t("failedToUpdateSavedItem"));
     } finally {
       setIsMutating(false);
       setMutatingListId(null);
@@ -175,7 +177,7 @@ export function SaveItemButton({
 
       if (!createdList) {
         applyActionLists(createdLists);
-        toast.error("List created, but it could not be selected for saving");
+        toast.error(t("listCreatedCouldNotSelect"));
         return;
       }
 
@@ -185,9 +187,9 @@ export function SaveItemButton({
       });
       applyActionLists(addResult.lists as ActionListShape[]);
       setCreateDialog({ open: false, name: "", creating: false });
-      showSavedToast("List created and item saved", createdList.id);
+      showSavedToast(t("listCreatedAndItemSaved"), createdList.id);
     } catch {
-      toast.error("Failed to create list and save item");
+      toast.error(t("failedToCreateListAndSaveItem"));
     } finally {
       setCreateDialog((prev) => ({ ...prev, creating: false }));
     }
@@ -205,7 +207,7 @@ export function SaveItemButton({
             loading={isMutating}
             onClick={() => void handlePrimaryClick()}
           >
-            {isSavedAnywhere ? "Saved" : "Save Item"}
+            {isSavedAnywhere ? t("saved") : t("saveItem")}
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -216,7 +218,7 @@ export function SaveItemButton({
                 disabled={isMutating}
               >
                 <ChevronDown className="size-4" />
-                <span className="sr-only">Choose list</span>
+                <span className="sr-only">{t("chooseList")}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64">
@@ -243,7 +245,7 @@ export function SaveItemButton({
                 }
               >
                 <Plus className="size-4" />
-                Create list
+                {t("createList")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -279,7 +281,7 @@ export function SaveItemButton({
             onClick={() => setCreateDialog((prev) => ({ ...prev, open: true }))}
           >
             <Plus className="size-4" />
-            Create list
+            {t("createList")}
           </Button>
         </div>
       )}
@@ -290,13 +292,13 @@ export function SaveItemButton({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create a new list</DialogTitle>
+            <DialogTitle>{t("createNewList")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-2">
-            <Label htmlFor="new-list-name">List name</Label>
+            <Label htmlFor="new-list-name">{t("listName")}</Label>
             <Input
               id="new-list-name"
-              placeholder="My favorites"
+              placeholder={t("myFavorites")}
               value={createDialog.name}
               onChange={(event) =>
                 setCreateDialog((prev) => ({
@@ -313,10 +315,10 @@ export function SaveItemButton({
                 setCreateDialog((prev) => ({ ...prev, open: false }))
               }
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button onClick={handleCreateList} loading={createDialog.creating}>
-              Create
+              {t("create")}
             </Button>
           </DialogFooter>
         </DialogContent>

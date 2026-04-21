@@ -1,37 +1,38 @@
-// ReactNode import removed as it's not used in this file
 import {
-  Camera,
-  Search,
   BarChart3,
   BookOpen,
-  Settings,
+  Camera,
+  FileText,
+  Film,
+  Flame,
   HelpCircle,
   Info,
-  Shield,
-  FileText,
-  Users,
-  Star,
-  TrendingUp,
-  Zap,
-  Target,
   Palette,
-  Film,
-  Scale,
   PencilRuler,
-  Flame,
+  Scale,
+  Search,
+  Settings,
+  Shield,
   SquareStop,
+  Star,
+  Target,
+  TrendingUp,
+  Users,
+  Zap,
 } from "lucide-react";
-import { TbLaurelWreath } from "react-icons/tb";
 import { FaInstagram } from "react-icons/fa";
+import { TbLaurelWreath } from "react-icons/tb";
+
+type NavTranslator = (key: string) => string;
 
 interface NavItem {
-  title: string;
+  titleKey: string;
   type: "link" | "category";
   url?: string;
   items?: {
-    title: string;
+    titleKey: string;
     url: string;
-    description?: string;
+    descriptionKey?: string;
     iconKey?:
       | "camera"
       | "search"
@@ -60,145 +61,107 @@ interface NavItem {
   hideFromFooter?: boolean;
 }
 
-export const navItems: NavItem[] = [
-  { title: "About", type: "link", url: "/about" },
+const navItems: NavItem[] = [
+  { titleKey: "about", type: "link", url: "/about" },
   {
-    title: "News",
+    titleKey: "news",
     type: "link",
     url: "/news",
   },
   {
-    title: "Gear",
+    titleKey: "gear",
     type: "category",
     items: [
       {
-        title: "Browse",
+        titleKey: "gearBrowseTitle",
         url: "/gear",
-        description: "Explore all cameras, lenses, and accessories",
+        descriptionKey: "gearBrowseDescription",
         iconKey: "camera",
       },
       {
-        title: "Contribute",
+        titleKey: "gearContributeTitle",
         url: "/lists/under-construction",
-        description: "View items that need contributions",
+        descriptionKey: "gearContributeDescription",
         iconKey: "pencilRuler",
       },
       {
-        title: "Hall of Fame",
+        titleKey: "gearHallOfFameTitle",
         url: "/lists/hall-of-fame",
-        description:
-          "The most iconic and influential gear in the history of photography",
+        descriptionKey: "gearHallOfFameDescription",
         iconKey: "wreath",
       },
       {
-        title: "Trending",
+        titleKey: "gearTrendingTitle",
         url: "/lists/trending",
-        description: "The most popular gear based on activity.",
+        descriptionKey: "gearTrendingDescription",
         iconKey: "flame",
       },
     ],
   },
   {
-    title: "Tools",
+    titleKey: "tools",
     type: "category",
     items: [
-      // {
-      //   title: "Search",
-      //   url: "/search",
-      //   description: "Search for gear by name, brand, or type",
-      //   iconKey: "search",
-      // },
       {
-        title: "Compare",
+        titleKey: "toolCompareTitle",
         url: "/compare",
-        description: "Compare gear side-by-side",
+        descriptionKey: "toolCompareDescription",
         iconKey: "scale",
       },
       {
-        title: "Shutter Count & EXIF Viewer",
+        titleKey: "toolExifViewerTitle",
         url: "/exif-viewer",
-        description: "Inspect EXIF metadata and track shutter count history",
+        descriptionKey: "toolExifViewerDescription",
         iconKey: "file",
       },
       {
-        title: "Instagram Post Builder",
+        titleKey: "toolInstagramPostBuilderTitle",
         url: "/instagram-post-builder",
-        description: "Create Instagram posts with multiple images",
+        descriptionKey: "toolInstagramPostBuilderDescription",
         iconKey: "instagram",
       },
-      // {
-      //   title: "Field of View Reference",
-      //   url: "/focal-length-reference",
-      //   description: "Visualize different focal lengths and sensor sizes.",
-      //   iconKey: "squareStop",
-      // },
     ],
   },
-
   {
-    title: "Learn",
+    titleKey: "learn",
     type: "category",
     items: [
       {
-        title: "Basics",
+        titleKey: "learnBasicsTitle",
         url: "/learn/basics",
-        description: "Learn about the basics of photography",
+        descriptionKey: "learnBasicsDescription",
         iconKey: "book",
       },
       {
-        title: "View All Learn Content",
+        titleKey: "learnViewAllTitle",
         url: "/learn",
-        description: "View all learn content",
+        descriptionKey: "learnViewAllDescription",
         iconKey: "book",
       },
-      // {
-      //   title: "Camera Guides",
-      //   url: "/learn/camera-guides",
-      //   description: "Master your camera settings",
-      //   iconKey: "book",
-      // },
-      // {
-      //   title: "Lens Selection",
-      //   url: "/learn/lens-selection",
-      //   description: "Choose the right lens for your needs",
-      //   iconKey: "target",
-      // },
-      // {
-      //   title: "Photography Tips",
-      //   url: "/learn/photography-tips",
-      //   description: "Improve your photography skills",
-      //   iconKey: "palette",
-      // },
-      // {
-      //   title: "Gear Maintenance",
-      //   url: "/learn/gear-maintenance",
-      //   description: "Keep your equipment in top shape",
-      //   iconKey: "settings",
-      // },
     ],
   },
   {
-    title: "GitHub",
+    titleKey: "github",
     type: "link",
     url: "https://github.com/Flohhhhh/sharply",
     hideFromNavbar: true,
     hideFromFooter: false,
   },
   {
-    title: "Contact",
+    titleKey: "contact",
     type: "link",
     url: "/contact",
     hideFromNavbar: true,
   },
   {
-    title: "Privacy Policy",
+    titleKey: "privacyPolicy",
     type: "link",
     url: "/privacy-policy",
     hideFromNavbar: true,
     hideFromFooter: false,
   },
   {
-    title: "Terms of Service",
+    titleKey: "termsOfService",
     type: "link",
     url: "/terms-of-service",
     hideFromNavbar: true,
@@ -206,7 +169,6 @@ export const navItems: NavItem[] = [
   },
 ];
 
-// Icon mapping for consistent icon usage
 export const iconMap = {
   camera: Camera,
   search: Search,
@@ -232,80 +194,107 @@ export const iconMap = {
   squareStop: SquareStop,
 };
 
-// Get nav items filtered by hideFromNavbar and format for the navbar component
-export const getNavItems = () => {
+export const getNavItems = (t: NavTranslator) => {
   return navItems
     .filter((item) => !item.hideFromNavbar)
     .map((item) => ({
-      title: item.title,
+      title: t(item.titleKey),
       url: item.url || "#",
       items:
         item.type === "category"
           ? item.items?.map((subItem) => ({
-              title: subItem.title,
+              title: t(subItem.titleKey),
               url: subItem.url,
-              description: subItem.description,
+              description: subItem.descriptionKey
+                ? t(subItem.descriptionKey)
+                : undefined,
               iconKey: subItem.iconKey,
             }))
           : undefined,
     }));
 };
 
-// Get footer items filtered by hideFromFooter and format for the footer component
-export const getFooterItems = () => {
+export const getFooterItems = (t: NavTranslator) => {
   const footerItems = navItems.filter((item) => !item.hideFromFooter);
-
   const categories = footerItems.filter((item) => item.type === "category");
   const standaloneLinks = footerItems.filter((item) => item.type === "link");
 
   return {
     sections: categories.map((category) => ({
-      title: category.title,
+      title: t(category.titleKey),
       links:
         category.items?.map((item) => ({
-          name: item.title,
+          name: t(item.titleKey),
           href: item.url,
         })) || [],
     })),
     bottomLinks: standaloneLinks.map((item) => ({
-      name: item.title,
+      name: t(item.titleKey),
       href: item.url || "#",
     })),
   };
 };
 
-// Get navigation items for specific contexts
-export const getGearNavItems = () => {
+export const getGearNavItems = (t: NavTranslator) => {
   return navItems
-    .filter((item) => item.title === "Gear")
-    .flatMap((item) => item.items || []);
+    .filter((item) => item.titleKey === "gear")
+    .flatMap((item) =>
+      (item.items || []).map((subItem) => ({
+        ...subItem,
+        title: t(subItem.titleKey),
+        description: subItem.descriptionKey
+          ? t(subItem.descriptionKey)
+          : undefined,
+      })),
+    );
 };
 
-export const getToolNavItems = () => {
+export const getToolNavItems = (t: NavTranslator) => {
   return navItems
-    .filter((item) => item.title === "Tools")
-    .flatMap((item) => item.items || []);
+    .filter((item) => item.titleKey === "tools")
+    .flatMap((item) =>
+      (item.items || []).map((subItem) => ({
+        ...subItem,
+        title: t(subItem.titleKey),
+        description: subItem.descriptionKey
+          ? t(subItem.descriptionKey)
+          : undefined,
+      })),
+    );
 };
 
-export const getLearnNavItems = () => {
+export const getLearnNavItems = (t: NavTranslator) => {
   return navItems
-    .filter((item) => item.title === "Learn")
-    .flatMap((item) => item.items || []);
+    .filter((item) => item.titleKey === "learn")
+    .flatMap((item) =>
+      (item.items || []).map((subItem) => ({
+        ...subItem,
+        title: t(subItem.titleKey),
+        description: subItem.descriptionKey
+          ? t(subItem.descriptionKey)
+          : undefined,
+      })),
+    );
 };
 
-// Utility function to get a specific nav item by title
-export const getNavItemByTitle = (title: string) => {
-  return navItems.find((item) => item.title === title);
+export const getNavItemByTitle = (title: string, t: NavTranslator) => {
+  return navItems.find((item) => t(item.titleKey) === title);
 };
 
-// Utility function to get all category items
-export const getAllCategoryItems = () => {
+export const getAllCategoryItems = (t: NavTranslator) => {
   return navItems
     .filter((item) => item.type === "category")
-    .flatMap((item) => item.items || []);
+    .flatMap((item) =>
+      (item.items || []).map((subItem) => ({
+        ...subItem,
+        title: t(subItem.titleKey),
+        description: subItem.descriptionKey
+          ? t(subItem.descriptionKey)
+          : undefined,
+      })),
+    );
 };
 
-// Utility function to check if a URL is in navigation
 export const isNavUrl = (url: string) => {
   return navItems.some((item) => {
     if (item.url === url) return true;

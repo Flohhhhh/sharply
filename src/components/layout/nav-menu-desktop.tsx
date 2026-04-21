@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { useTranslations } from "next-intl";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -10,11 +10,13 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "~/components/ui/navigation-menu";
+import { LocaleLink } from "~/components/locale-link";
 import { getNavItems, iconMap } from "~/lib/nav-items";
 import { cn } from "~/lib/utils";
 
 export function NavMenuDesktop() {
-  const navItems = getNavItems();
+  const t = useTranslations("nav");
+  const navItems = getNavItems(t);
 
   return (
     <NavigationMenu>
@@ -33,7 +35,7 @@ export function NavMenuDesktop() {
                         : null;
 
                       return (
-                        <Link
+                        <LocaleLink
                           key={subItem.title}
                           href={subItem.url}
                           className="group hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground block space-y-1 rounded-md p-3 leading-none no-underline outline-none select-none"
@@ -51,7 +53,7 @@ export function NavMenuDesktop() {
                               {subItem.description}
                             </p>
                           )}
-                        </Link>
+                        </LocaleLink>
                       );
                     })}
                   </div>
@@ -63,12 +65,12 @@ export function NavMenuDesktop() {
             return (
               <NavigationMenuItem key={item.title}>
                 <NavigationMenuLink asChild className="rounded-md">
-                  <Link
+                  <LocaleLink
                     href={item.url}
                     className={cn(navigationMenuTriggerStyle())}
                   >
                     {item.title}
-                  </Link>
+                  </LocaleLink>
                 </NavigationMenuLink>
               </NavigationMenuItem>
             );

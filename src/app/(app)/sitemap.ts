@@ -6,8 +6,22 @@ import {
   getNewsPosts,
   getReviews,
 } from "~/server/payload/service";
+import { getLocaleAlternates, getLocalizedUrl } from "~/i18n/routing";
 
 export const revalidate = 3600; // Revalidate every hour
+
+function createSitemapEntry(
+  pathname: string,
+  options: Omit<MetadataRoute.Sitemap[number], "url" | "alternates">,
+): MetadataRoute.Sitemap[number] {
+  return {
+    url: getLocalizedUrl(pathname, "en"),
+    alternates: {
+      languages: getLocaleAlternates(pathname),
+    },
+    ...options,
+  };
+}
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const slugs = await fetchAllGearSlugs();
@@ -23,147 +37,109 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // TODO: add curated comparisons
 
   return [
-    {
-      url: "https://www.sharplyphoto.com",
+    createSitemapEntry("/", {
       lastModified: new Date(),
       changeFrequency: "daily" as const,
       priority: 1,
-    },
-    {
-      url: "https://www.sharplyphoto.com/about",
+    }),
+    createSitemapEntry("/about", {
       lastModified: new Date(),
       changeFrequency: "monthly" as const,
       priority: 0.8,
-    },
-    {
-      url: "https://www.sharplyphoto.com/learn",
+    }),
+    createSitemapEntry("/learn", {
       lastModified: new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.5,
-    },
-    {
-      url: "https://www.sharplyphoto.com/search",
+    }),
+    createSitemapEntry("/search", {
       lastModified: new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.5,
-    },
+    }),
     // Reviews
-    ...publishedReviews.map((review) => ({
-      url: `https://www.sharplyphoto.com/reviews/${review.slug}`,
+    ...publishedReviews.map((review) =>
+      createSitemapEntry(`/reviews/${review.slug}`, {
+        lastModified: new Date(),
+        changeFrequency: "weekly" as const,
+        priority: 0.5,
+      }),
+    ),
+    createSitemapEntry("/privacy-policy", {
       lastModified: new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.5,
-    })),
-    // TOOD: finish feature and add to sitemap
-    // {
-    //   url: "https://www.sharplyphoto.com/focal-simulator",
-    //   lastModified: new Date(),
-    //   changeFrequency: "weekly" as const,
-    //   priority: 0.5,
-    // },
-    {
-      url: "https://www.sharplyphoto.com/privacy-policy",
+    }),
+    createSitemapEntry("/terms-of-service", {
       lastModified: new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.5,
-    },
-    {
-      url: "https://www.sharplyphoto.com/terms-of-service",
+    }),
+    createSitemapEntry("/gear", {
       lastModified: new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.5,
-    },
-    // generate brand page urls
-    ...BRANDS.map((brand) => ({
-      url: `https://www.sharplyphoto.com/brand/${brand.slug}`,
-      lastModified: new Date(),
-      changeFrequency: "weekly" as const,
-      priority: 0.5,
-    })),
-    {
-      url: "https://www.sharplyphoto.com/gear",
-      lastModified: new Date(),
-      changeFrequency: "weekly" as const,
-      priority: 0.5,
-    },
+    }),
     // generate gear page urls
-    ...slugs.map((slug: string) => ({
-      url: `https://www.sharplyphoto.com/gear/${slug}`,
+    ...slugs.map((slug: string) =>
+      createSitemapEntry(`/gear/${slug}`, {
+        lastModified: new Date(),
+        changeFrequency: "weekly" as const,
+        priority: 0.5,
+      }),
+    ),
+    createSitemapEntry("/news", {
       lastModified: new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.5,
-    })),
-    {
-      url: "https://www.sharplyphoto.com/news",
-      lastModified: new Date(),
-      changeFrequency: "weekly" as const,
-      priority: 0.5,
-    },
+    }),
     // generate news post urls
-    ...publishedNewsPosts.map((post) => ({
-      url: `https://www.sharplyphoto.com/news/${post.slug}`,
-      lastModified: new Date(),
-      changeFrequency: "weekly" as const,
-      priority: 0.5,
-    })),
-    // generate browse page urls
-    {
-      url: `https://www.sharplyphoto.com/browse`,
+    ...publishedNewsPosts.map((post) =>
+      createSitemapEntry(`/news/${post.slug}`, {
+        lastModified: new Date(),
+        changeFrequency: "weekly" as const,
+        priority: 0.5,
+      }),
+    ),
+    createSitemapEntry("/browse", {
       lastModified: new Date(),
       changeFrequency: "hourly" as const,
       priority: 0.6,
-    },
+    }),
     // /browse/[brand]
-    ...BRANDS.map((b) => ({
-      url: `https://www.sharplyphoto.com/browse/${b.slug}`,
-      lastModified: new Date(),
-      changeFrequency: "hourly" as const,
-      priority: 0.6,
-    })),
+    ...BRANDS.map((b) =>
+      createSitemapEntry(`/browse/${b.slug}`, {
+        lastModified: new Date(),
+        changeFrequency: "hourly" as const,
+        priority: 0.6,
+      }),
+    ),
     // /browse/[brand]/[category] and /browse/[brand]/[category]/[mount]
     ...BRANDS.flatMap((b) => {
       const categories: Array<"cameras" | "lenses"> = ["cameras", "lenses"];
       const brandMounts = MOUNTS.filter(
         (m) => m.brand_id === b.id && !!m.short_name,
       );
-      const brandCategoryUrls = categories.map((c) => ({
-        url: `https://www.sharplyphoto.com/browse/${b.slug}/${c}`,
-        lastModified: new Date(),
-        changeFrequency: "hourly" as const,
-        priority: 0.6,
-      }));
-      const mountUrls = categories.flatMap((c) =>
-        brandMounts.map((m) => ({
-          url: `https://www.sharplyphoto.com/browse/${b.slug}/${c}/${String(m.short_name)}`,
+      const brandCategoryUrls = categories.map((c) =>
+        createSitemapEntry(`/browse/${b.slug}/${c}`, {
           lastModified: new Date(),
           changeFrequency: "hourly" as const,
           priority: 0.6,
-        })),
+        }),
       );
+      const mountUrls = categories.flatMap((c) =>
+        brandMounts.map((m) =>
+          createSitemapEntry(`/browse/${b.slug}/${c}/${String(m.short_name)}`, {
+            lastModified: new Date(),
+            changeFrequency: "hourly" as const,
+            priority: 0.6,
+          }),
+        ),
+      );
+
       return [...brandCategoryUrls, ...mountUrls];
     }),
     // Learn pages //TODO: finish feature and add to sitemap
-    // {
-    //   url: "https://www.sharplyphoto.com/learn",
-    //   lastModified: new Date(),
-    //   changeFrequency: "weekly" as const,
-    //   priority: 0.5,
-    // },
-    // ...publishedLearnPages
-    //   .filter((p) => p.slug)
-    //   .map((page) => ({
-    //     url: `https://www.sharplyphoto.com/learn/${page.slug}`,
-    //     lastModified: new Date(),
-    //     changeFrequency: "weekly" as const,
-    //     priority: 0.5,
-    //   })),
-
     // Recommended lenses //TODO: finish feature and add to sitemap
-    // {
-    //   url: "https://www.sharplyphoto.com/recommended-lenses",
-    //   lastModified: new Date(),
-    //   changeFrequency: "weekly" as const,
-    //   priority: 0.5,
-    // },
   ];
 }

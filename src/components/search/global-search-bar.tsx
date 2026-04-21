@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Search as SearchIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Kbd } from "~/components/ui/kbd";
 import { cn } from "~/lib/utils";
 import { dispatchOpenSearchSurface } from "./search-events";
@@ -31,12 +32,14 @@ const sizeVariants = {
 } as const;
 
 export function GlobalSearchBar({
-  placeholder = "Search gear…",
+  placeholder,
   className,
   size = "md",
 }: GlobalSearchBarProps) {
+  const t = useTranslations("search");
   const sizes = sizeVariants[size];
   const [isMac, setIsMac] = useState(true);
+  const resolvedPlaceholder = placeholder ?? t("inputPlaceholder");
 
   useEffect(() => {
     setIsMac(navigator.platform.toUpperCase().includes("MAC"));
@@ -52,11 +55,13 @@ export function GlobalSearchBar({
         sizes.trigger,
         className,
       )}
-      aria-label="Open search"
+      aria-label={t("searchAction")}
       aria-haspopup="dialog"
     >
       <SearchIcon className={cn("shrink-0", sizes.icon)} />
-      <span className="min-w-0 flex-1 truncate text-left">{placeholder}</span>
+      <span className="min-w-0 flex-1 truncate text-left">
+        {resolvedPlaceholder}
+      </span>
       <span className={cn("shrink-0", sizes.hint)}>
         {isMac ? (
           <Kbd>

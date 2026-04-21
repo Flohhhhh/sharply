@@ -3,11 +3,11 @@ import {
   buildSummaryItems,
   getNumberFlowSeed,
   resolveHeroMetric,
-} from "../../src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-results";
+} from "../../src/app/[locale]/(pages)/(tools)/exif-viewer/_components/exif-results";
 import type {
   ExifViewerMetadataRow,
   ExifViewerResponse,
-} from "../../src/app/(app)/(pages)/(tools)/exif-viewer/types";
+} from "../../src/app/[locale]/(pages)/(tools)/exif-viewer/types";
 
 function metadataRow(
   key: string,

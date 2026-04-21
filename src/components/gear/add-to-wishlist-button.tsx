@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "~/components/ui/button";
 import type { ButtonProps } from "~/components/ui/button";
 import { Heart } from "lucide-react";
@@ -35,6 +36,7 @@ export function AddToWishlistButton({
   /** Whether button should take full width */
   fullWidth?: boolean;
 }) {
+  const t = useTranslations("gearDetail");
   const { data } = useSession();
   const session = data?.session;
   const user = data?.user;
@@ -53,11 +55,13 @@ export function AddToWishlistButton({
     // If we don't know the state (null), assume we're adding
     const action = inWishlist ? "remove" : "add";
     const wasInWishlist = inWishlist;
-    const gearName = name ?? "Item";
+    const gearName = name ?? t("itemFallback");
     const promise = actionToggleWishlist(slug, action);
 
     toast.promise(promise, {
-      loading: inWishlist ? `Removing ${gearName}...` : `Adding ${gearName}...`,
+      loading: inWishlist
+        ? t("removingItem", { name: gearName })
+        : t("addingItem", { name: gearName }),
       success: (res) => {
         if (res.ok && res.action === "added") {
           setInWishlist(true);
@@ -67,10 +71,10 @@ export function AddToWishlistButton({
           );
 
           return {
-            message: "Added to wishlist",
-            description: `${gearName} added to your wishlist`,
+            message: t("addedToWishlist"),
+            description: t("addedToWishlistDescription", { name: gearName }),
             action: {
-              label: "View Profile",
+              label: t("viewProfile"),
               onClick: () => {
                 window.location.href = `/u/${user.id}`;
               },
@@ -84,20 +88,20 @@ export function AddToWishlistButton({
           );
 
           return {
-            message: "Removed from wishlist",
+            message: t("removedFromWishlist"),
           };
         } else if (!res.ok && res.reason === "already_in_wishlist") {
           // Item was already in wishlist, update state and show appropriate message
           setInWishlist(true);
           return {
-            message: "Already in wishlist",
+            message: t("alreadyInWishlist"),
           };
         }
         return {
-          message: "Failed to update wishlist",
+          message: t("failedToUpdateWishlist"),
         };
       },
-      error: `Failed to update wishlist`,
+      error: t("failedToUpdateWishlist"),
     });
 
     try {
@@ -152,13 +156,13 @@ export function AddToWishlistButton({
     >
       {showLabel ? (
         active ? (
-          "Remove from Wishlist"
+          t("removeFromWishlist")
         ) : (
-          "Add to Wishlist"
+          t("addToWishlist")
         )
       ) : (
         <span className="sr-only">
-          {active ? "Remove from wishlist" : "Add to wishlist"}
+          {active ? t("removeFromWishlistSr") : t("addToWishlistSr")}
         </span>
       )}
     </Button>

@@ -1,12 +1,12 @@
 "use client";
 
 import { track } from "@vercel/analytics";
+import { useTranslations } from "next-intl";
 import { useScrollState } from "@/lib/hooks/useScrollState";
 import { Button } from "../ui/button";
 import { LayoutDashboard, LogIn, Menu } from "lucide-react";
 import { GlobalSearchBar } from "../search/global-search-bar";
 import { usePathname, useSearchParams } from "next/navigation";
-import Link from "next/link";
 import { NavMenuDesktop } from "./nav-menu-desktop";
 import { NavMenuMobile } from "./nav-menu-mobile";
 import { NavSheetDesktop } from "./nav-sheet-desktop";
@@ -16,6 +16,8 @@ import { ThemeSwitcher } from "../theme-switcher";
 import type { UserRole } from "~/auth";
 import type { NotificationView } from "~/server/notifications/service";
 import { NotificationsDropdown } from "./notifications/notifications-dropdown";
+import { LocaleLink } from "~/components/locale-link";
+import { useLocalePathnames } from "~/i18n/client";
 
 export type HeaderUser = {
   id: string;
@@ -41,7 +43,9 @@ export default function HeaderClient({
   notifications: HeaderNotificationsData;
 }) {
   const { hasScrolled } = useScrollState(290);
-  const pathname = usePathname();
+  const t = useTranslations("common");
+  const rawPathname = usePathname();
+  const { pathname } = useLocalePathnames();
   const searchParams = useSearchParams();
   const isHomePage = pathname === "/";
   const isSearchResultsPage = pathname?.startsWith("/search") ?? false;
@@ -59,7 +63,7 @@ export default function HeaderClient({
 
   const callbackUrl = (() => {
     const qs = searchParams?.toString();
-    return qs ? `${pathname}?${qs}` : pathname || "/";
+    return qs ? `${rawPathname}?${qs}` : rawPathname || "/";
   })();
 
   const isAdminOrEditor =
@@ -115,17 +119,17 @@ export default function HeaderClient({
                       <Menu className="size-4" />
                     </Button>
                   </NavSheetDesktop>
-                  <Link href="/" className="hidden sm:block">
+                  <LocaleLink href="/" className="hidden sm:block">
                     Sharply
-                  </Link>
-                  <Link href="/" className="sm:hidden">
+                  </LocaleLink>
+                  <LocaleLink href="/" className="sm:hidden">
                     <Logo className="fill-foreground h-4 w-4" />
-                  </Link>
+                  </LocaleLink>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
                   <Logo className="fill-foreground h-4 w-4" />
-                  <Link href="/">Sharply</Link>
+                  <LocaleLink href="/">Sharply</LocaleLink>
                 </div>
               )}
             </div>
@@ -166,7 +170,7 @@ export default function HeaderClient({
                       asChild
                       icon={<LayoutDashboard />}
                     >
-                      <Link href="/admin">Admin Panel</Link>
+                      <LocaleLink href="/admin">{t("adminPanel")}</LocaleLink>
                     </Button>
                   )}
                   <UserMenu user={user} />
@@ -174,12 +178,12 @@ export default function HeaderClient({
               ) : (
                 <>
                   <Button size="sm" asChild icon={<LogIn />}>
-                    <Link
+                    <LocaleLink
                       href={`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`}
                       onClick={handleHeaderSignInClick}
                     >
-                      Sign In
-                    </Link>
+                      {t("signIn")}
+                    </LocaleLink>
                   </Button>
                 </>
               )}

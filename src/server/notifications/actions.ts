@@ -32,6 +32,7 @@ export async function actionSendTestNotification() {
       linkUrl: "/gear/nikon-z6iii",
       sourceType: "gear",
       sourceId: "nikon-z6iii",
+      metadata: { gearName: "Nikon Z6III", gearSlug: "nikon-z6iii" },
     },
     {
       type: "badge_awarded",
@@ -40,7 +41,7 @@ export async function actionSendTestNotification() {
       linkUrl: `/u/${user.handle || `user-${user.memberNumber}`}`,
       sourceType: "badge",
       sourceId: "pioneer",
-      metadata: { badgeKey: "pioneer" },
+      metadata: { badgeKey: "pioneer", badgeName: "Pioneer" },
     },
   ];
   const selected = samples[Math.floor(Math.random() * samples.length)]!;

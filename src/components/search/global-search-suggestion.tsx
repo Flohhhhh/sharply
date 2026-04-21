@@ -1,6 +1,7 @@
 "use client";
 
 import { Camera, SearchIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "~/lib/utils";
 import { SearchSuggestionRow } from "~/components/search/search-suggestion-row";
 
@@ -21,6 +22,7 @@ export function GlobalSearchSuggestion({
   className,
   onClick,
 }: Props) {
+  const t = useTranslations("search");
   const kind = type === "gear" ? "camera" : "brand";
 
   return (
@@ -36,7 +38,7 @@ export function GlobalSearchSuggestion({
       <SearchSuggestionRow
         title={label}
         kind={kind}
-        badge={type === "gear" ? "Gear" : "Brand"}
+        badge={type === "gear" ? t("gearBadge") : t("brandBadge")}
         leadingIcon={
           type === "gear" ? (
             <Camera className="size-4" />

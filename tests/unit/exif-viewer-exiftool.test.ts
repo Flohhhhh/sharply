@@ -6,7 +6,7 @@ import {
   normalizeExifToolTagEntries,
   sanitizeExifViewerTagEntries,
   toExifViewerMetadataRows,
-} from "../../src/app/(app)/(pages)/(tools)/exif-viewer/parse/exiftool";
+} from "../../src/app/[locale]/(pages)/(tools)/exif-viewer/parse/exiftool";
 
 describe("exif viewer exiftool normalization", () => {
   it("extracts tag maps and warning strings from JSON output", () => {

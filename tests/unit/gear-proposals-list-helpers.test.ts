@@ -9,7 +9,7 @@ import {
   type GearProposal,
   type ProposalGroup,
   type ProposalGroupDto,
-} from "~/app/(app)/(admin)/admin/gear-proposals-list.helpers";
+} from "~/app/[locale]/(admin)/admin/gear-proposals-list.helpers";
 
 function createProposal(
   overrides: Partial<GearProposal> = {},

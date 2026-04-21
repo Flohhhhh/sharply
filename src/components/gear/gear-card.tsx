@@ -2,6 +2,7 @@
 
 import type React from "react";
 import Link from "next/link";
+import { useLocale } from "next-intl";
 import { cn } from "~/lib/utils";
 import Image from "next/image";
 import { useState } from "react";
@@ -105,6 +106,7 @@ type DatePrecision = "DAY" | "MONTH" | "YEAR";
 export function formatGearDate(
   dateValue?: string | Date | null,
   precision?: DatePrecision | null,
+  locale?: string,
 ) {
   if (!dateValue) return "---";
 
@@ -117,7 +119,7 @@ export function formatGearDate(
     return parsedDate.getFullYear().toString();
   }
 
-  return parsedDate.toLocaleDateString("en-US", {
+  return parsedDate.toLocaleDateString(locale, {
     month: "short",
     year: "numeric",
   });
@@ -145,11 +147,13 @@ export function GearCard(props: GearCardProps) {
     className,
   } = props;
 
+  const locale = useLocale();
   const displayName = useGearDisplayName({ name, regionalAliases });
   const trimmedName = stripBrandFromName(displayName, brandName);
   const dateLabel = formatGearDate(
     releaseDate ?? announcedDate,
     releaseDatePrecision ?? announceDatePrecision,
+    locale,
   );
   const isNew = isNewRelease(
     releaseDate ?? announcedDate,

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { useLocale } from "next-intl";
 import { cn } from "~/lib/utils";
 import { formatGearDate, type GearCardProps } from "./gear-card";
 import { TrendingBadge } from "../gear-badges/trending-badge";
@@ -101,11 +102,13 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
     className,
   } = props;
 
+  const locale = useLocale();
   const displayName = useGearDisplayName({ name, regionalAliases });
   const trimmedName = stripBrandFromName(displayName, brandName);
   const dateLabel = formatGearDate(
     releaseDate ?? announcedDate,
     releaseDatePrecision ?? announceDatePrecision,
+    locale,
   );
   const isNew = isNewRelease(
     releaseDate ?? announcedDate,

@@ -14,6 +14,7 @@ import {
   insertCompareAddEvent,
   incrementComparePairCountBySlugs,
   fetchTopComparePairs as fetchTopComparePairsData,
+  fetchHighTrafficGearSlugsData,
 } from "./data";
 import { applyLiveBoostToTrending } from "./live";
 export { applyLiveBoostToTrending } from "./live";
@@ -212,6 +213,10 @@ export async function fetchTrendingSlugs(
   params?: TrendingSlugsParams,
 ): Promise<string[]> {
   return cachedTrendingSlugs(params ?? {});
+}
+
+export async function fetchHighTrafficGearSlugs(limit = 200): Promise<string[]> {
+  return fetchHighTrafficGearSlugsData(limit);
 }
 
 /**

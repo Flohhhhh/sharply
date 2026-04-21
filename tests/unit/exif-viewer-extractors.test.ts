@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   detectCameraBrand,
   extractShutterCount,
-} from "../../src/app/(app)/(pages)/(tools)/exif-viewer/parse/extractors";
-import type { ExifViewerTagEntry } from "../../src/app/(app)/(pages)/(tools)/exif-viewer/types";
+} from "../../src/app/[locale]/(pages)/(tools)/exif-viewer/parse/extractors";
+import type { ExifViewerTagEntry } from "../../src/app/[locale]/(pages)/(tools)/exif-viewer/types";
 
 function tag(
   key: string,

@@ -25,21 +25,34 @@ const authHelperMocks = vi.hoisted(() => ({
   requireRole: vi.fn(),
 }));
 
+const intlServerMocks = vi.hoisted(() => ({
+  getTranslations: vi.fn(async ({ namespace }: { namespace?: string } = {}) => {
+    if (namespace === "underConstructionPage") {
+      return (key: string) => key;
+    }
+    return (key: string) => key;
+  }),
+}));
+
 const clientComponentMock = vi.hoisted(() => vi.fn((_props: unknown) => null));
+const pageParams = {
+  params: Promise.resolve({ locale: "en" }),
+};
 
 vi.mock("~/server/gear/service", () => gearServiceMocks);
 vi.mock("~/server/metrics/service", () => metricsMocks);
 vi.mock("~/auth", () => authMocks);
 vi.mock("next/headers", () => headerMocks);
 vi.mock("~/lib/auth/auth-helpers", () => authHelperMocks);
+vi.mock("next-intl/server", () => intlServerMocks);
 vi.mock(
-  "~/app/(app)/(pages)/lists/under-construction/_components/under-construction-client",
+  "~/app/[locale]/(pages)/lists/under-construction/_components/under-construction-client",
   () => ({
     default: clientComponentMock,
   }),
 );
 
-import Page from "~/app/(app)/(pages)/lists/under-construction/page";
+import Page from "~/app/[locale]/(pages)/lists/under-construction/page";
 
 type ClientProps = {
   canToggleAutoSubmit: boolean;
@@ -76,7 +89,7 @@ describe("under construction page", () => {
     gearServiceMocks.listUnderConstruction.mockResolvedValue(items);
     metricsMocks.fetchGearCount.mockResolvedValue(10);
 
-    renderToStaticMarkup(await Page());
+    renderToStaticMarkup(await Page(pageParams));
     const props = getClientProps();
 
     expect(gearServiceMocks.listUnderConstruction).toHaveBeenCalledWith(1, 40);
@@ -95,7 +108,7 @@ describe("under construction page", () => {
     gearServiceMocks.listUnderConstruction.mockResolvedValue([]);
     metricsMocks.fetchGearCount.mockResolvedValue(0);
 
-    renderToStaticMarkup(await Page());
+    renderToStaticMarkup(await Page(pageParams));
     const props = getClientProps();
 
     expect(props.summary).toEqual({
@@ -114,7 +127,7 @@ describe("under construction page", () => {
     ]);
     metricsMocks.fetchGearCount.mockResolvedValue(3);
 
-    renderToStaticMarkup(await Page());
+    renderToStaticMarkup(await Page(pageParams));
     const props = getClientProps();
 
     expect(props.summary).toEqual({

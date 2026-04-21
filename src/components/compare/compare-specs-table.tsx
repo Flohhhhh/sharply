@@ -4,7 +4,7 @@ import type { GearItem } from "~/types/gear";
 import { buildGearSpecsSections, specDictionary } from "~/lib/specs/registry";
 import { cn } from "~/lib/utils";
 import { Fragment, useState } from "react";
-import { SuggestEditButton } from "~/app/(app)/(pages)/gear/_components/suggest-edit-button";
+import { SuggestEditButton } from "~/app/[locale]/(pages)/gear/_components/suggest-edit-button";
 import { useSession } from "~/lib/auth/auth-client";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";

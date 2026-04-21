@@ -648,6 +648,20 @@ export const BRANDS = [
     "slug": "ricoh",
     "created_at": "2026-02-23 16:08:20.706598+00",
     "updated_at": "2026-02-23 16:08:20.706598+00"
+  },
+  {
+    "id": "c3240422-47b1-484d-8202-a4b5e8c9e892",
+    "name": "PERGEAR",
+    "slug": "pergear",
+    "created_at": "2026-04-14 13:14:21.828644+00",
+    "updated_at": "2026-04-14 13:14:21.828644+00"
+  },
+  {
+    "id": "4f10797d-6dae-48a9-bd63-b6476810651e",
+    "name": "Thypoch",
+    "slug": "thypoch",
+    "created_at": "2026-04-15 12:43:26.0569+00",
+    "updated_at": "2026-04-15 12:43:26.0569+00"
   }
 ];
 export const GENRES = [
@@ -1259,6 +1273,11 @@ export const ENUMS = {
     "YEAR",
     "MONTH",
     "DAY"
+  ],
+  "exif_primary_count_type_enum": [
+    "total",
+    "mechanical",
+    "generic"
   ],
   "exposure_modes_enum": [
     "manual",

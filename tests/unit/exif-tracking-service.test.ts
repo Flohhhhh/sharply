@@ -14,7 +14,7 @@ import {
   selectPrimaryExifCount,
   verifySignedExifTrackingToken,
 } from "../../src/server/exif-tracking/service";
-import type { ExifViewerResponse } from "../../src/app/(app)/(pages)/(tools)/exif-viewer/types";
+import type { ExifViewerResponse } from "../../src/app/[locale]/(pages)/(tools)/exif-viewer/types";
 
 function createExtractor(
   overrides: Partial<ExifViewerResponse["extractor"]> = {},
