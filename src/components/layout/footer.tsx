@@ -140,7 +140,7 @@ export default function Footer({
         </div>
       </div>
       <div className="border-border mt-8 border-t py-8">
-        <div className="text-muted-foreground flex flex-col justify-between gap-4 px-4 text-xs font-medium sm:px-8 md:flex-row md:items-center md:text-left">
+        <div className="text-muted-foreground flex flex-col justify-between gap-4 px-4 text-xs font-medium sm:px-8 md:flex-row md:items-start md:text-left">
           <div className="flex max-w-sm flex-col gap-4">
             <p className="order-2 lg:order-1">
               {tFooter("productImagesDisclaimer")}
@@ -149,7 +149,7 @@ export default function Footer({
             <p className="order-2 lg:order-1">{resolvedCopyright}</p>
           </div>
 
-          <ul className="order-1 flex flex-col gap-3 md:order-2 md:flex-row">
+          <ul className="order-1 flex flex-col gap-3 md:order-2 md:flex-row md:self-start">
             <li className="hover:text-primary transition-colors">
               <LocaleLink href="/privacy-policy">
                 {tNav("privacyPolicy")}
