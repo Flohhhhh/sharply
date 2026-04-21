@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import ApertureInput from "./aperture-input";
+import { useEffect,useMemo,useState } from "react";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
+import ApertureInput from "./aperture-input";
 
 export interface LensApertureChange {
 	maxApertureWide: number | null;
@@ -87,7 +87,7 @@ export default function LensApertureInput({
 
 	// Inline validation (no auto-adjustments)
 	const n = (v: unknown): number | null =>
-		typeof v === "number" && Number.isFinite(v) ? (v as number) : null;
+		typeof v === "number" && Number.isFinite(v) ? (v) : null;
 	const wideMaxVal = n(maxApertureWide);
 	const wideMinVal = n(minApertureWide);
 	const teleMaxVal = n(maxApertureTele);

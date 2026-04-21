@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { isBoardTileShapeValid, selectBoardLabels } from "~/server/bingo/template";
+import { describe,expect,it } from "vitest";
+import { isBoardTileShapeValid,selectBoardLabels } from "~/server/bingo/template";
 
 describe("bingo template selection", () => {
   it("selects exactly tileCount labels with free tile at the target index", () => {

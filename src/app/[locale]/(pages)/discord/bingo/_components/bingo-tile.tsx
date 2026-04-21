@@ -1,12 +1,12 @@
 "use client";
 
+import { Avatar,AvatarFallback,AvatarImage } from "~/components/ui/avatar";
+import { Button } from "~/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import { Button } from "~/components/ui/button";
 import type { BingoTileView } from "~/types/bingo";
 
 export default function BingoTile(props: {

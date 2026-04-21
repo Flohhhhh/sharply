@@ -1,6 +1,6 @@
-import Link from "next/link";
-import Image from "next/image";
 import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
 export const metadata: Metadata = buildLocalizedMetadata("/learn", {

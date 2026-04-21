@@ -1,6 +1,5 @@
 "use client";
 
-import { CSS } from "@dnd-kit/utilities";
 import {
   DndContext,
   KeyboardSensor,
@@ -17,8 +16,9 @@ import {
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { GripVertical, Trash2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { CSS } from "@dnd-kit/utilities";
+import { GripVertical,Trash2 } from "lucide-react";
+import { useEffect,useMemo,useState } from "react";
 import { Button } from "~/components/ui/button";
 
 export type SortableUserListItem = {

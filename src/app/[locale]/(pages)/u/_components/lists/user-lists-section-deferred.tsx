@@ -2,8 +2,8 @@
 
 import useSWR from "swr";
 import { Button } from "~/components/ui/button";
-import { UserListsSection } from "./user-lists-section";
 import type { ProfileUserListState } from "./types";
+import { UserListsSection } from "./user-lists-section";
 
 type UserListsSectionDeferredProps = {
   initialData: UserListsResponse;

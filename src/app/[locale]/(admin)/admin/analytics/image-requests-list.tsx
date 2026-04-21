@@ -1,7 +1,7 @@
-import { fetchAllImageRequests } from "~/server/gear/service";
-import Link from "next/link";
 import { getLocale } from "next-intl/server";
+import Link from "next/link";
 import { formatRelativeDate } from "~/lib/format/date";
+import { fetchAllImageRequests } from "~/server/gear/service";
 
 export async function ImageRequestsList() {
   const locale = await getLocale();

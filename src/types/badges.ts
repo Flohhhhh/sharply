@@ -1,4 +1,5 @@
-import type { ComponentType, SVGProps } from "react";
+import type { ComponentType,SVGProps } from "react";
+import type { AllowedTrigger } from "~/lib/badges/constants";
 export type UserSnapshot = {
   approvedEdits: number;
   approvedReviews: number;
@@ -25,6 +26,6 @@ export type BadgeDefinition = {
 };
 
 export type BadgeEvent = {
-  type: import("~/lib/badges/constants").AllowedTrigger;
+  type: AllowedTrigger;
   context?: unknown;
 };

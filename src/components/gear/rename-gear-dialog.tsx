@@ -1,7 +1,10 @@
 "use client";
 
-import { useState, useTransition, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect,useMemo,useState,useTransition } from "react";
+import { toast } from "sonner";
+import { Button } from "~/components/ui/button";
+import { Checkbox } from "~/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -11,17 +14,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
-import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { type GearRegion } from "~/lib/gear/region";
 import {
   actionRenameGear,
   actionUpdateGearAliases,
 } from "~/server/admin/gear/actions";
-import { toast } from "sonner";
-import { Checkbox } from "~/components/ui/checkbox";
 import type { GearAlias } from "~/types/gear";
-import { type GearRegion } from "~/lib/gear/region";
 
 type AliasMap = Partial<Record<GearRegion, string>>;
 
@@ -80,8 +80,8 @@ export function RenameGearDialog({
   const initialAliasMap = useMemo<AliasMap>(() => {
     const map: AliasMap = {};
     for (const entry of regionalAliases ?? []) {
-      if (ALIAS_REGIONS.includes(entry.region as GearRegion)) {
-        map[entry.region as GearRegion] = entry.name ?? "";
+      if (ALIAS_REGIONS.includes(entry.region)) {
+        map[entry.region] = entry.name ?? "";
       }
     }
     return map;

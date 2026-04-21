@@ -1,8 +1,8 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { useTransition } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 import { actionSendTestNotification } from "~/server/notifications/actions";
 
 export function NotificationsTestButton() {

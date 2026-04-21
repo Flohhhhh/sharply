@@ -2,7 +2,7 @@
 import "server-only";
 
 import { revalidatePath } from "next/cache";
-import { approveProposal, mergeProposal, rejectProposal } from "./service";
+import { approveProposal,mergeProposal,rejectProposal } from "./service";
 
 function revalidateProposalApprovalPaths(gearSlug: string) {
   revalidatePath("/admin");

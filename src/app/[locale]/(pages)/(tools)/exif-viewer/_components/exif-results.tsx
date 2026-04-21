@@ -1,12 +1,13 @@
 "use client";
 
-import NumberFlow, { continuous } from "@number-flow/react";
+import NumberFlow,{ continuous } from "@number-flow/react";
 import { RotateCcw } from "lucide-react";
-import { motion, useReducedMotion } from "motion/react";
-import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
+import { motion,useReducedMotion } from "motion/react";
 import { useLocale } from "next-intl";
+import Link from "next/link";
+import { useEffect,useMemo,useRef,useState } from "react";
 import { Button } from "~/components/ui/button";
+import { formatDate } from "~/lib/format/date";
 import type {
   ExifTrackedCameraHistoryEntry,
   ExifTrackingDeleteResponse,
@@ -20,9 +21,8 @@ import {
   EXIF_VIEWER_SERIAL_CANDIDATE_KEYS,
 } from "../types";
 import ExifMetadataTable from "./exif-metadata-table";
-import ExifTrackingMiniChart from "./exif-tracking-mini-chart";
 import ExifTrackingHistoryDialog from "./exif-tracking-history-dialog";
-import { formatDate } from "~/lib/format/date";
+import ExifTrackingMiniChart from "./exif-tracking-mini-chart";
 
 type ExifSummaryItem = {
   label: string;

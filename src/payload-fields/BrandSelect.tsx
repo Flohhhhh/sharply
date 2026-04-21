@@ -1,13 +1,13 @@
 "use client";
-import React, { useMemo } from "react";
 import {
-  useField,
-  SelectInput,
-  FieldLabel,
   FieldDescription,
+  FieldLabel,
+  SelectInput,
+  useField,
 } from "@payloadcms/ui";
-import { BRANDS } from "~/lib/generated";
+import React,{ useMemo } from "react";
 import { orderBrandsWithPriority } from "~/lib/brands";
+import { BRANDS } from "~/lib/generated";
 
 const BrandSelect: React.FC<{
   name?: string;

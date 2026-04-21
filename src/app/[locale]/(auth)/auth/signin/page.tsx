@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { env } from "~/env";
-import { defaultLocale, isLocale } from "~/i18n/config";
+import { defaultLocale,isLocale } from "~/i18n/config";
 import SignInClient from "./client";
 
 export async function generateMetadata({

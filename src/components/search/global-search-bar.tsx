@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Search as SearchIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useEffect,useState } from "react";
 import { Kbd } from "~/components/ui/kbd";
 import { cn } from "~/lib/utils";
 import { dispatchOpenSearchSurface } from "./search-events";

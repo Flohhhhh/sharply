@@ -3,7 +3,7 @@ These tests lock down the development auth bypass safety contract.
 If they fail, the bypass may no longer stay opt-in, dev-only, or deterministic.
 */
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach,describe,expect,it,vi } from "vitest";
 
 const envMocks = vi.hoisted(() => ({
   env: {
@@ -25,10 +25,10 @@ vi.mock("~/server/auth/dev-auth/data", () => dataMocks);
 
 import {
   getDevelopmentAuthEmail,
-  isDevelopmentAuthHostAllowed,
   getOrCreateDevelopmentAuthUser,
   isDevelopmentAuthEnabled,
   isDevelopmentAuthEnabledForConfig,
+  isDevelopmentAuthHostAllowed,
   isDevelopmentAuthRequestAllowed,
   resolveDevelopmentAuthEmail,
 } from "~/server/auth/dev-auth/service";

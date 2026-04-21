@@ -54,7 +54,7 @@ export async function actionUpdateProfileImage(imageUrl: string);
 - Delegates to service layer
 - Revalidates `/profile/settings` path
 
-#### Upload Handler (`src/app/(app)/api/uploadthing/core.ts`)
+#### Upload Handler (`src/app/api/uploadthing/core.ts`)
 
 ```typescript
 profilePictureUploader: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } });
@@ -110,7 +110,7 @@ Images are resized client-side before upload:
 Profile picture management is integrated into the account settings page:
 
 ```tsx
-// src/app/(app)/(pages)/profile/settings/page.tsx
+// src/app/[locale]/(pages)/profile/settings/page.tsx
 <ProfilePictureModal currentImageUrl={user?.image ?? null} />
 ```
 
@@ -150,8 +150,8 @@ Better Auth uses this field for the user avatar (including any provider profile 
 - `src/server/users/service.ts` - Service layer with auth
 - `src/server/users/actions.ts` - Server actions
 - `src/components/modals/profile-picture-modal.tsx` - UI component
-- `src/app/(app)/(pages)/profile/settings/page.tsx` - Settings page
-- `src/app/(app)/api/uploadthing/core.ts` - Upload configuration
+- `src/app/[locale]/(pages)/profile/settings/page.tsx` - Settings page
+- `src/app/api/uploadthing/core.ts` - Upload configuration
 
 ## Inspiration
 

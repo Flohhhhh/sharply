@@ -1,10 +1,10 @@
 "use client";
 
-import { toast } from "sonner";
-import type { BadgeDefinition } from "~/types/badges";
-import { BADGE_CATALOG } from "~/lib/badges/catalog";
-import { BadgeTile } from "~/components/badges/badge-tile";
 import Link from "next/link";
+import { toast } from "sonner";
+import { BadgeTile } from "~/components/badges/badge-tile";
+import { BADGE_CATALOG } from "~/lib/badges/catalog";
+import type { BadgeDefinition } from "~/types/badges";
 
 export function BadgeToast({ badge }: { badge: BadgeDefinition }) {
   return (

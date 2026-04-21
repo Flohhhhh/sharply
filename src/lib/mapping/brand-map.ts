@@ -1,5 +1,5 @@
-import { BRANDS } from "../constants";
 import type { Brand } from "~/types/gear";
+import { BRANDS } from "../constants";
 
 type BrandConst = Pick<Brand, "id" | "name" | "slug">;
 const BRAND_LIST = BRANDS as BrandConst[];

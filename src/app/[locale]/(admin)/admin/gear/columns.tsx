@@ -2,20 +2,14 @@
 // (client component) will contain our column definitions.
 
 import type { ColumnDef } from "@tanstack/react-table";
-import type { AdminGearTableRow } from "~/types/gear";
-import Link from "next/link";
+import { Copy,Image as ImageIcon,Pencil,Trash2 } from "lucide-react";
 import { useLocale } from "next-intl";
-import { RenameGearDialog } from "~/components/gear/rename-gear-dialog";
-import { Button } from "~/components/ui/button";
-import { Pencil, Copy, Image as ImageIcon, Trash2 } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "~/components/ui/tooltip";
+import Link from "next/link";
+import { useState } from "react";
 import { toast } from "sonner";
-import { GearImageModal } from "~/components/modals/gear-image-modal";
 import { mutate } from "swr";
+import { RenameGearDialog } from "~/components/gear/rename-gear-dialog";
+import { GearImageModal } from "~/components/modals/gear-image-modal";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,9 +21,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "~/components/ui/alert-dialog";
-import { useState } from "react";
-import { actionDeleteGear } from "~/server/admin/gear/actions";
+import { Button } from "~/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
 import { formatDate } from "~/lib/format/date";
+import { actionDeleteGear } from "~/server/admin/gear/actions";
+import type { AdminGearTableRow } from "~/types/gear";
 
 // TO ADD A COLUMN:
 // 1. Add the field to `adminGearSelect` in `~/server/admin/gear/data.ts`.

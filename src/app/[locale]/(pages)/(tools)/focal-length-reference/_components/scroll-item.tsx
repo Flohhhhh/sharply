@@ -1,6 +1,6 @@
+import Image from "next/image";
 import { cn } from "~/lib/utils";
 import type { ImageSet } from "../data";
-import Image from "next/image";
 
 const SHOW_FOCAL_LENGTH_OVERLAY = false;
 

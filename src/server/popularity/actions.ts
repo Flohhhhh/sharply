@@ -1,12 +1,12 @@
 "use server";
 import "server-only";
 
+import { cookies,headers } from "next/headers";
 import {
-  recordGearView,
-  recordCompareAdd,
   incrementComparePairCount,
+  recordCompareAdd,
+  recordGearView,
 } from "./service";
-import { cookies, headers } from "next/headers";
 
 /**
  * actionRecordGearView

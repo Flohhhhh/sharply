@@ -1,19 +1,19 @@
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
-import { useState } from "react";
 import { useLocale } from "next-intl";
-import { cn } from "~/lib/utils";
-import { formatGearCardDate, type GearCardProps } from "./gear-card";
-import { TrendingBadge } from "../gear-badges/trending-badge";
-import { NewBadge } from "../gear-badges/new-badge";
+import Image from "next/image";
+import Link from "next/link";
+import { useState } from "react";
 import { BRANDS } from "~/lib/constants";
+import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
 import { PRICE_FALLBACK_TEXT } from "~/lib/mapping";
-import { HallOfFameBadge } from "../gear-badges/hall-of-fame-badge";
+import { cn } from "~/lib/utils";
 import { isInHallOfFame } from "~/lib/utils/is-in-hall-of-fame";
 import { isNewRelease } from "~/lib/utils/is-new";
-import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
+import { HallOfFameBadge } from "../gear-badges/hall-of-fame-badge";
+import { NewBadge } from "../gear-badges/new-badge";
+import { TrendingBadge } from "../gear-badges/trending-badge";
+import { formatGearCardDate,type GearCardProps } from "./gear-card";
 import { GearCardMoreMenu } from "./gear-card-more-menu";
 
 function splitBrandNameVariants(brandName: string) {

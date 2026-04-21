@@ -1,9 +1,9 @@
 "use client";
 
-import { Camera, SearchIcon } from "lucide-react";
+import { Camera,SearchIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { cn } from "~/lib/utils";
 import { SearchSuggestionRow } from "~/components/search/search-suggestion-row";
+import { cn } from "~/lib/utils";
 
 type Props = {
   id: string;

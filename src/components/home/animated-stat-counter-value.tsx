@@ -1,8 +1,8 @@
 "use client";
 
-import NumberFlow, { continuous } from "@number-flow/react";
-import { useInView, useReducedMotion } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import NumberFlow,{ continuous } from "@number-flow/react";
+import { useInView,useReducedMotion } from "motion/react";
+import { useEffect,useRef,useState } from "react";
 
 type AnimatedStatCounterValueProps = {
   value: number;

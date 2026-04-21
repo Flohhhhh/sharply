@@ -1,5 +1,5 @@
 import type { CrumbItem } from "~/components/layout/breadcrumbs";
-import { getCategoryLabel, type GearCategorySlug } from "~/lib/browse/routing";
+import { getCategoryLabel,type GearCategorySlug } from "~/lib/browse/routing";
 import {
   getMountById,
   getMountNameById,

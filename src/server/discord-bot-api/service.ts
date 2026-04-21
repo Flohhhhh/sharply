@@ -1,10 +1,10 @@
 import "server-only";
 
 import { buildCompareHref } from "~/lib/utils/url";
-import { fetchContributionCount, fetchGearCount } from "~/server/metrics/service";
-import { fetchTrending } from "~/server/popularity/service";
-import { searchGear, type SearchResult } from "~/server/search/service";
 import { resolveGearFromMessage } from "~/server/discord-bot/service";
+import { fetchContributionCount,fetchGearCount } from "~/server/metrics/service";
+import { fetchTrending } from "~/server/popularity/service";
+import { searchGear,type SearchResult } from "~/server/search/service";
 
 import {
   fetchDiscordBotGearPricesBySlug,

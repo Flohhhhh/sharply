@@ -3,7 +3,7 @@ import "server-only";
 import { requireRole } from "~/lib/auth/auth-helpers";
 import { getSessionOrThrow } from "~/server/auth";
 
-import { fetchRollupRunsData, type RollupRunRow } from "./data";
+import { fetchRollupRunsData,type RollupRunRow } from "./data";
 
 export async function fetchRollupRuns(limit = 50): Promise<RollupRunRow[]> {
   const session = await getSessionOrThrow();

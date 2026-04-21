@@ -1,8 +1,8 @@
+import { formatDate } from "~/lib/format/date";
 import type {
   ExifTrackedCameraHistoryEntry,
   ExifTrackingChartSeries,
 } from "../types";
-import { formatDate } from "~/lib/format/date";
 
 export type ExifTrackingChartTimeSource = "capture" | "saved";
 

@@ -1,4 +1,3 @@
-import { Button } from "~/components/ui/button";
 import {
   BadgeCheck,
   CheckCircle2,
@@ -6,17 +5,18 @@ import {
   Heart,
   ScanHeart,
 } from "lucide-react";
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import Image from "next/image";
-import Timeline from "./timeline";
-import { AboutCta } from "./about-cta";
-import { Badge } from "~/components/ui/badge";
+import DiscordBanner from "~/components/discord-banner";
 import { ContributionCounter } from "~/components/home/contribution-counter";
 import { GearCounter } from "~/components/home/gear-counter";
-import type { Metadata } from "next";
-import DiscordBanner from "~/components/discord-banner";
 import { LocaleLink } from "~/components/locale-link";
+import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
-import { getTranslations } from "next-intl/server";
+import { AboutCta } from "./about-cta";
+import Timeline from "./timeline";
 
 export async function generateMetadata({
   params,

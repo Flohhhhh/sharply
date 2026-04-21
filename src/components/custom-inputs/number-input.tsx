@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Label } from "~/components/ui/label";
-import type { ReactNode } from "react";
 import { InfoIcon } from "lucide-react";
+import type { ReactNode } from "react";
+import { useEffect,useMemo,useRef,useState } from "react";
+import { Label } from "~/components/ui/label";
 import {
   Tooltip,
   TooltipContent,
@@ -102,7 +102,7 @@ export const NumberInput = ({
     value: text,
     disabled,
     onBeforeInput: (e: React.FormEvent<HTMLInputElement>) => {
-      const ne: any = (e as any).nativeEvent as any;
+      const ne: any = (e as any).nativeEvent;
       const inputType: string | undefined = ne?.inputType;
       if (inputType?.startsWith("delete")) return;
       const data: string = ne?.data ?? "";

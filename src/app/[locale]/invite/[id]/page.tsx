@@ -1,9 +1,9 @@
-import { fetchInviteById } from "~/server/invites/service";
+import { BookOpen,TicketCheck } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import { SpinningText } from "~/components/ui/spinning-text";
-import { BookOpen, TicketCheck } from "lucide-react";
-import type { Metadata } from "next";
+import { fetchInviteById } from "~/server/invites/service";
 
 export const metadata: Metadata = {
   title: "You're Invited!",

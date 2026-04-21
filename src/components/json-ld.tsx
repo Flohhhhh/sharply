@@ -1,8 +1,8 @@
+import { GetGearDisplayName } from "~/lib/gear/naming";
 import {
   generateGearPageJsonLd,
   type GearPageJsonLdInput,
 } from "~/lib/seo/json-ld-helpers";
-import { GetGearDisplayName } from "~/lib/gear/naming";
 import type { GearItem } from "~/types/gear";
 
 export function JsonLd(props: { gear: GearItem }) {

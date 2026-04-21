@@ -1,20 +1,15 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { InfoIcon } from "lucide-react";
+import { useEffect,useMemo,useState } from "react";
 import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "~/components/ui/tooltip";
+import { Card,CardContent,CardHeader,CardTitle } from "~/components/ui/card";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "~/components/ui/collapsible";
-import { useDebounce } from "~/lib/hooks/useDebounce";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -24,16 +19,21 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import {
-  isBrandNameOnly as isBrandOnlyName,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
+import { splitBrandsWithPriority } from "~/lib/brands";
+import { ENUMS } from "~/lib/constants";
+import { useDebounce } from "~/lib/hooks/useDebounce";
+import { normalizeMpbLinkInput } from "~/lib/links/mpb";
+import { humanizeKey } from "~/lib/utils";
+import {
   getNameSoftWarnings,
+  isBrandNameOnly as isBrandOnlyName,
   type SoftWarning,
 } from "~/lib/validation/gear-creation-validations";
 import type { GearType } from "~/types/gear";
-import { ENUMS } from "~/lib/constants";
-import { humanizeKey } from "~/lib/utils";
-import { splitBrandsWithPriority } from "~/lib/brands";
-import { normalizeMpbLinkInput } from "~/lib/links/mpb";
-import { InfoIcon } from "lucide-react";
 
 type Brand = { id: string; name: string };
 type FuzzyItem = { id: string; slug: string; name: string };
@@ -264,7 +264,7 @@ export function GearCreateCard() {
           const hard = rec.hard as Record<string, unknown> | undefined;
           setHardSlugConflict(Boolean(hard?.slug));
           setHardModelConflict(Boolean(hard?.modelName));
-          const fz = rec.fuzzy as unknown;
+          const fz = rec.fuzzy;
           if (Array.isArray(fz)) {
             const items = fz.filter((g): g is FuzzyItem => {
               if (typeof g !== "object" || g === null) return false;

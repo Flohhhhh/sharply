@@ -1,7 +1,7 @@
 import "dotenv/config";
+import { isNull,or } from "drizzle-orm";
 import { db } from "../src/server/db";
 import { gear } from "../src/server/db/schema";
-import { or, isNull } from "drizzle-orm";
 
 async function main() {
   console.log("Listing gear with any null link field...\n");

@@ -1,23 +1,22 @@
-import { getNewsPosts } from "~/server/payload/service";
-import { notFound } from "next/navigation";
-import { getNewsPostBySlug } from "~/server/payload/service";
-import Image from "next/image";
-import { Badge } from "~/components/ui/badge";
-import { Calendar, ExternalLink } from "lucide-react";
+import { Calendar,ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import DiscordBanner from "~/components/discord-banner";
+import { GearCardHorizontal } from "~/components/gear/gear-card-horizontal";
 import { RichText } from "~/components/rich-text";
 import { TableOfContents } from "~/components/rich-text/table-of-contents";
-import { GearCardHorizontal } from "~/components/gear/gear-card-horizontal";
-import { fetchGearBySlug } from "~/server/gear/service";
-import { getBrandNameById } from "~/lib/mapping/brand-map";
-import { getItemDisplayPrice } from "~/lib/mapping";
-import DiscordBanner from "~/components/discord-banner";
-import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
-import Link from "next/link";
+import { Badge } from "~/components/ui/badge";
 import { Separator } from "~/components/ui/separator";
-import { buildLocalizedMetadata } from "~/lib/seo/metadata";
-import { getTranslations } from "next-intl/server";
+import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
 import { formatDate } from "~/lib/format/date";
+import { getItemDisplayPrice } from "~/lib/mapping";
+import { getBrandNameById } from "~/lib/mapping/brand-map";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import { fetchGearBySlug } from "~/server/gear/service";
+import { getNewsPostBySlug,getNewsPosts } from "~/server/payload/service";
 
 export const revalidate = 60;
 
@@ -94,7 +93,7 @@ export default async function DynamicPage({
   const relatedGearItems = Array.isArray(page.related_gear_items)
     ? (
         await Promise.all(
-          (page.related_gear_items as unknown[])
+          (page.related_gear_items)
             .filter((v): v is string => typeof v === "string")
             .map(async (gearSlug) => {
               try {

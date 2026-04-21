@@ -1,8 +1,8 @@
-import { clsx, type ClassValue } from "clsx";
-import type { GearItem } from "~/types/gear";
+import { clsx,type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { MOUNTS } from "~/lib/generated";
 import { buildGearSearchName } from "~/lib/gear/naming";
+import { MOUNTS } from "~/lib/generated";
+import type { GearItem } from "~/types/gear";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

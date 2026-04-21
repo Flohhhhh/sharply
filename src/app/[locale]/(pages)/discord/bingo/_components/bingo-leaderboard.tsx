@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { motion } from "motion/react";
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import Link from "next/link";
+import { Avatar,AvatarFallback,AvatarImage } from "~/components/ui/avatar";
 import type { BingoLeaderboardRow } from "~/types/bingo";
 
 export default function BingoLeaderboard(props: {

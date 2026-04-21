@@ -1,78 +1,68 @@
+import { FileDown } from "lucide-react";
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import Link from "next/link";
-import { getItemDisplayPrice, PRICE_FALLBACK_TEXT } from "~/lib/mapping";
-import { getConstructionState } from "~/lib/utils";
-import { GearActionButtons } from "~/app/[locale]/(pages)/gear/_components/gear-action-buttons";
-import { fetchPendingEditCountForGear } from "~/server/gear/service";
-import { GearVisitTracker } from "~/app/[locale]/(pages)/gear/_components/gear-visit-tracker";
-import { GearReviews } from "~/app/[locale]/(pages)/gear/_components/gear-reviews";
-import { AiReviewBanner } from "../_components/ai-review-banner";
-import {
-  fetchGearBySlug,
-  fetchUseCaseRatings,
-  fetchStaffVerdict,
-  fetchNewestGearSlugs,
-  fetchGearAlternatives,
-} from "~/server/gear/service";
+import { notFound } from "next/navigation";
 import { ConstructionFullPage } from "~/app/[locale]/(pages)/gear/_components/construction-full";
-import type { GearItem } from "~/types/gear";
+import { GearActionButtons } from "~/app/[locale]/(pages)/gear/_components/gear-action-buttons";
 import { GearContributors } from "~/app/[locale]/(pages)/gear/_components/gear-contributors";
-import { UserPendingEditBanner } from "../_components/user-pending-edit-banner";
-import { SignInToEditSpecsCta } from "../_components/sign-in-to-edit-cta";
+import { GearImageCarousel } from "~/app/[locale]/(pages)/gear/_components/gear-image-carousel";
 import { GearLinks } from "~/app/[locale]/(pages)/gear/_components/gear-links";
-import GearStatsCard from "../_components/gear-stats-card";
-import { TrendingBadge } from "~/components/gear-badges/trending-badge";
+import { GearReviews } from "~/app/[locale]/(pages)/gear/_components/gear-reviews";
+import { GearVisitTracker } from "~/app/[locale]/(pages)/gear/_components/gear-visit-tracker";
+import DiscordBanner from "~/components/discord-banner";
+import { HallOfFameBadge } from "~/components/gear-badges/hall-of-fame-badge";
 import { NewBadge } from "~/components/gear-badges/new-badge";
+import { TrendingBadge } from "~/components/gear-badges/trending-badge";
+import { GearDisplayName } from "~/components/gear/gear-display-name";
+import { GearItemDock } from "~/components/gear/gear-tools-dock/gear-item-dock";
+import { RenameGearButton } from "~/components/gear/rename-gear-button";
+import { NewsCard } from "~/components/home/news-card";
+import { JsonLd } from "~/components/json-ld";
+import { Breadcrumbs,type CrumbItem } from "~/components/layout/breadcrumbs";
+import { Button } from "~/components/ui/button";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemTitle
+} from "~/components/ui/item";
+import { env } from "~/env";
+import { formatDate,formatRelativeDate } from "~/lib/format/date";
+import { GetGearDisplayName } from "~/lib/gear/naming";
+import { resolveRegionFromCountryCode } from "~/lib/gear/region";
+import { getItemDisplayPrice,PRICE_FALLBACK_TEXT } from "~/lib/mapping";
+import { getBrandById } from "~/lib/mapping/brand-map";
+import { buildGearMetaDescription } from "~/lib/seo/build-gear-meta-description";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import { buildGearSpecsSections } from "~/lib/specs/registry";
+import { getConstructionState } from "~/lib/utils";
+import { isInHallOfFame } from "~/lib/utils/is-in-hall-of-fame";
 import { isNewRelease } from "~/lib/utils/is-new";
+import { fetchPublicGearCreatorVideos } from "~/server/creator-videos/service";
+import { fetchGearAlternatives,fetchGearBySlug,fetchNewestGearSlugs,fetchPendingEditCountForGear,fetchStaffVerdict,fetchUseCaseRatings } from "~/server/gear/service";
+import {
+  getNewsByRelatedGearSlug,
+  getReviewByGearSlug,
+} from "~/server/payload/service";
 import {
   fetchHighTrafficGearSlugs,
   fetchTrendingSlugs,
   getTrendingStatusForSlugs,
 } from "~/server/popularity/service";
-import { SpecsSection } from "../_components/specs-section";
-import { buildGearSpecsSections } from "~/lib/specs/registry";
-import type { GearType } from "~/types/gear";
-import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
-import { Breadcrumbs, type CrumbItem } from "~/components/layout/breadcrumbs";
-import { getBrandById } from "~/lib/mapping/brand-map";
-import { RenameGearButton } from "~/components/gear/rename-gear-button";
-import {
-  getReviewByGearSlug,
-  getNewsByRelatedGearSlug,
-} from "~/server/payload/service";
-import { NewsCard } from "~/components/home/news-card";
-import { Button } from "~/components/ui/button";
-import { notFound } from "next/navigation";
-import DiscordBanner from "~/components/discord-banner";
-import Image from "next/image";
-import { JsonLd } from "~/components/json-ld";
-import { GearImageCarousel } from "~/app/[locale]/(pages)/gear/_components/gear-image-carousel";
-import { StaffVerdictSection } from "../_components/staff-verdict-section";
-import { HallOfFameBadge } from "~/components/gear-badges/hall-of-fame-badge";
-import { isInHallOfFame } from "~/lib/utils/is-in-hall-of-fame";
-import { GearAlternativesSection } from "../_components/gear-alternatives-section";
-import { BookImageIcon, Download, FileDown } from "lucide-react";
-import {
-  Item,
-  ItemContent,
-  ItemActions,
-  ItemDescription,
-  ItemTitle,
-} from "~/components/ui/item";
-import { GearItemDock } from "~/components/gear/gear-tools-dock/gear-item-dock";
-import { GearDisplayName } from "~/components/gear/gear-display-name";
-import { GetGearDisplayName } from "~/lib/gear/naming";
-import { resolveRegionFromCountryCode } from "~/lib/gear/region";
-import { GearBreadcrumbNameHydrator } from "../_components/gear-breadcrumb-name-hydrator";
-import { buildGearMetaDescription } from "~/lib/seo/build-gear-meta-description";
-import { buildLocalizedMetadata } from "~/lib/seo/metadata";
-import { env } from "~/env";
-import { buildGearBreadcrumbItems } from "../_components/gear-breadcrumb-items";
-import { buildGearSectionNavItems } from "../_components/gear-section-nav";
-import { fetchPublicGearCreatorVideos } from "~/server/creator-videos/service";
+import type { GearItem } from "~/types/gear";
+import { AiReviewBanner } from "../_components/ai-review-banner";
 import { CreatorVideosSection } from "../_components/creator-videos-section";
 import { EditAppliedToast } from "../_components/edit-applied-toast";
-import { formatDate, formatRelativeDate } from "~/lib/format/date";
+import { GearAlternativesSection } from "../_components/gear-alternatives-section";
+import { buildGearBreadcrumbItems } from "../_components/gear-breadcrumb-items";
+import { GearBreadcrumbNameHydrator } from "../_components/gear-breadcrumb-name-hydrator";
+import { buildGearSectionNavItems } from "../_components/gear-section-nav";
+import GearStatsCard from "../_components/gear-stats-card";
+import { SignInToEditSpecsCta } from "../_components/sign-in-to-edit-cta";
+import { SpecsSection } from "../_components/specs-section";
+import { StaffVerdictSection } from "../_components/staff-verdict-section";
+import { UserPendingEditBanner } from "../_components/user-pending-edit-banner";
 
 export const revalidate = 3600;
 export const dynamicParams = true;
@@ -176,7 +166,7 @@ export default async function GearPage({
 
   // Fetch core gear data
   const item = await fetchGearBySlug(slug).catch((err: any) => {
-    if ((err as any)?.status === 404) return null;
+    if ((err)?.status === 404) return null;
     throw err;
   });
 
@@ -238,9 +228,8 @@ export default async function GearPage({
         <ConstructionFullPage
           gearName={regionalDisplayName}
           missing={construction.missing}
-          editHref={`/gear/${item.slug}/edit?type=${item.gearType}`}
           slug={item.slug}
-          gearType={item.gearType as "CAMERA" | "ANALOG_CAMERA" | "LENS"}
+          gearType={item.gearType}
         />
       </main>
     );
@@ -408,12 +397,12 @@ export default async function GearPage({
             item={item}
             sections={specSections}
             slug={item.slug}
-            gearType={item.gearType as GearType}
+            gearType={item.gearType}
           />
           {/* Sign-in CTA banner for editing specs (client, only when signed out) */}
           <SignInToEditSpecsCta
             slug={item.slug}
-            gearType={item.gearType as GearType}
+            gearType={item.gearType}
           />
           {/* Editorial Reviews*/}
           {review && (
@@ -530,6 +519,7 @@ export default async function GearPage({
                 <span>
                   {formatRelativeDate(item.updatedAt, {
                     locale,
+                    capitalize: true,
                   })}
                 </span>
               </div>

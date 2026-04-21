@@ -1,24 +1,24 @@
+import { ArrowRightIcon,BookOpenIcon,Library,Loader } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { GlobalSearchBar } from "~/components/search/global-search-bar";
-import { GearCounter } from "~/components/home/gear-counter";
-import { ContributionCounter } from "~/components/home/contribution-counter";
-import { Button } from "~/components/ui/button";
-import { ArrowRightIcon, BookOpenIcon, Library, Loader } from "lucide-react";
-import { Separator } from "~/components/ui/separator";
 import { Suspense } from "react";
-import { NewsCard as HomeNewsCard } from "~/components/home/news-card";
-import { ReviewCard, type ReviewPost } from "~/components/home/review-card";
-import { ActivityList } from "~/components/home/activity-list";
-import TrendingList from "~/components/trending-list";
-import { getNewsPosts, getReviews } from "~/server/payload/service";
-import { fetchHomeActivity } from "~/server/gear/service";
-import type { News, Review } from "~/payload-types";
 import DiscordBanner from "~/components/discord-banner";
+import { ActivityList } from "~/components/home/activity-list";
+import { ContributionCounter } from "~/components/home/contribution-counter";
+import { GearCounter } from "~/components/home/gear-counter";
+import { NewsCard as HomeNewsCard } from "~/components/home/news-card";
+import { ReviewCard,type ReviewPost } from "~/components/home/review-card";
 import { LocaleLink } from "~/components/locale-link";
-import { defaultLocale, isLocale } from "~/i18n/config";
-import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import { GlobalSearchBar } from "~/components/search/global-search-bar";
+import TrendingList from "~/components/trending-list";
+import { Button } from "~/components/ui/button";
+import { Separator } from "~/components/ui/separator";
+import { defaultLocale,isLocale } from "~/i18n/config";
 import { formatDate } from "~/lib/format/date";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import type { Review } from "~/payload-types";
+import { fetchHomeActivity } from "~/server/gear/service";
+import { getNewsPosts,getReviews } from "~/server/payload/service";
 
 export const revalidate = 60;
 
@@ -99,7 +99,7 @@ export default async function Home({
     };
   };
 
-  const featuredPost = posts[0] ? toHomePost(posts[0]!) : null;
+  const featuredPost = posts[0] ? toHomePost(posts[0]) : null;
   const otherPosts = posts.slice(1, 7).map(toHomePost);
 
   const calculateRatingPercent = (

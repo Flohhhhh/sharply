@@ -7,18 +7,18 @@ if (process.env.NEXT_RUNTIME) {
 
 import { openai } from "~/lib/open-ai/open-ai";
 import {
-  SUMMARY_MODEL,
-  SUMMARY_TEMPERATURE,
-  SUMMARY_SYSTEM_MESSAGE,
-  buildSummaryPrompt,
-} from "./prompt-config";
-import {
   countApprovedReviewsForGear,
   fetchRecentApprovedReviews,
   getReviewSummaryRow,
   isSummaryOlderThanDays,
   upsertReviewSummary,
 } from "./data";
+import {
+  SUMMARY_MODEL,
+  SUMMARY_SYSTEM_MESSAGE,
+  SUMMARY_TEMPERATURE,
+  buildSummaryPrompt,
+} from "./prompt-config";
 
 export const SUMMARY_CONFIG = {
   minReviews: 5, //TODO: increase to 10

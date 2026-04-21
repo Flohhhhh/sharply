@@ -28,7 +28,7 @@ export async function RollupRunsList() {
           {rows.map((r) => (
             <tr key={r.id} className="border-t">
               <td className="px-3 py-2">
-                {new Date(r.createdAt!).toISOString()}
+                {new Date(r.createdAt).toISOString()}
               </td>
               <td className="px-3 py-2">{String(r.asOfDate)}</td>
               <td className="px-3 py-2">{String(r.correctedDate)}</td>

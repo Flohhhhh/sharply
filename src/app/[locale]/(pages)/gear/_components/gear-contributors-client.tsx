@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import Link from "next/link";
+import { Avatar,AvatarFallback,AvatarImage } from "~/components/ui/avatar";
 import {
   Dialog,
   DialogContent,

@@ -1,18 +1,18 @@
 "use client"
 
-import React, { useRef } from "react"
-import type { PropsWithChildren } from "react"
-import { cva, type VariantProps } from "class-variance-authority"
+import { cva,type VariantProps } from "class-variance-authority";
+import type { MotionProps } from "motion/react";
 import {
   motion,
   MotionValue,
   useMotionValue,
   useSpring,
   useTransform,
-} from "motion/react"
-import type { MotionProps } from "motion/react"
+} from "motion/react";
+import type { PropsWithChildren } from "react";
+import React,{ useRef } from "react";
 
-import { cn } from "~/lib/utils"
+import { cn } from "~/lib/utils";
 
 export interface DockProps extends VariantProps<typeof dockVariants> {
   className?: string
@@ -153,4 +153,4 @@ const DockIcon = ({
 
 DockIcon.displayName = "DockIcon"
 
-export { Dock, DockIcon, dockVariants }
+export { Dock,DockIcon,dockVariants };

@@ -7,51 +7,51 @@ import {
   desc,
   eq,
   gte,
+  inArray,
   lt,
   or,
   sql,
-  inArray,
 } from "drizzle-orm";
+import { buildGearSearchName } from "~/lib/gear/naming";
 import { db } from "~/server/db";
 import {
+  afAreaModes,
+  analogCameraSpecs,
+  auditLogs,
   brands,
+  cameraAfAreaSpecs,
+  cameraCardSlots,
+  cameraSpecs,
+  fixedLensSpecs,
   gear,
-  mounts,
+  gearAliases,
+  gearAlternatives,
+  gearCreatorVideos,
+  gearEdits,
   gearMounts,
   gearPopularityDaily,
   gearPopularityIntraday,
   gearPopularityLifetime,
   gearPopularityWindows,
+  gearRawSamples,
+  genres,
+  imageRequests,
+  lensSpecs,
+  mounts,
   ownerships,
   popularityEvents,
+  rawSamples,
+  reviewFlags,
   reviews,
+  staffVerdicts,
+  useCaseRatings,
   users,
   wishlists,
-  imageRequests,
-  cameraSpecs,
-  analogCameraSpecs,
-  cameraAfAreaSpecs,
-  afAreaModes,
-  cameraCardSlots,
-  lensSpecs,
-  fixedLensSpecs,
-  gearEdits,
-  gearCreatorVideos,
-  useCaseRatings,
-  staffVerdicts,
-  genres,
-  auditLogs,
-  gearAlternatives,
-  rawSamples,
-  gearRawSamples,
-  gearAliases,
-  reviewFlags,
 } from "~/server/db/schema";
-import { hasEventForUserOnUtcDay } from "~/server/validation/dedupe";
 import { incrementGearPopularityIntraday } from "~/server/popularity/data";
-import type { Gear, GearAlias, GearItem, GearRegion } from "~/types/gear";
+import { hasEventForUserOnUtcDay } from "~/server/validation/dedupe";
 import { fetchVideoModesByGearId } from "~/server/video-modes/data";
-import { buildGearSearchName } from "~/lib/gear/naming";
+import type { Gear,GearAlias,GearItem,GearRegion } from "~/types/gear";
 import type { GearActivityRow } from "./home-activity";
 
 type DbClient = Pick<typeof db, "select" | "update" | "insert" | "delete">;
@@ -620,7 +620,7 @@ export async function fetchBrandGearData(
     }
     mountsByGearId
       .get(m.gearId)!
-      .push({ id: m.mountId!, value: m.mountValue! });
+      .push({ id: m.mountId, value: m.mountValue });
   }
 
   const aliasesById = await fetchGearAliasesByGearIds(gearIds);
@@ -856,11 +856,11 @@ export async function upsertStaffVerdictByGearIdData(params: {
       target: staffVerdicts.gearId,
       set: {
         content: values.content,
-        pros: values.pros as any,
-        cons: values.cons as any,
+        pros: values.pros,
+        cons: values.cons,
         whoFor: values.whoFor,
         notFor: values.notFor,
-        alternatives: values.alternatives as any,
+        alternatives: values.alternatives,
         authorUserId: values.authorUserId,
         updatedAt: sql`now()`,
       },
@@ -1081,8 +1081,8 @@ export async function fetchAllGearForConstructionData(): Promise<
 
   const mountIdsByGearId = new Map<string, string[]>();
   for (const mr of mountsRows) {
-    if (!mountIdsByGearId.has(mr.gearId!)) mountIdsByGearId.set(mr.gearId!, []);
-    mountIdsByGearId.get(mr.gearId!)!.push(mr.mountId!);
+    if (!mountIdsByGearId.has(mr.gearId)) mountIdsByGearId.set(mr.gearId, []);
+    mountIdsByGearId.get(mr.gearId)!.push(mr.mountId);
   }
 
   return rows.map((r) => ({
@@ -1630,7 +1630,6 @@ export async function setGearAlternatives(
 ): Promise<void> {
   // Get current alternatives
   const current = await fetchAlternativesByGearId(gearId);
-  const currentIds = new Set(current.map((a) => a.gearId));
   const newIds = new Set(alternatives.map((a) => a.alternativeGearId));
 
   // Remove alternatives not in new list

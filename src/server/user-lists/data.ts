@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
+import { and,asc,desc,eq,inArray,sql } from "drizzle-orm";
 import { db } from "~/server/db";
 import {
   brands,
@@ -10,8 +10,8 @@ import {
   userLists,
   users,
 } from "~/server/db/schema";
+import { fetchGearAliasesByGearIds,getGearIdBySlug } from "~/server/gear/data";
 import type { GearAlias } from "~/types/gear";
-import { fetchGearAliasesByGearIds, getGearIdBySlug } from "~/server/gear/data";
 
 export type UserListRow = typeof userLists.$inferSelect;
 export type SharedListRow = typeof sharedLists.$inferSelect;

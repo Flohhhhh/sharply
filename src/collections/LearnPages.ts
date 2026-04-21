@@ -1,8 +1,7 @@
+import type { CollectionConfig } from "payload";
 import slugify from "slugify";
-import type { CollectionConfig, Field } from "payload";
 import {
-  relatedGearItemsField,
-  relatedBrandField,
+  relatedGearItemsField
 } from "~/payload-fields/custom-fields";
 import { lexicalFirstParagraphText } from "~/server/payload/richtext";
 

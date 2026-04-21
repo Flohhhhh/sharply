@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import { FaDiscord } from "react-icons/fa";
 import { track } from "@vercel/analytics";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
+import { FaDiscord } from "react-icons/fa";
 import { cn } from "~/lib/utils";
 import { Button } from "./ui/button";
 

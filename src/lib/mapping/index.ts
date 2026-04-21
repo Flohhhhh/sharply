@@ -6,22 +6,21 @@
  */
 
 // Mount mappings
-export { getMountDisplayName, getMountLongName } from "./mounts-map";
+export { getMountDisplayName,getMountLongName } from "./mounts-map";
 
 // Price formatting utilities
 export {
   formatPrice,
   getItemDisplayPrice,
-  PRICE_FALLBACK_TEXT,
+  PRICE_FALLBACK_TEXT
 } from "./price-map";
 
 // Dimensions formatting utilities
-export { formatDimensions, formatLensDimensions } from "./dimensions-map";
 export {
-  titleizeCardEnum,
   formatCardSlotDetails,
-  summarizeCardSlots,
+  summarizeCardSlots,titleizeCardEnum
 } from "./card-slots-map";
+export { formatDimensions,formatLensDimensions } from "./dimensions-map";
 
 // Camera type formatter
 export { formatCameraType } from "./camera-type-map";
@@ -31,14 +30,11 @@ export { formatShutterType } from "./shutter-types-map";
 
 // Lens aperture formatting
 export {
-  formatApertureSingle,
-  formatApertureRange,
-  formatLensApertureDisplay,
+  formatApertureRange,formatApertureSingle,formatLensApertureDisplay
 } from "./lens-aperture-map";
 
 export {
-  PRECAPTURE_SUPPORT_OPTIONS,
-  formatPrecaptureSupport,
+  formatPrecaptureSupport,PRECAPTURE_SUPPORT_OPTIONS
 } from "./precapture-map";
 
 // Import for use in this file

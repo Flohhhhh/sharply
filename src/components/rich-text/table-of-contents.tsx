@@ -1,9 +1,9 @@
 "use client";
 
 import { TableOfContentsIcon } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { usePathname } from "next/navigation";
+import { useEffect,useMemo,useRef,useState } from "react";
 
 type HeadingItem = {
   id: string;
@@ -49,13 +49,11 @@ export function TableOfContents(props: {
   const pathname = usePathname();
 
   useEffect(() => {
-    const container = document.querySelector(
-      contentSelector,
-    ) as HTMLElement | null;
+    const container = document.querySelector<HTMLElement>(contentSelector);
     setHeadings(extractHeadings(container));
 
     const headingsEls = container
-      ? Array.from(container.querySelectorAll("h2, h3, h4"))
+      ? Array.from(container.querySelectorAll<HTMLElement>("h2, h3, h4"))
       : [];
     if (observerRef.current) observerRef.current.disconnect();
     observerRef.current = new IntersectionObserver(

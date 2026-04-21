@@ -1,8 +1,8 @@
 "use client";
-import React from "react";
-import Link from "next/link";
 import type { Chart } from "@/lib/recommendations/types";
 import { useLocale } from "next-intl";
+import Link from "next/link";
+import React from "react";
 import { formatDate } from "~/lib/format/date";
 
 export function BrandBrowser({ charts }: { charts: Chart[] }) {

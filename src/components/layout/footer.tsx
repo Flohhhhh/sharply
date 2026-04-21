@@ -1,11 +1,12 @@
 "use client";
 
-import React from "react";
 import { useTranslations } from "next-intl";
-import { FaDiscord, FaInstagram, FaGithub, FaTwitter } from "react-icons/fa";
-import { getFooterItems } from "~/lib/nav-items";
+import Image from "next/image";
+import React from "react";
+import { FaDiscord,FaGithub,FaInstagram,FaTwitter } from "react-icons/fa";
 import { LanguageSwitcher } from "~/components/language-switcher";
 import { LocaleLink } from "~/components/locale-link";
+import { getFooterItems } from "~/lib/nav-items";
 
 interface Footer7Props {
   logo?: {
@@ -74,11 +75,13 @@ export default function Footer({
           {/* Logo */}
           <div className="flex items-center gap-4 lg:justify-start">
             <LocaleLink href={logo.url}>
-              <img
+              <Image
                 src={logo.src}
                 alt={logo.alt}
                 title={logo.title}
                 className="h-8"
+                width={32}
+                height={32}
               />
             </LocaleLink>
             <h2 className="text-xl font-semibold">{logo.title}</h2>
@@ -140,7 +143,7 @@ export default function Footer({
         </div>
       </div>
       <div className="border-border mt-8 border-t py-8">
-        <div className="text-muted-foreground flex flex-col justify-between gap-4 px-4 text-xs font-medium sm:px-8 md:flex-row md:items-center md:text-left">
+        <div className="text-muted-foreground flex flex-col justify-between gap-4 px-4 text-xs font-medium sm:px-8 md:flex-row md:items-start md:text-left">
           <div className="flex max-w-sm flex-col gap-4">
             <p className="order-2 lg:order-1">
               {tFooter("productImagesDisclaimer")}
@@ -149,7 +152,7 @@ export default function Footer({
             <p className="order-2 lg:order-1">{resolvedCopyright}</p>
           </div>
 
-          <ul className="order-1 flex flex-col gap-3 md:order-2 md:flex-row">
+          <ul className="order-1 flex flex-col gap-3 md:order-2 md:flex-row md:self-start">
             <li className="hover:text-primary transition-colors">
               <LocaleLink href="/privacy-policy">
                 {tNav("privacyPolicy")}

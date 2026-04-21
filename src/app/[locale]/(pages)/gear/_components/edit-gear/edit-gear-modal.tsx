@@ -1,28 +1,23 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "~/components/ui/dialog";
+import { useCallback,useState } from "react";
 import {
   AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
   AlertDialogDescription,
   AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent
+} from "~/components/ui/dialog";
+import type { GearItem,GearType } from "~/types/gear";
 import EditModalContent from "./edit-modal-content";
-import type { GearItem } from "~/types/gear";
-import type { GearType } from "~/types/gear";
-import { Label } from "~/components/ui/label";
-import { Switch } from "~/components/ui/switch";
 
 interface EditGearModalProps {
   canToggleAutoSubmit?: boolean;
@@ -44,9 +39,7 @@ export function EditGearModal({
   const router = useRouter();
   const [isDirty, setIsDirty] = useState(false);
   const [confirmExitOpen, setConfirmExitOpen] = useState(false);
-  const [showMissingOnly, setShowMissingOnly] = useState(
-    Boolean(initialShowMissingOnly),
-  );
+  const [showMissingOnly] = useState(Boolean(initialShowMissingOnly));
 
   const requestClose = useCallback(
     (opts?: { force?: boolean }) => {

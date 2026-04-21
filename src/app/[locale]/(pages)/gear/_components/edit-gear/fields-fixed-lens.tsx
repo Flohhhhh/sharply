@@ -1,8 +1,10 @@
 "use client";
 
-import { memo, useCallback, useMemo } from "react";
-import type { fixedLensSpecs } from "~/server/db/schema";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { memo,useCallback,useMemo } from "react";
+import { BooleanInput,NumberInput } from "~/components/custom-inputs";
+import FocalLengthInput from "~/components/custom-inputs/focal-length-input";
+import LensApertureInput from "~/components/custom-inputs/lens-aperture-input";
+import { Card,CardContent,CardHeader,CardTitle } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
 import {
   Select,
@@ -11,11 +13,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import FocalLengthInput from "~/components/custom-inputs/focal-length-input";
-import LensApertureInput from "~/components/custom-inputs/lens-aperture-input";
-import { BooleanInput, NumberInput } from "~/components/custom-inputs";
 import { SENSOR_FORMATS } from "~/lib/constants";
 import { sortSensorFormats } from "~/lib/sensor-formats";
+import type { fixedLensSpecs } from "~/server/db/schema";
+
+type SensorFormatOption = {
+  id: string;
+  name: string;
+  slug: string;
+};
 
 interface FixedLensFieldsProps {
   currentSpecs: typeof fixedLensSpecs.$inferSelect | null | undefined;
@@ -67,24 +73,10 @@ function FixedLensFieldsComponent({
   const CLEAR_SENSOR_FORMAT_VALUE = "none";
   const sensorFormatOptions = useMemo(
     () =>
-      sortSensorFormats(Array.isArray(SENSOR_FORMATS) ? SENSOR_FORMATS : [])
-        .map((format) => {
-          if (
-            !format ||
-            typeof format !== "object" ||
-            typeof (format as any).id !== "string" ||
-            typeof (format as any).name !== "string"
-          )
-            return null;
-          return {
-            id: (format as any).id as string,
-            name: (format as any).name as string,
-          };
-        })
-        .filter(
-          (item): item is { id: string; name: string } =>
-            !!item && item.id.length > 0 && item.name.length > 0,
-        ),
+      sortSensorFormats(SENSOR_FORMATS as SensorFormatOption[]).map((format) => ({
+        id: format.id,
+        name: format.name,
+      })),
     [],
   );
 
@@ -99,8 +91,7 @@ function FixedLensFieldsComponent({
       <CardContent className="space-y-4 px-0">
         <div className="flex flex-col gap-3">
           {showWhenMissing(
-            (initialSpecs as any)?.focalLengthMinMm ??
-              (initialSpecs as any)?.focalLengthMaxMm,
+            initialSpecs?.focalLengthMinMm ?? initialSpecs?.focalLengthMaxMm,
           ) && (
             <FocalLengthInput
               id="fixed-focal-length"
@@ -116,10 +107,10 @@ function FixedLensFieldsComponent({
           )}
 
           {showWhenMissing(
-            (initialSpecs as any)?.maxApertureWide ??
-              (initialSpecs as any)?.maxApertureTele ??
-              (initialSpecs as any)?.minApertureWide ??
-              (initialSpecs as any)?.minApertureTele,
+            initialSpecs?.maxApertureWide ??
+              initialSpecs?.maxApertureTele ??
+              initialSpecs?.minApertureWide ??
+              initialSpecs?.minApertureTele,
           ) && (
             <LensApertureInput
               className="col-span-2"
@@ -143,7 +134,7 @@ function FixedLensFieldsComponent({
             />
           )}
 
-          {showWhenMissing((initialSpecs as any)?.imageCircleSizeId) && (
+          {showWhenMissing(initialSpecs?.imageCircleSizeId) && (
             <div className="space-y-2">
               <Label htmlFor="fixed-image-circle-size">Image Circle Size</Label>
               <Select
@@ -175,7 +166,7 @@ function FixedLensFieldsComponent({
             </div>
           )}
 
-          {showWhenMissing((initialSpecs as any)?.hasAutofocus) && (
+          {showWhenMissing(initialSpecs?.hasAutofocus) && (
             <BooleanInput
               id="fixed-has-autofocus"
               label="Has Autofocus"
@@ -186,7 +177,7 @@ function FixedLensFieldsComponent({
             />
           )}
 
-          {showWhenMissing((initialSpecs as any)?.frontElementRotates) && (
+          {showWhenMissing(initialSpecs?.frontElementRotates) && (
             <BooleanInput
               id="fixed-front-element-rotates"
               label="Front Element Rotates"
@@ -199,7 +190,7 @@ function FixedLensFieldsComponent({
             />
           )}
 
-          {showWhenMissing((initialSpecs as any)?.frontFilterThreadSizeMm) && (
+          {showWhenMissing(initialSpecs?.frontFilterThreadSizeMm) && (
             <NumberInput
               id="fixed-front-filter-thread-size-mm"
               label="Front Filter Thread Size"
@@ -211,7 +202,7 @@ function FixedLensFieldsComponent({
             />
           )}
 
-          {showWhenMissing((initialSpecs as any)?.minimumFocusDistanceMm) && (
+          {showWhenMissing(initialSpecs?.minimumFocusDistanceMm) && (
             <NumberInput
               id="fixed-minimum-focus-distance"
               label="Minimum Focus Distance"
@@ -225,7 +216,7 @@ function FixedLensFieldsComponent({
             />
           )}
 
-          {showWhenMissing((initialSpecs as any)?.hasLensHood) && (
+          {showWhenMissing(initialSpecs?.hasLensHood) && (
             <BooleanInput
               id="fixed-has-lens-hood"
               label="Has Lens Hood"

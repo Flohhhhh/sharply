@@ -1,4 +1,3 @@
-import Link from "next/link";
 import {
   FileBadge,
   FilePlus,
@@ -9,7 +8,13 @@ import {
   Upload,
   Video,
 } from "lucide-react";
+import Link from "next/link";
 
+import { AlternativesManager } from "~/app/[locale]/(pages)/gear/_components/alternatives-manager";
+import { ManageCreatorVideosModal } from "~/app/[locale]/(pages)/gear/_components/manage-creator-videos-modal";
+import { ManageStaffVerdictModal } from "~/app/[locale]/(pages)/gear/_components/manage-staff-verdict-modal";
+import type { AuthUser } from "~/auth";
+import { GearImageModal } from "~/components/modals/gear-image-modal";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -19,21 +24,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
-import { GearImageModal } from "~/components/modals/gear-image-modal";
-import { requireRole } from "~/lib/auth/auth-helpers";
-import { UploadDropzone } from "~/lib/utils/uploadthing";
-import type { GearAlternativeRow } from "~/server/gear/service";
-import type { RawSample } from "~/types/gear";
-import { AlternativesManager } from "~/app/[locale]/(pages)/gear/_components/alternatives-manager";
-import type { AuthUser } from "~/auth";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
-import { ManageCreatorVideosModal } from "~/app/[locale]/(pages)/gear/_components/manage-creator-videos-modal";
-import { ManageStaffVerdictModal } from "~/app/[locale]/(pages)/gear/_components/manage-staff-verdict-modal";
+import { requireRole } from "~/lib/auth/auth-helpers";
 import { formatDate } from "~/lib/format/date";
+import { UploadDropzone } from "~/lib/utils/uploadthing";
+import type { GearAlternativeRow } from "~/server/gear/service";
+import type { RawSample } from "~/types/gear";
 
 type DockSample = Omit<RawSample, "createdAt" | "updatedAt"> & {
   createdAt?: string | null;
@@ -76,7 +76,6 @@ export function buildDockButtons({
   currentTopViewUrl,
   locale,
   alternatives,
-  hasCreatorVideos,
   managedSamples,
   isManagerOpen,
   setIsManagerOpen,

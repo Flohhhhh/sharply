@@ -5,8 +5,7 @@ import {
   Select,
   SelectContent,
   SelectItem,
-  SelectTrigger,
-  SelectValue,
+  SelectTrigger
 } from "~/components/ui/select";
 import { SENSOR_FORMATS } from "~/lib/constants";
 import { sensorSlugFromId } from "~/lib/mapping/sensor-map";

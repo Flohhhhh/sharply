@@ -1,5 +1,8 @@
 "use client";
 
+import { Loader } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { usePathname,useSearchParams } from "next/navigation";
 import {
   createContext,
   useCallback,
@@ -8,9 +11,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import { useTranslations } from "next-intl";
-import { usePathname, useSearchParams } from "next/navigation";
-import { Loader } from "lucide-react";
 
 type CompareLoadingOverlayContextValue = {
   show: () => void;

@@ -1,38 +1,31 @@
 "use client";
 
 import {
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type ColumnDef,
+  type SortingState,
+} from "@tanstack/react-table";
+import { Loader2 } from "lucide-react";
+import {
   useCallback,
   useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
-import {
-  useReactTable,
-  getCoreRowModel,
-  type ColumnDef,
-  flexRender,
-  getSortedRowModel,
-  type SortingState,
-} from "@tanstack/react-table";
 import useSWR from "swr";
-import type { AdminGearTableRow } from "~/types/gear";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "~/components/ui/table";
+import { Input } from "~/components/ui/input";
 import {
   Pagination,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
-  PaginationPrevious,
   PaginationNext,
-  PaginationEllipsis,
+  PaginationPrevious,
 } from "~/components/ui/pagination";
 import {
   Select,
@@ -41,9 +34,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { Input } from "~/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "~/components/ui/table";
 import { useDebounce } from "~/lib/hooks/useDebounce";
-import { Loader2 } from "lucide-react";
+import type { AdminGearTableRow } from "~/types/gear";
 
 // (client component) will contain our <DataTable /> component.
 

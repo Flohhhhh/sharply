@@ -1,11 +1,11 @@
 import "server-only";
 
 import { env } from "~/env";
-import { resend } from "~/lib/email";
 import {
   contactReasonLabels,
   type ContactFormInput,
 } from "~/lib/contact/contact-schema";
+import { resend } from "~/lib/email";
 
 type ContactEmailPayload = ContactFormInput & {
   route: string;

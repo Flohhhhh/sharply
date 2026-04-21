@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useReducer } from "react";
 import { useTranslations } from "next-intl";
+import { useEffect,useReducer } from "react";
 import useSWR from "swr";
 
 type Props = {

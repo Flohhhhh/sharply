@@ -27,6 +27,15 @@ const JUST_NOW_THRESHOLD_MS = 5 * MS_PER_SECOND;
 const dateFormatterCache = new Map<string, Intl.DateTimeFormat>();
 const relativeFormatterCache = new Map<string, Intl.RelativeTimeFormat>();
 
+function capitalizeFirstCharacter(value: string, locale: string): string {
+  if (!value) {
+    return value;
+  }
+
+  const [firstCharacter = "", ...rest] = Array.from(value);
+  return firstCharacter.toLocaleUpperCase(locale) + rest.join("");
+}
+
 function resolveTimeZone(
   timeZone: DateTimeZoneOption | undefined,
 ): string | undefined {
@@ -322,6 +331,7 @@ export function formatRelativeDate(
     now?: DateLike;
     fallback?: string;
     justNowLabel?: string;
+    capitalize?: boolean;
   },
 ): string {
   const parsed = parseDateLike(value);
@@ -336,13 +346,15 @@ export function formatRelativeDate(
   const absDiffMs = Math.abs(diffMs);
 
   if (numeric !== "always" && absDiffMs < JUST_NOW_THRESHOLD_MS) {
-    return (
+    const result =
       options.justNowLabel ??
       getRelativeFormatter(options.locale, {
         style,
         numeric,
-      }).format(0, "second")
-    );
+      }).format(0, "second");
+    return options.capitalize
+      ? capitalizeFirstCharacter(result, options.locale)
+      : result;
   }
 
   if (style === "long" && numeric === "auto") {
@@ -355,7 +367,9 @@ export function formatRelativeDate(
     );
 
     if (calendarFormatted) {
-      return calendarFormatted;
+      return options.capitalize
+        ? capitalizeFirstCharacter(calendarFormatted, options.locale)
+        : calendarFormatted;
     }
   }
 
@@ -386,10 +400,13 @@ export function formatRelativeDate(
   }
 
   const valueForUnit = Math.round(diffMs / divisor);
-  return getRelativeFormatter(options.locale, {
+  const result = getRelativeFormatter(options.locale, {
     style,
     numeric,
   }).format(valueForUnit, unit);
+  return options.capitalize
+    ? capitalizeFirstCharacter(result, options.locale)
+    : result;
 }
 
 export function formatDateInputValue(

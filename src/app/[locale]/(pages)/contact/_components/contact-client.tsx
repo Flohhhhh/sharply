@@ -1,17 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import Link from "next/link";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
+import { useMemo,useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { CONTACT_OPTIONS, type ContactOption } from "../contact-options";
-import {
-  CONTACT_MIN_MESSAGE_LENGTH,
-  contactFormSchema,
-  type ContactReason,
-} from "~/lib/contact/contact-schema";
+import { type z } from "zod";
+import { Button } from "~/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -26,7 +21,6 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "~/components/ui/drawer";
-import { Button } from "~/components/ui/button";
 import {
   Form,
   FormControl,
@@ -37,7 +31,13 @@ import {
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
+import {
+  CONTACT_MIN_MESSAGE_LENGTH,
+  contactFormSchema,
+  type ContactReason,
+} from "~/lib/contact/contact-schema";
 import { useIsMobile } from "~/lib/hooks/useIsMobile";
+import { CONTACT_OPTIONS,type ContactOption } from "../contact-options";
 
 type ContactFormValues = z.infer<typeof contactFormSchema>;
 
@@ -166,7 +166,7 @@ export default function ContactClient() {
         data.message || "Unable to send message. Please try again later.";
       setServerError(message);
       toast.error(message);
-    } catch (error) {
+    } catch {
       const message = "Unable to send message. Please try again later.";
       setServerError(message);
       toast.error(message);

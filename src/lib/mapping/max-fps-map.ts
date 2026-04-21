@@ -1,6 +1,6 @@
 import React from "react";
-import { cn } from "~/lib/utils";
 import { formatShutterType } from "~/lib/mapping";
+import { cn } from "~/lib/utils";
 import type { GearItem } from "~/types/gear";
 
 function safeToString(value: unknown): string {

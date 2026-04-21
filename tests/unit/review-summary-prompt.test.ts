@@ -4,7 +4,7 @@ They check plain things: old summary context, truncation, review tags, and empty
 This helps prevent bad prompts that can produce poor or unsafe summaries.
 */
 
-import { describe, expect, it } from "vitest";
+import { describe,expect,it } from "vitest";
 import { buildSummaryPrompt } from "~/server/reviews/summary/prompt-config";
 
 describe("review summary prompt builder", () => {

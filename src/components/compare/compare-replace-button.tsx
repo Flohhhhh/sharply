@@ -1,17 +1,17 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { Pencil } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { Pencil } from "lucide-react";
+import { useCallback,useState } from "react";
 import { toast } from "sonner";
-import { Button } from "~/components/ui/button";
+import { useCompareLoadingOverlay } from "~/components/compare/compare-loading-overlay";
 import {
   GearSearchCombobox,
   type GearOption,
 } from "~/components/gear/gear-search-combobox";
+import { Button } from "~/components/ui/button";
 import { buildCompareHref } from "~/lib/utils/url";
-import { useCompareLoadingOverlay } from "~/components/compare/compare-loading-overlay";
 import { actionRecordCompareAdd } from "~/server/popularity/actions";
 
 export type CompareReplaceButtonProps = {

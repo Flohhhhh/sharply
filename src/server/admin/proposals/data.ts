@@ -1,25 +1,24 @@
 import "server-only";
 
+import { and,desc,eq,gte,ne,sql } from "drizzle-orm";
+import type { VideoModeNormalized } from "~/lib/video/mode-schema";
 import { db } from "~/server/db";
 import { normalizeProposalPayloadForDb } from "~/server/db/normalizers";
 import {
-  gearEdits,
-  gear,
-  gearMounts,
-  users,
-  cameraSpecs,
   analogCameraSpecs,
+  auditLogs,
   cameraAfAreaSpecs,
   cameraCardSlots,
+  cameraSpecs,
   cameraVideoModes,
-  lensSpecs,
-  auditLogs,
   fixedLensSpecs,
+  gear,
+  gearEdits,
+  gearMounts,
+  lensSpecs,
+  users,
 } from "~/server/db/schema";
 import type { GearEditProposal } from "~/types/gear";
-import { eq, desc, and, ne, gte } from "drizzle-orm";
-import type { VideoModeNormalized } from "~/lib/video/mode-schema";
-import { sql } from "drizzle-orm";
 
 type ProposalSelect = {
   id: string;
@@ -135,7 +134,7 @@ async function fetchEnrichedProposals(
   // Attach before values for only the keys present in payload
   const enriched: EnrichedProposal[] = await Promise.all(
     proposals.map(async (p): Promise<EnrichedProposal> => {
-      const base = (await getBaseline(p.gearId))!;
+      const base = (await getBaseline(p.gearId));
       const payload = (p.payload ?? {}) as Record<string, unknown> & {
         core?: Record<string, unknown>;
         analogCamera?: Record<string, unknown>;
@@ -240,7 +239,7 @@ export async function fetchRecentResolvedProposalsData(
 
   const enriched: EnrichedProposal[] = await Promise.all(
     proposals.map(async (p): Promise<EnrichedProposal> => {
-      const base = (await getBaseline(p.gearId))!;
+      const base = (await getBaseline(p.gearId));
       const payload = (p.payload ?? {}) as Record<string, unknown> & {
         core?: Record<string, unknown>;
         analogCamera?: Record<string, unknown>;
@@ -307,7 +306,7 @@ export async function approveProposalData(
   await db.transaction(async (tx) => {
     // Determine final payload (filtered if provided) and normalize to DB types
     const source = filteredPayload ?? payload;
-    const normalized = normalizeProposalPayloadForDb(source as any);
+    const normalized = normalizeProposalPayloadForDb(source);
 
     // Update the proposal status to APPROVED and persist only the applied changes
     await tx
@@ -342,7 +341,7 @@ export async function approveProposalData(
           ...normalizedPayload.core,
         };
         if (Object.prototype.hasOwnProperty.call(coreUpdate, "msrpUsdCents")) {
-          coreUpdate.msrpNowUsdCents = coreUpdate.msrpUsdCents as unknown;
+          coreUpdate.msrpNowUsdCents = coreUpdate.msrpUsdCents;
           delete (coreUpdate as any).msrpUsdCents;
         }
 

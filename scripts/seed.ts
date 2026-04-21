@@ -1,8 +1,16 @@
 import "dotenv/config";
 
+import { and,eq,isNull } from "drizzle-orm";
 import slugify from "slugify";
-import { and, eq, isNull } from "drizzle-orm";
 
+import {
+  AF_AREA_MODES,
+  BRANDS,
+  GENRES,
+  MOUNTS,
+  SENSOR_FORMATS,
+} from "../src/lib/generated";
+import { normalizeSearchName } from "../src/lib/utils";
 import { db } from "../src/server/db";
 import {
   afAreaModes,
@@ -13,8 +21,8 @@ import {
   gearGenres,
   gearMounts,
   genres as genresTable,
-  mounts,
   lensSpecs,
+  mounts,
   reviewSummaries,
   reviews,
   sensorFormats,
@@ -22,14 +30,6 @@ import {
   useCaseRatings,
   users,
 } from "../src/server/db/schema";
-import { normalizeSearchName } from "../src/lib/utils";
-import {
-  AF_AREA_MODES,
-  BRANDS,
-  GENRES,
-  MOUNTS,
-  SENSOR_FORMATS,
-} from "../src/lib/generated";
 
 type BrandRow = typeof brands.$inferSelect;
 type MountRow = typeof mounts.$inferSelect;

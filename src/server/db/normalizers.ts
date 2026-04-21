@@ -1,12 +1,12 @@
-import { SENSOR_FORMATS, ENUMS } from "~/lib/constants";
-import { normalizeBhProductLink } from "~/lib/validation/bhphoto";
-import { normalizeMpbLinkForStorage } from "~/lib/links/mpb";
-import {
-  videoModeInputSchema,
-  normalizeVideoModes,
-  MAX_VIDEO_MODES,
-} from "~/lib/video/mode-schema";
 import { z } from "zod";
+import { ENUMS,SENSOR_FORMATS } from "~/lib/constants";
+import { normalizeMpbLinkForStorage } from "~/lib/links/mpb";
+import { normalizeBhProductLink } from "~/lib/validation/bhphoto";
+import {
+  MAX_VIDEO_MODES,
+  normalizeVideoModes,
+  videoModeInputSchema,
+} from "~/lib/video/mode-schema";
 
 type ProposalPayloadSection = Record<string, unknown>;
 type ProposalPayload = {
@@ -1346,7 +1346,7 @@ export function normalizeProposalPayloadForDb(
 
   if (payload.lens) {
     const parsed = LensSchema.parse(payload.lens);
-    const pruned = pruneUndefined(parsed as Record<string, unknown>);
+    const pruned = pruneUndefined(parsed);
     if (Object.keys(pruned).length) normalized.lens = pruned;
   }
 
@@ -1501,7 +1501,7 @@ export function normalizeProposalPayloadForDb(
     const parsed = payload.videoModes.map((mode, index) => {
       try {
         return videoModeInputSchema.parse(mode ?? {});
-      } catch (error) {
+      } catch {
         throw new Error(`Invalid video mode at index ${index}`);
       }
     });

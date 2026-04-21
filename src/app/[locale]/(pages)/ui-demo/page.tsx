@@ -1,20 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { ExampleUsage } from "~/components/ui/example-usage";
+import { CountryDropdown } from "~/components/country-select";
 import ApertureInput from "~/components/custom-inputs/aperture-input";
-import IsoInput from "~/components/custom-inputs/iso-input";
-import SensorFormatInput from "~/components/custom-inputs/sensor-format-input";
 import CurrencyInput from "~/components/custom-inputs/currency-input";
 import { DateInput } from "~/components/custom-inputs/date-input";
+import IsoInput from "~/components/custom-inputs/iso-input";
 import { NumberInput } from "~/components/custom-inputs/number-input";
+import SensorFormatInput from "~/components/custom-inputs/sensor-format-input";
 import {
   GearSearchCombobox,
   type GearOption,
 } from "~/components/gear/gear-search-combobox";
+import { Card,CardContent,CardHeader,CardTitle } from "~/components/ui/card";
+import { ExampleUsage } from "~/components/ui/example-usage";
 import ExtractorDemo from "./extractor-demo";
-import { CountryDropdown } from "~/components/country-select";
 
 export default function UIDemoPage() {
   const [apertureValue, setApertureValue] = useState<number | undefined>(

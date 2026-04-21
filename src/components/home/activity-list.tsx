@@ -1,9 +1,9 @@
-import * as React from "react";
-import Link from "next/link";
-import { PencilLine, Plus } from "lucide-react";
+import { PencilLine,Plus } from "lucide-react";
 import { getTranslations } from "next-intl/server";
-import type { HomeActivityItem } from "~/server/gear/home-activity";
+import Link from "next/link";
+import * as React from "react";
 import { formatRelativeDate } from "~/lib/format/date";
+import type { HomeActivityItem } from "~/server/gear/home-activity";
 
 const EVENT_ICONS = {
   created: Plus,

@@ -30,7 +30,7 @@ Shows camera hero images at relative physical width on the compare page using st
   - Converts `widthMm` to pixel widths via the hook.
   - Renders images with a padded frame, preserving aspect ratio.
   - Shows a banner when any width is missing.
-- `src/app/(app)/(pages)/(tools)/compare/page.tsx`
+- `src/app/[locale]/(pages)/(tools)/compare/page.tsx`
   - Uses `CompareHeroScaledRow` in place of the old hero images.
 
 ## Fallback Behavior

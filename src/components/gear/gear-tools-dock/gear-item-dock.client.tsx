@@ -1,24 +1,21 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import { useLocale } from "next-intl";
+import { useEffect,useMemo,useState } from "react";
 import { toast } from "sonner";
 
-import { Dock, DockIcon } from "~/components/ui/dock";
+import { Dock,DockIcon } from "~/components/ui/dock";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
+  TooltipProvider
 } from "~/components/ui/tooltip";
-import { requireRole } from "~/lib/auth/auth-helpers";
 import { useSession } from "~/lib/auth/auth-client";
-import type { GearAlternativeRow } from "~/server/gear/service";
-import type { RawSample } from "~/types/gear";
+import { requireRole } from "~/lib/auth/auth-helpers";
 import {
   actionAddGearRawSample,
   actionRemoveGearRawSample,
 } from "~/server/gear/actions";
+import type { GearAlternativeRow } from "~/server/gear/service";
+import type { RawSample } from "~/types/gear";
 import { buildDockButtons } from "./dock-buttons";
 
 interface GearItemDockClientProps {
@@ -35,6 +32,22 @@ interface GearItemDockClientProps {
 type ManagedSampleState = Omit<RawSample, "createdAt" | "updatedAt"> & {
   createdAt?: string | null;
   updatedAt?: string | null;
+};
+
+type RawSampleUploadItem = {
+  url?: string;
+  ufsUrl?: string;
+  name?: string;
+  fileName?: string;
+  mimeType?: string;
+  type?: string;
+  size?: number;
+  serverData?: {
+    fileUrl?: string;
+    fileName?: string;
+    contentType?: string;
+    size?: number;
+  };
 };
 
 const MAX_SAMPLES = 3;
@@ -68,7 +81,7 @@ export function GearItemDockClient({
   hasCreatorVideos = false,
 }: GearItemDockClientProps) {
   const locale = useLocale();
-  const { data, isPending } = useSession();
+  const { data } = useSession();
   const user = data?.user;
 
   const [managedSamples, setManagedSamples] = useState<ManagedSampleState[]>(
@@ -90,28 +103,29 @@ export function GearItemDockClient({
     if (!items?.length) return;
     setIsUploading(true);
     try {
-      for (const item of items as any[]) {
+      const uploadItems = items as RawSampleUploadItem[];
+      for (const item of uploadItems) {
         const fileUrl =
-          (item?.serverData?.fileUrl as string | undefined) ??
-          (item?.url as string | undefined) ??
-          (item?.ufsUrl as string | undefined) ??
+          item.serverData?.fileUrl ??
+          item.url ??
+          item.ufsUrl ??
           "";
         if (!fileUrl) continue;
         const originalFilename =
-          (item?.serverData?.fileName as string | undefined) ??
-          (item?.fileName as string | undefined) ??
-          (item?.name as string | undefined) ??
+          item.serverData?.fileName ??
+          item.fileName ??
+          item.name ??
           fileUrl.split("/").pop() ??
           "sample";
         const contentType =
-          (item?.serverData?.contentType as string | undefined) ??
-          (item?.mimeType as string | undefined) ??
-          (item?.type as string | undefined) ??
+          item.serverData?.contentType ??
+          item.mimeType ??
+          item.type ??
           null;
         const sizeBytes =
-          typeof item?.size === "number"
+          typeof item.size === "number"
             ? item.size
-            : typeof item?.serverData?.size === "number"
+            : typeof item.serverData?.size === "number"
               ? item.serverData.size
               : null;
         const newSample = await actionAddGearRawSample(slug, {
@@ -142,7 +156,7 @@ export function GearItemDockClient({
         prev.filter((sample) => sample.id !== sampleId),
       );
       toast.success("Sample removed");
-    } catch (error) {
+    } catch {
       toast.error("Could not remove sample");
     } finally {
       setDeletingSampleId(null);

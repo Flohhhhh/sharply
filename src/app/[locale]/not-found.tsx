@@ -1,10 +1,10 @@
 "use client";
 
+import { Bird,Home,Search } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Bird, Home, Search } from "lucide-react";
 
-import { Button } from "~/components/ui/button";
 import { LocaleLink } from "~/components/locale-link";
+import { Button } from "~/components/ui/button";
 
 export default function NotFound() {
   const t = useTranslations("errors");
@@ -31,7 +31,7 @@ export default function NotFound() {
         <Button asChild variant="outline">
           <LocaleLink
             href="/search"
-            onClick={(e) => {
+            onClick={() => {
               // Open command palette for immediate search when landing on search
               // Use a small timeout to ensure navigation completes first
               setTimeout(() => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo,useState } from "react";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -13,7 +13,7 @@ import {
 import { Label } from "~/components/ui/label";
 import { MultiSelect } from "~/components/ui/multi-select";
 import { ENUMS } from "~/lib/constants";
-import { titleizeCardEnum, formatCardSlotDetails } from "~/lib/mapping";
+import { formatCardSlotDetails,titleizeCardEnum } from "~/lib/mapping";
 
 export type CardSlot = {
   slotIndex: number;
@@ -141,7 +141,7 @@ export default function CardSlotsManager({
     >
       <div className="mb-2 text-sm font-medium">Card Slots</div>
       <div className="space-y-1">
-        {summarizedLines(value as CardSlot[] | undefined).map((line, i) => (
+        {summarizedLines(value).map((line, i) => (
           <div key={i} className="text-sm">
             {line}
           </div>

@@ -1,9 +1,10 @@
 "use client";
 
 import { CircleQuestionMark } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
-import type { GearItem } from "~/types/gear";
 import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
+import type { GearItem } from "~/types/gear";
 
 export function CollectionCard(props: {
   item: GearItem;
@@ -31,9 +32,12 @@ export function CollectionCard(props: {
         className="group relative cursor-pointer"
       >
         {item.thumbnailUrl ? (
-          <img
+          <Image
             src={item.thumbnailUrl}
             alt={displayName}
+            width={Math.max(Math.round(displayWidthPixels), 120)}
+            height={Math.max(fixedHeightPixels ?? 200, 1)}
+            unoptimized
             style={
               useFixedHeight
                 ? {

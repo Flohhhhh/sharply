@@ -1,6 +1,6 @@
 "use server";
-import "server-only";
 import { revalidatePath } from "next/cache";
+import "server-only";
 import {
   updateDisplayName,
   updateProfileImage,

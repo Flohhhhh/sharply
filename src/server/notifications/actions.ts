@@ -1,14 +1,14 @@
 "use server";
 import "server-only";
 
+import { getSessionOrThrow } from "~/server/auth";
 import {
   archiveNotification,
+  createNotification,
   deleteNotification,
   markNotificationRead,
-  createNotification,
   type CreateNotificationParams,
 } from "./service";
-import { getSessionOrThrow } from "~/server/auth";
 
 export async function actionMarkNotificationRead(id: string) {
   return markNotificationRead(id);

@@ -3,7 +3,7 @@ import "server-only";
 import { eq } from "drizzle-orm";
 
 import { db } from "~/server/db";
-import { users, type User } from "~/server/db/schema";
+import { users,type User } from "~/server/db/schema";
 
 export async function findUserByEmailData(email: string): Promise<User | null> {
   const rows = await db.select().from(users).where(eq(users.email, email)).limit(1);

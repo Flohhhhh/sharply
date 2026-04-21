@@ -1,19 +1,19 @@
+import { ClockIcon,FlameIcon,TrendingUpIcon } from "lucide-react";
+import { getTranslations } from "next-intl/server";
+import Link from "next/link";
 import type { JSX } from "react";
 import { Suspense } from "react";
-import { ClockIcon, FlameIcon, TrendingUpIcon } from "lucide-react";
-import Link from "next/link";
-import { GearCard, GearCardSkeleton } from "~/components/gear/gear-card";
+import { GearCard,GearCardSkeleton } from "~/components/gear/gear-card";
 import { Button } from "~/components/ui/button";
-import { BRANDS } from "~/lib/constants";
 import { splitBrandsWithPriority } from "~/lib/brands";
-import { OtherBrandsSelect } from "./other-brands-select";
-import { fetchTrending, fetchTrendingSlugs } from "~/server/popularity/service";
+import { BRANDS } from "~/lib/constants";
 import { getItemDisplayPrice } from "~/lib/mapping";
-import { getTranslations } from "next-intl/server";
 import {
   fetchBrandBySlug,
   fetchReleaseFeedPage,
 } from "~/server/gear/browse/service";
+import { fetchTrending,fetchTrendingSlugs } from "~/server/popularity/service";
+import { OtherBrandsSelect } from "./other-brands-select";
 import { ReleaseFeedGrid } from "./release-feed-grid";
 
 const TRENDING_SKELETON_KEYS = [

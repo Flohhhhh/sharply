@@ -1,14 +1,10 @@
 "use client";
 
-import type { GearItem } from "~/types/gear";
-import { buildGearSpecsSections, specDictionary } from "~/lib/specs/registry";
-import { cn } from "~/lib/utils";
-import { Fragment, useState } from "react";
-import { SuggestEditButton } from "~/app/[locale]/(pages)/gear/_components/suggest-edit-button";
-import { useSession } from "~/lib/auth/auth-client";
+import { useLocale } from "next-intl";
 import Link from "next/link";
+import { useState } from "react";
+import { SuggestEditButton } from "~/app/[locale]/(pages)/gear/_components/suggest-edit-button";
 import { Button } from "~/components/ui/button";
-import { getConstructionState } from "~/lib/utils";
 import { Checkbox } from "~/components/ui/checkbox";
 import {
   Table,
@@ -18,8 +14,11 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import { useSession } from "~/lib/auth/auth-client";
 import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
-import { useLocale } from "next-intl";
+import { buildGearSpecsSections,specDictionary } from "~/lib/specs/registry";
+import { cn,getConstructionState } from "~/lib/utils";
+import type { GearItem } from "~/types/gear";
 
 type Row = { label: string; a?: React.ReactNode; b?: React.ReactNode };
 type SpecsSection = ReturnType<typeof buildGearSpecsSections>[number];
@@ -29,7 +28,7 @@ const sectionLabelOrder = new Map(
     section.title,
     section.fields
       .filter((field) => Boolean(field.label))
-      .map((field) => field.label as string),
+      .map((field) => field.label),
   ]),
 );
 

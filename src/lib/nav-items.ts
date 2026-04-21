@@ -158,16 +158,18 @@ const navItems: NavItem[] = [
     type: "link",
     url: "/privacy-policy",
     hideFromNavbar: true,
-    hideFromFooter: false,
+    hideFromFooter: true,
   },
   {
     titleKey: "termsOfService",
     type: "link",
     url: "/terms-of-service",
     hideFromNavbar: true,
-    hideFromFooter: false,
+    hideFromFooter: true,
   },
 ];
+
+export const getAllNavItems = () => navItems;
 
 export const iconMap = {
   camera: Camera,

@@ -1,5 +1,6 @@
 "use client";
 
+import { countries } from "country-data-list";
 import {
   createContext,
   useContext,
@@ -8,11 +9,9 @@ import {
   useRef,
   type ReactNode,
 } from "react";
-import { countries } from "country-data-list";
 import useSWR from "swr";
 
 import { fetchJson } from "~/lib/fetch-json";
-import { type Country } from "~/types/country";
 import { type GearRegion } from "~/lib/gear/region";
 import {
   getDefaultLocale,
@@ -21,6 +20,7 @@ import {
   type LocaleId,
   type LocaleOption,
 } from "~/lib/locale/locales";
+import { type Country } from "~/types/country";
 import { useLocalStorage } from "./useLocalStorage";
 
 type CountryContextValue = {

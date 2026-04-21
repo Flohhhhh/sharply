@@ -1,12 +1,12 @@
 "use client";
 
-import { useRef, useState, type MouseEvent } from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "~/components/ui/button";
 import { X } from "lucide-react";
-import { toast } from "sonner";
-import { actionToggleWishlist } from "~/server/gear/actions";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { useRef,useState,type MouseEvent } from "react";
+import { toast } from "sonner";
+import { Button } from "~/components/ui/button";
+import { actionToggleWishlist } from "~/server/gear/actions";
 
 interface WishlistRemoveButtonProps {
   slug: string;

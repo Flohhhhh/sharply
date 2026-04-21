@@ -1,8 +1,8 @@
-import { getReviews } from "~/server/payload/service";
-import Link from "next/link";
 import type { Metadata } from "next";
-import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import { getTranslations } from "next-intl/server";
+import Link from "next/link";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import { getReviews } from "~/server/payload/service";
 
 export async function generateMetadata({
   params,

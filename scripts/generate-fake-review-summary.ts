@@ -6,12 +6,12 @@ import "dotenv/config";
     tsx scripts/generate-fake-review-summary.ts --slug nikon-z6 --use-sample --backdate-days 8
 */
 
+import { eq } from "drizzle-orm";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { db } from "~/server/db";
 import { gear } from "~/server/db/schema";
-import { eq } from "drizzle-orm";
 import { backdateSummaryTimestamp } from "~/server/reviews/summary/data";
 import { generateReviewSummaryFromProvidedReviews } from "~/server/reviews/summary/service";
 

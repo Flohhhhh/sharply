@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect,useState } from "react";
 
 const RECENT_SEARCHES_KEY = "sharply-recent-searches";
 const MAX_RECENT_SEARCHES = 8;

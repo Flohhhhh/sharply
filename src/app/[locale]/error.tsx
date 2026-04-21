@@ -1,7 +1,7 @@
 "use client"; // Error boundaries must be Client Components
 
-import { useEffect } from "react";
 import { useTranslations } from "next-intl";
+import { useEffect } from "react";
 import { Button } from "~/components/ui/button";
 import NotFound from "./not-found";
 

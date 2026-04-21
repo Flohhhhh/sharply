@@ -1,8 +1,8 @@
 import "server-only";
 
+import { and,desc,eq,sql } from "drizzle-orm";
 import { db } from "~/server/db";
-import { reviewFlags, reviews, gear, users } from "~/server/db/schema";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { gear,reviewFlags,reviews,users } from "~/server/db/schema";
 
 export async function listAllReviewsWithContext() {
   return db

@@ -1,9 +1,9 @@
+import { BookOpen,UserPlus } from "lucide-react";
+import { type Metadata } from "next";
 import Link from "next/link";
+import Logo from "public/logo";
 import { Button } from "~/components/ui/button";
 import { SpinningText } from "~/components/ui/spinning-text";
-import { BookOpen, UserPlus } from "lucide-react";
-import { type Metadata } from "next";
-import Logo from "public/logo";
 
 export const metadata: Metadata = {
   title: "You're invited!",

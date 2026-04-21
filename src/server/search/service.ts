@@ -5,38 +5,38 @@ if (process.env.NEXT_RUNTIME) {
   });
 }
 
-import {
-  gear,
-  brands,
-  mounts,
-  cameraSpecs,
-  sensorFormats,
-  lensSpecs,
-  fixedLensSpecs,
-  analogCameraSpecs,
-} from "~/server/db/schema";
-import { asc, desc, sql, type SQL } from "drizzle-orm";
-import {
-  buildSearchWhereClause,
-  buildRelevanceExpr,
-  querySearchRows,
-  querySearchTotal,
-  queryGearSuggestions,
-  queryBrandSuggestions,
-} from "./data";
-import {
-  normalizeSearchQuery,
-  normalizeSearchQueryNoPunct,
-} from "./query-normalization";
-import { fetchGearAliasesByGearIds } from "~/server/gear/data";
-import type { GearAlias, GearRegion } from "~/types/gear";
+import { asc,desc,sql,type SQL } from "drizzle-orm";
 import { buildCompareHref } from "~/lib/utils/url";
+import {
+  analogCameraSpecs,
+  brands,
+  cameraSpecs,
+  fixedLensSpecs,
+  gear,
+  lensSpecs,
+  mounts,
+  sensorFormats,
+} from "~/server/db/schema";
+import { fetchGearAliasesByGearIds } from "~/server/gear/data";
+import type { GearAlias,GearRegion } from "~/types/gear";
 import type {
   BrandSuggestion,
   CompareSmartActionSuggestion,
   GearSuggestion,
   Suggestion,
 } from "~/types/search";
+import {
+  buildRelevanceExpr,
+  buildSearchWhereClause,
+  queryBrandSuggestions,
+  queryGearSuggestions,
+  querySearchRows,
+  querySearchTotal,
+} from "./data";
+import {
+  normalizeSearchQuery,
+  normalizeSearchQueryNoPunct,
+} from "./query-normalization";
 import {
   applyExactMatchMetadata,
   buildGearSuggestion,

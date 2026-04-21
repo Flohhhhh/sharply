@@ -2,10 +2,10 @@
 
 import Image from "next/image";
 import { useMemo } from "react";
-import type { GearItem } from "~/types/gear";
-import { cn } from "~/lib/utils";
-import { useCompareRowScale } from "./use-compare-row-scale";
 import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
+import { cn } from "~/lib/utils";
+import type { GearItem } from "~/types/gear";
+import { useCompareRowScale } from "./use-compare-row-scale";
 
 type CompareHeroScaledRowProps = {
   leftItem: GearItem | null;
@@ -127,9 +127,12 @@ function CompareHeroScaledImage({
           }}
         >
           {hasImage ? (
-            <img
+            <Image
               src={item?.thumbnailUrl ?? "/image-temp.png"}
               alt={displayName}
+              width={Math.max(Math.round(displayWidthPixels), 1)}
+              height={Math.max(Math.round(displayWidthPixels), 1)}
+              unoptimized
               style={{
                 width: `${displayWidthPixels}px`,
                 height: "auto",

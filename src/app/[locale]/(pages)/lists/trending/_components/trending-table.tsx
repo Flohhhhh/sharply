@@ -1,46 +1,26 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
-import { useCallback, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useLocale, useTranslations } from "next-intl";
-import useSWR from "swr";
 import {
-  Loader,
+  ExternalLink,
   Flame,
   ImageOff,
+  Loader,
   MoreHorizontal,
-  ExternalLink,
   Scale,
 } from "lucide-react";
+import { useLocale,useTranslations } from "next-intl";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useCallback,useMemo,useState } from "react";
+import useSWR from "swr";
 
+import {
+  GearSearchCombobox,
+  type GearOption,
+} from "~/components/gear/gear-search-combobox";
 import { Button } from "~/components/ui/button";
 import { ButtonGroup } from "~/components/ui/button-group";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "~/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationNext,
-  PaginationPrevious,
-  PaginationLink,
-  PaginationEllipsis,
-} from "~/components/ui/pagination";
 import {
   Dialog,
   DialogContent,
@@ -49,20 +29,40 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import {
-  GearSearchCombobox,
-  type GearOption,
-} from "~/components/gear/gear-search-combobox";
-import type { TrendingEntry, TrendingPageResult } from "~/types/popularity";
-import { cn } from "~/lib/utils";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "~/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "~/components/ui/table";
+import { cn } from "~/lib/utils";
 import { buildCompareHref } from "~/lib/utils/url";
 import { actionRecordCompareAdd } from "~/server/popularity/actions";
 import type { GearType } from "~/types/gear";
+import type { TrendingEntry,TrendingPageResult } from "~/types/popularity";
 
 const WINDOW_OPTIONS: Array<"7d" | "30d"> = ["7d", "30d"];
 const PER_PAGE_OPTIONS = [20, 50, 100];
@@ -98,7 +98,6 @@ function buildKey(params: {
 
 export function TrendingTable({ initialData }: Props) {
   const t = useTranslations("trendingPage");
-  const locale = useLocale();
   const [timeframe, setTimeframe] = useState<"7d" | "30d">(
     initialData.timeframe,
   );
@@ -152,8 +151,6 @@ export function TrendingTable({ initialData }: Props) {
     { label: t("analogCameras"), value: "ANALOG_CAMERA" },
     { label: t("lenses"), value: "LENS" },
   ] as const;
-  const numberFormatter = useMemo(() => new Intl.NumberFormat(locale), [locale]);
-
   const handlePageChange = useCallback(
     (direction: "prev" | "next") => {
       setPage((current) => {
@@ -204,7 +201,7 @@ export function TrendingTable({ initialData }: Props) {
                   type="button"
                   size="sm"
                   variant={gearType === option.value ? "default" : "outline"}
-                  onClick={() => { setGearType(option.value as typeof gearType); setPage(1); }}
+                  onClick={() => { setGearType(option.value); setPage(1); }}
                 >
                   {option.label}
                 </Button>
@@ -274,7 +271,6 @@ export function TrendingTable({ initialData }: Props) {
                     row={row}
                     index={(page - 1) * effectivePerPage + idx + 1}
                     filledCount={getFlameFill(row.score, topScore)}
-                    liveDelta={row.liveBoost ?? 0}
                   />
                 ))}
                 {!rows.length && (
@@ -357,12 +353,10 @@ function TrendingRow({
   row,
   index,
   filledCount,
-  liveDelta = 0,
 }: {
   row: TrendingEntry;
   index: number;
   filledCount: number;
-  liveDelta?: number;
 }) {
   const t = useTranslations("trendingPage");
   const locale = useLocale();

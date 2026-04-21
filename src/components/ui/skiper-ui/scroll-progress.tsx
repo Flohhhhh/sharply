@@ -7,7 +7,7 @@ import {
   useScroll,
   useTransform,
 } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect,useState } from "react";
 
 import { cn } from "~/lib/utils";
 

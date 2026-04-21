@@ -41,6 +41,7 @@ Invalid input returns `null` from `parseDateLike` and the configured `fallback` 
   - Use for locale-native relative output such as `2 hours ago`, `today`, `yesterday`, or `last week`.
   - With the default `style: "long"` and `numeric: "auto"`, the helper prefers calendar-style labels for recent dates.
   - Use `justNowLabel` when a caller explicitly wants `"just now"` instead of the locale runtime's default `"now"` phrasing.
+  - Use `capitalize: true` when the relative label starts a sentence or standalone UI value and should render as `Today`/`Yesterday`.
 - `formatDateInputValue`
   - Use when a controlled input needs a normalized `YYYY-MM-DD` string.
 

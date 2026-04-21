@@ -3,8 +3,8 @@ import {
   fetchWishlistStatus,
 } from "~/server/gear/service";
 import { fetchCurrentUserListPickerStateForGear } from "~/server/user-lists/service";
-import { GearActionButtonsClient } from "./gear-action-buttons-client";
 import type { GearAlias } from "~/types/gear";
+import { GearActionButtonsClient } from "./gear-action-buttons-client";
 
 interface GearActionButtonsProps {
   slug: string;

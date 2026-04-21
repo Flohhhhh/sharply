@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { Flame } from "lucide-react";
+import Link from "next/link";
 import { fetchTrending } from "~/server/popularity/service";
 
 export type BrandTrendingItem = {

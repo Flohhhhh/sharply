@@ -1,32 +1,32 @@
+import type { Metadata } from "next";
+import { getLocale } from "next-intl/server";
+import { headers } from "next/headers";
 import Link from "next/link";
-import { fetchGearEditById } from "~/server/gear/service";
-import { formatPrice, formatPrecaptureSupport } from "~/lib/mapping";
-import { sensorNameFromSlug } from "~/lib/mapping/sensor-map";
-import { humanizeKey } from "~/lib/utils";
+import { VideoSpecsSummary } from "~/app/[locale]/(pages)/gear/_components/video/video-summary";
 import { auth } from "~/auth";
 import { requireRole } from "~/lib/auth/auth-helpers";
-import type { Metadata } from "next";
-import { VideoSpecsSummary } from "~/app/[locale]/(pages)/gear/_components/video/video-summary";
-import { buildVideoDisplayBundle } from "~/lib/video/transform";
+import { formatDate } from "~/lib/format/date";
+import { formatPrecaptureSupport,formatPrice } from "~/lib/mapping";
+import {
+  formatAnalogCameraType,
+  formatAnalogExposureMode,
+  formatAnalogFilmTransport,
+  formatAnalogFocusAid,
+  formatAnalogIsoSettingMethod,
+  formatAnalogMedium,
+  formatAnalogMeteringDisplay,
+  formatAnalogMeteringMode,
+  formatAnalogShutterType,
+  formatAnalogViewfinderType,
+} from "~/lib/mapping/analog-types-map";
+import { sensorNameFromSlug } from "~/lib/mapping/sensor-map";
+import { humanizeKey } from "~/lib/utils";
 import {
   type VideoModeNormalized,
   normalizedToCameraVideoModes,
 } from "~/lib/video/mode-schema";
-import {
-  formatAnalogCameraType,
-  formatAnalogMedium,
-  formatAnalogFilmTransport,
-  formatAnalogViewfinderType,
-  formatAnalogShutterType,
-  formatAnalogMeteringMode,
-  formatAnalogMeteringDisplay,
-  formatAnalogExposureMode,
-  formatAnalogIsoSettingMethod,
-  formatAnalogFocusAid,
-} from "~/lib/mapping/analog-types-map";
-import { headers } from "next/headers";
-import { getLocale } from "next-intl/server";
-import { formatDate } from "~/lib/format/date";
+import { buildVideoDisplayBundle } from "~/lib/video/transform";
+import { fetchGearEditById } from "~/server/gear/service";
 
 const describeUnknownValue = (value: unknown): string => {
   if (value == null) return "Empty";

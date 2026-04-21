@@ -1,8 +1,8 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import { vi } from "vitest";
+import { beforeEach,describe,expect,it,vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
+import type { ExifViewerResponse } from "../../src/app/[locale]/(pages)/(tools)/exif-viewer/types";
 import {
   buildExifReadingDedupeKey,
   createSignedExifTrackingToken,
@@ -14,7 +14,6 @@ import {
   selectPrimaryExifCount,
   verifySignedExifTrackingToken,
 } from "../../src/server/exif-tracking/service";
-import type { ExifViewerResponse } from "../../src/app/[locale]/(pages)/(tools)/exif-viewer/types";
 
 function createExtractor(
   overrides: Partial<ExifViewerResponse["extractor"]> = {},

@@ -1,7 +1,13 @@
 "use client"
 
-import type { ReactNode } from "react"
-import React, {
+import type {
+  GlobalOptions as ConfettiGlobalOptions,
+  CreateTypes as ConfettiInstance,
+  Options as ConfettiOptions,
+} from "canvas-confetti";
+import confetti from "canvas-confetti";
+import type { ReactNode } from "react";
+import React,{
   createContext,
   forwardRef,
   useCallback,
@@ -9,15 +15,9 @@ import React, {
   useImperativeHandle,
   useMemo,
   useRef,
-} from "react"
-import type {
-  GlobalOptions as ConfettiGlobalOptions,
-  CreateTypes as ConfettiInstance,
-  Options as ConfettiOptions,
-} from "canvas-confetti"
-import confetti from "canvas-confetti"
+} from "react";
 
-import { Button } from "~/components/ui/button"
+import { Button } from "~/components/ui/button";
 
 type Api = {
   fire: (options?: ConfettiOptions) => void

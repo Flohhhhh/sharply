@@ -1,5 +1,5 @@
 import { getRequestConfig } from "next-intl/server";
-import { defaultLocale, isLocale } from "./config";
+import { defaultLocale,isLocale } from "./config";
 import { getMessagesForLocale } from "./messages";
 
 export default getRequestConfig(async ({ requestLocale }) => {

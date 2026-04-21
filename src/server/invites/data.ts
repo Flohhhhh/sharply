@@ -1,9 +1,9 @@
 import "server-only";
 
-import { desc, eq } from "drizzle-orm";
-import { db } from "~/server/db";
-import { invites, users } from "~/server/db/schema";
+import { desc,eq } from "drizzle-orm";
 import type { UserRole } from "~/auth";
+import { db } from "~/server/db";
+import { invites,users } from "~/server/db/schema";
 
 type DbClient = Pick<typeof db, "update" | "query">;
 
@@ -74,9 +74,9 @@ export async function assignUserFromInvite(
 
   const currentRole = currentUser?.role ?? "USER";
   const targetRolePriority =
-    ROLE_PRIORITY[params.role as keyof typeof ROLE_PRIORITY] ?? 0;
+    ROLE_PRIORITY[params.role] ?? 0;
   const currentRolePriority =
-    ROLE_PRIORITY[currentRole as keyof typeof ROLE_PRIORITY] ?? 0;
+    ROLE_PRIORITY[currentRole] ?? 0;
   const nextRole =
     currentRolePriority >= targetRolePriority ? currentRole : params.role;
 

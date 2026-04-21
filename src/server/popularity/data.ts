@@ -1,24 +1,24 @@
+import { and,desc,eq,gte,inArray,lt,sql,type SQL } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { unstable_cache } from "next/cache";
 import { db } from "~/server/db";
 import {
-  gear,
   brands,
-  wishlists,
-  ownerships,
-  gearPopularityWindows,
-  gearPopularityDaily,
-  gearPopularityLifetime,
-  popularityEvents,
   comparePairCounts,
+  gear,
+  gearPopularityDaily,
   gearPopularityIntraday,
+  gearPopularityLifetime,
+  gearPopularityWindows,
+  ownerships,
+  popularityEvents,
+  wishlists,
 } from "~/server/db/schema";
-import { and, desc, eq, gte, lt, sql, inArray, type SQL } from "drizzle-orm";
-import { alias } from "drizzle-orm/pg-core";
 import type { PopularityEventType } from "~/server/validation/dedupe";
 import type {
+  LiveTrendingSnapshot,
   TrendingEntry,
   TrendingFiltersInput,
-  LiveTrendingSnapshot,
 } from "~/types/popularity";
 
 const MIN_TRENDING_SCORE = 1;
@@ -590,7 +590,7 @@ export async function hasViewEventForIdentityToday(params: {
         eq(popularityEvents.eventType, "view"),
         gte(popularityEvents.createdAt, startUtc),
         lt(popularityEvents.createdAt, nextUtc),
-        identityFilter!,
+        identityFilter,
       ),
     )
     .limit(1);
@@ -675,7 +675,7 @@ export async function hasEventForIdentityToday(params: {
         eq(popularityEvents.eventType, params.eventType),
         gte(popularityEvents.createdAt, startUtc),
         lt(popularityEvents.createdAt, nextUtc),
-        identityFilter!,
+        identityFilter,
       ),
     )
     .limit(1);

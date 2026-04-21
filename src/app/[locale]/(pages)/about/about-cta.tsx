@@ -1,9 +1,9 @@
 "use client";
 
-import { Search, UserPlus } from "lucide-react";
+import { Search,UserPlus } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Button } from "~/components/ui/button";
 import { LocaleLink } from "~/components/locale-link";
+import { Button } from "~/components/ui/button";
 import { useSession } from "~/lib/auth/auth-client";
 
 export function AboutCta() {

@@ -1,3 +1,5 @@
+import { headers } from "next/headers";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "~/auth";
 import { requireRole } from "~/lib/auth/auth-helpers";
@@ -5,13 +7,7 @@ import {
   serviceGetChart,
   serviceGetChartAdminRaw,
 } from "~/server/recommendations/service";
-import {
-  actionUpdateChartMeta,
-  actionUpsertItem,
-} from "~/server/recommendations/actions";
-import Link from "next/link";
 import EditChartContent from "./_components/EditChartContent";
-import { headers } from "next/headers";
 
 export const revalidate = 0;
 
@@ -31,16 +27,6 @@ export default async function Page(props: {
 
   const chart = await serviceGetChart(params.brand, params.slug);
   const raw = await serviceGetChartAdminRaw(params.brand, params.slug);
-
-  async function updateMeta(formData: FormData): Promise<void> {
-    "use server";
-    await actionUpdateChartMeta(formData);
-  }
-
-  async function upsertItem(formData: FormData): Promise<void> {
-    "use server";
-    await actionUpsertItem(formData);
-  }
 
   return (
     <div className="mx-auto mt-24 max-w-7xl space-y-6 px-4 py-10 sm:px-6 lg:px-8">

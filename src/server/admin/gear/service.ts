@@ -1,34 +1,33 @@
 import "server-only";
 
+import { and,eq,inArray } from "drizzle-orm";
+import { nanoid } from "nanoid";
 import { requireRole } from "~/lib/auth/auth-helpers";
-import { and, eq, inArray } from "drizzle-orm";
+import { buildGearSearchName } from "~/lib/gear/naming";
+import { GEAR_REGIONS,type GearRegion } from "~/lib/gear/region";
+import { shouldBlockFuzzyResults } from "~/lib/utils/gear-creation";
 import { getSessionOrThrow } from "~/server/auth";
+import { db } from "~/server/db";
+import { auditLogs,brands,gear,gearAliases,gearEdits } from "~/server/db/schema";
+import { clearImageRequestsForGear,getGearIdBySlug } from "~/server/gear/data";
 import {
-  performFuzzySearch as performFuzzySearchData,
   checkGearCreationData,
   createGearData,
-  fetchAdminGearItemsData,
   deleteGearData,
+  fetchAdminGearItemsData,
+  performFuzzySearch as performFuzzySearchData,
+  renameGearData,
+  updateGearThumbnailData,
+  type DeleteGearResult,
   type FetchAdminGearItemsParams,
   type FetchAdminGearItemsResult,
   type GearCreationCheckParams,
   type GearCreationCheckResult,
   type GearCreationParams,
   type GearCreationResult,
-  type DeleteGearResult,
 } from "./data";
-import { shouldBlockFuzzyResults } from "~/lib/utils/gear-creation";
-import { renameGearData } from "./data";
-import { db } from "~/server/db";
-import { auditLogs, gearEdits } from "~/server/db/schema";
-import { updateGearThumbnailData } from "./data";
-import { clearImageRequestsForGear, getGearIdBySlug } from "~/server/gear/data";
-import { nanoid } from "nanoid";
-import { buildGearSearchName } from "~/lib/gear/naming";
-import { GEAR_REGIONS, type GearRegion } from "~/lib/gear/region";
-import { gearAliases, gear, brands } from "~/server/db/schema";
 
-export type { AdminGearTableRow, GearCreationParams } from "./data";
+export type { AdminGearTableRow,GearCreationParams } from "./data";
 
 export async function performFuzzySearchAdmin(params: {
   inputName: string;
@@ -146,7 +145,7 @@ export async function updateGearAliasesService(params: {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
 
-  const allowed = new Set<GearRegion>(Array.from(GEAR_REGIONS) as GearRegion[]);
+  const allowed = new Set<GearRegion>(Array.from(GEAR_REGIONS));
   const desired = params.aliases
     .filter((entry) => allowed.has(entry.region))
     .map((entry) => ({

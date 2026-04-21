@@ -1,36 +1,46 @@
 "use client";
 
-import { useCallback, useEffect, memo, useMemo, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { Label } from "~/components/ui/label";
+import { InfoIcon } from "lucide-react";
+import { memo,useCallback,useEffect,useMemo,useState } from "react";
 import { DateInput } from "~/components/custom-inputs";
-import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import CurrencyInput from "~/components/custom-inputs/currency-input";
-import { NumberInput } from "~/components/custom-inputs/number-input";
 import { MountSelect } from "~/components/custom-inputs/mount-select";
+import { NumberInput } from "~/components/custom-inputs/number-input";
+import { Card,CardContent,CardHeader,CardTitle } from "~/components/ui/card";
+import { Label } from "~/components/ui/label";
 import MultiSelect from "~/components/ui/multi-select";
-import { GENRES } from "~/lib/constants";
-import { centsToUsd, usdToCents } from "~/lib/utils";
+import { ToggleGroup,ToggleGroupItem } from "~/components/ui/toggle-group";
 import {
   Tooltip,
-  TooltipTrigger,
   TooltipContent,
+  TooltipTrigger,
 } from "~/components/ui/tooltip";
-import { InfoIcon } from "lucide-react";
+import { useSession } from "~/lib/auth/auth-client";
+import { requireRole } from "~/lib/auth/auth-helpers";
+import { GENRES } from "~/lib/constants";
+import { formatDateInputValue } from "~/lib/format/date";
+import { normalizeMpbLinkInput } from "~/lib/links/mpb";
+import { centsToUsd,usdToCents } from "~/lib/utils";
 import {
   normalizeAmazonProductLink,
   toDisplayAmazonProductLink,
 } from "~/lib/validation/amazon";
 import { normalizeBhProductLink } from "~/lib/validation/bhphoto";
-import { normalizeMpbLinkInput } from "~/lib/links/mpb";
-import { useSession } from "~/lib/auth/auth-client";
-import { requireRole } from "~/lib/auth/auth-helpers";
-import { formatDateInputValue } from "~/lib/format/date";
+
+type DatePrecision = "YEAR" | "MONTH" | "DAY";
+
+type GenreOptionSource = {
+  id?: string;
+  slug?: string;
+  name?: string;
+};
 
 interface CoreFieldsProps {
   currentSpecs: {
     announcedDate: Date | null;
+    announceDatePrecision?: DatePrecision | null;
     releaseDate: Date | null;
+    releaseDatePrecision?: DatePrecision | null;
     msrpNowUsdCents?: number | null;
     msrpAtLaunchUsdCents?: number | null;
     mpbMaxPriceUsdCents?: number | null;
@@ -355,9 +365,9 @@ function CoreFieldsComponent({
   // Genres options and values
   const genreOptions = useMemo(
     () =>
-      (GENRES as any[]).map((g) => ({
-        id: (g.slug as string) ?? (g.id as string),
-        name: (g.name as string) ?? ((g.slug as string) || ""),
+      (GENRES as GenreOptionSource[]).map((genre) => ({
+        id: genre.slug ?? genre.id ?? "",
+        name: genre.name ?? genre.slug ?? "",
       })),
     [],
   );
@@ -376,6 +386,8 @@ function CoreFieldsComponent({
   }
   const session = data.session;
   const user = data.user;
+  const announcedDatePrecision = currentSpecs.announceDatePrecision ?? "DAY";
+  const releaseDatePrecision = currentSpecs.releaseDatePrecision ?? "DAY";
 
   if (!session) return null;
 
@@ -394,8 +406,8 @@ function CoreFieldsComponent({
           {/* Announced Date + Precision (paired) */}
           {(() => {
             const showPair =
-              showWhenMissing((initialSpecs as any)?.announcedDate) ||
-              showWhenMissing((initialSpecs as any)?.announceDatePrecision);
+              showWhenMissing(initialSpecs?.announcedDate) ||
+              showWhenMissing(initialSpecs?.announceDatePrecision);
             if (!showPair) return null;
             return (
               <>
@@ -416,7 +428,7 @@ function CoreFieldsComponent({
                   </div>
                   <ToggleGroup
                     type="single"
-                    value={(currentSpecs as any).announceDatePrecision ?? "DAY"}
+                    value={announcedDatePrecision}
                     onValueChange={(v) =>
                       v && onChange("announceDatePrecision", v)
                     }
@@ -444,19 +456,17 @@ function CoreFieldsComponent({
                   </ToggleGroup>
                 </div>
 
-                <DateInput
-                  label="Announced Date"
-                  value={formattedAnnouncedDate}
-                  onChange={handleAnnouncedDateChange}
-                  granularity={
-                    ((currentSpecs as any).announceDatePrecision as any) ===
-                    "YEAR"
-                      ? "year"
-                      : ((currentSpecs as any).announceDatePrecision as any) ===
-                          "MONTH"
+                  <DateInput
+                    label="Announced Date"
+                    value={formattedAnnouncedDate}
+                    onChange={handleAnnouncedDateChange}
+                    granularity={
+                      announcedDatePrecision === "YEAR"
+                        ? "year"
+                        : announcedDatePrecision === "MONTH"
                         ? "month"
                         : "day"
-                  }
+                    }
                 />
               </>
             );
@@ -465,8 +475,8 @@ function CoreFieldsComponent({
           {/* Release Date + Precision (paired) */}
           {(() => {
             const showPair =
-              showWhenMissing((initialSpecs as any)?.releaseDate) ||
-              showWhenMissing((initialSpecs as any)?.releaseDatePrecision);
+              showWhenMissing(initialSpecs?.releaseDate) ||
+              showWhenMissing(initialSpecs?.releaseDatePrecision);
             if (!showPair) return null;
             return (
               <>
@@ -488,7 +498,7 @@ function CoreFieldsComponent({
                   </div>
                   <ToggleGroup
                     type="single"
-                    value={(currentSpecs as any).releaseDatePrecision ?? "DAY"}
+                    value={releaseDatePrecision}
                     onValueChange={(v) =>
                       v && onChange("releaseDatePrecision", v)
                     }
@@ -516,25 +526,23 @@ function CoreFieldsComponent({
                   </ToggleGroup>
                 </div>
 
-                <DateInput
-                  label="Release Date"
-                  value={formattedReleaseDate}
-                  onChange={handleReleaseDateChange}
-                  granularity={
-                    ((currentSpecs as any).releaseDatePrecision as any) ===
-                    "YEAR"
-                      ? "year"
-                      : ((currentSpecs as any).releaseDatePrecision as any) ===
-                          "MONTH"
+                  <DateInput
+                    label="Release Date"
+                    value={formattedReleaseDate}
+                    onChange={handleReleaseDateChange}
+                    granularity={
+                      releaseDatePrecision === "YEAR"
+                        ? "year"
+                        : releaseDatePrecision === "MONTH"
                         ? "month"
                         : "day"
-                  }
+                    }
                 />
               </>
             );
           })()}
 
-          {showWhenMissing((initialSpecs as any)?.msrpNowUsdCents) && (
+          {showWhenMissing(initialSpecs?.msrpNowUsdCents) && (
             <CurrencyInput
               id="msrpNow"
               label="MSRP now (USD)"
@@ -545,7 +553,7 @@ function CoreFieldsComponent({
             />
           )}
 
-          {showWhenMissing((initialSpecs as any)?.msrpAtLaunchUsdCents) && (
+          {showWhenMissing(initialSpecs?.msrpAtLaunchUsdCents) && (
             <CurrencyInput
               id="msrpAtLaunch"
               label="MSRP at launch (USD)"
@@ -556,7 +564,7 @@ function CoreFieldsComponent({
             />
           )}
 
-          {showWhenMissing((initialSpecs as any)?.mpbMaxPriceUsdCents) && (
+          {showWhenMissing(initialSpecs?.mpbMaxPriceUsdCents) && (
             <CurrencyInput
               id="mpbMaxPrice"
               label="MPB max price (USD)"
@@ -567,7 +575,7 @@ function CoreFieldsComponent({
             />
           )}
 
-          {showWhenMissing((initialSpecs as any)?.weightGrams) && (
+          {showWhenMissing(initialSpecs?.weightGrams) && (
             <NumberInput
               id="weight"
               label={gearType === "CAMERA" ? "Weight with battery" : "Weight"}
@@ -586,10 +594,10 @@ function CoreFieldsComponent({
 
           {(() => {
             const hadMounts = (() => {
-              const ids = Array.isArray((initialSpecs as any)?.mountIds)
-                ? ((initialSpecs as any)?.mountIds as string[])
+              const ids = Array.isArray(initialSpecs?.mountIds)
+                ? initialSpecs.mountIds
                 : [];
-              const legacy = (initialSpecs as any)?.mountId;
+              const legacy = initialSpecs?.mountId;
               return (ids?.length ?? 0) > 0 || Boolean(legacy);
             })();
             if (showMissingOnly && hadMounts) return null;
@@ -611,8 +619,8 @@ function CoreFieldsComponent({
           {/* Dimensions */}
           {gearType === "LENS" ? (
             <>
-              {(showWhenMissing((initialSpecs as any)?.widthMm) ||
-                showWhenMissing((initialSpecs as any)?.heightMm)) && (
+              {(showWhenMissing(initialSpecs?.widthMm) ||
+                showWhenMissing(initialSpecs?.heightMm)) && (
                 <NumberInput
                   id="diameterMm"
                   label="Diameter"
@@ -624,7 +632,7 @@ function CoreFieldsComponent({
                   suffix="mm"
                 />
               )}
-              {showWhenMissing((initialSpecs as any)?.depthMm) && (
+              {showWhenMissing(initialSpecs?.depthMm) && (
                 <NumberInput
                   id="lengthMm"
                   label="Length"
@@ -639,7 +647,7 @@ function CoreFieldsComponent({
             </>
           ) : (
             <>
-              {showWhenMissing((initialSpecs as any)?.widthMm) && (
+              {showWhenMissing(initialSpecs?.widthMm) && (
                 <NumberInput
                   id="widthMm"
                   label="Width"
@@ -651,7 +659,7 @@ function CoreFieldsComponent({
                   suffix="mm"
                 />
               )}
-              {showWhenMissing((initialSpecs as any)?.heightMm) && (
+              {showWhenMissing(initialSpecs?.heightMm) && (
                 <NumberInput
                   id="heightMm"
                   label="Height"
@@ -663,7 +671,7 @@ function CoreFieldsComponent({
                   suffix="mm"
                 />
               )}
-              {showWhenMissing((initialSpecs as any)?.depthMm) && (
+              {showWhenMissing(initialSpecs?.depthMm) && (
                 <NumberInput
                   id="depthMm"
                   label="Depth"
@@ -678,7 +686,7 @@ function CoreFieldsComponent({
             </>
           )}
 
-          {showWhenMissing((initialSpecs as any)?.genres) && (
+          {showWhenMissing(initialSpecs?.genres) && (
             <div className="space-y-2 md:col-span-2">
               <div className="flex items-center gap-2">
                 <Label>Best use cases</Label>
@@ -711,7 +719,7 @@ function CoreFieldsComponent({
             </div>
           )}
 
-          {showWhenMissing((initialSpecs as any)?.linkManufacturer) && (
+          {showWhenMissing(initialSpecs?.linkManufacturer) && (
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="linkManufacturer">Manufacturer Link</Label>
               <input
@@ -727,7 +735,7 @@ function CoreFieldsComponent({
             </div>
           )}
 
-          {showWhenMissing((initialSpecs as any)?.linkMpb) && (
+          {showWhenMissing(initialSpecs?.linkMpb) && (
             <div className="space-y-2 md:col-span-2">
               <div className="flex items-center gap-2">
                 <Label htmlFor="linkMpb">MPB Link</Label>
@@ -791,7 +799,7 @@ function CoreFieldsComponent({
             </div>
           )}
 
-          {showWhenMissing((initialSpecs as any)?.linkBh) && (
+          {showWhenMissing(initialSpecs?.linkBh) && (
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="linkBh">B&H Link</Label>
               <input
@@ -806,7 +814,7 @@ function CoreFieldsComponent({
             </div>
           )}
 
-          {showWhenMissing((initialSpecs as any)?.linkAmazon) && (
+          {showWhenMissing(initialSpecs?.linkAmazon) && (
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="linkAmazon">Amazon Link</Label>
               <input

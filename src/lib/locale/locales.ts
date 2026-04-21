@@ -1,10 +1,20 @@
+import type { Locale } from "~/i18n/config";
 import {
   resolveRegionFromCountryCode,
   type GearRegion,
 } from "~/lib/gear/region";
-import type { Locale } from "~/i18n/config";
 
-export type LocaleId = "us" | "uk" | "eu" | "de" | "fr" | "es" | "it" | "jp" | "global";
+export type LocaleId =
+  | "us"
+  | "uk"
+  | "eu"
+  | "de"
+  | "fr"
+  | "es"
+  | "it"
+  | "my"
+  | "jp"
+  | "global";
 
 export type LocaleOption = {
   id: LocaleId;
@@ -14,9 +24,9 @@ export type LocaleOption = {
   /** Canonical country code for affiliate fallback */
   affiliateCountryCode: string | null;
   gearRegion: GearRegion;
-  affiliate: {
-    mpbMarket: "US" | "UK" | "EU" | "DE" | "FR" | "ES" | "IT" | null;
-    amazonHost?: string | null;
+  mpb: {
+    isSupported: boolean;
+    market: "US" | "UK" | "EU" | "DE" | "FR" | "ES" | "IT" | null;
   };
 };
 
@@ -35,7 +45,10 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     countryCode: "US",
     affiliateCountryCode: "US",
     gearRegion: "GLOBAL",
-    affiliate: { mpbMarket: "US", amazonHost: "www.amazon.com" },
+    mpb: {
+      isSupported: true,
+      market: "US",
+    },
   },
   {
     id: "uk",
@@ -43,7 +56,10 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     countryCode: "GB",
     affiliateCountryCode: "GB",
     gearRegion: "EU",
-    affiliate: { mpbMarket: "UK", amazonHost: "www.amazon.co.uk" },
+    mpb: {
+      isSupported: true,
+      market: "UK",
+    },
   },
   {
     id: "eu",
@@ -51,7 +67,10 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     countryCode: "EU", // not ISO, used for flag selection
     affiliateCountryCode: "FR", // representative ISO for storage/geo
     gearRegion: "EU",
-    affiliate: { mpbMarket: "EU", amazonHost: "www.amazon.de" },
+    mpb: {
+      isSupported: true,
+      market: "EU",
+    },
   },
   {
     id: "de",
@@ -59,7 +78,10 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     countryCode: "DE",
     affiliateCountryCode: "DE",
     gearRegion: "EU",
-    affiliate: { mpbMarket: "DE", amazonHost: "www.amazon.de" },
+    mpb: {
+      isSupported: true,
+      market: "DE",
+    },
   },
   {
     id: "fr",
@@ -67,7 +89,10 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     countryCode: "FR",
     affiliateCountryCode: "FR",
     gearRegion: "EU",
-    affiliate: { mpbMarket: "FR", amazonHost: "www.amazon.fr" },
+    mpb: {
+      isSupported: true,
+      market: "FR",
+    },
   },
   {
     id: "es",
@@ -75,7 +100,10 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     countryCode: "ES",
     affiliateCountryCode: "ES",
     gearRegion: "EU",
-    affiliate: { mpbMarket: "ES", amazonHost: "www.amazon.es" },
+    mpb: {
+      isSupported: true,
+      market: "ES",
+    },
   },
   {
     id: "it",
@@ -83,7 +111,21 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     countryCode: "IT",
     affiliateCountryCode: "IT",
     gearRegion: "EU",
-    affiliate: { mpbMarket: "IT", amazonHost: "www.amazon.it" },
+    mpb: {
+      isSupported: true,
+      market: "IT",
+    },
+  },
+  {
+    id: "my",
+    label: "Malaysia",
+    countryCode: "MY",
+    affiliateCountryCode: "MY",
+    gearRegion: "GLOBAL",
+    mpb: {
+      isSupported: false,
+      market: null,
+    },
   },
   {
     id: "jp",
@@ -91,7 +133,10 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     countryCode: "JP",
     affiliateCountryCode: "JP",
     gearRegion: "JP",
-    affiliate: { mpbMarket: null, amazonHost: "www.amazon.co.jp" },
+    mpb: {
+      isSupported: false,
+      market: null,
+    },
   },
   {
     id: "global",
@@ -99,7 +144,10 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     countryCode: null,
     affiliateCountryCode: null,
     gearRegion: "GLOBAL",
-    affiliate: { mpbMarket: "US", amazonHost: "www.amazon.com" },
+    mpb: {
+      isSupported: true,
+      market: "US",
+    },
   },
 ];
 
@@ -158,6 +206,13 @@ export const LANGUAGE_MARKET_OPTIONS: LanguageMarketOption[] = [
     shortLabel: "Italiano",
   },
   {
+    id: "ms-my",
+    locale: "ms",
+    localeId: "my",
+    label: "Bahasa Melayu (Malaysia)",
+    shortLabel: "Bahasa Melayu",
+  },
+  {
     id: "ja-jp",
     locale: "ja",
     localeId: "jp",
@@ -172,7 +227,8 @@ const DEFAULT_LANGUAGE_MARKET_BY_LOCALE: Record<Locale, LanguageMarketOption> = 
   fr: LANGUAGE_MARKET_OPTIONS[4]!,
   es: LANGUAGE_MARKET_OPTIONS[5]!,
   it: LANGUAGE_MARKET_OPTIONS[6]!,
-  ja: LANGUAGE_MARKET_OPTIONS[7]!,
+  ms: LANGUAGE_MARKET_OPTIONS[7]!,
+  ja: LANGUAGE_MARKET_OPTIONS[8]!,
 };
 
 const REGION_DEFAULT_LOCALE_ID: Partial<Record<GearRegion, LocaleId>> = {

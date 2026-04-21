@@ -1,5 +1,5 @@
 import type { GearAlias } from "~/types/gear";
-import { resolveRegionFromCountryCode, type GearRegion } from "./region";
+import { resolveRegionFromCountryCode,type GearRegion } from "./region";
 
 type GearNameSource = {
   name: string;

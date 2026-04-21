@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach,describe,expect,it,vi } from "vitest";
 
 const envMocks = vi.hoisted(() => ({
   env: {
@@ -17,7 +17,7 @@ vi.mock("~/server/admin/proposals/webhook", () => webhookMocks);
 import {
   GET,
   POST,
-} from "../../src/app/(app)/api/admin/proposals/webhook/flush/route";
+} from "../../src/app/api/admin/proposals/webhook/flush/route";
 
 describe("change request webhook flush route", () => {
   beforeEach(() => {

@@ -1,5 +1,6 @@
 "use client";
 
+import { XIcon } from "lucide-react";
 import * as React from "react";
 import {
   Select,
@@ -9,9 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { BRANDS } from "~/lib/constants";
 import { splitBrandsWithPriority } from "~/lib/brands";
-import { XIcon } from "lucide-react";
+import { BRANDS } from "~/lib/constants";
 
 type BrandOption = {
   id: string;

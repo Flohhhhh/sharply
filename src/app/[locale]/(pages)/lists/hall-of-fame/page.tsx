@@ -1,19 +1,19 @@
-import Link from "next/link";
-import Image from "next/image";
-import { hallOfFameItems } from "./data";
-import { fetchGearBySlug } from "~/server/gear/service";
-import { TbLaurelWreath } from "react-icons/tb";
-import { WreathIcon } from "./WreathIcon";
 import { BlurFade } from "@/components/ui/blur-fade";
 import { Separator } from "@/components/ui/separator";
 import type { Metadata } from "next";
-import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import { getTranslations } from "next-intl/server";
+import Image from "next/image";
+import Link from "next/link";
+import { TbLaurelWreath } from "react-icons/tb";
 import { defaultLocale } from "~/i18n/config";
 import {
   formatDateWithPrecision,
   type DatePrecision,
 } from "~/lib/format/date";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import { fetchGearBySlug } from "~/server/gear/service";
+import { hallOfFameItems } from "./data";
+import { WreathIcon } from "./WreathIcon";
 
 export const dynamic = "force-static";
 
@@ -50,8 +50,8 @@ function pickBestDate(gear: {
     p === "DAY" ? 3 : p === "MONTH" ? 2 : p === "YEAR" ? 1 : 0;
 
   if (!rel && !ann) return null;
-  if (rel && !ann) return { date: rel!, precision: relPrec! };
-  if (!rel && ann) return { date: ann!, precision: annPrec! };
+  if (rel && !ann) return { date: rel, precision: relPrec! };
+  if (!rel && ann) return { date: ann, precision: annPrec! };
 
   // both exist -> choose higher precision; if tie, prefer release date
   if (rank(relPrec) > rank(annPrec)) return { date: rel!, precision: relPrec! };

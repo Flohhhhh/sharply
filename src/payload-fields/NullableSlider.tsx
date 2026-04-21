@@ -1,6 +1,6 @@
 "use client";
-import React, { useCallback, useMemo } from "react";
-import { useField, FieldLabel, FieldDescription } from "@payloadcms/ui";
+import { FieldDescription,FieldLabel,useField } from "@payloadcms/ui";
+import React,{ useCallback,useMemo } from "react";
 
 // Lightweight slider using an <input type="range"> to avoid adding new UI deps
 // Value is number | null. When null, slider is visually dimmed and thumb is disabled until clicked.
@@ -36,7 +36,7 @@ const NullableSlider: React.FC<NullableSliderProps> = (props) => {
   const { value, setValue } = useField<number | null>({ path: effectivePath });
 
   const isUnset =
-    value === null || value === undefined || Number.isNaN(value as number);
+    value === null || value === undefined || Number.isNaN(value);
   const displayValue = useMemo(() => {
     if (typeof value === "number" && !Number.isNaN(value)) return value;
     // Center as neutral when unset

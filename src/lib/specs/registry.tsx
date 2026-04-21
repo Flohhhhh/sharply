@@ -1,52 +1,47 @@
 import type { SpecsTableSection } from "~/app/[locale]/(pages)/gear/_components/specs-table";
-import type { GearAlias, GearItem } from "~/types/gear";
-import { cn } from "~/lib/utils";
+import { VideoSpecsSummary } from "~/app/[locale]/(pages)/gear/_components/video/video-summary";
+import { Badge } from "~/components/ui/badge";
 import {
   formatDateWithPrecision,
   type DatePrecision,
 } from "~/lib/format/date";
+import { type GearRegion } from "~/lib/gear/region";
+import { AF_AREA_MODES,MOUNTS } from "~/lib/generated";
 import {
-  formatPrice,
-  formatDimensions,
-  formatLensDimensions,
-  formatCardSlotDetails,
   formatCameraType,
-  formatShutterType,
+  formatCardSlotDetails,
   formatPrecaptureSupport,
+  formatPrice,
+  formatShutterType
 } from "~/lib/mapping";
 import {
   formatAnalogCameraType,
-  formatAnalogMedium,
-  formatAnalogFilmTransport,
-  formatAnalogViewfinderType,
-  formatAnalogShutterType,
-  formatAnalogMeteringMode,
-  formatAnalogMeteringDisplay,
   formatAnalogExposureMode,
-  formatAnalogIsoSettingMethod,
+  formatAnalogFilmTransport,
   formatAnalogFocusAid,
+  formatAnalogIsoSettingMethod,
+  formatAnalogMedium,
+  formatAnalogMeteringDisplay,
+  formatAnalogMeteringMode,
+  formatAnalogShutterType,
+  formatAnalogViewfinderType,
 } from "~/lib/mapping/analog-types-map";
-import {
-  getMountLongNameById,
-  getMountLongNamesById,
-} from "~/lib/mapping/mounts-map";
-import { sensorNameFromId, sensorTypeLabel } from "~/lib/mapping/sensor-map";
-import { formatMaxFpsDisplay } from "~/lib/mapping/max-fps-map";
-import { formatFocusDistance } from "~/lib/mapping/focus-distance-map";
 import { formatFilterType } from "~/lib/mapping/filter-types-map";
 import { formatFocalLengthRangeDisplay } from "~/lib/mapping/focal-length-map";
-import { MOUNTS, AF_AREA_MODES } from "~/lib/generated";
-import { buildVideoDisplayBundle } from "~/lib/video/transform";
-import { VideoSpecsSummary } from "~/app/[locale]/(pages)/gear/_components/video/video-summary";
-import { Badge } from "~/components/ui/badge";
+import { formatFocusDistance } from "~/lib/mapping/focus-distance-map";
+import { formatMaxFpsDisplay } from "~/lib/mapping/max-fps-map";
+import {
+  getMountLongNameById
+} from "~/lib/mapping/mounts-map";
+import { sensorNameFromId,sensorTypeLabel } from "~/lib/mapping/sensor-map";
+import { cn } from "~/lib/utils";
 import {
   normalizedToCameraVideoModes,
   type VideoModeNormalized,
 } from "~/lib/video/mode-schema";
-import type { CameraVideoMode } from "~/types/gear";
+import { buildVideoDisplayBundle } from "~/lib/video/transform";
+import type { CameraVideoMode,GearAlias,GearItem } from "~/types/gear";
 import { supportsVideoMeaningfully } from "./helpers";
-import { Item } from "@radix-ui/react-toggle-group";
-import { type GearRegion } from "~/lib/gear/region";
 
 function coerceCameraVideoModes(
   modes?: GearItem["videoModes"],
@@ -522,10 +517,8 @@ export const specDictionary: SpecSectionDef[] = [
           "in body stabilization",
         ],
         getRawValue: (item) => item.cameraSpecs?.hasIbis,
-        formatDisplay: (raw, item) =>
-          typeof raw === "boolean"
-            ? yesNoNull(raw, !supportsVideoMeaningfully(item))
-            : undefined,
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw, true) : undefined,
       },
       {
         key: "hasElectronicVibrationReduction",
@@ -538,7 +531,7 @@ export const specDictionary: SpecSectionDef[] = [
         ],
         getRawValue: (item) =>
           item.cameraSpecs?.hasElectronicVibrationReduction,
-        formatDisplay: (raw, item) =>
+        formatDisplay: (raw) =>
           typeof raw === "boolean" ? yesNoNull(raw, true) : undefined,
       },
       {
@@ -641,7 +634,6 @@ export const specDictionary: SpecSectionDef[] = [
     condition: (item) => {
       if (item.gearType !== "CAMERA" && item.gearType !== "ANALOG_CAMERA")
         return false;
-      type MountGenerated = (typeof MOUNTS)[number];
       const mountValueById = (id: string | null | undefined): string | null => {
         if (!id) return null;
         const m = MOUNTS.find((x) => x.id === id);
@@ -1411,14 +1403,14 @@ export const specDictionary: SpecSectionDef[] = [
         label: "Focus Motor Type",
         getRawValue: (item) => item.lensSpecs?.focusMotorType,
         formatDisplay: (raw) =>
-          typeof raw === "string" ? (raw as string) : undefined,
+          typeof raw === "string" ? (raw) : undefined,
         condition: (item) => item.lensSpecs?.hasAutofocus === true,
       },
       {
         key: "hasAfMfSwitch",
         label: "Has AF/MF Switch",
         getRawValue: (item) => item.lensSpecs?.hasAfMfSwitch,
-        formatDisplay: (raw, item) => {
+        formatDisplay: (raw) => {
           return typeof raw === "boolean" ? yesNoNull(raw) : undefined;
         },
         condition: (item) => item.lensSpecs?.hasAutofocus === true,
@@ -1437,7 +1429,7 @@ export const specDictionary: SpecSectionDef[] = [
         key: "hasFocusRecallButton",
         label: "Has Focus Recall Button",
         getRawValue: (item) => item.lensSpecs?.hasFocusRecallButton,
-        formatDisplay: (raw, item) => {
+        formatDisplay: (raw) => {
           return typeof raw === "boolean" ? yesNoNull(raw, true) : undefined;
         },
         condition: (item) => item.lensSpecs?.hasAutofocus === true,
@@ -1591,7 +1583,7 @@ export const specDictionary: SpecSectionDef[] = [
             : undefined,
         condition: (item) =>
           Array.isArray(item.lensSpecs?.acceptsFilterTypes) &&
-          item.lensSpecs!.acceptsFilterTypes!.includes("front-screw-on"),
+          item.lensSpecs.acceptsFilterTypes.includes("front-screw-on"),
       },
       {
         key: "rearFilterThreadSizeMm",
@@ -1604,7 +1596,7 @@ export const specDictionary: SpecSectionDef[] = [
             : undefined,
         condition: (item) =>
           Array.isArray(item.lensSpecs?.acceptsFilterTypes) &&
-          item.lensSpecs!.acceptsFilterTypes!.includes("rear-screw-on"),
+          item.lensSpecs.acceptsFilterTypes.includes("rear-screw-on"),
       },
       {
         key: "dropInFilterSizeMm",
@@ -1617,7 +1609,7 @@ export const specDictionary: SpecSectionDef[] = [
             : undefined,
         condition: (item) =>
           Array.isArray(item.lensSpecs?.acceptsFilterTypes) &&
-          item.lensSpecs!.acceptsFilterTypes!.includes("rear-drop-in"),
+          item.lensSpecs.acceptsFilterTypes.includes("rear-drop-in"),
       },
     ],
   },
@@ -1917,7 +1909,7 @@ export const specDictionary: SpecSectionDef[] = [
         // only show if there are batteries
         condition: (item) =>
           Array.isArray(item.analogCameraSpecs?.supportedBatteries) &&
-          (item.analogCameraSpecs?.supportedBatteries as string[]).length > 0,
+          (item.analogCameraSpecs?.supportedBatteries).length > 0,
         editElementId: "supportedBatteries",
       },
       {

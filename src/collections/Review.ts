@@ -1,7 +1,7 @@
-import slugify from "slugify";
 import type { CollectionConfig } from "payload";
-import { reviewGearItemField } from "~/payload-fields/custom-fields";
+import slugify from "slugify";
 import { GENRES } from "~/lib/constants";
+import { reviewGearItemField } from "~/payload-fields/custom-fields";
 
 export const Review: CollectionConfig = {
   slug: "review",

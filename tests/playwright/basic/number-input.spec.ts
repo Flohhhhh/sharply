@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect,test } from "@playwright/test";
 
 test.describe("number input", () => {
   test("preserves decimal typing like 1.04", async ({ page }) => {

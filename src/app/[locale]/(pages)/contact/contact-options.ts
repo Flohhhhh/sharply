@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Bug, BookAlert, Feather, HeartHandshake } from "lucide-react";
+import { BookAlert,Bug,Feather,HeartHandshake } from "lucide-react";
 import type { ContactReason } from "~/lib/contact/contact-schema";
 
 export type ContactOption = {

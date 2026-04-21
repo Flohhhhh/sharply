@@ -20,19 +20,19 @@ if (process.env.NEXT_RUNTIME) {
  * - queryGearSuggestions / queryBrandSuggestions: lighter-weight suggestion queries.
  */
 
+import { asc,desc,eq,ilike,sql,type SQL } from "drizzle-orm";
 import { db } from "~/server/db";
 import {
-  gear,
-  brands,
-  mounts,
-  gearMounts,
-  cameraSpecs,
-  sensorFormats,
-  lensSpecs,
-  fixedLensSpecs,
   analogCameraSpecs,
+  brands,
+  cameraSpecs,
+  fixedLensSpecs,
+  gear,
+  gearMounts,
+  lensSpecs,
+  mounts,
+  sensorFormats,
 } from "~/server/db/schema";
-import { asc, desc, ilike, sql, and, eq, type SQL } from "drizzle-orm";
 import {
   buildDecimalNumericTokenRegex,
   getSignificantNumericTokens,

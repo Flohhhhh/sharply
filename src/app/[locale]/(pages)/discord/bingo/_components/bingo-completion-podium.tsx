@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { Avatar,AvatarFallback,AvatarImage } from "~/components/ui/avatar";
 import type { BingoCompletionPodiumEntry } from "~/types/bingo";
 
 type RankStyles = {

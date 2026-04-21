@@ -1,24 +1,24 @@
-import type {
-  gear,
-  cameraSpecs,
-  analogCameraSpecs,
-  lensSpecs,
-  fixedLensSpecs,
-  brands,
-  mounts,
-  sensorFormats,
-  popularityEventTypeEnum,
-  gearEdits,
-  afAreaModes,
-  cameraCardSlots,
-  cameraVideoModes,
-  rawSamples,
-  gearRawSamples,
-  gearAliases,
-  gearRegionEnum,
-} from "~/server/db/schema";
+import { type ENUMS } from "~/lib/constants";
 import type { VideoModeNormalized } from "~/lib/video/mode-schema";
-import { ENUMS } from "~/lib/constants";
+import type {
+  afAreaModes,
+  analogCameraSpecs,
+  brands,
+  cameraCardSlots,
+  cameraSpecs,
+  cameraVideoModes,
+  fixedLensSpecs,
+  gear,
+  gearAliases,
+  gearEdits,
+  gearRawSamples,
+  gearRegionEnum,
+  lensSpecs,
+  mounts,
+  popularityEventTypeEnum,
+  rawSamples,
+  sensorFormats,
+} from "~/server/db/schema";
 
 // Base types from schema
 export type Gear = typeof gear.$inferSelect;

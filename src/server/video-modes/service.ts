@@ -2,18 +2,17 @@ import "server-only";
 
 import type { AuthUser } from "~/auth";
 import { requireRole } from "~/lib/auth/auth-helpers";
+import {
+  normalizeVideoModes,
+  slugifyResolutionKey,
+  videoModesPayloadSchema,
+} from "~/lib/video/mode-schema";
 import { getSessionOrThrow } from "~/server/auth";
 import { getGearIdBySlug as getGearIdBySlugData } from "~/server/gear/data";
 import {
   fetchVideoModesByGearId,
-  replaceVideoModesForGear,
-  type CameraVideoModeRow,
+  replaceVideoModesForGear
 } from "./data";
-import {
-  videoModesPayloadSchema,
-  normalizeVideoModes,
-  slugifyResolutionKey,
-} from "~/lib/video/mode-schema";
 
 function assertCanEdit(user: AuthUser | undefined) {
   if (!user || !requireRole(user, ["EDITOR"])) {

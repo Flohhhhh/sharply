@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo,useState } from "react";
 import type { VideoMatrixData } from "~/lib/video/transform";
 import { VideoMatrixModal } from "./video-matrix-modal";
 import { VideoSummaryGrid } from "./video-summary-grid";
@@ -79,7 +79,6 @@ export function VideoSpecsSummary({
           open={open}
           onOpenChange={setOpen}
           matrix={matrix!}
-          summaryLines={lines}
           codecLabels={codecLabels}
           videoNotes={videoNotes}
         />

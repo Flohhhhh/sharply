@@ -1,8 +1,5 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
-import { Bell, Loader } from "lucide-react";
-import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -11,11 +8,14 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Bell,Loader } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useMemo,useState,useTransition } from "react";
 import { cn } from "~/lib/utils";
 import {
-  actionMarkNotificationRead,
-  actionDeleteNotification,
   actionArchiveNotification,
+  actionDeleteNotification,
+  actionMarkNotificationRead,
 } from "~/server/notifications/actions";
 import type { NotificationView } from "~/server/notifications/service";
 import { NotificationItem } from "./notification-item";

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Label } from "~/components/ui/label";
+import { useEffect,useState } from "react";
 import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 
 // Types for the currency input
 export interface CurrencyInputProps {

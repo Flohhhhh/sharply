@@ -1,7 +1,7 @@
 import "server-only";
 
-import { fetchAdminBrandsData, type AdminBrand } from "./data";
 import { getSessionOrThrow } from "~/server/auth";
+import { fetchAdminBrandsData,type AdminBrand } from "./data";
 
 export async function fetchAdminBrands(): Promise<AdminBrand[]> {
   const session = await getSessionOrThrow();

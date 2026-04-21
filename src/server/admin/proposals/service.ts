@@ -2,18 +2,18 @@ import "server-only";
 
 import { requireRole } from "~/lib/auth/auth-helpers";
 import { getSessionOrThrow } from "~/server/auth";
+import { evaluateForEvent } from "~/server/badges/service";
+import { createNotification } from "~/server/notifications/service";
 import type { GearEditProposal } from "~/types/gear";
 import {
+  approveProposalData,
+  countRecentResolvedProposals,
   fetchPendingProposalsData,
   fetchRecentResolvedProposalsData,
-  countRecentResolvedProposals,
   getProposalData,
-  approveProposalData,
   mergeProposalData,
   rejectProposalData,
 } from "./data";
-import { evaluateForEvent } from "~/server/badges/service";
-import { createNotification } from "~/server/notifications/service";
 
 type EnrichedProposal = GearEditProposal & {
   gearName: string;

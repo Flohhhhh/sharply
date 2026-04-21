@@ -16,21 +16,21 @@ There is also an error message path, but it does not introduce a separate primar
 
 All route logic remains colocated under the route:
 
-- `src/app/(app)/(pages)/(tools)/exif-viewer/page.tsx`
-- `src/app/(app)/(pages)/(tools)/exif-viewer/client.tsx`
-- `src/app/(app)/(pages)/(tools)/exif-viewer/types.ts`
-- `src/app/(app)/(pages)/(tools)/exif-viewer/parse/route.ts`
-- `src/app/(app)/(pages)/(tools)/exif-viewer/parse/exiftool.ts`
-- `src/app/(app)/(pages)/(tools)/exif-viewer/parse/extractors.ts`
-- `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-empty-state.tsx`
-- `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-loading-state.tsx`
-- `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-results.tsx`
-- `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-metadata-table.tsx`
-- `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-tracking-mini-chart.tsx`
-- `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-tracking-history-dialog.tsx`
-- `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-tracking-history-chart.tsx`
-- `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-tracking-chart-utils.ts`
-- `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-preview-trigger.tsx`
+- `src/app/[locale]/(pages)/(tools)/exif-viewer/page.tsx`
+- `src/app/[locale]/(pages)/(tools)/exif-viewer/client.tsx`
+- `src/app/[locale]/(pages)/(tools)/exif-viewer/types.ts`
+- `src/app/[locale]/(pages)/(tools)/exif-viewer/parse/route.ts`
+- `src/app/[locale]/(pages)/(tools)/exif-viewer/parse/exiftool.ts`
+- `src/app/[locale]/(pages)/(tools)/exif-viewer/parse/extractors.ts`
+- `src/app/[locale]/(pages)/(tools)/exif-viewer/_components/exif-empty-state.tsx`
+- `src/app/[locale]/(pages)/(tools)/exif-viewer/_components/exif-loading-state.tsx`
+- `src/app/[locale]/(pages)/(tools)/exif-viewer/_components/exif-results.tsx`
+- `src/app/[locale]/(pages)/(tools)/exif-viewer/_components/exif-metadata-table.tsx`
+- `src/app/[locale]/(pages)/(tools)/exif-viewer/_components/exif-tracking-mini-chart.tsx`
+- `src/app/[locale]/(pages)/(tools)/exif-viewer/_components/exif-tracking-history-dialog.tsx`
+- `src/app/[locale]/(pages)/(tools)/exif-viewer/_components/exif-tracking-history-chart.tsx`
+- `src/app/[locale]/(pages)/(tools)/exif-viewer/_components/exif-tracking-chart-utils.ts`
+- `src/app/[locale]/(pages)/(tools)/exif-viewer/_components/exif-preview-trigger.tsx`
 
 ## Rendering split
 

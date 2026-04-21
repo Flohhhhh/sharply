@@ -1,14 +1,13 @@
 import { type Metadata } from "next";
 import { notFound } from "next/navigation";
 // import { Geist } from "next/font/google";
-import { Archivo, Crimson_Text } from "next/font/google";
-import { getTranslations, setRequestLocale } from "next-intl/server";
-import { Providers } from "./providers";
-import { Toaster } from "~/components/ui/sonner";
 import { Analytics } from "@vercel/analytics/next";
-import type { Locale } from "~/i18n/config";
-import { defaultLocale, isLocale, locales } from "~/i18n/config";
+import { getTranslations,setRequestLocale } from "next-intl/server";
+import { Archivo,Crimson_Text } from "next/font/google";
+import { Toaster } from "~/components/ui/sonner";
+import { defaultLocale,isLocale,locales } from "~/i18n/config";
 import { getMessagesForLocale } from "~/i18n/messages";
+import { Providers } from "./providers";
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -105,7 +104,7 @@ export default async function RootLayout({
       className={`${archivo.variable} ${crimsonText.variable}`}
     >
       <body>
-        <Providers locale={locale as Locale} messages={messages} timeZone="UTC">
+        <Providers locale={locale} messages={messages} timeZone="UTC">
           {children}
           <Toaster />
         </Providers>

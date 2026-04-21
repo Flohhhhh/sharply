@@ -1,8 +1,10 @@
 import "server-only";
 
-import { auth, type AuthUser } from "~/auth";
+import { and,eq,sql } from "drizzle-orm";
+import { headers } from "next/headers";
 import { z } from "zod";
-import { eq, sql, and } from "drizzle-orm";
+import { auth,type AuthUser } from "~/auth";
+import { getSessionOrThrow } from "~/server/auth";
 import { db } from "~/server/db";
 import {
   brands,
@@ -11,18 +13,16 @@ import {
   gearMounts,
   lensSpecs,
   mounts,
+  notifications,
+  ownerships,
   reviews,
   users,
   wishlists,
-  ownerships,
-  notifications,
 } from "~/server/db/schema";
-import { updateUserSocialLinks } from "./data";
-import { createNotificationData } from "../notifications/data";
-import type { GearItem, Mount } from "~/types/gear";
-import { headers } from "next/headers";
-import { getSessionOrThrow } from "~/server/auth";
 import { fetchGearAliasesByGearIds } from "~/server/gear/data";
+import type { GearItem,Mount } from "~/types/gear";
+import { createNotificationData } from "../notifications/data";
+import { updateUserSocialLinks } from "./data";
 
 async function updateCurrentAuthUser(
   data: Partial<Pick<AuthUser, "handle" | "image" | "name">>,

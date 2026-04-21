@@ -6,7 +6,7 @@ See also: `docs/frontend-bot-contract.md` for the cross-repo ownership rules and
 
 ## Structure
 
-- `src/app/(app)/api/internal/discord/**`
+- `src/app/api/internal/discord/**`
   - Internal endpoints consumed by the bot runtime
   - Protected by a shared bearer token
 - `src/server/discord-bot-api/service.ts`

@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
 import { useDebounce } from "@hooks/useDebounce";
-import { fetchSearchSuggestions } from "./fetch-search-suggestions";
+import { useCallback,useEffect,useRef,useState } from "react";
 import type { Suggestion } from "~/types/search";
+import { fetchSearchSuggestions } from "./fetch-search-suggestions";
 
 type UseSearchSuggestionsOptions = {
   minLength?: number;

@@ -1,3 +1,5 @@
+import { Avatar,AvatarFallback,AvatarImage } from "./avatar";
+import { Badge } from "./badge";
 import { Button } from "./button";
 import {
   Card,
@@ -8,8 +10,6 @@ import {
   CardTitle,
 } from "./card";
 import { Input } from "./input";
-import { Badge } from "./badge";
-import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 
 export function ExampleUsage() {
   return (

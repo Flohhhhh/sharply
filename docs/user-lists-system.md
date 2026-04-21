@@ -46,7 +46,7 @@ Defined in `src/server/db/schema.ts`.
 
 ### Public Shared Route
 
-- Route: `src/app/(app)/(pages)/list/[shared]/page.tsx`
+- Route: `src/app/[locale]/(pages)/list/[shared]/page.tsx`
 - Rendering mode: `force-dynamic` (no static generation)
 - Metadata:
   - `robots: { index: false, follow: false }`
@@ -65,12 +65,12 @@ Defined in `src/server/db/schema.ts`.
 
 ### Crawler Exclusion
 
-- `/list/` is disallowed in `src/app/(app)/robots.ts`.
+- `/list/` is disallowed in `src/app/robots.ts`.
 - Shared lists are intentionally omitted from sitemap generation.
 
 ## Open Graph Image
 
-- Route: `src/app/(app)/(pages)/list/[shared]/opengraph-image.tsx`
+- Route: localized shared-list Open Graph endpoint at `/{locale}/list/[shared]/opengraph-image`
 - Dynamic OG image includes:
   - List name
   - Owner avatar/name
@@ -92,9 +92,9 @@ Feature follows `data -> service -> actions`.
 
 ### Profile (`/u/[handle]`)
 
-- `src/app/(app)/(pages)/u/_components/lists/user-lists-section.tsx`
-- `src/app/(app)/(pages)/u/_components/lists/list-manage-modal.tsx`
-- `src/app/(app)/(pages)/u/_components/lists/list-sortable-items.tsx`
+- `src/app/[locale]/(pages)/u/_components/lists/user-lists-section.tsx`
+- `src/app/[locale]/(pages)/u/_components/lists/list-manage-modal.tsx`
+- `src/app/[locale]/(pages)/u/_components/lists/list-sortable-items.tsx`
 
 Capabilities:
 
@@ -108,8 +108,8 @@ Capabilities:
 
 - `src/components/gear/save-item-button.tsx`
 - Wired into gear action stack:
-  - `src/app/(app)/(pages)/gear/_components/gear-action-buttons.tsx`
-  - `src/app/(app)/(pages)/gear/_components/gear-action-buttons-client.tsx`
+  - `src/app/[locale]/(pages)/gear/_components/gear-action-buttons.tsx`
+  - `src/app/[locale]/(pages)/gear/_components/gear-action-buttons-client.tsx`
 
 Behavior:
 

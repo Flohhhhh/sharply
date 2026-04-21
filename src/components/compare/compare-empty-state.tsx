@@ -1,20 +1,20 @@
 "use client";
 
-import Image from "next/image";
-import { useCallback, useState } from "react";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { Scale } from "lucide-react";
+import { useTranslations } from "next-intl";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useCallback,useState } from "react";
+import { useCompareLoadingOverlay } from "~/components/compare/compare-loading-overlay";
 import {
   GearSearchCombobox,
   type GearOption,
 } from "~/components/gear/gear-search-combobox";
 import { Button } from "~/components/ui/button";
-import { useCompareLoadingOverlay } from "~/components/compare/compare-loading-overlay";
-import { buildCompareHref } from "~/lib/utils/url";
-import { actionRecordCompareAdd } from "~/server/popularity/actions";
 import { GetGearDisplayName } from "~/lib/gear/naming";
 import { useCountry } from "~/lib/hooks/useCountry";
+import { buildCompareHref } from "~/lib/utils/url";
+import { actionRecordCompareAdd } from "~/server/popularity/actions";
 
 export function CompareEmptyState() {
   const t = useTranslations("compare");

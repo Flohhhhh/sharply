@@ -1,6 +1,6 @@
-import { fetchRecentAwards } from "~/server/badges/service";
 import { getLocale } from "next-intl/server";
 import { formatDate } from "~/lib/format/date";
+import { fetchRecentAwards } from "~/server/badges/service";
 
 export async function BadgesAwardsList() {
   const locale = await getLocale();

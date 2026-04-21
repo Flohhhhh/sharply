@@ -1,10 +1,5 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
-import { useLocale } from "next-intl";
-import { useSession } from "~/lib/auth/auth-client";
-import { requireRole } from "~/lib/auth/auth-helpers";
-import { toast } from "sonner";
 import {
   ExternalLink,
   Loader2,
@@ -14,6 +9,11 @@ import {
   Trash2,
   Video,
 } from "lucide-react";
+import { useLocale } from "next-intl";
+import Image from "next/image";
+import { useEffect,useMemo,useState,useTransition } from "react";
+import { toast } from "sonner";
+import { Avatar,AvatarFallback,AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import {
@@ -35,14 +35,15 @@ import {
 } from "~/components/ui/select";
 import { Separator } from "~/components/ui/separator";
 import { Textarea } from "~/components/ui/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { useSession } from "~/lib/auth/auth-client";
+import { requireRole } from "~/lib/auth/auth-helpers";
+import { formatDate } from "~/lib/format/date";
 import {
   actionCreateGearCreatorVideo,
   actionDeactivateGearCreatorVideo,
   actionUpdateGearCreatorVideoEditorialNote,
 } from "~/server/creator-videos/actions";
 import type { CreatorVideoMetadataResolution } from "~/server/creator-videos/metadata";
-import { formatDate } from "~/lib/format/date";
 
 type ManageCreatorVideosModalProps = {
   slug: string;
@@ -369,9 +370,12 @@ export function ManageCreatorVideosModal({
                         <div className="flex flex-col gap-4 md:flex-row">
                           <div className="overflow-hidden rounded-xl border bg-zinc-100 md:w-52 dark:bg-zinc-900">
                             {video.thumbnailUrl ? (
-                              <img
+                              <Image
                                 src={video.thumbnailUrl}
                                 alt={video.title}
+                                width={416}
+                                height={234}
+                                unoptimized
                                 className="aspect-video h-full w-full object-cover"
                               />
                             ) : (
@@ -545,9 +549,12 @@ export function ManageCreatorVideosModal({
                   <div className="flex flex-col gap-4 md:flex-row">
                     <div className="overflow-hidden rounded-xl border bg-zinc-100 md:w-56 dark:bg-zinc-900">
                       {resolution.thumbnailUrl ? (
-                        <img
+                        <Image
                           src={resolution.thumbnailUrl}
                           alt={resolution.title ?? "Resolved video preview"}
+                          width={448}
+                          height={252}
+                          unoptimized
                           className="aspect-video h-full w-full object-cover"
                         />
                       ) : (

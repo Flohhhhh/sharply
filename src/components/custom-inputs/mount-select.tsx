@@ -1,20 +1,37 @@
 "use client";
 
-import { useMemo } from "react";
 import { XIcon } from "lucide-react";
+import { useMemo } from "react";
 import { Label } from "~/components/ui/label";
+import MultiSelect from "~/components/ui/multi-select";
 import {
   Select,
   SelectContent,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
-  SelectSeparator,
 } from "~/components/ui/select";
-import MultiSelect from "~/components/ui/multi-select";
-import { MOUNTS, BRANDS } from "~/lib/constants";
+import { BRANDS,MOUNTS } from "~/lib/constants";
 import { getMountLongName } from "~/lib/mapping/mounts-map";
 import { cn } from "~/lib/utils";
+
+type BrandOption = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
+type MountOption = {
+  id: string;
+  value: string;
+  brand_id: string | null;
+  created_at: string;
+};
+
+type OrderedMountOption =
+  | { id: string; name: string }
+  | { id: string; name: ""; type: "separator" };
 
 interface MountSelectProps {
   value: string | string[] | null;
@@ -37,7 +54,6 @@ export function MountSelect({
   mode = "single",
   label = "Mount",
   placeholder,
-  brandId,
   filterBrand,
   disabled,
   showLabel = true,
@@ -46,22 +62,24 @@ export function MountSelect({
   clearLabel = "Clear selection",
 }: MountSelectProps) {
   const clearValue = "__mount_clear__";
+  const brandOptions = BRANDS as BrandOption[];
+  const mountOptions = MOUNTS as MountOption[];
 
   const brandIdToName = useMemo(() => {
     const map = new Map<string, string>();
-    for (const b of BRANDS as any[]) {
-      map.set((b as any).id as string, (b as any).name as string);
+    for (const brand of brandOptions) {
+      map.set(brand.id, brand.name);
     }
     return map;
-  }, []);
+  }, [brandOptions]);
 
   const brandSlugToId = useMemo(() => {
     const map = new Map<string, string>();
-    for (const b of BRANDS as any[]) {
-      map.set((b as any).slug as string, (b as any).id as string);
+    for (const brand of brandOptions) {
+      map.set(brand.slug, brand.id);
     }
     return map;
-  }, []);
+  }, [brandOptions]);
 
   const normalizedFilterBrandId = useMemo(() => {
     if (!filterBrand) return null;
@@ -71,29 +89,28 @@ export function MountSelect({
   }, [filterBrand, brandIdToName, brandSlugToId]);
 
   const optionsWithBrand = useMemo(() => {
-    const mapped = (MOUNTS as any[]).map((mount: any) => {
-      const mountBrandId = (mount as any).brand_id as string | undefined | null;
-      const brandName =
-        (mountBrandId && brandIdToName.get(mountBrandId)) || "Other";
-      const createdAtStr = (mount as any).created_at as string | undefined;
+    const mapped = mountOptions.map((mount) => {
+      const mountBrandId = mount.brand_id;
+      const brandName = (mountBrandId && brandIdToName.get(mountBrandId)) || "Other";
+      const createdAtStr = mount.created_at;
       const createdAtMs = createdAtStr ? new Date(createdAtStr).getTime() : 0;
       return {
-        id: (mount as any).id as string,
-        name: getMountLongName((mount as any).value as string),
+        id: mount.id,
+        name: getMountLongName(mount.value),
         brandName,
         createdAtMs,
         rawBrandId: mountBrandId ?? null,
-      } as {
+      };
+    }) as {
         id: string;
         name: string;
         brandName: string;
         createdAtMs: number;
         rawBrandId: string | null;
-      };
-    });
+      }[];
     if (!normalizedFilterBrandId) return mapped;
     return mapped.filter((opt) => opt.rawBrandId === normalizedFilterBrandId);
-  }, [brandIdToName, normalizedFilterBrandId]);
+  }, [brandIdToName, mountOptions, normalizedFilterBrandId]);
 
   // Custom brand priority order, then alphabetical for the rest
   const brandPriority = useMemo(
@@ -133,7 +150,7 @@ export function MountSelect({
     }));
   }, [optionsWithBrand, brandPriority]);
 
-  const orderedOptions = useMemo(() => {
+  const orderedOptions = useMemo<OrderedMountOption[]>(() => {
     return groupedForSingle.flatMap((g, idx, arr) => {
       const items = g.items.map(({ id, name }) => ({ id, name }));
       const isLast = idx === arr.length - 1;
@@ -184,8 +201,8 @@ export function MountSelect({
               <SelectSeparator />
             ) : null}
             {orderedOptions.map((opt) => {
-              if ((opt as any).type === "separator") {
-                return <SelectSeparator key={(opt as any).id} />;
+              if ("type" in opt && opt.type === "separator") {
+                return <SelectSeparator key={opt.id} />;
               }
               return (
                 <SelectItem key={opt.id} value={opt.id}>
@@ -207,7 +224,7 @@ export function MountSelect({
       {showLabel && <Label>{label}</Label>}
       <div className={disabled ? "pointer-events-none opacity-60" : undefined}>
         <MultiSelect
-          options={orderedOptions as any}
+          options={orderedOptions}
           value={multiValue}
           onChange={(ids) => onChange(ids)}
           placeholder={placeholder || "Select compatible mounts..."}

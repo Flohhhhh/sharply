@@ -35,9 +35,9 @@ The database still stores one row per codec (contributors set `codec_label` when
 - **Color Config** – `src/lib/video/colors.ts` centralizes the bit-depth buckets for both the editor and public detail modal.
 - **Helpers** – `src/lib/video/transform.ts` builds summary strings and the matrix data consumed by the UI, including resolution sorting heuristics.
 - **Specs Table** – `src/lib/specs/registry.tsx` injects `<VideoSpecsSummary>` so every camera gear page shows the summary lines and modal launcher.
-- **Detail Modal** – `src/app/(app)/(pages)/gear/_components/video/video-matrix-modal.tsx` renders the static matrix, legend, and `camera_specs.extra.videoNotes` copy.
-- **Editors** – `src/app/(app)/(pages)/gear/_components/edit-gear/video-modes-manager.tsx` implements the guided flow plus the shared `VideoBitDepthMatrix` painter that replaces the old advanced table. The manager now stages modes in the main gear edit form instead of writing directly to the database.
-- **Form Integration** – `src/app/(app)/(pages)/gear/_components/edit-gear/edit-gear-form.tsx` normalizes staged modes, includes them in the diff payload, and previews the pending rows in the confirmation dialog.
+- **Detail Modal** – `src/app/[locale]/(pages)/gear/_components/video/video-matrix-modal.tsx` renders the static matrix, legend, and `camera_specs.extra.videoNotes` copy.
+- **Editors** – `src/app/[locale]/(pages)/gear/_components/edit-gear/video-modes-manager.tsx` implements the guided flow plus the shared `VideoBitDepthMatrix` painter that replaces the old advanced table. The manager now stages modes in the main gear edit form instead of writing directly to the database.
+- **Form Integration** – `src/app/[locale]/(pages)/gear/_components/edit-gear/edit-gear-form.tsx` normalizes staged modes, includes them in the diff payload, and previews the pending rows in the confirmation dialog.
 - **Proposal Pipeline** – `src/server/db/normalizers.ts` validates and normalizes the `videoModes` payload, while `src/server/admin/proposals/data.ts` applies the rows during approval by replacing `camera_video_modes`.
 - **Server Layer** – `src/server/video-modes/data.ts` + `service.ts` provide CRUD helpers, while `src/server/video-modes/actions.ts` expose read/save/regenerate actions to client components.
 

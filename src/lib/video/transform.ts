@@ -143,7 +143,7 @@ export function buildVideoMatrix(modes: CameraVideoMode[]): VideoMatrixData {
     const resolutionKey = parts[0] ?? "unknown";
     const fpsString = parts[1] ?? "0";
     cells[resolutionKey] = cells[resolutionKey] ?? {};
-    cells[resolutionKey]![fpsString] = formatCell(resolutionKey, mode);
+    cells[resolutionKey][fpsString] = formatCell(resolutionKey, mode);
   }
 
   return {

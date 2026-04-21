@@ -1,17 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
+import UserCard from "~/app/[locale]/(auth)/auth/welcome/user-card";
+import type { AuthUser } from "~/auth";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogTrigger,
-  DialogClose,
 } from "~/components/ui/dialog";
-import UserCard from "~/app/[locale]/(auth)/auth/welcome/user-card";
-import type { AuthUser } from "~/auth";
-import { XIcon } from "lucide-react";
 
 type ShowUserCardButtonProps = {
   user: AuthUser;

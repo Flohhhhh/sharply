@@ -1,26 +1,25 @@
 "use client";
 
+import { Crop } from "lucide-react";
+import { Badge } from "~/components/ui/badge";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
-import { Badge } from "~/components/ui/badge";
-import type { VideoMatrixData } from "~/lib/video/transform";
-import { Crop } from "lucide-react";
 import { cn } from "~/lib/utils";
 import {
   BIT_DEPTH_BUCKETS,
   bitDepthClass,
   bitDepthIconTone,
 } from "~/lib/video/colors";
+import type { VideoMatrixData } from "~/lib/video/transform";
 
 type VideoMatrixModalProps = {
   open: boolean;
   onOpenChange: (next: boolean) => void;
   matrix: VideoMatrixData;
-  summaryLines: string[];
   codecLabels: string[];
   videoNotes?: string | null;
 };
@@ -29,7 +28,6 @@ export function VideoMatrixModal({
   open,
   onOpenChange,
   matrix,
-  summaryLines,
   codecLabels,
   videoNotes,
 }: VideoMatrixModalProps) {

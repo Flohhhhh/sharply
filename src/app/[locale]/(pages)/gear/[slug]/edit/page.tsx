@@ -1,13 +1,12 @@
-import EditGearClient from "~/app/[locale]/(pages)/gear/_components/edit-gear/edit-gear-page-client";
-import { fetchGearBySlug } from "~/server/gear/service";
-import type { GearItem, GearType } from "~/types/gear";
-import { ENUMS } from "~/lib/constants";
-import { auth } from "~/auth";
-import { fetchPendingEditId } from "~/server/gear/service";
-import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import EditGearClient from "~/app/[locale]/(pages)/gear/_components/edit-gear/edit-gear-page-client";
+import { auth } from "~/auth";
 import { requireRole } from "~/lib/auth/auth-helpers";
+import { ENUMS } from "~/lib/constants";
+import { fetchGearBySlug,fetchPendingEditId } from "~/server/gear/service";
+import type { GearItem,GearType } from "~/types/gear";
 
 interface EditGearPageProps {
   params: Promise<{
@@ -60,7 +59,7 @@ export default async function EditGearPage({
   const resolvedGearType: GearType =
     (type && (ENUMS.gear_type ?? []).includes(type as GearType)
       ? (type as GearType)
-      : (gearData.gearType as GearType)) ?? gearData.gearType;
+      : (gearData.gearType)) ?? gearData.gearType;
 
   // Initialize mountIds for the edit form (prefer new mountIds, fallback to legacy)
   const gearDataWithMountIds = {

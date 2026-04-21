@@ -1,6 +1,6 @@
-import { ManageStaffVerdictModal } from "./manage-staff-verdict-modal";
 import { getTranslations } from "next-intl/server";
 import { hasStaffVerdictContent } from "./gear-section-nav";
+import { ManageStaffVerdictModal } from "./manage-staff-verdict-modal";
 
 interface StaffVerdict {
   content?: string | null;

@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import Link from "next/link";
 import AllGearContent from "./all-gear-content";
 
 export default async function BrandContent({

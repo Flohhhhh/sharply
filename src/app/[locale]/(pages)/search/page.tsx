@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { SearchClient } from "./search-client";
-import { searchGear } from "~/server/search/service";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import { searchGear } from "~/server/search/service";
+import { SearchClient } from "./search-client";
 
 export const metadata: Metadata = buildLocalizedMetadata("/search", {
   title: "Search",

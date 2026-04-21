@@ -1,17 +1,17 @@
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import Image from "next/image";
-import { getReviewBySlug } from "~/server/payload/service";
-import { fetchGearBySlug } from "~/server/gear/service";
+import { notFound } from "next/navigation";
+import { GearCardHorizontal } from "~/components/gear/gear-card-horizontal";
 import { RichText } from "~/components/rich-text";
 import { TableOfContents } from "~/components/rich-text/table-of-contents";
-import { GearCardHorizontal } from "~/components/gear/gear-card-horizontal";
-import { getBrandNameById } from "~/lib/mapping/brand-map";
-import { GetGearDisplayName } from "~/lib/gear/naming";
-import { notFound } from "next/navigation";
-import { GenreRatings } from "../_components/genre-ratings";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
-import type { Metadata } from "next";
+import { GetGearDisplayName } from "~/lib/gear/naming";
+import { getBrandNameById } from "~/lib/mapping/brand-map";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
-import { getTranslations } from "next-intl/server";
+import { fetchGearBySlug } from "~/server/gear/service";
+import { getReviewBySlug } from "~/server/payload/service";
+import { GenreRatings } from "../_components/genre-ratings";
 
 export async function generateMetadata({
   params,

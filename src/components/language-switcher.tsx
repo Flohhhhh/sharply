@@ -1,12 +1,18 @@
 "use client";
 
+import { useLocale,useTranslations } from "next-intl";
+import { useRouter,useSearchParams } from "next/navigation";
 import { useEffect } from "react";
-import { useLocale, useTranslations } from "next-intl";
-import { useRouter, useSearchParams } from "next/navigation";
 import { CircleFlag } from "react-circle-flags";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "~/components/ui/select";
+import { useLocalePathnames } from "~/i18n/client";
 import type { Locale } from "~/i18n/config";
 import { localeCookieName } from "~/i18n/config";
-import { useLocalePathnames } from "~/i18n/client";
 import { localizePathname } from "~/i18n/routing";
 import { useCountry } from "~/lib/hooks/useCountry";
 import {
@@ -15,12 +21,6 @@ import {
   LANGUAGE_MARKET_OPTIONS,
   type LanguageMarketOption,
 } from "~/lib/locale/locales";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from "~/components/ui/select";
 
 export function LanguageSwitcher() {
   const t = useTranslations("common");

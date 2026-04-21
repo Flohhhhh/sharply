@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { ImageIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Button } from "~/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { useEffect,useState } from "react";
 import { ProfilePictureModal } from "~/components/modals/profile-picture-modal";
+import { Avatar,AvatarFallback,AvatarImage } from "~/components/ui/avatar";
+import { Button } from "~/components/ui/button";
 
 export type ProfilePictureSettingsSectionProps = {
   initialImageUrl: string | null;

@@ -102,4 +102,4 @@ self.addEventListener("message", (event: MessageEvent<ExifToolWorkerRequest>) =>
   })();
 });
 
-export {};
+export { };

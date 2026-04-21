@@ -1,12 +1,10 @@
-import { motion } from "motion/react";
 import { Upload } from "lucide-react";
+import { motion } from "motion/react";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 
 type ExifEmptyStateProps = {
   isDragging: boolean;
-  supportedExtensions: readonly string[];
-  maxFileBytes: number;
   onBrowse: () => void;
   onDragOver: (event: React.DragEvent<HTMLDivElement>) => void;
   onDragLeave: (event: React.DragEvent<HTMLDivElement>) => void;
@@ -15,8 +13,6 @@ type ExifEmptyStateProps = {
 
 export default function ExifEmptyState({
   isDragging,
-  supportedExtensions,
-  maxFileBytes,
   onBrowse,
   onDragOver,
   onDragLeave,

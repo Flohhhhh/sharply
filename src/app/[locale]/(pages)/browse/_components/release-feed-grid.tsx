@@ -1,13 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import useSWRInfinite from "swr/infinite";
 import { Loader } from "lucide-react";
+import { useCallback,useEffect,useMemo,useRef,useState } from "react";
+import useSWRInfinite from "swr/infinite";
 import { GearCard } from "~/components/gear/gear-card";
 import { Button } from "~/components/ui/button";
+import { useIsMobile } from "~/hooks/use-mobile";
 import { getItemDisplayPrice } from "~/lib/mapping";
 import type { BrowseFeedPage } from "~/types/browse";
-import { useIsMobile } from "~/hooks/use-mobile";
 
 type ReleaseFeedGridProps = {
   initialPage: BrowseFeedPage;

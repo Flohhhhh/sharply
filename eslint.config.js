@@ -9,12 +9,26 @@ const compat = new FlatCompat({
 
 export default tseslint.config(
   {
-    ignores: [".next"],
+    ignores: [
+      ".next",
+      "next-env.d.ts",
+      "scripts/**",
+      "tests/**",
+      "docs/**",
+      "drizzle/**",
+      "plans/**",
+      "src/components/ui/**",
+    ],
   },
   ...compat.extends("next/core-web-vitals"),
   {
     files: ["**/*.ts", "**/*.tsx"],
-    ignores: ["src/collections/**/*.ts", "src/collections/**/*.tsx"],
+    ignores: [
+      "src/collections/**/*.ts",
+      "src/collections/**/*.tsx",
+      "src/components/ui/**/*.ts",
+      "src/components/ui/**/*.tsx",
+    ],
     plugins: {
       drizzle,
     },
@@ -40,9 +54,9 @@ export default tseslint.config(
         { prefer: "type-imports", fixStyle: "inline-type-imports" },
       ],
       "@typescript-eslint/no-unsafe-assignment": "off",
-      "@typescript-eslint/no-unsafe-member-access": "off", // TODO: prefer warning or error for this eventually
-      "@typescript-eslint/no-unnecessary-type-assertion": "off", // TODO: prefer warning or error for this eventually
-      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off",
+      "@typescript-eslint/no-unnecessary-type-assertion": "error",
+      "@typescript-eslint/no-unused-vars": "error",
       "@typescript-eslint/require-await": "off",
       "@typescript-eslint/only-throw-error": "warn",
       "@typescript-eslint/no-misused-promises": [

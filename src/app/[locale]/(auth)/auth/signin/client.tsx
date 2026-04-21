@@ -1,17 +1,17 @@
 "use client";
 import { track } from "@vercel/analytics";
+import { Fingerprint } from "lucide-react";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
+import { useRouter,useSearchParams } from "next/navigation";
+import { useEffect,useState } from "react";
+import { FaDiscord,FaGoogle } from "react-icons/fa";
+import { toast } from "sonner";
+import { LocaleLink } from "~/components/locale-link";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { FaDiscord, FaGoogle } from "react-icons/fa";
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
-import { emailOtp, signIn } from "~/lib/auth/auth-client";
-import { useRouter, useSearchParams } from "next/navigation";
-import Image from "next/image";
-import { Fingerprint } from "lucide-react";
+import { emailOtp,signIn } from "~/lib/auth/auth-client";
 import { getAuthCallbackUrlForOrigin } from "~/lib/auth/callback-url";
-import { LocaleLink } from "~/components/locale-link";
 
 type ProviderAvailability = Record<
   "google" | "discord",

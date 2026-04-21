@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { headers } from "next/headers";
+import { auth } from "~/auth";
+import { requireRole } from "~/lib/auth/auth-helpers";
+import { BRANDS } from "~/lib/generated";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import { listUnderConstruction } from "~/server/gear/service";
 import { fetchGearCount } from "~/server/metrics/service";
 import UnderConstructionClient from "./_components/under-construction-client";
-import { BRANDS } from "~/lib/generated";
-import { auth } from "~/auth";
-import { headers } from "next/headers";
-import { requireRole } from "~/lib/auth/auth-helpers";
-import { buildLocalizedMetadata } from "~/lib/seo/metadata";
-import { getTranslations } from "next-intl/server";
 // Avoid importing runtime schema in pages; use a local constant
 const GEAR_TYPES = ["CAMERA", "ANALOG_CAMERA", "LENS"] as const;
 

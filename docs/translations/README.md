@@ -11,9 +11,11 @@ This directory documents how localized copy is organized in Sharply and how to a
   - `fr.json`
   - `es.json`
   - `it.json`
+  - `ms.json`
 - App routes use `next-intl`.
 - Server components fetch translations with `getTranslations` from `next-intl/server`.
 - Client components use `useTranslations`.
+- Malay is exposed through the language-only app locale id `ms` and labeled in the UI as `Bahasa Melayu (Malaysia)`.
 
 ## General rules
 
@@ -71,7 +73,7 @@ The implementation currently lives in:
 4. Run:
 
 ```bash
-SKIP_ENV_VALIDATION=1 npm run lint
+npm run lint
 npm run test:i18n
 ```
 

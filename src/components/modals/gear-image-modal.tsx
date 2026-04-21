@@ -1,7 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useSession } from "~/lib/auth/auth-client";
+import { ImageIcon,Trash,Upload } from "lucide-react";
+import Image from "next/image";
+import { useEffect,useRef,useState } from "react";
+import { toast } from "sonner";
+import { genUploader } from "uploadthing/client";
+import type { OurFileRouter } from "~/app/api/uploadthing/core";
+import { Button } from "~/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,19 +15,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
-import { Button } from "~/components/ui/button";
-import { toast } from "sonner";
-import { ImageIcon, Trash, Upload } from "lucide-react";
-import {
-  actionSetGearThumbnail,
-  actionClearGearThumbnail,
-  actionSetGearTopView,
-  actionClearGearTopView,
-} from "~/server/admin/gear/actions";
-import { genUploader } from "uploadthing/client";
-import type { OurFileRouter } from "~/app/(app)/api/uploadthing/core";
 import { Progress } from "~/components/ui/progress";
+import { useSession } from "~/lib/auth/auth-client";
 import { requireRole } from "~/lib/auth/auth-helpers";
+import {
+  actionClearGearThumbnail,
+  actionClearGearTopView,
+  actionSetGearThumbnail,
+  actionSetGearTopView,
+} from "~/server/admin/gear/actions";
 
 export interface GearImageModalProps {
   gearId?: string;
@@ -34,6 +35,13 @@ export interface GearImageModalProps {
 }
 
 type ImageType = "thumbnail" | "topView";
+
+type GearImageUploadResult = {
+  url?: string;
+  serverData?: {
+    fileUrl?: string;
+  };
+};
 
 export function GearImageModal(props: GearImageModalProps) {
   const { data, isPending, error } = useSession();
@@ -118,9 +126,9 @@ export function GearImageModal(props: GearImageModalProps) {
           setCombinedProgress((prev) => (mapped > prev ? mapped : prev));
         },
       });
-      const r: any = Array.isArray(res) ? res[0] : res;
-      const url =
-        (r?.serverData?.fileUrl as string) ?? (r?.url as string) ?? "";
+      const uploads: GearImageUploadResult[] = Array.isArray(res) ? res : [];
+      const upload = uploads[0];
+      const url = upload?.serverData?.fileUrl ?? upload?.url ?? "";
       if (!url) throw new Error("Upload failed. Please try again.");
       setIsUpdating(true);
       setProgressMode("save");
@@ -251,11 +259,14 @@ export function GearImageModal(props: GearImageModalProps) {
       <div className="space-y-2">
         <div className="text-muted-foreground text-xs font-medium">{title}</div>
         {imageUrl ? (
-          <div className="bg-muted dark:bg-card flex h-32 w-full items-center justify-center overflow-hidden rounded border">
-            <img
+          <div className="bg-muted dark:bg-card relative h-32 w-full overflow-hidden rounded border">
+            <Image
               src={imageUrl}
               alt={`${title} image`}
-              className="max-h-full max-w-full object-contain"
+              fill
+              unoptimized
+              sizes="(max-width: 768px) 100vw, 32rem"
+              className="object-contain"
             />
           </div>
         ) : (

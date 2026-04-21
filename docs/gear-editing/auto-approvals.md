@@ -26,14 +26,14 @@ So `autoSubmit: false` is the explicit **“send this through the normal review 
 
 Editors, admins, and superadmins (see `requireRole(..., ["EDITOR"])` on gear edit surfaces) see an **“Auto-Submit”** checkbox:
 
-- **`src/app/(app)/(pages)/gear/_components/edit-gear/edit-modal-content.tsx`** — modal flow; checkbox labeled **Auto-Submit** next to “Show missing only”.
-- **`src/app/(app)/(pages)/gear/_components/edit-gear/edit-gear-form.tsx`** — full-page edit flow; same control when `showActions` is true and `canToggleAutoSubmit` is true.
+- **`src/app/[locale]/(pages)/gear/_components/edit-gear/edit-modal-content.tsx`** — modal flow; checkbox labeled **Auto-Submit** next to “Show missing only”.
+- **`src/app/[locale]/(pages)/gear/_components/edit-gear/edit-gear-form.tsx`** — full-page edit flow; same control when `showActions` is true and `canToggleAutoSubmit` is true.
 
 `canToggleAutoSubmit` is set from server pages such as:
 
-- `src/app/(app)/(pages)/gear/[slug]/edit/page.tsx`
-- `src/app/(app)/(pages)/gear/[slug]/@edit/(.)edit/page.tsx`
-- `src/app/(app)/(pages)/lists/under-construction/page.tsx`
+- `src/app/[locale]/(pages)/gear/[slug]/edit/page.tsx`
+- `src/app/[locale]/(pages)/gear/[slug]/@edit/(.)edit/page.tsx`
+- `src/app/[locale]/(pages)/lists/under-construction/page.tsx`
 
 When **Auto-Submit** is **checked**, eligible staff submissions are applied immediately. When **unchecked**, staff intentionally submit **for moderator review** like a normal contributor (still creates a proposal; description in the submit confirmation dialog explains this).
 

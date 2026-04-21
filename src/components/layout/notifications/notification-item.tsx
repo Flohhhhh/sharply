@@ -1,12 +1,12 @@
 "use client";
 
+import { Award,BadgeCheck,Bell } from "lucide-react";
+import { useLocale,useTranslations } from "next-intl";
 import Link from "next/link";
-import { Award, BadgeCheck, Bell } from "lucide-react";
+import type { ComponentType } from "react";
+import { formatRelativeDate } from "~/lib/format/date";
 import { cn } from "~/lib/utils";
 import type { NotificationView } from "~/server/notifications/service";
-import type { ComponentType } from "react";
-import { useLocale, useTranslations } from "next-intl";
-import { formatRelativeDate } from "~/lib/format/date";
 
 type IconEntry = { icon: ComponentType<{ className?: string }> };
 

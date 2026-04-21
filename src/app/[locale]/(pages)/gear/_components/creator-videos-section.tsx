@@ -1,14 +1,14 @@
-import { ExternalLink, InfoIcon } from "lucide-react";
-import Image from "next/image";
+import { ExternalLink,InfoIcon } from "lucide-react";
 import { getTranslations } from "next-intl/server";
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import type { PublicGearCreatorVideoRow } from "~/server/creator-videos/service";
+import Image from "next/image";
+import { Avatar,AvatarFallback,AvatarImage } from "~/components/ui/avatar";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
+import type { PublicGearCreatorVideoRow } from "~/server/creator-videos/service";
 
 function getInitials(name: string) {
   return name

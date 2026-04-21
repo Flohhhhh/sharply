@@ -1,22 +1,21 @@
 "use client";
 
+import {
+  AlertTriangle,
+  Circle,
+  CircleCheck,
+  Sparkles
+} from "lucide-react";
+import { useTranslations } from "next-intl";
 import React from "react";
+import { Separator } from "~/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Circle,
-  CircleCheck,
-  Sparkles,
-} from "lucide-react";
 import { GENRES } from "~/lib/generated";
 import { cn } from "~/lib/utils";
-import { Separator } from "~/components/ui/separator";
-import { useTranslations } from "next-intl";
 
 type GenreRatingsMap = Record<string, string | null | undefined>;
 
@@ -130,7 +129,7 @@ export function GenreRatings({
                 <Separator className="my-4" />
                 <div className="mt-2 space-y-2">
                   {list.map(({ slug, value, displayName, description }) => {
-                    const { color, Icon, label, bg } = getMeta(value);
+                    const { color, bg } = getMeta(value);
                     return (
                       <Tooltip key={slug}>
                         <TooltipTrigger asChild>

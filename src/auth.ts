@@ -1,11 +1,11 @@
+import { passkey } from "@better-auth/passkey";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { db } from "~/server/db"; // your drizzle instance
-import * as schema from "~/server/db/schema";
 import { nextCookies } from "better-auth/next-js";
 import { emailOTP } from "better-auth/plugins";
-import { passkey } from "@better-auth/passkey";
 import { resend } from "~/lib/email";
+import { db } from "~/server/db"; // your drizzle instance
+import * as schema from "~/server/db/schema";
 
 const userRoleValues = schema.userRoleEnum.enumValues;
 const emailOtpEnabled =
@@ -39,7 +39,7 @@ const trustedOrigins = [
   ...(process.env.NODE_ENV !== "production" ? ["http://localhost:3000"] : []),
   ...(baseTrustedOrigin ? [baseTrustedOrigin] : []),
   ...(additionalTrustedOrigins ?? []),
-].filter(Boolean) as string[];
+].filter(Boolean);
 
 if (process.env.NODE_ENV === "production") {
   console.info("[auth-callback-debug] trusted_origins_config", {

@@ -1,6 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
+import { createElement,type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { createElement, type ReactNode } from "react";
+import { describe,expect,it,vi } from "vitest";
 
 vi.mock("next/link", () => ({
   default: (props: { children?: unknown; href: string } & Record<string, unknown>) => {

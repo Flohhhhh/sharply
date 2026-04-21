@@ -1,8 +1,8 @@
 import { config } from "dotenv";
 import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
 import { writeFileSync } from "fs";
-import { join, dirname } from "path";
+import { dirname,join } from "path";
+import postgres from "postgres";
 import { fileURLToPath } from "url";
 
 // Load environment variables from .env or .env.local

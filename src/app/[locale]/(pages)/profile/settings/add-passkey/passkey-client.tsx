@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { passkey } from "~/lib/auth/auth-client";
+import { ArrowLeft,Fingerprint,Loader } from "lucide-react";
+import { useLocale,useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { useEffect,useState } from "react";
+import { toast } from "sonner";
+import { LocaleLink } from "~/components/locale-link";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { Fingerprint, Loader, ArrowLeft } from "lucide-react";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import { useLocale, useTranslations } from "next-intl";
-import { LocaleLink } from "~/components/locale-link";
+import { passkey } from "~/lib/auth/auth-client";
 
 type AddPasskeyClientProps = {
   userEmail?: string;

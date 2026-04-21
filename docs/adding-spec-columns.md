@@ -172,14 +172,14 @@ npm run db:push  # Syncs your local database with schema.ts changes
 
 Add the new field to the relevant editor component.
 
-- Core gear: `src/app/(app)/(pages)/gear/_components/edit-gear/fields-core.tsx`
-- Cameras: `src/app/(app)/(pages)/gear/_components/edit-gear/fields-cameras.tsx`
-- Lenses: `src/app/(app)/(pages)/gear/_components/edit-gear/fields-lenses.tsx`
+- Core gear: `src/app/[locale]/(pages)/gear/_components/edit-gear/fields-core.tsx`
+- Cameras: `src/app/[locale]/(pages)/gear/_components/edit-gear/fields-cameras.tsx`
+- Lenses: `src/app/[locale]/(pages)/gear/_components/edit-gear/fields-lenses.tsx`
 
 Example – camera spec using `NumberInput` wrapper:
 
 ```tsx
-// src/app/(app)/(pages)/gear/_components/edit-gear/fields-cameras.tsx
+// src/app/[locale]/(pages)/gear/_components/edit-gear/fields-cameras.tsx
 <NumberInput
   id="widthInches"
   label="Width (inches)"
@@ -201,7 +201,7 @@ To include your new field in the confirmation dialog and proposal payload, you m
 Whitelist example – allow `sensorStackingType` to flow through:
 
 ```ts
-// src/app/(app)/(pages)/gear/_components/edit-gear/edit-gear-form.tsx
+// src/app/[locale]/(pages)/gear/_components/edit-gear/edit-gear-form.tsx
 const cameraKeys = [
   "sensorFormatId",
   "resolutionMp",
@@ -254,7 +254,7 @@ Recommended checks:
 - Lint: `npm run lint`
 - Build: `npm run build`
 - Manually verify the edit page (open a camera/lens edit screen)
-- Optionally add a quick demo in `src/app/(app)/(pages)/ui-demo/page.tsx`
+- Optionally add a quick demo in `src/app/[locale]/(pages)/ui-demo/page.tsx`
 
 ## Additional steps for complete integration
 
@@ -476,7 +476,7 @@ Display (`src/lib/specs/registry.tsx`):
 { key: "hasUsbFileTransfer", label: "Has USB File Transfer", getRawValue: (i) => i.cameraSpecs?.hasUsbFileTransfer, formatDisplay: (raw) => typeof raw === "boolean" ? (raw ? "Yes" : "No") : undefined }
 ```
 
-Submit whitelist (`src/app/(app)/(pages)/gear/_components/edit-gear/edit-gear-form.tsx`):
+Submit whitelist (`src/app/[locale]/(pages)/gear/_components/edit-gear/edit-gear-form.tsx`):
 
 ```ts
 // Add both new keys to the camera whitelist so the diff detects and submits them

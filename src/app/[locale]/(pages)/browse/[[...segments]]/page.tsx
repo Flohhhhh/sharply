@@ -1,24 +1,24 @@
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import type { JSX } from "react";
 import { Suspense } from "react";
-import type { Metadata } from "next";
+import { GearCardSkeleton } from "~/components/gear/gear-card";
+import { env } from "~/env";
+import { BRANDS,MOUNTS } from "~/lib/constants";
+import { getMountDisplayName } from "~/lib/mapping/mounts-map";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import {
   buildSeo,
   fetchBrowseListPage,
   resolveScopeOrThrow,
 } from "~/server/gear/browse/service";
-import { BRANDS, MOUNTS } from "~/lib/constants";
+import { fetchTrendingSlugs } from "~/server/popularity/service";
 import AllGearContent from "../_components/all-gear-content";
 import BrandContent from "../_components/brand-content";
-import MountButtons from "../_components/mount-buttons";
 import Breadcrumbs from "../_components/breadcrumbs";
-import { GearCardSkeleton } from "~/components/gear/gear-card";
-import { getMountDisplayName } from "~/lib/mapping/mounts-map";
-import { BrowseResultsGrid } from "../_components/browse-results-grid";
 import { BrowseQueryControls } from "../_components/browse-query-controls";
-import { fetchTrendingSlugs } from "~/server/popularity/service";
-import { env } from "~/env";
-import { buildLocalizedMetadata } from "~/lib/seo/metadata";
-import { getTranslations } from "next-intl/server";
+import { BrowseResultsGrid } from "../_components/browse-results-grid";
+import MountButtons from "../_components/mount-buttons";
 
 export const dynamicParams = true;
 
@@ -112,7 +112,7 @@ export default async function BrowseCatchAll({
       <main className="space-y-6 pb-24">
         <Breadcrumbs
           brand={{ name: brand!.name, slug: brand!.slug }}
-          category={scope.categorySlug!}
+          category={scope.categorySlug}
         />
         <h1 className="text-3xl font-semibold">
           {brand!.name} {scope.categorySlug === "cameras" ? t("cameras") : t("lenses")}
@@ -147,7 +147,7 @@ export default async function BrowseCatchAll({
     <main className="space-y-6 pb-24">
       <Breadcrumbs
         brand={{ name: brand!.name, slug: brand!.slug }}
-        category={scope.categorySlug!}
+        category={scope.categorySlug}
         mountValue={mount?.value ?? null}
       />
       <h1 className="text-3xl font-semibold">

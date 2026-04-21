@@ -1,13 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
-import { WishlistRemoveButton } from "./wishlist-remove-button";
-import type { GearItem } from "~/types/gear";
-import { getBrandNameById } from "~/lib/mapping/brand-map";
-import { getItemDisplayPrice } from "~/lib/mapping";
 import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
+import { getItemDisplayPrice } from "~/lib/mapping";
+import { getBrandNameById } from "~/lib/mapping/brand-map";
+import type { GearItem } from "~/types/gear";
+import { WishlistRemoveButton } from "./wishlist-remove-button";
 
 interface WishlistGearCardProps {
   item: GearItem;

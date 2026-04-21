@@ -1,12 +1,12 @@
+import type { LearnPage,News,Review } from "~/payload-types";
 import {
-  getNewsPostsData,
-  getReviewsData,
-  getNewsPostBySlugData,
-  getReviewBySlugData,
-  getReviewByGearSlugData,
   getNewsByRelatedGearSlugData,
+  getNewsPostBySlugData,
+  getNewsPostsData,
+  getReviewByGearSlugData,
+  getReviewBySlugData,
+  getReviewsData,
 } from "./data";
-import type { LearnPage, News, Review } from "~/payload-types";
 
 export const getNewsPosts = async (): Promise<News[]> => {
   const posts = await getNewsPostsData();
@@ -75,8 +75,8 @@ export const getNewsByRelatedGearSlug = async (
 
 // Learn Pages
 import {
-  getLearnPagesData,
   getLearnPageBySlugData,
+  getLearnPagesData,
 } from "./data";
 
 export const getLearnPages = async (): Promise<LearnPage[]> => {

@@ -1,6 +1,6 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { defaultLocale, isLocale, localeCookieName } from "./i18n/config";
-import { localizePathname, stripLocalePrefix } from "./i18n/routing";
+import { NextResponse,type NextRequest } from "next/server";
+import { defaultLocale,isLocale,localeCookieName } from "./i18n/config";
+import { localizePathname,stripLocalePrefix } from "./i18n/routing";
 
 const cookieOptions = {
   path: "/",

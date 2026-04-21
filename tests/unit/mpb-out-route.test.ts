@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach,describe,expect,it,vi } from "vitest";
 
 const headerMocks = vi.hoisted(() => ({
   headers: vi.fn(),
@@ -12,7 +12,7 @@ vi.mock("next/headers", () => headerMocks);
 vi.mock("~/server/gear/service", () => gearServiceMocks);
 vi.mock("server-only", () => ({}));
 
-import { GET } from "../../src/app/(app)/api/out/mpb/route";
+import { GET } from "../../src/app/api/out/mpb/route";
 
 const NIKON_F_MOUNT_ID = "1e930c0c-aadb-4dd3-93ae-7f691cc93296";
 

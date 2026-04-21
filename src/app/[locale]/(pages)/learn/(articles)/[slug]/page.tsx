@@ -1,13 +1,13 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { RichText } from "~/components/rich-text";
-import {
-  getLearnPageBySlug,
-  getAllPublishedLearnPages,
-} from "~/server/payload/service";
-import type { Metadata } from "next";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import {
+  getAllPublishedLearnPages,
+  getLearnPageBySlug,
+} from "~/server/payload/service";
 
 export const revalidate = 60;
 

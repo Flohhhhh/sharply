@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe,expect,it } from "vitest";
 
 const projectRoot = process.cwd();
 const messagesDirectory = path.join(projectRoot, "messages");

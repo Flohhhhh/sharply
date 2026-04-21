@@ -1,4 +1,4 @@
-import { parseBhProductUrl, normalizeBhProductLink } from "~/lib/validation/bhphoto";
+import { normalizeBhProductLink,parseBhProductUrl } from "~/lib/validation/bhphoto";
 
 /**
  * Normalize and return the B&H destination URL. Throws if invalid.

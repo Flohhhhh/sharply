@@ -4,7 +4,7 @@ if (process.env.NEXT_RUNTIME) {
   });
 }
 
-import { desc, eq } from "drizzle-orm";
+import { desc,eq } from "drizzle-orm";
 import { db } from "~/server/db";
 import { reviews } from "~/server/db/schema";
 

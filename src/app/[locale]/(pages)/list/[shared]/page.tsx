@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import { GearCard } from "~/components/gear/gear-card";
-import { getItemDisplayPrice } from "~/lib/mapping";
-import { fetchPublicSharedListByParam } from "~/server/user-lists/service";
-import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import { getTranslations } from "next-intl/server";
+import Link from "next/link";
+import { notFound,redirect } from "next/navigation";
+import { GearCard } from "~/components/gear/gear-card";
+import { Avatar,AvatarFallback,AvatarImage } from "~/components/ui/avatar";
+import { getItemDisplayPrice } from "~/lib/mapping";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import { fetchPublicSharedListByParam } from "~/server/user-lists/service";
 
 export const dynamic = "force-dynamic";
 

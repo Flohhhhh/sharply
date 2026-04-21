@@ -1,6 +1,8 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { BooleanInput,MultiTextInput,NumberInput } from "~/components/custom-inputs";
+import { Card,CardContent,CardHeader,CardTitle } from "~/components/ui/card";
+import { MultiSelect } from "~/components/ui/multi-select";
 import {
   Select,
   SelectContent,
@@ -8,11 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { MultiSelect } from "~/components/ui/multi-select";
-import { BooleanInput, NumberInput, MultiTextInput } from "~/components/custom-inputs";
-import type { AnalogCameraSpecs } from "~/types/gear";
-import { humanizeKey } from "~/lib/utils";
 import { ANALOG_OPTIONS } from "~/lib/mapping/analog-types-map";
+import type { AnalogCameraSpecs } from "~/types/gear";
 
 type Option = { value: string; label: string };
 const toMulti = (opts: Option[]) =>

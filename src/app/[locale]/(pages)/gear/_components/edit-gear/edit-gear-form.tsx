@@ -1,9 +1,12 @@
 "use client";
 
 import { track } from "@vercel/analytics";
-import React, { useState, useCallback } from "react";
-import { useLocale } from "next-intl";
 import { Crop } from "lucide-react";
+import { useLocale } from "next-intl";
+import { useRouter } from "next/navigation";
+import React,{ useCallback,useState } from "react";
+import { toast } from "sonner";
+import { NotesFields } from "~/app/[locale]/(pages)/gear/_components/edit-gear/fields-notes";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
 import {
@@ -15,30 +18,26 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { Label } from "~/components/ui/label";
-import { CoreFields } from "./fields-core";
-import { LensFields } from "./fields-lenses";
-import CameraFields from "./fields-cameras";
-import type { GearType } from "~/types/gear";
-import { AnalogCameraFields } from "./fields-analog-cameras";
-import { FixedLensFields } from "./fields-fixed-lens";
-import { NotesFields } from "~/app/[locale]/(pages)/gear/_components/edit-gear/fields-notes";
+import { formatDate } from "~/lib/format/date";
 import { MOUNTS } from "~/lib/generated";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { formatPrice, formatCardSlotDetails } from "~/lib/mapping";
+import { formatCardSlotDetails,formatPrice } from "~/lib/mapping";
+import { getMountLongNamesById } from "~/lib/mapping/mounts-map";
 import { sensorNameFromSlug } from "~/lib/mapping/sensor-map";
 import { humanizeKey } from "~/lib/utils";
-import { getMountLongNamesById } from "~/lib/mapping/mounts-map";
-import { actionSubmitGearProposal } from "~/server/gear/actions";
 import {
-  videoModeInputSchema,
   normalizeVideoModes,
   type VideoModeInput,
+  videoModeInputSchema,
   type VideoModeNormalized,
   videoModesEqual,
 } from "~/lib/video/mode-schema";
-import type { GearItem } from "~/types/gear";
-import { formatDate } from "~/lib/format/date";
+import { actionSubmitGearProposal } from "~/server/gear/actions";
+import type { FixedLensSpecs,GearItem,GearType } from "~/types/gear";
+import { AnalogCameraFields } from "./fields-analog-cameras";
+import CameraFields from "./fields-cameras";
+import { CoreFields } from "./fields-core";
+import { FixedLensFields } from "./fields-fixed-lens";
+import { LensFields } from "./fields-lenses";
 
 const SHUTTER_LABELS: Record<string, string> = {
   mechanical: "Mechanical",
@@ -122,6 +121,61 @@ interface EditGearFormProps {
   onFormDataChange?: (data: GearItem) => void;
 }
 
+type NestedSectionKey =
+  | "cameraSpecs"
+  | "analogCameraSpecs"
+  | "lensSpecs"
+  | "fixedLensSpecs";
+
+type DiffSection = Record<string, unknown>;
+
+type DiffPayload = {
+  core?: DiffSection;
+  camera?: DiffSection;
+  analogCamera?: DiffSection;
+  lens?: DiffSection;
+  fixedLens?: DiffSection;
+  cameraCardSlots?: NormalizedSlot[];
+  videoModes?: VideoModeNormalized[];
+  __videoModesDiff?: VideoModesDiff;
+};
+
+type ProposalSubmitResult = {
+  ok?: boolean;
+  autoApproved?: boolean;
+  proposal?: { id?: string | null } | null;
+};
+
+type FixedLensFieldValue = FixedLensSpecs[keyof FixedLensSpecs] | null;
+
+type NormalizedSlot = {
+  slotIndex: number;
+  supportedFormFactors: string[];
+  supportedBuses: string[];
+  supportedSpeedClasses: string[];
+};
+
+type VideoModesDiff = {
+  added: VideoModeNormalized[];
+  removed: VideoModeNormalized[];
+  changed: Array<{ prev: VideoModeNormalized; next: VideoModeNormalized }>;
+};
+
+function toRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object"
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function toNullableNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
 function EditGearForm({
   autoSubmit,
   canToggleAutoSubmit = false,
@@ -146,16 +200,16 @@ function EditGearForm({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [formData, setFormData] = useState<GearItem>(gearData);
-  const [diffPreview, setDiffPreview] = useState<Record<string, any> | null>(
-    null,
-  );
+  const [diffPreview, setDiffPreview] = useState<DiffPayload | null>(null);
+  const initialCoreSpecs = gearData;
+  const initialCameraSpecs = gearData.cameraSpecs;
+  const initialAnalogCameraSpecs = gearData.analogCameraSpecs;
+  const initialFixedLensSpecs = gearData.fixedLensSpecs;
+  const initialLensSpecs = gearData.lensSpecs;
+  const formMountIds = Array.isArray(formData.mountIds) ? formData.mountIds : [];
+  const primaryMountId = formMountIds[0] ?? formData.mountId ?? null;
   const effectiveAutoSubmit =
     typeof autoSubmit === "boolean" ? autoSubmit : internalAutoSubmit;
-  type VideoModesDiff = {
-    added: VideoModeNormalized[];
-    removed: VideoModeNormalized[];
-    changed: Array<{ prev: VideoModeNormalized; next: VideoModeNormalized }>;
-  };
   const videoModesDiffRef = React.useRef<VideoModesDiff>({
     added: [],
     removed: [],
@@ -164,7 +218,7 @@ function EditGearForm({
 
   // Emit live form data changes to parent after state updates (avoids render-phase updates)
   React.useEffect(() => {
-    onFormDataChange?.(formData as any);
+    onFormDataChange?.(formData);
   }, [formData, onFormDataChange]);
 
   React.useEffect(() => {
@@ -190,7 +244,7 @@ function EditGearForm({
   // console.log("[EditGearForm] formData", formData);
 
   const handleChange = useCallback(
-    (field: string, value: any, section?: string) => {
+    (field: string, value: unknown, section?: NestedSectionKey) => {
       const applyUpdate = (
         updater: (prev: typeof formData) => typeof formData,
       ) => {
@@ -199,14 +253,16 @@ function EditGearForm({
       if (section) {
         // Handle nested updates (e.g., cameraSpecs, lensSpecs)
         applyUpdate(
-          (prev) =>
-            ({
+          (prev) => {
+            const currentSection = prev[section];
+            return {
               ...prev,
               [section]: {
-                ...(prev[section as keyof typeof prev] as Record<string, any>),
+                ...toRecord(currentSection),
                 [field]: value,
               },
-            }) as typeof formData,
+            };
+          },
         );
       } else {
         // Handle direct gear field updates
@@ -271,15 +327,15 @@ function EditGearForm({
   };
 
   const diffByKeys = (
-    original: Record<string, any>,
-    updated: Record<string, any>,
+    original: Record<string, unknown>,
+    updated: Record<string, unknown>,
     keys: readonly string[],
-  ) => {
-    const out: Record<string, any> = {};
+  ): DiffSection => {
+    const out: DiffSection = {};
     for (const key of keys) {
       if (!(key in updated)) continue;
-      const nextVal = (updated as any)[key];
-      const prevVal = (original as any)[key];
+      const nextVal = updated[key];
+      const prevVal = original[key];
       if (!equalish(prevVal, nextVal)) {
         out[key] = nextVal ?? null;
       }
@@ -287,8 +343,8 @@ function EditGearForm({
     return out;
   };
 
-  const buildDiffPayload = (): Record<string, any> => {
-    const payload: Record<string, any> = {};
+  const buildDiffPayload = (): DiffPayload => {
+    const payload: DiffPayload = {};
     const coreKeys = [
       "name",
       "brandId",
@@ -312,7 +368,7 @@ function EditGearForm({
       "genres",
       "notes",
     ] as const;
-    const coreDiff = diffByKeys(gearData as any, formData as any, coreKeys);
+    const coreDiff = diffByKeys(toRecord(gearData), toRecord(formData), coreKeys);
     if (Object.keys(coreDiff).length > 0) payload.core = coreDiff;
 
     if (formData.cameraSpecs) {
@@ -374,8 +430,8 @@ function EditGearForm({
         "hasHotShoe",
         "hasUsbFileTransfer",
       ] as const;
-      const orig = (gearData.cameraSpecs ?? {}) as Record<string, any>;
-      const diffs = diffByKeys(orig, formData.cameraSpecs as any, cameraKeys);
+      const orig = toRecord(gearData.cameraSpecs);
+      const diffs = diffByKeys(orig, toRecord(formData.cameraSpecs), cameraKeys);
       if (Object.keys(diffs).length > 0) payload.camera = diffs;
     }
 
@@ -411,10 +467,10 @@ function EditGearForm({
         "hasSelfTimer",
         "hasIntervalometer",
       ] as const;
-      const orig = (gearData.analogCameraSpecs ?? {}) as Record<string, any>;
+      const orig = toRecord(gearData.analogCameraSpecs);
       const diffs = diffByKeys(
         orig,
-        formData.analogCameraSpecs as any,
+        toRecord(formData.analogCameraSpecs),
         analogKeys,
       );
       if (Object.keys(diffs).length > 0) payload.analogCamera = diffs;
@@ -468,11 +524,11 @@ function EditGearForm({
       ] as const;
 
       // Submit-time safeguard: if focal-length min and max are equal, treat as prime
-      const adjustedLensSpecs: Record<string, any> = {
-        ...(formData.lensSpecs as any),
+      const adjustedLensSpecs = {
+        ...toRecord(formData.lensSpecs),
       };
-      const minVal = Number((adjustedLensSpecs as any)?.focalLengthMinMm);
-      const maxVal = Number((adjustedLensSpecs as any)?.focalLengthMaxMm);
+      const minVal = Number(adjustedLensSpecs.focalLengthMinMm);
+      const maxVal = Number(adjustedLensSpecs.focalLengthMaxMm);
       if (
         Number.isFinite(minVal) &&
         Number.isFinite(maxVal) &&
@@ -483,13 +539,13 @@ function EditGearForm({
         adjustedLensSpecs.focalLengthMaxMm = maxVal;
       }
 
-      const orig = (gearData.lensSpecs ?? {}) as Record<string, any>;
-      const diffs = diffByKeys(orig, adjustedLensSpecs as any, lensKeys);
+      const orig = toRecord(gearData.lensSpecs);
+      const diffs = diffByKeys(orig, adjustedLensSpecs, lensKeys);
       if (Object.keys(diffs).length > 0) payload.lens = diffs;
     }
 
     // Fixed-lens diffs (subset) for cameras
-    if ((formData as any).fixedLensSpecs) {
+    if (formData.fixedLensSpecs) {
       const fixedKeys = [
         "isPrime",
         "focalLengthMinMm",
@@ -505,25 +561,12 @@ function EditGearForm({
         "frontFilterThreadSizeMm",
         "hasLensHood",
       ] as const;
-      const orig = ((gearData as any).fixedLensSpecs ?? {}) as Record<
-        string,
-        any
-      >;
-      const diffs = diffByKeys(
-        orig,
-        (formData as any).fixedLensSpecs as any,
-        fixedKeys,
-      );
-      if (Object.keys(diffs).length > 0) (payload as any).fixedLens = diffs;
+      const orig = toRecord(gearData.fixedLensSpecs);
+      const diffs = diffByKeys(orig, toRecord(formData.fixedLensSpecs), fixedKeys);
+      if (Object.keys(diffs).length > 0) payload.fixedLens = diffs;
     }
 
     // Top-level cameraCardSlots (first-class section)
-    type NormalizedSlot = {
-      slotIndex: number;
-      supportedFormFactors: string[];
-      supportedBuses: string[];
-      supportedSpeedClasses: string[];
-    };
     const normalizeVideoModesFromUnknown = (
       value: unknown,
     ): VideoModeNormalized[] => {
@@ -536,12 +579,6 @@ function EditGearForm({
         }
       });
       return normalizeVideoModes(parsed);
-    };
-
-    type VideoModesDiff = {
-      added: VideoModeNormalized[];
-      removed: VideoModeNormalized[];
-      changed: Array<{ prev: VideoModeNormalized; next: VideoModeNormalized }>;
     };
 
     const diffVideoModes = (
@@ -593,27 +630,29 @@ function EditGearForm({
     const normalizeSlots = (slots: unknown): NormalizedSlot[] => {
       if (!Array.isArray(slots)) return [] as NormalizedSlot[];
       const out: NormalizedSlot[] = slots
-        .map((s: any): NormalizedSlot => {
+        .map((slot): NormalizedSlot => {
+          const slotRecord = toRecord(slot);
+          const rawSlotIndex = slotRecord.slotIndex;
           const rawIndex =
-            typeof s?.slotIndex === "number"
-              ? s.slotIndex
-              : Number(s?.slotIndex ?? 0);
+            typeof rawSlotIndex === "number"
+              ? rawSlotIndex
+              : Number(rawSlotIndex ?? 0);
           const slotIndex =
             Number.isFinite(rawIndex) && rawIndex > 0
               ? Math.trunc(rawIndex)
               : 0;
-          const supportedFormFactors = Array.isArray(s?.supportedFormFactors)
-            ? [...s.supportedFormFactors]
+          const supportedFormFactors = Array.isArray(slotRecord.supportedFormFactors)
+            ? [...slotRecord.supportedFormFactors]
                 .filter((x: unknown): x is string => typeof x === "string")
                 .sort()
             : [];
-          const supportedBuses = Array.isArray(s?.supportedBuses)
-            ? [...s.supportedBuses]
+          const supportedBuses = Array.isArray(slotRecord.supportedBuses)
+            ? [...slotRecord.supportedBuses]
                 .filter((x: unknown): x is string => typeof x === "string")
                 .sort()
             : [];
-          const supportedSpeedClasses = Array.isArray(s?.supportedSpeedClasses)
-            ? [...s.supportedSpeedClasses]
+          const supportedSpeedClasses = Array.isArray(slotRecord.supportedSpeedClasses)
+            ? [...slotRecord.supportedSpeedClasses]
                 .filter((x: unknown): x is string => typeof x === "string")
                 .sort()
             : [];
@@ -629,8 +668,8 @@ function EditGearForm({
       return out;
     };
 
-    const prevSlots = normalizeSlots((gearData as any).cameraCardSlots);
-    const nextSlots = normalizeSlots((formData as any).cameraCardSlots);
+    const prevSlots = normalizeSlots(gearData.cameraCardSlots);
+    const nextSlots = normalizeSlots(formData.cameraCardSlots);
     const slotsChanged =
       JSON.stringify(prevSlots) !== JSON.stringify(nextSlots);
     if (slotsChanged) {
@@ -638,10 +677,10 @@ function EditGearForm({
     }
 
     const prevVideoModes = normalizeVideoModesFromUnknown(
-      (gearData as any).videoModes,
+      gearData.videoModes,
     );
     const nextVideoModes = normalizeVideoModesFromUnknown(
-      (formData as any).videoModes,
+      formData.videoModes,
     );
     videoModesDiffRef.current = diffVideoModes(prevVideoModes, nextVideoModes);
     if (!videoModesEqual(prevVideoModes, nextVideoModes)) {
@@ -650,15 +689,15 @@ function EditGearForm({
     return payload;
   };
 
-  const computePayloadStats = (payload: Record<string, any>) => {
+  const computePayloadStats = (payload: DiffPayload) => {
     const counts = {
-      coreFields: payload.core ? Object.keys(payload.core as any).length : 0,
+      coreFields: payload.core ? Object.keys(payload.core).length : 0,
       cameraFields: payload.camera
-        ? Object.keys(payload.camera as any).length
+        ? Object.keys(payload.camera).length
         : 0,
-      lensFields: payload.lens ? Object.keys(payload.lens as any).length : 0,
+      lensFields: payload.lens ? Object.keys(payload.lens).length : 0,
       fixedLensFields: payload.fixedLens
-        ? Object.keys(payload.fixedLens as any).length
+        ? Object.keys(payload.fixedLens).length
         : 0,
       cardSlots: Array.isArray(payload.cameraCardSlots)
         ? payload.cameraCardSlots.length
@@ -684,7 +723,7 @@ function EditGearForm({
 
     // Build diff-only payload: include only changed fields, and include nulls
     // when a value is explicitly cleared.
-    const payload: Record<string, unknown> = buildDiffPayload();
+    const payload = buildDiffPayload();
 
     // Guard: no changes
     if (Object.keys(payload).length === 0) {
@@ -695,7 +734,7 @@ function EditGearForm({
       onSubmittingChange?.(false);
       return;
     }
-    const payloadStats = computePayloadStats(payload as Record<string, any>);
+    const payloadStats = computePayloadStats(payload);
     void track("gear_edit_submit_attempt", {
       gearSlug,
       sections: payloadStats.sections,
@@ -709,17 +748,17 @@ function EditGearForm({
       });
       console.time(`[EditGearForm] submit ${gearSlug}`);
 
-      const res = await actionSubmitGearProposal({
+      const res = (await actionSubmitGearProposal({
         slug: gearSlug,
         payload,
         autoSubmit: effectiveAutoSubmit,
-      });
+      })) as ProposalSubmitResult;
       console.timeEnd(`[EditGearForm] submit ${gearSlug}`);
       if (res?.ok) {
         setIsDirty(false);
         onDirtyChange?.(false);
-        const createdId = (res as any)?.proposal?.id;
-        const autoApproved = Boolean((res as any)?.autoApproved);
+        const createdId = res.proposal?.id;
+        const autoApproved = Boolean(res.autoApproved);
         void track("gear_edit_submit_success", {
           gearSlug,
           autoApproved,
@@ -795,31 +834,50 @@ function EditGearForm({
     <form id={formId} onSubmit={handleSubmit} className="space-y-12">
       <CoreFields
         sectionId="core-section"
-        currentSpecs={
-          {
-            ...(formData as any),
-            // Prefill strictly from current schema keys
-            announcedDate: (formData as any).announcedDate ?? null,
-            msrpNowUsdCents: (formData as any).msrpNowUsdCents ?? null,
-            mpbMaxPriceUsdCents: (formData as any).mpbMaxPriceUsdCents ?? null,
-            genres: Array.isArray((formData as any).genres)
-              ? ((formData as any).genres as string[])
-              : [],
-          } as any
-        }
+        currentSpecs={{
+          announcedDate: formData.announcedDate ?? null,
+          announceDatePrecision: formData.announceDatePrecision,
+          releaseDate: formData.releaseDate ?? null,
+          releaseDatePrecision: formData.releaseDatePrecision,
+          msrpNowUsdCents: formData.msrpNowUsdCents ?? null,
+          msrpAtLaunchUsdCents: formData.msrpAtLaunchUsdCents ?? null,
+          mpbMaxPriceUsdCents: formData.mpbMaxPriceUsdCents ?? null,
+          mountId: formData.mountId,
+          mountIds: formData.mountIds,
+          weightGrams: formData.weightGrams ?? null,
+          widthMm: toNullableNumber(formData.widthMm),
+          heightMm: toNullableNumber(formData.heightMm),
+          depthMm: toNullableNumber(formData.depthMm),
+          linkManufacturer: formData.linkManufacturer,
+          linkMpb: formData.linkMpb,
+          linkBh: formData.linkBh,
+          linkAmazon: formData.linkAmazon,
+          genres: Array.isArray(formData.genres) ? formData.genres : [],
+        }}
         gearType={gearType}
         showMissingOnly={Boolean(showMissingOnly)}
-        initialSpecs={
-          {
-            ...(gearData as any),
-            announcedDate: (gearData as any).announcedDate ?? null,
-            msrpNowUsdCents: (gearData as any).msrpNowUsdCents ?? null,
-            mpbMaxPriceUsdCents: (gearData as any).mpbMaxPriceUsdCents ?? null,
-            genres: Array.isArray((gearData as any).genres)
-              ? ((gearData as any).genres as string[])
-              : [],
-          } as any
-        }
+        initialSpecs={{
+          announcedDate: initialCoreSpecs.announcedDate ?? null,
+          announceDatePrecision: initialCoreSpecs.announceDatePrecision,
+          releaseDate: initialCoreSpecs.releaseDate ?? null,
+          releaseDatePrecision: initialCoreSpecs.releaseDatePrecision,
+          msrpNowUsdCents: initialCoreSpecs.msrpNowUsdCents ?? null,
+          msrpAtLaunchUsdCents: initialCoreSpecs.msrpAtLaunchUsdCents ?? null,
+          mpbMaxPriceUsdCents: initialCoreSpecs.mpbMaxPriceUsdCents ?? null,
+          mountId: initialCoreSpecs.mountId,
+          mountIds: initialCoreSpecs.mountIds,
+          weightGrams: initialCoreSpecs.weightGrams ?? null,
+          widthMm: toNullableNumber(initialCoreSpecs.widthMm),
+          heightMm: toNullableNumber(initialCoreSpecs.heightMm),
+          depthMm: toNullableNumber(initialCoreSpecs.depthMm),
+          linkManufacturer: initialCoreSpecs.linkManufacturer,
+          linkMpb: initialCoreSpecs.linkMpb,
+          linkBh: initialCoreSpecs.linkBh,
+          linkAmazon: initialCoreSpecs.linkAmazon,
+          genres: Array.isArray(initialCoreSpecs.genres)
+            ? initialCoreSpecs.genres
+            : [],
+        }}
         onChange={handleChange}
       />
 
@@ -830,8 +888,8 @@ function EditGearForm({
           gearItem={formData}
           currentSpecs={formData.cameraSpecs}
           showMissingOnly={Boolean(showMissingOnly)}
-          initialSpecs={(gearData as any).cameraSpecs as any}
-          initialGearItem={gearData as any}
+          initialSpecs={initialCameraSpecs}
+          initialGearItem={gearData}
           onChange={(field, value) => handleChange(field, value, "cameraSpecs")}
           onChangeTopLevel={(field, value) => handleChange(field, value)}
         />
@@ -840,9 +898,9 @@ function EditGearForm({
       {gearType === "ANALOG_CAMERA" && (
         <AnalogCameraFields
           sectionId="analog-camera-section"
-          currentSpecs={(formData as any).analogCameraSpecs}
+          currentSpecs={formData.analogCameraSpecs}
           showMissingOnly={Boolean(showMissingOnly)}
-          initialSpecs={(gearData as any).analogCameraSpecs as any}
+          initialSpecs={initialAnalogCameraSpecs}
           onChange={(field, value) =>
             handleChange(field as string, value, "analogCameraSpecs")
           }
@@ -852,30 +910,27 @@ function EditGearForm({
       {/* Integrated Lens section (separate card), only when mount is fixed-lens */}
       {(gearType === "CAMERA" || gearType === "ANALOG_CAMERA") &&
         (() => {
-          const primaryMountId = Array.isArray((formData as any).mountIds)
-            ? ((formData as any).mountIds[0] ?? (formData as any).mountId)
-            : (formData as any).mountId;
-          const mv = (MOUNTS as any[]).find(
-            (m) => m.id === primaryMountId,
-          )?.value;
+          const mv = (
+            MOUNTS as Array<{ id: string; value: string }>
+          ).find((mount) => mount.id === primaryMountId)?.value;
           const isFixed = mv === "fixed-lens";
           if (!isFixed) return null;
           return (
             <FixedLensFields
               sectionId="fixed-lens-section"
-              currentSpecs={(formData as any).fixedLensSpecs ?? null}
+              currentSpecs={formData.fixedLensSpecs ?? null}
               showMissingOnly={Boolean(showMissingOnly)}
-              initialSpecs={(gearData as any).fixedLensSpecs as any}
-              onChange={(field, value) => {
+              initialSpecs={initialFixedLensSpecs}
+              onChange={(field, value: FixedLensFieldValue) => {
                 setFormData(
                   (prev) =>
                     ({
                       ...prev,
                       fixedLensSpecs: {
-                        ...((prev as any).fixedLensSpecs ?? {}),
+                        ...(prev.fixedLensSpecs ?? ({} as FixedLensSpecs)),
                         [field]: value,
-                      },
-                    }) as typeof formData,
+                      } as FixedLensSpecs,
+                    }) as GearItem,
                 );
               }}
             />
@@ -887,7 +942,7 @@ function EditGearForm({
           sectionId="lens-section"
           currentSpecs={formData.lensSpecs}
           showMissingOnly={Boolean(showMissingOnly)}
-          initialSpecs={(gearData as any).lensSpecs as any}
+          initialSpecs={initialLensSpecs}
           onChange={(field, value) => handleChange(field, value, "lensSpecs")}
         />
       )}
@@ -895,11 +950,7 @@ function EditGearForm({
       {/* Notes (appears last) */}
       <NotesFields
         sectionId="notes-section"
-        notes={
-          Array.isArray((formData as any).notes)
-            ? ((formData as any).notes as string[])
-            : []
-        }
+        notes={Array.isArray(formData.notes) ? formData.notes : []}
         onChange={(next: string[]) => handleChange("notes", next)}
       />
 
@@ -960,18 +1011,19 @@ function EditGearForm({
                     <div>
                       <div className="mb-1 font-medium">Core</div>
                       <ul className="list-disc pl-5">
-                        {Object.entries(
-                          diffPreview.core as Record<string, any>,
-                        ).map(([k, v]) => {
-                          let display: string = String(v);
+                        {Object.entries(diffPreview.core).map(([k, v]) => {
+                          let display = safeString(v);
                           if (
                             k === "msrpNowUsdCents" ||
                             k === "msrpAtLaunchUsdCents" ||
                             k === "mpbMaxPriceUsdCents"
                           )
                             display = formatPrice(v as number);
-                          if (k === "releaseDate" || k === "announcedDate")
-                            display = formatDate(v as any, {
+                          if (
+                            (k === "releaseDate" || k === "announcedDate") &&
+                            (typeof v === "string" || v instanceof Date)
+                          )
+                            display = formatDate(v, {
                               locale,
                               preset: "date-long",
                             });
@@ -980,7 +1032,7 @@ function EditGearForm({
                             display = getMountLongNamesById(ids);
                           }
                           if (k === "mountId") {
-                            const ids = v ? [String(v)] : [];
+                            const ids = v == null ? [] : [safeString(v)];
                             display = getMountLongNamesById(ids);
                           }
                           if (k === "notes") {
@@ -1001,23 +1053,20 @@ function EditGearForm({
                       </ul>
                     </div>
                   )}
-                  {(diffPreview as any).analogCamera && (
+                  {diffPreview.analogCamera && (
                     <div>
                       <div className="mb-1 font-medium">Analog Camera</div>
                       <ul className="list-disc pl-5">
-                        {Object.entries(
-                          (diffPreview as any).analogCamera as Record<
-                            string,
-                            any
-                          >,
-                        ).map(([k, v]) => (
+                        {Object.entries(diffPreview.analogCamera).map(
+                          ([k, v]) => (
                           <li key={k}>
                             <span className="text-muted-foreground">
                               {humanizeKey(k)}:
                             </span>{" "}
-                            <span className="font-medium">{String(v)}</span>
+                            <span className="font-medium">{safeString(v)}</span>
                           </li>
-                        ))}
+                          ),
+                        )}
                       </ul>
                     </div>
                   )}
@@ -1026,25 +1075,22 @@ function EditGearForm({
                       <div className="mb-1 font-medium">Camera</div>
                       <ul className="list-disc pl-5">
                         {Array.isArray(
-                          (diffPreview.camera as any)?.availableShutterTypes,
+                          diffPreview.camera.availableShutterTypes,
                         ) && (
                           <li>
                             <span className="text-muted-foreground">
                               Available Shutter Types:
                             </span>{" "}
                             <span className="font-medium">
-                              {(
-                                (diffPreview.camera as any)
-                                  ?.availableShutterTypes as string[]
-                              ).join(", ")}
+                              {diffPreview.camera.availableShutterTypes.join(
+                                ", ",
+                              )}
                             </span>
                           </li>
                         )}
-                        {Object.entries(
-                          diffPreview.camera as Record<string, any>,
-                        ).map(([k, v]) => {
+                        {Object.entries(diffPreview.camera).map(([k, v]) => {
                           if (k === "availableShutterTypes") return null;
-                          let display: string = String(v);
+                          let display = safeString(v);
                           if (k === "sensorFormatId")
                             display = sensorNameFromSlug(v as string);
                           if (k === "maxFpsRaw" || k === "maxFpsJpg") {
@@ -1072,76 +1118,58 @@ function EditGearForm({
                     <div>
                       <div className="mb-1 font-medium">Lens</div>
                       <ul className="list-disc pl-5">
-                        {Object.entries(
-                          diffPreview.lens as Record<string, any>,
-                        ).map(([k, v]) => (
+                        {Object.entries(diffPreview.lens).map(([k, v]) => (
                           <li key={k}>
                             <span className="text-muted-foreground">
                               {humanizeKey(k)}:
                             </span>{" "}
-                            <span className="font-medium">{String(v)}</span>
+                            <span className="font-medium">{safeString(v)}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
                   )}
-                  {(diffPreview as any).fixedLens && (
+                  {diffPreview.fixedLens && (
                     <div>
                       <div className="mb-1 font-medium">Integrated Lens</div>
                       <ul className="list-disc pl-5">
-                        {Object.entries(
-                          (diffPreview as any).fixedLens as Record<string, any>,
-                        ).map(([k, v]) => (
+                        {Object.entries(diffPreview.fixedLens).map(([k, v]) => (
                           <li key={k}>
                             <span className="text-muted-foreground">
                               {humanizeKey(k)}:
                             </span>{" "}
-                            <span className="font-medium">{String(v)}</span>
+                            <span className="font-medium">{safeString(v)}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
                   )}
-                  {Array.isArray((diffPreview as any).cameraCardSlots) && (
+                  {Array.isArray(diffPreview.cameraCardSlots) && (
                     <div>
                       <div className="mb-1 font-medium">Card Slots</div>
                       <ul className="list-disc pl-5">
-                        {((diffPreview as any).cameraCardSlots as any[]).map(
-                          (s, i) => (
+                        {diffPreview.cameraCardSlots.map((slot, i) => (
                             <li key={i}>
                               <span className="text-muted-foreground">
-                                Slot {s.slotIndex}:
+                                Slot {slot.slotIndex}:
                               </span>{" "}
                               <span className="font-medium">
                                 {formatCardSlotDetails({
-                                  slotIndex: Number(s?.slotIndex) || null,
-                                  supportedFormFactors: Array.isArray(
-                                    s?.supportedFormFactors,
-                                  )
-                                    ? (s.supportedFormFactors as string[])
-                                    : [],
-                                  supportedBuses: Array.isArray(
-                                    s?.supportedBuses,
-                                  )
-                                    ? (s.supportedBuses as string[])
-                                    : [],
-                                  supportedSpeedClasses: Array.isArray(
-                                    s?.supportedSpeedClasses,
-                                  )
-                                    ? (s.supportedSpeedClasses as string[])
-                                    : [],
+                                  slotIndex: Number(slot.slotIndex) || null,
+                                  supportedFormFactors:
+                                    slot.supportedFormFactors,
+                                  supportedBuses: slot.supportedBuses,
+                                  supportedSpeedClasses:
+                                    slot.supportedSpeedClasses,
                                 })}
                               </span>
                             </li>
-                          ),
-                        )}
+                          ))}
                       </ul>
                     </div>
                   )}
                   {(() => {
-                    const diffEntryResult = (
-                      diffPreview as { __videoModesDiff?: VideoModesDiff }
-                    ).__videoModesDiff;
+                    const diffEntryResult = diffPreview.__videoModesDiff;
                     if (!diffEntryResult) return null;
                     const { added, removed, changed } = diffEntryResult;
                     if (

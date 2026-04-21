@@ -34,28 +34,25 @@ import {
   SidebarMenuItem,
   SidebarMenuSkeleton,
 } from "@/components/ui/sidebar";
-import Link from "next/link";
 import {
   BarChart3,
-  CombineIcon,
   Camera,
-  Lock,
-  LayoutDashboard,
-  Users,
-  ListCheck,
-  LogOut,
-  Plus,
+  CombineIcon,
   HelpCircle,
-  Wrench,
+  ListCheck,
+  Lock,
+  Plus,
+  Users,
   Video,
+  Wrench
 } from "lucide-react";
+import Link from "next/link";
 import { Button } from "~/components/ui/button";
+import { Dialog,DialogContent,DialogTrigger } from "~/components/ui/dialog";
 import { Skeleton } from "~/components/ui/skeleton";
-import { GlobalSearchBar } from "~/components/search/global-search-bar";
 import { useSession } from "~/lib/auth/auth-client";
-import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
-import { GearCreateCard } from "./gear-create";
 import { requireRole } from "~/lib/auth/auth-helpers";
+import { GearCreateCard } from "./gear-create";
 
 type SidebarItem = {
   label: string;

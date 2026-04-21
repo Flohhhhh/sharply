@@ -1,8 +1,8 @@
 "use client";
 
+import { useTheme } from "next-themes";
 import * as React from "react";
 import { TbLaurelWreath } from "react-icons/tb";
-import { useTheme } from "next-themes";
 
 type WreathIconProps = {
   className?: string;

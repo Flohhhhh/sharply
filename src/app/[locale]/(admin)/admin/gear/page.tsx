@@ -1,15 +1,13 @@
-import { GearDataTable } from "./data-table";
-import { columns } from "./columns";
-import GearBulkCreate from "../gear-bulk-create";
-import { auth } from "~/auth";
 import { headers } from "next/headers";
+import { auth } from "~/auth";
+import GearBulkCreate from "../gear-bulk-create";
+import { columns } from "./columns";
+import { GearDataTable } from "./data-table";
 
-const DEFAULT_PAGE_SIZE = 20;
-const MAX_PAGE_SIZE = 100;
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
 
 export default async function AdminGearPage() {
-  const session = await auth.api.getSession({
+  await auth.api.getSession({
     headers: await headers(),
   });
 

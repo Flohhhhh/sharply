@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
-import { linkSocial, unlinkAccount } from "~/lib/auth/auth-client";
-import { FaDiscord, FaGoogle } from "react-icons/fa";
-import { CheckCircle2, Loader } from "lucide-react";
+import { CheckCircle2,Loader } from "lucide-react";
+import { useRouter,useSearchParams } from "next/navigation";
+import { useEffect,useMemo,useState,useTransition } from "react";
+import { FaDiscord,FaGoogle } from "react-icons/fa";
 import { toast } from "sonner";
-import { useRouter, useSearchParams } from "next/navigation";
+import { linkSocial,unlinkAccount } from "~/lib/auth/auth-client";
 
-import { Button } from "~/components/ui/button";
+import { useLocale,useTranslations } from "next-intl";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,9 +19,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "~/components/ui/alert-dialog";
-import type { LinkedAccountInfo } from "~/server/auth/account-linking";
+import { Button } from "~/components/ui/button";
 import { getAuthCallbackUrlForOrigin } from "~/lib/auth/callback-url";
-import { useLocale, useTranslations } from "next-intl";
+import type { LinkedAccountInfo } from "~/server/auth/account-linking";
 
 type ProviderKey = "discord" | "google";
 
