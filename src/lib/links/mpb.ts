@@ -1,6 +1,6 @@
 import { MOUNTS } from "~/lib/constants";
 
-export type Market = "US" | "UK" | "EU";
+export type Market = "US" | "UK" | "EU" | "DE" | "FR" | "ES" | "IT";
 
 const MPB_HOSTNAME = "www.mpb.com";
 
@@ -8,6 +8,10 @@ const MPB_MARKET_PATH_SEGMENT: Record<Market, string> = {
   US: "en-us",
   UK: "en-uk",
   EU: "en-eu",
+  DE: "de-de",
+  FR: "fr-fr",
+  ES: "es-es",
+  IT: "it-it",
 };
 
 export const MPB_MOUNT_PATHS_MAP: Record<string, string> = {

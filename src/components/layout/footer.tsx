@@ -4,7 +4,6 @@ import React from "react";
 import { useTranslations } from "next-intl";
 import { FaDiscord, FaInstagram, FaGithub, FaTwitter } from "react-icons/fa";
 import { getFooterItems } from "~/lib/nav-items";
-import { CountryDropdown } from "~/components/country-select";
 import { LanguageSwitcher } from "~/components/language-switcher";
 import { LocaleLink } from "~/components/locale-link";
 
@@ -83,13 +82,7 @@ export default function Footer({
               />
             </LocaleLink>
             <h2 className="text-xl font-semibold">{logo.title}</h2>
-            <div className="flex items-center gap-2">
-              <CountryDropdown
-                className="border-border min-w-[60px] rounded-md border pr-3 pl-2"
-                slim
-              />
-              <LanguageSwitcher />
-            </div>
+            <LanguageSwitcher />
           </div>
           <p className="text-muted-foreground max-w-[70%] text-sm">
             {resolvedDescription}

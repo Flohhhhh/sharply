@@ -1,22 +1,25 @@
 "use client";
 
+import { useEffect } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
+import { CircleFlag } from "react-circle-flags";
 import type { Locale } from "~/i18n/config";
-import {
-  defaultLocale,
-  localeCookieName,
-  localeLabels,
-  locales,
-} from "~/i18n/config";
+import { localeCookieName } from "~/i18n/config";
 import { useLocalePathnames } from "~/i18n/client";
 import { localizePathname } from "~/i18n/routing";
+import { useCountry } from "~/lib/hooks/useCountry";
+import {
+  getLanguageMarketOptionForLocale,
+  getLocaleById,
+  LANGUAGE_MARKET_OPTIONS,
+  type LanguageMarketOption,
+} from "~/lib/locale/locales";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "~/components/ui/select";
 
 export function LanguageSwitcher() {
@@ -25,33 +28,74 @@ export function LanguageSwitcher() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { pathname } = useLocalePathnames();
+  const { localeId, setLocaleId } = useCountry();
+  const selectedOption = getLanguageMarketOptionForLocale(locale, localeId);
 
-  const handleLocaleChange = (nextLocale: string) => {
-    document.cookie = `${localeCookieName}=${nextLocale}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
+  useEffect(() => {
+    if (selectedOption.localeId !== localeId) {
+      setLocaleId(selectedOption.localeId);
+    }
+  }, [localeId, selectedOption.localeId, setLocaleId]);
+
+  const handleLocaleChange = (nextValue: string) => {
+    const nextOption = LANGUAGE_MARKET_OPTIONS.find(
+      (option) => option.id === nextValue,
+    );
+    if (!nextOption) return;
+
+    setLocaleId(nextOption.localeId);
+    document.cookie = `${localeCookieName}=${nextOption.locale}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
 
     const query = searchParams.toString();
-    const nextPathname = localizePathname(pathname, nextLocale as Locale);
+    const nextPathname = localizePathname(pathname, nextOption.locale);
     const nextHref = query ? `${nextPathname}?${query}` : nextPathname;
 
     router.push(nextHref);
   };
 
   return (
-    <Select value={locale} onValueChange={handleLocaleChange}>
+    <Select value={selectedOption.id} onValueChange={handleLocaleChange}>
       <SelectTrigger
         size="sm"
-        className="h-9 min-w-[88px] border px-2.5"
-        aria-label={t("language")}
+        className="h-9 min-w-[210px] border px-2.5"
+        aria-label={t("languageRegion")}
       >
-        <SelectValue placeholder={localeLabels[defaultLocale].shortLabel} />
+        <SelectedLanguageMarket option={selectedOption} />
       </SelectTrigger>
       <SelectContent align="end">
-        {locales.map((value) => (
-          <SelectItem key={value} value={value}>
-            {localeLabels[value].shortLabel} · {localeLabels[value].label}
+        {LANGUAGE_MARKET_OPTIONS.map((option) => (
+          <SelectItem key={option.id} value={option.id}>
+            <SelectedLanguageMarket option={option} />
           </SelectItem>
         ))}
       </SelectContent>
     </Select>
   );
+}
+
+function SelectedLanguageMarket({
+  option,
+}: {
+  option: LanguageMarketOption;
+}) {
+  return (
+    <span className="flex items-center gap-2">
+      <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full">
+        <CircleFlag countryCode={getFlagCode(option)} height={20} />
+      </span>
+      <span className="truncate">{option.label}</span>
+    </span>
+  );
+}
+
+function getFlagCode(option: LanguageMarketOption): string {
+  const localeOption = getLocaleById(option.localeId);
+
+  if (option.localeId === "eu") return "eu";
+  if (localeOption?.countryCode) return localeOption.countryCode.toLowerCase();
+  if (localeOption?.affiliateCountryCode) {
+    return localeOption.affiliateCountryCode.toLowerCase();
+  }
+
+  return "us";
 }
