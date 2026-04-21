@@ -9,7 +9,7 @@
   - mount-suffix reconstruction for outbound clicks
 - Locale and country options now model MPB as storefront routing config, separate from affiliate settings.
 - The gear page renders an MPB button only when the selected locale supports MPB. Supported clicks point to `/api/out/mpb?destinationPath=<basePath>&market=<marketCode>` and, when needed, append `mountId=<mountId>`.
-- `src/app/(app)/api/out/mpb/route.ts` handles the redirection:
+- `src/app/api/out/mpb/route.ts` handles the redirection:
   - It resolves the `market` by prioritizing the query parameter (manually selected by the user), then falling back to server-side IP detection via Vercel edge headers.
   - If `destinationPath` is missing but a `gearSlug` or `gearId` is provided, it attempts to resolve the link from the database.
   - If `mountId` is provided, it rebuilds the final MPB slug with the mapped `-...-fit` suffix before redirecting.

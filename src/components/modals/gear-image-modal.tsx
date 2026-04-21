@@ -20,7 +20,7 @@ import {
   actionClearGearTopView,
 } from "~/server/admin/gear/actions";
 import { genUploader } from "uploadthing/client";
-import type { OurFileRouter } from "~/app/(app)/api/uploadthing/core";
+import type { OurFileRouter } from "~/app/api/uploadthing/core";
 import { Progress } from "~/components/ui/progress";
 import { requireRole } from "~/lib/auth/auth-helpers";
 

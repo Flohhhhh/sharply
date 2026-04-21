@@ -17,7 +17,7 @@ vi.mock("~/server/raw-samples/service", () => cleanupMocks);
 import {
   GET,
   POST,
-} from "../../src/app/(app)/api/admin/raw-samples/cleanup/route";
+} from "../../src/app/api/admin/raw-samples/cleanup/route";
 
 describe("raw sample cleanup route", () => {
   beforeEach(() => {

@@ -15,7 +15,7 @@ This document explains how search works in Sharply: routing, URL model, UI surfa
   - Debounced typeahead (200ms) calling `/api/search/suggest`.
   - Uses the same suggestion contract and Enter priority as the header search.
   - Built-in cmdk filtering is disabled so server-ranked results always render.
-- Search results page: `src/app/(app)/(pages)/search/page.tsx`
+- Search results page: `src/app/[locale]/(pages)/search/page.tsx`
   - Server component; fully driven by `searchParams`.
   - Sort: `relevance` (default), `name`, `newest`.
   - Pagination: `page` (1-based), `pageSize` (internal default 20).
@@ -33,10 +33,10 @@ Helper utilities for URLs live in `src/lib/utils/url.ts` (`buildSearchHref`, `me
 
 ## API
 
-- Full search (optional for clients): `src/app/(app)/api/search/route.ts`
+- Full search (optional for clients): `src/app/api/search/route.ts`
   - GET params: `q`, `sort`, `page`, `pageSize` (+ future filters)
   - Returns: `{ results, total, totalPages, page, pageSize }`
-- Suggest (used by palette): `src/app/(app)/api/search/suggest/route.ts`
+- Suggest (used by palette): `src/app/api/search/suggest/route.ts`
   - GET `q`
   - Returns: `{ suggestions: Suggestion[] }`
   - `Suggestion` is a discriminated union:
@@ -165,7 +165,7 @@ Optional ANDed filters for brand/mount/gearType/price range/sensor format. These
 
 ## SSR & Suspense
 
-- The header is wrapped in a `Suspense` boundary (`src/app/(app)/(pages)/layout.tsx`) so client hooks like `useSearchParams` in the header don’t trip SSR.
+- The header is wrapped in a `Suspense` boundary (`src/app/[locale]/(pages)/layout.tsx`) so client hooks like `useSearchParams` in the header don’t trip SSR.
 
 ## Performance
 

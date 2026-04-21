@@ -71,12 +71,12 @@ Follow `docs/server-structure.md` (no DB in UI; flow is data → service → act
 ## Client/UI
 
 - Public pages
-  - `src/app/(app)/(pages)/recommended-lenses/[brand]/[slug]/page.tsx`
+  - `src/app/[locale]/(pages)/recommended-lenses/[brand]/[slug]/page.tsx`
     - Renders a chart for a brand/slug using `serviceGetChart`
     - Displays grouped columns and item lists
 
 - Admin editor
-  - Base page: `src/app/(app)/(pages)/admin/recommended-lenses/[brand]/[slug]/page.tsx`
+  - Base page: `src/app/[locale]/(pages)/admin/recommended-lenses/[brand]/[slug]/page.tsx`
   - Core editor: `.../_components/EditChartContent.tsx`
     - Uses server actions:
       - `actionUpdateChartMeta` to update title/flags
@@ -170,7 +170,7 @@ All mutations require `ADMIN` or `EDITOR` role (`service.ts` handles enforcement
 - Data: `src/server/recommendations/data.ts`
 - Service: `src/server/recommendations/service.ts`
 - Actions: `src/server/recommendations/actions.ts`
-- UI (public): `src/app/(app)/(pages)/recommended-lenses/[brand]/[slug]/page.tsx`
-- UI (admin): `src/app/(app)/(pages)/admin/recommended-lenses/...`
+- UI (public): `src/app/[locale]/(pages)/recommended-lenses/[brand]/[slug]/page.tsx`
+- UI (admin): `src/app/[locale]/(pages)/admin/recommended-lenses/...`
 - Utilities: `src/lib/recommendations/{bucketing,columns,types}.ts`
 - Seed: `scripts/seed-recommendations.ts`

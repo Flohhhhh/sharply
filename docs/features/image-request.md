@@ -50,7 +50,7 @@ This feature allows users to request images for gear items that don't have photo
 ### UI Components
 
 #### Request Image Button
-- **Location**: `src/app/(app)/(pages)/gear/_components/request-image-button.tsx`
+- **Location**: `src/app/[locale]/(pages)/gear/_components/request-image-button.tsx`
 - **Features**:
   - Loading state during API call
   - Toast notifications for success/error
@@ -58,7 +58,7 @@ This feature allows users to request images for gear items that don't have photo
   - Only shown to logged-in users
 
 #### Admin Analytics
-- **Location**: `src/app/(app)/(admin)/admin/analytics/image-requests-list.tsx`
+- **Location**: `src/app/[locale]/(admin)/admin/analytics/image-requests-list.tsx`
 - **Features**:
   - Displays gear name, request count, and last request date
   - Links to gear pages

@@ -194,7 +194,7 @@ This bypass is hard-disabled when `NODE_ENV=production`, even if `DEV_AUTH=true`
 ## Protected layout pattern
 
 ```tsx
-// src/app/(app)/(protected)/layout.tsx
+// src/app/[locale]/(protected)/layout.tsx
 import { redirect } from "next/navigation";
 import { auth } from "~/auth";
 import { headers } from "next/headers";

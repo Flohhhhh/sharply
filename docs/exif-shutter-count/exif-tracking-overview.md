@@ -148,10 +148,10 @@ Primary files:
 
 HTTP entrypoints:
 
-- `src/app/(app)/(pages)/(tools)/exif-viewer/parse/route.ts`
-- `src/app/(app)/api/exif-tracking/save/route.ts`
-- `src/app/(app)/api/exif-tracking/cameras/[trackedCameraId]/history/route.ts`
-- `src/app/(app)/api/exif-tracking/readings/[readingId]/route.ts`
+- `src/app/[locale]/(pages)/(tools)/exif-viewer/parse/route.ts`
+- `src/app/api/exif-tracking/save/route.ts`
+- `src/app/api/exif-tracking/cameras/[trackedCameraId]/history/route.ts`
+- `src/app/api/exif-tracking/readings/[readingId]/route.ts`
 
 Responsibility split:
 
@@ -289,12 +289,12 @@ The tracking UI lives inside the EXIF results surface rather than on a separate 
 
 Primary client files:
 
-- `src/app/(app)/(pages)/(tools)/exif-viewer/client.tsx`
-- `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-results.tsx`
-- `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-tracking-mini-chart.tsx`
-- `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-tracking-history-dialog.tsx`
-- `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-tracking-history-chart.tsx`
-- `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-tracking-chart-utils.ts`
+- `src/app/[locale]/(pages)/(tools)/exif-viewer/client.tsx`
+- `src/app/[locale]/(pages)/(tools)/exif-viewer/_components/exif-results.tsx`
+- `src/app/[locale]/(pages)/(tools)/exif-viewer/_components/exif-tracking-mini-chart.tsx`
+- `src/app/[locale]/(pages)/(tools)/exif-viewer/_components/exif-tracking-history-dialog.tsx`
+- `src/app/[locale]/(pages)/(tools)/exif-viewer/_components/exif-tracking-history-chart.tsx`
+- `src/app/[locale]/(pages)/(tools)/exif-viewer/_components/exif-tracking-chart-utils.ts`
 
 ### Banner states
 
@@ -415,15 +415,15 @@ Schema and server:
 
 Routes:
 
-- `src/app/(app)/(pages)/(tools)/exif-viewer/parse/route.ts`
-- `src/app/(app)/api/exif-tracking/save/route.ts`
-- `src/app/(app)/api/exif-tracking/cameras/[trackedCameraId]/history/route.ts`
-- `src/app/(app)/api/exif-tracking/readings/[readingId]/route.ts`
+- `src/app/[locale]/(pages)/(tools)/exif-viewer/parse/route.ts`
+- `src/app/api/exif-tracking/save/route.ts`
+- `src/app/api/exif-tracking/cameras/[trackedCameraId]/history/route.ts`
+- `src/app/api/exif-tracking/readings/[readingId]/route.ts`
 
 UI:
 
-- `src/app/(app)/(pages)/(tools)/exif-viewer/client.tsx`
-- `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-results.tsx`
-- `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-tracking-mini-chart.tsx`
-- `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-tracking-history-dialog.tsx`
-- `src/app/(app)/(pages)/(tools)/exif-viewer/_components/exif-tracking-history-chart.tsx`
+- `src/app/[locale]/(pages)/(tools)/exif-viewer/client.tsx`
+- `src/app/[locale]/(pages)/(tools)/exif-viewer/_components/exif-results.tsx`
+- `src/app/[locale]/(pages)/(tools)/exif-viewer/_components/exif-tracking-mini-chart.tsx`
+- `src/app/[locale]/(pages)/(tools)/exif-viewer/_components/exif-tracking-history-dialog.tsx`
+- `src/app/[locale]/(pages)/(tools)/exif-viewer/_components/exif-tracking-history-chart.tsx`

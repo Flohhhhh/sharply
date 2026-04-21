@@ -7,8 +7,8 @@ const serviceMocks = vi.hoisted(() => ({
 
 vi.mock("~/server/creator-videos/service", () => serviceMocks);
 
-import { GET as getManageData } from "../../src/app/(app)/api/gear/[slug]/creator-videos/manage-data/route";
-import { POST as postResolve } from "../../src/app/(app)/api/gear/creator-videos/resolve/route";
+import { GET as getManageData } from "../../src/app/api/gear/[slug]/creator-videos/manage-data/route";
+import { POST as postResolve } from "../../src/app/api/gear/creator-videos/resolve/route";
 
 describe("creator video routes", () => {
   beforeEach(() => {

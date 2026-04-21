@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import { ImageIcon, Upload } from "lucide-react";
 import { actionUpdateProfileImage } from "~/server/users/actions";
 import { genUploader } from "uploadthing/client";
-import type { OurFileRouter } from "~/app/(app)/api/uploadthing/core";
+import type { OurFileRouter } from "~/app/api/uploadthing/core";
 import { Progress } from "~/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { useTranslations } from "next-intl";

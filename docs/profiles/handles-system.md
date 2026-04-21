@@ -32,6 +32,6 @@ To encourage adoption without forcing friction during sign-up:
 
 - **Schema**: `src/server/db/schema.ts` (Handle column & Unique index).
 - **Service**: `src/server/users/service.ts` (`fetchUserByHandle`, `updateUserHandle`).
-- **Form**: `src/app/(app)/(pages)/profile/settings/user-handle-form.tsx` (Live availability checks).
-- **Banner**: `src/app/(app)/(pages)/u/_components/HandleSetupBanner.tsx`.
-- **API**: `src/app/(app)/api/users/check-handle/route.ts` (Used for real-time validation).
+- **Form**: `src/app/[locale]/(pages)/profile/settings/user-handle-form.tsx` (Live availability checks).
+- **Banner**: `src/app/[locale]/(pages)/u/_components/HandleSetupBanner.tsx`.
+- **API**: `src/app/api/users/check-handle/route.ts` (Used for real-time validation).

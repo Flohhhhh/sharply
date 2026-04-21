@@ -13,9 +13,9 @@ const serviceMocks = vi.hoisted(() => ({
 vi.mock("~/server/auth", () => authMocks);
 vi.mock("~/server/exif-tracking/service", () => serviceMocks);
 
-import { POST } from "../../src/app/(app)/api/exif-tracking/save/route";
-import { GET } from "../../src/app/(app)/api/exif-tracking/cameras/[trackedCameraId]/history/route";
-import { DELETE } from "../../src/app/(app)/api/exif-tracking/readings/[readingId]/route";
+import { POST } from "../../src/app/api/exif-tracking/save/route";
+import { GET } from "../../src/app/api/exif-tracking/cameras/[trackedCameraId]/history/route";
+import { DELETE } from "../../src/app/api/exif-tracking/readings/[readingId]/route";
 
 describe("exif tracking routes", () => {
   beforeEach(() => {

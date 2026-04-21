@@ -14,16 +14,16 @@ Notes:
 
 ## Files
 
-- `src/app/(app)/(pages)/browse/layout.tsx` — shared layout
-- `src/app/(app)/(pages)/browse/[[...segments]]/page.tsx` — catch-all route
-- `src/app/(app)/(pages)/browse/_components/*` — depth-specific view components
-- `src/app/(app)/(pages)/browse/_components/mount-buttons.tsx` — brand/type mount buttons
+- `src/app/[locale]/(pages)/browse/layout.tsx` — shared layout
+- `src/app/[locale]/(pages)/browse/[[...segments]]/page.tsx` — catch-all route
+- `src/app/[locale]/(pages)/browse/_components/*` — depth-specific view components
+- `src/app/[locale]/(pages)/browse/_components/mount-buttons.tsx` — brand/type mount buttons
 - `src/lib/browse/routing.ts` — parsing and depth logic
 - `src/lib/browse/filters.ts` — query params → filters
 - `src/server/gear/browse/data.ts` — data helpers (brands/mounts derived from constants)
 - `src/server/gear/browse/service.ts` — orchestration, SEO builders
 - `src/lib/browse/mount-ui.ts` — UI config for mount ordering/visibility
-- `src/app/(app)/sitemap.ts` — generates browse URLs for sitemap
+- `src/app/sitemap.ts` — generates browse URLs for sitemap
 - `next.config.js` — redirects for legacy `/gear` and `/brand/[slug]` paths
 
 ## Depth Behavior

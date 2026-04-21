@@ -30,7 +30,7 @@ Raw photo samples are unprocessed camera files (DNG, CR2, NEF, etc.) that users 
 
 ## Upload Flow
 
-1. User uploads via UploadThing endpoint `rawSampleUploader` (defined in `src/app/(app)/api/uploadthing/core.ts`)
+1. User uploads via UploadThing endpoint `rawSampleUploader` (defined in `src/app/api/uploadthing/core.ts`)
 2. UploadThing returns file metadata (URL, name, size, type)
 3. Client calls `actionAddGearRawSample()` with file metadata
 4. Service layer validates gear type is CAMERA
