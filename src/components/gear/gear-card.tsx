@@ -2,6 +2,7 @@
 
 import type React from "react";
 import Link from "next/link";
+import { useLocale } from "next-intl";
 import { cn } from "~/lib/utils";
 import Image from "next/image";
 import { useState } from "react";
@@ -16,6 +17,10 @@ import { isInHallOfFame } from "~/lib/utils/is-in-hall-of-fame";
 import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
 import type { GearAlias } from "~/types/gear";
 import { GearCardMoreMenu } from "./gear-card-more-menu";
+import {
+  formatDateWithPrecision,
+  type DatePrecision,
+} from "~/lib/format/date";
 
 const BASE_BRAND_NAMES = uniqueCaseInsensitive(
   BRANDS.flatMap((brand) => splitBrandNameVariants(brand.name)),
@@ -100,26 +105,20 @@ export type GearCardProps = {
   className?: string;
 };
 
-type DatePrecision = "DAY" | "MONTH" | "YEAR";
-
-export function formatGearDate(
+export function formatGearCardDate(
   dateValue?: string | Date | null,
   precision?: DatePrecision | null,
+  locale?: string,
 ) {
   if (!dateValue) return "---";
+  if (!locale) return "-";
 
-  const parsedDate =
-    dateValue instanceof Date ? dateValue : new Date(dateValue ?? undefined);
-  if (Number.isNaN(parsedDate.getTime())) return "-";
-
-  const resolvedPrecision: DatePrecision = precision ?? "MONTH";
-  if (resolvedPrecision === "YEAR") {
-    return parsedDate.getFullYear().toString();
-  }
-
-  return parsedDate.toLocaleDateString("en-US", {
-    month: "short",
-    year: "numeric",
+  return formatDateWithPrecision(dateValue, {
+    locale,
+    precision: precision ?? "MONTH",
+    variant: "month-year",
+    monthStyle: "short",
+    fallback: "-",
   });
 }
 
@@ -145,11 +144,13 @@ export function GearCard(props: GearCardProps) {
     className,
   } = props;
 
+  const locale = useLocale();
   const displayName = useGearDisplayName({ name, regionalAliases });
   const trimmedName = stripBrandFromName(displayName, brandName);
-  const dateLabel = formatGearDate(
+  const dateLabel = formatGearCardDate(
     releaseDate ?? announcedDate,
     releaseDatePrecision ?? announceDatePrecision,
+    locale,
   );
   const isNew = isNewRelease(
     releaseDate ?? announcedDate,

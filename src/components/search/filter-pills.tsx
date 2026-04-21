@@ -1,13 +1,17 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { X } from "lucide-react";
 import { mergeSearchParams } from "@utils/url";
+import { useLocalePathnames } from "~/i18n/client";
 
 export function FilterPills() {
+  const t = useTranslations("search");
   const sp = useSearchParams();
   const router = useRouter();
-  const pathname = usePathname();
+  const rawPathname = usePathname();
+  const { pathname } = useLocalePathnames();
 
   const entries: { key: string; label: string; value: string }[] = [];
   const q = sp.get("q") ?? "";
@@ -22,20 +26,20 @@ export function FilterPills() {
   const priceMax =
     sp.get(pathname.startsWith("/browse") ? "maxPrice" : "priceMax") ?? "";
 
-  if (brand) entries.push({ key: "brand", label: "Brand", value: brand });
+  if (brand) entries.push({ key: "brand", label: t("brand"), value: brand });
   if (gearType)
-    entries.push({ key: "gearType", label: "Type", value: gearType });
+    entries.push({ key: "gearType", label: t("type"), value: gearType });
   if (mount)
     entries.push({
       key: "mount",
-      label: "Mount",
+      label: t("mount"),
       value: mount.split("-")[0]?.toUpperCase() || mount,
     });
   if (sensor)
-    entries.push({ key: sensorParamKey, label: "Sensor", value: sensor });
+    entries.push({ key: sensorParamKey, label: t("sensor"), value: sensor });
   if (priceMin || priceMax) {
-    const v = `${priceMin ? "$" + priceMin : "Any"} – ${priceMax ? "$" + priceMax : "No max"}`;
-    entries.push({ key: "price", label: "Price", value: v });
+    const v = `${priceMin ? "$" + priceMin : t("any")} – ${priceMax ? "$" + priceMax : t("noMax")}`;
+    entries.push({ key: "price", label: t("price"), value: v });
   }
 
   function remove(key: string) {
@@ -48,7 +52,7 @@ export function FilterPills() {
           : { priceMin: null, priceMax: null, page: 1 }
         : { [key]: null, page: 1 },
     );
-    const href = qs ? `${pathname}?${qs}` : pathname;
+    const href = qs ? `${rawPathname}?${qs}` : rawPathname;
     router.replace(href);
   }
 
@@ -65,7 +69,7 @@ export function FilterPills() {
           <span className="font-medium">{e.value}</span>
           <button
             onClick={() => remove(e.key)}
-            aria-label={`Remove ${e.label} filter`}
+            aria-label={t("removeFilter", { label: e.label })}
             className="hover:text-destructive"
           >
             <X className="h-3 w-3" />

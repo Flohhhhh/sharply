@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ImageIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "~/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { ProfilePictureModal } from "~/components/modals/profile-picture-modal";
@@ -13,6 +14,7 @@ export type ProfilePictureSettingsSectionProps = {
 export function ProfilePictureSettingsSection({
   initialImageUrl,
 }: ProfilePictureSettingsSectionProps) {
+  const t = useTranslations("profileSettings");
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(
     initialImageUrl,
   );
@@ -28,14 +30,14 @@ export function ProfilePictureSettingsSection({
         <Avatar className="h-16 w-16">
           <AvatarImage
             src={previewImageUrl ?? undefined}
-            alt="Profile thumbnail preview"
+            alt={t("profileThumbnailPreview")}
           />
-          <AvatarFallback className="text-2xl">Avatar</AvatarFallback>
+          <AvatarFallback className="text-2xl">{t("avatar")}</AvatarFallback>
         </Avatar>
         <ProfilePictureModal
           trigger={
             <Button icon={<ImageIcon className="h-4 w-4" />}>
-              Update Profile Picture
+              {t("updateProfilePicture")}
             </Button>
           }
           currentImageUrl={initialImageUrl}

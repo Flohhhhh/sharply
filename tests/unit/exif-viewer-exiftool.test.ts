@@ -6,7 +6,7 @@ import {
   normalizeExifToolTagEntries,
   sanitizeExifViewerTagEntries,
   toExifViewerMetadataRows,
-} from "../../src/app/(app)/(pages)/(tools)/exif-viewer/parse/exiftool";
+} from "../../src/app/[locale]/(pages)/(tools)/exif-viewer/parse/exiftool";
 
 describe("exif viewer exiftool normalization", () => {
   it("extracts tag maps and warning strings from JSON output", () => {
@@ -35,6 +35,8 @@ describe("exif viewer exiftool normalization", () => {
       "EXIF:Model": "ILCE-7M4",
       "Sony:ShutterCount": "5432",
       "File:FileType": "ARW",
+      "Panasonic:InternalSerialNumber": "P123456789",
+      "PanasonicRaw:ISO": 200,
     });
 
     expect(allTags).toEqual(
@@ -54,6 +56,18 @@ describe("exif viewer exiftool normalization", () => {
           group: "Sony",
           tag: "ShutterCount",
           value: "5432",
+        }),
+        expect.objectContaining({
+          key: "Panasonic:InternalSerialNumber",
+          group: "Panasonic",
+          tag: "InternalSerialNumber",
+          value: "P123456789",
+        }),
+        expect.objectContaining({
+          key: "PanasonicRaw:ISO",
+          group: "PanasonicRaw",
+          tag: "ISO",
+          value: 200,
         }),
       ]),
     );

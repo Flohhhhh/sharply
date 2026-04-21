@@ -874,6 +874,17 @@ export async function fetchAllGearSlugsData() {
   return rows.map((r) => r.slug);
 }
 
+export async function fetchNewestGearSlugsData(limit: number) {
+  const effectiveReleaseDate = sql`coalesce(${gear.releaseDate}, ${gear.announcedDate}, ${gear.createdAt})`;
+  const rows = await db
+    .select({ slug: gear.slug })
+    .from(gear)
+    .orderBy(desc(effectiveReleaseDate), desc(gear.createdAt), gear.slug)
+    .limit(limit);
+
+  return rows.map((row) => row.slug);
+}
+
 export type GearEditView = {
   id: string;
   createdAt: Date;

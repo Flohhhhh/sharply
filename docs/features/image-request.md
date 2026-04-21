@@ -62,7 +62,7 @@ This feature allows users to request images for gear items that don't have photo
 - **Features**:
   - Displays gear name, request count, and last request date
   - Links to gear pages
-  - Uses date-fns for friendly date formatting
+  - Uses the shared date formatter in `src/lib/format/date.ts` for localized relative-time display
 
 ## Usage
 

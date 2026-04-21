@@ -2,6 +2,7 @@
 
 import { Suspense } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   Select,
   SelectContent,
@@ -12,6 +13,7 @@ import {
 import { mergeSearchParams } from "@utils/url";
 import { LENS_FOCAL_LENGTH_SORT } from "~/lib/browse/sort-constants";
 import { ArrowUpDown } from "lucide-react";
+import { useLocalePathnames } from "~/i18n/client";
 
 type SortSelectProps = {
   category?: "cameras" | "lenses" | null;
@@ -37,9 +39,12 @@ export function SortSelect({ category, hasMount }: SortSelectProps) {
 }
 
 function SortSelectContent({ category, hasMount }: SortSelectProps) {
+  const tSearch = useTranslations("search");
+  const tBrowse = useTranslations("browsePage");
   const sp = useSearchParams();
   const router = useRouter();
-  const pathname = usePathname();
+  const rawPathname = usePathname();
+  const { pathname } = useLocalePathnames();
   const isBrowse = pathname.startsWith("/browse");
   const defaultSort: SortValue = isBrowse
     ? category === "lenses" && hasMount
@@ -52,7 +57,7 @@ function SortSelectContent({ category, hasMount }: SortSelectProps) {
   function onChange(next: string) {
     const existing = new URLSearchParams(sp.toString());
     const qs = mergeSearchParams(existing, { sort: next, page: 1 });
-    const base = isBrowse ? pathname : "/search";
+    const base = isBrowse ? rawPathname : "/search";
     const href = qs ? `${base}?${qs}` : base;
     if (isBrowse) {
       window.history.pushState(null, "", href);
@@ -65,23 +70,35 @@ function SortSelectContent({ category, hasMount }: SortSelectProps) {
     <Select value={current} onValueChange={onChange}>
       <SelectTrigger className="w-[200px]">
         <ArrowUpDown className="h-4 w-4 opacity-60" />
-        <SelectValue placeholder="Sort by" />
+        <SelectValue
+          placeholder={isBrowse ? tBrowse("sortBy") : tSearch("sortBy")}
+        />
       </SelectTrigger>
       <SelectContent>
-        {!isBrowse && <SelectItem value="relevance">Relevance</SelectItem>}
+        {!isBrowse && (
+          <SelectItem value="relevance">{tSearch("relevance")}</SelectItem>
+        )}
         {isBrowse && category === "lenses" && (
           <SelectItem value={LENS_FOCAL_LENGTH_SORT}>
-            Focal length: Low → High
+            {tBrowse("focalLengthLowHigh")}
           </SelectItem>
         )}
-        <SelectItem value="newest">Newest</SelectItem>
-        {isBrowse && <SelectItem value="oldest">Oldest</SelectItem>}
+        <SelectItem value="newest">
+          {isBrowse ? tBrowse("newest") : tSearch("newest")}
+        </SelectItem>
+        {isBrowse && <SelectItem value="oldest">{tBrowse("oldest")}</SelectItem>}
         {isBrowse && (
-          <SelectItem value="recently_added">Recently added</SelectItem>
+          <SelectItem value="recently_added">
+            {tBrowse("recentlyAdded")}
+          </SelectItem>
         )}
-        <SelectItem value="price_asc">Price: Low → High</SelectItem>
-        <SelectItem value="price_desc">Price: High → Low</SelectItem>
-        {!isBrowse && <SelectItem value="name">Name</SelectItem>}
+        <SelectItem value="price_asc">
+          {isBrowse ? tBrowse("priceLowHigh") : tSearch("priceLowHigh")}
+        </SelectItem>
+        <SelectItem value="price_desc">
+          {isBrowse ? tBrowse("priceHighLow") : tSearch("priceHighLow")}
+        </SelectItem>
+        {!isBrowse && <SelectItem value="name">{tSearch("name")}</SelectItem>}
       </SelectContent>
     </Select>
   );

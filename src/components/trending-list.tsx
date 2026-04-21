@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { Flame } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import { fetchTrending } from "~/server/popularity/service";
 import type { TrendingEntry } from "~/types/popularity";
 import type { GearType } from "~/types/gear";
 import { GearDisplayName } from "~/components/gear/gear-display-name";
+import { formatDate } from "~/lib/format/date";
 
 export type TrendingItem = TrendingEntry;
 
@@ -46,13 +48,15 @@ function Skeleton({
 }
 
 export default async function TrendingList({
+  locale,
   timeframe = "30d",
   limit = 10,
   filters,
-  title = "Trending",
+  title,
   loading = false,
   rows,
 }: {
+  locale: string;
   timeframe?: "7d" | "30d";
   limit?: number;
   filters?: {
@@ -64,11 +68,18 @@ export default async function TrendingList({
   loading?: boolean;
   rows?: number;
 }) {
-  if (loading) return <Skeleton rows={rows} title={title} />;
+  const t = await getTranslations({ locale, namespace: "nav" });
+  const resolvedTitle = title ?? t("gearTrendingTitle");
+
+  if (loading) return <Skeleton rows={rows} title={resolvedTitle} />;
 
   const items = await fetchTrending({ timeframe, limit, filters });
 
   if (!items.length) return null;
+  const asOfDate = formatDate(items[0]!.asOfDate, {
+    locale,
+    preset: "date-short",
+  });
 
   const topScore = items[0]?.score ?? 0;
   const calcFilled = (score: number) => {
@@ -76,17 +87,12 @@ export default async function TrendingList({
     const scaled = (score / topScore) * 3;
     return Math.max(0, Math.min(3, Math.round(scaled)));
   };
-  const numberFormatter = new Intl.NumberFormat("en-US", {
-    maximumFractionDigits: 1,
-    minimumFractionDigits: 0,
-  });
-
   return (
     <div className="space-y-3">
       <div className="flex items-baseline justify-between">
-        <h2 className="text-lg font-bold">{title}</h2>
+        <h2 className="text-lg font-bold">{resolvedTitle}</h2>
         <span className="text-muted-foreground text-xs">
-          as of {items[0]!.asOfDate}
+          {t("asOfDate", { date: asOfDate })}
         </span>
       </div>
       <ol className="divide-border divide-y rounded-md border">

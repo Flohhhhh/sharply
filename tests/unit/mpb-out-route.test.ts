@@ -36,9 +36,26 @@ describe("MPB out route", () => {
     );
   });
 
-  it("falls back to the geo-detected EU storefront", async () => {
+  it("falls back to the geo-detected France storefront", async () => {
     headerMocks.headers.mockResolvedValue(
       new Headers([["x-vercel-ip-country", "FR"]]),
+    );
+
+    const response = await GET(
+      new Request(
+        "http://localhost/api/out/mpb?destinationPath=%2Fproduct%2Fnikon-z6-iii",
+      ) as any,
+    );
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://www.mpb.com/fr-fr/product/nikon-z6-iii",
+    );
+  });
+
+  it("falls back to the shared EU storefront for unsupported EU countries", async () => {
+    headerMocks.headers.mockResolvedValue(
+      new Headers([["x-vercel-ip-country", "NL"]]),
     );
 
     const response = await GET(

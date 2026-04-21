@@ -1,5 +1,6 @@
 import { withPayload } from "@payloadcms/next/withPayload";
 import { fileURLToPath } from "node:url";
+import createNextIntlPlugin from "next-intl/plugin";
 /**
  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
  * for Docker builds.
@@ -9,6 +10,7 @@ import "./src/env.js";
 const emptyNodeFsPromisesPath = fileURLToPath(
   new URL("./src/lib/empty-node-fs-promises.js", import.meta.url),
 );
+const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 /** @type {import("next").NextConfig} */
 const config = {
@@ -79,4 +81,4 @@ const config = {
   },
 };
 
-export default withPayload(config);
+export default withPayload(withNextIntl(config));

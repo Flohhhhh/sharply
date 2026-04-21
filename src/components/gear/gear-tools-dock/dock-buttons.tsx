@@ -24,15 +24,16 @@ import { requireRole } from "~/lib/auth/auth-helpers";
 import { UploadDropzone } from "~/lib/utils/uploadthing";
 import type { GearAlternativeRow } from "~/server/gear/service";
 import type { RawSample } from "~/types/gear";
-import { AlternativesManager } from "~/app/(app)/(pages)/gear/_components/alternatives-manager";
+import { AlternativesManager } from "~/app/[locale]/(pages)/gear/_components/alternatives-manager";
 import type { AuthUser } from "~/auth";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
-import { ManageCreatorVideosModal } from "~/app/(app)/(pages)/gear/_components/manage-creator-videos-modal";
-import { ManageStaffVerdictModal } from "~/app/(app)/(pages)/gear/_components/manage-staff-verdict-modal";
+import { ManageCreatorVideosModal } from "~/app/[locale]/(pages)/gear/_components/manage-creator-videos-modal";
+import { ManageStaffVerdictModal } from "~/app/[locale]/(pages)/gear/_components/manage-staff-verdict-modal";
+import { formatDate } from "~/lib/format/date";
 
 type DockSample = Omit<RawSample, "createdAt" | "updatedAt"> & {
   createdAt?: string | null;
@@ -51,6 +52,7 @@ export interface BuildDockButtonsParams {
   gearType: string;
   currentThumbnailUrl?: string | null;
   currentTopViewUrl?: string | null;
+  locale: string;
   alternatives: GearAlternativeRow[];
   hasCreatorVideos: boolean;
   managedSamples: DockSample[];
@@ -72,6 +74,7 @@ export function buildDockButtons({
   gearType,
   currentThumbnailUrl,
   currentTopViewUrl,
+  locale,
   alternatives,
   hasCreatorVideos,
   managedSamples,
@@ -281,7 +284,10 @@ export function buildDockButtons({
                             <p className="font-medium">{displayName}</p>
                             <p className="text-xs">
                               {timestamp
-                                ? new Date(timestamp).toLocaleString()
+                                ? formatDate(timestamp, {
+                                    locale,
+                                    preset: "datetime-short",
+                                  })
                                 : "Unknown date"}
                             </p>
                           </div>

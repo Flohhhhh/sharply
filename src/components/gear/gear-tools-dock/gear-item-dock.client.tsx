@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useLocale } from "next-intl";
 import { toast } from "sonner";
 
 import { Dock, DockIcon } from "~/components/ui/dock";
@@ -66,6 +67,7 @@ export function GearItemDockClient({
   rawSamples = [],
   hasCreatorVideos = false,
 }: GearItemDockClientProps) {
+  const locale = useLocale();
   const { data, isPending } = useSession();
   const user = data?.user;
 
@@ -155,6 +157,7 @@ export function GearItemDockClient({
         gearType,
         currentThumbnailUrl,
         currentTopViewUrl,
+        locale,
         alternatives,
         hasCreatorVideos,
         managedSamples,
@@ -169,6 +172,7 @@ export function GearItemDockClient({
       alternatives,
       currentThumbnailUrl,
       currentTopViewUrl,
+      locale,
       gearId,
       gearType,
       hasCreatorVideos,

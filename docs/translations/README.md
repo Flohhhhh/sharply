@@ -1,0 +1,96 @@
+# Translations
+
+This directory documents how localized copy is organized in Sharply and how to add new translated content safely.
+
+## Current setup
+
+- Locale message files live in `/messages`:
+  - `en.json`
+  - `ja.json`
+  - `de.json`
+  - `fr.json`
+  - `es.json`
+  - `it.json`
+- App routes use `next-intl`.
+- Server components fetch translations with `getTranslations` from `next-intl/server`.
+- Client components use `useTranslations`.
+
+## General rules
+
+- Prefer storing translatable UI copy in the locale message files under `/messages`.
+- Use stable keys that reflect the page or feature namespace.
+- Keep the same key structure across all locale files.
+- When adding new translation keys, update every supported locale in the same change.
+- If a translation is not ready yet, use a safe English fallback rather than leaving the UI broken.
+
+## Hall Of Fame pattern
+
+Hall of fame items use a mixed pattern:
+
+- English source copy lives in code in [src/app/[locale]/(pages)/lists/hall-of-fame/data.ts](/Users/camerongustavson/CodeProjects/sharply/src/app/[locale]/(pages)/lists/hall-of-fame/data.ts:1)
+- Each item includes:
+  - `slug`
+  - `textKey`
+  - `defaultText`
+- Localized copies live in `/messages/*` under:
+  - `hallOfFamePage.items.<slug>.text`
+
+This keeps the English editorial source readable in the data file while still allowing localized copy through `next-intl`.
+
+## Hall Of Fame fallback behavior
+
+The page resolves item copy like this:
+
+1. If the locale is `en`, use `defaultText` from `data.ts`.
+2. If the locale is not `en` and the translation key exists, use the translated message.
+3. If the locale is not `en` and the key is missing, fall back to `defaultText`.
+
+The implementation currently lives in:
+
+- [src/app/[locale]/(pages)/lists/hall-of-fame/page.tsx](/Users/camerongustavson/CodeProjects/sharply/src/app/[locale]/(pages)/lists/hall-of-fame/page.tsx:1)
+
+## Adding a new Hall Of Fame item
+
+1. Add the item to `data.ts` with:
+   - `slug`
+   - `textKey`
+   - `defaultText`
+2. Add matching localized entries to every file in `/messages`.
+3. Use the slug-based key format:
+
+```json
+"hallOfFamePage": {
+  "items": {
+    "example-slug": {
+      "text": "Localized copy"
+    }
+  }
+}
+```
+
+4. Run:
+
+```bash
+SKIP_ENV_VALIDATION=1 npm run lint
+npm run test:i18n
+```
+
+## Choosing where English should live
+
+Use `/messages/en.json` when:
+
+- The copy is ordinary UI text.
+- Translators should see English in the same place as other locales.
+- The content is short and key-driven.
+
+Use `defaultText` in code when:
+
+- The content is curated editorial copy tied closely to a code-owned data list.
+- Developers benefit from reading and editing the English text next to the item definitions.
+- You still want translated copies in locale files with a safe fallback.
+
+## Notes
+
+- Do not duplicate entire per-locale text objects in TypeScript data files.
+- Do not rely on untranslated locales silently unless the English fallback is intentional.
+- Keep translation keys stable once introduced to avoid unnecessary churn across locale files.

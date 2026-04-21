@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildGearSectionNavItems,
   hasStaffVerdictContent,
-} from "~/app/(app)/(pages)/gear/_components/gear-section-nav";
+} from "~/app/[locale]/(pages)/gear/_components/gear-section-nav";
 
 describe("hasStaffVerdictContent", () => {
   it("returns false for empty verdict arrays and whitespace-only text", () => {

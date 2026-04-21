@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { Award, BadgeCheck, Bell } from "lucide-react";
-import { cn, formatRelativeTime } from "~/lib/utils";
+import { cn } from "~/lib/utils";
 import type { NotificationView } from "~/server/notifications/service";
 import type { ComponentType } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { formatRelativeDate } from "~/lib/format/date";
 
 type IconEntry = { icon: ComponentType<{ className?: string }> };
 
@@ -25,6 +27,54 @@ type NotificationItemProps = {
   wasUnread?: boolean;
 };
 
+function extractGearNameFromApprovalBody(body: string | null): string | null {
+  if (!body) return null;
+
+  const normalized = body.replace(/\s+/g, " ").trim();
+  const match = normalized.match(/^(.+?) is now updated(?:\.)?(?: Click to view the page\.)?$/i);
+  return match?.[1]?.trim() || null;
+}
+
+function getLocalizedNotificationContent(
+  notification: NotificationView,
+  t: ReturnType<typeof useTranslations>,
+): { title: string; body: string | null } {
+  if (notification.type === "gear_spec_approved") {
+    const metadata = notification.metadata as
+      | { gearName?: string | null }
+      | null
+      | undefined;
+    const gearName =
+      metadata?.gearName ??
+      extractGearNameFromApprovalBody(notification.body) ??
+      t("gearFallback");
+
+    return {
+      title: t("gearSpecApprovedTitle"),
+      body: t("gearSpecApprovedBody", { gearName }),
+    };
+  }
+
+  if (notification.type === "badge_awarded") {
+    const metadata = notification.metadata as
+      | { badgeName?: string | null }
+      | null
+      | undefined;
+
+    return {
+      title: metadata?.badgeName
+        ? t("badgeAwardedTitleNamed", { badgeName: metadata.badgeName })
+        : t("badgeAwardedTitle"),
+      body: t("badgeAwardedBody"),
+    };
+  }
+
+  return {
+    title: notification.title,
+    body: notification.body,
+  };
+}
+
 const NotificationBody = ({
   notification,
   wasUnread = false,
@@ -32,13 +82,17 @@ const NotificationBody = ({
   notification: NotificationView;
   wasUnread?: boolean;
 }) => {
+  const t = useTranslations("notifications");
+  const locale = useLocale();
+  const content = getLocalizedNotificationContent(notification, t);
+
   return (
     <div className="flex items-start gap-2 p-2">
       <NotificationIcon type={notification.type} />
       <div className="flex-1 space-y-2">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2">
-            <div className="text-sm font-medium">{notification.title}</div>
+            <div className="text-sm font-medium">{content.title}</div>
           </div>
           {wasUnread ? (
             <div className="relative">
@@ -48,13 +102,17 @@ const NotificationBody = ({
           ) : null}
         </div>
         <div className="flex items-center justify-between gap-2">
-          {notification.body ? (
+          {content.body ? (
             <div className="text-muted-foreground w-full max-w-[250px] text-sm">
-              {notification.body}
+              {content.body}
             </div>
           ) : null}
           <span className="text-muted-foreground text-xs">
-            {formatRelativeTime(notification.createdAt)}
+            {formatRelativeDate(notification.createdAt, {
+              locale,
+              style: "short",
+              justNowLabel: t("justNow"),
+            })}
           </span>
         </div>
       </div>

@@ -5,7 +5,7 @@ import { SignJWT, jwtVerify } from "jose";
 import {
   EXIF_VIEWER_CAPTURE_DATE_CANDIDATE_KEYS,
   EXIF_VIEWER_SERIAL_CANDIDATE_KEYS,
-} from "~/app/(app)/(pages)/(tools)/exif-viewer/types";
+} from "~/app/[locale]/(pages)/(tools)/exif-viewer/types";
 import type {
   ExifTrackingDeleteResponse,
   ExifTrackingHistoryResponse,
@@ -15,7 +15,7 @@ import type {
   ExifViewerResponse,
   ExifViewerTrackingState,
   NormalizedCameraBrand,
-} from "~/app/(app)/(pages)/(tools)/exif-viewer/types";
+} from "~/app/[locale]/(pages)/(tools)/exif-viewer/types";
 
 const EXIF_TRACKING_TOKEN_AUDIENCE = "sharply:exif-tracking";
 const EXIF_TRACKING_TOKEN_VERSION = 1;

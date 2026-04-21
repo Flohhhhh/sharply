@@ -1,4 +1,4 @@
-import type { SpecsTableSection } from "~/app/(app)/(pages)/gear/_components/specs-table";
+import type { SpecsTableSection } from "~/app/[locale]/(pages)/gear/_components/specs-table";
 
 function normalizeQuery(query: string): string {
   return query.trim().toLowerCase();

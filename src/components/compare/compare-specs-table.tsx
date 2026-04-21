@@ -4,7 +4,7 @@ import type { GearItem } from "~/types/gear";
 import { buildGearSpecsSections, specDictionary } from "~/lib/specs/registry";
 import { cn } from "~/lib/utils";
 import { Fragment, useState } from "react";
-import { SuggestEditButton } from "~/app/(app)/(pages)/gear/_components/suggest-edit-button";
+import { SuggestEditButton } from "~/app/[locale]/(pages)/gear/_components/suggest-edit-button";
 import { useSession } from "~/lib/auth/auth-client";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
@@ -19,6 +19,7 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
+import { useLocale } from "next-intl";
 
 type Row = { label: string; a?: React.ReactNode; b?: React.ReactNode };
 type SpecsSection = ReturnType<typeof buildGearSpecsSections>[number];
@@ -103,6 +104,7 @@ export function CompareSpecsTable({
   const { data } = useSession();
 
   const session = data?.session;
+  const locale = useLocale();
   const aName = useGearDisplayName({
     name: a.name,
     regionalAliases: a.regionalAliases,
@@ -112,8 +114,8 @@ export function CompareSpecsTable({
     regionalAliases: b.regionalAliases,
   });
 
-  const aSections = buildGearSpecsSections(a, { forceLeftAlign: true });
-  const bSections = buildGearSpecsSections(b, { forceLeftAlign: true });
+  const aSections = buildGearSpecsSections(a, { forceLeftAlign: true, locale });
+  const bSections = buildGearSpecsSections(b, { forceLeftAlign: true, locale });
   const missingA = countMissingSpecs(aSections);
   const missingB = countMissingSpecs(bSections);
   const aConstruction = getConstructionState(a);

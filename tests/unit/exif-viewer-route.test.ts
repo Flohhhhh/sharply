@@ -3,7 +3,7 @@ import {
   EXIF_VIEWER_MAX_FILE_BYTES,
   EXIF_VIEWER_MAX_JSON_BODY_BYTES,
   type ExifViewerParseRequest,
-} from "../../src/app/(app)/(pages)/(tools)/exif-viewer/types";
+} from "../../src/app/[locale]/(pages)/(tools)/exif-viewer/types";
 
 const authMocks = vi.hoisted(() => ({
   auth: {
@@ -30,7 +30,7 @@ vi.mock("next/headers", () => ({
 }));
 vi.mock("~/server/exif-tracking/service", () => trackingMocks);
 
-import { POST } from "../../src/app/(app)/(pages)/(tools)/exif-viewer/parse/route";
+import { POST } from "../../src/app/[locale]/(pages)/(tools)/exif-viewer/parse/route";
 
 function createRequestBody(
   overrides: Partial<ExifViewerParseRequest> = {},
@@ -336,7 +336,9 @@ describe("exif viewer parse route", () => {
         }),
       ]),
     );
-    expect(trackingMocks.buildTrackingPreviewFromParseResult).toHaveBeenCalledWith(
+    expect(
+      trackingMocks.buildTrackingPreviewFromParseResult,
+    ).toHaveBeenCalledWith(
       expect.objectContaining({
         metadataRows: payload.metadata.rows,
         userId: null,
@@ -360,6 +362,71 @@ describe("exif viewer parse route", () => {
       expect.arrayContaining([
         expect.objectContaining({
           key: "XMP:Creator",
+        }),
+      ]),
+    );
+  });
+
+  it("accepts Panasonic rw2 files and surfaces Panasonic metadata groups", async () => {
+    const response = await POST(
+      createJsonRequest(
+        createRequestBody({
+          file: {
+            name: "sample.rw2",
+            size: 1024,
+          },
+          exiftool: {
+            parser: "exiftool-wasm",
+            allTags: [
+              {
+                key: "EXIF:Make",
+                group: "EXIF",
+                tag: "Make",
+                value: "Panasonic",
+              },
+              {
+                key: "EXIF:Model",
+                group: "EXIF",
+                tag: "Model",
+                value: "DC-S5M2",
+              },
+              {
+                key: "Panasonic:InternalSerialNumber",
+                group: "Panasonic",
+                tag: "InternalSerialNumber",
+                value: "P123456789",
+              },
+              {
+                key: "PanasonicRaw:ISO",
+                group: "PanasonicRaw",
+                tag: "ISO",
+                value: 200,
+              },
+            ],
+            warnings: [],
+          },
+        }),
+      ) as any,
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.file.extension).toBe("rw2");
+    expect(payload.camera).toEqual({
+      make: "Panasonic",
+      model: "DC-S5M2",
+      normalizedBrand: "panasonic",
+    });
+    expect(payload.status).toBe("not_found");
+    expect(payload.debug.relevantTags).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          key: "Panasonic:InternalSerialNumber",
+          value: "P123456789",
+        }),
+        expect.objectContaining({
+          key: "PanasonicRaw:ISO",
+          value: 200,
         }),
       ]),
     );

@@ -31,6 +31,7 @@
     "test:e2e": "playwright test",
     "test:e2e:all": "PLAYWRIGHT_ALL_PROJECTS=true playwright test",
     "test:e2e:headed": "playwright test --headed --project=chromium",
+    "test:i18n": "vitest run tests/unit/translation-parity.test.ts",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
     "typecheck": "tsc --noEmit"
@@ -87,7 +88,6 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "country-data-list": "^1.5.5",
-    "date-fns": "^4.1.0",
     "discord-api-types": "^0.38.26",
     "discord-interactions": "^4.3.0",
     "drizzle-orm": "^0.41.0",
@@ -101,6 +101,7 @@
     "lucide-react": "^0.539.0",
     "motion": "^12.27.1",
     "next": "^15.2.6",
+    "next-intl": "^4.9.1",
     "next-themes": "^0.4.6",
     "nodemailer": "^6.10.1",
     "nuqs": "^2.8.6",

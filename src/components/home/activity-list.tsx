@@ -1,8 +1,9 @@
 import * as React from "react";
 import Link from "next/link";
 import { PencilLine, Plus } from "lucide-react";
-import { formatRelativeTime } from "~/lib/utils";
+import { getTranslations } from "next-intl/server";
 import type { HomeActivityItem } from "~/server/gear/home-activity";
+import { formatRelativeDate } from "~/lib/format/date";
 
 const EVENT_ICONS = {
   created: Plus,
@@ -12,18 +13,29 @@ const EVENT_ICONS = {
   React.ComponentType<{ className?: string }>
 >;
 
-export function ActivityList({ items }: { items: HomeActivityItem[] }) {
+export async function ActivityList({
+  items,
+  locale,
+}: {
+  items: HomeActivityItem[];
+  locale: string;
+}) {
   if (!items.length) return null;
+  const t = await getTranslations({ locale, namespace: "home" });
+
+  const eventLabels: Record<HomeActivityItem["eventType"], string> = {
+    created: t("activityCreated"),
+    updated: t("activityUpdated"),
+  };
 
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-4">
-        <h2 className="text-lg font-bold">Activity</h2>
+        <h2 className="text-lg font-bold">{t("activityTitle")}</h2>
         <span className="relative flex h-3 w-3">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
           <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
         </span>
-
       </div>
       <ol className="divide-border divide-y rounded-md border">
         {items.map((item) => {
@@ -44,12 +56,16 @@ export function ActivityList({ items }: { items: HomeActivityItem[] }) {
                       {item.name}
                     </span>{" "}
                     <span className="text-muted-foreground">
-                      {item.eventType}
+                      {eventLabels[item.eventType]}
                     </span>
                   </span>
                 </span>
                 <span className="text-muted-foreground shrink-0 text-xs">
-                  {formatRelativeTime(item.eventAt)}
+                  {formatRelativeDate(item.eventAt, {
+                    locale,
+                    style: "short",
+                    justNowLabel: t("justNow"),
+                  })}
                 </span>
               </Link>
             </li>

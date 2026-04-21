@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FaDiscord } from "react-icons/fa";
 import { track } from "@vercel/analytics";
+import { useTranslations } from "next-intl";
 import { cn } from "~/lib/utils";
 import { Button } from "./ui/button";
 
@@ -11,9 +12,10 @@ export default function DiscordLink(props: {
   label?: string;
   location?: string;
 }) {
+  const t = useTranslations("footer");
   const {
     className,
-    label = "Join Discord",
+    label,
     location = "discord_link",
   } = props;
   return (
@@ -32,11 +34,11 @@ export default function DiscordLink(props: {
         onClick={() =>
           void track("discord_click", {
             location,
-            label,
+            label: label ?? t("joinDiscord"),
           })
         }
       >
-        {label}
+        {label ?? t("joinDiscord")}
       </Link>
     </Button>
   );

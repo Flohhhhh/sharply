@@ -46,6 +46,10 @@ function parseMarketParam(value: string | null): Market | null {
   const normalized = value.toUpperCase();
   if (normalized === "US") return "US";
   if (normalized === "UK" || normalized === "GB") return "UK";
+  if (normalized === "DE") return "DE";
+  if (normalized === "FR") return "FR";
+  if (normalized === "ES") return "ES";
+  if (normalized === "IT") return "IT";
   if (normalized === "EU") return "EU";
   return null;
 }
@@ -54,6 +58,10 @@ function detectMarketFromCountryCode(alpha2Value: string | null): Market {
   if (!alpha2Value) return "US";
   const normalized = alpha2Value.toUpperCase();
   if (normalized === "UK" || normalized === "GB") return "UK";
+  if (normalized === "DE") return "DE";
+  if (normalized === "FR") return "FR";
+  if (normalized === "ES") return "ES";
+  if (normalized === "IT") return "IT";
   if (normalized === "EU" || EU_COUNTRIES.has(normalized)) return "EU";
   return "US";
 }

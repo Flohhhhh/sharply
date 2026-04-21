@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   parseFileWithClientExifTool,
   resetClientExifToolWorkerForTests,
-} from "../../src/app/(app)/(pages)/(tools)/exif-viewer/parse/client-exiftool";
+} from "../../src/app/[locale]/(pages)/(tools)/exif-viewer/parse/client-exiftool";
 
 type WorkerMessageHandler = (event: MessageEvent<any>) => void;
 type WorkerErrorHandler = (event: ErrorEvent) => void;

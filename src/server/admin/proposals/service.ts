@@ -158,7 +158,11 @@ async function notifyContributorOfApprovedGearEdit(params: {
     linkUrl: `/gear/${params.gearContext.gearSlug}`,
     sourceType: "gear",
     sourceId: params.gearId,
-    metadata: { proposalId: params.proposalId },
+    metadata: {
+      proposalId: params.proposalId,
+      gearName: params.gearContext.gearName ?? null,
+      gearSlug: params.gearContext.gearSlug,
+    },
   });
 }
 

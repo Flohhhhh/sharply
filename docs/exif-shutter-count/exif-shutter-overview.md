@@ -21,6 +21,8 @@ This still matters because shutter-count values often live in maker notes or bra
 - `Nikon:*`
 - `Canon:*`
 - `FujiFilm:*`
+- `Panasonic:*`
+- `PanasonicRaw:*`
 - `MakerNotes:*`
 
 The browser worker currently runs ExifTool with:
@@ -53,6 +55,7 @@ The current allowlist is:
 - `cr2`
 - `cr3`
 - `raf`
+- `rw2`
 
 The current size cap is `100 MB`.
 
@@ -83,7 +86,7 @@ The worker and parse route keep two normalized views:
 
 The relevant-tag filter currently includes:
 
-- metadata groups such as `EXIF`, `IFD0`, `Composite`, `MakerNotes`, `Sony`, `Nikon`, `Canon`, `FujiFilm`, `FujiIFD`, and `File`
+- metadata groups such as `EXIF`, `IFD0`, `Composite`, `MakerNotes`, `Sony`, `Nikon`, `Canon`, `FujiFilm`, `FujiIFD`, `Panasonic`, `PanasonicRaw`, and `File`
 - any tag named `Make` or `Model`
 - any tag name containing `shutter`, `count`, `image`, or `exposure`
 
@@ -108,6 +111,7 @@ Brand detection is currently heuristic and normalizes to:
 - `nikon`
 - `canon`
 - `fujifilm`
+- `panasonic`
 - `unknown`
 
 It primarily derives brand from:
@@ -120,6 +124,9 @@ It primarily derives brand from:
 - `MakerNotes:Model`
 
 Model strings are also used as brand hints where the make field is incomplete or missing.
+
+Panasonic detection currently keys off `PANASONIC`, `LUMIX`, and model prefixes like `DC-` or
+`DMC-`.
 
 ## Count Normalization Rules
 
@@ -200,6 +207,24 @@ The Fujifilm extractor currently checks:
 - `MakerNotes:ShutterCount`
 - `MakerNotes:ExposureCount`
 
+### Panasonic
+
+Panasonic and Lumix RW2 files are now accepted and brand-detected, and Panasonic/PanasonicRaw
+groups are retained in the relevant-tag view for debugging and future extractor work.
+
+The current Panasonic extractor intentionally does not map any Panasonic-specific numeric field to
+`shutterCount`. ExifTool's published Panasonic tag tables document fields like
+`Panasonic:InternalSerialNumber` and `Panasonic:ShutterType`, but they do not currently document a
+Panasonic shutter-count tag.
+
+Current behavior:
+
+- Panasonic files can still succeed as metadata reads
+- Panasonic serials can still participate in EXIF tracking when exposed via supported serial tags
+- ambiguous counters such as sequence-style fields are not treated as shutter count
+- any future Panasonic shutter-count mapping should be added only after validation against a real
+  unedited RW2 sample
+
 ### Generic Fallback
 
 If the brand-specific extractor does not find a valid count, a generic fallback scans relevant tags whose names include:
@@ -214,6 +239,10 @@ This is useful for:
 - unknown brands
 - files where brand detection is weak
 - cases where ExifTool exposes count-like fields outside the explicit brand candidate list
+
+For Panasonic specifically, the generic fallback is allowed to recognize an explicit
+`ShutterCount`-style field if ExifTool exposes one, but the app does not currently treat Panasonic
+sequence/order counters as lifetime actuation counts.
 
 ## Returned Data Shape
 

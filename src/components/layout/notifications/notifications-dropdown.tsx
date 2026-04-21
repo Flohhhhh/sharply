@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { Bell, Loader } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -30,6 +31,7 @@ type NotificationsDropdownProps = {
 type NotificationState = NotificationsDropdownProps["data"];
 
 export function NotificationsDropdown({ data }: NotificationsDropdownProps) {
+  const t = useTranslations("notifications");
   const [state, setState] = useState<NotificationState>(data);
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"inbox" | "archived">("inbox");
@@ -134,13 +136,13 @@ export function NotificationsDropdown({ data }: NotificationsDropdownProps) {
   const emptyState = (
     <div className="text-muted-foreground flex flex-col items-center justify-center gap-2 px-4 py-10 text-center text-sm">
       <Bell className="size-5" />
-      <p>No notifications yet.</p>
+      <p>{t("empty")}</p>
     </div>
   );
 
   const archivedEmptyState = (
     <div className="text-muted-foreground px-4 py-3 text-sm">
-      No archived notifications.
+      {t("archivedEmpty")}
     </div>
   );
 
@@ -151,7 +153,7 @@ export function NotificationsDropdown({ data }: NotificationsDropdownProps) {
           variant="outline"
           size="sm"
           className="relative"
-          aria-label="Notifications"
+          aria-label={t("title")}
         >
           <Bell className="size-5" />
           {hasUnread ? (
@@ -166,7 +168,7 @@ export function NotificationsDropdown({ data }: NotificationsDropdownProps) {
         align="end"
       >
         <div className="flex items-center justify-between px-4 py-3">
-          <div className="text-sm font-semibold">Notifications</div>
+          <div className="text-sm font-semibold">{t("title")}</div>
           {activeTab === "inbox" ? (
             <div className="flex items-center gap-2">
               {isPending ? (
@@ -179,7 +181,7 @@ export function NotificationsDropdown({ data }: NotificationsDropdownProps) {
                 disabled={!activeNotifications.length || isClearing}
                 onClick={handleClearAll}
               >
-                Clear all
+                {t("clearAll")}
               </Button>
             </div>
           ) : (
@@ -197,7 +199,7 @@ export function NotificationsDropdown({ data }: NotificationsDropdownProps) {
                 : "hover:text-foreground border-transparent",
             )}
           >
-            Inbox
+            {t("inbox")}
             <span className="text-muted-foreground text-[11px]">
               {inboxCount}
             </span>
@@ -212,7 +214,7 @@ export function NotificationsDropdown({ data }: NotificationsDropdownProps) {
                 : "hover:text-foreground border-transparent",
             )}
           >
-            Archived
+            {t("archived")}
             <span className="text-muted-foreground text-[11px]">
               {archivedNotifications.length}
             </span>
@@ -247,7 +249,7 @@ export function NotificationsDropdown({ data }: NotificationsDropdownProps) {
                     disabled={!archivedNotifications.length}
                     onClick={handleDeleteAllArchived}
                   >
-                    Delete all
+                    {t("deleteAll")}
                   </Button>
                 </div>
               ) : null}

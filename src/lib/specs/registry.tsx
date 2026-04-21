@@ -1,7 +1,10 @@
-import type { SpecsTableSection } from "~/app/(app)/(pages)/gear/_components/specs-table";
+import type { SpecsTableSection } from "~/app/[locale]/(pages)/gear/_components/specs-table";
 import type { GearAlias, GearItem } from "~/types/gear";
 import { cn } from "~/lib/utils";
-import { formatHumanDateWithPrecision } from "~/lib/utils";
+import {
+  formatDateWithPrecision,
+  type DatePrecision,
+} from "~/lib/format/date";
 import {
   formatPrice,
   formatDimensions,
@@ -34,7 +37,7 @@ import { formatFilterType } from "~/lib/mapping/filter-types-map";
 import { formatFocalLengthRangeDisplay } from "~/lib/mapping/focal-length-map";
 import { MOUNTS, AF_AREA_MODES } from "~/lib/generated";
 import { buildVideoDisplayBundle } from "~/lib/video/transform";
-import { VideoSpecsSummary } from "~/app/(app)/(pages)/gear/_components/video/video-summary";
+import { VideoSpecsSummary } from "~/app/[locale]/(pages)/gear/_components/video/video-summary";
 import { Badge } from "~/components/ui/badge";
 import {
   normalizedToCameraVideoModes,
@@ -170,6 +173,7 @@ export type SpecFieldDef = {
     item: GearItem,
     forceLeftAlign?: boolean,
     viewerRegion?: GearRegion | null,
+    locale?: string,
   ) => React.ReactNode; // Format for display (table, etc.)
   editElementId?: string; // DOM id to focus in the edit UI when navigating from sidebar
   condition?: (item: GearItem) => boolean; // Optional: when to show this field
@@ -245,12 +249,12 @@ export const specDictionary: SpecSectionDef[] = [
         label: "Announced Date",
         searchTerms: ["announcement date", "launch date", "announcement"],
         getRawValue: (item) => item.announcedDate,
-        formatDisplay: (_, item) =>
+        formatDisplay: (_, item, __, ___, locale) =>
           item.announcedDate
-            ? formatHumanDateWithPrecision(
-                item.announcedDate,
-                item.announceDatePrecision ?? "DAY",
-              )
+            ? formatDateWithPrecision(item.announcedDate, {
+                locale: locale ?? "en",
+                precision: (item.announceDatePrecision ?? "DAY") as DatePrecision,
+              })
             : undefined,
         editElementId: "announced-date",
       },
@@ -259,12 +263,12 @@ export const specDictionary: SpecSectionDef[] = [
         label: "Release Date",
         searchTerms: ["launch date", "availability date", "release"],
         getRawValue: (item) => item.releaseDate,
-        formatDisplay: (_, item) =>
+        formatDisplay: (_, item, __, ___, locale) =>
           item.releaseDate
-            ? formatHumanDateWithPrecision(
-                item.releaseDate,
-                item.releaseDatePrecision ?? "DAY",
-              )
+            ? formatDateWithPrecision(item.releaseDate, {
+                locale: locale ?? "en",
+                precision: (item.releaseDatePrecision ?? "DAY") as DatePrecision,
+              })
             : undefined,
         editElementId: "release-date",
       },
@@ -498,6 +502,15 @@ export const specDictionary: SpecSectionDef[] = [
           typeof raw === "number" || typeof raw === "string"
             ? `${String(raw)} ms`
             : undefined,
+      },
+      {
+        key: "maxRawBitDepth",
+        label: "Max Raw Bit Depth",
+        searchTerms: ["raw", "raw photo", "photo bit depth", "stills bit depth"],
+        getRawValue: (item) => item.cameraSpecs?.maxRawBitDepth,
+        formatDisplay: (raw) =>
+          typeof raw === "string" ? `${raw}-bit` : undefined,
+        editElementId: "maxRawBitDepth",
       },
       {
         key: "hasIbis",
@@ -1969,7 +1982,11 @@ export function buildGearSpecsSections(
   item: GearItem,
   options?:
     | boolean
-    | { forceLeftAlign?: boolean; viewerRegion?: GearRegion | null },
+    | {
+        forceLeftAlign?: boolean;
+        viewerRegion?: GearRegion | null;
+        locale?: string;
+      },
 ): SpecsTableSection[] {
   const normalizedOptions =
     typeof options === "boolean"
@@ -1977,6 +1994,7 @@ export function buildGearSpecsSections(
       : (options ?? {});
   const forceLeftAlign = normalizedOptions.forceLeftAlign;
   const viewerRegion = normalizedOptions.viewerRegion ?? "GLOBAL";
+  const locale = normalizedOptions.locale ?? "en";
   return specDictionary
     .filter((section) => !section.condition || section.condition(item))
     .map((section) => ({
@@ -1986,7 +2004,7 @@ export function buildGearSpecsSections(
         .map((field) => {
           const raw = field.getRawValue(item);
           const value = field.formatDisplay
-            ? field.formatDisplay(raw, item, forceLeftAlign, viewerRegion)
+            ? field.formatDisplay(raw, item, forceLeftAlign, viewerRegion, locale)
             : (raw as React.ReactNode);
           const label = field.labelOverride
             ? field.labelOverride(item)
