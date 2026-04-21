@@ -1,4 +1,5 @@
 import { ArrowRight, FileText } from "lucide-react";
+import Image from "next/image";
 
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -79,10 +80,12 @@ function NewsCard({ item }: { item: NewsItem }) {
   return (
     <a className="flex h-full flex-col rounded-xl border" href={item.href}>
       <div className="shrink-0 p-2">
-        <img
+        <Image
           src={item.image}
           alt={item.title}
           className="aspect-video w-full rounded-lg object-cover"
+          width={640}
+          height={360}
         />
       </div>
       <div className="flex flex-1 flex-col px-3 pt-2 pb-4">

@@ -4,7 +4,7 @@ import { and, asc, eq, sql } from "drizzle-orm";
 import { db } from "~/server/db";
 import {
   approvedCreators,
-  creatorVideoPlatformEnum,
+  type creatorVideoPlatformEnum,
   gear,
   gearCreatorVideos,
 } from "~/server/db/schema";

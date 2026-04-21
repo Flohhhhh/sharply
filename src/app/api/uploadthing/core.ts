@@ -5,6 +5,8 @@ import { headers } from "next/headers";
 import { requireRole } from "~/lib/auth/auth-helpers";
 
 const f = createUploadthing();
+const unauthorizedUploadThingError = (): Error =>
+  new UploadThingError("Unauthorized") as unknown as Error;
 
 // FileRouter for your app, can contain multiple FileRoutes
 export const ourFileRouter = {
@@ -29,13 +31,13 @@ export const ourFileRouter = {
       // If you throw, the user will not be able to upload
       if (!session) {
         console.log("Attempt to upload image without user", session);
-        throw new UploadThingError("Unauthorized");
+        throw unauthorizedUploadThingError();
       }
 
       const user = session?.user;
       if (!user) {
         console.log("Attempt to upload image without user", session);
-        throw new UploadThingError("Unauthorized");
+        throw unauthorizedUploadThingError();
       }
       // Whatever is returned here is accessible in onUploadComplete as `metadata`
       return { userId: user.id };
@@ -68,7 +70,7 @@ export const ourFileRouter = {
           "Attempt to upload raw sample without editor permission",
           session,
         );
-        throw new UploadThingError("Unauthorized");
+        throw unauthorizedUploadThingError();
       }
 
       if (!requireRole(session.user, ["ADMIN", "SUPERADMIN"])) {
@@ -76,7 +78,7 @@ export const ourFileRouter = {
           "Attempt to upload raw sample without editor role",
           session,
         );
-        throw new UploadThingError("Unauthorized");
+        throw unauthorizedUploadThingError();
       }
 
       return { userId: session.user.id };
@@ -107,12 +109,12 @@ export const ourFileRouter = {
       // If you throw, the user will not be able to upload
       if (!session) {
         console.log("Attempt to upload image without user", session);
-        throw new UploadThingError("Unauthorized");
+        throw unauthorizedUploadThingError();
       }
 
       if (!user) {
         console.log("Attempt to upload gear image without user", session);
-        throw new UploadThingError("Unauthorized");
+        throw unauthorizedUploadThingError();
       }
 
       if (!requireRole(user, ["EDITOR"])) {
@@ -120,7 +122,7 @@ export const ourFileRouter = {
           "Attempt to upload gear image without admin, superadmin or editor role",
           session,
         );
-        throw new UploadThingError("Unauthorized");
+        throw unauthorizedUploadThingError();
       }
 
       // Whatever is returned here is accessible in onUploadComplete as `metadata`
@@ -148,12 +150,12 @@ export const ourFileRouter = {
 
       if (!session) {
         console.log("Attempt to upload profile picture without user", session);
-        throw new UploadThingError("Unauthorized");
+        throw unauthorizedUploadThingError();
       }
 
       if (!user) {
         console.log("Attempt to upload profile picture without user", session);
-        throw new UploadThingError("Unauthorized");
+        throw unauthorizedUploadThingError();
       }
 
       // Return old image URL for deletion if it exists

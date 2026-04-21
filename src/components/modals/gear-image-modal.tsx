@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "~/lib/auth/auth-client";
 import {
@@ -251,11 +252,14 @@ export function GearImageModal(props: GearImageModalProps) {
       <div className="space-y-2">
         <div className="text-muted-foreground text-xs font-medium">{title}</div>
         {imageUrl ? (
-          <div className="bg-muted dark:bg-card flex h-32 w-full items-center justify-center overflow-hidden rounded border">
-            <img
+          <div className="bg-muted dark:bg-card relative h-32 w-full overflow-hidden rounded border">
+            <Image
               src={imageUrl}
               alt={`${title} image`}
-              className="max-h-full max-w-full object-contain"
+              fill
+              unoptimized
+              sizes="(max-width: 768px) 100vw, 32rem"
+              className="object-contain"
             />
           </div>
         ) : (

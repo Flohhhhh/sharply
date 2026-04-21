@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { FaDiscord, FaInstagram, FaGithub, FaTwitter } from "react-icons/fa";
 import { getFooterItems } from "~/lib/nav-items";
@@ -74,11 +75,13 @@ export default function Footer({
           {/* Logo */}
           <div className="flex items-center gap-4 lg:justify-start">
             <LocaleLink href={logo.url}>
-              <img
+              <Image
                 src={logo.src}
                 alt={logo.alt}
                 title={logo.title}
                 className="h-8"
+                width={32}
+                height={32}
               />
             </LocaleLink>
             <h2 className="text-xl font-semibold">{logo.title}</h2>

@@ -127,9 +127,12 @@ function CompareHeroScaledImage({
           }}
         >
           {hasImage ? (
-            <img
+            <Image
               src={item?.thumbnailUrl ?? "/image-temp.png"}
               alt={displayName}
+              width={Math.max(Math.round(displayWidthPixels), 1)}
+              height={Math.max(Math.round(displayWidthPixels), 1)}
+              unoptimized
               style={{
                 width: `${displayWidthPixels}px`,
                 height: "auto",

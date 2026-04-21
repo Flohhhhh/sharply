@@ -59,7 +59,7 @@ function useSyncedParam(key: string, fallback: string | undefined = undefined) {
   const [value, setValue] = useState<string>(sp.get(key) ?? fallback ?? "");
   useEffect(() => {
     setValue(sp.get(key) ?? fallback ?? "");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [sp.toString(), key]);
   return [value, setValue] as const;
 }
@@ -95,7 +95,7 @@ export function FiltersModal() {
       Number.isFinite(min) ? min : 0,
       Number.isFinite(max) && max > 0 ? max : 0,
     ]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [sp.toString()]);
 
   function pushParams(

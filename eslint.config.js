@@ -9,12 +9,23 @@ const compat = new FlatCompat({
 
 export default tseslint.config(
   {
-    ignores: [".next", "next-env.d.ts", "scripts/**", "tests/**"],
+    ignores: [
+      ".next",
+      "next-env.d.ts",
+      "scripts/**",
+      "tests/**",
+      "src/components/ui/**",
+    ],
   },
   ...compat.extends("next/core-web-vitals"),
   {
     files: ["**/*.ts", "**/*.tsx"],
-    ignores: ["src/collections/**/*.ts", "src/collections/**/*.tsx"],
+    ignores: [
+      "src/collections/**/*.ts",
+      "src/collections/**/*.tsx",
+      "src/components/ui/**/*.ts",
+      "src/components/ui/**/*.tsx",
+    ],
     plugins: {
       drizzle,
     },

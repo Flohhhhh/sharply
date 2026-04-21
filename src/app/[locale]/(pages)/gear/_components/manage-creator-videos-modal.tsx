@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useTransition } from "react";
+import Image from "next/image";
 import { useLocale } from "next-intl";
 import { useSession } from "~/lib/auth/auth-client";
 import { requireRole } from "~/lib/auth/auth-helpers";
@@ -369,9 +370,12 @@ export function ManageCreatorVideosModal({
                         <div className="flex flex-col gap-4 md:flex-row">
                           <div className="overflow-hidden rounded-xl border bg-zinc-100 md:w-52 dark:bg-zinc-900">
                             {video.thumbnailUrl ? (
-                              <img
+                              <Image
                                 src={video.thumbnailUrl}
                                 alt={video.title}
+                                width={416}
+                                height={234}
+                                unoptimized
                                 className="aspect-video h-full w-full object-cover"
                               />
                             ) : (
@@ -545,9 +549,12 @@ export function ManageCreatorVideosModal({
                   <div className="flex flex-col gap-4 md:flex-row">
                     <div className="overflow-hidden rounded-xl border bg-zinc-100 md:w-56 dark:bg-zinc-900">
                       {resolution.thumbnailUrl ? (
-                        <img
+                        <Image
                           src={resolution.thumbnailUrl}
                           alt={resolution.title ?? "Resolved video preview"}
+                          width={448}
+                          height={252}
+                          unoptimized
                           className="aspect-video h-full w-full object-cover"
                         />
                       ) : (

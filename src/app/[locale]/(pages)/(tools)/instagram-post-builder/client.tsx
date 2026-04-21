@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import NextImage from "next/image";
 import Link from "next/link";
 import { CSS } from "@dnd-kit/utilities";
 import {
@@ -717,10 +718,13 @@ const InstagramPostBuilderPage = () => {
           handleMouseDown(event, frame.id, image.id, image.position)
         }
       >
-        <img
+        <NextImage
           src={image.src}
           alt="Uploaded media"
-          className="pointer-events-none h-full w-full object-cover"
+          fill
+          unoptimized
+          sizes="33vw"
+          className="pointer-events-none object-cover"
           style={{
             objectPosition: `${image.position.x}% ${image.position.y}%`,
           }}
