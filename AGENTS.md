@@ -8,6 +8,7 @@ Sharply is a photography gear database and cataloging application built with Nex
 - All relevant docs in `/docs` must be updated to ensure no drift.
 - Any new hardcoded user-facing strings must be replaced with translation keys for all locales.
 - Translation key parity must be maintained: if a key is added, removed, or renamed in `messages/en.json`, the same key change must be applied across all locale files. This is enforced by `tests/unit/translation-parity.test.ts` (covered by `npm run test` / CI Vitest runs).
+- Changes that introduce or modify behavior must include or update automated tests (vitest and/or targeted playwright) covering the primary path and at least one meaningful edge case.
 - Respect server layering: keep the `data -> service -> actions` flow and do not introduce direct database access in UI or generic lib modules.
 - If `src/server/db/schema.ts` changes, update related docs and keep changes backwards compatible by default (prefer deprecations over destructive deletions).
 - Run targeted Playwright coverage (`npm run test:e2e` or affected specs) when changing auth, critical user flows, or navigation behavior.
