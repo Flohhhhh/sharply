@@ -1,8 +1,14 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { defineConfig, devices } from "@playwright/test";
+
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000";
 const runFullBrowserMatrix =
   process.env.CI === "true" || process.env.PLAYWRIGHT_ALL_PROJECTS === "true";
 const shouldManageServer = !process.env.PLAYWRIGHT_BASE_URL;
+const configDirectoryName = path.dirname(fileURLToPath(import.meta.url));
+const workspaceRootPath = path.resolve(configDirectoryName, "..");
 
 const projects = runFullBrowserMatrix
   ? [
@@ -31,7 +37,7 @@ const projects = runFullBrowserMatrix
     ];
 
 export default defineConfig({
-  testDir: "./tests/playwright",
+  testDir: path.join(workspaceRootPath, "tests/playwright"),
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

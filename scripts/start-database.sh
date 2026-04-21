@@ -7,13 +7,17 @@
 # - Docker Desktop for Windows - https://docs.docker.com/docker-for-windows/install/
 # - Podman Desktop - https://podman.io/getting-started/installation
 # 3. Open WSL - `wsl`
-# 4. Run this script - `./start-database.sh`
+# 4. Run this script from repo root - `./scripts/start-database.sh`
 
-# On Linux and macOS you can run this script directly - `./start-database.sh`
+# On Linux and macOS, run from repo root - `./scripts/start-database.sh`
+
+SCRIPT_DIRECTORY="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPOSITORY_ROOT="$(cd "$SCRIPT_DIRECTORY/.." && pwd)"
+ENV_FILE_PATH="$REPOSITORY_ROOT/.env"
 
 # import env variables from .env
 set -a
-source .env
+source "$ENV_FILE_PATH"
 
 DB_PASSWORD=$(echo "$DATABASE_URL" | awk -F':' '{print $3}' | awk -F'@' '{print $1}')
 DB_PORT=$(echo "$DATABASE_URL" | awk -F':' '{print $4}' | awk -F'\/' '{print $1}')
@@ -71,7 +75,7 @@ if [ "$DB_PASSWORD" = "password" ]; then
   fi
   # Generate a random URL-safe password
   DB_PASSWORD=$(openssl rand -base64 12 | tr '+/' '-_')
-  sed -i '' "s#:password@#:$DB_PASSWORD@#" .env
+  sed -i '' "s#:password@#:$DB_PASSWORD@#" "$ENV_FILE_PATH"
 fi
 
 $DOCKER_CMD run -d \

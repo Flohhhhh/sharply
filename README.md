@@ -76,7 +76,7 @@ You can run Postgres however you prefer. Two common options:
 2. **Docker/Podman**: run the helper script:
 
    ```bash
-   ./start-database.sh
+   ./scripts/start-database.sh
    ```
 
    The script reads `DATABASE_URL` from `.env`, creates a matching container, and warns if ports are in use.
