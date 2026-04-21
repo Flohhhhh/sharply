@@ -50,13 +50,13 @@ npm run db:migrate  # Apply pending migrations to your local database
 
 - Target the `development` branch
 - Include clear descriptions of changes
-- Ensure all tests pass (`npm run lint`, `npm run typecheck`, `npm run build`)
+- Ensure required validation passes (`npm run test` and `npm run check`)
 - Update relevant documentation in `/docs` if needed
 
 ## Code Quality
 
-- Run `npm run lint` and fix any errors
-- Run `npm run typecheck` to ensure TypeScript compiles
+- Run `npm run check` for the combined static validation pass
+- Run `npm run test` for Vitest coverage
 - Follow the existing code style and patterns
 
 ## Questions?

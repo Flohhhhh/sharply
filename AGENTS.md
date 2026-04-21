@@ -4,7 +4,7 @@ Sharply is a photography gear database and cataloging application built with Nex
 
 ## Task Completion Requirements
 
-- All of `npm run test`, `npm run typecheck`, and `SKIP_ENV_VALIDATION=1 npm run lint` must pass before considering tasks completed.
+- `npm run test` and `npm run check` must pass before considering tasks complete.
 - All relevant docs in `/docs` must be updated to ensure no drift.
 - Any new hardcoded user-facing strings must be replaced with translation keys for all locales.
 - Translation key parity must be maintained: if a key is added, removed, or renamed in `messages/en.json`, the same key change must be applied across all locale files. This is enforced by `tests/unit/translation-parity.test.ts` (covered by `npm run test` / CI Vitest runs).
@@ -74,13 +74,13 @@ Sharply is a photography gear database and cataloging application built with Nex
 
 ### Running lint and typecheck
 
-- `SKIP_ENV_VALIDATION=1 npm run lint` — `next lint` internally sets `NODE_ENV=production`, which makes optional env vars required. Prefix with `SKIP_ENV_VALIDATION=1` to avoid false failures.
-- `npm run typecheck` — works without special flags.
-- `npm run check` — runs both lint + typecheck; also needs `SKIP_ENV_VALIDATION=1`.
+- `npm run lint` — runs the ESLint CLI.
+- `npm run typecheck` — runs TypeScript with `--noEmit`.
+- `npm run check` — runs the combined static validation pass (`lint` + `typecheck`).
 
 ### Running tests
 
-- `npm test` — runs vitest unit tests. No database or dev server required.
+- `npm run test` — runs Vitest unit tests. No database or dev server required.
 
 ### Database setup
 

@@ -73,7 +73,7 @@ The implementation currently lives in:
 4. Run:
 
 ```bash
-SKIP_ENV_VALIDATION=1 npm run lint
+npm run lint
 npm run test:i18n
 ```
 

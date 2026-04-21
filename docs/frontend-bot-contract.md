@@ -140,8 +140,7 @@ For command-related work, use this sequence:
 For changes that touch the contract:
 
 - In `sharply`:
-  - `SKIP_ENV_VALIDATION=1 npm run lint`
-  - `npm run typecheck`
+  - `npm run check`
 - In `sharply-bot`:
   - `npm run lint`
   - `npm run typecheck`
