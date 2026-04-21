@@ -9,8 +9,8 @@ vi.mock("next/link", () => ({
   },
 }));
 
-vi.mock("~/lib/utils", () => ({
-  formatRelativeTime: vi.fn(() => "1h ago"),
+vi.mock("~/lib/format/date", () => ({
+  formatRelativeDate: vi.fn(() => "1h ago"),
 }));
 
 vi.mock("next-intl/server", () => ({

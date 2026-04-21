@@ -2,8 +2,11 @@
 import React from "react";
 import Link from "next/link";
 import type { Chart } from "@/lib/recommendations/types";
+import { useLocale } from "next-intl";
+import { formatDate } from "~/lib/format/date";
 
 export function BrandBrowser({ charts }: { charts: Chart[] }) {
+  const locale = useLocale();
   const brands = React.useMemo(
     () => Array.from(new Set(charts.map((c) => c.brand))).sort(),
     [charts],
@@ -63,7 +66,11 @@ export function BrandBrowser({ charts }: { charts: Chart[] }) {
                   {c.title}
                 </Link>
                 <div className="text-muted-foreground text-xs">
-                  Updated {new Date(c.updatedAt).toLocaleDateString()}
+                  Updated{" "}
+                  {formatDate(c.updatedAt, {
+                    locale,
+                    preset: "date-short",
+                  })}
                 </div>
               </li>
             ))}

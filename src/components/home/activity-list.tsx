@@ -3,6 +3,7 @@ import Link from "next/link";
 import { PencilLine, Plus } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import type { HomeActivityItem } from "~/server/gear/home-activity";
+import { formatRelativeDate } from "~/lib/format/date";
 
 const EVENT_ICONS = {
   created: Plus,
@@ -11,32 +12,6 @@ const EVENT_ICONS = {
   HomeActivityItem["eventType"],
   React.ComponentType<{ className?: string }>
 >;
-
-function formatRelativeTimeForLocale(
-  input: Date | string | number,
-  locale: string,
-): string {
-  const date = input instanceof Date ? input : new Date(input);
-  if (Number.isNaN(date.getTime())) return "";
-
-  const diffMs = date.getTime() - Date.now();
-  const diffSec = Math.round(diffMs / 1000);
-  const diffMin = Math.round(diffSec / 60);
-  const diffHr = Math.round(diffMin / 60);
-  const diffDay = Math.round(diffHr / 24);
-  const diffWeek = Math.round(diffDay / 7);
-
-  const rtf = new Intl.RelativeTimeFormat(locale, {
-    numeric: "auto",
-    style: "short",
-  });
-
-  if (Math.abs(diffSec) < 60) return rtf.format(diffSec, "second");
-  if (Math.abs(diffMin) < 60) return rtf.format(diffMin, "minute");
-  if (Math.abs(diffHr) < 24) return rtf.format(diffHr, "hour");
-  if (Math.abs(diffDay) < 7) return rtf.format(diffDay, "day");
-  return rtf.format(diffWeek, "week");
-}
 
 export async function ActivityList({
   items,
@@ -86,7 +61,11 @@ export async function ActivityList({
                   </span>
                 </span>
                 <span className="text-muted-foreground shrink-0 text-xs">
-                  {formatRelativeTimeForLocale(item.eventAt, locale)}
+                  {formatRelativeDate(item.eventAt, {
+                    locale,
+                    style: "short",
+                    justNowLabel: t("justNow"),
+                  })}
                 </span>
               </Link>
             </li>

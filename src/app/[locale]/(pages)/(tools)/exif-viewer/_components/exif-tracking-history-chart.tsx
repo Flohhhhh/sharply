@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useLocale } from "next-intl";
 import {
   CartesianGrid,
   Line,
@@ -62,6 +63,7 @@ function getSeriesDataKey(series: ExifTrackingChartSeries) {
 function HistoryChartTooltip({
   active,
   payload,
+  locale,
 }: {
   active?: boolean;
   payload?: Array<{
@@ -73,6 +75,7 @@ function HistoryChartTooltip({
       timeSource: "capture" | "saved";
     };
   }>;
+  locale: string;
 }) {
   if (!active || !payload?.length) {
     return null;
@@ -87,6 +90,7 @@ function HistoryChartTooltip({
           {formatChartTooltipDate({
             plottedAt: point.plottedAt,
             timeSource: point.timeSource,
+            locale,
           })}
         </div>
       ) : null}
@@ -125,9 +129,10 @@ function HistoryChartTooltip({
 export default function ExifTrackingHistoryChart({
   readings,
 }: ExifTrackingHistoryChartProps) {
+  const locale = useLocale();
   const chartPoints = useMemo(
-    () => buildExifTrackingChartPoints(readings),
-    [readings],
+    () => buildExifTrackingChartPoints(readings, locale),
+    [locale, readings],
   );
   const fullChartSeries = useMemo(
     () => resolveFullChartSeries(chartPoints),
@@ -167,7 +172,7 @@ export default function ExifTrackingHistoryChart({
               tickLine={false}
               minTickGap={28}
               tickMargin={10}
-              tickFormatter={formatChartAxisDate}
+              tickFormatter={(value) => formatChartAxisDate(value, locale)}
             />
             <YAxis
               axisLine={false}
@@ -179,7 +184,7 @@ export default function ExifTrackingHistoryChart({
             />
             <ChartTooltip
               cursor={{ stroke: "rgba(255,255,255,0.16)" }}
-              content={<HistoryChartTooltip />}
+              content={<HistoryChartTooltip locale={locale} />}
             />
             {fullChartSeries.length > 1 ? (
               <ChartLegend content={<ChartLegendContent />} />

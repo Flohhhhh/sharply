@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useLocale } from "next-intl";
 import useSWR from "swr";
 import { Card, CardContent } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
@@ -17,7 +18,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "~/components/ui/collapsible";
-import { humanizeKey, formatHumanDate } from "~/lib/utils";
+import { humanizeKey } from "~/lib/utils";
 import {
   formatPrice,
   formatCardSlotDetails,
@@ -48,6 +49,7 @@ import {
   type ProposalGroup,
   type ProposalGroupDto,
 } from "./gear-proposals-list.helpers";
+import { formatDate } from "~/lib/format/date";
 
 type PendingResponse = { groups: ProposalGroupDto[] };
 type ResolvedResponse = {
@@ -69,7 +71,13 @@ const formatStorageValue = (value: unknown): string => {
 };
 
 export function GearProposalsList() {
+  const locale = useLocale();
   const [proposals, setProposals] = useState<GearProposal[]>([]);
+  const formatDisplayDate = (value: unknown) =>
+    formatDate(value as string | Date | number | null | undefined, {
+      locale,
+      preset: "date-long",
+    });
 
   const getVideoBundle = (modes?: VideoModeNormalized[] | null) => {
     if (!Array.isArray(modes) || modes.length === 0) return null;
@@ -205,7 +213,7 @@ export function GearProposalsList() {
       k === "msrpAtLaunchUsdCents"
     )
       return formatPrice(v as number);
-    if (k === "releaseDate") return formatHumanDate(v);
+    if (k === "releaseDate") return formatDisplayDate(v);
     if (k === "sensorFormatId") return sensorNameFromSlug(v as string);
     if (k === "mountId") return getMountLongNameById(v as string);
     if (k === "mountIds") {
@@ -226,7 +234,7 @@ export function GearProposalsList() {
       k === "msrpAtLaunchUsdCents"
     )
       return formatPrice(v as number);
-    if (k === "releaseDate") return formatHumanDate(v);
+    if (k === "releaseDate") return formatDisplayDate(v);
     if (k === "sensorFormatId") return sensorNameFromId(v as string);
     if (k === "mountId") return getMountLongNameById(v as string);
     if (k === "mountIds") {
@@ -566,7 +574,7 @@ export function GearProposalsList() {
                       <div className="text-muted-foreground text-xs leading-tight">
                         {contributor.count} request
                         {contributor.count === 1 ? "" : "s"} ·{" "}
-                        {formatHumanDate(contributor.latestCreatedAt as any)}
+                        {formatDisplayDate(contributor.latestCreatedAt as any)}
                       </div>
                     </div>
                   </div>
@@ -627,7 +635,7 @@ export function GearProposalsList() {
                           <div className="grid w-full grid-cols-1 gap-1 sm:grid-cols-2">
                             <span className="text-muted-foreground text-xs">
                               By {opt.createdByName ?? "Unknown"} on{" "}
-                              {formatHumanDate(opt.createdAt as any)}
+                              {formatDisplayDate(opt.createdAt as any)}
                             </span>
                             <span className="text-sm">
                               {c.fieldKey === "cameraCardSlots"
@@ -680,7 +688,7 @@ export function GearProposalsList() {
                         </div>
                         <div className="text-muted-foreground mb-2 text-xs">
                           From {formatContributorName(n.provider.createdByName)}{" "}
-                          on {formatHumanDate(n.provider.createdAt as any)}
+                          on {formatDisplayDate(n.provider.createdAt as any)}
                         </div>
                         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                           <div className="text-muted-foreground text-sm">
@@ -734,7 +742,7 @@ export function GearProposalsList() {
                         </div>
                         <div className="text-muted-foreground mb-2 text-xs">
                           From {formatContributorName(n.provider.createdByName)}{" "}
-                          on {formatHumanDate(n.provider.createdAt as any)}
+                          on {formatDisplayDate(n.provider.createdAt as any)}
                         </div>
                         {bundle ? (
                           <VideoSpecsSummary
@@ -802,7 +810,7 @@ export function GearProposalsList() {
                       </div>
                       <div className="text-muted-foreground mb-2 text-xs">
                         From {formatContributorName(n.provider.createdByName)} on{" "}
-                        {formatHumanDate(n.provider.createdAt as any)}
+                        {formatDisplayDate(n.provider.createdAt as any)}
                       </div>
                       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                         <span
@@ -891,7 +899,7 @@ export function GearProposalsList() {
         k === "msrpAtLaunchUsdCents"
       )
         return formatPrice(v as number);
-      if (k === "releaseDate") return formatHumanDate(v);
+      if (k === "releaseDate") return formatDisplayDate(v);
       if (k === "sensorFormatId") return sensorNameFromSlug(v as string);
       if (k === "mountId") return getMountLongNameById(v as string);
       if (k === "mountIds") {
@@ -909,7 +917,7 @@ export function GearProposalsList() {
         k === "msrpAtLaunchUsdCents"
       )
         return formatPrice(v as number);
-      if (k === "releaseDate") return formatHumanDate(v);
+      if (k === "releaseDate") return formatDisplayDate(v);
       if (k === "sensorFormatId") return sensorNameFromId(v as string);
       if (k === "mountId") return getMountLongNameById(v as string);
       if (k === "mountIds") {
@@ -1110,7 +1118,7 @@ export function GearProposalsList() {
               <div className="flex items-center space-x-3">
                 {getStatusBadge(proposal.status)}
                 <div className="text-muted-foreground text-xs">
-                  {formatHumanDate(proposal.createdAt as any)}
+                  {formatDisplayDate(proposal.createdAt as any)}
                 </div>
               </div>
             </div>
@@ -1182,7 +1190,7 @@ export function GearProposalsList() {
         k === "msrpAtLaunchUsdCents"
       )
         return formatPrice(v as number);
-      if (k === "releaseDate") return formatHumanDate(v as any);
+      if (k === "releaseDate") return formatDisplayDate(v as any);
       if (k === "sensorFormatId") return sensorNameFromSlug(v as string);
       if (k === "mountId") return getMountLongNameById(v as string);
       if (k === "mountIds") {
@@ -1195,7 +1203,7 @@ export function GearProposalsList() {
     };
     const formatBeforeValue = (k: string, v: any): string => {
       if (k === "msrpUsdCents") return formatPrice(v as number);
-      if (k === "releaseDate") return formatHumanDate(v as any);
+      if (k === "releaseDate") return formatDisplayDate(v as any);
       if (k === "sensorFormatId") return sensorNameFromId(v as string);
       if (k === "mountId") return getMountLongNameById(v as string);
       if (k === "mountIds") {
@@ -1270,7 +1278,7 @@ export function GearProposalsList() {
               <div className="flex items-center space-x-3">
                 {getStatusBadge(proposal.status)}
                 <div className="text-muted-foreground text-xs">
-                  {formatHumanDate(proposal.createdAt as any)}
+                  {formatDisplayDate(proposal.createdAt as any)}
                 </div>
               </div>
             </div>

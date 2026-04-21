@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLocale } from "next-intl";
 import { Card, CardContent, CardHeader } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { Empty, EmptyDescription, EmptyTitle } from "~/components/ui/empty";
@@ -8,6 +9,7 @@ import Link from "next/link";
 import { useCountry } from "~/lib/hooks/useCountry";
 import { GetGearDisplayName } from "~/lib/gear/naming";
 import type { GearAlias } from "~/types/gear";
+import { formatDate } from "~/lib/format/date";
 
 interface UserReview {
   id: string;
@@ -48,6 +50,7 @@ export function UserReviewsList({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const { region } = useCountry();
+  const locale = useLocale();
 
   useEffect(() => {
     const fetchUserReviews = async () => {
@@ -179,7 +182,10 @@ export function UserReviewsList({
                 </div>
                 <div className="text-right">
                   <Badge variant="secondary" className="text-xs">
-                    {new Date(review.createdAt).toLocaleDateString()}
+                    {formatDate(review.createdAt, {
+                      locale,
+                      preset: "date-short",
+                    })}
                   </Badge>
                 </div>
               </div>

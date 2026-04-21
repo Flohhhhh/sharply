@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { useLocale } from "next-intl";
 import { cn } from "~/lib/utils";
-import { formatGearDate, type GearCardProps } from "./gear-card";
+import { formatGearCardDate, type GearCardProps } from "./gear-card";
 import { TrendingBadge } from "../gear-badges/trending-badge";
 import { NewBadge } from "../gear-badges/new-badge";
 import { BRANDS } from "~/lib/constants";
@@ -105,7 +105,7 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
   const locale = useLocale();
   const displayName = useGearDisplayName({ name, regionalAliases });
   const trimmedName = stripBrandFromName(displayName, brandName);
-  const dateLabel = formatGearDate(
+  const dateLabel = formatGearCardDate(
     releaseDate ?? announcedDate,
     releaseDatePrecision ?? announceDatePrecision,
     locale,

@@ -1,12 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useLocale } from "next-intl";
 import { Button } from "~/components/ui/button";
 import { Fingerprint, Trash, Loader, ChevronDown, Pencil } from "lucide-react";
 import { passkey } from "~/lib/auth/auth-client";
 import type { Passkey } from "@better-auth/passkey";
 import { toast } from "sonner";
-import { format } from "date-fns";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,6 +30,7 @@ import {
 import { Input } from "~/components/ui/input";
 import { useTranslations } from "next-intl";
 import { LocaleLink } from "~/components/locale-link";
+import { formatDate } from "~/lib/format/date";
 
 type PasskeySectionProps = {
   initialPasskeys: Passkey[];
@@ -37,6 +38,7 @@ type PasskeySectionProps = {
 
 export function PasskeySection({ initialPasskeys }: PasskeySectionProps) {
   const t = useTranslations("profileSettings");
+  const locale = useLocale();
   const [items, setItems] = useState<Passkey[]>(initialPasskeys);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
@@ -111,11 +113,11 @@ export function PasskeySection({ initialPasskeys }: PasskeySectionProps) {
   const formatLastUse = (item: Passkey) => {
     const ts = item.createdAt;
     if (!ts) return null;
-    try {
-      return format(new Date(ts), "PPP p");
-    } catch {
-      return null;
-    }
+    return formatDate(ts, {
+      locale,
+      preset: "datetime-short",
+      fallback: "",
+    });
   };
 
   return (

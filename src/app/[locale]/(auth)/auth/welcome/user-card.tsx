@@ -1,10 +1,11 @@
 "use client";
 
 import Tilt from "react-parallax-tilt";
+import { useLocale } from "next-intl";
 import { useIsMobile } from "~/hooks/use-mobile";
 import { Avatar, AvatarImage, AvatarFallback } from "~/components/ui/avatar";
 import type { AuthUser } from "~/auth";
-import { formatHumanDate, cn } from "~/lib/utils";
+import { cn } from "~/lib/utils";
 import { useCallback, useMemo, useRef } from "react";
 import QrCode from "~/components/qr-code";
 import { HyperText } from "~/components/ui/hyper-text";
@@ -24,6 +25,7 @@ import { DisplayNameForm } from "~/app/[locale]/(pages)/profile/settings/display
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { formatDate } from "~/lib/format/date";
 
 export default function UserCard(props: {
   user: AuthUser;
@@ -32,12 +34,16 @@ export default function UserCard(props: {
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+  const locale = useLocale();
   const router = useRouter();
   const [displayName, setDisplayName] = useState(props.user.name ?? "");
   const { showActions = true } = props;
 
   const joinedDate = props.user?.createdAt
-    ? formatHumanDate(props.user.createdAt)
+    ? formatDate(props.user.createdAt, {
+        locale,
+        preset: "date-long",
+      })
     : "Unknown";
 
   const handle = (() => {

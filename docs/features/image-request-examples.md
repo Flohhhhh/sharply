@@ -197,7 +197,10 @@ export async function ImageRequestsList() {
             <div className="text-sm text-muted-foreground">
               {request.requestCount} {request.requestCount === 1 ? "request" : "requests"}
               {" · "}
-              Last request {formatDistanceToNow(new Date(request.latestRequestDate))}
+              Last request {formatRelativeDate(request.latestRequestDate, {
+                locale,
+                numeric: "always",
+              })}
             </div>
           </div>
           <Link href={`/gear/${request.gearSlug}`}>View Item →</Link>

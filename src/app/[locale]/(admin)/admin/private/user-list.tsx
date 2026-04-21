@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useLocale } from "next-intl";
 import {
   Card,
   CardContent,
@@ -34,6 +35,7 @@ import {
 } from "~/components/ui/pagination";
 import { Badge } from "~/components/ui/badge";
 import type { AuthUser, UserRole } from "~/auth";
+import { formatDate as formatDisplayDate } from "~/lib/format/date";
 
 type AdminUserListResponseItem = {
   id: string;
@@ -64,6 +66,7 @@ const roleOptions = [
 const pageSizeOptions = [10, 20, 50] as const;
 
 export function AdminUserList() {
+  const locale = useLocale();
   const [users, setUsers] = useState<AdminUserListRecord[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -158,17 +161,13 @@ export function AdminUserList() {
     setCurrentPage(nextPage);
   };
 
-  const formatDate = (dateValue: Date | null) => {
+  const formatUserDate = (dateValue: Date | null) => {
     if (!dateValue) return "—";
-    try {
-      return new Intl.DateTimeFormat(undefined, {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      }).format(dateValue);
-    } catch {
-      return "—";
-    }
+    return formatDisplayDate(dateValue, {
+      locale,
+      preset: "date-medium",
+      fallback: "—",
+    });
   };
 
   return (
@@ -279,7 +278,7 @@ export function AdminUserList() {
                       <Badge variant="secondary">{user.role}</Badge>
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm">
-                      {formatDate(user.createdAt)}
+                      {formatUserDate(user.createdAt)}
                     </TableCell>
                   </TableRow>
                 ))

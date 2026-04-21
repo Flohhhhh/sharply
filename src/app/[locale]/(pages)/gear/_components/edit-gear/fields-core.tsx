@@ -25,6 +25,7 @@ import { normalizeBhProductLink } from "~/lib/validation/bhphoto";
 import { normalizeMpbLinkInput } from "~/lib/links/mpb";
 import { useSession } from "~/lib/auth/auth-client";
 import { requireRole } from "~/lib/auth/auth-helpers";
+import { formatDateInputValue } from "~/lib/format/date";
 
 interface CoreFieldsProps {
   currentSpecs: {
@@ -276,29 +277,11 @@ function CoreFieldsComponent({
 
   // Safely format the date for the input
   const formattedAnnouncedDate = useMemo(() => {
-    if (!currentSpecs.announcedDate) return "";
-    try {
-      const d = currentSpecs.announcedDate;
-      const y = d.getUTCFullYear();
-      const m = String(d.getUTCMonth() + 1).padStart(2, "0");
-      const day = String(d.getUTCDate()).padStart(2, "0");
-      return `${y}-${m}-${day}`;
-    } catch {
-      return "";
-    }
+    return formatDateInputValue(currentSpecs.announcedDate);
   }, [currentSpecs.announcedDate]);
 
   const formattedReleaseDate = useMemo(() => {
-    if (!currentSpecs.releaseDate) return "";
-    try {
-      const d = currentSpecs.releaseDate;
-      const y = d.getUTCFullYear();
-      const m = String(d.getUTCMonth() + 1).padStart(2, "0");
-      const day = String(d.getUTCDate()).padStart(2, "0");
-      return `${y}-${m}-${day}`;
-    } catch {
-      return "";
-    }
+    return formatDateInputValue(currentSpecs.releaseDate);
   }, [currentSpecs.releaseDate]);
 
   // Safely format the current MSRP and launch MSRP for the inputs (convert cents to dollars)

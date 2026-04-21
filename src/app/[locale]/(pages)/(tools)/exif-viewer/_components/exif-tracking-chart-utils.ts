@@ -2,6 +2,7 @@ import type {
   ExifTrackedCameraHistoryEntry,
   ExifTrackingChartSeries,
 } from "../types";
+import { formatDate } from "~/lib/format/date";
 
 export type ExifTrackingChartTimeSource = "capture" | "saved";
 
@@ -76,26 +77,28 @@ export function formatChartCount(value: number | null | undefined): string {
   return value === null || value === undefined ? "-" : value.toLocaleString();
 }
 
-export function formatChartAxisDate(value: string | number): string {
+export function formatChartAxisDate(
+  value: string | number,
+  locale = "en",
+): string {
   const parsed = new Date(value);
 
   if (Number.isNaN(parsed.getTime())) {
     return String(value);
   }
 
-  const now = new Date();
-  const includeYear = parsed.getFullYear() !== now.getFullYear();
-
-  return new Intl.DateTimeFormat(undefined, {
-    month: "short",
-    day: "numeric",
-    ...(includeYear ? { year: "numeric" as const } : {}),
-  }).format(parsed);
+  return formatDate(parsed, {
+    locale,
+    preset: "date-medium",
+    timeZone: "local",
+    fallback: String(value),
+  });
 }
 
 export function formatChartTooltipDate(params: {
   plottedAt: string;
   timeSource: ExifTrackingChartTimeSource;
+  locale?: string;
 }): string {
   const parsed = new Date(params.plottedAt);
 
@@ -105,9 +108,12 @@ export function formatChartTooltipDate(params: {
 
   const prefix = params.timeSource === "capture" ? "Captured" : "Saved";
 
-  return `${prefix} ${new Intl.DateTimeFormat(undefined, {
-    dateStyle: "medium",
-  }).format(parsed)}`;
+  return `${prefix} ${formatDate(parsed, {
+    locale: params.locale ?? "en",
+    preset: "date-medium",
+    timeZone: "local",
+    fallback: params.plottedAt,
+  })}`;
 }
 
 export function resolveReadingPlotTimestamp(
@@ -142,6 +148,7 @@ export function resolveReadingPlotTimestamp(
 
 export function buildExifTrackingChartPoints(
   readings: ExifTrackedCameraHistoryEntry[],
+  locale = "en",
 ): ExifTrackingChartPoint[] {
   const pointMap = new Map<string, ExifTrackingChartPoint>();
 
@@ -165,7 +172,7 @@ export function buildExifTrackingChartPoints(
         readingId: reading.id,
         plottedAt: dayAnchor.plottedAt,
         plottedAtMs: dayAnchor.plottedAtMs,
-        plottedAtLabel: formatChartAxisDate(dayAnchor.plottedAtMs),
+        plottedAtLabel: formatChartAxisDate(dayAnchor.plottedAtMs, locale),
         timeSource: timestamp.timeSource,
         primaryCountValue: reading.primaryCountValue,
         totalCountValue: reading.totalShutterCount,

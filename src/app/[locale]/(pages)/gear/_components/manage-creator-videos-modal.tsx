@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useTransition } from "react";
+import { useLocale } from "next-intl";
 import { useSession } from "~/lib/auth/auth-client";
 import { requireRole } from "~/lib/auth/auth-helpers";
 import { toast } from "sonner";
@@ -41,6 +42,7 @@ import {
   actionUpdateGearCreatorVideoEditorialNote,
 } from "~/server/creator-videos/actions";
 import type { CreatorVideoMetadataResolution } from "~/server/creator-videos/metadata";
+import { formatDate } from "~/lib/format/date";
 
 type ManageCreatorVideosModalProps = {
   slug: string;
@@ -74,19 +76,13 @@ type ManageDataResponse = {
   }>;
 };
 
-function formatDate(value: string | null) {
+function formatPublishedDate(value: string | null, locale: string) {
   if (!value) return null;
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return null;
-  }
-
-  return new Intl.DateTimeFormat(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  }).format(date);
+  return formatDate(value, {
+    locale,
+    preset: "date-medium",
+    fallback: "",
+  });
 }
 
 function getInitials(name: string) {
@@ -101,6 +97,7 @@ export function ManageCreatorVideosModal({
   slug,
   trigger,
 }: ManageCreatorVideosModalProps) {
+  const locale = useLocale();
   const { data, isPending: isSessionPending, error } = useSession();
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -359,7 +356,10 @@ export function ManageCreatorVideosModal({
               <section className="space-y-3">
                 <div className="space-y-3">
                   {attachedVideos.map((video) => {
-                    const publishedLabel = formatDate(video.publishedAt);
+                    const publishedLabel = formatPublishedDate(
+                      video.publishedAt,
+                      locale,
+                    );
                     const noteValue = noteDrafts[video.id] ?? "";
                     return (
                       <div

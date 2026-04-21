@@ -6,6 +6,7 @@ import { cn } from "~/lib/utils";
 import type { NotificationView } from "~/server/notifications/service";
 import type { ComponentType } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { formatRelativeDate } from "~/lib/format/date";
 
 type IconEntry = { icon: ComponentType<{ className?: string }> };
 
@@ -25,32 +26,6 @@ type NotificationItemProps = {
   notification: NotificationView;
   wasUnread?: boolean;
 };
-
-function formatRelativeTimeForLocale(
-  input: Date | string | number,
-  locale: string,
-): string {
-  const date = input instanceof Date ? input : new Date(input);
-  if (Number.isNaN(date.getTime())) return "";
-
-  const diffMs = date.getTime() - Date.now();
-  const diffSec = Math.round(diffMs / 1000);
-  const diffMin = Math.round(diffSec / 60);
-  const diffHr = Math.round(diffMin / 60);
-  const diffDay = Math.round(diffHr / 24);
-  const diffWeek = Math.round(diffDay / 7);
-
-  const rtf = new Intl.RelativeTimeFormat(locale, {
-    numeric: "auto",
-    style: "short",
-  });
-
-  if (Math.abs(diffSec) < 60) return rtf.format(diffSec, "second");
-  if (Math.abs(diffMin) < 60) return rtf.format(diffMin, "minute");
-  if (Math.abs(diffHr) < 24) return rtf.format(diffHr, "hour");
-  if (Math.abs(diffDay) < 7) return rtf.format(diffDay, "day");
-  return rtf.format(diffWeek, "week");
-}
 
 function extractGearNameFromApprovalBody(body: string | null): string | null {
   if (!body) return null;
@@ -133,7 +108,11 @@ const NotificationBody = ({
             </div>
           ) : null}
           <span className="text-muted-foreground text-xs">
-            {formatRelativeTimeForLocale(notification.createdAt, locale)}
+            {formatRelativeDate(notification.createdAt, {
+              locale,
+              style: "short",
+              justNowLabel: t("justNow"),
+            })}
           </span>
         </div>
       </div>

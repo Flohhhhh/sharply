@@ -2,7 +2,7 @@ import Link from "next/link";
 import { fetchGearEditById } from "~/server/gear/service";
 import { formatPrice, formatPrecaptureSupport } from "~/lib/mapping";
 import { sensorNameFromSlug } from "~/lib/mapping/sensor-map";
-import { humanizeKey, formatHumanDate } from "~/lib/utils";
+import { humanizeKey } from "~/lib/utils";
 import { auth } from "~/auth";
 import { requireRole } from "~/lib/auth/auth-helpers";
 import type { Metadata } from "next";
@@ -25,6 +25,8 @@ import {
   formatAnalogFocusAid,
 } from "~/lib/mapping/analog-types-map";
 import { headers } from "next/headers";
+import { getLocale } from "next-intl/server";
+import { formatDate } from "~/lib/format/date";
 
 const describeUnknownValue = (value: unknown): string => {
   if (value == null) return "Empty";
@@ -68,6 +70,7 @@ interface EditSuccessPageProps {
 export default async function EditSuccessPage({
   searchParams,
 }: EditSuccessPageProps) {
+  const locale = await getLocale();
   const { id } = await searchParams;
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -193,7 +196,10 @@ export default async function EditSuccessPage({
                           )
                             display = formatPrice(v as number);
                           if (k === "releaseDate")
-                            display = formatHumanDate(v as any);
+                            display = formatDate(v as any, {
+                              locale,
+                              preset: "date-long",
+                            });
                           return (
                             <li key={String(k)}>
                               <span className="text-muted-foreground">

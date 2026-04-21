@@ -1,10 +1,6 @@
 import Link from "next/link";
 import { getItemDisplayPrice, PRICE_FALLBACK_TEXT } from "~/lib/mapping";
-import {
-  formatHumanDate,
-  formatRecentHumanDate,
-  getConstructionState,
-} from "~/lib/utils";
+import { getConstructionState } from "~/lib/utils";
 import { GearActionButtons } from "~/app/[locale]/(pages)/gear/_components/gear-action-buttons";
 import { fetchPendingEditCountForGear } from "~/server/gear/service";
 import { GearVisitTracker } from "~/app/[locale]/(pages)/gear/_components/gear-visit-tracker";
@@ -76,6 +72,7 @@ import { buildGearSectionNavItems } from "../_components/gear-section-nav";
 import { fetchPublicGearCreatorVideos } from "~/server/creator-videos/service";
 import { CreatorVideosSection } from "../_components/creator-videos-section";
 import { EditAppliedToast } from "../_components/edit-applied-toast";
+import { formatDate, formatRelativeDate } from "~/lib/format/date";
 
 export const revalidate = 3600;
 export const dynamicParams = true;
@@ -177,72 +174,6 @@ export default async function GearPage({
   // console.log("[gear/[slug]] Generating static page (build/ISR)", { slug });
   const viewerRegion = resolveRegionFromCountryCode(null);
 
-  const formatFullDate = (input: Date | string | number | null | undefined) => {
-    if (!input) return "";
-    const date = input instanceof Date ? input : new Date(input);
-    if (Number.isNaN(date.getTime())) return "";
-    return new Intl.DateTimeFormat(locale, { dateStyle: "long" }).format(date);
-  };
-
-  const formatRecentDate = (
-    input: Date | string | number | null | undefined,
-  ) => {
-    if (!input) return "";
-    const date = input instanceof Date ? input : new Date(input);
-    if (Number.isNaN(date.getTime())) return "";
-
-    const now = new Date();
-    const nowUtcMidnight = Date.UTC(
-      now.getUTCFullYear(),
-      now.getUTCMonth(),
-      now.getUTCDate(),
-    );
-    const dateUtcMidnight = Date.UTC(
-      date.getUTCFullYear(),
-      date.getUTCMonth(),
-      date.getUTCDate(),
-    );
-    const diffDays = Math.floor(
-      (nowUtcMidnight - dateUtcMidnight) / (24 * 60 * 60 * 1000),
-    );
-
-    if (diffDays < 0) return formatFullDate(date);
-    if (diffDays === 0) return t("today");
-    if (diffDays === 1) return t("yesterday");
-    if (diffDays <= 6) return t("daysAgo", { count: diffDays });
-
-    const dayMs = 24 * 60 * 60 * 1000;
-    const nowUtcDay = new Date(nowUtcMidnight);
-    const weekStartOffset = nowUtcDay.getUTCDay();
-    const currentWeekStart = nowUtcMidnight - weekStartOffset * dayMs;
-    const previousWeekStart = currentWeekStart - 7 * dayMs;
-    if (
-      dateUtcMidnight >= previousWeekStart &&
-      dateUtcMidnight < currentWeekStart
-    ) {
-      return t("lastWeek");
-    }
-
-    const currentMonthStart = Date.UTC(
-      now.getUTCFullYear(),
-      now.getUTCMonth(),
-      1,
-    );
-    const previousMonthStart = Date.UTC(
-      now.getUTCFullYear(),
-      now.getUTCMonth() - 1,
-      1,
-    );
-    if (
-      dateUtcMidnight >= previousMonthStart &&
-      dateUtcMidnight < currentMonthStart
-    ) {
-      return t("lastMonth");
-    }
-
-    return formatFullDate(date);
-  };
-
   // Fetch core gear data
   const item = await fetchGearBySlug(slug).catch((err: any) => {
     if ((err as any)?.status === 404) return null;
@@ -315,7 +246,10 @@ export default async function GearPage({
     );
   }
 
-  const specSections = buildGearSpecsSections(item, { viewerRegion });
+  const specSections = buildGearSpecsSections(item, {
+    locale,
+    viewerRegion,
+  });
   const brand = getBrandById(item.brandId ?? "");
 
   // console.log("[GearPage] item", item);
@@ -584,11 +518,20 @@ export default async function GearPage({
               </div>
               <div className="flex justify-between">
                 <span>{t("itemCreated")}</span>
-                <span>{formatFullDate(item.createdAt)}</span>
+                <span>
+                  {formatDate(item.createdAt, {
+                    locale,
+                    preset: "date-long",
+                  })}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span>{t("lastUpdated")}</span>
-                <span>{formatRecentDate(item.updatedAt)}</span>
+                <span>
+                  {formatRelativeDate(item.updatedAt, {
+                    locale,
+                  })}
+                </span>
               </div>
             </div>
           </div>
@@ -624,9 +567,10 @@ export default async function GearPage({
                     excerpt: (post.excerpt as any) ?? undefined,
                     href: `/news/${post.slug}`,
                     image,
-                    date: new Intl.DateTimeFormat(locale, {
-                      dateStyle: "medium",
-                    }).format(new Date(post.override_date || post.createdAt)),
+                    date: formatDate(post.override_date || post.createdAt, {
+                      locale,
+                      preset: "date-medium",
+                    }),
                   }}
                   size="sm"
                 />

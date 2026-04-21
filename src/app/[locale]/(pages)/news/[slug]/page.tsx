@@ -4,7 +4,6 @@ import { getNewsPostBySlug } from "~/server/payload/service";
 import Image from "next/image";
 import { Badge } from "~/components/ui/badge";
 import { Calendar, ExternalLink } from "lucide-react";
-import { formatHumanDate } from "~/lib/utils";
 import type { Metadata } from "next";
 import { RichText } from "~/components/rich-text";
 import { TableOfContents } from "~/components/rich-text/table-of-contents";
@@ -18,6 +17,7 @@ import Link from "next/link";
 import { Separator } from "~/components/ui/separator";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import { getTranslations } from "next-intl/server";
+import { formatDate } from "~/lib/format/date";
 
 export const revalidate = 60;
 
@@ -146,7 +146,10 @@ export default async function DynamicPage({
         <div className="text-muted-foreground -mt-1 flex items-center gap-2 text-sm">
           <Calendar className="h-4 w-4" />
           <span className="pt-1">
-            {formatHumanDate(new Date(page.override_date || page.createdAt))}
+            {formatDate(page.override_date || page.createdAt, {
+              locale,
+              preset: "date-long",
+            })}
           </span>
         </div>
       </div>

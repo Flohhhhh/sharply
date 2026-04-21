@@ -139,6 +139,7 @@
     "activityTitle": "アクティビティ",
     "activityCreated": "作成",
     "activityUpdated": "更新",
+    "justNow": "たった今",
     "viewAllGear": "すべての機材を見る",
     "learnMore": "詳しく見る",
     "newToPhotographyTitle": "写真を始めたばかりですか？",
@@ -168,11 +169,6 @@
     "openChangeRequests": "未処理の変更リクエスト",
     "itemCreated": "登録日",
     "lastUpdated": "最終更新",
-    "today": "今日",
-    "yesterday": "昨日",
-    "daysAgo": "{count}日前",
-    "lastWeek": "先週",
-    "lastMonth": "先月",
     "contributors": "貢献者",
     "viewAllContributors": "すべての貢献者を見る",
     "userAlt": "ユーザー",
@@ -495,7 +491,8 @@
     "gearFallback": "機材",
     "badgeAwardedTitle": "新しいバッジを獲得しました",
     "badgeAwardedTitleNamed": "{badgeName} バッジを獲得しました",
-    "badgeAwardedBody": "新しいメンバー特典が解放されました。"
+    "badgeAwardedBody": "新しいメンバー特典が解放されました。",
+    "justNow": "たった今"
   },
   "profileSettings": {
     "metaTitle": "アカウント設定",

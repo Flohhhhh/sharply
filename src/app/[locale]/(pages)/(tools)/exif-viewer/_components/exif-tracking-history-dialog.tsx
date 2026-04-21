@@ -1,6 +1,7 @@
 "use client";
 
 import { Trash2 } from "lucide-react";
+import { useLocale } from "next-intl";
 import {
   Accordion,
   AccordionContent,
@@ -25,6 +26,7 @@ import {
 } from "~/components/ui/table";
 import type { ExifTrackingHistoryResponse } from "../types";
 import ExifTrackingHistoryChart from "./exif-tracking-history-chart";
+import { formatDate } from "~/lib/format/date";
 
 type ExifTrackingHistoryDialogProps = {
   open: boolean;
@@ -36,18 +38,14 @@ type ExifTrackingHistoryDialogProps = {
   onDeleteReading: (readingId: string) => void;
 };
 
-function formatDateTime(value: string | null) {
+function formatDateTime(value: string | null, locale: string) {
   if (!value) return "—";
-
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(parsed);
+  return formatDate(value, {
+    locale,
+    preset: "datetime-short",
+    timeZone: "local",
+    fallback: value,
+  });
 }
 
 function formatCount(value: number | null) {
@@ -63,6 +61,7 @@ export default function ExifTrackingHistoryDialog({
   deletingReadingId,
   onDeleteReading,
 }: ExifTrackingHistoryDialogProps) {
+  const locale = useLocale();
   const trackedCamera = data?.trackedCamera;
 
   return (
@@ -90,15 +89,15 @@ export default function ExifTrackingHistoryDialog({
               </div>
               <div className="space-y-1">
                 <dt className="text-muted-foreground">Latest capture</dt>
-                <dd>{formatDateTime(trackedCamera.latestCaptureAt)}</dd>
+                <dd>{formatDateTime(trackedCamera.latestCaptureAt, locale)}</dd>
               </div>
               <div className="space-y-1">
                 <dt className="text-muted-foreground">First seen</dt>
-                <dd>{formatDateTime(trackedCamera.firstSeenAt)}</dd>
+                <dd>{formatDateTime(trackedCamera.firstSeenAt, locale)}</dd>
               </div>
               <div className="space-y-1">
                 <dt className="text-muted-foreground">Last seen</dt>
-                <dd>{formatDateTime(trackedCamera.lastSeenAt)}</dd>
+                <dd>{formatDateTime(trackedCamera.lastSeenAt, locale)}</dd>
               </div>
             </dl>
 
@@ -131,7 +130,9 @@ export default function ExifTrackingHistoryDialog({
                         <TableBody>
                           {data.readings.map((reading) => (
                             <TableRow key={reading.id}>
-                              <TableCell>{formatDateTime(reading.captureAt)}</TableCell>
+                              <TableCell>
+                                {formatDateTime(reading.captureAt, locale)}
+                              </TableCell>
                               <TableCell>
                                 {reading.primaryCountValue.toLocaleString()}
                               </TableCell>
@@ -139,7 +140,9 @@ export default function ExifTrackingHistoryDialog({
                               <TableCell>
                                 {formatCount(reading.mechanicalShutterCount)}
                               </TableCell>
-                              <TableCell>{formatDateTime(reading.createdAt)}</TableCell>
+                              <TableCell>
+                                {formatDateTime(reading.createdAt, locale)}
+                              </TableCell>
                               <TableCell className="text-right">
                                 <Button
                                   type="button"

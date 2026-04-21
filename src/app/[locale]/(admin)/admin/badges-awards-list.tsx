@@ -1,6 +1,9 @@
 import { fetchRecentAwards } from "~/server/badges/service";
+import { getLocale } from "next-intl/server";
+import { formatDate } from "~/lib/format/date";
 
 export async function BadgesAwardsList() {
+  const locale = await getLocale();
   const rows = await fetchRecentAwards(50);
   return (
     <div className="max-h-80 space-y-2 overflow-y-auto">
@@ -17,7 +20,10 @@ export async function BadgesAwardsList() {
             </span>
           </div>
           <div className="text-muted-foreground">
-            {new Date(r.awardedAt).toLocaleString()}
+            {formatDate(r.awardedAt, {
+              locale,
+              preset: "datetime-short",
+            })}
           </div>
         </div>
       ))}

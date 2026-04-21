@@ -10,6 +10,10 @@ import type { Metadata } from "next";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import { getTranslations } from "next-intl/server";
 import { defaultLocale } from "~/i18n/config";
+import {
+  formatDateWithPrecision,
+  type DatePrecision,
+} from "~/lib/format/date";
 
 export const dynamic = "force-static";
 
@@ -30,8 +34,6 @@ export async function generateMetadata({
     },
   });
 }
-
-type DatePrecision = "DAY" | "MONTH" | "YEAR";
 
 function pickBestDate(gear: {
   releaseDate: Date | null;
@@ -72,20 +74,11 @@ function formatForDisplay(
   precision: DatePrecision,
   locale: string,
 ): string {
-  if (precision === "DAY") {
-    return date.toLocaleDateString(locale, {
-      year: "numeric",
-      month: "short",
-      day: "2-digit",
-    });
-  }
-  if (precision === "MONTH") {
-    return date.toLocaleDateString(locale, {
-      year: "numeric",
-      month: "short",
-    });
-  }
-  return date.toLocaleDateString(locale, { year: "numeric" });
+  return formatDateWithPrecision(date, {
+    locale,
+    precision,
+    monthStyle: "short",
+  });
 }
 
 function isNotFoundError(error: unknown): error is { status?: number } {

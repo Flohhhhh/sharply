@@ -139,6 +139,7 @@
     "activityTitle": "Aktivität",
     "activityCreated": "erstellt",
     "activityUpdated": "aktualisiert",
+    "justNow": "gerade eben",
     "viewAllGear": "Alle Ausrüstung",
     "learnMore": "Mehr erfahren",
     "newToPhotographyTitle": "Neu in der Fotografie?",
@@ -168,11 +169,6 @@
     "openChangeRequests": "Offene Änderungsanfragen",
     "itemCreated": "Eintrag erstellt",
     "lastUpdated": "Zuletzt aktualisiert",
-    "today": "Heute",
-    "yesterday": "Gestern",
-    "daysAgo": "vor {count} Tagen",
-    "lastWeek": "Letzte Woche",
-    "lastMonth": "Letzten Monat",
     "contributors": "Mitwirkende",
     "viewAllContributors": "Alle Mitwirkenden anzeigen",
     "userAlt": "Benutzer",
@@ -495,7 +491,8 @@
     "gearFallback": "Ausrüstung",
     "badgeAwardedTitle": "Du hast ein neues Badge erhalten",
     "badgeAwardedTitleNamed": "Du hast das Badge „{badgeName}“ erhalten",
-    "badgeAwardedBody": "Ein neuer Mitgliedsvorteil wurde freigeschaltet."
+    "badgeAwardedBody": "Ein neuer Mitgliedsvorteil wurde freigeschaltet.",
+    "justNow": "gerade eben"
   },
   "profileSettings": {
     "metaTitle": "Kontoeinstellungen",

@@ -1,10 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useLocale } from "next-intl";
 import { Card, CardContent } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import { CircleCheck, Trash2 } from "lucide-react";
+import { formatDate } from "~/lib/format/date";
 
 type ReviewItem = {
   id: string;
@@ -43,6 +45,7 @@ interface ReviewsApprovalQueueProps {
 export function ReviewsApprovalQueue({
   initialReviews,
 }: ReviewsApprovalQueueProps) {
+  const locale = useLocale();
   const [items, setItems] = useState<ReviewItem[]>(initialReviews);
   const [error, setError] = useState<string>("");
 
@@ -139,9 +142,15 @@ export function ReviewsApprovalQueue({
                     </div>
                     <div className="text-muted-foreground text-xs">
                       by {r.userName ?? r.userId ?? "User"} •{" "}
-                      {r.createdAt.toLocaleDateString()}
+                      {formatDate(r.createdAt, {
+                        locale,
+                        preset: "date-short",
+                      })}
                       {r.latestFlagAt
-                        ? ` • latest report ${new Date(r.latestFlagAt).toLocaleDateString()}`
+                        ? ` • latest report ${formatDate(r.latestFlagAt, {
+                            locale,
+                            preset: "date-short",
+                          })}`
                         : ""}
                     </div>
                     <div className="text-sm">{r.content}</div>
@@ -196,7 +205,10 @@ export function ReviewsApprovalQueue({
                     </div>
                     <div className="text-muted-foreground text-xs">
                       by {r.userName ?? r.userId ?? "User"} •{" "}
-                      {r.createdAt.toLocaleDateString()}
+                      {formatDate(r.createdAt, {
+                        locale,
+                        preset: "date-short",
+                      })}
                     </div>
                     {Array.isArray(r.genres) && r.genres.length > 0 && (
                       <div className="flex flex-wrap gap-1">
@@ -259,7 +271,10 @@ export function ReviewsApprovalQueue({
                     </div>
                     <div className="text-muted-foreground text-xs">
                       by {r.userName || r.userId || "User"} •{" "}
-                      {r.createdAt.toLocaleDateString()}
+                      {formatDate(r.createdAt, {
+                        locale,
+                        preset: "date-short",
+                      })}
                     </div>
                     <div className="text-sm">{r.content}</div>
                   </div>

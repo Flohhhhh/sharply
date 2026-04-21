@@ -5,6 +5,7 @@ import { fetchTrending } from "~/server/popularity/service";
 import type { TrendingEntry } from "~/types/popularity";
 import type { GearType } from "~/types/gear";
 import { GearDisplayName } from "~/components/gear/gear-display-name";
+import { formatDate } from "~/lib/format/date";
 
 export type TrendingItem = TrendingEntry;
 
@@ -75,11 +76,10 @@ export default async function TrendingList({
   const items = await fetchTrending({ timeframe, limit, filters });
 
   if (!items.length) return null;
-  const asOfDate = new Intl.DateTimeFormat(locale, {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date(items[0]!.asOfDate));
+  const asOfDate = formatDate(items[0]!.asOfDate, {
+    locale,
+    preset: "date-short",
+  });
 
   const topScore = items[0]?.score ?? 0;
   const calcFilled = (score: number) => {

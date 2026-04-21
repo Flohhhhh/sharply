@@ -19,10 +19,13 @@ import { CopyButton } from "./copy-button";
 import { AdminUserList } from "./user-list";
 import { NotificationsTestButton } from "../notifications-test-button";
 import { headers } from "next/headers";
+import { getLocale } from "next-intl/server";
+import { formatDate } from "~/lib/format/date";
 
 export const dynamic = "force-dynamic";
 
 export default async function PrivateAdminPage() {
+  const locale = await getLocale();
   const requestHeaders = await headers();
   const session = await auth.api.getSession({
     headers: requestHeaders,
@@ -111,7 +114,10 @@ export default async function PrivateAdminPage() {
                       <div className="text-xs text-green-600">
                         Used{" "}
                         {inv.usedAt
-                          ? new Date(inv.usedAt).toLocaleString()
+                          ? formatDate(inv.usedAt, {
+                              locale,
+                              preset: "datetime-short",
+                            })
                           : ""}
                       </div>
                     ) : (

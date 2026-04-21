@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { News } from "~/payload-types";
 import { ArrowRight } from "lucide-react";
+import { formatDate } from "~/lib/format/date";
 
 type NewsListItemProps = {
   post: News;
@@ -30,10 +31,10 @@ export function NewsListItem({ post, locale }: NewsListItemProps) {
     post.thumbnail && typeof post.thumbnail === "object"
       ? (post.thumbnail.url ?? undefined)
       : undefined;
-  const formattedDate = new Intl.DateTimeFormat(locale, {
-    dateStyle: "long",
-    timeZone: "UTC",
-  }).format(new Date(date));
+  const formattedDate = formatDate(date, {
+    locale,
+    preset: "date-long",
+  });
 
   return (
     <Link href={href} className="group">

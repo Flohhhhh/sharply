@@ -13,12 +13,12 @@ import { ActivityList } from "~/components/home/activity-list";
 import TrendingList from "~/components/trending-list";
 import { getNewsPosts, getReviews } from "~/server/payload/service";
 import { fetchHomeActivity } from "~/server/gear/service";
-import { formatHumanDate } from "~/lib/utils";
 import type { News, Review } from "~/payload-types";
 import DiscordBanner from "~/components/discord-banner";
 import { LocaleLink } from "~/components/locale-link";
 import { defaultLocale, isLocale } from "~/i18n/config";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import { formatDate } from "~/lib/format/date";
 
 export const revalidate = 60;
 
@@ -85,7 +85,10 @@ export default async function Home({
         ? (p.thumbnail.url ?? undefined)
         : undefined;
     const image = thumbId ? (thumbId ?? undefined) : "/image-temp.png";
-    const date = formatHumanDate(p.createdAt);
+    const date = formatDate(p.createdAt, {
+      locale,
+      preset: "date-long",
+    });
     return {
       id: p.id,
       title: p.title,
@@ -121,7 +124,10 @@ export default async function Home({
     title: r.title,
     href: `/reviews/${r.slug}`,
     author: { name: "Sharply Editorial" },
-    date: formatHumanDate(r.createdAt),
+    date: formatDate(r.createdAt, {
+      locale,
+      preset: "date-long",
+    }),
     ratingPercent: calculateRatingPercent(r.genreRatings),
   }));
 

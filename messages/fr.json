@@ -139,6 +139,7 @@
     "activityTitle": "Activité",
     "activityCreated": "créé",
     "activityUpdated": "mis à jour",
+    "justNow": "à l'instant",
     "viewAllGear": "Voir tout le matériel",
     "learnMore": "En savoir plus",
     "newToPhotographyTitle": "Nouveau en photographie ?",
@@ -168,11 +169,6 @@
     "openChangeRequests": "Demandes de modification ouvertes",
     "itemCreated": "Élément créé",
     "lastUpdated": "Dernière mise à jour",
-    "today": "Aujourd’hui",
-    "yesterday": "Hier",
-    "daysAgo": "il y a {count} jours",
-    "lastWeek": "La semaine dernière",
-    "lastMonth": "Le mois dernier",
     "contributors": "Contributeurs",
     "viewAllContributors": "Voir tous les contributeurs",
     "userAlt": "Utilisateur",
@@ -495,7 +491,8 @@
     "gearFallback": "Matériel",
     "badgeAwardedTitle": "Vous avez obtenu un nouveau badge",
     "badgeAwardedTitleNamed": "Vous avez obtenu le badge {badgeName}",
-    "badgeAwardedBody": "Un nouvel avantage membre a été débloqué."
+    "badgeAwardedBody": "Un nouvel avantage membre a été débloqué.",
+    "justNow": "à l'instant"
   },
   "profileSettings": {
     "metaTitle": "Paramètres du compte",

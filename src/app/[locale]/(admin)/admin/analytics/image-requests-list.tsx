@@ -1,8 +1,10 @@
 import { fetchAllImageRequests } from "~/server/gear/service";
 import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
+import { getLocale } from "next-intl/server";
+import { formatRelativeDate } from "~/lib/format/date";
 
 export async function ImageRequestsList() {
+  const locale = await getLocale();
   const requests = await fetchAllImageRequests();
   const sortedRequests = [...requests].sort(
     (first, second) => second.requestCount - first.requestCount,
@@ -40,8 +42,9 @@ export async function ImageRequestsList() {
               </td>
               <td className="px-3 py-2 tabular-nums">{request.requestCount}</td>
               <td className="px-3 py-2 text-muted-foreground">
-                {formatDistanceToNow(new Date(request.latestRequestDate), {
-                  addSuffix: true,
+                {formatRelativeDate(request.latestRequestDate, {
+                  locale,
+                  numeric: "always",
                 })}
               </td>
             </tr>

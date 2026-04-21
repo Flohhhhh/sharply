@@ -5,6 +5,7 @@ import { RotateCcw } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useLocale } from "next-intl";
 import { Button } from "~/components/ui/button";
 import type {
   ExifTrackedCameraHistoryEntry,
@@ -21,6 +22,7 @@ import {
 import ExifMetadataTable from "./exif-metadata-table";
 import ExifTrackingMiniChart from "./exif-tracking-mini-chart";
 import ExifTrackingHistoryDialog from "./exif-tracking-history-dialog";
+import { formatDate } from "~/lib/format/date";
 
 type ExifSummaryItem = {
   label: string;
@@ -62,7 +64,7 @@ function formatCameraLabel(
   return trimmedModel ?? trimmedMake ?? null;
 }
 
-function formatCaptureDate(value: string | null): string {
+function formatCaptureDate(value: string | null, locale = "en"): string {
   if (!value) return EMPTY_VALUE;
 
   const normalized = value.replace(/^(\d{4}):(\d{2}):(\d{2})\s/, "$1-$2-$3T");
@@ -72,10 +74,12 @@ function formatCaptureDate(value: string | null): string {
     return value;
   }
 
-  return new Intl.DateTimeFormat(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(parsed);
+  return formatDate(parsed, {
+    locale,
+    preset: "datetime-short",
+    timeZone: "local",
+    fallback: value,
+  });
 }
 
 function formatAperture(value: string | null): string {
@@ -233,6 +237,7 @@ export function resolveHeroMetric(
 
 export function buildSummaryItems(
   result: ExifViewerResponse,
+  locale = "en",
 ): ExifSummaryItem[] {
   const rows = result.metadata.rows;
   const fallbackCameraLabel = formatCameraLabel(
@@ -267,6 +272,7 @@ export function buildSummaryItems(
           "EXIF:DateTimeOriginal",
           "EXIF:CreateDate",
         ]),
+        locale,
       ),
     },
     {
@@ -393,9 +399,13 @@ export default function ExifResults({
   initialHistoryData,
   onStartOver,
 }: ExifResultsProps) {
+  const locale = useLocale();
   const reduceMotion = Boolean(useReducedMotion());
   const heroMetric = useMemo(() => resolveHeroMetric(result), [result]);
-  const summaryItems = useMemo(() => buildSummaryItems(result), [result]);
+  const summaryItems = useMemo(
+    () => buildSummaryItems(result, locale),
+    [locale, result],
+  );
   const cameraModel = summaryItems[0]?.value || EMPTY_VALUE;
   const cameraSerialNumber = useMemo(
     () => findCameraSerialNumber(result.metadata.rows),

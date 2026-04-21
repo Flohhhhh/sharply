@@ -4,10 +4,13 @@ import { auth } from "~/auth";
 import { serviceListCharts } from "~/server/recommendations/service";
 import { headers } from "next/headers";
 import { requireRole } from "~/lib/auth/auth-helpers";
+import { getLocale } from "next-intl/server";
+import { formatDate } from "~/lib/format/date";
 
 export const revalidate = 0;
 
 export default async function Page() {
+  const locale = await getLocale();
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -50,9 +53,10 @@ export default async function Page() {
                 <td className="px-3 py-2 align-top">{c.slug}</td>
                 <td className="px-3 py-2 align-top">{c.title}</td>
                 <td className="px-3 py-2 align-top">
-                  {new Date(
-                    c.updatedDate as unknown as string,
-                  ).toLocaleDateString()}
+                  {formatDate(c.updatedDate as unknown as string, {
+                    locale,
+                    preset: "date-short",
+                  })}
                 </td>
                 <td className="px-3 py-2 align-top">
                   <Link

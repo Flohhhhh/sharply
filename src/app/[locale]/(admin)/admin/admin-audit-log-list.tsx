@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "~/components/ui/card";
+import { useLocale } from "next-intl";
+import { formatDate } from "~/lib/format/date";
 
 type AuditRow = {
   id: string;
@@ -18,6 +20,7 @@ type AuditRow = {
 };
 
 export function AuditLogList() {
+  const locale = useLocale();
   const [items, setItems] = useState<AuditRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -60,7 +63,10 @@ export function AuditLogList() {
           {items.map((r) => (
             <tr key={r.id} className="border-border border-t">
               <td className="py-2 pr-4">
-                {new Date(r.createdAt).toLocaleString()}
+                {formatDate(r.createdAt, {
+                  locale,
+                  preset: "datetime-short",
+                })}
               </td>
               <td className="py-2 pr-4">{r.action}</td>
               <td className="py-2 pr-4">{r.actorName || r.actorId}</td>

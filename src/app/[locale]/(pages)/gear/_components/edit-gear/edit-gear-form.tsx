@@ -2,6 +2,7 @@
 
 import { track } from "@vercel/analytics";
 import React, { useState, useCallback } from "react";
+import { useLocale } from "next-intl";
 import { Crop } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
@@ -26,7 +27,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { formatPrice, formatCardSlotDetails } from "~/lib/mapping";
 import { sensorNameFromSlug } from "~/lib/mapping/sensor-map";
-import { humanizeKey, formatHumanDate } from "~/lib/utils";
+import { humanizeKey } from "~/lib/utils";
 import { getMountLongNamesById } from "~/lib/mapping/mounts-map";
 import { actionSubmitGearProposal } from "~/server/gear/actions";
 import {
@@ -37,6 +38,7 @@ import {
   videoModesEqual,
 } from "~/lib/video/mode-schema";
 import type { GearItem } from "~/types/gear";
+import { formatDate } from "~/lib/format/date";
 
 const SHUTTER_LABELS: Record<string, string> = {
   mechanical: "Mechanical",
@@ -135,6 +137,7 @@ function EditGearForm({
   showMissingOnly,
   onFormDataChange,
 }: EditGearFormProps) {
+  const locale = useLocale();
   const router = useRouter();
   const [internalAutoSubmit, setInternalAutoSubmit] = useState(
     Boolean(canToggleAutoSubmit),
@@ -968,7 +971,10 @@ function EditGearForm({
                           )
                             display = formatPrice(v as number);
                           if (k === "releaseDate" || k === "announcedDate")
-                            display = formatHumanDate(v as any);
+                            display = formatDate(v as any, {
+                              locale,
+                              preset: "date-long",
+                            });
                           if (k === "mountIds") {
                             const ids = Array.isArray(v) ? (v as string[]) : [];
                             display = getMountLongNamesById(ids);

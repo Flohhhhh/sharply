@@ -4,7 +4,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type { AdminGearTableRow } from "~/types/gear";
 import Link from "next/link";
-import { formatHumanDate } from "~/lib/utils";
+import { useLocale } from "next-intl";
 import { RenameGearDialog } from "~/components/gear/rename-gear-dialog";
 import { Button } from "~/components/ui/button";
 import { Pencil, Copy, Image as ImageIcon, Trash2 } from "lucide-react";
@@ -29,6 +29,7 @@ import {
 } from "~/components/ui/alert-dialog";
 import { useState } from "react";
 import { actionDeleteGear } from "~/server/admin/gear/actions";
+import { formatDate } from "~/lib/format/date";
 
 // TO ADD A COLUMN:
 // 1. Add the field to `adminGearSelect` in `~/server/admin/gear/data.ts`.
@@ -179,6 +180,19 @@ function GearActionsCell({ row }: { row: { original: AdminGearTableRow } }) {
   );
 }
 
+function CreatedAtCell({ row }: { row: { original: AdminGearTableRow } }) {
+  const locale = useLocale();
+
+  return (
+    <div>
+      {formatDate(row.original.createdAt, {
+        locale,
+        preset: "date-long",
+      })}
+    </div>
+  );
+}
+
 export const columns: ColumnDef<AdminGearTableRow>[] = [
   {
     header: "Name",
@@ -206,9 +220,7 @@ export const columns: ColumnDef<AdminGearTableRow>[] = [
   {
     header: "Created At",
     accessorKey: "createdAt",
-    cell: ({ row }) => {
-      return <div>{formatHumanDate(row.original.createdAt)}</div>;
-    },
+    cell: ({ row }) => <CreatedAtCell row={row} />,
   },
   {
     id: "actions",

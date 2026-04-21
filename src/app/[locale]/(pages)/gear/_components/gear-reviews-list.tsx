@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useLocale } from "next-intl";
 import { Card, CardContent } from "~/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
@@ -35,6 +36,7 @@ import {
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { formatDate } from "~/lib/format/date";
 
 const REVIEWS_PER_PAGE = 5;
 
@@ -73,6 +75,7 @@ export function GearReviewsList({
   const { data } = useSession();
   const session = data?.session;
   const user = data?.user;
+  const locale = useLocale();
   const [reviews, setReviews] = useState<Review[]>(initialReviews ?? []);
   const [isLoading, setIsLoading] = useState(!initialReviews);
   const [error, setError] = useState("");
@@ -240,10 +243,10 @@ export function GearReviewsList({
         const createdAt = new Date(review.createdAt);
         const formattedDate = Number.isNaN(createdAt.getTime())
           ? review.createdAt
-          : createdAt.toLocaleDateString(undefined, {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
+          : formatDate(createdAt, {
+              locale,
+              preset: "date-medium",
+              fallback: review.createdAt,
             });
         const hasGenres =
           Array.isArray(review.genres) && review.genres.length > 0;

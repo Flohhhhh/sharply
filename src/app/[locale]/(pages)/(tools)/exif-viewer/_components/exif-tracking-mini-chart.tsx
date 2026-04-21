@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useLocale } from "next-intl";
 import { Line, LineChart, XAxis, YAxis } from "recharts";
 import { ChartContainer, type ChartConfig } from "~/components/ui/chart";
 import type {
@@ -49,9 +50,10 @@ export default function ExifTrackingMiniChart({
   readings,
   className,
 }: ExifTrackingMiniChartProps) {
+  const locale = useLocale();
   const chartPoints = useMemo(
-    () => buildExifTrackingChartPoints(readings),
-    [readings],
+    () => buildExifTrackingChartPoints(readings, locale),
+    [locale, readings],
   );
   const selectedSeries = useMemo(
     () => resolveMiniChartSeries(chartPoints),

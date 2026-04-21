@@ -139,6 +139,7 @@
     "activityTitle": "Activity",
     "activityCreated": "created",
     "activityUpdated": "updated",
+    "justNow": "just now",
     "viewAllGear": "View all gear",
     "learnMore": "Learn more",
     "newToPhotographyTitle": "New to Photography?",
@@ -168,11 +169,6 @@
     "openChangeRequests": "Open Change Requests",
     "itemCreated": "Item Created",
     "lastUpdated": "Last Updated",
-    "today": "Today",
-    "yesterday": "Yesterday",
-    "daysAgo": "{count} days ago",
-    "lastWeek": "Last week",
-    "lastMonth": "Last month",
     "contributors": "Contributors",
     "viewAllContributors": "View all contributors",
     "userAlt": "User",
@@ -495,7 +491,8 @@
     "gearFallback": "Gear",
     "badgeAwardedTitle": "You earned a new badge",
     "badgeAwardedTitleNamed": "You earned the {badgeName} badge",
-    "badgeAwardedBody": "A new member perk has been unlocked."
+    "badgeAwardedBody": "A new member perk has been unlocked.",
+    "justNow": "just now"
   },
   "profileSettings": {
     "metaTitle": "Account Settings",

@@ -3,6 +3,8 @@ import React from "react";
 import type { Rating, Chart } from "@/lib/recommendations/types";
 import Link from "next/link";
 import { mergeDefaultColumns } from "@/lib/recommendations/bucketing";
+import { useLocale } from "next-intl";
+import { formatDate } from "~/lib/format/date";
 
 const ratingClass = (r: Rating) =>
   r === "best value"
@@ -14,6 +16,7 @@ const ratingClass = (r: Rating) =>
         : "bg-sky-500/10 text-sky-600 dark:text-sky-400"; // balanced
 
 export function ChartView({ chart }: { chart: Chart }) {
+  const locale = useLocale();
   // derive columns by merging defaults with any custom extras
   const columns = React.useMemo(
     () => mergeDefaultColumns(chart.columns),
@@ -65,7 +68,11 @@ export function ChartView({ chart }: { chart: Chart }) {
       <header>
         <h1 className="text-2xl font-semibold">{chart.title}</h1>
         <div className="text-muted-foreground text-sm">
-          Updated {new Date(chart.updatedAt).toLocaleDateString()}
+          Updated{" "}
+          {formatDate(chart.updatedAt, {
+            locale,
+            preset: "date-short",
+          })}
         </div>
       </header>
 
