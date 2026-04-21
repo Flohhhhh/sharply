@@ -25,6 +25,15 @@ const authHelperMocks = vi.hoisted(() => ({
   requireRole: vi.fn(),
 }));
 
+const intlServerMocks = vi.hoisted(() => ({
+  getTranslations: vi.fn(async ({ namespace }: { namespace?: string } = {}) => {
+    if (namespace === "underConstructionPage") {
+      return (key: string) => key;
+    }
+    return (key: string) => key;
+  }),
+}));
+
 const clientComponentMock = vi.hoisted(() => vi.fn((_props: unknown) => null));
 const pageParams = {
   params: Promise.resolve({ locale: "en" }),
@@ -35,6 +44,7 @@ vi.mock("~/server/metrics/service", () => metricsMocks);
 vi.mock("~/auth", () => authMocks);
 vi.mock("next/headers", () => headerMocks);
 vi.mock("~/lib/auth/auth-helpers", () => authHelperMocks);
+vi.mock("next-intl/server", () => intlServerMocks);
 vi.mock(
   "~/app/[locale]/(pages)/lists/under-construction/_components/under-construction-client",
   () => ({

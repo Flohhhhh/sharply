@@ -13,6 +13,22 @@ vi.mock("~/lib/utils", () => ({
   formatRelativeTime: vi.fn(() => "1h ago"),
 }));
 
+vi.mock("next-intl/server", () => ({
+  getTranslations: vi.fn(async ({ namespace }: { namespace?: string } = {}) => {
+    if (namespace === "home") {
+      return (key: string) => {
+        const messages: Record<string, string> = {
+          activityTitle: "Activity",
+          activityCreated: "created",
+          activityUpdated: "updated",
+        };
+        return messages[key] ?? key;
+      };
+    }
+    return (key: string) => key;
+  }),
+}));
+
 import { ActivityList } from "~/components/home/activity-list";
 import { mapGearRowsToHomeActivityItems } from "~/server/gear/home-activity";
 
@@ -112,17 +128,17 @@ describe("mapGearRowsToHomeActivityItems", () => {
 });
 
 describe("ActivityList", () => {
-  it("renders nothing when there are no items", () => {
+  it("renders nothing when there are no items", async () => {
     expect(
       renderToStaticMarkup(
-        createElement(ActivityList, { items: [], locale: "en" }),
+        await ActivityList({ items: [], locale: "en" }),
       ),
     ).toBe("");
   });
 
-  it("renders the activity heading and gear links", () => {
+  it("renders the activity heading and gear links", async () => {
     const html = renderToStaticMarkup(
-      createElement(ActivityList, {
+      await ActivityList({
         locale: "en",
         items: [
           {

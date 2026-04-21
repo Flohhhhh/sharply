@@ -442,6 +442,24 @@ export async function getGearStats(slug: string) {
   return run();
 }
 
+export async function fetchHighTrafficGearSlugsData(limit: number) {
+  const rows = await db
+    .select({
+      slug: gear.slug,
+    })
+    .from(gearPopularityLifetime)
+    .innerJoin(gear, eq(gearPopularityLifetime.gearId, gear.id))
+    .where(gte(gearPopularityLifetime.viewsLifetime, 1))
+    .orderBy(
+      desc(gearPopularityLifetime.viewsLifetime),
+      desc(gear.updatedAt),
+      gear.slug,
+    )
+    .limit(limit);
+
+  return rows.map((row) => row.slug);
+}
+
 type GearPopularityIntradayInsert = typeof gearPopularityIntraday.$inferInsert;
 
 const intradayColumnConfig: Record<

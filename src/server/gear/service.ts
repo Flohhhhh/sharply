@@ -55,6 +55,7 @@ import {
   fetchStaffVerdictByGearIdData,
   upsertStaffVerdictByGearIdData,
   fetchAllGearSlugsData,
+  fetchNewestGearSlugsData,
   fetchGearEditByIdData,
   type GearEditView,
   fetchBrandGearData,
@@ -672,6 +673,10 @@ export async function upsertStaffVerdict(slug: string, body: unknown) {
 
 export async function fetchAllGearSlugs() {
   return fetchAllGearSlugsData();
+}
+
+export async function fetchNewestGearSlugs(limit: number) {
+  return fetchNewestGearSlugsData(limit);
 }
 
 export async function fetchGearEditById(

@@ -14,7 +14,7 @@ import {
   fetchGearBySlug,
   fetchUseCaseRatings,
   fetchStaffVerdict,
-  fetchAllGearSlugs,
+  fetchNewestGearSlugs,
   fetchGearAlternatives,
 } from "~/server/gear/service";
 import { ConstructionFullPage } from "~/app/[locale]/(pages)/gear/_components/construction-full";
@@ -27,7 +27,11 @@ import GearStatsCard from "../_components/gear-stats-card";
 import { TrendingBadge } from "~/components/gear-badges/trending-badge";
 import { NewBadge } from "~/components/gear-badges/new-badge";
 import { isNewRelease } from "~/lib/utils/is-new";
-import { getTrendingStatusForSlugs } from "~/server/popularity/service";
+import {
+  fetchHighTrafficGearSlugs,
+  fetchTrendingSlugs,
+  getTrendingStatusForSlugs,
+} from "~/server/popularity/service";
 import { SpecsSection } from "../_components/specs-section";
 import { buildGearSpecsSections } from "~/lib/specs/registry";
 import type { GearType } from "~/types/gear";
@@ -74,6 +78,11 @@ import { CreatorVideosSection } from "../_components/creator-videos-section";
 import { EditAppliedToast } from "../_components/edit-applied-toast";
 
 export const revalidate = 3600;
+export const dynamicParams = true;
+
+const GEAR_PREBUILD_TRENDING_LIMIT = 100;
+const GEAR_PREBUILD_NEWEST_LIMIT = 100;
+const GEAR_PREBUILD_HIGH_TRAFFIC_LIMIT = 175;
 
 interface GearPageProps {
   params: Promise<{
@@ -637,6 +646,18 @@ export async function generateStaticParams() {
     return [];
   }
 
-  const slugs = await fetchAllGearSlugs();
+  const [trendingSlugs, newestSlugs, highTrafficSlugs] = await Promise.all([
+    fetchTrendingSlugs({
+      timeframe: "30d",
+      limit: GEAR_PREBUILD_TRENDING_LIMIT,
+    }),
+    fetchNewestGearSlugs(GEAR_PREBUILD_NEWEST_LIMIT),
+    fetchHighTrafficGearSlugs(GEAR_PREBUILD_HIGH_TRAFFIC_LIMIT),
+  ]);
+
+  const slugs = Array.from(
+    new Set([...trendingSlugs, ...newestSlugs, ...highTrafficSlugs]),
+  );
+
   return slugs.map((slug) => ({ slug }));
 }
