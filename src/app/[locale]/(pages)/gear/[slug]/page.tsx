@@ -530,6 +530,7 @@ export default async function GearPage({
                 <span>
                   {formatRelativeDate(item.updatedAt, {
                     locale,
+                    capitalize: true,
                   })}
                 </span>
               </div>

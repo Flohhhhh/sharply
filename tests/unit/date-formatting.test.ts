@@ -222,6 +222,31 @@ describe("formatRelativeDate", () => {
       }),
     ).toBe("2 hr. ago");
   });
+
+  it("capitalizes relative output when requested", () => {
+    expect(
+      formatRelativeDate("2026-04-21T11:15:00.000Z", {
+        locale,
+        now,
+        capitalize: true,
+      }),
+    ).toBe("Today");
+    expect(
+      formatRelativeDate("2026-04-18T12:00:00.000Z", {
+        locale,
+        now,
+        capitalize: true,
+      }),
+    ).toBe("3 days ago");
+    expect(
+      formatRelativeDate("2026-04-21T11:59:57.000Z", {
+        locale,
+        now,
+        justNowLabel: "just now",
+        capitalize: true,
+      }),
+    ).toBe("Just now");
+  });
 });
 
 describe("formatDateInputValue", () => {
