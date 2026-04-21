@@ -31,6 +31,7 @@
     "test:e2e": "playwright test",
     "test:e2e:all": "PLAYWRIGHT_ALL_PROJECTS=true playwright test",
     "test:e2e:headed": "playwright test --headed --project=chromium",
+    "test:i18n": "vitest run tests/unit/translation-parity.test.ts",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
     "typecheck": "tsc --noEmit"

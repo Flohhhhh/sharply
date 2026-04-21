@@ -2,6 +2,16 @@
 
 Sharply is a photography gear database and cataloging application built with Next.js, TypeScript, and Drizzle ORM. The project manages camera equipment data including brands, mounts, sensor formats, and gear items with comprehensive search and categorization capabilities.
 
+## Task Completion Requirements
+
+- All of `npm run test`, `npm run typecheck`, and `SKIP_ENV_VALIDATION=1 npm run lint` must pass before considering tasks completed.
+- All relevant docs in `/docs` must be updated to ensure no drift.
+- Any new hardcoded user-facing strings must be replaced with translation keys for all locales.
+- Translation key parity must be maintained: if a key is added, removed, or renamed in `messages/en.json`, the same key change must be applied across all locale files. This is enforced by `tests/unit/translation-parity.test.ts` (covered by `npm run test` / CI Vitest runs).
+- Respect server layering: keep the `data -> service -> actions` flow and do not introduce direct database access in UI or generic lib modules.
+- If `src/server/db/schema.ts` changes, update related docs and keep changes backwards compatible by default (prefer deprecations over destructive deletions).
+- Run targeted Playwright coverage (`npm run test:e2e` or affected specs) when changing auth, critical user flows, or navigation behavior.
+
 ## Project Structure
 
 - **Frontend**: Next.js 15 with React 19, TypeScript, and Tailwind CSS
@@ -19,29 +29,13 @@ Sharply is a photography gear database and cataloging application built with Nex
 
 - **Server actions** should never be used for fetching, only for mutations or other client > server actions
 
-## Database Management
-
-### Schema Changes
+## Schema/Database Changes
 
 - **ALWAYS** make schema changes in `src/server/db/schema.ts`
 - **NEVER** modify the database directly without going through the schema
+- **NEVER** run `db:generate` or `db:push`, prompt the user to do it when needed.
+- All schema changes should be backwards compatible by default, using deprecations instead of deletions.
 - Use Drizzle's type-safe schema definitions
-
-### Migration Guidelines
-
-**For Contributors:**
-1. Make schema changes in `src/server/db/schema.ts`
-2. Test locally: Use `npm run db:push` to sync your local database with schema changes
-3. **Do NOT** run `db:generate` or commit migration files
-4. Commit only the schema changes (`schema.ts`)
-5. Maintainers will generate a consolidated migration file when merging dev to main/staging
-6. After migrations are merged, pull and run `npm run db:migrate` to sync your local database
-
-**Database Setup Workflow:**
-- **First-time setup**: New contributors use `npm run db:push` once to sync the schema directly from `src/server/db/schema.ts` for initial database setup
-- **During development**: Use `npm run db:push` to test schema changes locally (do NOT generate migrations)
-- **After migrations are merged**: Use `npm run db:migrate` to sync your local database with the consolidated migration
-- **Important**: Contributors never generate or commit migration files - maintainers handle migration generation when merging dev to main/staging
 
 ## Documentation Management
 
@@ -53,23 +47,9 @@ Sharply is a photography gear database and cataloging application built with Nex
 - **Update mapping-system.md** when mapping or relationship logic changes
 - **Maintain consistency** between code and documentation
 
-### Documentation Standards
-
-- Use clear, concise language
-- Include examples where helpful
-- Reference related schema files and migrations
-- Keep documentation synchronized with code changes
-
 ## Agent-Specific Instructions
 
 - **Always check linting** errors after significant changes using `npm run lint` and correct any errors related to changed/touched files in the scope of your task. (Errors only, not warnings)
-
-### For Documentation Updates
-
-- **Monitor schema changes** in `src/server/db/schema.ts`
-- **Automatically update** relevant documentation files in `/docs`
-- **Maintain consistency** between code and documentation
-- **Reference migration files** when documenting database changes
 
 ### Server Code Structure (data/service/actions)
 
@@ -81,36 +61,15 @@ Sharply is a photography gear database and cataloging application built with Nex
 - Do not introduce DB access inside UI or lib modules.
 - Flow: data → service → actions. Auth/role checks live in service; actions are thin wrappers that delegate to service and may revalidate.
 
-### For Database Migrations
-
-- **First-time setup**: `db:push` is allowed for new contributors setting up a fresh database
-- **During development**: Contributors use `db:push` to test schema changes locally (do NOT generate migrations)
-- **For maintainers**: Generate consolidated migrations (`db:generate`) when merging dev to main/staging
-- **After migrations merged**: Contributors use `db:migrate` to sync their local database
-- **Important**: Contributors never generate or commit migration files - only maintainers do this when merging
-
-### For Schema Changes
-
-- **Always update documentation** when modifying schemas
-- **Create migrations** for complex changes that can't be done in schema
-- **Maintain referential integrity** in database relationships
-
-## Important Notes
-
-- **Database changes require both schema updates AND migrations**
-- **Documentation must stay synchronized with code changes**
-- **Follow existing naming conventions** for consistency
-- **Use Drizzle ORM features** instead of raw SQL when possible
-
 ## Cursor Cloud specific instructions
 
 ### Services
 
-| Service | How to start | Notes |
-|---|---|---|
-| PostgreSQL (Neon) | Provided via `DATABASE_URL` secret | No local install needed; preview branch is reset from production periodically |
-| PostgreSQL (local fallback) | `sudo pg_ctlcluster 16 main start` | Only if no `DATABASE_URL` secret is injected |
-| Next.js dev server | `npm run dev` | Runs at http://localhost:3000 with Turbopack; includes embedded Payload CMS at `/cms` |
+| Service                     | How to start                       | Notes                                                                                 |
+| --------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------- |
+| PostgreSQL (Neon)           | Provided via `DATABASE_URL` secret | No local install needed; preview branch is reset from production periodically         |
+| PostgreSQL (local fallback) | `sudo pg_ctlcluster 16 main start` | Only if no `DATABASE_URL` secret is injected                                          |
+| Next.js dev server          | `npm run dev`                      | Runs at http://localhost:3000 with Turbopack; includes embedded Payload CMS at `/cms` |
 
 ### Running lint and typecheck
 
