@@ -17,16 +17,13 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { useCountry } from "~/lib/hooks/useCountry";
-import {
-  getMpbMountSuffix,
-  hasKnownMpbMountSuffix,
-  isMpbSearchInput,
-} from "~/lib/links/mpb";
+import { getMpbMountSuffix } from "~/lib/links/mpb";
 import { getMountLongNameById } from "~/lib/mapping/mounts-map";
 import { formatPrice } from "~/lib/mapping";
 import { parseAmazonAsin } from "~/lib/validation/amazon";
 import { BRANDS } from "~/lib/generated";
 import type { GearType } from "~/types/gear";
+import { buildMpbOutHref, resolveMpbLinkState } from "./gear-links-mpb";
 import { CanonLogo } from "public/canon-logo";
 import MpbLogo from "public/mpb-logo";
 
@@ -76,12 +73,6 @@ export function GearLinks({
         linkBh,
       )}&slug=${encodeURIComponent(slug)}`
     : null;
-  const hasAny = !!(
-    linkManufacturer ||
-    linkMpb ||
-    amazonAsin ||
-    bhRedirectHref
-  );
   const bhPriceDescription =
     msrpNowUsdCents != null
       ? t("aroundPriceNewUsed", {
@@ -117,8 +108,13 @@ export function GearLinks({
     : "";
   const manufacturerStyles = getManufacturerStyles(brandSlug, t);
 
-  const mpbMarket = locale.affiliate.mpbMarket;
-  const isLegacyMpbSearchLink = isMpbSearchInput(linkMpb);
+  const mpbLinkState = resolveMpbLinkState({
+    gearType,
+    linkMpb,
+    mountIds,
+    mpbAvailable: locale.affiliate.mpbAvailable,
+    mpbMarket: locale.affiliate.mpbMarket,
+  });
   const uniqueMountIds = useMemo(
     () => Array.from(new Set((mountIds ?? []).filter(Boolean))),
     [mountIds],
@@ -132,54 +128,18 @@ export function GearLinks({
       })),
     [uniqueMountIds],
   );
-  const supportedMpbMounts = mpbMountOptions.filter((mount) => mount.supported);
-  const hasLegacyMountedLink = hasKnownMpbMountSuffix(linkMpb);
-  const shouldShowMpbChooser =
-    !isLegacyMpbSearchLink &&
-    gearType === "LENS" &&
-    mpbMountOptions.length > 1 &&
-    supportedMpbMounts.length > 1;
-  const directMpbMountId =
-    gearType === "LENS" ? (supportedMpbMounts[0]?.id ?? null) : null;
-  const directMpbHref = useMemo(() => {
-    if (!linkMpb) return undefined;
-    if (shouldShowMpbChooser) return undefined;
-
-    if (isLegacyMpbSearchLink) {
-      return buildMpbOutHref(linkMpb, mpbMarket, null);
-    }
-
-    if (gearType !== "LENS") {
-      return buildMpbOutHref(linkMpb, mpbMarket, null);
-    }
-
-    if (supportedMpbMounts.length === 1 && directMpbMountId) {
-      return buildMpbOutHref(linkMpb, mpbMarket, directMpbMountId);
-    }
-
-    if (hasLegacyMountedLink) {
-      return buildMpbOutHref(linkMpb, mpbMarket, null);
-    }
-
-    return undefined;
-  }, [
-    directMpbMountId,
-    gearType,
-    hasLegacyMountedLink,
-    isLegacyMpbSearchLink,
-    linkMpb,
-    mpbMarket,
-    shouldShowMpbChooser,
-    supportedMpbMounts.length,
-  ]);
-  const isMpbUnavailable =
-    Boolean(linkMpb) && !shouldShowMpbChooser && !directMpbHref;
+  const hasAny = !!(
+    linkManufacturer ||
+    mpbLinkState.shouldRenderCard ||
+    amazonAsin ||
+    bhRedirectHref
+  );
 
   if (!hasAny) return null;
 
   function handleMpbMountSelection(mountId: string) {
     if (!linkMpb) return;
-    const href = buildMpbOutHref(linkMpb, mpbMarket, mountId);
+    const href = buildMpbOutHref(linkMpb, locale.affiliate.mpbMarket, mountId);
     if (!href) return;
 
     void track("gear_link_click", {
@@ -215,21 +175,21 @@ export function GearLinks({
             }
           />
         )}
-        {linkMpb && (
+        {mpbLinkState.shouldRenderCard && linkMpb && (
           <AffiliateLinkCard
-            href={directMpbHref}
+            href={mpbLinkState.directHref}
             title={t("seeOnMPB")}
             description={
-              isMpbUnavailable
+              mpbLinkState.isUnavailable
                 ? t("usedMountUnavailable")
                 : mpbPriceDescription
             }
             backgroundClass="bg-[#0b002b] hover:bg-[#0b002b]/80"
             textColorClass="text-white"
             logo={<MpbLogo className="h-8 w-8 text-[#ff18bd]" />}
-            disabled={isMpbUnavailable}
+            disabled={mpbLinkState.isUnavailable}
             onClick={() => {
-              if (shouldShowMpbChooser) {
+              if (mpbLinkState.shouldShowChooser) {
                 setIsMpbDialogOpen(true);
                 return;
               }
@@ -237,7 +197,7 @@ export function GearLinks({
               void track("gear_link_click", {
                 slug,
                 linkType: "mpb",
-                mountId: directMpbMountId,
+                mountId: mpbLinkState.directMountId,
               });
             }}
           />
@@ -381,26 +341,6 @@ function AffiliateLinkCardContent({
       <span className="flex items-center justify-center">{logo}</span>
     </>
   );
-}
-
-function buildMpbOutHref(
-  linkMpb: string,
-  market: string | null,
-  mountId: string | null,
-) {
-  const params = new URLSearchParams({
-    destinationPath: linkMpb,
-  });
-
-  if (market) {
-    params.set("market", market);
-  }
-
-  if (mountId) {
-    params.set("mountId", mountId);
-  }
-
-  return `/api/out/mpb?${params.toString()}`;
 }
 
 function getManufacturerStyles(

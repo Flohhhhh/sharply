@@ -14,6 +14,11 @@ describe("locale market detection", () => {
     expect(resolveLocaleFromCountryCode("GB").id).toBe("uk");
   });
 
+  it("resolves Malaysia and Japan to their dedicated locale options", () => {
+    expect(resolveLocaleFromCountryCode("MY").id).toBe("my");
+    expect(resolveLocaleFromCountryCode("JP").id).toBe("jp");
+  });
+
   it("resolves other European countries to the generic Europe market", () => {
     expect(resolveLocaleFromCountryCode("NL").id).toBe("eu");
     expect(resolveLocaleFromCountryCode("BE").id).toBe("eu");
@@ -23,5 +28,9 @@ describe("locale market detection", () => {
 
   it("maps english plus the europe market to the europe english option", () => {
     expect(getLanguageMarketOptionForLocale("en", "eu").id).toBe("en-eu");
+  });
+
+  it("maps Malay plus Malaysia to the Malaysia language-market option", () => {
+    expect(getLanguageMarketOptionForLocale("ms", "my").id).toBe("ms-my");
   });
 });

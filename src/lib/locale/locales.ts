@@ -4,7 +4,17 @@ import {
 } from "~/lib/gear/region";
 import type { Locale } from "~/i18n/config";
 
-export type LocaleId = "us" | "uk" | "eu" | "de" | "fr" | "es" | "it" | "jp" | "global";
+export type LocaleId =
+  | "us"
+  | "uk"
+  | "eu"
+  | "de"
+  | "fr"
+  | "es"
+  | "it"
+  | "my"
+  | "jp"
+  | "global";
 
 export type LocaleOption = {
   id: LocaleId;
@@ -15,6 +25,7 @@ export type LocaleOption = {
   affiliateCountryCode: string | null;
   gearRegion: GearRegion;
   affiliate: {
+    mpbAvailable: boolean;
     mpbMarket: "US" | "UK" | "EU" | "DE" | "FR" | "ES" | "IT" | null;
     amazonHost?: string | null;
   };
@@ -35,7 +46,11 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     countryCode: "US",
     affiliateCountryCode: "US",
     gearRegion: "GLOBAL",
-    affiliate: { mpbMarket: "US", amazonHost: "www.amazon.com" },
+    affiliate: {
+      mpbAvailable: true,
+      mpbMarket: "US",
+      amazonHost: "www.amazon.com",
+    },
   },
   {
     id: "uk",
@@ -43,7 +58,11 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     countryCode: "GB",
     affiliateCountryCode: "GB",
     gearRegion: "EU",
-    affiliate: { mpbMarket: "UK", amazonHost: "www.amazon.co.uk" },
+    affiliate: {
+      mpbAvailable: true,
+      mpbMarket: "UK",
+      amazonHost: "www.amazon.co.uk",
+    },
   },
   {
     id: "eu",
@@ -51,7 +70,11 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     countryCode: "EU", // not ISO, used for flag selection
     affiliateCountryCode: "FR", // representative ISO for storage/geo
     gearRegion: "EU",
-    affiliate: { mpbMarket: "EU", amazonHost: "www.amazon.de" },
+    affiliate: {
+      mpbAvailable: true,
+      mpbMarket: "EU",
+      amazonHost: "www.amazon.de",
+    },
   },
   {
     id: "de",
@@ -59,7 +82,11 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     countryCode: "DE",
     affiliateCountryCode: "DE",
     gearRegion: "EU",
-    affiliate: { mpbMarket: "DE", amazonHost: "www.amazon.de" },
+    affiliate: {
+      mpbAvailable: true,
+      mpbMarket: "DE",
+      amazonHost: "www.amazon.de",
+    },
   },
   {
     id: "fr",
@@ -67,7 +94,11 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     countryCode: "FR",
     affiliateCountryCode: "FR",
     gearRegion: "EU",
-    affiliate: { mpbMarket: "FR", amazonHost: "www.amazon.fr" },
+    affiliate: {
+      mpbAvailable: true,
+      mpbMarket: "FR",
+      amazonHost: "www.amazon.fr",
+    },
   },
   {
     id: "es",
@@ -75,7 +106,11 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     countryCode: "ES",
     affiliateCountryCode: "ES",
     gearRegion: "EU",
-    affiliate: { mpbMarket: "ES", amazonHost: "www.amazon.es" },
+    affiliate: {
+      mpbAvailable: true,
+      mpbMarket: "ES",
+      amazonHost: "www.amazon.es",
+    },
   },
   {
     id: "it",
@@ -83,7 +118,23 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     countryCode: "IT",
     affiliateCountryCode: "IT",
     gearRegion: "EU",
-    affiliate: { mpbMarket: "IT", amazonHost: "www.amazon.it" },
+    affiliate: {
+      mpbAvailable: true,
+      mpbMarket: "IT",
+      amazonHost: "www.amazon.it",
+    },
+  },
+  {
+    id: "my",
+    label: "Malaysia",
+    countryCode: "MY",
+    affiliateCountryCode: "MY",
+    gearRegion: "GLOBAL",
+    affiliate: {
+      mpbAvailable: false,
+      mpbMarket: null,
+      amazonHost: null,
+    },
   },
   {
     id: "jp",
@@ -91,7 +142,11 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     countryCode: "JP",
     affiliateCountryCode: "JP",
     gearRegion: "JP",
-    affiliate: { mpbMarket: null, amazonHost: "www.amazon.co.jp" },
+    affiliate: {
+      mpbAvailable: false,
+      mpbMarket: null,
+      amazonHost: "www.amazon.co.jp",
+    },
   },
   {
     id: "global",
@@ -99,7 +154,11 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     countryCode: null,
     affiliateCountryCode: null,
     gearRegion: "GLOBAL",
-    affiliate: { mpbMarket: "US", amazonHost: "www.amazon.com" },
+    affiliate: {
+      mpbAvailable: true,
+      mpbMarket: "US",
+      amazonHost: "www.amazon.com",
+    },
   },
 ];
 
@@ -158,6 +217,13 @@ export const LANGUAGE_MARKET_OPTIONS: LanguageMarketOption[] = [
     shortLabel: "Italiano",
   },
   {
+    id: "ms-my",
+    locale: "ms",
+    localeId: "my",
+    label: "Bahasa Melayu (Malaysia)",
+    shortLabel: "Bahasa Melayu",
+  },
+  {
     id: "ja-jp",
     locale: "ja",
     localeId: "jp",
@@ -172,7 +238,8 @@ const DEFAULT_LANGUAGE_MARKET_BY_LOCALE: Record<Locale, LanguageMarketOption> = 
   fr: LANGUAGE_MARKET_OPTIONS[4]!,
   es: LANGUAGE_MARKET_OPTIONS[5]!,
   it: LANGUAGE_MARKET_OPTIONS[6]!,
-  ja: LANGUAGE_MARKET_OPTIONS[7]!,
+  ms: LANGUAGE_MARKET_OPTIONS[7]!,
+  ja: LANGUAGE_MARKET_OPTIONS[8]!,
 };
 
 const REGION_DEFAULT_LOCALE_ID: Partial<Record<GearRegion, LocaleId>> = {
