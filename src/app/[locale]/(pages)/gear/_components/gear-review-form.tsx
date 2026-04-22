@@ -182,7 +182,7 @@ export function GearReviewForm({
     <div className="mb-4">
       {/* Banner + Trigger */}
       <div className="flex w-full flex-col items-start justify-between gap-2 rounded-md border p-3 sm:flex-row sm:items-center">
-        <div className="sm:blocktext-sm hidden">
+        <div className="hidden text-sm sm:block">
           {t("writeReviewDescription")}
         </div>
         <Button
