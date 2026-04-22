@@ -351,7 +351,7 @@
     "listsCopyLink": "Copy link",
     "listsCopyShareLink": "Copy share link",
     "listsDelete": "Delete",
-    "listsMoreItems": "+{count} more items",
+    "listsMoreItems": "{count, plural, one {+# more item} other {+# more items}}",
     "listsOpen": "Open",
     "listsEmptyOwnTitle": "No lists yet",
     "listsEmptyOwnDescription": "Create a list to organize gear you want to save or share.",

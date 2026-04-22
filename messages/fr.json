@@ -351,7 +351,7 @@
     "listsCopyLink": "Copier le lien",
     "listsCopyShareLink": "Copier le lien de partage",
     "listsDelete": "Supprimer",
-    "listsMoreItems": "+{count} éléments supplémentaires",
+    "listsMoreItems": "{count, plural, one {+# élément supplémentaire} other {+# éléments supplémentaires}}",
     "listsOpen": "Ouvrir",
     "listsEmptyOwnTitle": "Aucune liste pour le moment",
     "listsEmptyOwnDescription": "Créez une liste pour organiser le matériel que vous voulez enregistrer ou partager.",

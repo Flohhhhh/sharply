@@ -351,7 +351,7 @@
     "listsCopyLink": "リンクをコピー",
     "listsCopyShareLink": "共有リンクをコピー",
     "listsDelete": "削除",
-    "listsMoreItems": "+{count} 件の項目",
+    "listsMoreItems": "{count, plural, one {+# 件の項目} other {+# 件の項目}}",
     "listsOpen": "開く",
     "listsEmptyOwnTitle": "まだリストがありません",
     "listsEmptyOwnDescription": "保存したり共有したりしたい機材を整理するためにリストを作成しましょう。",

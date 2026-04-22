@@ -351,7 +351,7 @@
     "listsCopyLink": "Link kopieren",
     "listsCopyShareLink": "Freigabelink kopieren",
     "listsDelete": "Löschen",
-    "listsMoreItems": "+{count} weitere Einträge",
+    "listsMoreItems": "{count, plural, one {+# weiterer Eintrag} other {+# weitere Einträge}}",
     "listsOpen": "Öffnen",
     "listsEmptyOwnTitle": "Noch keine Listen",
     "listsEmptyOwnDescription": "Erstelle eine Liste, um Ausrüstung zu organisieren, die du speichern oder teilen möchtest.",
