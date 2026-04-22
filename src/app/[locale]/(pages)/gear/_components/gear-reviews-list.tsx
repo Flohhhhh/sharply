@@ -1,7 +1,7 @@
 "use client";
 
 import { EllipsisVertical,Flag,Trash2 } from "lucide-react";
-import { useLocale } from "next-intl";
+import { useLocale,useTranslations } from "next-intl";
 import Link from "next/link";
 import { useEffect,useMemo,useState } from "react";
 import { toast } from "sonner";
@@ -72,6 +72,7 @@ export function GearReviewsList({
   refreshSignal = 0,
   onReviewDeleted,
 }: GearReviewsListProps) {
+  const t = useTranslations("gearDetail");
   const { data } = useSession();
   const session = data?.session;
   const user = data?.user;
@@ -152,18 +153,18 @@ export function GearReviewsList({
       };
 
       if (response.ok && data.ok) {
-        toast.success("Thanks. This review was flagged for moderation.");
+        toast.success(t("reviewFlaggedSuccess"));
         return;
       }
 
       if (data.type === "FLAG_ALREADY_OPEN") {
-        toast.info("You already have an open flag for this review.");
+        toast.info(t("reviewFlagAlreadyOpen"));
         return;
       }
 
-      toast.error(data.message || "Unable to flag review.");
+      toast.error(data.message || t("reviewFlagError"));
     } catch {
-      toast.error("Unable to flag review.");
+      toast.error(t("reviewFlagError"));
     }
   };
 
@@ -181,16 +182,16 @@ export function GearReviewsList({
       };
 
       if (!response.ok || !data.ok) {
-        toast.error(data.message || "Unable to delete review.");
+        toast.error(data.message || t("reviewDeleteError"));
         return;
       }
 
       setReviews((prev) => prev.filter((review) => review.id !== deleteTarget.id));
       setDeleteTarget(null);
-      toast.success("Review deleted.");
+      toast.success(t("reviewDeleted"));
       onReviewDeleted?.();
     } catch {
-      toast.error("Unable to delete review.");
+      toast.error(t("reviewDeleteError"));
     } finally {
       setIsDeleting(false);
     }
@@ -201,7 +202,7 @@ export function GearReviewsList({
       <Card>
         <CardContent className="p-6">
           <div className="text-muted-foreground text-center">
-            Loading reviews...
+            {t("reviewsLoading")}
           </div>
         </CardContent>
       </Card>
@@ -212,7 +213,9 @@ export function GearReviewsList({
     return (
       <div className="mt-4 rounded border py-12 text-sm">
         <div className="p-6">
-          <div className="text-center text-red-600">Error: {error}</div>
+          <div className="text-center text-red-600">
+            {t("reviewsLoadError", { error })}
+          </div>
         </div>
       </div>
     );
@@ -223,7 +226,7 @@ export function GearReviewsList({
       <div className="mt-4 rounded border py-12 text-sm">
         <div className="p-6">
           <div className="text-muted-foreground text-center">
-            No reviews yet. Be the first to review this gear!
+            {t("reviewsEmpty")}
           </div>
         </div>
       </div>
@@ -234,7 +237,9 @@ export function GearReviewsList({
     <div className="space-y-4">
       {showHeader && (
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Reviews ({reviews.length})</h3>
+          <h3 className="text-lg font-semibold">
+            {t("reviewsCount", { count: reviews.length })}
+          </h3>
         </div>
       )}
 
@@ -261,10 +266,12 @@ export function GearReviewsList({
                   <Avatar className="size-9">
                     <AvatarImage
                       src={review.createdBy.image ?? undefined}
-                      alt={review.createdBy.name ?? "User"}
+                      alt={review.createdBy.name ?? t("userAlt")}
                     />
                     <AvatarFallback>
-                      {(review.createdBy.name || "U").slice(0, 2).toUpperCase()}
+                      {(review.createdBy.name || t("anonymousUserInitial"))
+                        .slice(0, 2)
+                        .toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">
@@ -273,12 +280,12 @@ export function GearReviewsList({
                       className="hover:underline"
                     >
                       <p className="truncate text-sm font-semibold">
-                        {review.createdBy.name || "Anonymous"}
+                        {review.createdBy.name || t("anonymousUser")}
                       </p>
                     </Link>
                     {hasGenres ? null : (
                       <p className="text-muted-foreground text-xs">
-                        Shared a review
+                        {t("sharedAReview")}
                       </p>
                     )}
                   </div>
@@ -293,7 +300,9 @@ export function GearReviewsList({
                           : "bg-red-500/15 text-red-500 hover:bg-red-500/20"
                       }`}
                     >
-                      {review.recommend ? "Recommended" : "Not Recommended"}
+                      {review.recommend
+                        ? t("recommended")
+                        : t("notRecommended")}
                     </Badge>
                   )}
                   <DropdownMenu>
@@ -303,7 +312,7 @@ export function GearReviewsList({
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8"
-                        aria-label="Review actions"
+                        aria-label={t("reviewActions")}
                       >
                         <EllipsisVertical className="h-4 w-4" />
                       </Button>
@@ -315,14 +324,14 @@ export function GearReviewsList({
                           onSelect={() => setDeleteTarget(review)}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
-                          Delete review
+                          {t("deleteReview")}
                         </DropdownMenuItem>
                       ) : (
                         <DropdownMenuItem
                           onSelect={() => void handleFlagReview(review)}
                         >
                           <Flag className="h-3.5 w-3.5" />
-                          Flag for moderation
+                          {t("flagForModeration")}
                         </DropdownMenuItem>
                       )}
                     </DropdownMenuContent>
@@ -356,7 +365,7 @@ export function GearReviewsList({
                     })}
                   </div>
                 ) : (
-                  <span>No genres noted</span>
+                  <span>{t("noGenresNoted")}</span>
                 )}
               </div>
             </div>
@@ -437,9 +446,9 @@ export function GearReviewsList({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete your review?</AlertDialogTitle>
+            <AlertDialogTitle>{t("deleteReviewTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This removes your review from the gear page and your profile.
+              {t("deleteReviewDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           {deleteTarget ? (
@@ -448,7 +457,9 @@ export function GearReviewsList({
             </p>
           ) : null}
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>
+              {t("cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={(event) => {
                 event.preventDefault();
@@ -456,7 +467,7 @@ export function GearReviewsList({
               }}
               disabled={isDeleting}
             >
-              {isDeleting ? "Deleting..." : "Delete"}
+              {isDeleting ? t("deletingReview") : t("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

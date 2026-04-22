@@ -91,6 +91,15 @@ Use `defaultText` in code when:
 - Developers benefit from reading and editing the English text next to the item definitions.
 - You still want translated copies in locale files with a safe fallback.
 
+## Badge copy
+
+- Badge tooltip descriptions on profile pages are localized from `/messages/*` under:
+  - `userProfile.badgeDescriptions.*`
+- Badge display names still come from the badge catalog in code for now.
+- When you add or change badge earning copy, update:
+  - `src/lib/badges/catalog.ts`
+  - every locale file in `/messages`
+
 ## Notes
 
 - Do not duplicate entire per-locale text objects in TypeScript data files.

@@ -192,13 +192,13 @@ export default async function UserProfilePage({
                 ) : (
                   <div className="border-border rounded-lg border-2 border-dashed p-8 text-center">
                     <p className="text-muted-foreground">
-                      No gear in collection yet
+                      {t("collectionEmptyMobileTitle")}
                     </p>
                     <Link
                       href="/gear"
                       className="text-primary mt-2 inline-block"
                     >
-                      Browse gear to add to your collection
+                      {t("collectionEmptyMobileBrowse")}
                     </Link>
                   </div>
                 )}
@@ -212,9 +212,9 @@ export default async function UserProfilePage({
             </>
           ) : myProfile ? (
             <Empty className="border-border rounded-lg border-2 border-dashed p-8">
-              <EmptyTitle>Your collection is empty</EmptyTitle>
+              <EmptyTitle>{t("collectionEmptyOwnTitle")}</EmptyTitle>
               <EmptyDescription>
-                Add gear to your collection to start tracking your gear.
+                {t("collectionEmptyOwnDescription")}
               </EmptyDescription>
               <EmptyContent>
                 <div className="flex flex-col items-center gap-2">
@@ -230,7 +230,7 @@ export default async function UserProfilePage({
             </Empty>
           ) : (
             <div className="border-border text-muted-foreground rounded-lg border-2 border-dashed p-8 text-center">
-              {profile.name}'s collection is empty
+              {t("collectionEmptyOtherNamed", { name: profile.name })}
             </div>
           )}
         </div>

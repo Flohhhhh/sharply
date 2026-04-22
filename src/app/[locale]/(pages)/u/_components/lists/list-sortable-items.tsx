@@ -18,6 +18,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical,Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect,useMemo,useState } from "react";
 import { Button } from "~/components/ui/button";
 
@@ -51,6 +52,7 @@ export function ListSortableItems({
   onRemove,
   disabled = false,
 }: ListSortableItemsProps) {
+  const t = useTranslations("userProfile");
   const [localOrder, setLocalOrder] = useState(items);
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -68,7 +70,7 @@ export function ListSortableItems({
   if (!localOrder.length) {
     return (
       <div className="text-muted-foreground rounded-lg border border-dashed p-4 text-sm">
-        This list is empty.
+        {t("listsManageEmptyShort")}
       </div>
     );
   }
@@ -117,6 +119,7 @@ function SortableRow({
   onRemove: (itemId: string) => void;
   disabled: boolean;
 }) {
+  const t = useTranslations("userProfile");
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({
       id: item.id,
@@ -142,12 +145,12 @@ function SortableRow({
         {...listeners}
       >
         <GripVertical className="size-4" />
-        <span className="sr-only">Drag to reorder</span>
+        <span className="sr-only">{t("listsDragToReorder")}</span>
       </button>
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{item.gear.name}</p>
         <p className="text-muted-foreground truncate text-xs">
-          {item.gear.brandName ?? "Unknown brand"}
+          {item.gear.brandName ?? t("listsUnknownBrand")}
         </p>
       </div>
       <Button
@@ -158,7 +161,7 @@ function SortableRow({
         disabled={disabled}
       >
         <Trash2 className="size-4" />
-        <span className="sr-only">Remove item</span>
+        <span className="sr-only">{t("listsRemoveItem")}</span>
       </Button>
     </div>
   );

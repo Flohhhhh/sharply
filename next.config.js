@@ -65,6 +65,10 @@ const config = {
         protocol: "https",
         hostname: "img.youtube.com",
       },
+      {
+        protocol: "https",
+        hostname: "cdn.discordapp.com",
+      },
     ],
   },
   webpack: (config, { isServer, webpack }) => {

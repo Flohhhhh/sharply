@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
-import { getCategoryLabel,type GearCategorySlug } from "~/lib/browse/routing";
+import type { GearCategorySlug } from "~/lib/browse/routing";
 import { getMountDisplayName } from "~/lib/mapping/mounts-map";
 
 type Props = {
@@ -19,7 +19,7 @@ export default async function Breadcrumbs({ brand, category, mountValue }: Props
   }
   if (brand && category) {
     items.push({
-      label: getCategoryLabel(category),
+      label: t(category),
       href: `/browse/${brand.slug}/${category}`,
     });
   }
