@@ -289,7 +289,525 @@
     "reviewPublished": "Reseña publicada correctamente.",
     "reviewSubmitError": "No se pudo enviar la reseña.",
     "submittingReview": "Enviando...",
-    "submitReview": "Enviar reseña"
+    "submitReview": "Enviar reseña",
+    "specRegistry": {
+      "sections": {
+        "core": {
+          "title": "Información básica",
+          "fields": {
+            "cameraType": {
+              "label": "Tipo de cámara"
+            },
+            "mounts": {
+              "label": "Montura",
+              "labelPlural": "Monturas"
+            },
+            "announcedDate": {
+              "label": "Fecha de anuncio"
+            },
+            "releaseDate": {
+              "label": "Fecha de lanzamiento"
+            },
+            "msrpAtLaunchUsdCents": {
+              "label": "PVP de lanzamiento"
+            },
+            "msrpNowUsdCents": {
+              "label": "PVP actual"
+            },
+            "mpbMaxPriceUsdCents": {
+              "label": "Precio máximo en MPB"
+            },
+            "weightGrams": {
+              "label": "Peso"
+            },
+            "dimensions": {
+              "label": "Dimensiones"
+            },
+            "regionalAliases": {
+              "label": "Nombres regionales"
+            }
+          }
+        },
+        "camera-sensor-shutter": {
+          "title": "Sensor y obturador",
+          "fields": {
+            "resolutionMp": {
+              "label": "Resolución"
+            },
+            "sensorFormatId": {
+              "label": "Formato de sensor"
+            },
+            "isoRange": {
+              "label": "Rango ISO"
+            },
+            "maxFpsByShutter": {
+              "label": "FPS máx. en ráfaga"
+            },
+            "sensorType": {
+              "label": "Tipo de sensor"
+            },
+            "sensorReadoutSpeedMs": {
+              "label": "Velocidad de lectura del sensor"
+            },
+            "maxRawBitDepth": {
+              "label": "Profundidad máxima de bits RAW"
+            },
+            "hasIbis": {
+              "label": "IBIS"
+            },
+            "hasElectronicVibrationReduction": {
+              "label": "Estabilización digital"
+            },
+            "cipaStabilizationRatingStops": {
+              "label": "Valor CIPA de estabilización (pasos)"
+            },
+            "hasPixelShiftShooting": {
+              "label": "Disparo Pixel Shift"
+            },
+            "hasAntiAliasingFilter": {
+              "label": "Filtro antialiasing"
+            },
+            "precaptureSupportLevel": {
+              "label": "Búfer de predisparo"
+            },
+            "shutterSpeedMax": {
+              "label": "Velocidad de obturación más larga"
+            },
+            "shutterSpeedMin": {
+              "label": "Velocidad de obturación más rápida"
+            },
+            "flashSyncSpeed": {
+              "label": "Velocidad de sincronización del flash"
+            },
+            "hasSilentShootingAvailable": {
+              "label": "Disparo silencioso"
+            },
+            "availableShutterTypes": {
+              "label": "Tipos de obturador disponibles"
+            }
+          }
+        },
+        "fixed-lens": {
+          "title": "Objetivo integrado",
+          "fields": {
+            "isPrime": {
+              "label": "Tipo de objetivo"
+            },
+            "focalLength": {
+              "label": "Distancia focal"
+            },
+            "fixedImageCircleSize": {
+              "label": "Tamaño del círculo de imagen"
+            },
+            "maxAperture": {
+              "label": "Apertura máxima"
+            },
+            "minAperture": {
+              "label": "Apertura mínima"
+            },
+            "hasAutofocus": {
+              "label": "Enfoque automático"
+            },
+            "minimumFocusDistanceMm": {
+              "label": "Distancia mínima de enfoque"
+            },
+            "frontElementRotates": {
+              "label": "El elemento frontal gira"
+            },
+            "frontFilterThreadSizeMm": {
+              "label": "Tamaño de rosca de filtro frontal"
+            },
+            "hasLensHood": {
+              "label": "Parasol"
+            }
+          }
+        },
+        "camera-hardware": {
+          "title": "Hardware y construcción",
+          "fields": {
+            "processorName": {
+              "label": "Nombre del procesador"
+            },
+            "hasWeatherSealing": {
+              "label": "Sellado climático"
+            },
+            "internalStorageGb": {
+              "label": "Almacenamiento interno"
+            },
+            "rearDisplayType": {
+              "label": "Tipo de pantalla trasera"
+            },
+            "rearDisplaySizeInches": {
+              "label": "Tamaño de pantalla trasera"
+            },
+            "rearDisplayResolutionMillionDots": {
+              "label": "Resolución de pantalla trasera"
+            },
+            "viewfinderType": {
+              "label": "Tipo de visor"
+            },
+            "viewfinderMagnification": {
+              "label": "Aumento del visor"
+            },
+            "viewfinderResolutionMillionDots": {
+              "label": "Resolución del visor"
+            },
+            "hasTopDisplay": {
+              "label": "Pantalla superior"
+            },
+            "hasRearTouchscreen": {
+              "label": "Pantalla táctil trasera"
+            },
+            "cardSlots": {
+              "label": "Ranuras para tarjetas"
+            }
+          }
+        },
+        "camera-focus": {
+          "title": "Enfoque",
+          "fields": {
+            "focusPoints": {
+              "label": "Puntos de enfoque"
+            },
+            "hasFocusPeaking": {
+              "label": "Focus peaking"
+            },
+            "hasFocusBracketing": {
+              "label": "Horquillado de enfoque"
+            },
+            "afAreaModes": {
+              "label": "Modos de área AF"
+            },
+            "afSubjectCategories": {
+              "label": "Categorías de sujetos AF"
+            }
+          }
+        },
+        "camera-battery": {
+          "title": "Batería y carga",
+          "fields": {
+            "cipaBatteryShotsPerCharge": {
+              "label": "Disparos CIPA por carga"
+            },
+            "usbCharging": {
+              "label": "Admite carga por USB"
+            },
+            "usbPowerDelivery": {
+              "label": "Admite USB Power Delivery"
+            },
+            "supportedBatteries": {
+              "label": "Baterías compatibles"
+            }
+          }
+        },
+        "camera-video": {
+          "title": "Video",
+          "fields": {
+            "videoSummary": {
+              "label": "Resumen de video"
+            },
+            "videoAvailableCodecs": {
+              "label": "Códecs disponibles"
+            },
+            "hasLogColorProfile": {
+              "label": "Perfil de color log"
+            },
+            "has10BitVideo": {
+              "label": "Video de 10 bits"
+            },
+            "has12BitVideo": {
+              "label": "Video de 12 bits"
+            },
+            "hasOpenGateVideo": {
+              "label": "Video open gate"
+            },
+            "supportsExternalRecording": {
+              "label": "Grabación externa"
+            },
+            "supportsRecordToDrive": {
+              "label": "Grabación en unidad"
+            }
+          }
+        },
+        "camera-misc": {
+          "title": "Varios",
+          "fields": {
+            "hasIntervalometer": {
+              "label": "Intervalómetro"
+            },
+            "hasSelfTimer": {
+              "label": "Temporizador"
+            },
+            "hasBuiltInFlash": {
+              "label": "Flash integrado"
+            },
+            "hasHotShoe": {
+              "label": "Zapata"
+            },
+            "hasUsbFileTransfer": {
+              "label": "Transferencia de archivos por USB"
+            }
+          }
+        },
+        "lens-optics": {
+          "title": "Óptica",
+          "fields": {
+            "isPrime": {
+              "label": "Tipo de objetivo"
+            },
+            "focalLength": {
+              "label": "Distancia focal"
+            },
+            "imageCircleSize": {
+              "label": "Tamaño del círculo de imagen"
+            },
+            "magnification": {
+              "label": "Ampliación"
+            },
+            "minimumFocusDistanceMm": {
+              "label": "Distancia mínima de enfoque"
+            },
+            "numberElements": {
+              "label": "Número de elementos"
+            },
+            "numberElementGroups": {
+              "label": "Número de grupos ópticos"
+            },
+            "hasDiffractiveOptics": {
+              "label": "Óptica difractiva"
+            }
+          }
+        },
+        "lens-aperture": {
+          "title": "Apertura",
+          "fields": {
+            "maxAperture": {
+              "label": "Apertura máxima"
+            },
+            "minAperture": {
+              "label": "Apertura mínima"
+            },
+            "numberDiaphragmBlades": {
+              "label": "Número de láminas del diafragma"
+            },
+            "hasRoundedDiaphragmBlades": {
+              "label": "Láminas redondeadas"
+            },
+            "hasApertureRing": {
+              "label": "Anillo de apertura"
+            }
+          }
+        },
+        "lens-focus": {
+          "title": "Enfoque",
+          "fields": {
+            "hasAutofocus": {
+              "label": "Enfoque automático"
+            },
+            "focusMotorType": {
+              "label": "Tipo de motor de enfoque"
+            },
+            "hasAfMfSwitch": {
+              "label": "Interruptor AF/MF"
+            },
+            "hasFocusLimiter": {
+              "label": "Limitador de enfoque"
+            },
+            "hasFocusRecallButton": {
+              "label": "Botón de recuperación de enfoque"
+            },
+            "hasFocusRing": {
+              "label": "Anillo de enfoque"
+            },
+            "hasInternalFocus": {
+              "label": "Enfoque interno"
+            },
+            "frontElementRotates": {
+              "label": "El elemento frontal gira"
+            }
+          }
+        },
+        "lens-stabilization": {
+          "title": "Estabilización",
+          "fields": {
+            "hasStabilization": {
+              "label": "Estabilización de imagen"
+            },
+            "hasStabilizationSwitch": {
+              "label": "Interruptor de estabilización"
+            },
+            "cipaStabilizationRatingStops": {
+              "label": "Valor CIPA de estabilización (pasos)"
+            }
+          }
+        },
+        "lens-build": {
+          "title": "Construcción y controles",
+          "fields": {
+            "hasInternalZoom": {
+              "label": "Zoom interno"
+            },
+            "mountMaterial": {
+              "label": "Material de la montura"
+            },
+            "hasWeatherSealing": {
+              "label": "Sellado climático"
+            },
+            "numberCustomControlRings": {
+              "label": "Número de anillos de control personalizados"
+            },
+            "numberFunctionButtons": {
+              "label": "Número de botones de función"
+            }
+          }
+        },
+        "lens-filters": {
+          "title": "Filtros",
+          "fields": {
+            "acceptsFilterTypes": {
+              "label": "Tipos de filtro compatibles"
+            },
+            "frontFilterThreadSizeMm": {
+              "label": "Tamaño de rosca de filtro frontal"
+            },
+            "rearFilterThreadSizeMm": {
+              "label": "Tamaño de rosca de filtro trasera"
+            },
+            "dropInFilterSizeMm": {
+              "label": "Tamaño de filtro drop-in"
+            }
+          }
+        },
+        "lens-accessories": {
+          "title": "Accesorios",
+          "fields": {
+            "hasBuiltInTeleconverter": {
+              "label": "Teleconvertidor integrado"
+            },
+            "hasLensHood": {
+              "label": "Parasol"
+            },
+            "hasTripodCollar": {
+              "label": "Collarín de trípode/pie de objetivo"
+            }
+          }
+        },
+        "lens-tilt-shift": {
+          "title": "Tilt-Shift",
+          "fields": {
+            "isTiltShift": {
+              "label": "Es tilt-shift"
+            },
+            "tiltDegrees": {
+              "label": "Rango de inclinación"
+            },
+            "shiftMm": {
+              "label": "Rango de desplazamiento"
+            }
+          }
+        },
+        "analog-camera": {
+          "title": "Cámara analógica",
+          "fields": {
+            "cameraType": {
+              "label": "Tipo de cámara"
+            },
+            "captureMedium": {
+              "label": "Medio de captura"
+            },
+            "filmTransportType": {
+              "label": "Avance de película"
+            },
+            "viewfinderType": {
+              "label": "Tipo de visor"
+            },
+            "shutterType": {
+              "label": "Tipo de obturador"
+            },
+            "shutterSpeeds": {
+              "label": "Velocidades de obturación"
+            },
+            "flashSyncSpeed": {
+              "label": "Velocidad de sincronización del flash"
+            },
+            "hasBulbMode": {
+              "label": "Modo Bulb"
+            },
+            "hasMetering": {
+              "label": "Medición"
+            },
+            "meteringModes": {
+              "label": "Modos de medición"
+            },
+            "meteringDisplayTypes": {
+              "label": "Indicador de medición"
+            },
+            "exposureModes": {
+              "label": "Modos de exposición"
+            },
+            "isoSettingMethod": {
+              "label": "Ajuste ISO"
+            },
+            "isoRange": {
+              "label": "Rango ISO"
+            },
+            "hasExposureCompensation": {
+              "label": "Compensación de exposición"
+            },
+            "hasAutoFocus": {
+              "label": "Autofoco"
+            },
+            "focusAidTypes": {
+              "label": "Ayudas de enfoque"
+            },
+            "hasContinuousDrive": {
+              "label": "Avance continuo"
+            },
+            "maxContinuousFps": {
+              "label": "FPS máx."
+            },
+            "requiresBatteryForShutter": {
+              "label": "Batería necesaria (obturador)"
+            },
+            "requiresBatteryForMetering": {
+              "label": "Batería necesaria (medición)"
+            },
+            "supportedBatteries": {
+              "label": "Baterías compatibles"
+            },
+            "hasHotShoe": {
+              "label": "Zapata"
+            },
+            "hasSelfTimer": {
+              "label": "Temporizador"
+            },
+            "hasIntervalometer": {
+              "label": "Intervalómetro"
+            }
+          }
+        },
+        "notes": {
+          "title": "Notas",
+          "fields": {}
+        }
+      },
+      "shared": {
+        "yes": "Sí",
+        "no": "No",
+        "prime": "Fija",
+        "zoom": "Zoom",
+        "none": "Ninguno",
+        "fixed": "Fijo",
+        "singleAxisTilt": "Inclinación de un eje",
+        "dualAxisTilt": "Inclinación de dos ejes",
+        "fullyArticulated": "Totalmente articulada",
+        "fourAxisTiltFlip": "Inclinación/volteo de 4 ejes",
+        "other": "Otro",
+        "notSpecified": "No especificado",
+        "ovf": "OVF",
+        "evf": "EVF"
+      }
+    }
   },
   "userProfile": {
     "profileMetaTitle": "Perfil de {name}",

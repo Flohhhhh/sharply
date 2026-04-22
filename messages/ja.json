@@ -289,7 +289,525 @@
     "reviewPublished": "レビューを公開しました。",
     "reviewSubmitError": "レビューを送信できませんでした。",
     "submittingReview": "送信中...",
-    "submitReview": "レビューを投稿"
+    "submitReview": "レビューを投稿",
+    "specRegistry": {
+      "sections": {
+        "core": {
+          "title": "基本情報",
+          "fields": {
+            "cameraType": {
+              "label": "カメラタイプ"
+            },
+            "mounts": {
+              "label": "マウント",
+              "labelPlural": "マウント"
+            },
+            "announcedDate": {
+              "label": "発表日"
+            },
+            "releaseDate": {
+              "label": "発売日"
+            },
+            "msrpAtLaunchUsdCents": {
+              "label": "発売時希望小売価格"
+            },
+            "msrpNowUsdCents": {
+              "label": "現行希望小売価格"
+            },
+            "mpbMaxPriceUsdCents": {
+              "label": "MPB最高価格"
+            },
+            "weightGrams": {
+              "label": "重量"
+            },
+            "dimensions": {
+              "label": "寸法"
+            },
+            "regionalAliases": {
+              "label": "地域別名称"
+            }
+          }
+        },
+        "camera-sensor-shutter": {
+          "title": "センサーとシャッター",
+          "fields": {
+            "resolutionMp": {
+              "label": "解像度"
+            },
+            "sensorFormatId": {
+              "label": "センサーフォーマット"
+            },
+            "isoRange": {
+              "label": "ISO感度範囲"
+            },
+            "maxFpsByShutter": {
+              "label": "最高連写速度"
+            },
+            "sensorType": {
+              "label": "センサータイプ"
+            },
+            "sensorReadoutSpeedMs": {
+              "label": "センサー読み出し速度"
+            },
+            "maxRawBitDepth": {
+              "label": "RAW最大ビット深度"
+            },
+            "hasIbis": {
+              "label": "IBIS搭載"
+            },
+            "hasElectronicVibrationReduction": {
+              "label": "電子式手ブレ補正"
+            },
+            "cipaStabilizationRatingStops": {
+              "label": "CIPA手ブレ補正段数"
+            },
+            "hasPixelShiftShooting": {
+              "label": "ピクセルシフト撮影"
+            },
+            "hasAntiAliasingFilter": {
+              "label": "ローパスフィルター搭載"
+            },
+            "precaptureSupportLevel": {
+              "label": "プリキャプチャーバッファ"
+            },
+            "shutterSpeedMax": {
+              "label": "最長シャッター速度"
+            },
+            "shutterSpeedMin": {
+              "label": "最速シャッター速度"
+            },
+            "flashSyncSpeed": {
+              "label": "フラッシュ同調速度"
+            },
+            "hasSilentShootingAvailable": {
+              "label": "サイレント撮影対応"
+            },
+            "availableShutterTypes": {
+              "label": "対応シャッター方式"
+            }
+          }
+        },
+        "fixed-lens": {
+          "title": "一体型レンズ",
+          "fields": {
+            "isPrime": {
+              "label": "レンズタイプ"
+            },
+            "focalLength": {
+              "label": "焦点距離"
+            },
+            "fixedImageCircleSize": {
+              "label": "イメージサークル"
+            },
+            "maxAperture": {
+              "label": "開放F値"
+            },
+            "minAperture": {
+              "label": "最小F値"
+            },
+            "hasAutofocus": {
+              "label": "オートフォーカス"
+            },
+            "minimumFocusDistanceMm": {
+              "label": "最短撮影距離"
+            },
+            "frontElementRotates": {
+              "label": "前玉回転"
+            },
+            "frontFilterThreadSizeMm": {
+              "label": "前面フィルター径"
+            },
+            "hasLensHood": {
+              "label": "レンズフード"
+            }
+          }
+        },
+        "camera-hardware": {
+          "title": "ハードウェア・外装",
+          "fields": {
+            "processorName": {
+              "label": "プロセッサー名"
+            },
+            "hasWeatherSealing": {
+              "label": "防塵防滴"
+            },
+            "internalStorageGb": {
+              "label": "内蔵ストレージ"
+            },
+            "rearDisplayType": {
+              "label": "背面ディスプレイタイプ"
+            },
+            "rearDisplaySizeInches": {
+              "label": "背面ディスプレイサイズ"
+            },
+            "rearDisplayResolutionMillionDots": {
+              "label": "背面ディスプレイ解像度"
+            },
+            "viewfinderType": {
+              "label": "ファインダータイプ"
+            },
+            "viewfinderMagnification": {
+              "label": "ファインダー倍率"
+            },
+            "viewfinderResolutionMillionDots": {
+              "label": "ファインダー解像度"
+            },
+            "hasTopDisplay": {
+              "label": "上面ディスプレイ搭載"
+            },
+            "hasRearTouchscreen": {
+              "label": "背面タッチパネル"
+            },
+            "cardSlots": {
+              "label": "カードスロット"
+            }
+          }
+        },
+        "camera-focus": {
+          "title": "フォーカス",
+          "fields": {
+            "focusPoints": {
+              "label": "フォーカスポイント"
+            },
+            "hasFocusPeaking": {
+              "label": "フォーカスピーキング"
+            },
+            "hasFocusBracketing": {
+              "label": "フォーカスブラケット"
+            },
+            "afAreaModes": {
+              "label": "AFエリアモード"
+            },
+            "afSubjectCategories": {
+              "label": "AF被写体カテゴリ"
+            }
+          }
+        },
+        "camera-battery": {
+          "title": "バッテリーと充電",
+          "fields": {
+            "cipaBatteryShotsPerCharge": {
+              "label": "CIPA撮影可能枚数"
+            },
+            "usbCharging": {
+              "label": "USB充電対応"
+            },
+            "usbPowerDelivery": {
+              "label": "USB PD対応"
+            },
+            "supportedBatteries": {
+              "label": "対応バッテリー"
+            }
+          }
+        },
+        "camera-video": {
+          "title": "動画",
+          "fields": {
+            "videoSummary": {
+              "label": "動画概要"
+            },
+            "videoAvailableCodecs": {
+              "label": "対応コーデック"
+            },
+            "hasLogColorProfile": {
+              "label": "Logカラープロファイル対応"
+            },
+            "has10BitVideo": {
+              "label": "10bit動画対応"
+            },
+            "has12BitVideo": {
+              "label": "12bit動画対応"
+            },
+            "hasOpenGateVideo": {
+              "label": "オープンゲート動画対応"
+            },
+            "supportsExternalRecording": {
+              "label": "外部収録対応"
+            },
+            "supportsRecordToDrive": {
+              "label": "外部ドライブ収録対応"
+            }
+          }
+        },
+        "camera-misc": {
+          "title": "その他",
+          "fields": {
+            "hasIntervalometer": {
+              "label": "インターバロメーター"
+            },
+            "hasSelfTimer": {
+              "label": "セルフタイマー"
+            },
+            "hasBuiltInFlash": {
+              "label": "内蔵フラッシュ"
+            },
+            "hasHotShoe": {
+              "label": "ホットシュー"
+            },
+            "hasUsbFileTransfer": {
+              "label": "USBファイル転送対応"
+            }
+          }
+        },
+        "lens-optics": {
+          "title": "光学系",
+          "fields": {
+            "isPrime": {
+              "label": "レンズタイプ"
+            },
+            "focalLength": {
+              "label": "焦点距離"
+            },
+            "imageCircleSize": {
+              "label": "イメージサークル"
+            },
+            "magnification": {
+              "label": "倍率"
+            },
+            "minimumFocusDistanceMm": {
+              "label": "最短撮影距離"
+            },
+            "numberElements": {
+              "label": "レンズ構成枚数"
+            },
+            "numberElementGroups": {
+              "label": "レンズ群数"
+            },
+            "hasDiffractiveOptics": {
+              "label": "回折光学素子搭載"
+            }
+          }
+        },
+        "lens-aperture": {
+          "title": "絞り",
+          "fields": {
+            "maxAperture": {
+              "label": "開放F値"
+            },
+            "minAperture": {
+              "label": "最小F値"
+            },
+            "numberDiaphragmBlades": {
+              "label": "絞り羽根枚数"
+            },
+            "hasRoundedDiaphragmBlades": {
+              "label": "円形絞り"
+            },
+            "hasApertureRing": {
+              "label": "絞りリング"
+            }
+          }
+        },
+        "lens-focus": {
+          "title": "フォーカス",
+          "fields": {
+            "hasAutofocus": {
+              "label": "オートフォーカス"
+            },
+            "focusMotorType": {
+              "label": "フォーカスモーター方式"
+            },
+            "hasAfMfSwitch": {
+              "label": "AF/MFスイッチ"
+            },
+            "hasFocusLimiter": {
+              "label": "フォーカスリミッター"
+            },
+            "hasFocusRecallButton": {
+              "label": "フォーカスリコールボタン"
+            },
+            "hasFocusRing": {
+              "label": "フォーカスリング"
+            },
+            "hasInternalFocus": {
+              "label": "インナーフォーカス"
+            },
+            "frontElementRotates": {
+              "label": "前玉回転"
+            }
+          }
+        },
+        "lens-stabilization": {
+          "title": "手ブレ補正",
+          "fields": {
+            "hasStabilization": {
+              "label": "手ブレ補正搭載"
+            },
+            "hasStabilizationSwitch": {
+              "label": "手ブレ補正スイッチ"
+            },
+            "cipaStabilizationRatingStops": {
+              "label": "CIPA手ブレ補正段数"
+            }
+          }
+        },
+        "lens-build": {
+          "title": "外装と操作系",
+          "fields": {
+            "hasInternalZoom": {
+              "label": "インナーズーム"
+            },
+            "mountMaterial": {
+              "label": "マウント材質"
+            },
+            "hasWeatherSealing": {
+              "label": "防塵防滴"
+            },
+            "numberCustomControlRings": {
+              "label": "カスタムコントロールリング数"
+            },
+            "numberFunctionButtons": {
+              "label": "ファンクションボタン数"
+            }
+          }
+        },
+        "lens-filters": {
+          "title": "フィルター",
+          "fields": {
+            "acceptsFilterTypes": {
+              "label": "対応フィルター種類"
+            },
+            "frontFilterThreadSizeMm": {
+              "label": "前面フィルター径"
+            },
+            "rearFilterThreadSizeMm": {
+              "label": "後部フィルター径"
+            },
+            "dropInFilterSizeMm": {
+              "label": "ドロップインフィルター径"
+            }
+          }
+        },
+        "lens-accessories": {
+          "title": "アクセサリー",
+          "fields": {
+            "hasBuiltInTeleconverter": {
+              "label": "内蔵テレコンバーター"
+            },
+            "hasLensHood": {
+              "label": "レンズフード"
+            },
+            "hasTripodCollar": {
+              "label": "三脚座／レンズフット"
+            }
+          }
+        },
+        "lens-tilt-shift": {
+          "title": "ティルトシフト",
+          "fields": {
+            "isTiltShift": {
+              "label": "ティルトシフト"
+            },
+            "tiltDegrees": {
+              "label": "ティルト量"
+            },
+            "shiftMm": {
+              "label": "シフト量"
+            }
+          }
+        },
+        "analog-camera": {
+          "title": "フィルムカメラ",
+          "fields": {
+            "cameraType": {
+              "label": "カメラタイプ"
+            },
+            "captureMedium": {
+              "label": "記録媒体"
+            },
+            "filmTransportType": {
+              "label": "フィルム搬送"
+            },
+            "viewfinderType": {
+              "label": "ファインダータイプ"
+            },
+            "shutterType": {
+              "label": "シャッター方式"
+            },
+            "shutterSpeeds": {
+              "label": "シャッター速度"
+            },
+            "flashSyncSpeed": {
+              "label": "フラッシュ同調速度"
+            },
+            "hasBulbMode": {
+              "label": "バルブモード"
+            },
+            "hasMetering": {
+              "label": "露出計搭載"
+            },
+            "meteringModes": {
+              "label": "測光モード"
+            },
+            "meteringDisplayTypes": {
+              "label": "測光表示"
+            },
+            "exposureModes": {
+              "label": "露出モード"
+            },
+            "isoSettingMethod": {
+              "label": "ISO設定"
+            },
+            "isoRange": {
+              "label": "ISO感度範囲"
+            },
+            "hasExposureCompensation": {
+              "label": "露出補正"
+            },
+            "hasAutoFocus": {
+              "label": "オートフォーカス"
+            },
+            "focusAidTypes": {
+              "label": "ピント補助"
+            },
+            "hasContinuousDrive": {
+              "label": "連続撮影"
+            },
+            "maxContinuousFps": {
+              "label": "最大FPS"
+            },
+            "requiresBatteryForShutter": {
+              "label": "シャッターに電池必要"
+            },
+            "requiresBatteryForMetering": {
+              "label": "測光に電池必要"
+            },
+            "supportedBatteries": {
+              "label": "対応バッテリー"
+            },
+            "hasHotShoe": {
+              "label": "ホットシュー"
+            },
+            "hasSelfTimer": {
+              "label": "セルフタイマー"
+            },
+            "hasIntervalometer": {
+              "label": "インターバロメーター"
+            }
+          }
+        },
+        "notes": {
+          "title": "注記",
+          "fields": {}
+        }
+      },
+      "shared": {
+        "yes": "はい",
+        "no": "いいえ",
+        "prime": "単焦点",
+        "zoom": "ズーム",
+        "none": "なし",
+        "fixed": "固定",
+        "singleAxisTilt": "単軸チルト",
+        "dualAxisTilt": "双軸チルト",
+        "fullyArticulated": "バリアングル",
+        "fourAxisTiltFlip": "4軸チルトフリップ",
+        "other": "その他",
+        "notSpecified": "未指定",
+        "ovf": "OVF",
+        "evf": "EVF"
+      }
+    }
   },
   "userProfile": {
     "profileMetaTitle": "{name}のプロフィール",

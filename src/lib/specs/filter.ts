@@ -28,7 +28,12 @@ export function filterSpecsSections(
   }
 
   return sections.flatMap((section) => {
-    if (section.title.toLowerCase().includes(normalizedQuery)) {
+    const sectionSearchTerms = [section.title, ...(section.searchTerms ?? [])];
+    if (
+      sectionSearchTerms.some((term) =>
+        term.toLowerCase().includes(normalizedQuery),
+      )
+    ) {
       return [section];
     }
 

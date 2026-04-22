@@ -51,6 +51,31 @@ The implementation currently lives in:
 
 - [src/app/[locale]/(pages)/lists/hall-of-fame/page.tsx](/Users/camerongustavson/CodeProjects/sharply/src/app/[locale]/(pages)/lists/hall-of-fame/page.tsx:1)
 
+## Spec Registry pattern
+
+The spec registry uses the same mixed-source approach:
+
+- English source copy stays inline in [src/lib/specs/registry.tsx](/Users/camerongustavson/CodeProjects/sharply/src/lib/specs/registry.tsx:1)
+- Localized copies live in `/messages/*` under `gearDetail.specRegistry.*`
+- Registry consumers pass a `gearDetail` translator into the registry builders
+
+The registry resolves copy like this:
+
+1. If the locale is `en`, use the inline English text from `registry.tsx`.
+2. If the locale is not `en` and the translation key exists, use the localized message.
+3. If the locale is not `en` and the key is missing, fall back to the inline English text.
+
+Key format:
+
+- Section titles: `gearDetail.specRegistry.sections.<sectionId>.title`
+- Field labels: `gearDetail.specRegistry.sections.<sectionId>.fields.<fieldKey>.label`
+- Shared simple values: `gearDetail.specRegistry.shared.*`
+
+Notes:
+
+- The `core.mounts` field has both singular and plural keys because the registry owns that label logic.
+- English still needs matching keys in `messages/en.json` so translation parity stays green.
+
 ## Adding a new Hall Of Fame item
 
 1. Add the item to `data.ts` with:
@@ -90,6 +115,7 @@ Use `defaultText` in code when:
 - The content is curated editorial copy tied closely to a code-owned data list.
 - Developers benefit from reading and editing the English text next to the item definitions.
 - You still want translated copies in locale files with a safe fallback.
+- The content is code-owned registry metadata such as spec section titles and field labels.
 
 ## Badge copy
 

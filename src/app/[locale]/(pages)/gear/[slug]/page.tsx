@@ -237,6 +237,7 @@ export default async function GearPage({
 
   const specSections = buildGearSpecsSections(item, {
     locale,
+    t,
     viewerRegion,
   });
   const brand = getBrandById(item.brandId ?? "");

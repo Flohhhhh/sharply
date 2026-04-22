@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "next-intl";
+import { useLocale,useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
 import { SuggestEditButton } from "~/app/[locale]/(pages)/gear/_components/suggest-edit-button";
@@ -14,70 +14,12 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import { buildCompareSections } from "~/components/compare/compare-specs-table.helpers";
 import { useSession } from "~/lib/auth/auth-client";
 import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
-import { buildGearSpecsSections,specDictionary } from "~/lib/specs/registry";
+import { buildGearSpecsSections } from "~/lib/specs/registry";
 import { cn,getConstructionState } from "~/lib/utils";
 import type { GearItem } from "~/types/gear";
-
-type Row = { label: string; a?: React.ReactNode; b?: React.ReactNode };
-type SpecsSection = ReturnType<typeof buildGearSpecsSections>[number];
-
-const sectionLabelOrder = new Map(
-  specDictionary.map((section) => [
-    section.title,
-    section.fields
-      .filter((field) => Boolean(field.label))
-      .map((field) => field.label),
-  ]),
-);
-
-function filterEmptyRows(rows: Row[]): Row[] {
-  // Only keep rows where BOTH items have a value
-  return rows.filter((r) => r.a != null && r.b != null);
-}
-
-function buildAlignedRows(
-  title: string,
-  aSection?: SpecsSection,
-  bSection?: SpecsSection,
-): Row[] {
-  const labelOrder = sectionLabelOrder.get(title) ?? [];
-  const rowsByLabel = new Map<string, Row>();
-
-  const addValue = (
-    label: string | undefined,
-    key: "a" | "b",
-    value?: React.ReactNode,
-  ) => {
-    if (!label) return;
-    const existing = rowsByLabel.get(label) ?? { label };
-    existing[key] = value;
-    rowsByLabel.set(label, existing);
-  };
-
-  for (const row of aSection?.data ?? []) addValue(row.label, "a", row.value);
-  for (const row of bSection?.data ?? []) addValue(row.label, "b", row.value);
-
-  const orderedRows: Row[] = [];
-  const seen = new Set<string>();
-
-  for (const label of labelOrder) {
-    const entry = rowsByLabel.get(label);
-    if (entry) {
-      orderedRows.push(entry);
-      seen.add(label);
-    }
-  }
-
-  for (const [label, entry] of rowsByLabel.entries()) {
-    if (!seen.has(label)) {
-      orderedRows.push(entry);
-    }
-  }
-
-  return orderedRows;
-}
 
 function countMissingSpecs(
   sections: ReturnType<typeof buildGearSpecsSections>,
@@ -104,6 +46,7 @@ export function CompareSpecsTable({
 
   const session = data?.session;
   const locale = useLocale();
+  const t = useTranslations("gearDetail");
   const aName = useGearDisplayName({
     name: a.name,
     regionalAliases: a.regionalAliases,
@@ -113,30 +56,23 @@ export function CompareSpecsTable({
     regionalAliases: b.regionalAliases,
   });
 
-  const aSections = buildGearSpecsSections(a, { forceLeftAlign: true, locale });
-  const bSections = buildGearSpecsSections(b, { forceLeftAlign: true, locale });
+  const aSections = buildGearSpecsSections(a, {
+    forceLeftAlign: true,
+    locale,
+    t,
+  });
+  const bSections = buildGearSpecsSections(b, {
+    forceLeftAlign: true,
+    locale,
+    t,
+  });
   const missingA = countMissingSpecs(aSections);
   const missingB = countMissingSpecs(bSections);
   const aConstruction = getConstructionState(a);
   const bConstruction = getConstructionState(b);
   const [showMissing, setShowMissing] = useState(false);
 
-  // Align sections by title (assumes same registry for both types)
-  const byTitle = new Map<string, { a?: SpecsSection; b?: SpecsSection }>();
-  for (const s of aSections) byTitle.set(s.title, { a: s });
-  for (const s of bSections)
-    byTitle.set(s.title, { ...(byTitle.get(s.title) || {}), b: s });
-
-  const sections = Array.from(byTitle.keys()).map((title) => {
-    const sa = byTitle.get(title)?.a;
-    const sb = byTitle.get(title)?.b;
-    const rows = buildAlignedRows(title, sa, sb);
-    return {
-      title,
-      rows,
-      rowsWithBoth: filterEmptyRows(rows),
-    };
-  });
+  const sections = buildCompareSections(aSections, bSections);
 
   const totalRowsAny = sections.reduce(
     (acc, section) => acc + section.rows.length,
@@ -258,11 +194,11 @@ export function CompareSpecsTable({
       </div>
       {hasRenderableRows ? (
         <div className="space-y-6">
-          {sections.map(({ title, rows, rowsWithBoth }) => {
+          {sections.map(({ id, title, rows, rowsWithBoth }) => {
             const rowsToRender = showMissing ? rows : rowsWithBoth;
             if (rowsToRender.length === 0) return null;
             return (
-              <div key={title} className="overflow-hidden rounded-md border">
+              <div key={id} className="overflow-hidden rounded-md border">
                 <div className="text-muted-foreground px-4 py-3 text-2xl font-semibold">
                   {title}
                 </div>
@@ -287,7 +223,7 @@ export function CompareSpecsTable({
                   </TableHeader>
                   <TableBody>
                     {rowsToRender.map((r) => (
-                      <TableRow key={`${title}-${r.label}`} className="text-sm">
+                      <TableRow key={`${id}-${r.key}`} className="text-sm">
                         <TableCell className="text-muted-foreground px-4 py-3 align-top">
                           {r.label}
                         </TableCell>

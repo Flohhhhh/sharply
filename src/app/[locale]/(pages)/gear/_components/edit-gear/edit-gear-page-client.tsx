@@ -1,6 +1,7 @@
 "use client";
 
 import { Check,CheckCircle,ChevronRight,Circle } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useMemo,useRef,useState } from "react";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
@@ -23,6 +24,7 @@ export default function EditGearClient({
   gearData,
   initialShowMissingOnly,
 }: Props) {
+  const t = useTranslations("gearDetail");
   const [showMissingOnly, setShowMissingOnly] = useState(
     Boolean(initialShowMissingOnly),
   );
@@ -106,8 +108,8 @@ export default function EditGearClient({
   const [liveItem, setLiveItem] = useState<GearItem>(preparedData);
 
   const sidebarSections = useMemo(
-    () => buildEditSidebarSections(liveItem),
-    [liveItem],
+    () => buildEditSidebarSections(liveItem, { t }),
+    [liveItem, t],
   );
   const sidebarSectionsFiltered = useMemo(
     () => sidebarSections.filter((s) => s.id !== "notes"),

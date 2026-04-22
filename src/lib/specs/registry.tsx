@@ -43,6 +43,20 @@ import { buildVideoDisplayBundle } from "~/lib/video/transform";
 import type { CameraVideoMode,GearAlias,GearItem } from "~/types/gear";
 import { supportsVideoMeaningfully } from "./helpers";
 
+export type SpecTranslator = ((key: string) => string) & {
+  has?: (key: string) => boolean;
+};
+
+type SpecTranslationContext = {
+  locale?: string;
+  t?: SpecTranslator;
+};
+
+type SpecLabelDescriptor = {
+  label: string;
+  labelKey?: string;
+};
+
 function coerceCameraVideoModes(
   modes?: GearItem["videoModes"],
 ): CameraVideoMode[] {
@@ -153,6 +167,101 @@ function getVideoNotes(item: GearItem): string | null {
   return null;
 }
 
+function uniqueNonEmptyStrings(values: Array<string | null | undefined>): string[] {
+  return Array.from(
+    new Set(
+      values
+        .map((value) => value?.trim())
+        .filter((value): value is string => Boolean(value && value.length > 0)),
+    ),
+  );
+}
+
+const SHARED_SPEC_VALUE_KEYS = new Map<string, string>([
+  ["Yes", "specRegistry.shared.yes"],
+  ["No", "specRegistry.shared.no"],
+  ["Prime", "specRegistry.shared.prime"],
+  ["Zoom", "specRegistry.shared.zoom"],
+  ["None", "specRegistry.shared.none"],
+  ["Fixed", "specRegistry.shared.fixed"],
+  ["Single-axis tilt", "specRegistry.shared.singleAxisTilt"],
+  ["Dual-axis tilt", "specRegistry.shared.dualAxisTilt"],
+  ["Fully articulated", "specRegistry.shared.fullyArticulated"],
+  ["4 Axis Tilt-Flip", "specRegistry.shared.fourAxisTiltFlip"],
+  ["Other", "specRegistry.shared.other"],
+  ["Not specified", "specRegistry.shared.notSpecified"],
+  ["OVF", "specRegistry.shared.ovf"],
+  ["EVF", "specRegistry.shared.evf"],
+]);
+
+function resolveSpecText(
+  defaultText: string,
+  key: string | undefined,
+  context: SpecTranslationContext,
+): string {
+  if (!defaultText || !key || !context.t || context.locale === "en") {
+    return defaultText;
+  }
+
+  if (typeof context.t.has === "function" && !context.t.has(key)) {
+    return defaultText;
+  }
+
+  try {
+    return context.t(key);
+  } catch {
+    return defaultText;
+  }
+}
+
+function translateSharedSpecValue(
+  value: string,
+  context: SpecTranslationContext,
+): string {
+  const key = SHARED_SPEC_VALUE_KEYS.get(value);
+  return key ? resolveSpecText(value, key, context) : value;
+}
+
+function getSectionTitleKey(section: SpecSectionDef): string {
+  return section.titleKey ?? `specRegistry.sections.${section.id}.title`;
+}
+
+function getFieldLabelKey(
+  section: SpecSectionDef,
+  field: SpecFieldDef,
+): string {
+  return (
+    field.labelKey ?? `specRegistry.sections.${section.id}.fields.${field.key}.label`
+  );
+}
+
+function resolveSectionTitle(
+  section: SpecSectionDef,
+  context: SpecTranslationContext,
+): string {
+  return resolveSpecText(section.title, getSectionTitleKey(section), context);
+}
+
+function resolveFieldLabelDescriptor(
+  section: SpecSectionDef,
+  field: SpecFieldDef,
+  item: GearItem,
+  context: SpecTranslationContext,
+): SpecLabelDescriptor & {
+  englishLabel: string;
+} {
+  const descriptor = field.labelResolver?.(item) ?? {
+    label: field.labelOverride ? field.labelOverride(item) : field.label,
+    labelKey: getFieldLabelKey(section, field),
+  };
+
+  return {
+    label: resolveSpecText(descriptor.label, descriptor.labelKey, context),
+    labelKey: descriptor.labelKey,
+    englishLabel: descriptor.label,
+  };
+}
+
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -160,7 +269,9 @@ function getVideoNotes(item: GearItem): string | null {
 export type SpecFieldDef = {
   key: string; // Stable identifier (e.g., "announcedDate", "resolutionMp")
   label: string; // Human-readable label for display
+  labelKey?: string; // Translation key for display label
   labelOverride?: (item: GearItem) => string; // Optional per-item label
+  labelResolver?: (item: GearItem) => SpecLabelDescriptor; // Dynamic label with matching translation key
   searchTerms?: string[]; // Optional aliases used by client-side filtering
   getRawValue: (item: GearItem) => unknown; // Extract raw value from GearItem
   formatDisplay?: (
@@ -178,6 +289,7 @@ export type SpecFieldDef = {
 export type SpecSectionDef = {
   id: string; // Section identifier (e.g., "core", "camera-sensor", etc.)
   title: string; // Display title
+  titleKey?: string; // Translation key for section title
   sectionAnchor: string; // ID for scrolling (e.g., "core-section")
   condition?: (item: GearItem) => boolean; // Optional: when to show this section
   fields: SpecFieldDef[];
@@ -208,13 +320,22 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "mounts",
         label: "Mount",
+        labelKey: "specRegistry.sections.core.fields.mounts.label",
         searchTerms: ["lens mount", "camera mount"],
-        labelOverride: (item) =>
-          item.gearType === "LENS" &&
-          item.mountIds?.length &&
-          item.mountIds.length > 1
-            ? "Mounts"
-            : "Mount",
+        labelResolver: (item) => ({
+          label:
+            item.gearType === "LENS" &&
+            item.mountIds?.length &&
+            item.mountIds.length > 1
+              ? "Mounts"
+              : "Mount",
+          labelKey:
+            item.gearType === "LENS" &&
+            item.mountIds?.length &&
+            item.mountIds.length > 1
+              ? "specRegistry.sections.core.fields.mounts.labelPlural"
+              : "specRegistry.sections.core.fields.mounts.label",
+        }),
         getRawValue: (item) => {
           const ids =
             (Array.isArray(item.mountIds) && item.mountIds.length > 0
@@ -1978,6 +2099,7 @@ export function buildGearSpecsSections(
         forceLeftAlign?: boolean;
         viewerRegion?: GearRegion | null;
         locale?: string;
+        t?: SpecTranslator;
       },
 ): SpecsTableSection[] {
   const normalizedOptions =
@@ -1987,24 +2109,41 @@ export function buildGearSpecsSections(
   const forceLeftAlign = normalizedOptions.forceLeftAlign;
   const viewerRegion = normalizedOptions.viewerRegion ?? "GLOBAL";
   const locale = normalizedOptions.locale ?? "en";
+  const translationContext: SpecTranslationContext = {
+    locale,
+    t: normalizedOptions.t,
+  };
   return specDictionary
     .filter((section) => !section.condition || section.condition(item))
     .map((section) => ({
-      title: section.title,
+      id: section.id,
+      title: resolveSectionTitle(section, translationContext),
+      searchTerms: uniqueNonEmptyStrings([section.title]),
       data: section.fields
         .filter((field) => !field.condition || field.condition(item))
         .map((field) => {
           const raw = field.getRawValue(item);
-          const value = field.formatDisplay
+          const rawValue = field.formatDisplay
             ? field.formatDisplay(raw, item, forceLeftAlign, viewerRegion, locale)
             : (raw as React.ReactNode);
-          const label = field.labelOverride
-            ? field.labelOverride(item)
-            : field.label;
+          const value =
+            typeof rawValue === "string"
+              ? translateSharedSpecValue(rawValue, translationContext)
+              : rawValue;
+          const { label, englishLabel } = resolveFieldLabelDescriptor(
+            section,
+            field,
+            item,
+            translationContext,
+          );
           return {
+            key: field.key,
             label,
             value: value,
-            searchTerms: field.searchTerms,
+            searchTerms: uniqueNonEmptyStrings([
+              ...(field.searchTerms ?? []),
+              englishLabel,
+            ]),
             fullWidth: !label,
             condenseOnMobile: field.condenseOnMobile,
           };
@@ -2029,19 +2168,37 @@ export type SidebarSection = {
   }[];
 };
 
-export function buildEditSidebarSections(item: GearItem): SidebarSection[] {
+export function buildEditSidebarSections(
+  item: GearItem,
+  options?: SpecTranslationContext,
+): SidebarSection[] {
+  const translationContext = options ?? {};
   return specDictionary
     .filter((section) => !section.condition || section.condition(item))
     .map((section) => ({
       id: section.id,
-      title: section.title,
+      title: resolveSectionTitle(section, translationContext),
       anchor: section.sectionAnchor,
       fields: section.fields
-        .filter((f) => (!f.condition || f.condition(item)) && f.label) // Skip fields without labels or failing condition
+        .filter((field) => {
+          if (field.condition && !field.condition(item)) {
+            return false;
+          }
+          const descriptor = resolveFieldLabelDescriptor(
+            section,
+            field,
+            item,
+            translationContext,
+          );
+          return descriptor.englishLabel.length > 0;
+        })
         .map((field) => {
-          const label = field.labelOverride
-            ? field.labelOverride(item)
-            : field.label;
+          const { label } = resolveFieldLabelDescriptor(
+            section,
+            field,
+            item,
+            translationContext,
+          );
           return {
             key: field.key,
             label,
