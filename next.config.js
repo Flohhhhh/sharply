@@ -1,6 +1,7 @@
 import { withPayload } from "@payloadcms/next/withPayload";
 import { fileURLToPath } from "node:url";
 import createNextIntlPlugin from "next-intl/plugin";
+import { remoteImagePatterns } from "./src/config/remote-image-patterns";
 /**
  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
  * for Docker builds.
@@ -48,24 +49,7 @@ const config = {
   },
   images: {
     unoptimized: process.env.NODE_ENV === "development",
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "8v5lpkd4bi.ufs.sh",
-      },
-      {
-        protocol: "https",
-        hostname: "utfs.io",
-      },
-      {
-        protocol: "https",
-        hostname: "*.ytimg.com",
-      },
-      {
-        protocol: "https",
-        hostname: "img.youtube.com",
-      },
-    ],
+    remotePatterns: remoteImagePatterns,
   },
   webpack: (config, { isServer, webpack }) => {
     if (!isServer) {

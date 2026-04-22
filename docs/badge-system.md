@@ -144,6 +144,7 @@ const res = await withBadgeToasts(actionAwardBadgeForce(userId, "learner"));
 
 - Profile sorting: `sortOverride ?? sortScore` (desc) then `awardedAt` (desc).
 - Roman chip shows ladder index (`levelIndex`) only for ladder badges; individual badges are icon-only.
+- Badge names currently remain catalog-driven English labels. Profile tooltip descriptions are localized via `userProfile.badgeDescriptions.*` in `/messages/*`.
 
 ## Validation & Guardrails
 
@@ -198,7 +199,8 @@ evaluateForEvent(
 - Tests & CI
   - Unit tests for generators (time and threshold); CI step that imports and validates catalog.
 - Internationalization
-  - Make labels/descriptions i18n-friendly; consider deferring to translation layer.
+  - Tooltip descriptions on profile pages are already localized through `/messages/*`.
+  - Catalog labels still remain English-only for now by design.
 
 ---
 

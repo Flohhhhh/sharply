@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import useSWR from "swr";
 import { Button } from "~/components/ui/button";
 import type { ProfileUserListState } from "./types";
@@ -41,6 +42,7 @@ export function UserListsSectionDeferred({
   myProfile,
   profileName,
 }: UserListsSectionDeferredProps) {
+  const t = useTranslations("userProfile");
   const query = new URLSearchParams({ profileUserId }).toString();
   const { data, error, isLoading, mutate } = useSWR<UserListsResponse>(
     `/api/user-lists/profile?${query}`,
@@ -71,14 +73,14 @@ export function UserListsSectionDeferred({
   }
 
   if (error && !myProfile) {
-    const displayName = profileName?.trim() || "This user";
+    const displayName = profileName?.trim() || t("listsThisUser");
 
     return (
       <div>
         <div className="space-y-2 rounded-lg border border-dashed p-6">
-          <p className="text-sm font-medium">Lists</p>
+          <p className="text-sm font-medium">{t("listsTitle")}</p>
           <p className="text-muted-foreground text-sm">
-            {`Unable to load ${displayName}'s public lists right now.`}
+            {t("listsLoadPublicErrorNamed", { name: displayName })}
           </p>
           <Button
             size="sm"
@@ -88,7 +90,7 @@ export function UserListsSectionDeferred({
               void mutate();
             }}
           >
-            Retry
+            {t("listsRetry")}
           </Button>
         </div>
       </div>
@@ -98,9 +100,9 @@ export function UserListsSectionDeferred({
   return (
     <div>
       <div className="space-y-2 rounded-lg border border-dashed p-6">
-        <p className="text-sm font-medium">Lists</p>
+        <p className="text-sm font-medium">{t("listsTitle")}</p>
         <p className="text-muted-foreground text-sm">
-          {error ? "Unable to load lists right now." : "Loading lists..."}
+          {error ? t("listsLoadError") : t("listsLoading")}
         </p>
         {error ? (
           <Button
@@ -111,7 +113,7 @@ export function UserListsSectionDeferred({
               void mutate();
             }}
           >
-            Retry
+            {t("listsRetry")}
           </Button>
         ) : null}
       </div>

@@ -7,6 +7,7 @@ import {
   Link2,
   Pencil,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useEffect,useMemo,useState } from "react";
 import { toast } from "sonner";
@@ -60,6 +61,7 @@ export function ListManageModal({
   list,
   onListsUpdated,
 }: ListManageModalProps) {
+  const t = useTranslations("userProfile");
   const [isSavingOrder, setIsSavingOrder] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [removingItemId, setRemovingItemId] = useState<string | null>(null);
@@ -88,7 +90,7 @@ export function ListManageModal({
       });
       onListsUpdated(result.lists);
     } catch {
-      toast.error("Failed to update order");
+      toast.error(t("listsOrderUpdateError"));
     } finally {
       setIsSavingOrder(false);
     }
@@ -101,9 +103,9 @@ export function ListManageModal({
     try {
       const result = await actionRemoveUserListItem(itemId);
       onListsUpdated(result.lists);
-      toast.success("Item removed from list");
+      toast.success(t("listsItemRemovedSuccess"));
     } catch {
-      toast.error("Failed to remove item");
+      toast.error(t("listsItemRemoveError"));
     } finally {
       setRemovingItemId(null);
     }
@@ -112,7 +114,7 @@ export function ListManageModal({
   const openPublishNameDialog = () => {
     if (!list || isBusy) return;
     if (!canPublish) {
-      toast.error("Add at least one item before publishing");
+      toast.error(t("listsPublishNeedsItem"));
       return;
     }
     setPublishName(list.name);
@@ -129,7 +131,7 @@ export function ListManageModal({
     if (!list || isBusy) return;
     const nextName = publishName.trim();
     if (!nextName) {
-      toast.error("List name is required");
+      toast.error(t("listsNameRequired"));
       return;
     }
 
@@ -143,12 +145,12 @@ export function ListManageModal({
       onListsUpdated(result.lists);
       setIsPublishNameOpen(false);
       setPublishName("");
-      toast.success("List published");
+      toast.success(t("listsPublishSuccess"));
     } catch (error) {
       const message =
         error instanceof Error
           ? error.message
-          : "Failed to update publish state";
+          : t("listsPublishStateError");
       toast.error(message);
     } finally {
       setIsPublishing(false);
@@ -166,12 +168,12 @@ export function ListManageModal({
     try {
       const result = await actionUnpublishUserList(list.id);
       onListsUpdated(result.lists);
-      toast.success("List unpublished");
+      toast.success(t("listsUnpublishSuccess"));
     } catch (error) {
       const message =
         error instanceof Error
           ? error.message
-          : "Failed to update publish state";
+          : t("listsPublishStateError");
       toast.error(message);
     } finally {
       setIsPublishing(false);
@@ -187,9 +189,9 @@ export function ListManageModal({
           ? path
           : `${window.location.origin}${path}`;
       await navigator.clipboard.writeText(absoluteUrl);
-      toast.success("Share link copied");
+      toast.success(t("listsShareLinkCopied"));
     } catch {
-      toast.error("Unable to copy link");
+      toast.error(t("listsShareLinkCopyError"));
     }
   };
 
@@ -212,9 +214,9 @@ export function ListManageModal({
       const result = await actionRenameUserList(list.id, renameName);
       onListsUpdated(result.lists);
       closeRenameDialog();
-      toast.success("List renamed");
+      toast.success(t("listsRenameSuccess"));
     } catch {
-      toast.error("Failed to rename list");
+      toast.error(t("listsRenameError"));
     } finally {
       setIsRenaming(false);
     }
@@ -241,23 +243,25 @@ export function ListManageModal({
       <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-1.5">
-            <span className="truncate">{list?.name ?? "Manage list"}</span>
+            <span className="truncate">{list?.name ?? t("listsManageTitle")}</span>
             {list?.shared?.isPublished ? (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span className="inline-flex">
                     <BookOpenCheck
                       className="text-muted-foreground size-4 shrink-0"
-                      aria-label="Published"
+                      aria-label={t("listsPublished")}
                     />
                   </span>
                 </TooltipTrigger>
-                <TooltipContent sideOffset={8}>Published</TooltipContent>
+                <TooltipContent sideOffset={8}>
+                  {t("listsPublished")}
+                </TooltipContent>
               </Tooltip>
             ) : null}
           </DialogTitle>
           <DialogDescription>
-            Reorder items, remove items, and manage sharing.
+            {t("listsManageDescription")}
           </DialogDescription>
         </DialogHeader>
 
@@ -271,7 +275,7 @@ export function ListManageModal({
               disabled={isBusy}
               onClick={openRename}
             >
-              Rename
+              {t("listsRename")}
             </Button>
           ) : null}
           <Button
@@ -289,7 +293,9 @@ export function ListManageModal({
             disabled={(!canPublish && !list?.shared?.isPublished) || isBusy}
             onClick={() => void handlePublishToggle()}
           >
-            {list?.shared?.isPublished ? "Unpublish" : "Publish"}
+            {list?.shared?.isPublished
+              ? t("listsUnpublish")
+              : t("listsPublish")}
           </Button>
           {list?.shared?.isPublished ? (
             <Button
@@ -299,7 +305,7 @@ export function ListManageModal({
               icon={<Link2 className="size-4" />}
               onClick={() => void handleCopyLink()}
             >
-              Copy share link
+              {t("listsCopyShareLink")}
             </Button>
           ) : null}
           {list?.shared?.isPublished && list?.shared?.path ? (
@@ -309,18 +315,18 @@ export function ListManageModal({
               variant="outline"
               icon={<DoorOpen className="size-4" />}
             >
-              <Link href={list.shared.path}>View list</Link>
+              <Link href={list.shared.path}>{t("listsViewList")}</Link>
             </Button>
           ) : null}
           {!canPublish && !list?.shared?.isPublished ? (
             <p className="text-muted-foreground text-xs">
-              Add at least one item from a gear page before publishing.
+              {t("listsPublishHint")}
             </p>
           ) : null}
         </div>
 
         <div className="space-y-3">
-          <p className="text-sm font-medium">Items</p>
+          <p className="text-sm font-medium">{t("listsItemsTitle")}</p>
           {sortableItems.length ? (
             <ListSortableItems
               items={sortableItems}
@@ -330,12 +336,13 @@ export function ListManageModal({
             />
           ) : (
             <div className="text-muted-foreground rounded-lg border border-dashed p-4 text-sm">
-              This list is empty. Add items from gear pages using the Save Item
-              button.
+              {t("listsManageEmpty")}
             </div>
           )}
           {isSavingOrder ? (
-            <p className="text-muted-foreground text-xs">Saving order...</p>
+            <p className="text-muted-foreground text-xs">
+              {t("listsSavingOrder")}
+            </p>
           ) : null}
         </div>
       </DialogContent>
@@ -350,26 +357,26 @@ export function ListManageModal({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Rename list</AlertDialogTitle>
+            <AlertDialogTitle>{t("listsRenameDialogTitle")}</AlertDialogTitle>
           </AlertDialogHeader>
           <div className="space-y-2">
-            <Label htmlFor="modal-rename-list-name">List name</Label>
+            <Label htmlFor="modal-rename-list-name">{t("listsNameLabel")}</Label>
             <Input
               id="modal-rename-list-name"
               value={renameName}
               onChange={(event) => setRenameName(event.target.value)}
-              placeholder="New list name"
+              placeholder={t("listsRenamePlaceholder")}
               disabled={isRenaming}
             />
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel asChild>
               <Button variant="outline" disabled={isRenaming}>
-                Cancel
+                {t("close")}
               </Button>
             </AlertDialogCancel>
             <Button onClick={() => void handleRename()} loading={isRenaming}>
-              Save
+              {t("listsSave")}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -385,29 +392,29 @@ export function ListManageModal({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Choose a public list name</AlertDialogTitle>
+            <AlertDialogTitle>{t("listsPublicNameTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This name is shown on the shared page and can be changed later.
+              {t("listsPublicNameDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-2">
-            <Label htmlFor="modal-publish-list-name">Public name</Label>
+            <Label htmlFor="modal-publish-list-name">{t("listsPublicNameLabel")}</Label>
             <Input
               id="modal-publish-list-name"
               value={publishName}
               onChange={(event) => setPublishName(event.target.value)}
-              placeholder="My travel kit"
+              placeholder={t("listsCreatePlaceholder")}
               disabled={isPublishing}
             />
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel asChild>
               <Button variant="outline" disabled={isPublishing}>
-                Cancel
+                {t("close")}
               </Button>
             </AlertDialogCancel>
             <Button onClick={() => void handlePublishWithName()} loading={isPublishing}>
-              Publish list
+              {t("listsPublishButton")}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

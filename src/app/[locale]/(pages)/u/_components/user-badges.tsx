@@ -6,6 +6,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
+import { getBadgeDescriptionMessage } from "~/lib/badges/description";
 import { BADGE_CATALOG } from "~/lib/badges/catalog";
 import { toRomanNumeral } from "~/lib/utils";
 import { fetchUserBadges } from "~/server/badges/service";
@@ -41,6 +42,7 @@ export async function UserBadges({ userId }: { userId: string }) {
             })
             .map(({ row: r, meta }) => {
               const Icon = meta?.iconComponent || Lucide.Award;
+              const descriptionMessage = getBadgeDescriptionMessage(meta);
               return (
                 <Tooltip key={`${r.badgeKey}-${String(r.awardedAt)}`}>
                   <TooltipTrigger asChild>
@@ -61,9 +63,14 @@ export async function UserBadges({ userId }: { userId: string }) {
                       <div className="text-primary text-sm font-semibold">
                         {meta?.label ?? r.badgeKey}
                       </div>
-                      {meta?.description ? (
+                      {descriptionMessage ? (
                         <div className="text-muted-foreground max-w-[220px] text-sm">
-                          {meta.description}
+                          {descriptionMessage.values
+                            ? t(
+                                descriptionMessage.key as never,
+                                descriptionMessage.values as never,
+                              )
+                            : t(descriptionMessage.key as never)}
                         </div>
                       ) : null}
                     </div>

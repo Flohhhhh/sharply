@@ -2,6 +2,7 @@
 
 import { track } from "@vercel/analytics";
 import { Pencil } from "lucide-react";
+import { useTranslations } from "next-intl";
 import React,{ useMemo,useState } from "react";
 import { Alert,AlertDescription } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
@@ -28,6 +29,7 @@ export function GearReviewForm({
   onReviewSubmitted,
   refreshSignal = 0,
 }: GearReviewFormProps) {
+  const t = useTranslations("gearDetail");
   const { data, isPending } = useSession();
 
   const session = data?.session;
@@ -132,16 +134,16 @@ export function GearReviewForm({
           return;
         }
 
-        setError(data.message || "Failed to submit review.");
+        setError(data.message || t("reviewSubmitError"));
         return;
       }
 
       if (!response.ok) {
-        setError("Failed to submit review.");
+        setError(t("reviewSubmitError"));
         return;
       }
 
-      setSuccess("Review published successfully.");
+      setSuccess(t("reviewPublished"));
       setContent("");
       // reset composer
       setGenres([]);
@@ -151,7 +153,7 @@ export function GearReviewForm({
       setHasSubmitted(true);
       onReviewSubmitted?.();
     } catch {
-      setError("Failed to submit review");
+      setError(t("reviewSubmitError"));
     } finally {
       setIsSubmitting(false);
     }
@@ -181,7 +183,7 @@ export function GearReviewForm({
       {/* Banner + Trigger */}
       <div className="flex w-full flex-col items-start justify-between gap-2 rounded-md border p-3 sm:flex-row sm:items-center">
         <div className="sm:blocktext-sm hidden">
-          Share your experience to help others decide.
+          {t("writeReviewDescription")}
         </div>
         <Button
           onClick={handleCtaClick}
@@ -189,23 +191,19 @@ export function GearReviewForm({
           icon={<Pencil className="h-4 w-4" />}
           className="w-full sm:w-fit"
         >
-          Write a Review
+          {t("writeReview")}
         </Button>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>User Review</DialogTitle>
-              <DialogDescription>
-                Write a short review of your personal experience with this gear,
-                address how its performance compares to your expectations, what
-                you like about it, and what you wish could be improved.
-              </DialogDescription>
+              <DialogTitle>{t("userReviewTitle")}</DialogTitle>
+              <DialogDescription>{t("userReviewDescription")}</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Genres (simple checkbox list, max 3) */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">
-                  What do you use it for?
+                  {t("reviewUsageLabel")}
                 </label>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                   {(GENRES as any[]).map((g) => {
@@ -242,14 +240,14 @@ export function GearReviewForm({
                   })}
                 </div>
                 <div className="text-muted-foreground text-xs">
-                  Select up to 3.
+                  {t("reviewUsageHelp")}
                 </div>
               </div>
 
               {/* Recommend (radio) */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">
-                  Would you recommend this to people like you?
+                  {t("reviewRecommendLabel")}
                 </label>
                 <RadioGroup
                   value={recommend ?? undefined}
@@ -260,11 +258,11 @@ export function GearReviewForm({
                 >
                   <label className="flex items-center gap-2 text-sm">
                     <RadioGroupItem value="YES" />
-                    <span>Yes</span>
+                    <span>{t("yes")}</span>
                   </label>
                   <label className="flex items-center gap-2 text-sm">
                     <RadioGroupItem value="NO" />
-                    <span>No</span>
+                    <span>{t("no")}</span>
                   </label>
                 </RadioGroup>
               </div>
@@ -275,13 +273,13 @@ export function GearReviewForm({
                   htmlFor="content"
                   className="mb-2 block text-sm font-medium"
                 >
-                  Your Review
+                  {t("yourReview")}
                 </label>
                 <TextareaWithCounter
                   id="content"
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  placeholder="Share your experience..."
+                  placeholder={t("yourReviewPlaceholder")}
                   rows={6}
                   required
                   maxLength={600}
@@ -307,10 +305,10 @@ export function GearReviewForm({
                   onClick={() => setOpen(false)}
                   disabled={isSubmitting}
                 >
-                  Cancel
+                  {t("cancel")}
                 </Button>
                 <Button type="submit" disabled={isSubmitting || !formValid}>
-                  {isSubmitting ? "Submitting..." : "Submit Review"}
+                  {isSubmitting ? t("submittingReview") : t("submitReview")}
                 </Button>
               </div>
             </form>

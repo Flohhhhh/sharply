@@ -11,6 +11,7 @@ import {
   Share2,
   Trash2,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { usePathname,useRouter,useSearchParams } from "next/navigation";
 import { useCallback,useEffect,useState } from "react";
 import { toast } from "sonner";
@@ -71,6 +72,7 @@ export function UserListsSection({
   profileName,
   onListsChanged,
 }: UserListsSectionProps) {
+  const t = useTranslations("userProfile");
   const router = useRouter();
   const rawPathname = usePathname();
   const searchParams = useSearchParams();
@@ -121,9 +123,9 @@ export function UserListsSection({
       applyListsUpdate(result.lists);
       setCreateName("");
       setIsCreateOpen(false);
-      toast.success("List created");
+      toast.success(t("listsCreateSuccess"));
     } catch {
-      toast.error("Failed to create list");
+      toast.error(t("listsCreateError"));
     } finally {
       setIsCreating(false);
     }
@@ -142,9 +144,9 @@ export function UserListsSection({
       applyListsUpdate(result.lists);
       setRenameListId(null);
       setRenameName("");
-      toast.success("List renamed");
+      toast.success(t("listsRenameSuccess"));
     } catch {
-      toast.error("Failed to rename list");
+      toast.error(t("listsRenameError"));
     } finally {
       setIsRenaming(false);
     }
@@ -166,9 +168,9 @@ export function UserListsSection({
       const result = await actionDeleteUserList(listId);
       applyListsUpdate(result.lists);
       setDeleteListId(null);
-      toast.success("List deleted");
+      toast.success(t("listsDeleteSuccess"));
     } catch {
-      toast.error("Failed to delete list");
+      toast.error(t("listsDeleteError"));
     } finally {
       setListActionId(null);
     }
@@ -189,7 +191,7 @@ export function UserListsSection({
     if (!publishListId || listActionId || isPublishing) return;
     const nextName = publishName.trim();
     if (!nextName) {
-      toast.error("List name is required");
+      toast.error(t("listsNameRequired"));
       return;
     }
 
@@ -198,7 +200,7 @@ export function UserListsSection({
     try {
       const currentList = lists.find((list) => list.id === publishListId);
       if (!currentList) {
-        throw new Error("List not found");
+        throw new Error(t("listsNotFound"));
       }
 
       if (currentList.name !== nextName) {
@@ -210,10 +212,10 @@ export function UserListsSection({
       applyListsUpdate(result.lists);
       setPublishListId(null);
       setPublishName("");
-      toast.success("List published");
+      toast.success(t("listsPublishSuccess"));
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Failed to publish list";
+        error instanceof Error ? error.message : t("listsPublishError");
       toast.error(message);
     } finally {
       setIsPublishing(false);
@@ -228,12 +230,12 @@ export function UserListsSection({
     try {
       const result = await actionUnpublishUserList(list.id);
       applyListsUpdate(result.lists);
-      toast.success("List unpublished");
+      toast.success(t("listsUnpublishSuccess"));
     } catch (error) {
       const message =
         error instanceof Error
           ? error.message
-          : "Failed to update publish state";
+          : t("listsPublishStateError");
       toast.error(message);
     } finally {
       setListActionId(null);
@@ -249,9 +251,9 @@ export function UserListsSection({
           ? path
           : `${window.location.origin}${path}`;
       await navigator.clipboard.writeText(absoluteUrl);
-      toast.success("Share link copied");
+      toast.success(t("listsShareLinkCopied"));
     } catch {
-      toast.error("Unable to copy link");
+      toast.error(t("listsShareLinkCopyError"));
     }
   };
 
@@ -306,9 +308,9 @@ export function UserListsSection({
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-1">
         <div>
-          <h2 className="text-2xl font-semibold">Lists</h2>
+          <h2 className="text-2xl font-semibold">{t("listsTitle")}</h2>
           <p className="text-muted-foreground text-sm">
-            {lists.length} total • {publishedCount} published
+            {t("listsSummary", { total: lists.length, published: publishedCount })}
           </p>
         </div>
         {myProfile ? (
@@ -318,7 +320,7 @@ export function UserListsSection({
             icon={<ListPlus className="size-4" />}
             onClick={() => setIsCreateOpen(true)}
           >
-            Create list
+            {t("listsCreateButton")}
           </Button>
         ) : null}
       </div>
@@ -357,19 +359,19 @@ export function UserListsSection({
                           <span className="inline-flex">
                             <BookOpenCheck
                               className="text-muted-foreground size-4 shrink-0"
-                              aria-label="Published"
+                              aria-label={t("listsPublished")}
                             />
                           </span>
                         </TooltipTrigger>
                         <TooltipContent sideOffset={8}>
-                          Published
+                          {t("listsPublished")}
                         </TooltipContent>
                       </Tooltip>
                     ) : null}
                   </h3>
                   <p className="text-muted-foreground text-xs">
-                    {list.itemCount} items
-                    {list.isDefault ? " • Default" : ""}
+                    {t("listsItemCount", { count: list.itemCount })}
+                    {list.isDefault ? ` • ${t("listsDefault")}` : ""}
                   </p>
                 </div>
                 {myProfile ? (
@@ -390,7 +392,7 @@ export function UserListsSection({
                         }}
                       >
                         <MoreVertical className="size-4" />
-                        <span className="sr-only">List actions</span>
+                        <span className="sr-only">{t("listsActions")}</span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
@@ -407,12 +409,12 @@ export function UserListsSection({
                     >
                       <DropdownMenuItem onClick={() => openManage(list)}>
                         <List className="size-4" />
-                        Manage items
+                        {t("listsManageItems")}
                       </DropdownMenuItem>
                       {!list.isDefault ? (
                         <DropdownMenuItem onClick={() => openRename(list)}>
                           <Pencil className="size-4" />
-                          Rename
+                          {t("listsRename")}
                         </DropdownMenuItem>
                       ) : null}
                       <DropdownMenuItem
@@ -429,14 +431,16 @@ export function UserListsSection({
                         }}
                       >
                         <Share2 className="size-4" />
-                        {list.shared?.isPublished ? "Unpublish" : "Publish"}
+                        {list.shared?.isPublished
+                          ? t("listsUnpublish")
+                          : t("listsPublish")}
                       </DropdownMenuItem>
                       {list.shared?.isPublished ? (
                         <DropdownMenuItem
                           onClick={() => void copyShareLink(list)}
                         >
                           <Link2 className="size-4" />
-                          Copy link
+                          {t("listsCopyLink")}
                         </DropdownMenuItem>
                       ) : null}
                       {!list.isDefault ? (
@@ -447,7 +451,7 @@ export function UserListsSection({
                             onClick={() => openDeleteDialog(list)}
                           >
                             <Trash2 className="size-4" />
-                            Delete
+                            {t("listsDelete")}
                           </DropdownMenuItem>
                         </>
                       ) : null}
@@ -467,7 +471,7 @@ export function UserListsSection({
                 ))}
                 {list.itemCount > 3 ? (
                   <p className="text-muted-foreground text-xs">
-                    +{list.itemCount - 3} more items
+                    {t("listsMoreItems", { count: list.itemCount - 3 })}
                   </p>
                 ) : null}
               </div>
@@ -491,7 +495,7 @@ export function UserListsSection({
                         event.stopPropagation();
                       }}
                     >
-                      Open
+                      {t("listsOpen")}
                     </LocaleLink>
                   </Button>
                 </div>
@@ -501,20 +505,20 @@ export function UserListsSection({
         </div>
       ) : myProfile ? (
         <Empty className="border-border rounded-lg border-2 border-dashed p-8">
-          <EmptyTitle>No lists yet</EmptyTitle>
+          <EmptyTitle>{t("listsEmptyOwnTitle")}</EmptyTitle>
           <EmptyDescription>
-            Create a list to organize gear you want to save or share.
+            {t("listsEmptyOwnDescription")}
           </EmptyDescription>
         </Empty>
       ) : (
         <Empty className="border-border rounded-lg border-2 border-dashed p-8">
           <EmptyTitle>
             {profileName
-              ? `${profileName} has no public lists yet`
-              : "No public lists yet"}
+              ? t("listsEmptyOtherNamed", { name: profileName })
+              : t("listsEmptyOtherTitle")}
           </EmptyTitle>
           <EmptyDescription>
-            Check back later to see any lists they choose to share.
+            {t("listsEmptyOtherDescription")}
           </EmptyDescription>
         </Empty>
       )}
@@ -522,26 +526,26 @@ export function UserListsSection({
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create a new list</DialogTitle>
+            <DialogTitle>{t("listsCreateDialogTitle")}</DialogTitle>
             <DialogDescription>
-              Create a list to organize saved gear.
+              {t("listsCreateDialogDescription")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
-            <Label htmlFor="create-list-name">List name</Label>
+            <Label htmlFor="create-list-name">{t("listsNameLabel")}</Label>
             <Input
               id="create-list-name"
               value={createName}
               onChange={(event) => setCreateName(event.target.value)}
-              placeholder="My travel kit"
+              placeholder={t("listsCreatePlaceholder")}
             />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-              Cancel
+              {t("close")}
             </Button>
             <Button onClick={handleCreate} loading={isCreating}>
-              Create list
+              {t("listsCreateButton")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -558,15 +562,15 @@ export function UserListsSection({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rename list</DialogTitle>
+            <DialogTitle>{t("listsRenameDialogTitle")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-2">
-            <Label htmlFor="rename-list-name">List name</Label>
+            <Label htmlFor="rename-list-name">{t("listsNameLabel")}</Label>
             <Input
               id="rename-list-name"
               value={renameName}
               onChange={(event) => setRenameName(event.target.value)}
-              placeholder="New list name"
+              placeholder={t("listsRenamePlaceholder")}
             />
           </div>
           <DialogFooter>
@@ -577,10 +581,10 @@ export function UserListsSection({
                 setRenameName("");
               }}
             >
-              Cancel
+              {t("close")}
             </Button>
             <Button onClick={handleRename} loading={isRenaming}>
-              Save
+              {t("listsSave")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -596,29 +600,29 @@ export function UserListsSection({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Choose a public list name</AlertDialogTitle>
+            <AlertDialogTitle>{t("listsPublicNameTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This name is shown on the shared page and can be changed later.
+              {t("listsPublicNameDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-2">
-            <Label htmlFor="publish-list-name">Public name</Label>
+            <Label htmlFor="publish-list-name">{t("listsPublicNameLabel")}</Label>
             <Input
               id="publish-list-name"
               value={publishName}
               onChange={(event) => setPublishName(event.target.value)}
-              placeholder="My travel kit"
+              placeholder={t("listsCreatePlaceholder")}
               disabled={isPublishing}
             />
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel asChild>
               <Button variant="outline" disabled={isPublishing}>
-                Cancel
+                {t("close")}
               </Button>
             </AlertDialogCancel>
             <Button onClick={() => void handlePublish()} loading={isPublishing}>
-              Publish list
+              {t("listsPublishButton")}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -634,14 +638,14 @@ export function UserListsSection({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this list?</AlertDialogTitle>
+            <AlertDialogTitle>{t("listsDeleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete{" "}
+              {t("listsDeleteDescriptionPrefix")}{" "}
               <span className="font-medium">
                 {lists.find((list) => list.id === deleteListId)?.name ??
-                  "this list"}
+                  t("listsThisList")}
               </span>{" "}
-              and all saved items in it.
+              {t("listsDeleteDescriptionSuffix")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -652,7 +656,7 @@ export function UserListsSection({
                   deleteListId && listActionId === deleteListId,
                 )}
               >
-                Cancel
+                {t("close")}
               </Button>
             </AlertDialogCancel>
             <Button
@@ -663,7 +667,7 @@ export function UserListsSection({
                 void handleDelete(deleteListId);
               }}
             >
-              Delete list
+              {t("listsDeleteButton")}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
