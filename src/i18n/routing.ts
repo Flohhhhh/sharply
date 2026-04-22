@@ -4,6 +4,9 @@ import { defaultLocale,isLocale,locales } from "./config";
 
 export const localePrefixHeaderName = "x-sharply-locale-prefix";
 export const normalizedPathHeaderName = "x-sharply-normalized-pathname";
+export const normalizedSearchHeaderName = "x-sharply-normalized-search";
+export const normalizedCallbackUrlHeaderName =
+  "x-sharply-normalized-callback-url";
 
 export function stripLocalePrefix(pathname: string): {
   locale: Locale | null;
@@ -36,6 +39,34 @@ export function stripLocalePrefix(pathname: string): {
 
 export function getLocalePrefix(locale: Locale) {
   return locale === defaultLocale ? "" : `/${locale}`;
+}
+
+export function buildNormalizedCallbackUrl(
+  pathname: string,
+  search: string = "",
+) {
+  return `${pathname}${search}`;
+}
+
+export function applyRoutingRequestHeaders(
+  headers: Headers,
+  options: {
+    locale: Locale;
+    normalizedPathname: string;
+    normalizedSearch?: string;
+  },
+) {
+  const normalizedSearch = options.normalizedSearch ?? "";
+
+  headers.set(localePrefixHeaderName, getLocalePrefix(options.locale));
+  headers.set(normalizedPathHeaderName, options.normalizedPathname);
+  headers.set(normalizedSearchHeaderName, normalizedSearch);
+  headers.set(
+    normalizedCallbackUrlHeaderName,
+    buildNormalizedCallbackUrl(options.normalizedPathname, normalizedSearch),
+  );
+
+  return headers;
 }
 
 export function localizePathname(pathname: string, locale: Locale) {

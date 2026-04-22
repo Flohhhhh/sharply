@@ -10,7 +10,7 @@ test.describe("smoke", () => {
         name: "Real specs, real reviews, real fast.",
       }),
     ).toBeVisible();
-    const searchTrigger = page.getByRole("button", { name: "Open search" });
+    const searchTrigger = page.getByRole("button", { name: "Search" });
     await expect(searchTrigger).toBeVisible();
     await searchTrigger.click();
     await expect(page.getByRole("dialog")).toBeVisible();

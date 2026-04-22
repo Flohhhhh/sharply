@@ -2,10 +2,12 @@
 
 import { track } from "@vercel/analytics";
 import { LogIn,LogOut,Settings,User as UserIcon } from "lucide-react";
-import { useLocale,useTranslations } from "next-intl";
-import { usePathname,useRouter,useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { useState } from "react";
-import { LocaleLink } from "~/components/locale-link";
+import type {
+  HeaderLabels,
+  HeaderNavItem,
+} from "~/components/layout/header-model";
 import {
   Accordion,
   AccordionContent,
@@ -21,36 +23,32 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "~/components/ui/sheet";
-import type { Locale } from "~/i18n/config";
-import { localizePathname } from "~/i18n/routing";
 import { logOut } from "~/lib/auth";
-import { getNavItems,iconMap } from "~/lib/nav-items";
+import { iconMap } from "~/lib/nav-items";
 import type { UserMenuUser } from "./user-menu";
 
 interface NavMenuMobileProps {
   children: React.ReactNode;
+  items: HeaderNavItem[];
+  labels: Pick<HeaderLabels, "account" | "logOut" | "profile" | "signIn">;
+  callbackUrl: string;
+  signInHref: string;
+  profileHref: string | null;
+  accountHref: string;
   user?: UserMenuUser;
 }
 
-export function NavMenuMobile({ children, user = null }: NavMenuMobileProps) {
+export function NavMenuMobile({
+  children,
+  items,
+  labels,
+  callbackUrl,
+  signInHref,
+  profileHref,
+  accountHref,
+  user = null,
+}: NavMenuMobileProps) {
   const [open, setOpen] = useState(false);
-  const t = useTranslations("common");
-  const tNav = useTranslations("nav");
-  const locale = useLocale() as Locale;
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const navItems = getNavItems(tNav);
-
-  const callbackUrl = (() => {
-    const qs = searchParams?.toString();
-    return qs ? `${pathname}?${qs}` : pathname || "/";
-  })();
-
-  const handleNavigation = (url: string) => {
-    setOpen(false);
-    router.push(localizePathname(url, locale));
-  };
 
   const handleSignInClick = () => {
     void track("auth_signin_press", {
@@ -71,24 +69,22 @@ export function NavMenuMobile({ children, user = null }: NavMenuMobileProps) {
         {user ? (
           <div className="bg-muted/30 border-b px-4 py-3 text-sm">
             <div className="flex flex-col gap-2">
-              <button
-                onClick={() =>
-                  handleNavigation(
-                    `/u/${user.handle || `user-${user.memberNumber}`}`,
-                  )
-                }
+              <Link
+                href={profileHref ?? "#"}
+                onClick={() => setOpen(false)}
                 className="hover:bg-accent hover:text-accent-foreground flex w-full items-center gap-3 rounded-md p-3 text-left transition-colors"
               >
                 <UserIcon className="text-muted-foreground h-4 w-4" />
-                <span>{t("profile")}</span>
-              </button>
-              <button
-                onClick={() => handleNavigation("/profile/settings")}
+                <span>{labels.profile}</span>
+              </Link>
+              <Link
+                href={accountHref}
+                onClick={() => setOpen(false)}
                 className="hover:bg-accent hover:text-accent-foreground flex w-full items-center gap-3 rounded-md p-3 text-left transition-colors"
               >
                 <Settings className="text-muted-foreground h-4 w-4" />
-                <span>{t("account")}</span>
-              </button>
+                <span>{labels.account}</span>
+              </Link>
               <button
                 onClick={() => {
                   setOpen(false);
@@ -98,26 +94,29 @@ export function NavMenuMobile({ children, user = null }: NavMenuMobileProps) {
                 className="hover:bg-accent hover:text-accent-foreground flex w-full items-center gap-3 rounded-md p-3 text-left text-red-600 transition-colors"
               >
                 <LogOut className="h-4 w-4" />
-                <span>{t("logOut")}</span>
+                <span>{labels.logOut}</span>
               </button>
             </div>
           </div>
         ) : (
           <div className="border-b px-4 py-3">
             <Button asChild size="sm" icon={<LogIn />} className="w-full">
-              <LocaleLink
-                href={`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`}
-                onClick={handleSignInClick}
+              <Link
+                href={signInHref}
+                onClick={() => {
+                  handleSignInClick();
+                  setOpen(false);
+                }}
               >
-                {t("signIn")}
-              </LocaleLink>
+                {labels.signIn}
+              </Link>
             </Button>
           </div>
         )}
 
         <div className="space-y-1 px-4 py-2">
           <Accordion type="single" collapsible className="w-full">
-            {navItems.map((item) => {
+            {items.map((item) => {
               if (item.items && item.items.length > 0) {
                 // Category with accordion items
                 return (
@@ -139,9 +138,10 @@ export function NavMenuMobile({ children, user = null }: NavMenuMobileProps) {
                             : null;
 
                           return (
-                            <button
+                            <Link
                               key={subItem.title}
-                              onClick={() => handleNavigation(subItem.url)}
+                              href={subItem.href}
+                              onClick={() => setOpen(false)}
                               className="hover:bg-accent hover:text-accent-foreground flex w-full items-center gap-3 rounded-md p-3 text-left text-sm transition-colors"
                             >
                               {Icon && (
@@ -157,7 +157,7 @@ export function NavMenuMobile({ children, user = null }: NavMenuMobileProps) {
                                   </div>
                                 )}
                               </div>
-                            </button>
+                            </Link>
                           );
                         })}
                       </div>
@@ -167,13 +167,14 @@ export function NavMenuMobile({ children, user = null }: NavMenuMobileProps) {
               } else {
                 // Simple link item
                 return (
-                  <button
+                  <Link
                     key={item.title}
-                    onClick={() => handleNavigation(item.url)}
+                    href={item.href}
+                    onClick={() => setOpen(false)}
                     className="hover:bg-accent hover:text-accent-foreground flex w-full items-center rounded-md px-0 py-3 text-left text-sm font-medium transition-colors"
                   >
                     {item.title}
-                  </button>
+                  </Link>
                 );
               }
             })}

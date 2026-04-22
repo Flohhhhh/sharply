@@ -1,7 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import { LocaleLink } from "~/components/locale-link";
+import Link from "next/link";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -11,17 +10,15 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "~/components/ui/navigation-menu";
-import { getNavItems,iconMap } from "~/lib/nav-items";
+import type { HeaderNavItem } from "~/components/layout/header-model";
+import { iconMap } from "~/lib/nav-items";
 import { cn } from "~/lib/utils";
 
-export function NavMenuDesktop() {
-  const t = useTranslations("nav");
-  const navItems = getNavItems(t);
-
+export function NavMenuDesktop({ items }: { items: HeaderNavItem[] }) {
   return (
     <NavigationMenu>
       <NavigationMenuList>
-        {navItems.map((item) => {
+        {items.map((item) => {
           if (item.items && item.items.length > 0) {
             // Category with dropdown items still available
             return (
@@ -35,9 +32,9 @@ export function NavMenuDesktop() {
                         : null;
 
                       return (
-                        <LocaleLink
+                        <Link
                           key={subItem.title}
-                          href={subItem.url}
+                          href={subItem.href}
                           className="group hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground block space-y-1 rounded-md p-3 leading-none no-underline outline-none select-none"
                         >
                           <div className="flex items-center gap-2">
@@ -53,7 +50,7 @@ export function NavMenuDesktop() {
                               {subItem.description}
                             </p>
                           )}
-                        </LocaleLink>
+                        </Link>
                       );
                     })}
                   </div>
@@ -65,12 +62,12 @@ export function NavMenuDesktop() {
             return (
               <NavigationMenuItem key={item.title}>
                 <NavigationMenuLink asChild className="rounded-md">
-                  <LocaleLink
-                    href={item.url}
+                  <Link
+                    href={item.href}
                     className={cn(navigationMenuTriggerStyle())}
                   >
                     {item.title}
-                  </LocaleLink>
+                  </Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>
             );

@@ -1,51 +1,88 @@
-"use client";
-
-import { Suspense } from "react";
-import useSWR from "swr";
-import { useSession } from "~/lib/auth/auth-client";
-import { fetchJson } from "~/lib/fetch-json";
-import HeaderClient,{
-  type HeaderNotificationsData,
+import { getLocale,getTranslations } from "next-intl/server";
+import { headers } from "next/headers";
+import { auth } from "~/auth";
+import {
+  buildHeaderViewModel,
   type HeaderUser,
-} from "./header-client";
+} from "~/components/layout/header-model";
+import type { Locale } from "~/i18n/config";
+import {
+  normalizedPathHeaderName,
+  normalizedSearchHeaderName,
+} from "~/i18n/routing";
+import { getFooterItems,getNavItems } from "~/lib/nav-items";
+import { fetchNotificationsForUser } from "~/server/notifications/service";
+import HeaderClient from "./header-client";
 
-export default function Header() {
-  const { data: sessionData } = useSession();
-
-  const user: HeaderUser = sessionData?.user
+function mapSessionUser(
+  session: Awaited<ReturnType<typeof auth.api.getSession>>,
+): HeaderUser {
+  return session?.user
     ? {
-        id: sessionData.user.id,
-        role: sessionData.user.role,
-        handle: sessionData.user.handle,
-        memberNumber: sessionData.user.memberNumber,
-        name: sessionData.user.name,
-        email: sessionData.user.email,
-        image: sessionData.user.image,
+        id: session.user.id,
+        role: session.user.role,
+        handle: session.user.handle,
+        memberNumber: session.user.memberNumber,
+        name: session.user.name,
+        email: session.user.email,
+        image: session.user.image,
       }
     : null;
-  const { data: notificationsData } = useSWR<HeaderNotificationsData>(
-    user?.id ? "/api/notifications/header" : null,
-    (url: string) =>
-      fetchJson<HeaderNotificationsData>(url, {
-        method: "GET",
-        credentials: "same-origin",
-        cache: "no-store",
-      }),
-    {
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
-      shouldRetryOnError: false,
-    },
-  );
-  const notifications = user?.id ? (notificationsData ?? null) : null;
+}
 
-  return (
-    <Suspense
-      fallback={
-        <div className="bg-background fixed top-0 right-0 left-0 z-50 h-16" />
-      }
-    >
-      <HeaderClient user={user} notifications={notifications} />
-    </Suspense>
-  );
+export default async function Header() {
+  const requestHeaders = await headers();
+  const locale = (await getLocale()) as Locale;
+  const normalizedPathname =
+    requestHeaders.get(normalizedPathHeaderName)?.trim() || "/";
+  const normalizedSearch =
+    requestHeaders.get(normalizedSearchHeaderName)?.trim() || "";
+
+  const sessionPromise = auth.api.getSession({
+    headers: requestHeaders,
+  });
+  const commonTranslationsPromise = getTranslations({
+    locale,
+    namespace: "common",
+  });
+  const navTranslationsPromise = getTranslations({
+    locale,
+    namespace: "nav",
+  });
+
+  const [session, tCommon, tNav] = await Promise.all([
+    sessionPromise,
+    commonTranslationsPromise,
+    navTranslationsPromise,
+  ]);
+
+  const user = mapSessionUser(session);
+  const notifications = user
+    ? await fetchNotificationsForUser({
+        userId: user.id,
+        limit: 10,
+        archivedLimit: 5,
+      })
+    : null;
+
+  const model = buildHeaderViewModel({
+    locale,
+    normalizedPathname,
+    normalizedSearch,
+    navItems: getNavItems(tNav),
+    footerItems: getFooterItems(tNav),
+    labels: {
+      adminPanel: tCommon("adminPanel"),
+      signIn: tCommon("signIn"),
+      profile: tCommon("profile"),
+      account: tCommon("account"),
+      logOut: tCommon("logOut"),
+      anonymous: tCommon("anonymous"),
+    },
+    moreLabel: tNav("more"),
+    user,
+    notifications,
+  });
+
+  return <HeaderClient model={model} />;
 }
