@@ -5,7 +5,9 @@ import Header from "~/components/layout/header";
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div>
-      <Header />
+      <Suspense fallback={<div className="h-16" />}>
+        <Header />
+      </Suspense>
       {children}
       <Suspense fallback={null}>
         <Footer />

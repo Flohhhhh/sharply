@@ -55,7 +55,7 @@ The implementation currently lives in:
 
 The spec registry uses the same mixed-source approach:
 
-- English source copy stays inline in [src/lib/specs/registry.tsx](/Users/camerongustavson/CodeProjects/sharply/src/lib/specs/registry.tsx:1)
+- English source copy stays inline in [src/lib/specs/registry.tsx](../src/lib/specs/registry.tsx)
 - Localized copies live in `/messages/*` under `gearDetail.specRegistry.*`
 - Registry consumers pass a `gearDetail` translator into the registry builders
 
@@ -65,11 +65,20 @@ The registry resolves copy like this:
 2. If the locale is not `en` and the translation key exists, use the localized message.
 3. If the locale is not `en` and the key is missing, fall back to the inline English text.
 
-Key format:
+**Key contract: scoped vs full translation paths**
 
-- Section titles: `gearDetail.specRegistry.sections.<sectionId>.title`
-- Field labels: `gearDetail.specRegistry.sections.<sectionId>.fields.<fieldKey>.label`
-- Shared simple values: `gearDetail.specRegistry.shared.*`
+- `registry.tsx` and registry builders expect keys scoped under `specRegistry.*` (not full `gearDetail.specRegistry.*`).
+- Consumers must pass a translator already scoped to `"gearDetail"` (the `gearDetail` translator parameter).
+- The internal key builder constructs keys like `specRegistry.sections.<sectionId>.fields.<fieldKey>.label`.
+- The full JSON path in locale files is `gearDetail.specRegistry.sections.<sectionId>.fields.<fieldKey>.label`.
+- **Incorrect**: Passing `labelKey` already prefixed with `gearDetail.` causes duplicate prefixes and key misses.
+- **Correct**: Use `specRegistry.sections.<sectionId>...` format when building keys; the gearDetail-scoped translator will resolve the full path.
+
+Key format examples:
+
+- Section titles: `gearDetail.specRegistry.sections.<sectionId>.title` (full path in JSON)
+- Field labels: `gearDetail.specRegistry.sections.<sectionId>.fields.<fieldKey>.label` (full path in JSON)
+- Shared simple values: `gearDetail.specRegistry.shared.*` (full path in JSON)
 
 Notes:
 

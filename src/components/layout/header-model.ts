@@ -109,7 +109,7 @@ export function buildHeaderRouteState(normalizedPathname: string): {
   scrollResponsive: boolean;
 } {
   const isHomePage = normalizedPathname === "/";
-  const isSearchResultsPage = normalizedPathname.startsWith("/search");
+  const isSearchResultsPage = normalizedPathname === "/search" || normalizedPathname.startsWith("/search/");
 
   if (isHomePage) {
     return {
@@ -204,7 +204,12 @@ export function buildHeaderViewModel({
   );
   const signInBaseHref = localizePathname("/auth/signin", locale);
   const signInHref = `${signInBaseHref}?callbackUrl=${encodeURIComponent(callbackUrl)}`;
-  const profileSlug = user?.handle || `user-${user?.memberNumber}`;
+
+  let profileHref: string | null = null;
+  if (user && ((user.handle && user.handle.trim() !== "") || user.memberNumber != null)) {
+    const profileSlug = user.handle || `user-${user.memberNumber}`;
+    profileHref = localizePathname(`/u/${profileSlug}`, locale);
+  }
 
   return {
     initialMode,
@@ -214,7 +219,7 @@ export function buildHeaderViewModel({
     adminHref: localizePathname("/admin", locale),
     accountHref: localizePathname("/profile/settings", locale),
     signInHref,
-    profileHref: user ? localizePathname(`/u/${profileSlug}`, locale) : null,
+    profileHref,
     isAdminOrEditor:
       user?.role === "ADMIN" ||
       user?.role === "SUPERADMIN" ||
