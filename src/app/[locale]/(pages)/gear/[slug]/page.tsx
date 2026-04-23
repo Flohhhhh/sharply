@@ -1,6 +1,6 @@
 import { FileDown } from "lucide-react";
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ConstructionFullPage } from "~/app/[locale]/(pages)/gear/_components/construction-full";
@@ -75,9 +75,6 @@ interface GearPageProps {
   params: Promise<{
     locale: string;
     slug: string;
-  }>;
-  searchParams: Promise<{
-    editApplied?: string;
   }>;
 }
 
@@ -154,12 +151,9 @@ export async function generateMetadata({
   }
 }
 
-export default async function GearPage({
-  params,
-  searchParams,
-}: GearPageProps) {
+export default async function GearPage({ params }: GearPageProps) {
   const { locale, slug } = await params;
-  const { editApplied } = await searchParams;
+  setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "gearDetail" });
   // console.log("[gear/[slug]] Generating static page (build/ISR)", { slug });
   const viewerRegion = resolveRegionFromCountryCode(null);
@@ -291,7 +285,7 @@ export default async function GearPage({
 
   return (
     <main className="mx-auto max-w-7xl space-y-8 px-4 pt-20 sm:px-6">
-      {editApplied === "1" ? <EditAppliedToast /> : null}
+      <EditAppliedToast />
       <GearItemDock
         slug={slug}
         gearId={item.id}
