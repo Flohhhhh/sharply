@@ -19,12 +19,7 @@ export const metadata: Metadata = buildLocalizedMetadata("/contact", {
   },
 });
 
-export default async function ContactPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  const { locale } = await params;
+export default function ContactPage() {
   const email =
     env.RESEND_EMAIL_CONTACT ?? env.RESEND_EMAIL_FROM ?? "team@mysite.com";
 
@@ -53,7 +48,7 @@ export default async function ContactPage({
               <EmailCopyButton email={email} />
             </div>
             <Separator className="my-8" />
-            <DiscordBanner locale={locale} label="Community" />
+            <DiscordBanner label="Community" />
           </div>
           {/* Image right side column */}
           <div className="col-span-2 hidden sm:block">

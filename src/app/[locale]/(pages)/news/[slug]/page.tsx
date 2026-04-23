@@ -243,7 +243,6 @@ export default async function DynamicPage({
         </aside>
       </div>
       <DiscordBanner
-        locale={locale}
         label={t("joinDiscussion")}
         className="w-full max-w-5xl"
       />

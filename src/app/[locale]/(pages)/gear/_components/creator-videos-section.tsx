@@ -19,13 +19,11 @@ function getInitials(name: string) {
 }
 
 export async function CreatorVideosSection({
-  locale,
   videos,
 }: {
-  locale: string;
   videos: PublicGearCreatorVideoRow[];
 }) {
-  const t = await getTranslations({ locale, namespace: "gearDetail" });
+  const t = await getTranslations("gearDetail");
   if (!videos.length) {
     return null;
   }

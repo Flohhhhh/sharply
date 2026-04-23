@@ -2,17 +2,13 @@ import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 
 export async function ConstructionNotice(props: {
-  locale: string;
   gearName: string;
   slug: string;
   missing: string[];
   editHref: string;
 }) {
-  const { locale, gearName, missing, editHref } = props;
-  const t = await getTranslations({
-    locale,
-    namespace: "underConstructionPage",
-  });
+  const t = await getTranslations("underConstructionPage");
+  const { gearName, missing, editHref } = props;
   return (
     <div className="border-border mb-6 rounded-md border bg-amber-50/70 p-4 text-amber-900 dark:bg-amber-950/20 dark:text-amber-200">
       <div className="space-y-2">

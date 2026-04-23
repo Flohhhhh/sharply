@@ -22,12 +22,7 @@ export const metadata: Metadata = buildLocalizedMetadata(
   },
 );
 
-export default async function BotCommandsPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  const { locale } = await params;
+export default function BotCommandsPage() {
   const commands = commandManifest as DiscordCommandManifestEntry[];
 
   // Group commands by category
@@ -180,11 +175,7 @@ export default async function BotCommandsPage({
         ))}
       </div>
 
-      <DiscordBanner
-        locale={locale}
-        label="Need Help?"
-        className="w-full max-w-5xl"
-      />
+      <DiscordBanner label="Need Help?" className="w-full max-w-5xl" />
     </div>
   );
 }
