@@ -6,14 +6,19 @@ import config from "~/payload.config";
 
 const PAYLOAD_CONTENT_REVALIDATE_SECONDS = 60;
 
-let payloadPromise: ReturnType<typeof getPayload> | null = null;
+let payloadPromise: ReturnType<typeof getPayload> | undefined;
 
 async function getPayloadClient() {
   if (!payloadPromise) {
     payloadPromise = getPayload({ config });
   }
 
-  return payloadPromise;
+  try {
+    return await payloadPromise;
+  } catch (error) {
+    payloadPromise = undefined;
+    throw error;
+  }
 }
 
 const getNewsPostsDataCached = unstable_cache(
