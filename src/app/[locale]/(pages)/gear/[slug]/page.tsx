@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { ConstructionFullPage } from "~/app/[locale]/(pages)/gear/_components/construction-full";
 import { GearActionButtons } from "~/app/[locale]/(pages)/gear/_components/gear-action-buttons";
 import { GearContributors } from "~/app/[locale]/(pages)/gear/_components/gear-contributors";
@@ -285,7 +286,9 @@ export default async function GearPage({ params }: GearPageProps) {
 
   return (
     <main className="mx-auto max-w-7xl space-y-8 px-4 pt-20 sm:px-6">
-      <EditAppliedToast />
+      <Suspense fallback={null}>
+        <EditAppliedToast />
+      </Suspense>
       <GearItemDock
         slug={slug}
         gearId={item.id}

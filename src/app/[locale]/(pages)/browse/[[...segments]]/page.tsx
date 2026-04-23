@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { JSX } from "react";
 import { Suspense } from "react";
 import { GearCardSkeleton } from "~/components/gear/gear-card";
@@ -67,10 +67,11 @@ const BROWSE_PAGE_SKELETON_KEYS = Array.from(
 export default async function BrowseCatchAll({
   params,
 }: {
-  params: Promise<{ segments?: string[] }>;
+  params: Promise<{ locale: string; segments?: string[] }>;
 }) {
+  const { locale, segments = [] } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations("browsePage");
-  const { segments = [] } = await params;
   const { depth, scope, brand, mount } = await resolveScopeOrThrow(segments);
 
   if (depth === 0) {
