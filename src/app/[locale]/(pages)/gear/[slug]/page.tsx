@@ -76,6 +76,9 @@ interface GearPageProps {
     locale: string;
     slug: string;
   }>;
+  searchParams: Promise<{
+    editApplied?: string;
+  }>;
 }
 
 export async function generateMetadata({
@@ -153,9 +156,11 @@ export async function generateMetadata({
 
 export default async function GearPage({
   params,
+  searchParams,
 }: GearPageProps) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
+  const { editApplied } = await searchParams;
   const t = await getTranslations({ locale, namespace: "gearDetail" });
   // console.log("[gear/[slug]] Generating static page (build/ISR)", { slug });
   const viewerRegion = resolveRegionFromCountryCode(null);
@@ -288,7 +293,7 @@ export default async function GearPage({
 
   return (
     <main className="mx-auto max-w-7xl space-y-8 px-4 pt-20 sm:px-6">
-      <EditAppliedToast />
+      {editApplied === "1" ? <EditAppliedToast /> : null}
       <GearItemDock
         slug={slug}
         gearId={item.id}

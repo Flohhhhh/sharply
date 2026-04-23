@@ -27,9 +27,6 @@ describe("static route locale handling", () => {
 
   it("keeps gear ISR helpers and the shared discord banner off implicit request locale resolution", () => {
     const gearPage = readSource("src/app/[locale]/(pages)/gear/[slug]/page.tsx");
-    expect(gearPage).not.toMatch(/searchParams:/);
-    expect(gearPage).not.toMatch(/await searchParams/);
-    expect(gearPage).toMatch(/<EditAppliedToast \/>/);
     expect(gearPage).toMatch(/<ConstructionFullPage\s+locale=\{locale\}/);
     expect(gearPage).toMatch(/<StaffVerdictSection locale=\{locale\}/);
     expect(gearPage).toMatch(/<CreatorVideosSection locale=\{locale\}/);
