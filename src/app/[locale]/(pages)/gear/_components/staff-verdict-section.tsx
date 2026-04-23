@@ -12,13 +12,15 @@ interface StaffVerdict {
 }
 
 export async function StaffVerdictSection({
+  locale,
   slug,
   verdict,
 }: {
+  locale: string;
   slug: string;
   verdict: StaffVerdict | null;
 }) {
-  const t = await getTranslations("gearDetail");
+  const t = await getTranslations({ locale, namespace: "gearDetail" });
   if (!hasStaffVerdictContent(verdict) || !verdict) {
     return null;
   }

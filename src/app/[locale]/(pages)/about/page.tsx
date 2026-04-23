@@ -214,7 +214,7 @@ export default async function About({
         </div>
       </section>
       <section className="mx-auto w-full max-w-7xl">
-        <DiscordBanner />
+        <DiscordBanner locale={locale} />
       </section>
     </div>
   );

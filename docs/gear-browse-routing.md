@@ -53,6 +53,7 @@ Notes:
   - mount-depth browse routes (`/browse/[brand]/[category]/[mount]`) are left to on-demand ISR
 - `export const revalidate = 3600` (1 hour) for ISR.
 - `dynamicParams = true` so non-prebuilt combinations still render on-demand.
+- Browse server components must receive `locale` explicitly for `next-intl` server translation calls. Using implicit request-bound translation helpers in this ISR tree can trigger `DYNAMIC_SERVER_USAGE` in production.
 - `getPopularScopes` is deprecated and no longer used.
 
 ## Gear Detail SSG/ISR
@@ -61,6 +62,7 @@ Notes:
 - Only the default locale (`en`) is prebuilt for gear detail pages.
 - Even within `en`, static params are limited to the deduped union of the configured trending, newest, and high-traffic slug lists.
 - Non-default locales and any non-prebuilt slugs fall back to on-demand ISR because `dynamicParams = true`.
+- Gear detail server components must also use explicit `locale`-scoped `next-intl` server calls rather than implicit request locale resolution, or the ISR function can fail with `DYNAMIC_SERVER_USAGE`.
 
 ## Metadata
 

@@ -247,7 +247,7 @@ export default async function Home({
                   </LocaleLink>
                 </Button>
               </div>
-              <DiscordBanner vertical />
+              <DiscordBanner locale={locale} vertical />
               <Separator className="my-2" />
               <ActivityList items={activityItems} locale={locale} />
               {activityItems.length ? <Separator className="my-2" /> : null}

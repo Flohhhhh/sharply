@@ -7,13 +7,17 @@ import { TypingAnimation } from "~/components/ui/typing-animation";
 import { SuggestEditButton } from "./suggest-edit-button";
 
 export async function ConstructionFullPage(props: {
+  locale: string;
   gearName: string;
   missing: string[];
   slug: string;
   gearType: "CAMERA" | "ANALOG_CAMERA" | "LENS";
 }) {
-  const t = await getTranslations("underConstructionPage");
-  const { gearName, missing, slug, gearType } = props;
+  const { locale, gearName, missing, slug, gearType } = props;
+  const t = await getTranslations({
+    locale,
+    namespace: "underConstructionPage",
+  });
   return (
     <div className="mx-auto flex min-h-[60vh] flex-col items-center justify-center gap-6 py-8">
       <Wrench className="text-muted-foreground h-8 w-8" aria-hidden="true" />
