@@ -6,6 +6,8 @@ import type { News } from "~/payload-types";
 import { getNewsPosts } from "~/server/payload/service";
 import NewsListItem from "./_components/news-list-item";
 
+export const revalidate = 60;
+
 export async function generateMetadata({
   params,
 }: {

@@ -8,6 +8,8 @@ import { GradientImageTool } from "../gradient-image-tool";
 import { ManualGearRevalidateTool } from "../manual-gear-revalidate-tool";
 import { SharedListOgPreviewTool } from "../shared-list-og-preview-tool";
 
+export const dynamic = "force-dynamic";
+
 export default async function ToolsPage() {
   const liveBoosts = await fetchLiveBoosts({ limit: 100 });
   return (

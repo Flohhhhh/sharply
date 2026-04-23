@@ -5,6 +5,8 @@ import { fetchAdminReviews } from "~/server/admin/reviews/service";
 import { GearProposalsList } from "./gear-proposals-list";
 import { ReviewsApprovalQueue } from "./reviews-approval-queue";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminPage() {
   const session = await auth.api.getSession({
     headers: await headers(),

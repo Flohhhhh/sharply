@@ -41,16 +41,6 @@ const trustedOrigins = [
   ...(additionalTrustedOrigins ?? []),
 ].filter(Boolean);
 
-if (process.env.NODE_ENV === "production") {
-  console.info("[auth-callback-debug] trusted_origins_config", {
-    nextPublicBaseURL: process.env.NEXT_PUBLIC_BASE_URL,
-    authBaseURL: staticAuthBaseUrl ?? null,
-    baseURLMode: staticAuthBaseUrl ? "static" : "dynamic_request_origin",
-    additionalTrustedOrigins: process.env.AUTH_ADDITIONAL_TRUSTED_ORIGINS,
-    normalizedTrustedOrigins: trustedOrigins,
-  });
-}
-
 export const auth = betterAuth({
   // config
   appName: "Sharply",

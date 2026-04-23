@@ -58,7 +58,6 @@ export const env = createEnv({
         ? z.string()
         : z.string().optional(),
     AMAZON_AFFILIATE_TAG: z.string().optional(),
-    SKIP_BUILD_STATIC_GENERATION: z.string().optional(),
   },
 
   /**
@@ -102,7 +101,6 @@ export const env = createEnv({
     UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN,
     NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
     AMAZON_AFFILIATE_TAG: process.env.AMAZON_AFFILIATE_TAG,
-    SKIP_BUILD_STATIC_GENERATION: process.env.SKIP_BUILD_STATIC_GENERATION,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

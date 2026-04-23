@@ -1,20 +1,67 @@
+import { unstable_cache } from "next/cache";
 import { getPayload } from "payload";
 import "server-only";
 import type { LearnPage,News,Review } from "~/payload-types";
 import config from "~/payload.config";
 
+const PAYLOAD_CONTENT_REVALIDATE_SECONDS = 60;
+
+let payloadPromise: ReturnType<typeof getPayload> | null = null;
+
+async function getPayloadClient() {
+  if (!payloadPromise) {
+    payloadPromise = getPayload({ config });
+  }
+
+  return payloadPromise;
+}
+
+const getNewsPostsDataCached = unstable_cache(
+  async (): Promise<News[]> => {
+    const payload = await getPayloadClient();
+    const newsPosts = await payload.find({
+      collection: "news",
+      limit: -1,
+    });
+    return newsPosts.docs;
+  },
+  ["payload:news-posts"],
+  { revalidate: PAYLOAD_CONTENT_REVALIDATE_SECONDS },
+);
+
+const getReviewsDataCached = unstable_cache(
+  async (): Promise<Review[]> => {
+    const payload = await getPayloadClient();
+    const reviews = await payload.find({
+      collection: "review",
+      limit: -1,
+    });
+    return reviews.docs;
+  },
+  ["payload:reviews"],
+  { revalidate: PAYLOAD_CONTENT_REVALIDATE_SECONDS },
+);
+
+const getLearnPagesDataCached = unstable_cache(
+  async (): Promise<LearnPage[]> => {
+    const payload = await getPayloadClient();
+    const learnPages = await payload.find({
+      collection: "learn-pages",
+      limit: -1,
+      depth: 1,
+    });
+    return learnPages.docs;
+  },
+  ["payload:learn-pages"],
+  { revalidate: PAYLOAD_CONTENT_REVALIDATE_SECONDS },
+);
+
 export const getNewsPostsData = async (): Promise<News[]> => {
-  const payload = await getPayload({ config });
-  const newsPosts = await payload.find({
-    collection: "news",
-    limit: -1,
-  });
-  console.log("[payload:data] getNewsPostsData fetched", newsPosts.docs.length);
-  return newsPosts.docs;
+  return getNewsPostsDataCached();
 };
 
 export const getNewsPostBySlugData = async (slug: string): Promise<News> => {
-  const payload = await getPayload({ config });
+  const payload = await getPayloadClient();
   const newsPost = await payload.find({
     collection: "news",
     where: { slug: { equals: slug } },
@@ -23,17 +70,11 @@ export const getNewsPostBySlugData = async (slug: string): Promise<News> => {
 };
 
 export const getReviewsData = async (): Promise<Review[]> => {
-  const payload = await getPayload({ config });
-  const reviews = await payload.find({
-    collection: "review",
-    limit: -1,
-  });
-  console.log("[payload:data] getReviewsData fetched", reviews.docs.length);
-  return reviews.docs;
+  return getReviewsDataCached();
 };
 
 export const getReviewBySlugData = async (slug: string): Promise<Review> => {
-  const payload = await getPayload({ config });
+  const payload = await getPayloadClient();
   const review = await payload.find({
     collection: "review",
     where: { slug: { equals: slug } },
@@ -44,7 +85,7 @@ export const getReviewBySlugData = async (slug: string): Promise<Review> => {
 export const getReviewByGearSlugData = async (
   gearSlug: string,
 ): Promise<Review> => {
-  const payload = await getPayload({ config });
+  const payload = await getPayloadClient();
   const review = await payload.find({
     collection: "review",
     where: { review_gear_item: { equals: gearSlug } },
@@ -56,13 +97,9 @@ export const getNewsByRelatedGearSlugData = async (
   gearSlug: string,
   limit: number = 12,
 ): Promise<News[]> => {
-  const payload = await getPayload({ config });
   // Fetch all and filter locally (JSON field cannot be filtered with ILIKE)
-  const all: { docs: News[] } = (await payload.find({
-    collection: "news",
-    limit: -1,
-  })) as unknown as { docs: News[] };
-  const filtered = all.docs.filter((n) => {
+  const all = await getNewsPostsData();
+  const filtered = all.filter((n) => {
     const v = n.related_gear_items;
     if (!Array.isArray(v)) return false;
     return v.some((x) => typeof x === "string" && x === gearSlug);
@@ -71,23 +108,13 @@ export const getNewsByRelatedGearSlugData = async (
 };
 
 export const getLearnPagesData = async (): Promise<LearnPage[]> => {
-  const payload = await getPayload({ config });
-  const learnPages = await payload.find({
-    collection: "learn-pages",
-    limit: -1,
-    depth: 1,
-  });
-  console.log(
-    "[payload:data] getLearnPagesData fetched",
-    learnPages.docs.length,
-  );
-  return learnPages.docs;
+  return getLearnPagesDataCached();
 };
 
 export const getLearnPageBySlugData = async (
   slug: string,
 ): Promise<LearnPage | null> => {
-  const payload = await getPayload({ config });
+  const payload = await getPayloadClient();
   const res = (await payload.find({
     collection: "learn-pages",
     where: { slug: { equals: slug } },

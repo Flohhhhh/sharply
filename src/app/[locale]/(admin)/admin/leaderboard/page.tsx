@@ -2,6 +2,8 @@ import { Avatar,AvatarFallback,AvatarImage } from "~/components/ui/avatar";
 import { Card,CardContent,CardHeader,CardTitle } from "~/components/ui/card";
 import { fetchContributorLeaderboard } from "~/server/leaderboard/service";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminLeaderboardPage() {
   const rows = await fetchContributorLeaderboard(15);
 
