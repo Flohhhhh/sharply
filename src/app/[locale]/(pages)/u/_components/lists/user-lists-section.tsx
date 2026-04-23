@@ -640,12 +640,11 @@ export function UserListsSection({
           <AlertDialogHeader>
             <AlertDialogTitle>{t("listsDeleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("listsDeleteDescriptionPrefix")}{" "}
-              <span className="font-medium">
-                {lists.find((list) => list.id === deleteListId)?.name ??
-                  t("listsThisList")}
-              </span>{" "}
-              {t("listsDeleteDescriptionSuffix")}
+              {t("listsDeleteDescription", {
+                name:
+                  lists.find((list) => list.id === deleteListId)?.name ??
+                  t("listsThisList"),
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

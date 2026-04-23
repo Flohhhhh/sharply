@@ -40,7 +40,7 @@ Returned shape to UI (`NotificationView`):
 ## UI
 
 - Header dropdown (popover) trigger near the theme switcher, only when signed in.
-- Data fetched server-side in `src/components/layout/header.tsx` via notifications service (no client fetching).
+- Data fetched server-side in `src/components/layout/header.tsx` via notifications service (no client fetching). The header receives the normalized pathname/search from `src/middleware.ts`, builds its view model on the server, and passes the notifications payload directly into the client dropdown.
 - Client UI: `src/components/layout/notifications/notifications-dropdown.tsx`
   - Shows unread count badge on the bell button.
   - Active list (not archived) with actions: mark read, archive.

@@ -3,13 +3,9 @@
 import { useScrollState } from "@/lib/hooks/useScrollState";
 import { track } from "@vercel/analytics";
 import { LayoutDashboard,LogIn,Menu } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { usePathname,useSearchParams } from "next/navigation";
+import Link from "next/link";
 import Logo from "public/logo";
-import type { UserRole } from "~/auth";
-import { LocaleLink } from "~/components/locale-link";
-import { useLocalePathnames } from "~/i18n/client";
-import type { NotificationView } from "~/server/notifications/service";
+import type { HeaderViewModel } from "~/components/layout/header-model";
 import { GlobalSearchBar } from "../search/global-search-bar";
 import { ThemeSwitcher } from "../theme-switcher";
 import { Button } from "../ui/button";
@@ -19,59 +15,14 @@ import { NavSheetDesktop } from "./nav-sheet-desktop";
 import { NotificationsDropdown } from "./notifications/notifications-dropdown";
 import { UserMenu } from "./user-menu";
 
-export type HeaderUser = {
-  id: string;
-  role: UserRole;
-  handle?: string | null;
-  memberNumber?: number | null;
-  name?: string | null;
-  email?: string | null;
-  image?: string | null;
-} | null;
-
-export type HeaderNotificationsData = {
-  notifications: NotificationView[];
-  archived: NotificationView[];
-  unreadCount: number;
-} | null;
-
-export default function HeaderClient({
-  user,
-  notifications,
-}: {
-  user: HeaderUser;
-  notifications: HeaderNotificationsData;
-}) {
-  const { hasScrolled } = useScrollState(290);
-  const t = useTranslations("common");
-  const rawPathname = usePathname();
-  const { pathname } = useLocalePathnames();
-  const searchParams = useSearchParams();
-  const isHomePage = pathname === "/";
-  const isSearchResultsPage = pathname?.startsWith("/search") ?? false;
-  // Home (usesHeroSearchHeader) shows the hero search, so shouldShowHeaderSearch flips
-  // to true after scroll to reveal the compact header search; the search results page
-  // (isSearchResultsPage) never shows the header search, so shouldShowHeaderSearch stays
-  // false and sheetTopClass keeps the expanded header ("top-24...").
-  const usesHeroSearchHeader = isHomePage || isSearchResultsPage;
-  // Never show the header search bar on the search results page; on home it appears after scroll.
+export default function HeaderClient({ model }: { model: HeaderViewModel }) {
+  const { hasScrolled } = useScrollState(model.scrollResponsive ? 290 : Infinity);
   const shouldShowHeaderSearch =
-    (!isSearchResultsPage && hasScrolled) || !usesHeroSearchHeader;
+    model.initialMode === "compact" || (model.scrollResponsive && hasScrolled);
   const sheetTopClass = shouldShowHeaderSearch
     ? "top-16 h-[calc(100vh-4rem)]"
     : "top-24 h-[calc(100vh-6rem)]";
-
-  const callbackUrl = (() => {
-    const qs = searchParams?.toString();
-    return qs ? `${rawPathname}?${qs}` : rawPathname || "/";
-  })();
-
-  const isAdminOrEditor =
-    user?.role === "ADMIN" ||
-    user?.role === "SUPERADMIN" ||
-    user?.role === "EDITOR";
-
-  const notificationsData = notifications ?? {
+  const notificationsData = model.notifications ?? {
     notifications: [],
     archived: [],
     unreadCount: 0,
@@ -80,7 +31,7 @@ export default function HeaderClient({
   const handleHeaderSignInClick = () => {
     void track("auth_signin_press", {
       source: "header",
-      callbackUrl,
+      callbackUrl: model.callbackUrl,
     });
   };
 
@@ -100,7 +51,6 @@ export default function HeaderClient({
               : "grid grid-cols-3"
           }`}
         >
-          {/* Left section - Logo */}
           <div className="flex justify-start">
             <div
               className={`font-extrabold transition-all duration-200 ${
@@ -109,8 +59,11 @@ export default function HeaderClient({
             >
               {shouldShowHeaderSearch ? (
                 <div className="flex items-center gap-0 sm:gap-2">
-                  {/* Desktop nav sheet trigger - hidden on mobile when scrolled */}
-                  <NavSheetDesktop topClass={sheetTopClass}>
+                  <NavSheetDesktop
+                    topClass={sheetTopClass}
+                    footerItems={model.footerItems}
+                    moreLabel={model.moreLabel}
+                  >
                     <Button
                       variant="ghost"
                       size="sm"
@@ -119,23 +72,22 @@ export default function HeaderClient({
                       <Menu className="size-4" />
                     </Button>
                   </NavSheetDesktop>
-                  <LocaleLink href="/" className="hidden sm:block">
+                  <Link href={model.homeHref} className="hidden sm:block">
                     Sharply
-                  </LocaleLink>
-                  <LocaleLink href="/" className="sm:hidden">
+                  </Link>
+                  <Link href={model.homeHref} className="sm:hidden">
                     <Logo className="fill-foreground h-4 w-4" />
-                  </LocaleLink>
+                  </Link>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
                   <Logo className="fill-foreground h-4 w-4" />
-                  <LocaleLink href="/">Sharply</LocaleLink>
+                  <Link href={model.homeHref}>Sharply</Link>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Middle section - Navigation/Search */}
           <div className="flex w-full max-w-4xl justify-center">
             {shouldShowHeaderSearch ? (
               <div className="w-full">
@@ -143,49 +95,56 @@ export default function HeaderClient({
               </div>
             ) : (
               <div className="hidden md:flex">
-                <NavMenuDesktop />
+                <NavMenuDesktop items={model.navItems} />
               </div>
             )}
           </div>
 
-          {/* Right section - Mobile menu and Desktop auth buttons */}
           <div className="flex justify-end">
-            {/* Mobile menu button - always visible on mobile */}
-            <NavMenuMobile user={user}>
+            <NavMenuMobile
+              items={model.navItems}
+              labels={model.labels}
+              callbackUrl={model.callbackUrl}
+              signInHref={model.signInHref}
+              profileHref={model.profileHref}
+              accountHref={model.accountHref}
+              user={model.user}
+            >
               <Button variant="outline" size="sm" className="md:hidden">
                 <Menu className="size-4" />
               </Button>
             </NavMenuMobile>
 
-            {/* Desktop auth buttons - only visible on desktop */}
             <div className="hidden items-center gap-3 md:flex">
               <ThemeSwitcher />
-              {user ? (
+              {model.user ? (
                 <>
                   <NotificationsDropdown data={notificationsData} />
-                  {isAdminOrEditor && (
+                  {model.isAdminOrEditor && (
                     <Button
                       variant="outline"
                       size="sm"
                       asChild
                       icon={<LayoutDashboard />}
                     >
-                      <LocaleLink href="/admin">{t("adminPanel")}</LocaleLink>
+                      <Link href={model.adminHref}>
+                        {model.labels.adminPanel}
+                      </Link>
                     </Button>
                   )}
-                  <UserMenu user={user} />
+                  <UserMenu
+                    user={model.user}
+                    labels={model.labels}
+                    profileHref={model.profileHref}
+                    accountHref={model.accountHref}
+                  />
                 </>
               ) : (
-                <>
-                  <Button size="sm" asChild icon={<LogIn />}>
-                    <LocaleLink
-                      href={`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`}
-                      onClick={handleHeaderSignInClick}
-                    >
-                      {t("signIn")}
-                    </LocaleLink>
-                  </Button>
-                </>
+                <Button size="sm" asChild icon={<LogIn />}>
+                  <Link href={model.signInHref} onClick={handleHeaderSignInClick}>
+                    {model.labels.signIn}
+                  </Link>
+                </Button>
               )}
             </div>
           </div>

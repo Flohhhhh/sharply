@@ -1,6 +1,10 @@
 import { NextResponse,type NextRequest } from "next/server";
 import { defaultLocale,isLocale,localeCookieName } from "./i18n/config";
-import { localizePathname,stripLocalePrefix } from "./i18n/routing";
+import {
+  applyRoutingRequestHeaders,
+  localizePathname,
+  stripLocalePrefix,
+} from "./i18n/routing";
 
 const cookieOptions = {
   path: "/",
@@ -21,6 +25,7 @@ function getInternalLocalePath(pathname: string, locale: string) {
 export default function middleware(request: NextRequest) {
   const cookieLocale = getCookieLocale(request);
   const { pathname } = request.nextUrl;
+  const search = request.nextUrl.search;
   const { locale: prefixedLocale, pathname: normalizedPathname } =
     stripLocalePrefix(pathname);
   const isInternalDefaultRewrite =
@@ -36,7 +41,16 @@ export default function middleware(request: NextRequest) {
   }
 
   if (prefixedLocale) {
-    const response = NextResponse.next();
+    const requestHeaders = applyRoutingRequestHeaders(new Headers(request.headers), {
+      locale: prefixedLocale,
+      normalizedPathname,
+      normalizedSearch: search,
+    });
+    const response = NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
     response.cookies.set(localeCookieName, prefixedLocale, cookieOptions);
     return response;
   }
@@ -52,7 +66,11 @@ export default function middleware(request: NextRequest) {
 
   const url = request.nextUrl.clone();
   url.pathname = getInternalLocalePath(normalizedPathname, defaultLocale);
-  const requestHeaders = new Headers(request.headers);
+  const requestHeaders = applyRoutingRequestHeaders(new Headers(request.headers), {
+    locale: defaultLocale,
+    normalizedPathname,
+    normalizedSearch: search,
+  });
   requestHeaders.set(internalLocaleRewriteHeader, "1");
 
   const response = NextResponse.rewrite(url, {

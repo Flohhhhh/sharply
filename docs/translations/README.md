@@ -29,7 +29,7 @@ This directory documents how localized copy is organized in Sharply and how to a
 
 Hall of fame items use a mixed pattern:
 
-- English source copy lives in code in [src/app/[locale]/(pages)/lists/hall-of-fame/data.ts](/Users/camerongustavson/CodeProjects/sharply/src/app/[locale]/(pages)/lists/hall-of-fame/data.ts:1)
+- English source copy lives in code in [src/app/[locale]/(pages)/lists/hall-of-fame/data.ts](../../src/app/[locale]/(pages)/lists/hall-of-fame/data.ts)
 - Each item includes:
   - `slug`
   - `textKey`
@@ -49,7 +49,41 @@ The page resolves item copy like this:
 
 The implementation currently lives in:
 
-- [src/app/[locale]/(pages)/lists/hall-of-fame/page.tsx](/Users/camerongustavson/CodeProjects/sharply/src/app/[locale]/(pages)/lists/hall-of-fame/page.tsx:1)
+- [src/app/[locale]/(pages)/lists/hall-of-fame/page.tsx](../../src/app/[locale]/(pages)/lists/hall-of-fame/page.tsx)
+
+## Spec Registry pattern
+
+The spec registry uses the same mixed-source approach:
+
+- English source copy stays inline in [src/lib/specs/registry.tsx](../../src/lib/specs/registry.tsx)
+- Localized copies live in `/messages/*` under `gearDetail.specRegistry.*`
+- Registry consumers pass a `gearDetail` translator into the registry builders
+
+The registry resolves copy like this:
+
+1. If the locale is `en`, use the inline English text from `registry.tsx`.
+2. If the locale is not `en` and the translation key exists, use the localized message.
+3. If the locale is not `en` and the key is missing, fall back to the inline English text.
+
+**Key contract: scoped vs full translation paths**
+
+- `registry.tsx` and registry builders expect keys scoped under `specRegistry.*` (not full `gearDetail.specRegistry.*`).
+- Consumers must pass a translator already scoped to `"gearDetail"` (the `gearDetail` translator parameter).
+- The internal key builder constructs keys like `specRegistry.sections.<sectionId>.fields.<fieldKey>.label`.
+- The full JSON path in locale files is `gearDetail.specRegistry.sections.<sectionId>.fields.<fieldKey>.label`.
+- **Incorrect**: Passing `labelKey` already prefixed with `gearDetail.` causes duplicate prefixes and key misses.
+- **Correct**: Use `specRegistry.sections.<sectionId>...` format when building keys; the gearDetail-scoped translator will resolve the full path.
+
+Key format examples:
+
+- Section titles: `gearDetail.specRegistry.sections.<sectionId>.title` (full path in JSON)
+- Field labels: `gearDetail.specRegistry.sections.<sectionId>.fields.<fieldKey>.label` (full path in JSON)
+- Shared simple values: `gearDetail.specRegistry.shared.*` (full path in JSON)
+
+Notes:
+
+- The `core.mounts` field has both singular and plural keys because the registry owns that label logic.
+- English still needs matching keys in `messages/en.json` so translation parity stays green.
 
 ## Adding a new Hall Of Fame item
 
@@ -90,6 +124,7 @@ Use `defaultText` in code when:
 - The content is curated editorial copy tied closely to a code-owned data list.
 - Developers benefit from reading and editing the English text next to the item definitions.
 - You still want translated copies in locale files with a safe fallback.
+- The content is code-owned registry metadata such as spec section titles and field labels.
 
 ## Badge copy
 

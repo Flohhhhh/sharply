@@ -8,6 +8,7 @@ import {
   Circle,
   X,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect,useMemo,useRef,useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
@@ -42,6 +43,7 @@ export function EditModalContent({
   initialShowMissingOnly,
   formId = "edit-gear-form",
 }: EditModalContentProps) {
+  const t = useTranslations("gearDetail");
   const [showMissingOnly, setShowMissingOnly] = useState(
     Boolean(initialShowMissingOnly),
   );
@@ -175,8 +177,8 @@ export function EditModalContent({
 
   // Build sidebar sections from centralized spec dictionary
   const sidebarSections = useMemo(
-    () => buildEditSidebarSections(liveItem),
-    [liveItem],
+    () => buildEditSidebarSections(liveItem, { t }),
+    [liveItem, t],
   );
   // Hide Notes from the sidebar entirely
   const sidebarSectionsFiltered = useMemo(

@@ -213,7 +213,7 @@ The `extra` field provides flexibility for storing additional specifications wit
 
 ### Overview
 
-The spec registry (`src/lib/specs/registry.tsx`) centralizes all gear specification display logic, providing a single source of truth for labels, formatting, and section organization.
+The spec registry (`src/lib/specs/registry.tsx`) centralizes all gear specification display logic, providing a single source of truth for labels, formatting, section organization, and registry-owned fallback copy.
 
 ### Key Benefits
 
@@ -224,7 +224,7 @@ The spec registry (`src/lib/specs/registry.tsx`) centralizes all gear specificat
 
 ### Registry Structure
 
-The registry exports `buildGearSpecsSections(item: GearItem)` which returns `SpecsTableSection[]`. Each section contains a `data` array with label-value pairs:
+The registry exports `buildGearSpecsSections(item: GearItem, options?)` which returns `SpecsTableSection[]`. Each section carries a stable `id`, localized `title`, and a `data` array of rows with stable `key`, localized `label`, and display `value`:
 
 ```tsx
 // Example registry entry
@@ -242,6 +242,15 @@ The registry exports `buildGearSpecsSections(item: GearItem)` which returns `Spe
 - **Compare Views**: `CompareSpecsTable` component reuses the same registry
 - **Future Surfaces**: Any new spec display can import and use the registry
 
+### Localization
+
+- English labels and section titles remain inline in `registry.tsx` as the source of fallbacks.
+- Registry keys are written as `specRegistry.*` relative to the `gearDetail` translator (scoped keys).
+- The full JSON path used in locale files is `gearDetail.specRegistry.*`.
+- Examples: field labels under `gearDetail.specRegistry.sections.<sectionId>.fields.<fieldKey>.label` and shared values under `gearDetail.specRegistry.shared.*`.
+- The registry will fall back to inline English when a locale key is missing; `registry.tsx` provides these inline English labels as the fallback source.
+- Shared simple values emitted directly by the registry, such as `Yes` and `No`, live under `gearDetail.specRegistry.shared.*`.
+
 **Max Continuous FPS display**
 
 - Uses `max_fps_by_shutter` to render one line per available shutter type when multiple shutters exist (e.g., `Mechanical: Raw 20 fps, JPG 15 fps`).
@@ -251,8 +260,9 @@ The registry exports `buildGearSpecsSections(item: GearItem)` which returns `Spe
 ### Adding New Specs
 
 1. Add field to database schema
-2. Add entry to spec registry with label and formatted value
-3. Field automatically appears in appropriate section
+2. Add entry to spec registry with inline English label/value formatting and confirm its translation key path
+3. Add matching `gearDetail.specRegistry` keys to every locale file
+4. Field automatically appears in appropriate section
 
 ### Notes Field
 

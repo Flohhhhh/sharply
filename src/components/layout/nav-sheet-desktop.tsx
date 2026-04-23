@@ -1,24 +1,26 @@
 "use client";
 
-import { useLocale,useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
-import { useEffect,useMemo,useRef,useState } from "react";
+import Link from "next/link";
+import { useEffect,useRef,useState } from "react";
 import { createPortal } from "react-dom";
-import type { Locale } from "~/i18n/config";
-import { localizePathname } from "~/i18n/routing";
-import { getFooterItems } from "~/lib/nav-items";
+import type {
+  HeaderFooterItems,
+} from "~/components/layout/header-model";
 
 interface NavSheetDesktopProps {
   children: React.ReactNode;
   topClass: string; // e.g., "top-16 h-[calc(100vh-4rem)]" or "top-24 h-[calc(100vh-6rem)]"
+  footerItems: HeaderFooterItems;
+  moreLabel: string;
 }
 
-export function NavSheetDesktop({ children, topClass }: NavSheetDesktopProps) {
+export function NavSheetDesktop({
+  children,
+  topClass,
+  footerItems,
+  moreLabel,
+}: NavSheetDesktopProps) {
   const [open, setOpen] = useState(false);
-  const tNav = useTranslations("nav");
-  const locale = useLocale() as Locale;
-  const router = useRouter();
-  const footerItems = useMemo(() => getFooterItems(tNav), [tNav]);
   const mountRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -32,11 +34,6 @@ export function NavSheetDesktop({ children, topClass }: NavSheetDesktopProps) {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, []);
-
-  function handleNavigate(href: string) {
-    setOpen(false);
-    router.push(localizePathname(href, locale));
-  }
 
   return (
     <>
@@ -79,12 +76,13 @@ export function NavSheetDesktop({ children, topClass }: NavSheetDesktopProps) {
                           <ul className="text-muted-foreground space-y-2 text-sm">
                             {section.links.map((l, i) => (
                               <li key={i}>
-                                <button
-                                  onClick={() => handleNavigate(l.href)}
+                                <Link
+                                  href={l.href}
+                                  onClick={() => setOpen(false)}
                                   className="hover:text-foreground transition-colors"
                                 >
                                   {l.name}
-                                </button>
+                                </Link>
                               </li>
                             ))}
                           </ul>
@@ -93,17 +91,18 @@ export function NavSheetDesktop({ children, topClass }: NavSheetDesktopProps) {
                       {/* More column */}
                       <div>
                         <h3 className="text-foreground mb-3 text-sm font-semibold tracking-wide uppercase">
-                          {tNav("more")}
+                          {moreLabel}
                         </h3>
                         <ul className="text-muted-foreground space-y-2 text-sm">
                           {footerItems.bottomLinks.map((l, i) => (
                             <li key={i}>
-                              <button
-                                onClick={() => handleNavigate(l.href)}
+                              <Link
+                                href={l.href}
+                                onClick={() => setOpen(false)}
                                 className="hover:text-foreground transition-colors"
                               >
                                 {l.name}
-                              </button>
+                              </Link>
                             </li>
                           ))}
                         </ul>

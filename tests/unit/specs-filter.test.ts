@@ -4,28 +4,36 @@ import { filterSpecsSections } from "~/lib/specs/filter";
 
 const sections: SpecsTableSection[] = [
   {
+    id: "core",
     title: "Basic Information",
+    searchTerms: ["Basic Information"],
     data: [
-      { label: "Weight", value: "450 g" },
+      { key: "weightGrams", label: "Weight", value: "450 g" },
       {
+        key: "msrpAtLaunchUsdCents",
         label: "MSRP At Launch",
         value: "$1,999",
         searchTerms: ["price", "launch price", "retail price", "cost"],
       },
-      { label: "Mount", value: "E Mount" },
+      { key: "mounts", label: "Mount", value: "E Mount" },
     ],
   },
   {
+    id: "camera-video",
     title: "Video",
+    searchTerms: ["Video"],
     data: [
-      { label: "Max FPS", value: "120 fps" },
-      { label: "Codec", value: "H.265" },
+      { key: "maxFps", label: "Max FPS", value: "120 fps" },
+      { key: "codec", label: "Codec", value: "H.265" },
     ],
   },
   {
+    id: "camera-focus",
     title: "Focus",
+    searchTerms: ["Focus"],
     data: [
       {
+        key: "focusPoints",
         label: "Focus Points",
         value: "693",
         searchTerms: ["autofocus", "af points", "af"],
@@ -43,8 +51,10 @@ describe("filterSpecsSections", () => {
   it("filters by matching row labels", () => {
     expect(filterSpecsSections(sections, "fps")).toEqual([
       {
+        id: "camera-video",
         title: "Video",
-        data: [{ label: "Max FPS", value: "120 fps" }],
+        searchTerms: ["Video"],
+        data: [{ key: "maxFps", label: "Max FPS", value: "120 fps" }],
       },
     ]);
   });
@@ -52,9 +62,12 @@ describe("filterSpecsSections", () => {
   it("filters by matching row aliases", () => {
     expect(filterSpecsSections(sections, "price")).toEqual([
       {
+        id: "core",
         title: "Basic Information",
+        searchTerms: ["Basic Information"],
         data: [
           {
+            key: "msrpAtLaunchUsdCents",
             label: "MSRP At Launch",
             value: "$1,999",
             searchTerms: ["price", "launch price", "retail price", "cost"],
@@ -71,8 +84,10 @@ describe("filterSpecsSections", () => {
   it("matches case-insensitively and trims whitespace", () => {
     expect(filterSpecsSections(sections, "  MOUNT  ")).toEqual([
       {
+        id: "core",
         title: "Basic Information",
-        data: [{ label: "Mount", value: "E Mount" }],
+        searchTerms: ["Basic Information"],
+        data: [{ key: "mounts", label: "Mount", value: "E Mount" }],
       },
     ]);
   });
@@ -80,9 +95,12 @@ describe("filterSpecsSections", () => {
   it("matches non-label synonyms like autofocus", () => {
     expect(filterSpecsSections(sections, "autofocus")).toEqual([
       {
+        id: "camera-focus",
         title: "Focus",
+        searchTerms: ["Focus"],
         data: [
           {
+            key: "focusPoints",
             label: "Focus Points",
             value: "693",
             searchTerms: ["autofocus", "af points", "af"],
@@ -94,5 +112,30 @@ describe("filterSpecsSections", () => {
 
   it("removes sections with no matching rows", () => {
     expect(filterSpecsSections(sections, "battery")).toEqual([]);
+  });
+
+  it("matches English aliases against localized labels and titles", () => {
+    const localizedSections: SpecsTableSection[] = [
+      {
+        id: "core",
+        title: "Basisinformationen",
+        searchTerms: ["Basic Information"],
+        data: [
+          {
+            key: "mounts",
+            label: "Anschluss",
+            value: "E Mount",
+            searchTerms: ["lens mount", "camera mount", "Mount"],
+          },
+        ],
+      },
+    ];
+
+    expect(filterSpecsSections(localizedSections, "basic")).toEqual(
+      localizedSections,
+    );
+    expect(filterSpecsSections(localizedSections, "mount")).toEqual(
+      localizedSections,
+    );
   });
 });

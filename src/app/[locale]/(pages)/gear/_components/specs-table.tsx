@@ -11,8 +11,11 @@ import type { GearItem } from "~/types/gear";
 import { SpecsMissingNote } from "./specs-missing-note";
 
 export type SpecsTableSection = {
+  id: string;
   title: string;
+  searchTerms?: string[];
   data: {
+    key: string;
     label: string;
     value: ReactNode | undefined;
     searchTerms?: string[];
@@ -40,7 +43,7 @@ export default function SpecsTable({
       <div>
         {hasVisibleRows ? (
           sections.map((section) => (
-            <div key={section.title} className="text-sm">
+            <div key={section.id} className="text-sm">
               <div className="divide-border divide-y">
                 <h3 className="border-border/50 dark:bg-foreground/10 border-t bg-white px-4 py-2">
                   {section.title}
@@ -49,9 +52,10 @@ export default function SpecsTable({
                   .filter((row) => row.value !== undefined)
                   .map((row, index) => {
                     const rowKey =
+                      row.key ||
                       row.label ||
                       row.tooltip ||
-                      `${section.title}-full-width-row`;
+                      `${section.id}-full-width-row`;
                     const baseClass = cn(
                       "hover:bg-zinc-200/70 dark:hover:bg-accent/50 border-border/50 px-4 py-2",
                       {

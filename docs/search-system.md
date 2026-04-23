@@ -165,7 +165,8 @@ Optional ANDed filters for brand/mount/gearType/price range/sensor format. These
 
 ## SSR & Suspense
 
-- The header is wrapped in a `Suspense` boundary (`src/app/[locale]/(pages)/layout.tsx`) so client hooks like `useSearchParams` in the header don’t trip SSR.
+- `src/components/layout/header.tsx` now builds the header model on the server using request headers populated by `src/middleware.ts`.
+- The compact/expanded header state is chosen server-side from the normalized pathname, then the client header only hydrates the interactive pieces and home-page scroll transition.
 
 ## Performance
 

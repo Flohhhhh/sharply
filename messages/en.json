@@ -289,7 +289,525 @@
     "reviewPublished": "Review published successfully.",
     "reviewSubmitError": "Failed to submit review.",
     "submittingReview": "Submitting...",
-    "submitReview": "Submit Review"
+    "submitReview": "Submit Review",
+    "specRegistry": {
+      "sections": {
+        "core": {
+          "title": "Basic Information",
+          "fields": {
+            "cameraType": {
+              "label": "Camera Type"
+            },
+            "mounts": {
+              "label": "Mount",
+              "labelPlural": "Mounts"
+            },
+            "announcedDate": {
+              "label": "Announced Date"
+            },
+            "releaseDate": {
+              "label": "Release Date"
+            },
+            "msrpAtLaunchUsdCents": {
+              "label": "MSRP At Launch"
+            },
+            "msrpNowUsdCents": {
+              "label": "MSRP Now"
+            },
+            "mpbMaxPriceUsdCents": {
+              "label": "MPB Max Price"
+            },
+            "weightGrams": {
+              "label": "Weight"
+            },
+            "dimensions": {
+              "label": "Dimensions"
+            },
+            "regionalAliases": {
+              "label": "Regional Names"
+            }
+          }
+        },
+        "camera-sensor-shutter": {
+          "title": "Sensor & Shutter",
+          "fields": {
+            "resolutionMp": {
+              "label": "Resolution"
+            },
+            "sensorFormatId": {
+              "label": "Sensor Format"
+            },
+            "isoRange": {
+              "label": "ISO Range"
+            },
+            "maxFpsByShutter": {
+              "label": "Max Continuous FPS"
+            },
+            "sensorType": {
+              "label": "Sensor Type"
+            },
+            "sensorReadoutSpeedMs": {
+              "label": "Sensor Readout Speed"
+            },
+            "maxRawBitDepth": {
+              "label": "Max Raw Bit Depth"
+            },
+            "hasIbis": {
+              "label": "Has IBIS"
+            },
+            "hasElectronicVibrationReduction": {
+              "label": "Has Digital Stabilization"
+            },
+            "cipaStabilizationRatingStops": {
+              "label": "CIPA Stabilization Rating Stops"
+            },
+            "hasPixelShiftShooting": {
+              "label": "Has Pixel Shift Shooting"
+            },
+            "hasAntiAliasingFilter": {
+              "label": "Has Anti Aliasing Filter"
+            },
+            "precaptureSupportLevel": {
+              "label": "Precapture Buffer"
+            },
+            "shutterSpeedMax": {
+              "label": "Longest Shutter Speed"
+            },
+            "shutterSpeedMin": {
+              "label": "Fastest Shutter Speed"
+            },
+            "flashSyncSpeed": {
+              "label": "Flash Sync Speed"
+            },
+            "hasSilentShootingAvailable": {
+              "label": "Has Silent Shooting Available"
+            },
+            "availableShutterTypes": {
+              "label": "Available Shutter Types"
+            }
+          }
+        },
+        "fixed-lens": {
+          "title": "Integrated Lens",
+          "fields": {
+            "isPrime": {
+              "label": "Lens Type"
+            },
+            "focalLength": {
+              "label": "Focal Length"
+            },
+            "fixedImageCircleSize": {
+              "label": "Image Circle Size"
+            },
+            "maxAperture": {
+              "label": "Maximum Aperture"
+            },
+            "minAperture": {
+              "label": "Minimum Aperture"
+            },
+            "hasAutofocus": {
+              "label": "Has Autofocus"
+            },
+            "minimumFocusDistanceMm": {
+              "label": "Minimum Focus Distance"
+            },
+            "frontElementRotates": {
+              "label": "Front Element Rotates"
+            },
+            "frontFilterThreadSizeMm": {
+              "label": "Front Filter Thread Size"
+            },
+            "hasLensHood": {
+              "label": "Has Lens Hood"
+            }
+          }
+        },
+        "camera-hardware": {
+          "title": "Hardware/Build",
+          "fields": {
+            "processorName": {
+              "label": "Processor Name"
+            },
+            "hasWeatherSealing": {
+              "label": "Weather Sealing"
+            },
+            "internalStorageGb": {
+              "label": "Internal Storage"
+            },
+            "rearDisplayType": {
+              "label": "Rear Display Type"
+            },
+            "rearDisplaySizeInches": {
+              "label": "Rear Display Size"
+            },
+            "rearDisplayResolutionMillionDots": {
+              "label": "Rear Display Resolution"
+            },
+            "viewfinderType": {
+              "label": "Viewfinder Type"
+            },
+            "viewfinderMagnification": {
+              "label": "Viewfinder Magnification"
+            },
+            "viewfinderResolutionMillionDots": {
+              "label": "Viewfinder Resolution"
+            },
+            "hasTopDisplay": {
+              "label": "Has Top Display"
+            },
+            "hasRearTouchscreen": {
+              "label": "Has Rear Touchscreen"
+            },
+            "cardSlots": {
+              "label": "Card Slots"
+            }
+          }
+        },
+        "camera-focus": {
+          "title": "Focus",
+          "fields": {
+            "focusPoints": {
+              "label": "Focus Points"
+            },
+            "hasFocusPeaking": {
+              "label": "Has Focus Peaking"
+            },
+            "hasFocusBracketing": {
+              "label": "Has Focus Bracketing"
+            },
+            "afAreaModes": {
+              "label": "AF Area Modes"
+            },
+            "afSubjectCategories": {
+              "label": "AF Subject Categories"
+            }
+          }
+        },
+        "camera-battery": {
+          "title": "Battery & Charging",
+          "fields": {
+            "cipaBatteryShotsPerCharge": {
+              "label": "CIPA Battery Shots Per Charge"
+            },
+            "usbCharging": {
+              "label": "Supports USB Charging"
+            },
+            "usbPowerDelivery": {
+              "label": "Supports USB Power Delivery"
+            },
+            "supportedBatteries": {
+              "label": "Supported Batteries"
+            }
+          }
+        },
+        "camera-video": {
+          "title": "Video",
+          "fields": {
+            "videoSummary": {
+              "label": "Video Summary"
+            },
+            "videoAvailableCodecs": {
+              "label": "Available Codecs"
+            },
+            "hasLogColorProfile": {
+              "label": "Has Log Color Profile"
+            },
+            "has10BitVideo": {
+              "label": "Has 10 Bit Video"
+            },
+            "has12BitVideo": {
+              "label": "Has 12 Bit Video"
+            },
+            "hasOpenGateVideo": {
+              "label": "Has Open Gate Video"
+            },
+            "supportsExternalRecording": {
+              "label": "Supports External Recording"
+            },
+            "supportsRecordToDrive": {
+              "label": "Supports Recording to Drive"
+            }
+          }
+        },
+        "camera-misc": {
+          "title": "Misc",
+          "fields": {
+            "hasIntervalometer": {
+              "label": "Has Intervalometer"
+            },
+            "hasSelfTimer": {
+              "label": "Has Self Timer"
+            },
+            "hasBuiltInFlash": {
+              "label": "Has Built In Flash"
+            },
+            "hasHotShoe": {
+              "label": "Has Hot Shoe"
+            },
+            "hasUsbFileTransfer": {
+              "label": "Has USB File Transfer"
+            }
+          }
+        },
+        "lens-optics": {
+          "title": "Optics",
+          "fields": {
+            "isPrime": {
+              "label": "Lens Type"
+            },
+            "focalLength": {
+              "label": "Focal Length"
+            },
+            "imageCircleSize": {
+              "label": "Image Circle Size"
+            },
+            "magnification": {
+              "label": "Magnification"
+            },
+            "minimumFocusDistanceMm": {
+              "label": "Minimum Focus Distance"
+            },
+            "numberElements": {
+              "label": "Number of Elements"
+            },
+            "numberElementGroups": {
+              "label": "Number of Element Groups"
+            },
+            "hasDiffractiveOptics": {
+              "label": "Has Diffractive Optics"
+            }
+          }
+        },
+        "lens-aperture": {
+          "title": "Aperture",
+          "fields": {
+            "maxAperture": {
+              "label": "Maximum Aperture"
+            },
+            "minAperture": {
+              "label": "Minimum Aperture"
+            },
+            "numberDiaphragmBlades": {
+              "label": "Number of Diaphragm Blades"
+            },
+            "hasRoundedDiaphragmBlades": {
+              "label": "Has Rounded Diaphragm Blades"
+            },
+            "hasApertureRing": {
+              "label": "Has Aperture Ring"
+            }
+          }
+        },
+        "lens-focus": {
+          "title": "Focus",
+          "fields": {
+            "hasAutofocus": {
+              "label": "Has Autofocus"
+            },
+            "focusMotorType": {
+              "label": "Focus Motor Type"
+            },
+            "hasAfMfSwitch": {
+              "label": "Has AF/MF Switch"
+            },
+            "hasFocusLimiter": {
+              "label": "Has Focus Limiter"
+            },
+            "hasFocusRecallButton": {
+              "label": "Has Focus Recall Button"
+            },
+            "hasFocusRing": {
+              "label": "Has Focus Ring"
+            },
+            "hasInternalFocus": {
+              "label": "Has Internal Focus"
+            },
+            "frontElementRotates": {
+              "label": "Front Element Rotates"
+            }
+          }
+        },
+        "lens-stabilization": {
+          "title": "Stabilization",
+          "fields": {
+            "hasStabilization": {
+              "label": "Has Image Stabilization"
+            },
+            "hasStabilizationSwitch": {
+              "label": "Has Stabilization Switch"
+            },
+            "cipaStabilizationRatingStops": {
+              "label": "CIPA Stabilization Rating Stops"
+            }
+          }
+        },
+        "lens-build": {
+          "title": "Build & Controls",
+          "fields": {
+            "hasInternalZoom": {
+              "label": "Has Internal Zoom"
+            },
+            "mountMaterial": {
+              "label": "Mount Material"
+            },
+            "hasWeatherSealing": {
+              "label": "Has Weather Sealing"
+            },
+            "numberCustomControlRings": {
+              "label": "Number of Custom Control Rings"
+            },
+            "numberFunctionButtons": {
+              "label": "Number of Function Buttons"
+            }
+          }
+        },
+        "lens-filters": {
+          "title": "Filters",
+          "fields": {
+            "acceptsFilterTypes": {
+              "label": "Accepts Filter Types"
+            },
+            "frontFilterThreadSizeMm": {
+              "label": "Front Filter Thread Size"
+            },
+            "rearFilterThreadSizeMm": {
+              "label": "Rear Filter Thread Size"
+            },
+            "dropInFilterSizeMm": {
+              "label": "Drop In Filter Size"
+            }
+          }
+        },
+        "lens-accessories": {
+          "title": "Accessories",
+          "fields": {
+            "hasBuiltInTeleconverter": {
+              "label": "Has Built In Teleconverter"
+            },
+            "hasLensHood": {
+              "label": "Has Lens Hood"
+            },
+            "hasTripodCollar": {
+              "label": "Has Tripod Collar/Lens Foot"
+            }
+          }
+        },
+        "lens-tilt-shift": {
+          "title": "Tilt-Shift",
+          "fields": {
+            "isTiltShift": {
+              "label": "Is Tilt-Shift"
+            },
+            "tiltDegrees": {
+              "label": "Tilt Range"
+            },
+            "shiftMm": {
+              "label": "Shift Range"
+            }
+          }
+        },
+        "analog-camera": {
+          "title": "Analog Camera",
+          "fields": {
+            "cameraType": {
+              "label": "Camera Type"
+            },
+            "captureMedium": {
+              "label": "Capture Medium"
+            },
+            "filmTransportType": {
+              "label": "Film Transport"
+            },
+            "viewfinderType": {
+              "label": "Viewfinder Type"
+            },
+            "shutterType": {
+              "label": "Shutter Type"
+            },
+            "shutterSpeeds": {
+              "label": "Shutter Speeds"
+            },
+            "flashSyncSpeed": {
+              "label": "Flash Sync Speed"
+            },
+            "hasBulbMode": {
+              "label": "Bulb Mode"
+            },
+            "hasMetering": {
+              "label": "Has Metering"
+            },
+            "meteringModes": {
+              "label": "Metering Modes"
+            },
+            "meteringDisplayTypes": {
+              "label": "Metering Display"
+            },
+            "exposureModes": {
+              "label": "Exposure Modes"
+            },
+            "isoSettingMethod": {
+              "label": "ISO Setting"
+            },
+            "isoRange": {
+              "label": "ISO Range"
+            },
+            "hasExposureCompensation": {
+              "label": "Exposure Compensation"
+            },
+            "hasAutoFocus": {
+              "label": "Autofocus"
+            },
+            "focusAidTypes": {
+              "label": "Focus Aids"
+            },
+            "hasContinuousDrive": {
+              "label": "Continuous Drive"
+            },
+            "maxContinuousFps": {
+              "label": "Max FPS"
+            },
+            "requiresBatteryForShutter": {
+              "label": "Battery Required (Shutter)"
+            },
+            "requiresBatteryForMetering": {
+              "label": "Battery Required (Metering)"
+            },
+            "supportedBatteries": {
+              "label": "Supported Batteries"
+            },
+            "hasHotShoe": {
+              "label": "Hot Shoe"
+            },
+            "hasSelfTimer": {
+              "label": "Self Timer"
+            },
+            "hasIntervalometer": {
+              "label": "Intervalometer"
+            }
+          }
+        },
+        "notes": {
+          "title": "Notes",
+          "fields": {}
+        }
+      },
+      "shared": {
+        "yes": "Yes",
+        "no": "No",
+        "prime": "Prime",
+        "zoom": "Zoom",
+        "none": "None",
+        "fixed": "Fixed",
+        "singleAxisTilt": "Single-axis tilt",
+        "dualAxisTilt": "Dual-axis tilt",
+        "fullyArticulated": "Fully articulated",
+        "fourAxisTiltFlip": "4 Axis Tilt-Flip",
+        "other": "Other",
+        "notSpecified": "Not specified",
+        "ovf": "OVF",
+        "evf": "EVF"
+      }
+    }
   },
   "userProfile": {
     "profileMetaTitle": "{name}'s Profile",
@@ -351,7 +869,7 @@
     "listsCopyLink": "Copy link",
     "listsCopyShareLink": "Copy share link",
     "listsDelete": "Delete",
-    "listsMoreItems": "+{count} more items",
+    "listsMoreItems": "{count, plural, one {+# more item} other {+# more items}}",
     "listsOpen": "Open",
     "listsEmptyOwnTitle": "No lists yet",
     "listsEmptyOwnDescription": "Create a list to organize gear you want to save or share.",
@@ -370,8 +888,7 @@
     "listsPublicNameLabel": "Public name",
     "listsPublishButton": "Publish list",
     "listsDeleteTitle": "Delete this list?",
-    "listsDeleteDescriptionPrefix": "This will permanently delete",
-    "listsDeleteDescriptionSuffix": "and all saved items in it.",
+    "listsDeleteDescription": "This will permanently delete {name} and all saved items in it.",
     "listsThisList": "this list",
     "listsDeleteButton": "Delete list",
     "listsOrderUpdateError": "Failed to update order",

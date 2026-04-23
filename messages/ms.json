@@ -289,7 +289,525 @@
     "reviewPublished": "Ulasan berjaya diterbitkan.",
     "reviewSubmitError": "Gagal menghantar ulasan.",
     "submittingReview": "Sedang menghantar...",
-    "submitReview": "Hantar Ulasan"
+    "submitReview": "Hantar Ulasan",
+    "specRegistry": {
+      "sections": {
+        "core": {
+          "title": "Maklumat asas",
+          "fields": {
+            "cameraType": {
+              "label": "Jenis kamera"
+            },
+            "mounts": {
+              "label": "Lekapan",
+              "labelPlural": "Lekapan"
+            },
+            "announcedDate": {
+              "label": "Tarikh diumumkan"
+            },
+            "releaseDate": {
+              "label": "Tarikh pelancaran"
+            },
+            "msrpAtLaunchUsdCents": {
+              "label": "MSRP semasa pelancaran"
+            },
+            "msrpNowUsdCents": {
+              "label": "MSRP semasa"
+            },
+            "mpbMaxPriceUsdCents": {
+              "label": "Harga maksimum MPB"
+            },
+            "weightGrams": {
+              "label": "Berat"
+            },
+            "dimensions": {
+              "label": "Dimensi"
+            },
+            "regionalAliases": {
+              "label": "Nama serantau"
+            }
+          }
+        },
+        "camera-sensor-shutter": {
+          "title": "Sensor dan pengatup",
+          "fields": {
+            "resolutionMp": {
+              "label": "Resolusi"
+            },
+            "sensorFormatId": {
+              "label": "Format sensor"
+            },
+            "isoRange": {
+              "label": "Julat ISO"
+            },
+            "maxFpsByShutter": {
+              "label": "FPS berterusan maksimum"
+            },
+            "sensorType": {
+              "label": "Jenis sensor"
+            },
+            "sensorReadoutSpeedMs": {
+              "label": "Kelajuan bacaan sensor"
+            },
+            "maxRawBitDepth": {
+              "label": "Kedalaman bit RAW maksimum"
+            },
+            "hasIbis": {
+              "label": "IBIS"
+            },
+            "hasElectronicVibrationReduction": {
+              "label": "Penstabilan digital"
+            },
+            "cipaStabilizationRatingStops": {
+              "label": "Penarafan penstabilan CIPA (hentian)"
+            },
+            "hasPixelShiftShooting": {
+              "label": "Tangkapan Pixel Shift"
+            },
+            "hasAntiAliasingFilter": {
+              "label": "Penapis anti-aliasing"
+            },
+            "precaptureSupportLevel": {
+              "label": "Penimbal pra-rakam"
+            },
+            "shutterSpeedMax": {
+              "label": "Kelajuan pengatup paling perlahan"
+            },
+            "shutterSpeedMin": {
+              "label": "Kelajuan pengatup paling pantas"
+            },
+            "flashSyncSpeed": {
+              "label": "Kelajuan segerak denyar"
+            },
+            "hasSilentShootingAvailable": {
+              "label": "Mod tangkapan senyap"
+            },
+            "availableShutterTypes": {
+              "label": "Jenis pengatup tersedia"
+            }
+          }
+        },
+        "fixed-lens": {
+          "title": "Lensa terbina dalam",
+          "fields": {
+            "isPrime": {
+              "label": "Jenis lensa"
+            },
+            "focalLength": {
+              "label": "Panjang fokus"
+            },
+            "fixedImageCircleSize": {
+              "label": "Saiz bulatan imej"
+            },
+            "maxAperture": {
+              "label": "Bukaan maksimum"
+            },
+            "minAperture": {
+              "label": "Bukaan minimum"
+            },
+            "hasAutofocus": {
+              "label": "Autofokus"
+            },
+            "minimumFocusDistanceMm": {
+              "label": "Jarak fokus minimum"
+            },
+            "frontElementRotates": {
+              "label": "Elemen hadapan berputar"
+            },
+            "frontFilterThreadSizeMm": {
+              "label": "Saiz ulir penapis hadapan"
+            },
+            "hasLensHood": {
+              "label": "Hood lensa"
+            }
+          }
+        },
+        "camera-hardware": {
+          "title": "Perkakasan dan binaan",
+          "fields": {
+            "processorName": {
+              "label": "Nama pemproses"
+            },
+            "hasWeatherSealing": {
+              "label": "Kalis cuaca"
+            },
+            "internalStorageGb": {
+              "label": "Storan dalaman"
+            },
+            "rearDisplayType": {
+              "label": "Jenis skrin belakang"
+            },
+            "rearDisplaySizeInches": {
+              "label": "Saiz skrin belakang"
+            },
+            "rearDisplayResolutionMillionDots": {
+              "label": "Resolusi skrin belakang"
+            },
+            "viewfinderType": {
+              "label": "Jenis pemidang tilik"
+            },
+            "viewfinderMagnification": {
+              "label": "Pembesaran pemidang tilik"
+            },
+            "viewfinderResolutionMillionDots": {
+              "label": "Resolusi pemidang tilik"
+            },
+            "hasTopDisplay": {
+              "label": "Paparan atas"
+            },
+            "hasRearTouchscreen": {
+              "label": "Skrin sentuh belakang"
+            },
+            "cardSlots": {
+              "label": "Slot kad"
+            }
+          }
+        },
+        "camera-focus": {
+          "title": "Fokus",
+          "fields": {
+            "focusPoints": {
+              "label": "Titik fokus"
+            },
+            "hasFocusPeaking": {
+              "label": "Focus peaking"
+            },
+            "hasFocusBracketing": {
+              "label": "Focus bracketing"
+            },
+            "afAreaModes": {
+              "label": "Mod kawasan AF"
+            },
+            "afSubjectCategories": {
+              "label": "Kategori subjek AF"
+            }
+          }
+        },
+        "camera-battery": {
+          "title": "Bateri dan pengecasan",
+          "fields": {
+            "cipaBatteryShotsPerCharge": {
+              "label": "Tangkapan CIPA setiap cas"
+            },
+            "usbCharging": {
+              "label": "Menyokong pengecasan USB"
+            },
+            "usbPowerDelivery": {
+              "label": "Menyokong USB Power Delivery"
+            },
+            "supportedBatteries": {
+              "label": "Bateri yang disokong"
+            }
+          }
+        },
+        "camera-video": {
+          "title": "Video",
+          "fields": {
+            "videoSummary": {
+              "label": "Ringkasan video"
+            },
+            "videoAvailableCodecs": {
+              "label": "Codec tersedia"
+            },
+            "hasLogColorProfile": {
+              "label": "Profil warna log"
+            },
+            "has10BitVideo": {
+              "label": "Video 10 bit"
+            },
+            "has12BitVideo": {
+              "label": "Video 12 bit"
+            },
+            "hasOpenGateVideo": {
+              "label": "Video open gate"
+            },
+            "supportsExternalRecording": {
+              "label": "Rakaman luaran"
+            },
+            "supportsRecordToDrive": {
+              "label": "Rakaman ke pemacu"
+            }
+          }
+        },
+        "camera-misc": {
+          "title": "Lain-lain",
+          "fields": {
+            "hasIntervalometer": {
+              "label": "Intervalometer"
+            },
+            "hasSelfTimer": {
+              "label": "Pemasa kendiri"
+            },
+            "hasBuiltInFlash": {
+              "label": "Denyar terbina dalam"
+            },
+            "hasHotShoe": {
+              "label": "Hot shoe"
+            },
+            "hasUsbFileTransfer": {
+              "label": "Pemindahan fail USB"
+            }
+          }
+        },
+        "lens-optics": {
+          "title": "Optik",
+          "fields": {
+            "isPrime": {
+              "label": "Jenis lensa"
+            },
+            "focalLength": {
+              "label": "Panjang fokus"
+            },
+            "imageCircleSize": {
+              "label": "Saiz bulatan imej"
+            },
+            "magnification": {
+              "label": "Pembesaran"
+            },
+            "minimumFocusDistanceMm": {
+              "label": "Jarak fokus minimum"
+            },
+            "numberElements": {
+              "label": "Bilangan elemen"
+            },
+            "numberElementGroups": {
+              "label": "Bilangan kumpulan elemen"
+            },
+            "hasDiffractiveOptics": {
+              "label": "Optik difraktif"
+            }
+          }
+        },
+        "lens-aperture": {
+          "title": "Bukaan",
+          "fields": {
+            "maxAperture": {
+              "label": "Bukaan maksimum"
+            },
+            "minAperture": {
+              "label": "Bukaan minimum"
+            },
+            "numberDiaphragmBlades": {
+              "label": "Bilangan bilah diafragma"
+            },
+            "hasRoundedDiaphragmBlades": {
+              "label": "Bilah diafragma bulat"
+            },
+            "hasApertureRing": {
+              "label": "Cincin bukaan"
+            }
+          }
+        },
+        "lens-focus": {
+          "title": "Fokus",
+          "fields": {
+            "hasAutofocus": {
+              "label": "Autofokus"
+            },
+            "focusMotorType": {
+              "label": "Jenis motor fokus"
+            },
+            "hasAfMfSwitch": {
+              "label": "Suis AF/MF"
+            },
+            "hasFocusLimiter": {
+              "label": "Pembatas fokus"
+            },
+            "hasFocusRecallButton": {
+              "label": "Butang panggil semula fokus"
+            },
+            "hasFocusRing": {
+              "label": "Cincin fokus"
+            },
+            "hasInternalFocus": {
+              "label": "Fokus dalaman"
+            },
+            "frontElementRotates": {
+              "label": "Elemen hadapan berputar"
+            }
+          }
+        },
+        "lens-stabilization": {
+          "title": "Penstabilan",
+          "fields": {
+            "hasStabilization": {
+              "label": "Penstabilan imej"
+            },
+            "hasStabilizationSwitch": {
+              "label": "Suis penstabilan"
+            },
+            "cipaStabilizationRatingStops": {
+              "label": "Penarafan penstabilan CIPA (hentian)"
+            }
+          }
+        },
+        "lens-build": {
+          "title": "Binaan dan kawalan",
+          "fields": {
+            "hasInternalZoom": {
+              "label": "Zoom dalaman"
+            },
+            "mountMaterial": {
+              "label": "Bahan lekapan"
+            },
+            "hasWeatherSealing": {
+              "label": "Kalis cuaca"
+            },
+            "numberCustomControlRings": {
+              "label": "Bilangan cincin kawalan tersuai"
+            },
+            "numberFunctionButtons": {
+              "label": "Bilangan butang fungsi"
+            }
+          }
+        },
+        "lens-filters": {
+          "title": "Penapis",
+          "fields": {
+            "acceptsFilterTypes": {
+              "label": "Jenis penapis yang diterima"
+            },
+            "frontFilterThreadSizeMm": {
+              "label": "Saiz ulir penapis hadapan"
+            },
+            "rearFilterThreadSizeMm": {
+              "label": "Saiz ulir penapis belakang"
+            },
+            "dropInFilterSizeMm": {
+              "label": "Saiz penapis drop-in"
+            }
+          }
+        },
+        "lens-accessories": {
+          "title": "Aksesori",
+          "fields": {
+            "hasBuiltInTeleconverter": {
+              "label": "Teleconverter terbina dalam"
+            },
+            "hasLensHood": {
+              "label": "Hood lensa"
+            },
+            "hasTripodCollar": {
+              "label": "Kolar tripod/kaki lensa"
+            }
+          }
+        },
+        "lens-tilt-shift": {
+          "title": "Tilt-Shift",
+          "fields": {
+            "isTiltShift": {
+              "label": "Tilt-shift"
+            },
+            "tiltDegrees": {
+              "label": "Julat tilt"
+            },
+            "shiftMm": {
+              "label": "Julat shift"
+            }
+          }
+        },
+        "analog-camera": {
+          "title": "Kamera analog",
+          "fields": {
+            "cameraType": {
+              "label": "Jenis kamera"
+            },
+            "captureMedium": {
+              "label": "Medium rakaman"
+            },
+            "filmTransportType": {
+              "label": "Penggerak filem"
+            },
+            "viewfinderType": {
+              "label": "Jenis pemidang tilik"
+            },
+            "shutterType": {
+              "label": "Jenis pengatup"
+            },
+            "shutterSpeeds": {
+              "label": "Kelajuan pengatup"
+            },
+            "flashSyncSpeed": {
+              "label": "Kelajuan segerak denyar"
+            },
+            "hasBulbMode": {
+              "label": "Mod Bulb"
+            },
+            "hasMetering": {
+              "label": "Metering"
+            },
+            "meteringModes": {
+              "label": "Mod metering"
+            },
+            "meteringDisplayTypes": {
+              "label": "Paparan metering"
+            },
+            "exposureModes": {
+              "label": "Mod pendedahan"
+            },
+            "isoSettingMethod": {
+              "label": "Tetapan ISO"
+            },
+            "isoRange": {
+              "label": "Julat ISO"
+            },
+            "hasExposureCompensation": {
+              "label": "Pampasan pendedahan"
+            },
+            "hasAutoFocus": {
+              "label": "Autofokus"
+            },
+            "focusAidTypes": {
+              "label": "Bantuan fokus"
+            },
+            "hasContinuousDrive": {
+              "label": "Pemacu berterusan"
+            },
+            "maxContinuousFps": {
+              "label": "FPS maksimum"
+            },
+            "requiresBatteryForShutter": {
+              "label": "Bateri diperlukan (pengatup)"
+            },
+            "requiresBatteryForMetering": {
+              "label": "Bateri diperlukan (metering)"
+            },
+            "supportedBatteries": {
+              "label": "Bateri yang disokong"
+            },
+            "hasHotShoe": {
+              "label": "Hot shoe"
+            },
+            "hasSelfTimer": {
+              "label": "Pemasa kendiri"
+            },
+            "hasIntervalometer": {
+              "label": "Intervalometer"
+            }
+          }
+        },
+        "notes": {
+          "title": "Nota",
+          "fields": {}
+        }
+      },
+      "shared": {
+        "yes": "Ya",
+        "no": "Tidak",
+        "prime": "Prime",
+        "zoom": "Zoom",
+        "none": "Tiada",
+        "fixed": "Tetap",
+        "singleAxisTilt": "Tilt paksi tunggal",
+        "dualAxisTilt": "Tilt dua paksi",
+        "fullyArticulated": "Artikulasi penuh",
+        "fourAxisTiltFlip": "Tilt-flip 4 paksi",
+        "other": "Lain-lain",
+        "notSpecified": "Tidak dinyatakan",
+        "ovf": "OVF",
+        "evf": "EVF"
+      }
+    }
   },
   "userProfile": {
     "profileMetaTitle": "Profil {name}",
@@ -351,7 +869,7 @@
     "listsCopyLink": "Salin pautan",
     "listsCopyShareLink": "Salin pautan perkongsian",
     "listsDelete": "Padam",
-    "listsMoreItems": "+{count} item lagi",
+    "listsMoreItems": "{count, plural, one {+# item lagi} other {+# item lagi}}",
     "listsOpen": "Buka",
     "listsEmptyOwnTitle": "Belum ada senarai",
     "listsEmptyOwnDescription": "Cipta senarai untuk mengatur gear yang anda mahu simpan atau kongsi.",
@@ -370,8 +888,7 @@
     "listsPublicNameLabel": "Nama awam",
     "listsPublishButton": "Terbitkan senarai",
     "listsDeleteTitle": "Padam senarai ini?",
-    "listsDeleteDescriptionPrefix": "Ini akan memadam secara kekal",
-    "listsDeleteDescriptionSuffix": "dan semua item yang disimpan di dalamnya.",
+    "listsDeleteDescription": "Ini akan memadam secara kekal {name} dan semua item yang disimpan di dalamnya.",
     "listsThisList": "senarai ini",
     "listsDeleteButton": "Padam senarai",
     "listsOrderUpdateError": "Gagal mengemas kini susunan",
