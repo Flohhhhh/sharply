@@ -4,6 +4,8 @@ import { auth } from "~/auth";
 import { requireRole } from "~/lib/auth/auth-helpers";
 import NewChartContent from "./_components/NewChartContent";
 
+export const dynamic = "force-dynamic";
+
 export default async function Page() {
   const session = await auth.api.getSession({
     headers: await headers(),

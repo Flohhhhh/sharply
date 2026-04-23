@@ -9,6 +9,7 @@ import {
 } from "~/server/recommendations/service";
 import EditChartContent from "./_components/EditChartContent";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function Page(props: {

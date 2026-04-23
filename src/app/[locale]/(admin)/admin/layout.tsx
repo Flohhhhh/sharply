@@ -9,6 +9,9 @@ import { fetchNotificationsForUser } from "~/server/notifications/service";
 import { SiteHeader } from "./admin-header";
 import { AppSidebar } from "./sidebar";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: {
     default: "Admin",

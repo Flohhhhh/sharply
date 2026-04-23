@@ -4,6 +4,8 @@ import { auth } from "~/auth";
 import { Card,CardContent,CardHeader,CardTitle } from "~/components/ui/card";
 import { requireRole } from "~/lib/auth/auth-helpers";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Help",
   openGraph: {

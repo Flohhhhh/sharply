@@ -2,6 +2,8 @@ import { Suspense } from "react";
 import { TopComparePairs } from "../top-compare-pairs";
 import { ImageRequestsList } from "./image-requests-list";
 
+export const dynamic = "force-dynamic";
+
 export default function AnalyticsPage() {
   return (
     <div className="space-y-8 px-8">

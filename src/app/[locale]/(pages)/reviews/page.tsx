@@ -4,6 +4,8 @@ import Link from "next/link";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import { getReviews } from "~/server/payload/service";
 
+export const revalidate = 60;
+
 export async function generateMetadata({
   params,
 }: {

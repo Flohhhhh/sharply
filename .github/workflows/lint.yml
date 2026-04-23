@@ -1,4 +1,4 @@
-name: Unit tests
+name: Lint
 
 on:
   push:
@@ -11,8 +11,8 @@ on:
       - main
 
 jobs:
-  unit-tests:
-    name: unit-tests
+  lint:
+    name: lint
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.head_ref != 'development' && github.head_ref != 'main')
     runs-on: ubuntu-latest
     steps:
@@ -28,5 +28,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run unit tests
-        run: npm run test:unit
+      - name: Run lint
+        run: npm run lint

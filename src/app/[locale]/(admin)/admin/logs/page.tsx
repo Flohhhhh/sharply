@@ -3,6 +3,8 @@ import { AuditLogList } from "../admin-audit-log-list";
 import { BadgesAwardsList } from "../badges-awards-list";
 import { RollupRunsList } from "../rollup-runs-list";
 
+export const dynamic = "force-dynamic";
+
 export default function LogsPage() {
   return (
     <div className="space-y-8 px-8">

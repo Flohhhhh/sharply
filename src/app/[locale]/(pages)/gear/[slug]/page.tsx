@@ -27,7 +27,6 @@ import {
   ItemContent,
   ItemTitle
 } from "~/components/ui/item";
-import { env } from "~/env";
 import { formatDate,formatRelativeDate } from "~/lib/format/date";
 import { GetGearDisplayName } from "~/lib/gear/naming";
 import { resolveRegionFromCountryCode } from "~/lib/gear/region";
@@ -36,6 +35,7 @@ import { getBrandById } from "~/lib/mapping/brand-map";
 import { buildGearMetaDescription } from "~/lib/seo/build-gear-meta-description";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import { buildGearSpecsSections } from "~/lib/specs/registry";
+import { shouldPrebuildHeavyRouteLocale } from "~/lib/static-generation";
 import { getConstructionState } from "~/lib/utils";
 import { isInHallOfFame } from "~/lib/utils/is-in-hall-of-fame";
 import { isNewRelease } from "~/lib/utils/is-new";
@@ -576,8 +576,12 @@ export default async function GearPage({
   );
 }
 
-export async function generateStaticParams() {
-  if (env.SKIP_BUILD_STATIC_GENERATION) {
+export async function generateStaticParams({
+  params,
+}: {
+  params: { locale: string };
+}) {
+  if (!shouldPrebuildHeavyRouteLocale(params.locale)) {
     return [];
   }
 

@@ -5,6 +5,7 @@ import { requireRole } from "~/lib/auth/auth-helpers";
 import { fetchApprovedCreatorsAdmin } from "~/server/admin/approved-creators/service";
 import { ApprovedCreatorsManager } from "./approved-creators-manager";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function ApprovedCreatorsPage() {

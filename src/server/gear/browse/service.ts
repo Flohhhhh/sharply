@@ -128,7 +128,6 @@ export async function loadHubData(params: {
 }
 
 export async function buildSeo(params: { segments: string[] }) {
-  console.log("[/browse] buildSeo running", { segments: params.segments });
   // Load data once to obtain scope + total for descriptive metadata
   const { scope, brand, mount, lists } = await loadHubData({
     segments: params.segments,

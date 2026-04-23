@@ -6,6 +6,8 @@ import { GearDataTable } from "./data-table";
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminGearPage() {
   await auth.api.getSession({
     headers: await headers(),
