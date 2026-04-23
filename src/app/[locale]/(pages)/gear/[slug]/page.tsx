@@ -35,6 +35,7 @@ import { getBrandById } from "~/lib/mapping/brand-map";
 import { buildGearMetaDescription } from "~/lib/seo/build-gear-meta-description";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import { buildGearSpecsSections } from "~/lib/specs/registry";
+import { shouldPrebuildHeavyRouteLocale } from "~/lib/static-generation";
 import { getConstructionState } from "~/lib/utils";
 import { isInHallOfFame } from "~/lib/utils/is-in-hall-of-fame";
 import { isNewRelease } from "~/lib/utils/is-new";
@@ -575,7 +576,15 @@ export default async function GearPage({
   );
 }
 
-export async function generateStaticParams() {
+export async function generateStaticParams({
+  params,
+}: {
+  params: { locale: string };
+}) {
+  if (!shouldPrebuildHeavyRouteLocale(params.locale)) {
+    return [];
+  }
+
   const [trendingSlugs, newestSlugs, highTrafficSlugs] = await Promise.all([
     fetchTrendingSlugs({
       timeframe: "30d",

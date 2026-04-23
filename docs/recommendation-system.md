@@ -74,10 +74,12 @@ Follow `docs/server-structure.md` (no DB in UI; flow is data → service → act
   - `src/app/[locale]/(pages)/recommended-lenses/[brand]/[slug]/page.tsx`
     - Renders a chart for a brand/slug using `serviceGetChart`
     - Displays grouped columns and item lists
+    - Hidden route: charts are not prebuilt at deploy time; `generateStaticParams()` returns `[]` so they are generated via runtime ISR on first request
 
 - Admin editor
   - Base page: `src/app/[locale]/(pages)/admin/recommended-lenses/[brand]/[slug]/page.tsx`
   - Core editor: `.../_components/EditChartContent.tsx`
+  - Admin routes live under a force-dynamic layout with `revalidate = 0`; they are never part of static prerender output
     - Uses server actions:
       - `actionUpdateChartMeta` to update title/flags
       - `actionUpsertItem` to add/update an item

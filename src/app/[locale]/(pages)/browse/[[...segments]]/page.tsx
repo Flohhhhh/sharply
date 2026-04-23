@@ -7,6 +7,10 @@ import { BRANDS,MOUNTS } from "~/lib/constants";
 import { getMountDisplayName } from "~/lib/mapping/mounts-map";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import {
+  buildBrowseStaticParams,
+  shouldPrebuildHeavyRouteLocale,
+} from "~/lib/static-generation";
+import {
   buildSeo,
   fetchBrowseListPage,
   resolveScopeOrThrow,
@@ -21,24 +25,20 @@ import MountButtons from "../_components/mount-buttons";
 
 export const dynamicParams = true;
 
-export async function generateStaticParams() {
-  const all: { segments: string[] }[] = [{ segments: [] }];
-  const categories: Array<"cameras" | "lenses"> = ["cameras", "lenses"];
-
-  for (const b of BRANDS) {
-    all.push({ segments: [b.slug] });
-    for (const c of categories) {
-      all.push({ segments: [b.slug, c] });
-      const brandMounts = MOUNTS.filter(
-        (m) => m.brand_id === b.id && !!m.short_name,
-      );
-      for (const m of brandMounts) {
-        all.push({ segments: [b.slug, c, String(m.short_name)] });
-      }
-    }
+export async function generateStaticParams({
+  params,
+}: {
+  params: { locale: string };
+}) {
+  if (!shouldPrebuildHeavyRouteLocale(params.locale)) {
+    return [];
   }
 
-  return all;
+  return buildBrowseStaticParams({
+    brands: BRANDS,
+    mounts: MOUNTS,
+    includeMountRoutes: false,
+  });
 }
 
 export async function generateMetadata({
