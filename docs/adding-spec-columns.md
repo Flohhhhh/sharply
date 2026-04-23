@@ -18,7 +18,7 @@ The project uses Drizzle ORM for schema, and we manage changes via generated SQL
    - Example: for the new B&H link (`linkBh` on `gear`), add the input in `fields-core.tsx`, include it in `coreKeys`, and trim/null-normalize in `normalizeProposalPayloadForDb`.
 5. Normalize on submit in `src/server/db/normalizers.ts` (coerce to DB-safe types; enums as string pass‑through or enum-check).
 6. Add the spec to the registry: update `src/lib/specs/registry.tsx` to include the new field with proper inline English label, formatting, and section grouping.
-7. Add the matching `gearDetail.specRegistry.sections.<sectionId>.fields.<fieldKey>.label` entry to every locale file in `/messages`.
+7. Add the matching `specRegistry.sections.<sectionId>.fields.<fieldKey>.label` entry to every locale file in `/messages`.
 8. Analog cameras use `analog_camera_specs` (1:1 on `gear.id`); integrated-lens data still lives in `fixed_lens_specs`. Treat `ANALOG_CAMERA` like cameras for fixed-lens UI/flows but use the analog schema for everything else.
 
 #### Example – add Camera Type enum to camera specs
@@ -56,7 +56,37 @@ cameraType: z
 
 4. UI (`fields-cameras.tsx`): add a `Select` bound to `cameraType` using `ENUMS.camera_type_enum`.
 
-5. Display (`src/lib/specs/registry.tsx`): add "Camera Type" under Basic Information when `gearType === "CAMERA"`, and add the matching locale keys under `gearDetail.specRegistry`.
+5. Display (`src/lib/specs/registry.tsx`): add the stable field key `cameraType` under Basic Information when `gearType === "CAMERA"`, and add the matching locale key `specRegistry.sections.core.fields.cameraType.label`.
+
+```tsx
+// src/lib/specs/registry.tsx
+{
+  key: "cameraType",
+  label: "Camera Type",
+  getRawValue: (item) =>
+    item.gearType === "CAMERA" ? item.cameraSpecs?.cameraType : undefined,
+  formatDisplay: (raw) =>
+    typeof raw === "string" ? formatCameraType(raw) : undefined,
+  condition: (item) => item.gearType === "CAMERA",
+}
+```
+
+```json
+// messages/en.json
+{
+  "specRegistry": {
+    "sections": {
+      "core": {
+        "fields": {
+          "cameraType": {
+            "label": "Camera Type"
+          }
+        }
+      }
+    }
+  }
+}
+```
 
 6) Test: `npm run typecheck && npm run lint && npm run build`, then verify edit and detail pages.
 
