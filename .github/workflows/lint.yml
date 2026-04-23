@@ -2,9 +2,14 @@ name: Lint
 
 on:
   pull_request:
+  push:
+    branches:
+      - development
+      - main
 
 jobs:
   lint:
+    name: lint
     runs-on: ubuntu-latest
     steps:
       - name: Check out code

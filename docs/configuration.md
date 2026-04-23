@@ -10,6 +10,8 @@ This project keeps root-level configuration files to the minimum required by fra
 - `package.json` (project manifest and script entry points)
 - `.env.example` (documented environment variable template)
 - `vercel.json` (Vercel project configuration at root)
+- `.github/workflows/lint.yml` (GitHub Actions lint check; runs on pull requests and pushes to `development`/`main` so Vercel Deployment Checks can import the `lint` check from branch commit SHAs)
+- `.github/workflows/unit-tests.yml` (GitHub Actions unit test check; runs on pull requests and pushes to `development`/`main` so Vercel Deployment Checks can import the `unit-tests` check from branch commit SHAs)
 
 ## Consolidated config directory
 
