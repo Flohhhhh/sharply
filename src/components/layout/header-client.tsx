@@ -3,9 +3,8 @@
 import { useScrollState } from "@/lib/hooks/useScrollState";
 import { track } from "@vercel/analytics";
 import { LayoutDashboard, LogIn, Menu } from "lucide-react";
-import { usePathname } from "next-intl";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Logo from "public/logo";
 import type {
@@ -36,9 +35,13 @@ export default function HeaderClient({
   model: HeaderViewModel;
   locale: Locale;
 }) {
-  // Client-side path detection replaces middleware-header-based path reading.
-  // usePathname() from next-intl returns the de-localized pathname (e.g. /gear/sony-a6700).
-  const normalizedPathname = usePathname();
+  // Strip the locale prefix from the raw pathname to get the normalized path
+  // (e.g. "/en/gear/sony-a6700" with locale "en" → "/gear/sony-a6700").
+  const rawPathname = usePathname();
+  const normalizedPathname =
+    rawPathname === `/${locale}` ? "/" :
+    rawPathname.startsWith(`/${locale}/`) ? rawPathname.slice(locale.length + 1) :
+    rawPathname;
   const searchParams = useSearchParams();
   const normalizedSearch = searchParams.toString() ? `?${searchParams.toString()}` : "";
 
