@@ -53,7 +53,6 @@ Notes:
   - mount-depth browse routes (`/browse/[brand]/[category]/[mount]`) are left to on-demand ISR
 - `export const revalidate = 3600` (1 hour) for ISR.
 - `dynamicParams = true` so non-prebuilt combinations still render on-demand.
-- Browse server components pass `locale` explicitly into `next-intl` server translation calls so the route remains static-safe under ISR/SSG and avoids request-bound locale lookups during production renders.
 - `getPopularScopes` is deprecated and no longer used.
 
 ## Gear Detail SSG/ISR
