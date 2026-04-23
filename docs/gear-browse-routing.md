@@ -44,14 +44,23 @@ Notes:
 
 ## SSG/ISR
 
-- Static params are generated in the page (`[[...segments]]/page.tsx`) by enumerating:
-  - `/browse`
-  - `/browse/[brand]` for all `BRANDS`
-  - `/browse/[brand]/[cameras|lenses]`
-  - `/browse/[brand]/[cameras|lenses]/[mount]` for all `MOUNTS` with a `short_name` for that brand
+- Static params are generated in the page (`[[...segments]]/page.tsx`) with an explicit build-budget filter:
+  - only the default locale (`en`) is prebuilt for the heavy browse route family
+  - prebuilt browse paths are limited to:
+    - `/browse`
+    - `/browse/[brand]` for all `BRANDS`
+    - `/browse/[brand]/[cameras|lenses]`
+  - mount-depth browse routes (`/browse/[brand]/[category]/[mount]`) are left to on-demand ISR
 - `export const revalidate = 3600` (1 hour) for ISR.
 - `dynamicParams = true` so non-prebuilt combinations still render on-demand.
 - `getPopularScopes` is deprecated and no longer used.
+
+## Gear Detail SSG/ISR
+
+- `src/app/[locale]/(pages)/gear/[slug]/page.tsx` also applies a build-budget filter.
+- Only the default locale (`en`) is prebuilt for gear detail pages.
+- Even within `en`, static params are limited to the deduped union of the configured trending, newest, and high-traffic slug lists.
+- Non-default locales and any non-prebuilt slugs fall back to on-demand ISR because `dynamicParams = true`.
 
 ## Metadata
 

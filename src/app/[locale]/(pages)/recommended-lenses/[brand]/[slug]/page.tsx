@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import { shouldPrebuildRecommendedLensesCharts } from "~/lib/static-generation";
 import {
   serviceGetChart,
   serviceListChartParams,
@@ -10,6 +11,10 @@ import { ChartView } from "../../_components/ChartView";
 export const revalidate = 86400;
 
 export async function generateStaticParams() {
+  if (!shouldPrebuildRecommendedLensesCharts()) {
+    return [];
+  }
+
   return serviceListChartParams();
 }
 
