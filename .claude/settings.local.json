@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git show:*)",
+      "Bash(find \"src/app/[locale]/\\(pages\\)/gear/[slug]\" -type f)",
+      "Bash(find src/app -path *gear*slug* -type f)",
+      "Bash(grep:*)",
+      "Bash(npx vitest:*)"
+    ]
+  }
+}

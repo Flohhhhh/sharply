@@ -1,19 +1,22 @@
 name: Unit tests
 
 on:
-  push:
-    branches:
-      - development
-      - main
   pull_request:
     branches:
       - development
       - main
+  merge_group:
+    branches:
+      - development
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   unit-tests:
     name: unit-tests
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.head_ref != 'development' && github.head_ref != 'main')
     runs-on: ubuntu-latest
     steps:
       - name: Check out code

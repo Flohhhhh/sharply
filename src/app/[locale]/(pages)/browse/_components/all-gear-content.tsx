@@ -24,14 +24,12 @@ const TRENDING_SKELETON_KEYS = [
 
 export default async function AllGearContent({
   brandSlug,
-  locale,
   showBrandPicker = true,
 }: {
   brandSlug?: string;
-  locale: string;
   showBrandPicker?: boolean;
-}) {
-  const t = await getTranslations({ locale, namespace: "browsePage" });
+} = {}) {
+  const t = await getTranslations("browsePage");
   // return <Loading />;
   const brand = brandSlug ? await fetchBrandBySlug(brandSlug) : null;
   if (brandSlug && !brand) {

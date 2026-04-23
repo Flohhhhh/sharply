@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getTranslations,setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { JSX } from "react";
 import { Suspense } from "react";
 import { GearCardSkeleton } from "~/components/gear/gear-card";
@@ -71,13 +71,13 @@ export default async function BrowseCatchAll({
 }) {
   const { locale, segments = [] } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations({ locale, namespace: "browsePage" });
+  const t = await getTranslations("browsePage");
   const { depth, scope, brand, mount } = await resolveScopeOrThrow(segments);
 
   if (depth === 0) {
     return (
       <main className="space-y-6 pb-24">
-        <AllGearContent locale={locale} />
+        <AllGearContent />
       </main>
     );
   }
@@ -85,12 +85,9 @@ export default async function BrowseCatchAll({
   if (depth === 1) {
     return (
       <main className="space-y-6 pb-24">
-        <Breadcrumbs
-          locale={locale}
-          brand={{ name: brand!.name, slug: brand!.slug }}
-        />
+        <Breadcrumbs brand={{ name: brand!.name, slug: brand!.slug }} />
         <h1 className="text-3xl font-semibold">{brand!.name}</h1>
-        <BrandContent brandSlug={brand!.slug} locale={locale} />
+        <BrandContent brandSlug={brand!.slug} />
       </main>
     );
   }
@@ -109,7 +106,6 @@ export default async function BrowseCatchAll({
     return (
       <main className="space-y-6 pb-24">
         <Breadcrumbs
-          locale={locale}
           brand={{ name: brand!.name, slug: brand!.slug }}
           category={scope.categorySlug}
         />
@@ -120,7 +116,6 @@ export default async function BrowseCatchAll({
           brandId={brand!.id}
           brandSlug={brand!.slug}
           category={scope.categorySlug!}
-          locale={locale}
         />
         <Suspense fallback={<SortSelectFallback label={t("sortBy")} />}>
           <BrowseQueryControls category={scope.categorySlug} hasMount={false} />
@@ -146,7 +141,6 @@ export default async function BrowseCatchAll({
   return (
     <main className="space-y-6 pb-24">
       <Breadcrumbs
-        locale={locale}
         brand={{ name: brand!.name, slug: brand!.slug }}
         category={scope.categorySlug}
         mountValue={mount?.value ?? null}

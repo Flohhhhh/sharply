@@ -3,16 +3,15 @@ import { cn } from "~/lib/utils";
 import DiscordLink from "./discord-link";
 
 export default async function DiscordBanner(props: {
-  locale: string;
   vertical?: boolean;
   label?: string;
   className?: string;
 }) {
-  const { locale, vertical = false, label, className } = props;
   const [tCommon, tFooter] = await Promise.all([
-    getTranslations({ locale, namespace: "common" }),
-    getTranslations({ locale, namespace: "footer" }),
+    getTranslations("common"),
+    getTranslations("footer"),
   ]);
+  const { vertical = false, label, className } = props;
   return (
     <div
       className={cn(

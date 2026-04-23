@@ -1,8 +1,9 @@
 import { FileDown } from "lucide-react";
 import type { Metadata } from "next";
-import { getTranslations,setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { ConstructionFullPage } from "~/app/[locale]/(pages)/gear/_components/construction-full";
 import { GearActionButtons } from "~/app/[locale]/(pages)/gear/_components/gear-action-buttons";
 import { GearContributors } from "~/app/[locale]/(pages)/gear/_components/gear-contributors";
@@ -75,9 +76,6 @@ interface GearPageProps {
   params: Promise<{
     locale: string;
     slug: string;
-  }>;
-  searchParams: Promise<{
-    editApplied?: string;
   }>;
 }
 
@@ -154,13 +152,9 @@ export async function generateMetadata({
   }
 }
 
-export default async function GearPage({
-  params,
-  searchParams,
-}: GearPageProps) {
+export default async function GearPage({ params }: GearPageProps) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
-  const { editApplied } = await searchParams;
   const t = await getTranslations({ locale, namespace: "gearDetail" });
   // console.log("[gear/[slug]] Generating static page (build/ISR)", { slug });
   const viewerRegion = resolveRegionFromCountryCode(null);
@@ -227,7 +221,6 @@ export default async function GearPage({
     return (
       <main className="mx-auto mt-24 min-h-screen max-w-4xl p-6">
         <ConstructionFullPage
-          locale={locale}
           gearName={regionalDisplayName}
           missing={construction.missing}
           slug={item.slug}
@@ -293,7 +286,9 @@ export default async function GearPage({
 
   return (
     <main className="mx-auto max-w-7xl space-y-8 px-4 pt-20 sm:px-6">
-      {editApplied === "1" ? <EditAppliedToast /> : null}
+      <Suspense fallback={null}>
+        <EditAppliedToast />
+      </Suspense>
       <GearItemDock
         slug={slug}
         gearId={item.id}
@@ -393,7 +388,7 @@ export default async function GearPage({
           {/* Pending submission banner (client, only for this user when pending) */}
           <UserPendingEditBanner slug={slug} />
           {/* Staff Verdict */}
-          <StaffVerdictSection locale={locale} slug={slug} verdict={verdict} />
+          <StaffVerdictSection slug={slug} verdict={verdict} />
 
           {/* Specifications */}
           <SpecsSection
@@ -468,7 +463,7 @@ export default async function GearPage({
             trendingSlugs={trendingSlugs}
           />
 
-          <CreatorVideosSection locale={locale} videos={creatorVideos} />
+          <CreatorVideosSection videos={creatorVideos} />
         </div>
         {/* Right column */}
         <div className="static top-28 col-span-1 -mt-4 w-full space-y-8 self-start sm:sticky md:col-span-3">
@@ -500,7 +495,7 @@ export default async function GearPage({
 
           {/* Contributors */}
           <GearContributors gearId={item.id} />
-          <GearStatsCard locale={locale} slug={slug} />
+          <GearStatsCard slug={slug} />
           {/* Page Metadata */}
           <div className="mt-8 border-t pt-6">
             <div className="text-muted-foreground space-y-2 text-sm">
@@ -539,7 +534,7 @@ export default async function GearPage({
         />
       </section>
 
-      <DiscordBanner locale={locale} />
+      <DiscordBanner />
 
       {/* Articles about this item */}
       {relatedNews.length > 0 && (

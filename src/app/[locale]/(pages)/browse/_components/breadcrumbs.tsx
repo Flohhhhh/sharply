@@ -4,19 +4,13 @@ import type { GearCategorySlug } from "~/lib/browse/routing";
 import { getMountDisplayName } from "~/lib/mapping/mounts-map";
 
 type Props = {
-  locale: string;
   brand?: { name: string; slug: string } | null;
   category?: GearCategorySlug | null;
   mountValue?: string | null;
 };
 
-export default async function Breadcrumbs({
-  locale,
-  brand,
-  category,
-  mountValue,
-}: Props) {
-  const t = await getTranslations({ locale, namespace: "browsePage" });
+export default async function Breadcrumbs({ brand, category, mountValue }: Props) {
+  const t = await getTranslations("browsePage");
   const items: Array<{ label: string; href?: string }> = [];
   items.push({ label: t("browse"), href: "/browse" });
 

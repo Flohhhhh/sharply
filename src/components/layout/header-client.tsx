@@ -2,10 +2,23 @@
 
 import { useScrollState } from "@/lib/hooks/useScrollState";
 import { track } from "@vercel/analytics";
-import { LayoutDashboard,LogIn,Menu } from "lucide-react";
+import { LayoutDashboard, LogIn, Menu } from "lucide-react";
 import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import Logo from "public/logo";
-import type { HeaderViewModel } from "~/components/layout/header-model";
+import type {
+  HeaderNotificationsData,
+  HeaderUser,
+  HeaderViewModel,
+} from "~/components/layout/header-model";
+import {
+  buildHeaderCallbackUrl,
+  buildHeaderRouteState,
+} from "~/components/layout/header-model";
+import type { Locale } from "~/i18n/config";
+import { localizePathname } from "~/i18n/routing";
+import { useSession } from "~/lib/auth/auth-client";
 import { GlobalSearchBar } from "../search/global-search-bar";
 import { ThemeSwitcher } from "../theme-switcher";
 import { Button } from "../ui/button";
@@ -15,14 +28,77 @@ import { NavSheetDesktop } from "./nav-sheet-desktop";
 import { NotificationsDropdown } from "./notifications/notifications-dropdown";
 import { UserMenu } from "./user-menu";
 
-export default function HeaderClient({ model }: { model: HeaderViewModel }) {
-  const { hasScrolled } = useScrollState(model.scrollResponsive ? 290 : Infinity);
+export default function HeaderClient({
+  model,
+  locale,
+}: {
+  model: HeaderViewModel;
+  locale: Locale;
+}) {
+  // Strip the locale prefix from the raw pathname to get the normalized path
+  // (e.g. "/en/gear/sony-a6700" with locale "en" → "/gear/sony-a6700").
+  const rawPathname = usePathname();
+  const normalizedPathname =
+    rawPathname === `/${locale}` ? "/" :
+    rawPathname.startsWith(`/${locale}/`) ? rawPathname.slice(locale.length + 1) :
+    rawPathname;
+  const searchParams = useSearchParams();
+  const normalizedSearch = searchParams.toString() ? `?${searchParams.toString()}` : "";
+
+  const routeState = buildHeaderRouteState(normalizedPathname);
+  const callbackUrl = buildHeaderCallbackUrl(locale, normalizedPathname, normalizedSearch);
+  const signInBaseHref = localizePathname("/auth/signin", locale);
+  const signInHref = `${signInBaseHref}?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+
+  // Client-side auth state — avoids headers() call on the server during ISR.
+  const { data: session } = useSession();
+  const user: HeaderUser = session?.user
+    ? {
+        id: session.user.id,
+        role: session.user.role,
+        handle: session.user.handle ?? null,
+        memberNumber: session.user.memberNumber ?? null,
+        name: session.user.name ?? null,
+        email: session.user.email ?? null,
+        image: session.user.image ?? null,
+      }
+    : null;
+
+  const isAdminOrEditor =
+    user?.role === "ADMIN" || user?.role === "SUPERADMIN" || user?.role === "EDITOR";
+
+  const profileHref = (() => {
+    if (!user) return null;
+    const profileSlug =
+      user.handle && user.handle.trim() !== ""
+        ? user.handle
+        : user.memberNumber != null
+          ? `user-${user.memberNumber}`
+          : null;
+    return profileSlug ? localizePathname(`/u/${profileSlug}`, locale) : null;
+  })();
+
+  // Client-side notifications — fetched once user is known.
+  const [notifications, setNotifications] = useState<HeaderNotificationsData>(null);
+  useEffect(() => {
+    if (!user) {
+      setNotifications(null);
+      return;
+    }
+    fetch("/api/notifications/header")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => setNotifications(data))
+      .catch(() => setNotifications(null));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]); // re-fetch only when user identity changes
+
+  const { hasScrolled } = useScrollState(routeState.scrollResponsive ? 290 : Infinity);
   const shouldShowHeaderSearch =
-    model.initialMode === "compact" || (model.scrollResponsive && hasScrolled);
+    routeState.initialMode === "compact" || (routeState.scrollResponsive && hasScrolled);
   const sheetTopClass = shouldShowHeaderSearch
     ? "top-16 h-[calc(100vh-4rem)]"
     : "top-24 h-[calc(100vh-6rem)]";
-  const notificationsData = model.notifications ?? {
+  const notificationsData = notifications ?? {
     notifications: [],
     archived: [],
     unreadCount: 0,
@@ -31,7 +107,7 @@ export default function HeaderClient({ model }: { model: HeaderViewModel }) {
   const handleHeaderSignInClick = () => {
     void track("auth_signin_press", {
       source: "header",
-      callbackUrl: model.callbackUrl,
+      callbackUrl,
     });
   };
 
@@ -104,11 +180,11 @@ export default function HeaderClient({ model }: { model: HeaderViewModel }) {
             <NavMenuMobile
               items={model.navItems}
               labels={model.labels}
-              callbackUrl={model.callbackUrl}
-              signInHref={model.signInHref}
-              profileHref={model.profileHref}
+              callbackUrl={callbackUrl}
+              signInHref={signInHref}
+              profileHref={profileHref}
               accountHref={model.accountHref}
-              user={model.user}
+              user={user}
             >
               <Button variant="outline" size="sm" className="md:hidden">
                 <Menu className="size-4" />
@@ -117,10 +193,10 @@ export default function HeaderClient({ model }: { model: HeaderViewModel }) {
 
             <div className="hidden items-center gap-3 md:flex">
               <ThemeSwitcher />
-              {model.user ? (
+              {user ? (
                 <>
                   <NotificationsDropdown data={notificationsData} />
-                  {model.isAdminOrEditor && (
+                  {isAdminOrEditor && (
                     <Button
                       variant="outline"
                       size="sm"
@@ -133,15 +209,15 @@ export default function HeaderClient({ model }: { model: HeaderViewModel }) {
                     </Button>
                   )}
                   <UserMenu
-                    user={model.user}
+                    user={user}
                     labels={model.labels}
-                    profileHref={model.profileHref}
+                    profileHref={profileHref}
                     accountHref={model.accountHref}
                   />
                 </>
               ) : (
                 <Button size="sm" asChild icon={<LogIn />}>
-                  <Link href={model.signInHref} onClick={handleHeaderSignInClick}>
+                  <Link href={signInHref} onClick={handleHeaderSignInClick}>
                     {model.labels.signIn}
                   </Link>
                 </Button>
