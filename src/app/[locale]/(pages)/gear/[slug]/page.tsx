@@ -27,7 +27,6 @@ import {
   ItemContent,
   ItemTitle
 } from "~/components/ui/item";
-import { env } from "~/env";
 import { formatDate,formatRelativeDate } from "~/lib/format/date";
 import { GetGearDisplayName } from "~/lib/gear/naming";
 import { resolveRegionFromCountryCode } from "~/lib/gear/region";
@@ -577,10 +576,6 @@ export default async function GearPage({
 }
 
 export async function generateStaticParams() {
-  if (env.SKIP_BUILD_STATIC_GENERATION) {
-    return [];
-  }
-
   const [trendingSlugs, newestSlugs, highTrafficSlugs] = await Promise.all([
     fetchTrendingSlugs({
       timeframe: "30d",

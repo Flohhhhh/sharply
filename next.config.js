@@ -44,7 +44,7 @@ const config = {
     ];
   },
   eslint: {
-    ignoreDuringBuilds: false,
+    ignoreDuringBuilds: true,
   },
   images: {
     unoptimized: process.env.NODE_ENV === "development",

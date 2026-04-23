@@ -8,6 +8,8 @@ import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
 import type { LearnPage } from "~/payload-types";
 import { getLearnPages } from "~/server/payload/service";
 
+export const revalidate = 60;
+
 const sortByCreationDate = <T extends { createdAt: string }>(items: T[]) => {
   return [...items].sort(
     (firstItem, secondItem) =>

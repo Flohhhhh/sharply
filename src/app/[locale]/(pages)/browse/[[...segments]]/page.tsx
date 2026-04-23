@@ -3,7 +3,6 @@ import { getTranslations } from "next-intl/server";
 import type { JSX } from "react";
 import { Suspense } from "react";
 import { GearCardSkeleton } from "~/components/gear/gear-card";
-import { env } from "~/env";
 import { BRANDS,MOUNTS } from "~/lib/constants";
 import { getMountDisplayName } from "~/lib/mapping/mounts-map";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
@@ -23,11 +22,6 @@ import MountButtons from "../_components/mount-buttons";
 export const dynamicParams = true;
 
 export async function generateStaticParams() {
-  if (env.SKIP_BUILD_STATIC_GENERATION) {
-    return [];
-  }
-
-  console.log("[/browse] generateStaticParams running");
   const all: { segments: string[] }[] = [{ segments: [] }];
   const categories: Array<"cameras" | "lenses"> = ["cameras", "lenses"];
 
