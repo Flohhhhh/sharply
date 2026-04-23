@@ -1,6 +1,6 @@
 import { FileDown } from "lucide-react";
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { getTranslations,setRequestLocale } from "next-intl/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ConstructionFullPage } from "~/app/[locale]/(pages)/gear/_components/construction-full";
@@ -159,6 +159,7 @@ export default async function GearPage({
   searchParams,
 }: GearPageProps) {
   const { locale, slug } = await params;
+  setRequestLocale(locale);
   const { editApplied } = await searchParams;
   const t = await getTranslations({ locale, namespace: "gearDetail" });
   // console.log("[gear/[slug]] Generating static page (build/ISR)", { slug });
@@ -226,6 +227,7 @@ export default async function GearPage({
     return (
       <main className="mx-auto mt-24 min-h-screen max-w-4xl p-6">
         <ConstructionFullPage
+          locale={locale}
           gearName={regionalDisplayName}
           missing={construction.missing}
           slug={item.slug}
@@ -391,7 +393,7 @@ export default async function GearPage({
           {/* Pending submission banner (client, only for this user when pending) */}
           <UserPendingEditBanner slug={slug} />
           {/* Staff Verdict */}
-          <StaffVerdictSection slug={slug} verdict={verdict} />
+          <StaffVerdictSection locale={locale} slug={slug} verdict={verdict} />
 
           {/* Specifications */}
           <SpecsSection
@@ -466,7 +468,7 @@ export default async function GearPage({
             trendingSlugs={trendingSlugs}
           />
 
-          <CreatorVideosSection videos={creatorVideos} />
+          <CreatorVideosSection locale={locale} videos={creatorVideos} />
         </div>
         {/* Right column */}
         <div className="static top-28 col-span-1 -mt-4 w-full space-y-8 self-start sm:sticky md:col-span-3">
@@ -498,7 +500,7 @@ export default async function GearPage({
 
           {/* Contributors */}
           <GearContributors gearId={item.id} />
-          <GearStatsCard slug={slug} />
+          <GearStatsCard locale={locale} slug={slug} />
           {/* Page Metadata */}
           <div className="mt-8 border-t pt-6">
             <div className="text-muted-foreground space-y-2 text-sm">
@@ -537,7 +539,7 @@ export default async function GearPage({
         />
       </section>
 
-      <DiscordBanner />
+      <DiscordBanner locale={locale} />
 
       {/* Articles about this item */}
       {relatedNews.length > 0 && (

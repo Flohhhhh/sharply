@@ -18,7 +18,12 @@ export const metadata: Metadata = buildLocalizedMetadata("/discord/bingo", {
   },
 });
 
-export default async function DiscordBingoPage() {
+export default async function DiscordBingoPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -45,7 +50,7 @@ export default async function DiscordBingoPage() {
           canSkipCard={canSkipCard}
           canCompleteCard={canCompleteCard}
         />
-        <DiscordBanner label="Join The Photography Lounge" />
+        <DiscordBanner locale={locale} label="Join The Photography Lounge" />
       </div>
 
       <div className="grid h-[calc(100vh-9rem)] place-items-center lg:hidden">
