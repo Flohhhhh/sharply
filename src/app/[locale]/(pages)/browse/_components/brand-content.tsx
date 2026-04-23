@@ -4,10 +4,12 @@ import AllGearContent from "./all-gear-content";
 
 export default async function BrandContent({
   brandSlug,
+  locale,
 }: {
   brandSlug: string;
+  locale: string;
 }) {
-  const t = await getTranslations("browsePage");
+  const t = await getTranslations({ locale, namespace: "browsePage" });
   const items = [
     { label: t("cameras"), href: `/browse/${brandSlug}/cameras` },
     { label: t("lenses"), href: `/browse/${brandSlug}/lenses` },
@@ -31,7 +33,11 @@ export default async function BrandContent({
         ))}
       </div>
       {/* Brand-specific latest and trending */}
-      <AllGearContent brandSlug={brandSlug} showBrandPicker={false} />
+      <AllGearContent
+        brandSlug={brandSlug}
+        locale={locale}
+        showBrandPicker={false}
+      />
     </div>
   );
 }

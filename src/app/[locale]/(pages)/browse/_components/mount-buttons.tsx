@@ -14,12 +14,14 @@ export default async function MountButtons({
   brandId,
   brandSlug,
   category,
+  locale,
 }: {
   brandId: string;
   brandSlug: string;
   category: "cameras" | "lenses";
+  locale: string;
 }) {
-  const t = await getTranslations("browsePage");
+  const t = await getTranslations({ locale, namespace: "browsePage" });
   let mounts = await fetchMountsForBrand(brandId);
   let hiddenMounts: typeof mounts = [];
   const rules = mountUIConfig[brandSlug]?.[category];
