@@ -79,11 +79,17 @@ export function buildCompareSections(
   }
 
   return Array.from(byId.entries())
-    .sort(
-      ([leftId], [rightId]) =>
-        (sectionOrderIndex.get(leftId) ?? Number.POSITIVE_INFINITY) -
-        (sectionOrderIndex.get(rightId) ?? Number.POSITIVE_INFINITY),
-    )
+    .sort(([leftId], [rightId]) => {
+      const leftIndex = sectionOrderIndex.get(leftId) ?? Number.POSITIVE_INFINITY;
+      const rightIndex = sectionOrderIndex.get(rightId) ?? Number.POSITIVE_INFINITY;
+
+      // Both missing: use deterministic tie-breaker
+      if (leftIndex === Number.POSITIVE_INFINITY && rightIndex === Number.POSITIVE_INFINITY) {
+        return leftId.localeCompare(rightId);
+      }
+
+      return leftIndex - rightIndex;
+    })
     .map(([sectionId, pair]) => {
       const rows = buildAlignedRows(sectionId, pair.a, pair.b);
       return {

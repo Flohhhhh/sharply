@@ -244,9 +244,11 @@ The registry exports `buildGearSpecsSections(item: GearItem, options?)` which re
 
 ### Localization
 
-- English labels and section titles remain inline in `registry.tsx`.
-- Locale files mirror those strings under `gearDetail.specRegistry.sections.<sectionId>.fields.<fieldKey>.label`.
-- The registry falls back to inline English when a locale key is missing.
+- English labels and section titles remain inline in `registry.tsx` as the source of fallbacks.
+- Registry keys are written as `specRegistry.*` relative to the `gearDetail` translator (scoped keys).
+- The full JSON path used in locale files is `gearDetail.specRegistry.*`.
+- Examples: field labels under `gearDetail.specRegistry.sections.<sectionId>.fields.<fieldKey>.label` and shared values under `gearDetail.specRegistry.shared.*`.
+- The registry will fall back to inline English when a locale key is missing; `registry.tsx` provides these inline English labels as the fallback source.
 - Shared simple values emitted directly by the registry, such as `Yes` and `No`, live under `gearDetail.specRegistry.shared.*`.
 
 **Max Continuous FPS display**

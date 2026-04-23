@@ -256,7 +256,7 @@
     "reviewsLoading": "Reviews werden geladen...",
     "reviewsLoadError": "Fehler: {error}",
     "reviewsEmpty": "Noch keine Reviews. Schreibe die erste Review für diese Ausrüstung!",
-    "reviewsCount": "Reviews ({count})",
+    "reviewsCount": "Rezensionen ({count})",
     "anonymousUser": "Anonym",
     "anonymousUserInitial": "B",
     "sharedAReview": "Hat eine Review geteilt",
@@ -289,7 +289,7 @@
     "reviewPublished": "Review erfolgreich veröffentlicht.",
     "reviewSubmitError": "Review konnte nicht gesendet werden.",
     "submittingReview": "Wird gesendet...",
-    "submitReview": "Review absenden",
+    "submitReview": "Rezension absenden",
     "specRegistry": {
       "sections": {
         "core": {
@@ -888,7 +888,7 @@
     "listsPublicNameLabel": "Öffentlicher Name",
     "listsPublishButton": "Liste veröffentlichen",
     "listsDeleteTitle": "Diese Liste löschen?",
-    "listsDeleteDescription": "Dadurch wird {name} und alle darin gespeicherten Einträge dauerhaft gelöscht.",
+    "listsDeleteDescription": "Dadurch werden {name} und alle darin gespeicherten Einträge dauerhaft gelöscht.",
     "listsThisList": "diese Liste",
     "listsDeleteButton": "Liste löschen",
     "listsOrderUpdateError": "Reihenfolge konnte nicht aktualisiert werden",

@@ -57,13 +57,19 @@ export default async function Header() {
   ]);
 
   const user = mapSessionUser(session);
-  const notifications = user
-    ? await fetchNotificationsForUser({
+  let notifications = null;
+  if (user) {
+    try {
+      notifications = await fetchNotificationsForUser({
         userId: user.id,
         limit: 10,
         archivedLimit: 5,
-      })
-    : null;
+      });
+    } catch (error) {
+      console.error("Failed to fetch notifications for user:", error);
+      notifications = null;
+    }
+  }
 
   const model = buildHeaderViewModel({
     locale,
