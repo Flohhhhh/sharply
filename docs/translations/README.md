@@ -29,7 +29,7 @@ This directory documents how localized copy is organized in Sharply and how to a
 
 Hall of fame items use a mixed pattern:
 
-- English source copy lives in code in [src/app/[locale]/(pages)/lists/hall-of-fame/data.ts](/Users/camerongustavson/CodeProjects/sharply/src/app/[locale]/(pages)/lists/hall-of-fame/data.ts:1)
+- English source copy lives in code in [src/app/[locale]/(pages)/lists/hall-of-fame/data.ts](../../src/app/[locale]/(pages)/lists/hall-of-fame/data.ts)
 - Each item includes:
   - `slug`
   - `textKey`
@@ -49,13 +49,13 @@ The page resolves item copy like this:
 
 The implementation currently lives in:
 
-- [src/app/[locale]/(pages)/lists/hall-of-fame/page.tsx](/Users/camerongustavson/CodeProjects/sharply/src/app/[locale]/(pages)/lists/hall-of-fame/page.tsx:1)
+- [src/app/[locale]/(pages)/lists/hall-of-fame/page.tsx](../../src/app/[locale]/(pages)/lists/hall-of-fame/page.tsx)
 
 ## Spec Registry pattern
 
 The spec registry uses the same mixed-source approach:
 
-- English source copy stays inline in [src/lib/specs/registry.tsx](/Users/camerongustavson/CodeProjects/sharply/src/lib/specs/registry.tsx:1)
+- English source copy stays inline in [src/lib/specs/registry.tsx](../../src/lib/specs/registry.tsx)
 - Localized copies live in `/messages/*` under `gearDetail.specRegistry.*`
 - Registry consumers pass a `gearDetail` translator into the registry builders
 
