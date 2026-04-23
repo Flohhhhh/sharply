@@ -2,15 +2,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach,describe,expect,it,vi } from "vitest";
 import type { HeaderViewModel } from "~/components/layout/header-model";
 
-const headerMocks = vi.hoisted(() => ({
-  headers: vi.fn(),
-}));
-
-const intlServerMocks = vi.hoisted(() => ({
-  getLocale: vi.fn(),
-  getTranslations: vi.fn(),
-}));
-
+// Keep mocks for modules that are still transitively imported (e.g. header-model
+// imports types from ~/auth and ~/server/notifications/service).
 const authMocks = vi.hoisted(() => ({
   auth: {
     api: {
@@ -19,15 +12,18 @@ const authMocks = vi.hoisted(() => ({
   },
 }));
 
+const intlServerMocks = vi.hoisted(() => ({
+  getTranslations: vi.fn(),
+}));
+
 const notificationMocks = vi.hoisted(() => ({
   fetchNotificationsForUser: vi.fn(),
 }));
 
 const headerClientMock = vi.hoisted(() => vi.fn((_props: unknown) => null));
 
-vi.mock("next/headers", () => headerMocks);
-vi.mock("next-intl/server", () => intlServerMocks);
 vi.mock("~/auth", () => authMocks);
+vi.mock("next-intl/server", () => intlServerMocks);
 vi.mock("~/server/notifications/service", () => notificationMocks);
 vi.mock("~/components/layout/header-client", () => ({
   default: headerClientMock,
@@ -47,13 +43,6 @@ function getHeaderModel() {
 describe("header server component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    headerMocks.headers.mockResolvedValue(
-      new Headers([
-        ["x-sharply-normalized-pathname", "/about"],
-        ["x-sharply-normalized-search", "?q=sony"],
-      ]),
-    );
-    intlServerMocks.getLocale.mockResolvedValue("ja");
     intlServerMocks.getTranslations.mockImplementation(
       async ({
         namespace,
@@ -63,57 +52,29 @@ describe("header server component", () => {
       }) =>
         (key: string) => `${namespace}.${key}`,
     );
-    authMocks.auth.api.getSession.mockResolvedValue(null);
-    notificationMocks.fetchNotificationsForUser.mockResolvedValue(null);
   });
 
-  it("builds a signed-out model with a localized sign-in callback URL", async () => {
-    renderToStaticMarkup(await Header());
+  it("builds a signed-out model with localized hrefs for the given locale", async () => {
+    renderToStaticMarkup(await Header({ locale: "ja" }));
     const model = getHeaderModel();
 
     expect(model.user).toBeNull();
-    expect(model.callbackUrl).toBe("/ja/about?q=sony");
-    expect(model.signInHref).toBe(
-      "/ja/auth/signin?callbackUrl=%2Fja%2Fabout%3Fq%3Dsony",
-    );
+    expect(model.notifications).toBeNull();
+    expect(model.homeHref).toBe("/ja");
+    expect(model.adminHref).toBe("/ja/admin");
     expect(model.labels.signIn).toBe("common.signIn");
+    // callbackUrl and signInHref are now computed client-side from the live pathname
     expect(notificationMocks.fetchNotificationsForUser).not.toHaveBeenCalled();
   });
 
-  it("fetches notifications on the server and passes them into the client model", async () => {
-    authMocks.auth.api.getSession.mockResolvedValue({
-      user: {
-        id: "user-1",
-        role: "EDITOR",
-        handle: "camfan",
-        memberNumber: 7,
-        name: "Cam Fan",
-        email: "cam@example.com",
-        image: null,
-      },
-    });
-    notificationMocks.fetchNotificationsForUser.mockResolvedValue({
-      userId: "user-1",
-      notifications: [],
-      archived: [],
-      unreadCount: 2,
-    });
-
-    renderToStaticMarkup(await Header());
+  it("does not fetch auth or notifications server-side (moved to client)", async () => {
+    renderToStaticMarkup(await Header({ locale: "ja" }));
     const model = getHeaderModel();
 
-    expect(notificationMocks.fetchNotificationsForUser).toHaveBeenCalledWith({
-      userId: "user-1",
-      limit: 10,
-      archivedLimit: 5,
-    });
-    expect(model.user?.id).toBe("user-1");
-    expect(model.profileHref).toBe("/ja/u/camfan");
-    expect(model.notifications).toEqual({
-      userId: "user-1",
-      notifications: [],
-      archived: [],
-      unreadCount: 2,
-    });
+    // Auth state is resolved client-side via useSession(); the server always
+    // passes user: null so ISR prerendering never touches headers() or cookies().
+    expect(model.user).toBeNull();
+    expect(model.notifications).toBeNull();
+    expect(notificationMocks.fetchNotificationsForUser).not.toHaveBeenCalled();
   });
 });
