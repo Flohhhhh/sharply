@@ -37,6 +37,7 @@ import {
 import { useSession } from "~/lib/auth/auth-client";
 import { GENRES } from "~/lib/constants";
 import { formatDate } from "~/lib/format/date";
+import { getReviewGenreLabel } from "~/lib/i18n/gear-detail";
 
 const REVIEWS_PER_PAGE = 5;
 
@@ -109,13 +110,15 @@ export function GearReviewsList({
       try {
         const response = await fetch(`/api/gear/${gearSlug}/reviews`);
         if (!response.ok) {
-          throw new Error("Failed to fetch reviews");
+          throw new Error(t("reviewsRequestFailed"));
         }
         const data = await response.json();
         setReviews(data.reviews || []);
         onReviewsLoaded?.(data.reviews?.length || 0);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load reviews");
+        setError(
+          err instanceof Error ? err.message : t("reviewsRequestFailed"),
+        );
       } finally {
         setIsLoading(false);
       }
@@ -356,7 +359,13 @@ export function GearReviewsList({
                           (g.slug as string) === gid ||
                           (g.id as string) === gid,
                       );
-                      const label = (match?.name as string) ?? gid;
+                      const label = match
+                        ? getReviewGenreLabel(t, locale, {
+                            id: match.id as string,
+                            slug: match.slug as string,
+                            name: match.name as string,
+                          })
+                        : gid;
                       return (
                         <Badge key={gid} className="text-[10px]">
                           {label}

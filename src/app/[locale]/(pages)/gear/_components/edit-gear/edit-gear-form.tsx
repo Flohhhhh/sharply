@@ -2,7 +2,7 @@
 
 import { track } from "@vercel/analytics";
 import { Crop } from "lucide-react";
-import { useLocale } from "next-intl";
+import { useLocale,useTranslations, type TranslationValues } from "next-intl";
 import { useRouter } from "next/navigation";
 import React,{ useCallback,useState } from "react";
 import { toast } from "sonner";
@@ -20,6 +20,11 @@ import {
 import { Label } from "~/components/ui/label";
 import { formatDate } from "~/lib/format/date";
 import { MOUNTS } from "~/lib/generated";
+import {
+  getSpecFieldLabel,
+  getSpecSectionTitle,
+  translateGearDetailWithFallback,
+} from "~/lib/i18n/gear-detail";
 import { formatCardSlotDetails,formatPrice } from "~/lib/mapping";
 import { getMountLongNamesById } from "~/lib/mapping/mounts-map";
 import { sensorNameFromSlug } from "~/lib/mapping/sensor-map";
@@ -192,6 +197,9 @@ function EditGearForm({
   onFormDataChange,
 }: EditGearFormProps) {
   const locale = useLocale();
+  const t = useTranslations("gearDetail");
+  const tf = (key: string, fallback: string, values?: TranslationValues) =>
+    translateGearDetailWithFallback(t, key, fallback, values);
   const router = useRouter();
   const [internalAutoSubmit, setInternalAutoSubmit] = useState(
     Boolean(canToggleAutoSubmit),
@@ -239,6 +247,229 @@ function EditGearForm({
       onAutoSubmitChange?.(checked);
     },
     [autoSubmit, onAutoSubmitChange],
+  );
+
+  const getDiffSectionTitle = useCallback(
+    (section: "core" | "analogCamera" | "camera" | "lens" | "fixedLens") => {
+      switch (section) {
+        case "core":
+          return getSpecSectionTitle(t, "core", "Basic Information");
+        case "analogCamera":
+          return getSpecSectionTitle(t, "analog-camera", "Analog Camera");
+        case "camera":
+          return tf("editGear.sections.camera", "Camera");
+        case "lens":
+          return tf("editGear.sections.lens", "Lens");
+        case "fixedLens":
+          return tf("editGear.sections.integratedLens", "Integrated Lens");
+      }
+    },
+    [t, tf],
+  );
+
+  const getCoreDiffLabel = useCallback(
+    (key: string) => {
+      switch (key) {
+        case "mountId":
+          return getSpecFieldLabel(t, "core", "mounts", "Mount");
+        case "mountIds":
+          return getSpecFieldLabel(
+            t,
+            "core",
+            "mounts",
+            "Mounts",
+            "labelPlural",
+          );
+        case "announcedDate":
+          return getSpecFieldLabel(t, "core", "announcedDate", "Announced Date");
+        case "announceDatePrecision":
+          return tf("editGear.fields.announcedDatePrecision", "Announced Date Precision");
+        case "releaseDate":
+          return getSpecFieldLabel(t, "core", "releaseDate", "Release Date");
+        case "releaseDatePrecision":
+          return tf("editGear.fields.releaseDatePrecision", "Release Date Precision");
+        case "msrpNowUsdCents":
+          return tf("editGear.fields.msrpNow", "MSRP now (USD)");
+        case "msrpAtLaunchUsdCents":
+          return tf("editGear.fields.msrpAtLaunch", "MSRP at launch (USD)");
+        case "mpbMaxPriceUsdCents":
+          return tf("editGear.fields.mpbMaxPrice", "MPB max price (USD)");
+        case "weightGrams":
+          return getSpecFieldLabel(t, "core", "weightGrams", "Weight");
+        case "widthMm":
+          return tf("editGear.fields.width", "Width");
+        case "heightMm":
+          return tf("editGear.fields.height", "Height");
+        case "depthMm":
+          return tf("editGear.fields.depth", "Depth");
+        case "linkManufacturer":
+          return tf("editGear.fields.manufacturerLink", "Manufacturer Link");
+        case "linkMpb":
+          return tf("editGear.fields.mpbLink", "MPB Link");
+        case "linkBh":
+          return tf("editGear.fields.bhLink", "B&H Link");
+        case "linkAmazon":
+          return tf("editGear.fields.amazonLink", "Amazon Link");
+        case "genres":
+          return tf("editGear.fields.bestUseCases", "Best use cases");
+        case "notes":
+          return getSpecSectionTitle(t, "notes", "Notes");
+        default:
+          return humanizeKey(key);
+      }
+    },
+    [t, tf],
+  );
+
+  const cameraFieldSectionMap: Record<string, string> = {
+    sensorFormatId: "camera-sensor-shutter",
+    resolutionMp: "camera-sensor-shutter",
+    sensorStackingType: "camera-sensor-shutter",
+    sensorTechType: "camera-sensor-shutter",
+    cameraType: "camera-sensor-shutter",
+    isBackSideIlluminated: "camera-sensor-shutter",
+    sensorReadoutSpeedMs: "camera-sensor-shutter",
+    maxRawBitDepth: "camera-sensor-shutter",
+    isoMin: "camera-sensor-shutter",
+    isoMax: "camera-sensor-shutter",
+    hasIbis: "camera-sensor-shutter",
+    hasElectronicVibrationReduction: "camera-sensor-shutter",
+    cipaStabilizationRatingStops: "camera-sensor-shutter",
+    hasPixelShiftShooting: "camera-sensor-shutter",
+    hasAntiAliasingFilter: "camera-sensor-shutter",
+    precaptureSupportLevel: "camera-sensor-shutter",
+    shutterSpeedMax: "camera-sensor-shutter",
+    shutterSpeedMin: "camera-sensor-shutter",
+    maxFpsRaw: "camera-sensor-shutter",
+    maxFpsJpg: "camera-sensor-shutter",
+    maxFpsByShutter: "camera-sensor-shutter",
+    flashSyncSpeed: "camera-sensor-shutter",
+    hasSilentShootingAvailable: "camera-sensor-shutter",
+    availableShutterTypes: "camera-sensor-shutter",
+    rearDisplayType: "camera-hardware",
+    rearDisplayResolutionMillionDots: "camera-hardware",
+    rearDisplaySizeInches: "camera-hardware",
+    viewfinderType: "camera-hardware",
+    viewfinderMagnification: "camera-hardware",
+    viewfinderResolutionMillionDots: "camera-hardware",
+    hasTopDisplay: "camera-hardware",
+    hasRearTouchscreen: "camera-hardware",
+    processorName: "camera-hardware",
+    hasWeatherSealing: "camera-hardware",
+    internalStorageGb: "camera-hardware",
+    focusPoints: "camera-focus",
+    afAreaModes: "camera-focus",
+    afSubjectCategories: "camera-focus",
+    hasFocusPeaking: "camera-focus",
+    hasFocusBracketing: "camera-focus",
+    cipaBatteryShotsPerCharge: "camera-battery",
+    supportedBatteries: "camera-battery",
+    usbCharging: "camera-battery",
+    usbPowerDelivery: "camera-battery",
+    hasLogColorProfile: "camera-video",
+    has10BitVideo: "camera-video",
+    has12BitVideo: "camera-video",
+    hasOpenGateVideo: "camera-video",
+    supportsExternalRecording: "camera-video",
+    supportsRecordToDrive: "camera-video",
+    hasIntervalometer: "camera-misc",
+    hasSelfTimer: "camera-misc",
+    hasBuiltInFlash: "camera-misc",
+    hasHotShoe: "camera-misc",
+    hasUsbFileTransfer: "camera-misc",
+  };
+
+  const getCameraDiffLabel = useCallback(
+    (key: string) => {
+      const sectionId = cameraFieldSectionMap[key];
+      if (sectionId) {
+        return getSpecFieldLabel(t, sectionId, key, humanizeKey(key));
+      }
+      return humanizeKey(key);
+    },
+    [t],
+  );
+
+  const getSectionDiffLabel = useCallback(
+    (
+      section:
+        | "analogCamera"
+        | "camera"
+        | "lens"
+        | "fixedLens",
+      key: string,
+    ) => {
+      if (section === "camera") return getCameraDiffLabel(key);
+      if (section === "analogCamera") {
+        return getSpecFieldLabel(t, "analog-camera", key, humanizeKey(key));
+      }
+
+      const lensSectionMap: Record<string, string> =
+        section === "fixedLens"
+          ? {
+              focalLengthMinMm: "lens-optics",
+              focalLengthMaxMm: "lens-optics",
+              imageCircleSizeId: "lens-optics",
+              maxApertureWide: "lens-aperture",
+              maxApertureTele: "lens-aperture",
+              minApertureWide: "lens-aperture",
+              minApertureTele: "lens-aperture",
+              hasAutofocus: "lens-focus",
+              minimumFocusDistanceMm: "lens-optics",
+              frontElementRotates: "lens-focus",
+              frontFilterThreadSizeMm: "lens-filters",
+              hasLensHood: "lens-accessories",
+            }
+          : {
+              isPrime: "lens-optics",
+              focalLengthMinMm: "lens-optics",
+              focalLengthMaxMm: "lens-optics",
+              imageCircleSizeId: "lens-optics",
+              magnification: "lens-optics",
+              minimumFocusDistanceMm: "lens-optics",
+              numberElements: "lens-optics",
+              numberElementGroups: "lens-optics",
+              hasDiffractiveOptics: "lens-optics",
+              maxApertureWide: "lens-aperture",
+              maxApertureTele: "lens-aperture",
+              minApertureWide: "lens-aperture",
+              minApertureTele: "lens-aperture",
+              numberDiaphragmBlades: "lens-aperture",
+              hasRoundedDiaphragmBlades: "lens-aperture",
+              hasApertureRing: "lens-build",
+              hasAutofocus: "lens-focus",
+              focusMotorType: "lens-focus",
+              hasAfMfSwitch: "lens-focus",
+              hasFocusLimiter: "lens-focus",
+              hasFocusRecallButton: "lens-focus",
+              hasFocusRing: "lens-focus",
+              hasInternalFocus: "lens-focus",
+              frontElementRotates: "lens-focus",
+              hasStabilization: "lens-stabilization",
+              hasStabilizationSwitch: "lens-stabilization",
+              cipaStabilizationRatingStops: "lens-stabilization",
+              hasInternalZoom: "lens-build",
+              mountMaterial: "lens-build",
+              hasWeatherSealing: "lens-build",
+              numberCustomControlRings: "lens-build",
+              numberFunctionButtons: "lens-build",
+              acceptsFilterTypes: "lens-filters",
+              frontFilterThreadSizeMm: "lens-filters",
+              rearFilterThreadSizeMm: "lens-filters",
+              dropInFilterSizeMm: "lens-filters",
+              hasBuiltInTeleconverter: "lens-accessories",
+              hasLensHood: "lens-accessories",
+              hasTripodCollar: "lens-accessories",
+              isTiltShift: "lens-tilt-shift",
+              tiltDegrees: "lens-tilt-shift",
+              shiftMm: "lens-tilt-shift",
+            };
+      const sectionId = lensSectionMap[key];
+      return sectionId
+        ? getSpecFieldLabel(t, sectionId, key, humanizeKey(key))
+        : humanizeKey(key);
+    },
+    [getCameraDiffLabel, t],
   );
 
   // console.log("[EditGearForm] formData", formData);
@@ -727,8 +958,11 @@ function EditGearForm({
 
     // Guard: no changes
     if (Object.keys(payload).length === 0) {
-      toast.info("No changes to submit", {
-        description: "Update a field before submitting.",
+      toast.info(tf("editGear.noChangesToastTitle", "No changes to submit"), {
+        description: tf(
+          "editGear.noChangesToastDescription",
+          "Update a field before submitting.",
+        ),
       });
       setIsSubmitting(false);
       onSubmittingChange?.(false);
@@ -765,12 +999,18 @@ function EditGearForm({
         });
         toast.success(
           autoApproved
-            ? "Your change request was automatically approved!"
-            : "Suggestion submitted",
+            ? tf(
+                "editGear.submitAutoApprovedTitle",
+                "Your change request was automatically approved!",
+              )
+            : tf("editGear.submitSuccessTitle", "Suggestion submitted"),
           {
             description: autoApproved
-              ? "Your update is live now."
-              : "Thanks! We'll review it shortly.",
+              ? tf("editGear.submitAutoApprovedDescription", "Your update is live now.")
+              : tf(
+                  "editGear.submitSuccessDescription",
+                  "Thanks! We'll review it shortly.",
+                ),
           },
         );
         if (autoApproved) {
@@ -785,8 +1025,11 @@ function EditGearForm({
           router.replace(`/edit-success?id=${createdId ?? ""}`);
         }
       } else {
-        toast.error("Failed to submit suggestion", {
-          description: "Please try again in a moment.",
+        toast.error(tf("editGear.submitFailedTitle", "Failed to submit suggestion"), {
+          description: tf(
+            "editGear.submitFailedDescription",
+            "Please try again in a moment.",
+          ),
         });
         void track("gear_edit_submit_failure", {
           gearSlug,
@@ -795,8 +1038,11 @@ function EditGearForm({
       }
     } catch (err) {
       console.error("[EditGearForm] submit error", err);
-      toast.error("Something went wrong", {
-        description: "Could not submit your suggestion.",
+      toast.error(tf("editGear.submitUnexpectedTitle", "Something went wrong"), {
+        description: tf(
+          "editGear.submitUnexpectedDescription",
+          "Could not submit your suggestion.",
+        ),
       });
       void track("gear_edit_submit_failure", {
         gearSlug,
@@ -813,8 +1059,11 @@ function EditGearForm({
     const preview = buildDiffPayload();
     // Prevent opening confirmation when nothing actually changed
     if (Object.keys(preview).length === 0) {
-      toast.info("No changes to submit", {
-        description: "Update a field before submitting.",
+      toast.info(tf("editGear.noChangesToastTitle", "No changes to submit"), {
+        description: tf(
+          "editGear.noChangesToastDescription",
+          "Update a field before submitting.",
+        ),
       });
       return;
     }
@@ -965,7 +1214,9 @@ function EditGearForm({
                   handleAutoSubmitChange(checked === true)
                 }
               />
-              <Label htmlFor="edit-gear-auto-submit">Auto-Submit</Label>
+              <Label htmlFor="edit-gear-auto-submit">
+                {tf("editGear.autoSubmit", "Auto-Submit")}
+              </Label>
             </div>
           ) : null}
           <Button
@@ -975,14 +1226,14 @@ function EditGearForm({
               onRequestClose ? onRequestClose() : window.history.back()
             }
           >
-            Cancel
+            {tf("cancel", "Cancel")}
           </Button>
           <Button
             type="submit"
             disabled={isSubmitting || !isDirty}
             loading={isSubmitting}
           >
-            Continue
+            {tf("editGear.continue", "Continue")}
           </Button>
         </div>
       )}
@@ -991,25 +1242,40 @@ function EditGearForm({
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent className="grid max-h-[calc(100vh-2rem)] grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden">
           <DialogHeader>
-            <DialogTitle>Submit suggestion?</DialogTitle>
+            <DialogTitle>
+              {tf("editGear.submitSuggestionTitle", "Submit suggestion?")}
+            </DialogTitle>
             <DialogDescription>
               {canToggleAutoSubmit
                 ? effectiveAutoSubmit
-                  ? "These changes will be auto-approved and applied to the gear page immediately."
-                  : "These changes will be submitted for moderator review, just like a normal user submission."
-                : "Are you sure you want to submit these changes for review? You will not be able to make adjustments or make a new change request until this one is reviewed by an admin."}
+                  ? tf(
+                      "editGear.submitSuggestionAutoSubmitDescription",
+                      "These changes will be auto-approved and applied to the gear page immediately.",
+                    )
+                  : tf(
+                      "editGear.submitSuggestionReviewDescription",
+                      "These changes will be submitted for moderator review, just like a normal user submission.",
+                    )
+                : tf(
+                    "editGear.submitSuggestionDefaultDescription",
+                    "Are you sure you want to submit these changes for review? You will not be able to make adjustments or make a new change request until this one is reviewed by an admin.",
+                  )}
             </DialogDescription>
           </DialogHeader>
           {/* Diff preview */}
           {diffPreview && (
             <div className="bg-muted/40 border-border mb-4 space-y-2 overflow-y-auto rounded-md border p-3 text-sm">
               {Object.keys(diffPreview).length === 0 ? (
-                <p className="text-muted-foreground">No changes detected.</p>
+                <p className="text-muted-foreground">
+                  {tf("editGear.noChangesDetected", "No changes detected.")}
+                </p>
               ) : (
                 <>
                   {diffPreview.core && (
                     <div>
-                      <div className="mb-1 font-medium">Core</div>
+                      <div className="mb-1 font-medium">
+                        {getDiffSectionTitle("core")}
+                      </div>
                       <ul className="list-disc pl-5">
                         {Object.entries(diffPreview.core).map(([k, v]) => {
                           let display = safeString(v);
@@ -1039,8 +1305,7 @@ function EditGearForm({
                             const arr = Array.isArray(v) ? (v as string[]) : [];
                             display = arr.join("; ");
                           }
-                          const label =
-                            k === "mountIds" ? "Mounts" : humanizeKey(k);
+                          const label = getCoreDiffLabel(k);
                           return (
                             <li key={k}>
                               <span className="text-muted-foreground">
@@ -1055,13 +1320,15 @@ function EditGearForm({
                   )}
                   {diffPreview.analogCamera && (
                     <div>
-                      <div className="mb-1 font-medium">Analog Camera</div>
+                      <div className="mb-1 font-medium">
+                        {getDiffSectionTitle("analogCamera")}
+                      </div>
                       <ul className="list-disc pl-5">
                         {Object.entries(diffPreview.analogCamera).map(
                           ([k, v]) => (
                           <li key={k}>
                             <span className="text-muted-foreground">
-                              {humanizeKey(k)}:
+                              {getSectionDiffLabel("analogCamera", k)}:
                             </span>{" "}
                             <span className="font-medium">{safeString(v)}</span>
                           </li>
@@ -1072,14 +1339,16 @@ function EditGearForm({
                   )}
                   {diffPreview.camera && (
                     <div>
-                      <div className="mb-1 font-medium">Camera</div>
+                      <div className="mb-1 font-medium">
+                        {getDiffSectionTitle("camera")}
+                      </div>
                       <ul className="list-disc pl-5">
                         {Array.isArray(
                           diffPreview.camera.availableShutterTypes,
                         ) && (
                           <li>
                             <span className="text-muted-foreground">
-                              Available Shutter Types:
+                              {getCameraDiffLabel("availableShutterTypes")}:
                             </span>{" "}
                             <span className="font-medium">
                               {diffPreview.camera.availableShutterTypes.join(
@@ -1105,7 +1374,7 @@ function EditGearForm({
                           return (
                             <li key={k}>
                               <span className="text-muted-foreground">
-                                {humanizeKey(k)}:
+                                {getCameraDiffLabel(k)}:
                               </span>{" "}
                               <span className="font-medium">{display}</span>
                             </li>
@@ -1116,12 +1385,14 @@ function EditGearForm({
                   )}
                   {diffPreview.lens && (
                     <div>
-                      <div className="mb-1 font-medium">Lens</div>
+                      <div className="mb-1 font-medium">
+                        {getDiffSectionTitle("lens")}
+                      </div>
                       <ul className="list-disc pl-5">
                         {Object.entries(diffPreview.lens).map(([k, v]) => (
                           <li key={k}>
                             <span className="text-muted-foreground">
-                              {humanizeKey(k)}:
+                              {getSectionDiffLabel("lens", k)}:
                             </span>{" "}
                             <span className="font-medium">{safeString(v)}</span>
                           </li>
@@ -1131,12 +1402,14 @@ function EditGearForm({
                   )}
                   {diffPreview.fixedLens && (
                     <div>
-                      <div className="mb-1 font-medium">Integrated Lens</div>
+                      <div className="mb-1 font-medium">
+                        {getDiffSectionTitle("fixedLens")}
+                      </div>
                       <ul className="list-disc pl-5">
                         {Object.entries(diffPreview.fixedLens).map(([k, v]) => (
                           <li key={k}>
                             <span className="text-muted-foreground">
-                              {humanizeKey(k)}:
+                              {getSectionDiffLabel("fixedLens", k)}:
                             </span>{" "}
                             <span className="font-medium">{safeString(v)}</span>
                           </li>
@@ -1146,12 +1419,17 @@ function EditGearForm({
                   )}
                   {Array.isArray(diffPreview.cameraCardSlots) && (
                     <div>
-                      <div className="mb-1 font-medium">Card Slots</div>
+                      <div className="mb-1 font-medium">
+                        {tf("editGear.sections.cardSlots", "Card Slots")}
+                      </div>
                       <ul className="list-disc pl-5">
                         {diffPreview.cameraCardSlots.map((slot, i) => (
                             <li key={i}>
                               <span className="text-muted-foreground">
-                                Slot {slot.slotIndex}:
+                                {tf("editGear.slotLabel", "Slot {index}", {
+                                  index: slot.slotIndex,
+                                })}
+                                :
                               </span>{" "}
                               <span className="font-medium">
                                 {formatCardSlotDetails({
@@ -1202,7 +1480,9 @@ function EditGearForm({
                             <Crop className="text-muted-foreground h-3.5 w-3.5" />
                           )}
                           {action === "change" ? (
-                            <span className="text-amber-500">Updated</span>
+                            <span className="text-amber-500">
+                              {tf("editGear.updated", "Updated")}
+                            </span>
                           ) : (
                             <span
                               className={
@@ -1211,19 +1491,21 @@ function EditGearForm({
                                   : "text-red-500"
                               }
                             >
-                              {action === "add" ? "+ Added" : "− Removed"}
+                              {action === "add"
+                                ? `+ ${tf("editGear.added", "Added")}`
+                                : `− ${tf("editGear.removed", "Removed")}`}
                             </span>
                           )}
                         </div>
                         {action === "change" && prevMode && (
                           <div className="text-muted-foreground mt-2 w-full text-left text-[11px]">
                             <div>
-                              Old: {prevMode.fps} fps • {prevMode.bitDepth}-bit
-                              • {prevMode.codecLabel}
+                              {tf("editGear.old", "Old")}: {prevMode.fps} fps •{" "}
+                              {prevMode.bitDepth}-bit • {prevMode.codecLabel}
                             </div>
                             <div>
-                              New: {mode.fps} fps • {mode.bitDepth}-bit •{" "}
-                              {mode.codecLabel}
+                              {tf("editGear.new", "New")}: {mode.fps} fps •{" "}
+                              {mode.bitDepth}-bit • {mode.codecLabel}
                             </div>
                           </div>
                         )}
@@ -1231,12 +1513,14 @@ function EditGearForm({
                     );
                     return (
                       <div>
-                        <div className="mb-1 font-medium">Video Modes</div>
+                        <div className="mb-1 font-medium">
+                          {tf("editGear.sections.videoModes", "Video Modes")}
+                        </div>
                         <div className="space-y-3">
                           {added.length > 0 && (
                             <div className="space-y-2">
                               <div className="text-xs font-semibold text-emerald-600 uppercase">
-                                Added
+                                {tf("editGear.added", "Added")}
                               </div>
                               {added.map((mode) => renderMode(mode, "add"))}
                             </div>
@@ -1244,7 +1528,7 @@ function EditGearForm({
                           {removed.length > 0 && (
                             <div className="space-y-2">
                               <div className="text-xs font-semibold text-red-500 uppercase">
-                                Removed
+                                {tf("editGear.removed", "Removed")}
                               </div>
                               {removed.map((mode) =>
                                 renderMode(mode, "remove"),
@@ -1254,7 +1538,7 @@ function EditGearForm({
                           {changed.length > 0 && (
                             <div className="space-y-2">
                               <div className="text-xs font-semibold text-amber-500 uppercase">
-                                Updated
+                                {tf("editGear.updated", "Updated")}
                               </div>
                               {changed.map(({ prev, next }) =>
                                 renderMode(next, "change", prev),
@@ -1275,22 +1559,22 @@ function EditGearForm({
                 <Checkbox
                   id="edit-gear-confirm-auto-submit"
                   checked={effectiveAutoSubmit}
-                  onCheckedChange={(checked) =>
-                    handleAutoSubmitChange(checked === true)
-                  }
-                />
-                <Label htmlFor="edit-gear-confirm-auto-submit">
-                  Auto-Submit
-                </Label>
-              </div>
-            ) : null}
+                onCheckedChange={(checked) =>
+                  handleAutoSubmitChange(checked === true)
+                }
+              />
+              <Label htmlFor="edit-gear-confirm-auto-submit">
+                {tf("editGear.autoSubmit", "Auto-Submit")}
+              </Label>
+            </div>
+          ) : null}
             <Button
               type="button"
               variant="outline"
               onClick={() => setConfirmOpen(false)}
               disabled={isSubmitting}
             >
-              Cancel
+              {tf("cancel", "Cancel")}
             </Button>
             <Button
               type="button"
@@ -1302,8 +1586,8 @@ function EditGearForm({
               loading={isSubmitting}
             >
               {canToggleAutoSubmit && effectiveAutoSubmit
-                ? "Apply Now"
-                : "Confirm Submit"}
+                ? tf("editGear.applyNow", "Apply Now")
+                : tf("editGear.confirmSubmit", "Confirm Submit")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations, type TranslationValues } from "next-intl";
 import {
   BatteryFullIcon,
   Grid3X3,
@@ -22,6 +23,10 @@ import {
 } from "~/components/ui/select";
 import { Switch } from "~/components/ui/switch";
 import { AF_AREA_MODES,ENUMS } from "~/lib/constants";
+import {
+  getSpecFieldLabel,
+  translateGearDetailWithFallback,
+} from "~/lib/i18n/gear-detail";
 import { formatCameraType,PRECAPTURE_SUPPORT_OPTIONS } from "~/lib/mapping";
 import type { EnrichedCameraSpecs,GearItem } from "~/types/gear";
 import CardSlotsManager,{ type CardSlot } from "./card-slots-manager";
@@ -47,6 +52,55 @@ const shutterTypeLabels: Record<ShutterType, string> = {
   mechanical: "Mechanical shutter",
   efc: "Electronic first curtain",
   electronic: "Electronic shutter",
+};
+
+const cameraFieldSections: Record<string, string> = {
+  resolutionMp: "camera-sensor-shutter",
+  sensorFormatId: "camera-sensor-shutter",
+  sensorReadoutSpeedMs: "camera-sensor-shutter",
+  maxRawBitDepth: "camera-sensor-shutter",
+  hasIbis: "camera-sensor-shutter",
+  hasElectronicVibrationReduction: "camera-sensor-shutter",
+  cipaStabilizationRatingStops: "camera-sensor-shutter",
+  hasPixelShiftShooting: "camera-sensor-shutter",
+  hasAntiAliasingFilter: "camera-sensor-shutter",
+  precaptureSupportLevel: "camera-sensor-shutter",
+  shutterSpeedMax: "camera-sensor-shutter",
+  shutterSpeedMin: "camera-sensor-shutter",
+  flashSyncSpeed: "camera-sensor-shutter",
+  hasSilentShootingAvailable: "camera-sensor-shutter",
+  availableShutterTypes: "camera-sensor-shutter",
+  processorName: "camera-hardware",
+  hasWeatherSealing: "camera-hardware",
+  internalStorageGb: "camera-hardware",
+  rearDisplayType: "camera-hardware",
+  rearDisplaySizeInches: "camera-hardware",
+  rearDisplayResolutionMillionDots: "camera-hardware",
+  viewfinderType: "camera-hardware",
+  viewfinderMagnification: "camera-hardware",
+  viewfinderResolutionMillionDots: "camera-hardware",
+  hasTopDisplay: "camera-hardware",
+  hasRearTouchscreen: "camera-hardware",
+  focusPoints: "camera-focus",
+  afAreaModes: "camera-focus",
+  afSubjectCategories: "camera-focus",
+  hasFocusPeaking: "camera-focus",
+  hasFocusBracketing: "camera-focus",
+  cipaBatteryShotsPerCharge: "camera-battery",
+  supportedBatteries: "camera-battery",
+  usbCharging: "camera-battery",
+  usbPowerDelivery: "camera-battery",
+  hasLogColorProfile: "camera-video",
+  has10BitVideo: "camera-video",
+  has12BitVideo: "camera-video",
+  hasOpenGateVideo: "camera-video",
+  supportsExternalRecording: "camera-video",
+  supportsRecordToDrive: "camera-video",
+  hasIntervalometer: "camera-misc",
+  hasSelfTimer: "camera-misc",
+  hasBuiltInFlash: "camera-misc",
+  hasHotShoe: "camera-misc",
+  hasUsbFileTransfer: "camera-misc",
 };
 
 function normalizeShutterTypeKey(value: string): ShutterType | null {
@@ -141,12 +195,16 @@ function FpsPerShutterInput({
   onChange,
   onHeadlineChange,
   isVisible,
+  getLabel,
+  tf,
 }: {
   availableShutterTypes: string[];
   value: unknown;
   onChange: (nextValue: ShutterFpsByType | null) => void;
   onHeadlineChange: (maxRaw: number | null, maxJpg: number | null) => void;
   isVisible: boolean;
+  getLabel: (value: ShutterType) => string;
+  tf: (key: string, fallback: string) => string;
 }) {
   const normalizedAvailable = useMemo(
     () =>
@@ -210,7 +268,10 @@ function FpsPerShutterInput({
   if (normalizedAvailable.length === 0) {
     return (
       <div className="text-muted-foreground rounded-md border p-3 text-sm">
-        Select available shutter types to enter max FPS values.
+        {tf(
+          "editGear.fields.selectAvailableShutterTypesFirst",
+          "Select available shutter types to enter max FPS values.",
+        )}
       </div>
     );
   }
@@ -221,14 +282,12 @@ function FpsPerShutterInput({
         const entry = normalizedValue[shutterType] ?? {};
         return (
           <div key={shutterType} className="space-y-3 rounded-md border p-3">
-            <div className="font-semibold">
-              {shutterTypeLabels[shutterType] ?? shutterType}
-            </div>
+            <div className="font-semibold">{getLabel(shutterType)}</div>
             <div className="flex flex-col gap-3 sm:flex-row">
               <div className="flex-1">
                 <NumberInput
                   id={`maxFpsByShutter-${shutterType}-raw`}
-                  label="RAW FPS"
+                  label={tf("editGear.fields.rawFps", "RAW FPS")}
                   value={
                     entry.raw === null || entry.raw === undefined
                       ? null
@@ -241,7 +300,7 @@ function FpsPerShutterInput({
                       newValue === null ? null : Number(newValue),
                     )
                   }
-                  placeholder="e.g., 20.0"
+                  placeholder={tf("editGear.fields.fpsPlaceholder", "e.g., 20.0")}
                   min={0}
                   max={120}
                   step={0.1}
@@ -251,7 +310,7 @@ function FpsPerShutterInput({
               <div className="flex-1">
                 <NumberInput
                   id={`maxFpsByShutter-${shutterType}-jpg`}
-                  label="JPG FPS"
+                  label={tf("editGear.fields.jpgFps", "JPG FPS")}
                   value={
                     entry.jpg === null || entry.jpg === undefined
                       ? null
@@ -264,7 +323,7 @@ function FpsPerShutterInput({
                       newValue === null ? null : Number(newValue),
                     )
                   }
-                  placeholder="e.g., 20.0"
+                  placeholder={tf("editGear.fields.fpsPlaceholder", "e.g., 20.0")}
                   min={0}
                   max={120}
                   step={0.1}
@@ -293,6 +352,28 @@ function CameraFieldsComponent({
 }: CameraFieldsProps) {
   // Debug logging
   // console.log("CameraFieldsComponent - currentSpecs:", currentSpecs);
+  const t = useTranslations("gearDetail");
+  const tf = useCallback(
+    (key: string, fallback: string, values?: TranslationValues) =>
+      translateGearDetailWithFallback(t, key, fallback, values),
+    [t],
+  );
+  const specLabel = useCallback(
+    (fieldKey: string, fallback: string) => {
+      const sectionId = cameraFieldSections[fieldKey];
+      if (!sectionId) return fallback;
+      return getSpecFieldLabel(t, sectionId, fieldKey, fallback);
+    },
+    [t],
+  );
+  const getShutterTypeLabel = useCallback(
+    (value: ShutterType) =>
+      tf(
+        `editGear.options.cameraShutterTypes.${value}`,
+        shutterTypeLabels[value] ?? value,
+      ),
+    [tf],
+  );
 
   //if afarea modes is completely missing throw an error
   // if things are working we should get an empty array for no items
@@ -415,7 +496,12 @@ function CameraFieldsComponent({
       className="rounded-md border-0 bg-transparent px-0 py-0"
     >
       <CardHeader className="px-0">
-        <CardTitle className="text-2xl">Camera Specifications</CardTitle>
+        <CardTitle className="text-2xl">
+          {tf(
+            "editGear.sections.cameraSpecifications",
+            "Camera Specifications",
+          )}
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 px-0">
         <div className="flex flex-col gap-3">
@@ -423,7 +509,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.sensorFormatId) && (
             <SensorFormatInput
               id="sensorFormatId"
-              label="Sensor Format"
+              label={specLabel("sensorFormatId", "Sensor Format")}
               value={currentSpecs?.sensorFormatId}
               onChange={(value) => handleFieldChange("sensorFormatId", value)}
             />
@@ -433,14 +519,14 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.resolutionMp) && (
             <NumberInput
               id="resolutionMp"
-              label="Resolution (megapixels)"
+              label={specLabel("resolutionMp", "Resolution (megapixels)")}
               value={
                 currentSpecs?.resolutionMp != null
                   ? parseFloat(currentSpecs.resolutionMp)
                   : null
               }
               onChange={(value) => handleFieldChange("resolutionMp", value)}
-              placeholder="e.g., 45.0"
+              placeholder={tf("editGear.fields.megapixelsPlaceholder", "e.g., 45.0")}
               icon={<Grid3X3 className="size-4" />}
               suffix="MP"
               step={0.1}
@@ -451,7 +537,9 @@ function CameraFieldsComponent({
           {/* Sensor Stacking Type */}
           {showWhenMissing(initialSpecs?.sensorStackingType) && (
             <div className="space-y-2">
-              <Label htmlFor="sensorStackingType">Sensor Stacking Type</Label>
+              <Label htmlFor="sensorStackingType">
+                {tf("editGear.fields.sensorStackingType", "Sensor Stacking Type")}
+              </Label>
               <Select
                 value={currentSpecs?.sensorStackingType ?? ""}
                 onValueChange={(value) =>
@@ -459,7 +547,12 @@ function CameraFieldsComponent({
                 }
               >
                 <SelectTrigger id="sensorStackingType" className="w-full">
-                  <SelectValue placeholder="Sensor Stacking Type" />
+                  <SelectValue
+                    placeholder={tf(
+                      "editGear.fields.sensorStackingTypePlaceholder",
+                      "Sensor Stacking Type",
+                    )}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {ENUMS.sensor_stacking_types_enum.map((type) => (
@@ -482,7 +575,9 @@ function CameraFieldsComponent({
           {/* Sensor Tech Type */}
           {showWhenMissing(initialSpecs?.sensorTechType) && (
             <div className="space-y-2">
-              <Label htmlFor="sensorTechType">Sensor Tech Type</Label>
+              <Label htmlFor="sensorTechType">
+                {tf("editGear.fields.sensorTechType", "Sensor Tech Type")}
+              </Label>
               <Select
                 value={currentSpecs?.sensorTechType ?? ""}
                 onValueChange={(value) =>
@@ -490,7 +585,12 @@ function CameraFieldsComponent({
                 }
               >
                 <SelectTrigger id="sensorTechType" className="w-full">
-                  <SelectValue placeholder="Sensor Tech Type" />
+                  <SelectValue
+                    placeholder={tf(
+                      "editGear.fields.sensorTechTypePlaceholder",
+                      "Sensor Tech Type",
+                    )}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {ENUMS.sensor_tech_types_enum.map((type) => (
@@ -506,7 +606,9 @@ function CameraFieldsComponent({
           {/* Camera Type */}
           {showWhenMissing(initialSpecs?.cameraType) && (
             <div className="space-y-2">
-              <Label htmlFor="cameraType">Camera Type</Label>
+              <Label htmlFor="cameraType">
+                {t("specRegistry.sections.core.fields.cameraType.label")}
+              </Label>
               <Select
                 value={currentSpecs?.cameraType ?? ""}
                 onValueChange={(value) =>
@@ -514,7 +616,12 @@ function CameraFieldsComponent({
                 }
               >
                 <SelectTrigger id="cameraType" className="w-full">
-                  <SelectValue placeholder="Camera Type" />
+                  <SelectValue
+                    placeholder={tf(
+                      "editGear.fields.cameraTypePlaceholder",
+                      "Camera Type",
+                    )}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {cameraTypeEnumList.map((type) => (
@@ -532,7 +639,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.isBackSideIlluminated) && (
             <BooleanInput
               id="isBackSideIlluminated"
-              label="Back Side Illuminated"
+              label={tf("editGear.fields.backSideIlluminated", "Back Side Illuminated")}
               checked={currentSpecs?.isBackSideIlluminated ?? null}
               allowNull
               showStateText
@@ -547,7 +654,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.sensorReadoutSpeedMs) && (
             <NumberInput
               id="sensorReadoutSpeedMs"
-              label="Sensor Readout Speed (ms)"
+              label={specLabel("sensorReadoutSpeedMs", "Sensor Readout Speed (ms)")}
               value={
                 currentSpecs?.sensorReadoutSpeedMs != null
                   ? parseFloat(currentSpecs.sensorReadoutSpeedMs)
@@ -557,7 +664,7 @@ function CameraFieldsComponent({
                 handleFieldChange("sensorReadoutSpeedMs", value)
               }
               suffix="ms"
-              placeholder="e.g., 10"
+              placeholder={tf("editGear.fields.millisecondsPlaceholder", "e.g., 10")}
               min={0}
               step={0.1}
             />
@@ -567,7 +674,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.precaptureSupportLevel) && (
             <div className="space-y-2">
               <Label htmlFor="precaptureSupportLevel">
-                Precapture Buffer Support
+                {specLabel("precaptureSupportLevel", "Precapture Buffer Support")}
               </Label>
               <Select
                 value={
@@ -583,7 +690,12 @@ function CameraFieldsComponent({
                 }
               >
                 <SelectTrigger id="precaptureSupportLevel" className="w-full">
-                  <SelectValue placeholder="Select support level" />
+                  <SelectValue
+                    placeholder={tf(
+                      "editGear.fields.selectSupportLevel",
+                      "Select support level",
+                    )}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {PRECAPTURE_SUPPORT_OPTIONS.map((option) => (
@@ -603,7 +715,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.isoMin) && (
             <IsoInput
               id="isoMin"
-              label="ISO Min (Native)"
+              label={tf("editGear.fields.isoMinNative", "ISO Min (Native)")}
               value={currentSpecs?.isoMin}
               onChange={(value) => handleFieldChange("isoMin", value)}
             />
@@ -613,7 +725,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.isoMax) && (
             <IsoInput
               id="isoMax"
-              label="ISO Max (Native)"
+              label={tf("editGear.fields.isoMaxNative", "ISO Max (Native)")}
               value={currentSpecs?.isoMax}
               onChange={(value) => handleFieldChange("isoMax", value)}
             />
@@ -622,7 +734,9 @@ function CameraFieldsComponent({
           {/* Rear Display Type */}
           {showWhenMissing(initialSpecs?.rearDisplayType) && (
             <div className="space-y-2">
-              <Label htmlFor="rearDisplayType">Rear Display Type</Label>
+              <Label htmlFor="rearDisplayType">
+                {specLabel("rearDisplayType", "Rear Display Type")}
+              </Label>
               <Select
                 value={currentSpecs?.rearDisplayType ?? ""}
                 onValueChange={(value) =>
@@ -630,20 +744,35 @@ function CameraFieldsComponent({
                 }
               >
                 <SelectTrigger id="rearDisplayType" className="w-full">
-                  <SelectValue placeholder="Select display type" />
+                  <SelectValue
+                    placeholder={tf(
+                      "editGear.fields.selectDisplayType",
+                      "Select display type",
+                    )}
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  <SelectItem value="fixed">Fixed</SelectItem>
+                  <SelectItem value="none">
+                    {tf("specRegistry.shared.none", "None")}
+                  </SelectItem>
+                  <SelectItem value="fixed">
+                    {tf("specRegistry.shared.fixed", "Fixed")}
+                  </SelectItem>
                   <SelectItem value="single_axis_tilt">
-                    Single-axis tilt
+                    {tf("specRegistry.shared.singleAxisTilt", "Single-axis tilt")}
                   </SelectItem>
-                  <SelectItem value="dual_axis_tilt">Dual-axis tilt</SelectItem>
+                  <SelectItem value="dual_axis_tilt">
+                    {tf("specRegistry.shared.dualAxisTilt", "Dual-axis tilt")}
+                  </SelectItem>
                   <SelectItem value="fully_articulated">
-                    Fully articulated
+                    {tf("specRegistry.shared.fullyArticulated", "Fully articulated")}
                   </SelectItem>
-                  <SelectItem value="four_axis_tilt_flip">4 Axis Tilt-Flip</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="four_axis_tilt_flip">
+                    {tf("specRegistry.shared.fourAxisTiltFlip", "4 Axis Tilt-Flip")}
+                  </SelectItem>
+                  <SelectItem value="other">
+                    {tf("specRegistry.shared.other", "Other")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -653,7 +782,10 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.rearDisplayResolutionMillionDots) && (
             <NumberInput
               id="rearDisplayResolutionMillionDots"
-              label="Rear Display Resolution"
+              label={specLabel(
+                "rearDisplayResolutionMillionDots",
+                "Rear Display Resolution",
+              )}
               suffix="million dots"
               value={
                 currentSpecs?.rearDisplayResolutionMillionDots != null
@@ -663,7 +795,7 @@ function CameraFieldsComponent({
               onChange={(value) =>
                 handleFieldChange("rearDisplayResolutionMillionDots", value)
               }
-              placeholder="e.g., 1.62"
+              placeholder={tf("editGear.fields.rearDisplayResolutionPlaceholder", "e.g., 1.62")}
               step={0.01}
               min={0}
             />
@@ -673,7 +805,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.rearDisplaySizeInches) && (
             <NumberInput
               id="rearDisplaySizeInches"
-              label="Rear Display Size"
+              label={specLabel("rearDisplaySizeInches", "Rear Display Size")}
               suffix="inches"
               value={
                 currentSpecs?.rearDisplaySizeInches != null
@@ -683,7 +815,7 @@ function CameraFieldsComponent({
               onChange={(value) =>
                 handleFieldChange("rearDisplaySizeInches", value)
               }
-              placeholder="e.g., 3.2"
+              placeholder={tf("editGear.fields.inchesPlaceholder", "e.g., 3.2")}
               step={0.01}
               min={0}
             />
@@ -692,7 +824,9 @@ function CameraFieldsComponent({
           {/* Viewfinder Type */}
           {showWhenMissing(initialSpecs?.viewfinderType) && (
             <div className="space-y-2">
-              <Label htmlFor="viewfinderType">Viewfinder Type</Label>
+              <Label htmlFor="viewfinderType">
+                {specLabel("viewfinderType", "Viewfinder Type")}
+              </Label>
               <Select
                 value={currentSpecs?.viewfinderType ?? ""}
                 onValueChange={(value) =>
@@ -700,12 +834,23 @@ function CameraFieldsComponent({
                 }
               >
                 <SelectTrigger id="viewfinderType" className="w-full">
-                  <SelectValue placeholder="Select viewfinder type" />
+                  <SelectValue
+                    placeholder={tf(
+                      "editGear.fields.selectViewfinderType",
+                      "Select viewfinder type",
+                    )}
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  <SelectItem value="optical">OVF (Optical)</SelectItem>
-                  <SelectItem value="electronic">EVF (Electronic)</SelectItem>
+                  <SelectItem value="none">
+                    {tf("specRegistry.shared.none", "None")}
+                  </SelectItem>
+                  <SelectItem value="optical">
+                    {tf("editGear.options.viewfinderType.optical", "OVF (Optical)")}
+                  </SelectItem>
+                  <SelectItem value="electronic">
+                    {tf("editGear.options.viewfinderType.electronic", "EVF (Electronic)")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -716,7 +861,7 @@ function CameraFieldsComponent({
             showWhenMissing(initialSpecs?.viewfinderMagnification) && (
               <NumberInput
                 id="viewfinderMagnification"
-                label="Viewfinder Magnification"
+                label={specLabel("viewfinderMagnification", "Viewfinder Magnification")}
                 suffix="x"
                 value={
                   currentSpecs?.viewfinderMagnification != null
@@ -726,7 +871,7 @@ function CameraFieldsComponent({
                 onChange={(value) =>
                   handleFieldChange("viewfinderMagnification", value)
                 }
-                placeholder="e.g., 0.80"
+                placeholder={tf("editGear.fields.magnificationPlaceholder", "e.g., 0.80")}
                 step={0.01}
                 min={0}
               />
@@ -737,7 +882,10 @@ function CameraFieldsComponent({
             showWhenMissing(initialSpecs?.viewfinderResolutionMillionDots) && (
               <NumberInput
                 id="viewfinderResolutionMillionDots"
-                label="Viewfinder Resolution"
+                label={specLabel(
+                  "viewfinderResolutionMillionDots",
+                  "Viewfinder Resolution",
+                )}
                 suffix="million dots"
                 value={
                   currentSpecs?.viewfinderResolutionMillionDots != null
@@ -747,7 +895,7 @@ function CameraFieldsComponent({
                 onChange={(value) =>
                   handleFieldChange("viewfinderResolutionMillionDots", value)
                 }
-                placeholder="e.g., 5.76"
+                placeholder={tf("editGear.fields.viewfinderResolutionPlaceholder", "e.g., 5.76")}
                 step={0.01}
                 min={0}
               />
@@ -757,7 +905,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.hasTopDisplay) && (
             <BooleanInput
               id="hasTopDisplay"
-              label="Has Top Display"
+              label={specLabel("hasTopDisplay", "Has Top Display")}
               allowNull
               showStateText
               checked={currentSpecs?.hasTopDisplay ?? null}
@@ -769,7 +917,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.hasRearTouchscreen) && (
             <BooleanInput
               id="hasRearTouchscreen"
-              label="Has Rear Touchscreen"
+              label={specLabel("hasRearTouchscreen", "Has Rear Touchscreen")}
               allowNull
               showStateText
               checked={currentSpecs?.hasRearTouchscreen ?? null}
@@ -782,7 +930,9 @@ function CameraFieldsComponent({
           {/* Max Raw Bit Depth */}
           {showWhenMissing(initialSpecs?.maxRawBitDepth) && (
             <div className="space-y-2">
-              <Label htmlFor="maxRawBitDepth">Max Raw Bit Depth</Label>
+              <Label htmlFor="maxRawBitDepth">
+                {specLabel("maxRawBitDepth", "Max Raw Bit Depth")}
+              </Label>
               <Select
                 value={currentSpecs?.maxRawBitDepth ?? ""}
                 onValueChange={(value) =>
@@ -790,7 +940,9 @@ function CameraFieldsComponent({
                 }
               >
                 <SelectTrigger id="maxRawBitDepth" className="w-full">
-                  <SelectValue placeholder="Max Raw Bit Depth" />
+                  <SelectValue
+                    placeholder={specLabel("maxRawBitDepth", "Max Raw Bit Depth")}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {ENUMS.raw_bit_depth_enum.map((type) => (
@@ -807,7 +959,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.hasIbis) && (
             <BooleanInput
               id="hasIbis"
-              label="Has IBIS (Physical)"
+              label={specLabel("hasIbis", "Has IBIS (Physical)")}
               checked={currentSpecs?.hasIbis ?? null}
               allowNull
               showStateText
@@ -819,7 +971,10 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.hasElectronicVibrationReduction) && (
             <BooleanInput
               id="hasElectronicVibrationReduction"
-              label="Has Electronic VR (Digital)"
+              label={specLabel(
+                "hasElectronicVibrationReduction",
+                "Has Electronic VR (Digital)",
+              )}
               checked={currentSpecs?.hasElectronicVibrationReduction ?? null}
               allowNull
               showStateText
@@ -833,12 +988,15 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.cipaStabilizationRatingStops) && (
             <NumberInput
               id="cipaStabilizationRatingStops"
-              label="CIPA Stabilization Rating Stops"
+              label={specLabel(
+                "cipaStabilizationRatingStops",
+                "CIPA Stabilization Rating Stops",
+              )}
               value={numOrNull(currentSpecs?.cipaStabilizationRatingStops)}
               onChange={(value) =>
                 handleFieldChange("cipaStabilizationRatingStops", value)
               }
-              placeholder="e.g., 3.0"
+              placeholder={tf("editGear.fields.stopsPlaceholder", "e.g., 3.0")}
               min={0}
               max={10}
               step={0.1}
@@ -850,7 +1008,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.hasPixelShiftShooting) && (
             <BooleanInput
               id="hasPixelShiftShooting"
-              label="Has Pixel Shift Shooting"
+              label={specLabel("hasPixelShiftShooting", "Has Pixel Shift Shooting")}
               checked={currentSpecs?.hasPixelShiftShooting ?? null}
               allowNull
               showStateText
@@ -864,7 +1022,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.hasAntiAliasingFilter) && (
             <BooleanInput
               id="hasAntiAliasingFilter"
-              label="Has Anti Aliasing Filter"
+              label={specLabel("hasAntiAliasingFilter", "Has Anti Aliasing Filter")}
               checked={currentSpecs?.hasAntiAliasingFilter ?? null}
               allowNull
               showStateText
@@ -893,7 +1051,9 @@ function CameraFieldsComponent({
           {/* Processor Name */}
           {showWhenMissing(initialSpecs?.processorName) && (
             <div className="space-y-2">
-              <Label htmlFor="processorName">Processor Name</Label>
+              <Label htmlFor="processorName">
+                {specLabel("processorName", "Processor Name")}
+              </Label>
               <Input
                 id="processorName"
                 value={currentSpecs?.processorName ?? ""}
@@ -908,7 +1068,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.hasWeatherSealing) && (
             <BooleanInput
               id="hasWeatherSealing"
-              label="Has Weather Sealing"
+              label={specLabel("hasWeatherSealing", "Has Weather Sealing")}
               checked={currentSpecs?.hasWeatherSealing ?? null}
               allowNull
               showStateText
@@ -922,7 +1082,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.focusPoints) && (
             <NumberInput
               id="focusPoints"
-              label="Focus Points"
+              label={specLabel("focusPoints", "Focus Points")}
               value={currentSpecs?.focusPoints ?? null}
               onChange={(value) => handleFieldChange("focusPoints", value)}
             />
@@ -932,7 +1092,9 @@ function CameraFieldsComponent({
           {/* TODO: add a way for creating new af area modes (review plan)*/}
           {showWhenMissing(initialSpecs?.afAreaModes) && (
             <div id="afAreaModes" className="space-y-2">
-              <Label htmlFor="afAreaModes">AF Area Modes</Label>
+              <Label htmlFor="afAreaModes">
+                {specLabel("afAreaModes", "AF Area Modes")}
+              </Label>
               <MultiSelect
                 options={afAreaModeOptions}
                 value={selectedAfAreaModeIds}
@@ -944,7 +1106,9 @@ function CameraFieldsComponent({
           {/* AF Subject Categories */}
           {showWhenMissing(initialSpecs?.afSubjectCategories) && (
             <div id="afSubjectCategories" className="space-y-2">
-              <Label htmlFor="afSubjectCategories">AF Subject Categories</Label>
+              <Label htmlFor="afSubjectCategories">
+                {specLabel("afSubjectCategories", "AF Subject Categories")}
+              </Label>
               <MultiSelect
                 options={afSubjectCategoryOptions}
                 value={selectedAfSubjectCategories}
@@ -959,7 +1123,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.hasFocusPeaking) && (
             <BooleanInput
               id="hasFocusPeaking"
-              label="Has Focus Peaking"
+              label={specLabel("hasFocusPeaking", "Has Focus Peaking")}
               checked={currentSpecs?.hasFocusPeaking ?? null}
               allowNull
               showStateText
@@ -971,7 +1135,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.hasFocusBracketing) && (
             <BooleanInput
               id="hasFocusBracketing"
-              label="Has Focus Bracketing"
+              label={specLabel("hasFocusBracketing", "Has Focus Bracketing")}
               checked={currentSpecs?.hasFocusBracketing ?? null}
               allowNull
               showStateText
@@ -985,7 +1149,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.shutterSpeedMax) && (
             <NumberInput
               id="shutterSpeedMax"
-              label="Longest Shutter Speed"
+              label={specLabel("shutterSpeedMax", "Longest Shutter Speed")}
               suffix="sec."
               value={currentSpecs?.shutterSpeedMax ?? null}
               onChange={(value) => handleFieldChange("shutterSpeedMax", value)}
@@ -996,7 +1160,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.shutterSpeedMin) && (
             <NumberInput
               id="shutterSpeedMin"
-              label="Shortest Shutter Speed"
+              label={specLabel("shutterSpeedMin", "Shortest Shutter Speed")}
               prefix="1/"
               value={currentSpecs?.shutterSpeedMin ?? null}
               onChange={(value) => handleFieldChange("shutterSpeedMin", value)}
@@ -1007,7 +1171,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.flashSyncSpeed) && (
             <NumberInput
               id="flashSyncSpeed"
-              label="Flash Sync Speed"
+              label={specLabel("flashSyncSpeed", "Flash Sync Speed")}
               icon={<ZapIcon />}
               prefix="1/"
               value={currentSpecs?.flashSyncSpeed}
@@ -1019,7 +1183,10 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.hasSilentShootingAvailable) && (
             <BooleanInput
               id="hasSilentShootingAvailable"
-              label="Has Silent Shooting Available"
+              label={specLabel(
+                "hasSilentShootingAvailable",
+                "Has Silent Shooting Available",
+              )}
               checked={currentSpecs?.hasSilentShootingAvailable ?? null}
               allowNull
               showStateText
@@ -1033,14 +1200,16 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.availableShutterTypes) && (
             <div id="availableShutterTypes" className="space-y-2">
               <Label htmlFor="availableShutterTypes">
-                Available Shutter Types
+                {specLabel("availableShutterTypes", "Available Shutter Types")}
               </Label>
               <MultiSelect
                 inDialog
                 options={ENUMS.shutter_types_enum.map((type) => ({
                   id: type,
-                  // TODO map these proper formatted names
-                  name: type,
+                  name:
+                    normalizeShutterTypeKey(type) != null
+                      ? getShutterTypeLabel(normalizeShutterTypeKey(type)!)
+                      : type,
                 }))}
                 value={currentSpecs?.availableShutterTypes ?? []}
                 onChange={(value: string[]) =>
@@ -1055,7 +1224,12 @@ function CameraFieldsComponent({
             showWhenMissing(initialSpecs?.maxFpsJpg)) && (
             <div id="maxFpsByShutter" className="space-y-3">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <Label>Max Continuous FPS (Photo)</Label>
+                <Label>
+                  {tf(
+                    "editGear.fields.maxContinuousFpsPhoto",
+                    "Max Continuous FPS (Photo)",
+                  )}
+                </Label>
                 <div className="flex items-center gap-2">
                   <Switch
                     id="usePerShutterFps"
@@ -1072,7 +1246,10 @@ function CameraFieldsComponent({
                     htmlFor="usePerShutterFps"
                     className="text-muted-foreground cursor-pointer text-sm"
                   >
-                    Use per-shutter inputs
+                    {tf(
+                      "editGear.fields.usePerShutterInputs",
+                      "Use per-shutter inputs",
+                    )}
                   </Label>
                 </div>
               </div>
@@ -1082,7 +1259,7 @@ function CameraFieldsComponent({
                   <div className="flex-1">
                     <NumberInput
                       id="maxFpsRaw"
-                      label="Max FPS (RAW)"
+                      label={tf("editGear.fields.maxFpsRaw", "Max FPS (RAW)")}
                       value={
                         currentSpecs?.maxFpsRaw != null
                           ? parseFloat(currentSpecs.maxFpsRaw)
@@ -1091,7 +1268,7 @@ function CameraFieldsComponent({
                       onChange={(value) =>
                         handleFieldChange("maxFpsRaw", value)
                       }
-                      placeholder="e.g., 20.0"
+                      placeholder={tf("editGear.fields.fpsPlaceholder", "e.g., 20.0")}
                       min={0}
                       max={120}
                       step={0.1}
@@ -1101,7 +1278,7 @@ function CameraFieldsComponent({
                   <div className="flex-1">
                     <NumberInput
                       id="maxFpsJpg"
-                      label="Max FPS (JPG)"
+                      label={tf("editGear.fields.maxFpsJpg", "Max FPS (JPG)")}
                       value={
                         currentSpecs?.maxFpsJpg != null
                           ? parseFloat(currentSpecs.maxFpsJpg)
@@ -1110,7 +1287,7 @@ function CameraFieldsComponent({
                       onChange={(value) =>
                         handleFieldChange("maxFpsJpg", value)
                       }
-                      placeholder="e.g., 20.0"
+                      placeholder={tf("editGear.fields.fpsPlaceholder", "e.g., 20.0")}
                       min={0}
                       max={120}
                       step={0.1}
@@ -1138,6 +1315,8 @@ function CameraFieldsComponent({
                     }
                   }}
                   isVisible
+                  getLabel={getShutterTypeLabel}
+                  tf={tf}
                 />
               )}
             </div>
@@ -1147,7 +1326,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.internalStorageGb) && (
             <NumberInput
               id="internalStorageGb"
-              label="Internal Storage"
+              label={specLabel("internalStorageGb", "Internal Storage")}
               suffix="GB"
               value={
                 currentSpecs?.internalStorageGb != null
@@ -1157,7 +1336,7 @@ function CameraFieldsComponent({
               onChange={(value) =>
                 handleFieldChange("internalStorageGb", value)
               }
-              placeholder="e.g., 512"
+              placeholder={tf("editGear.fields.storagePlaceholder", "e.g., 512")}
               min={0}
               step={0.1}
             />
@@ -1166,7 +1345,10 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.cipaBatteryShotsPerCharge) && (
             <NumberInput
               id="cipaBatteryShotsPerCharge"
-              label="CIPA Battery Shots Per Charge"
+              label={specLabel(
+                "cipaBatteryShotsPerCharge",
+                "CIPA Battery Shots Per Charge",
+              )}
               icon={<BatteryFullIcon />}
               value={currentSpecs?.cipaBatteryShotsPerCharge}
               onChange={(value) =>
@@ -1184,7 +1366,7 @@ function CameraFieldsComponent({
             >
               <MultiTextInput
                 id="supportedBatteries"
-                label="Supported Batteries"
+                label={specLabel("supportedBatteries", "Supported Batteries")}
                 values={
                   Array.isArray(currentSpecs?.supportedBatteries)
                     ? currentSpecs.supportedBatteries.filter(
@@ -1195,7 +1377,7 @@ function CameraFieldsComponent({
                 onChange={(value) =>
                   handleFieldChange("supportedBatteries", value)
                 }
-                placeholder="e.g., NP-FZ100"
+                placeholder={tf("editGear.fields.batteryPlaceholder", "e.g., NP-FZ100")}
               />
             </div>
           )}
@@ -1204,11 +1386,14 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.usbCharging) && (
             <BooleanInput
               id="usbCharging"
-              label="USB Charging"
+              label={specLabel("usbCharging", "USB Charging")}
               checked={currentSpecs?.usbCharging ?? null}
               allowNull
               showStateText
-              tooltip="Camera is able to charge its inserted batteries via USB"
+              tooltip={tf(
+                "editGear.fields.usbChargingTooltip",
+                "Camera is able to charge its inserted batteries via USB",
+              )}
               onChange={(value) => handleFieldChange("usbCharging", value)}
             />
           )}
@@ -1217,11 +1402,14 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.usbPowerDelivery) && (
             <BooleanInput
               id="usbPowerDelivery"
-              label="USB Power Delivery"
+              label={specLabel("usbPowerDelivery", "USB Power Delivery")}
               checked={currentSpecs?.usbPowerDelivery ?? null}
               allowNull
               showStateText
-              tooltip="Camera is able to operate while plugged into USB and will draw less or no power from the battery"
+              tooltip={tf(
+                "editGear.fields.usbPowerDeliveryTooltip",
+                "Camera is able to operate while plugged into USB and will draw less or no power from the battery",
+              )}
               onChange={(value) => handleFieldChange("usbPowerDelivery", value)}
             />
           )}
@@ -1230,7 +1418,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.hasLogColorProfile) && (
             <BooleanInput
               id="hasLogColorProfile"
-              label="Has Log Color Profile"
+              label={specLabel("hasLogColorProfile", "Has Log Color Profile")}
               checked={currentSpecs?.hasLogColorProfile ?? null}
               allowNull
               showStateText
@@ -1244,7 +1432,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.has10BitVideo) && (
             <BooleanInput
               id="has10BitVideo"
-              label="Has 10 Bit Video"
+              label={specLabel("has10BitVideo", "Has 10 Bit Video")}
               checked={currentSpecs?.has10BitVideo ?? null}
               allowNull
               showStateText
@@ -1256,7 +1444,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.has12BitVideo) && (
             <BooleanInput
               id="has12BitVideo"
-              label="Has 12 Bit Video"
+              label={specLabel("has12BitVideo", "Has 12 Bit Video")}
               checked={currentSpecs?.has12BitVideo ?? null}
               allowNull
               showStateText
@@ -1268,7 +1456,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.hasOpenGateVideo) && (
             <BooleanInput
               id="hasOpenGateVideo"
-              label="Has Open Gate Video"
+              label={specLabel("hasOpenGateVideo", "Has Open Gate Video")}
               checked={currentSpecs?.hasOpenGateVideo ?? null}
               allowNull
               showStateText
@@ -1280,7 +1468,10 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.supportsExternalRecording) && (
             <BooleanInput
               id="supportsExternalRecording"
-              label="Supports External Recording"
+              label={specLabel(
+                "supportsExternalRecording",
+                "Supports External Recording",
+              )}
               checked={currentSpecs?.supportsExternalRecording ?? null}
               allowNull
               showStateText
@@ -1294,7 +1485,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.supportsRecordToDrive) && (
             <BooleanInput
               id="supportsRecordToDrive"
-              label="Supports Recording to Drive"
+              label={specLabel("supportsRecordToDrive", "Supports Recording to Drive")}
               checked={currentSpecs?.supportsRecordToDrive ?? null}
               allowNull
               showStateText
@@ -1316,7 +1507,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.hasIntervalometer) && (
             <BooleanInput
               id="hasIntervalometer"
-              label="Has Intervalometer"
+              label={specLabel("hasIntervalometer", "Has Intervalometer")}
               checked={currentSpecs?.hasIntervalometer ?? null}
               allowNull
               showStateText
@@ -1330,7 +1521,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.hasSelfTimer) && (
             <BooleanInput
               id="hasSelfTimer"
-              label="Has Self Timer"
+              label={specLabel("hasSelfTimer", "Has Self Timer")}
               checked={currentSpecs?.hasSelfTimer ?? null}
               allowNull
               showStateText
@@ -1342,7 +1533,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.hasBuiltInFlash) && (
             <BooleanInput
               id="hasBuiltInFlash"
-              label="Has Built In Flash"
+              label={specLabel("hasBuiltInFlash", "Has Built In Flash")}
               checked={currentSpecs?.hasBuiltInFlash ?? null}
               allowNull
               showStateText
@@ -1354,7 +1545,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.hasHotShoe) && (
             <BooleanInput
               id="hasHotShoe"
-              label="Has Hot Shoe"
+              label={specLabel("hasHotShoe", "Has Hot Shoe")}
               checked={currentSpecs?.hasHotShoe ?? null}
               allowNull
               showStateText
@@ -1366,7 +1557,7 @@ function CameraFieldsComponent({
           {showWhenMissing(initialSpecs?.hasUsbFileTransfer) && (
             <BooleanInput
               id="hasUsbFileTransfer"
-              label="Has USB File Transfer"
+              label={specLabel("hasUsbFileTransfer", "Has USB File Transfer")}
               checked={currentSpecs?.hasUsbFileTransfer ?? null}
               allowNull
               showStateText

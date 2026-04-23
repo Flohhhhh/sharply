@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations, type TranslationValues } from "next-intl";
 import { BooleanInput,MultiTextInput,NumberInput } from "~/components/custom-inputs";
 import { Card,CardContent,CardHeader,CardTitle } from "~/components/ui/card";
 import { MultiSelect } from "~/components/ui/multi-select";
@@ -10,6 +11,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import {
+  getSpecFieldLabel,
+  getSpecSectionTitle,
+  translateGearDetailWithFallback,
+} from "~/lib/i18n/gear-detail";
 import { ANALOG_OPTIONS } from "~/lib/mapping/analog-types-map";
 import type { AnalogCameraSpecs } from "~/types/gear";
 
@@ -51,6 +57,12 @@ export function AnalogCameraFields({
   onChange,
   sectionId,
 }: AnalogCameraFieldsProps) {
+  const t = useTranslations("gearDetail");
+  const tf = (key: string, fallback: string, values?: TranslationValues) =>
+    translateGearDetailWithFallback(t, key, fallback, values);
+  const specLabel = (fieldKey: string, fallback: string) =>
+    getSpecFieldLabel(t, "analog-camera", fieldKey, fallback);
+
   return (
     <Card
       id={sectionId ?? "analog-camera-section"}
@@ -58,20 +70,30 @@ export function AnalogCameraFields({
     >
       <CardHeader className="px-0 pb-0">
         <CardTitle className="text-xl font-semibold">
-          Analog Camera Specs
+          {tf(
+            "editGear.sections.analogCameraSpecifications",
+            getSpecSectionTitle(t, "analog-camera", "Analog Camera Specs"),
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 px-0">
         <div className="flex flex-col gap-3">
           {shouldShowField(currentSpecs?.cameraType, showMissingOnly) && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">Camera Type</label>
+              <label className="text-sm font-medium">
+                {specLabel("cameraType", "Camera Type")}
+              </label>
               <Select
                 value={currentSpecs?.cameraType ?? undefined}
                 onValueChange={(value) => onChange("cameraType", value)}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select camera type" />
+                  <SelectValue
+                    placeholder={tf(
+                      "editGear.fields.analogCameraTypePlaceholder",
+                      "Select camera type",
+                    )}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {analogCameraTypeOptions.map((opt) => (
@@ -86,13 +108,20 @@ export function AnalogCameraFields({
 
           {shouldShowField(currentSpecs?.captureMedium, showMissingOnly) && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">Capture Medium</label>
+              <label className="text-sm font-medium">
+                {specLabel("captureMedium", "Capture Medium")}
+              </label>
               <Select
                 value={currentSpecs?.captureMedium ?? undefined}
                 onValueChange={(value) => onChange("captureMedium", value)}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select capture medium" />
+                  <SelectValue
+                    placeholder={tf(
+                      "editGear.fields.captureMediumPlaceholder",
+                      "Select capture medium",
+                    )}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {analogMediumOptions.map((opt) => (
@@ -110,13 +139,20 @@ export function AnalogCameraFields({
             showMissingOnly,
           ) && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">Film Transport</label>
+              <label className="text-sm font-medium">
+                {specLabel("filmTransportType", "Film Transport")}
+              </label>
               <Select
                 value={currentSpecs?.filmTransportType ?? undefined}
                 onValueChange={(value) => onChange("filmTransportType", value)}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select film transport" />
+                  <SelectValue
+                    placeholder={tf(
+                      "editGear.fields.filmTransportPlaceholder",
+                      "Select film transport",
+                    )}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {filmTransportOptions.map((opt) => (
@@ -131,13 +167,20 @@ export function AnalogCameraFields({
 
           {shouldShowField(currentSpecs?.viewfinderType, showMissingOnly) && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">Viewfinder Type</label>
+              <label className="text-sm font-medium">
+                {specLabel("viewfinderType", "Viewfinder Type")}
+              </label>
               <Select
                 value={currentSpecs?.viewfinderType ?? undefined}
                 onValueChange={(value) => onChange("viewfinderType", value)}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select viewfinder" />
+                  <SelectValue
+                    placeholder={tf(
+                      "editGear.fields.analogViewfinderPlaceholder",
+                      "Select viewfinder",
+                    )}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {analogViewfinderTypeOptions.map((opt) => (
@@ -154,13 +197,20 @@ export function AnalogCameraFields({
         <div className="flex flex-col gap-3">
           {shouldShowField(currentSpecs?.shutterType, showMissingOnly) && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">Shutter Type</label>
+              <label className="text-sm font-medium">
+                {specLabel("shutterType", "Shutter Type")}
+              </label>
               <Select
                 value={currentSpecs?.shutterType ?? undefined}
                 onValueChange={(value) => onChange("shutterType", value)}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select shutter type" />
+                  <SelectValue
+                    placeholder={tf(
+                      "editGear.fields.analogShutterTypePlaceholder",
+                      "Select shutter type",
+                    )}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {shutterTypeOptions.map((opt) => (
@@ -176,7 +226,7 @@ export function AnalogCameraFields({
           {shouldShowField(currentSpecs?.shutterSpeedMax, showMissingOnly) && (
             <NumberInput
               id="shutterSpeedMax"
-              label="Shutter Speed Max (s)"
+              label={tf("editGear.fields.shutterSpeedMaxSeconds", "Shutter Speed Max (s)")}
               value={currentSpecs?.shutterSpeedMax ?? null}
               onChange={(value) => onChange("shutterSpeedMax", value)}
               min={0}
@@ -187,7 +237,10 @@ export function AnalogCameraFields({
           {shouldShowField(currentSpecs?.shutterSpeedMin, showMissingOnly) && (
             <NumberInput
               id="shutterSpeedMin"
-              label="Shutter Speed Min (1/x s)"
+              label={tf(
+                "editGear.fields.shutterSpeedMinFraction",
+                "Shutter Speed Min (1/x s)",
+              )}
               value={currentSpecs?.shutterSpeedMin ?? null}
               onChange={(value) => onChange("shutterSpeedMin", value)}
               min={0}
@@ -198,7 +251,7 @@ export function AnalogCameraFields({
           {shouldShowField(currentSpecs?.flashSyncSpeed, showMissingOnly) && (
             <NumberInput
               id="flashSyncSpeed"
-              label="Flash Sync Speed (1/x s)"
+              label={specLabel("flashSyncSpeed", "Flash Sync Speed (1/x s)")}
               value={currentSpecs?.flashSyncSpeed ?? null}
               onChange={(value) => onChange("flashSyncSpeed", value)}
               min={0}
@@ -211,7 +264,7 @@ export function AnalogCameraFields({
           {shouldShowField(currentSpecs?.hasBulbMode, showMissingOnly) && (
             <BooleanInput
               id="hasBulbMode"
-              label="Bulb Mode"
+              label={specLabel("hasBulbMode", "Bulb Mode")}
               checked={currentSpecs?.hasBulbMode ?? null}
               onChange={(value) => onChange("hasBulbMode", value)}
               allowNull
@@ -222,7 +275,7 @@ export function AnalogCameraFields({
           {shouldShowField(currentSpecs?.hasMetering, showMissingOnly) && (
             <BooleanInput
               id="hasMetering"
-              label="Has Metering"
+              label={specLabel("hasMetering", "Has Metering")}
               checked={currentSpecs?.hasMetering ?? null}
               onChange={(value) => onChange("hasMetering", value)}
               allowNull
@@ -232,12 +285,17 @@ export function AnalogCameraFields({
 
           {shouldShowField(currentSpecs?.meteringModes, showMissingOnly) && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">Metering Modes</label>
+              <label className="text-sm font-medium">
+                {specLabel("meteringModes", "Metering Modes")}
+              </label>
               <MultiSelect
                 options={toMulti(meteringModeOptions)}
                 value={currentSpecs?.meteringModes ?? []}
                 onChange={(value) => onChange("meteringModes", value)}
-                placeholder="Select metering modes"
+                placeholder={tf(
+                  "editGear.fields.meteringModesPlaceholder",
+                  "Select metering modes",
+                )}
                 className="w-full"
               />
             </div>
@@ -248,12 +306,17 @@ export function AnalogCameraFields({
             showMissingOnly,
           ) && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">Metering Display</label>
+              <label className="text-sm font-medium">
+                {specLabel("meteringDisplayTypes", "Metering Display")}
+              </label>
               <MultiSelect
                 options={toMulti(meteringDisplayOptions)}
                 value={currentSpecs?.meteringDisplayTypes ?? []}
                 onChange={(value) => onChange("meteringDisplayTypes", value)}
-                placeholder="Select display types"
+                placeholder={tf(
+                  "editGear.fields.meteringDisplayPlaceholder",
+                  "Select display types",
+                )}
                 className="w-full"
               />
             </div>
@@ -261,12 +324,17 @@ export function AnalogCameraFields({
 
           {shouldShowField(currentSpecs?.exposureModes, showMissingOnly) && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">Exposure Modes</label>
+              <label className="text-sm font-medium">
+                {specLabel("exposureModes", "Exposure Modes")}
+              </label>
               <MultiSelect
                 options={toMulti(exposureModeOptions)}
                 value={currentSpecs?.exposureModes ?? []}
                 onChange={(value) => onChange("exposureModes", value)}
-                placeholder="Select exposure modes"
+                placeholder={tf(
+                  "editGear.fields.exposureModesPlaceholder",
+                  "Select exposure modes",
+                )}
                 className="w-full"
               />
             </div>
@@ -278,7 +346,7 @@ export function AnalogCameraFields({
           ) && (
             <BooleanInput
               id="hasExposureCompensation"
-              label="Exposure Compensation"
+              label={specLabel("hasExposureCompensation", "Exposure Compensation")}
               checked={currentSpecs?.hasExposureCompensation ?? null}
               onChange={(value) => onChange("hasExposureCompensation", value)}
               allowNull
@@ -290,13 +358,20 @@ export function AnalogCameraFields({
         <div className="flex flex-col gap-3">
           {shouldShowField(currentSpecs?.isoSettingMethod, showMissingOnly) && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">ISO Setting</label>
+              <label className="text-sm font-medium">
+                {specLabel("isoSettingMethod", "ISO Setting")}
+              </label>
               <Select
                 value={currentSpecs?.isoSettingMethod ?? undefined}
                 onValueChange={(value) => onChange("isoSettingMethod", value)}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select ISO setting" />
+                  <SelectValue
+                    placeholder={tf(
+                      "editGear.fields.isoSettingPlaceholder",
+                      "Select ISO setting",
+                    )}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {isoSettingMethodOptions.map((opt) => (
@@ -312,7 +387,7 @@ export function AnalogCameraFields({
           {shouldShowField(currentSpecs?.isoMin, showMissingOnly) && (
             <NumberInput
               id="isoMin"
-              label="ISO Min"
+              label={tf("editGear.fields.isoMin", "ISO Min")}
               value={currentSpecs?.isoMin ?? null}
               onChange={(value) => onChange("isoMin", value)}
               min={0}
@@ -323,7 +398,7 @@ export function AnalogCameraFields({
           {shouldShowField(currentSpecs?.isoMax, showMissingOnly) && (
             <NumberInput
               id="isoMax"
-              label="ISO Max"
+              label={tf("editGear.fields.isoMax", "ISO Max")}
               value={currentSpecs?.isoMax ?? null}
               onChange={(value) => onChange("isoMax", value)}
               min={0}
@@ -336,7 +411,7 @@ export function AnalogCameraFields({
           {shouldShowField(currentSpecs?.hasAutoFocus, showMissingOnly) && (
             <BooleanInput
               id="hasAutoFocus"
-              label="Has Autofocus"
+              label={specLabel("hasAutoFocus", "Has Autofocus")}
               checked={currentSpecs?.hasAutoFocus ?? null}
               onChange={(value) => onChange("hasAutoFocus", value)}
               allowNull
@@ -347,12 +422,17 @@ export function AnalogCameraFields({
 
           {shouldShowField(currentSpecs?.focusAidTypes, showMissingOnly) && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">Focus Aids</label>
+              <label className="text-sm font-medium">
+                {specLabel("focusAidTypes", "Focus Aids")}
+              </label>
               <MultiSelect
                 options={toMulti(focusAidOptions)}
                 value={currentSpecs?.focusAidTypes ?? []}
                 onChange={(value) => onChange("focusAidTypes", value)}
-                placeholder="Select focus aids"
+                placeholder={tf(
+                  "editGear.fields.focusAidsPlaceholder",
+                  "Select focus aids",
+                )}
               />
             </div>
           )}
@@ -363,7 +443,7 @@ export function AnalogCameraFields({
           ) && (
             <BooleanInput
               id="hasContinuousDrive"
-              label="Continuous Drive"
+              label={specLabel("hasContinuousDrive", "Continuous Drive")}
               checked={currentSpecs?.hasContinuousDrive ?? null}
               onChange={(value) => onChange("hasContinuousDrive", value)}
               allowNull
@@ -374,7 +454,7 @@ export function AnalogCameraFields({
           {shouldShowField(currentSpecs?.maxContinuousFps, showMissingOnly) && (
             <NumberInput
               id="maxContinuousFps"
-              label="Max Continuous FPS"
+              label={tf("editGear.fields.maxContinuousFps", "Max Continuous FPS")}
               value={currentSpecs?.maxContinuousFps ?? null}
               onChange={(value) => onChange("maxContinuousFps", value)}
               min={0}
@@ -390,7 +470,10 @@ export function AnalogCameraFields({
           ) && (
             <BooleanInput
               id="requiresBatteryForShutter"
-              label="Requires Battery for Shutter"
+              label={tf(
+                "editGear.fields.requiresBatteryForShutter",
+                "Requires Battery for Shutter",
+              )}
               checked={currentSpecs?.requiresBatteryForShutter ?? null}
               onChange={(value) => onChange("requiresBatteryForShutter", value)}
               allowNull
@@ -405,7 +488,10 @@ export function AnalogCameraFields({
           ) && (
             <BooleanInput
               id="requiresBatteryForMetering"
-              label="Requires Battery for Metering"
+              label={tf(
+                "editGear.fields.requiresBatteryForMetering",
+                "Requires Battery for Metering",
+              )}
               checked={currentSpecs?.requiresBatteryForMetering ?? null}
               onChange={(value) =>
                 onChange("requiresBatteryForMetering", value)
@@ -423,7 +509,7 @@ export function AnalogCameraFields({
             >
               <MultiTextInput
                 id="supportedBatteries"
-                label="Supported Batteries"
+                label={specLabel("supportedBatteries", "Supported Batteries")}
                 values={
                   Array.isArray(currentSpecs?.supportedBatteries)
                     ? currentSpecs.supportedBatteries.filter(
@@ -432,7 +518,10 @@ export function AnalogCameraFields({
                     : []
                 }
                 onChange={(value) => onChange("supportedBatteries", value)}
-                placeholder="e.g., CR2032, LR44"
+                placeholder={tf(
+                  "editGear.fields.analogBatteryPlaceholder",
+                  "e.g., CR2032, LR44",
+                )}
               />
             </div>
           )}
@@ -440,7 +529,7 @@ export function AnalogCameraFields({
           {shouldShowField(currentSpecs?.hasHotShoe, showMissingOnly) && (
             <BooleanInput
               id="hasHotShoe"
-              label="Hot Shoe"
+              label={specLabel("hasHotShoe", "Hot Shoe")}
               checked={currentSpecs?.hasHotShoe ?? null}
               onChange={(value) => onChange("hasHotShoe", value)}
               allowNull
@@ -452,7 +541,7 @@ export function AnalogCameraFields({
           {shouldShowField(currentSpecs?.hasSelfTimer, showMissingOnly) && (
             <BooleanInput
               id="hasSelfTimer"
-              label="Self Timer"
+              label={specLabel("hasSelfTimer", "Self Timer")}
               checked={currentSpecs?.hasSelfTimer ?? null}
               onChange={(value) => onChange("hasSelfTimer", value)}
               allowNull
@@ -467,7 +556,7 @@ export function AnalogCameraFields({
           ) && (
             <BooleanInput
               id="hasIntervalometer"
-              label="Intervalometer"
+              label={specLabel("hasIntervalometer", "Intervalometer")}
               checked={currentSpecs?.hasIntervalometer ?? null}
               onChange={(value) => onChange("hasIntervalometer", value)}
               allowNull
@@ -482,7 +571,7 @@ export function AnalogCameraFields({
           ) && (
             <BooleanInput
               id="hasAutoFilmAdvance"
-              label="Auto Film Advance"
+              label={tf("editGear.fields.autoFilmAdvance", "Auto Film Advance")}
               checked={currentSpecs?.hasAutoFilmAdvance ?? null}
               onChange={(value) => onChange("hasAutoFilmAdvance", value)}
               allowNull
@@ -497,7 +586,10 @@ export function AnalogCameraFields({
           ) && (
             <BooleanInput
               id="hasOptionalMotorizedDrive"
-              label="Optional Motorized Drive"
+              label={tf(
+                "editGear.fields.optionalMotorizedDrive",
+                "Optional Motorized Drive",
+              )}
               checked={currentSpecs?.hasOptionalMotorizedDrive ?? null}
               onChange={(value) => onChange("hasOptionalMotorizedDrive", value)}
               allowNull

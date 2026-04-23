@@ -1,6 +1,7 @@
 "use client";
 
 import { InfoIcon } from "lucide-react";
+import { useLocale,useTranslations, type TranslationValues } from "next-intl";
 import { memo,useCallback,useEffect,useMemo,useState } from "react";
 import { DateInput } from "~/components/custom-inputs";
 import CurrencyInput from "~/components/custom-inputs/currency-input";
@@ -19,6 +20,12 @@ import { useSession } from "~/lib/auth/auth-client";
 import { requireRole } from "~/lib/auth/auth-helpers";
 import { GENRES } from "~/lib/constants";
 import { formatDateInputValue } from "~/lib/format/date";
+import {
+  getReviewGenreLabel,
+  getSpecFieldLabel,
+  getSpecSectionTitle,
+  translateGearDetailWithFallback,
+} from "~/lib/i18n/gear-detail";
 import { normalizeMpbLinkInput } from "~/lib/links/mpb";
 import { centsToUsd,usdToCents } from "~/lib/utils";
 import {
@@ -71,7 +78,14 @@ function CoreFieldsComponent({
   onChange,
   sectionId,
 }: CoreFieldsProps) {
+  const t = useTranslations("gearDetail");
+  const locale = useLocale();
   const { data, isPending, error } = useSession();
+  const tf = useCallback(
+    (key: string, fallback: string, values?: TranslationValues) =>
+      translateGearDetailWithFallback(t, key, fallback, values),
+    [t],
+  );
 
   const isMissing = useCallback((v: unknown): boolean => {
     if (v == null) return true;
@@ -278,11 +292,17 @@ function CoreFieldsComponent({
       setMpbPreviewUrl(null);
       setMpbError(
         result.kind === "search"
-          ? "MPB search URLs are no longer supported. Paste the MPB link with any fit instead."
-          : "Paste an MPB product link or relative product path.",
+          ? tf(
+              "editGear.fields.linkMpbSearchUnsupported",
+              "MPB search URLs are no longer supported. Paste the MPB link with any fit instead.",
+            )
+          : tf(
+              "editGear.fields.linkMpbInvalid",
+              "Paste an MPB product link or relative product path.",
+            ),
       );
     },
-    [onChange],
+    [onChange, tf],
   );
 
   // Safely format the date for the input
@@ -367,22 +387,24 @@ function CoreFieldsComponent({
     () =>
       (GENRES as GenreOptionSource[]).map((genre) => ({
         id: genre.slug ?? genre.id ?? "",
-        name: genre.name ?? genre.slug ?? "",
+        name: getReviewGenreLabel(t, locale, genre),
       })),
-    [],
+    [locale, t],
   );
   const formattedGenres = useMemo(() => {
     return Array.isArray(currentSpecs.genres) ? currentSpecs.genres : [];
   }, [currentSpecs.genres]);
 
   if (isPending) {
-    return <div>Loading...</div>;
+    return <div>{tf("editGear.status.loading", "Loading...")}</div>;
   }
   if (error) {
-    return <div>Error: {error.message}</div>;
+    return (
+      <div>{tf("editGear.status.error", "Error: {error}", { error: error.message })}</div>
+    );
   }
   if (!data) {
-    return <div>Unauthenticated</div>;
+    return <div>{tf("editGear.status.unauthenticated", "Unauthenticated")}</div>;
   }
   const session = data.session;
   const user = data.user;
@@ -399,7 +421,9 @@ function CoreFieldsComponent({
       className="rounded-md border-0 bg-transparent px-0 py-0"
     >
       <CardHeader className="px-0">
-        <CardTitle className="text-2xl">Basic Information</CardTitle>
+        <CardTitle className="text-2xl">
+          {getSpecSectionTitle(t, "core", "Basic Information")}
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 px-0">
         <div className="flex flex-col gap-3">
@@ -413,16 +437,21 @@ function CoreFieldsComponent({
               <>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label>Announced Date Precision</Label>
+                    <Label>
+                      {tf(
+                        "editGear.fields.announcedDatePrecision",
+                        "Announced Date Precision",
+                      )}
+                    </Label>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <InfoIcon className="text-muted-foreground h-4 w-4" />
                       </TooltipTrigger>
                       <TooltipContent className="max-w-md">
-                        Select a precision level for the date. For example,
-                        selecting "Month" will display the date as "September
-                        2025" instead of "September 5th 2025". Selecting"Year"
-                        would only show the year. Day shows Year month and day.
+                        {tf(
+                          "editGear.fields.datePrecisionHelp",
+                          'Select a precision level for the date. For example, selecting "Month" will display the date as "September 2025" instead of "September 5, 2025". Selecting "Year" will only show the year. Use "Day" when the full date is known.',
+                        )}
                       </TooltipContent>
                     </Tooltip>
                   </div>
@@ -439,25 +468,30 @@ function CoreFieldsComponent({
                       className="data-[state=on]:bg-accent hover:bg-accent/50"
                       value="YEAR"
                     >
-                      Year
+                      {tf("editGear.fields.datePrecisionYear", "Year")}
                     </ToggleGroupItem>
                     <ToggleGroupItem
                       className="data-[state=on]:bg-accent hover:bg-accent/50"
                       value="MONTH"
                     >
-                      Month
+                      {tf("editGear.fields.datePrecisionMonth", "Month")}
                     </ToggleGroupItem>
                     <ToggleGroupItem
                       className="data-[state=on]:bg-accent hover:bg-accent/50"
                       value="DAY"
                     >
-                      Day
+                      {tf("editGear.fields.datePrecisionDay", "Day")}
                     </ToggleGroupItem>
                   </ToggleGroup>
                 </div>
 
                   <DateInput
-                    label="Announced Date"
+                    label={getSpecFieldLabel(
+                      t,
+                      "core",
+                      "announcedDate",
+                      "Announced Date",
+                    )}
                     value={formattedAnnouncedDate}
                     onChange={handleAnnouncedDateChange}
                     granularity={
@@ -482,17 +516,21 @@ function CoreFieldsComponent({
               <>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label>Release Date Precision</Label>
+                    <Label>
+                      {tf(
+                        "editGear.fields.releaseDatePrecision",
+                        "Release Date Precision",
+                      )}
+                    </Label>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <InfoIcon className="text-muted-foreground h-4 w-4" />
                       </TooltipTrigger>
                       <TooltipContent className="max-w-md">
-                        Select a precision level for the date. For example,
-                        selecting "Month" will display the date as "September
-                        2025" instead of "September 5th 2025". Selecting"Year"
-                        would only show the year. Day shows year, month and day.
-                        Use when the full date is not available.
+                        {tf(
+                          "editGear.fields.datePrecisionHelp",
+                          'Select a precision level for the date. For example, selecting "Month" will display the date as "September 2025" instead of "September 5, 2025". Selecting "Year" will only show the year. Use "Day" when the full date is known.',
+                        )}
                       </TooltipContent>
                     </Tooltip>
                   </div>
@@ -509,25 +547,30 @@ function CoreFieldsComponent({
                       className="data-[state=on]:bg-accent hover:bg-accent/50"
                       value="YEAR"
                     >
-                      Year
+                      {tf("editGear.fields.datePrecisionYear", "Year")}
                     </ToggleGroupItem>
                     <ToggleGroupItem
                       className="data-[state=on]:bg-accent hover:bg-accent/50"
                       value="MONTH"
                     >
-                      Month
+                      {tf("editGear.fields.datePrecisionMonth", "Month")}
                     </ToggleGroupItem>
                     <ToggleGroupItem
                       className="data-[state=on]:bg-accent hover:bg-accent/50"
                       value="DAY"
                     >
-                      Day
+                      {tf("editGear.fields.datePrecisionDay", "Day")}
                     </ToggleGroupItem>
                   </ToggleGroup>
                 </div>
 
                   <DateInput
-                    label="Release Date"
+                    label={getSpecFieldLabel(
+                      t,
+                      "core",
+                      "releaseDate",
+                      "Release Date",
+                    )}
                     value={formattedReleaseDate}
                     onChange={handleReleaseDateChange}
                     granularity={
@@ -545,7 +588,7 @@ function CoreFieldsComponent({
           {showWhenMissing(initialSpecs?.msrpNowUsdCents) && (
             <CurrencyInput
               id="msrpNow"
-              label="MSRP now (USD)"
+              label={tf("editGear.fields.msrpNow", "MSRP now (USD)")}
               value={formattedMsrpNow}
               onChange={handleMsrpNowChange}
               placeholder="0.00"
@@ -556,7 +599,7 @@ function CoreFieldsComponent({
           {showWhenMissing(initialSpecs?.msrpAtLaunchUsdCents) && (
             <CurrencyInput
               id="msrpAtLaunch"
-              label="MSRP at launch (USD)"
+              label={tf("editGear.fields.msrpAtLaunch", "MSRP at launch (USD)")}
               value={formattedMsrpAtLaunch}
               onChange={handleMsrpAtLaunchChange}
               placeholder="0.00"
@@ -567,7 +610,7 @@ function CoreFieldsComponent({
           {showWhenMissing(initialSpecs?.mpbMaxPriceUsdCents) && (
             <CurrencyInput
               id="mpbMaxPrice"
-              label="MPB max price (USD)"
+              label={tf("editGear.fields.mpbMaxPrice", "MPB max price (USD)")}
               value={formattedMpbMaxPrice}
               onChange={handleMpbMaxPriceChange}
               placeholder="0.00"
@@ -578,14 +621,24 @@ function CoreFieldsComponent({
           {showWhenMissing(initialSpecs?.weightGrams) && (
             <NumberInput
               id="weight"
-              label={gearType === "CAMERA" ? "Weight with battery" : "Weight"}
+              label={
+                gearType === "CAMERA"
+                  ? tf(
+                      "editGear.fields.weightWithBattery",
+                      "Weight with battery",
+                    )
+                  : getSpecFieldLabel(t, "core", "weightGrams", "Weight")
+              }
               value={formattedWeight}
               onChange={(v) => onChange("weightGrams", v)}
               min={0}
               placeholder={
                 gearType === "CAMERA"
-                  ? "Enter weight w/ battery"
-                  : "Enter weight"
+                  ? tf(
+                      "editGear.fields.weightWithBatteryPlaceholder",
+                      "Enter weight w/ battery",
+                    )
+                  : tf("editGear.fields.weightPlaceholder", "Enter weight")
               }
               suffix="g"
               prefix="≈"
@@ -606,11 +659,14 @@ function CoreFieldsComponent({
                 value={formattedMountValue}
                 onChange={handleMountChange}
                 mode={gearType === "CAMERA" ? "single" : "multiple"}
-                label="Mount"
+                label={getSpecFieldLabel(t, "core", "mounts", "Mount")}
                 placeholder={
                   gearType === "CAMERA"
-                    ? "Select mount"
-                    : "Select compatible mounts"
+                    ? tf("editGear.fields.mountPlaceholder", "Select mount")
+                    : tf(
+                        "editGear.fields.mountsPlaceholder",
+                        "Select compatible mounts",
+                      )
                 }
               />
             );
@@ -623,7 +679,7 @@ function CoreFieldsComponent({
                 showWhenMissing(initialSpecs?.heightMm)) && (
                 <NumberInput
                   id="diameterMm"
-                  label="Diameter"
+                  label={tf("editGear.fields.diameter", "Diameter")}
                   value={formattedLensDiameter}
                   onChange={handleLensDiameterChange}
                   min={0}
@@ -635,7 +691,7 @@ function CoreFieldsComponent({
               {showWhenMissing(initialSpecs?.depthMm) && (
                 <NumberInput
                   id="lengthMm"
-                  label="Length"
+                  label={tf("editGear.fields.length", "Length")}
                   value={formattedLensLength}
                   onChange={handleLensLengthChange}
                   min={0}
@@ -650,7 +706,7 @@ function CoreFieldsComponent({
               {showWhenMissing(initialSpecs?.widthMm) && (
                 <NumberInput
                   id="widthMm"
-                  label="Width"
+                  label={tf("editGear.fields.width", "Width")}
                   value={formattedWidth}
                   onChange={(v) => onChange("widthMm", v)}
                   min={0}
@@ -662,7 +718,7 @@ function CoreFieldsComponent({
               {showWhenMissing(initialSpecs?.heightMm) && (
                 <NumberInput
                   id="heightMm"
-                  label="Height"
+                  label={tf("editGear.fields.height", "Height")}
                   value={formattedHeight}
                   onChange={(v) => onChange("heightMm", v)}
                   min={0}
@@ -674,7 +730,7 @@ function CoreFieldsComponent({
               {showWhenMissing(initialSpecs?.depthMm) && (
                 <NumberInput
                   id="depthMm"
-                  label="Depth"
+                  label={tf("editGear.fields.depth", "Depth")}
                   value={formattedDepth}
                   onChange={(v) => onChange("depthMm", v)}
                   min={0}
@@ -689,15 +745,17 @@ function CoreFieldsComponent({
           {showWhenMissing(initialSpecs?.genres) && (
             <div className="space-y-2 md:col-span-2">
               <div className="flex items-center gap-2">
-                <Label>Best use cases</Label>
+                <Label>{tf("editGear.fields.bestUseCases", "Best use cases")}</Label>
                 <Tooltip>
                   <TooltipTrigger>
                     <InfoIcon className="h-4 w-4" />
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>
-                      Select use cases where this gear excels, not just the ones
-                      where it can satisfy a need.
+                      {tf(
+                        "editGear.fields.bestUseCasesHelp",
+                        "Select use cases where this gear excels, not just the ones where it can satisfy a need.",
+                      )}
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -713,15 +771,23 @@ function CoreFieldsComponent({
                   !isAdmin ? "pointer-events-none opacity-60" : undefined
                 }
                 maxSelected={3}
-                placeholder="Select top 3 use cases..."
-                searchPlaceholder="Search genres..."
+                placeholder={tf(
+                  "editGear.fields.bestUseCasesPlaceholder",
+                  "Select top 3 use cases...",
+                )}
+                searchPlaceholder={tf(
+                  "editGear.fields.bestUseCasesSearch",
+                  "Search genres...",
+                )}
               />
             </div>
           )}
 
           {showWhenMissing(initialSpecs?.linkManufacturer) && (
             <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="linkManufacturer">Manufacturer Link</Label>
+              <Label htmlFor="linkManufacturer">
+                {tf("editGear.fields.manufacturerLink", "Manufacturer Link")}
+              </Label>
               <input
                 id="linkManufacturer"
                 type="url"
@@ -730,7 +796,10 @@ function CoreFieldsComponent({
                   handleLinkChange("linkManufacturer", e.target.value)
                 }
                 className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                placeholder="https://manufacturer.example.com/product"
+                placeholder={tf(
+                  "editGear.fields.manufacturerLinkPlaceholder",
+                  "https://manufacturer.example.com/product",
+                )}
               />
             </div>
           )}
@@ -738,21 +807,27 @@ function CoreFieldsComponent({
           {showWhenMissing(initialSpecs?.linkMpb) && (
             <div className="space-y-2 md:col-span-2">
               <div className="flex items-center gap-2">
-                <Label htmlFor="linkMpb">MPB Link</Label>
+                <Label htmlFor="linkMpb">
+                  {tf("editGear.fields.mpbLink", "MPB Link")}
+                </Label>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
                       type="button"
                       className="text-muted-foreground hover:text-foreground inline-flex"
-                      aria-label="How MPB link saving works"
+                      aria-label={tf(
+                        "editGear.fields.mpbLinkHelpLabel",
+                        "How MPB link saving works",
+                      )}
                     >
                       <InfoIcon className="size-4" />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent className="max-w-xs text-xs">
-                    We trim the fit from the pasted MPB link, store the base
-                    path, then rebuild the fit-specific destination later based
-                    on the mount the user wants to visit.
+                    {tf(
+                      "editGear.fields.mpbLinkHelp",
+                      "We trim the fit from the pasted MPB link, store the base path, then rebuild the fit-specific destination later based on the mount the user wants to visit.",
+                    )}
                   </TooltipContent>
                 </Tooltip>
               </div>
@@ -763,13 +838,16 @@ function CoreFieldsComponent({
                 onChange={(e) => handleMpbLinkInputChange(e.target.value)}
                 onBlur={(e) => handleMpbLinkBlur(e.target.value)}
                 className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                placeholder="paste the mpb link with any fit"
+                placeholder={tf(
+                  "editGear.fields.mpbLinkPlaceholder",
+                  "paste the mpb link with any fit",
+                )}
               />
               {mpbError ? (
                 <p className="mt-1 text-xs text-red-600">{mpbError}</p>
               ) : mpbNoticeUrl ? (
                 <p className="text-muted-foreground mt-1 text-xs">
-                  This link will be saved as{" "}
+                  {tf("editGear.fields.linkSavedAsPrefix", "This link will be saved as")}{" "}
                   <a
                     href={mpbNoticeUrl}
                     target="_blank"
@@ -783,7 +861,10 @@ function CoreFieldsComponent({
               ) : (
                 mpbPreviewUrl && (
                   <p className="text-muted-foreground mt-1 text-xs">
-                    This link will be saved as{" "}
+                    {tf(
+                      "editGear.fields.linkSavedAsPrefix",
+                      "This link will be saved as",
+                    )}{" "}
                     <a
                       href={mpbPreviewUrl}
                       target="_blank"
@@ -801,7 +882,9 @@ function CoreFieldsComponent({
 
           {showWhenMissing(initialSpecs?.linkBh) && (
             <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="linkBh">B&H Link</Label>
+              <Label htmlFor="linkBh">
+                {tf("editGear.fields.bhLink", "B&H Link")}
+              </Label>
               <input
                 id="linkBh"
                 type="url"
@@ -809,14 +892,19 @@ function CoreFieldsComponent({
                 onChange={(e) => handleLinkChange("linkBh", e.target.value)}
                 onBlur={(e) => handleBhLinkBlur(e.target.value)}
                 className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                placeholder="https://www.bhphotovideo.com/..."
+                placeholder={tf(
+                  "editGear.fields.bhLinkPlaceholder",
+                  "https://www.bhphotovideo.com/...",
+                )}
               />
             </div>
           )}
 
           {showWhenMissing(initialSpecs?.linkAmazon) && (
             <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="linkAmazon">Amazon Link</Label>
+              <Label htmlFor="linkAmazon">
+                {tf("editGear.fields.amazonLink", "Amazon Link")}
+              </Label>
               <input
                 id="linkAmazon"
                 type="url"
@@ -824,11 +912,17 @@ function CoreFieldsComponent({
                 onChange={(e) => handleAmazonLinkInputChange(e.target.value)}
                 onBlur={(e) => handleAmazonLinkBlur(e.target.value)}
                 className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                placeholder="https://amazon.com/..."
+                placeholder={tf(
+                  "editGear.fields.amazonLinkPlaceholder",
+                  "https://amazon.com/...",
+                )}
               />
               {amazonNoticeUrl ? (
                 <p className="text-muted-foreground mt-1 text-xs">
-                  This link was automatically changed to{" "}
+                  {tf(
+                    "editGear.fields.amazonLinkChangedPrefix",
+                    "This link was automatically changed to",
+                  )}{" "}
                   <a
                     href={amazonNoticeUrl}
                     target="_blank"
@@ -838,12 +932,15 @@ function CoreFieldsComponent({
                     {toDisplayAmazonProductLink(amazonNoticeUrl) ||
                       amazonNoticeUrl}
                   </a>
-                  . Please verify it still works.
+                  . {tf("editGear.fields.verifyLinkStillWorks", "Please verify it still works.")}
                 </p>
               ) : (
                 amazonPreviewUrl && (
                   <p className="text-muted-foreground mt-1 text-xs">
-                    This link will be saved as{" "}
+                    {tf(
+                      "editGear.fields.linkSavedAsPrefix",
+                      "This link will be saved as",
+                    )}{" "}
                     <a
                       href={amazonPreviewUrl}
                       target="_blank"
@@ -852,7 +949,7 @@ function CoreFieldsComponent({
                     >
                       {amazonPreviewUrl}
                     </a>
-                    . Please verify it will work.
+                    . {tf("editGear.fields.verifyLinkWillWork", "Please verify it will work.")}
                   </p>
                 )
               )}

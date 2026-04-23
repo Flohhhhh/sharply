@@ -5,11 +5,7 @@ import { describe, expect, it } from "vitest";
 const messagesDirectory = path.join(process.cwd(), "messages");
 
 type GearDetailMessages = {
-  gearDetail?: {
-    review?: string;
-    reviews?: string;
-    alternatives?: string;
-  };
+  gearDetail?: Record<string, unknown>;
 };
 
 function readGearDetailMessages(localeFileName: string) {
@@ -21,10 +17,51 @@ function readGearDetailMessages(localeFileName: string) {
   return localeMessages.gearDetail ?? {};
 }
 
+function getPathValue(
+  source: Record<string, unknown>,
+  path: string,
+): unknown {
+  return path.split(".").reduce<unknown>((current, segment) => {
+    if (!current || typeof current !== "object") return undefined;
+    return (current as Record<string, unknown>)[segment];
+  }, source);
+}
+
 describe("gear detail heading translations", () => {
-  it("keeps review and alternatives labels localized for every shipped locale", () => {
+  it("keeps gear detail edit and review labels localized for every shipped locale", () => {
     const enMessages = readGearDetailMessages("en.json");
     const enKeys = Object.keys(enMessages);
+    const requiredPaths = [
+      "review",
+      "reviews",
+      "alternatives",
+      "reviewsRequestFailed",
+      "reviewRateLimitSuffix",
+      "editGear.title",
+      "editGear.unsaved",
+      "editGear.showMissingOnly",
+      "editGear.autoSubmit",
+      "editGear.submitSuggestionTitle",
+      "editGear.confirmSubmit",
+      "editGear.sections.cameraSpecifications",
+      "editGear.sections.lensSpecifications",
+      "editGear.sections.analogCameraSpecifications",
+      "editGear.options.cameraShutterTypes.mechanical",
+      "editGear.options.viewfinderType.optical",
+      "editGear.cardSlots.manage",
+      "editGear.videoModes.title",
+      "editGear.fields.aperture",
+      "editGear.fields.sensorStackingType",
+      "editGear.fields.isoMinNative",
+      "editGear.fields.selectAvailableShutterTypesFirst",
+      "editGear.fields.mountMaterialPlaceholder",
+      "editGear.fields.analogBatteryPlaceholder",
+      "editGear.fields.bestUseCases",
+      "editGear.notes.add",
+      "reviewGenres.weddings",
+      "reviewGenres.video",
+      "reviewGenres.architecture",
+    ];
 
     // English canonical values
     expect(enMessages).toMatchObject({
@@ -32,6 +69,8 @@ describe("gear detail heading translations", () => {
       reviews: "Reviews",
       alternatives: "Alternatives",
     });
+    expect(getPathValue(enMessages, "editGear.title")).toBe("Edit Gear Item");
+    expect(getPathValue(enMessages, "reviewGenres.weddings")).toBe("Weddings");
 
     const locales = ["de.json", "es.json", "fr.json", "it.json", "ja.json", "ms.json"];
 
@@ -46,6 +85,9 @@ describe("gear detail heading translations", () => {
       expect(messages.review).toBeTruthy();
       expect(messages.reviews).toBeTruthy();
       expect(messages.alternatives).toBeTruthy();
+      for (const path of requiredPaths) {
+        expect(getPathValue(messages, path)).toBeTruthy();
+      }
     }
 
     // Flag ms.json inconsistency for manual review: "review" is "Semakan" but "reviews" is "Ulasan"

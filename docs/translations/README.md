@@ -58,6 +58,8 @@ The spec registry uses the same mixed-source approach:
 - English source copy stays inline in [src/lib/specs/registry.tsx](../../src/lib/specs/registry.tsx)
 - Localized copies live in `/messages/*` under `gearDetail.specRegistry.*`
 - Registry consumers pass a `gearDetail` translator into the registry builders
+- Edit-surface shell copy lives in `/messages/*` under `gearDetail.editGear.*`
+- Review/use-case genre labels live in `/messages/*` under `gearDetail.reviewGenres.*` and are resolved by genre slug, not by the generated English `GENRES[].name`
 
 The registry resolves copy like this:
 
@@ -84,6 +86,8 @@ Notes:
 
 - The `core.mounts` field has both singular and plural keys because the registry owns that label logic.
 - English still needs matching keys in `messages/en.json` so translation parity stays green.
+- For spec and edit surfaces, keep canonical English registry labels inline in code for discoverability and `CTRL+F`, then resolve localized UI via translation keys on top of those English fallbacks.
+- Generated catalog labels such as review genre names are not a valid source for non-English UI. Use slug-keyed message entries and fall back to English only as a safety net.
 
 ## Adding a new Hall Of Fame item
 

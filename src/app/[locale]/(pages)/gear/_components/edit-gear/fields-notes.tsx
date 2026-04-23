@@ -1,11 +1,16 @@
 "use client";
 
 import { Plus } from "lucide-react";
+import { useTranslations, type TranslationValues } from "next-intl";
 import { useMemo } from "react";
 import { Button } from "~/components/ui/button";
 import { Card,CardContent,CardTitle } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
 import { Textarea } from "~/components/ui/textarea";
+import {
+  getSpecSectionTitle,
+  translateGearDetailWithFallback,
+} from "~/lib/i18n/gear-detail";
 
 interface NotesFieldsProps {
   notes: string[];
@@ -14,6 +19,9 @@ interface NotesFieldsProps {
 }
 
 export function NotesFields({ notes, onChange, sectionId }: NotesFieldsProps) {
+  const t = useTranslations("gearDetail");
+  const tf = (key: string, fallback: string, values?: TranslationValues) =>
+    translateGearDetailWithFallback(t, key, fallback, values);
   const values = useMemo(() => (Array.isArray(notes) ? notes : []), [notes]);
 
   return (
@@ -21,12 +29,16 @@ export function NotesFields({ notes, onChange, sectionId }: NotesFieldsProps) {
       id={sectionId}
       className="gap-2 rounded-md border-0 bg-transparent px-0 py-0"
     >
-      <CardTitle className="text-2xl">Notes</CardTitle>
+      <CardTitle className="text-2xl">
+        {getSpecSectionTitle(t, "notes", "Notes")}
+      </CardTitle>
       <CardContent className="space-y-4 px-0">
         <div className="space-y-2">
           <Label className="text-muted-foreground text-sm">
-            Add unstructured notes about this gear. Keep each thought as a
-            separate note.
+            {tf(
+              "editGear.notes.description",
+              "Add unstructured notes about this gear. Keep each thought as a separate note.",
+            )}
           </Label>
         </div>
 
@@ -40,7 +52,9 @@ export function NotesFields({ notes, onChange, sectionId }: NotesFieldsProps) {
                   next[idx] = e.target.value;
                   onChange(next);
                 }}
-                placeholder={`Note #${idx + 1}`}
+                placeholder={tf("editGear.notes.notePlaceholder", "Note #{index}", {
+                  index: idx + 1,
+                })}
                 rows={3}
               />
               <div className="flex justify-end">
@@ -52,7 +66,7 @@ export function NotesFields({ notes, onChange, sectionId }: NotesFieldsProps) {
                     onChange(next);
                   }}
                 >
-                  Remove
+                  {tf("editGear.notes.remove", "Remove")}
                 </Button>
               </div>
             </div>
@@ -66,7 +80,7 @@ export function NotesFields({ notes, onChange, sectionId }: NotesFieldsProps) {
               onClick={() => onChange([...values, ""])}
               icon={<Plus className="size-4" />}
             >
-              Add note
+              {tf("editGear.notes.add", "Add note")}
             </Button>
           </div>
         </div>

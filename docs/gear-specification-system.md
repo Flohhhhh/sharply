@@ -250,6 +250,9 @@ The registry exports `buildGearSpecsSections(item: GearItem, options?)` which re
 - Examples: field labels under `gearDetail.specRegistry.sections.<sectionId>.fields.<fieldKey>.label` and shared values under `gearDetail.specRegistry.shared.*`.
 - The registry will fall back to inline English when a locale key is missing; `registry.tsx` provides these inline English labels as the fallback source.
 - Shared simple values emitted directly by the registry, such as `Yes` and `No`, live under `gearDetail.specRegistry.shared.*`.
+- Edit-form chrome and workflow copy that is not owned by the registry lives under `gearDetail.editGear.*`.
+- Keep canonical English labels inline in registry/edit code where they are the source of truth, then resolve localized UI labels via translation keys. This keeps the English terminology searchable in code while preventing those labels from leaking into non-English UI.
+- Review/use-case genre labels on gear surfaces are resolved by slug under `gearDetail.reviewGenres.*`; do not render the generated English `GENRES[].name` directly in non-English UI.
 
 **Max Continuous FPS display**
 
