@@ -10,9 +10,8 @@ This project keeps root-level configuration files to the minimum required by fra
 - `package.json` (project manifest and script entry points)
 - `.env.example` (documented environment variable template)
 - `vercel.json` (Vercel project configuration at root)
-- `.github/workflows/lint.yml` (GitHub Actions lint check for pull requests and merge queue runs targeting `development`/`main`)
-- `.github/workflows/unit-tests.yml` (GitHub Actions unit test check for pull requests and merge queue runs targeting `development`/`main`)
-- `.github/workflows/vercel-deploy-checks.yml` (Vercel production deployment checks triggered by `repository_dispatch` after Vercel reports a deployment is ready, keeping deploy gating separate from PR validation)
+- `.github/workflows/lint.yml` (GitHub Actions lint check for pushes to `development`/`main`, plus pull requests and merge queue runs targeting those branches)
+- `.github/workflows/unit-tests.yml` (GitHub Actions unit test check for pushes to `development`/`main`, plus pull requests and merge queue runs targeting those branches)
 
 ## Consolidated config directory
 
