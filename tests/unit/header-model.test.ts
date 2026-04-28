@@ -38,6 +38,19 @@ describe("header model", () => {
     expect(buildHeaderInitialSearch(requestHeaders)).toBe("?q=sony");
   });
 
+  it("falls back to defaults when routing headers are absent", () => {
+    const requestHeaders = new Headers();
+
+    expect(buildHeaderInitialState(requestHeaders)).toEqual({
+      normalizedPathname: "/",
+      routeState: {
+        initialMode: "expanded",
+        scrollResponsive: true,
+      },
+    });
+    expect(buildHeaderInitialSearch(requestHeaders)).toBe("");
+  });
+
   it("chooses the expected initial mode for home, search, and normal pages", () => {
     expect(buildHeaderRouteState("/")).toEqual({
       initialMode: "expanded",
