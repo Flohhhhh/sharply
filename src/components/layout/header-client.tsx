@@ -119,7 +119,6 @@ export default function HeaderClient({
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => setNotifications(data))
       .catch(() => setNotifications(null));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSessionPending, user?.id]); // re-fetch only when user identity changes
 
   const { hasScrolled } = useScrollState(routeState.scrollResponsive ? 290 : Infinity);
