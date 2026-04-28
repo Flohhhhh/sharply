@@ -1,5 +1,7 @@
 import { describe,expect,it } from "vitest";
 import {
+  buildHeaderInitialSearch,
+  buildHeaderInitialState,
   buildHeaderRouteState,
   buildHeaderViewModel,
   type HeaderLabels,
@@ -20,6 +22,35 @@ const labels: HeaderLabels = {
 };
 
 describe("header model", () => {
+  it("reads initial route state from middleware headers", () => {
+    const requestHeaders = new Headers({
+      "x-sharply-normalized-pathname": "/search",
+      "x-sharply-normalized-search": "?q=sony",
+    });
+
+    expect(buildHeaderInitialState(requestHeaders)).toEqual({
+      normalizedPathname: "/search",
+      routeState: {
+        initialMode: "expanded",
+        scrollResponsive: false,
+      },
+    });
+    expect(buildHeaderInitialSearch(requestHeaders)).toBe("?q=sony");
+  });
+
+  it("falls back to defaults when routing headers are absent", () => {
+    const requestHeaders = new Headers();
+
+    expect(buildHeaderInitialState(requestHeaders)).toEqual({
+      normalizedPathname: "/",
+      routeState: {
+        initialMode: "expanded",
+        scrollResponsive: true,
+      },
+    });
+    expect(buildHeaderInitialSearch(requestHeaders)).toBe("");
+  });
+
   it("chooses the expected initial mode for home, search, and normal pages", () => {
     expect(buildHeaderRouteState("/")).toEqual({
       initialMode: "expanded",
