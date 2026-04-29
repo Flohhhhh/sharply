@@ -1,0 +1,8 @@
+[   13562ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/gear/nikon-z6-iii:0
+[   13666ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:14537
+[   13954ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[   13954ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /gear/[slug], path: /gear/nikon-z6-iii} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[   13956ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:3000/gear/nikon-z6-iii color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/gear/nikon-z6-iii, sv: 0.1.3, sdkn: @vercel/analytics/next, sdkv: 1.6.1, ts: 1777490356339} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[   14005ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_cf1d9188._.js:5949
+[   15031ms] [LOG] [Fast Refresh] done in 1127ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_cf1d9188._.js:5809
+[   18667ms] [WARNING] The resource https://react-circle-flags.pages.dev/us.svg was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3000/gear/nikon-z6-iii:0

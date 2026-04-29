@@ -20,6 +20,18 @@ export interface ContributorItem {
   count: number;
 }
 
+export function buildCompactContributorStack(contributors: ContributorItem[]) {
+  const topFive = contributors.slice(0, 5);
+
+  return {
+    remaining: contributors.length - topFive.length,
+    topFive: topFive.map((contributor, index) => ({
+      contributor,
+      zIndex: topFive.length - index,
+    })),
+  };
+}
+
 export function GearContributorsClient({
   contributors,
 }: {
@@ -28,8 +40,7 @@ export function GearContributorsClient({
   const t = useTranslations("gearDetail");
   if (!contributors || contributors.length === 0) return null;
 
-  const topFive = contributors.slice(0, 5);
-  const remaining = contributors.length - topFive.length;
+  const { topFive, remaining } = buildCompactContributorStack(contributors);
 
   const getInitials = (name: string | null) => {
     const initials = (name || "U")
@@ -53,14 +64,20 @@ export function GearContributorsClient({
         >
           <button className="hover:bg-muted/50 flex w-full items-center justify-center gap-3 rounded-md border px-3 py-2 text-left">
             <ul className="flex items-center -space-x-2">
-              {topFive.map((u) => (
-                <li key={u.id} className="min-w-0">
+              {topFive.map(({ contributor, zIndex }) => (
+                <li
+                  key={contributor.id}
+                  className="min-w-0"
+                  style={{ zIndex }}
+                >
                   <Avatar className="ring-background size-8 ring-2">
                     <AvatarImage
-                      src={u.image ?? undefined}
-                      alt={u.name ?? t("userAlt")}
+                      src={contributor.image ?? undefined}
+                      alt={contributor.name ?? t("userAlt")}
                     />
-                    <AvatarFallback>{getInitials(u.name)}</AvatarFallback>
+                    <AvatarFallback>
+                      {getInitials(contributor.name)}
+                    </AvatarFallback>
                   </Avatar>
                 </li>
               ))}

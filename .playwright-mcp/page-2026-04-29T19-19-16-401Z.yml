@@ -1,0 +1,19 @@
+- generic [active] [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e7] [cursor=pointer]:
+    - img [ref=e8]
+  - generic [ref=e11]:
+    - img [ref=e13]
+    - paragraph [ref=e17]: "404"
+    - heading "Oops, we missed the shot." [level=1] [ref=e18]
+    - paragraph [ref=e19]: The page you’re looking for flew the coop. Try searching for gear, or head back home.
+    - generic [ref=e20]:
+      - link "Go to Home" [ref=e21] [cursor=pointer]:
+        - /url: /
+        - img
+        - text: Go to Home
+      - link "Search gear" [ref=e22] [cursor=pointer]:
+        - /url: /search
+        - img
+        - text: Search gear
+  - region "Notifications alt+T"
+  - alert [ref=e23]
