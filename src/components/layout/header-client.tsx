@@ -5,7 +5,7 @@ import { track } from "@vercel/analytics";
 import { LayoutDashboard, LogIn, Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Logo from "public/logo";
 import type {
   HeaderNotificationsData,
@@ -17,7 +17,7 @@ import {
   buildHeaderRouteState,
 } from "~/components/layout/header-model";
 import type { Locale } from "~/i18n/config";
-import { localizePathname } from "~/i18n/routing";
+import { localizePathname, stripLocalePrefix } from "~/i18n/routing";
 import { useSession } from "~/lib/auth/auth-client";
 import { GlobalSearchBar } from "../search/global-search-bar";
 import { ThemeSwitcher } from "../theme-switcher";
@@ -28,6 +28,27 @@ import { NavSheetDesktop } from "./nav-sheet-desktop";
 import { NotificationsDropdown } from "./notifications/notifications-dropdown";
 import { UserMenu } from "./user-menu";
 
+const EMPTY_NOTIFICATIONS = {
+  notifications: [],
+  archived: [],
+  unreadCount: 0,
+};
+
+function HeaderSearchParamsSync({
+  onNormalizedSearchChange,
+}: {
+  onNormalizedSearchChange: (value: string) => void;
+}) {
+  const searchParams = useSearchParams();
+  const normalizedSearch = searchParams.toString() ? `?${searchParams.toString()}` : "";
+
+  useEffect(() => {
+    onNormalizedSearchChange(normalizedSearch);
+  }, [normalizedSearch, onNormalizedSearchChange]);
+
+  return null;
+}
+
 export default function HeaderClient({
   model,
   locale,
@@ -35,23 +56,27 @@ export default function HeaderClient({
   model: HeaderViewModel;
   locale: Locale;
 }) {
-  // Strip the locale prefix from the raw pathname to get the normalized path
-  // (e.g. "/en/gear/sony-a6700" with locale "en" → "/gear/sony-a6700").
   const rawPathname = usePathname();
-  const normalizedPathname =
-    rawPathname === `/${locale}` ? "/" :
-    rawPathname.startsWith(`/${locale}/`) ? rawPathname.slice(locale.length + 1) :
-    rawPathname;
-  const searchParams = useSearchParams();
-  const normalizedSearch = searchParams.toString() ? `?${searchParams.toString()}` : "";
-
-  const routeState = buildHeaderRouteState(normalizedPathname);
-  const callbackUrl = buildHeaderCallbackUrl(locale, normalizedPathname, normalizedSearch);
+  const normalizedPathname = rawPathname
+    ? stripLocalePrefix(rawPathname).pathname
+    : model.normalizedPathname;
+  const routeState = rawPathname
+    ? buildHeaderRouteState(normalizedPathname)
+    : {
+        initialMode: model.initialMode,
+        scrollResponsive: model.scrollResponsive,
+      };
+  const [normalizedSearch, setNormalizedSearch] = useState(model.normalizedSearch);
+  const callbackUrl = buildHeaderCallbackUrl(
+    locale,
+    normalizedPathname,
+    normalizedSearch,
+  );
   const signInBaseHref = localizePathname("/auth/signin", locale);
   const signInHref = `${signInBaseHref}?callbackUrl=${encodeURIComponent(callbackUrl)}`;
 
   // Client-side auth state — avoids headers() call on the server during ISR.
-  const { data: session } = useSession();
+  const { data: session, isPending: isSessionPending } = useSession();
   const user: HeaderUser = session?.user
     ? {
         id: session.user.id,
@@ -79,8 +104,13 @@ export default function HeaderClient({
   })();
 
   // Client-side notifications — fetched once user is known.
-  const [notifications, setNotifications] = useState<HeaderNotificationsData>(null);
+  const [notifications, setNotifications] = useState<HeaderNotificationsData>(
+    model.notifications,
+  );
   useEffect(() => {
+    if (isSessionPending) {
+      return;
+    }
     if (!user) {
       setNotifications(null);
       return;
@@ -89,8 +119,7 @@ export default function HeaderClient({
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => setNotifications(data))
       .catch(() => setNotifications(null));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]); // re-fetch only when user identity changes
+  }, [isSessionPending, user?.id]); // re-fetch only when user identity changes
 
   const { hasScrolled } = useScrollState(routeState.scrollResponsive ? 290 : Infinity);
   const shouldShowHeaderSearch =
@@ -98,11 +127,7 @@ export default function HeaderClient({
   const sheetTopClass = shouldShowHeaderSearch
     ? "top-16 h-[calc(100vh-4rem)]"
     : "top-24 h-[calc(100vh-6rem)]";
-  const notificationsData = notifications ?? {
-    notifications: [],
-    archived: [],
-    unreadCount: 0,
-  };
+  const notificationsData = notifications ?? EMPTY_NOTIFICATIONS;
 
   const handleHeaderSignInClick = () => {
     void track("auth_signin_press", {
@@ -119,6 +144,11 @@ export default function HeaderClient({
           : "bg-background h-20"
       }`}
     >
+      <Suspense fallback={null}>
+        <HeaderSearchParamsSync
+          onNormalizedSearchChange={setNormalizedSearch}
+        />
+      </Suspense>
       <div className="mx-auto h-full px-4 sm:px-8">
         <div
           className={`h-full items-center ${
@@ -191,9 +221,14 @@ export default function HeaderClient({
               </Button>
             </NavMenuMobile>
 
-            <div className="hidden items-center gap-3 md:flex">
+            <div className="hidden min-w-[8.5rem] items-center justify-end gap-3 md:flex">
               <ThemeSwitcher />
-              {user ? (
+              {isSessionPending ? (
+                <div
+                  aria-hidden="true"
+                  className="bg-muted h-9 w-24 rounded-md"
+                />
+              ) : user ? (
                 <>
                   <NotificationsDropdown data={notificationsData} />
                   {isAdminOrEditor && (
