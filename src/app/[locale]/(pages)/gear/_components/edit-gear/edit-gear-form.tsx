@@ -25,7 +25,11 @@ import {
   getSpecSectionTitle,
   translateGearDetailWithFallback,
 } from "~/lib/i18n/gear-detail";
-import { formatCardSlotDetails,formatPrice } from "~/lib/mapping";
+import {
+  formatCardSlotDetails,
+  formatPrice,
+  normalizePriceCents,
+} from "~/lib/mapping";
 import { getMountLongNamesById } from "~/lib/mapping/mounts-map";
 import { sensorNameFromSlug } from "~/lib/mapping/sensor-map";
 import { humanizeKey } from "~/lib/utils";
@@ -1284,7 +1288,7 @@ function EditGearForm({
                             k === "msrpAtLaunchUsdCents" ||
                             k === "mpbMaxPriceUsdCents"
                           )
-                            display = formatPrice(v as number);
+                            display = formatPrice(normalizePriceCents(v));
                           if (
                             (k === "releaseDate" || k === "announcedDate") &&
                             (typeof v === "string" || v instanceof Date)

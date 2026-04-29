@@ -12,6 +12,7 @@ export { getMountDisplayName,getMountLongName } from "./mounts-map";
 export {
   formatPrice,
   getItemDisplayPrice,
+  normalizePriceCents,
   PRICE_FALLBACK_TEXT
 } from "./price-map";
 

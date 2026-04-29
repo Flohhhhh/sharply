@@ -21,19 +21,32 @@ type FormatPriceOptions = {
 
 type PriceableGear = Pick<GearItem, "msrpNowUsdCents" | "mpbMaxPriceUsdCents">;
 
+export function normalizePriceCents(
+  priceCents: unknown,
+): number | null {
+  if (typeof priceCents === "number" && Number.isFinite(priceCents)) {
+    return priceCents;
+  }
+  if (typeof priceCents === "string" && priceCents.trim() !== "") {
+    const parsed = Number(priceCents);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
 /**
  * Format price from cents to readable currency string
  * @param priceCents - Price in cents (e.g., 324900 for $3,249.00)
  * @returns Formatted price string (e.g., "$3,249.00")
  */
 export function formatPrice(
-  priceCents: number | null | undefined,
+  priceCents: number | string | null | undefined,
   { style = "long", padWholeAmounts = false }: FormatPriceOptions = {},
 ): string {
-  if (priceCents === null || priceCents === undefined)
-    return PRICE_FALLBACK_TEXT;
+  const normalizedPriceCents = normalizePriceCents(priceCents);
+  if (normalizedPriceCents === null) return PRICE_FALLBACK_TEXT;
 
-  const dollars = priceCents / 100;
+  const dollars = normalizedPriceCents / 100;
   const formatted = dollars.toLocaleString("en-US", {
     minimumFractionDigits: padWholeAmounts ? 2 : 0,
     maximumFractionDigits: 2,
