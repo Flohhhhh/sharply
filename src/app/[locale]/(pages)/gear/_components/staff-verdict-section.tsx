@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { cn } from "~/lib/utils";
 import { hasStaffVerdictContent } from "./gear-section-nav";
 import { ManageStaffVerdictModal } from "./manage-staff-verdict-modal";
 
@@ -28,6 +29,10 @@ export async function StaffVerdictSection({
   const alternatives = Array.isArray(verdict.alternatives)
     ? (verdict.alternatives as string[])
     : null;
+  const hasPros = Array.isArray(pros) && pros.length > 0;
+  const hasCons = Array.isArray(cons) && cons.length > 0;
+  const hasWhoFor = Boolean(verdict.whoFor);
+  const hasNotFor = Boolean(verdict.notFor);
 
   return (
     <section id="staff-verdict" className="scroll-mt-24 space-y-4">
@@ -51,11 +56,15 @@ export async function StaffVerdictSection({
           </div>
         )}
 
-        {(Array.isArray(pros) && pros.length > 0) ||
-        (Array.isArray(cons) && cons.length > 0) ? (
+        {hasPros || hasCons ? (
           <div className="mt-4 grid gap-4 md:grid-cols-2">
-            {Array.isArray(pros) && pros.length > 0 && (
-              <div className="rounded border border-green-400/50 bg-green-400/5 p-3">
+            {hasPros && (
+              <div
+                className={cn(
+                  "rounded border border-green-400/50 bg-green-400/5 p-3",
+                  !hasCons && "md:col-span-2",
+                )}
+              >
                 <div className="text-lg font-semibold">{t("theGood")}</div>
                 <ul className="my-3 list-disc space-y-2 pl-5 text-sm text-green-600 dark:text-green-400">
                   {pros.map((p: string, i: number) => (
@@ -64,8 +73,13 @@ export async function StaffVerdictSection({
                 </ul>
               </div>
             )}
-            {Array.isArray(cons) && cons.length > 0 && (
-              <div className="rounded border border-red-400/50 bg-red-400/5 p-3">
+            {hasCons && (
+              <div
+                className={cn(
+                  "rounded border border-red-400/50 bg-red-400/5 p-3",
+                  !hasPros && "md:col-span-2",
+                )}
+              >
                 <div className="text-lg font-semibold">{t("theBad")}</div>
                 <ul className="my-3 list-disc space-y-2 pl-5 text-sm text-red-600 dark:text-red-400">
                   {cons.map((c: string, i: number) => (
@@ -77,16 +91,26 @@ export async function StaffVerdictSection({
           </div>
         ) : null}
 
-        {(verdict.whoFor || verdict.notFor) && (
+        {(hasWhoFor || hasNotFor) && (
           <div className="mt-4 grid gap-4 md:grid-cols-2">
-            {verdict.whoFor && (
-              <div className="border-border rounded border p-3">
+            {hasWhoFor && (
+              <div
+                className={cn(
+                  "border-border rounded border p-3",
+                  !hasNotFor && "md:col-span-2",
+                )}
+              >
                 <div className="text-lg font-semibold">{t("whoItsFor")}</div>
                 <p className="mt-4 text-sm leading-relaxed">{verdict.whoFor}</p>
               </div>
             )}
-            {verdict.notFor && (
-              <div className="border-border rounded border p-3">
+            {hasNotFor && (
+              <div
+                className={cn(
+                  "border-border rounded border p-3",
+                  !hasWhoFor && "md:col-span-2",
+                )}
+              >
                 <div className="text-lg font-semibold">
                   {t("whoItsNotFor")}
                 </div>
