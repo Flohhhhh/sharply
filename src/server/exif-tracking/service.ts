@@ -210,7 +210,7 @@ async function resolveMatchedGear(params: {
     return null;
   }
 
-  const data = await import("./data");
+  const data = await import("~/server/exif-tracking/data");
 
   if (makeNormalized) {
     const exactMatches = await data.findGearExifAliasMatches({
@@ -322,7 +322,7 @@ export async function buildTrackingPreviewFromParseResult(params: {
     };
   }
 
-  const data = await import("./data");
+  const data = await import("~/server/exif-tracking/data");
   const trackedPreview = await data.findTrackedCameraPreviewByUserAndSerialHash({
     userId: params.userId,
     serialHash,
@@ -376,7 +376,7 @@ export async function saveExifTrackingCandidate(params: {
   token: string;
 }) {
   const payload = await verifySignedExifTrackingToken(params.token);
-  const data = await import("./data");
+  const data = await import("~/server/exif-tracking/data");
   const existingTrackedCamera = await data.findTrackedCameraPreviewByUserAndSerialHash({
     userId: params.userId,
     serialHash: payload.serialHash,
@@ -443,6 +443,12 @@ export async function saveExifTrackingCandidate(params: {
     mechanicalSourceTag: payload.mechanicalSourceTag,
   });
 
+  await data.syncTrackedCameraCollectionBinding({
+    trackedCameraId: trackedCamera.trackedCamera.id,
+    userId: params.userId,
+    gearId: payload.matchedGearId,
+  });
+
   return {
     ok: true,
     message: "Camera history saved.",
@@ -461,7 +467,7 @@ export async function fetchTrackedCameraHistory(params: {
   userId: string;
   trackedCameraId: string;
 }): Promise<ExifTrackingHistoryResponse> {
-  const data = await import("./data");
+  const data = await import("~/server/exif-tracking/data");
   const history = await data.fetchTrackedCameraHistoryById({
     userId: params.userId,
     trackedCameraId: params.trackedCameraId,
@@ -478,7 +484,7 @@ export async function deleteExifTrackedReading(params: {
   userId: string;
   readingId: string;
 }): Promise<ExifTrackingDeleteResponse> {
-  const data = await import("./data");
+  const data = await import("~/server/exif-tracking/data");
   const deleted = await data.deleteTrackedExifReading({
     userId: params.userId,
     readingId: params.readingId,

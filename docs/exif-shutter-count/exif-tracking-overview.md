@@ -39,12 +39,13 @@ This keeps EXIF-derived identity, private tracking, and catalog ownership concer
 - issues a short-lived signed save token instead of trusting raw client payloads
 - stores tracked cameras and shutter readings for the signed-in user
 - returns private history for display in the EXIF viewer
+- can bind tracked cameras to owned collection items when the matched gear is in `ownerships`
 
 ### What EXIF tracking does not do
 
 - create public serial history pages
 - imply verified ownership
-- auto-add the camera to `ownerships`
+- create or remove `ownerships` rows automatically
 - rely on `camera_specs` for EXIF alias matching
 - persist every parse automatically for first-time users
 
@@ -82,6 +83,8 @@ Key fields:
 
 - `userId`
 - `gearId`
+- `collectionUserId`
+- `collectionGearId`
 - `normalizedBrand`
 - `makeRaw`
 - `modelRaw`
@@ -94,6 +97,8 @@ Behavior:
 - uniqueness is per `(userId, serialHash)`
 - the same physical camera tracked by two users remains isolated
 - `gearId` is optional because mapping can fail while tracking still succeeds
+- `collectionUserId + collectionGearId` optionally bind a tracked serial to an owned collection item
+- collection binding is separate from `gearId` so model matching survives collection removal
 
 Privacy:
 
@@ -248,6 +253,7 @@ If the user is signed in, eligible, and the serial has not been tracked yet:
 - the client posts the parse-issued token to `/api/exif-tracking/save`
 - the server upserts `exif_tracked_cameras`
 - the server inserts the first reading if it is new
+- if the matched gear is already in `ownerships`, the tracked camera is also bound to that owned collection item
 
 ### 3. Later matching uploads
 
@@ -255,9 +261,18 @@ Once the same signed-in user already tracks that camera:
 
 - new uploads of that serial can auto-save during the unified results-loading flow
 - auto-save only runs when the reading is new
+- each newly saved reading re-checks collection ownership and re-binds when the matched gear is owned
 - the results view is committed after parse, optional auto-save, and initial history loading are all complete
 
 This keeps the user on one consistent loading path rather than showing results first and mutating the tracking state afterward.
+
+### 3a. Collection ownership changes
+
+Collection membership can also change independently of EXIF uploads.
+
+- adding a matched digital camera to `ownerships` binds any already-tracked serials for that same `gearId`
+- removing that owned item clears the collection binding without deleting EXIF tracking history
+- a later EXIF save can bind the tracked serial again once the owned item exists
 
 ### 4. Reading deletion
 
@@ -389,6 +404,7 @@ Today, the system supports:
 - explicit first save for a new tracked camera
 - automatic saving of later unique readings for that tracked camera
 - private reading history
+- private binding of tracked serials onto owned collection items
 - mini and full historical charts
 - reading deletion
 - best-effort gear matching

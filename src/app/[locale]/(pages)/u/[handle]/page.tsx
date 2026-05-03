@@ -161,6 +161,7 @@ export default async function UserProfilePage({
                   columnKeys={
                     [
                       "name",
+                      "shutterCount",
                       "displayPrice",
                       "frontFilterThreadSizeMm",
                       "weightGrams",

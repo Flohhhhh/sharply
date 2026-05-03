@@ -43,6 +43,12 @@ export type GearRawSample = typeof gearRawSamples.$inferSelect;
 export type GearAlias = typeof gearAliases.$inferSelect;
 export type GearRegion = (typeof gearRegionEnum.enumValues)[number];
 
+export type GearItemShutterTracking = {
+  trackedCameraId: string;
+  latestPrimaryCountValue: number;
+  latestCaptureAt: string | null;
+};
+
 // Unified gear item types
 export type GearItem = Gear & {
   brands?: Brand | null;
@@ -57,6 +63,7 @@ export type GearItem = Gear & {
   cameraCardSlots?: CameraCardSlot[] | null;
   videoModes?: (CameraVideoMode | VideoModeNormalized)[] | null;
   rawSamples?: RawSample[] | null;
+  shutterTracking?: GearItemShutterTracking | null;
 };
 
 export type PopularityEventType =

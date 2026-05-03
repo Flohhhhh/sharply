@@ -175,6 +175,8 @@ For signed-in users, that tracking block now supports two save modes:
 - an explicit first save when the serial has never been tracked before
 - automatic saving for later uploads once that serial is already tracked and the new reading is unique
 
+When a tracked serial maps to a gear item that the same user also owns, the profile collection table can show the latest bound shutter count for that collection row. The EXIF UI still remains the place where tracking starts and where users inspect history.
+
 ### 4. Client-side completion
 
 The client does not render the response as soon as the network call resolves. Instead it waits for both conditions:
@@ -259,6 +261,8 @@ The current behavior is:
 - later matching uploads for an already-tracked serial auto-save in the results view
 - auto-save is limited to one attempt per parse-issued save token
 - deleting the currently displayed reading suppresses auto-save for that same parse result so the deleted row is not recreated immediately
+- tracked cameras can bind to the matching owned collection item when the user owns that mapped digital camera model
+- later unique readings keep that binding current so the owned collection row always reflects the latest saved count
 
 ## Current parse contract
 

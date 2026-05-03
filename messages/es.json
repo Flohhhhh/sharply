@@ -1046,6 +1046,8 @@
     "close": "Cerrar",
     "badges": "Insignias",
     "collection": "Colección",
+    "collectionTableShutterCount": "Disparos",
+    "collectionTableCheckCount": "Comprobar contador",
     "wishlist": "Lista de deseos",
     "reviews": "Reviews",
     "itemsCount": "{count} {count, plural, one {elemento} other {elementos}}",

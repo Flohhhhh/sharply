@@ -6,6 +6,7 @@ import {
   boolean,
   date as dateCol,
   decimal,
+  foreignKey,
   index,
   integer,
   jsonb,
@@ -1774,6 +1775,8 @@ export const exifTrackedCameras = appSchema.table(
     gearId: d
       .varchar("gear_id", { length: 36 })
       .references(() => gear.id, { onDelete: "set null" }),
+    collectionUserId: d.varchar("collection_user_id", { length: 255 }),
+    collectionGearId: d.varchar("collection_gear_id", { length: 36 }),
     normalizedBrand: d.varchar("normalized_brand", { length: 32 }),
     makeRaw: d.varchar("make_raw", { length: 255 }),
     modelRaw: d.varchar("model_raw", { length: 255 }),
@@ -1789,7 +1792,16 @@ export const exifTrackedCameras = appSchema.table(
       t.serialHash,
     ),
     index("exif_tracked_cameras_gear_idx").on(t.gearId),
+    index("exif_tracked_cameras_collection_ownership_idx").on(
+      t.collectionUserId,
+      t.collectionGearId,
+    ),
     index("exif_tracked_cameras_user_idx").on(t.userId),
+    foreignKey({
+      columns: [t.collectionUserId, t.collectionGearId],
+      foreignColumns: [ownerships.userId, ownerships.gearId],
+      name: "exif_tracked_cameras_collection_ownership_fk",
+    }).onDelete("set null"),
   ],
 );
 
@@ -1837,9 +1849,28 @@ export const exifTrackedCamerasRelations = relations(
       fields: [exifTrackedCameras.gearId],
       references: [gear.id],
     }),
+    collectionOwnership: one(ownerships, {
+      fields: [
+        exifTrackedCameras.collectionUserId,
+        exifTrackedCameras.collectionGearId,
+      ],
+      references: [ownerships.userId, ownerships.gearId],
+    }),
     readings: many(exifShutterReadings),
   }),
 );
+
+export const ownershipsRelations = relations(ownerships, ({ many, one }) => ({
+  user: one(users, {
+    fields: [ownerships.userId],
+    references: [users.id],
+  }),
+  gear: one(gear, {
+    fields: [ownerships.gearId],
+    references: [gear.id],
+  }),
+  trackedCameras: many(exifTrackedCameras),
+}));
 
 export const exifShutterReadingsRelations = relations(
   exifShutterReadings,

@@ -293,6 +293,11 @@ export async function toggleOwnership(slug: string, action: "add" | "remove") {
     const res = await addOwnership(gearId, userId);
     if (res.alreadyExists)
       return { ok: false, reason: "already_owned" } as const;
+    const exifTrackingData = await import("~/server/exif-tracking/data");
+    await exifTrackingData.bindTrackedCamerasToOwnedGear({
+      userId,
+      gearId,
+    });
     try {
       await track("ownership_toggle", { slug, action: "add" });
     } catch (eventErr) {
@@ -305,6 +310,11 @@ export async function toggleOwnership(slug: string, action: "add" | "remove") {
     return { ok: true, action: "added" as const, awarded: evalRes.awarded };
   }
   await removeOwnership(gearId, userId);
+  const exifTrackingData = await import("~/server/exif-tracking/data");
+  await exifTrackingData.unbindTrackedCamerasFromOwnedGear({
+    userId,
+    gearId,
+  });
   try {
     await track("ownership_toggle", { slug, action: "remove" });
   } catch (eventErr) {

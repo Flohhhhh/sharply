@@ -1,7 +1,8 @@
 "use client";
 
-import { TrashIcon } from "lucide-react";
-import { useTranslations } from "next-intl";
+import Link from "next/link";
+import { ExternalLink,TrashIcon } from "lucide-react";
+import { useTranslations,type TranslationValues } from "next-intl";
 import { useEffect,useMemo,useState } from "react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
@@ -32,6 +33,7 @@ import type { GearItem,GearRegion } from "~/types/gear";
 export const COLLECTION_TABLE_COLUMNS_DEFAULT = [
   "name",
   "displayPrice",
+  "shutterCount",
   "frontFilterThreadSizeMm",
   "weightGrams",
 ] as const;
@@ -53,7 +55,26 @@ type CollectionTableModalProps = {
   description?: string;
 };
 
-function buildColumnConfigMap(region: GearRegion) {
+type UserProfileTranslator = (key: string, values?: TranslationValues) => string;
+
+export function isDigitalCamera(item: GearItem) {
+  return item.gearType === "CAMERA" && Boolean(item.cameraSpecs);
+}
+
+export function getShutterCountDisplayValue(item: GearItem) {
+  if (!isDigitalCamera(item)) {
+    return null;
+  }
+
+  const latestPrimaryCountValue = item.shutterTracking?.latestPrimaryCountValue;
+  if (latestPrimaryCountValue == null) {
+    return null;
+  }
+
+  return latestPrimaryCountValue.toLocaleString();
+}
+
+function buildColumnConfigMap(region: GearRegion, t: UserProfileTranslator) {
   return {
     name: {
       key: "name",
@@ -83,6 +104,30 @@ function buildColumnConfigMap(region: GearRegion) {
             padWholeAmounts: true,
           }) ?? PRICE_FALLBACK_TEXT;
         return <span className="font-medium">{displayPrice}</span>;
+      },
+    },
+    shutterCount: {
+      key: "shutterCount",
+      label: t("collectionTableShutterCount"),
+      render: (item: GearItem) => {
+        const formattedCount = getShutterCountDisplayValue(item);
+
+        if (!isDigitalCamera(item)) {
+          return <span className="text-muted-foreground">—</span>;
+        }
+
+        if (formattedCount) {
+          return <span className="font-medium">{formattedCount}</span>;
+        }
+
+        return (
+          <Button variant="link" size="sm" className="h-auto px-0 font-normal" asChild>
+            <Link href="/exif-viewer">
+              {t("collectionTableCheckCount")}
+              <ExternalLink className="ml-1 h-3.5 w-3.5" />
+            </Link>
+          </Button>
+        );
       },
     },
     frontFilterThreadSizeMm: {
@@ -223,7 +268,7 @@ export function CollectionTableModal(props: CollectionTableModalProps) {
 
   const [isOpen, setIsOpen] = useState(false);
   const { region } = useCountry();
-  const columnConfigMap = useMemo(() => buildColumnConfigMap(region), [region]);
+  const columnConfigMap = useMemo(() => buildColumnConfigMap(region, t), [region, t]);
   const [itemsState, setItemsState] = useState<GearItem[]>(items);
   const [removingGearItemIds, setRemovingGearItemIds] = useState<Set<string>>(
     new Set(),

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and,count,desc,eq,max,min,or,sql } from "drizzle-orm";
+import { and,count,desc,eq,inArray,max,min,or,sql } from "drizzle-orm";
 import type {
   ExifTrackedCameraHistoryEntry,
   ExifTrackedCameraSummary,
@@ -14,6 +14,7 @@ import {
   exifTrackedCameras,
   gear,
   gearExifAliases,
+  ownerships,
 } from "~/server/db/schema";
 
 type SelectExecutor = Pick<typeof db, "select">;
@@ -34,6 +35,13 @@ type DeleteTrackedExifReadingResult = {
   deletedReadingId: string;
   trackedCamera: ExifTrackedCameraSummary | null;
   matchedGear: ExifViewerMatchedGear | null;
+};
+
+export type BoundCollectionShutterSummary = {
+  gearId: string;
+  trackedCameraId: string;
+  latestPrimaryCountValue: number;
+  latestCaptureAt: string | null;
 };
 
 function buildMatchedGear(
@@ -269,6 +277,143 @@ export async function hasExifReadingByDedupeKey(dedupeKey: string) {
     .limit(1);
 
   return Boolean(row[0]);
+}
+
+export async function bindTrackedCamerasToOwnedGear(params: {
+  userId: string;
+  gearId: string;
+}) {
+  return db
+    .update(exifTrackedCameras)
+    .set({
+      collectionUserId: params.userId,
+      collectionGearId: params.gearId,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(exifTrackedCameras.userId, params.userId),
+        eq(exifTrackedCameras.gearId, params.gearId),
+      ),
+    );
+}
+
+export async function unbindTrackedCamerasFromOwnedGear(params: {
+  userId: string;
+  gearId: string;
+}) {
+  return db
+    .update(exifTrackedCameras)
+    .set({
+      collectionUserId: null,
+      collectionGearId: null,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(exifTrackedCameras.collectionUserId, params.userId),
+        eq(exifTrackedCameras.collectionGearId, params.gearId),
+      ),
+    );
+}
+
+export async function syncTrackedCameraCollectionBinding(params: {
+  trackedCameraId: string;
+  userId: string;
+  gearId: string | null;
+}) {
+  if (!params.gearId) {
+    const cleared = await db
+      .update(exifTrackedCameras)
+      .set({
+        collectionUserId: null,
+        collectionGearId: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(exifTrackedCameras.id, params.trackedCameraId))
+      .returning({ id: exifTrackedCameras.id });
+
+    return Boolean(cleared[0]);
+  }
+
+  const ownershipRow = await db
+    .select({
+      userId: ownerships.userId,
+      gearId: ownerships.gearId,
+    })
+    .from(ownerships)
+    .where(
+      and(
+        eq(ownerships.userId, params.userId),
+        eq(ownerships.gearId, params.gearId),
+      ),
+    )
+    .limit(1);
+
+  const hasOwnership = Boolean(ownershipRow[0]);
+
+  const updated = await db
+    .update(exifTrackedCameras)
+    .set({
+      collectionUserId: hasOwnership ? params.userId : null,
+      collectionGearId: hasOwnership ? params.gearId : null,
+      updatedAt: new Date(),
+    })
+    .where(eq(exifTrackedCameras.id, params.trackedCameraId))
+    .returning({ id: exifTrackedCameras.id });
+
+  return Boolean(updated[0]);
+}
+
+export async function fetchBoundCollectionShutterSummaries(params: {
+  userId: string;
+  gearIds: string[];
+}): Promise<Map<string, BoundCollectionShutterSummary>> {
+  if (params.gearIds.length === 0) {
+    return new Map();
+  }
+
+  const rows = await db
+    .select({
+      gearId: exifTrackedCameras.collectionGearId,
+      trackedCameraId: exifTrackedCameras.id,
+      latestPrimaryCountValue: exifShutterReadings.primaryCountValue,
+      latestCaptureAt: exifShutterReadings.captureAt,
+      readingCreatedAt: exifShutterReadings.createdAt,
+    })
+    .from(exifTrackedCameras)
+    .innerJoin(
+      exifShutterReadings,
+      eq(exifShutterReadings.trackedCameraId, exifTrackedCameras.id),
+    )
+    .where(
+      and(
+        eq(exifTrackedCameras.collectionUserId, params.userId),
+        inArray(exifTrackedCameras.collectionGearId, params.gearIds),
+      ),
+    )
+    .orderBy(
+      exifTrackedCameras.collectionGearId,
+      sql`${exifShutterReadings.captureAt} DESC NULLS LAST`,
+      desc(exifShutterReadings.createdAt),
+    );
+
+  const summaries = new Map<string, BoundCollectionShutterSummary>();
+  for (const row of rows) {
+    const gearId = row.gearId;
+    if (!gearId || summaries.has(gearId)) {
+      continue;
+    }
+
+    summaries.set(gearId, {
+      gearId,
+      trackedCameraId: row.trackedCameraId,
+      latestPrimaryCountValue: row.latestPrimaryCountValue,
+      latestCaptureAt: row.latestCaptureAt?.toISOString() ?? null,
+    });
+  }
+
+  return summaries;
 }
 
 export async function upsertTrackedExifCamera(params: {

@@ -7,6 +7,7 @@ import { auth,type AuthUser } from "~/auth";
 import { getSessionOrThrow } from "~/server/auth";
 import { db } from "~/server/db";
 import {
+  cameraSpecs,
   brands,
   fixedLensSpecs,
   gear,
@@ -19,6 +20,7 @@ import {
   users,
   wishlists,
 } from "~/server/db/schema";
+import { fetchBoundCollectionShutterSummaries } from "~/server/exif-tracking/data";
 import { fetchGearAliasesByGearIds } from "~/server/gear/data";
 import type { GearItem,Mount } from "~/types/gear";
 import { createNotificationData } from "../notifications/data";
@@ -108,11 +110,13 @@ async function fetchGearItemsForUserList(
   relationshipTable: UserGearRelationshipTable,
   userId: string,
 ): Promise<GearItem[]> {
+  const isOwnershipList = relationshipTable === ownerships;
   const rows = await db
     .select()
     .from(relationshipTable)
     .innerJoin(gear, eq(relationshipTable.gearId, gear.id))
     .leftJoin(brands, eq(gear.brandId, brands.id))
+    .leftJoin(cameraSpecs, eq(cameraSpecs.gearId, gear.id))
     .leftJoin(lensSpecs, eq(lensSpecs.gearId, gear.id))
     .leftJoin(fixedLensSpecs, eq(fixedLensSpecs.gearId, gear.id))
     .where(eq(relationshipTable.userId, userId));
@@ -158,6 +162,7 @@ async function fetchGearItemsForUserList(
       brands: row.brands ?? null,
       mounts: gearMountsForItem[0] ?? null,
       mountIds: mountIdentifierList,
+      cameraSpecs: row.camera_specs ?? null,
       lensSpecs: row.lens_specs ?? null,
       fixedLensSpecs: row.fixed_lens_specs ?? null,
     };
@@ -166,10 +171,17 @@ async function fetchGearItemsForUserList(
   const aliasesById = await fetchGearAliasesByGearIds(
     items.map((item) => item.id),
   );
+  const shutterTrackingByGearId = isOwnershipList
+    ? await fetchBoundCollectionShutterSummaries({
+        userId,
+        gearIds: items.map((item) => item.id),
+      })
+    : new Map();
 
   return items.map((item) => ({
     ...item,
     regionalAliases: aliasesById.get(item.id) ?? [],
+    shutterTracking: shutterTrackingByGearId.get(item.id) ?? null,
   }));
 }
 
