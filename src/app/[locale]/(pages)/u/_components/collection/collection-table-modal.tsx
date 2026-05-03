@@ -29,6 +29,7 @@ import { getBrandNameById } from "~/lib/mapping/brand-map";
 import { getSpecFieldDefByKey } from "~/lib/specs/registry";
 import { actionToggleOwnership } from "~/server/gear/actions";
 import type { GearItem,GearRegion } from "~/types/gear";
+import { getShutterCountDisplayValue,isDigitalCamera } from "./shutter-tracking";
 
 export const COLLECTION_TABLE_COLUMNS_DEFAULT = [
   "name",
@@ -56,23 +57,6 @@ type CollectionTableModalProps = {
 };
 
 type UserProfileTranslator = (key: string, values?: TranslationValues) => string;
-
-export function isDigitalCamera(item: GearItem) {
-  return item.gearType === "CAMERA" && Boolean(item.cameraSpecs);
-}
-
-export function getShutterCountDisplayValue(item: GearItem) {
-  if (!isDigitalCamera(item)) {
-    return null;
-  }
-
-  const latestPrimaryCountValue = item.shutterTracking?.latestPrimaryCountValue;
-  if (latestPrimaryCountValue == null) {
-    return null;
-  }
-
-  return latestPrimaryCountValue.toLocaleString();
-}
 
 function buildColumnConfigMap(region: GearRegion, t: UserProfileTranslator) {
   return {

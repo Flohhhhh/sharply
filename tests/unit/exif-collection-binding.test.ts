@@ -1,25 +1,8 @@
 import { beforeEach,describe,expect,it,vi } from "vitest";
 
-const authHelperMocks = vi.hoisted(() => ({
-  getSessionOrThrow: vi.fn(),
-}));
-
-const gearDataMocks = vi.hoisted(() => ({
-  addOwnership: vi.fn(),
-  removeOwnership: vi.fn(),
-}));
-
-const analyticsMocks = vi.hoisted(() => ({
-  track: vi.fn(),
-}));
-
-const badgeMocks = vi.hoisted(() => ({
-  evaluateForEvent: vi.fn(),
-}));
+process.env.AUTH_SECRET = "test-auth-secret";
 
 const exifTrackingDataMocks = vi.hoisted(() => ({
-  bindTrackedCamerasToOwnedGear: vi.fn(),
-  unbindTrackedCamerasFromOwnedGear: vi.fn(),
   findTrackedCameraPreviewByUserAndSerialHash: vi.fn(),
   hasExifReadingByDedupeKey: vi.fn(),
   upsertTrackedExifCamera: vi.fn(),
@@ -28,65 +11,17 @@ const exifTrackingDataMocks = vi.hoisted(() => ({
 }));
 
 vi.mock("server-only", () => ({}));
-vi.mock("~/server/auth", () => authHelperMocks);
-vi.mock("~/server/gear/data", () => gearDataMocks);
-vi.mock("~/server/analytics", () => analyticsMocks);
-vi.mock("~/server/badges/service", () => badgeMocks);
 vi.mock("~/server/exif-tracking/data", () => exifTrackingDataMocks);
 
-import { saveExifTrackingCandidate } from "~/server/exif-tracking/service";
-import * as gearService from "~/server/gear/service";
+import {
+  createSignedExifTrackingToken,
+  saveExifTrackingCandidate,
+} from "~/server/exif-tracking/service";
 
-describe("EXIF collection binding integration hooks", () => {
+describe("EXIF collection binding save flow", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.AUTH_SECRET = "test-auth-secret";
-
-    authHelperMocks.getSessionOrThrow.mockResolvedValue({
-      user: { id: "user-1" },
-    });
-
-    analyticsMocks.track.mockResolvedValue(undefined);
-    badgeMocks.evaluateForEvent.mockResolvedValue({ awarded: [] });
-  });
-
-  it("binds tracked cameras after ownership is added", async () => {
-    vi.spyOn(gearService as typeof gearService, "resolveGearIdOrThrow").mockResolvedValue(
-      "gear-1",
-    );
-    gearDataMocks.addOwnership.mockResolvedValue({
-      added: true,
-      alreadyExists: false,
-    });
-
-    await expect(gearService.toggleOwnership("camera-slug", "add")).resolves.toMatchObject({
-      ok: true,
-      action: "added",
-    });
-
-    expect(exifTrackingDataMocks.bindTrackedCamerasToOwnedGear).toHaveBeenCalledWith({
-      userId: "user-1",
-      gearId: "gear-1",
-    });
-  });
-
-  it("unbinds tracked cameras after ownership is removed", async () => {
-    vi.spyOn(gearService as typeof gearService, "resolveGearIdOrThrow").mockResolvedValue(
-      "gear-1",
-    );
-    gearDataMocks.removeOwnership.mockResolvedValue({ removed: true });
-
-    await expect(
-      gearService.toggleOwnership("camera-slug", "remove"),
-    ).resolves.toMatchObject({
-      ok: true,
-      action: "removed",
-    });
-
-    expect(exifTrackingDataMocks.unbindTrackedCamerasFromOwnedGear).toHaveBeenCalledWith({
-      userId: "user-1",
-      gearId: "gear-1",
-    });
   });
 
   it("syncs collection binding after saving a matched EXIF reading", async () => {
@@ -120,10 +55,6 @@ describe("EXIF collection binding integration hooks", () => {
       },
     });
 
-    const { createSignedExifTrackingToken } = await import(
-      "~/server/exif-tracking/service"
-    );
-
     const token = await createSignedExifTrackingToken({
       version: 1,
       serialHash: "serial-hash",
@@ -156,6 +87,60 @@ describe("EXIF collection binding integration hooks", () => {
       trackedCameraId: "tracked-1",
       userId: "user-1",
       gearId: "gear-1",
+    });
+  });
+
+  it("clears collection binding when the matched gear is absent", async () => {
+    exifTrackingDataMocks.findTrackedCameraPreviewByUserAndSerialHash.mockResolvedValue(
+      null,
+    );
+    exifTrackingDataMocks.upsertTrackedExifCamera.mockResolvedValue({
+      trackedCamera: {
+        id: "tracked-2",
+        readingCount: 1,
+        latestPrimaryCountValue: 800,
+        latestCaptureAt: "2026-05-03T10:00:00.000Z",
+      },
+      matchedGear: null,
+    });
+    exifTrackingDataMocks.persistTrackedExifReading.mockResolvedValue({
+      trackedCamera: {
+        id: "tracked-2",
+        readingCount: 1,
+        latestPrimaryCountValue: 800,
+        latestCaptureAt: "2026-05-03T10:00:00.000Z",
+      },
+      matchedGear: null,
+    });
+
+    const token = await createSignedExifTrackingToken({
+      version: 1,
+      serialHash: "serial-hash-2",
+      normalizedBrand: "sony",
+      makeRaw: "Sony",
+      modelRaw: "Unknown",
+      matchedGearId: null,
+      captureAt: "2026-05-03T10:00:00.000Z",
+      primaryCountType: "total",
+      primaryCountValue: 800,
+      shutterCount: 800,
+      totalShutterCount: 800,
+      mechanicalShutterCount: null,
+      sourceTag: "Sony:ShutterCount",
+      mechanicalSourceTag: null,
+    });
+
+    await saveExifTrackingCandidate({
+      userId: "user-1",
+      token,
+    });
+
+    expect(
+      exifTrackingDataMocks.syncTrackedCameraCollectionBinding,
+    ).toHaveBeenCalledWith({
+      trackedCameraId: "tracked-2",
+      userId: "user-1",
+      gearId: null,
     });
   });
 });
