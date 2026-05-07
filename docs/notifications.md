@@ -40,8 +40,8 @@ Returned shape to UI (`NotificationView`):
 ## UI
 
 - Header dropdown (popover) trigger near the theme switcher, only when signed in.
-- `src/components/layout/header.tsx` reads the normalized pathname/search from middleware-populated request headers so the correct compact vs expanded shell is present in the initial HTML.
-- Notifications are fetched client-side after session hydration in `src/components/layout/header-client.tsx`, while the shell layout and sign-in callback URL are still server-seeded from the middleware headers.
+- `src/components/layout/header.tsx` builds only the locale-scoped header shell on the server so shared ISR routes stay static-safe.
+- `src/components/layout/header-client.tsx` derives compact vs expanded route state from `usePathname()`, keeps query-string callback enrichment isolated behind a `Suspense` boundary for `useSearchParams()`, and fetches notifications client-side after session hydration.
 - Client UI: `src/components/layout/notifications/notifications-dropdown.tsx`
   - Shows unread count badge on the bell button.
   - Active list (not archived) with actions: mark read, archive.

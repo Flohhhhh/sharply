@@ -1,10 +1,6 @@
 import type { UserRole } from "~/auth";
 import type { Locale } from "~/i18n/config";
-import {
-  localizePathname,
-  normalizedPathHeaderName,
-  normalizedSearchHeaderName,
-} from "~/i18n/routing";
+import { localizePathname } from "~/i18n/routing";
 import type { NotificationView } from "~/server/notifications/service";
 
 export type HeaderIconKey =
@@ -91,23 +87,13 @@ export type HeaderLabels = {
 };
 
 export type HeaderViewModel = {
-  normalizedPathname: string;
-  normalizedSearch: string;
-  initialMode: HeaderMode;
-  scrollResponsive: boolean;
-  callbackUrl: string;
   homeHref: string;
   adminHref: string;
   accountHref: string;
-  signInHref: string;
-  profileHref: string | null;
-  isAdminOrEditor: boolean;
   labels: HeaderLabels;
   navItems: HeaderNavItem[];
   footerItems: HeaderFooterItems;
   moreLabel: string;
-  user: HeaderUser;
-  notifications: HeaderNotificationsData;
 };
 
 export function buildHeaderRouteState(normalizedPathname: string): {
@@ -143,30 +129,6 @@ export function buildHeaderCallbackUrl(
   normalizedSearch: string,
 ) {
   return `${localizePathname(normalizedPathname, locale)}${normalizedSearch}`;
-}
-
-export function buildHeaderInitialState(requestHeaders: Headers) {
-  const headerPathname = requestHeaders.get(normalizedPathHeaderName)?.trim();
-  const normalizedPathname = !headerPathname
-    ? "/"
-    : headerPathname.startsWith("/")
-      ? headerPathname
-      : `/${headerPathname}`;
-
-  return {
-    normalizedPathname,
-    routeState: buildHeaderRouteState(normalizedPathname),
-  };
-}
-
-export function buildHeaderInitialSearch(requestHeaders: Headers) {
-  const headerSearch = requestHeaders.get(normalizedSearchHeaderName)?.trim();
-
-  if (!headerSearch) {
-    return "";
-  }
-
-  return headerSearch.startsWith("?") ? headerSearch : `?${headerSearch}`;
 }
 
 function localizeHeaderNavItems(
@@ -206,61 +168,24 @@ function localizeHeaderFooterItems(
 
 export function buildHeaderViewModel({
   locale,
-  normalizedPathname,
-  normalizedSearch = "",
   navItems,
   footerItems,
   labels,
   moreLabel,
-  user,
-  notifications,
 }: {
   locale: Locale;
-  normalizedPathname: string;
-  normalizedSearch?: string;
   navItems: HeaderNavItemSource[];
   footerItems: HeaderFooterItemsSource;
   labels: HeaderLabels;
   moreLabel: string;
-  user: HeaderUser;
-  notifications: HeaderNotificationsData;
 }): HeaderViewModel {
-  const { initialMode, scrollResponsive } =
-    buildHeaderRouteState(normalizedPathname);
-  const callbackUrl = buildHeaderCallbackUrl(
-    locale,
-    normalizedPathname,
-    normalizedSearch,
-  );
-  const signInBaseHref = localizePathname("/auth/signin", locale);
-  const signInHref = `${signInBaseHref}?callbackUrl=${encodeURIComponent(callbackUrl)}`;
-
-  let profileHref: string | null = null;
-  if (user && ((user.handle && user.handle.trim() !== "") || user.memberNumber != null)) {
-    const profileSlug = user.handle || `user-${user.memberNumber}`;
-    profileHref = localizePathname(`/u/${profileSlug}`, locale);
-  }
-
   return {
-    normalizedPathname,
-    normalizedSearch,
-    initialMode,
-    scrollResponsive,
-    callbackUrl,
     homeHref: localizePathname("/", locale),
     adminHref: localizePathname("/admin", locale),
     accountHref: localizePathname("/profile/settings", locale),
-    signInHref,
-    profileHref,
-    isAdminOrEditor:
-      user?.role === "ADMIN" ||
-      user?.role === "SUPERADMIN" ||
-      user?.role === "EDITOR",
     labels,
     navItems: localizeHeaderNavItems(navItems, locale),
     footerItems: localizeHeaderFooterItems(footerItems, locale),
     moreLabel,
-    user,
-    notifications,
   };
 }
