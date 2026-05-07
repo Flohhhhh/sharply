@@ -226,7 +226,8 @@ export function AnalogCameraFields({
           {shouldShowField(currentSpecs?.shutterSpeedMax, showMissingOnly) && (
             <NumberInput
               id="shutterSpeedMax"
-              label={tf("editGear.fields.shutterSpeedMaxSeconds", "Shutter Speed Max (s)")}
+              label={tf("editGear.fields.shutterSpeedMaxSeconds", "Longest Shutter Speed")}
+              suffix="sec."
               value={currentSpecs?.shutterSpeedMax ?? null}
               onChange={(value) => onChange("shutterSpeedMax", value)}
               min={0}
@@ -239,8 +240,9 @@ export function AnalogCameraFields({
               id="shutterSpeedMin"
               label={tf(
                 "editGear.fields.shutterSpeedMinFraction",
-                "Shutter Speed Min (1/x s)",
+                "Fastest Shutter Speed",
               )}
+              prefix="1/"
               value={currentSpecs?.shutterSpeedMin ?? null}
               onChange={(value) => onChange("shutterSpeedMin", value)}
               min={0}
@@ -251,7 +253,8 @@ export function AnalogCameraFields({
           {shouldShowField(currentSpecs?.flashSyncSpeed, showMissingOnly) && (
             <NumberInput
               id="flashSyncSpeed"
-              label={specLabel("flashSyncSpeed", "Flash Sync Speed (1/x s)")}
+              label={specLabel("flashSyncSpeed", "Flash Sync Speed")}
+              prefix="1/"
               value={currentSpecs?.flashSyncSpeed ?? null}
               onChange={(value) => onChange("flashSyncSpeed", value)}
               min={0}
