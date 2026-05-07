@@ -4,6 +4,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { emailOTP } from "better-auth/plugins";
 import { resend } from "~/lib/email";
+import { resolveAuthOriginConfig } from "~/server/auth/auth-origin-config";
 import { db } from "~/server/db"; // your drizzle instance
 import * as schema from "~/server/db/schema";
 
@@ -12,40 +13,19 @@ const emailOtpEnabled =
   !!resend &&
   !!process.env.RESEND_API_KEY &&
   !!process.env.RESEND_EMAIL_FROM;
+const authOriginConfig = resolveAuthOriginConfig(process.env);
 
-function normalizeTrustedOrigin(origin: string) {
-  const value = origin.trim();
-  if (!value) return null;
-  if (value.includes("*") || value.includes("?")) return value;
-  try {
-    return new URL(value).origin;
-  } catch {
-    return value;
-  }
+if (authOriginConfig.warning) {
+  console.warn(authOriginConfig.warning);
 }
-
-const additionalTrustedOrigins = process.env.AUTH_ADDITIONAL_TRUSTED_ORIGINS
-  ?.split(",")
-  .map(normalizeTrustedOrigin)
-  .filter(Boolean) as string[] | undefined;
-const baseTrustedOrigin = normalizeTrustedOrigin(process.env.NEXT_PUBLIC_BASE_URL!);
-const staticAuthBaseUrl = normalizeTrustedOrigin(
-  process.env.AUTH_BASE_URL ??
-    process.env.BETTER_AUTH_BASE_URL ??
-    process.env.NEXT_PUBLIC_BASE_URL ??
-    "",
-);
-const trustedOrigins = [
-  ...(process.env.NODE_ENV !== "production" ? ["http://localhost:3000"] : []),
-  ...(baseTrustedOrigin ? [baseTrustedOrigin] : []),
-  ...(additionalTrustedOrigins ?? []),
-].filter(Boolean);
 
 export const auth = betterAuth({
   // config
   appName: "Sharply",
-  ...(staticAuthBaseUrl ? { baseURL: staticAuthBaseUrl } : {}),
-  trustedOrigins,
+  ...(authOriginConfig.staticAuthBaseURL
+    ? { baseURL: authOriginConfig.staticAuthBaseURL }
+    : {}),
+  trustedOrigins: authOriginConfig.trustedOrigins,
   secret: process.env.AUTH_SECRET!,
 
   // database adapter
