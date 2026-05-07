@@ -2,7 +2,7 @@
 
 import { track } from "@vercel/analytics";
 import { Pencil } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale,useTranslations } from "next-intl";
 import React,{ useMemo,useState } from "react";
 import { Alert,AlertDescription } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
@@ -17,6 +17,8 @@ import { RadioGroup,RadioGroupItem } from "~/components/ui/radio-group";
 import { TextareaWithCounter } from "~/components/ui/textarea-with-counter";
 import { useSession } from "~/lib/auth/auth-client";
 import { GENRES } from "~/lib/constants";
+import { getReviewGenreLabel } from "~/lib/i18n/gear-detail";
+import { formatRetryDuration } from "./gear-review-form.helpers";
 
 interface GearReviewFormProps {
   gearSlug: string;
@@ -30,6 +32,7 @@ export function GearReviewForm({
   refreshSignal = 0,
 }: GearReviewFormProps) {
   const t = useTranslations("gearDetail");
+  const locale = useLocale();
   const { data, isPending } = useSession();
 
   const session = data?.session;
@@ -128,7 +131,12 @@ export function GearReviewForm({
           const waitSuffix =
             data.code === "REVIEW_RATE_LIMITED" &&
             typeof data.retryAfterMs === "number"
-              ? ` Try again in ${formatRetryDuration(data.retryAfterMs)}.`
+              ? t("reviewRateLimitSuffix", {
+                  duration: formatRetryDuration(
+                    data.retryAfterMs,
+                    t,
+                  ),
+                })
               : "";
           setError(`${data.message}${waitSuffix}`);
           return;
@@ -234,7 +242,13 @@ export function GearReviewForm({
                             }
                           }}
                         />
-                        <span>{(g.name as string) ?? (g.slug as string)}</span>
+                        <span>
+                          {getReviewGenreLabel(t, locale, {
+                            id: g.id as string,
+                            slug: g.slug as string,
+                            name: g.name as string,
+                          })}
+                        </span>
                       </label>
                     );
                   })}
@@ -317,11 +331,4 @@ export function GearReviewForm({
       </div>
     </div>
   );
-}
-
-function formatRetryDuration(retryAfterMs: number) {
-  const totalSeconds = Math.max(1, Math.ceil(retryAfterMs / 1000));
-  if (totalSeconds < 60) return `${totalSeconds}s`;
-  const totalMinutes = Math.ceil(totalSeconds / 60);
-  return `${totalMinutes}m`;
 }

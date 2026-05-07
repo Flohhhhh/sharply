@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useMemo,useRef,useState } from "react";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
+import { translateGearDetailWithFallback } from "~/lib/i18n/gear-detail";
 import { buildEditSidebarSections } from "~/lib/specs/registry";
 import type { CameraSpecs,GearItem } from "~/types/gear";
 import { EditGearForm } from "./edit-gear-form";
@@ -25,6 +26,8 @@ export default function EditGearClient({
   initialShowMissingOnly,
 }: Props) {
   const t = useTranslations("gearDetail");
+  const tf = (key: string, fallback: string) =>
+    translateGearDetailWithFallback(t, key, fallback);
   const [showMissingOnly, setShowMissingOnly] = useState(
     Boolean(initialShowMissingOnly),
   );
@@ -227,17 +230,23 @@ export default function EditGearClient({
     <div className="flex flex-col">
       <div className="border-b p-3">
         <div className="flex items-center justify-between gap-4">
-          <h1 className="text-lg font-semibold">Edit Gear Item</h1>
+          <h1 className="text-lg font-semibold">
+            {tf("editGear.title", "Edit Gear Item")}
+          </h1>
           <div className="flex items-center gap-4">
             <span
               className={`inline-flex items-center gap-1.5 text-xs ${isDirty ? "opacity-100" : "opacity-0"}`}
               aria-live="polite"
             >
               <span className="h-2 w-2 rounded-full bg-amber-500" />
-              <span className="text-muted-foreground">Unsaved</span>
+              <span className="text-muted-foreground">
+                {tf("editGear.unsaved", "Unsaved")}
+              </span>
             </span>
             <div className="flex items-center gap-2">
-              <Label htmlFor="show-missing-only">Show missing only</Label>
+              <Label htmlFor="show-missing-only">
+                {tf("editGear.showMissingOnly", "Show missing only")}
+              </Label>
               <Switch
                 id="show-missing-only"
                 checked={showMissingOnly}

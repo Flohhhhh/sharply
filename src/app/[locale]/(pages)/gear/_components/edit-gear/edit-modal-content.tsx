@@ -8,13 +8,14 @@ import {
   Circle,
   X,
 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations, type TranslationValues } from "next-intl";
 import { useEffect,useMemo,useRef,useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
 import { DialogHeader,DialogTitle } from "~/components/ui/dialog";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
+import { translateGearDetailWithFallback } from "~/lib/i18n/gear-detail";
 import { sensorTypeLabel } from "~/lib/mapping/sensor-map";
 import { buildEditSidebarSections } from "~/lib/specs/registry";
 import type { CameraSpecs,GearItem,GearType } from "~/types/gear";
@@ -44,6 +45,8 @@ export function EditModalContent({
   formId = "edit-gear-form",
 }: EditModalContentProps) {
   const t = useTranslations("gearDetail");
+  const tf = (key: string, fallback: string, values?: TranslationValues) =>
+    translateGearDetailWithFallback(t, key, fallback, values);
   const [showMissingOnly, setShowMissingOnly] = useState(
     Boolean(initialShowMissingOnly),
   );
@@ -292,7 +295,9 @@ export function EditModalContent({
     <div className="flex max-h-[90vh] flex-col">
       <DialogHeader className="border-b p-3">
         <div className="flex items-center justify-between gap-4">
-          <DialogTitle className="">Edit Gear Item</DialogTitle>
+          <DialogTitle className="">
+            {tf("editGear.title", "Edit Gear Item")}
+          </DialogTitle>
           <div className="flex items-center gap-2">
             {/* dirty indicator */}
             <span
@@ -302,7 +307,9 @@ export function EditModalContent({
               <span
                 className={`h-2 w-2 rounded-full ${/* visual dot */ "bg-amber-500"}`}
               />
-              <span className="text-muted-foreground">Unsaved</span>
+              <span className="text-muted-foreground">
+                {tf("editGear.unsaved", "Unsaved")}
+              </span>
             </span>
             <Button
               variant="ghost"
@@ -436,7 +443,7 @@ export function EditModalContent({
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
               <Label htmlFor="edit-modal-show-missing-only">
-                Show missing only
+                {tf("editGear.showMissingOnly", "Show missing only")}
               </Label>
               <Switch
                 id="edit-modal-show-missing-only"
@@ -451,7 +458,9 @@ export function EditModalContent({
                   checked={autoSubmit}
                   onCheckedChange={(checked) => setAutoSubmit(checked === true)}
                 />
-                <Label htmlFor="edit-modal-auto-submit">Auto-Submit</Label>
+                <Label htmlFor="edit-modal-auto-submit">
+                  {tf("editGear.autoSubmit", "Auto-Submit")}
+                </Label>
               </div>
             ) : null}
           </div>
@@ -461,7 +470,7 @@ export function EditModalContent({
               variant="outline"
               onClick={() => onRequestClose()}
             >
-              Cancel
+              {tf("cancel", "Cancel")}
             </Button>
             <Button
               type="submit"
@@ -470,7 +479,7 @@ export function EditModalContent({
               icon={<ArrowRight className="size-4" />}
               iconPosition="right"
             >
-              Continue
+              {tf("editGear.continue", "Continue")}
             </Button>
           </div>
         </div>

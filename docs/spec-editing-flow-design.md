@@ -197,6 +197,7 @@ type ComponentName = keyof typeof SPEC_INPUT_COMPONENTS;
 - **Form Sections**: Logical grouping (Basic Info, Camera Specs, Lens Specs)
 - **Current Values**: Pre-filled forms showing existing data
 - **Change Preview**: Side-by-side comparison of current vs. proposed values
+- **Currency Normalization**: Cent-based price fields are normalized before preview so submitted values render as USD instead of raw cent integers
 - **Validation**: Real-time feedback on data entry
 - **Smart Defaults**: Common values and presets for photography specs
 

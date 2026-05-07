@@ -1,0 +1,724 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e5]:
+        - generic [ref=e8]:
+          - button [ref=e10]:
+            - img
+          - link "Sharply" [ref=e11] [cursor=pointer]:
+            - /url: /
+        - button "Search" [ref=e14]:
+          - img [ref=e15]
+          - generic [ref=e18]: Search Sharply
+          - generic [ref=e20]:
+            - generic [ref=e21]: ⌘
+            - generic [ref=e22]: K
+        - generic [ref=e24]:
+          - button "Toggle theme" [ref=e25]:
+            - img
+            - generic [ref=e26]: Toggle theme
+          - link "Sign In" [ref=e27] [cursor=pointer]:
+            - /url: /auth/signin?callbackUrl=%2Fgear%2Fnikon-z6iii
+            - img
+            - text: Sign In
+    - main [ref=e28]:
+      - generic [ref=e29]:
+        - navigation "breadcrumb" [ref=e31]:
+          - list [ref=e32]:
+            - listitem [ref=e33]:
+              - link "Gear" [ref=e34] [cursor=pointer]:
+                - /url: /browse
+            - listitem [ref=e35]:
+              - img [ref=e36]
+            - listitem [ref=e38]:
+              - link "Nikon" [ref=e39] [cursor=pointer]:
+                - /url: /browse/nikon
+            - listitem [ref=e40]:
+              - img [ref=e41]
+            - listitem [ref=e43]:
+              - link "Z Cameras" [ref=e44] [cursor=pointer]:
+                - /url: /browse/nikon/cameras/z
+            - listitem [ref=e45]:
+              - img [ref=e46]
+            - listitem [ref=e48]:
+              - link "Nikon Z6III" [disabled] [ref=e49]
+        - generic [ref=e50]:
+          - heading "Nikon Z6III" [level=1] [ref=e52]
+          - generic [ref=e53]: $2,199 USD
+        - region [ref=e56]:
+          - generic [ref=e58]:
+            - group [ref=e59]:
+              - img "Nikon Z6III" [ref=e61]
+            - group [ref=e62]:
+              - img "Nikon Z6III - Top View" [ref=e64]
+          - button "Previous slide" [disabled]:
+            - img
+            - generic: Previous slide
+          - button "Next slide" [ref=e65]:
+            - img
+            - generic [ref=e66]: Next slide
+      - generic [ref=e68]:
+        - link "Staff Verdict" [ref=e69] [cursor=pointer]:
+          - /url: "#staff-verdict"
+        - link "Specs" [ref=e70] [cursor=pointer]:
+          - /url: "#specs"
+        - link "Reviews" [ref=e71] [cursor=pointer]:
+          - /url: "#reviews"
+        - link "Alternatives" [ref=e72] [cursor=pointer]:
+          - /url: "#alternatives"
+        - link "Creator Videos" [ref=e73] [cursor=pointer]:
+          - /url: "#creator-videos"
+        - link "Articles" [ref=e74] [cursor=pointer]:
+          - /url: "#related-articles"
+      - generic [ref=e75]:
+        - generic [ref=e76]:
+          - generic [ref=e77]:
+            - heading "Staff Verdict" [level=3] [ref=e79]
+            - generic [ref=e80]:
+              - generic [ref=e81]:
+                - paragraph [ref=e82]: The Nikon Z6 III represents a significant step forward for Nikon's mid-range mirrorless lineup. With its new partially stacked sensor, it finally feels like a competitor in the modern mirrorless-hybird market.
+                - paragraph [ref=e83]: The new sensor design provides excellent readout speeds, enabling high-speed continuous shooting and reducing rolling shutter in video mode. The improved AF system with subject detection makes it much more capable for action photography compared to its predecessor.
+              - generic [ref=e84]:
+                - generic [ref=e85]:
+                  - generic [ref=e86]: The Good
+                  - list [ref=e87]:
+                    - listitem [ref=e88]: Excellent autofocus almost on par with Z9 and Z8
+                    - listitem [ref=e89]: Class-leading video specs at the price-point
+                    - listitem [ref=e90]: Great low light performance and noise quality
+                - generic [ref=e91]:
+                  - generic [ref=e92]: The Bad
+                  - list [ref=e93]:
+                    - listitem [ref=e94]: Has one CF-Express slot and one SD slot instead of 2 CF-Express slots
+              - generic [ref=e95]:
+                - generic [ref=e96]:
+                  - generic [ref=e97]: Who it's for
+                  - paragraph [ref=e98]: Hybrid shooters who need professional level photography as well as video capabilities
+                - generic [ref=e99]:
+                  - generic [ref=e100]: Who it's not for
+                  - paragraph [ref=e101]: Those shooting mostly editorial content that will be printed, or dedicated wildlife and sports photographers who need extra megapixels.
+          - generic [ref=e102]:
+            - generic [ref=e103]:
+              - heading "Specifications" [level=2] [ref=e104]
+              - generic [ref=e105]:
+                - searchbox "Filter specifications" [ref=e106]
+                - link "Suggest Edit" [ref=e107] [cursor=pointer]:
+                  - /url: /auth/signin?callbackUrl=%2Fgear%2Fnikon-z6iii%2Fedit%3Ftype%3DCAMERA
+                  - img
+                  - text: Suggest Edit
+            - generic [ref=e108]:
+              - generic [ref=e109]:
+                - generic [ref=e111]:
+                  - heading "Basic Information" [level=3] [ref=e112]
+                  - generic [ref=e113]:
+                    - generic [ref=e115]: Camera Type
+                    - generic [ref=e116]: Mirrorless
+                  - generic [ref=e117]:
+                    - generic [ref=e119]: Mount
+                    - generic [ref=e120]: Z - Nikon
+                  - generic [ref=e121]:
+                    - generic [ref=e123]: Announced Date
+                    - generic [ref=e124]: June 17, 2024
+                  - generic [ref=e125]:
+                    - generic [ref=e127]: Release Date
+                    - generic [ref=e128]: June 24, 2024
+                  - generic [ref=e129]:
+                    - generic [ref=e131]: MSRP At Launch
+                    - generic [ref=e132]: $2,499.95 USD
+                  - generic [ref=e133]:
+                    - generic [ref=e135]: MSRP Now
+                    - generic [ref=e136]: $2,399.95 USD
+                  - generic [ref=e137]:
+                    - generic [ref=e139]: MPB Max Price
+                    - generic [ref=e140]: $2,199 USD
+                  - generic [ref=e141]:
+                    - generic [ref=e143]: Weight
+                    - generic [ref=e144]: 760 g
+                  - generic [ref=e145]:
+                    - generic [ref=e147]: Dimensions
+                    - generic [ref=e149]:
+                      - generic [ref=e150]:
+                        - generic [ref=e151]: Width
+                        - generic [ref=e152]: 138.5mm
+                      - generic [ref=e153]:
+                        - generic [ref=e154]: Height
+                        - generic [ref=e155]: 101mm
+                      - generic [ref=e156]:
+                        - generic [ref=e157]: Length
+                        - generic [ref=e158]: 74mm
+                - generic [ref=e160]:
+                  - heading "Sensor & Shutter" [level=3] [ref=e161]
+                  - generic [ref=e162]:
+                    - generic [ref=e164]: Resolution
+                    - generic [ref=e165]: 24.5 megapixels
+                  - generic [ref=e166]:
+                    - generic [ref=e168]: Sensor Format
+                    - generic [ref=e169]: Full-frame
+                  - generic [ref=e170]:
+                    - generic [ref=e172]: ISO Range
+                    - generic [ref=e173]: ISO 100 - 64000
+                  - generic [ref=e174]:
+                    - generic [ref=e176]: Max Continuous FPS
+                    - generic [ref=e178]:
+                      - generic [ref=e179]:
+                        - generic [ref=e180]: Mechanical
+                        - generic [ref=e183]:
+                          - generic [ref=e184]: "14"
+                          - generic [ref=e185]: FPS
+                      - generic [ref=e186]:
+                        - generic [ref=e187]: EFC
+                        - generic [ref=e190]:
+                          - generic [ref=e191]: "14"
+                          - generic [ref=e192]: FPS
+                      - generic [ref=e193]:
+                        - generic [ref=e194]: Electronic
+                        - generic [ref=e196]:
+                          - generic [ref=e197]:
+                            - generic [ref=e198]:
+                              - generic [ref=e199]: "20"
+                              - generic [ref=e200]: FPS
+                            - generic [ref=e201]: (Raw)
+                          - generic [ref=e202]:
+                            - generic [ref=e203]:
+                              - generic [ref=e204]: "120"
+                              - generic [ref=e205]: FPS
+                            - generic [ref=e206]: (JPG)
+                  - generic [ref=e207]:
+                    - generic [ref=e209]: Sensor Type
+                    - generic [ref=e210]: Partially-Stacked BSI-CMOS
+                  - generic [ref=e211]:
+                    - generic [ref=e213]: Sensor Readout Speed
+                    - generic [ref=e214]: 14.4 ms
+                  - generic [ref=e215]:
+                    - generic [ref=e217]: Max Raw Bit Depth
+                    - generic [ref=e218]: 14-bit
+                  - generic [ref=e219]:
+                    - generic [ref=e221]: Has IBIS
+                    - generic [ref=e222]: "Yes"
+                  - generic [ref=e223]:
+                    - generic [ref=e225]: Has Digital Stabilization
+                    - generic [ref=e226]: "Yes"
+                  - generic [ref=e227]:
+                    - generic [ref=e229]: CIPA Stabilization Rating Stops
+                    - generic [ref=e230]: 8 stops
+                  - generic [ref=e231]:
+                    - generic [ref=e233]: Has Pixel Shift Shooting
+                    - generic [ref=e234]: "Yes"
+                  - generic [ref=e235]:
+                    - generic [ref=e237]: Has Anti Aliasing Filter
+                    - generic [ref=e238]: "Yes"
+                  - generic [ref=e239]:
+                    - generic [ref=e241]: Precapture Buffer
+                    - generic [ref=e242]: Yes (JPEG only)
+                  - generic [ref=e243]:
+                    - generic [ref=e245]: Longest Shutter Speed
+                    - generic [ref=e246]: 900 seconds
+                  - generic [ref=e247]:
+                    - generic [ref=e249]: Fastest Shutter Speed
+                    - generic [ref=e250]: 1/16000s
+                  - generic [ref=e251]:
+                    - generic [ref=e253]: Flash Sync Speed
+                    - generic [ref=e254]: 1/200s
+                  - generic [ref=e255]:
+                    - generic [ref=e257]: Has Silent Shooting Available
+                    - generic [ref=e258]: "Yes"
+                  - generic [ref=e259]:
+                    - generic [ref=e261]: Available Shutter Types
+                    - generic [ref=e263]:
+                      - generic [ref=e264]: Mechanical
+                      - generic [ref=e265]: Electronic First-Curtain
+                      - generic [ref=e266]: Electronic
+                - generic [ref=e268]:
+                  - heading "Hardware/Build" [level=3] [ref=e269]
+                  - generic [ref=e270]:
+                    - generic [ref=e272]: Processor Name
+                    - generic [ref=e273]: EXPEED 7
+                  - generic [ref=e274]:
+                    - generic [ref=e276]: Weather Sealing
+                    - generic [ref=e277]: "Yes"
+                  - generic [ref=e278]:
+                    - generic [ref=e280]: Rear Display Type
+                    - generic [ref=e281]: Fully articulated
+                  - generic [ref=e282]:
+                    - generic [ref=e284]: Rear Display Size
+                    - generic [ref=e285]: 3.20 inches
+                  - generic [ref=e286]:
+                    - generic [ref=e288]: Rear Display Resolution
+                    - generic [ref=e289]: 2.10 million dots
+                  - generic [ref=e290]:
+                    - generic [ref=e292]: Viewfinder Type
+                    - generic [ref=e293]: EVF
+                  - generic [ref=e294]:
+                    - generic [ref=e296]: Viewfinder Magnification
+                    - generic [ref=e297]: 0.80x
+                  - generic [ref=e298]:
+                    - generic [ref=e300]: Viewfinder Resolution
+                    - generic [ref=e301]: 5.76 million dots
+                  - generic [ref=e302]:
+                    - generic [ref=e304]: Has Top Display
+                    - generic [ref=e305]: "Yes"
+                  - generic [ref=e306]:
+                    - generic [ref=e308]: Has Rear Touchscreen
+                    - generic [ref=e309]: "Yes"
+                  - generic [ref=e310]:
+                    - generic [ref=e312]: Card Slots
+                    - generic [ref=e314]:
+                      - generic [ref=e315]: CFEXPRESS Type B
+                      - generic [ref=e316]: SD
+                - generic [ref=e318]:
+                  - heading "Focus" [level=3] [ref=e319]
+                  - generic [ref=e320]:
+                    - generic [ref=e322]: Focus Points
+                    - generic [ref=e323]: "299"
+                  - generic [ref=e324]:
+                    - generic [ref=e326]: Has Focus Peaking
+                    - generic [ref=e327]: "Yes"
+                  - generic [ref=e328]:
+                    - generic [ref=e330]: Has Focus Bracketing
+                    - generic [ref=e331]: "Yes"
+                  - generic [ref=e332]:
+                    - generic [ref=e334]: AF Area Modes
+                    - generic [ref=e336]:
+                      - generic [ref=e337]: Pinpoint AF
+                      - generic [ref=e338]: Single Point AF
+                      - generic [ref=e339]: Dynamic Area AF (Small)
+                      - generic [ref=e340]: Dynamic Area AF (Medium)
+                      - generic [ref=e341]: Dynamic Area AF (Large)
+                      - generic [ref=e342]: Wide Area AF (Small)
+                      - generic [ref=e343]: Wide Area AF (Large)
+                      - generic [ref=e344]: Group-area AF
+                      - generic [ref=e345]: 3D Tracking
+                      - generic [ref=e346]: Auto-area AF
+                  - generic [ref=e347]:
+                    - generic [ref=e349]: AF Subject Categories
+                    - generic [ref=e351]:
+                      - generic [ref=e352]: People
+                      - generic [ref=e353]: Animals
+                      - generic [ref=e354]: Vehicles
+                      - generic [ref=e355]: Birds
+                      - generic [ref=e356]: Aircraft
+                - generic [ref=e358]:
+                  - heading "Battery & Charging" [level=3] [ref=e359]
+                  - generic [ref=e360]:
+                    - generic [ref=e362]: CIPA Battery Shots Per Charge
+                    - generic [ref=e363]: "802"
+                  - generic [ref=e364]:
+                    - generic [ref=e366]: Supports USB Charging
+                    - generic [ref=e367]: "Yes"
+                  - generic [ref=e368]:
+                    - generic [ref=e370]: Supports USB Power Delivery
+                    - generic [ref=e371]: "Yes"
+                  - generic [ref=e372]:
+                    - generic [ref=e374]: Supported Batteries
+                    - list [ref=e376]:
+                      - listitem [ref=e377]: EN-EL15C
+                - generic [ref=e379]:
+                  - heading "Video" [level=3] [ref=e380]
+                  - generic [ref=e381]:
+                    - generic [ref=e383]: Video Summary
+                    - button "1080p up to 240 fps up to 10 bit 4k up to 120 fps up to 12 bit 5.4k up to 60 fps up to 12 bit 6k up to 60 fps up to 12 bit View details" [ref=e386] [cursor=pointer]:
+                      - generic [ref=e388]:
+                        - generic [ref=e389]:
+                          - generic [ref=e390]: 1080p
+                          - generic [ref=e391]:
+                            - generic [ref=e392]: up to
+                            - generic [ref=e393]: "240"
+                            - generic [ref=e394]: fps
+                          - generic [ref=e395]:
+                            - generic [ref=e396]: up to
+                            - generic [ref=e397]: "10"
+                            - generic [ref=e398]: bit
+                        - generic [ref=e399]:
+                          - generic [ref=e400]: 4k
+                          - generic [ref=e401]:
+                            - generic [ref=e402]: up to
+                            - generic [ref=e403]: "120"
+                            - generic [ref=e404]: fps
+                          - generic [ref=e405]:
+                            - generic [ref=e406]: up to
+                            - generic [ref=e407]: "12"
+                            - generic [ref=e408]: bit
+                        - generic [ref=e409]:
+                          - generic [ref=e410]: 5.4k
+                          - generic [ref=e411]:
+                            - generic [ref=e412]: up to
+                            - generic [ref=e413]: "60"
+                            - generic [ref=e414]: fps
+                          - generic [ref=e415]:
+                            - generic [ref=e416]: up to
+                            - generic [ref=e417]: "12"
+                            - generic [ref=e418]: bit
+                        - generic [ref=e419]:
+                          - generic [ref=e420]: 6k
+                          - generic [ref=e421]:
+                            - generic [ref=e422]: up to
+                            - generic [ref=e423]: "60"
+                            - generic [ref=e424]: fps
+                          - generic [ref=e425]:
+                            - generic [ref=e426]: up to
+                            - generic [ref=e427]: "12"
+                            - generic [ref=e428]: bit
+                      - generic: View details
+                  - generic [ref=e429]:
+                    - generic [ref=e431]: Available Codecs
+                    - generic [ref=e433]:
+                      - generic [ref=e434]: H.264
+                      - generic [ref=e435]: H.265
+                      - generic [ref=e436]: N-Raw
+                      - generic [ref=e437]: ProRes 422 HQ
+                  - generic [ref=e438]:
+                    - generic [ref=e440]: Has Log Color Profile
+                    - generic [ref=e441]: "Yes"
+                  - generic [ref=e442]:
+                    - generic [ref=e444]: Has 10 Bit Video
+                    - generic [ref=e445]: "Yes"
+                  - generic [ref=e446]:
+                    - generic [ref=e448]: Has 12 Bit Video
+                    - generic [ref=e449]: "Yes"
+                  - generic [ref=e450]:
+                    - generic [ref=e452]: Supports External Recording
+                    - generic [ref=e453]: "Yes"
+                - generic [ref=e455]:
+                  - heading "Misc" [level=3] [ref=e456]
+                  - generic [ref=e457]:
+                    - generic [ref=e459]: Has Intervalometer
+                    - generic [ref=e460]: "Yes"
+                  - generic [ref=e461]:
+                    - generic [ref=e463]: Has Self Timer
+                    - generic [ref=e464]: "Yes"
+                  - generic [ref=e465]:
+                    - generic [ref=e467]: Has Hot Shoe
+                    - generic [ref=e468]: "Yes"
+                  - generic [ref=e469]:
+                    - generic [ref=e471]: Has USB File Transfer
+                    - generic [ref=e472]: "Yes"
+                - generic [ref=e474]:
+                  - heading "Notes" [level=3] [ref=e475]
+                  - list [ref=e477]:
+                    - listitem [ref=e478]: Readout speed increases to 11ms delay in 12-bit photo depth (from 15ms in 14-bit)
+              - generic [ref=e479]:
+                - generic [ref=e480]: 2 items missing.
+                - link "Contribute missing data." [ref=e482] [cursor=pointer]:
+                  - /url: /auth/signin?callbackUrl=%2Fgear%2Fnikon-z6iii%2Fedit%3Ftype%3DCAMERA%26showMissingOnly%3Dtrue
+                  - img
+                  - text: Contribute missing data.
+          - generic [ref=e484]:
+            - generic [ref=e485]:
+              - generic [ref=e486]: Want to help improve these specs?
+              - generic [ref=e487]: Sharply gear specs are crowdsourced by the community. Your edits are reviewed for accuracy before they go live.
+            - link "Sign in to edit specs" [ref=e488] [cursor=pointer]:
+              - /url: /auth/signin?callbackUrl=%2Fgear%2Fnikon-z6iii%2Fedit%3Ftype%3DCAMERA
+          - generic [ref=e489]:
+            - heading "Alternatives" [level=2] [ref=e490]
+            - generic [ref=e491]:
+              - link "Canon EOS R6 Mark III CanonEOS R6 Mark III Nov 2025 · $2,799.00" [ref=e493] [cursor=pointer]:
+                - /url: /gear/canon-eos-r6-mark-iii
+                - generic [ref=e495]:
+                  - generic [ref=e499]:
+                    - img "Canon EOS R6 Mark III"
+                  - generic [ref=e500]:
+                    - generic [ref=e502]: CanonEOS R6 Mark III
+                    - generic [ref=e504]:
+                      - generic [ref=e505]: Nov 2025
+                      - generic [ref=e506]: ·
+                      - generic [ref=e507]: $2,799.00
+              - link "Sony a7 V Sonya7 V Dec 2025 · $2,899.99 Trending" [ref=e509] [cursor=pointer]:
+                - /url: /gear/sony-a7-v
+                - generic [ref=e511]:
+                  - generic [ref=e515]:
+                    - img "Sony a7 V"
+                  - generic [ref=e516]:
+                    - generic [ref=e518]: Sonya7 V
+                    - generic [ref=e519]:
+                      - generic [ref=e520]:
+                        - generic [ref=e521]: Dec 2025
+                        - generic [ref=e522]: ·
+                        - generic [ref=e523]: $2,899.99
+                      - generic [ref=e525]:
+                        - img
+                        - text: Trending
+          - generic [ref=e526]:
+            - generic [ref=e528]:
+              - heading "Trusted Coverage" [level=2] [ref=e529]
+              - button [ref=e530]:
+                - img [ref=e531]
+            - link "Nikon Z6 III | Full Camera Review by Christopher Frost (opens in new tab)" [ref=e534] [cursor=pointer]:
+              - /url: https://www.youtube.com/watch?v=064d712kTzs
+              - generic [ref=e537]:
+                - generic [ref=e538]:
+                  - generic [ref=e539]: Nikon Z6 III | Full Camera Review
+                  - generic [ref=e540]:
+                    - generic [ref=e542]: CF
+                    - generic [ref=e543]: Christopher Frost
+                - generic [ref=e545]:
+                  - img [ref=e546]
+                  - text: Watch
+        - generic [ref=e550]:
+          - generic [ref=e552]:
+            - button "Save Item" [ref=e762]:
+              - img
+              - text: Save Item
+            - button "Add to Wishlist" [ref=e763]:
+              - img
+              - text: Add to Wishlist
+            - button "Add to Collection" [ref=e764]:
+              - img
+              - text: Add to Collection
+            - button "Compare" [ref=e553]:
+              - img
+              - text: Compare
+          - generic [ref=e555]:
+            - heading "Links" [level=2] [ref=e557]
+            - link "Visit Nikon Official site" [ref=e558] [cursor=pointer]:
+              - /url: https://imaging.nikon.com/imaging/lineup/mirrorless/z6_3/
+              - generic [ref=e559]:
+                - generic [ref=e560]: Visit Nikon
+                - generic [ref=e561]: Official site
+              - img [ref=e564]
+            - link "See on MPB From $2,199 • Used" [ref=e566] [cursor=pointer]:
+              - /url: /api/out/mpb?destinationPath=https%3A%2F%2Fwww.mpb.com%2Fen-us%2Fproduct%2Fnikon-z6-iii&market=US
+              - generic [ref=e567]:
+                - generic [ref=e568]: See on MPB
+                - generic [ref=e569]: From $2,199 • Used
+              - img [ref=e571]
+            - link "Buy on Amazon Around $2,399 • New" [ref=e573] [cursor=pointer]:
+              - /url: /api/out/amazon?asin=B0D77SL8CY&slug=nikon-z6iii
+              - generic [ref=e574]:
+                - generic [ref=e575]: Buy on Amazon
+                - generic [ref=e576]: Around $2,399 • New
+              - img [ref=e578]
+            - link "Buy at B&H Photo Around $2,399 • New and Used" [ref=e580] [cursor=pointer]:
+              - /url: /api/out/bh?url=https%3A%2F%2Fwww.bhphotovideo.com%2Fc%2Fproduct%2F1834803-REG%2F&slug=nikon-z6iii
+              - generic [ref=e581]:
+                - generic [ref=e582]: Buy at B&H Photo
+                - generic [ref=e583]: Around $2,399 • New and Used
+          - generic [ref=e584]:
+            - heading "Contributors" [level=2] [ref=e585]
+            - button "Floh cater Advion Leo Cam" [ref=e586]:
+              - list [ref=e587]:
+                - listitem [ref=e588]:
+                  - img "Floh" [ref=e590]
+                - listitem [ref=e591]:
+                  - img "cater" [ref=e593]
+                - listitem [ref=e594]:
+                  - img "Advion" [ref=e596]
+                - listitem [ref=e597]:
+                  - img "Leo" [ref=e599]
+                - listitem [ref=e600]:
+                  - img "Cam" [ref=e602]
+          - generic [ref=e603]:
+            - generic [ref=e604]: Popularity
+            - generic [ref=e605]:
+              - generic [ref=e606]:
+                - generic [ref=e607]: Views (All Time)
+                - generic [ref=e608]: "458"
+              - generic [ref=e609]:
+                - generic [ref=e610]: Views (30 Days)
+                - generic [ref=e611]: "28"
+              - generic [ref=e612]:
+                - generic [ref=e613]: Views (Today)
+                - generic [ref=e614]: "2"
+              - generic [ref=e615]:
+                - generic [ref=e616]: Wishlists
+                - generic [ref=e617]: "3"
+              - generic [ref=e618]:
+                - generic [ref=e619]: Owners
+                - generic [ref=e620]: "5"
+          - generic [ref=e622]:
+            - generic [ref=e623]:
+              - text: Open Change Requests
+              - generic [ref=e624]: "0"
+            - generic [ref=e625]:
+              - generic [ref=e626]: Item Created
+              - generic [ref=e627]: September 6, 2025
+            - generic [ref=e628]:
+              - generic [ref=e629]: Last Updated
+              - generic [ref=e630]: 4 weeks ago
+      - generic [ref=e632]:
+        - heading "Reviews" [level=3] [ref=e634]
+        - generic [ref=e636]:
+          - generic [ref=e637]: Share your experience to help others decide.
+          - button "Write a Review" [ref=e765]:
+            - img
+            - text: Write a Review
+        - generic [ref=e768]: No reviews yet. Be the first to review this gear!
+      - generic [ref=e644]:
+        - generic [ref=e645]:
+          - heading "Chat on Discord" [level=3] [ref=e646]
+          - paragraph [ref=e647]: Join other Sharply members in the Photography Lounge Discord Server to chat with other users and get help with your gear.
+        - link "Join Discord" [ref=e648] [cursor=pointer]:
+          - /url: /discord/invite
+          - img
+          - text: Join Discord
+      - generic [ref=e649]:
+        - heading "Articles about this item" [level=2] [ref=e650]
+        - link "Canon Announces the EOS R6 Mark III, a Hybrid Powerhouse for Photo and Video Canon Announces the EOS R6 Mark III, a Hybrid Powerhouse for Photo and Video Canon has announced the EOS R6 Mark III, a full-frame mirrorless camera designed for professionals and advanced hybrid creators who move fluidly between stills… Nov 6, 2025" [ref=e652] [cursor=pointer]:
+          - /url: /news/canon-announces-the-eos-r6-mark-iii-a-hybrid-powerhouse-for-photo-and-video
+          - img "Canon Announces the EOS R6 Mark III, a Hybrid Powerhouse for Photo and Video" [ref=e655]
+          - generic [ref=e656]:
+            - heading "Canon Announces the EOS R6 Mark III, a Hybrid Powerhouse for Photo and Video" [level=2] [ref=e657]
+            - paragraph [ref=e658]: Canon has announced the EOS R6 Mark III, a full-frame mirrorless camera designed for professionals and advanced hybrid creators who move fluidly between stills…
+            - generic [ref=e661]: Nov 6, 2025
+    - generic [ref=e662]:
+      - generic [ref=e663]:
+        - generic [ref=e664]:
+          - generic [ref=e665]:
+            - link "Sharply" [ref=e666] [cursor=pointer]:
+              - /url: /
+              - img "Sharply" [ref=e667]
+            - heading "Sharply" [level=2] [ref=e668]
+            - combobox "Language and region" [ref=e669]:
+              - generic [ref=e670]:
+                - img "us" [ref=e672]
+                - generic [ref=e673]: English (United States)
+              - img
+          - paragraph [ref=e675]: Sharply is a community-driven platform for sharing and discovering the best gear for your photography and videography needs.
+          - list [ref=e676]:
+            - listitem [ref=e677]:
+              - link "Join Discord" [ref=e678] [cursor=pointer]:
+                - /url: /discord/invite
+                - img [ref=e679]
+            - listitem [ref=e681]:
+              - link "Instagram" [ref=e682] [cursor=pointer]:
+                - /url: https://www.instagram.com/sharplyphoto/
+                - img [ref=e683]
+            - listitem [ref=e685]:
+              - link "X" [ref=e686] [cursor=pointer]:
+                - /url: https://x.com/sharply_photo
+                - img [ref=e687]
+            - listitem [ref=e689]:
+              - link "GitHub" [ref=e690] [cursor=pointer]:
+                - /url: https://github.com/Flohhhhh/sharply
+                - img [ref=e691]
+        - generic [ref=e693]:
+          - generic [ref=e694]:
+            - heading "Gear" [level=3] [ref=e695]
+            - list [ref=e696]:
+              - listitem [ref=e697]:
+                - link "Browse" [ref=e698] [cursor=pointer]:
+                  - /url: /gear
+              - listitem [ref=e699]:
+                - link "Contribute" [ref=e700] [cursor=pointer]:
+                  - /url: /lists/under-construction
+              - listitem [ref=e701]:
+                - link "Hall of Fame" [ref=e702] [cursor=pointer]:
+                  - /url: /lists/hall-of-fame
+              - listitem [ref=e703]:
+                - link "Trending" [ref=e704] [cursor=pointer]:
+                  - /url: /lists/trending
+          - generic [ref=e705]:
+            - heading "Tools" [level=3] [ref=e706]
+            - list [ref=e707]:
+              - listitem [ref=e708]:
+                - link "Compare" [ref=e709] [cursor=pointer]:
+                  - /url: /compare
+              - listitem [ref=e710]:
+                - link "Shutter Count & EXIF Viewer" [ref=e711] [cursor=pointer]:
+                  - /url: /exif-viewer
+              - listitem [ref=e712]:
+                - link "Instagram Post Builder" [ref=e713] [cursor=pointer]:
+                  - /url: /instagram-post-builder
+          - generic [ref=e714]:
+            - heading "Learn" [level=3] [ref=e715]
+            - list [ref=e716]:
+              - listitem [ref=e717]:
+                - link "Basics" [ref=e718] [cursor=pointer]:
+                  - /url: /learn/basics
+              - listitem [ref=e719]:
+                - link "View All Learn Content" [ref=e720] [cursor=pointer]:
+                  - /url: /learn
+          - generic [ref=e721]:
+            - heading "More" [level=3] [ref=e722]
+            - list [ref=e723]:
+              - listitem [ref=e724]:
+                - link "About" [ref=e725] [cursor=pointer]:
+                  - /url: /about
+              - listitem [ref=e726]:
+                - link "News" [ref=e727] [cursor=pointer]:
+                  - /url: /news
+              - listitem [ref=e728]:
+                - link "GitHub" [ref=e729] [cursor=pointer]:
+                  - /url: https://github.com/Flohhhhh/sharply
+              - listitem [ref=e730]:
+                - link "Contact" [ref=e731] [cursor=pointer]:
+                  - /url: /contact
+      - generic [ref=e733]:
+        - generic [ref=e734]:
+          - paragraph [ref=e735]: Product images © respective manufacturers. Used for editorial and informational purposes only. This site is independent and not affiliated with Nikon, Canon, Sony, or other brands.
+          - paragraph [ref=e736]: As an Amazon Affiliate, Sharply may earn a commission on qualifying purchases made through links to Amazon.
+          - paragraph [ref=e737]: © 2026 Sharply. All rights reserved.
+        - list [ref=e738]:
+          - listitem [ref=e739]:
+            - link "Privacy Policy" [ref=e740] [cursor=pointer]:
+              - /url: /privacy-policy
+          - listitem [ref=e741]:
+            - link "Terms of Service" [ref=e742] [cursor=pointer]:
+              - /url: /terms-of-service
+  - region "Notifications alt+T"
+  - generic [ref=e747] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e748]:
+      - img [ref=e749]
+    - generic [ref=e752]:
+      - button "Open issues overlay" [ref=e753]:
+        - generic [ref=e754]:
+          - generic [ref=e755]: "0"
+          - generic [ref=e756]: "1"
+        - generic [ref=e757]: Issue
+      - button "Collapse issues badge" [ref=e758]:
+        - img [ref=e759]
+  - alert [ref=e761]
+  - dialog:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - heading "Gear" [level=3]
+              - list:
+                - listitem:
+                  - link "Browse":
+                    - /url: /gear
+                - listitem:
+                  - link "Contribute":
+                    - /url: /lists/under-construction
+                - listitem:
+                  - link "Hall of Fame":
+                    - /url: /lists/hall-of-fame
+                - listitem:
+                  - link "Trending":
+                    - /url: /lists/trending
+            - generic:
+              - heading "Tools" [level=3]
+              - list:
+                - listitem:
+                  - link "Compare":
+                    - /url: /compare
+                - listitem:
+                  - link "Shutter Count & EXIF Viewer":
+                    - /url: /exif-viewer
+                - listitem:
+                  - link "Instagram Post Builder":
+                    - /url: /instagram-post-builder
+            - generic:
+              - heading "Learn" [level=3]
+              - list:
+                - listitem:
+                  - link "Basics":
+                    - /url: /learn/basics
+                - listitem:
+                  - link "View All Learn Content":
+                    - /url: /learn
+            - generic:
+              - heading "More" [level=3]
+              - list:
+                - listitem:
+                  - link "About":
+                    - /url: /about
+                - listitem:
+                  - link "News":
+                    - /url: /news
+                - listitem:
+                  - link "GitHub":
+                    - /url: https://github.com/Flohhhhh/sharply
+                - listitem:
+                  - link "Contact":
+                    - /url: /contact

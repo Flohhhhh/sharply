@@ -1,6 +1,7 @@
 "use client";
 
 import { Loader,Plus,Trash2 } from "lucide-react";
+import { useTranslations, type TranslationValues } from "next-intl";
 import { useCallback,useEffect,useMemo,useRef,useState } from "react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
@@ -25,6 +26,7 @@ import {
   VIDEO_COLOR_DEPTHS,
   VIDEO_FRAME_RATES,
 } from "~/lib/constants/video-constants";
+import { translateGearDetailWithFallback } from "~/lib/i18n/gear-detail";
 import {
   normalizedToCameraVideoModes,
   normalizeVideoModes,
@@ -358,6 +360,9 @@ export function VideoModesManager({
   initialModes,
   onChange,
 }: VideoModesManagerProps) {
+  const t = useTranslations("gearDetail");
+  const tf = (key: string, fallback: string, values?: TranslationValues) =>
+    translateGearDetailWithFallback(t, key, fallback, values);
   const [open, setOpen] = useState(false);
 
   const seedRows = useMemo(
@@ -728,16 +733,31 @@ export function VideoModesManager({
     try {
       setIsApplying(true);
       if (!currentNormalized.length) {
-        toast.info("Add at least one resolution/FPS pairing to continue");
+        toast.info(
+          tf(
+            "editGear.videoModes.addPairingToast",
+            "Add at least one resolution/FPS pairing to continue",
+          ),
+        );
         return;
       }
       onChange(currentNormalized);
-      toast.success("Video modes staged. Submit the gear form to apply.");
+      toast.success(
+        tf(
+          "editGear.videoModes.stagedToast",
+          "Video modes staged. Submit the gear form to apply.",
+        ),
+      );
       setOpen(false);
     } catch (error) {
       console.error(error);
       toast.error(
-        error instanceof Error ? error.message : "Failed to stage video modes",
+        error instanceof Error
+          ? error.message
+          : tf(
+              "editGear.videoModes.stageFailedToast",
+              "Failed to stage video modes",
+            ),
       );
     } finally {
       setIsApplying(false);
@@ -758,10 +778,12 @@ export function VideoModesManager({
       >
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-sm font-medium">Video Modes</div>
+            <div className="text-sm font-medium">
+              {tf("editGear.sections.videoModes", "Video Modes")}
+            </div>
           </div>
           <Button type="button" onClick={() => setOpen(true)}>
-            Open Video Modes Manager
+            {tf("editGear.videoModes.open", "Open Video Modes Manager")}
           </Button>
         </div>
         {stagedBundle ? (
@@ -776,7 +798,10 @@ export function VideoModesManager({
           </div>
         ) : (
           <div className="text-muted-foreground text-xs">
-            Add resolutions and frame rates to generate a summary preview.
+            {tf(
+              "editGear.videoModes.emptyPreview",
+              "Add resolutions and frame rates to generate a summary preview.",
+            )}
           </div>
         )}
       </div>
@@ -785,7 +810,9 @@ export function VideoModesManager({
         <DialogContent className="sm:max-w-5xl">
           <div className="max-h-[80vh] overflow-y-auto pr-1">
             <DialogHeader className="flex flex-row items-center justify-between space-y-0">
-              <DialogTitle>Video Modes Manager</DialogTitle>
+              <DialogTitle>
+                {tf("editGear.videoModes.title", "Video Modes Manager")}
+              </DialogTitle>
               <Button
                 type="button"
                 variant="ghost"
@@ -793,33 +820,41 @@ export function VideoModesManager({
                 onClick={handleReset}
                 disabled={!hasLocalChanges}
               >
-                Reset
+                {tf("editGear.videoModes.reset", "Reset")}
               </Button>
             </DialogHeader>
             <div className="space-y-6">
               <section className="space-y-3 rounded-md border p-3">
                 <h4 className="text-sm font-semibold">
-                  Step 1: Select resolutions
+                  {tf("editGear.videoModes.step1", "Step 1: Select resolutions")}
                 </h4>
                 <MultiSelect
                   options={presetOptions}
                   value={presetSelectedKeys}
                   onChange={handlePresetSelectionChange}
-                  placeholder="Select standard resolutions"
+                  placeholder={tf(
+                    "editGear.videoModes.selectStandardResolutions",
+                    "Select standard resolutions",
+                  )}
                   inDialog
                   className="sm:max-w-md"
                 />
                 <div className="text-muted-foreground text-xs">
-                  Use the picker for common formats, then add any custom modes
-                  below.
+                  {tf(
+                    "editGear.videoModes.step1Help",
+                    "Use the picker for common formats, then add any custom modes below.",
+                  )}
                 </div>
                 <div className="mt-3 space-y-2">
                   <div className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
-                    Custom resolution
+                    {tf("editGear.videoModes.customResolution", "Custom resolution")}
                   </div>
                   <div className="grid gap-2 sm:grid-cols-3">
                     <Input
-                      placeholder="Label (e.g., 6K Open Gate)"
+                      placeholder={tf(
+                        "editGear.videoModes.customLabelPlaceholder",
+                        "Label (e.g., 6K Open Gate)",
+                      )}
                       value={customResolution.label}
                       onChange={(event) =>
                         setCustomResolution((prev) => ({
@@ -830,7 +865,10 @@ export function VideoModesManager({
                     />
                     <Input
                       type="number"
-                      placeholder="Width px"
+                      placeholder={tf(
+                        "editGear.videoModes.widthPlaceholder",
+                        "Width px",
+                      )}
                       value={customResolution.horizontal}
                       onChange={(event) =>
                         setCustomResolution((prev) => ({
@@ -841,7 +879,10 @@ export function VideoModesManager({
                     />
                     <Input
                       type="number"
-                      placeholder="Height px"
+                      placeholder={tf(
+                        "editGear.videoModes.heightPlaceholder",
+                        "Height px",
+                      )}
                       value={customResolution.vertical}
                       onChange={(event) =>
                         setCustomResolution((prev) => ({
@@ -857,7 +898,10 @@ export function VideoModesManager({
                     variant="outline"
                     onClick={addCustomResolution}
                   >
-                    Add custom resolution
+                    {tf(
+                      "editGear.videoModes.addCustomResolution",
+                      "Add custom resolution",
+                    )}
                   </Button>
                   {customResolutions.length > 0 && (
                     <div className="space-y-2 pt-2">
@@ -875,7 +919,10 @@ export function VideoModesManager({
                                 event.target.value,
                               )
                             }
-                            placeholder="Label"
+                            placeholder={tf(
+                              "editGear.videoModes.labelPlaceholder",
+                              "Label",
+                            )}
                           />
                           <Input
                             type="number"
@@ -887,7 +934,10 @@ export function VideoModesManager({
                                 event.target.value,
                               )
                             }
-                            placeholder="Width px"
+                            placeholder={tf(
+                              "editGear.videoModes.widthPlaceholder",
+                              "Width px",
+                            )}
                           />
                           <Input
                             type="number"
@@ -899,7 +949,10 @@ export function VideoModesManager({
                                 event.target.value,
                               )
                             }
-                            placeholder="Height px"
+                            placeholder={tf(
+                              "editGear.videoModes.heightPlaceholder",
+                              "Height px",
+                            )}
                           />
                           <Button
                             type="button"
@@ -909,7 +962,7 @@ export function VideoModesManager({
                               removeCustomResolution(resolution.key)
                             }
                           >
-                            Remove
+                            {tf("editGear.videoModes.remove", "Remove")}
                           </Button>
                         </div>
                       ))}
@@ -920,11 +973,17 @@ export function VideoModesManager({
 
               <section className="space-y-3 rounded-md border p-3">
                 <h4 className="text-sm font-semibold">
-                  Step 2: Select FPS per resolution
+                  {tf(
+                    "editGear.videoModes.step2",
+                    "Step 2: Select FPS per resolution",
+                  )}
                 </h4>
                 {guidedResolutions.length === 0 ? (
                   <div className="text-muted-foreground text-xs">
-                    Select resolutions to configure frame rates.
+                    {tf(
+                      "editGear.videoModes.step2Empty",
+                      "Select resolutions to configure frame rates.",
+                    )}
                   </div>
                 ) : (
                   guidedResolutions.map((resolution) => (
@@ -940,7 +999,10 @@ export function VideoModesManager({
                         onChange={(ids) =>
                           handleFpsSelectionChange(resolution.key, ids)
                         }
-                        placeholder="Select frame rates"
+                        placeholder={tf(
+                          "editGear.videoModes.selectFrameRates",
+                          "Select frame rates",
+                        )}
                         inDialog
                       />
                     </div>
@@ -950,7 +1012,10 @@ export function VideoModesManager({
 
               <section className="space-y-3 rounded-md border p-3">
                 <h4 className="text-sm font-semibold">
-                  Step 3: Define codec + bit depth pairs
+                  {tf(
+                    "editGear.videoModes.step3",
+                    "Step 3: Define codec + bit depth pairs",
+                  )}
                 </h4>
                 <div className="space-y-2">
                   {codecPairs.map((pair) => (
@@ -959,7 +1024,10 @@ export function VideoModesManager({
                       className="flex flex-wrap items-center gap-2"
                     >
                       <Input
-                        placeholder="Codec label"
+                        placeholder={tf(
+                          "editGear.videoModes.codecLabelPlaceholder",
+                          "Codec label",
+                        )}
                         value={pair.label}
                         onChange={(event) =>
                           handleCodecPairChange(
@@ -977,7 +1045,12 @@ export function VideoModesManager({
                         }
                       >
                         <SelectTrigger className="w-[120px]">
-                          <SelectValue placeholder="Bit depth" />
+                          <SelectValue
+                            placeholder={tf(
+                              "editGear.videoModes.bitDepthPlaceholder",
+                              "Bit depth",
+                            )}
+                          />
                         </SelectTrigger>
                         <SelectContent>
                           {COLOR_DEPTH_VALUES.map((depth) => (
@@ -1019,27 +1092,36 @@ export function VideoModesManager({
                   }
                 >
                   <Plus className="mr-1 h-4 w-4" />
-                  Add codec pair
+                  {tf("editGear.videoModes.addCodecPair", "Add codec pair")}
                 </Button>
               </section>
 
               <section className="space-y-3 rounded-md border p-3">
                 <h4 className="text-sm font-semibold">
-                  Step 4: Paint bit depth & forced crop
+                  {tf(
+                    "editGear.videoModes.step4",
+                    "Step 4: Paint bit depth & forced crop",
+                  )}
                 </h4>
                 <p className="text-muted-foreground text-xs">
-                  Choose a bit-depth brush, then click or drag across the matrix
-                  to fill cells. Use the crop buttons to toggle forced crops for
-                  specific resolution/FPS pairs.
+                  {tf(
+                    "editGear.videoModes.step4Help",
+                    "Choose a bit-depth brush, then click or drag across the matrix to fill cells. Use the crop buttons to toggle forced crops for specific resolution/FPS pairs.",
+                  )}
                 </p>
                 {guidedResolutions.length === 0 ? (
                   <div className="text-muted-foreground text-xs">
-                    Add resolutions to unlock the matrix.
+                    {tf(
+                      "editGear.videoModes.step4NoResolutions",
+                      "Add resolutions to unlock the matrix.",
+                    )}
                   </div>
                 ) : !hasMatrixData ? (
                   <div className="text-muted-foreground text-xs">
-                    Select at least one frame rate per resolution to start
-                    painting.
+                    {tf(
+                      "editGear.videoModes.step4NoFrameRates",
+                      "Select at least one frame rate per resolution to start painting.",
+                    )}
                   </div>
                 ) : (
                   <VideoBitDepthMatrix
@@ -1074,8 +1156,10 @@ export function VideoModesManager({
             </div>
             <DialogFooter className="flex items-center justify-between space-y-2 sm:space-y-0">
               <div className="text-muted-foreground text-xs">
-                Applied modes stay in your pending change until you submit the
-                gear form.
+                {tf(
+                  "editGear.videoModes.footerHelp",
+                  "Applied modes stay in your pending change until you submit the gear form.",
+                )}
               </div>
               <Button
                 type="button"
@@ -1083,7 +1167,9 @@ export function VideoModesManager({
                 disabled={isApplying}
               >
                 {isApplying && <Loader className="mr-2 h-4 w-4 animate-spin" />}
-                Apply to form
+                {isApplying
+                  ? tf("editGear.videoModes.applying", "Applying…")
+                  : tf("editGear.videoModes.apply", "Apply to form")}
               </Button>
             </DialogFooter>
           </div>

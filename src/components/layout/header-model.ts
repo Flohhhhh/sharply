@@ -1,6 +1,10 @@
 import type { UserRole } from "~/auth";
 import type { Locale } from "~/i18n/config";
-import { localizePathname } from "~/i18n/routing";
+import {
+  localizePathname,
+  normalizedPathHeaderName,
+  normalizedSearchHeaderName,
+} from "~/i18n/routing";
 import type { NotificationView } from "~/server/notifications/service";
 
 export type HeaderIconKey =
@@ -87,6 +91,8 @@ export type HeaderLabels = {
 };
 
 export type HeaderViewModel = {
+  normalizedPathname: string;
+  normalizedSearch: string;
   initialMode: HeaderMode;
   scrollResponsive: boolean;
   callbackUrl: string;
@@ -137,6 +143,30 @@ export function buildHeaderCallbackUrl(
   normalizedSearch: string,
 ) {
   return `${localizePathname(normalizedPathname, locale)}${normalizedSearch}`;
+}
+
+export function buildHeaderInitialState(requestHeaders: Headers) {
+  const headerPathname = requestHeaders.get(normalizedPathHeaderName)?.trim();
+  const normalizedPathname = !headerPathname
+    ? "/"
+    : headerPathname.startsWith("/")
+      ? headerPathname
+      : `/${headerPathname}`;
+
+  return {
+    normalizedPathname,
+    routeState: buildHeaderRouteState(normalizedPathname),
+  };
+}
+
+export function buildHeaderInitialSearch(requestHeaders: Headers) {
+  const headerSearch = requestHeaders.get(normalizedSearchHeaderName)?.trim();
+
+  if (!headerSearch) {
+    return "";
+  }
+
+  return headerSearch.startsWith("?") ? headerSearch : `?${headerSearch}`;
 }
 
 function localizeHeaderNavItems(
@@ -212,6 +242,8 @@ export function buildHeaderViewModel({
   }
 
   return {
+    normalizedPathname,
+    normalizedSearch,
     initialMode,
     scrollResponsive,
     callbackUrl,

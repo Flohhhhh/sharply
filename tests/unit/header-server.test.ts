@@ -16,6 +16,10 @@ const intlServerMocks = vi.hoisted(() => ({
   getTranslations: vi.fn(),
 }));
 
+const nextHeadersMocks = vi.hoisted(() => ({
+  headers: vi.fn(),
+}));
+
 const notificationMocks = vi.hoisted(() => ({
   fetchNotificationsForUser: vi.fn(),
 }));
@@ -24,6 +28,7 @@ const headerClientMock = vi.hoisted(() => vi.fn((_props: unknown) => null));
 
 vi.mock("~/auth", () => authMocks);
 vi.mock("next-intl/server", () => intlServerMocks);
+vi.mock("next/headers", () => nextHeadersMocks);
 vi.mock("~/server/notifications/service", () => notificationMocks);
 vi.mock("~/components/layout/header-client", () => ({
   default: headerClientMock,
@@ -43,6 +48,12 @@ function getHeaderModel() {
 describe("header server component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    nextHeadersMocks.headers.mockResolvedValue(
+      new Headers({
+        "x-sharply-normalized-pathname": "/",
+        "x-sharply-normalized-search": "",
+      }),
+    );
     intlServerMocks.getTranslations.mockImplementation(
       async ({
         namespace,
@@ -62,19 +73,31 @@ describe("header server component", () => {
     expect(model.notifications).toBeNull();
     expect(model.homeHref).toBe("/ja");
     expect(model.adminHref).toBe("/ja/admin");
+    expect(model.initialMode).toBe("expanded");
     expect(model.labels.signIn).toBe("common.signIn");
-    // callbackUrl and signInHref are now computed client-side from the live pathname
+    expect(model.callbackUrl).toBe("/ja");
+    expect(model.signInHref).toBe("/ja/auth/signin?callbackUrl=%2Fja");
     expect(notificationMocks.fetchNotificationsForUser).not.toHaveBeenCalled();
   });
 
-  it("does not fetch auth or notifications server-side (moved to client)", async () => {
+  it("uses normalized routing headers to seed inner pages without auth fetches", async () => {
+    nextHeadersMocks.headers.mockResolvedValue(
+      new Headers({
+        "x-sharply-normalized-pathname": "/gear/sony-a6700",
+        "x-sharply-normalized-search": "?tab=reviews",
+      }),
+    );
+
     renderToStaticMarkup(await Header({ locale: "ja" }));
     const model = getHeaderModel();
 
-    // Auth state is resolved client-side via useSession(); the server always
-    // passes user: null so ISR prerendering never touches headers() or cookies().
     expect(model.user).toBeNull();
     expect(model.notifications).toBeNull();
+    expect(model.initialMode).toBe("compact");
+    expect(model.callbackUrl).toBe("/ja/gear/sony-a6700?tab=reviews");
+    expect(model.signInHref).toBe(
+      "/ja/auth/signin?callbackUrl=%2Fja%2Fgear%2Fsony-a6700%3Ftab%3Dreviews",
+    );
     expect(notificationMocks.fetchNotificationsForUser).not.toHaveBeenCalled();
   });
 });

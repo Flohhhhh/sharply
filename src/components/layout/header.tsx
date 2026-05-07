@@ -1,5 +1,8 @@
 import { getTranslations } from "next-intl/server";
+import { headers } from "next/headers";
 import {
+  buildHeaderInitialSearch,
+  buildHeaderInitialState,
   buildHeaderViewModel,
 } from "~/components/layout/header-model";
 import type { Locale } from "~/i18n/config";
@@ -7,19 +10,19 @@ import { getFooterItems, getNavItems } from "~/lib/nav-items";
 import HeaderClient from "./header-client";
 
 export default async function Header({ locale }: { locale: Locale }) {
+  const requestHeaders = await headers();
   const [tCommon, tNav] = await Promise.all([
     getTranslations({ locale, namespace: "common" }),
     getTranslations({ locale, namespace: "nav" }),
   ]);
 
-  // Path- and auth-dependent fields (initialMode, callbackUrl, signInHref,
-  // user, profileHref, isAdminOrEditor, notifications) are computed
-  // client-side in HeaderClient to avoid calling headers() at render time,
-  // which would break ISR for gear and browse pages.
+  const { normalizedPathname } = buildHeaderInitialState(requestHeaders);
+  const normalizedSearch = buildHeaderInitialSearch(requestHeaders);
+
   const model = buildHeaderViewModel({
     locale,
-    normalizedPathname: "/placeholder",
-    normalizedSearch: "",
+    normalizedPathname,
+    normalizedSearch,
     navItems: getNavItems(tNav),
     footerItems: getFooterItems(tNav),
     labels: {

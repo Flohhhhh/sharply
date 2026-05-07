@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useCallback,useState } from "react";
 import {
@@ -16,6 +17,7 @@ import {
   Dialog,
   DialogContent
 } from "~/components/ui/dialog";
+import { translateGearDetailWithFallback } from "~/lib/i18n/gear-detail";
 import type { GearItem,GearType } from "~/types/gear";
 import EditModalContent from "./edit-modal-content";
 
@@ -36,6 +38,9 @@ export function EditGearModal({
   gearName,
   initialShowMissingOnly,
 }: EditGearModalProps) {
+  const t = useTranslations("gearDetail");
+  const tf = (key: string, fallback: string) =>
+    translateGearDetailWithFallback(t, key, fallback);
   const router = useRouter();
   const [isDirty, setIsDirty] = useState(false);
   const [confirmExitOpen, setConfirmExitOpen] = useState(false);
@@ -82,15 +87,19 @@ export function EditGearModal({
       <AlertDialog open={confirmExitOpen} onOpenChange={setConfirmExitOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Discard unsaved changes?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {tf("editGear.discardTitle", "Discard unsaved changes?")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              You have unsaved changes. If you exit now, your edits will be
-              lost.
+              {tf(
+                "editGear.discardDescription",
+                "You have unsaved changes. If you exit now, your edits will be lost.",
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setConfirmExitOpen(false)}>
-              Stay
+              {tf("editGear.stay", "Stay")}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
@@ -98,7 +107,7 @@ export function EditGearModal({
                 router.back();
               }}
             >
-              Discard & Exit
+              {tf("editGear.discardAndExit", "Discard & Exit")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -66,14 +66,15 @@ describe("spec registry i18n", () => {
     );
 
     expect(sensorSection?.title).toBe("Sensor und Verschluss");
-    expect(
-      sensorSection?.data.find((row) => row.key === "hasIbis"),
-    ).toMatchObject({
+    const hasIbisRow = sensorSection?.data.find((row) => row.key === "hasIbis");
+
+    expect(hasIbisRow).toMatchObject({
       key: "hasIbis",
       label: "Hat IBIS",
       value: "Ja",
       searchTerms: expect.arrayContaining(["Has IBIS"]),
     });
+    expect(hasIbisRow?.label).not.toBe("Has IBIS");
   });
 
   it("falls back to inline English when translation keys are missing", () => {
@@ -138,10 +139,14 @@ describe("spec registry i18n", () => {
     const coreSection = sections.find((section) => section.id === "core");
 
     expect(coreSection?.title).toBe("Grundinformationen");
-    expect(coreSection?.fields.find((field) => field.key === "announcedDate"))
-      .toMatchObject({
-        label: "Ankündigungsdatum",
-        targetId: "announced-date",
-      });
+    const announcedDateField = coreSection?.fields.find(
+      (field) => field.key === "announcedDate",
+    );
+
+    expect(announcedDateField).toMatchObject({
+      label: "Ankündigungsdatum",
+      targetId: "announced-date",
+    });
+    expect(announcedDateField?.label).not.toBe("Announced Date");
   });
 });

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations, type TranslationValues } from "next-intl";
 import { useMemo,useState } from "react";
 import { Button } from "~/components/ui/button";
 import {
@@ -12,6 +13,7 @@ import {
 } from "~/components/ui/dialog";
 import { Label } from "~/components/ui/label";
 import { MultiSelect } from "~/components/ui/multi-select";
+import { translateGearDetailWithFallback } from "~/lib/i18n/gear-detail";
 import { ENUMS } from "~/lib/constants";
 import { formatCardSlotDetails,titleizeCardEnum } from "~/lib/mapping";
 
@@ -33,6 +35,9 @@ export default function CardSlotsManager({
   value,
   onChange,
 }: CardSlotsManagerProps) {
+  const t = useTranslations("gearDetail");
+  const tf = (key: string, fallback: string, values?: TranslationValues) =>
+    translateGearDetailWithFallback(t, key, fallback, values);
   const [open, setOpen] = useState(false);
   const [localSlots, setLocalSlots] = useState<CardSlot[]>(() => {
     const initial = Array.isArray(value) ? [...value] : [];
@@ -126,10 +131,15 @@ export default function CardSlotsManager({
   }
 
   function summarizedLines(slots: CardSlot[] | undefined): string[] {
-    if (!Array.isArray(slots) || slots.length === 0) return ["None"];
+    if (!Array.isArray(slots) || slots.length === 0) {
+      return [tf("editGear.cardSlots.none", "None")];
+    }
     return slots.slice(0, 2).map((s, idx) => {
       const details = formatCardSlotDetails(s);
-      return `S${idx + 1}: ${details || "(empty)"}`;
+      return tf("editGear.cardSlots.summary", "S{index}: {details}", {
+        index: idx + 1,
+        details: details || tf("editGear.cardSlots.empty", "(empty)"),
+      });
     });
   }
 
@@ -139,7 +149,9 @@ export default function CardSlotsManager({
       data-force-ring-container
       className="col-span-2 rounded-md border p-3"
     >
-      <div className="mb-2 text-sm font-medium">Card Slots</div>
+      <div className="mb-2 text-sm font-medium">
+        {tf("editGear.sections.cardSlots", "Card Slots")}
+      </div>
       <div className="space-y-1">
         {summarizedLines(value).map((line, i) => (
           <div key={i} className="text-sm">
@@ -149,42 +161,49 @@ export default function CardSlotsManager({
       </div>
       <div className="mt-3">
         <Button type="button" size="sm" onClick={openDialog}>
-          Manage Card Slots
+          {tf("editGear.cardSlots.manage", "Manage Card Slots")}
         </Button>
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Manage Card Slots</DialogTitle>
+            <DialogTitle>
+              {tf("editGear.cardSlots.manage", "Manage Card Slots")}
+            </DialogTitle>
             <DialogDescription>
-              Define each slot with supported formats, buses, and speed classes.
+              {tf(
+                "editGear.cardSlots.description",
+                "Define each slot with supported formats, buses, and speed classes.",
+              )}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6">
             {localSlots.length === 0 && (
               <div className="text-muted-foreground text-sm">
-                No slots configured.
+                {tf("editGear.cardSlots.noneConfigured", "No slots configured.")}
               </div>
             )}
 
             {localSlots.map((slot, idx) => (
               <div key={idx} className="rounded-md border p-3">
                 <div className="mb-3 flex items-center justify-between">
-                  <div className="font-medium">Slot {idx + 1}</div>
+                  <div className="font-medium">
+                    {tf("editGear.slotLabel", "Slot {index}", { index: idx + 1 })}
+                  </div>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={() => removeSlot(idx)}
                   >
-                    Remove Slot
+                    {tf("editGear.cardSlots.removeSlot", "Remove Slot")}
                   </Button>
                 </div>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label>Form Factors</Label>
+                    <Label>{tf("editGear.cardSlots.formFactors", "Form Factors")}</Label>
                     <MultiSelect
                       inDialog
                       options={formFactorOptions}
@@ -195,7 +214,7 @@ export default function CardSlotsManager({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Buses</Label>
+                    <Label>{tf("editGear.cardSlots.buses", "Buses")}</Label>
                     <MultiSelect
                       inDialog
                       options={busOptions}
@@ -204,7 +223,9 @@ export default function CardSlotsManager({
                     />
                   </div>
                   <div className="space-y-2 md:col-span-2">
-                    <Label>Speed Classes (optional)</Label>
+                    <Label>
+                      {tf("editGear.cardSlots.speedClasses", "Speed Classes (optional)")}
+                    </Label>
                     <MultiSelect
                       inDialog
                       options={speedClassOptions}
@@ -221,7 +242,9 @@ export default function CardSlotsManager({
             {localSlots.length < 2 && (
               <div>
                 <Button type="button" variant="outline" onClick={addSlot}>
-                  Add {localSlots.length === 0 ? "Slot" : "Second Slot"}
+                  {localSlots.length === 0
+                    ? tf("editGear.cardSlots.addSlot", "Add Slot")
+                    : tf("editGear.cardSlots.addSecondSlot", "Add Second Slot")}
                 </Button>
               </div>
             )}
@@ -233,7 +256,7 @@ export default function CardSlotsManager({
               variant="outline"
               onClick={() => setOpen(false)}
             >
-              Cancel
+              {tf("cancel", "Cancel")}
             </Button>
             <Button
               type="button"
@@ -254,7 +277,7 @@ export default function CardSlotsManager({
                 setOpen(false);
               }}
             >
-              Save
+              {tf("editGear.save", "Save")}
             </Button>
           </DialogFooter>
         </DialogContent>

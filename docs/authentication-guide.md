@@ -180,6 +180,27 @@ if (!error) {
 await signOut({ callbackURL: "/" });
 ```
 
+## OAuth callback hosts
+
+Sharply separates the canonical site URL from the Better Auth callback host:
+
+- `NEXT_PUBLIC_BASE_URL` is the canonical site URL used for metadata, absolute app links, and SEO-sensitive server output.
+- `AUTH_ADDITIONAL_TRUSTED_ORIGINS` adds extra allowed post-login callback origins, such as a fixed `https://myapp.vercel.app`.
+- `AUTH_BASE_URL`, `BETTER_AUTH_BASE_URL`, `BETTER_AUTH_URL`, and `NEXT_PUBLIC_BETTER_AUTH_URL` are single-host auth overrides. If any of them are set, Better Auth pins OAuth provider callbacks to that host.
+
+For multi-origin OAuth on a main domain plus a fixed `vercel.app` host:
+
+- keep `NEXT_PUBLIC_BASE_URL` pointed at the canonical main domain
+- set `AUTH_ADDITIONAL_TRUSTED_ORIGINS` to the fixed alternate host
+- leave the single-host auth override env vars unset
+
+Provider consoles still need exact callback URLs registered for every supported host, for example:
+
+- `https://www.sharplyphoto.com/api/auth/callback/discord`
+- `https://myapp.vercel.app/api/auth/callback/discord`
+- `https://www.sharplyphoto.com/api/auth/callback/google`
+- `https://myapp.vercel.app/api/auth/callback/google`
+
 ## Development auth bypass
 
 Sharply includes an opt-in dev login route for local work and automation:
