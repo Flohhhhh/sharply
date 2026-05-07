@@ -23,6 +23,14 @@ describe("static route safety", () => {
     );
   });
 
+  it("keeps the footer language switcher isolated behind Suspense", () => {
+    const footer = readSource("src/components/layout/footer.tsx");
+
+    expect(footer).toMatch(
+      /<Suspense fallback=\{<div aria-hidden="true" className="h-9 min-w-\[210px\]" \/>\}>\s*<LanguageSwitcher/,
+    );
+  });
+
   it("keeps browse ISR routes anchored to params locale and off request APIs", () => {
     const browsePage = readSource(
       "src/app/[locale]/(pages)/browse/[[...segments]]/page.tsx",
