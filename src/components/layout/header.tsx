@@ -1,13 +1,11 @@
 import { getTranslations } from "next-intl/server";
 import { headers } from "next/headers";
 import {
+  buildHeaderInitialSearch,
+  buildHeaderInitialState,
   buildHeaderViewModel,
 } from "~/components/layout/header-model";
 import type { Locale } from "~/i18n/config";
-import {
-  normalizedPathHeaderName,
-  normalizedSearchHeaderName,
-} from "~/i18n/routing";
 import { getFooterItems, getNavItems } from "~/lib/nav-items";
 import HeaderClient from "./header-client";
 
@@ -18,9 +16,8 @@ export default async function Header({ locale }: { locale: Locale }) {
     getTranslations({ locale, namespace: "nav" }),
   ]);
 
-  const normalizedPathname =
-    requestHeaders.get(normalizedPathHeaderName) ?? "/";
-  const normalizedSearch = requestHeaders.get(normalizedSearchHeaderName) ?? "";
+  const { normalizedPathname } = buildHeaderInitialState(requestHeaders);
+  const normalizedSearch = buildHeaderInitialSearch(requestHeaders);
 
   const model = buildHeaderViewModel({
     locale,

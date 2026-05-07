@@ -51,6 +51,38 @@ describe("header model", () => {
     expect(buildHeaderInitialSearch(requestHeaders)).toBe("");
   });
 
+  it("sanitizes malformed routing headers before deriving route state", () => {
+    const requestHeaders = new Headers({
+      "x-sharply-normalized-pathname": "  search/results  ",
+      "x-sharply-normalized-search": "  q=sony  ",
+    });
+
+    expect(buildHeaderInitialState(requestHeaders)).toEqual({
+      normalizedPathname: "/search/results",
+      routeState: {
+        initialMode: "expanded",
+        scrollResponsive: false,
+      },
+    });
+    expect(buildHeaderInitialSearch(requestHeaders)).toBe("?q=sony");
+  });
+
+  it("treats blank routing headers as defaults", () => {
+    const requestHeaders = new Headers({
+      "x-sharply-normalized-pathname": "   ",
+      "x-sharply-normalized-search": "   ",
+    });
+
+    expect(buildHeaderInitialState(requestHeaders)).toEqual({
+      normalizedPathname: "/",
+      routeState: {
+        initialMode: "expanded",
+        scrollResponsive: true,
+      },
+    });
+    expect(buildHeaderInitialSearch(requestHeaders)).toBe("");
+  });
+
   it("chooses the expected initial mode for home, search, and normal pages", () => {
     expect(buildHeaderRouteState("/")).toEqual({
       initialMode: "expanded",

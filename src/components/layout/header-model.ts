@@ -146,8 +146,12 @@ export function buildHeaderCallbackUrl(
 }
 
 export function buildHeaderInitialState(requestHeaders: Headers) {
-  const normalizedPathname =
-    requestHeaders.get(normalizedPathHeaderName) ?? "/";
+  const headerPathname = requestHeaders.get(normalizedPathHeaderName)?.trim();
+  const normalizedPathname = !headerPathname
+    ? "/"
+    : headerPathname.startsWith("/")
+      ? headerPathname
+      : `/${headerPathname}`;
 
   return {
     normalizedPathname,
@@ -156,7 +160,13 @@ export function buildHeaderInitialState(requestHeaders: Headers) {
 }
 
 export function buildHeaderInitialSearch(requestHeaders: Headers) {
-  return requestHeaders.get(normalizedSearchHeaderName) ?? "";
+  const headerSearch = requestHeaders.get(normalizedSearchHeaderName)?.trim();
+
+  if (!headerSearch) {
+    return "";
+  }
+
+  return headerSearch.startsWith("?") ? headerSearch : `?${headerSearch}`;
 }
 
 function localizeHeaderNavItems(
