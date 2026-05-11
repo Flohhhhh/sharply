@@ -4,7 +4,10 @@ import { useMemo } from "react";
 import { useCompareRowScale } from "~/components/compare/use-compare-row-scale";
 import type { GearItem } from "~/types/gear";
 import { CollectionCard } from "./collection-card";
-import { getCollectionImageStageHeightPixels } from "./collection-layout";
+import {
+  collectionCameraPixelsPerMillimeter,
+  getCollectionImageStageHeightPixels,
+} from "./collection-layout";
 
 function computeColumnCount(itemCount: number) {
 	if (itemCount <= 1) {
@@ -115,7 +118,7 @@ export function CollectionGrid(props: { items: GearItem[] }) {
 		items: items.map((item) => ({
 			widthMillimeters: parseWidthMillimeters(item.widthMm),
 		})),
-		basePixelsPerMillimeter: 1.6,
+		basePixelsPerMillimeter: collectionCameraPixelsPerMillimeter,
 	});
 
 	const displayMetaById = useMemo(() => {

@@ -5,7 +5,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
 import type { GearItem } from "~/types/gear";
-import { getCollectionCardWidthPixels } from "./collection-layout";
+import {
+  collectionPlaceholderSizePixels,
+  getCollectionCardWidthPixels,
+  shouldShowCollectionScaleEstimate,
+} from "./collection-layout";
 
 export function CollectionCard(props: {
   item: GearItem;
@@ -29,6 +33,9 @@ export function CollectionCard(props: {
     name: item.name,
     regionalAliases: item.regionalAliases,
   });
+  const hasImage = Boolean(item.thumbnailUrl);
+  const isCamera =
+    item.gearType === "CAMERA" || item.gearType === "ANALOG_CAMERA";
   const cardWidthPixels = getCollectionCardWidthPixels(displayWidthPixels);
   const imageHeightPixels = Math.max(Math.round(displayHeightPixels), 1);
   const imageWidthPixels = Math.max(Math.round(displayWidthPixels), 120);
@@ -48,9 +55,9 @@ export function CollectionCard(props: {
         className="group relative flex w-full cursor-pointer items-end justify-center"
         style={{ height: `${stageHeightPixels}px` }}
       >
-        {item.thumbnailUrl ? (
+        {hasImage ? (
           <Image
-            src={item.thumbnailUrl}
+            src={item.thumbnailUrl!}
             alt={displayName}
             width={imageWidthPixels}
             height={imageHeightPixels}
@@ -76,22 +83,30 @@ export function CollectionCard(props: {
             draggable={false}
           />
         ) : (
-          <div
-            className="bg-muted/50 flex w-full items-center justify-center rounded-full"
-            style={{ height: `${stageHeightPixels}px` }}
-          >
-            <CircleQuestionMark
-              className="text-muted-foreground/50 size-8"
-              aria-hidden
-            />
+          <div className="flex h-full w-full items-end justify-center">
+            <div
+              className="bg-muted/50 flex items-center justify-center rounded-full"
+              style={{
+                width: `${collectionPlaceholderSizePixels}px`,
+                height: `${collectionPlaceholderSizePixels}px`,
+              }}
+            >
+              <CircleQuestionMark
+                className="text-muted-foreground/50 size-8"
+                aria-hidden
+              />
+            </div>
           </div>
         )}
       </Link>
       <div className="text-foreground w-full max-w-[240px] text-2xl leading-snug font-semibold">
         {displayName}
       </div>
-      {(item.gearType === "CAMERA" || item.gearType === "ANALOG_CAMERA") &&
-      isScaleEstimated ? (
+      {shouldShowCollectionScaleEstimate({
+        hasImage,
+        isCamera,
+        isScaleEstimated,
+      }) ? (
         <p className="text-muted-foreground text-xs">
           Scale approximate (missing width spec)
         </p>
