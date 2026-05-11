@@ -165,8 +165,9 @@ Optional ANDed filters for brand/mount/gearType/price range/sensor format. These
 
 ## SSR & Suspense
 
-- `src/components/layout/header.tsx` now builds the header model on the server using request headers populated by `src/middleware.ts`.
-- The compact/expanded header state is chosen server-side from the normalized pathname, then the client header only hydrates the interactive pieces and home-page scroll transition.
+- `src/components/layout/header.tsx` now builds only the locale-scoped header shell on the server so shared ISR routes stay static-safe.
+- `src/components/layout/header-client.tsx` derives compact vs expanded route state from `usePathname()`, while query-string callback enrichment stays isolated behind a `Suspense` boundary around `useSearchParams()`.
+- Auth/session state, notifications, and final sign-in callback refinement all stay client-side.
 
 ## Performance
 

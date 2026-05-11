@@ -27,7 +27,10 @@ export const env = createEnv({
       process.env.NODE_ENV === "production"
         ? z.string()
         : z.string().optional(),
+    AUTH_BASE_URL: z.string().url().optional(),
     AUTH_ADDITIONAL_TRUSTED_ORIGINS: z.string().optional(),
+    BETTER_AUTH_BASE_URL: z.string().url().optional(),
+    BETTER_AUTH_URL: z.string().url().optional(),
     DATABASE_URL: z.string().url(),
     CRON_SECRET:
       process.env.NODE_ENV === "production"
@@ -68,6 +71,7 @@ export const env = createEnv({
   client: {
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
     NEXT_PUBLIC_BASE_URL: z.string().url(),
+    NEXT_PUBLIC_BETTER_AUTH_URL: z.string().url().optional(),
   },
 
   /**
@@ -80,8 +84,11 @@ export const env = createEnv({
     AUTH_DISCORD_SECRET: process.env.AUTH_DISCORD_SECRET,
     AUTH_GOOGLE_ID: process.env.AUTH_GOOGLE_ID,
     AUTH_GOOGLE_SECRET: process.env.AUTH_GOOGLE_SECRET,
+    AUTH_BASE_URL: process.env.AUTH_BASE_URL,
     AUTH_ADDITIONAL_TRUSTED_ORIGINS:
       process.env.AUTH_ADDITIONAL_TRUSTED_ORIGINS,
+    BETTER_AUTH_BASE_URL: process.env.BETTER_AUTH_BASE_URL,
+    BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
     DATABASE_URL: process.env.DATABASE_URL,
     CRON_SECRET: process.env.CRON_SECRET,
     DISCORD_ROLLUP_WEBHOOK_URL: process.env.DISCORD_ROLLUP_WEBHOOK_URL,
@@ -100,6 +107,7 @@ export const env = createEnv({
     DEV_AUTH_LOCALHOST_ONLY: process.env.DEV_AUTH_LOCALHOST_ONLY,
     UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN,
     NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
+    NEXT_PUBLIC_BETTER_AUTH_URL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
     AMAZON_AFFILIATE_TAG: process.env.AMAZON_AFFILIATE_TAG,
   },
   /**

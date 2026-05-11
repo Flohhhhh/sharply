@@ -46,8 +46,14 @@ Sharply validates configuration through `src/env.js`. For onboarding you only ne
 
 - `AUTH_SECRET` – used by BetterAuth for session encryption (`src/server/auth/index.ts`)
 - `DATABASE_URL` – establishes the Drizzle/Postgres connection (`src/server/db/index.ts`)
-- `NEXT_PUBLIC_BASE_URL` – required when building canonical URLs and Discord bot links (`src/server/gear/browse/service.ts`)
+- `NEXT_PUBLIC_BASE_URL` – canonical site URL used for metadata, canonical links, and Discord bot links (`src/server/gear/browse/service.ts`)
 - `PAYLOAD_SECRET` – required user-generated secret string for Payload CMS (`src/payload.config.ts`)
+
+**Multi-origin auth (optional)**
+
+- `AUTH_ADDITIONAL_TRUSTED_ORIGINS` – comma-separated extra origins allowed as Better Auth callback targets, such as a fixed `https://myapp.vercel.app`
+- Leave `AUTH_BASE_URL`, `BETTER_AUTH_BASE_URL`, `BETTER_AUTH_URL`, and `NEXT_PUBLIC_BETTER_AUTH_URL` unset if OAuth should use the current request host for provider callbacks
+- Set one of those auth-base overrides only if you intentionally want all OAuth provider callbacks pinned to a single host
 
 **Sign-in providers (pick which providers you want and populate them)**
 

@@ -24,12 +24,12 @@ type PriceableGear = Pick<GearItem, "msrpNowUsdCents" | "mpbMaxPriceUsdCents">;
 export function normalizePriceCents(
   priceCents: unknown,
 ): number | null {
-  if (typeof priceCents === "number" && Number.isFinite(priceCents)) {
+  if (typeof priceCents === "number" && Number.isFinite(priceCents) && Number.isInteger(priceCents)) {
     return priceCents;
   }
   if (typeof priceCents === "string" && priceCents.trim() !== "") {
     const parsed = Number(priceCents);
-    return Number.isFinite(parsed) ? parsed : null;
+    return Number.isFinite(parsed) && Number.isInteger(parsed) ? parsed : null;
   }
   return null;
 }

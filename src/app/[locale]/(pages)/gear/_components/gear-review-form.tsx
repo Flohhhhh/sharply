@@ -18,6 +18,7 @@ import { TextareaWithCounter } from "~/components/ui/textarea-with-counter";
 import { useSession } from "~/lib/auth/auth-client";
 import { GENRES } from "~/lib/constants";
 import { getReviewGenreLabel } from "~/lib/i18n/gear-detail";
+import { formatRetryDuration } from "./gear-review-form.helpers";
 
 interface GearReviewFormProps {
   gearSlug: string;
@@ -330,16 +331,4 @@ export function GearReviewForm({
       </div>
     </div>
   );
-}
-
-function formatRetryDuration(
-  retryAfterMs: number,
-  t: ReturnType<typeof useTranslations>,
-) {
-  const totalSeconds = Math.max(1, Math.ceil(retryAfterMs / 1000));
-  if (totalSeconds < 60) {
-    return t("reviewRetrySeconds", { count: totalSeconds });
-  }
-  const totalMinutes = Math.ceil(totalSeconds / 60);
-  return t("reviewRetryMinutes", { count: totalMinutes });
 }

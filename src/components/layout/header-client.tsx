@@ -59,14 +59,9 @@ export default function HeaderClient({
   const rawPathname = usePathname();
   const normalizedPathname = rawPathname
     ? stripLocalePrefix(rawPathname).pathname
-    : model.normalizedPathname;
-  const routeState = rawPathname
-    ? buildHeaderRouteState(normalizedPathname)
-    : {
-        initialMode: model.initialMode,
-        scrollResponsive: model.scrollResponsive,
-      };
-  const [normalizedSearch, setNormalizedSearch] = useState(model.normalizedSearch);
+    : "/";
+  const routeState = buildHeaderRouteState(normalizedPathname);
+  const [normalizedSearch, setNormalizedSearch] = useState("");
   const callbackUrl = buildHeaderCallbackUrl(
     locale,
     normalizedPathname,
@@ -104,9 +99,7 @@ export default function HeaderClient({
   })();
 
   // Client-side notifications — fetched once user is known.
-  const [notifications, setNotifications] = useState<HeaderNotificationsData>(
-    model.notifications,
-  );
+  const [notifications, setNotifications] = useState<HeaderNotificationsData>(null);
   useEffect(() => {
     if (isSessionPending) {
       return;

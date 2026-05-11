@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import Image from "next/image";
-import React from "react";
+import React, { Suspense } from "react";
 import { FaDiscord,FaGithub,FaInstagram,FaTwitter } from "react-icons/fa";
 import { LanguageSwitcher } from "~/components/language-switcher";
 import { LocaleLink } from "~/components/locale-link";
@@ -85,7 +85,9 @@ export default function Footer({
               />
             </LocaleLink>
             <h2 className="text-xl font-semibold">{logo.title}</h2>
-            <LanguageSwitcher />
+            <Suspense fallback={<div aria-hidden="true" className="h-9 min-w-[210px]" />}>
+              <LanguageSwitcher />
+            </Suspense>
           </div>
           <p className="text-muted-foreground max-w-[70%] text-sm">
             {resolvedDescription}

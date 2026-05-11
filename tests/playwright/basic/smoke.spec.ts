@@ -1,8 +1,16 @@
-import { expect,test } from "@playwright/test";
+import { expect,test, type Page } from "@playwright/test";
+
+async function expectHeaderMode(page: Page, mode: "expanded" | "compact") {
+  const header = page.getByRole("banner");
+  await expect(header).toBeVisible();
+  await expect(header).toHaveClass(mode === "compact" ? /h-16/ : /h-20/);
+}
 
 test.describe("smoke", () => {
   test("landing renders hero and search", async ({ page }) => {
     await page.goto("/");
+
+    await expectHeaderMode(page, "expanded");
 
     // Ensure headline and search trigger render, then opening search shows the dialog.
     await expect(
@@ -22,6 +30,8 @@ test.describe("smoke", () => {
   test("landing CTA routes to browse hub", async ({ page }) => {
     await page.goto("/");
 
+    await expectHeaderMode(page, "expanded");
+
     // Validate the CTA destination from the homepage, then load the browse
     // hub directly. Direct navigation is more stable than relying on the
     // client-side transition here and still covers the user-facing contract.
@@ -30,12 +40,14 @@ test.describe("smoke", () => {
     await expect(browseCta).toHaveAttribute("href", "/browse");
     await page.goto("/browse");
     await expect(page).toHaveURL(/\/browse/);
+    await expectHeaderMode(page, "compact");
     await expect(page.getByRole("heading", { name: "All Gear" })).toBeVisible();
   });
 
   test("browse hub surfaces key sections", async ({ page }) => {
     await page.goto("/browse");
 
+    await expectHeaderMode(page, "compact");
     // Root browse page should surface catalog and discovery sections.
     await expect(page.getByRole("heading", { name: "All Gear" })).toBeVisible();
     await expect(
@@ -44,6 +56,24 @@ test.describe("smoke", () => {
     await expect(
       page.getByRole("heading", { name: "Latest releases" }),
     ).toBeVisible();
+  });
+
+  test("search keeps the expanded non-hero header shell", async ({ page }) => {
+    await page.goto("/search");
+
+    await expectHeaderMode(page, "expanded");
+  });
+
+  test("gear detail keeps the compact header shell", async ({ page }) => {
+    await page.goto("/browse");
+
+    await expectHeaderMode(page, "compact");
+    const firstGearLink = page.locator('a[href^="/gear/"]').first();
+    await expect(firstGearLink).toBeVisible();
+    await firstGearLink.click();
+
+    await expect(page).toHaveURL(/\/gear\//);
+    await expectHeaderMode(page, "compact");
   });
 
   test("about page loads mission content", async ({ page }) => {

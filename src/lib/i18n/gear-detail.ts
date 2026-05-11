@@ -13,6 +13,28 @@ type GenreSource = {
   name?: string;
 };
 
+function interpolateFallback(
+  fallback: string,
+  values?: TranslationValues,
+): string {
+  if (!values) return fallback;
+
+  return fallback.replaceAll(/\{(\w+)\}/g, (token, key: string) => {
+    const value = values[key];
+
+    if (
+      typeof value === "string" ||
+      typeof value === "number" ||
+      typeof value === "bigint" ||
+      typeof value === "boolean"
+    ) {
+      return String(value);
+    }
+
+    return token;
+  });
+}
+
 export function translateGearDetailWithFallback(
   t: GearDetailTranslator,
   key: string,
@@ -21,13 +43,13 @@ export function translateGearDetailWithFallback(
 ): string {
   if (!fallback) return fallback;
   if (typeof t.has === "function" && !t.has(key)) {
-    return fallback;
+    return interpolateFallback(fallback, values);
   }
 
   try {
     return t(key, values);
   } catch {
-    return fallback;
+    return interpolateFallback(fallback, values);
   }
 }
 

@@ -42,6 +42,7 @@ src/lib/mapping/
 #### `formatPrice(priceCents: number | null | undefined, options?): string`
 
 - **Purpose**: Converts price in cents to readable currency string
+- **Input validation**: Accepts only finite integer cent values. Fractional numbers or strings such as `"2029.5"` are treated as invalid and fall back.
 - **Options**:
   - `style` (`"long"` | `"short"`): `"long"` appends `USD` (detail views), `"short"` omits the suffix (cards/badges).
   - `padWholeAmounts` (`boolean`): Forces trailing `.00` for whole-dollar values so lists/tables stay aligned.
