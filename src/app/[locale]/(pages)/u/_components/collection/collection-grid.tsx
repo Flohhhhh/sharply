@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useCompareRowScale } from "~/components/compare/use-compare-row-scale";
 import type { GearItem } from "~/types/gear";
 import { CollectionCard } from "./collection-card";
+import { getCollectionImageStageHeightPixels } from "./collection-layout";
 
 function computeColumnCount(itemCount: number) {
 	if (itemCount <= 1) {
@@ -86,14 +87,25 @@ function splitItemsByRowCounts<T>(items: T[], rowCounts: number[]) {
 }
 
 function parseWidthMillimeters(rawWidth: unknown): number | null {
-	if (rawWidth == null) return null;
-	if (typeof rawWidth === "number")
-		return Number.isNaN(rawWidth) ? null : rawWidth;
-	if (typeof rawWidth === "string") {
-		const value = Number(rawWidth);
-		return Number.isNaN(value) ? null : value;
-	}
-	return null;
+  if (rawWidth == null) return null;
+  if (typeof rawWidth === "number")
+    return Number.isNaN(rawWidth) ? null : rawWidth;
+  if (typeof rawWidth === "string") {
+    const value = Number(rawWidth);
+    return Number.isNaN(value) ? null : value;
+  }
+  return null;
+}
+
+function parseHeightMillimeters(rawHeight: unknown): number | null {
+  if (rawHeight == null) return null;
+  if (typeof rawHeight === "number")
+    return Number.isNaN(rawHeight) ? null : rawHeight;
+  if (typeof rawHeight === "string") {
+    const value = Number(rawHeight);
+    return Number.isNaN(value) ? null : value;
+  }
+  return null;
 }
 
 export function CollectionGrid(props: { items: GearItem[] }) {
@@ -108,22 +120,28 @@ export function CollectionGrid(props: { items: GearItem[] }) {
 
 	const displayMetaById = useMemo(() => {
 		const fallbackWidthMillimeters = 140;
+		const fallbackHeightMillimeters = 95;
 		const nonCameraWidthPixels = 240;
 		const nonCameraHeightPixels = 200;
 
 		return new Map(
 			items.map((item) => {
 				const widthMillimeters = parseWidthMillimeters(item.widthMm);
+				const heightMillimeters = parseHeightMillimeters(item.heightMm);
 				const isCamera =
 					item.gearType === "CAMERA" || item.gearType === "ANALOG_CAMERA";
 				const displayWidthPixels = isCamera
 					? (widthMillimeters ?? fallbackWidthMillimeters) * pixelsPerMillimeter
 					: nonCameraWidthPixels;
+				const displayHeightPixels = isCamera
+					? (heightMillimeters ?? fallbackHeightMillimeters) * pixelsPerMillimeter
+					: nonCameraHeightPixels;
 
 				return [
 					item.id,
 					{
 						displayWidthPixels,
+						displayHeightPixels,
 						isScaleEstimated: isCamera && widthMillimeters == null,
 						useFixedHeight: !isCamera,
 						fixedHeightPixels: !isCamera ? nonCameraHeightPixels : undefined,
@@ -161,32 +179,44 @@ export function CollectionGrid(props: { items: GearItem[] }) {
 
 	return (
 		<div className="flex w-full flex-col gap-10 md:gap-16">
-			{rows.map((rowItems) => (
-				<div
-					key={rowItems.map((item) => item.id).join("-")}
-					className="flex flex-col items-stretch gap-8 md:flex-row md:justify-center md:gap-12"
-				>
-					{rowItems.map((item) => (
-						<div key={item.id} className="w-full md:w-auto">
-							<CollectionCard
-								item={item}
-								displayWidthPixels={
-									displayMetaById.get(item.id)?.displayWidthPixels ?? 200
-								}
-								isScaleEstimated={
-									displayMetaById.get(item.id)?.isScaleEstimated ?? false
-								}
-								useFixedHeight={
-									displayMetaById.get(item.id)?.useFixedHeight ?? false
-								}
-								fixedHeightPixels={
-									displayMetaById.get(item.id)?.fixedHeightPixels
-								}
-							/>
-						</div>
-					))}
-				</div>
-			))}
+			{rows.map((rowItems) => {
+				const imageStageHeightPixels = getCollectionImageStageHeightPixels(
+					rowItems.map(
+						(item) => displayMetaById.get(item.id)?.displayHeightPixels ?? 200,
+					),
+				);
+
+				return (
+					<div
+						key={rowItems.map((item) => item.id).join("-")}
+						className="flex flex-col items-stretch gap-8 md:flex-row md:justify-center md:gap-12"
+					>
+						{rowItems.map((item) => (
+							<div key={item.id} className="w-full md:w-auto">
+								<CollectionCard
+									item={item}
+									displayWidthPixels={
+										displayMetaById.get(item.id)?.displayWidthPixels ?? 200
+									}
+									displayHeightPixels={
+										displayMetaById.get(item.id)?.displayHeightPixels ?? 200
+									}
+									isScaleEstimated={
+										displayMetaById.get(item.id)?.isScaleEstimated ?? false
+									}
+									useFixedHeight={
+										displayMetaById.get(item.id)?.useFixedHeight ?? false
+									}
+									fixedHeightPixels={
+										displayMetaById.get(item.id)?.fixedHeightPixels
+									}
+									imageStageHeightPixels={imageStageHeightPixels}
+								/>
+							</div>
+						))}
+					</div>
+				);
+			})}
 		</div>
 	);
 }
