@@ -76,7 +76,10 @@ export function CollectionCard(props: {
             draggable={false}
           />
         ) : (
-          <div className="bg-muted/50 flex h-[200px] w-full items-center justify-center rounded-full">
+          <div
+            className="bg-muted/50 flex w-full items-center justify-center rounded-full"
+            style={{ height: `${stageHeightPixels}px` }}
+          >
             <CircleQuestionMark
               className="text-muted-foreground/50 size-8"
               aria-hidden
