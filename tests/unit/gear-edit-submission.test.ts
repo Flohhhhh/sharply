@@ -624,4 +624,25 @@ describe("gear edit submission", () => {
     expect(webhookMocks.notifyAutoApprovedChangeRequest).not.toHaveBeenCalled();
     expect(webhookMocks.notifyChangeRequestModerators).toHaveBeenCalledTimes(1);
   });
+
+  it("throws when auto-approval failure metadata cannot be persisted", async () => {
+    proposalServiceMocks.approveProposal.mockRejectedValueOnce(new Error("db down"));
+    gearDataMocks.updateGearEditMetadata.mockRejectedValueOnce(
+      new Error("write failed"),
+    );
+
+    await expect(
+      submitGearEditProposal({
+        gearId: "22222222-2222-4222-8222-222222222222",
+        payload: { core: { name: "Updated name" } },
+      }),
+    ).rejects.toMatchObject({
+      message: "Failed to persist auto-approval failure metadata",
+      proposalId: "11111111-1111-4111-8111-111111111111",
+      gearId: "22222222-2222-4222-8222-222222222222",
+    });
+    expect(gearDataMocks.insertAuditLog).not.toHaveBeenCalled();
+    expect(console.info).not.toHaveBeenCalled();
+    expect(webhookMocks.notifyChangeRequestModerators).not.toHaveBeenCalled();
+  });
 });

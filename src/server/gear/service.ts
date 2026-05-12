@@ -1072,7 +1072,11 @@ export async function submitGearEditProposal(body: unknown) {
       }
       autoApproved = true;
     } catch (error) {
-      console.error("[submitGearEditProposal] auto-approve failed", error);
+      console.error("[submitGearEditProposal] auto-approve failed", {
+        proposalId: proposal.id,
+        gearId,
+        error,
+      });
       autoApprovalDecision = {
         ...autoApprovalDecision,
         eligible: false,
@@ -1093,6 +1097,14 @@ export async function submitGearEditProposal(body: unknown) {
             proposalId: proposal.id,
             gearId,
             error: metadataError,
+          },
+        );
+        throw Object.assign(
+          new Error("Failed to persist auto-approval failure metadata"),
+          {
+            cause: metadataError,
+            proposalId: proposal.id,
+            gearId,
           },
         );
       }
