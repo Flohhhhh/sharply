@@ -5,6 +5,7 @@ import {
 } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 import { type auth } from "~/auth";
+import { resolveAuthClientBaseURL } from "~/lib/auth/auth-client-config";
 
 // typically done as export const authClient = createAuthClient();, we just destructure the functions we need
 export const {
@@ -17,6 +18,7 @@ export const {
   unlinkAccount,
   passkey,
 } = createAuthClient({
+  baseURL: resolveAuthClientBaseURL(),
   plugins: [
     inferAdditionalFields<typeof auth>(),
     emailOTPClient(),

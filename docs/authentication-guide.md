@@ -187,6 +187,7 @@ Sharply separates the canonical site URL from the Better Auth callback host:
 - `NEXT_PUBLIC_BASE_URL` is the canonical site URL used for metadata, absolute app links, and SEO-sensitive server output.
 - `AUTH_ADDITIONAL_TRUSTED_ORIGINS` adds extra allowed post-login callback origins, such as a fixed `https://myapp.vercel.app`.
 - `AUTH_BASE_URL`, `BETTER_AUTH_BASE_URL`, `BETTER_AUTH_URL`, and `NEXT_PUBLIC_BETTER_AUTH_URL` are single-host auth overrides. If any of them are set, Better Auth pins OAuth provider callbacks to that host.
+- Sharply’s browser auth client resolves its Better Auth base URL from `window.location.origin`, which keeps sign-in and account-link requests on the host where the user started the flow instead of relying on Better Auth’s client-side env inference.
 
 For multi-origin OAuth on a main domain plus a fixed `vercel.app` host:
 

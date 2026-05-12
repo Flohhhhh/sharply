@@ -53,6 +53,7 @@ Sharply validates configuration through `src/env.js`. For onboarding you only ne
 
 - `AUTH_ADDITIONAL_TRUSTED_ORIGINS` – comma-separated extra origins allowed as Better Auth callback targets, such as a fixed `https://myapp.vercel.app`
 - Leave `AUTH_BASE_URL`, `BETTER_AUTH_BASE_URL`, `BETTER_AUTH_URL`, and `NEXT_PUBLIC_BETTER_AUTH_URL` unset if OAuth should use the current request host for provider callbacks
+- Sharply’s browser auth client now resolves its base URL from the current window origin so preview-host sign-in requests stay on the host where auth started
 - Set one of those auth-base overrides only if you intentionally want all OAuth provider callbacks pinned to a single host
 
 **Sign-in providers (pick which providers you want and populate them)**
