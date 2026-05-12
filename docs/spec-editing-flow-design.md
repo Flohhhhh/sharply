@@ -210,6 +210,7 @@ type ComponentName = keyof typeof SPEC_INPUT_COMPONENTS;
   - Trusted contributors: If they have at least one approved spec edit, the gear is currently under construction, there are no existing change requests, and the proposal is strictly add-only (fills empty values without overwriting or clearing existing data), the submission applies immediately
   - Everyone else (or staff when another request is open, or trusted contributors whose proposal is not add-only): Submission enters the proposal queue (`status: PENDING`) for review
 - **Completion Handling**: Confirmation page for queued submissions; instant redirect back to the gear page with a success banner when changes are auto-applied
+- **Decision Persistence**: Each submission stores `metadata.autoApprovalDecision` on the proposal row so admins can see the exact submission-time reason it did or did not auto-approve later on.
 
 ## Admin Approval Workflow (Grouped by Gear Item)
 
@@ -259,6 +260,15 @@ On approval, the UI builds a merged, filtered payload composed of only the selec
 - Additional requests during the active window are counted and sampled (up to 5 compact items) for one follow-up summary.
 - A serverless cron route (`/api/admin/proposals/webhook/flush`) runs every 5 minutes, flushes only after the window expires, and sends the aggregated summary when pending count is greater than zero.
 - Flush uses a short-lived Redis lock to avoid duplicate summary sends under concurrent cron invocations.
+- Auto-approved submissions emit a separate immediate webhook event with the approval path and change summary.
+- Auto-approved submissions do not contribute to the pending aggregation counters or the pending-request summary window.
+
+### Admin and operator observability
+
+- Pending proposals expose a human-readable auto-approval reason sourced from `gear_edits.metadata.autoApprovalDecision`.
+- `GEAR_EDIT_PROPOSE` audit log rows mirror the same decision inside `audit_logs.metadata.autoApprovalDecision`, so the logs page stays historically accurate even if gear data changes later.
+- Submissions that do not auto-approve also emit a structured `console.info` line from `submitGearEditProposal` for server-side debugging.
+- If a request was eligible but the immediate apply step fails, the persisted reason is updated to `auto_approval_apply_failed` and the proposal remains in the manual review queue.
 
 ### Guardrails
 

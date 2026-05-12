@@ -1,3 +1,4 @@
+import type { AutoApprovalMetadata } from "~/lib/gear/auto-approval-reasons";
 import type { VideoModeNormalized } from "~/lib/video/mode-schema";
 
 export type ProposalStatus = "PENDING" | "APPROVED" | "REJECTED" | "MERGED";
@@ -32,6 +33,7 @@ export interface GearProposal {
   beforeAnalogCamera?: Record<string, any>;
   beforeLens?: Record<string, any>;
   beforeFixedLens?: Record<string, any>;
+  metadata?: AutoApprovalMetadata | null;
   note?: string | null;
   createdAt: string | Date;
 }
@@ -53,6 +55,7 @@ export type ProposalGroupDto = {
     beforeAnalogCamera?: Record<string, unknown>;
     beforeLens?: Record<string, unknown>;
     beforeFixedLens?: Record<string, unknown>;
+    metadata?: AutoApprovalMetadata | null;
     note?: string | null;
     createdAt: string | Date;
   }>;
@@ -123,6 +126,7 @@ export function flattenProposalGroups(groups: ProposalGroupDto[]): GearProposal[
       beforeLens: proposal.beforeLens as Record<string, any> | undefined,
       beforeFixedLens:
         proposal.beforeFixedLens as Record<string, any> | undefined,
+      metadata: proposal.metadata ?? null,
       note: proposal.note,
       createdAt: proposal.createdAt,
     })),

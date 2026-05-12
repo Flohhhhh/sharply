@@ -5,12 +5,19 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { auth } from "~/auth";
 import { requireRole } from "~/lib/auth/auth-helpers";
+import type {
+  AutoApprovalDecisionMetadata,
+  AutoApprovalPath,
+} from "~/lib/gear/auto-approval-reasons";
 import { getConstructionState } from "~/lib/utils";
 import {
   applyTrustedContributorProposalApproval,
   approveProposal,
 } from "~/server/admin/proposals/service";
-import { notifyChangeRequestModerators } from "~/server/admin/proposals/webhook";
+import {
+  notifyAutoApprovedChangeRequest,
+  notifyChangeRequestModerators,
+} from "~/server/admin/proposals/webhook";
 import { getSessionOrThrow } from "~/server/auth";
 import { evaluateForEvent } from "~/server/badges/service";
 import { normalizeProposalPayloadForDb } from "~/server/db/normalizers";
@@ -67,6 +74,7 @@ import {
   removeOwnership as removeOwnershipData,
   resolveOpenReviewFlags as resolveOpenReviewFlagsData,
   setGearAlternatives as setGearAlternativesData,
+  updateGearEditMetadata as updateGearEditMetadataData,
   upsertStaffVerdictByGearIdData,
   type ContributorRow,
   type GearAlternativeRow,
@@ -873,21 +881,113 @@ function isAddOnlyProposal(
   return true;
 }
 
-async function isTrustedAddOnlyAutoApprovalEligible(params: {
+async function getTrustedAddOnlyAutoApprovalEligibility(params: {
   userId: string;
   gearSlug: string | null | undefined;
   payload: NormalizedProposalPayload;
-}): Promise<boolean> {
-  if (!params.gearSlug) return false;
+  autoSubmit: boolean | null;
+  hasPendingEdits: boolean;
+}): Promise<AutoApprovalDecisionMetadata> {
+  if (!params.gearSlug) {
+    return {
+      eligible: false,
+      path: "trusted_candidate",
+      reasonCode: "missing_slug",
+      approvedEdits: null,
+      autoSubmit: params.autoSubmit,
+      hasPendingEdits: params.hasPendingEdits,
+    };
+  }
 
   const approvedEdits = await countApprovedGearEditsByUser(params.userId);
-  if (approvedEdits < 1) return false;
+  if (approvedEdits < 1) {
+    return {
+      eligible: false,
+      path: "trusted_candidate",
+      reasonCode: "no_prior_approved_edits",
+      approvedEdits,
+      autoSubmit: params.autoSubmit,
+      hasPendingEdits: params.hasPendingEdits,
+    };
+  }
 
   const gearItem = await fetchGearBySlugData(params.gearSlug);
   const construction = getConstructionState(gearItem);
-  if (!construction.underConstruction) return false;
+  if (!construction.underConstruction) {
+    return {
+      eligible: false,
+      path: "trusted_candidate",
+      reasonCode: "gear_not_under_construction",
+      approvedEdits,
+      autoSubmit: params.autoSubmit,
+      hasPendingEdits: params.hasPendingEdits,
+    };
+  }
 
-  return isAddOnlyProposal(gearItem, params.payload);
+  const eligible = isAddOnlyProposal(gearItem, params.payload);
+  return {
+    eligible,
+    path: eligible ? "trusted_add_only" : "trusted_candidate",
+    reasonCode: eligible
+      ? "auto_approved_trusted_add_only"
+      : "proposal_not_add_only",
+    approvedEdits,
+    autoSubmit: params.autoSubmit,
+    hasPendingEdits: params.hasPendingEdits,
+  };
+}
+
+async function evaluateAutoApprovalDecision(params: {
+  user: Parameters<typeof requireRole>[0];
+  userId: string;
+  hasPendingEdits: boolean;
+  autoSubmit: boolean | null;
+  gearSlug: string | null | undefined;
+  payload: NormalizedProposalPayload;
+}): Promise<AutoApprovalDecisionMetadata> {
+  const canAutoApproveStaff = requireRole(params.user, ["EDITOR"]);
+  const nonStaffPath: AutoApprovalPath = "trusted_candidate";
+
+  if (params.hasPendingEdits) {
+    return {
+      eligible: false,
+      path: "none",
+      reasonCode: "has_pending_request",
+      approvedEdits: null,
+      autoSubmit: params.autoSubmit,
+      hasPendingEdits: true,
+    };
+  }
+
+  if (params.autoSubmit === false) {
+    return {
+      eligible: false,
+      path: canAutoApproveStaff ? "staff" : nonStaffPath,
+      reasonCode: "auto_submit_disabled",
+      approvedEdits: null,
+      autoSubmit: false,
+      hasPendingEdits: false,
+    };
+  }
+
+  if (canAutoApproveStaff) {
+    return {
+      eligible: true,
+      path: "staff",
+      reasonCode: "auto_approved_staff",
+      approvedEdits: null,
+      autoSubmit: params.autoSubmit,
+      hasPendingEdits: false,
+    };
+  }
+
+  return getTrustedAddOnlyAutoApprovalEligibility({
+    userId: params.userId,
+    gearSlug: params.gearSlug,
+    payload: params.payload,
+    autoSubmit: params.autoSubmit,
+    hasPendingEdits: false,
+  });
 }
 
 export async function submitGearEditProposal(body: unknown) {
@@ -905,49 +1005,122 @@ export async function submitGearEditProposal(body: unknown) {
     throw Object.assign(new Error("Missing gear reference"), { status: 400 });
   const hasPending = await hasPendingEditsForGear(gearId);
   const gearMeta = await fetchGearMetadataById(gearId);
+  const gearContext = {
+    gearName: gearMeta?.name ?? "Gear",
+    gearSlug: gearMeta?.slug ?? data.slug ?? gearId,
+  };
+  const submitterLabel = formatProposalSubmitterLabel(user);
+  let autoApprovalDecision = await evaluateAutoApprovalDecision({
+    user,
+    userId,
+    hasPendingEdits: hasPending,
+    autoSubmit: typeof data.autoSubmit === "boolean" ? data.autoSubmit : null,
+    gearSlug: gearMeta?.slug,
+    payload: normalizedPayload,
+  });
+  let proposalMetadata = {
+    autoApprovalDecision,
+  };
   const proposal = await createGearEditProposal({
     gearId,
     userId,
     payload: normalizedPayload,
+    metadata: proposalMetadata,
     note: data.note ?? null,
   });
   let autoApproved = false;
-  const canAutoApproveStaff = requireRole(user, ["EDITOR"]);
-  let canAutoApproveTrusted = false;
 
-  if (!hasPending && !canAutoApproveStaff && data.autoSubmit !== false) {
-    canAutoApproveTrusted = await isTrustedAddOnlyAutoApprovalEligible({
-      userId,
-      gearSlug: gearMeta?.slug,
-      payload: normalizedPayload,
-    });
-  }
-
-  if (
-    !hasPending &&
-    data.autoSubmit !== false &&
-    (canAutoApproveStaff || canAutoApproveTrusted)
-  ) {
+  if (autoApprovalDecision.eligible) {
+    let autoApprovedWebhookPayload:
+      | Parameters<typeof notifyAutoApprovedChangeRequest>[0]
+      | null = null;
     try {
-      if (canAutoApproveStaff) {
-        await approveProposal(proposal.id, normalizedPayload, {
-          gearName: gearMeta?.name ?? "Gear",
-          gearSlug: gearMeta?.slug ?? data.slug ?? gearId,
-        });
+      if (autoApprovalDecision.path === "staff") {
+        await approveProposal(proposal.id, normalizedPayload, gearContext);
+        autoApprovedWebhookPayload = {
+          proposalId: proposal.id,
+          gearId,
+          gearType: gearMeta?.gearType ?? null,
+          gearName: gearContext.gearName,
+          gearSlug: gearContext.gearSlug,
+          createdByLabel: submitterLabel,
+          changedFieldCount: proposalStats.changedFieldCount,
+          changedSectionCount: proposalStats.changedSectionCount,
+          hasNote: Boolean(data.note?.trim()),
+          approvalPath: "staff",
+          trustedApprovedEditCount: null,
+        };
       } else {
         await applyTrustedContributorProposalApproval(
           proposal.id,
           normalizedPayload,
-          {
-            gearName: gearMeta?.name ?? "Gear",
-            gearSlug: gearMeta?.slug ?? data.slug ?? gearId,
-          },
+          gearContext,
         );
+        autoApprovedWebhookPayload = {
+          proposalId: proposal.id,
+          gearId,
+          gearType: gearMeta?.gearType ?? null,
+          gearName: gearContext.gearName,
+          gearSlug: gearContext.gearSlug,
+          createdByLabel: submitterLabel,
+          changedFieldCount: proposalStats.changedFieldCount,
+          changedSectionCount: proposalStats.changedSectionCount,
+          hasNote: Boolean(data.note?.trim()),
+          approvalPath: "trusted_add_only",
+          trustedApprovedEditCount: autoApprovalDecision.approvedEdits,
+        };
       }
       autoApproved = true;
     } catch (error) {
       console.error("[submitGearEditProposal] auto-approve failed", error);
+      autoApprovalDecision = {
+        ...autoApprovalDecision,
+        eligible: false,
+        reasonCode: "auto_approval_apply_failed",
+      };
+      proposalMetadata = {
+        autoApprovalDecision,
+      };
+      try {
+        await updateGearEditMetadataData({
+          gearEditId: proposal.id,
+          metadata: proposalMetadata,
+        });
+      } catch (metadataError) {
+        console.error(
+          "[submitGearEditProposal] failed to persist auto-approval failure metadata",
+          {
+            proposalId: proposal.id,
+            gearId,
+            error: metadataError,
+          },
+        );
+      }
     }
+
+    if (autoApproved && autoApprovedWebhookPayload) {
+      try {
+        await notifyAutoApprovedChangeRequest(autoApprovedWebhookPayload);
+      } catch (error) {
+        console.error("[submitGearEditProposal] auto-approved webhook notify failed", {
+          proposalId: proposal.id,
+          gearId,
+          error,
+        });
+      }
+    }
+  }
+  if (!autoApproved) {
+    console.info("[submitGearEditProposal] auto-approval skipped", {
+      proposalId: proposal.id,
+      gearId,
+      userId,
+      reasonCode: autoApprovalDecision.reasonCode,
+      path: autoApprovalDecision.path,
+      approvedEdits: autoApprovalDecision.approvedEdits,
+      autoSubmit: autoApprovalDecision.autoSubmit,
+      hasPendingEdits: autoApprovalDecision.hasPendingEdits,
+    });
   }
   // Audit log
   try {
@@ -956,6 +1129,7 @@ export async function submitGearEditProposal(body: unknown) {
       actorUserId: userId,
       gearId,
       gearEditId: proposal.id,
+      metadata: proposalMetadata,
     });
   } catch {}
   try {
@@ -967,8 +1141,8 @@ export async function submitGearEditProposal(body: unknown) {
     console.error("Failed to record gear edit analytics", eventErr);
   }
   const resultProposal = autoApproved
-    ? { ...proposal, status: "APPROVED" as const }
-    : proposal;
+    ? { ...proposal, status: "APPROVED" as const, metadata: proposalMetadata }
+    : { ...proposal, metadata: proposalMetadata };
 
   if (resultProposal.status === "PENDING") {
     try {
@@ -976,9 +1150,9 @@ export async function submitGearEditProposal(body: unknown) {
         proposalId: resultProposal.id,
         gearId,
         gearType: gearMeta?.gearType ?? null,
-        gearName: gearMeta?.name ?? "Gear",
-        gearSlug: gearMeta?.slug ?? data.slug ?? gearId,
-        createdByLabel: formatProposalSubmitterLabel(user),
+        gearName: gearContext.gearName,
+        gearSlug: gearContext.gearSlug,
+        createdByLabel: submitterLabel,
         changedFieldCount: proposalStats.changedFieldCount,
         changedSectionCount: proposalStats.changedSectionCount,
         hasNote: Boolean(data.note?.trim()),

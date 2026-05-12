@@ -5,6 +5,11 @@ import Link from "next/link";
 import { useEffect,useState } from "react";
 import { Card,CardContent } from "~/components/ui/card";
 import { formatDate } from "~/lib/format/date";
+import {
+  formatAutoApprovalDecisionForAdmin,
+  getAutoApprovalDecisionFromMetadata,
+  type AutoApprovalMetadata,
+} from "~/lib/gear/auto-approval-reasons";
 
 type AuditRow = {
   id: string;
@@ -17,6 +22,7 @@ type AuditRow = {
   gearSlug: string | null;
   gearEditId: string | null;
   editStatus: string | null;
+  metadata?: AutoApprovalMetadata | null;
 };
 
 type AuditLogResponse = {
@@ -72,7 +78,22 @@ export function AuditLogList() {
                   preset: "datetime-short",
                 })}
               </td>
-              <td className="py-2 pr-4">{r.action}</td>
+              <td className="py-2 pr-4">
+                <div>{r.action}</div>
+                {(() => {
+                  const detail =
+                    r.action === "GEAR_EDIT_PROPOSE"
+                      ? formatAutoApprovalDecisionForAdmin(
+                          getAutoApprovalDecisionFromMetadata(r.metadata),
+                        )
+                      : null;
+                  return detail ? (
+                    <div className="text-muted-foreground mt-1 text-xs">
+                      {detail}
+                    </div>
+                  ) : null;
+                })()}
+              </td>
               <td className="py-2 pr-4">{r.actorName || r.actorId}</td>
               <td className="py-2 pr-4">
                 {r.gearSlug ? (

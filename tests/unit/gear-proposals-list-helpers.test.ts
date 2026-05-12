@@ -1,6 +1,10 @@
 import { describe,expect,it } from "vitest";
 
 import {
+  formatAutoApprovalDecisionForAdmin,
+  getAutoApprovalDecisionFromMetadata,
+} from "~/lib/gear/auto-approval-reasons";
+import {
   buildMergedPayloadForGroup,
   buildSelectedPayload,
   computeConflictsForGroup,
@@ -55,6 +59,16 @@ describe("gear proposal helpers", () => {
               cameraType: null,
               captureMedium: null,
             },
+            metadata: {
+              autoApprovalDecision: {
+                eligible: false,
+                path: "trusted_candidate",
+                reasonCode: "proposal_not_add_only",
+                approvedEdits: 1,
+                autoSubmit: true,
+                hasPendingEdits: false,
+              },
+            },
             createdAt: "2026-03-30T12:00:00.000Z",
           },
         ],
@@ -72,6 +86,45 @@ describe("gear proposal helpers", () => {
       cameraType: null,
       captureMedium: null,
     });
+    expect(flattened[0]?.metadata).toEqual({
+      autoApprovalDecision: {
+        eligible: false,
+        path: "trusted_candidate",
+        reasonCode: "proposal_not_add_only",
+        approvedEdits: 1,
+        autoSubmit: true,
+        hasPendingEdits: false,
+      },
+    });
+  });
+
+  it("maps auto-approval reason metadata to readable admin text", () => {
+    const decision = getAutoApprovalDecisionFromMetadata({
+      autoApprovalDecision: {
+        eligible: false,
+        path: "trusted_candidate",
+        reasonCode: "no_prior_approved_edits",
+        approvedEdits: 0,
+        autoSubmit: true,
+        hasPendingEdits: false,
+      },
+    });
+
+    expect(formatAutoApprovalDecisionForAdmin(decision)).toBe(
+      "Trusted auto-approval requires at least one previously approved spec edit by this contributor.",
+    );
+  });
+
+  it("ignores invalid or missing metadata safely", () => {
+    expect(getAutoApprovalDecisionFromMetadata(null)).toBeNull();
+    expect(getAutoApprovalDecisionFromMetadata({})).toBeNull();
+    expect(
+      formatAutoApprovalDecisionForAdmin(
+        getAutoApprovalDecisionFromMetadata({
+          autoApprovalDecision: { reasonCode: "wrong-shape" },
+        }),
+      ),
+    ).toBeNull();
   });
 
   it("includes analog camera fields in selected single-proposal payloads", () => {

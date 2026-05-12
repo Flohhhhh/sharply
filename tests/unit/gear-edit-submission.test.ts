@@ -12,6 +12,7 @@ const gearDataMocks = vi.hoisted(() => ({
   getGearIdBySlug: vi.fn(),
   hasPendingEditsForGear: vi.fn(),
   insertAuditLog: vi.fn(),
+  updateGearEditMetadata: vi.fn(),
 }));
 
 const proposalServiceMocks = vi.hoisted(() => ({
@@ -20,6 +21,7 @@ const proposalServiceMocks = vi.hoisted(() => ({
 }));
 
 const webhookMocks = vi.hoisted(() => ({
+  notifyAutoApprovedChangeRequest: vi.fn(),
   notifyChangeRequestModerators: vi.fn(),
 }));
 
@@ -103,6 +105,8 @@ function makeUnderConstructionGear(overrides: Record<string, unknown> = {}) {
 describe("gear edit submission", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.spyOn(console, "info").mockImplementation(() => undefined);
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
 
     authMocks.getSessionOrThrow.mockResolvedValue({
       user: {
@@ -127,11 +131,13 @@ describe("gear edit submission", () => {
     });
     gearDataMocks.createGearEditProposal.mockResolvedValue(makeProposal());
     gearDataMocks.insertAuditLog.mockResolvedValue(undefined);
+    gearDataMocks.updateGearEditMetadata.mockResolvedValue(undefined);
 
     proposalServiceMocks.approveProposal.mockResolvedValue(undefined);
     proposalServiceMocks.applyTrustedContributorProposalApproval.mockResolvedValue(
       undefined,
     );
+    webhookMocks.notifyAutoApprovedChangeRequest.mockResolvedValue(undefined);
     webhookMocks.notifyChangeRequestModerators.mockResolvedValue(undefined);
     analyticsMocks.track.mockResolvedValue(undefined);
   });
@@ -144,6 +150,32 @@ describe("gear edit submission", () => {
 
     expect(result.autoApproved).toBe(true);
     expect(result.proposal.status).toBe("APPROVED");
+    expect(gearDataMocks.createGearEditProposal).toHaveBeenCalledWith({
+      gearId: "22222222-2222-4222-8222-222222222222",
+      userId: "user-1",
+      payload: { core: { name: "Updated name" } },
+      metadata: {
+        autoApprovalDecision: {
+          eligible: true,
+          path: "staff",
+          reasonCode: "auto_approved_staff",
+          approvedEdits: null,
+          autoSubmit: null,
+          hasPendingEdits: false,
+        },
+      },
+      note: null,
+    });
+    expect(result.proposal.metadata).toEqual({
+      autoApprovalDecision: {
+        eligible: true,
+        path: "staff",
+        reasonCode: "auto_approved_staff",
+        approvedEdits: null,
+        autoSubmit: null,
+        hasPendingEdits: false,
+      },
+    });
     expect(proposalServiceMocks.approveProposal).toHaveBeenCalledWith(
       "11111111-1111-4111-8111-111111111111",
       { core: { name: "Updated name" } },
@@ -155,6 +187,36 @@ describe("gear edit submission", () => {
     expect(
       proposalServiceMocks.applyTrustedContributorProposalApproval,
     ).not.toHaveBeenCalled();
+    expect(webhookMocks.notifyAutoApprovedChangeRequest).toHaveBeenCalledWith({
+      proposalId: "11111111-1111-4111-8111-111111111111",
+      gearId: "22222222-2222-4222-8222-222222222222",
+      gearType: "CAMERA",
+      gearName: "Nikon Zf",
+      gearSlug: "nikon-zf",
+      createdByLabel: "Alex Photographer",
+      changedFieldCount: 1,
+      changedSectionCount: 1,
+      hasNote: false,
+      approvalPath: "staff",
+      trustedApprovedEditCount: null,
+    });
+    expect(gearDataMocks.insertAuditLog).toHaveBeenCalledWith({
+      action: "GEAR_EDIT_PROPOSE",
+      actorUserId: "user-1",
+      gearId: "22222222-2222-4222-8222-222222222222",
+      gearEditId: "11111111-1111-4111-8111-111111111111",
+      metadata: {
+        autoApprovalDecision: {
+          eligible: true,
+          path: "staff",
+          reasonCode: "auto_approved_staff",
+          approvedEdits: null,
+          autoSubmit: null,
+          hasPendingEdits: false,
+        },
+      },
+    });
+    expect(console.info).not.toHaveBeenCalled();
     expect(webhookMocks.notifyChangeRequestModerators).not.toHaveBeenCalled();
   });
 
@@ -167,10 +229,34 @@ describe("gear edit submission", () => {
 
     expect(result.autoApproved).toBe(false);
     expect(result.proposal.status).toBe("PENDING");
+    expect(result.proposal.metadata).toEqual({
+      autoApprovalDecision: {
+        eligible: false,
+        path: "staff",
+        reasonCode: "auto_submit_disabled",
+        approvedEdits: null,
+        autoSubmit: false,
+        hasPendingEdits: false,
+      },
+    });
     expect(proposalServiceMocks.approveProposal).not.toHaveBeenCalled();
     expect(
       proposalServiceMocks.applyTrustedContributorProposalApproval,
     ).not.toHaveBeenCalled();
+    expect(webhookMocks.notifyAutoApprovedChangeRequest).not.toHaveBeenCalled();
+    expect(console.info).toHaveBeenCalledWith(
+      "[submitGearEditProposal] auto-approval skipped",
+      {
+        proposalId: "11111111-1111-4111-8111-111111111111",
+        gearId: "22222222-2222-4222-8222-222222222222",
+        userId: "user-1",
+        reasonCode: "auto_submit_disabled",
+        path: "staff",
+        approvedEdits: null,
+        autoSubmit: false,
+        hasPendingEdits: false,
+      },
+    );
     expect(webhookMocks.notifyChangeRequestModerators).toHaveBeenCalledWith({
       proposalId: "11111111-1111-4111-8111-111111111111",
       gearId: "22222222-2222-4222-8222-222222222222",
@@ -197,10 +283,34 @@ describe("gear edit submission", () => {
 
     expect(result.autoApproved).toBe(false);
     expect(result.proposal.status).toBe("PENDING");
+    expect(result.proposal.metadata).toEqual({
+      autoApprovalDecision: {
+        eligible: false,
+        path: "trusted_candidate",
+        reasonCode: "no_prior_approved_edits",
+        approvedEdits: 0,
+        autoSubmit: true,
+        hasPendingEdits: false,
+      },
+    });
     expect(proposalServiceMocks.approveProposal).not.toHaveBeenCalled();
     expect(
       proposalServiceMocks.applyTrustedContributorProposalApproval,
     ).not.toHaveBeenCalled();
+    expect(webhookMocks.notifyAutoApprovedChangeRequest).not.toHaveBeenCalled();
+    expect(console.info).toHaveBeenCalledWith(
+      "[submitGearEditProposal] auto-approval skipped",
+      {
+        proposalId: "11111111-1111-4111-8111-111111111111",
+        gearId: "22222222-2222-4222-8222-222222222222",
+        userId: "user-1",
+        reasonCode: "no_prior_approved_edits",
+        path: "trusted_candidate",
+        approvedEdits: 0,
+        autoSubmit: true,
+        hasPendingEdits: false,
+      },
+    );
     expect(webhookMocks.notifyChangeRequestModerators).toHaveBeenCalledTimes(1);
   });
 
@@ -218,10 +328,34 @@ describe("gear edit submission", () => {
 
     expect(result.autoApproved).toBe(true);
     expect(result.proposal.status).toBe("APPROVED");
+    expect(result.proposal.metadata).toEqual({
+      autoApprovalDecision: {
+        eligible: true,
+        path: "trusted_add_only",
+        reasonCode: "auto_approved_trusted_add_only",
+        approvedEdits: 1,
+        autoSubmit: true,
+        hasPendingEdits: false,
+      },
+    });
     expect(
       proposalServiceMocks.applyTrustedContributorProposalApproval,
     ).toHaveBeenCalledTimes(1);
     expect(proposalServiceMocks.approveProposal).not.toHaveBeenCalled();
+    expect(webhookMocks.notifyAutoApprovedChangeRequest).toHaveBeenCalledWith({
+      proposalId: "11111111-1111-4111-8111-111111111111",
+      gearId: "22222222-2222-4222-8222-222222222222",
+      gearType: "CAMERA",
+      gearName: "Nikon Zf",
+      gearSlug: "nikon-zf",
+      createdByLabel: "Alex Photographer",
+      changedFieldCount: 1,
+      changedSectionCount: 1,
+      hasNote: false,
+      approvalPath: "trusted_add_only",
+      trustedApprovedEditCount: 1,
+    });
+    expect(console.info).not.toHaveBeenCalled();
     expect(webhookMocks.notifyChangeRequestModerators).not.toHaveBeenCalled();
   });
 
@@ -242,10 +376,34 @@ describe("gear edit submission", () => {
 
     expect(result.autoApproved).toBe(false);
     expect(result.proposal.status).toBe("PENDING");
+    expect(result.proposal.metadata).toEqual({
+      autoApprovalDecision: {
+        eligible: false,
+        path: "trusted_candidate",
+        reasonCode: "proposal_not_add_only",
+        approvedEdits: 1,
+        autoSubmit: true,
+        hasPendingEdits: false,
+      },
+    });
     expect(proposalServiceMocks.approveProposal).not.toHaveBeenCalled();
     expect(
       proposalServiceMocks.applyTrustedContributorProposalApproval,
     ).not.toHaveBeenCalled();
+    expect(webhookMocks.notifyAutoApprovedChangeRequest).not.toHaveBeenCalled();
+    expect(console.info).toHaveBeenCalledWith(
+      "[submitGearEditProposal] auto-approval skipped",
+      {
+        proposalId: "11111111-1111-4111-8111-111111111111",
+        gearId: "22222222-2222-4222-8222-222222222222",
+        userId: "user-1",
+        reasonCode: "proposal_not_add_only",
+        path: "trusted_candidate",
+        approvedEdits: 1,
+        autoSubmit: true,
+        hasPendingEdits: false,
+      },
+    );
     expect(webhookMocks.notifyChangeRequestModerators).toHaveBeenCalledTimes(1);
   });
 
@@ -263,10 +421,21 @@ describe("gear edit submission", () => {
 
     expect(result.autoApproved).toBe(false);
     expect(result.proposal.status).toBe("PENDING");
+    expect(result.proposal.metadata).toEqual({
+      autoApprovalDecision: {
+        eligible: false,
+        path: "trusted_candidate",
+        reasonCode: "proposal_not_add_only",
+        approvedEdits: 1,
+        autoSubmit: true,
+        hasPendingEdits: false,
+      },
+    });
     expect(proposalServiceMocks.approveProposal).not.toHaveBeenCalled();
     expect(
       proposalServiceMocks.applyTrustedContributorProposalApproval,
     ).not.toHaveBeenCalled();
+    expect(webhookMocks.notifyAutoApprovedChangeRequest).not.toHaveBeenCalled();
     expect(webhookMocks.notifyChangeRequestModerators).toHaveBeenCalledTimes(1);
   });
 
@@ -288,6 +457,19 @@ describe("gear edit submission", () => {
       proposalServiceMocks.applyTrustedContributorProposalApproval,
     ).toHaveBeenCalledTimes(1);
     expect(proposalServiceMocks.approveProposal).not.toHaveBeenCalled();
+    expect(webhookMocks.notifyAutoApprovedChangeRequest).toHaveBeenCalledWith({
+      proposalId: "11111111-1111-4111-8111-111111111111",
+      gearId: "22222222-2222-4222-8222-222222222222",
+      gearType: "CAMERA",
+      gearName: "Nikon Zf",
+      gearSlug: "nikon-zf",
+      createdByLabel: "Alex Photographer",
+      changedFieldCount: 1,
+      changedSectionCount: 1,
+      hasNote: false,
+      approvalPath: "trusted_add_only",
+      trustedApprovedEditCount: 1,
+    });
   });
 
   it("keeps trusted contributors pending when collection fields already contain values", async () => {
@@ -309,10 +491,34 @@ describe("gear edit submission", () => {
 
     expect(result.autoApproved).toBe(false);
     expect(result.proposal.status).toBe("PENDING");
+    expect(result.proposal.metadata).toEqual({
+      autoApprovalDecision: {
+        eligible: false,
+        path: "trusted_candidate",
+        reasonCode: "proposal_not_add_only",
+        approvedEdits: 1,
+        autoSubmit: true,
+        hasPendingEdits: false,
+      },
+    });
     expect(proposalServiceMocks.approveProposal).not.toHaveBeenCalled();
     expect(
       proposalServiceMocks.applyTrustedContributorProposalApproval,
     ).not.toHaveBeenCalled();
+    expect(webhookMocks.notifyAutoApprovedChangeRequest).not.toHaveBeenCalled();
+    expect(console.info).toHaveBeenCalledWith(
+      "[submitGearEditProposal] auto-approval skipped",
+      {
+        proposalId: "11111111-1111-4111-8111-111111111111",
+        gearId: "22222222-2222-4222-8222-222222222222",
+        userId: "user-1",
+        reasonCode: "proposal_not_add_only",
+        path: "trusted_candidate",
+        approvedEdits: 1,
+        autoSubmit: true,
+        hasPendingEdits: false,
+      },
+    );
     expect(webhookMocks.notifyChangeRequestModerators).toHaveBeenCalledTimes(1);
   });
 
@@ -331,6 +537,91 @@ describe("gear edit submission", () => {
     expect(
       proposalServiceMocks.applyTrustedContributorProposalApproval,
     ).not.toHaveBeenCalled();
+    expect(webhookMocks.notifyAutoApprovedChangeRequest).not.toHaveBeenCalled();
+    expect(webhookMocks.notifyChangeRequestModerators).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps auto-approved submissions successful when the webhook send fails", async () => {
+    webhookMocks.notifyAutoApprovedChangeRequest.mockRejectedValueOnce(
+      new Error("discord down"),
+    );
+
+    const result = await submitGearEditProposal({
+      gearId: "22222222-2222-4222-8222-222222222222",
+      payload: { core: { name: "Updated name" } },
+    });
+
+    expect(result.autoApproved).toBe(true);
+    expect(result.proposal.status).toBe("APPROVED");
+    expect(proposalServiceMocks.approveProposal).toHaveBeenCalledTimes(1);
+    expect(webhookMocks.notifyAutoApprovedChangeRequest).toHaveBeenCalledTimes(1);
+    expect(console.info).not.toHaveBeenCalled();
+    expect(webhookMocks.notifyChangeRequestModerators).not.toHaveBeenCalled();
+  });
+
+  it("stores a failed auto-approval reason when apply fails and leaves the request pending", async () => {
+    proposalServiceMocks.approveProposal.mockRejectedValueOnce(new Error("db down"));
+
+    const result = await submitGearEditProposal({
+      gearId: "22222222-2222-4222-8222-222222222222",
+      payload: { core: { name: "Updated name" } },
+    });
+
+    expect(result.autoApproved).toBe(false);
+    expect(result.proposal.status).toBe("PENDING");
+    expect(result.proposal.metadata).toEqual({
+      autoApprovalDecision: {
+        eligible: false,
+        path: "staff",
+        reasonCode: "auto_approval_apply_failed",
+        approvedEdits: null,
+        autoSubmit: null,
+        hasPendingEdits: false,
+      },
+    });
+    expect(gearDataMocks.updateGearEditMetadata).toHaveBeenCalledWith({
+      gearEditId: "11111111-1111-4111-8111-111111111111",
+      metadata: {
+        autoApprovalDecision: {
+          eligible: false,
+          path: "staff",
+          reasonCode: "auto_approval_apply_failed",
+          approvedEdits: null,
+          autoSubmit: null,
+          hasPendingEdits: false,
+        },
+      },
+    });
+    expect(gearDataMocks.insertAuditLog).toHaveBeenCalledWith({
+      action: "GEAR_EDIT_PROPOSE",
+      actorUserId: "user-1",
+      gearId: "22222222-2222-4222-8222-222222222222",
+      gearEditId: "11111111-1111-4111-8111-111111111111",
+      metadata: {
+        autoApprovalDecision: {
+          eligible: false,
+          path: "staff",
+          reasonCode: "auto_approval_apply_failed",
+          approvedEdits: null,
+          autoSubmit: null,
+          hasPendingEdits: false,
+        },
+      },
+    });
+    expect(console.info).toHaveBeenCalledWith(
+      "[submitGearEditProposal] auto-approval skipped",
+      {
+        proposalId: "11111111-1111-4111-8111-111111111111",
+        gearId: "22222222-2222-4222-8222-222222222222",
+        userId: "user-1",
+        reasonCode: "auto_approval_apply_failed",
+        path: "staff",
+        approvedEdits: null,
+        autoSubmit: null,
+        hasPendingEdits: false,
+      },
+    );
+    expect(webhookMocks.notifyAutoApprovedChangeRequest).not.toHaveBeenCalled();
     expect(webhookMocks.notifyChangeRequestModerators).toHaveBeenCalledTimes(1);
   });
 });

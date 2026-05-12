@@ -28,10 +28,11 @@ type ProposalSelect = {
   createdById: string;
   createdByName: string | null;
   createdByImage: string | null;
-  status: GearEditProposal["status"];
-  payload: GearEditProposal["payload"];
-  note: string | null;
-  createdAt: Date;
+    status: GearEditProposal["status"];
+    payload: GearEditProposal["payload"];
+    metadata: GearEditProposal["metadata"];
+    note: string | null;
+    createdAt: Date;
 };
 
 type Baseline = {
@@ -75,6 +76,7 @@ async function fetchEnrichedProposals(
       createdByImage: users.image,
       status: gearEdits.status,
       payload: gearEdits.payload,
+      metadata: gearEdits.metadata,
       note: gearEdits.note,
       createdAt: gearEdits.createdAt,
     })
@@ -186,6 +188,7 @@ export async function fetchRecentResolvedProposalsData(
       createdByImage: users.image,
       status: gearEdits.status,
       payload: gearEdits.payload,
+      metadata: gearEdits.metadata,
       note: gearEdits.note,
       createdAt: gearEdits.createdAt,
     })
