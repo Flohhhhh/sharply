@@ -103,10 +103,20 @@ function makeUnderConstructionGear(overrides: Record<string, unknown> = {}) {
 }
 
 describe("gear edit submission", () => {
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+describe("gear edit submission", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(console, "info").mockImplementation(() => undefined);
     vi.spyOn(console, "error").mockImplementation(() => undefined);
+    // ... other setup lines ...
+    analyticsMocks.track.mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
 
     authMocks.getSessionOrThrow.mockResolvedValue({
       user: {
