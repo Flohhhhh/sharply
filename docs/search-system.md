@@ -14,6 +14,7 @@ This document explains how search works in Sharply: routing, URL model, UI surfa
   - Opens with ⌘K/Ctrl+K or programmatically via `document.dispatchEvent(new CustomEvent("sharply:open-command-palette"))`.
   - Debounced typeahead (200ms) calling `/api/search/suggest`.
   - Uses the same suggestion contract and Enter priority as the header search.
+  - The inline `GlobalSearchBar` only shows the visual ⌘K/Ctrl+K hint from the `sm` breakpoint upward; mobile keeps the shortcut behavior but hides the hint chip.
   - Built-in cmdk filtering is disabled so server-ranked results always render.
 - Search results page: `src/app/[locale]/(pages)/search/page.tsx`
   - Server component; fully driven by `searchParams`.

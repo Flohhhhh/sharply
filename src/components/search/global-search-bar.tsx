@@ -22,12 +22,12 @@ const sizeVariants = {
   md: {
     trigger: "h-11 rounded-xl text-sm pr-2",
     icon: "size-4",
-    hint: "inline-flex",
+    hint: "hidden sm:inline-flex",
   },
   lg: {
     trigger: "h-16 rounded-2xl text-base pr-4",
     icon: "size-5",
-    hint: "inline-flex",
+    hint: "hidden sm:inline-flex",
   },
 } as const;
 

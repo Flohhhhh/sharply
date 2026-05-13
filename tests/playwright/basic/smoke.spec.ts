@@ -27,6 +27,25 @@ test.describe("smoke", () => {
     ).toBeVisible();
   });
 
+  test("landing search hotkey hint is hidden on mobile and visible on desktop", async ({
+    page,
+  }) => {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+
+    const searchTrigger = page.getByRole("button", { name: "Search" });
+    const shortcut = searchTrigger.locator("kbd");
+
+    await expect(searchTrigger).toBeVisible();
+    await expect(shortcut).toHaveCount(1);
+
+    if (test.info().project.name.includes("Mobile")) {
+      await expect(shortcut).not.toBeVisible();
+      return;
+    }
+
+    await expect(shortcut).toBeVisible();
+  });
+
   test("landing CTA routes to browse hub", async ({ page }) => {
     await page.goto("/");
 
