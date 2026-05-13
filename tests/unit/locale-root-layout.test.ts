@@ -1,6 +1,6 @@
 import { createElement, Fragment, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const analyticsMock = vi.hoisted(() =>
   vi.fn(() => createElement("div", { "data-testid": "analytics" })),
@@ -55,11 +55,20 @@ describe("locale root layout", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.VERCEL_ENV = undefined;
+    delete process.env.VERCEL_ENV;
     i18nMessageMocks.getMessagesForLocale.mockResolvedValue({});
   });
 
   afterEach(() => {
+    delete process.env.VERCEL_ENV;
+  });
+
+  afterAll(() => {
+    if (originalVercelEnv === undefined) {
+      delete process.env.VERCEL_ENV;
+      return;
+    }
+
     process.env.VERCEL_ENV = originalVercelEnv;
   });
 
