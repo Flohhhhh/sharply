@@ -137,7 +137,7 @@ export const BADGE_CATALOG: BadgeDefinition[] = [
     descriptionFor: (n: number) =>
       n === 1
         ? "Add the first item to your wishlist"
-        : `Have ${n} items on your wishlist at once`,
+        : `Have at least ${n} items on your wishlist`,
   }),
 ];
 
