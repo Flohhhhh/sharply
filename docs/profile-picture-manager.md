@@ -6,6 +6,8 @@ This document describes the profile picture upload and management feature added 
 
 Users can upload and manage their profile pictures from the account settings page at `/profile/settings`. Profile pictures are automatically resized to a maximum of 256px on the longest side before upload to ensure optimal performance and storage.
 
+OAuth provider avatars and custom uploaded profile images share the same `users.image` field. Avatar UI surfaces render that field directly through the shared avatar component rather than wrapping it with `next/image`, which avoids remote optimizer host issues for provider-hosted images while keeping uploaded avatars lightweight.
+
 ## Features
 
 1. **Profile Picture Upload**: Users can upload images from their device
@@ -87,6 +89,8 @@ Images are resized client-side before upload:
 5. Image is redrawn on canvas at new dimensions
 6. Canvas is converted to blob with 0.9 quality
 7. Resized blob is uploaded to UploadThing
+
+Because uploaded profile pictures are resized to avatar-sized dimensions before upload, they do not require additional runtime optimization when displayed in avatar UI.
 
 ## Security
 

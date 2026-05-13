@@ -37,6 +37,7 @@ import { UserListsSectionDeferred } from "~/app/[locale]/(pages)/u/_components/l
 import { WishlistGearCard } from "~/app/[locale]/(pages)/u/_components/wishlist-gear-card";
 import { auth } from "~/auth";
 import { Button } from "~/components/ui/button";
+import { UserAvatar } from "~/components/ui/user-avatar";
 import { GetGearDisplayName } from "~/lib/gear/naming";
 import { getBrandNameById } from "~/lib/mapping/brand-map";
 import type { GearItem } from "~/types/gear";
@@ -105,15 +106,12 @@ export default async function UserProfilePage({
       {/* User Header */}
       <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div className="flex items-center gap-4">
-          {profile.image && (
-            <Image
-              src={profile.image}
-              alt={profile.name || t("userAlt")}
-              width={64}
-              height={64}
-              className="h-16 w-16 rounded-full"
-            />
-          )}
+          <UserAvatar
+            src={profile.image}
+            name={profile.name ?? t("anonymousUser")}
+            alt={profile.name || t("userAlt")}
+            className="h-16 w-16"
+          />
           <div>
             <h1 className="text-3xl font-bold">
               {profile.name || t("anonymousUser")}
