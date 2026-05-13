@@ -17,6 +17,8 @@ A lightweight, event-driven badge system with a single catalog, small generators
 - Generators
   - `createThresholdBadgeLadder` — metric-based ladders (e.g., wishlist count, approved reviews).
   - `createTimeBadgeLadder` — time-based ladders (e.g., tenure since join date). Uses `context.now` for evaluation.
+- Icon rendering
+  - `src/lib/badges/icon-presentation.ts` — `getBadgeIconSvgProps` maps optional `BadgeDefinition.iconPresentation` (`"fill"` default, or `"stroke"`) to SVG props for Lucide icons on tiles.
 - Server
   - `src/server/badges/data.ts` — `getUserSnapshot`, `upsertUserBadge` (idempotent insert + logging), reads.
   - `src/server/badges/service.ts` — `evaluateForEvent`, `dryRunForEvent`, `fetchRecentAwards`, `fetchUserBadges`, `awardBadgeForce`.
@@ -27,7 +29,7 @@ A lightweight, event-driven badge system with a single catalog, small generators
   - `src/app/[locale]/(pages)/u/_components/user-badges.tsx` — profile layout with sorting and tooltips.
   - Admin: `src/app/[locale]/(admin)/admin/badges-catalog.tsx` (viewer), `badges-test-toast.tsx` (test button), and `badges-awards-list.tsx` (recent awards).
 - Cron
-  - `GET /api/admin/badges/anniversary` (secured by `CRON_SECRET`) emits `cron.anniversary` for users whose join month/day is today, passing `{ now }` in context.
+  - `GET /api/admin/badges/anniversary` (secured by `CRON_SECRET`) emits `cron.anniversary` for users whose account `createdAt` month/day (UTC) matches today, passing `{ now }` in context.
 
 ## Storage
 
@@ -48,9 +50,11 @@ A lightweight, event-driven badge system with a single catalog, small generators
 
 - Threshold ladder (metric-based)
   - Use `createThresholdBadgeLadder` with: `baseKey`, `family`, `iconComponent`, `color`, `trigger`, `levels`, `metric`, `labelBase`, and `descriptionFor`.
+  - Optional `iconPresentation: "stroke"` applies outline-style icons (`fill="none"`, `stroke="currentColor"`); omit for the default solid fill.
   - Automatically sets `level` and `levelIndex`; `sortScore` defaults to the index unless overridden.
 - Time ladder (anniversaries)
   - Use `createTimeBadgeLadder` with: `baseKey`, `family`, `iconComponent`, `color`, `trigger`, `durationsDays`, `labelBase`, and `descriptionFor`.
+  - Same optional `iconPresentation: "stroke"` as threshold ladders.
   - Evaluates tenure from the user's join date; pass `{ now }` in `context` for cron.
 - Labels automatically include roman tier numerals based on ladder index, using `toRomanNumeral` from `src/lib/utils.ts`.
 
@@ -68,6 +72,7 @@ A lightweight, event-driven badge system with a single catalog, small generators
 - Add definition to catalog
   - Open `src/lib/badges/catalog.ts` and add a new entry using the appropriate generator (threshold/time) or a single definition for manual.
   - Provide: `baseKey`, `family`, `iconComponent`, `color`, `trigger`, `labelBase`, `descriptionFor`, and either `levels`/`metric` (threshold) or `durationsDays` (time).
+  - Optional `iconPresentation: "stroke"` on a single badge or on a ladder generator call for outline Lucide icons; see `getBadgeIconSvgProps` in `src/lib/badges/icon-presentation.ts`.
   - Roman numerals are appended automatically by ladder generators.
 - Ensure metrics exist
   - If your threshold badge uses a new metric, add it to `UserSnapshot` in `src/types/badges.ts` and compute it in `getUserSnapshot` in `src/server/badges/data.ts`.
@@ -77,7 +82,7 @@ A lightweight, event-driven badge system with a single catalog, small generators
   - For time-based badges, ensure the cron route emits `cron.anniversary` (or an appropriate time event) with `{ now }`.
 - Sorting and presentation
   - `sortScore` is set automatically for ladders; use `sortOverride` in `user_badges` only for manual adjustments.
-  - Set `labelBase` and `descriptionFor` to explain how the badge is earned; color/icon are used in UI.
+  - Set `labelBase` and `descriptionFor` to explain how the badge is earned; `color` and `iconComponent` are used in UI.
 - Client toasts
   - For client-initiated mutations, prefer `withBadgeToasts(yourAction(...))` so any `{ awarded }` keys toast automatically.
   - For manual/admin grants, wrap the client call in `withBadgeToasts` and toast only when the result indicates a new award.
@@ -164,7 +169,8 @@ const res = await withBadgeToasts(actionAwardBadgeForce(userId, "learner"));
 
 - Route: `GET /api/admin/badges/anniversary`
 - Security: header `Authorization: Bearer ${CRON_SECRET}`
-- Logic: select users whose `emailVerified` month/day is today, then
+- Schedule: see `vercel.json` (daily).
+- Logic: `fetchUsersWithAnniversaryToday` selects users whose **account `createdAt` month and day** (UTC / DB `now()` calendar) match **today’s** month and day — same source as `joinDate` in `getUserSnapshot`. For each match, the handler runs:
 
 ```ts
 evaluateForEvent(
@@ -173,6 +179,7 @@ evaluateForEvent(
 );
 ```
 
+- Effect: anniversary badges are evaluated **only on that calendar anniversary** (e.g. joined 15 Jan → processed each 15 Jan), not every day after you cross 7 / 30 / 182 days. On the first run where `diffDays` clears a threshold, every lower tier can award in one pass.
 - Logs: start/end timestamps, users processed, total awards.
 
 ## Notes on Toasting
@@ -189,7 +196,7 @@ evaluateForEvent(
 - Pending notifications
   - Add an `announced_at` column or a `pending_badge_notifications` table to surface toasts on next client session for cron/admin awards.
 - Catalog viewer polish
-  - Group by family; quick filters; search by key/trigger; open badge preview (icon/color/description).
+  - Group by family; quick filters; search by key/trigger; open badge preview (icon component, color, description).
 - Profile UX
   - Group ladders by family; “See all” pagination when badge lists get large; accessibility labeling & keyboard focus.
 - Additional ladders & badges

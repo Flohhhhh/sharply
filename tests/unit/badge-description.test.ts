@@ -7,7 +7,6 @@ function makeBadge(overrides: Partial<BadgeDefinition>): BadgeDefinition {
     key: "test",
     family: "misc",
     label: "Test",
-    icon: "star",
     sortScore: 1,
     triggers: ["review.approved"],
     test: () => true,

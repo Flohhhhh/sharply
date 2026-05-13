@@ -1,5 +1,6 @@
 import type { ComponentType,SVGProps } from "react";
 import type { AllowedTrigger } from "~/lib/badges/constants";
+import type { BadgeIconPresentation } from "~/lib/badges/icon-presentation";
 export type UserSnapshot = {
   approvedEdits: number;
   approvedReviews: number;
@@ -15,8 +16,9 @@ export type BadgeDefinition = {
   family: string; // use "misc" for one-offs
   label: string;
   description?: string;
-  icon: string;
   color?: string; // tailwind color token or hex
+  /** Default filled icon; use "stroke" for outline-style Lucide icons. */
+  iconPresentation?: BadgeIconPresentation;
   iconComponent?: ComponentType<SVGProps<SVGSVGElement>>;
   level?: number; // present for ladder badges only
   levelIndex?: number; // 1-based ordinal within its ladder

@@ -4,8 +4,8 @@ import type { BadgeDefinition,UserSnapshot } from "~/types/badges";
 export function createThresholdBadgeLadder(params: {
   baseKey: string;
   family: string;
-  icon: string;
   color?: string;
+  iconPresentation?: BadgeDefinition["iconPresentation"];
   iconComponent?: BadgeDefinition["iconComponent"];
   trigger: string;
   levels: number[];
@@ -18,8 +18,8 @@ export function createThresholdBadgeLadder(params: {
   const {
     baseKey,
     family,
-    icon,
     color,
+    iconPresentation,
     iconComponent,
     trigger,
     levels,
@@ -42,8 +42,8 @@ export function createThresholdBadgeLadder(params: {
       family,
       label: computedLabel,
       description: descriptionFor ? descriptionFor(lvl) : undefined,
-      icon,
       color,
+      iconPresentation,
       iconComponent,
       level: lvl,
       levelIndex,
@@ -63,8 +63,8 @@ export function createThresholdBadgeLadder(params: {
 export function createTimeBadgeLadder(params: {
   baseKey: string;
   family: string;
-  icon: string;
   color?: string;
+  iconPresentation?: BadgeDefinition["iconPresentation"];
   iconComponent?: BadgeDefinition["iconComponent"];
   trigger: string;
   durationsDays: number[];
@@ -75,8 +75,8 @@ export function createTimeBadgeLadder(params: {
   const {
     baseKey,
     family,
-    icon,
     color,
+    iconPresentation,
     iconComponent,
     trigger,
     durationsDays,
@@ -106,8 +106,8 @@ export function createTimeBadgeLadder(params: {
       family,
       label: computedLabel,
       description: descriptionFor ? descriptionFor(days) : undefined,
-      icon,
       color,
+      iconPresentation,
       iconComponent,
       level: days,
       levelIndex,

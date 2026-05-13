@@ -1,8 +1,15 @@
-import { Heart,Star,Telescope } from "lucide-react";
+import {
+  Briefcase,
+  Calendar,
+  Heart,
+  PencilRuler,
+  Star,
+  Telescope,
+} from "lucide-react";
 import type { BadgeDefinition } from "~/types/badges";
 import type { AllowedTrigger } from "./constants";
 import { ALLOWED_TRIGGERS } from "./constants";
-import { createThresholdBadgeLadder,createTimeBadgeLadder } from "./generator";
+import { createThresholdBadgeLadder, createTimeBadgeLadder } from "./generator";
 
 export function validateBadgeCatalog(catalog: BadgeDefinition[]) {
   const keys = new Set<string>();
@@ -29,8 +36,8 @@ export const BADGE_CATALOG: BadgeDefinition[] = [
     label: "Pioneer",
     description:
       "Early Sharply member, granted to all members who joined within the first 30 days of launch",
-    icon: "telescope",
     color: "#181818",
+    iconPresentation: "stroke",
     iconComponent: Telescope,
     sortScore: 1,
     // Grant on login/signup and other common events for now. We'll remove later.
@@ -47,7 +54,6 @@ export const BADGE_CATALOG: BadgeDefinition[] = [
   ...createThresholdBadgeLadder({
     baseKey: "reviews",
     family: "reviews",
-    icon: "star",
     color: "#4F78D2",
     iconComponent: Star,
     trigger: "review.approved",
@@ -63,9 +69,9 @@ export const BADGE_CATALOG: BadgeDefinition[] = [
   ...createThresholdBadgeLadder({
     baseKey: "ownership",
     family: "ownership",
-    icon: "briefcase",
     color: "#B581E6",
-    iconComponent: Star,
+    iconComponent: Briefcase,
+    iconPresentation: "stroke",
     trigger: "ownership.added",
     levels: [1, 5, 10, 20, 50],
     metric: "ownershipCount",
@@ -77,11 +83,11 @@ export const BADGE_CATALOG: BadgeDefinition[] = [
   ...createThresholdBadgeLadder({
     baseKey: "edits",
     family: "edits",
-    icon: "pencil",
-    color: "#EDB554",
-    iconComponent: Star,
+    color: "rgb(223 173 72)",
+    iconComponent: PencilRuler,
+    iconPresentation: "stroke",
     trigger: "edit.approved",
-    levels: [1, 5, 10, 25, 50, 100, 200, 500],
+    levels: [1, 5, 10, 25, 50, 100, 200, 500, 750, 1000],
     metric: "approvedEdits",
     labelBase: "Spec Scribe",
     descriptionFor: (n: number) =>
@@ -91,9 +97,8 @@ export const BADGE_CATALOG: BadgeDefinition[] = [
   ...createTimeBadgeLadder({
     baseKey: "anniversary",
     family: "anniversary",
-    icon: "calendar",
     color: "#10B981",
-    iconComponent: Star,
+    iconComponent: Calendar,
     trigger: "cron.anniversary",
     // days thresholds: 1w, 1m, 6m, 1y, 2y..10y
     durationsDays: [
@@ -123,23 +128,16 @@ export const BADGE_CATALOG: BadgeDefinition[] = [
   ...createThresholdBadgeLadder({
     baseKey: "wishlist",
     family: "wishlist",
-    icon: "heart",
     color: "#F06583",
     iconComponent: Heart,
     trigger: "wishlist.added",
     levels: [1, 5, 10, 20, 50],
     metric: "wishlistCount",
     labelBase: "GAS Station Attendant",
-    descriptionFor: (lvl: number) =>
-      lvl === 1
+    descriptionFor: (n: number) =>
+      n === 1
         ? "Add the first item to your wishlist"
-        : lvl === 5
-          ? "Have 5 items on your wishlist at once"
-          : lvl === 10
-            ? "Have 10 items on your wishlist at once"
-            : lvl === 20
-              ? "Have 20 items on your wishlist at once"
-              : `Have 50 items on your wishlist at once`,
+        : `Have ${n} items on your wishlist at once`,
   }),
 ];
 
@@ -147,7 +145,7 @@ export function buildTriggerIndex(catalog: BadgeDefinition[]) {
   const index = new Map<AllowedTrigger, BadgeDefinition[]>();
   for (const def of catalog) {
     for (const t of def.triggers) {
-      const list = (index.get(t as AllowedTrigger) ?? []);
+      const list = index.get(t as AllowedTrigger) ?? [];
       list.push(def);
       index.set(t as AllowedTrigger, list);
     }
