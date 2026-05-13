@@ -56,7 +56,7 @@ If either fails, the new row stays **`PENDING`** and **`notifyChangeRequestModer
 
 **What happens:** `approveProposal` in `src/server/admin/proposals/service.ts` runs. That enforces staff role again, loads the pending proposal, then calls **`approveProposalData`** (in `src/server/admin/proposals/data.ts`) to merge payload into gear and mark the edit approved. The approver recorded on the audit entry is the **staff** session user.
 
-**Side effects:** Badge evaluation and an in-app **“Your spec edit was approved!”** notification for the **original submitter** (`notifyContributorOfApprovedGearEdit` in the proposals service).
+**Side effects:** Badge evaluation and an in-app **“Your spec edit was approved!”** notification for the **original submitter** (`notifyContributorOfApprovedGearEdit` in the proposals service). Successful staff auto-approvals also emit an immediate operational Discord webhook log via `notifyAutoApprovedChangeRequest` in `src/server/admin/proposals/webhook.ts`.
 
 ## Trusted contributor auto-approval (non-staff)
 
@@ -73,7 +73,7 @@ If either fails, the new row stays **`PENDING`** and **`notifyChangeRequestModer
 
 **Slug:** Eligibility loads the full gear row by **`gearMeta.slug`**; if slug is missing, trusted eligibility is false.
 
-**What happens:** **`applyTrustedContributorProposalApproval`** in `src/server/admin/proposals/service.ts` (not `approveProposal`). It verifies the session user is the **`createdById`** on that proposal, then calls **`approveProposalData`** with the contributor as the audit **actor** for the approve step, and runs the same **notification / badge** side effects as staff approval.
+**What happens:** **`applyTrustedContributorProposalApproval`** in `src/server/admin/proposals/service.ts` (not `approveProposal`). It verifies the session user is the **`createdById`** on that proposal, then calls **`approveProposalData`** with the contributor as the audit **actor** for the approve step, and runs the same **notification / badge** side effects as staff approval. Successful trusted auto-approvals also emit the same immediate operational Discord webhook log via `notifyAutoApprovedChangeRequest`.
 
 ## Response and caching
 
@@ -81,16 +81,44 @@ If either fails, the new row stays **`PENDING`** and **`notifyChangeRequestModer
 
 `actionSubmitGearProposal` revalidates the gear page when `autoApproved` is true and the request body included a **`slug`** (see `src/server/gear/actions.ts`).
 
+## Persisted decision metadata
+
+- Each submitted proposal now stores a submission-time decision snapshot in `gear_edits.metadata.autoApprovalDecision`.
+- The same decision snapshot is written onto the `GEAR_EDIT_PROPOSE` audit log row via `audit_logs.metadata.autoApprovalDecision`.
+- The stored decision includes:
+  - whether the request was eligible for auto-approval
+  - the approval path (`staff`, `trusted_candidate`, `trusted_add_only`, or `none`)
+  - the final reason code
+  - the contributor's approved edit count when relevant
+  - whether `autoSubmit` was explicitly disabled
+  - whether another pending request already existed
+- This avoids drift when admins review a request later, because the UI no longer has to recompute eligibility from the current DB state.
+
+## Webhook logging
+
+- **Auto-approved** submissions send an immediate Discord webhook event through `notifyAutoApprovedChangeRequest` with the approval path (`staff` vs `trusted_add_only`) and a compact change summary.
+- **Pending** submissions continue to use `notifyChangeRequestModerators`, which opens or contributes to the aggregated pending-request window.
+- Auto-approved submissions **do not** increment the pending window counters and **do not** appear in the standard pending-request summary webhook messages.
+
+## Admin and console observability
+
+- When a proposal is **not** auto-approved, `submitGearEditProposal` writes a structured `console.info` entry with the final reason code and relevant submission context.
+- The admin approval queue reads `gear_edits.metadata.autoApprovalDecision` and shows a human-readable explanation on pending request items.
+- The admin audit logs page reads `audit_logs.metadata.autoApprovalDecision` and shows the same explanation under `GEAR_EDIT_PROPOSE` rows.
+- If a request was eligible but the immediate apply step failed, the persisted reason is updated to `auto_approval_apply_failed` and the proposal remains pending for manual review.
+
 ## Quick reference
 
 | Concern | Location |
 |--------|----------|
-| Orchestration and gates | `src/server/gear/service.ts` (`submitGearEditProposal`, `isAddOnlyProposal`, `isTrustedAddOnlyAutoApprovalEligible`) |
+| Orchestration and gates | `src/server/gear/service.ts` (`submitGearEditProposal`, `isAddOnlyProposal`, `evaluateAutoApprovalDecision`) |
 | Staff approve + trusted apply + notifications | `src/server/admin/proposals/service.ts` |
 | DB apply / transactions | `src/server/admin/proposals/data.ts` (`approveProposalData`) |
+| Proposal metadata persistence | `src/server/gear/data.ts` (`createGearEditProposal`, `updateGearEditMetadata`) |
 | Approved-edit count for trust | `src/server/gear/data.ts` (`countApprovedGearEditsByUser`) |
 | Under construction definition | `src/lib/utils.ts` (`getConstructionState`) |
-| Moderator webhook for pending | `src/server/admin/proposals/webhook.ts` |
+| Moderator webhook for pending + auto-approved logging | `src/server/admin/proposals/webhook.ts` |
+| Human-readable admin reason mapping | `src/lib/gear/auto-approval-reasons.ts` |
 | Server action + revalidation | `src/server/gear/actions.ts` |
 | Auto-Submit UI (staff) | `edit-gear-form.tsx`, `edit-modal-content.tsx` |
 
