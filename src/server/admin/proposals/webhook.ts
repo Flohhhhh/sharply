@@ -31,6 +31,20 @@ export type ChangeRequestWebhookItemSummary = {
   hasNote: boolean;
 };
 
+export type ChangeRequestAutoApprovedWebhookItem = {
+  proposalId: string;
+  gearId: string;
+  gearType: string | null;
+  gearName: string;
+  gearSlug: string;
+  createdByLabel: string | null;
+  changedFieldCount: number;
+  changedSectionCount: number;
+  hasNote: boolean;
+  approvalPath: "staff" | "trusted_add_only";
+  trustedApprovedEditCount?: number | null;
+};
+
 type DiscordWebhookPayload = {
   username: string;
   content: string;
@@ -71,6 +85,10 @@ export type NotifyChangeRequestModeratorsResult =
   | { status: "sent_immediate" }
   | { status: "queued_for_aggregate"; pendingCount: number }
   | { status: "immediate_failed_queued"; pendingCount: number };
+
+export type NotifyAutoApprovedChangeRequestResult =
+  | { status: "skipped_no_webhook" }
+  | { status: "sent_immediate" };
 
 export type FlushChangeRequestWebhookResult =
   | { status: "skipped_no_webhook" }
@@ -223,6 +241,19 @@ function formatItemSummaryLine(item: ChangeRequestWebhookItemSummary) {
   return `${item.gearName}${typeLabel} • ${metadata.join(" • ")}`;
 }
 
+function formatAutoApprovalPathLabel(
+  approvalPath: ChangeRequestAutoApprovedWebhookItem["approvalPath"],
+) {
+  switch (approvalPath) {
+    case "staff":
+      return "Editor/staff auto-submit";
+    case "trusted_add_only":
+      return "Trusted contributor add-only auto-approval";
+    default:
+      return "Auto-approved";
+  }
+}
+
 function buildImmediateWebhookContent(params: {
   item: ChangeRequestWebhookItemSummary;
   moderationUrl: string;
@@ -270,6 +301,30 @@ function buildAggregatedWebhookContent(params: {
     ...sampleLines,
     `-# Admin: <${params.moderationUrl}>`,
   ].join("\n");
+}
+
+function buildAutoApprovedWebhookContent(params: {
+  item: ChangeRequestAutoApprovedWebhookItem;
+  moderationUrl: string;
+}) {
+  const { item, moderationUrl } = params;
+  const typeLabel = item.gearType ? ` (${item.gearType})` : "";
+  return [
+    "**Change request auto-approved**",
+    `- Gear: ${item.gearName}${typeLabel}`,
+    `- Changes: ${formatChangeSummary(item)}`,
+    item.createdByLabel ? `- Submitted by: ${item.createdByLabel}` : undefined,
+    item.hasNote ? "- Submitter note: included" : undefined,
+    `- Approval path: ${formatAutoApprovalPathLabel(item.approvalPath)}`,
+    item.approvalPath === "trusted_add_only" &&
+    item.trustedApprovedEditCount != null
+      ? `- Trusted approved edits on record: ${item.trustedApprovedEditCount}`
+      : undefined,
+    `-# Proposal: \`${shortProposalId(item.proposalId)}\``,
+    `-# Admin: <${moderationUrl}>`,
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 async function sendDiscordWebhook(
@@ -386,6 +441,35 @@ export async function notifyChangeRequestModerators(
     pendingCount,
   });
   return { status: "queued_for_aggregate", pendingCount };
+}
+
+export async function notifyAutoApprovedChangeRequest(
+  item: ChangeRequestAutoApprovedWebhookItem,
+  deps?: SharedDeps,
+): Promise<NotifyAutoApprovedChangeRequestResult> {
+  const webhookUrl = resolveWebhookUrl(deps);
+  if (!webhookUrl) {
+    console.info(
+      "[change-request:webhook] skipped auto-approved notify because DISCORD_CHANGE_REQUEST_WEBHOOK_URL is unset",
+    );
+    return { status: "skipped_no_webhook" };
+  }
+
+  const moderationUrl = resolveModerationUrl(deps);
+  const sendWebhook = resolveWebhookSender(webhookUrl, deps);
+
+  await sendWebhook({
+    username: "Sharply Change Requests",
+    content: buildAutoApprovedWebhookContent({ item, moderationUrl }),
+  });
+
+  console.info("[change-request:webhook] auto-approved sent", {
+    proposalId: item.proposalId,
+    gearId: item.gearId,
+    approvalPath: item.approvalPath,
+  });
+
+  return { status: "sent_immediate" };
 }
 
 export async function flushChangeRequestModeratorWebhookAggregation(

@@ -13,6 +13,7 @@ import {
   sql,
 } from "drizzle-orm";
 import { buildGearSearchName } from "~/lib/gear/naming";
+import type { AutoApprovalMetadata } from "~/lib/gear/auto-approval-reasons";
 import { db } from "~/server/db";
 import {
   afAreaModes,
@@ -1345,6 +1346,7 @@ export async function createGearEditProposal(params: {
   gearId: string;
   userId: string;
   payload: Record<string, unknown>;
+  metadata?: AutoApprovalMetadata | null;
   note?: string | null;
 }) {
   const inserted = await db
@@ -1353,6 +1355,7 @@ export async function createGearEditProposal(params: {
       gearId: params.gearId,
       createdById: params.userId,
       payload: params.payload as any,
+      metadata: params.metadata ?? null,
       note: params.note ?? null,
       status: "PENDING",
     })
@@ -1387,8 +1390,22 @@ export async function insertAuditLog(params: {
   actorUserId: string;
   gearId?: string;
   gearEditId?: string;
+  metadata?: AutoApprovalMetadata | null;
 }) {
   await db.insert(auditLogs).values(params);
+}
+
+export async function updateGearEditMetadata(params: {
+  gearEditId: string;
+  metadata: AutoApprovalMetadata | null;
+}) {
+  await db
+    .update(gearEdits)
+    .set({
+      metadata: params.metadata ?? null,
+      updatedAt: new Date(),
+    })
+    .where(eq(gearEdits.id, params.gearEditId));
 }
 
 /** Get pending edit ID for a user and gear */

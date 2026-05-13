@@ -17,6 +17,7 @@ export type AuditLogRow = {
   gearSlug: string | null;
   gearEditId: string | null;
   editStatus: (typeof gearEdits.status.enumValues)[number] | null;
+  metadata: (typeof auditLogs.$inferSelect)["metadata"];
 };
 
 export interface FetchAuditLogsParams {
@@ -51,6 +52,7 @@ export async function fetchAuditLogsData(
       gearSlug: gear.slug,
       gearEditId: gearEdits.id,
       editStatus: gearEdits.status,
+      metadata: auditLogs.metadata,
     })
     .from(auditLogs)
     .leftJoin(users, eq(auditLogs.actorUserId, users.id))

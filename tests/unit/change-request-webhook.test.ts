@@ -18,7 +18,9 @@ vi.mock("~/env", () => ({
 import {
   CHANGE_REQUEST_WEBHOOK_KEYS,
   flushChangeRequestModeratorWebhookAggregation,
+  notifyAutoApprovedChangeRequest,
   notifyChangeRequestModerators,
+  type ChangeRequestAutoApprovedWebhookItem,
   type ChangeRequestWebhookItemSummary,
 } from "~/server/admin/proposals/webhook";
 
@@ -135,6 +137,25 @@ function makeItem(overrides: Partial<ChangeRequestWebhookItemSummary> = {}) {
 
 const webhookUrl = "https://discord.example/webhook";
 const moderationUrl = "https://sharply.example/admin";
+const autoApprovedBaseItem: ChangeRequestAutoApprovedWebhookItem = {
+  proposalId: "99999999-9999-4999-8999-999999999999",
+  gearId: "22222222-2222-4222-8222-222222222222",
+  gearType: "CAMERA",
+  gearName: "Nikon Z6 III",
+  gearSlug: "nikon-z6-iii",
+  createdByLabel: "Alex Photographer",
+  changedFieldCount: 2,
+  changedSectionCount: 1,
+  hasNote: false,
+  approvalPath: "staff",
+  trustedApprovedEditCount: null,
+};
+
+function makeAutoApprovedItem(
+  overrides: Partial<ChangeRequestAutoApprovedWebhookItem> = {},
+) {
+  return { ...autoApprovedBaseItem, ...overrides };
+}
 
 describe("change request webhook aggregation", () => {
   it("sends immediate webhook for first request and initializes a window", async () => {
@@ -396,5 +417,94 @@ describe("change request webhook aggregation", () => {
 
     expect(result).toEqual({ status: "lock_not_acquired" });
     expect(sendWebhook).not.toHaveBeenCalled();
+  });
+});
+
+describe("auto-approved change request webhook", () => {
+  it("skips when the webhook url is unset", async () => {
+    const sendWebhook = vi.fn().mockResolvedValue(undefined);
+
+    const result = await notifyAutoApprovedChangeRequest(makeAutoApprovedItem(), {
+      sendWebhook,
+    });
+
+    expect(result).toEqual({ status: "skipped_no_webhook" });
+    expect(sendWebhook).not.toHaveBeenCalled();
+  });
+
+  it("sends an immediate webhook for staff auto-approvals", async () => {
+    const sendWebhook = vi.fn().mockResolvedValue(undefined);
+
+    const result = await notifyAutoApprovedChangeRequest(makeAutoApprovedItem(), {
+      sendWebhook,
+      webhookUrl,
+      moderationUrl,
+    });
+
+    expect(result).toEqual({ status: "sent_immediate" });
+    expect(sendWebhook).toHaveBeenCalledWith({
+      username: "Sharply Change Requests",
+      content: [
+        "**Change request auto-approved**",
+        "- Gear: Nikon Z6 III (CAMERA)",
+        "- Changes: 2 fields across 1 section",
+        "- Submitted by: Alex Photographer",
+        "- Approval path: Editor/staff auto-submit",
+        "-# Proposal: `99999999`",
+        "-# Admin: <https://sharply.example/admin>",
+      ].join("\n"),
+    });
+  });
+
+  it("includes trusted contributor diagnostics without touching aggregation state", async () => {
+    const sendWebhook = vi.fn().mockResolvedValue(undefined);
+    const redis = {
+      set: vi.fn(),
+      get: vi.fn(),
+      exists: vi.fn(),
+      incr: vi.fn(),
+      del: vi.fn(),
+      lpush: vi.fn(),
+      ltrim: vi.fn(),
+      lrange: vi.fn(),
+    };
+
+    const result = await notifyAutoApprovedChangeRequest(
+      makeAutoApprovedItem({
+        approvalPath: "trusted_add_only",
+        hasNote: true,
+        trustedApprovedEditCount: 3,
+      }),
+      {
+        redis: redis as any,
+        sendWebhook,
+        webhookUrl,
+        moderationUrl,
+      },
+    );
+
+    expect(result).toEqual({ status: "sent_immediate" });
+    expect(sendWebhook).toHaveBeenCalledWith({
+      username: "Sharply Change Requests",
+      content: [
+        "**Change request auto-approved**",
+        "- Gear: Nikon Z6 III (CAMERA)",
+        "- Changes: 2 fields across 1 section",
+        "- Submitted by: Alex Photographer",
+        "- Submitter note: included",
+        "- Approval path: Trusted contributor add-only auto-approval",
+        "- Trusted approved edits on record: 3",
+        "-# Proposal: `99999999`",
+        "-# Admin: <https://sharply.example/admin>",
+      ].join("\n"),
+    });
+    expect(redis.set).not.toHaveBeenCalled();
+    expect(redis.get).not.toHaveBeenCalled();
+    expect(redis.exists).not.toHaveBeenCalled();
+    expect(redis.incr).not.toHaveBeenCalled();
+    expect(redis.del).not.toHaveBeenCalled();
+    expect(redis.lpush).not.toHaveBeenCalled();
+    expect(redis.ltrim).not.toHaveBeenCalled();
+    expect(redis.lrange).not.toHaveBeenCalled();
   });
 });

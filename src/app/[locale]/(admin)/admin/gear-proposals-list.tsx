@@ -22,6 +22,10 @@ import { Label } from "~/components/ui/label";
 import { RadioGroup,RadioGroupItem } from "~/components/ui/radio-group";
 import { formatDate } from "~/lib/format/date";
 import {
+  formatAutoApprovalDecisionForAdmin,
+  getAutoApprovalDecisionFromMetadata,
+} from "~/lib/gear/auto-approval-reasons";
+import {
   formatCardSlotDetails,
   formatPrecaptureSupport,
   formatPrice,
@@ -424,6 +428,18 @@ export function GearProposalsList() {
         new Date(b.latestCreatedAt as any).getTime() -
         new Date(a.latestCreatedAt as any).getTime(),
     );
+    const submissionDetails = pendingProposals
+      .map((proposal) => ({
+        id: proposal.id,
+        createdById: proposal.createdById,
+        createdByName: proposal.createdByName,
+        createdAt: proposal.createdAt,
+        note: proposal.note?.trim() ?? "",
+        autoApprovalReason: formatAutoApprovalDecisionForAdmin(
+          getAutoApprovalDecisionFromMetadata(proposal.metadata),
+        ),
+      }))
+      .filter((detail) => detail.note || detail.autoApprovalReason);
     return (
       <Card key={group.gearId}>
         <CardContent className="p-4">
@@ -476,21 +492,27 @@ export function GearProposalsList() {
                   </div>
                 ))}
               </div>
-              {contributors.some((contributor) => contributor.notes.length > 0) && (
+              {submissionDetails.length > 0 && (
                 <div className="mt-3 space-y-2">
-                  {contributors.flatMap((contributor) =>
-                    contributor.notes.map((note, index) => (
-                      <div
-                        key={`${contributor.id}-${index}`}
-                        className="bg-muted rounded p-2 text-xs"
-                      >
-                        <span className="font-medium">
-                          {formatContributorName(contributor.name)}:
-                        </span>{" "}
-                        {note}
+                  {submissionDetails.map((detail) => (
+                    <div
+                      key={detail.id}
+                      className="bg-muted rounded p-2 text-xs"
+                    >
+                      <div className="font-medium">
+                        {formatContributorName(detail.createdByName)} ·{" "}
+                        {formatDisplayDate(detail.createdAt as any)}
                       </div>
-                    )),
-                  )}
+                      {detail.note ? (
+                        <div className="mt-1">{detail.note}</div>
+                      ) : null}
+                      {detail.autoApprovalReason ? (
+                        <div className="text-muted-foreground mt-1">
+                          Auto-approval: {detail.autoApprovalReason}
+                        </div>
+                      ) : null}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

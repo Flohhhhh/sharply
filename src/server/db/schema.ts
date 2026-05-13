@@ -1092,6 +1092,7 @@ export const gearEdits = appSchema.table(
     status: proposalStatusEnum("status").notNull().default("PENDING"),
     // payload: proposed diffs for core + subtype; keep it compact
     payload: jsonb("payload").notNull(), // { core?: {...}, camera?: {...}, lens?: {...} }
+    metadata: jsonb("metadata"),
     note: text("note"),
     createdAt,
     updatedAt,
@@ -1121,6 +1122,7 @@ export const auditLogs = appSchema.table(
       () => gearEdits.id,
       { onDelete: "set null" },
     ),
+    metadata: jsonb("metadata"),
     createdAt,
   }),
   (t) => [
