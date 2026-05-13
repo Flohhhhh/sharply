@@ -771,6 +771,9 @@
             "hasHotShoe": {
               "label": "Griffe flash"
             },
+            "hasIlluminatedButtons": {
+              "label": "Boutons rétroéclairés"
+            },
             "hasUsbFileTransfer": {
               "label": "Transfert de fichiers USB"
             }

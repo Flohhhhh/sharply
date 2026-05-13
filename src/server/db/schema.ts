@@ -806,6 +806,7 @@ export const cameraSpecs = appSchema.table(
     hasSelfTimer: boolean("has_self_timer"),
     hasBuiltInFlash: boolean("has_built_in_flash"),
     hasHotShoe: boolean("has_hot_shoe"),
+    hasIlluminatedButtons: boolean("has_illuminated_buttons"),
     hasUsbFileTransfer: boolean("has_usb_file_transfer"),
     // displays & viewfinder
     rearDisplayType: rearDisplayTypesEnum("rear_display_type"),

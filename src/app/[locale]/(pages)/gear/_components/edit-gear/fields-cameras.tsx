@@ -100,6 +100,7 @@ const cameraFieldSections: Record<string, string> = {
   hasSelfTimer: "camera-misc",
   hasBuiltInFlash: "camera-misc",
   hasHotShoe: "camera-misc",
+  hasIlluminatedButtons: "camera-misc",
   hasUsbFileTransfer: "camera-misc",
 };
 
@@ -1550,6 +1551,23 @@ function CameraFieldsComponent({
               allowNull
               showStateText
               onChange={(value) => handleFieldChange("hasHotShoe", value)}
+            />
+          )}
+
+          {/* Has Illuminated Buttons */}
+          {showWhenMissing(initialSpecs?.hasIlluminatedButtons) && (
+            <BooleanInput
+              id="hasIlluminatedButtons"
+              label={specLabel(
+                "hasIlluminatedButtons",
+                "Has Illuminated Buttons",
+              )}
+              checked={currentSpecs?.hasIlluminatedButtons ?? null}
+              allowNull
+              showStateText
+              onChange={(value) =>
+                handleFieldChange("hasIlluminatedButtons", value)
+              }
             />
           )}
 

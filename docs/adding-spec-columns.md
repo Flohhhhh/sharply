@@ -459,7 +459,7 @@ npm run db:push  # Syncs your local database with schema.ts changes
 
 That’s it—types flow automatically from `schema.ts`, and the form will carry the new value through the existing `onChange` pipeline.
 
-### Examples: Added camera booleans (USB File Transfer, Open Gate Video)
+### Examples: Added camera booleans (USB File Transfer, Open Gate Video, Illuminated Buttons)
 
 Schema (`src/server/db/schema.ts`):
 
@@ -467,6 +467,7 @@ Schema (`src/server/db/schema.ts`):
 // camera_specs (video)
 hasOpenGateVideo: boolean("has_open_gate_video"),
 // camera_specs (misc)
+hasIlluminatedButtons: boolean("has_illuminated_buttons"),
 hasUsbFileTransfer: boolean("has_usb_file_transfer"),
 ```
 
@@ -474,6 +475,9 @@ Normalizer (`src/server/db/normalizers.ts`):
 
 ```ts
 hasOpenGateVideo: z
+  .preprocess((v) => (v === null ? null : coerceBoolean(v) ?? undefined), z.boolean().nullable().optional())
+  .optional(),
+hasIlluminatedButtons: z
   .preprocess((v) => (v === null ? null : coerceBoolean(v) ?? undefined), z.boolean().nullable().optional())
   .optional(),
 hasUsbFileTransfer: z
@@ -493,6 +497,14 @@ UI (`fields-cameras.tsx`):
   onChange={(v) => handleFieldChange("hasOpenGateVideo", v)}
 />
 <BooleanInput
+  id="hasIlluminatedButtons"
+  label="Has Illuminated Buttons"
+  checked={currentSpecs?.hasIlluminatedButtons ?? null}
+  allowNull
+  showStateText
+  onChange={(v) => handleFieldChange("hasIlluminatedButtons", v)}
+/>
+<BooleanInput
   id="hasUsbFileTransfer"
   label="Has USB File Transfer"
   checked={currentSpecs?.hasUsbFileTransfer ?? null}
@@ -506,6 +518,7 @@ Display (`src/lib/specs/registry.tsx`):
 
 ```tsx
 { key: "hasOpenGateVideo", label: "Has Open Gate Video", getRawValue: (i) => i.cameraSpecs?.hasOpenGateVideo, formatDisplay: (raw) => typeof raw === "boolean" ? (raw ? "Yes" : "No") : undefined }
+{ key: "hasIlluminatedButtons", label: "Has Illuminated Buttons", getRawValue: (i) => i.cameraSpecs?.hasIlluminatedButtons, formatDisplay: (raw) => typeof raw === "boolean" ? (raw ? "Yes" : undefined) : undefined }
 { key: "hasUsbFileTransfer", label: "Has USB File Transfer", getRawValue: (i) => i.cameraSpecs?.hasUsbFileTransfer, formatDisplay: (raw) => typeof raw === "boolean" ? (raw ? "Yes" : "No") : undefined }
 ```
 
@@ -523,9 +536,16 @@ const cameraKeys = [
   // ...
   "hasBuiltInFlash",
   "hasHotShoe",
+  "hasIlluminatedButtons", // <= add
   "hasUsbFileTransfer", // <= add
 ] as const;
 ```
+
+Admin/review surfaces:
+
+- New proposal keys must also be checked in the contributor confirmation preview and the admin approval queue.
+- For boolean specs, ensure these surfaces render `Yes` / `No` / `Empty` rather than raw `true` / `false` values.
+- For yes-only public specs like `hasIlluminatedButtons`, keep the form and approval UI tri-state even though the public spec table hides `false` and unknown values.
 
 ### Example: Add internal storage (GB with TB display)
 

@@ -133,6 +133,11 @@ export function flattenProposalGroups(groups: ProposalGroupDto[]): GearProposal[
   );
 }
 
+export function formatBooleanProposalValue(value: unknown): string | null {
+  if (typeof value !== "boolean") return null;
+  return value ? "Yes" : "No";
+}
+
 export function groupGearProposals(proposals: GearProposal[]): ProposalGroup[] {
   return Array.from(
     proposals.reduce((map, proposal) => {

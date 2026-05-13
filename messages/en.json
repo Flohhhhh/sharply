@@ -771,6 +771,9 @@
             "hasHotShoe": {
               "label": "Has Hot Shoe"
             },
+            "hasIlluminatedButtons": {
+              "label": "Has Illuminated Buttons"
+            },
             "hasUsbFileTransfer": {
               "label": "Has USB File Transfer"
             }

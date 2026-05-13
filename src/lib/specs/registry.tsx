@@ -1344,6 +1344,13 @@ export const specDictionary: SpecSectionDef[] = [
           yesNoNull(raw as boolean | null | undefined, true),
       },
       {
+        key: "hasIlluminatedButtons",
+        label: "Has Illuminated Buttons",
+        getRawValue: (item) => item.cameraSpecs?.hasIlluminatedButtons,
+        formatDisplay: (raw) =>
+          yesNoNull(raw as boolean | null | undefined, true),
+      },
+      {
         key: "hasUsbFileTransfer",
         label: "Has USB File Transfer",
         getRawValue: (item) => item.cameraSpecs?.hasUsbFileTransfer,

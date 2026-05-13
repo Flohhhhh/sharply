@@ -127,6 +127,13 @@
       "when": 1778630484719,
       "tag": "0017_clever_carmella_unuscione",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1778716680223,
+      "tag": "0018_spicy_psynapse",
+      "breakpoints": true
     }
   ]
 }

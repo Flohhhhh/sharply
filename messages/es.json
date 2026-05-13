@@ -771,6 +771,9 @@
             "hasHotShoe": {
               "label": "Zapata"
             },
+            "hasIlluminatedButtons": {
+              "label": "Botones iluminados"
+            },
             "hasUsbFileTransfer": {
               "label": "Transferencia de archivos por USB"
             }

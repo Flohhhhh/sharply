@@ -771,6 +771,9 @@
             "hasHotShoe": {
               "label": "Hot shoe"
             },
+            "hasIlluminatedButtons": {
+              "label": "Butang bercahaya"
+            },
             "hasUsbFileTransfer": {
               "label": "Pemindahan fail USB"
             }

@@ -114,6 +114,11 @@ function formatMaxFpsByShutter(value: unknown): string {
   return entries.length ? entries.join("; ") : safeString(value);
 }
 
+function formatBooleanText(value: unknown): string | null {
+  if (typeof value !== "boolean") return null;
+  return value ? "Yes" : "No";
+}
+
 interface EditGearFormProps {
   autoSubmit?: boolean;
   canToggleAutoSubmit?: boolean;
@@ -380,6 +385,7 @@ function EditGearForm({
     hasSelfTimer: "camera-misc",
     hasBuiltInFlash: "camera-misc",
     hasHotShoe: "camera-misc",
+    hasIlluminatedButtons: "camera-misc",
     hasUsbFileTransfer: "camera-misc",
   };
 
@@ -663,6 +669,7 @@ function EditGearForm({
         "hasSelfTimer",
         "hasBuiltInFlash",
         "hasHotShoe",
+        "hasIlluminatedButtons",
         "hasUsbFileTransfer",
       ] as const;
       const orig = toRecord(gearData.cameraSpecs);
@@ -1364,6 +1371,8 @@ function EditGearForm({
                         {Object.entries(diffPreview.camera).map(([k, v]) => {
                           if (k === "availableShutterTypes") return null;
                           let display = safeString(v);
+                          const booleanDisplay = formatBooleanText(v);
+                          if (booleanDisplay) display = booleanDisplay;
                           if (k === "sensorFormatId")
                             display = sensorNameFromSlug(v as string);
                           if (k === "maxFpsRaw" || k === "maxFpsJpg") {

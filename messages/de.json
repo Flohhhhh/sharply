@@ -771,6 +771,9 @@
             "hasHotShoe": {
               "label": "Blitzschuh"
             },
+            "hasIlluminatedButtons": {
+              "label": "Beleuchtete Tasten"
+            },
             "hasUsbFileTransfer": {
               "label": "USB-Dateiübertragung"
             }

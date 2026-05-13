@@ -44,6 +44,7 @@ import {
   computeConflictsForGroup,
   computeNonConflictsForGroup,
   flattenProposalGroups,
+  formatBooleanProposalValue,
   groupGearProposals,
   type GearProposal,
   type NonConflictEntry,
@@ -184,6 +185,8 @@ export function GearProposalsList() {
   const formatValueForKey = (k: string, v: any): string => {
     const isEmpty = v === null || v === undefined || v === "";
     if (isEmpty) return "Empty";
+    const booleanDisplay = formatBooleanProposalValue(v);
+    if (booleanDisplay) return booleanDisplay;
     if (
       k === "msrpUsdCents" ||
       k === "msrpNowUsdCents" ||
@@ -205,6 +208,8 @@ export function GearProposalsList() {
     return String(v);
   };
   const formatBeforeValueForKey = (k: string, v: any): string => {
+    const booleanDisplay = formatBooleanProposalValue(v);
+    if (booleanDisplay) return booleanDisplay;
     if (
       k === "msrpUsdCents" ||
       k === "msrpNowUsdCents" ||
