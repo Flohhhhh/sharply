@@ -88,6 +88,7 @@ export default async function RootLayout({
   params: Promise<{ locale: string }>;
 }>) {
   const { locale } = await params;
+  const shouldMountAnalytics = process.env.VERCEL_ENV === "production";
 
   if (!isLocale(locale)) {
     notFound();
@@ -108,7 +109,7 @@ export default async function RootLayout({
           {children}
           <Toaster />
         </Providers>
-        <Analytics />
+        {shouldMountAnalytics ? <Analytics /> : null}
       </body>
     </html>
   );

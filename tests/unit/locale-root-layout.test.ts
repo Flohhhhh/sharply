@@ -1,0 +1,93 @@
+import { createElement, Fragment, type ReactNode } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const analyticsMock = vi.hoisted(() =>
+  vi.fn(() => createElement("div", { "data-testid": "analytics" })),
+);
+const providersMock = vi.hoisted(() =>
+  vi.fn(
+    ({
+      children,
+    }: {
+      children: ReactNode;
+      locale: string;
+      messages: Record<string, unknown>;
+      timeZone: string;
+    }) => createElement(Fragment, null, children),
+  ),
+);
+const toasterMock = vi.hoisted(() =>
+  vi.fn(() => createElement("div", { "data-testid": "toaster" })),
+);
+const intlServerMocks = vi.hoisted(() => ({
+  getTranslations: vi.fn(),
+  setRequestLocale: vi.fn(),
+}));
+const i18nMessageMocks = vi.hoisted(() => ({
+  getMessagesForLocale: vi.fn(),
+}));
+const navigationMocks = vi.hoisted(() => ({
+  notFound: vi.fn(),
+}));
+
+vi.mock("@vercel/analytics/next", () => ({
+  Analytics: analyticsMock,
+}));
+vi.mock("~/components/ui/sonner", () => ({
+  Toaster: toasterMock,
+}));
+vi.mock("~/i18n/messages", () => i18nMessageMocks);
+vi.mock("next-intl/server", () => intlServerMocks);
+vi.mock("next/navigation", () => navigationMocks);
+vi.mock("~/app/[locale]/providers", () => ({
+  Providers: providersMock,
+}));
+vi.mock("next/font/google", () => ({
+  Archivo: () => ({ variable: "font-archivo" }),
+  Crimson_Text: () => ({ variable: "font-fancy" }),
+}));
+
+import RootLayout from "~/app/[locale]/layout";
+
+describe("locale root layout", () => {
+  const originalVercelEnv = process.env.VERCEL_ENV;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env.VERCEL_ENV = undefined;
+    i18nMessageMocks.getMessagesForLocale.mockResolvedValue({});
+  });
+
+  afterEach(() => {
+    process.env.VERCEL_ENV = originalVercelEnv;
+  });
+
+  it("mounts analytics in production", async () => {
+    process.env.VERCEL_ENV = "production";
+
+    const markup = renderToStaticMarkup(
+      await RootLayout({
+        children: createElement("main", null, "content"),
+        params: Promise.resolve({ locale: "en" }),
+      }),
+    );
+
+    expect(markup).toContain("data-testid=\"analytics\"");
+    expect(analyticsMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("skips analytics outside production", async () => {
+    process.env.VERCEL_ENV = "preview";
+
+    const markup = renderToStaticMarkup(
+      await RootLayout({
+        children: createElement("main", null, "content"),
+        params: Promise.resolve({ locale: "en" }),
+      }),
+    );
+
+    expect(markup).not.toContain("data-testid=\"analytics\"");
+    expect(analyticsMock).not.toHaveBeenCalled();
+  });
+});
