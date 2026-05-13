@@ -10,6 +10,10 @@ describe("next image remote patterns", () => {
     expect(nextConfigSource).toContain('hostname: "cdn.discordapp.com"');
   });
 
+  it("allows Google avatars for any remaining next/image avatar surfaces", () => {
+    expect(nextConfigSource).toContain('hostname: "*.googleusercontent.com"');
+  });
+
   it("keeps existing remote image hosts configured", () => {
     expect(nextConfigSource).toContain('hostname: "8v5lpkd4bi.ufs.sh"');
     expect(nextConfigSource).toContain('hostname: "utfs.io"');

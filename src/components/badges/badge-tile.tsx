@@ -1,14 +1,15 @@
 "use client";
 
 import * as Lucide from "lucide-react";
+import { getBadgeIconSvgProps } from "~/lib/badges/icon-presentation";
 import { toRomanNumeral } from "~/lib/utils";
 import type { BadgeDefinition } from "~/types/badges";
 
 export function BadgeTile({ badge }: { badge: BadgeDefinition }) {
-  const Icon = (badge.iconComponent ?? Lucide.Award) as React.ComponentType<{
-    className?: string;
-    fill?: string;
-  }>;
+  const Icon = (badge.iconComponent ?? Lucide.Award) as React.ComponentType<
+    React.SVGProps<SVGSVGElement>
+  >;
+  const iconSvgProps = getBadgeIconSvgProps(badge.iconPresentation);
 
   return (
     <div
@@ -22,7 +23,7 @@ export function BadgeTile({ badge }: { badge: BadgeDefinition }) {
           {toRomanNumeral(badge.levelIndex)}
         </div>
       ) : null}
-      <Icon fill="currentColor" className={`size-5 text-white`} />
+      <Icon {...iconSvgProps} className={`size-5 text-white`} />
     </div>
   );
 }

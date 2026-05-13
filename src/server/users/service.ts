@@ -190,7 +190,9 @@ export async function fetchUsersWithAnniversaryToday(): Promise<
     .select({ id: users.id })
     .from(users)
     .where(
-      sql`to_char(${users.emailVerified}, 'MM-DD') = to_char(now(), 'MM-DD')`,
+      // Must match `getUserSnapshot` joinDate (`users.createdAt`) so tenure math
+      // runs for the same "member since" moment the badges test against.
+      sql`to_char(${users.createdAt}, 'MM-DD') = to_char(now(), 'MM-DD')`,
     );
   return rows;
 }

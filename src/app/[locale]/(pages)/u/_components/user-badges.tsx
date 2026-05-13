@@ -7,6 +7,7 @@ import {
   TooltipTrigger,
 } from "~/components/ui/tooltip";
 import { getBadgeDescriptionMessage } from "~/lib/badges/description";
+import { getBadgeIconSvgProps } from "~/lib/badges/icon-presentation";
 import { BADGE_CATALOG } from "~/lib/badges/catalog";
 import { toRomanNumeral } from "~/lib/utils";
 import { fetchUserBadges } from "~/server/badges/service";
@@ -42,6 +43,7 @@ export async function UserBadges({ userId }: { userId: string }) {
             })
             .map(({ row: r, meta }) => {
               const Icon = meta?.iconComponent || Lucide.Award;
+              const iconSvgProps = getBadgeIconSvgProps(meta?.iconPresentation);
               const descriptionMessage = getBadgeDescriptionMessage(meta);
               return (
                 <Tooltip key={`${r.badgeKey}-${String(r.awardedAt)}`}>
@@ -55,7 +57,7 @@ export async function UserBadges({ userId }: { userId: string }) {
                           {toRomanNumeral(meta.levelIndex)}
                         </div>
                       ) : null}
-                      <Icon fill="currentColor" className="size-5 text-white" />
+                      <Icon {...iconSvgProps} className="size-5 text-white" />
                     </div>
                   </TooltipTrigger>
                   <TooltipContent className="border-border text-primary-foreground dark:bg-background mb-2 border bg-white">

@@ -1,4 +1,5 @@
 import { describe,expect,it } from "vitest";
+import { BADGE_CATALOG } from "~/lib/badges/catalog";
 import { getBadgeDescriptionMessage } from "~/lib/badges/description";
 import type { BadgeDefinition } from "~/types/badges";
 
@@ -7,7 +8,6 @@ function makeBadge(overrides: Partial<BadgeDefinition>): BadgeDefinition {
     key: "test",
     family: "misc",
     label: "Test",
-    icon: "star",
     sortScore: 1,
     triggers: ["review.approved"],
     test: () => true,
@@ -52,5 +52,13 @@ describe("getBadgeDescriptionMessage", () => {
 
   it("returns null without badge metadata", () => {
     expect(getBadgeDescriptionMessage()).toBeNull();
+  });
+
+  it("keeps wishlist catalog descriptions clear for singular and plural levels", () => {
+    expect(BADGE_CATALOG.find((badge) => badge.key === "wishlist_1")?.description)
+      .toBe("Add the first item to your wishlist");
+
+    expect(BADGE_CATALOG.find((badge) => badge.key === "wishlist_5")?.description)
+      .toBe("Have at least 5 items on your wishlist");
   });
 });
