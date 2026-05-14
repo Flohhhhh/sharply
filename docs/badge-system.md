@@ -30,6 +30,7 @@ A lightweight, event-driven badge system with a single catalog, small generators
   - Admin: `src/app/[locale]/(admin)/admin/badges-catalog.tsx` (viewer), `badges-test-toast.tsx` (test button), and `badges-awards-list.tsx` (recent awards).
 - Cron
   - `GET /api/admin/badges/anniversary` (secured by `CRON_SECRET`) emits `cron.anniversary` for users whose account `createdAt` month/day (UTC) matches today, passing `{ now }` in context.
+  - `GET`/`POST /api/admin/badges/anniversary/backfill` (secured by `CRON_SECRET`) is a manual repair path for users who already crossed anniversary thresholds but are missing one or more `anniversary_*` badge rows.
 
 ## Storage
 
@@ -181,6 +182,16 @@ evaluateForEvent(
 
 - Effect: anniversary badges are evaluated **only on that calendar anniversary** (e.g. joined 15 Jan → processed each 15 Jan), not every day after you cross 7 / 30 / 182 days. On the first run where `diffDays` clears a threshold, every lower tier can award in one pass.
 - Logs: start/end timestamps, users processed, total awards.
+
+## Manual Backfill: Anniversary
+
+- Route: `GET` or `POST /api/admin/badges/anniversary/backfill`
+- Security: header `Authorization: Bearer ${CRON_SECRET}`
+- Purpose: one-off repair for users who should already have anniversary badges but missed them because of prior cron/query bugs.
+- Defaults: `dryRun=true` when omitted; `limit` is optional for batching.
+- Logic: the backfill computes eligibility from `users.createdAt`, compares against existing `app.user_badges` rows whose keys start with `anniversary_`, and awards only the missing anniversary-family badge keys. It does **not** replay the broader `cron.anniversary` trigger bucket, so unrelated subscribers such as `pioneer` are not reprocessed.
+- Response: `{ ok, dryRun, scannedUsers, eligibleUsers, processedUsers, totalAwards, sample }`
+- Scheduling: none. Keep this route manual-only; do not add it to `vercel.json`.
 
 ## Notes on Toasting
 
