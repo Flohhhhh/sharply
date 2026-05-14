@@ -27,7 +27,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const slugs = await fetchAllGearSlugs();
   const newsPosts = await getNewsPosts();
   const publishedNewsPosts = newsPosts.filter((p) => p._status === "published");
-  await getLearnPages();
+  const learnPages = await getLearnPages();
+  const publishedLearnPages = learnPages.filter(
+    (page) => page._status === "published" && !!page.slug,
+  );
   const reviews = await getReviews();
   const publishedReviews = reviews.filter((r) => r._status === "published");
 
@@ -136,7 +139,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
       return [...brandCategoryUrls, ...mountUrls];
     }),
-    // Learn pages //TODO: finish feature and add to sitemap
+    ...publishedLearnPages.map((page) =>
+      createSitemapEntry(`/learn/${page.slug}`, {
+        lastModified: new Date(),
+        changeFrequency: "monthly" as const,
+        priority: 0.5,
+      }),
+    ),
     // Recommended lenses //TODO: finish feature and add to sitemap
   ];
 }
