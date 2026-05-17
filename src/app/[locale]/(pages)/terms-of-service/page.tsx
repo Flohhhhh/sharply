@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { LocaleLink } from "~/components/locale-link";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
@@ -10,18 +11,30 @@ export const metadata: Metadata = buildLocalizedMetadata("/terms-of-service", {
   },
 });
 
-export default function TermsOfServicePage() {
+export default async function TermsOfServicePage() {
+  const t = await getTranslations("legal.terms");
+  const tCommon = await getTranslations("common");
+
   return (
     <div className="mx-auto mt-24 min-h-screen max-w-3xl px-6 pb-24">
       <article className="prose prose-zinc prose-sm dark:prose-invert">
         <h1>Terms of Service</h1>
         <p>
-          <em>Last updated: September 25, 2025</em>
+          <em>{t("lastUpdated")}</em>
         </p>
         <p>
           Welcome to Sharply. By accessing or using our website, applications,
           or services (collectively, the "Service"), you agree to these Terms of
           Service ("Terms"). If you do not agree, do not use the Service.
+        </p>
+        <p>
+          {t.rich("privacyNotice", {
+            privacyPolicy: () => (
+              <LocaleLink href="/privacy-policy">
+                {tCommon("privacyPolicy")}
+              </LocaleLink>
+            ),
+          })}
         </p>
 
         <h2>1. What Sharply Is</h2>

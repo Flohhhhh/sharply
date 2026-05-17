@@ -1530,6 +1530,22 @@
     "checklistWriteReviews": "Reviews schreiben und Erfahrungen teilen",
     "checklistWishlist": "Artikel zu deiner Wunschliste hinzufügen"
   },
+  "legal": {
+    "privacy": {
+      "lastUpdated": "Zuletzt aktualisiert: 17. Mai 2026",
+      "cookiesListItem": "Wir verwenden Cookies und ähnliche Technologien für Authentifizierung, Sicherheit, die Fortsetzung des Anmeldevorgangs, Sprach- und Oberflächeneinstellungen sowie eine begrenzte aggregierte Messung.",
+      "usageAnalyticsListItem": "Aggregierte Nutzung messen, den Service verbessern und Missbrauch verhindern.",
+      "cookiesTrackingBody1": "Wir verwenden essenzielle und funktionale Cookies, um den Service zu betreiben, Nutzer zu authentifizieren, die Sicherheit aufrechtzuerhalten, Anmelde- und Einladungsabläufe zu bewahren, Sprach- und Oberflächeneinstellungen zu speichern und ähnliche von Ihnen angeforderte Funktionen zu unterstützen.",
+      "cookiesTrackingBody2": "Außerdem verwenden wir begrenzte First-Party-Mess-Cookies ausschließlich, um doppelte Zählungen in aggregierten Popularitäts- und Vergleichsmetriken zu reduzieren. Diese Cookies werden nicht verwendet, um Sie über verschiedene Websites hinweg zu identifizieren, Werbung auszuspielen oder Verhaltensprofile zu erstellen.",
+      "analyticsBody1": "In der Produktion verwenden wir Vercel Web Analytics und verbundene Dienstleister für Hosting, Authentifizierung und datenschutzorientierte Analysen. Vercel Web Analytics ist im Analyse-Layer First-Party und cookie-frei, und wir senden außerdem benutzerdefinierte Analyseereignisse, um die Nutzung von Funktionen und die Serviceleistung zu verstehen.",
+      "analyticsBody2": "Wir nutzen diese Anbieter als Auftragsverarbeiter in unserem Namen, um den Service zu betreiben, zu sichern und zu verbessern. Wir verwenden Analysen nicht für Werbung, Retargeting, websiteübergreifendes Tracking oder den Aufbau von Marketingprofilen.",
+      "noSellOrProfile": "Wir verkaufen Ihre personenbezogenen Daten nicht, verwenden keine Werbetracker und erstellen keine Marketing- oder Verhaltensprofile aus Analyseereignissen."
+    },
+    "terms": {
+      "lastUpdated": "Zuletzt aktualisiert: 17. Mai 2026",
+      "privacyNotice": "Wie in unserer {privacyPolicy} beschrieben, verwendet der Service essenzielle und funktionale Cookies zusammen mit begrenzten datenschutzorientierten First-Party-Analysen und Messungen, um den Service zu betreiben, zu sichern und zu verbessern. Wir verwenden den Service nicht für Werbung, websiteübergreifendes Tracking oder den Aufbau von Verhaltensprofilen."
+    }
+  },
   "errors": {
     "notFoundTitle": "Ups, wir haben den Schuss verpasst.",
     "notFoundDescription": "Die Seite, die du suchst, ist ausgeflogen. Versuche, nach Ausrüstung zu suchen, oder gehe zurück zur Startseite.",

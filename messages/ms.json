@@ -1530,6 +1530,22 @@
     "checklistWriteReviews": "Tulis ulasan dan kongsi pengalaman anda",
     "checklistWishlist": "Tambahkan item ke senarai hajat anda"
   },
+  "legal": {
+    "privacy": {
+      "lastUpdated": "Kemas kini terakhir: 17 Mei 2026",
+      "cookiesListItem": "Kami menggunakan kuki dan teknologi serupa untuk pengesahan, keselamatan, kesinambungan log masuk, pilihan bahasa dan antara muka, serta pengukuran agregat yang terhad.",
+      "usageAnalyticsListItem": "Mengukur penggunaan agregat, menambah baik Perkhidmatan dan mencegah penyalahgunaan.",
+      "cookiesTrackingBody1": "Kami menggunakan kuki penting dan fungsian untuk mengendalikan Perkhidmatan, mengesahkan pengguna, mengekalkan keselamatan, mengekalkan aliran log masuk dan jemputan, mengingati pilihan bahasa dan antara muka, serta menyokong ciri serupa yang anda minta.",
+      "cookiesTrackingBody2": "Kami juga menggunakan kuki pengukuran pihak pertama yang terhad semata-mata untuk mengurangkan kiraan pendua dalam metrik agregat populariti dan perbandingan. Kuki ini tidak digunakan untuk mengenal pasti anda merentasi laman yang berbeza, menayangkan pengiklanan atau membina profil tingkah laku.",
+      "analyticsBody1": "Dalam pengeluaran, kami menggunakan Vercel Web Analytics dan penyedia perkhidmatan berkaitan untuk pengehosan, pengesahan dan analitik yang memfokuskan privasi. Vercel Web Analytics ialah pihak pertama dan bebas kuki pada lapisan analitik, dan kami juga menghantar acara analitik tersuai untuk memahami penggunaan ciri dan prestasi Perkhidmatan.",
+      "analyticsBody2": "Kami menggunakan penyedia ini sebagai penyedia perkhidmatan yang bertindak bagi pihak kami untuk mengendalikan, melindungi dan menambah baik Perkhidmatan. Kami tidak menggunakan analitik untuk pengiklanan, retargeting, penjejakan rentas laman atau pembinaan profil pemasaran.",
+      "noSellOrProfile": "Kami tidak menjual maklumat peribadi anda, tidak menggunakan penjejak pengiklanan dan tidak membina profil pemasaran atau tingkah laku daripada acara analitik."
+    },
+    "terms": {
+      "lastUpdated": "Kemas kini terakhir: 17 Mei 2026",
+      "privacyNotice": "Seperti yang diterangkan dalam {privacyPolicy} kami, Perkhidmatan menggunakan kuki penting dan fungsian bersama analitik dan pengukuran pihak pertama yang terhad serta memfokuskan privasi untuk mengendalikan, melindungi dan menambah baik Perkhidmatan. Kami tidak menggunakan Perkhidmatan untuk pengiklanan, penjejakan rentas laman atau pembinaan profil tingkah laku."
+    }
+  },
   "errors": {
     "notFoundTitle": "Oops, kami terlepas pukulan.",
     "notFoundDescription": "Halaman yang anda cari telah terbang ke reban. Cuba cari gear atau pulang ke rumah.",

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
@@ -9,13 +10,15 @@ export const metadata: Metadata = buildLocalizedMetadata("/privacy-policy", {
   },
 });
 
-export default function PrivacyPolicyPage() {
+export default async function PrivacyPolicyPage() {
+  const t = await getTranslations("legal.privacy");
+
   return (
     <div className="mx-auto mt-24 min-h-screen max-w-3xl px-6 pb-24">
       <article className="prose prose-zinc prose-sm dark:prose-invert">
         <h1>Privacy Policy</h1>
         <p>
-          <em>Last updated: September 25, 2025</em>
+          <em>{t("lastUpdated")}</em>
         </p>
         <p>
           This Privacy Policy explains how Sharply collects, uses, and shares
@@ -40,9 +43,8 @@ export default function PrivacyPolicyPage() {
             reviews, specifications, images, suggestions).
           </li>
           <li>
-            <strong>Cookies &amp; Similar Technologies</strong>: We use cookies
-            and similar technologies to operate the Service and understand
-            usage.
+            <strong>Cookies &amp; Similar Technologies</strong>:{" "}
+            {t("cookiesListItem")}
           </li>
           <li>
             <strong>Third-Party Sources</strong>: Where permitted, we may
@@ -56,24 +58,24 @@ export default function PrivacyPolicyPage() {
           <li>Provide, maintain, and improve the Service.</li>
           <li>Personalize features and content.</li>
           <li>Communicate with you about updates, security, and support.</li>
-          <li>Monitor usage, perform analytics, and prevent abuse.</li>
+          <li>{t("usageAnalyticsListItem")}</li>
           <li>Comply with legal obligations and enforce our terms.</li>
         </ul>
 
         <h2>3. Cookies and Tracking</h2>
         <p>
-          We use cookies and similar technologies to enable essential
-          functionality, remember preferences, and analyze traffic. You can
-          manage cookies in your browser settings; some features may not
-          function properly without cookies.
+          {t("cookiesTrackingBody1")}
+        </p>
+        <p>
+          {t("cookiesTrackingBody2")}
         </p>
 
         <h2>4. Analytics and Service Providers</h2>
         <p>
-          We may use third-party providers to perform analytics, hosting, and
-          other services on our behalf. These providers may process information
-          as necessary to deliver their services to us and are subject to
-          appropriate confidentiality obligations.
+          {t("analyticsBody1")}
+        </p>
+        <p>
+          {t("analyticsBody2")}
         </p>
 
         <h2>5. Information Sharing</h2>
@@ -92,7 +94,7 @@ export default function PrivacyPolicyPage() {
             acquisition, or asset sale, information may be transferred.
           </li>
         </ul>
-        <p>We do not sell your personal information.</p>
+        <p>{t("noSellOrProfile")}</p>
 
         <h2>6. Data Retention</h2>
         <p>

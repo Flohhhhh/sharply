@@ -1530,6 +1530,22 @@
     "checklistWriteReviews": "Écrire des avis et partager votre expérience",
     "checklistWishlist": "Ajouter des articles à votre liste d'envies"
   },
+  "legal": {
+    "privacy": {
+      "lastUpdated": "Dernière mise à jour : 17 mai 2026",
+      "cookiesListItem": "Nous utilisons des cookies et des technologies similaires pour l’authentification, la sécurité, la continuité de connexion, les préférences de langue et d’interface, ainsi qu’une mesure agrégée limitée.",
+      "usageAnalyticsListItem": "Mesurer l’usage agrégé, améliorer le Service et prévenir les abus.",
+      "cookiesTrackingBody1": "Nous utilisons des cookies essentiels et fonctionnels pour exploiter le Service, authentifier les utilisateurs, maintenir la sécurité, préserver les parcours de connexion et d’invitation, mémoriser les préférences de langue et d’interface, et prendre en charge des fonctionnalités similaires que vous demandez.",
+      "cookiesTrackingBody2": "Nous utilisons également des cookies de mesure first-party limités uniquement pour réduire les comptages en double dans les métriques agrégées de popularité et de comparaison. Ces cookies ne sont pas utilisés pour vous identifier sur différents sites, diffuser de la publicité ou créer des profils comportementaux.",
+      "analyticsBody1": "En production, nous utilisons Vercel Web Analytics et des prestataires associés pour l’hébergement, l’authentification et des analyses respectueuses de la vie privée. Vercel Web Analytics est first-party et sans cookie au niveau de la couche analytique, et nous envoyons également des événements analytiques personnalisés pour comprendre l’usage des fonctionnalités et la performance du Service.",
+      "analyticsBody2": "Nous utilisons ces prestataires comme fournisseurs de services agissant pour notre compte afin d’exploiter, sécuriser et améliorer le Service. Nous n’utilisons pas l’analytique à des fins publicitaires, de reciblage, de suivi intersites ou de création de profils marketing.",
+      "noSellOrProfile": "Nous ne vendons pas vos informations personnelles, n’utilisons pas de traceurs publicitaires et ne créons pas de profils marketing ou comportementaux à partir des événements analytiques."
+    },
+    "terms": {
+      "lastUpdated": "Dernière mise à jour : 17 mai 2026",
+      "privacyNotice": "Comme décrit dans notre {privacyPolicy}, le Service utilise des cookies essentiels et fonctionnels ainsi qu’une analytique et une mesure first-party limitées et respectueuses de la vie privée pour exploiter, sécuriser et améliorer le Service. Nous n’utilisons pas le Service à des fins publicitaires, de suivi intersites ou de création de profils comportementaux."
+    }
+  },
   "errors": {
     "notFoundTitle": "Oups, nous avons raté la prise.",
     "notFoundDescription": "La page que vous cherchez s’est envolée. Essayez de rechercher du matériel ou revenez à l’accueil.",

@@ -1530,6 +1530,22 @@
     "checklistWriteReviews": "Write reviews and share your experiences",
     "checklistWishlist": "Add items to your wishlist"
   },
+  "legal": {
+    "privacy": {
+      "lastUpdated": "Last updated: May 17, 2026",
+      "cookiesListItem": "We use cookies and similar technologies for authentication, security, sign-in continuity, language and interface preferences, and limited aggregate measurement.",
+      "usageAnalyticsListItem": "Measure aggregate usage, improve the Service, and prevent abuse.",
+      "cookiesTrackingBody1": "We use essential and functional cookies to operate the Service, authenticate users, maintain security, preserve sign-in and invite flows, remember language and interface preferences, and support similar features you request.",
+      "cookiesTrackingBody2": "We also use limited first-party measurement cookies solely to reduce duplicate counts in aggregate popularity and compare metrics. These cookies are not used to identify you across different sites, serve advertising, or build behavioral profiles.",
+      "analyticsBody1": "In production, we use Vercel Web Analytics and related service providers for hosting, authentication, and privacy-focused analytics. Vercel Web Analytics is first-party and cookie-free at the analytics layer, and we also send custom analytics events to understand feature usage and service performance.",
+      "analyticsBody2": "We use these providers as service providers acting on our behalf to operate, secure, and improve the Service. We do not use analytics for advertising, retargeting, cross-site tracking, or marketing profile building.",
+      "noSellOrProfile": "We do not sell your personal information, use advertising trackers, or build marketing or behavioral profiles from analytics events."
+    },
+    "terms": {
+      "lastUpdated": "Last updated: May 17, 2026",
+      "privacyNotice": "As described in our {privacyPolicy}, the Service uses essential and functional cookies together with limited privacy-focused first-party analytics and measurement to operate, secure, and improve the Service. We do not use the Service for advertising, cross-site tracking, or behavioral profile building."
+    }
+  },
   "errors": {
     "notFoundTitle": "Oops, we missed the shot.",
     "notFoundDescription": "The page you’re looking for flew the coop. Try searching for gear, or head back home.",

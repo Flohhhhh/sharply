@@ -1530,6 +1530,22 @@
     "checklistWriteReviews": "Escribir reseñas y compartir tu experiencia",
     "checklistWishlist": "Añadir artículos a tu lista de deseos"
   },
+  "legal": {
+    "privacy": {
+      "lastUpdated": "Última actualización: 17 de mayo de 2026",
+      "cookiesListItem": "Usamos cookies y tecnologías similares para la autenticación, la seguridad, la continuidad del inicio de sesión, las preferencias de idioma e interfaz y una medición agregada limitada.",
+      "usageAnalyticsListItem": "Medir el uso agregado, mejorar el Servicio y prevenir abusos.",
+      "cookiesTrackingBody1": "Usamos cookies esenciales y funcionales para operar el Servicio, autenticar a los usuarios, mantener la seguridad, conservar los flujos de inicio de sesión e invitación, recordar las preferencias de idioma e interfaz y dar soporte a funciones similares que solicitas.",
+      "cookiesTrackingBody2": "También usamos cookies limitadas de medición de primera parte únicamente para reducir recuentos duplicados en métricas agregadas de popularidad y comparación. Estas cookies no se usan para identificarte en distintos sitios, servir publicidad ni crear perfiles de comportamiento.",
+      "analyticsBody1": "En producción usamos Vercel Web Analytics y proveedores relacionados para alojamiento, autenticación y analítica centrada en la privacidad. Vercel Web Analytics es de primera parte y no usa cookies en la capa de analítica, y además enviamos eventos analíticos personalizados para entender el uso de funciones y el rendimiento del Servicio.",
+      "analyticsBody2": "Usamos a estos proveedores como prestadores de servicios que actúan en nuestro nombre para operar, proteger y mejorar el Servicio. No usamos la analítica para publicidad, retargeting, seguimiento entre sitios ni creación de perfiles de marketing.",
+      "noSellOrProfile": "No vendemos tu información personal, no usamos rastreadores publicitarios ni creamos perfiles de marketing o de comportamiento a partir de eventos analíticos."
+    },
+    "terms": {
+      "lastUpdated": "Última actualización: 17 de mayo de 2026",
+      "privacyNotice": "Como se describe en nuestra {privacyPolicy}, el Servicio usa cookies esenciales y funcionales junto con analítica y medición limitadas, centradas en la privacidad y de primera parte, para operar, proteger y mejorar el Servicio. No usamos el Servicio para publicidad, seguimiento entre sitios ni creación de perfiles de comportamiento."
+    }
+  },
   "errors": {
     "notFoundTitle": "Ups, fallamos la toma.",
     "notFoundDescription": "La página que buscas se escapó. Intenta buscar equipo o vuelve al inicio.",
