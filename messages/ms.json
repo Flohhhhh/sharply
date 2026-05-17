@@ -771,6 +771,9 @@
             "hasHotShoe": {
               "label": "Hot shoe"
             },
+            "hasIlluminatedButtons": {
+              "label": "Butang bercahaya"
+            },
             "hasUsbFileTransfer": {
               "label": "Pemindahan fail USB"
             }
@@ -1526,6 +1529,87 @@
     "checklistSaveCollection": "Simpan peralatan untuk koleksi anda",
     "checklistWriteReviews": "Tulis ulasan dan kongsi pengalaman anda",
     "checklistWishlist": "Tambahkan item ke senarai hajat anda"
+  },
+  "legal": {
+    "privacy": {
+      "lastUpdated": "Kemas kini terakhir: 17 Mei 2026",
+      "cookiesListItem": "Kami menggunakan kuki dan teknologi serupa untuk pengesahan, keselamatan, kesinambungan log masuk, pilihan bahasa dan antara muka, serta pengukuran agregat yang terhad.",
+      "usageAnalyticsListItem": "Mengukur penggunaan agregat, menambah baik Perkhidmatan dan mencegah penyalahgunaan.",
+      "cookiesTrackingBody1": "Kami menggunakan kuki penting dan fungsian untuk mengendalikan Perkhidmatan, mengesahkan pengguna, mengekalkan keselamatan, mengekalkan aliran log masuk dan jemputan, mengingati pilihan bahasa dan antara muka, serta menyokong ciri serupa yang anda minta.",
+      "cookiesTrackingBody2": "Kami juga menggunakan kuki pengukuran pihak pertama yang terhad semata-mata untuk mengurangkan kiraan pendua dalam metrik agregat populariti dan perbandingan. Kuki ini tidak digunakan untuk mengenal pasti anda merentasi laman yang berbeza, menayangkan pengiklanan atau membina profil tingkah laku.",
+      "analyticsBody1": "Dalam pengeluaran, kami menggunakan Vercel Web Analytics dan penyedia perkhidmatan berkaitan untuk pengehosan, pengesahan dan analitik yang memfokuskan privasi. Vercel Web Analytics ialah pihak pertama dan bebas kuki pada lapisan analitik, dan kami juga menghantar acara analitik tersuai untuk memahami penggunaan ciri dan prestasi Perkhidmatan.",
+      "analyticsBody2": "Kami menggunakan penyedia ini sebagai penyedia perkhidmatan yang bertindak bagi pihak kami untuk mengendalikan, melindungi dan menambah baik Perkhidmatan. Kami tidak menggunakan analitik untuk pengiklanan, retargeting, penjejakan rentas laman atau pembinaan profil pemasaran.",
+      "noSellOrProfile": "Kami tidak menjual maklumat peribadi anda, tidak menggunakan penjejak pengiklanan dan tidak membina profil pemasaran atau tingkah laku daripada acara analitik."
+    },
+    "terms": {
+      "title": "Terma Perkhidmatan",
+      "lastUpdated": "Kemas kini terakhir: 17 Mei 2026",
+      "intro": "Selamat datang ke Sharply. Dengan mengakses atau menggunakan laman web, aplikasi atau perkhidmatan kami (secara kolektif, “Perkhidmatan”), anda bersetuju dengan Terma Perkhidmatan ini (“Terma”). Jika anda tidak bersetuju, jangan gunakan Perkhidmatan.",
+      "privacyNotice": "Seperti yang diterangkan dalam {privacyPolicy} kami, Perkhidmatan menggunakan kuki penting dan fungsian bersama analitik dan pengukuran pihak pertama yang terhad serta memfokuskan privasi untuk mengendalikan, melindungi dan menambah baik Perkhidmatan. Kami tidak menggunakan Perkhidmatan untuk pengiklanan, penjejakan rentas laman atau pembinaan profil tingkah laku.",
+      "sections": {
+        "whatSharplyIs": {
+          "title": "1. Apakah itu Sharply",
+          "body": "Sharply ialah pangkalan data dan platform pengkatalogan peralatan fotografi. Kami mengumpul dan menyusun data peralatan kamera, membolehkan pengguna membuat koleksi, serta menyokong sumbangan komuniti dan kandungan editorial."
+        },
+        "account": {
+          "title": "2. Akaun anda",
+          "item1": "Anda mesti boleh membentuk kontrak yang mengikat untuk menggunakan Perkhidmatan.",
+          "item2": "Anda bertanggungjawab terhadap aktiviti pada akaun anda dan untuk memastikan kelayakan anda selamat.",
+          "item3": "Kami boleh menggantung atau menamatkan akaun yang melanggar Terma ini."
+        },
+        "userContent": {
+          "title": "3. Kandungan pengguna dan lesen",
+          "body1": "Anda boleh menghantar kandungan seperti spesifikasi, imej, penilaian, ulasan dan cadangan (“Kandungan Pengguna”). Anda menyatakan bahawa anda mempunyai hak yang diperlukan untuk menyiarkan Kandungan Pengguna dan bahawa ia tidak melanggar hak orang lain atau mana-mana undang-undang.",
+          "body2": "Dengan menghantar Kandungan Pengguna, anda memberikan Sharply lesen bukan eksklusif, di seluruh dunia, bebas royalti, dan boleh disublesenkan untuk mengehos, menyimpan, menghasilkan semula, mengubah suai bagi tujuan pemformatan, menterjemah, menghasilkan karya terbitan untuk pembentangan, menerbitkan, memaparkan secara umum, dan mengedarkan Kandungan Pengguna tersebut berkaitan dengan pengendalian dan penambahbaikan Perkhidmatan. Anda boleh mengalih keluar Kandungan Pengguna anda pada bila-bila masa; ini mungkin tidak menjejaskan salinan atau karya terbitan terdahulu yang telah dibuat, digunakan atau dikongsi seperti yang dibenarkan di atas.",
+          "body3": "Kami boleh menyederhanakan, menyunting demi kejelasan, menolak atau mengalih keluar Kandungan Pengguna mengikut budi bicara kami, termasuk untuk mematuhi undang-undang atau melindungi komuniti."
+        },
+        "prohibited": {
+          "title": "4. Aktiviti yang dilarang",
+          "item1": "Menyiarkan kandungan yang menyalahi undang-undang, mengelirukan, memfitnah atau melanggar hak.",
+          "item2": "Memuat naik perisian hasad atau cuba mengganggu Perkhidmatan.",
+          "item3": "Menyamar sebagai mana-mana orang atau entiti atau memberikan gambaran salah tentang pertalian.",
+          "item4": "Melakukan scraping, pengumpulan atau muat turun pukal data tanpa kebenaran bertulis awal kami (gunakan API rasmi jika dan apabila ia disediakan).",
+          "item5": "Memintas kawalan akses, had kadar atau langkah keselamatan.",
+          "item6": "Menggunakan Perkhidmatan untuk eksploitasi komersial yang meniru atau bersaing dengan Sharply tanpa kebenaran."
+        },
+        "intellectualProperty": {
+          "title": "5. Harta intelek",
+          "body": "Perkhidmatan ini, termasuk perisian, reka bentuk dan kandungan asal kami, dimiliki oleh atau dilesenkan kepada Sharply dan dilindungi oleh undang-undang harta intelek. Nama produk, logo dan tanda dagangan yang dirujuk dalam Perkhidmatan ialah milik pemilik masing-masing dan tidak membayangkan pengesahan."
+        },
+        "informationAccuracy": {
+          "title": "6. Ketepatan maklumat; bukan nasihat profesional",
+          "body": "Kami berusaha menyediakan data peralatan dan kandungan editorial yang tepat, tetapi maklumat mungkin tidak lengkap, lapuk atau mengandungi ralat. Kandungan disediakan untuk tujuan maklumat sahaja dan tidak membentuk nasihat profesional. Anda bertanggungjawab untuk mengesahkan maklumat sebelum membuat keputusan pembelian atau penggunaan."
+        },
+        "thirdPartyLinks": {
+          "title": "7. Pautan pihak ketiga",
+          "body": "Perkhidmatan mungkin termasuk pautan ke laman web atau perkhidmatan pihak ketiga. Kami tidak bertanggungjawab terhadap kandungan, dasar atau amalan mereka."
+        },
+        "disclaimers": {
+          "title": "8. Penafian",
+          "body": "PERKHIDMATAN INI DISEDIAKAN “SEADANYA” DAN “SEPERTI YANG TERSEDIA” TANPA SEBARANG JAMINAN, SAMA ADA NYATA ATAU TERSIRAT, TERMASUK TETAPI TIDAK TERHAD KEPADA JAMINAN KEBOLEHDAGANGAN, KESESUAIAN UNTUK TUJUAN TERTENTU DAN TIADA PELANGGARAN. KAMI TIDAK MENJAMIN BAHAWA PERKHIDMATAN AKAN TANPA GANGGUAN, SELAMAT ATAU BEBAS DARIPADA RALAT."
+        },
+        "limitationOfLiability": {
+          "title": "9. Had liabiliti",
+          "body": "SETAKAT MAKSIMUM YANG DIBENARKAN OLEH UNDANG-UNDANG, SHARPLY DAN SEKUTUNYA TIDAK AKAN BERTANGGUNGJAWAB UNTUK SEBARANG GANTI RUGI TIDAK LANGSUNG, SAMPINGAN, KHUSUS, TURUTAN, TELADAN ATAU PUNITIF, ATAU SEBARANG KEHILANGAN KEUNTUNGAN, HASIL, DATA ATAU NAMA BAIK, YANG TIMBUL DARIPADA ATAU BERKAITAN DENGAN PENGGUNAAN PERKHIDMATAN OLEH ANDA."
+        },
+        "indemnification": {
+          "title": "10. Tanggung rugi",
+          "body": "Anda bersetuju untuk menanggung rugi dan melepaskan Sharply serta sekutunya daripada sebarang tuntutan, liabiliti, kerosakan, kerugian dan perbelanjaan, termasuk fi guaman yang munasabah, yang timbul daripada atau dalam apa jua cara berkaitan dengan penggunaan Perkhidmatan oleh anda atau Kandungan Pengguna anda."
+        },
+        "changes": {
+          "title": "11. Perubahan kepada Perkhidmatan dan Terma",
+          "body": "Kami boleh mengubah suai Perkhidmatan dan Terma ini pada bila-bila masa. Jika perubahan adalah material, kami akan mengambil langkah yang munasabah untuk memaklumkan anda (contohnya, melalui laman atau melalui e-mel jika tersedia). Penggunaan berterusan anda terhadap Perkhidmatan selepas perubahan berkuat kuasa merupakan penerimaan terhadap Terma yang dikemas kini."
+        },
+        "termination": {
+          "title": "12. Penamatan",
+          "body": "Kami boleh menggantung atau menamatkan akses anda kepada Perkhidmatan pada bila-bila masa, termasuk kerana pelanggaran Terma ini atau untuk melindungi Perkhidmatan atau pengguna lain. Anda boleh berhenti menggunakan Perkhidmatan pada bila-bila masa."
+        },
+        "contact": {
+          "title": "13. Hubungi",
+          "body": "Ada soalan tentang Terma ini atau Perkhidmatan? Sila hubungi kami melalui saluran sokongan yang disenaraikan di laman web kami. Lihat juga {privacyPolicy} kami."
+        }
+      }
+    }
   },
   "errors": {
     "notFoundTitle": "Oops, kami terlepas pukulan.",

@@ -99,6 +99,7 @@ export const BADGE_CATALOG: BadgeDefinition[] = [
     family: "anniversary",
     color: "#10B981",
     iconComponent: Calendar,
+    iconPresentation: "stroke",
     trigger: "cron.anniversary",
     // days thresholds: 1w, 1m, 6m, 1y, 2y..10y
     durationsDays: [

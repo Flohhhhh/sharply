@@ -1,4 +1,4 @@
-import { and,count,desc,eq } from "drizzle-orm";
+import { and,asc,count,desc,eq,inArray,lte } from "drizzle-orm";
 import "server-only";
 import { db } from "~/server/db";
 import {
@@ -11,6 +11,70 @@ import {
   wishlists,
 } from "~/server/db/schema";
 import type { UserSnapshot } from "~/types/badges";
+
+const DAY_IN_MS = 86400000;
+
+export type AnniversaryBadgeThreshold = {
+  days: number;
+  key: string;
+};
+
+export type AnniversaryBackfillCandidate = {
+  diffDays: number;
+  joinDate: Date;
+  missingBadgeKeys: string[];
+  userId: string;
+};
+
+type AnniversaryBackfillUser = {
+  createdAt: Date | null;
+  existingBadgeKeys: string[];
+  id: string;
+};
+
+export function buildAnniversaryBackfillCandidates(params: {
+  anniversaryBadges: AnniversaryBadgeThreshold[];
+  limit?: number;
+  now: number;
+  users: AnniversaryBackfillUser[];
+}): AnniversaryBackfillCandidate[] {
+  const { anniversaryBadges, limit, now, users } = params;
+  if (typeof limit === "number" && limit <= 0) return [];
+  const sortedBadges = [...anniversaryBadges].sort((a, b) => a.days - b.days);
+  const firstThreshold = sortedBadges[0]?.days;
+
+  if (!firstThreshold) return [];
+
+  const candidates: AnniversaryBackfillCandidate[] = [];
+  for (const user of users) {
+    const joinMs =
+      user.createdAt instanceof Date ? user.createdAt.getTime() : Number.NaN;
+    if (!Number.isFinite(joinMs)) continue;
+
+    const diffDays = Math.floor((now - joinMs) / DAY_IN_MS);
+    if (diffDays < firstThreshold) continue;
+
+    const existingBadgeKeys = new Set(
+      user.existingBadgeKeys.filter((key) => key.startsWith("anniversary_")),
+    );
+    const missingBadgeKeys = sortedBadges
+      .filter((badge) => diffDays >= badge.days && !existingBadgeKeys.has(badge.key))
+      .map((badge) => badge.key);
+
+    if (missingBadgeKeys.length === 0) continue;
+
+    candidates.push({
+      userId: user.id,
+      joinDate: new Date(joinMs),
+      diffDays,
+      missingBadgeKeys,
+    });
+
+    if (typeof limit === "number" && candidates.length >= limit) break;
+  }
+
+  return candidates;
+}
 
 export async function getUserSnapshot(userId: string): Promise<UserSnapshot> {
   const [[userRow], [reviewsAgg], [editsAgg], [wishAgg], [ownAgg]] =
@@ -119,4 +183,79 @@ export async function fetchUserBadgesData(userId: string) {
     .from(userBadges)
     .where(eq(userBadges.userId, userId));
   return rows;
+}
+
+export async function fetchAnniversaryBackfillCandidates(params: {
+  anniversaryBadges: AnniversaryBadgeThreshold[];
+  limit?: number;
+  now: number;
+}) {
+  const { anniversaryBadges, limit, now } = params;
+  const firstThreshold = anniversaryBadges.reduce<number | null>(
+    (smallest, badge) =>
+      smallest === null || badge.days < smallest ? badge.days : smallest,
+    null,
+  );
+
+  if (firstThreshold === null) {
+    return {
+      candidates: [] as AnniversaryBackfillCandidate[],
+      scannedUsers: 0,
+    };
+  }
+
+  const oldestEligibleJoinDate = new Date(now - firstThreshold * DAY_IN_MS);
+  const candidateUsers = await db
+    .select({
+      createdAt: users.createdAt,
+      id: users.id,
+    })
+    .from(users)
+    .where(lte(users.createdAt, oldestEligibleJoinDate))
+    .orderBy(asc(users.createdAt), asc(users.id));
+
+  if (candidateUsers.length === 0) {
+    return {
+      candidates: [] as AnniversaryBackfillCandidate[],
+      scannedUsers: 0,
+    };
+  }
+
+  const anniversaryKeys = anniversaryBadges.map((badge) => badge.key);
+  const existingBadgeRows = await db
+    .select({
+      badgeKey: userBadges.badgeKey,
+      userId: userBadges.userId,
+    })
+    .from(userBadges)
+    .where(
+      and(
+        inArray(
+          userBadges.userId,
+          candidateUsers.map((user) => user.id),
+        ),
+        inArray(userBadges.badgeKey, anniversaryKeys),
+      ),
+    );
+
+  const existingBadgeKeysByUserId = new Map<string, string[]>();
+  for (const row of existingBadgeRows) {
+    const keys = existingBadgeKeysByUserId.get(row.userId) ?? [];
+    keys.push(row.badgeKey);
+    existingBadgeKeysByUserId.set(row.userId, keys);
+  }
+
+  return {
+    scannedUsers: candidateUsers.length,
+    candidates: buildAnniversaryBackfillCandidates({
+      anniversaryBadges,
+      limit,
+      now,
+      users: candidateUsers.map((user) => ({
+        id: user.id,
+        createdAt: user.createdAt,
+        existingBadgeKeys: existingBadgeKeysByUserId.get(user.id) ?? [],
+      })),
+    }),
+  };
 }

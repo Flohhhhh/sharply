@@ -771,6 +771,9 @@
             "hasHotShoe": {
               "label": "Griffe flash"
             },
+            "hasIlluminatedButtons": {
+              "label": "Boutons rétroéclairés"
+            },
             "hasUsbFileTransfer": {
               "label": "Transfert de fichiers USB"
             }
@@ -1526,6 +1529,87 @@
     "checklistSaveCollection": "Enregistrer du matériel dans votre collection",
     "checklistWriteReviews": "Écrire des avis et partager votre expérience",
     "checklistWishlist": "Ajouter des articles à votre liste d'envies"
+  },
+  "legal": {
+    "privacy": {
+      "lastUpdated": "Dernière mise à jour : 17 mai 2026",
+      "cookiesListItem": "Nous utilisons des cookies et des technologies similaires pour l’authentification, la sécurité, la continuité de connexion, les préférences de langue et d’interface, ainsi qu’une mesure agrégée limitée.",
+      "usageAnalyticsListItem": "Mesurer l’usage agrégé, améliorer le Service et prévenir les abus.",
+      "cookiesTrackingBody1": "Nous utilisons des cookies essentiels et fonctionnels pour exploiter le Service, authentifier les utilisateurs, maintenir la sécurité, préserver les parcours de connexion et d’invitation, mémoriser les préférences de langue et d’interface, et prendre en charge des fonctionnalités similaires que vous demandez.",
+      "cookiesTrackingBody2": "Nous utilisons également des cookies de mesure first-party limités uniquement pour réduire les comptages en double dans les métriques agrégées de popularité et de comparaison. Ces cookies ne sont pas utilisés pour vous identifier sur différents sites, diffuser de la publicité ou créer des profils comportementaux.",
+      "analyticsBody1": "En production, nous utilisons Vercel Web Analytics et des prestataires associés pour l’hébergement, l’authentification et des analyses respectueuses de la vie privée. Vercel Web Analytics est first-party et sans cookie au niveau de la couche analytique, et nous envoyons également des événements analytiques personnalisés pour comprendre l’usage des fonctionnalités et la performance du Service.",
+      "analyticsBody2": "Nous utilisons ces prestataires comme fournisseurs de services agissant pour notre compte afin d’exploiter, sécuriser et améliorer le Service. Nous n’utilisons pas l’analytique à des fins publicitaires, de reciblage, de suivi intersites ou de création de profils marketing.",
+      "noSellOrProfile": "Nous ne vendons pas vos informations personnelles, n’utilisons pas de traceurs publicitaires et ne créons pas de profils marketing ou comportementaux à partir des événements analytiques."
+    },
+    "terms": {
+      "title": "Conditions d’utilisation",
+      "lastUpdated": "Dernière mise à jour : 17 mai 2026",
+      "intro": "Bienvenue sur Sharply. En accédant à notre site web, à nos applications ou à nos services, ou en les utilisant (collectivement, le « Service »), vous acceptez les présentes Conditions d’utilisation (« Conditions »). Si vous n’êtes pas d’accord, n’utilisez pas le Service.",
+      "privacyNotice": "Comme décrit dans notre {privacyPolicy}, le Service utilise des cookies essentiels et fonctionnels ainsi qu’une analytique et une mesure first-party limitées et respectueuses de la vie privée pour exploiter, sécuriser et améliorer le Service. Nous n’utilisons pas le Service à des fins publicitaires, de suivi intersites ou de création de profils comportementaux.",
+      "sections": {
+        "whatSharplyIs": {
+          "title": "1. Qu’est-ce que Sharply ?",
+          "body": "Sharply est une base de données et une plateforme de catalogage de matériel photo. Nous regroupons et organisons des données sur les équipements photo, permettons aux utilisateurs de créer des collections et facilitons les contributions de la communauté ainsi que le contenu éditorial."
+        },
+        "account": {
+          "title": "2. Votre compte",
+          "item1": "Vous devez être en mesure de conclure un contrat contraignant pour utiliser le Service.",
+          "item2": "Vous êtes responsable de l’activité de votre compte et de la sécurité de vos identifiants.",
+          "item3": "Nous pouvons suspendre ou résilier les comptes qui enfreignent les présentes Conditions."
+        },
+        "userContent": {
+          "title": "3. Contributions des utilisateurs et licence",
+          "body1": "Vous pouvez soumettre du contenu tel que des spécifications, des images, des notes, des avis et des suggestions (« Contenu utilisateur »). Vous déclarez disposer des droits nécessaires pour publier le Contenu utilisateur et que celui-ci ne porte pas atteinte aux droits d’autrui et ne viole aucune loi.",
+          "body2": "En soumettant du Contenu utilisateur, vous accordez à Sharply une licence non exclusive, mondiale, libre de redevances et pouvant faire l’objet de sous-licences pour héberger, stocker, reproduire, modifier à des fins de mise en forme, traduire, créer des œuvres dérivées pour la présentation, publier, afficher publiquement et distribuer ce Contenu utilisateur dans le cadre de l’exploitation et de l’amélioration du Service. Vous pouvez supprimer votre Contenu utilisateur à tout moment ; cela peut ne pas affecter les copies ou dérivés antérieurs déjà créés, utilisés ou partagés comme autorisé ci-dessus.",
+          "body3": "Nous pouvons modérer, modifier pour plus de clarté, refuser ou supprimer du Contenu utilisateur à notre discrétion, notamment pour respecter la loi ou protéger la communauté."
+        },
+        "prohibited": {
+          "title": "4. Activités interdites",
+          "item1": "Publier du contenu illégal, trompeur, diffamatoire ou portant atteinte à des droits.",
+          "item2": "Téléverser des logiciels malveillants ou tenter d’interférer avec le Service.",
+          "item3": "Usurper l’identité d’une personne ou d’une entité ou présenter de manière mensongère une affiliation.",
+          "item4": "Extraire, collecter ou télécharger en masse des données sans notre autorisation écrite préalable (utilisez une API officielle si et lorsqu’elle est fournie).",
+          "item5": "Contourner les contrôles d’accès, les limites de débit ou les mesures de sécurité.",
+          "item6": "Utiliser le Service à des fins d’exploitation commerciale qui reproduisent ou concurrencent Sharply sans autorisation."
+        },
+        "intellectualProperty": {
+          "title": "5. Propriété intellectuelle",
+          "body": "Le Service, y compris notre logiciel, notre design et notre contenu original, appartient à Sharply ou lui est concédé sous licence et est protégé par les lois sur la propriété intellectuelle. Les noms de produits, logos et marques mentionnés sur le Service appartiennent à leurs propriétaires respectifs et n’impliquent aucune approbation."
+        },
+        "informationAccuracy": {
+          "title": "6. Exactitude des informations ; pas de conseil professionnel",
+          "body": "Nous nous efforçons de fournir des données d’équipement et un contenu éditorial exacts, mais les informations peuvent être incomplètes, obsolètes ou contenir des erreurs. Le contenu est fourni à titre informatif uniquement et ne constitue pas un conseil professionnel. Il vous appartient de vérifier les informations avant de prendre des décisions d’achat ou d’utilisation."
+        },
+        "thirdPartyLinks": {
+          "title": "7. Liens tiers",
+          "body": "Le Service peut inclure des liens vers des sites web ou services tiers. Nous ne sommes pas responsables de leur contenu, de leurs politiques ou de leurs pratiques."
+        },
+        "disclaimers": {
+          "title": "8. Exclusions de garantie",
+          "body": "LE SERVICE EST FOURNI « EN L’ÉTAT » ET « SELON DISPONIBILITÉ » SANS GARANTIE D’AUCUNE SORTE, EXPRESSE OU IMPLICITE, Y COMPRIS, SANS S’Y LIMITER, LES GARANTIES DE QUALITÉ MARCHANDE, D’ADÉQUATION À UN USAGE PARTICULIER ET D’ABSENCE DE CONTREFAÇON. NOUS NE GARANTISSONS PAS QUE LE SERVICE SERA ININTERROMPU, SÉCURISÉ OU EXEMPT D’ERREURS."
+        },
+        "limitationOfLiability": {
+          "title": "9. Limitation de responsabilité",
+          "body": "DANS LA MESURE MAXIMALE PERMISE PAR LA LOI, SHARPLY ET SES SOCIÉTÉS AFFILIÉES NE SERONT PAS RESPONSABLES DES DOMMAGES INDIRECTS, ACCESSOIRES, SPÉCIAUX, CONSÉCUTIFS, EXEMPLAIRES OU PUNITIFS, NI DE TOUTE PERTE DE PROFITS, DE REVENUS, DE DONNÉES OU DE CLIENTÈLE, DÉCOULANT DE OU LIÉE À VOTRE UTILISATION DU SERVICE."
+        },
+        "indemnification": {
+          "title": "10. Indemnisation",
+          "body": "Vous acceptez d’indemniser et de dégager Sharply et ses sociétés affiliées de toute responsabilité à l’égard de toute réclamation, responsabilité, dommage, perte et dépense, y compris des frais juridiques raisonnables, découlant de votre utilisation du Service ou de votre Contenu utilisateur, ou y étant liés de quelque manière que ce soit."
+        },
+        "changes": {
+          "title": "11. Modifications du Service et des Conditions",
+          "body": "Nous pouvons modifier le Service et les présentes Conditions à tout moment. Si les modifications sont importantes, nous prendrons des mesures raisonnables pour vous en informer (par exemple, via le site ou par e-mail si disponible). Votre utilisation continue du Service après l’entrée en vigueur des modifications constitue votre acceptation des Conditions mises à jour."
+        },
+        "termination": {
+          "title": "12. Résiliation",
+          "body": "Nous pouvons suspendre ou résilier votre accès au Service à tout moment, notamment en cas de violation des présentes Conditions ou pour protéger le Service ou les autres utilisateurs. Vous pouvez cesser d’utiliser le Service à tout moment."
+        },
+        "contact": {
+          "title": "13. Contact",
+          "body": "Des questions sur ces Conditions ou sur le Service ? Veuillez nous contacter via le canal d’assistance indiqué sur notre site web. Consultez également notre {privacyPolicy}."
+        }
+      }
+    }
   },
   "errors": {
     "notFoundTitle": "Oups, nous avons raté la prise.",

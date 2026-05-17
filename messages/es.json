@@ -771,6 +771,9 @@
             "hasHotShoe": {
               "label": "Zapata"
             },
+            "hasIlluminatedButtons": {
+              "label": "Botones iluminados"
+            },
             "hasUsbFileTransfer": {
               "label": "Transferencia de archivos por USB"
             }
@@ -1526,6 +1529,87 @@
     "checklistSaveCollection": "Guardar equipo en tu colección",
     "checklistWriteReviews": "Escribir reseñas y compartir tu experiencia",
     "checklistWishlist": "Añadir artículos a tu lista de deseos"
+  },
+  "legal": {
+    "privacy": {
+      "lastUpdated": "Última actualización: 17 de mayo de 2026",
+      "cookiesListItem": "Usamos cookies y tecnologías similares para la autenticación, la seguridad, la continuidad del inicio de sesión, las preferencias de idioma e interfaz y una medición agregada limitada.",
+      "usageAnalyticsListItem": "Medir el uso agregado, mejorar el Servicio y prevenir abusos.",
+      "cookiesTrackingBody1": "Usamos cookies esenciales y funcionales para operar el Servicio, autenticar a los usuarios, mantener la seguridad, conservar los flujos de inicio de sesión e invitación, recordar las preferencias de idioma e interfaz y dar soporte a funciones similares que solicitas.",
+      "cookiesTrackingBody2": "También usamos cookies limitadas de medición de primera parte únicamente para reducir recuentos duplicados en métricas agregadas de popularidad y comparación. Estas cookies no se usan para identificarte en distintos sitios, servir publicidad ni crear perfiles de comportamiento.",
+      "analyticsBody1": "En producción usamos Vercel Web Analytics y proveedores relacionados para alojamiento, autenticación y analítica centrada en la privacidad. Vercel Web Analytics es de primera parte y no usa cookies en la capa de analítica, y además enviamos eventos analíticos personalizados para entender el uso de funciones y el rendimiento del Servicio.",
+      "analyticsBody2": "Usamos a estos proveedores como prestadores de servicios que actúan en nuestro nombre para operar, proteger y mejorar el Servicio. No usamos la analítica para publicidad, retargeting, seguimiento entre sitios ni creación de perfiles de marketing.",
+      "noSellOrProfile": "No vendemos tu información personal, no usamos rastreadores publicitarios ni creamos perfiles de marketing o de comportamiento a partir de eventos analíticos."
+    },
+    "terms": {
+      "title": "Términos del servicio",
+      "lastUpdated": "Última actualización: 17 de mayo de 2026",
+      "intro": "Bienvenido a Sharply. Al acceder o utilizar nuestro sitio web, aplicaciones o servicios (en conjunto, el \"Servicio\"), aceptas estos Términos del servicio (los \"Términos\"). Si no estás de acuerdo, no uses el Servicio.",
+      "privacyNotice": "Como se describe en nuestra {privacyPolicy}, el Servicio usa cookies esenciales y funcionales junto con analítica y medición limitadas, centradas en la privacidad y de primera parte, para operar, proteger y mejorar el Servicio. No usamos el Servicio para publicidad, seguimiento entre sitios ni creación de perfiles de comportamiento.",
+      "sections": {
+        "whatSharplyIs": {
+          "title": "1. Qué es Sharply",
+          "body": "Sharply es una base de datos y plataforma de catalogación de equipo fotográfico. Reunimos y organizamos datos de equipos de cámara, permitimos a los usuarios crear colecciones y facilitamos contribuciones de la comunidad y contenido editorial."
+        },
+        "account": {
+          "title": "2. Tu cuenta",
+          "item1": "Debes tener capacidad para celebrar un contrato vinculante para usar el Servicio.",
+          "item2": "Eres responsable de la actividad de tu cuenta y de mantener seguras tus credenciales.",
+          "item3": "Podemos suspender o cancelar cuentas que infrinjan estos Términos."
+        },
+        "userContent": {
+          "title": "3. Contenido del usuario y licencia",
+          "body1": "Puedes enviar contenido como especificaciones, imágenes, calificaciones, reseñas y sugerencias (\"Contenido del usuario\"). Declaras que tienes los derechos necesarios para publicar Contenido del usuario y que no infringe los derechos de terceros ni vulnera ninguna ley.",
+          "body2": "Al enviar Contenido del usuario, otorgas a Sharply una licencia no exclusiva, mundial, libre de regalías y sublicenciable para alojar, almacenar, reproducir, modificar con fines de formato, traducir, crear obras derivadas para su presentación, publicar, mostrar públicamente y distribuir dicho Contenido del usuario en relación con la operación y mejora del Servicio. Puedes eliminar tu Contenido del usuario en cualquier momento; esto puede no afectar copias o derivados previos ya creados, usados o compartidos según lo permitido anteriormente.",
+          "body3": "Podemos moderar, editar para mayor claridad, rechazar o eliminar Contenido del usuario a nuestra discreción, incluso para cumplir la ley o proteger a la comunidad."
+        },
+        "prohibited": {
+          "title": "4. Actividades prohibidas",
+          "item1": "Publicar contenido ilegal, engañoso, difamatorio o que infrinja derechos.",
+          "item2": "Subir malware o intentar interferir con el Servicio.",
+          "item3": "Suplantar a cualquier persona o entidad o falsear una afiliación.",
+          "item4": "Extraer, recopilar o descargar datos de forma masiva sin nuestro permiso previo por escrito (usa una API oficial si se proporciona).",
+          "item5": "Eludir controles de acceso, límites de uso o medidas de seguridad.",
+          "item6": "Usar el Servicio para una explotación comercial que replique o compita con Sharply sin autorización."
+        },
+        "intellectualProperty": {
+          "title": "5. Propiedad intelectual",
+          "body": "El Servicio, incluido nuestro software, diseño y contenido original, es propiedad de Sharply o está licenciado a Sharply y está protegido por leyes de propiedad intelectual. Los nombres de productos, logotipos y marcas mencionados en el Servicio pertenecen a sus respectivos propietarios y no implican respaldo."
+        },
+        "informationAccuracy": {
+          "title": "6. Exactitud de la información; no constituye asesoramiento profesional",
+          "body": "Nos esforzamos por ofrecer datos de equipo y contenido editorial precisos, pero la información puede estar incompleta, desactualizada o contener errores. El contenido se proporciona solo con fines informativos y no constituye asesoramiento profesional. Eres responsable de verificar la información antes de tomar decisiones de compra o de uso."
+        },
+        "thirdPartyLinks": {
+          "title": "7. Enlaces de terceros",
+          "body": "El Servicio puede incluir enlaces a sitios web o servicios de terceros. No somos responsables de su contenido, políticas ni prácticas."
+        },
+        "disclaimers": {
+          "title": "8. Exenciones de responsabilidad",
+          "body": "EL SERVICIO SE PROPORCIONA \"TAL CUAL\" Y \"SEGÚN DISPONIBILIDAD\" SIN GARANTÍAS DE NINGÚN TIPO, EXPRESAS O IMPLÍCITAS, INCLUIDAS, ENTRE OTRAS, LAS GARANTÍAS DE COMERCIABILIDAD, IDONEIDAD PARA UN FIN DETERMINADO Y NO INFRACCIÓN. NO GARANTIZAMOS QUE EL SERVICIO SEA ININTERRUMPIDO, SEGURO O LIBRE DE ERRORES."
+        },
+        "limitationOfLiability": {
+          "title": "9. Limitación de responsabilidad",
+          "body": "EN LA MEDIDA MÁXIMA PERMITIDA POR LA LEY, SHARPLY Y SUS AFILIADAS NO SERÁN RESPONSABLES DE NINGÚN DAÑO INDIRECTO, INCIDENTAL, ESPECIAL, CONSECUENTE, EJEMPLAR O PUNITIVO, NI DE NINGUNA PÉRDIDA DE BENEFICIOS, INGRESOS, DATOS O FONDO DE COMERCIO, DERIVADOS O RELACIONADOS CON TU USO DEL SERVICIO."
+        },
+        "indemnification": {
+          "title": "10. Indemnización",
+          "body": "Aceptas indemnizar y eximir de responsabilidad a Sharply y sus afiliadas frente a cualquier reclamación, responsabilidad, daño, pérdida y gasto, incluidos honorarios legales razonables, que surjan de o estén relacionados de algún modo con tu uso del Servicio o tu Contenido del usuario."
+        },
+        "changes": {
+          "title": "11. Cambios en el Servicio y en los Términos",
+          "body": "Podemos modificar el Servicio y estos Términos en cualquier momento. Si los cambios son importantes, tomaremos medidas razonables para notificártelo (por ejemplo, a través del sitio o por correo electrónico si está disponible). Tu uso continuado del Servicio después de que los cambios entren en vigor constituye la aceptación de los Términos actualizados."
+        },
+        "termination": {
+          "title": "12. Terminación",
+          "body": "Podemos suspender o terminar tu acceso al Servicio en cualquier momento, incluso por incumplimiento de estos Términos o para proteger el Servicio o a otros usuarios. Puedes dejar de usar el Servicio en cualquier momento."
+        },
+        "contact": {
+          "title": "13. Contacto",
+          "body": "¿Preguntas sobre estos Términos o sobre el Servicio? Ponte en contacto con nosotros a través del canal de soporte indicado en nuestro sitio web. Consulta también nuestra {privacyPolicy}."
+        }
+      }
+    }
   },
   "errors": {
     "notFoundTitle": "Ups, fallamos la toma.",

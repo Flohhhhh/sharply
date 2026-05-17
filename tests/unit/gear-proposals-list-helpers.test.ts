@@ -9,6 +9,7 @@ import {
   buildSelectedPayload,
   computeConflictsForGroup,
   flattenProposalGroups,
+  formatBooleanProposalValue,
   mergeProposalDiffsForDisplay,
   type GearProposal,
   type ProposalGroup,
@@ -248,5 +249,50 @@ describe("gear proposal helpers", () => {
       cameraType: "slr",
       captureMedium: "35mm_film",
     });
+  });
+
+  it("detects conflicts for camera boolean fields and merges the selected value", () => {
+    const group: ProposalGroup = {
+      gearId: "gear-1",
+      gearName: "Nikon Zf",
+      gearSlug: "nikon-zf",
+      proposals: [
+        createProposal(
+          { id: "proposal-1", createdById: "user-1", createdByName: "Alice" },
+          { camera: { hasIlluminatedButtons: true } },
+        ),
+        createProposal(
+          { id: "proposal-2", createdById: "user-2", createdByName: "Bob" },
+          { camera: { hasIlluminatedButtons: false } },
+        ),
+      ],
+    };
+
+    const conflicts = computeConflictsForGroup(group);
+    const merged = buildMergedPayloadForGroup(
+      group,
+      { "camera.hasIlluminatedButtons": "proposal-1" },
+      {},
+    );
+
+    expect(conflicts).toEqual([
+      expect.objectContaining({
+        fieldKey: "camera.hasIlluminatedButtons",
+        key: "hasIlluminatedButtons",
+      }),
+    ]);
+    expect(merged).toEqual({
+      camera: {
+        hasIlluminatedButtons: true,
+      },
+    });
+  });
+
+  it("formats boolean proposal values for admin approval surfaces", () => {
+    const t = (key: string) => `common.${key}`;
+
+    expect(formatBooleanProposalValue(true, t)).toBe("common.yes");
+    expect(formatBooleanProposalValue(false, t)).toBe("common.no");
+    expect(formatBooleanProposalValue(null, t)).toBeNull();
   });
 });

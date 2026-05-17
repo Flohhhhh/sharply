@@ -47,6 +47,7 @@ import CameraFields from "./fields-cameras";
 import { CoreFields } from "./fields-core";
 import { FixedLensFields } from "./fields-fixed-lens";
 import { LensFields } from "./fields-lenses";
+import { formatBooleanText } from "./edit-gear-formatters";
 
 const SHUTTER_LABELS: Record<string, string> = {
   mechanical: "Mechanical",
@@ -202,6 +203,7 @@ function EditGearForm({
 }: EditGearFormProps) {
   const locale = useLocale();
   const t = useTranslations("gearDetail");
+  const tCommon = useTranslations("common");
   const tf = (key: string, fallback: string, values?: TranslationValues) =>
     translateGearDetailWithFallback(t, key, fallback, values);
   const router = useRouter();
@@ -380,6 +382,7 @@ function EditGearForm({
     hasSelfTimer: "camera-misc",
     hasBuiltInFlash: "camera-misc",
     hasHotShoe: "camera-misc",
+    hasIlluminatedButtons: "camera-misc",
     hasUsbFileTransfer: "camera-misc",
   };
 
@@ -663,6 +666,7 @@ function EditGearForm({
         "hasSelfTimer",
         "hasBuiltInFlash",
         "hasHotShoe",
+        "hasIlluminatedButtons",
         "hasUsbFileTransfer",
       ] as const;
       const orig = toRecord(gearData.cameraSpecs);
@@ -1283,6 +1287,8 @@ function EditGearForm({
                       <ul className="list-disc pl-5">
                         {Object.entries(diffPreview.core).map(([k, v]) => {
                           let display = safeString(v);
+                          const booleanDisplay = formatBooleanText(v, tCommon);
+                          if (booleanDisplay) display = booleanDisplay;
                           if (
                             k === "msrpNowUsdCents" ||
                             k === "msrpAtLaunchUsdCents" ||
@@ -1329,14 +1335,19 @@ function EditGearForm({
                       </div>
                       <ul className="list-disc pl-5">
                         {Object.entries(diffPreview.analogCamera).map(
-                          ([k, v]) => (
+                          ([k, v]) => {
+                          let display = safeString(v);
+                          const booleanDisplay = formatBooleanText(v, tCommon);
+                          if (booleanDisplay) display = booleanDisplay;
+                          return (
                           <li key={k}>
                             <span className="text-muted-foreground">
                               {getSectionDiffLabel("analogCamera", k)}:
                             </span>{" "}
-                            <span className="font-medium">{safeString(v)}</span>
+                            <span className="font-medium">{display}</span>
                           </li>
-                          ),
+                          );
+                          },
                         )}
                       </ul>
                     </div>
@@ -1364,6 +1375,8 @@ function EditGearForm({
                         {Object.entries(diffPreview.camera).map(([k, v]) => {
                           if (k === "availableShutterTypes") return null;
                           let display = safeString(v);
+                          const booleanDisplay = formatBooleanText(v, tCommon);
+                          if (booleanDisplay) display = booleanDisplay;
                           if (k === "sensorFormatId")
                             display = sensorNameFromSlug(v as string);
                           if (k === "maxFpsRaw" || k === "maxFpsJpg") {
@@ -1393,14 +1406,19 @@ function EditGearForm({
                         {getDiffSectionTitle("lens")}
                       </div>
                       <ul className="list-disc pl-5">
-                        {Object.entries(diffPreview.lens).map(([k, v]) => (
+                        {Object.entries(diffPreview.lens).map(([k, v]) => {
+                          let display = safeString(v);
+                          const booleanDisplay = formatBooleanText(v, tCommon);
+                          if (booleanDisplay) display = booleanDisplay;
+                          return (
                           <li key={k}>
                             <span className="text-muted-foreground">
                               {getSectionDiffLabel("lens", k)}:
                             </span>{" "}
-                            <span className="font-medium">{safeString(v)}</span>
+                            <span className="font-medium">{display}</span>
                           </li>
-                        ))}
+                          );
+                        })}
                       </ul>
                     </div>
                   )}
@@ -1410,14 +1428,19 @@ function EditGearForm({
                         {getDiffSectionTitle("fixedLens")}
                       </div>
                       <ul className="list-disc pl-5">
-                        {Object.entries(diffPreview.fixedLens).map(([k, v]) => (
+                        {Object.entries(diffPreview.fixedLens).map(([k, v]) => {
+                          let display = safeString(v);
+                          const booleanDisplay = formatBooleanText(v, tCommon);
+                          if (booleanDisplay) display = booleanDisplay;
+                          return (
                           <li key={k}>
                             <span className="text-muted-foreground">
                               {getSectionDiffLabel("fixedLens", k)}:
                             </span>{" "}
-                            <span className="font-medium">{safeString(v)}</span>
+                            <span className="font-medium">{display}</span>
                           </li>
-                        ))}
+                          );
+                        })}
                       </ul>
                     </div>
                   )}

@@ -149,4 +149,64 @@ describe("spec registry i18n", () => {
     });
     expect(announcedDateField?.label).not.toBe("Announced Date");
   });
+
+  it("renders yes-only booleans only when true", () => {
+    const trueSections = buildGearSpecsSections(
+      createGearItem({
+        gearType: "CAMERA",
+        cameraSpecs: {
+          hasIlluminatedButtons: true,
+        } as GearItem["cameraSpecs"],
+      }),
+      {
+        locale: "en",
+      },
+    );
+    const falseSections = buildGearSpecsSections(
+      createGearItem({
+        gearType: "CAMERA",
+        cameraSpecs: {
+          hasIlluminatedButtons: false,
+        } as GearItem["cameraSpecs"],
+      }),
+      {
+        locale: "en",
+      },
+    );
+    const nullSections = buildGearSpecsSections(
+      createGearItem({
+        gearType: "CAMERA",
+        cameraSpecs: {
+          hasIlluminatedButtons: null,
+        } as GearItem["cameraSpecs"],
+      }),
+      {
+        locale: "en",
+      },
+    );
+
+    const miscSection = trueSections.find(
+      (section) => section.id === "camera-misc",
+    );
+
+    expect(miscSection?.data).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          key: "hasIlluminatedButtons",
+          label: "Has Illuminated Buttons",
+          value: "Yes",
+        }),
+      ]),
+    );
+    expect(
+      falseSections
+        .flatMap((section) => section.data)
+        .some((row) => row.key === "hasIlluminatedButtons"),
+    ).toBe(false);
+    expect(
+      nullSections
+        .flatMap((section) => section.data)
+        .some((row) => row.key === "hasIlluminatedButtons"),
+    ).toBe(false);
+  });
 });

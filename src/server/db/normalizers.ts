@@ -650,6 +650,13 @@ export function normalizeProposalPayloadForDb(
           z.boolean().nullable().optional(),
         )
         .optional(),
+      hasIlluminatedButtons: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
       hasUsbFileTransfer: z
         .preprocess(
           (value) =>

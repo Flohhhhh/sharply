@@ -2,6 +2,7 @@
 
 import { Check,X } from "lucide-react";
 import { useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useEffect,useMemo,useState } from "react";
 import useSWR from "swr";
@@ -44,6 +45,7 @@ import {
   computeConflictsForGroup,
   computeNonConflictsForGroup,
   flattenProposalGroups,
+  formatBooleanProposalValue,
   groupGearProposals,
   type GearProposal,
   type NonConflictEntry,
@@ -60,6 +62,7 @@ type ResolvedResponse = {
 
 export function GearProposalsList() {
   const locale = useLocale();
+  const tCommon = useTranslations("common");
   const [proposals, setProposals] = useState<GearProposal[]>([]);
   const formatDisplayDate = (value: unknown) =>
     formatDate(value as string | Date | number | null | undefined, {
@@ -184,6 +187,8 @@ export function GearProposalsList() {
   const formatValueForKey = (k: string, v: any): string => {
     const isEmpty = v === null || v === undefined || v === "";
     if (isEmpty) return "Empty";
+    const booleanDisplay = formatBooleanProposalValue(v, tCommon);
+    if (booleanDisplay) return booleanDisplay;
     if (
       k === "msrpUsdCents" ||
       k === "msrpNowUsdCents" ||
@@ -205,6 +210,8 @@ export function GearProposalsList() {
     return String(v);
   };
   const formatBeforeValueForKey = (k: string, v: any): string => {
+    const booleanDisplay = formatBooleanProposalValue(v, tCommon);
+    if (booleanDisplay) return booleanDisplay;
     if (
       k === "msrpUsdCents" ||
       k === "msrpNowUsdCents" ||
