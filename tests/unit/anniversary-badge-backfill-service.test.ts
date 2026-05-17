@@ -167,4 +167,33 @@ describe("runAnniversaryBackfill", () => {
       now: 123,
     });
   });
+
+  it("does not award badges in live mode when limit is 0", async () => {
+    dataMocks.fetchAnniversaryBackfillCandidates.mockResolvedValue({
+      scannedUsers: 10,
+      candidates: [],
+    });
+
+    await expect(
+      runAnniversaryBackfill({
+        dryRun: false,
+        limit: 0,
+      }),
+    ).resolves.toEqual({
+      dryRun: false,
+      eligibleUsers: 0,
+      processedUsers: 0,
+      scannedUsers: 10,
+      totalAwards: 0,
+      sample: [],
+    });
+
+    expect(dataMocks.fetchAnniversaryBackfillCandidates).toHaveBeenCalledWith({
+      anniversaryBadges: expect.any(Array),
+      limit: 0,
+      now: expect.any(Number),
+    });
+    expect(dataMocks.upsertUserBadge).not.toHaveBeenCalled();
+    expect(notificationMocks.createNotification).not.toHaveBeenCalled();
+  });
 });

@@ -137,4 +137,21 @@ describe("buildAnniversaryBackfillCandidates", () => {
       }),
     ]);
   });
+
+  it("returns zero candidates when limit is 0", () => {
+    const candidates = buildAnniversaryBackfillCandidates({
+      anniversaryBadges,
+      limit: 0,
+      now,
+      users: [
+        {
+          id: "user-6",
+          createdAt: new Date("2025-05-01T00:00:00.000Z"),
+          existingBadgeKeys: [],
+        },
+      ],
+    });
+
+    expect(candidates).toEqual([]);
+  });
 });

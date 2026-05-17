@@ -39,6 +39,7 @@ export function buildAnniversaryBackfillCandidates(params: {
   users: AnniversaryBackfillUser[];
 }): AnniversaryBackfillCandidate[] {
   const { anniversaryBadges, limit, now, users } = params;
+  if (typeof limit === "number" && limit <= 0) return [];
   const sortedBadges = [...anniversaryBadges].sort((a, b) => a.days - b.days);
   const firstThreshold = sortedBadges[0]?.days;
 
