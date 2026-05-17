@@ -16,9 +16,14 @@ const userServiceMocks = vi.hoisted(() => ({
   fetchUserById: vi.fn(),
 }));
 
+const i18nMocks = vi.hoisted(() => ({
+  getTranslations: vi.fn(),
+}));
+
 vi.mock("~/server/badges/data", () => dataMocks);
 vi.mock("~/server/notifications/service", () => notificationMocks);
 vi.mock("~/server/users/service", () => userServiceMocks);
+vi.mock("next-intl/server", () => i18nMocks);
 vi.mock("server-only", () => ({}));
 
 import { runAnniversaryBackfill } from "~/server/badges/service";
@@ -34,6 +39,14 @@ describe("runAnniversaryBackfill", () => {
       handle: "test-user",
       memberNumber: 42,
     });
+    i18nMocks.getTranslations.mockResolvedValue(
+      (key: string, values?: Record<string, unknown>) => {
+        if (key === "badgeAwardedTitleNamed") {
+          return `translated:${String(values?.badgeName ?? "")}`;
+        }
+        return key;
+      },
+    );
     dataMocks.upsertUserBadge.mockResolvedValue(true);
   });
 
@@ -116,7 +129,14 @@ describe("runAnniversaryBackfill", () => {
       eventType: "cron.anniversary.backfill",
     });
     expect(notificationMocks.createNotification).toHaveBeenCalledTimes(2);
+    expect(notificationMocks.createNotification).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        title: "translated:Member Anniversary I",
+      }),
+    );
     expect(userServiceMocks.fetchUserById).toHaveBeenCalledTimes(1);
+    expect(i18nMocks.getTranslations).toHaveBeenCalledWith("notifications");
   });
 
   it("is idempotent when badge rows already exist by the time it writes", async () => {

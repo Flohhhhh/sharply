@@ -1,4 +1,5 @@
 import "server-only";
+import { getTranslations } from "next-intl/server";
 import { BADGE_CATALOG,buildTriggerIndex,validateBadgeCatalog } from "~/lib/badges/catalog";
 import type { BadgeDefinition } from "~/types/badges";
 import { createNotification } from "~/server/notifications/service";
@@ -54,11 +55,14 @@ async function awardBadgeDefinition(params: {
 
   const userProfile = params.userProfile ?? (await fetchUserById(userId));
   const handle = userProfile?.handle || `user-${userProfile?.memberNumber}`;
+  const tNotifications = await getTranslations("notifications");
 
   await createNotification({
     userId,
     type: "badge_awarded",
-    title: `You earned the ${badge.label} badge`,
+    title: tNotifications("badgeAwardedTitleNamed", {
+      badgeName: badge.label,
+    }),
     body: badge.description,
     linkUrl: `/u/${handle}`,
     sourceType: "badge",
