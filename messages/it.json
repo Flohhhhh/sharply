@@ -1542,8 +1542,73 @@
       "noSellOrProfile": "Non vendiamo le tue informazioni personali, non utilizziamo tracker pubblicitari e non creiamo profili di marketing o comportamentali a partire dagli eventi analitici."
     },
     "terms": {
+      "title": "Termini di servizio",
       "lastUpdated": "Ultimo aggiornamento: 17 maggio 2026",
-      "privacyNotice": "Come descritto nella nostra {privacyPolicy}, il Servizio utilizza cookie essenziali e funzionali insieme ad analisi e misurazioni first-party limitate e orientate alla privacy per gestire, proteggere e migliorare il Servizio. Non utilizziamo il Servizio per pubblicità, tracciamento tra siti o creazione di profili comportamentali."
+      "intro": "Benvenuto su Sharply. Accedendo o utilizzando il nostro sito web, le applicazioni o i servizi (collettivamente, il \"Servizio\"), accetti questi Termini di servizio (i \"Termini\"). Se non sei d’accordo, non utilizzare il Servizio.",
+      "privacyNotice": "Come descritto nella nostra {privacyPolicy}, il Servizio utilizza cookie essenziali e funzionali insieme ad analisi e misurazioni first-party limitate e orientate alla privacy per gestire, proteggere e migliorare il Servizio. Non utilizziamo il Servizio per pubblicità, tracciamento tra siti o creazione di profili comportamentali.",
+      "sections": {
+        "whatSharplyIs": {
+          "title": "1. Che cos’è Sharply",
+          "body": "Sharply è una banca dati e piattaforma di catalogazione per attrezzatura fotografica. Raccogliamo e organizziamo dati sull’attrezzatura fotografica, consentiamo agli utenti di creare raccolte e supportiamo contributi della community e contenuti editoriali."
+        },
+        "account": {
+          "title": "2. Il tuo account",
+          "item1": "Per utilizzare il Servizio devi poter concludere un contratto vincolante.",
+          "item2": "Sei responsabile dell’attività svolta tramite il tuo account e della sicurezza delle tue credenziali.",
+          "item3": "Possiamo sospendere o chiudere gli account che violano questi Termini."
+        },
+        "userContent": {
+          "title": "3. Contenuti degli utenti e licenza",
+          "body1": "Puoi inviare contenuti come specifiche, immagini, valutazioni, recensioni e suggerimenti (“Contenuti utente”). Dichiari di avere i diritti necessari per pubblicare i Contenuti utente e che essi non violano i diritti altrui né alcuna legge.",
+          "body2": "Inviando Contenuti utente, concedi a Sharply una licenza non esclusiva, mondiale, gratuita e sublicenziabile per ospitare, archiviare, riprodurre, modificare per esigenze di formattazione, tradurre, creare opere derivate per la presentazione, pubblicare, mostrare pubblicamente e distribuire tali Contenuti utente in relazione al funzionamento e al miglioramento del Servizio. Puoi rimuovere i tuoi Contenuti utente in qualsiasi momento; ciò potrebbe non influire su copie o derivati precedenti già creati, utilizzati o condivisi come consentito sopra.",
+          "body3": "Possiamo moderare, modificare per chiarezza, rifiutare o rimuovere i Contenuti utente a nostra discrezione, anche per rispettare la legge o proteggere la community."
+        },
+        "prohibited": {
+          "title": "4. Attività vietate",
+          "item1": "Pubblicare contenuti illeciti, ingannevoli, diffamatori o che violano diritti.",
+          "item2": "Caricare malware o tentare di interferire con il Servizio.",
+          "item3": "Impersonare persone o entità o rappresentare in modo falso un’affiliazione.",
+          "item4": "Effettuare scraping, raccolta automatizzata o download massivi di dati senza il nostro previo permesso scritto (usa un’API ufficiale se e quando sarà disponibile).",
+          "item5": "Aggirare controlli di accesso, limiti di frequenza o misure di sicurezza.",
+          "item6": "Usare il Servizio per uno sfruttamento commerciale che replichi o faccia concorrenza a Sharply senza autorizzazione."
+        },
+        "intellectualProperty": {
+          "title": "5. Proprietà intellettuale",
+          "body": "Il Servizio, compresi il nostro software, il design e i contenuti originali, è di proprietà di Sharply o concesso in licenza a Sharply ed è protetto dalle leggi sulla proprietà intellettuale. I nomi dei prodotti, i loghi e i marchi citati nel Servizio appartengono ai rispettivi proprietari e non implicano alcuna approvazione."
+        },
+        "informationAccuracy": {
+          "title": "6. Accuratezza delle informazioni; nessuna consulenza professionale",
+          "body": "Ci impegniamo a fornire dati sull’attrezzatura e contenuti editoriali accurati, ma le informazioni possono essere incomplete, non aggiornate o contenere errori. I contenuti sono forniti esclusivamente a scopo informativo e non costituiscono consulenza professionale. Sei responsabile della verifica delle informazioni prima di prendere decisioni di acquisto o di utilizzo."
+        },
+        "thirdPartyLinks": {
+          "title": "7. Link di terze parti",
+          "body": "Il Servizio può includere link a siti web o servizi di terze parti. Non siamo responsabili dei loro contenuti, delle loro politiche o delle loro pratiche."
+        },
+        "disclaimers": {
+          "title": "8. Esclusioni di garanzia",
+          "body": "IL SERVIZIO È FORNITO \"COSÌ COM’È\" E \"SECONDO DISPONIBILITÀ\" SENZA GARANZIE DI ALCUN TIPO, ESPRESSE O IMPLICITE, INCLUSE, A TITOLO ESEMPLIFICATIVO, LE GARANZIE DI COMMERCIABILITÀ, IDONEITÀ PER UNO SCOPO PARTICOLARE E NON VIOLAZIONE. NON GARANTIAMO CHE IL SERVIZIO SARÀ ININTERROTTO, SICURO O PRIVO DI ERRORI."
+        },
+        "limitationOfLiability": {
+          "title": "9. Limitazione di responsabilità",
+          "body": "NELLA MISURA MASSIMA CONSENTITA DALLA LEGGE, SHARPLY E LE SUE AFFILIATE NON SARANNO RESPONSABILI PER DANNI INDIRETTI, INCIDENTALI, SPECIALI, CONSEQUENZIALI, ESEMPLARI O PUNITIVI, NÉ PER ALCUNA PERDITA DI PROFITTI, RICAVI, DATI O AVVIAMENTO, DERIVANTE DA O RELATIVA AL TUO UTILIZZO DEL SERVIZIO."
+        },
+        "indemnification": {
+          "title": "10. Manleva",
+          "body": "Accetti di tenere indenne Sharply e le sue affiliate da qualsiasi pretesa, responsabilità, danno, perdita e spesa, comprese ragionevoli spese legali, derivanti da o in qualsiasi modo connessi al tuo utilizzo del Servizio o ai tuoi Contenuti utente."
+        },
+        "changes": {
+          "title": "11. Modifiche al Servizio e ai Termini",
+          "body": "Possiamo modificare il Servizio e questi Termini in qualsiasi momento. Se le modifiche sono rilevanti, adotteremo misure ragionevoli per informarti (ad esempio tramite il sito o via e-mail, se disponibile). Il tuo uso continuato del Servizio dopo l’entrata in vigore delle modifiche costituisce accettazione dei Termini aggiornati."
+        },
+        "termination": {
+          "title": "12. Cessazione",
+          "body": "Possiamo sospendere o terminare il tuo accesso al Servizio in qualsiasi momento, anche in caso di violazione di questi Termini o per proteggere il Servizio o altri utenti. Puoi smettere di usare il Servizio in qualsiasi momento."
+        },
+        "contact": {
+          "title": "13. Contatti",
+          "body": "Hai domande su questi Termini o sul Servizio? Contattaci tramite il canale di supporto indicato sul nostro sito web. Consulta anche la nostra {privacyPolicy}."
+        }
+      }
     }
   },
   "errors": {
