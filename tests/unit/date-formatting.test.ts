@@ -6,6 +6,7 @@ import {
   formatRelativeDate,
   parseDateLike,
 } from "~/lib/format/date";
+import { resolveRuntimeLocale } from "~/i18n/runtime-locale";
 
 describe("parseDateLike", () => {
   it("accepts Date, epoch numbers, and ISO strings", () => {
@@ -246,6 +247,20 @@ describe("formatRelativeDate", () => {
         capitalize: true,
       }),
     ).toBe("Just now");
+  });
+});
+
+describe("runtime locale normalization", () => {
+  it("maps the app zh locale to zh-CN for Intl formatting", () => {
+    expect(resolveRuntimeLocale("zh")).toBe("zh-CN");
+    expect(formatDate("2026-04-21T15:30:45.000Z", {
+      locale: "zh",
+      preset: "date-long",
+    })).toBe("2026年4月21日");
+    expect(formatRelativeDate("2026-04-21T11:15:00.000Z", {
+      locale: "zh",
+      now: "2026-04-21T12:00:00.000Z",
+    })).toBe("今天");
   });
 });
 

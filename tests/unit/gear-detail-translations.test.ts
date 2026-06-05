@@ -72,7 +72,15 @@ describe("gear detail heading translations", () => {
     expect(getPathValue(enMessages, "editGear.title")).toBe("Edit Gear Item");
     expect(getPathValue(enMessages, "reviewGenres.weddings")).toBe("Weddings");
 
-    const locales = ["de.json", "es.json", "fr.json", "it.json", "ja.json", "ms.json"];
+    const locales = [
+      "de.json",
+      "es.json",
+      "fr.json",
+      "it.json",
+      "ja.json",
+      "ms.json",
+      "zh.json",
+    ];
 
     for (const locale of locales) {
       const messages = readGearDetailMessages(locale);

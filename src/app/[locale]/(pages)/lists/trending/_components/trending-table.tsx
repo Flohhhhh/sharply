@@ -58,6 +58,7 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import { resolveRuntimeLocale } from "~/i18n/runtime-locale";
 import { cn } from "~/lib/utils";
 import { buildCompareHref } from "~/lib/utils/url";
 import { actionRecordCompareAdd } from "~/server/popularity/actions";
@@ -361,7 +362,10 @@ function TrendingRow({
   const t = useTranslations("trendingPage");
   const locale = useLocale();
   const router = useRouter();
-  const numberFormatter = useMemo(() => new Intl.NumberFormat(locale), [locale]);
+  const numberFormatter = useMemo(
+    () => new Intl.NumberFormat(resolveRuntimeLocale(locale)),
+    [locale],
+  );
   const zebraClass =
     "group border-border/50 bg-background px-4 py-2 transition-colors hover:bg-zinc-200/70 dark:hover:bg-accent/50 even:bg-accent/20";
   const cellBase = "px-4 py-2";

@@ -53,6 +53,7 @@ describe("sitemap", () => {
         languages: expect.objectContaining({
           en: "https://www.sharplyphoto.com/learn/the-exposure-triangle",
           ja: "https://www.sharplyphoto.com/ja/learn/the-exposure-triangle",
+          zh: "https://www.sharplyphoto.com/zh/learn/the-exposure-triangle",
         }),
       },
     });

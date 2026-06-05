@@ -83,6 +83,7 @@ describe("legal terms translations", () => {
       "it.json",
       "ja.json",
       "ms.json",
+      "zh.json",
     ];
 
     for (const locale of locales) {

@@ -12,6 +12,7 @@ export type LocaleId =
   | "fr"
   | "es"
   | "it"
+  | "cn"
   | "my"
   | "jp"
   | "global";
@@ -117,6 +118,17 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     },
   },
   {
+    id: "cn",
+    label: "China",
+    countryCode: "CN",
+    affiliateCountryCode: "CN",
+    gearRegion: "GLOBAL",
+    mpb: {
+      isSupported: false,
+      market: null,
+    },
+  },
+  {
     id: "my",
     label: "Malaysia",
     countryCode: "MY",
@@ -206,6 +218,13 @@ export const LANGUAGE_MARKET_OPTIONS: LanguageMarketOption[] = [
     shortLabel: "Italiano",
   },
   {
+    id: "zh-cn",
+    locale: "zh",
+    localeId: "cn",
+    label: "简体中文 (中国)",
+    shortLabel: "简体中文",
+  },
+  {
     id: "ms-my",
     locale: "ms",
     localeId: "my",
@@ -227,8 +246,9 @@ const DEFAULT_LANGUAGE_MARKET_BY_LOCALE: Record<Locale, LanguageMarketOption> = 
   fr: LANGUAGE_MARKET_OPTIONS[4]!,
   es: LANGUAGE_MARKET_OPTIONS[5]!,
   it: LANGUAGE_MARKET_OPTIONS[6]!,
-  ms: LANGUAGE_MARKET_OPTIONS[7]!,
-  ja: LANGUAGE_MARKET_OPTIONS[8]!,
+  zh: LANGUAGE_MARKET_OPTIONS[7]!,
+  ms: LANGUAGE_MARKET_OPTIONS[8]!,
+  ja: LANGUAGE_MARKET_OPTIONS[9]!,
 };
 
 const REGION_DEFAULT_LOCALE_ID: Partial<Record<GearRegion, LocaleId>> = {
