@@ -1,6 +1,7 @@
 import { createElement, Fragment, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { locales } from "~/i18n/config";
 
 const analyticsMock = vi.hoisted(() =>
   vi.fn(() => createElement("div", { "data-testid": "analytics" })),
@@ -48,7 +49,11 @@ vi.mock("next/font/google", () => ({
   Crimson_Text: () => ({ variable: "font-fancy" }),
 }));
 
-import RootLayout from "~/app/[locale]/layout";
+import RootLayout, {
+  dynamicParams,
+  generateMetadata,
+  generateStaticParams,
+} from "~/app/[locale]/layout";
 
 describe("locale root layout", () => {
   const originalVercelEnv = process.env.VERCEL_ENV;
@@ -98,5 +103,35 @@ describe("locale root layout", () => {
 
     expect(markup).not.toContain("data-testid=\"analytics\"");
     expect(analyticsMock).not.toHaveBeenCalled();
+  });
+
+  it("locks the locale segment to known static params", () => {
+    expect(dynamicParams).toBe(false);
+    expect(generateStaticParams()).toEqual(locales.map((locale) => ({ locale })));
+  });
+
+  it("rejects invalid locales during metadata generation", async () => {
+    navigationMocks.notFound.mockImplementation(() => {
+      throw new Error("NEXT_NOT_FOUND");
+    });
+
+    await expect(
+      generateMetadata({
+        params: Promise.resolve({ locale: "load.php" }),
+      }),
+    ).rejects.toThrow("NEXT_NOT_FOUND");
+  });
+
+  it("rejects invalid locales in the root layout", async () => {
+    navigationMocks.notFound.mockImplementation(() => {
+      throw new Error("NEXT_NOT_FOUND");
+    });
+
+    await expect(
+      RootLayout({
+        children: createElement("main", null, "content"),
+        params: Promise.resolve({ locale: "load.php" }),
+      }),
+    ).rejects.toThrow("NEXT_NOT_FOUND");
   });
 });

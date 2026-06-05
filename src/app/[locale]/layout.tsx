@@ -5,9 +5,11 @@ import { Analytics } from "@vercel/analytics/next";
 import { getTranslations,setRequestLocale } from "next-intl/server";
 import { Archivo,Crimson_Text } from "next/font/google";
 import { Toaster } from "~/components/ui/sonner";
-import { defaultLocale,isLocale,locales } from "~/i18n/config";
+import { isLocale,locales } from "~/i18n/config";
 import { getMessagesForLocale } from "~/i18n/messages";
 import { Providers } from "./providers";
+
+export const dynamicParams = false;
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -19,7 +21,11 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale: requestedLocale } = await params;
-  const locale = isLocale(requestedLocale) ? requestedLocale : defaultLocale;
+  if (!isLocale(requestedLocale)) {
+    notFound();
+  }
+
+  const locale = requestedLocale;
   const t = await getTranslations({ locale, namespace: "metadata" });
 
   return {

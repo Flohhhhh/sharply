@@ -1,6 +1,7 @@
+import { notFound } from "next/navigation";
 import Footer from "~/components/layout/footer";
 import Header from "~/components/layout/header";
-import type { Locale } from "~/i18n/config";
+import { isLocale } from "~/i18n/config";
 
 export default async function Layout({
   children,
@@ -10,9 +11,14 @@ export default async function Layout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+
+  if (!isLocale(locale)) {
+    notFound();
+  }
+
   return (
     <div>
-      <Header locale={locale as Locale} />
+      <Header locale={locale} />
       {children}
       <Footer />
     </div>

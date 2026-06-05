@@ -51,4 +51,11 @@ describe("static route safety", () => {
     expect(gearPage).not.toMatch(/\bcookies\(/);
     expect(gearPage).toMatch(/<EditAppliedToast \/>/);
   });
+
+  it("keeps the locale segment bounded to known locales", () => {
+    const localeLayout = readSource("src/app/[locale]/layout.tsx");
+
+    expect(localeLayout).toMatch(/export const dynamicParams = false;/);
+    expect(localeLayout).toMatch(/if \(!isLocale\(requestedLocale\)\) {\s*notFound\(\);/);
+  });
 });
