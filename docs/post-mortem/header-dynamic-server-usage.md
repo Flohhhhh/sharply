@@ -182,13 +182,13 @@ If the locale is already encoded in the route, prefer:
 
 instead of reconstructing locale state from request headers inside shared layout chrome.
 
-If the segment is finite, also bound it at the route level:
+For locale routing, prefer explicit rejection over forcing the whole segment static:
 
-- export `dynamicParams = false` on `src/app/[locale]/layout.tsx`
-- return only supported locales from `generateStaticParams()`
+- keep `generateStaticParams()` aligned with supported locales
 - call `notFound()` for invalid locale params instead of silently falling back
+- avoid `dynamicParams = false` on `src/app/[locale]/layout.tsx` when child routes rely on on-demand dynamic params like gear slugs or browse segments
 
-That prevents scanner paths like `/load.php` or `/admin.php` from entering the `[locale]` tree and surfacing as static-to-dynamic 500s.
+That keeps scanner paths like `/load.php` or `/admin.php` from falling back into the locale tree without breaking valid nested dynamic routes.
 
 ### Rule 4: Shared layout changes require static-route thinking
 

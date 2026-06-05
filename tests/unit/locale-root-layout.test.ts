@@ -50,7 +50,6 @@ vi.mock("next/font/google", () => ({
 }));
 
 import RootLayout, {
-  dynamicParams,
   generateMetadata,
   generateStaticParams,
 } from "~/app/[locale]/layout";
@@ -105,8 +104,7 @@ describe("locale root layout", () => {
     expect(analyticsMock).not.toHaveBeenCalled();
   });
 
-  it("locks the locale segment to known static params", () => {
-    expect(dynamicParams).toBe(false);
+  it("keeps the locale static params list in sync with supported locales", () => {
     expect(generateStaticParams()).toEqual(locales.map((locale) => ({ locale })));
   });
 
