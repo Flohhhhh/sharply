@@ -9,8 +9,6 @@ import { isLocale,locales } from "~/i18n/config";
 import { getMessagesForLocale } from "~/i18n/messages";
 import { Providers } from "./providers";
 
-export const dynamicParams = false;
-
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }

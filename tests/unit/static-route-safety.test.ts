@@ -52,10 +52,9 @@ describe("static route safety", () => {
     expect(gearPage).toMatch(/<EditAppliedToast \/>/);
   });
 
-  it("keeps the locale segment bounded to known locales", () => {
+  it("rejects invalid locales during root layout metadata resolution", () => {
     const localeLayout = readSource("src/app/[locale]/layout.tsx");
 
-    expect(localeLayout).toMatch(/export const dynamicParams = false;/);
     expect(localeLayout).toMatch(/if \(!isLocale\(requestedLocale\)\) {\s*notFound\(\);/);
   });
 });

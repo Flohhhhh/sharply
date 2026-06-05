@@ -1,0 +1,1688 @@
+{
+  "common": {
+    "siteName": "Sharply",
+    "signIn": "登录",
+    "profile": "个人资料",
+    "account": "账户",
+    "logOut": "退出登录",
+    "adminPanel": "管理面板",
+    "privacy": "隐私",
+    "termsOfService": "服务条款",
+    "language": "语言",
+    "languageRegion": "语言和地区",
+    "toggleTheme": "切换主题",
+    "light": "浅色",
+    "dark": "深色",
+    "system": "系统",
+    "reset": "重置",
+    "search": "搜索",
+    "learnHome": "学习首页",
+    "anonymous": "匿名",
+    "tableOfContents": "目录",
+    "onThisPage": "本页内容",
+    "discordBannerTitle": "在 Discord 上聊天",
+    "discordBannerDescription": "加入 Photography Lounge Discord Server 中的其他 Sharply 会员，与其他用户聊天并获取有关您的器材的帮助。"
+  },
+  "nav": {
+    "about": "关于",
+    "news": "新闻",
+    "gear": "器材",
+    "tools": "工具",
+    "learn": "学习",
+    "github": "GitHub",
+    "contact": "联系",
+    "privacyPolicy": "隐私政策",
+    "termsOfService": "服务条款",
+    "more": "更多",
+    "gearBrowseTitle": "浏览",
+    "gearBrowseDescription": "探索所有相机、镜头和配件",
+    "gearContributeTitle": "贡献",
+    "gearContributeDescription": "查看需要贡献的项目",
+    "gearHallOfFameTitle": "名人堂",
+    "gearHallOfFameDescription": "摄影史上最具标志性和影响力的器材",
+    "gearTrendingTitle": "热门",
+    "gearTrendingDescription": "根据活动最受欢迎的器材。",
+    "asOfDate": "截至 {date}",
+    "toolCompareTitle": "比较",
+    "toolCompareDescription": "并排比较器材",
+    "toolExifViewerTitle": "快门计数和 EXIF 查看器",
+    "toolExifViewerDescription": "检查 EXIF 元数据并跟踪快门计数历史记录",
+    "toolInstagramPostBuilderTitle": "Instagram 帖子生成器",
+    "toolInstagramPostBuilderDescription": "使用多个图像创建 Instagram 帖子",
+    "learnBasicsTitle": "基础知识",
+    "learnBasicsDescription": "了解摄影的基础知识",
+    "learnViewAllTitle": "查看所有学习内容",
+    "learnViewAllDescription": "查看所有学习内容"
+  },
+  "footer": {
+    "description": "Sharply 是一个社区驱动的平台，用于分享和发现满足您的摄影和摄像需求的最佳器材。",
+    "joinDiscord": "加入 Discord",
+    "instagram": "Instagram",
+    "x": "X",
+    "github": "GitHub",
+    "productImagesDisclaimer": "产品图片©各制造商。仅用于编辑和信息目的。本网站是独立的，不隶属于尼康、佳能、索尼或其他品牌。",
+    "amazonAffiliateDisclaimer": "作为亚马逊附属公司，Sharply 可以通过亚马逊链接进行的合格购买赚取佣金。",
+    "copyright": "© 2026 Sharply. 版权所有。"
+  },
+  "search": {
+    "dialogTitle": "搜索 Sharply",
+    "dialogDescription": "搜索器材、打开最佳匹配或比较两个项目。",
+    "inputPlaceholder": "搜索 Sharply",
+    "clearSearch": "清除搜索",
+    "searchFor": "搜索“{query}”",
+    "searchAction": "搜索",
+    "compareItems": "比较项目",
+    "bestMatch": "最佳匹配",
+    "openBrand": "打开品牌",
+    "goToGearItem": "前往器材页面",
+    "openSearch": "打开搜索",
+    "filters": "过滤器",
+    "typeOfGear": "器材类型",
+    "any": "任何",
+    "camera": "相机",
+    "analogCamera": "模拟相机",
+    "lens": "镜头",
+    "mount": "卡口",
+    "anyMount": "任何卡口",
+    "sensorFormat": "传感器形式",
+    "anySensor": "任何传感器",
+    "brand": "品牌",
+    "anyBrand": "任何品牌",
+    "priceRange": "价格范围",
+    "noMax": "无最大值",
+    "clearAll": "全部清除",
+    "close": "关闭",
+    "gearBadge": "器材",
+    "brandBadge": "品牌",
+    "type": "类型",
+    "sensor": "传感器",
+    "price": "价格",
+    "removeFilter": "删除 {label} 过滤器",
+    "sortBy": "排序方式",
+    "relevance": "相关性",
+    "newest": "最新",
+    "priceLowHigh": "价格：低→高",
+    "priceHighLow": "价格：高→低",
+    "name": "名称"
+  },
+  "compare": {
+    "nothingToCompareYet": "还没有什么可比较的",
+    "emptyStateDescription": "使用下面的选择器搜索目录并锁定两个匹配的项目，或打开全局搜索以首先探索器材。",
+    "compareSelectedGear": "比较所选器材",
+    "clearSlots": "清除插槽",
+    "pickFirstItem": "选择第一项",
+    "pickFirstItemBody": "搜索任何相机、镜头或配件以开始比较。",
+    "pickSecondItem": "选择第二项",
+    "pickSecondItemBody": "将它与同类型的另一件器材配对即可启用对比表。",
+    "selectedItem": "所选器材",
+    "swapOrClearSlot": "使用上面的选择器交换或清除此插槽。",
+    "selectFirstGearItem": "选择第一件器材",
+    "selectSecondGearItem": "选择第二件器材",
+    "selectedGear": "所选器材",
+    "imageComingSoon": "图片即将推出",
+    "typesMustMatch": "类型必须匹配才能比较",
+    "replaceItem": "替换{name}",
+    "searchGear": "搜索器材",
+    "searchGearToCompare": "搜索器材进行比较",
+    "replace": "代替",
+    "loadingComparison": "正在加载比较..."
+  },
+  "home": {
+    "heroTitle": "真实的规格，真实的评论，真实的速度。",
+    "heroSubtitle": "搜索任何器材、查找规格并阅读用户和专家的评论。",
+    "loadingSearch": "正在加载搜索...",
+    "featuredBadge": "精选",
+    "aboutTitle": "关于 Sharply",
+    "aboutDescription": "Sharply 是一个由贡献者驱动的摄影平台，用于进行个性化比较，由网络上最全面的众包规范提供支持。",
+    "gearCounterLabel": "我们数据库中的项目",
+    "contributionCounterLabel": "成员的贡献",
+    "activityTitle": "活动",
+    "activityCreated": "已创建",
+    "activityUpdated": "已更新",
+    "justNow": "现在",
+    "viewAllGear": "查看所有器材",
+    "learnMore": "了解更多",
+    "newToPhotographyTitle": "摄影新手？",
+    "newToPhotographyDescription": "我们整理了一份初学者指南，其中包含您入门所需了解的所有信息！查看我们的分步指南系列。",
+    "getStarted": "开始使用",
+    "latestReviewsTitle": "最新评论"
+  },
+  "gearDetail": {
+    "metaTitleSuffix": "规格与评论",
+    "itemNotFoundTitle": "未找到项目",
+    "itemNotFoundDescription": "找不到请求的器材。",
+    "gear": "器材",
+    "cameras": "相机",
+    "lenses": "镜头",
+    "staffVerdict": "工作人员判决",
+    "specs": "规格",
+    "specifications": "规格",
+    "review": "评测",
+    "reviews": "评测",
+    "rawSamples": "原始样品",
+    "alternatives": "替代方案",
+    "creatorVideos": "创作者视频",
+    "articles": "文章",
+    "articlesAboutItem": "关于该商品的文章",
+    "readFullReview": "阅读完整评论",
+    "download": "下载",
+    "openChangeRequests": "打开变更请求",
+    "itemCreated": "项目已创建",
+    "lastUpdated": "最后更新",
+    "contributors": "贡献者",
+    "viewAllContributors": "查看所有贡献者",
+    "userAlt": "用户",
+    "fieldsContributed": "{count} {计数，复数，一个 {field} 其他 {fields}}",
+    "popularity": "人气",
+    "viewsAllTime": "观看次数（所有时间）",
+    "views30Days": "观看次数（30 天）",
+    "viewsToday": "观看次数（今天）",
+    "wishlists": "愿望清单",
+    "owners": "业主",
+    "theGood": "好的",
+    "theBad": "坏处",
+    "whoItsFor": "这是给谁的",
+    "whoItsNotFor": "它不适合谁",
+    "topAlternatives": "最佳替代品",
+    "filterSpecifications": "过滤器规格",
+    "filterSpecs": "过滤器规格",
+    "noSpecificationsMatch": "没有符合“{query}”的规格。",
+    "noSpecificationsAvailable": "无可用规格。",
+    "suggestEdit": "建议编辑",
+    "editRequestPending": "编辑请求待处理",
+    "existingOpenChangeRequest": "您已经对此项目提出了公开的变更请求。",
+    "trustedCoverage": "值得信赖的覆盖范围",
+    "trustedCoverageDescription": "由受人尊敬的创作者制作的以该项目为特色的视频。",
+    "noThumbnail": "无缩略图",
+    "watch": "手表",
+    "fromRespectedCreators": "来自尊敬的创作者",
+    "fromRespectedCreatorsDescription": "添加精心策划的创作者视频，帮助展示该产品在实际使用中的表现，无论是技术测试、现场工作、印象还是以器材为中心的更多叙述性报道。",
+    "compare": "比较",
+    "compareTitle": "比较 {name}",
+    "compareDescription": "选择另一个项目与{name}进行比较",
+    "searchForGear": "搜索器材...",
+    "searchGearToCompare": "搜索器材进行比较",
+    "itemFallback": "物品",
+    "addingItem": "添加 {name}...",
+    "removingItem": "正在删除 {name}...",
+    "addedToWishlist": "已添加至愿望清单",
+    "addedToWishlistDescription": "{name} 已添加到您的愿望清单",
+    "viewProfile": "查看资料",
+    "removedFromWishlist": "已从愿望清单中删除",
+    "alreadyInWishlist": "已在愿望清单中",
+    "failedToUpdateWishlist": "更新愿望清单失败",
+    "addToWishlist": "添加到愿望清单",
+    "removeFromWishlist": "从愿望清单中删除",
+    "addToWishlistSr": "添加到愿望清单",
+    "removeFromWishlistSr": "从愿望清单中删除",
+    "saveItem": "保存项目",
+    "saved": "已保存",
+    "chooseList": "选择列表",
+    "viewList": "查看列表",
+    "removedFromList": "从列表中删除",
+    "savedToList": "已保存至列表",
+    "failedToUpdateSavedItem": "无法更新已保存的项目",
+    "listCreatedCouldNotSelect": "列表已创建，但无法选择保存",
+    "listCreatedAndItemSaved": "创建列表并保存项目",
+    "failedToCreateListAndSaveItem": "无法创建列表并保存项目",
+    "createList": "创建列表",
+    "createNewList": "创建新列表",
+    "listName": "名单名称",
+    "myFavorites": "我的最爱",
+    "cancel": "取消",
+    "create": "创造",
+    "addToCollection": "添加到收藏",
+    "removeFromCollection": "从集合中删除",
+    "addedToCollection": "已添加至收藏",
+    "removedFromCollection": "从集合中删除",
+    "failedToUpdateCollection": "更新集合失败",
+    "links": "链接",
+    "officialSite": "官方网站",
+    "seeOnMPB": "在 MPB 查看",
+    "usedMountUnavailable": "该卡口的 MPB 二手链接不可用",
+    "usedOnly": "用过的",
+    "newOnly": "新的",
+    "newAndUsed": "全新和二手",
+    "fromPriceUsed": "来自 {price} • 二手",
+    "aroundPriceNew": "大约 {price} • 新",
+    "aroundPriceNewUsed": "大约 {price} • 全新和二手",
+    "buyOnAmazon": "在亚马逊上购买",
+    "buyAtBH": "在 B&H 照片处购买",
+    "chooseMpbMount": "选择 MPB 卡口",
+    "chooseMpbMountDescription": "该器材在 MPB 上有多个卡口版本。请选择要打开的卡口。",
+    "unavailableSuffix": "（不可用）",
+    "visitBrand": "访问{brand}",
+    "visitManufacturer": "参观厂家",
+    "reviewsLoading": "正在加载评论...",
+    "reviewsLoadError": "错误：{error}",
+    "reviewsEmpty": "还没有评论。成为第一个评论此器材的人！",
+    "reviewsCount": "评论 ({count})",
+    "anonymousUser": "匿名",
+    "anonymousUserInitial": "U",
+    "sharedAReview": "分享了评论",
+    "recommended": "受到推崇的",
+    "notRecommended": "不推荐",
+    "reviewActions": "评测操作",
+    "deleteReview": "删除评论",
+    "flagForModeration": "适度旗帜",
+    "noGenresNoted": "没有注明流派",
+    "reviewFlaggedSuccess": "谢谢。这篇评论已被标记为需要审核。",
+    "reviewFlagAlreadyOpen": "您已经为该评论设置了开放标记。",
+    "reviewFlagError": "无法标记审核。",
+    "reviewDeleteError": "无法删除评论。",
+    "reviewDeleted": "评论已删除。",
+    "deleteReviewTitle": "删除您的评论？",
+    "deleteReviewDescription": "这将从器材页面和您的个人资料中删除您的评论。",
+    "deletingReview": "正在删除...",
+    "delete": "删除",
+    "writeReview": "写评论",
+    "writeReviewDescription": "分享您的经验以帮助其他人做出决定。",
+    "userReviewTitle": "用户评论",
+    "userReviewDescription": "写一篇简短的评论，描述您使用该器材的个人体验，说明其性能与您的期望相比如何，您喜欢它的哪些方面，以及您希望改进的地方。",
+    "reviewUsageLabel": "你用它做什么？",
+    "reviewUsageHelp": "最多选择 3 个。",
+    "reviewRecommendLabel": "您会向像您这样的人推荐这个吗？",
+    "yes": "是的",
+    "no": "不",
+    "yourReview": "您的评论",
+    "yourReviewPlaceholder": "分享您的经验...",
+    "reviewPublished": "评论发布成功。",
+    "reviewSubmitError": "提交审核失败。",
+    "reviewRateLimitSuffix": "在 {duration} 中重试。",
+    "reviewRetrySeconds": "{count}s",
+    "reviewRetryMinutes": "{count}m",
+    "submittingReview": "正在提交...",
+    "submitReview": "提交评论",
+    "reviewsRequestFailed": "无法加载评论",
+    "reviewGenres": {
+      "weddings": "婚礼",
+      "sports": "运动的",
+      "wildlife": "野生动物",
+      "street": "街道",
+      "travel": "旅行",
+      "landscape": "景观",
+      "video": "视频",
+      "product-food": "产品与食品",
+      "events": "活动",
+      "portraits": "肖像",
+      "astro": "阿斯特罗",
+      "architecture": "建筑与房地产",
+      "fashion": "时尚"
+    },
+    "editGear": {
+      "title": "编辑器材项目",
+      "unsaved": "未保存",
+      "showMissingOnly": "仅显示缺失",
+      "autoSubmit": "自动提交",
+      "continue": "继续",
+      "save": "节省",
+      "stay": "停留",
+      "discardAndExit": "丢弃并退出",
+      "discardTitle": "放弃未保存的更改？",
+      "discardDescription": "您有未保存的更改。如果您现在退出，您的编辑将会丢失。",
+      "submitSuggestionTitle": "提交建议？",
+      "submitSuggestionAutoSubmitDescription": "这些更改将自动批准并立即应用到器材页面。",
+      "submitSuggestionReviewDescription": "这些更改将提交给版主审核，就像普通用户提交一样。",
+      "submitSuggestionDefaultDescription": "您确定要提交这些更改以供审核吗？在管理员审核此请求之前，您将无法进行调整或提出新的更改请求。",
+      "noChangesDetected": "未检测到任何变化。",
+      "noChangesToastTitle": "无需提交任何更改",
+      "noChangesToastDescription": "提交前更新字段。",
+      "submitAutoApprovedTitle": "您的更改请求已自动获得批准！",
+      "submitAutoApprovedDescription": "您的更新现已上线。",
+      "submitSuccessTitle": "已提交建议",
+      "submitSuccessDescription": "谢谢！我们会尽快审核。",
+      "submitFailedTitle": "提交建议失败",
+      "submitFailedDescription": "请稍后重试。",
+      "submitUnexpectedTitle": "出了点问题",
+      "submitUnexpectedDescription": "无法提交您的建议。",
+      "applyNow": "立即申请",
+      "confirmSubmit": "确认提交",
+      "slotLabel": "插槽 {index}",
+      "added": "额外",
+      "removed": "已删除",
+      "updated": "已更新",
+      "old": "老的",
+      "new": "新的",
+      "sections": {
+        "camera": "相机",
+        "cameraSpecifications": "相机规格",
+        "lens": "镜头",
+        "lensSpecifications": "镜头规格",
+        "integratedLens": "集成镜头",
+        "analogCameraSpecifications": "模拟相机规格",
+        "cardSlots": "卡槽",
+        "videoModes": "视频模式"
+      },
+      "options": {
+        "cameraShutterTypes": {
+          "mechanical": "机械快门",
+          "efc": "电子第一帘",
+          "electronic": "电子快门"
+        },
+        "viewfinderType": {
+          "optical": "OVF（光学）",
+          "electronic": "EVF（电子）"
+        }
+      },
+      "status": {
+        "loading": "加载中...",
+        "error": "错误：{error}",
+        "unauthenticated": "未经身份验证"
+      },
+      "fields": {
+        "aperture": "光圈",
+        "announcedDatePrecision": "公布的日期精度",
+        "releaseDatePrecision": "发布日期精度",
+        "datePrecisionHelp": "选择日期的精度级别。例如，选择“月”会将日期显示为“2025 年 9 月”，而不是“2025 年 9 月 5 日”。选择“年份”将仅显示年份。当完整日期已知时，使用“日”。",
+        "datePrecisionYear": "年",
+        "datePrecisionMonth": "月",
+        "datePrecisionDay": "天",
+        "msrpNow": "现建议零售价（美元）",
+        "msrpAtLaunch": "上市时建议零售价（美元）",
+        "mpbMaxPrice": "MPB 最高价格（美元）",
+        "weightWithBattery": "含电池重量",
+        "weightWithBatteryPlaceholder": "输入带电池的重量",
+        "weightPlaceholder": "输入体重",
+        "mountPlaceholder": "选择卡口",
+        "mountsPlaceholder": "选择兼容的卡口",
+        "diameter": "直径",
+        "length": "长度",
+        "width": "宽度",
+        "height": "高度",
+        "depth": "深度",
+        "bestUseCases": "最佳用例",
+        "bestUseCasesHelp": "选择该设备表现出色的用例，而不仅仅是它可以满足需求的用例。",
+        "bestUseCasesPlaceholder": "选择前 3 个用例...",
+        "bestUseCasesSearch": "搜索类型...",
+        "manufacturerLink": "制造商链接",
+        "manufacturerLinkPlaceholder": "https://manufacturer.example.com/product",
+        "mpbLink": "MPB链接",
+        "mpbLinkHelpLabel": "MPB 链接保存的工作原理",
+        "mpbLinkHelp": "我们会从粘贴的 MPB 链接中移除卡口后缀，仅存储基础路径，然后根据用户要访问的卡口版本重建最终目标链接。",
+        "mpbLinkPlaceholder": "粘贴任意合适的 mpb 链接",
+        "linkMpbSearchUnsupported": "不再支持 MPB 搜索 URL。粘贴任意适合的 MPB 链接。",
+        "linkMpbInvalid": "粘贴 MPB 产品链接或相关产品路径。",
+        "linkSavedAsPrefix": "该链接将另存为",
+        "bhLink": "B&H 链接",
+        "bhLinkPlaceholder": "https://www.bhphotovideo.com/...",
+        "amazonLink": "亚马逊链接",
+        "amazonLinkPlaceholder": "https://amazon.com/...",
+        "amazonLinkChangedPrefix": "该链接已自动更改为",
+        "verifyLinkStillWorks": "请验证它是否仍然有效。",
+        "verifyLinkWillWork": "请验证它是否有效。",
+        "sensorStackingType": "传感器堆叠类型",
+        "sensorStackingTypePlaceholder": "传感器堆叠类型",
+        "sensorTechType": "传感器技术类型",
+        "sensorTechTypePlaceholder": "传感器技术类型",
+        "cameraTypePlaceholder": "相机类型",
+        "backSideIlluminated": "背面发光",
+        "millisecondsPlaceholder": "例如，10",
+        "selectSupportLevel": "选择支持级别",
+        "isoMinNative": "ISO 最小值（原生）",
+        "isoMaxNative": "ISO 最大（原始）",
+        "selectDisplayType": "选择显示类型",
+        "rearDisplayResolutionPlaceholder": "例如，1.62",
+        "inchesPlaceholder": "例如，3.2",
+        "selectViewfinderType": "选择取景器类型",
+        "magnificationPlaceholder": "例如，0.80",
+        "viewfinderResolutionPlaceholder": "例如，5.76",
+        "stopsPlaceholder": "例如，3.0",
+        "selectAvailableShutterTypesFirst": "选择可用的快门类型以输入最大 FPS 值。",
+        "rawFps": "原始帧率",
+        "jpgFps": "每秒帧数 JPG",
+        "fpsPlaceholder": "例如，20.0",
+        "maxContinuousFpsPhoto": "最大连续 FPS（照片）",
+        "usePerShutterInputs": "使用每个快门输入",
+        "maxFpsRaw": "最大 FPS（原始）",
+        "maxFpsJpg": "最大帧速率 (JPG)",
+        "storagePlaceholder": "例如，512",
+        "batteryPlaceholder": "例如，NP-FZ100",
+        "usbChargingTooltip": "相机能够通过 USB 为其插入的电池充电",
+        "usbPowerDeliveryTooltip": "相机在插入 USB 时即可运行，并且从电池消耗的电量较少或不消耗电量",
+        "sensorFormatCoveragePlaceholder": "选择传感器格式覆盖范围",
+        "mountMaterialPlaceholder": "选择卡口材料",
+        "analogCameraTypePlaceholder": "选择相机类型",
+        "captureMediumPlaceholder": "选择捕获介质",
+        "filmTransportPlaceholder": "选择胶片传输",
+        "analogViewfinderPlaceholder": "选择取景器",
+        "analogShutterTypePlaceholder": "选择快门类型",
+        "shutterSpeedMaxSeconds": "最长快门速度",
+        "shutterSpeedMinFraction": "最快快门速度",
+        "meteringModesPlaceholder": "选择测光模式",
+        "meteringDisplayPlaceholder": "选择显示类型",
+        "exposureModesPlaceholder": "选择曝光模式",
+        "isoSettingPlaceholder": "选择 ISO 设置",
+        "isoMin": "ISO 最小值",
+        "isoMax": "最大感光度",
+        "focusAidsPlaceholder": "选择对焦辅助工具",
+        "maxContinuousFps": "最大连续帧率",
+        "requiresBatteryForShutter": "快门需要电池",
+        "requiresBatteryForMetering": "需要电池进行计量",
+        "analogBatteryPlaceholder": "例如，CR2032、LR44",
+        "autoFilmAdvance": "自动进片",
+        "optionalMotorizedDrive": "可选电动驱动器",
+        "megapixelsPlaceholder": "例如，45.0"
+      },
+      "notes": {
+        "description": "添加有关该器材的非结构化注释。将每个想法单独记录下来。",
+        "notePlaceholder": "注意#{index}",
+        "remove": "消除",
+        "add": "添加备注"
+      },
+      "cardSlots": {
+        "none": "没有任何",
+        "empty": "（空的）",
+        "summary": "S{index}: {details}",
+        "manage": "管理卡槽",
+        "description": "使用支持的格式、总线和速度等级定义每个插槽。",
+        "noneConfigured": "没有配置插槽。",
+        "removeSlot": "移除插槽",
+        "formFactors": "外形尺寸",
+        "buses": "巴士",
+        "speedClasses": "速度等级（可选）",
+        "addSlot": "添加插槽",
+        "addSecondSlot": "添加第二个插槽"
+      },
+      "videoModes": {
+        "addPairingToast": "添加至少一种分辨率/FPS 配对以继续",
+        "stagedToast": "视频模式上演。提交器材表格进行申请。",
+        "stageFailedToast": "无法暂存视频模式",
+        "open": "打开视频模式管理器",
+        "emptyPreview": "添加分辨率和帧速率以生成摘要预览。",
+        "title": "视频模式管理器",
+        "reset": "重置",
+        "step1": "第 1 步：选择分辨率",
+        "selectStandardResolutions": "选择标准分辨率",
+        "step1Help": "使用常见格式的选择器，然后添加下面的任何自定义模式。",
+        "customResolution": "自定义分辨率",
+        "customLabelPlaceholder": "标签（例如 6K Open Gate）",
+        "widthPlaceholder": "宽度像素",
+        "heightPlaceholder": "高度像素",
+        "addCustomResolution": "添加自定义分辨率",
+        "labelPlaceholder": "标签",
+        "remove": "消除",
+        "step2": "第 2 步：选择每个分辨率的 FPS",
+        "step2Empty": "选择分辨率来配置帧速率。",
+        "selectFrameRates": "选择帧速率",
+        "step3": "步骤 3：定义编解码器 + 位深度对",
+        "codecLabelPlaceholder": "编解码器标签",
+        "bitDepthPlaceholder": "位深度",
+        "addCodecPair": "添加编解码器对",
+        "step4": "第 4 步：绘制位深度和强制裁剪",
+        "step4Help": "选择位深度画笔，然后在矩阵上单击或拖动以填充单元格。使用裁剪按钮可以切换特定分辨率/FPS 对的强制裁剪。",
+        "step4NoResolutions": "添加分辨率以解锁矩阵。",
+        "step4NoFrameRates": "每个分辨率至少选择一个帧速率才能开始绘画。",
+        "footerHelp": "在您提交器材表格之前，应用的模式将保留在待更改状态。",
+        "applying": "正在申请…",
+        "apply": "申请表格"
+      }
+    },
+    "specRegistry": {
+      "sections": {
+        "core": {
+          "title": "基本信息",
+          "fields": {
+            "cameraType": {
+              "label": "相机类型"
+            },
+            "mounts": {
+              "label": "卡口",
+              "labelPlural": "卡口"
+            },
+            "announcedDate": {
+              "label": "公布日期"
+            },
+            "releaseDate": {
+              "label": "发布日期"
+            },
+            "msrpAtLaunchUsdCents": {
+              "label": "发布时的建议零售价"
+            },
+            "msrpNowUsdCents": {
+              "label": "现在建议零售价"
+            },
+            "mpbMaxPriceUsdCents": {
+              "label": "MPB 最高价格"
+            },
+            "weightGrams": {
+              "label": "重量"
+            },
+            "dimensions": {
+              "label": "方面"
+            },
+            "regionalAliases": {
+              "label": "地区名称"
+            }
+          }
+        },
+        "camera-sensor-shutter": {
+          "title": "传感器和快门",
+          "fields": {
+            "resolutionMp": {
+              "label": "解决"
+            },
+            "sensorFormatId": {
+              "label": "传感器格式"
+            },
+            "isoRange": {
+              "label": "ISO范围"
+            },
+            "maxFpsByShutter": {
+              "label": "最大连续帧率"
+            },
+            "sensorType": {
+              "label": "传感器类型"
+            },
+            "sensorReadoutSpeedMs": {
+              "label": "传感器读出速度"
+            },
+            "maxRawBitDepth": {
+              "label": "最大原始位深度"
+            },
+            "hasIbis": {
+              "label": "有IBIS"
+            },
+            "hasElectronicVibrationReduction": {
+              "label": "具有数字稳定功能"
+            },
+            "cipaStabilizationRatingStops": {
+              "label": "CIPA 稳定评级停止"
+            },
+            "hasPixelShiftShooting": {
+              "label": "具有像素移位拍摄功能"
+            },
+            "hasAntiAliasingFilter": {
+              "label": "具有抗混叠滤波器"
+            },
+            "precaptureSupportLevel": {
+              "label": "预捕获缓冲区"
+            },
+            "shutterSpeedMax": {
+              "label": "最长快门速度"
+            },
+            "shutterSpeedMin": {
+              "label": "最快快门速度"
+            },
+            "flashSyncSpeed": {
+              "label": "闪光同步速度"
+            },
+            "hasSilentShootingAvailable": {
+              "label": "具有静音拍摄功能"
+            },
+            "availableShutterTypes": {
+              "label": "可用的快门类型"
+            }
+          }
+        },
+        "fixed-lens": {
+          "title": "集成镜头",
+          "fields": {
+            "isPrime": {
+              "label": "镜头类型"
+            },
+            "focalLength": {
+              "label": "焦距"
+            },
+            "fixedImageCircleSize": {
+              "label": "图像圆圈大小"
+            },
+            "maxAperture": {
+              "label": "最大光圈"
+            },
+            "minAperture": {
+              "label": "最小光圈"
+            },
+            "hasAutofocus": {
+              "label": "具有自动对焦功能"
+            },
+            "minimumFocusDistanceMm": {
+              "label": "最近对焦距离"
+            },
+            "frontElementRotates": {
+              "label": "前部元件旋转"
+            },
+            "frontFilterThreadSizeMm": {
+              "label": "前过滤器螺纹尺寸"
+            },
+            "hasLensHood": {
+              "label": "有遮光罩"
+            }
+          }
+        },
+        "camera-hardware": {
+          "title": "硬件/构建",
+          "fields": {
+            "processorName": {
+              "label": "处理器名称"
+            },
+            "hasWeatherSealing": {
+              "label": "天气密封"
+            },
+            "internalStorageGb": {
+              "label": "内部存储"
+            },
+            "rearDisplayType": {
+              "label": "后置显示类型"
+            },
+            "rearDisplaySizeInches": {
+              "label": "背面显示屏尺寸"
+            },
+            "rearDisplayResolutionMillionDots": {
+              "label": "后置显示分辨率"
+            },
+            "viewfinderType": {
+              "label": "取景器类型"
+            },
+            "viewfinderMagnification": {
+              "label": "取景器放大倍率"
+            },
+            "viewfinderResolutionMillionDots": {
+              "label": "取景器分辨率"
+            },
+            "hasTopDisplay": {
+              "label": "有顶部显示屏"
+            },
+            "hasRearTouchscreen": {
+              "label": "有后触摸屏"
+            },
+            "cardSlots": {
+              "label": "卡槽"
+            }
+          }
+        },
+        "camera-focus": {
+          "title": "重点",
+          "fields": {
+            "focusPoints": {
+              "label": "焦点"
+            },
+            "hasFocusPeaking": {
+              "label": "具有峰值对焦功能"
+            },
+            "hasFocusBracketing": {
+              "label": "具有对焦包围"
+            },
+            "afAreaModes": {
+              "label": "AF 区域模式"
+            },
+            "afSubjectCategories": {
+              "label": "AF 主题类别"
+            }
+          }
+        },
+        "camera-battery": {
+          "title": "电池与充电",
+          "fields": {
+            "cipaBatteryShotsPerCharge": {
+              "label": "CIPA 电池每次充电可拍摄的照片"
+            },
+            "usbCharging": {
+              "label": "支持USB充电"
+            },
+            "usbPowerDelivery": {
+              "label": "支持USB供电"
+            },
+            "supportedBatteries": {
+              "label": "支持的电池"
+            }
+          }
+        },
+        "camera-video": {
+          "title": "视频",
+          "fields": {
+            "videoSummary": {
+              "label": "视频摘要"
+            },
+            "videoAvailableCodecs": {
+              "label": "可用的编解码器"
+            },
+            "hasLogColorProfile": {
+              "label": "具有原木颜色配置文件"
+            },
+            "has10BitVideo": {
+              "label": "有 10 位视频"
+            },
+            "has12BitVideo": {
+              "label": "有 12 位视频"
+            },
+            "hasOpenGateVideo": {
+              "label": "有开门视频"
+            },
+            "supportsExternalRecording": {
+              "label": "支持外部录音"
+            },
+            "supportsRecordToDrive": {
+              "label": "支持录音到驱动器"
+            }
+          }
+        },
+        "camera-misc": {
+          "title": "杂项",
+          "fields": {
+            "hasIntervalometer": {
+              "label": "有间隔计"
+            },
+            "hasSelfTimer": {
+              "label": "有自拍功能"
+            },
+            "hasBuiltInFlash": {
+              "label": "具有内置闪光灯"
+            },
+            "hasHotShoe": {
+              "label": "有热靴"
+            },
+            "hasIlluminatedButtons": {
+              "label": "有发光按钮"
+            },
+            "hasUsbFileTransfer": {
+              "label": "具有 USB 文件传输功能"
+            }
+          }
+        },
+        "lens-optics": {
+          "title": "光学",
+          "fields": {
+            "isPrime": {
+              "label": "镜头类型"
+            },
+            "focalLength": {
+              "label": "焦距"
+            },
+            "imageCircleSize": {
+              "label": "图像圆圈大小"
+            },
+            "magnification": {
+              "label": "放大"
+            },
+            "minimumFocusDistanceMm": {
+              "label": "最近对焦距离"
+            },
+            "numberElements": {
+              "label": "元件数量"
+            },
+            "numberElementGroups": {
+              "label": "元素组数"
+            },
+            "hasDiffractiveOptics": {
+              "label": "具有衍射光学"
+            }
+          }
+        },
+        "lens-aperture": {
+          "title": "光圈",
+          "fields": {
+            "maxAperture": {
+              "label": "最大光圈"
+            },
+            "minAperture": {
+              "label": "最小光圈"
+            },
+            "numberDiaphragmBlades": {
+              "label": "隔膜叶片数量"
+            },
+            "hasRoundedDiaphragmBlades": {
+              "label": "具有圆形隔膜叶片"
+            },
+            "hasApertureRing": {
+              "label": "有光圈环"
+            }
+          }
+        },
+        "lens-focus": {
+          "title": "重点",
+          "fields": {
+            "hasAutofocus": {
+              "label": "具有自动对焦功能"
+            },
+            "focusMotorType": {
+              "label": "对焦马达类型"
+            },
+            "hasAfMfSwitch": {
+              "label": "有AF/MF切换"
+            },
+            "hasFocusLimiter": {
+              "label": "有焦点限制器"
+            },
+            "hasFocusRecallButton": {
+              "label": "有焦点调用按钮"
+            },
+            "hasFocusRing": {
+              "label": "有对焦环"
+            },
+            "hasInternalFocus": {
+              "label": "有内部焦点"
+            },
+            "frontElementRotates": {
+              "label": "前部元件旋转"
+            }
+          }
+        },
+        "lens-stabilization": {
+          "title": "稳定化",
+          "fields": {
+            "hasStabilization": {
+              "label": "具有图像稳定功能"
+            },
+            "hasStabilizationSwitch": {
+              "label": "有稳定开关"
+            },
+            "cipaStabilizationRatingStops": {
+              "label": "CIPA 稳定评级停止"
+            }
+          }
+        },
+        "lens-build": {
+          "title": "构建与控制",
+          "fields": {
+            "hasInternalZoom": {
+              "label": "具有内部变焦功能"
+            },
+            "mountMaterial": {
+              "label": "卡口材料"
+            },
+            "hasWeatherSealing": {
+              "label": "具有防风雨密封功能"
+            },
+            "numberCustomControlRings": {
+              "label": "定制控制环数量"
+            },
+            "numberFunctionButtons": {
+              "label": "功能按钮数量"
+            }
+          }
+        },
+        "lens-filters": {
+          "title": "过滤器",
+          "fields": {
+            "acceptsFilterTypes": {
+              "label": "接受过滤器类型"
+            },
+            "frontFilterThreadSizeMm": {
+              "label": "前过滤器螺纹尺寸"
+            },
+            "rearFilterThreadSizeMm": {
+              "label": "后过滤器螺纹尺寸"
+            },
+            "dropInFilterSizeMm": {
+              "label": "插入式过滤器尺寸"
+            }
+          }
+        },
+        "lens-accessories": {
+          "title": "配件",
+          "fields": {
+            "hasBuiltInTeleconverter": {
+              "label": "内置增距镜"
+            },
+            "hasLensHood": {
+              "label": "有遮光罩"
+            },
+            "hasTripodCollar": {
+              "label": "有三脚架套环/镜头脚"
+            }
+          }
+        },
+        "lens-tilt-shift": {
+          "title": "移轴",
+          "fields": {
+            "isTiltShift": {
+              "label": "是移轴"
+            },
+            "tiltDegrees": {
+              "label": "倾斜范围"
+            },
+            "shiftMm": {
+              "label": "换档范围"
+            }
+          }
+        },
+        "analog-camera": {
+          "title": "模拟相机",
+          "fields": {
+            "cameraType": {
+              "label": "相机类型"
+            },
+            "captureMedium": {
+              "label": "捕获介质"
+            },
+            "filmTransportType": {
+              "label": "胶片传输"
+            },
+            "viewfinderType": {
+              "label": "取景器类型"
+            },
+            "shutterType": {
+              "label": "快门类型"
+            },
+            "shutterSpeeds": {
+              "label": "快门速度"
+            },
+            "flashSyncSpeed": {
+              "label": "闪光同步速度"
+            },
+            "hasBulbMode": {
+              "label": "灯泡模式"
+            },
+            "hasMetering": {
+              "label": "有测光"
+            },
+            "meteringModes": {
+              "label": "测光模式"
+            },
+            "meteringDisplayTypes": {
+              "label": "测光显示"
+            },
+            "exposureModes": {
+              "label": "曝光模式"
+            },
+            "isoSettingMethod": {
+              "label": "ISO设定"
+            },
+            "isoRange": {
+              "label": "ISO范围"
+            },
+            "hasExposureCompensation": {
+              "label": "曝光补偿"
+            },
+            "hasAutoFocus": {
+              "label": "自动对焦"
+            },
+            "focusAidTypes": {
+              "label": "集中注意力辅助工具"
+            },
+            "hasContinuousDrive": {
+              "label": "连续驱动"
+            },
+            "maxContinuousFps": {
+              "label": "最大帧率"
+            },
+            "requiresBatteryForShutter": {
+              "label": "需要电池（快门）"
+            },
+            "requiresBatteryForMetering": {
+              "label": "所需电池（计量）"
+            },
+            "supportedBatteries": {
+              "label": "支持的电池"
+            },
+            "hasHotShoe": {
+              "label": "热靴"
+            },
+            "hasSelfTimer": {
+              "label": "自拍"
+            },
+            "hasIntervalometer": {
+              "label": "间隔计"
+            }
+          }
+        },
+        "notes": {
+          "title": "笔记",
+          "fields": {}
+        }
+      },
+      "shared": {
+        "yes": "是的",
+        "no": "不",
+        "prime": "主要的",
+        "zoom": "飞涨",
+        "none": "没有任何",
+        "fixed": "固定的",
+        "singleAxisTilt": "单轴倾斜",
+        "dualAxisTilt": "双轴倾斜",
+        "fullyArticulated": "完全铰接",
+        "fourAxisTiltFlip": "4 轴倾斜翻转",
+        "other": "其他",
+        "notSpecified": "未指定",
+        "ovf": "OVF",
+        "evf": "电子取景器"
+      }
+    }
+  },
+  "userProfile": {
+    "profileMetaTitle": "{name} 的个人资料",
+    "userAlt": "用户",
+    "anonymousUser": "匿名用户",
+    "gearCollectionWishlist": "器材收藏和愿望清单",
+    "editProfile": "编辑个人资料",
+    "showUserCard": "显示用户卡",
+    "close": "关闭",
+    "badges": "徽章",
+    "collection": "收藏",
+    "wishlist": "愿望清单",
+    "reviews": "评论",
+    "itemsCount": "{count} {计数，复数，一个 {item} 其他 {items}}",
+    "manageCollection": "管理收藏",
+    "inspectAndManageCollectionItems": "检查和管理您的收藏品。",
+    "collectionEmptyMobileTitle": "尚未收集器材",
+    "collectionEmptyMobileBrowse": "浏览器材以添加到您的收藏中",
+    "collectionEmptyOwnTitle": "您的收藏是空的",
+    "collectionEmptyOwnDescription": "将器材添加到您的收藏中以开始跟踪您的器材。",
+    "collectionEmptyOtherNamed": "{name} 的集合为空",
+    "wishlistEmptyOwnTitle": "您的愿望清单是空的",
+    "wishlistEmptyOwnDescription": "浏览器材以添加您想要关注的项目。",
+    "browseGear": "浏览器材",
+    "wishlistEmptyOtherNamed": "{name} 的愿望清单为空",
+    "wishlistEmptyOtherTitle": "愿望清单为空",
+    "wishlistEmptyOtherDescription": "稍后再回来看看他们对什么器材感兴趣。",
+    "itemFallback": "物品",
+    "removingWishlistItem": "正在删除 {name}...",
+    "removedFromWishlist": "{name} 从愿望清单中删除",
+    "undo": "撤消",
+    "failedToUpdateWishlist": "更新愿望清单失败",
+    "removeFromWishlist": "从愿望清单中删除",
+    "listsTitle": "列表",
+    "listsSummary": "{total} 总计 • {published} 已发布",
+    "listsCreateButton": "创建列表",
+    "listsCreateSuccess": "已创建列表",
+    "listsCreateError": "创建列表失败",
+    "listsRenameSuccess": "列表已重命名",
+    "listsRenameError": "重命名列表失败",
+    "listsDeleteSuccess": "列表已删除",
+    "listsDeleteError": "删除列表失败",
+    "listsNameRequired": "名单名称为必填项",
+    "listsNotFound": "未找到列表",
+    "listsPublishSuccess": "名单公布",
+    "listsPublishError": "发布列表失败",
+    "listsUnpublishSuccess": "未公布名单",
+    "listsPublishStateError": "无法更新发布状态",
+    "listsShareLinkCopied": "分享链接已复制",
+    "listsShareLinkCopyError": "无法复制链接",
+    "listsPublished": "已发表",
+    "listsItemCount": "{count} {计数，复数，一个 {item} 其他 {items}}",
+    "listsDefault": "默认",
+    "listsActions": "列出操作",
+    "listsManageItems": "管理项目",
+    "listsRename": "重命名",
+    "listsPublish": "发布",
+    "listsUnpublish": "取消发布",
+    "listsCopyLink": "复制链接",
+    "listsCopyShareLink": "复制分享链接",
+    "listsDelete": "删除",
+    "listsMoreItems": "{计数，复数，一个 {+# more item} 其他 {+# more items}}",
+    "listsOpen": "打开",
+    "listsEmptyOwnTitle": "还没有列表",
+    "listsEmptyOwnDescription": "创建一个列表来组织您想要保存或共享的器材。",
+    "listsEmptyOtherNamed": "{name} 还没有公开列表",
+    "listsEmptyOtherTitle": "还没有公开名单",
+    "listsEmptyOtherDescription": "稍后回来查看他们选择共享的任何列表。",
+    "listsCreateDialogTitle": "创建新列表",
+    "listsCreateDialogDescription": "创建一个列表来组织保存的器材。",
+    "listsNameLabel": "名单名称",
+    "listsCreatePlaceholder": "我的旅行套装",
+    "listsRenameDialogTitle": "重命名列表",
+    "listsRenamePlaceholder": "新名单名称",
+    "listsSave": "节省",
+    "listsPublicNameTitle": "选择公开列表名称",
+    "listsPublicNameDescription": "该名称显示在共享页面上，并且可以稍后更改。",
+    "listsPublicNameLabel": "公众号",
+    "listsPublishButton": "发布名单",
+    "listsDeleteTitle": "删除这个列表？",
+    "listsDeleteDescription": "这将永久删除 {name} 及其中所有已保存的项目。",
+    "listsThisList": "这个清单",
+    "listsDeleteButton": "删除列表",
+    "listsOrderUpdateError": "更新订单失败",
+    "listsItemRemovedSuccess": "项目已从列表中删除",
+    "listsItemRemoveError": "删除项目失败",
+    "listsPublishNeedsItem": "发布前至少添加一项",
+    "listsManageTitle": "管理列表",
+    "listsManageDescription": "重新排序项目、删除项目以及管理共享。",
+    "listsViewList": "查看列表",
+    "listsPublishHint": "在发布之前，至少从器材页面添加一项。",
+    "listsItemsTitle": "项目",
+    "listsManageEmpty": "该列表是空的。使用“保存项目”按钮从器材页面添加项目。",
+    "listsManageEmptyShort": "该列表是空的。",
+    "listsSavingOrder": "正在保存订单...",
+    "listsDragToReorder": "拖动以重新排序",
+    "listsUnknownBrand": "未知品牌",
+    "listsRemoveItem": "删除项目",
+    "listsThisUser": "该用户",
+    "listsLoadPublicErrorNamed": "目前无法加载 {name} 的公开列表。",
+    "listsLoadError": "现在无法加载列表。",
+    "listsLoading": "正在加载列表...",
+    "listsRetry": "重试",
+    "handleBannerTitle": "选择您独特的手柄",
+    "handleBannerDescription": "您当前正在使用默认句柄。选择您独特的昵称，让您的个人资料更容易分享。",
+    "handleBannerCta": "选择手柄",
+    "badgeDescriptions": {
+      "pioneer": "早期 Sharply 会员，授予在推出后 30 天内加入的所有会员",
+      "reviewsFirst": "获得您的首次批准审核",
+      "reviewsCount": "为器材条目撰写 {count} 条已批准评测",
+      "ownershipFirst": "添加您的第一个拥有的物品",
+      "ownershipCount": "拥有 {count} 物品总数",
+      "editsFirst": "首次批准的规格编辑",
+      "editsCount": "{count} 批准的规格编辑",
+      "anniversaryWeek": "会员1周",
+      "anniversaryMonth": "会员1个月",
+      "anniversarySixMonths": "会员6个月",
+      "anniversaryYear": "会员1年",
+      "anniversaryYears": "{count}年会员",
+      "wishlistFirst": "将第一项添加到您的愿望清单",
+      "wishlistFive": "一次性将 5 件商品添加到您的愿望清单中",
+      "wishlistTen": "一次性将 10 件商品添加到您的愿望清单中",
+      "wishlistTwenty": "您的心愿单上同时有 20 件商品",
+      "wishlistFifty": "您的心愿单上同时有 50 件商品"
+    }
+  },
+  "reviewPage": {
+    "reviewsTitle": "评论",
+    "reviewNotFoundTitle": "未找到评论",
+    "reviewNotFoundDescription": "找不到所请求的评论。",
+    "reviewTitle": "{name} 评论",
+    "reviewsOgAlt": "Sharply - 摄影器材评论",
+    "noImageAvailable": "无可用图像",
+    "summary": "概括",
+    "prosAndCons": "优点和缺点",
+    "theGood": "好的",
+    "theBad": "坏处",
+    "viewSpecs": "查看{name}规格",
+    "myExperience": "我的经历",
+    "genreRatings": "类型评级",
+    "excels": "卓越",
+    "acceptable": "可以接受",
+    "underperforms": "表现不佳",
+    "notApplicable": "不适用",
+    "noItems": "没有商品"
+  },
+  "trendingPage": {
+    "metaTitle": "流行器材",
+    "metaDescription": "我们根据 Sharply 上的每日观看次数、愿望清单、所有权和比较活动来跟踪相机和镜头的受欢迎程度。",
+    "pageTitle": "流行器材",
+    "pageDescription": "我们根据 Sharply 上的每日观看次数、愿望清单、所有权和比较活动来跟踪相机和镜头的受欢迎程度。",
+    "allGear": "所有器材",
+    "cameras": "相机",
+    "analogCameras": "模拟相机",
+    "lenses": "镜头",
+    "rows": "行数",
+    "perPageOption": "{count}/页",
+    "failedToLoad": "无法加载趋势数据。请稍后重试。",
+    "includesSameDayLiveBoosts": "包括当日直播增强",
+    "gear": "器材",
+    "heat": "热",
+    "viewsTimeframe": "浏览次数 ({timeframe})",
+    "viewsLifetime": "观看次数（终生）",
+    "noGearMatches": "还没有与此过滤器匹配的器材。",
+    "viewGear": "查看器材",
+    "compare": "比较",
+    "compareTitle": "比较 {name}",
+    "compareDescription": "选择另一个项目与{name}进行比较",
+    "searchForGear": "搜索器材...",
+    "searchGearToCompare": "搜索器材进行比较"
+  },
+  "brandPage": {
+    "brandNotFound": "找不到品牌",
+    "brandGearTitle": "{brand} 器材",
+    "backToGear": "← 返回器材",
+    "gearCount": "{计数，复数，一个 {# piece of gear} 其他 {# pieces of gear}}",
+    "noGearFound": "没有找到该品牌的器材。"
+  },
+  "sharedList": {
+    "listNotFound": "未找到列表",
+    "sharplyMember": "Sharply会员",
+    "listByOwner": "{list} by {owner}",
+    "sharedGearListFromOwner": "来自 {owner} 的共享器材列表",
+    "currentlyUnpublished": "此共享列表目前尚未发布。",
+    "unpublishedByOwner": "该列表已被其所有者取消发布。"
+  },
+  "newsPage": {
+    "metaTitle": "新闻与更新",
+    "metaDescription": "阅读最新的 Sharply 新闻、产品更新和社论公告。",
+    "pageTitle": "新闻与更新",
+    "newsOgAlt": "Sharply - 摄影新闻",
+    "category": "新闻",
+    "gearInThisArticle": "本文中的器材",
+    "links": "链接",
+    "joinDiscussion": "加入讨论"
+  },
+  "browsePage": {
+    "legacyGearTitle": "器材",
+    "allGearTitle": "所有器材",
+    "allGearDescription": "浏览我们全面的器材目录，其中包含所有主要品牌的最新相机和镜头。默认情况下，结果按发布日期排序，较新的项目首先出现。",
+    "browse": "浏览",
+    "browseBrand": "浏览{brand}",
+    "browseCategory": "浏览{category}",
+    "cameras": "相机",
+    "lenses": "镜头",
+    "mountLabel": "{mount} 卡口",
+    "otherMounts": "其他卡口",
+    "otherBrands": "其他品牌",
+    "trendingTitle": "流行器材",
+    "viewTrendingList": "查看热门列表",
+    "latestReleases": "最新版本",
+    "sortBy": "排序方式",
+    "loadingResults": "正在加载结果...",
+    "showingResults": "显示 {count} {计数，复数，一个 {result} 其他 {results}}",
+    "noGearFound": "还没有找到器材。尝试调整你的过滤器。",
+    "loadError": "现在无法加载更多器材。",
+    "loading": "加载中...",
+    "loadMore": "加载更多",
+    "loadingMoreGear": "正在加载更多器材...",
+    "showMore": "显示更多",
+    "showMoreBrand": "显示更多 {brand}",
+    "reset": "重置",
+    "focalLengthLowHigh": "焦距：低→高",
+    "newest": "最新",
+    "oldest": "最古老的",
+    "recentlyAdded": "最近添加",
+    "priceLowHigh": "价格：低→高",
+    "priceHighLow": "价格：高→低"
+  },
+  "underConstructionPage": {
+    "metaTitle": "建设中",
+    "metaDescription": "查看哪些器材条目仍不完整，并帮助补充缺失规格。",
+    "pageTitle": "施工清单",
+    "intro1": "此页面突出显示我们数据库中不完整的器材。标记为“正在建设”的项目缺少关键规格，例如卡口、传感器或焦距。标记为低完整性的项目尚未达到我们的填充规格阈值，但可能仍然可用。",
+    "intro2": "行的优先级排序首先是缺少关键规格，其次是总体完成百分比。打开模式中的任意行以提供更新。",
+    "catalogCompletion": "目录完成",
+    "catalogSummary": "{underConstructionCount} 建设中 • {totalCount} 总计",
+    "brand": "品牌",
+    "type": "类型",
+    "allBrands": "所有品牌",
+    "allTypes": "所有类型",
+    "showItemsWithoutImages": "显示没有图像的项目",
+    "item": "物品",
+    "missing": "丢失的",
+    "progress": "进步",
+    "status": "地位",
+    "actions": "行动",
+    "moreMissing": "+{count} 更多",
+    "statusUnderConstruction": "建设中",
+    "statusLowCompleteness": "完整性低",
+    "openModal": "打开模态",
+    "editItem": "编辑{slug}",
+    "loading": "加载中…",
+    "showMissingOnly": "仅显示缺失",
+    "cancel": "取消",
+    "continue": "继续",
+    "discardTitle": "放弃未保存的更改？",
+    "discardDescription": "您有未保存的更改。如果您现在退出，您的编辑将会丢失。",
+    "stay": "停留",
+    "discardAndExit": "丢弃并退出",
+    "missingKeySpecs": "我们缺少以下关键规格：",
+    "contributeInfo": "单击此处贡献所需的信息",
+    "missingKeySpecsLong": "此页面正在建设中，因为我们缺少以下关键规格：",
+    "contributeMissingInformation": "贡献缺失的信息！",
+    "crowdSourcedTitle": "夏普是众包的！",
+    "crowdSourcedDescription": "我们维护着一个由贡献者驱动的器材数据库，并通过受控众包持续完善。成员可以提交规格更新建议，团队会在上线前完成审核。获批贡献会记入页面并计入贡献者认可。",
+    "backToGear": "返回器材",
+    "learnMore": "了解更多"
+  },
+  "learnBasicsPage": {
+    "metaTitle": "基础知识",
+    "metaDescription": "开始学习摄影基础知识，包括现代相机、曝光和适合初学者的路径。",
+    "pageTitle": "基础知识",
+    "pageDescription": "在这里您可以找到有关摄影和摄影器材基础知识的综合指南。这些指南将帮助您成功使用第一台相机，并帮助您了解摄影的基础知识。",
+    "viewAllLearning": "查看所有学习内容",
+    "learnArticles": "学习文章",
+    "browseByCategory": "按类别浏览",
+    "openList": "打开列表",
+    "browseAllArticles": "浏览所有文章"
+  },
+  "hallOfFamePage": {
+    "metaTitle": "名人堂",
+    "metaDescription": "探索 Sharply 名人堂，这里精选了摄影史上最具标志性和影响力的相机与镜头。",
+    "pageTitle": "名人堂",
+    "badgeLabel": "名人堂",
+    "intro": "这份名人堂名单收集了摄影史上一些最具标志性和影响力的器材。我们整理这份清单是为了突出多年来对行业和社区影响最大的相机和镜头，以及那些尽管年代久远但至今仍广为人知的相机和镜头。",
+    "emptyTitle": "目前还没有名人堂条目。",
+    "emptyDescription": "将器材数据添加到您的本地数据库并重新加载此页面以庆祝传奇器材。",
+    "noImageAvailable": "无可用图像",
+    "items": {
+      "sony-a9-iii": {
+        "text": "索尼 A9 III 配备全球首款全局快门，作为一款突破了相机功能界限的相机机身，在名人堂中占有一席之地。"
+      },
+      "tamron-35-150mm-f-2-2-8-di-iii-vxd": {
+        "text": "真正创新且令人印象深刻的腾龙 35-150mm f/2-2.8 以其独特的多功能性和突破性的明亮光圈焦距范围在名人堂中赢得了一席之地。以合理的价格看到如此原创的设计和规格列表与可靠的性能相结合是罕见的，值得庆祝。虽然它最初可能是为旅行摄影而创建的，但许多人发现它在一系列其他类型中很有用，包括体育、视频、活动或婚礼工作。"
+      },
+      "nikon-d500": {
+        "text": "尼康 D500 以其快速、可靠的自动对焦和坚固的结构而闻名，作为有史以来最强大的 APS-C 相机之一，在名人堂中占有一席之地。即使在今天，它仍然是野生动物和体育摄影的热门选择。"
+      },
+      "nikon-af-s-dx-nikkor-35mm-f-1-8g": {
+        "text": "第一款配备 f/1.8 光圈的尼康 DX 镜头，非常适合低光和人像摄影。"
+      },
+      "nikon-nikkor-z-24-70mm-f-2-8-s-ii": {
+        "text": "作为第一款具有内部变焦机构的 f/2.8 标准变焦镜头，尼克尔 Z 24-70 f/2.8 S II 作为一款卓越的专业标准变焦镜头在我们的名人堂中赢得了一席之地，尽管与已经令人印象深刻的前代产品相比只提供了微小的改进。这是一款至今仍很流行的多功能镜头，是一款出色的全能镜头。"
+      },
+      "canon-rf28-70mm-f2-l-usm": {
+        "text": "佳能 RF 28-70mm f/2 L USM 是首款用于全画幅相机的 f/2 恒定光圈标准变焦镜头。"
+      },
+      "nikon-nikkor-z-58mm-f-0-95-s-noct": {
+        "text": "尼康最快的镜头，也是首款具有 f/0.95 光圈的旗舰性能全画幅镜头。这款手动对焦镜头作为大光圈性能的先驱而在名人堂中占有一席之地。"
+      },
+      "canon-eos-5d-mark-ii": {
+        "text": "作为第一款支持 1080p 全高清视频录制的数码单反相机，佳能 EOS 5D Mark II 作为开启了可拍摄照片和视频的混合相机机身的相机，在名人堂中占有一席之地。"
+      },
+      "nikon-d90": {
+        "text": "尼康 D90 是第一款支持 720p 视频录制的 DSLR，也是 DSLR 视频的一个重大转折点。"
+      },
+      "nikon-af-s-nikkor-50mm-f-1-8g": {
+        "text": "在竞争异常激烈的 50mm 定焦镜头市场中，尼康的 AF-S 50mm f/1.8G 是最知名的选择之一。它是一款出色、经济实惠的 F 卡口全画幅 50mm 定焦镜头。作为尼康最畅销的镜头之一，它提供了如此多的价值，以至于大多数摄影师没有理由考虑更昂贵的选择，除非他们特别需要顶级的专业性能。许多年后，它仍然经常被推荐给新摄影师并被专业人士使用。"
+      }
+    }
+  },
+  "notifications": {
+    "title": "通知",
+    "clearAll": "全部清除",
+    "deleteAll": "全部删除",
+    "inbox": "收件箱",
+    "archived": "已归档",
+    "empty": "还没有通知。",
+    "archivedEmpty": "没有存档的通知。",
+    "gearSpecApprovedTitle": "您的规格编辑已获得批准！",
+    "gearSpecApprovedBody": "{gearName}现已更新。点击查看页面。",
+    "gearFallback": "器材",
+    "badgeAwardedTitle": "您获得了新徽章",
+    "badgeAwardedTitleNamed": "您获得了 {badgeName} 徽章",
+    "badgeAwardedBody": "一项新的会员福利已解锁。",
+    "justNow": "现在"
+  },
+  "profileSettings": {
+    "metaTitle": "账户设置",
+    "pageTitle": "账户设置",
+    "viewProfile": "查看个人资料",
+    "signedInAs": "以 {email} 身份登录",
+    "profilePicture": "个人资料图片",
+    "usernameHandle": "用户名/句柄",
+    "usernameHandleDescription": "这是您在 Sharply 上的唯一地址。它只能包含字母、数字、连字符和下划线。",
+    "displayName": "显示名称",
+    "socialLinks": "社交链接",
+    "socialLinksDescription": "添加指向您的社交媒体资料和个人网站的链接。这些将显示在您的公开个人资料中。",
+    "displayNameUpdateError": "无法更新您的显示名称。请再试一次。",
+    "displayNameUpdateFailed": "无法更新显示名称。请再试一次。",
+    "displayNamePlaceholder": "您的显示名称",
+    "displayNameHelp": "这是其他用户在访问您的个人资料或您撰写评论时将看到的内容。",
+    "saveChanges": "保存更改",
+    "handleTooShort": "过短",
+    "handleUpdated": "手柄更新成功！",
+    "handleUpdateFailed": "更新句柄失败",
+    "handlePlaceholder": "用户-{memberNumber}",
+    "currentlyUsingDefaultHandle": "目前使用默认：{handle}",
+    "updateHandle": "更新句柄",
+    "instagram": "Instagram",
+    "instagramPlaceholder": "用户名",
+    "instagramUsername": "Instagram 用户名",
+    "willSave": "会保存",
+    "addUsernameToCreateLink": "添加用户名以创建链接",
+    "portfolio": "文件夹",
+    "portfolioPlaceholder": "https://your-portfolio.com",
+    "portfolioUrl": "作品集网址",
+    "addUrlToCreateLink": "添加 URL 以创建链接",
+    "socialLinksUpdated": "社交链接更新成功！",
+    "genericError": "发生错误",
+    "passkeys": "万能钥匙",
+    "passkeysDescription": "注册无密码登录的密钥。我们预先填写了一个设备友好的名称（例如“Windows 上的 Firefox”），您可以保留或更改它。",
+    "noPasskeysConfigured": "没有配置密钥",
+    "onePasskeyConfigured": "配置 1 个密钥",
+    "manyPasskeysConfigured": "{count} 密钥已配置",
+    "deletingPasskey": "正在删除密钥...",
+    "passkeyDeleted": "密钥已删除",
+    "passkeyDeleteFailed": "删除密钥失败。",
+    "savingName": "正在保存名称...",
+    "passkeyRenamed": "密钥已重命名",
+    "passkeyRenameFailed": "无法重命名密钥。",
+    "addPasskey": "添加密钥",
+    "noPasskeysYet": "还没有密钥。添加一个即可开始。",
+    "device": "设备",
+    "synced": "已同步",
+    "addedAt": "添加了 {value}",
+    "rename": "重命名",
+    "renamePasskey": "重命名密钥",
+    "renamePasskeyDescription": "选择一个名称以帮助您稍后识别该设备。",
+    "cancel": "取消",
+    "save": "节省",
+    "delete": "删除",
+    "deletePasskeyTitle": "删除密钥？",
+    "deletePasskeyDescription": "删除后您将无法使用“{name}”登录。",
+    "confirmDelete": "确认删除",
+    "connectedAccounts": "已关联账户",
+    "providerLinked": "{provider} 已链接",
+    "openingProviderToLink": "打开 {provider} 链接...",
+    "failedToStartLinking": "无法开始链接",
+    "disconnectingProvider": "正在断开 {provider}...",
+    "providerDisconnected": "{provider} 已断开",
+    "linkProviderAccount": "关联 {provider} 账户",
+    "providerLinkingDisabled": "{provider} 链接已禁用",
+    "providerNotConfigured": "该提供程序未针对此环境进行配置。",
+    "connectedAs": "连接为 {account}",
+    "disconnect": "断开",
+    "disconnectProviderTitle": "断开{provider}？",
+    "disconnectProviderDescription": "在再次链接之前，您将无法使用该提供商登录。",
+    "disconnectLastOauthWarning": "这是您最后链接的 OAuth 账户。如果继续，您将需要使用您的电子邮件/魔术链接登录。",
+    "profileThumbnailPreview": "个人资料缩略图预览",
+    "avatar": "阿凡达",
+    "updateProfilePicture": "更新个人资料图片",
+    "imageExceedsLimit": "图片超过 4MB。选择较小的文件。",
+    "uploadFailedTryAgain": "上传失败。请再试一次。",
+    "profilePictureUpdated": "个人资料图片已更新。",
+    "failedToUpload": "上传失败",
+    "mustBeSignedInToUpdateProfilePicture": "您必须登录才能更新您的个人资料图片。",
+    "user": "用户",
+    "uploadProfilePictureDescription": "上传个人资料照片。它将显示在您的账户上。",
+    "currentPicture": "当前图片",
+    "uploadNewPicture": "上传新图片",
+    "dropImageHere": "将图片拖放到此处或点击上传",
+    "uploadingProgress": "正在上传{percent}%",
+    "replace": "代替",
+    "upload": "上传",
+    "saving": "保存…",
+    "done": "完毕",
+    "profilePictureLimits": "最多 1 个文件，4MB。图像将调整为 256 像素以获得最佳显示效果。",
+    "addPasskeyTitle": "添加密钥",
+    "waitingForPasskeyCreation": "正在等待您的设备创建密钥...",
+    "passkeyAdded": "添加了密钥",
+    "addPasskeyFailed": "添加密钥失败。请再试一次。",
+    "backToSettings": "返回设置",
+    "addPasskeyDescription": "我们将根据您的浏览器和操作系统预填写设备友好的名称。您可以在创建密钥之前保留它或重命名它。",
+    "passkeyName": "密钥名称",
+    "passkeyNameExample": "例如Windows 上的火狐浏览器",
+    "passkeyNameHelp": "如果您添加多个密钥，这可以帮助您稍后识别设备。",
+    "newPasskey": "新密钥",
+    "unknownOs": "未知操作系统",
+    "genericBrowser": "浏览器",
+    "browserOnOs": "{browser} 上 {os}",
+    "saveAndCreatePasskey": "保存并创建密钥"
+  },
+  "aboutPage": {
+    "metaTitle": "关于",
+    "metaDescription": "了解 Sharply 正在构建什么、它为何存在，以及摄影师如何帮助塑造器材知识的开放参考。",
+    "pageTitle": "关于",
+    "heroTitle": "适合所有人的摄影",
+    "heroDescription": "Sharply 正在为摄影知识建立现代参考。我们汇集了准确、开放的器材数据、结构化的社区洞察力和重点编辑背景，为每位摄影师提供清晰、可靠且易于访问的摄影信息。",
+    "heroBanner": "摄影知识向所有人开放并获取！",
+    "missionBadge": "我们的使命",
+    "missionTitle": "我们正在构建一种更好的方式来了解和查找器材。",
+    "missionBody": "Sharply 旨在成为摄影器材的清晰、可靠的参考，围绕人们实际研究和使用设备的方式构建。 Sharply 没有优先考虑长篇大论，而是专注于结构化规范、真实世界样本以及对特定问题的精确答案。通过将器材数据、比较和编辑洞察整理到一个可搜索、一致的系统中，Sharply 的目标是成为摄影师在评估相机、镜头和工具时首先想到的地方。",
+    "valuesOpenTitle": "公开透明",
+    "valuesOpenDescription": "我们的数据、规格和见解可供所有人访问，并以通俗易懂的语言进行解释。",
+    "valuesCommunityTitle": "由摄影师塑造",
+    "valuesCommunityDescription": "贡献来自像您这样的摄影师，并在发布之前由值得信赖的编辑进行审核。",
+    "valuesModernTitle": "为今天而打造",
+    "valuesModernDescription": "干净、现代的体验让您可以轻松探索器材、比较选项并快速找到答案。",
+    "valuesReliableTitle": "准确可靠",
+    "valuesReliableDescription": "经过验证的规格和精心策划的背景可帮助您更加自信地做出决策。",
+    "databaseCta": "查看器材数据库",
+    "problemBadge": "问题",
+    "problemTitle": "为什么这很重要",
+    "problemBody1": "摄影知识分散且不一致。规格位于制造商网站上，评论分布在许多平台上，测试方法差异很大，因此很难进行有意义的比较。",
+    "problemBody2": "许多现有标准也很难获得。它们通常是为实验室或机构编写的，隐藏在行话或付费专区后面，对于日常摄影师来说是遥不可及的。",
+    "problemBody3": "其结果是信息碎片化、信任不平衡，以及一个往往偏向内部人士而不是更广泛的摄影界的系统。",
+    "solutionBadge": "解决方案",
+    "solutionTitle": "我们对未来的愿景",
+    "solutionBody1": "我们相信，无论您是购买第一台相机还是评估用于专业工作的旗舰系统，摄影知识都应该开放、透明且可供所有人使用。",
+    "solutionBody2": "Sharply 汇集了准确的器材数据、结构化的社区洞察力和深思熟虑的编辑，使学习和比较更简单、更有用。",
+    "solutionBody3": "从长远来看，我们希望帮助创建摄影测试和数据实践的开放标准，以便社区可以依赖更清晰、更可重复的方法。",
+    "solutionBody4": "未来取决于清晰度、可访问性和协作。通过与摄影师、贡献者和品牌合作，Sharply 可以满足当今的需求，同时帮助定义明天的开放摄影标准。",
+    "workflowBadge": "众包",
+    "workflowTitle": "它是如何运作的",
+    "workflowDescription": "任何人都可以通过提交更改或建议来为数据库做出贡献。该社区流程有助于使目录更加准确、最新和有用。",
+    "timelineStep1Title": "您提交变更请求",
+    "timelineStep1Description": "如果您发现器材页面上的信息缺失或不正确，您可以向我们发送更正或建议。",
+    "timelineStep2Title": "我们的团队会审核该请求",
+    "timelineStep2Description": "编辑会审核提交的内容，验证详细信息，并跟进是否需要更多背景信息。",
+    "timelineStep3Title": "更新上线",
+    "timelineStep3Description": "一旦获得批准，更改将发布给所有人查看，并且您的贡献将记入平台。",
+    "ctaTitle": "让我们开始吧",
+    "ctaDescription": "我们一直在寻找有共同使命的人。无论您是评论者、开发者，还是只是对摄影充满热情，您都可以帮助塑造摄影知识的未来。",
+    "ctaBrowseGear": "浏览器材",
+    "ctaCreateAccount": "创建一个账户",
+    "checklistEditSpecs": "建议更改器材规格",
+    "checklistSaveCollection": "将器材保存到您的收藏中",
+    "checklistWriteReviews": "撰写评论并分享您的经验",
+    "checklistWishlist": "将商品添加到您的愿望清单"
+  },
+  "legal": {
+    "privacy": {
+      "lastUpdated": "最后更新时间：2026 年 5 月 17 日",
+      "cookiesListItem": "我们使用 cookie 和类似技术来进行身份验证、安全性、登录连续性、语言和界面首选项以及有限的聚合测量。",
+      "usageAnalyticsListItem": "衡量总体使用情况、改进服务并防止滥用。",
+      "cookiesTrackingBody1": "我们使用基本和功能性 cookie 来操作服务、验证用户身份、维护安全、保留登录和邀请流程、记住语言和界面首选项，并支持您请求的类似功能。",
+      "cookiesTrackingBody2": "我们还使用有限的第一方测量 cookie，仅用于减少总流行度中的重复计数并比较指标。这些 cookie 不会用于在不同网站上识别您的身份、提供广告服务或构建行为档案。",
+      "analyticsBody1": "在生产中，我们使用 Vercel Web Analytics 和相关服务提供商进行托管、身份验证和注重隐私的分析。 Vercel Web Analytics 在分析层是第一方且无 cookie，我们还发送自定义分析事件以了解功能使用情况和服务性能。",
+      "analyticsBody2": "我们使用这些提供商作为代表我们运营、保护和改进服务的服务提供商。我们不会将分析用于广告、重定向、跨站点跟踪或营销资料构建。",
+      "noSellOrProfile": "我们不会出售您的个人信息、使用广告跟踪器或根据分析事件构建营销或行为档案。"
+    },
+    "terms": {
+      "title": "服务条款",
+      "lastUpdated": "最后更新时间：2026 年 5 月 17 日",
+      "intro": "欢迎来到 Sharply。访问或使用我们的网站、应用程序或服务（统称“服务”）即表示您同意这些服务条款（以下简称“条款”）。如果您不同意，请不要使用本服务。",
+      "privacyNotice": "如我们的 {privacyPolicy} 中所述，该服务使用基本和功能性 cookie 以及有限的注重隐私的第一方分析和测量来操作、保护和改进服务。我们不会将服务用于广告、跨站点跟踪或行为档案构建。",
+      "sections": {
+        "whatSharplyIs": {
+          "title": "1. 夏普是什么",
+          "body": "Sharply 是一个摄影器材数据库和编目平台。我们聚合和组织相机设备数据，允许用户创建集合，并支持社区贡献和编辑内容。"
+        },
+        "account": {
+          "title": "2. 您的账户",
+          "item1": "您必须能够签订具有约束力的合同才能使用该服务。",
+          "item2": "您对您账户上的活动负责并确保您的凭据安全。",
+          "item3": "我们可能会暂停或终止违反这些条款的账户。"
+        },
+        "userContent": {
+          "title": "3. 用户贡献和许可",
+          "body1": "您可以提交规格、图像、评级、评论和建议等内容（“用户内容”）。您声明您拥有发布用户内容的必要权利，并且不侵犯他人的权利或违反任何法律。",
+          "body2": "通过提交用户内容，您授予 Sharply 非排他性、全球性、免版税、可再许可的许可，以托管、存储、复制、修改格式、翻译、创建用于演示的衍生作品、发布、公开展示和分发与运营和改进服务相关的此类用户内容。您可以随时删除您的用户内容；这可能不会影响先前已按照上述许可方式制作、使用或共享的副本或衍生品。",
+          "body3": "我们可以自行决定审核、编辑清晰、拒绝或删除用户内容，包括遵守法律或保护社区。"
+        },
+        "prohibited": {
+          "title": "4. 禁止活动",
+          "item1": "发布非法、误导、诽谤或侵权内容。",
+          "item2": "上传恶意软件或试图干扰服务。",
+          "item3": "冒充任何个人或实体或歪曲从属关系。",
+          "item4": "未经我们事先书面许可，抓取、收集或批量下载数据（如果提供，请使用官方 API）。",
+          "item5": "规避访问控制、速率限制或安全措施。",
+          "item6": "未经授权，将本服务用于复制或与Sharply竞争的商业利用。"
+        },
+        "intellectualProperty": {
+          "title": "5. 知识产权",
+          "body": "本服务（包括我们的软件、设计和原创内容）由 Sharply 所有或授权给 Sharply，并受知识产权法保护。服务中引用的产品名称、徽标和商标均为其各自所有者的财产，并不意味着认可。"
+        },
+        "informationAccuracy": {
+          "title": "6、信息准确性；没有专业建议",
+          "body": "我们努力提供准确的器材数据和编辑内容，但信息可能不完整、过时或包含错误。内容仅供参考，并不构成专业建议。您有责任在做出购买或使用决定之前验证信息。"
+        },
+        "thirdPartyLinks": {
+          "title": "7. 第三方链接",
+          "body": "该服务可能包含第三方网站或服务的链接。我们对其内容、政策或做法不承担任何责任。"
+        },
+        "disclaimers": {
+          "title": "8. 免责声明",
+          "body": "本服务按“原样”和“可用”提供，不附有任何明示或暗示的保证，包括但不限于适销性、特定用途的适用性和不侵权的保证。我们不保证服务不会中断、安全或无错误。"
+        },
+        "limitationOfLiability": {
+          "title": "9. 责任限制",
+          "body": "在法服务。"
+        },
+        "indemnification": {
+          "title": "10. 赔偿",
+          "body": "您同意赔偿 Sharply 及其关联公司因您使用服务或您的用户内容而产生的或以任何方式与之相关的任何索赔、责任、损害、损失和费用，包括合理的法律费用，并使其免受损害。"
+        },
+        "changes": {
+          "title": "11. 服务和条款的变更",
+          "body": "我们可能随时修改服务和这些条款。如果变更重大，我们将采取合理措施通知您（例如，通过网站或通过电子邮件（如果有））。您在更改生效后继续使用服务即表示您接受更新后的条款。"
+        },
+        "termination": {
+          "title": "12. 终止",
+          "body": "我们可以随时暂停或终止您对服务的访问，包括违反这些条款或保护服务或其他用户。您可以随时停止使用该服务。"
+        },
+        "contact": {
+          "title": "13. 联系方式",
+          "body": "对这些条款或服务有疑问吗？请通过我们网站上列出的支持渠道与我们联系。另请参阅我们的 {privacyPolicy}。"
+        }
+      }
+    }
+  },
+  "errors": {
+    "notFoundTitle": "哎呀，我们错过了镜头。",
+    "notFoundDescription": "您正在寻找的页面已消失。尝试寻找器材，或者回家。",
+    "goHome": "回到首页",
+    "searchGear": "搜索器材",
+    "genericTitle": "出了问题！",
+    "tryAgain": "再试一次"
+  },
+  "auth": {
+    "welcome": "欢迎",
+    "signInSubtitle": "登录或创建账户以继续",
+    "signInWithPasskey": "使用密码登录",
+    "continueWithEmail": "或继续使用电子邮件",
+    "emailPlaceholder": "输入您的电子邮件",
+    "emailHint": "我们将向该地址发送一个 6 位代码。",
+    "sendCode": "发送代码",
+    "signInImageAlt": "登录",
+    "agreeToTerms": "单击继续即表示您同意我们的 {terms} 和 {privacy}。",
+    "agreeToTermsVerify": "继续即表示您同意我们的 {terms} 和 {privacy}。",
+    "verifyTitle": "输入验证码",
+    "verifySubtitle": "输入我们发送至 {email} 的 6 位代码。",
+    "verifyHint": "此代码将在 10 分钟后过期。验证时请保持此选项卡打开。",
+    "continue": "继续",
+    "signInAnotherWay": "以其他方式登录",
+    "signingYouIn": "正在为您签名...",
+    "welcomeBack": "欢迎{name}！",
+    "welcomeDescription": "您刚刚加入了引领摄影数据走向未来的社区。",
+    "continueToSharply": "继续使用 Sharply",
+    "pleaseSignInToContinue": "请登录以继续。",
+    "userNotFound": "未找到用户。",
+    "listCreated": "已创建列表",
+    "listRenamed": "列表已重命名",
+    "listDeleted": "列表已删除",
+    "listPublished": "名单公布",
+    "listNameRequired": "名单名称为必填项",
+    "failedToCreateList": "创建列表失败",
+    "failedToRenameList": "重命名列表失败",
+    "failedToDeleteList": "删除列表失败",
+    "failedToPublishList": "发布列表失败",
+    "authErrorDefault": "登录期间发生错误。",
+    "authErrorEmailUsed": "电子邮件已被使用",
+    "authErrorEmailUsedDescription": "请使用您最初使用的方法登录，或者如果您需要关联账户的帮助，请联系支持人员。",
+    "authErrorProblemSigningIn": "登录时出现问题。",
+    "authErrorProblemSigningInShort": "请再试一次。",
+    "authErrorCallback": "身份验证回调出现问题。请再试一次。",
+    "authErrorCreateAccount": "无法创建账户。请再试一次。",
+    "authErrorEmailCreateAccount": "无法使用此电子邮件创建账户。请再试一次。",
+    "authErrorEmailSignin": "发送登录电子邮件时出现问题。请再试一次。",
+    "authErrorCredentials": "凭证无效。请检查您的电子邮件和密码。",
+    "authErrorSessionRequired": "请登录才能访问此页面。",
+    "oauthNotConfigured": "{provider} 登录未配置。",
+    "oauthNotConfiguredDescription": "设置 {missingVars} 以启用 {provider} 身份验证。",
+    "signInFailed": "登录失败。",
+    "unexpectedError": "发生意外错误。请再试一次。",
+    "emailNotConfigured": "未配置电子邮件登录。",
+    "emailNotConfiguredDescription": "设置 {missingVars} 以启用 Magic Link 登录。",
+    "emailOtpUnavailable": "电子邮件 OTP 目前不可用。",
+    "failedToSendCode": "发送代码失败。",
+    "codeSent": "代码已发送！检查您的电子邮件。",
+    "failedToSendCodeTryAgain": "发送代码失败。请再试一次。",
+    "passkeyFailed": "密钥登录失败。",
+    "passkeyFailedDescription": "未找到密钥。尝试使用电子邮件、OAuth 或注册，然后在“设置”中添加密钥。",
+    "signUp": "报名",
+    "otpUnavailable": "OTP 登录目前不可用。",
+    "somethingWentWrong": "出了点问题。请再试一次。",
+    "invalidOrExpiredCode": "代码无效或过期。",
+    "couldNotVerifyCode": "无法验证代码。请再试一次。"
+  },
+  "metadata": {
+    "siteDescription": "真实的规格，真实的评论，真实的速度。 Sharply 是最新、最全面的摄影器材数据库和评论平台，在现代、简约的界面中提供专家评论、真实规格和并排比较。",
+    "signInTitle": "登录",
+    "verifyOtpTitle": "验证码",
+    "welcomeTitle": "欢迎！"
+  }
+}

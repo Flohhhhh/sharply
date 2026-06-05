@@ -1,3 +1,5 @@
+import { resolveRuntimeLocale } from "~/i18n/runtime-locale";
+
 export type DateLike = Date | string | number | null | undefined;
 export type DatePrecision = "DAY" | "MONTH" | "YEAR";
 type TimeZoneIdentifier = string & {};
@@ -33,7 +35,7 @@ function capitalizeFirstCharacter(value: string, locale: string): string {
   }
 
   const [firstCharacter = "", ...rest] = Array.from(value);
-  return firstCharacter.toLocaleUpperCase(locale) + rest.join("");
+  return firstCharacter.toLocaleUpperCase(resolveRuntimeLocale(locale)) + rest.join("");
 }
 
 function resolveTimeZone(
@@ -51,15 +53,20 @@ function getDateFormatter(
   timeZone: DateTimeZoneOption | undefined,
   options: Intl.DateTimeFormatOptions,
 ): Intl.DateTimeFormat {
+  const runtimeLocale = resolveRuntimeLocale(locale);
   const resolvedTimeZone = resolveTimeZone(timeZone);
-  const cacheKey = JSON.stringify([locale, resolvedTimeZone ?? null, options]);
+  const cacheKey = JSON.stringify([
+    runtimeLocale,
+    resolvedTimeZone ?? null,
+    options,
+  ]);
   const cached = dateFormatterCache.get(cacheKey);
 
   if (cached) {
     return cached;
   }
 
-  const formatter = new Intl.DateTimeFormat(locale, {
+  const formatter = new Intl.DateTimeFormat(runtimeLocale, {
     ...options,
     ...(resolvedTimeZone ? { timeZone: resolvedTimeZone } : {}),
   });
@@ -71,14 +78,15 @@ function getRelativeFormatter(
   locale: string,
   options: Intl.RelativeTimeFormatOptions,
 ): Intl.RelativeTimeFormat {
-  const cacheKey = JSON.stringify([locale, options]);
+  const runtimeLocale = resolveRuntimeLocale(locale);
+  const cacheKey = JSON.stringify([runtimeLocale, options]);
   const cached = relativeFormatterCache.get(cacheKey);
 
   if (cached) {
     return cached;
   }
 
-  const formatter = new Intl.RelativeTimeFormat(locale, options);
+  const formatter = new Intl.RelativeTimeFormat(runtimeLocale, options);
   relativeFormatterCache.set(cacheKey, formatter);
   return formatter;
 }

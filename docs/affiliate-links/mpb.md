@@ -27,7 +27,7 @@
 
 - The system currently supports dedicated MPB storefront routing for **US**, **UK**, **EU**, **DE**, **FR**, **ES**, and **IT**.
 - User selection is managed via a global `CountryProvider` and persisted in Local Storage.
-- Japan (`jp`) and Malaysia (`my`) are currently explicit no-MPB locales. They do not fall back to geo-detected MPB.
+- China (`cn`), Japan (`jp`), and Malaysia (`my`) are currently explicit no-MPB locales. They do not fall back to geo-detected MPB.
 - `mpb.market: null` must not be treated as an implicit "send the user somewhere anyway" signal. The UI must first check `mpb.isSupported`.
 
 ```text

@@ -27,6 +27,9 @@ const messageLoaders: Record<
   it: () => import("../../messages/it.json") as Promise<{
     default: MessageOverrides;
   }>,
+  zh: () => import("../../messages/zh.json") as Promise<{
+    default: MessageOverrides;
+  }>,
   ms: () => import("../../messages/ms.json") as Promise<{
     default: MessageOverrides;
   }>,
