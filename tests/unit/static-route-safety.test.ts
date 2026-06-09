@@ -15,6 +15,15 @@ describe("static route safety", () => {
     expect(header).not.toMatch(/\bawait cookies\(/);
   });
 
+  it("keeps the shared pages layout free of dynamic request APIs", () => {
+    const pagesLayout = readSource("src/app/[locale]/(pages)/layout.tsx");
+
+    expect(pagesLayout).not.toMatch(/from "next\/headers"/);
+    expect(pagesLayout).not.toMatch(/from "next\/cookies"/);
+    expect(pagesLayout).not.toMatch(/\bawait headers\(/);
+    expect(pagesLayout).not.toMatch(/\bawait cookies\(/);
+  });
+
   it("keeps search param syncing isolated behind Suspense in the header client", () => {
     const headerClient = readSource("src/components/layout/header-client.tsx");
 
@@ -56,5 +65,11 @@ describe("static route safety", () => {
     const localeLayout = readSource("src/app/[locale]/layout.tsx");
 
     expect(localeLayout).toMatch(/if \(!isLocale\(requestedLocale\)\) {\s*notFound\(\);/);
+  });
+
+  it("mounts BotID at the locale root instead of shared page chrome", () => {
+    const localeLayout = readSource("src/app/[locale]/layout.tsx");
+
+    expect(localeLayout).toMatch(/<BotIdClient protect=\{botIdProtectedRoutes\} \/>/);
   });
 });

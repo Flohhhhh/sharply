@@ -6,6 +6,9 @@ import { locales } from "~/i18n/config";
 const analyticsMock = vi.hoisted(() =>
   vi.fn(() => createElement("div", { "data-testid": "analytics" })),
 );
+const botIdClientMock = vi.hoisted(() =>
+  vi.fn(() => createElement("meta", { name: "botid-client" })),
+);
 const providersMock = vi.hoisted(() =>
   vi.fn(
     ({
@@ -34,6 +37,9 @@ const navigationMocks = vi.hoisted(() => ({
 
 vi.mock("@vercel/analytics/next", () => ({
   Analytics: analyticsMock,
+}));
+vi.mock("botid/client", () => ({
+  BotIdClient: botIdClientMock,
 }));
 vi.mock("~/components/ui/sonner", () => ({
   Toaster: toasterMock,
@@ -88,6 +94,18 @@ describe("locale root layout", () => {
 
     expect(markup).toContain("data-testid=\"analytics\"");
     expect(analyticsMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("mounts BotID in the locale root head", async () => {
+    const markup = renderToStaticMarkup(
+      await RootLayout({
+        children: createElement("main", null, "content"),
+        params: Promise.resolve({ locale: "en" }),
+      }),
+    );
+
+    expect(markup).toContain("name=\"botid-client\"");
+    expect(botIdClientMock).toHaveBeenCalledTimes(1);
   });
 
   it("skips analytics outside production", async () => {

@@ -2,6 +2,7 @@
 import "server-only";
 
 import { revalidatePath } from "next/cache";
+import { classifyBotTraffic } from "~/server/security/botid";
 import {
   addRawSampleToGear,
   removeRawSampleFromGear,
@@ -52,6 +53,14 @@ export async function actionSubmitReview(slug: string, body: unknown) {
 }
 
 export async function actionSubmitGearProposal(body: unknown) {
+  const { isBot } = await classifyBotTraffic();
+  if (isBot) {
+    throw Object.assign(new Error("Access denied."), {
+      code: "REVIEW_BOT_BLOCKED",
+      status: 403,
+    });
+  }
+
   const res = await submitGearEditProposal(body);
   if (res?.autoApproved) {
     const slug =

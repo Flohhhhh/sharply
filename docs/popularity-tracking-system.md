@@ -11,7 +11,7 @@ This document describes the end‑to‑end popularity tracking in Sharply: inges
   - Events are never deleted; truth tables (wishlists/ownerships/reviews) remain the authoritative current state.
 
 - **Event quality and dedupe**
-  - Views: UA denylist, per‑visitor (cookie `visitorId`, 3‑day TTL) per‑gear per‑UTC‑day dedupe; anonymous allowed.
+  - Views: BotID classification in the gear page server action, then the existing UA denylist, then per‑visitor (cookie `visitorId`, 3‑day TTL) per‑gear per‑UTC‑day dedupe; anonymous allowed.
   - Wishlists/Ownerships: per‑user per‑gear per‑UTC‑day dedupe for the popularity event (truth tables already unique by user+gear).
   - Useful dev logs emitted for blocked reasons.
 
@@ -143,8 +143,9 @@ From the revised plan:
 - Canonical timezone for bucketing is UTC; rollups and dedupe are UTC‑day based.
 - Popularity events are append‑only. Truth tables provide current counts; derived tables provide historical and aggregated views.
 - Dedupe rules:
-  - Views: per visitor (cookie `visitorId`) per gear per UTC day; UA denylist blocks bots/crawlers.
+  - Views: `actionRecordGearView` checks BotID first and returns `skipped: "botid"` without recording a popularity event when the request is bot-classified. Requests that pass BotID still use per visitor (cookie `visitorId`) per gear per UTC day dedupe, and the UA denylist remains in `recordGearView()` as defense in depth with `skipped: "bot"`.
   - Wishlist/Ownership: popularity event deduped per user per gear per UTC day; truth tables still enforce uniqueness.
+- Gear detail pages still render for crawlers and bots. BotID only suppresses the popularity write for this rollout; it does not block page delivery or indexing.
 - Caching: trending 12h (`trending` tag) + live boost snapshot 2m (`trending-live` tag) + stats 1h.
 - Security: Vercel Cron signed with `CRON_SECRET` using `Authorization: Bearer` header.
 - Logging: endpoints and rollup emit concise console logs indicating skipped/blocked reasons (useful in dev).
