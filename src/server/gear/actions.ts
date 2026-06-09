@@ -56,7 +56,7 @@ export async function actionSubmitGearProposal(body: unknown) {
   const { isBot } = await classifyBotTraffic();
   if (isBot) {
     throw Object.assign(new Error("Access denied."), {
-      code: "BOT_BLOCKED",
+      code: "REVIEW_BOT_BLOCKED",
       status: 403,
     });
   }

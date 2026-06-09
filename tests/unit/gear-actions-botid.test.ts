@@ -43,7 +43,7 @@ describe("gear actions BotID guard", () => {
       }),
     ).rejects.toMatchObject({
       message: "Access denied.",
-      code: "BOT_BLOCKED",
+      code: "REVIEW_BOT_BLOCKED",
       status: 403,
     });
 
