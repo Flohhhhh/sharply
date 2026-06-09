@@ -1,12 +1,21 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { deleteOwnReview,flagReview } from "~/server/gear/service";
+import { classifyBotTraffic } from "~/server/security/botid";
 
 export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { isBot } = await classifyBotTraffic();
+    if (isBot) {
+      return NextResponse.json(
+        { ok: false, type: "BOT_BLOCKED", message: "Access denied." },
+        { status: 403 },
+      );
+    }
+
     const { id } = await params;
     const result = await flagReview(id);
 

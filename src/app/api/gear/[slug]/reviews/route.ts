@@ -6,6 +6,7 @@ import {
   fetchMyReviewStatus,
   submitReview,
 } from "~/server/gear/service";
+import { classifyBotTraffic } from "~/server/security/botid";
 // No points; event_type enum values enforced in schema. Route delegates to server logic.
 
 // Validation schema for review submission
@@ -21,6 +22,19 @@ export async function POST(
   { params }: { params: Promise<{ slug: string }> },
 ) {
   try {
+    const { isBot } = await classifyBotTraffic();
+    if (isBot) {
+      return NextResponse.json(
+        {
+          ok: false,
+          type: "MODERATION_BLOCKED",
+          code: "REVIEW_BOT_BLOCKED",
+          message: "Access denied.",
+        },
+        { status: 403 },
+      );
+    }
+
     const { slug } = await params;
     const body = await request.json();
     // validate first to return 400 quickly for invalid

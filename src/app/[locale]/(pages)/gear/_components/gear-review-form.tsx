@@ -120,6 +120,7 @@ export function GearReviewForm({
               | "REVIEW_TOO_SHORT"
               | "REVIEW_LINK_BLOCKED"
               | "REVIEW_PROFANITY_BLOCKED"
+              | "REVIEW_BOT_BLOCKED"
               | "REVIEW_BOT_UA_BLOCKED"
               | "REVIEW_RATE_LIMITED";
             message: string;

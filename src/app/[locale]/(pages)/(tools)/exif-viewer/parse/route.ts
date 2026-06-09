@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "~/auth";
+import { classifyBotTraffic } from "~/server/security/botid";
 import { buildTrackingPreviewFromParseResult } from "~/server/exif-tracking/service";
 import {
   EXIF_VIEWER_ALLOWED_EXTENSIONS,
@@ -162,6 +163,17 @@ async function parseRequestBody(request: Request): Promise<ExifViewerParseReques
 }
 
 export async function POST(request: Request) {
+  const { isBot } = await classifyBotTraffic();
+  if (isBot) {
+    return createErrorResponse({
+      status: "parse_error",
+      message: "Access denied.",
+      fileName: "unknown",
+      fileSize: 0,
+      httpStatus: 403,
+    });
+  }
+
   let parsedRequest: ExifViewerParseRequest;
 
   try {
