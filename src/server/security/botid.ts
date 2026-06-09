@@ -7,7 +7,11 @@ export type BotIdClassification = {
 };
 
 export async function classifyBotTraffic(): Promise<BotIdClassification> {
-  const { isBot } = await checkBotId();
+  try {
+    const { isBot } = await checkBotId();
 
-  return { isBot };
+    return { isBot };
+  } catch {
+    return { isBot: false };
+  }
 }

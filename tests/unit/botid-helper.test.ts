@@ -35,4 +35,10 @@ describe("BotID helper", () => {
 
     await expect(classifyBotTraffic()).resolves.toEqual({ isBot: false });
   });
+
+  it("fails open when BotID throws", async () => {
+    botIdServerMocks.checkBotId.mockRejectedValue(new Error("botid unavailable"));
+
+    await expect(classifyBotTraffic()).resolves.toEqual({ isBot: false });
+  });
 });
