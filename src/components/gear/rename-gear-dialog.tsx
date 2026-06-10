@@ -24,6 +24,8 @@ import {
 import type { GearAlias } from "~/types/gear";
 
 type AliasMap = Partial<Record<GearRegion, string>>;
+const ALIAS_REGIONS: GearRegion[] = ["EU", "JP"];
+const EMPTY_REGIONAL_ALIASES: GearAlias[] = [];
 
 function ensureBrandPrefix(value: string, brandName: string | null): string {
   if (!brandName) return value;
@@ -34,6 +36,30 @@ function ensureBrandPrefix(value: string, brandName: string | null): string {
   const lowerBrand = normalizedBrand.toLowerCase();
   if (lowerValue.startsWith(lowerBrand)) return normalizedValue;
   return `${normalizedBrand} ${normalizedValue}`.trim();
+}
+
+export function buildInitialAliasMap(
+  regionalAliases: readonly GearAlias[] | undefined,
+): AliasMap {
+  const map: AliasMap = {};
+  for (const entry of regionalAliases ?? EMPTY_REGIONAL_ALIASES) {
+    if (ALIAS_REGIONS.includes(entry.region)) {
+      map[entry.region] = entry.name ?? "";
+    }
+  }
+  return map;
+}
+
+export function getRenameGearDialogOpenState(params: {
+  currentName: string;
+  defaultNavigateAfterRename: boolean;
+  regionalAliases: readonly GearAlias[] | undefined;
+}) {
+  return {
+    newName: params.currentName,
+    navigateAfterRename: params.defaultNavigateAfterRename,
+    aliases: buildInitialAliasMap(params.regionalAliases),
+  };
 }
 
 interface RenameGearDialogProps {
@@ -61,7 +87,7 @@ export function RenameGearDialog({
   currentName,
   currentSlug,
   brandName,
-  regionalAliases = [],
+  regionalAliases,
   trigger,
   onSuccess,
   showNavigateOption = false,
@@ -69,23 +95,26 @@ export function RenameGearDialog({
 }: RenameGearDialogProps) {
   const [open, setOpen] = useState(false);
   const [newName, setNewName] = useState(currentName);
-  const ALIAS_REGIONS: GearRegion[] = ["EU", "JP"];
   const [aliases, setAliases] = useState<AliasMap>({});
   const [navigateAfterRename, setNavigateAfterRename] = useState(
     defaultNavigateAfterRename,
   );
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const stableRegionalAliases = regionalAliases ?? EMPTY_REGIONAL_ALIASES;
 
   const initialAliasMap = useMemo<AliasMap>(() => {
-    const map: AliasMap = {};
-    for (const entry of regionalAliases ?? []) {
-      if (ALIAS_REGIONS.includes(entry.region)) {
-        map[entry.region] = entry.name ?? "";
-      }
-    }
-    return map;
-  }, [regionalAliases]);
+    return buildInitialAliasMap(stableRegionalAliases);
+  }, [stableRegionalAliases]);
+  const resetState = useMemo(
+    () =>
+      getRenameGearDialogOpenState({
+        currentName,
+        defaultNavigateAfterRename,
+        regionalAliases: stableRegionalAliases,
+      }),
+    [currentName, defaultNavigateAfterRename, stableRegionalAliases],
+  );
 
   const trimmedName = newName.trim();
   const trimmedAliases: AliasMap = Object.fromEntries(
@@ -102,11 +131,11 @@ export function RenameGearDialog({
   // Sync input with current name when dialog opens or name changes
   useEffect(() => {
     if (open) {
-      setNewName(currentName);
-      setNavigateAfterRename(defaultNavigateAfterRename);
-      setAliases(initialAliasMap);
+      setNewName(resetState.newName);
+      setNavigateAfterRename(resetState.navigateAfterRename);
+      setAliases(resetState.aliases);
     }
-  }, [open, currentName, defaultNavigateAfterRename, initialAliasMap]);
+  }, [open, resetState]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
