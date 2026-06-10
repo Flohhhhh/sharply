@@ -17,7 +17,7 @@
 │      (src/app/.../gear/_components/                         │
 │               gear-image-carousel.tsx)                      │
 │                                                             │
-│  - Shows images if available                                │
+│  - Shows front/top/rear images if available                │
 │  - Shows RequestImageButton if no images                    │
 └──────────────────────┬──────────────────────────────────────┘
                        │

@@ -174,6 +174,7 @@ export default async function GearPage({ params }: GearPageProps) {
       name={item.name}
       thumbnailUrl={item.thumbnailUrl}
       topViewUrl={item.topViewUrl}
+      rearViewUrl={item.rearViewUrl}
       slug={slug}
       hasImageRequest={hasImageRequest}
     />

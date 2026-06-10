@@ -24,6 +24,7 @@ interface GearItemDockClientProps {
   gearType: string;
   currentThumbnailUrl?: string | null;
   currentTopViewUrl?: string | null;
+  currentRearViewUrl?: string | null;
   alternatives?: GearAlternativeRow[];
   rawSamples?: RawSample[];
   hasCreatorVideos?: boolean;
@@ -76,6 +77,7 @@ export function GearItemDockClient({
   gearType,
   currentThumbnailUrl = null,
   currentTopViewUrl = null,
+  currentRearViewUrl = null,
   alternatives = [],
   rawSamples = [],
   hasCreatorVideos = false,
@@ -171,6 +173,7 @@ export function GearItemDockClient({
         gearType,
         currentThumbnailUrl,
         currentTopViewUrl,
+        currentRearViewUrl,
         locale,
         alternatives,
         hasCreatorVideos,
@@ -186,6 +189,7 @@ export function GearItemDockClient({
       alternatives,
       currentThumbnailUrl,
       currentTopViewUrl,
+      currentRearViewUrl,
       locale,
       gearId,
       gearType,

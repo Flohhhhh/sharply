@@ -56,7 +56,7 @@ export const ourFileRouter = {
   // when the file is linked to gear via addRawSampleToGear()
   rawSampleUploader: f({
     blob: {
-      maxFileSize: "128MB",
+      maxFileSize: "256MB",
       maxFileCount: 1,
     },
   })
