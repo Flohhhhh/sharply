@@ -295,6 +295,7 @@ export default async function GearPage({ params }: GearPageProps) {
         gearType={item.gearType}
         currentThumbnailUrl={item.thumbnailUrl ?? null}
         currentTopViewUrl={item.topViewUrl ?? null}
+        currentRearViewUrl={item.rearViewUrl ?? null}
         alternatives={alternatives}
         rawSamples={item.rawSamples ?? []}
         hasCreatorVideos={creatorVideos.length > 0}
@@ -360,6 +361,7 @@ export default async function GearPage({ params }: GearPageProps) {
             regionalAliases={item.regionalAliases}
             thumbnailUrl={item.thumbnailUrl}
             topViewUrl={item.topViewUrl}
+            rearViewUrl={item.rearViewUrl}
             slug={slug}
             hasImageRequest={hasImageRequest}
           />

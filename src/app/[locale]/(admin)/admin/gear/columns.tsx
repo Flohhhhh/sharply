@@ -133,6 +133,7 @@ function GearActionsCell({ row }: { row: { original: AdminGearTableRow } }) {
         gearId={row.original.id}
         currentThumbnailUrl={row.original.thumbnailUrl ?? undefined}
         currentTopViewUrl={row.original.topViewUrl ?? undefined}
+        currentRearViewUrl={row.original.rearViewUrl ?? undefined}
         trigger={
           <Button variant="ghost" size="sm" aria-label="Manage Images">
             <ImageIcon className="h-4 w-4" />

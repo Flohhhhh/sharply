@@ -66,6 +66,9 @@ export const auditActionEnum = pgEnum("audit_action", [
   "GEAR_TOP_VIEW_UPLOAD",
   "GEAR_TOP_VIEW_REPLACE",
   "GEAR_TOP_VIEW_REMOVE",
+  "GEAR_REAR_VIEW_UPLOAD",
+  "GEAR_REAR_VIEW_REPLACE",
+  "GEAR_REAR_VIEW_REMOVE",
   "GEAR_EDIT_PROPOSE",
   "GEAR_EDIT_APPROVE",
   "GEAR_EDIT_REJECT",
@@ -601,6 +604,7 @@ export const gear = appSchema.table(
     mpbMaxPriceUsdCents: integer("mpb_max_price_usd_cents"),
     thumbnailUrl: text("thumbnail_url"),
     topViewUrl: text("top_view_url"),
+    rearViewUrl: text("rear_view_url"),
     weightGrams: integer("weight_grams"),
     // Physical dimensions
     widthMm: decimal("width_mm", { precision: 6, scale: 2 }),

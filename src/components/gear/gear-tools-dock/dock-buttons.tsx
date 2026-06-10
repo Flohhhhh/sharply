@@ -52,6 +52,7 @@ export interface BuildDockButtonsParams {
   gearType: string;
   currentThumbnailUrl?: string | null;
   currentTopViewUrl?: string | null;
+  currentRearViewUrl?: string | null;
   locale: string;
   alternatives: GearAlternativeRow[];
   hasCreatorVideos: boolean;
@@ -74,6 +75,7 @@ export function buildDockButtons({
   gearType,
   currentThumbnailUrl,
   currentTopViewUrl,
+  currentRearViewUrl,
   locale,
   alternatives,
   managedSamples,
@@ -112,6 +114,7 @@ export function buildDockButtons({
             slug={slug}
             currentThumbnailUrl={currentThumbnailUrl ?? undefined}
             currentTopViewUrl={currentTopViewUrl ?? undefined}
+            currentRearViewUrl={currentRearViewUrl ?? undefined}
             trigger={
               <TooltipTrigger asChild>
                 <button className={baseTriggerClass} aria-label="Manage Images">

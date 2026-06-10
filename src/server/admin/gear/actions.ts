@@ -4,11 +4,13 @@ import "server-only";
 import { revalidatePath } from "next/cache";
 import { type GearRegion } from "~/lib/gear/region";
 import {
+  clearGearRearViewService,
   clearGearThumbnailService,
   clearGearTopViewService,
   createGearAdmin,
   deleteGearService,
   renameGearService,
+  setGearRearViewService,
   setGearThumbnailService,
   setGearTopViewService,
   updateGearAliasesService,
@@ -91,6 +93,29 @@ export async function actionClearGearTopView(params: {
   slug?: string;
 }) {
   const result = await clearGearTopViewService(params);
+  revalidatePath("/admin/gear");
+  revalidatePath(`/gear/${result.slug}`);
+  revalidatePath("/browse");
+  return result;
+}
+
+export async function actionSetGearRearView(params: {
+  gearId?: string;
+  slug?: string;
+  rearViewUrl: string;
+}) {
+  const result = await setGearRearViewService(params);
+  revalidatePath("/admin/gear");
+  revalidatePath(`/gear/${result.slug}`);
+  revalidatePath("/browse");
+  return result;
+}
+
+export async function actionClearGearRearView(params: {
+  gearId?: string;
+  slug?: string;
+}) {
+  const result = await clearGearRearViewService(params);
   revalidatePath("/admin/gear");
   revalidatePath(`/gear/${result.slug}`);
   revalidatePath("/browse");

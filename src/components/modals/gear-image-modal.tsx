@@ -1,6 +1,7 @@
 "use client";
 
 import { ImageIcon,Trash,Upload } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useEffect,useRef,useState } from "react";
 import { toast } from "sonner";
@@ -19,8 +20,10 @@ import { Progress } from "~/components/ui/progress";
 import { useSession } from "~/lib/auth/auth-client";
 import { requireRole } from "~/lib/auth/auth-helpers";
 import {
+  actionClearGearRearView,
   actionClearGearThumbnail,
   actionClearGearTopView,
+  actionSetGearRearView,
   actionSetGearThumbnail,
   actionSetGearTopView,
 } from "~/server/admin/gear/actions";
@@ -32,9 +35,10 @@ export interface GearImageModalProps {
   onSuccess?: (params: { url: string }) => void;
   currentThumbnailUrl?: string;
   currentTopViewUrl?: string;
+  currentRearViewUrl?: string;
 }
 
-type ImageType = "thumbnail" | "topView";
+type ImageType = "thumbnail" | "topView" | "rearView";
 
 type GearImageUploadResult = {
   url?: string;
@@ -44,6 +48,9 @@ type GearImageUploadResult = {
 };
 
 export function GearImageModal(props: GearImageModalProps) {
+  const t = useTranslations("gearDetail.gearImages");
+  const statusT = useTranslations("gearDetail.editGear.status");
+  const profileT = useTranslations("profileSettings");
   const { data, isPending, error } = useSession();
 
   const [open, setOpen] = useState(false);
@@ -59,6 +66,7 @@ export function GearImageModal(props: GearImageModalProps) {
     useState<ImageType>("thumbnail");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const topViewFileInputRef = useRef<HTMLInputElement>(null);
+  const rearViewFileInputRef = useRef<HTMLInputElement>(null);
   const savingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [localThumbnailUrl, setLocalThumbnailUrl] = useState<
     string | undefined
@@ -66,14 +74,19 @@ export function GearImageModal(props: GearImageModalProps) {
   const [localTopViewUrl, setLocalTopViewUrl] = useState<string | undefined>(
     props.currentTopViewUrl ?? undefined,
   );
+  const [localRearViewUrl, setLocalRearViewUrl] = useState<string | undefined>(
+    props.currentRearViewUrl ?? undefined,
+  );
 
   // Sync when parent changes item or current image
   useEffect(() => {
     setLocalThumbnailUrl(props.currentThumbnailUrl ?? undefined);
     setLocalTopViewUrl(props.currentTopViewUrl ?? undefined);
+    setLocalRearViewUrl(props.currentRearViewUrl ?? undefined);
   }, [
     props.currentThumbnailUrl,
     props.currentTopViewUrl,
+    props.currentRearViewUrl,
     props.gearId,
     props.slug,
   ]);
@@ -88,13 +101,13 @@ export function GearImageModal(props: GearImageModalProps) {
   }, []);
 
   if (isPending) {
-    return <div>Loading...</div>;
+    return <div>{statusT("loading")}</div>;
   }
   if (error) {
-    return <div>Error: {error.message}</div>;
+    return <div>{statusT("error", { error: error.message })}</div>;
   }
   if (!data) {
-    return <div>Unauthenticated</div>;
+    return <div>{statusT("unauthenticated")}</div>;
   }
   const session = data.session;
   const user = data.user;
@@ -108,7 +121,7 @@ export function GearImageModal(props: GearImageModalProps) {
 
   async function handleUploadSelected(file: File, imageType: ImageType) {
     if (file.size > 4 * 1024 * 1024) {
-      toast.error("Image exceeds 4MB. Choose a smaller file.");
+      toast.error(profileT("imageExceedsLimit"));
       return;
     }
     try {
@@ -129,7 +142,7 @@ export function GearImageModal(props: GearImageModalProps) {
       const uploads: GearImageUploadResult[] = Array.isArray(res) ? res : [];
       const upload = uploads[0];
       const url = upload?.serverData?.fileUrl ?? upload?.url ?? "";
-      if (!url) throw new Error("Upload failed. Please try again.");
+      if (!url) throw new Error(profileT("uploadFailedTryAgain"));
       setIsUpdating(true);
       setProgressMode("save");
       setCombinedProgress(75);
@@ -145,16 +158,26 @@ export function GearImageModal(props: GearImageModalProps) {
           thumbnailUrl: url,
         });
         setLocalThumbnailUrl(url);
-        toast.success("Front view updated.");
-      } else {
+      } else if (imageType === "topView") {
         await actionSetGearTopView({
           gearId: props.gearId,
           slug: props.slug,
           topViewUrl: url,
         });
         setLocalTopViewUrl(url);
-        toast.success("Top view updated.");
+      } else {
+        await actionSetGearRearView({
+          gearId: props.gearId,
+          slug: props.slug,
+          rearViewUrl: url,
+        });
+        setLocalRearViewUrl(url);
       }
+      toast.success(
+        t("updated", {
+          view: getImageTypeLabel(t, imageType),
+        }),
+      );
 
       setCombinedProgress(100);
       if (savingTimerRef.current) {
@@ -164,7 +187,7 @@ export function GearImageModal(props: GearImageModalProps) {
       props.onSuccess?.({ url });
     } catch (e) {
       const message = e instanceof Error ? e.message : "Failed to upload";
-      toast.error(message);
+      toast.error(message || profileT("failedToUpload"));
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -177,12 +200,13 @@ export function GearImageModal(props: GearImageModalProps) {
       }
       if (fileInputRef.current) fileInputRef.current.value = "";
       if (topViewFileInputRef.current) topViewFileInputRef.current.value = "";
+      if (rearViewFileInputRef.current) rearViewFileInputRef.current.value = "";
     }
   }
 
   async function handleRemoveImage(imageType: ImageType) {
     if (!canDelete) {
-      toast.error("Only admins can remove images.");
+      toast.error(t("removeImageAdminOnly"));
       return;
     }
     let interval: NodeJS.Timeout | null = null;
@@ -204,15 +228,24 @@ export function GearImageModal(props: GearImageModalProps) {
           slug: props.slug,
         });
         setLocalThumbnailUrl(undefined);
-        toast.success("Front view removed.");
-      } else {
+      } else if (imageType === "topView") {
         await actionClearGearTopView({
           gearId: props.gearId,
           slug: props.slug,
         });
         setLocalTopViewUrl(undefined);
-        toast.success("Top view removed.");
+      } else {
+        await actionClearGearRearView({
+          gearId: props.gearId,
+          slug: props.slug,
+        });
+        setLocalRearViewUrl(undefined);
       }
+      toast.success(
+        t("removed", {
+          view: getImageTypeLabel(t, imageType),
+        }),
+      );
 
       setCombinedProgress(100);
       if (interval) {
@@ -234,7 +267,7 @@ export function GearImageModal(props: GearImageModalProps) {
 
   const handleOpenChange = (next: boolean) => {
     if (next && !access) {
-      toast.error("You must be an admin to upload images.");
+      toast.error(t("editorRequired"));
       setOpen(false);
       return;
     }
@@ -259,19 +292,21 @@ export function GearImageModal(props: GearImageModalProps) {
       <div className="space-y-2">
         <div className="text-muted-foreground text-xs font-medium">{title}</div>
         {imageUrl ? (
-          <div className="bg-muted dark:bg-card relative h-32 w-full overflow-hidden rounded border">
-            <Image
-              src={imageUrl}
-              alt={`${title} image`}
-              fill
-              unoptimized
-              sizes="(max-width: 768px) 100vw, 32rem"
-              className="object-contain"
-            />
+          <div className="bg-muted dark:bg-card h-52 w-full rounded border p-5">
+            <div className="relative h-full w-full overflow-hidden rounded-sm">
+              <Image
+                src={imageUrl}
+                alt={`${title} image`}
+                fill
+                unoptimized
+                sizes="(max-width: 768px) 100vw, 32rem"
+                className="object-contain"
+              />
+            </div>
           </div>
         ) : (
           <div
-            className="bg-muted/40 dark:bg-card/60 flex h-32 w-full cursor-pointer items-center justify-center rounded border-2 border-dashed transition-colors hover:border-primary/50"
+            className="bg-muted/40 dark:bg-card/60 flex h-52 w-full cursor-pointer items-center justify-center rounded border-2 border-dashed p-5 transition-colors hover:border-primary/50"
             onClick={() => inputRef.current?.click()}
             onDragOver={(e) => {
               e.preventDefault();
@@ -285,8 +320,7 @@ export function GearImageModal(props: GearImageModalProps) {
             }}
           >
             <div className="text-muted-foreground text-center text-sm">
-              <div>Drop image here</div>
-              <div className="text-xs">or click to upload</div>
+              <div>{profileT("dropImageHere")}</div>
             </div>
           </div>
         )}
@@ -313,10 +347,12 @@ export function GearImageModal(props: GearImageModalProps) {
             className="w-full"
           >
             {isUploading && isActive
-              ? `${Math.min(100, Math.round(uploadProgress))}%`
+              ? profileT("uploadingProgress", {
+                  percent: Math.min(100, Math.round(uploadProgress)),
+                })
               : imageUrl
-                ? "Replace"
-                : "Upload"}
+                ? profileT("replace")
+                : profileT("upload")}
           </Button>
 
           {imageUrl && (
@@ -341,30 +377,34 @@ export function GearImageModal(props: GearImageModalProps) {
       <DialogTrigger asChild>
         {props.trigger ?? (
           <Button icon={<ImageIcon className="h-4 w-4" />} variant="outline">
-            Manage Images
+            {t("manageButton")}
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-5xl">
         <DialogHeader>
-          <DialogTitle>Manage Gear Images</DialogTitle>
-          <DialogDescription>
-            Upload front view and top view images for this gear item.
-          </DialogDescription>
+          <DialogTitle>{t("manageTitle")}</DialogTitle>
+          <DialogDescription>{t("manageDescription")}</DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-6 sm:grid-cols-2">
+        <div className="grid gap-10 md:grid-cols-3">
           <ImageSection
-            title="Front View"
+            title={t("frontView")}
             imageUrl={localThumbnailUrl}
             imageType="thumbnail"
             fileInputRef={fileInputRef}
           />
           <ImageSection
-            title="Top View"
+            title={t("topView")}
             imageUrl={localTopViewUrl}
             imageType="topView"
             fileInputRef={topViewFileInputRef}
+          />
+          <ImageSection
+            title={t("rearView")}
+            imageUrl={localRearViewUrl}
+            imageType="rearView"
+            fileInputRef={rearViewFileInputRef}
           />
         </div>
 
@@ -373,26 +413,25 @@ export function GearImageModal(props: GearImageModalProps) {
             <Progress value={combinedProgress} />
             <div className="text-muted-foreground text-xs">
               {progressMode === "upload"
-                ? `Uploading ${Math.min(100, Math.round(uploadProgress))}%`
+                ? profileT("uploadingProgress", {
+                    percent: Math.min(100, Math.round(uploadProgress)),
+                  })
                 : progressMode === "delete"
                   ? combinedProgress < 100
-                    ? "Deleting…"
-                    : "Deleted"
+                    ? t("deleting")
+                    : t("deleted")
                   : combinedProgress < 100
-                    ? "Saving…"
-                    : "Done"}
+                    ? profileT("saving")
+                    : profileT("done")}
             </div>
           </div>
         )}
 
         <div className="text-muted-foreground space-y-1 text-xs">
-          <div>
-            Upload images with transparent background, tightly cropped, 1000px
-            on long edge, .webp @ 75% quality.
-          </div>
+          <div>{t("limits")}</div>
           {!canDelete && (
             <div className="text-orange-600 dark:text-orange-400">
-              Note: Only admins can remove images.
+              {t("removeNote")}
             </div>
           )}
         </div>
@@ -402,3 +441,12 @@ export function GearImageModal(props: GearImageModalProps) {
 }
 
 export default GearImageModal;
+
+function getImageTypeLabel(
+  t: (key: "frontView" | "topView" | "rearView") => string,
+  imageType: ImageType,
+) {
+  if (imageType === "thumbnail") return t("frontView");
+  if (imageType === "topView") return t("topView");
+  return t("rearView");
+}

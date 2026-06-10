@@ -17,7 +17,7 @@ The central table that stores common gear information:
 - **Brand & Mount**: References to brands and mounts
   - `mountId`: Single mount reference (kept for backward compatibility, stores "primary" mount)
   - Mount relationships managed via `gear_mounts` junction table for multi-mount support
-- **Metadata**: Release date, price, thumbnail URL
+- **Metadata**: Release date, price, thumbnail URL, optional top-view URL, optional rear-view URL
 - **User Notes**: `notes` — `text[]` for unstructured notes
 - **Commerce**: `mpbMaxPriceUsdCents` — optional MPB max price (USD cents)
 - **Core Specs**: Physical dimensions (width, height, depth in mm), weight
@@ -136,7 +136,7 @@ CREATE TABLE sharply_gear (
   -- Primary key and identifiers
   -- Basic information (name, slug, search name)
   -- Classification (gear type, brand, mount)
-  -- Metadata (release date, price, thumbnail)
+  -- Metadata (release date, price, thumbnail, top/rear secondary images)
   -- Timestamps
 );
 
