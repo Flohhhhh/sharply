@@ -26,6 +26,7 @@ import {
   formatAutoApprovalDecisionForAdmin,
   getAutoApprovalDecisionFromMetadata,
 } from "~/lib/gear/auto-approval-reasons";
+import { translateGearDetailWithFallback } from "~/lib/i18n/gear-detail";
 import {
   formatCardSlotDetails,
   formatPrecaptureSupport,
@@ -62,7 +63,19 @@ type ResolvedResponse = {
 
 export function GearProposalsList() {
   const locale = useLocale();
-  const tCommon = useTranslations("common");
+  const tGearDetail = useTranslations("gearDetail");
+  const booleanLabels = {
+    yes: translateGearDetailWithFallback(
+      tGearDetail,
+      "specRegistry.shared.yes",
+      "Yes",
+    ),
+    no: translateGearDetailWithFallback(
+      tGearDetail,
+      "specRegistry.shared.no",
+      "No",
+    ),
+  };
   const [proposals, setProposals] = useState<GearProposal[]>([]);
   const formatDisplayDate = (value: unknown) =>
     formatDate(value as string | Date | number | null | undefined, {
@@ -187,7 +200,7 @@ export function GearProposalsList() {
   const formatValueForKey = (k: string, v: any): string => {
     const isEmpty = v === null || v === undefined || v === "";
     if (isEmpty) return "Empty";
-    const booleanDisplay = formatBooleanProposalValue(v, tCommon);
+    const booleanDisplay = formatBooleanProposalValue(v, booleanLabels);
     if (booleanDisplay) return booleanDisplay;
     if (
       k === "msrpUsdCents" ||
@@ -210,7 +223,7 @@ export function GearProposalsList() {
     return String(v);
   };
   const formatBeforeValueForKey = (k: string, v: any): string => {
-    const booleanDisplay = formatBooleanProposalValue(v, tCommon);
+    const booleanDisplay = formatBooleanProposalValue(v, booleanLabels);
     if (booleanDisplay) return booleanDisplay;
     if (
       k === "msrpUsdCents" ||

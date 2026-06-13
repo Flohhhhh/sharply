@@ -358,6 +358,7 @@ export default async function GearPage({ params }: GearPageProps) {
         <div>
           <GearImageCarousel
             name={item.name}
+            gearType={item.gearType}
             regionalAliases={item.regionalAliases}
             thumbnailUrl={item.thumbnailUrl}
             topViewUrl={item.topViewUrl}

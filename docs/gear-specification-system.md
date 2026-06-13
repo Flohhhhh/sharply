@@ -18,6 +18,9 @@ The central table that stores common gear information:
   - `mountId`: Single mount reference (kept for backward compatibility, stores "primary" mount)
   - Mount relationships managed via `gear_mounts` junction table for multi-mount support
 - **Metadata**: Release date, price, thumbnail URL, optional top-view URL, optional rear-view URL
+  - `thumbnailUrl` applies to all gear
+  - `topViewUrl` applies to cameras and lenses
+  - `rearViewUrl` applies only to `CAMERA` and `ANALOG_CAMERA`
 - **User Notes**: `notes` — `text[]` for unstructured notes
 - **Commerce**: `mpbMaxPriceUsdCents` — optional MPB max price (USD cents)
 - **Core Specs**: Physical dimensions (width, height, depth in mm), weight
@@ -251,6 +254,7 @@ The registry exports `buildGearSpecsSections(item: GearItem, options?)` which re
 - Examples: field labels under `gearDetail.specRegistry.sections.<sectionId>.fields.<fieldKey>.label` and shared values under `gearDetail.specRegistry.shared.*`.
 - The registry will fall back to inline English when a locale key is missing; `registry.tsx` provides these inline English labels as the fallback source.
 - Shared simple values emitted directly by the registry, such as `Yes` and `No`, live under `gearDetail.specRegistry.shared.*`.
+- Contributor submission previews and admin approval views should also reuse `gearDetail.specRegistry.shared.*` for shared simple values like `Yes` and `No` instead of introducing separate namespaces.
 - Edit-form chrome and workflow copy that is not owned by the registry lives under `gearDetail.editGear.*`.
 - Keep canonical English labels inline in registry/edit code where they are the source of truth, then resolve localized UI labels via translation keys. This keeps the English terminology searchable in code while preventing those labels from leaking into non-English UI.
 - Review/use-case genre labels on gear surfaces are resolved by slug under `gearDetail.reviewGenres.*`; do not render the generated English `GENRES[].name` directly in non-English UI.

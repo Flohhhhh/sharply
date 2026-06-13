@@ -31,6 +31,18 @@ import {
 
 export type { AdminGearTableRow,GearCreationParams } from "./data";
 
+function assertRearViewSupported(gearType: string) {
+  if (gearType === "LENS") {
+    throw Object.assign(
+      new Error("Rear-view images are only supported for cameras"),
+      {
+        status: 400,
+        code: "REAR_VIEW_UNSUPPORTED_GEAR_TYPE",
+      },
+    );
+  }
+}
+
 export async function performFuzzySearchAdmin(params: {
   inputName: string;
   brandName: string;
@@ -411,6 +423,7 @@ export async function setGearRearViewService(params: {
   // Fetch current gear state to determine if this is an upload, replace, or remove
   const { fetchGearMetadataById } = await import("~/server/gear/data");
   const currentGear = await fetchGearMetadataById(gearId);
+  assertRearViewSupported(currentGear.gearType);
   const hadRearView = !!currentGear.rearViewUrl;
 
   const updated = await updateGearRearViewData({ gearId, rearViewUrl });

@@ -197,6 +197,7 @@
     "gearImages": {
       "manageTitle": "Gérer les images du matériel",
       "manageDescription": "Téléversez des images de face, de dessus et de l’arrière pour cet élément de matériel.",
+      "manageDescriptionNoRearView": "Téléversez des images de face et de dessus pour cet élément de matériel.",
       "manageButton": "Gérer les images",
       "frontView": "Vue de face",
       "topView": "Vue de dessus",
@@ -209,8 +210,19 @@
       "deleted": "Supprimé",
       "limits": "Téléversez des images avec fond transparent, recadrées au plus près, 1000 px sur le bord le plus long, en .webp à 75 % de qualité.",
       "removeNote": "Remarque : seuls les administrateurs peuvent supprimer des images.",
+      "noImageAvailable": "Aucune image disponible",
       "topViewAlt": "{name} - Vue de dessus",
       "rearViewAlt": "{name} - Vue arrière"
+    },
+    "imageRequest": {
+      "helper": "Cliquez ci-dessous pour nous aider à prioriser cette image.",
+      "button": "Demander une image",
+      "requested": "Image demandée",
+      "toastSubmittedTitle": "Demande d’image envoyée",
+      "toastSubmittedDescription": "Merci pour votre intérêt ! Nous prioriserons l’ajout d’une image pour cet article.",
+      "toastAlreadyRequestedTitle": "La demande existe déjà",
+      "toastFailedTitle": "Échec de l’envoi de la demande",
+      "toastFailedDescription": "Veuillez réessayer plus tard."
     },
     "watch": "Regarder",
     "fromRespectedCreators": "Par des créateurs reconnus",

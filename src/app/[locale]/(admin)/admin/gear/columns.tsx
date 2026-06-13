@@ -131,6 +131,7 @@ function GearActionsCell({ row }: { row: { original: AdminGearTableRow } }) {
 
       <GearImageModal
         gearId={row.original.id}
+        gearType={row.original.gearType}
         currentThumbnailUrl={row.original.thumbnailUrl ?? undefined}
         currentTopViewUrl={row.original.topViewUrl ?? undefined}
         currentRearViewUrl={row.original.rearViewUrl ?? undefined}

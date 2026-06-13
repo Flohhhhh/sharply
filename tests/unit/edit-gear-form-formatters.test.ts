@@ -4,16 +4,16 @@ import { formatBooleanText } from "~/app/[locale]/(pages)/gear/_components/edit-
 
 describe("formatBooleanText", () => {
   it("returns translated labels for boolean values", () => {
-    const t = (key: string) => `common.${key}`;
+    const labels = { yes: "Oui", no: "Non" };
 
-    expect(formatBooleanText(true, t)).toBe("common.yes");
-    expect(formatBooleanText(false, t)).toBe("common.no");
+    expect(formatBooleanText(true, labels)).toBe("Oui");
+    expect(formatBooleanText(false, labels)).toBe("Non");
   });
 
   it("returns null for non-boolean values", () => {
-    const t = (key: string) => `common.${key}`;
+    const labels = { yes: "Ja", no: "Nein" };
 
-    expect(formatBooleanText(null, t)).toBeNull();
-    expect(formatBooleanText("true", t)).toBeNull();
+    expect(formatBooleanText(null, labels)).toBeNull();
+    expect(formatBooleanText("true", labels)).toBeNull();
   });
 });

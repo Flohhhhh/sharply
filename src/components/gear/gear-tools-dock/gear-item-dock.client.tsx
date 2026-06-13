@@ -15,13 +15,13 @@ import {
   actionRemoveGearRawSample,
 } from "~/server/gear/actions";
 import type { GearAlternativeRow } from "~/server/gear/service";
-import type { RawSample } from "~/types/gear";
+import type { GearType,RawSample } from "~/types/gear";
 import { buildDockButtons } from "./dock-buttons";
 
 interface GearItemDockClientProps {
   slug: string;
   gearId?: string;
-  gearType: string;
+  gearType: GearType;
   currentThumbnailUrl?: string | null;
   currentTopViewUrl?: string | null;
   currentRearViewUrl?: string | null;

@@ -9,14 +9,19 @@ function read(relativePath: string): string {
 }
 
 describe("GearImageModal rear view wiring", () => {
-  it("threads a third rear-view slot through the modal actions and props", () => {
+  it("keeps rear view camera-only while preserving rear-view wiring", () => {
     const source = read("src/components/modals/gear-image-modal.tsx");
 
+    expect(source).toContain("gearType: GearType;");
     expect(source).toContain("currentRearViewUrl?: string;");
     expect(source).toContain('type ImageType = "thumbnail" | "topView" | "rearView"');
+    expect(source).toContain(
+      'props.gearType === "CAMERA" || props.gearType === "ANALOG_CAMERA"',
+    );
     expect(source).toContain("actionSetGearRearView");
     expect(source).toContain("actionClearGearRearView");
+    expect(source).toContain('t("manageDescriptionNoRearView")');
+    expect(source).toContain("supportsRearView ? (");
     expect(source).toContain('imageType="rearView"');
-    expect(source).toContain('title={t("rearView")}');
   });
 });

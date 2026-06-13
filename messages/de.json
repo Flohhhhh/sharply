@@ -197,6 +197,7 @@
     "gearImages": {
       "manageTitle": "Gear-Bilder verwalten",
       "manageDescription": "Lade Bilder der Vorderansicht, Draufsicht und Rückansicht für diesen Ausrüstungsgegenstand hoch.",
+      "manageDescriptionNoRearView": "Lade Bilder der Vorderansicht und Draufsicht für diesen Ausrüstungsgegenstand hoch.",
       "manageButton": "Bilder verwalten",
       "frontView": "Vorderansicht",
       "topView": "Draufsicht",
@@ -209,8 +210,19 @@
       "deleted": "Gelöscht",
       "limits": "Lade Bilder mit transparentem Hintergrund, eng zugeschnitten, 1000 px an der langen Kante, als .webp mit 75 % Qualität hoch.",
       "removeNote": "Hinweis: Nur Admins können Bilder entfernen.",
+      "noImageAvailable": "Kein Bild verfügbar",
       "topViewAlt": "{name} - Draufsicht",
       "rearViewAlt": "{name} - Rückansicht"
+    },
+    "imageRequest": {
+      "helper": "Klicke unten, um uns zu helfen, dieses Bild zu priorisieren!",
+      "button": "Bild anfordern",
+      "requested": "Bild angefordert",
+      "toastSubmittedTitle": "Bildanfrage gesendet",
+      "toastSubmittedDescription": "Danke für dein Interesse! Wir priorisieren das Hinzufügen eines Bildes für diesen Eintrag.",
+      "toastAlreadyRequestedTitle": "Anfrage existiert bereits",
+      "toastFailedTitle": "Anfrage konnte nicht gesendet werden",
+      "toastFailedDescription": "Bitte versuche es später erneut."
     },
     "watch": "Ansehen",
     "fromRespectedCreators": "Von angesehenen Creators",
