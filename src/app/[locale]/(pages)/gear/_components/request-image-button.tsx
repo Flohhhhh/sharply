@@ -1,12 +1,14 @@
 "use client";
 
-import { Check,ImagePlus } from "lucide-react";
-import { useEffect,useState } from "react";
+import { Check, ImagePlus } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { Button } from "~/components/ui/button";
 import { fetchJson } from "~/lib/fetch-json";
 import { actionToggleImageRequest } from "~/server/gear/actions";
+import { resolveRequestImageButtonState } from "./request-image-button-state";
 
 interface RequestImageButtonProps {
   slug: string;
@@ -17,9 +19,10 @@ export function RequestImageButton({
   slug,
   initialHasRequested,
 }: RequestImageButtonProps) {
-  const [hasRequested, setHasRequested] = useState(
-    initialHasRequested ?? false,
-  );
+  const t = useTranslations("gearDetail.imageRequest");
+  const [optimisticHasRequested, setOptimisticHasRequested] = useState<
+    boolean | null
+  >(null);
   const [isLoading, setIsLoading] = useState(false);
   const shouldHydrateRequestState = initialHasRequested === null;
   const { data: requestStateData, error: requestStateError } = useSWR<{
@@ -41,23 +44,15 @@ export function RequestImageButton({
       shouldRetryOnError: false,
     },
   );
-
-  useEffect(() => {
-    if (typeof requestStateData?.hasImageRequest === "boolean") {
-      setHasRequested(requestStateData.hasImageRequest);
-    }
-  }, [requestStateData?.hasImageRequest]);
-
-  const isHydrationCheckDone =
-    !shouldHydrateRequestState ||
-    requestStateData !== undefined ||
-    Boolean(requestStateError);
-  const canRequestImage =
-    !shouldHydrateRequestState ||
-    typeof requestStateData?.hasImageRequest === "boolean";
+  const renderState = resolveRequestImageButtonState({
+    initialHasRequested,
+    hydratedHasRequested: requestStateData?.hasImageRequest,
+    hasHydrationError: Boolean(requestStateError),
+    optimisticHasRequested,
+  });
 
   const handleToggle = async () => {
-    if (hasRequested) {
+    if (renderState.hasRequested) {
       return;
     }
     setIsLoading(true);
@@ -65,60 +60,53 @@ export function RequestImageButton({
       const result = await actionToggleImageRequest(slug, "add");
 
       if (result.ok && result.action === "added") {
-        setHasRequested(true);
-        toast.success("Image request submitted", {
-          description:
-            "Thanks for your interest! We'll prioritize adding an image for this item.",
+        setOptimisticHasRequested(true);
+        toast.success(t("toastSubmittedTitle"), {
+          description: t("toastSubmittedDescription"),
         });
       } else if (!result.ok && result.reason === "already_requested") {
-        setHasRequested(true);
-        toast.error("Request already exists");
+        setOptimisticHasRequested(true);
+        toast.error(t("toastAlreadyRequestedTitle"));
       } else {
-        toast.error("Failed to submit request", {
-          description: "Please try again later.",
+        toast.error(t("toastFailedTitle"), {
+          description: t("toastFailedDescription"),
         });
       }
     } catch (error) {
       console.error("Failed to toggle image request:", error);
-      toast.error("Failed to submit request", {
-        description: "Please try again later.",
+      toast.error(t("toastFailedTitle"), {
+        description: t("toastFailedDescription"),
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Keep the control hidden until we know whether the viewer is authenticated.
-  if (!isHydrationCheckDone) {
-    return null;
-  }
-  if (!canRequestImage) {
+  if (!renderState.shouldRender) {
     return null;
   }
 
   return (
     <div className="flex flex-col gap-6">
-      {!hasRequested && (
-        <span className="text-muted-foreground text-sm">
-          Click below to help us prioritize this image!
-        </span>
+      {renderState.shouldShowHelper && (
+        <span className="text-muted-foreground text-sm">{t("helper")}</span>
       )}
 
       <Button
         onClick={handleToggle}
         loading={isLoading}
-        variant={hasRequested ? "outline" : "default"}
-        disabled={hasRequested}
+        variant={renderState.hasRequested ? "outline" : "default"}
+        disabled={renderState.hasRequested}
         size="sm"
         icon={
-          hasRequested ? (
+          renderState.hasRequested ? (
             <Check className="h-4 w-4" />
           ) : (
             <ImagePlus className="h-4 w-4" />
           )
         }
       >
-        {hasRequested ? "Image Requested" : "Request Image"}
+        {renderState.hasRequested ? t("requested") : t("button")}
       </Button>
     </div>
   );

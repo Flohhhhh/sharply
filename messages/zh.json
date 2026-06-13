@@ -210,8 +210,19 @@
       "deleted": "已删除",
       "limits": "请上传透明背景、紧密裁切、长边 1000px、质量 75% 的 .webp 图片。",
       "removeNote": "注意：只有管理员可以删除图片。",
+      "noImageAvailable": "无可用图像",
       "topViewAlt": "{name} - 顶部图",
       "rearViewAlt": "{name} - 背面图"
+    },
+    "imageRequest": {
+      "helper": "点击下方帮助我们优先处理这张图片。",
+      "button": "请求图片",
+      "requested": "已请求图片",
+      "toastSubmittedTitle": "图片请求已提交",
+      "toastSubmittedDescription": "感谢你的关注！我们会优先为该条目添加图片。",
+      "toastAlreadyRequestedTitle": "请求已存在",
+      "toastFailedTitle": "提交请求失败",
+      "toastFailedDescription": "请稍后再试。"
     },
     "watch": "手表",
     "fromRespectedCreators": "来自尊敬的创作者",

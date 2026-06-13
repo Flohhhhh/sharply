@@ -210,8 +210,19 @@
       "deleted": "Deleted",
       "limits": "Upload images with transparent background, tightly cropped, 1000px on the long edge, .webp @ 75% quality.",
       "removeNote": "Note: Only admins can remove images.",
+      "noImageAvailable": "No image available",
       "topViewAlt": "{name} - Top View",
       "rearViewAlt": "{name} - Rear View"
+    },
+    "imageRequest": {
+      "helper": "Click below to help us prioritize this image!",
+      "button": "Request Image",
+      "requested": "Image Requested",
+      "toastSubmittedTitle": "Image request submitted",
+      "toastSubmittedDescription": "Thanks for your interest! We'll prioritize adding an image for this item.",
+      "toastAlreadyRequestedTitle": "Request already exists",
+      "toastFailedTitle": "Failed to submit request",
+      "toastFailedDescription": "Please try again later."
     },
     "watch": "Watch",
     "fromRespectedCreators": "From Respected Creators",

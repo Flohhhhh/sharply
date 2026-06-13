@@ -10,7 +10,7 @@ import {
   CarouselPrevious,
 } from "~/components/ui/carousel";
 import { GetGearDisplayName } from "~/lib/gear/naming";
-import type { GearAlias,GearType } from "~/types/gear";
+import type { GearAlias, GearType } from "~/types/gear";
 import { RequestImageButton } from "./request-image-button";
 
 interface GearImageCarouselProps {
@@ -34,7 +34,6 @@ export function GearImageCarousel({
   slug,
   hasImageRequest,
 }: GearImageCarouselProps) {
-  const t = useTranslations("gearDetail");
   const gearImagesT = useTranslations("gearDetail.gearImages");
   const displayName = GetGearDisplayName({ name, regionalAliases });
   const supportsRearView =
@@ -48,7 +47,7 @@ export function GearImageCarousel({
     return (
       <div className="bg-muted dark:bg-card flex aspect-video flex-col items-center justify-center gap-1 rounded-md">
         <span className="text-muted-foreground text-lg">
-          {t("noImageAvailable")}
+          {gearImagesT("noImageAvailable")}
         </span>
         <RequestImageButton slug={slug} initialHasRequested={hasImageRequest} />
       </div>

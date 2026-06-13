@@ -210,8 +210,19 @@
       "deleted": "Dipadam",
       "limits": "Muat naik imej dengan latar belakang lutsinar, dipotong rapat, 1000px pada sisi terpanjang, dalam format .webp pada kualiti 75%.",
       "removeNote": "Nota: Hanya pentadbir boleh memadam imej.",
+      "noImageAvailable": "Tiada imej tersedia",
       "topViewAlt": "{name} - Pandangan Atas",
       "rearViewAlt": "{name} - Pandangan Belakang"
+    },
+    "imageRequest": {
+      "helper": "Klik di bawah untuk membantu kami mengutamakan imej ini.",
+      "button": "Minta Imej",
+      "requested": "Imej Diminta",
+      "toastSubmittedTitle": "Permintaan imej dihantar",
+      "toastSubmittedDescription": "Terima kasih atas minat anda! Kami akan mengutamakan penambahan imej untuk item ini.",
+      "toastAlreadyRequestedTitle": "Permintaan sudah wujud",
+      "toastFailedTitle": "Gagal menghantar permintaan",
+      "toastFailedDescription": "Sila cuba lagi kemudian."
     },
     "watch": "Tonton",
     "fromRespectedCreators": "Daripada Pencipta Yang Dihormati",

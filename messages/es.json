@@ -210,8 +210,19 @@
       "deleted": "Eliminado",
       "limits": "Sube imágenes con fondo transparente, bien recortadas, de 1000 px en el lado más largo, en formato .webp con 75 % de calidad.",
       "removeNote": "Nota: Solo los administradores pueden eliminar imágenes.",
+      "noImageAvailable": "No hay imagen disponible",
       "topViewAlt": "{name} - Vista superior",
       "rearViewAlt": "{name} - Vista trasera"
+    },
+    "imageRequest": {
+      "helper": "Haz clic abajo para ayudarnos a priorizar esta imagen.",
+      "button": "Solicitar imagen",
+      "requested": "Imagen solicitada",
+      "toastSubmittedTitle": "Solicitud de imagen enviada",
+      "toastSubmittedDescription": "Gracias por tu interés. Priorizaremos añadir una imagen para este artículo.",
+      "toastAlreadyRequestedTitle": "La solicitud ya existe",
+      "toastFailedTitle": "No se pudo enviar la solicitud",
+      "toastFailedDescription": "Vuelve a intentarlo más tarde."
     },
     "watch": "Ver",
     "fromRespectedCreators": "De creadores respetados",

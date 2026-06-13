@@ -7,7 +7,7 @@
 │                    Gear Detail Page                         │
 │              (src/app/.../gear/[slug]/page.tsx)             │
 │                                                             │
-│  - Fetches hasImageRequest status from service layer        │
+│  - Passes null for viewer-specific request state            │
 │  - Passes to GearImageCarousel component                    │
 └──────────────────────┬──────────────────────────────────────┘
                        │
@@ -27,6 +27,9 @@
 │      (src/app/.../gear/_components/                         │
 │              request-image-button.tsx)                      │
 │                                                             │
+│  - Hydrates request/auth state via /api/gear/[slug]/        │
+│    user-state                                               │
+│  - Stays blank until hydration resolves                     │
 │  - Manages button state                                     │
 │  - Calls actionToggleImageRequest                           │
 │  - Shows toast notifications                                │
@@ -127,6 +130,7 @@
 ### User Experience
 
 - ✅ Toast notifications for all actions
+- ✅ Blank initial state while viewer/request state resolves
 - ✅ Loading states during API calls
 - ✅ Different button states (Request vs Requested)
 - ✅ Button hidden for non-authenticated users
