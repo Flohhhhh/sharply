@@ -172,6 +172,7 @@ export default async function GearPage({ params }: GearPageProps) {
   return (
     <GearImageCarousel
       name={item.name}
+      gearType={item.gearType}
       thumbnailUrl={item.thumbnailUrl}
       topViewUrl={item.topViewUrl}
       rearViewUrl={item.rearViewUrl}
@@ -181,6 +182,8 @@ export default async function GearPage({ params }: GearPageProps) {
   );
 }
 ```
+
+`rearViewUrl` is camera-only. Lenses continue to use front and top views.
 
 ### 7. Admin Analytics List (image-requests-list.tsx)
 ```typescript

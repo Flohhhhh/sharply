@@ -197,6 +197,7 @@
     "gearImages": {
       "manageTitle": "Gear-Bilder verwalten",
       "manageDescription": "Lade Bilder der Vorderansicht, Draufsicht und Rückansicht für diesen Ausrüstungsgegenstand hoch.",
+      "manageDescriptionNoRearView": "Lade Bilder der Vorderansicht und Draufsicht für diesen Ausrüstungsgegenstand hoch.",
       "manageButton": "Bilder verwalten",
       "frontView": "Vorderansicht",
       "topView": "Draufsicht",

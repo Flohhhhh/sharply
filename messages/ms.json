@@ -197,6 +197,7 @@
     "gearImages": {
       "manageTitle": "Urus Imej Peralatan",
       "manageDescription": "Muat naik imej pandangan hadapan, atas dan belakang untuk item peralatan ini.",
+      "manageDescriptionNoRearView": "Muat naik imej pandangan hadapan dan atas untuk item peralatan ini.",
       "manageButton": "Urus Imej",
       "frontView": "Pandangan Hadapan",
       "topView": "Pandangan Atas",

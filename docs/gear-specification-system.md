@@ -18,6 +18,9 @@ The central table that stores common gear information:
   - `mountId`: Single mount reference (kept for backward compatibility, stores "primary" mount)
   - Mount relationships managed via `gear_mounts` junction table for multi-mount support
 - **Metadata**: Release date, price, thumbnail URL, optional top-view URL, optional rear-view URL
+  - `thumbnailUrl` applies to all gear
+  - `topViewUrl` applies to cameras and lenses
+  - `rearViewUrl` applies only to `CAMERA` and `ANALOG_CAMERA`
 - **User Notes**: `notes` — `text[]` for unstructured notes
 - **Commerce**: `mpbMaxPriceUsdCents` — optional MPB max price (USD cents)
 - **Core Specs**: Physical dimensions (width, height, depth in mm), weight

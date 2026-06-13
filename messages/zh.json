@@ -197,6 +197,7 @@
     "gearImages": {
       "manageTitle": "管理器材图片",
       "manageDescription": "为这件器材上传正面图、顶部图和背面图。",
+      "manageDescriptionNoRearView": "为这件器材上传正面图和顶部图。",
       "manageButton": "管理图片",
       "frontView": "正面图",
       "topView": "顶部图",

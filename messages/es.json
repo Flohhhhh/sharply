@@ -197,6 +197,7 @@
     "gearImages": {
       "manageTitle": "Administrar imágenes del equipo",
       "manageDescription": "Sube imágenes de vista frontal, superior y trasera para este artículo de equipo.",
+      "manageDescriptionNoRearView": "Sube imágenes de vista frontal y superior para este artículo de equipo.",
       "manageButton": "Administrar imágenes",
       "frontView": "Vista frontal",
       "topView": "Vista superior",

@@ -45,6 +45,7 @@ function renderCarousel(
         timeZone: "America/New_York",
         children: React.createElement(GearImageCarousel, {
           name: "Nikon Zf",
+          gearType: "CAMERA",
           thumbnailUrl: null,
           topViewUrl: null,
           rearViewUrl: null,
@@ -65,6 +66,20 @@ describe("GearImageCarousel", () => {
 
     expect(markup).toContain("https://cdn.example.com/rear.webp");
     expect(markup).toContain("Nikon Zf - Rear View");
+    expect(markup).not.toContain("data-testid=\"carousel-previous\"");
+    expect(markup).not.toContain("data-testid=\"carousel-next\"");
+  });
+
+  it("ignores rear view for lenses", () => {
+    const markup = renderCarousel({
+      gearType: "LENS",
+      thumbnailUrl: "https://cdn.example.com/front.webp",
+      rearViewUrl: "https://cdn.example.com/rear.webp",
+    });
+
+    expect(markup).toContain("https://cdn.example.com/front.webp");
+    expect(markup).not.toContain("https://cdn.example.com/rear.webp");
+    expect(markup).not.toContain("Rear View");
     expect(markup).not.toContain("data-testid=\"carousel-previous\"");
     expect(markup).not.toContain("data-testid=\"carousel-next\"");
   });

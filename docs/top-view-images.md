@@ -2,6 +2,13 @@
 
 Top-view and rear-view images provide standardized secondary reference angles alongside the primary front view.
 
+## Gear-Type Rules
+
+- Front view (`thumbnailUrl`) applies to all gear.
+- Top view (`topViewUrl`) applies to cameras and lenses.
+- Rear view (`rearViewUrl`) applies only to `CAMERA` and `ANALOG_CAMERA`.
+- Existing lens rear-view values are ignored in the UI, and rear-view mutations for lenses are rejected in the admin service layer.
+
 ## Schema
 
 Stored directly on `gear` table:
@@ -45,4 +52,4 @@ Revalidates `/admin/gear` after mutation.
 
 ## Display
 
-Top-view and rear-view images appear in the gear image carousel (`gear-image-carousel.tsx`) alongside the main product image. The admin gear image modal now manages three slots in this order: front view, top view, rear view.
+Top-view and rear-view images appear in the gear image carousel (`gear-image-carousel.tsx`) alongside the main product image. Camera and analog-camera items expose three slots in this order: front view, top view, rear view. Lens items expose only front view and top view.

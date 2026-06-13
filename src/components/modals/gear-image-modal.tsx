@@ -19,6 +19,7 @@ import {
 import { Progress } from "~/components/ui/progress";
 import { useSession } from "~/lib/auth/auth-client";
 import { requireRole } from "~/lib/auth/auth-helpers";
+import type { GearType } from "~/types/gear";
 import {
   actionClearGearRearView,
   actionClearGearThumbnail,
@@ -31,6 +32,7 @@ import {
 export interface GearImageModalProps {
   gearId?: string;
   slug?: string;
+  gearType: GearType;
   trigger?: React.ReactNode;
   onSuccess?: (params: { url: string }) => void;
   currentThumbnailUrl?: string;
@@ -77,6 +79,8 @@ export function GearImageModal(props: GearImageModalProps) {
   const [localRearViewUrl, setLocalRearViewUrl] = useState<string | undefined>(
     props.currentRearViewUrl ?? undefined,
   );
+  const supportsRearView =
+    props.gearType === "CAMERA" || props.gearType === "ANALOG_CAMERA";
 
   // Sync when parent changes item or current image
   useEffect(() => {
@@ -384,10 +388,18 @@ export function GearImageModal(props: GearImageModalProps) {
       <DialogContent className="sm:max-w-5xl">
         <DialogHeader>
           <DialogTitle>{t("manageTitle")}</DialogTitle>
-          <DialogDescription>{t("manageDescription")}</DialogDescription>
+          <DialogDescription>
+            {supportsRearView
+              ? t("manageDescription")
+              : t("manageDescriptionNoRearView")}
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-10 md:grid-cols-3">
+        <div
+          className={`grid gap-10 ${
+            supportsRearView ? "md:grid-cols-3" : "md:grid-cols-2"
+          }`}
+        >
           <ImageSection
             title={t("frontView")}
             imageUrl={localThumbnailUrl}
@@ -400,12 +412,14 @@ export function GearImageModal(props: GearImageModalProps) {
             imageType="topView"
             fileInputRef={topViewFileInputRef}
           />
-          <ImageSection
-            title={t("rearView")}
-            imageUrl={localRearViewUrl}
-            imageType="rearView"
-            fileInputRef={rearViewFileInputRef}
-          />
+          {supportsRearView ? (
+            <ImageSection
+              title={t("rearView")}
+              imageUrl={localRearViewUrl}
+              imageType="rearView"
+              fileInputRef={rearViewFileInputRef}
+            />
+          ) : null}
         </div>
 
         {showProgress && (

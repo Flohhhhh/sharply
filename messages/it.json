@@ -197,6 +197,7 @@
     "gearImages": {
       "manageTitle": "Gestisci immagini dell’attrezzatura",
       "manageDescription": "Carica immagini della vista frontale, superiore e posteriore per questo elemento dell’attrezzatura.",
+      "manageDescriptionNoRearView": "Carica immagini della vista frontale e superiore per questo elemento dell’attrezzatura.",
       "manageButton": "Gestisci immagini",
       "frontView": "Vista frontale",
       "topView": "Vista dall’alto",

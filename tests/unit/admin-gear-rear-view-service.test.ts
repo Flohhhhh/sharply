@@ -70,6 +70,7 @@ describe("rear view gear admin service", () => {
 
   it("uploads a rear view, clears image requests, and records contribution metadata", async () => {
     gearDataMocks.fetchGearMetadataById.mockResolvedValue({
+      gearType: "CAMERA",
       rearViewUrl: null,
     });
     adminGearDataMocks.updateGearRearViewData.mockResolvedValue({
@@ -117,6 +118,7 @@ describe("rear view gear admin service", () => {
 
   it("records rear view replacements distinctly from first uploads", async () => {
     gearDataMocks.fetchGearMetadataById.mockResolvedValue({
+      gearType: "CAMERA",
       rearViewUrl: "https://cdn.example.com/old-rear.webp",
     });
     adminGearDataMocks.updateGearRearViewData.mockResolvedValue({
@@ -148,6 +150,7 @@ describe("rear view gear admin service", () => {
       user: { id: "admin-1", role: "ADMIN" },
     });
     gearDataMocks.fetchGearMetadataById.mockResolvedValue({
+      gearType: "CAMERA",
       rearViewUrl: "https://cdn.example.com/old-rear.webp",
     });
     adminGearDataMocks.updateGearRearViewData.mockResolvedValue({
@@ -185,5 +188,50 @@ describe("rear view gear admin service", () => {
     ).rejects.toMatchObject({ message: "Unauthorized", status: 401 });
     expect(adminGearDataMocks.updateGearRearViewData).not.toHaveBeenCalled();
     expect(dbState.insertedValues).toHaveLength(0);
+  });
+
+  it("rejects rear views for lenses", async () => {
+    gearDataMocks.fetchGearMetadataById.mockResolvedValue({
+      gearType: "LENS",
+      rearViewUrl: null,
+    });
+
+    await expect(
+      setGearRearViewService({
+        gearId: "gear-1",
+        rearViewUrl: "https://cdn.example.com/rear.webp",
+      }),
+    ).rejects.toMatchObject({
+      message: "Rear-view images are only supported for cameras",
+      status: 400,
+      code: "REAR_VIEW_UNSUPPORTED_GEAR_TYPE",
+    });
+
+    expect(adminGearDataMocks.updateGearRearViewData).not.toHaveBeenCalled();
+    expect(gearDataMocks.clearImageRequestsForGear).not.toHaveBeenCalled();
+    expect(dbState.insertedValues).toHaveLength(0);
+  });
+
+  it("allows rear views for analog cameras", async () => {
+    gearDataMocks.fetchGearMetadataById.mockResolvedValue({
+      gearType: "ANALOG_CAMERA",
+      rearViewUrl: null,
+    });
+    adminGearDataMocks.updateGearRearViewData.mockResolvedValue({
+      id: "gear-1",
+      slug: "nikon-f3",
+      rearViewUrl: "https://cdn.example.com/rear.webp",
+    });
+
+    const result = await setGearRearViewService({
+      gearId: "gear-1",
+      rearViewUrl: "https://cdn.example.com/rear.webp",
+    });
+
+    expect(result).toMatchObject({
+      slug: "nikon-f3",
+      rearViewUrl: "https://cdn.example.com/rear.webp",
+    });
+    expect(adminGearDataMocks.updateGearRearViewData).toHaveBeenCalled();
   });
 });

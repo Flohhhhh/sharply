@@ -197,6 +197,7 @@
     "gearImages": {
       "manageTitle": "Gérer les images du matériel",
       "manageDescription": "Téléversez des images de face, de dessus et de l’arrière pour cet élément de matériel.",
+      "manageDescriptionNoRearView": "Téléversez des images de face et de dessus pour cet élément de matériel.",
       "manageButton": "Gérer les images",
       "frontView": "Vue de face",
       "topView": "Vue de dessus",

@@ -10,11 +10,12 @@ import {
   CarouselPrevious,
 } from "~/components/ui/carousel";
 import { GetGearDisplayName } from "~/lib/gear/naming";
-import type { GearAlias } from "~/types/gear";
+import type { GearAlias,GearType } from "~/types/gear";
 import { RequestImageButton } from "./request-image-button";
 
 interface GearImageCarouselProps {
   name: string;
+  gearType: GearType;
   regionalAliases?: GearAlias[] | null;
   thumbnailUrl: string | null;
   topViewUrl: string | null;
@@ -25,6 +26,7 @@ interface GearImageCarouselProps {
 
 export function GearImageCarousel({
   name,
+  gearType,
   regionalAliases,
   thumbnailUrl,
   topViewUrl,
@@ -35,7 +37,10 @@ export function GearImageCarousel({
   const t = useTranslations("gearDetail");
   const gearImagesT = useTranslations("gearDetail.gearImages");
   const displayName = GetGearDisplayName({ name, regionalAliases });
-  const imageCount = [thumbnailUrl, topViewUrl, rearViewUrl].filter(
+  const supportsRearView =
+    gearType === "CAMERA" || gearType === "ANALOG_CAMERA";
+  const effectiveRearViewUrl = supportsRearView ? rearViewUrl : null;
+  const imageCount = [thumbnailUrl, topViewUrl, effectiveRearViewUrl].filter(
     Boolean,
   ).length;
 
@@ -81,11 +86,11 @@ export function GearImageCarousel({
               </div>
             </CarouselItem>
           )}
-          {rearViewUrl && (
+          {effectiveRearViewUrl && (
             <CarouselItem>
               <div className="bg-muted dark:bg-card flex h-[300px] items-center justify-center overflow-hidden rounded-md p-8 sm:h-[600px] sm:p-12">
                 <Image
-                  src={rearViewUrl}
+                  src={effectiveRearViewUrl}
                   alt={gearImagesT("rearViewAlt", { name: displayName })}
                   className="h-full w-full max-w-[600px] object-contain"
                   width={720}

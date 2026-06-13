@@ -197,6 +197,7 @@
     "gearImages": {
       "manageTitle": "Manage Gear Images",
       "manageDescription": "Upload front view, top view, and rear view images for this gear item.",
+      "manageDescriptionNoRearView": "Upload front view and top view images for this gear item.",
       "manageButton": "Manage Images",
       "frontView": "Front View",
       "topView": "Top View",

@@ -197,6 +197,7 @@
     "gearImages": {
       "manageTitle": "機材画像を管理",
       "manageDescription": "この機材の正面、上面、背面の画像をアップロードします。",
+      "manageDescriptionNoRearView": "この機材の正面と上面の画像をアップロードします。",
       "manageButton": "画像を管理",
       "frontView": "正面",
       "topView": "上面",
