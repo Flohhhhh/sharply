@@ -58,6 +58,8 @@ describe("gear detail heading translations", () => {
       "editGear.fields.analogBatteryPlaceholder",
       "editGear.fields.bestUseCases",
       "editGear.notes.add",
+      "specRegistry.shared.yes",
+      "specRegistry.shared.no",
       "reviewGenres.weddings",
       "reviewGenres.video",
       "reviewGenres.architecture",
@@ -70,6 +72,8 @@ describe("gear detail heading translations", () => {
       alternatives: "Alternatives",
     });
     expect(getPathValue(enMessages, "editGear.title")).toBe("Edit Gear Item");
+    expect(getPathValue(enMessages, "specRegistry.shared.yes")).toBe("Yes");
+    expect(getPathValue(enMessages, "specRegistry.shared.no")).toBe("No");
     expect(getPathValue(enMessages, "reviewGenres.weddings")).toBe("Weddings");
 
     const locales = [

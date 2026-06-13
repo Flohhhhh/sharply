@@ -289,10 +289,10 @@ describe("gear proposal helpers", () => {
   });
 
   it("formats boolean proposal values for admin approval surfaces", () => {
-    const t = (key: string) => `common.${key}`;
+    const labels = { yes: "Ja", no: "Nein" };
 
-    expect(formatBooleanProposalValue(true, t)).toBe("common.yes");
-    expect(formatBooleanProposalValue(false, t)).toBe("common.no");
-    expect(formatBooleanProposalValue(null, t)).toBeNull();
+    expect(formatBooleanProposalValue(true, labels)).toBe("Ja");
+    expect(formatBooleanProposalValue(false, labels)).toBe("Nein");
+    expect(formatBooleanProposalValue(null, labels)).toBeNull();
   });
 });

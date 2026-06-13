@@ -545,6 +545,7 @@ Admin/review surfaces:
 
 - New proposal keys must also be checked in the contributor confirmation preview and the admin approval queue.
 - For boolean specs, ensure these surfaces render `Yes` / `No` / `Empty` rather than raw `true` / `false` values.
+- Reuse `gearDetail.specRegistry.shared.*` for shared simple preview/admin values like `Yes` and `No`; do not introduce ad hoc translation namespaces for those labels.
 - For yes-only public specs like `hasIlluminatedButtons`, keep the form and approval UI tri-state even though the public spec table hides `false` and unknown values.
 
 ### Example: Add internal storage (GB with TB display)
