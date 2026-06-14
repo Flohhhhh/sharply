@@ -24,6 +24,10 @@ const providersMock = vi.hoisted(() =>
 const toasterMock = vi.hoisted(() =>
   vi.fn(() => createElement("div", { "data-testid": "toaster" })),
 );
+const nextFontGoogleMocks = vi.hoisted(() => ({
+  Archivo: vi.fn(() => ({ variable: "font-archivo" })),
+  Crimson_Text: vi.fn(() => ({ variable: "font-fancy" })),
+}));
 const intlServerMocks = vi.hoisted(() => ({
   getTranslations: vi.fn(),
   setRequestLocale: vi.fn(),
@@ -44,6 +48,7 @@ vi.mock("botid/client", () => ({
 vi.mock("~/components/ui/sonner", () => ({
   Toaster: toasterMock,
 }));
+vi.mock("next/font/google", () => nextFontGoogleMocks);
 vi.mock("~/i18n/messages", () => i18nMessageMocks);
 vi.mock("next-intl/server", () => intlServerMocks);
 vi.mock("next/navigation", () => navigationMocks);
@@ -92,6 +97,17 @@ describe("locale root layout", () => {
     expect(analyticsMock).toHaveBeenCalledTimes(1);
   });
 
+  it("renders the validated locale as the document language", async () => {
+    const markup = renderToStaticMarkup(
+      await RootLayout({
+        children: createElement("main", null, "content"),
+        params: Promise.resolve({ locale: "ja" }),
+      }),
+    );
+
+    expect(markup).toContain("<html lang=\"ja\"");
+  });
+
   it("mounts BotID in the locale root head", async () => {
     const markup = renderToStaticMarkup(
       await RootLayout({
@@ -100,7 +116,7 @@ describe("locale root layout", () => {
       }),
     );
 
-    expect(markup).toContain("name=\"botid-client\"");
+    expect(markup).toContain("<head><meta name=\"botid-client\"/></head>");
     expect(botIdClientMock).toHaveBeenCalledTimes(1);
   });
 

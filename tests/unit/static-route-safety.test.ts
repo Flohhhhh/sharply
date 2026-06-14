@@ -7,6 +7,13 @@ function readSource(relativePath: string) {
 }
 
 describe("static route safety", () => {
+  it("keeps the app root layout as a pass-through shell without a hardcoded language", () => {
+    const rootLayout = readSource("src/app/layout.tsx");
+
+    expect(rootLayout).not.toMatch(/lang="/);
+    expect(rootLayout).not.toMatch(/next\/font\/google/);
+  });
+
   it("keeps the shared header free of dynamic request APIs", () => {
     const header = readSource("src/components/layout/header.tsx");
 
@@ -79,6 +86,14 @@ describe("static route safety", () => {
   it("mounts BotID at the locale root instead of shared page chrome", () => {
     const localeLayout = readSource("src/app/[locale]/layout.tsx");
 
-    expect(localeLayout).toMatch(/<BotIdClient protect=\{botIdProtectedRoutes\} \/>/);
+    expect(localeLayout).toMatch(
+      /<head>\s*<BotIdClient protect=\{botIdProtectedRoutes\} \/>\s*<\/head>/,
+    );
+  });
+
+  it("keeps the locale root responsible for document language", () => {
+    const localeLayout = readSource("src/app/[locale]/layout.tsx");
+
+    expect(localeLayout).toMatch(/<html\s+[\s\S]*lang=\{locale\}/);
   });
 });

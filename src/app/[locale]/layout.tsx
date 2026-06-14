@@ -2,12 +2,28 @@ import { type Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Analytics } from "@vercel/analytics/next";
 import { BotIdClient } from "botid/client";
+import { Archivo,Crimson_Text } from "next/font/google";
 import { getTranslations,setRequestLocale } from "next-intl/server";
 import { Toaster } from "~/components/ui/sonner";
 import { isLocale,locales } from "~/i18n/config";
 import { getMessagesForLocale } from "~/i18n/messages";
 import { botIdProtectedRoutes } from "~/lib/security/botid-protected-routes";
 import { Providers } from "./providers";
+
+const archivo = Archivo({
+  subsets: ["latin"],
+  variable: "--font-archivo",
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
+});
+
+const crimsonText = Crimson_Text({
+  subsets: ["latin"],
+  variable: "--font-fancy",
+  display: "swap",
+  weight: ["400"],
+  style: ["normal", "italic"],
+});
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -82,13 +98,21 @@ export default async function RootLayout({
   const messages = await getMessagesForLocale(locale);
 
   return (
-    <>
-      <BotIdClient protect={botIdProtectedRoutes} />
-      <Providers locale={locale} messages={messages} timeZone="UTC">
-        {children}
-        <Toaster />
-      </Providers>
-      {shouldMountAnalytics ? <Analytics /> : null}
-    </>
+    <html
+      suppressHydrationWarning
+      lang={locale}
+      className={`${archivo.variable} ${crimsonText.variable}`}
+    >
+      <head>
+        <BotIdClient protect={botIdProtectedRoutes} />
+      </head>
+      <body>
+        <Providers locale={locale} messages={messages} timeZone="UTC">
+          {children}
+          <Toaster />
+        </Providers>
+        {shouldMountAnalytics ? <Analytics /> : null}
+      </body>
+    </html>
   );
 }
