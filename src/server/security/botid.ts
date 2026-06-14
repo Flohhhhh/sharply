@@ -6,9 +6,11 @@ export type BotIdClassification = {
   isBot: boolean;
 };
 
+const checkBotIdSafe = checkBotId as () => Promise<BotIdClassification>;
+
 export async function classifyBotTraffic(): Promise<BotIdClassification> {
   try {
-    const { isBot } = await checkBotId();
+    const { isBot } = await checkBotIdSafe();
 
     return { isBot };
   } catch {
