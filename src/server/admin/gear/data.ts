@@ -366,6 +366,7 @@ const adminGearSelect = {
   brandName: brands.name,
   thumbnailUrl: gear.thumbnailUrl,
   topViewUrl: gear.topViewUrl,
+  rearViewUrl: gear.rearViewUrl,
   createdAt: gear.createdAt,
 };
 
@@ -565,6 +566,11 @@ export interface UpdateGearTopViewParams {
   topViewUrl: string | null;
 }
 
+export interface UpdateGearRearViewParams {
+  gearId: string;
+  rearViewUrl: string | null;
+}
+
 export interface DeleteGearResult {
   id: string;
   slug: string;
@@ -643,6 +649,34 @@ export async function updateGearTopViewData(
       id: gear.id,
       slug: gear.slug,
       topViewUrl: gear.topViewUrl,
+    });
+  if (!updated[0]) {
+    throw Object.assign(new Error("Gear not found"), { status: 404 });
+  }
+  return updated[0];
+}
+
+export interface UpdateGearRearViewResult {
+  id: string;
+  slug: string;
+  rearViewUrl: string | null;
+}
+
+/**
+ * Update a gear item's rear view URL by id.
+ */
+export async function updateGearRearViewData(
+  params: UpdateGearRearViewParams,
+): Promise<UpdateGearRearViewResult> {
+  const { gearId, rearViewUrl } = params;
+  const updated = await db
+    .update(gear)
+    .set({ rearViewUrl, updatedAt: new Date() })
+    .where(eq(gear.id, gearId))
+    .returning({
+      id: gear.id,
+      slug: gear.slug,
+      rearViewUrl: gear.rearViewUrl,
     });
   if (!updated[0]) {
     throw Object.assign(new Error("Gear not found"), { status: 404 });

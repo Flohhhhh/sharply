@@ -2,6 +2,7 @@
 import "server-only";
 
 import { cookies,headers } from "next/headers";
+import { classifyBotTraffic } from "~/server/security/botid";
 import {
   incrementComparePairCount,
   recordCompareAdd,
@@ -19,6 +20,11 @@ export async function actionRecordGearView(params: {
   visitorId?: string | null;
   userAgent?: string | null;
 }) {
+  const { isBot } = await classifyBotTraffic();
+  if (isBot) {
+    return { success: true, deduped: false, skipped: "botid" } as const;
+  }
+
   // Resolve or create a visitorId cookie for anonymous dedupe. Authenticated
   // users will be deduped by userId in the service layer.
   const cookieStore = await cookies();

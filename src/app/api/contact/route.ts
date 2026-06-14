@@ -5,6 +5,7 @@ import {
   type ContactSubmissionResult,
 } from "~/lib/contact/contact-schema";
 import { submitContactMessage } from "~/server/contact/service";
+import { classifyBotTraffic } from "~/server/security/botid";
 
 type ContactRequestBody = Record<string, unknown>;
 
@@ -23,6 +24,17 @@ function buildFieldErrors(
 }
 
 export async function POST(request: Request) {
+  const { isBot } = await classifyBotTraffic();
+  if (isBot) {
+    return NextResponse.json<ContactSubmissionResult>(
+      {
+        ok: false,
+        message: "Unable to send message. Please try again later.",
+      },
+      { status: 403 },
+    );
+  }
+
   let body: ContactRequestBody | null = null;
   try {
     body = (await request.json()) as ContactRequestBody;

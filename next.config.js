@@ -1,4 +1,5 @@
 import { withPayload } from "@payloadcms/next/withPayload";
+import { withBotId } from "botid/next/config";
 import { fileURLToPath } from "node:url";
 import createNextIntlPlugin from "next-intl/plugin";
 /**
@@ -89,4 +90,4 @@ const config = {
   },
 };
 
-export default withPayload(withNextIntl(config));
+export default withBotId(withPayload(withNextIntl(config)));

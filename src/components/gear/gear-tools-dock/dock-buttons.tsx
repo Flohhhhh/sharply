@@ -33,7 +33,7 @@ import { requireRole } from "~/lib/auth/auth-helpers";
 import { formatDate } from "~/lib/format/date";
 import { UploadDropzone } from "~/lib/utils/uploadthing";
 import type { GearAlternativeRow } from "~/server/gear/service";
-import type { RawSample } from "~/types/gear";
+import type { GearType,RawSample } from "~/types/gear";
 
 type DockSample = Omit<RawSample, "createdAt" | "updatedAt"> & {
   createdAt?: string | null;
@@ -49,9 +49,10 @@ export type DockButtonConfig = {
 export interface BuildDockButtonsParams {
   slug: string;
   gearId?: string;
-  gearType: string;
+  gearType: GearType;
   currentThumbnailUrl?: string | null;
   currentTopViewUrl?: string | null;
+  currentRearViewUrl?: string | null;
   locale: string;
   alternatives: GearAlternativeRow[];
   hasCreatorVideos: boolean;
@@ -74,6 +75,7 @@ export function buildDockButtons({
   gearType,
   currentThumbnailUrl,
   currentTopViewUrl,
+  currentRearViewUrl,
   locale,
   alternatives,
   managedSamples,
@@ -110,8 +112,10 @@ export function buildDockButtons({
         <Tooltip key="images">
           <GearImageModal
             slug={slug}
+            gearType={gearType}
             currentThumbnailUrl={currentThumbnailUrl ?? undefined}
             currentTopViewUrl={currentTopViewUrl ?? undefined}
+            currentRearViewUrl={currentRearViewUrl ?? undefined}
             trigger={
               <TooltipTrigger asChild>
                 <button className={baseTriggerClass} aria-label="Manage Images">

@@ -4,6 +4,10 @@ const authMocks = vi.hoisted(() => ({
   getSessionOrThrow: vi.fn(),
 }));
 
+const botIdMocks = vi.hoisted(() => ({
+  classifyBotTraffic: vi.fn(),
+}));
+
 const serviceMocks = vi.hoisted(() => ({
   saveExifTrackingCandidate: vi.fn(),
   fetchTrackedCameraHistory: vi.fn(),
@@ -11,6 +15,7 @@ const serviceMocks = vi.hoisted(() => ({
 }));
 
 vi.mock("~/server/auth", () => authMocks);
+vi.mock("~/server/security/botid", () => botIdMocks);
 vi.mock("~/server/exif-tracking/service", () => serviceMocks);
 
 import { GET } from "../../src/app/api/exif-tracking/cameras/[trackedCameraId]/history/route";
@@ -20,6 +25,7 @@ import { POST } from "../../src/app/api/exif-tracking/save/route";
 describe("exif tracking routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    botIdMocks.classifyBotTraffic.mockResolvedValue({ isBot: false });
     authMocks.getSessionOrThrow.mockResolvedValue({
       user: {
         id: "user-1",
@@ -86,6 +92,31 @@ describe("exif tracking routes", () => {
     expect(response.status).toBe(400);
     expect(payload.ok).toBe(false);
     expect(payload.message).toBe("Invalid EXIF tracking payload.");
+  });
+
+  it("rejects bot-classified save requests before persistence", async () => {
+    botIdMocks.classifyBotTraffic.mockResolvedValue({ isBot: true });
+
+    const response = await POST(
+      new Request("http://localhost/api/exif-tracking/save", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token: "signed-token" }),
+      }),
+    );
+
+    const payload = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(payload).toEqual({
+      ok: false,
+      message: "Access denied.",
+      tracking: null,
+    });
+    expect(authMocks.getSessionOrThrow).not.toHaveBeenCalled();
+    expect(serviceMocks.saveExifTrackingCandidate).not.toHaveBeenCalled();
   });
 
   it("returns tracked camera history for authenticated users", async () => {

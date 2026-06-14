@@ -13,6 +13,10 @@ const authMocks = vi.hoisted(() => ({
   },
 }));
 
+const botIdMocks = vi.hoisted(() => ({
+  classifyBotTraffic: vi.fn(),
+}));
+
 const trackingMocks = vi.hoisted(() => ({
   buildTrackingPreviewFromParseResult: vi.fn().mockResolvedValue({
     eligible: true,
@@ -25,6 +29,7 @@ const trackingMocks = vi.hoisted(() => ({
 }));
 
 vi.mock("~/auth", () => authMocks);
+vi.mock("~/server/security/botid", () => botIdMocks);
 vi.mock("next/headers", () => ({
   headers: vi.fn(async () => new Headers()),
 }));
@@ -100,6 +105,7 @@ function createJsonRequest(body: unknown) {
 describe("exif viewer parse route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    botIdMocks.classifyBotTraffic.mockResolvedValue({ isBot: false });
     authMocks.auth.api.getSession.mockResolvedValue(null);
     trackingMocks.buildTrackingPreviewFromParseResult.mockResolvedValue({
       eligible: true,
@@ -135,6 +141,24 @@ describe("exif viewer parse route", () => {
       trackedCamera: null,
       currentReadingSaved: false,
     });
+  });
+
+  it("rejects bot-classified parse requests before EXIF processing", async () => {
+    botIdMocks.classifyBotTraffic.mockResolvedValue({ isBot: true });
+
+    const response = await POST(createJsonRequest(createRequestBody()) as any);
+    const payload = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(payload.status).toBe("parse_error");
+    expect(payload.message).toBe("Access denied.");
+    expect(payload.file).toEqual({
+      name: "unknown",
+      extension: "",
+      size: 0,
+    });
+    expect(trackingMocks.buildTrackingPreviewFromParseResult).not.toHaveBeenCalled();
+    expect(authMocks.auth.api.getSession).not.toHaveBeenCalled();
   });
 
   it("rejects zero-size file envelopes", async () => {

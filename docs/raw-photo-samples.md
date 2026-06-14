@@ -25,7 +25,7 @@ Raw photo samples are unprocessed camera files (DNG, CR2, NEF, etc.) that users 
 
 - **Gear Type**: CAMERA only (validated in `addRawSampleToGear` service)
 - **Permissions**: ADMIN or SUPERADMIN required for upload
-- **File Size**: Max 128MB per file (enforced by UploadThing)
+- **File Size**: Max 256MB per file (enforced by UploadThing)
 - **Contribution Tracking**: Raw sample uploads count toward gear contributions and badge awards
 
 ## Upload Flow

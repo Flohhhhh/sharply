@@ -203,9 +203,12 @@ function EditGearForm({
 }: EditGearFormProps) {
   const locale = useLocale();
   const t = useTranslations("gearDetail");
-  const tCommon = useTranslations("common");
   const tf = (key: string, fallback: string, values?: TranslationValues) =>
     translateGearDetailWithFallback(t, key, fallback, values);
+  const booleanLabels = {
+    yes: tf("specRegistry.shared.yes", "Yes"),
+    no: tf("specRegistry.shared.no", "No"),
+  };
   const router = useRouter();
   const [internalAutoSubmit, setInternalAutoSubmit] = useState(
     Boolean(canToggleAutoSubmit),
@@ -1287,7 +1290,10 @@ function EditGearForm({
                       <ul className="list-disc pl-5">
                         {Object.entries(diffPreview.core).map(([k, v]) => {
                           let display = safeString(v);
-                          const booleanDisplay = formatBooleanText(v, tCommon);
+                          const booleanDisplay = formatBooleanText(
+                            v,
+                            booleanLabels,
+                          );
                           if (booleanDisplay) display = booleanDisplay;
                           if (
                             k === "msrpNowUsdCents" ||
@@ -1337,7 +1343,10 @@ function EditGearForm({
                         {Object.entries(diffPreview.analogCamera).map(
                           ([k, v]) => {
                           let display = safeString(v);
-                          const booleanDisplay = formatBooleanText(v, tCommon);
+                          const booleanDisplay = formatBooleanText(
+                            v,
+                            booleanLabels,
+                          );
                           if (booleanDisplay) display = booleanDisplay;
                           return (
                           <li key={k}>
@@ -1375,7 +1384,10 @@ function EditGearForm({
                         {Object.entries(diffPreview.camera).map(([k, v]) => {
                           if (k === "availableShutterTypes") return null;
                           let display = safeString(v);
-                          const booleanDisplay = formatBooleanText(v, tCommon);
+                          const booleanDisplay = formatBooleanText(
+                            v,
+                            booleanLabels,
+                          );
                           if (booleanDisplay) display = booleanDisplay;
                           if (k === "sensorFormatId")
                             display = sensorNameFromSlug(v as string);
@@ -1408,7 +1420,10 @@ function EditGearForm({
                       <ul className="list-disc pl-5">
                         {Object.entries(diffPreview.lens).map(([k, v]) => {
                           let display = safeString(v);
-                          const booleanDisplay = formatBooleanText(v, tCommon);
+                          const booleanDisplay = formatBooleanText(
+                            v,
+                            booleanLabels,
+                          );
                           if (booleanDisplay) display = booleanDisplay;
                           return (
                           <li key={k}>
@@ -1430,7 +1445,10 @@ function EditGearForm({
                       <ul className="list-disc pl-5">
                         {Object.entries(diffPreview.fixedLens).map(([k, v]) => {
                           let display = safeString(v);
-                          const booleanDisplay = formatBooleanText(v, tCommon);
+                          const booleanDisplay = formatBooleanText(
+                            v,
+                            booleanLabels,
+                          );
                           if (booleanDisplay) display = booleanDisplay;
                           return (
                           <li key={k}>

@@ -81,6 +81,7 @@
     "archiver": "^7.0.1",
     "better-auth": "^1.4.9",
     "better-call": "^1.1.7",
+    "botid": "^1.5.11",
     "canvas-confetti": "^1.9.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

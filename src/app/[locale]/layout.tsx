@@ -1,10 +1,12 @@
 import { type Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Analytics } from "@vercel/analytics/next";
+import { BotIdClient } from "botid/client";
 import { getTranslations,setRequestLocale } from "next-intl/server";
 import { Toaster } from "~/components/ui/sonner";
 import { isLocale,locales } from "~/i18n/config";
 import { getMessagesForLocale } from "~/i18n/messages";
+import { botIdProtectedRoutes } from "~/lib/security/botid-protected-routes";
 import { Providers } from "./providers";
 
 export function generateStaticParams() {
@@ -81,6 +83,7 @@ export default async function RootLayout({
 
   return (
     <>
+      <BotIdClient protect={botIdProtectedRoutes} />
       <Providers locale={locale} messages={messages} timeZone="UTC">
         {children}
         <Toaster />

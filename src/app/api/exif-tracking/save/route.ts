@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSessionOrThrow } from "~/server/auth";
 import { saveExifTrackingCandidate } from "~/server/exif-tracking/service";
+import { classifyBotTraffic } from "~/server/security/botid";
 
 const saveExifTrackingSchema = z.object({
   token: z.string().min(1),
@@ -9,6 +10,18 @@ const saveExifTrackingSchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    const { isBot } = await classifyBotTraffic();
+    if (isBot) {
+      return NextResponse.json(
+        {
+          ok: false,
+          message: "Access denied.",
+          tracking: null,
+        },
+        { status: 403 },
+      );
+    }
+
     const { user } = await getSessionOrThrow();
     const json = await request.json();
     const { token } = saveExifTrackingSchema.parse(json);

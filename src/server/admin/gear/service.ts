@@ -17,7 +17,9 @@ import {
   fetchAdminGearItemsData,
   performFuzzySearch as performFuzzySearchData,
   renameGearData,
+  updateGearRearViewData,
   updateGearThumbnailData,
+  updateGearTopViewData,
   type DeleteGearResult,
   type FetchAdminGearItemsParams,
   type FetchAdminGearItemsResult,
@@ -28,6 +30,18 @@ import {
 } from "./data";
 
 export type { AdminGearTableRow,GearCreationParams } from "./data";
+
+function assertRearViewSupported(gearType: string) {
+  if (gearType === "LENS") {
+    throw Object.assign(
+      new Error("Rear-view images are only supported for cameras"),
+      {
+        status: 400,
+        code: "REAR_VIEW_UNSUPPORTED_GEAR_TYPE",
+      },
+    );
+  }
+}
 
 export async function performFuzzySearchAdmin(params: {
   inputName: string;
@@ -331,7 +345,6 @@ export async function setGearTopViewService(params: {
   const currentGear = await fetchGearMetadataById(gearId);
   const hadTopView = !!currentGear.topViewUrl;
 
-  const { updateGearTopViewData } = await import("./data");
   const updated = await updateGearTopViewData({ gearId, topViewUrl });
 
   if (topViewUrl) {
@@ -385,6 +398,89 @@ export async function clearGearTopViewService(params: {
   slug?: string;
 }): Promise<{ id: string; slug: string; topViewUrl: string | null }> {
   return setGearTopViewService({ ...params, topViewUrl: null });
+}
+
+export async function setGearRearViewService(params: {
+  gearId?: string;
+  slug?: string;
+  rearViewUrl: string | null;
+}): Promise<{ id: string; slug: string; rearViewUrl: string | null }> {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session.user, ["ADMIN", "EDITOR"])) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+
+  const { gearId: maybeId, slug, rearViewUrl } = params;
+  let gearId = maybeId;
+  if (!gearId) {
+    if (!slug)
+      throw Object.assign(new Error("Missing gear reference"), { status: 400 });
+    const id = await getGearIdBySlug(slug);
+    if (!id) throw Object.assign(new Error("Gear not found"), { status: 404 });
+    gearId = id;
+  }
+
+  // Fetch current gear state to determine if this is an upload, replace, or remove
+  const { fetchGearMetadataById } = await import("~/server/gear/data");
+  const currentGear = await fetchGearMetadataById(gearId);
+  assertRearViewSupported(currentGear.gearType);
+  const hadRearView = !!currentGear.rearViewUrl;
+
+  const updated = await updateGearRearViewData({ gearId, rearViewUrl });
+
+  if (rearViewUrl) {
+    // Clear outstanding image requests once an image is provided
+    await clearImageRequestsForGear(gearId);
+  }
+
+  try {
+    // Determine the appropriate audit action
+    let action:
+      | "GEAR_REAR_VIEW_UPLOAD"
+      | "GEAR_REAR_VIEW_REPLACE"
+      | "GEAR_REAR_VIEW_REMOVE";
+    if (rearViewUrl) {
+      // Setting a new rear view
+      action = hadRearView
+        ? "GEAR_REAR_VIEW_REPLACE"
+        : "GEAR_REAR_VIEW_UPLOAD";
+    } else {
+      // Removing rear view
+      action = "GEAR_REAR_VIEW_REMOVE";
+    }
+
+    await db.insert(auditLogs).values({
+      action,
+      actorUserId: session.user?.id ?? "",
+      gearId: updated.id,
+    });
+
+    // Create a contribution record for image uploads (not removals)
+    if (rearViewUrl) {
+      await db.insert(gearEdits).values({
+        id: nanoid(),
+        gearId: updated.id,
+        createdById: session.user?.id ?? "",
+        status: "APPROVED",
+        payload: {
+          imageUpload: {
+            type: "rearView",
+            url: rearViewUrl,
+            action: hadRearView ? "replace" : "upload",
+          },
+        },
+      });
+    }
+  } catch {}
+
+  return updated;
+}
+
+export async function clearGearRearViewService(params: {
+  gearId?: string;
+  slug?: string;
+}): Promise<{ id: string; slug: string; rearViewUrl: string | null }> {
+  return setGearRearViewService({ ...params, rearViewUrl: null });
 }
 
 export async function deleteGearService(

@@ -134,6 +134,13 @@
       "when": 1778716680223,
       "tag": "0018_spicy_psynapse",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1781112012406,
+      "tag": "0019_plain_puppet_master",
+      "breakpoints": true
     }
   ]
 }

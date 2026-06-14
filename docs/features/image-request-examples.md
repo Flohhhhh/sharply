@@ -3,6 +3,7 @@
 ## Key Code Snippets
 
 ### 1. Database Schema (schema.ts)
+
 ```typescript
 export const imageRequests = appSchema.table(
   "image_requests",
@@ -25,13 +26,19 @@ export const imageRequests = appSchema.table(
 ```
 
 ### 2. Data Layer (data.ts)
+
 ```typescript
 // Check if user has requested
-export async function hasImageRequest(gearId: string, userId: string): Promise<boolean> {
+export async function hasImageRequest(
+  gearId: string,
+  userId: string,
+): Promise<boolean> {
   const row = await db
     .select({ userId: imageRequests.userId })
     .from(imageRequests)
-    .where(and(eq(imageRequests.userId, userId), eq(imageRequests.gearId, gearId)))
+    .where(
+      and(eq(imageRequests.userId, userId), eq(imageRequests.gearId, gearId)),
+    )
     .limit(1);
   return row.length > 0;
 }
@@ -41,7 +48,9 @@ export async function addImageRequest(gearId: string, userId: string) {
   const exists = await db
     .select({ userId: imageRequests.userId })
     .from(imageRequests)
-    .where(and(eq(imageRequests.userId, userId), eq(imageRequests.gearId, gearId)))
+    .where(
+      and(eq(imageRequests.userId, userId), eq(imageRequests.gearId, gearId)),
+    )
     .limit(1);
   if (exists.length > 0) return { alreadyExists: true } as const;
 
@@ -67,21 +76,25 @@ export async function fetchAllImageRequests() {
 ```
 
 ### 3. Service Layer (service.ts)
+
 ```typescript
-export async function toggleImageRequest(slug: string, action: "add" | "remove") {
+export async function toggleImageRequest(
+  slug: string,
+  action: "add" | "remove",
+) {
   const { user } = await getSessionOrThrow(); // Auth check
   const userId = user.id;
   const gearId = await resolveGearIdOrThrow(slug);
-  
+
   if (action === "add") {
     const res = await addImageRequest(gearId, userId);
     if (res.alreadyExists)
       return { ok: false, reason: "already_requested" } as const;
-    
+
     await track("image_request_toggle", { slug, action: "add" }); // Analytics
     return { ok: true, action: "added" as const };
   }
-  
+
   await removeImageRequest(gearId, userId);
   await track("image_request_toggle", { slug, action: "remove" });
   return { ok: true, action: "removed" as const };
@@ -97,6 +110,7 @@ export async function fetchImageRequestStatus(slug: string) {
 ```
 
 ### 4. Server Action (actions.ts)
+
 ```typescript
 export async function actionToggleImageRequest(
   slug: string,
@@ -109,6 +123,7 @@ export async function actionToggleImageRequest(
 ```
 
 ### 5. Request Button Component (request-image-button.tsx)
+
 ```typescript
 "use client";
 
@@ -119,22 +134,25 @@ export function RequestImageButton({ slug, initialHasRequested }: Props) {
   const handleToggle = async () => {
     setIsLoading(true);
     try {
-      const action = hasRequested ? "remove" : "add";
-      const result = await actionToggleImageRequest(slug, action);
+      const result = await actionToggleImageRequest(slug, "add");
 
-      if (result.ok) {
-        if (result.action === "added") {
-          setHasRequested(true);
-          toast.success("Image request submitted", {
-            description: "Thanks for your interest!",
-          });
-        } else {
-          setHasRequested(false);
-          toast.success("Image request removed");
-        }
+      if (result.ok && result.action === "added") {
+        setHasRequested(true);
+        toast.success(t("toastSubmittedTitle"), {
+          description: t("toastSubmittedDescription"),
+        });
+      } else if (!result.ok && result.reason === "already_requested") {
+        setHasRequested(true);
+        toast.error(t("toastAlreadyRequestedTitle"));
+      } else {
+        toast.error(t("toastFailedTitle"), {
+          description: t("toastFailedDescription"),
+        });
       }
     } catch (error) {
-      toast.error("Failed to submit request");
+      toast.error(t("toastFailedTitle"), {
+        description: t("toastFailedDescription"),
+      });
     } finally {
       setIsLoading(false);
     }
@@ -147,33 +165,30 @@ export function RequestImageButton({ slug, initialHasRequested }: Props) {
       variant={hasRequested ? "outline" : "default"}
       icon={hasRequested ? <Check /> : <ImagePlus />}
     >
-      {hasRequested ? "Image Requested" : "Request Image"}
+      {hasRequested ? t("requested") : t("button")}
     </Button>
   );
 }
 ```
 
 ### 6. Gear Page Integration (page.tsx)
+
 ```typescript
 export default async function GearPage({ params }: GearPageProps) {
   const { slug } = await params;
   const item = await fetchGearBySlug(slug);
 
-  // Fetch image request status for current user
-  let hasImageRequest: boolean | null = null;
-  try {
-    const { fetchImageRequestStatus } = await import("~/server/gear/service");
-    const status = await fetchImageRequestStatus(slug).catch(() => null);
-    hasImageRequest = status ? status.hasRequested : null;
-  } catch {
-    hasImageRequest = null; // User not logged in
-  }
+  // Leave viewer-specific image request state unresolved on the server.
+  // The client RequestImageButton hydrates it via /api/gear/[slug]/user-state.
+  const hasImageRequest: boolean | null = null;
 
   return (
     <GearImageCarousel
       name={item.name}
+      gearType={item.gearType}
       thumbnailUrl={item.thumbnailUrl}
       topViewUrl={item.topViewUrl}
+      rearViewUrl={item.rearViewUrl}
       slug={slug}
       hasImageRequest={hasImageRequest}
     />
@@ -181,7 +196,10 @@ export default async function GearPage({ params }: GearPageProps) {
 }
 ```
 
+`rearViewUrl` is camera-only. Lenses continue to use front and top views.
+
 ### 7. Admin Analytics List (image-requests-list.tsx)
+
 ```typescript
 export async function ImageRequestsList() {
   const requests = await fetchAllImageRequests();
@@ -218,8 +236,6 @@ export async function ImageRequestsList() {
 - [ ] Click "Request Image" button
 - [ ] Verify success toast appears
 - [ ] Verify button changes to "Image Requested"
-- [ ] Click again to remove request
-- [ ] Verify removal toast appears
 - [ ] Visit `/admin/analytics` as admin
 - [ ] Verify the request appears in the list
 - [ ] Verify request count is accurate
