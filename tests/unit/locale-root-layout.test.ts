@@ -44,10 +44,6 @@ vi.mock("next/navigation", () => navigationMocks);
 vi.mock("~/app/[locale]/providers", () => ({
   Providers: providersMock,
 }));
-vi.mock("next/font/google", () => ({
-  Archivo: () => ({ variable: "font-archivo" }),
-  Crimson_Text: () => ({ variable: "font-fancy" }),
-}));
 
 import RootLayout, {
   generateMetadata,

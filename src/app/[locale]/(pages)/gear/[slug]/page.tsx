@@ -107,24 +107,12 @@ export async function generateMetadata({
       displayName,
       staffVerdictContent: verdict?.content ?? null,
     });
-    const ogImages = item.thumbnailUrl
-      ? [
-          {
-            url: item.thumbnailUrl,
-            // width: 1200,
-            // height: 630,
-            alt: `${displayName}`,
-          },
-        ]
-      : [];
-    const twitterImages = item.thumbnailUrl ? [item.thumbnailUrl] : [];
     return buildLocalizedMetadata(`/gear/${slug}`, {
       title: `${displayName} | ${t("metaTitleSuffix")}`,
       description,
       openGraph: {
         type: "website",
         title: `${displayName} | ${t("metaTitleSuffix")}`,
-        images: ogImages,
         url: `${baseUrl}/gear/${slug}`,
         description,
       },
@@ -132,7 +120,6 @@ export async function generateMetadata({
         card: "summary_large_image",
         title: `${displayName} | ${t("metaTitleSuffix")}`,
         description,
-        images: twitterImages,
       },
     });
   } catch (err: any) {
