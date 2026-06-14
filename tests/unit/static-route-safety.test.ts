@@ -24,6 +24,15 @@ describe("static route safety", () => {
     expect(pagesLayout).not.toMatch(/\bawait cookies\(/);
   });
 
+  it("keeps root providers free of shared-header auth and notification fetching", () => {
+    const providers = readSource("src/app/[locale]/providers.tsx");
+
+    expect(providers).not.toMatch(/useSession/);
+    expect(providers).not.toMatch(/useSWR/);
+    expect(providers).not.toMatch(/notifications\/header/);
+    expect(providers).not.toMatch(/server\/notifications/);
+  });
+
   it("keeps search param syncing isolated behind Suspense in the header client", () => {
     const headerClient = readSource("src/components/layout/header-client.tsx");
 

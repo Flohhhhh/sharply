@@ -8,129 +8,58 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Bell,Loader } from "lucide-react";
+import { Bell, Loader } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useMemo,useState,useTransition } from "react";
+import { useState } from "react";
 import { cn } from "~/lib/utils";
-import {
-  actionArchiveNotification,
-  actionDeleteNotification,
-  actionMarkNotificationRead,
-} from "~/server/notifications/actions";
-import type { NotificationView } from "~/server/notifications/service";
 import { NotificationItem } from "./notification-item";
+import {
+  getTabAfterClearingAllNotifications,
+  shouldDisableDeleteAllArchived,
+  type NotificationDropdownData,
+  type NotificationDropdownTab,
+} from "./notification-dropdown-state";
 
 type NotificationsDropdownProps = {
-  data: {
-    notifications: NotificationView[];
-    archived: NotificationView[];
-    unreadCount: number;
-  };
+  data: NotificationDropdownData;
+  isPending?: boolean;
+  isClearing?: boolean;
+  onOpen?: () => void;
+  onClearAll?: () => void;
+  onDeleteAllArchived?: () => void;
 };
 
-type NotificationState = NotificationsDropdownProps["data"];
-
-export function NotificationsDropdown({ data }: NotificationsDropdownProps) {
+export function NotificationsDropdown({
+  data,
+  isPending = false,
+  isClearing = false,
+  onOpen,
+  onClearAll,
+  onDeleteAllArchived,
+}: NotificationsDropdownProps) {
   const t = useTranslations("notifications");
-  const [state, setState] = useState<NotificationState>(data);
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"inbox" | "archived">("inbox");
-  const [isClearing, setIsClearing] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const [activeTab, setActiveTab] = useState<NotificationDropdownTab>("inbox");
   const [unreadOnOpen, setUnreadOnOpen] = useState<Set<string>>(new Set());
 
-  const hasUnread = state.unreadCount > 0;
-  const activeNotifications = state.notifications;
-  const archivedNotifications = state.archived;
-  const inboxCount = state.notifications.length;
-
-  const unreadVisible = useMemo(
-    () => state.notifications.filter((n) => !n.readAt),
-    [state.notifications],
-  );
-
-  // Optimistically mark all visible unread notifications as read on open.
-  const markVisibleAsRead = () => {
-    if (!unreadVisible.length) return;
-    const nowIso = new Date().toISOString();
-    setState((prev) => {
-      const updated = prev.notifications.map((n) =>
-        n.readAt ? n : { ...n, readAt: nowIso },
-      );
-      return {
-        ...prev,
-        notifications: updated,
-        unreadCount: Math.max(prev.unreadCount - unreadVisible.length, 0),
-      };
-    });
-    startTransition(() => {
-      void Promise.all(
-        unreadVisible.map((n) => actionMarkNotificationRead(n.id)),
-      );
-    });
-  };
+  const hasUnread = data.unreadCount > 0;
+  const activeNotifications = data.notifications;
+  const archivedNotifications = data.archived;
+  const inboxCount = activeNotifications.length;
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
-    if (open) {
-      // Capture which items were unread at open time for the indicator dot.
-      const unseenIds = new Set(
-        state.notifications.filter((n) => !n.readAt).map((n) => n.id),
-      );
-      setUnreadOnOpen(unseenIds);
-      markVisibleAsRead();
+    if (!open) return;
+
+    const unreadIds = new Set<string>();
+    for (const notification of data.notifications) {
+      if (!notification.readAt) {
+        unreadIds.add(notification.id);
+      }
     }
-  };
 
-  const handleClearAll = () => {
-    if (!activeNotifications.length) return;
-    const optimisticArchivedAt = new Date().toISOString();
-    const optimisticBatch = activeNotifications.map((n) => ({
-      ...n,
-      readAt: n.readAt ?? optimisticArchivedAt,
-      archivedAt: optimisticArchivedAt,
-    }));
-
-    setState((prev) => ({
-      ...prev,
-      unreadCount: 0,
-      notifications: [],
-      archived: [...optimisticBatch, ...prev.archived],
-    }));
-
-    setIsClearing(true);
-    startTransition(() => {
-      void (async () => {
-        const results = await Promise.all(
-          activeNotifications.map((n) =>
-            actionArchiveNotification(n.id).catch(() => null),
-          ),
-        );
-        const updatesById = new Map(
-          results
-            .filter((r): r is NotificationView => !!r)
-            .map((r) => [r.id, r]),
-        );
-        setState((prev) => ({
-          ...prev,
-          archived: prev.archived.map((n) => updatesById.get(n.id) ?? n),
-        }));
-        setIsClearing(false);
-      })();
-    });
-  };
-
-  const handleDeleteAllArchived = () => {
-    if (!archivedNotifications.length) return;
-    const ids = archivedNotifications.map((n) => n.id);
-    setState((prev) => ({ ...prev, archived: [] }));
-    startTransition(() => {
-      void Promise.all(
-        ids.map((id) => actionDeleteNotification(id).catch(() => null)),
-      ).then(() => {
-        // no-op; optimistic removal already applied
-      });
-    });
+    setUnreadOnOpen(unreadIds);
+    onOpen?.();
   };
 
   const emptyState = (
@@ -146,6 +75,17 @@ export function NotificationsDropdown({ data }: NotificationsDropdownProps) {
     </div>
   );
 
+  const handleClearAllClick = () => {
+    setActiveTab((currentTab) => getTabAfterClearingAllNotifications(currentTab));
+    onClearAll?.();
+  };
+
+  const deleteAllArchivedDisabled = shouldDisableDeleteAllArchived({
+    archivedCount: archivedNotifications.length,
+    isPending,
+    isClearing,
+  });
+
   return (
     <Popover open={isOpen} onOpenChange={handleOpenChange} modal={true}>
       <PopoverTrigger asChild>
@@ -158,7 +98,7 @@ export function NotificationsDropdown({ data }: NotificationsDropdownProps) {
           <Bell className="size-5" />
           {hasUnread ? (
             <span className="bg-destructive text-destructive-foreground ring-background absolute -top-1 -right-1 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold ring-2">
-              {state.unreadCount >= 10 ? "9+" : state.unreadCount}
+              {data.unreadCount >= 10 ? "9+" : data.unreadCount}
             </span>
           ) : null}
         </Button>
@@ -179,13 +119,17 @@ export function NotificationsDropdown({ data }: NotificationsDropdownProps) {
                 size="sm"
                 className="h-8 px-2 text-xs"
                 disabled={!activeNotifications.length || isClearing}
-                onClick={handleClearAll}
+                onClick={handleClearAllClick}
               >
                 {t("clearAll")}
               </Button>
             </div>
           ) : (
-            <div className="h-8" />
+            <div className="flex h-8 items-center">
+              {isPending ? (
+                <Loader className="text-muted-foreground size-4 animate-spin" />
+              ) : null}
+            </div>
           )}
         </div>
         <div className="flex items-center gap-3 px-4 pb-2">
@@ -228,11 +172,11 @@ export function NotificationsDropdown({ data }: NotificationsDropdownProps) {
                 emptyState
               ) : (
                 <ul>
-                  {activeNotifications.map((n) => (
-                    <li key={n.id}>
+                  {activeNotifications.map((notification) => (
+                    <li key={notification.id}>
                       <NotificationItem
-                        notification={n}
-                        wasUnread={unreadOnOpen.has(n.id)}
+                        notification={notification}
+                        wasUnread={unreadOnOpen.has(notification.id)}
                       />
                     </li>
                   ))}
@@ -246,8 +190,8 @@ export function NotificationsDropdown({ data }: NotificationsDropdownProps) {
                   <Button
                     size="sm"
                     className="w-full"
-                    disabled={!archivedNotifications.length}
-                    onClick={handleDeleteAllArchived}
+                    disabled={deleteAllArchivedDisabled}
+                    onClick={onDeleteAllArchived}
                   >
                     {t("deleteAll")}
                   </Button>
@@ -257,11 +201,11 @@ export function NotificationsDropdown({ data }: NotificationsDropdownProps) {
                 archivedEmptyState
               ) : (
                 <ul>
-                  {archivedNotifications.map((n) => (
-                    <li key={n.id}>
+                  {archivedNotifications.map((notification) => (
+                    <li key={notification.id}>
                       <NotificationItem
-                        notification={n}
-                        wasUnread={unreadOnOpen.has(n.id)}
+                        notification={notification}
+                        wasUnread={unreadOnOpen.has(notification.id)}
                       />
                     </li>
                   ))}

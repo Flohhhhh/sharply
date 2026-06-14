@@ -5,6 +5,7 @@ import { getSessionOrThrow } from "~/server/auth";
 import {
   archiveNotification,
   createNotification,
+  deleteAllArchivedNotifications,
   deleteNotification,
   markNotificationRead,
   type CreateNotificationParams,
@@ -20,6 +21,10 @@ export async function actionArchiveNotification(id: string) {
 
 export async function actionDeleteNotification(id: string) {
   return deleteNotification(id);
+}
+
+export async function actionDeleteAllArchivedNotifications() {
+  return deleteAllArchivedNotifications();
 }
 
 export async function actionSendTestNotification() {

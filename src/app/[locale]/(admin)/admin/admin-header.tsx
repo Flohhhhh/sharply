@@ -1,5 +1,5 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { NotificationsDropdown } from "~/components/layout/notifications/notifications-dropdown";
+import { NotificationsDropdownStateful } from "~/components/layout/notifications/notifications-dropdown-stateful";
 import { GlobalSearchBar } from "~/components/search/global-search-bar";
 import { ThemeSwitcher } from "~/components/theme-switcher";
 import type { NotificationView } from "~/server/notifications/service";
@@ -27,7 +27,7 @@ export function SiteHeader({ notifications }: SiteHeaderProps) {
         </div>
         <div className="flex w-full items-center gap-2">
           <GlobalSearchBar size="sm" className="z-60 ml-auto w-full max-w-lg" />
-          <NotificationsDropdown data={notificationsData} />
+          <NotificationsDropdownStateful data={notificationsData} />
           <ThemeSwitcher />
         </div>
       </div>

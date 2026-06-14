@@ -41,12 +41,22 @@ Returned shape to UI (`NotificationView`):
 
 - Header dropdown (popover) trigger near the theme switcher, only when signed in.
 - `src/components/layout/header.tsx` builds only the locale-scoped header shell on the server so shared ISR routes stay static-safe.
-- `src/components/layout/header-client.tsx` derives compact vs expanded route state from `usePathname()`, keeps query-string callback enrichment isolated behind a `Suspense` boundary for `useSearchParams()`, and fetches notifications client-side after session hydration.
+- `src/components/layout/header-client.tsx` derives compact vs expanded route state from `usePathname()`, keeps query-string callback enrichment isolated behind a `Suspense` boundary for `useSearchParams()`, and mounts a client-only shared-header notifications provider after session hydration.
+- Shared header notifications use SWR against `/api/notifications/header` with:
+  - revalidation on focus and reconnect
+  - a 30 second polling interval
+  - optimistic read/archive/delete updates followed by background revalidation
+  - zero notification requests while the session is still pending or the user is signed out
+  - full active and archived notification sets returned by the header API; the dropdown no longer uses paged notification slices
+- The shared-header SWR provider is mounted only inside the shared header subtree. It must not be moved into `src/app/[locale]/providers.tsx` or shared server layout chrome.
 - Client UI: `src/components/layout/notifications/notifications-dropdown.tsx`
+  - Presentational only; renders the current notification state and delegates mutations via callbacks.
   - Shows unread count badge on the bell button.
   - Active list (not archived) with actions: mark read, archive.
   - Archived section with delete action (only allowed when archived).
   - Uses provided notification text; UI does not construct messages.
+- Admin header notifications remain server-seeded in the current pass and still use local optimistic state rather than the shared-header SWR provider.
+  - It now reads the full active and archived notification sets instead of server-side notification pages.
 
 ## Future ledger compatibility
 
