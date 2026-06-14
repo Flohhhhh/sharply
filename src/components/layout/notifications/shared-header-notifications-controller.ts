@@ -13,7 +13,7 @@ export function getSharedHeaderNotificationsKey(params: {
     return null;
   }
 
-  return "/api/notifications/header";
+  return ["/api/notifications/header", params.userId] as const;
 }
 
 type ControllerDeps = {

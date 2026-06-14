@@ -45,7 +45,7 @@ const SharedHeaderNotificationsContext =
 
 const SHARED_HEADER_NOTIFICATIONS_REFRESH_INTERVAL_MS = 30_000;
 
-const sharedHeaderNotificationsFetcher = (url: string) =>
+const sharedHeaderNotificationsFetcher = ([url]: readonly [string, string]) =>
   fetchJson<NotificationDropdownData | null>(url, {
     method: "GET",
     credentials: "same-origin",

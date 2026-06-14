@@ -43,13 +43,13 @@ describe("shared header notifications controller", () => {
     ).toBeNull();
   });
 
-  it("uses the shared header endpoint when the user is signed in", () => {
+  it("uses a user-scoped shared header cache key when the user is signed in", () => {
     expect(
       getSharedHeaderNotificationsKey({
         userId: "user-1",
         isSessionPending: false,
       }),
-    ).toBe("/api/notifications/header");
+    ).toEqual(["/api/notifications/header", "user-1"]);
   });
 
   it("optimistically marks visible notifications as read and revalidates afterwards", async () => {

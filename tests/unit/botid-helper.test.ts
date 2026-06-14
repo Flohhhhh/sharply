@@ -41,4 +41,12 @@ describe("BotID helper", () => {
 
     await expect(classifyBotTraffic()).resolves.toEqual({ isBot: false });
   });
+
+  it("fails open when BotID returns an unexpected response shape", async () => {
+    botIdServerMocks.checkBotId.mockResolvedValue({
+      isHuman: true,
+    });
+
+    await expect(classifyBotTraffic()).resolves.toEqual({ isBot: false });
+  });
 });
