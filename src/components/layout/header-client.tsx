@@ -7,11 +7,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import Logo from "public/logo";
-import type {
-  HeaderNotificationsData,
-  HeaderUser,
-  HeaderViewModel,
-} from "~/components/layout/header-model";
+import type { HeaderUser, HeaderViewModel } from "~/components/layout/header-model";
 import {
   buildHeaderCallbackUrl,
   buildHeaderRouteState,
@@ -25,14 +21,11 @@ import { Button } from "../ui/button";
 import { NavMenuDesktop } from "./nav-menu-desktop";
 import { NavMenuMobile } from "./nav-menu-mobile";
 import { NavSheetDesktop } from "./nav-sheet-desktop";
-import { NotificationsDropdown } from "./notifications/notifications-dropdown";
+import {
+  SharedHeaderNotificationsDropdown,
+  SharedHeaderNotificationsProvider,
+} from "./notifications/shared-header-notifications";
 import { UserMenu } from "./user-menu";
-
-const EMPTY_NOTIFICATIONS = {
-  notifications: [],
-  archived: [],
-  unreadCount: 0,
-};
 
 function HeaderSearchParamsSync({
   onNormalizedSearchChange,
@@ -98,29 +91,12 @@ export default function HeaderClient({
     return profileSlug ? localizePathname(`/u/${profileSlug}`, locale) : null;
   })();
 
-  // Client-side notifications — fetched once user is known.
-  const [notifications, setNotifications] = useState<HeaderNotificationsData>(null);
-  useEffect(() => {
-    if (isSessionPending) {
-      return;
-    }
-    if (!user) {
-      setNotifications(null);
-      return;
-    }
-    fetch("/api/notifications/header")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => setNotifications(data))
-      .catch(() => setNotifications(null));
-  }, [isSessionPending, user?.id]); // re-fetch only when user identity changes
-
   const { hasScrolled } = useScrollState(routeState.scrollResponsive ? 290 : Infinity);
   const shouldShowHeaderSearch =
     routeState.initialMode === "compact" || (routeState.scrollResponsive && hasScrolled);
   const sheetTopClass = shouldShowHeaderSearch
     ? "top-16 h-[calc(100vh-4rem)]"
     : "top-24 h-[calc(100vh-6rem)]";
-  const notificationsData = notifications ?? EMPTY_NOTIFICATIONS;
 
   const handleHeaderSignInClick = () => {
     void track("auth_signin_press", {
@@ -223,7 +199,12 @@ export default function HeaderClient({
                 />
               ) : user ? (
                 <>
-                  <NotificationsDropdown data={notificationsData} />
+                  <SharedHeaderNotificationsProvider
+                    userId={user.id}
+                    isSessionPending={isSessionPending}
+                  >
+                    <SharedHeaderNotificationsDropdown />
+                  </SharedHeaderNotificationsProvider>
                   {isAdminOrEditor && (
                     <Button
                       variant="outline"

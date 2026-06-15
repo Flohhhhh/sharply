@@ -127,6 +127,7 @@ This gives us:
 - correct translations in initial HTML
 - safe static prerendering
 - client refinement of request-specific details after hydration
+- room for request-free client providers/hooks inside the shared chrome subtree when they stay below the static-safe server shell
 
 ## Recommended Tradeoff
 
@@ -200,6 +201,25 @@ When editing shared layout components, ask:
 4. If yes, is the dynamic part isolated?
 
 If any answer is unclear, assume there is risk.
+
+### Rule 4a: Prefer subtree-scoped client providers over root providers for shared chrome refinements
+
+If shared chrome needs client-side refinement after hydration, prefer:
+
+- a client-only provider or hook mounted inside the specific chrome subtree
+
+over:
+
+- adding that logic to the root app providers
+- moving auth-bound or fetch-bound state into shared server layout components
+
+For example, the shared header notifications flow is safe because:
+
+- `src/components/layout/header.tsx` stays server-static and locale-scoped
+- `src/components/layout/header-client.tsx` owns session-aware branching on the client
+- a header-local SWR provider handles `/api/notifications/header` revalidation below the static-safe shell
+
+This keeps request-aware logic out of root providers and avoids widening the blast radius of a client-only regression.
 
 ### Rule 5: Add source-level guard tests
 

@@ -1,15 +1,29 @@
 import { type Metadata } from "next";
 import { notFound } from "next/navigation";
-// import { Geist } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { BotIdClient } from "botid/client";
-import { getTranslations,setRequestLocale } from "next-intl/server";
 import { Archivo,Crimson_Text } from "next/font/google";
+import { getTranslations,setRequestLocale } from "next-intl/server";
 import { Toaster } from "~/components/ui/sonner";
 import { isLocale,locales } from "~/i18n/config";
 import { getMessagesForLocale } from "~/i18n/messages";
 import { botIdProtectedRoutes } from "~/lib/security/botid-protected-routes";
 import { Providers } from "./providers";
+
+const archivo = Archivo({
+  subsets: ["latin"],
+  variable: "--font-archivo",
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
+});
+
+const crimsonText = Crimson_Text({
+  subsets: ["latin"],
+  variable: "--font-fancy",
+  display: "swap",
+  weight: ["400"],
+  style: ["normal", "italic"],
+});
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -66,26 +80,6 @@ export async function generateMetadata({
   };
 }
 
-// const geist = Geist({
-//   subsets: ["latin"],
-//   variable: "--font-geist-sans",
-// });
-
-const archivo = Archivo({
-  subsets: ["latin"],
-  variable: "--font-archivo",
-  display: "swap",
-  weight: ["400", "500", "600", "700"],
-});
-
-const crimsonText = Crimson_Text({
-  subsets: ["latin"],
-  variable: "--font-fancy",
-  display: "swap",
-  weight: ["400"],
-  style: ["normal", "italic"],
-});
-
 export default async function RootLayout({
   children,
   params,
@@ -104,7 +98,6 @@ export default async function RootLayout({
   const messages = await getMessagesForLocale(locale);
 
   return (
-    // <html lang="en" className={`${geist.variable}`}>
     <html
       suppressHydrationWarning
       lang={locale}

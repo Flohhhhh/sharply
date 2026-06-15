@@ -67,6 +67,7 @@ Notes:
 - Built in `generateMetadata` via service builder.
 - Browse index special-cases title/description.
 - Canonical URLs use `NEXT_PUBLIC_BASE_URL` and `/browse/...` path.
+- Gear detail pages now point `og:image` and Twitter image metadata at a localized `/{locale}/gear/[slug]/opengraph-image` renderer instead of exposing the raw thumbnail URL directly.
 
 ## Mapping System Update
 

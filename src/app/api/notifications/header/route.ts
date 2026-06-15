@@ -19,8 +19,6 @@ export async function GET() {
 
     const notifications = await fetchNotificationsForUser({
       userId,
-      limit: 10,
-      archivedLimit: 5,
     });
 
     return NextResponse.json(notifications, {

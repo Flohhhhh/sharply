@@ -45,8 +45,8 @@ export async function fetchNotificationsData(options: {
   archived?: boolean;
   limit?: number;
 }) {
-  const { userId, archived = false, limit = 20 } = options;
-  const rows = await db
+  const { userId, archived = false, limit } = options;
+  const query = db
     .select()
     .from(notifications)
     .where(
@@ -55,8 +55,10 @@ export async function fetchNotificationsData(options: {
         archived ? isNotNull(notifications.archivedAt) : isNull(notifications.archivedAt),
       ),
     )
-    .orderBy(desc(notifications.createdAt))
-    .limit(limit);
+    .orderBy(desc(notifications.createdAt));
+
+  const rows =
+    typeof limit === "number" ? await query.limit(limit) : await query;
   return rows;
 }
 
@@ -118,3 +120,18 @@ export async function deleteNotificationData(id: string, userId: string) {
   return { deleted: true, reason: null } as const;
 }
 
+export async function deleteAllArchivedNotificationsData(userId: string) {
+  const deletedRows = await db
+    .delete(notifications)
+    .where(
+      and(
+        eq(notifications.userId, userId),
+        isNotNull(notifications.archivedAt),
+      ),
+    )
+    .returning({ id: notifications.id });
+
+  return {
+    deletedCount: deletedRows.length,
+  } as const;
+}

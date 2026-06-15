@@ -7,6 +7,7 @@ import {
   archiveNotificationData,
   countUnreadNotificationsData,
   createNotificationData,
+  deleteAllArchivedNotificationsData,
   deleteNotificationData,
   fetchNotificationsData,
   markNotificationReadData,
@@ -65,7 +66,7 @@ export async function fetchNotificationsForUser(options: {
   limit?: number;
   archivedLimit?: number;
 }): Promise<NotificationFetchResult> {
-  const { userId, limit = 10, archivedLimit = 5 } = options;
+  const { userId, limit, archivedLimit } = options;
   const [active, archived, unreadCount] = await Promise.all([
     fetchNotificationsData({ userId, limit, archived: false }),
     fetchNotificationsData({ userId, limit: archivedLimit, archived: true }),
@@ -131,4 +132,9 @@ export async function deleteNotification(id: string) {
     throw new Error("Notification not found");
   }
   return { deleted: true as const };
+}
+
+export async function deleteAllArchivedNotifications() {
+  const { user } = await getSessionOrThrow();
+  return deleteAllArchivedNotificationsData(user.id);
 }

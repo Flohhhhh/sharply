@@ -64,8 +64,6 @@ export default async function AdminLayout({
   const notifications = session?.user?.id
     ? await fetchNotificationsForUser({
         userId: session.user.id,
-        limit: 10,
-        archivedLimit: 5,
       })
     : null;
 

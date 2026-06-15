@@ -8,7 +8,16 @@ export type BotIdClassification = {
 
 export async function classifyBotTraffic(): Promise<BotIdClassification> {
   try {
-    const { isBot } = await checkBotId();
+    const result = await checkBotId();
+    if (
+      !result ||
+      typeof result !== "object" ||
+      typeof result.isBot !== "boolean"
+    ) {
+      throw new TypeError("Unexpected BotID response shape");
+    }
+
+    const { isBot } = result;
 
     return { isBot };
   } catch {
