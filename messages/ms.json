@@ -1709,6 +1709,35 @@
     "invalidOrExpiredCode": "Kod tidak sah atau tamat tempoh.",
     "couldNotVerifyCode": "Tidak dapat mengesahkan kod. Sila cuba lagi."
   },
+  "adminTools": {
+    "gearOgBackfill": {
+      "title": "Gear OG Backfill",
+      "description": "Generate and store padded gear Open Graph images ahead of time from existing front thumbnails.",
+      "limitLabel": "Items per run",
+      "limitHint": "Runs process up to {defaultValue} items by default and are capped at {max}.",
+      "scanMissing": "Scan Missing",
+      "generateMissing": "Generate Missing",
+      "regenerateExisting": "Regenerate Existing",
+      "stopAfterCurrent": "Stop After Current",
+      "stopRequested": "Stop Requested",
+      "idle": "Idle",
+      "stats": {
+        "eligible": "Eligible",
+        "limit": "Limit",
+        "loaded": "Loaded",
+        "processed": "Processed",
+        "succeeded": "Succeeded",
+        "failed": "Failed",
+        "skipped": "Skipped",
+        "current": "Current"
+      },
+      "errors": {
+        "scanFailed": "Failed to load gear OG backfill candidates.",
+        "generateFailed": "Failed to generate one or more gear OG assets.",
+        "uploadFailed": "Failed to upload generated gear OG image."
+      }
+    }
+  },
   "metadata": {
     "siteDescription": "Spesifikasi sebenar, ulasan sebenar, sangat pantas. Sharply ialah pangkalan data gear fotografi dan platform semakan terbaharu dan paling komprehensif yang menampilkan ulasan pakar, spesifikasi sebenar dan perbandingan sebelah menyebelah dalam antara muka moden dan minimalis.",
     "signInTitle": "Log Masuk",

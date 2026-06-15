@@ -10,6 +10,7 @@ import {
   createGearAdmin,
   deleteGearService,
   renameGearService,
+  setGearOgImageService,
   setGearRearViewService,
   setGearThumbnailService,
   setGearTopViewService,
@@ -57,11 +58,23 @@ export async function actionSetGearThumbnail(params: {
   gearId?: string;
   slug?: string;
   thumbnailUrl: string;
+  ogImageUrl?: string | null;
 }) {
   const result = await setGearThumbnailService(params);
   revalidatePath("/admin/gear");
   revalidatePath(`/gear/${result.slug}`);
   revalidatePath("/browse");
+  return result;
+}
+
+export async function actionSetGearOgImage(params: {
+  gearId?: string;
+  slug?: string;
+  ogImageUrl: string | null;
+}) {
+  const result = await setGearOgImageService(params);
+  revalidatePath("/admin/gear");
+  revalidatePath(`/gear/${result.slug}`);
   return result;
 }
 
