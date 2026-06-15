@@ -1709,35 +1709,6 @@
     "invalidOrExpiredCode": "Code invalide ou expiré.",
     "couldNotVerifyCode": "Impossible de vérifier le code. Veuillez réessayer."
   },
-  "adminTools": {
-    "gearOgBackfill": {
-      "title": "Gear OG Backfill",
-      "description": "Generate and store padded gear Open Graph images ahead of time from existing front thumbnails.",
-      "limitLabel": "Items per run",
-      "limitHint": "Runs process up to {defaultValue} items by default and are capped at {max}.",
-      "scanMissing": "Scan Missing",
-      "generateMissing": "Generate Missing",
-      "regenerateExisting": "Regenerate Existing",
-      "stopAfterCurrent": "Stop After Current",
-      "stopRequested": "Stop Requested",
-      "idle": "Idle",
-      "stats": {
-        "eligible": "Eligible",
-        "limit": "Limit",
-        "loaded": "Loaded",
-        "processed": "Processed",
-        "succeeded": "Succeeded",
-        "failed": "Failed",
-        "skipped": "Skipped",
-        "current": "Current"
-      },
-      "errors": {
-        "scanFailed": "Failed to load gear OG backfill candidates.",
-        "generateFailed": "Failed to generate one or more gear OG assets.",
-        "uploadFailed": "Failed to upload generated gear OG image."
-      }
-    }
-  },
   "metadata": {
     "siteDescription": "De vraies specs, de vrais tests, très rapidement. Sharply est la plateforme de base de données et de tests de matériel photo la plus récente et la plus complète, avec des tests d’experts, de vraies spécifications et des comparaisons côte à côte dans une interface moderne et minimaliste.",
     "signInTitle": "Connexion",

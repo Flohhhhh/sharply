@@ -19,10 +19,6 @@ import {
 import { Progress } from "~/components/ui/progress";
 import { useSession } from "~/lib/auth/auth-client";
 import { requireRole } from "~/lib/auth/auth-helpers";
-import {
-  createGearOgImageFileFromSource,
-  shouldAutoGenerateGearOgImageOnThumbnailUpload,
-} from "~/lib/gear/og-image";
 import type { GearType } from "~/types/gear";
 import {
   actionClearGearRearView,
@@ -101,22 +97,6 @@ export function GearImageModal(props: GearImageModalProps) {
 
   const { uploadFiles } = genUploader<OurFileRouter>();
 
-  async function uploadGearImageFile(file: File, onProgress?: (progress: number) => void) {
-    const res = await uploadFiles("gearImageUploader", {
-      files: [file],
-      onUploadProgress: onProgress
-        ? ({ progress }) => {
-            onProgress(progress);
-          }
-        : undefined,
-    });
-    const uploads: GearImageUploadResult[] = Array.isArray(res) ? res : [];
-    const upload = uploads[0];
-    const url = upload?.serverData?.fileUrl ?? upload?.url ?? "";
-    if (!url) throw new Error(profileT("uploadFailedTryAgain"));
-    return url;
-  }
-
   // Cleanup saving timer on unmount
   useEffect(() => {
     return () => {
@@ -155,39 +135,18 @@ export function GearImageModal(props: GearImageModalProps) {
       setUploadProgress(0);
       setCombinedProgress(0);
       setActiveImageType(imageType);
-      const url = await uploadGearImageFile(file, (progress) => {
-        setUploadProgress(progress);
-        const mapped = Math.min(60, Math.max(0, Math.round(progress * 0.6)));
-        setCombinedProgress((prev) => (mapped > prev ? mapped : prev));
+      const res = await uploadFiles("gearImageUploader", {
+        files: [file],
+        onUploadProgress: ({ progress }) => {
+          setUploadProgress(progress);
+          const mapped = Math.min(75, Math.max(0, Math.round(progress * 0.75)));
+          setCombinedProgress((prev) => (mapped > prev ? mapped : prev));
+        },
       });
-
-      let ogImageUrl: string | null | undefined;
-      const shouldGenerateOgImage = shouldAutoGenerateGearOgImageOnThumbnailUpload({
-        imageType,
-        currentThumbnailUrl: localThumbnailUrl,
-      });
-
-      if (imageType === "thumbnail" && shouldGenerateOgImage) {
-        try {
-          setCombinedProgress((prev) => (prev < 62 ? 62 : prev));
-          const ogImageFile = await createGearOgImageFileFromSource({
-            source: file,
-            fileNameStem: `${props.slug ?? props.gearId ?? "gear"}-og`,
-          });
-          ogImageUrl = await uploadGearImageFile(ogImageFile, (progress) => {
-            const mapped = 60 + Math.round(progress * 0.15);
-            setCombinedProgress((prev) => (mapped > prev ? mapped : prev));
-          });
-        } catch (error) {
-          console.error("Failed to generate gear OG image during upload", error);
-          ogImageUrl = null;
-        }
-      } else if (imageType === "thumbnail" && localThumbnailUrl) {
-        // Replacements should fall back to the fresh thumbnail until an admin
-        // backfill/regeneration run stores a new dedicated OG asset.
-        ogImageUrl = null;
-      }
-
+      const uploads: GearImageUploadResult[] = Array.isArray(res) ? res : [];
+      const upload = uploads[0];
+      const url = upload?.serverData?.fileUrl ?? upload?.url ?? "";
+      if (!url) throw new Error(profileT("uploadFailedTryAgain"));
       setIsUpdating(true);
       setProgressMode("save");
       setCombinedProgress(75);
@@ -201,7 +160,6 @@ export function GearImageModal(props: GearImageModalProps) {
           gearId: props.gearId,
           slug: props.slug,
           thumbnailUrl: url,
-          ogImageUrl,
         });
         setLocalThumbnailUrl(url);
       } else if (imageType === "topView") {

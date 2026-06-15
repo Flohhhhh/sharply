@@ -4,7 +4,6 @@ import { fetchLiveBoosts } from "~/server/popularity/service";
 import { AdminImageUploader } from "../admin-image-uploader";
 import { BadgesCatalog } from "../badges-catalog";
 import { BadgesTestToastButton } from "../badges-test-toast";
-import { GearOgBackfillTool } from "../gear-og-backfill-tool";
 import { GradientImageTool } from "../gradient-image-tool";
 import { ManualGearRevalidateTool } from "../manual-gear-revalidate-tool";
 import { SharedListOgPreviewTool } from "../shared-list-og-preview-tool";
@@ -119,11 +118,6 @@ export default async function ToolsPage() {
         </p>
         <div className="mt-4">
           <SharedListOgPreviewTool />
-        </div>
-      </div>
-      <div>
-        <div className="mt-4">
-          <GearOgBackfillTool />
         </div>
       </div>
       {/* Badge Catalog */}

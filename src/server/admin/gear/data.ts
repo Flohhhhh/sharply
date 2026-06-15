@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and,count,desc,eq,ilike,inArray,isNull,ne,or,sql } from "drizzle-orm";
+import { and,count,desc,eq,ilike,inArray,ne,or,sql } from "drizzle-orm";
 import { buildGearSearchName } from "~/lib/gear/naming";
 import { normalizeMpbLinkForStorage } from "~/lib/links/mpb";
 import { normalizeFuzzyTokens } from "~/lib/utils/fuzzy";
@@ -531,14 +531,12 @@ export async function renameGearData(
 export interface UpdateGearThumbnailParams {
   gearId: string;
   thumbnailUrl: string | null;
-  ogImageUrl?: string | null;
 }
 
 export interface UpdateGearThumbnailResult {
   id: string;
   slug: string;
   thumbnailUrl: string | null;
-  ogImageUrl: string | null;
 }
 
 /**
@@ -547,121 +545,20 @@ export interface UpdateGearThumbnailResult {
 export async function updateGearThumbnailData(
   params: UpdateGearThumbnailParams,
 ): Promise<UpdateGearThumbnailResult> {
-  const { gearId, thumbnailUrl, ogImageUrl } = params;
+  const { gearId, thumbnailUrl } = params;
   const updated = await db
     .update(gear)
-    .set({
-      thumbnailUrl,
-      ...(ogImageUrl !== undefined ? { ogImageUrl } : {}),
-      updatedAt: new Date(),
-    })
+    .set({ thumbnailUrl, updatedAt: new Date() })
     .where(eq(gear.id, gearId))
     .returning({
       id: gear.id,
       slug: gear.slug,
       thumbnailUrl: gear.thumbnailUrl,
-      ogImageUrl: gear.ogImageUrl,
     });
   if (!updated[0]) {
     throw Object.assign(new Error("Gear not found"), { status: 404 });
   }
   return updated[0];
-}
-
-export interface UpdateGearOgImageParams {
-  gearId: string;
-  ogImageUrl: string | null;
-}
-
-export interface UpdateGearOgImageResult {
-  id: string;
-  slug: string;
-  ogImageUrl: string | null;
-}
-
-export async function updateGearOgImageData(
-  params: UpdateGearOgImageParams,
-): Promise<UpdateGearOgImageResult> {
-  const updated = await db
-    .update(gear)
-    .set({
-      ogImageUrl: params.ogImageUrl,
-      updatedAt: new Date(),
-    })
-    .where(eq(gear.id, params.gearId))
-    .returning({
-      id: gear.id,
-      slug: gear.slug,
-      ogImageUrl: gear.ogImageUrl,
-    });
-
-  if (!updated[0]) {
-    throw Object.assign(new Error("Gear not found"), { status: 404 });
-  }
-
-  return updated[0];
-}
-
-export interface GearOgBackfillCandidate {
-  id: string;
-  slug: string;
-  name: string;
-  thumbnailUrl: string;
-  ogImageUrl: string | null;
-}
-
-export interface FetchGearOgBackfillCandidatesParams {
-  includeExisting: boolean;
-  limit: number;
-}
-
-export interface FetchGearOgBackfillCandidatesResult {
-  eligibleCount: number;
-  items: GearOgBackfillCandidate[];
-}
-
-function buildGearOgBackfillWhereClause(includeExisting: boolean) {
-  const hasThumbnail = sql`${gear.thumbnailUrl} is not null and ${gear.thumbnailUrl} <> ''`;
-
-  if (includeExisting) {
-    return hasThumbnail;
-  }
-
-  return and(
-    hasThumbnail,
-    or(isNull(gear.ogImageUrl), eq(gear.ogImageUrl, "")),
-  );
-}
-
-export async function fetchGearOgBackfillCandidatesData(
-  params: FetchGearOgBackfillCandidatesParams,
-): Promise<FetchGearOgBackfillCandidatesResult> {
-  const whereClause = buildGearOgBackfillWhereClause(params.includeExisting);
-  const countRows = await db
-    .select({ value: count() })
-    .from(gear)
-    .where(whereClause);
-  const eligibleCount = countRows[0]?.value ?? 0;
-
-  const items = await db
-    .select({
-      id: gear.id,
-      slug: gear.slug,
-      name: gear.name,
-      thumbnailUrl: gear.thumbnailUrl,
-      ogImageUrl: gear.ogImageUrl,
-    })
-    .from(gear)
-    .where(whereClause)
-    .orderBy(gear.slug)
-    .limit(params.limit);
-
-  return {
-    eligibleCount,
-    items: items.filter(
-      (item): item is GearOgBackfillCandidate => Boolean(item.thumbnailUrl),
-    ),
-  };
 }
 
 export interface UpdateGearTopViewParams {
