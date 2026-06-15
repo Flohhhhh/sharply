@@ -67,6 +67,7 @@ Notes:
 - Built in `generateMetadata` via service builder.
 - Browse index special-cases title/description.
 - Canonical URLs use `NEXT_PUBLIC_BASE_URL` and `/browse/...` path.
+- Pages without route-specific social imagery fall back to the root app Open Graph image at `src/app/opengraph-image.png`.
 - Gear detail pages now prefer a stored `gear.ogImageUrl` for `og:image` and Twitter metadata.
 - If a gear item has not been backfilled yet, metadata falls back to `thumbnailUrl`.
 - No localized runtime gear OG image route is used for gear detail pages.

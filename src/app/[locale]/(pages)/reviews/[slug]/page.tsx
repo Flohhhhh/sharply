@@ -8,6 +8,7 @@ import { TableOfContents } from "~/components/rich-text/table-of-contents";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
 import { GetGearDisplayName } from "~/lib/gear/naming";
 import { getBrandNameById } from "~/lib/mapping/brand-map";
+import { buildDefaultOgImageUrl } from "~/lib/seo/default-og-image";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import { fetchGearBySlug } from "~/server/gear/service";
 import { getReviewBySlug } from "~/server/payload/service";
@@ -42,6 +43,7 @@ export async function generateMetadata({
 
     const title = t("reviewTitle", { name: gearItem.name });
     const description = review.review_summary || review.title;
+    const defaultOgImageUrl = buildDefaultOgImageUrl(baseUrl);
     const ogImage = gearItem.thumbnailUrl
       ? {
           url: gearItem.thumbnailUrl,
@@ -50,7 +52,7 @@ export async function generateMetadata({
           alt: `${gearItem.name} Review`,
         }
       : {
-          url: `${baseUrl}/og-default.png`,
+          url: defaultOgImageUrl,
           width: 1200,
           height: 630,
           alt: t("reviewsOgAlt"),

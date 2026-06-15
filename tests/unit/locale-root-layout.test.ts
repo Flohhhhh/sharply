@@ -2,6 +2,7 @@ import { createElement, Fragment, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { locales } from "~/i18n/config";
+import { DEFAULT_OG_IMAGE_PATH } from "~/lib/seo/default-og-image";
 
 const analyticsMock = vi.hoisted(() =>
   vi.fn(() => createElement("div", { "data-testid": "analytics" })),
@@ -68,6 +69,10 @@ describe("locale root layout", () => {
     vi.clearAllMocks();
     delete process.env.VERCEL_ENV;
     i18nMessageMocks.getMessagesForLocale.mockResolvedValue({});
+    intlServerMocks.getTranslations.mockResolvedValue((key: string) => {
+      if (key === "siteDescription") return "Sharply description";
+      return key;
+    });
   });
 
   afterEach(() => {
@@ -148,6 +153,22 @@ describe("locale root layout", () => {
         params: Promise.resolve({ locale: "load.php" }),
       }),
     ).rejects.toThrow("NEXT_NOT_FOUND");
+  });
+
+  it("uses the root app OG image for default open graph and twitter metadata", async () => {
+    const metadata = await generateMetadata({
+      params: Promise.resolve({ locale: "en" }),
+    });
+
+    expect(metadata.openGraph?.images).toEqual([
+      {
+        url: DEFAULT_OG_IMAGE_PATH,
+        width: 1200,
+        height: 630,
+        alt: "Sharply - Photography Gear Database",
+      },
+    ]);
+    expect(metadata.twitter?.images).toEqual([DEFAULT_OG_IMAGE_PATH]);
   });
 
   it("rejects invalid locales in the root layout", async () => {

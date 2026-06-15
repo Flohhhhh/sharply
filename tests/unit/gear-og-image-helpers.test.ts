@@ -41,7 +41,7 @@ describe("gear OG image helpers", () => {
       sourceHeight: 1000,
     });
 
-    expect(rect.width).toBe(1132);
+    expect(rect.width).toBe(1004);
     expect(rect.height).toBe(GEAR_OG_HEIGHT - GEAR_OG_PADDING * 2);
     expect(rect.x).toBeCloseTo((GEAR_OG_WIDTH - rect.width) / 2);
     expect(rect.y).toBeCloseTo((GEAR_OG_HEIGHT - rect.height) / 2);
@@ -54,7 +54,7 @@ describe("gear OG image helpers", () => {
     });
 
     expect(rect.height).toBe(GEAR_OG_HEIGHT - GEAR_OG_PADDING * 2);
-    expect(rect.width).toBe(283);
+    expect(rect.width).toBe(251);
     expect(rect.y).toBe(GEAR_OG_PADDING);
     expect(rect.x).toBeCloseTo((GEAR_OG_WIDTH - rect.width) / 2);
   });

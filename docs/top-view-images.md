@@ -6,7 +6,7 @@ The front view can also drive a dedicated stored Open Graph asset for social emb
 ## Gear-Type Rules
 
 - Front view (`thumbnailUrl`) applies to all gear.
-- Stored OG image (`ogImageUrl`) is derived from the front view when available.
+- Stored OG image (`ogImageUrl`) is derived from the front view when available, using a dark 1200x630 matte with a 64px inset.
 - Top view (`topViewUrl`) applies to cameras and lenses.
 - Rear view (`rearViewUrl`) applies only to `CAMERA` and `ANALOG_CAMERA`.
 - Existing lens rear-view values are ignored in the UI, and rear-view mutations for lenses are rejected in the admin service layer.

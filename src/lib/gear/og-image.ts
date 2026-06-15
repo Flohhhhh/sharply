@@ -1,6 +1,6 @@
 export const GEAR_OG_WIDTH = 1200;
 export const GEAR_OG_HEIGHT = 630;
-export const GEAR_OG_PADDING = 32;
+export const GEAR_OG_PADDING = 64;
 export const GEAR_OG_BACKGROUND = "#18181b";
 export const GEAR_OG_JPEG_QUALITY = 0.9;
 

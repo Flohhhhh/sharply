@@ -1,5 +1,8 @@
 import { ChartLine,FileLock,ScanSearch } from "lucide-react";
 import type { Metadata } from "next";
+import {
+  buildDefaultOgImageUrl,
+} from "~/lib/seo/default-og-image";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import ExifPreviewTrigger from "./_components/exif-preview-trigger";
 import ExifViewerClient from "./client";
@@ -7,6 +10,7 @@ import ExifViewerClient from "./client";
 const baseUrl =
   process.env.NEXT_PUBLIC_BASE_URL ?? "https://www.sharplyphoto.com";
 const canonicalUrl = `${baseUrl}/exif-viewer`;
+const defaultOgImageUrl = buildDefaultOgImageUrl(baseUrl);
 const metadataTitle = "Shutter Count & EXIF Viewer";
 const metadataDescription =
   "Check camera shutter count and inspect EXIF metadata from JPG and supported RAW files, including Panasonic RW2, maker notes, and private history tracking.";
@@ -31,7 +35,7 @@ export const metadata: Metadata = buildLocalizedMetadata("/exif-viewer", {
     description: metadataDescription,
     images: [
       {
-        url: `${baseUrl}/og-default.png`,
+        url: defaultOgImageUrl,
         width: 1200,
         height: 630,
         alt: "Sharply shutter count and EXIF viewer",
@@ -42,7 +46,7 @@ export const metadata: Metadata = buildLocalizedMetadata("/exif-viewer", {
     card: "summary_large_image",
     title: metadataTitle,
     description: metadataDescription,
-    images: [`${baseUrl}/og-default.png`],
+    images: [defaultOgImageUrl],
   },
 });
 

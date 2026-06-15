@@ -8,6 +8,7 @@ import { Toaster } from "~/components/ui/sonner";
 import { isLocale,locales } from "~/i18n/config";
 import { getMessagesForLocale } from "~/i18n/messages";
 import { botIdProtectedRoutes } from "~/lib/security/botid-protected-routes";
+import { DEFAULT_OG_IMAGE_PATH } from "~/lib/seo/default-og-image";
 import { Providers } from "./providers";
 
 const archivo = Archivo({
@@ -59,7 +60,7 @@ export async function generateMetadata({
       description: t("siteDescription"),
       images: [
         {
-          url: "https://www.sharplyphoto.com/og-default.png",
+          url: DEFAULT_OG_IMAGE_PATH,
           width: 1200,
           height: 630,
           alt: "Sharply - Photography Gear Database",
@@ -70,7 +71,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: "Sharply",
       description: t("siteDescription"),
-      images: ["https://www.sharplyphoto.com/og-default.png"],
+      images: [DEFAULT_OG_IMAGE_PATH],
     },
     robots: {
       index: true,

@@ -14,6 +14,7 @@ import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
 import { formatDate } from "~/lib/format/date";
 import { getItemDisplayPrice } from "~/lib/mapping";
 import { getBrandNameById } from "~/lib/mapping/brand-map";
+import { buildDefaultOgImageUrl } from "~/lib/seo/default-og-image";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import { fetchGearBySlug } from "~/server/gear/service";
 import { getNewsPostBySlug,getNewsPosts } from "~/server/payload/service";
@@ -39,6 +40,7 @@ export async function generateMetadata({
     page.thumbnail && typeof page.thumbnail === "object"
       ? (page.thumbnail.url ?? undefined)
       : undefined;
+  const defaultOgImageUrl = buildDefaultOgImageUrl(baseUrl);
   const ogImage = imageSrc
     ? {
         url: imageSrc,
@@ -47,7 +49,7 @@ export async function generateMetadata({
         alt: page.title,
       }
     : {
-        url: `${baseUrl}/og-default.png`,
+        url: defaultOgImageUrl,
         width: 1200,
         height: 630,
         alt: t("newsOgAlt"),
