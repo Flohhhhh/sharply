@@ -33,6 +33,8 @@ import { GetGearDisplayName } from "~/lib/gear/naming";
 import { resolveRegionFromCountryCode } from "~/lib/gear/region";
 import { getItemDisplayPrice,PRICE_FALLBACK_TEXT } from "~/lib/mapping";
 import { getBrandById } from "~/lib/mapping/brand-map";
+import { buildGearMetaDescription } from "~/lib/seo/build-gear-meta-description";
+import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import { buildGearSpecsSections } from "~/lib/specs/registry";
 import { shouldPrebuildHeavyRouteLocale } from "~/lib/static-generation";
 import { getConstructionState } from "~/lib/utils";
@@ -49,6 +51,7 @@ import {
   fetchTrendingSlugs,
   getTrendingStatusForSlugs,
 } from "~/server/popularity/service";
+import type { GearItem } from "~/types/gear";
 import { AiReviewBanner } from "../_components/ai-review-banner";
 import { CreatorVideosSection } from "../_components/creator-videos-section";
 import { EditAppliedToast } from "../_components/edit-applied-toast";
@@ -61,7 +64,6 @@ import { SignInToEditSpecsCta } from "../_components/sign-in-to-edit-cta";
 import { SpecsSection } from "../_components/specs-section";
 import { StaffVerdictSection } from "../_components/staff-verdict-section";
 import { UserPendingEditBanner } from "../_components/user-pending-edit-banner";
-import { generateGearPageMetadata } from "./metadata";
 
 export const revalidate = 3600;
 export const dynamicParams = true;
@@ -81,7 +83,60 @@ export async function generateMetadata({
   params,
 }: GearPageProps): Promise<Metadata> {
   const { locale, slug } = await params;
-  return await generateGearPageMetadata({ locale, slug });
+  const viewerRegion = resolveRegionFromCountryCode(null);
+  const t = await getTranslations({ locale, namespace: "gearDetail" });
+
+  try {
+    const item: GearItem = await fetchGearBySlug(slug);
+    const verdict = await fetchStaffVerdict(slug).catch(() => null);
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    if (!baseUrl) {
+      throw new Error(
+        "Tried to generate metadata without NEXT_PUBLIC_BASE_URL being set",
+      );
+    }
+    const displayName = GetGearDisplayName(
+      {
+        name: item.name,
+        regionalAliases: item.regionalAliases ?? [],
+      },
+      { region: viewerRegion },
+    );
+    const description = buildGearMetaDescription({
+      gear: item,
+      displayName,
+      staffVerdictContent: verdict?.content ?? null,
+    });
+    return buildLocalizedMetadata(`/gear/${slug}`, {
+      title: `${displayName} | ${t("metaTitleSuffix")}`,
+      description,
+      openGraph: {
+        type: "website",
+        title: `${displayName} | ${t("metaTitleSuffix")}`,
+        url: `${baseUrl}/gear/${slug}`,
+        description,
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `${displayName} | ${t("metaTitleSuffix")}`,
+        description,
+      },
+    });
+  } catch (err: any) {
+    if (err?.status === 404) {
+      return {
+        title: t("itemNotFoundTitle"),
+        description: t("itemNotFoundDescription"),
+        robots: { index: false, follow: false },
+        openGraph: {
+          title: t("itemNotFoundTitle"),
+          images: [],
+          description: t("itemNotFoundDescription"),
+        },
+      };
+    }
+    throw err;
+  }
 }
 
 export default async function GearPage({ params }: GearPageProps) {

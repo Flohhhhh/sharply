@@ -1709,35 +1709,6 @@
     "invalidOrExpiredCode": "無効または期限切れのコードです。",
     "couldNotVerifyCode": "コードを確認できませんでした。もう一度お試しください。"
   },
-  "adminTools": {
-    "gearOgBackfill": {
-      "title": "Gear OG Backfill",
-      "description": "Generate and store padded gear Open Graph images ahead of time from existing front thumbnails.",
-      "limitLabel": "Items per run",
-      "limitHint": "Runs process up to {defaultValue} items by default and are capped at {max}.",
-      "scanMissing": "Scan Missing",
-      "generateMissing": "Generate Missing",
-      "regenerateExisting": "Regenerate Existing",
-      "stopAfterCurrent": "Stop After Current",
-      "stopRequested": "Stop Requested",
-      "idle": "Idle",
-      "stats": {
-        "eligible": "Eligible",
-        "limit": "Limit",
-        "loaded": "Loaded",
-        "processed": "Processed",
-        "succeeded": "Succeeded",
-        "failed": "Failed",
-        "skipped": "Skipped",
-        "current": "Current"
-      },
-      "errors": {
-        "scanFailed": "Failed to load gear OG backfill candidates.",
-        "generateFailed": "Failed to generate one or more gear OG assets.",
-        "uploadFailed": "Failed to upload generated gear OG image."
-      }
-    }
-  },
   "metadata": {
     "siteDescription": "本物のスペック、本物のレビュー、すばやく。Sharplyは、専門家のレビュー、実際のスペック、並べて比較できる機能を備えた、最新かつ最も包括的な写真機材データベース兼レビュープラットフォームです。モダンでミニマルなインターフェースで提供します。",
     "signInTitle": "ログイン",

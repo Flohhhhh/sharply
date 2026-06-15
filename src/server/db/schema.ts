@@ -603,7 +603,6 @@ export const gear = appSchema.table(
     // Max observed price on MPB (USD cents), optional
     mpbMaxPriceUsdCents: integer("mpb_max_price_usd_cents"),
     thumbnailUrl: text("thumbnail_url"),
-    ogImageUrl: text("og_image_url"),
     topViewUrl: text("top_view_url"),
     rearViewUrl: text("rear_view_url"),
     weightGrams: integer("weight_grams"),

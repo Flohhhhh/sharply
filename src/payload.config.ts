@@ -6,7 +6,7 @@ import { lexicalEditor } from "@payloadcms/richtext-lexical";
 import { uploadthingStorage } from "@payloadcms/storage-uploadthing";
 import path from "path";
 import { buildConfig } from "payload";
-import type sharp from "sharp";
+import sharp from "sharp";
 import { fileURLToPath } from "url";
 
 import { LearnPages } from "./collections/LearnPages";
@@ -17,15 +17,6 @@ import { Users } from "./collections/Users";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
-let sharpAdapter: typeof sharp | undefined;
-
-try {
-  sharpAdapter = (await import("sharp")).default;
-} catch (error) {
-  console.warn("[payload.config] sharp unavailable, continuing without it", {
-    error: error instanceof Error ? error.message : String(error),
-  });
-}
 
 export default buildConfig({
   admin: {
@@ -63,7 +54,7 @@ export default buildConfig({
       connectionString: process.env.DATABASE_URL || "",
     },
   }),
-  ...(sharpAdapter ? { sharp: sharpAdapter } : {}),
+  sharp,
   plugins: [
     payloadCloudPlugin(),
     // storage-adapter-placeholder
