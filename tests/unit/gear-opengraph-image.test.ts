@@ -114,4 +114,14 @@ describe("gear opengraph image route", () => {
 
     expect(imageResponseMocks.ImageResponse).toHaveBeenCalledTimes(1);
   });
+
+  it("returns a fallback image when thumbnail normalization fails", async () => {
+    sharpMocks.toBuffer.mockRejectedValue(new Error("sharp unavailable"));
+
+    await GearOgImage({
+      params: Promise.resolve({ locale: "en", slug: "leica-sofort-2" }),
+    });
+
+    expect(imageResponseMocks.ImageResponse).toHaveBeenCalledTimes(1);
+  });
 });

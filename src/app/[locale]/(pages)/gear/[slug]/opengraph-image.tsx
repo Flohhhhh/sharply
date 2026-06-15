@@ -1,5 +1,4 @@
 import { ImageResponse } from "next/og";
-import sharp from "sharp";
 import { GetGearDisplayName } from "~/lib/gear/naming";
 import { resolveRegionFromCountryCode } from "~/lib/gear/region";
 import { fetchGearBySlug } from "~/server/gear/service";
@@ -39,15 +38,16 @@ async function resolveOgImageSource(thumbnailUrl: string) {
     const response = await fetch(thumbnailUrl);
 
     if (!response.ok) {
-      return thumbnailUrl;
+      return null;
     }
 
     const sourceBuffer = Buffer.from(await response.arrayBuffer());
+    const { default: sharp } = await import("sharp");
     const pngBuffer = await sharp(sourceBuffer).png().toBuffer();
 
     return `data:image/png;base64,${pngBuffer.toString("base64")}`;
   } catch {
-    return thumbnailUrl;
+    return null;
   }
 }
 
@@ -68,6 +68,10 @@ export default async function GearOgImage({ params }: GearOgImageProps) {
     { region: viewerRegion },
   );
   const imageSource = await resolveOgImageSource(gear.thumbnailUrl);
+
+  if (!imageSource) {
+    return renderFallbackImage();
+  }
 
   return new ImageResponse(
     <div
