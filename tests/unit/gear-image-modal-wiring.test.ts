@@ -24,4 +24,15 @@ describe("GearImageModal rear view wiring", () => {
     expect(source).toContain("supportsRearView ? (");
     expect(source).toContain('imageType="rearView"');
   });
+
+  it("only auto-generates gear OG assets for the first front-view image", () => {
+    const source = read("src/components/modals/gear-image-modal.tsx");
+
+    expect(source).toContain("createGearOgImageFileFromSource");
+    expect(source).toContain("shouldAutoGenerateGearOgImageOnThumbnailUpload");
+    expect(source).toContain("currentThumbnailUrl: localThumbnailUrl");
+    expect(source).toContain("ogImageUrl = null");
+    expect(source).toContain("actionSetGearThumbnail({");
+    expect(source).toContain("ogImageUrl,");
+  });
 });

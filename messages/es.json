@@ -1709,6 +1709,35 @@
     "invalidOrExpiredCode": "Código no válido o caducado.",
     "couldNotVerifyCode": "No se pudo verificar el código. Inténtalo de nuevo."
   },
+  "adminTools": {
+    "gearOgBackfill": {
+      "title": "Gear OG Backfill",
+      "description": "Generate and store padded gear Open Graph images ahead of time from existing front thumbnails.",
+      "limitLabel": "Items per run",
+      "limitHint": "Runs process up to {defaultValue} items by default and are capped at {max}.",
+      "scanMissing": "Scan Missing",
+      "generateMissing": "Generate Missing",
+      "regenerateExisting": "Regenerate Existing",
+      "stopAfterCurrent": "Stop After Current",
+      "stopRequested": "Stop Requested",
+      "idle": "Idle",
+      "stats": {
+        "eligible": "Eligible",
+        "limit": "Limit",
+        "loaded": "Loaded",
+        "processed": "Processed",
+        "succeeded": "Succeeded",
+        "failed": "Failed",
+        "skipped": "Skipped",
+        "current": "Current"
+      },
+      "errors": {
+        "scanFailed": "Failed to load gear OG backfill candidates.",
+        "generateFailed": "Failed to generate one or more gear OG assets.",
+        "uploadFailed": "Failed to upload generated gear OG image."
+      }
+    }
+  },
   "metadata": {
     "siteDescription": "Especificaciones reales, reseñas reales, muy rápido. Sharply es la plataforma más nueva y completa de base de datos y reseñas de equipo fotográfico, con reseñas de expertos, especificaciones reales y comparaciones lado a lado en una interfaz moderna y minimalista.",
     "signInTitle": "Iniciar sesión",

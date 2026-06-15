@@ -14,13 +14,16 @@ import {
   checkGearCreationData,
   createGearData,
   deleteGearData,
+  fetchGearOgBackfillCandidatesData,
   fetchAdminGearItemsData,
   performFuzzySearch as performFuzzySearchData,
   renameGearData,
+  updateGearOgImageData,
   updateGearRearViewData,
   updateGearThumbnailData,
   updateGearTopViewData,
   type DeleteGearResult,
+  type FetchGearOgBackfillCandidatesResult,
   type FetchAdminGearItemsParams,
   type FetchAdminGearItemsResult,
   type GearCreationCheckParams,
@@ -244,13 +247,19 @@ export async function setGearThumbnailService(params: {
   gearId?: string;
   slug?: string;
   thumbnailUrl: string | null;
-}): Promise<{ id: string; slug: string; thumbnailUrl: string | null }> {
+  ogImageUrl?: string | null;
+}): Promise<{
+  id: string;
+  slug: string;
+  thumbnailUrl: string | null;
+  ogImageUrl: string | null;
+}> {
   const session = await getSessionOrThrow();
   if (!requireRole(session.user, ["ADMIN", "EDITOR"])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
 
-  const { gearId: maybeId, slug, thumbnailUrl } = params;
+  const { gearId: maybeId, slug, thumbnailUrl, ogImageUrl } = params;
   let gearId = maybeId;
   if (!gearId) {
     if (!slug)
@@ -265,7 +274,11 @@ export async function setGearThumbnailService(params: {
   const currentGear = await fetchGearMetadataById(gearId);
   const hadThumbnail = !!currentGear.thumbnailUrl;
 
-  const updated = await updateGearThumbnailData({ gearId, thumbnailUrl });
+  const updated = await updateGearThumbnailData({
+    gearId,
+    thumbnailUrl,
+    ogImageUrl,
+  });
 
   if (thumbnailUrl) {
     // Clear outstanding image requests once an image is provided
@@ -316,8 +329,53 @@ export async function setGearThumbnailService(params: {
 export async function clearGearThumbnailService(params: {
   gearId?: string;
   slug?: string;
-}): Promise<{ id: string; slug: string; thumbnailUrl: string | null }> {
-  return setGearThumbnailService({ ...params, thumbnailUrl: null });
+}): Promise<{
+  id: string;
+  slug: string;
+  thumbnailUrl: string | null;
+  ogImageUrl: string | null;
+}> {
+  return setGearThumbnailService({
+    ...params,
+    thumbnailUrl: null,
+    ogImageUrl: null,
+  });
+}
+
+export async function setGearOgImageService(params: {
+  gearId?: string;
+  slug?: string;
+  ogImageUrl: string | null;
+}): Promise<{ id: string; slug: string; ogImageUrl: string | null }> {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session.user, ["ADMIN", "EDITOR"])) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+
+  const { gearId: maybeId, slug, ogImageUrl } = params;
+  let gearId = maybeId;
+  if (!gearId) {
+    if (!slug) {
+      throw Object.assign(new Error("Missing gear reference"), { status: 400 });
+    }
+    const id = await getGearIdBySlug(slug);
+    if (!id) throw Object.assign(new Error("Gear not found"), { status: 404 });
+    gearId = id;
+  }
+
+  return await updateGearOgImageData({ gearId, ogImageUrl });
+}
+
+export async function fetchGearOgBackfillCandidatesService(params: {
+  includeExisting: boolean;
+  limit: number;
+}): Promise<FetchGearOgBackfillCandidatesResult> {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session.user, ["ADMIN", "EDITOR"])) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+
+  return await fetchGearOgBackfillCandidatesData(params);
 }
 
 export async function setGearTopViewService(params: {
