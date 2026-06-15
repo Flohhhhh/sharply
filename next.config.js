@@ -76,6 +76,7 @@ const config = {
       },
     ],
   },
+  serverExternalPackages: ["sharp"],
   webpack: (config, { isServer, webpack }) => {
     if (!isServer) {
       config.plugins.push(
