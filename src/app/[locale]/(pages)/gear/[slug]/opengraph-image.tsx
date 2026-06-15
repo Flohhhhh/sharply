@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import sharp from "sharp";
 import { GetGearDisplayName } from "~/lib/gear/naming";
 import { resolveRegionFromCountryCode } from "~/lib/gear/region";
 import { fetchGearBySlug } from "~/server/gear/service";
@@ -33,6 +34,23 @@ function renderFallbackImage() {
   );
 }
 
+async function resolveOgImageSource(thumbnailUrl: string) {
+  try {
+    const response = await fetch(thumbnailUrl);
+
+    if (!response.ok) {
+      return thumbnailUrl;
+    }
+
+    const sourceBuffer = Buffer.from(await response.arrayBuffer());
+    const pngBuffer = await sharp(sourceBuffer).png().toBuffer();
+
+    return `data:image/png;base64,${pngBuffer.toString("base64")}`;
+  } catch {
+    return thumbnailUrl;
+  }
+}
+
 export default async function GearOgImage({ params }: GearOgImageProps) {
   const { slug } = await params;
   const viewerRegion = resolveRegionFromCountryCode(null);
@@ -49,6 +67,7 @@ export default async function GearOgImage({ params }: GearOgImageProps) {
     },
     { region: viewerRegion },
   );
+  const imageSource = await resolveOgImageSource(gear.thumbnailUrl);
 
   return new ImageResponse(
     <div
@@ -72,7 +91,7 @@ export default async function GearOgImage({ params }: GearOgImageProps) {
         }}
       >
         <img
-          src={gear.thumbnailUrl}
+          src={imageSource}
           alt={displayName}
           width={1136}
           height={566}

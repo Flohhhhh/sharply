@@ -68,6 +68,7 @@ Notes:
 - Browse index special-cases title/description.
 - Canonical URLs use `NEXT_PUBLIC_BASE_URL` and `/browse/...` path.
 - Gear detail pages now point `og:image` and Twitter image metadata at a localized `/{locale}/gear/[slug]/opengraph-image` renderer instead of exposing the raw thumbnail URL directly.
+- The gear OG renderer fetches the stored thumbnail and normalizes it before handing it to `next/og`, which avoids renderer-specific failures on source formats such as WebP.
 
 ## Mapping System Update
 

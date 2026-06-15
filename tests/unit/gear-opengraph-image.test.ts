@@ -25,10 +25,33 @@ const gearRegionMocks = vi.hoisted(() => ({
   resolveRegionFromCountryCode: vi.fn(() => "GLOBAL"),
 }));
 
+const fetchMocks = vi.hoisted(() => ({
+  fetch: vi.fn(),
+}));
+
+const sharpMocks = vi.hoisted(() => {
+  const png = vi.fn();
+  const toBuffer = vi.fn();
+  const sharp = vi.fn(() => ({
+    png: png.mockReturnValue({
+      toBuffer,
+    }),
+  }));
+
+  return {
+    sharp,
+    png,
+    toBuffer,
+  };
+});
+
 vi.mock("next/og", () => imageResponseMocks);
 vi.mock("~/server/gear/service", () => gearServiceMocks);
 vi.mock("~/lib/gear/naming", () => gearNamingMocks);
 vi.mock("~/lib/gear/region", () => gearRegionMocks);
+vi.mock("sharp", () => ({
+  default: sharpMocks.sharp,
+}));
 
 import GearOgImage, {
   contentType,
@@ -38,11 +61,17 @@ import GearOgImage, {
 describe("gear opengraph image route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubGlobal("fetch", fetchMocks.fetch);
     gearServiceMocks.fetchGearBySlug.mockResolvedValue({
       name: "Leica SOFORT 2",
       regionalAliases: [],
       thumbnailUrl: "https://cdn.example.com/leica-sofort-2.png",
     });
+    fetchMocks.fetch.mockResolvedValue({
+      ok: true,
+      arrayBuffer: vi.fn().mockResolvedValue(Buffer.from("source-image")),
+    });
+    sharpMocks.toBuffer.mockResolvedValue(Buffer.from("png-image"));
   });
 
   it("renders a PNG response for gear with a thumbnail", async () => {
@@ -53,6 +82,10 @@ describe("gear opengraph image route", () => {
     expect(gearServiceMocks.fetchGearBySlug).toHaveBeenCalledWith(
       "leica-sofort-2",
     );
+    expect(fetchMocks.fetch).toHaveBeenCalledWith(
+      "https://cdn.example.com/leica-sofort-2.png",
+    );
+    expect(sharpMocks.sharp).toHaveBeenCalledTimes(1);
     expect(imageResponseMocks.ImageResponse).toHaveBeenCalledTimes(1);
     expect(contentType).toBe("image/png");
     expect(size).toEqual({ width: 1200, height: 630 });
