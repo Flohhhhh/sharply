@@ -1,1 +1,0 @@
-ALTER TABLE "app"."gear" ADD COLUMN "og_image_url" text;
