@@ -102,21 +102,22 @@ export async function fetchBrowseTrendingRowItems(params: {
   limit?: number;
 }): Promise<BrowseTrendingRowItem[]> {
   const limit = Math.max(1, Math.floor(params.limit ?? 3));
+  const candidateLimit = Math.max(limit * 4, 12);
   const filters = params.brandId ? { brandId: params.brandId } : undefined;
 
   const [trending7d, trending30d, newestPage] = await Promise.all([
     fetchTrending({
       timeframe: "7d",
-      limit,
+      limit: candidateLimit,
       filters,
     }),
     fetchTrending({
       timeframe: "30d",
-      limit,
+      limit: candidateLimit,
       filters,
     }),
     fetchReleaseFeedPage({
-      limit,
+      limit: candidateLimit,
       brandId: params.brandId,
     }),
   ]);
