@@ -12,7 +12,11 @@ import {
   type RouteScope,
 } from "~/lib/browse/routing";
 import { fetchGearAliasesByGearIds } from "~/server/gear/data";
-import type { BrowseFeedPage,BrowseListItem,BrowseListPage } from "~/types/browse";
+import type {
+  BrowseFeedPage,
+  BrowseListItem,
+  BrowseListPage,
+} from "~/types/browse";
 import type { SearchGearResult } from "./data";
 import {
   getBrandBySlug,
@@ -21,6 +25,7 @@ import {
   getReleaseOrderedGearPage,
   searchGear,
 } from "./data";
+import { fetchTrending } from "~/server/popularity/service";
 type LoadHubDataResult = {
   depth: 0 | 1 | 2 | 3;
   scope: RouteScope;
@@ -34,8 +39,95 @@ export async function fetchBrandBySlug(slug: string) {
   return getBrandBySlug(slug);
 }
 
+export type BrowseTrendingCardFields = {
+  slug: string;
+  name: string;
+  regionalAliases?: BrowseFeedPage["items"][number]["regionalAliases"];
+  brandName: string | null;
+  thumbnailUrl: string | null;
+  gearType: string | null;
+  releaseDate: string | null;
+  releaseDatePrecision: "DAY" | "MONTH" | "YEAR" | null;
+  announcedDate: string | null;
+  announceDatePrecision: "DAY" | "MONTH" | "YEAR" | null;
+  msrpNowUsdCents: number | null;
+  mpbMaxPriceUsdCents: number | null;
+};
+
+export type BrowseTrendingRowItem = BrowseTrendingCardFields & {
+  isTrending: boolean;
+  source: "7d" | "30d" | "newest";
+};
+
+export function selectBrowseTrendingRowItems(params: {
+  trending7d: BrowseTrendingCardFields[];
+  trending30d: BrowseTrendingCardFields[];
+  newest: BrowseTrendingCardFields[];
+  limit?: number;
+}): BrowseTrendingRowItem[] {
+  const limit = Math.max(1, Math.floor(params.limit ?? 3));
+  const selected: BrowseTrendingRowItem[] = [];
+  const seen = new Set<string>();
+
+  const appendItems = (
+    items: BrowseTrendingCardFields[],
+    source: BrowseTrendingRowItem["source"],
+  ) => {
+    for (const item of items) {
+      if (selected.length >= limit) break;
+      if (seen.has(item.slug)) continue;
+
+      selected.push({
+        ...item,
+        isTrending: source !== "newest",
+        source,
+      });
+      seen.add(item.slug);
+    }
+  };
+
+  appendItems(params.trending7d, "7d");
+  appendItems(params.trending30d, "30d");
+  appendItems(params.newest, "newest");
+
+  return selected;
+}
+
 export async function fetchMountsForBrand(brandId: string) {
   return getMountsForBrand(brandId);
+}
+
+export async function fetchBrowseTrendingRowItems(params: {
+  brandId?: string;
+  limit?: number;
+}): Promise<BrowseTrendingRowItem[]> {
+  const limit = Math.max(1, Math.floor(params.limit ?? 3));
+  const candidateLimit = Math.max(limit * 4, 12);
+  const filters = params.brandId ? { brandId: params.brandId } : undefined;
+
+  const [trending7d, trending30d, newestPage] = await Promise.all([
+    fetchTrending({
+      timeframe: "7d",
+      limit: candidateLimit,
+      filters,
+    }),
+    fetchTrending({
+      timeframe: "30d",
+      limit: candidateLimit,
+      filters,
+    }),
+    fetchReleaseFeedPage({
+      limit: candidateLimit,
+      brandId: params.brandId,
+    }),
+  ]);
+
+  return selectBrowseTrendingRowItems({
+    trending7d,
+    trending30d,
+    newest: newestPage.items,
+    limit,
+  });
 }
 
 export async function resolveScopeOrThrow(segments: string[]): Promise<{
@@ -72,7 +164,8 @@ export async function loadHubData(params: {
   );
   const filters = normalizeBrowseFilters(params.searchParams, scope);
 
-  const effectiveBrandSlug = scope.brandSlug ?? filters.brandOverride ?? undefined;
+  const effectiveBrandSlug =
+    scope.brandSlug ?? filters.brandOverride ?? undefined;
   const effectiveBrand = scope.brandSlug
     ? brand
     : effectiveBrandSlug
@@ -173,6 +266,7 @@ const MAX_PAGE_SIZE = 60;
 
 export async function fetchReleaseFeedPage(params: {
   limit?: number;
+  brandId?: string;
   brandSlug?: string;
   offset?: number;
 }): Promise<BrowseFeedPage> {
@@ -184,6 +278,7 @@ export async function fetchReleaseFeedPage(params: {
 
   const page = await getReleaseOrderedGearPage({
     limit,
+    brandId: params.brandId,
     brandSlug: params.brandSlug,
     offset,
   });
@@ -251,9 +346,7 @@ function serializeBrowseListItem(
     ...item,
     releaseDate: item.releaseDate ? item.releaseDate.toISOString() : null,
     releaseDatePrecision: item.releaseDatePrecision ?? null,
-    announcedDate: item.announcedDate
-      ? item.announcedDate.toISOString()
-      : null,
+    announcedDate: item.announcedDate ? item.announcedDate.toISOString() : null,
     announceDatePrecision: item.announceDatePrecision ?? null,
     thumbnailUrl: item.thumbnailUrl ?? null,
     brandName: item.brandName ?? null,
