@@ -105,6 +105,11 @@ await fetch(`${base}/api/gear/nikon-z6-iii/wishlist`, {
   - Props: `{ timeframe?, limit?, filters?: { brandId?, mountId?, gearType? }, title?, loading?, rows? }`
   - Fetches via the trending API; caches 12h; renders three‑flame score indicator relative to top item.
 
+- Browse hub trending strip
+  - Files: `src/server/gear/browse/service.ts`, `src/app/[locale]/(pages)/browse/_components/all-gear-content.tsx`
+  - The 3-card strip on `/browse` and `/browse/[brand]` uses a display-only fallback ladder: scoped `7d` trending, then scoped `30d` trending, then scoped newest gear.
+  - Only items sourced from the trending queries render with the trending badge; newest fallback cards are present only to keep the row filled.
+
 - Gear page
   - `GearStatsCard` (server + client)
     - Fetches from `/api/gear/[slug]/stats` (1h cache); optimistic local increments on wishlist/ownership via custom browser events.

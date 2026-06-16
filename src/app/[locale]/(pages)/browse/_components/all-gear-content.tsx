@@ -1,18 +1,19 @@
-import { ClockIcon,FlameIcon,TrendingUpIcon } from "lucide-react";
+import { ClockIcon, FlameIcon, TrendingUpIcon } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import type { JSX } from "react";
 import { Suspense } from "react";
-import { GearCard,GearCardSkeleton } from "~/components/gear/gear-card";
+import { GearCard, GearCardSkeleton } from "~/components/gear/gear-card";
 import { Button } from "~/components/ui/button";
 import { splitBrandsWithPriority } from "~/lib/brands";
 import { BRANDS } from "~/lib/constants";
 import { getItemDisplayPrice } from "~/lib/mapping";
 import {
   fetchBrandBySlug,
+  fetchBrowseTrendingRowItems,
   fetchReleaseFeedPage,
 } from "~/server/gear/browse/service";
-import { fetchTrending,fetchTrendingSlugs } from "~/server/popularity/service";
+import { fetchTrendingSlugs } from "~/server/popularity/service";
 import { OtherBrandsSelect } from "./other-brands-select";
 import { ReleaseFeedGrid } from "./release-feed-grid";
 
@@ -64,9 +65,7 @@ export default async function AllGearContent({
           <h1 className="text-3xl font-bold sm:text-5xl">
             {t("allGearTitle")}
           </h1>
-          <p className="text-muted-foreground">
-            {t("allGearDescription")}
-          </p>
+          <p className="text-muted-foreground">{t("allGearDescription")}</p>
         </section>
       )}
       <section className="relative rounded-2xl">
@@ -139,10 +138,9 @@ export default async function AllGearContent({
 }
 
 async function TrendingGrid({ brandId }: { brandId?: string }) {
-  const trendingResult = await fetchTrending({
-    timeframe: "7d",
+  const trendingResult = await fetchBrowseTrendingRowItems({
+    brandId,
     limit: 3,
-    filters: brandId ? { brandId } : undefined,
   });
 
   return (
@@ -157,7 +155,7 @@ async function TrendingGrid({ brandId }: { brandId?: string }) {
           brandName={g.brandName}
           thumbnailUrl={g.thumbnailUrl ?? undefined}
           gearType={g.gearType}
-          isTrending
+          isTrending={g.isTrending}
           releaseDate={g.releaseDate}
           releaseDatePrecision={g.releaseDatePrecision}
           announcedDate={g.announcedDate}

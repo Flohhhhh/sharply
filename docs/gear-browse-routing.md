@@ -88,7 +88,9 @@ Notes:
 ## UI Notes
 
 - Depth 0 (`/browse`): Featured brand buttons, Latest Gear, Trending Gear; no breadcrumbs.
+  - The Trending Gear strip always tries to show 3 unique cards by using scoped `7d` trending first, then scoped `30d` trending, then newest gear as a final fallback.
 - Depth 1: Large buttons for Cameras/Lenses.
+  - The nested brand hub content reuses the same 3-card trending fallback behavior.
 - Depth 2: Large buttons for mounts; filter dialog + pills; "showing X results".
   - Mount layout (after filtering/auto-hide):
     - 1 mount → hidden
