@@ -26,6 +26,7 @@ The central table that stores common gear information:
   - `PUBLISHED`: normal public gear page and discovery behavior
   - `RUMORED`: hidden from browse/search/feed/sitemap discovery, but still reachable by direct `/gear/[slug]` where it renders a pre-release placeholder page
   - `HIDDEN`: emergency off switch; hidden from all public surfaces and direct public gear URLs return 404
+  - Indexed in the `gear` table to support public browse/search/trending/popularity filters
 - **User Notes**: `notes` — `text[]` for unstructured notes
 - **Commerce**: `mpbMaxPriceUsdCents` — optional MPB max price (USD cents)
 - **Core Specs**: Physical dimensions (width, height, depth in mm), weight

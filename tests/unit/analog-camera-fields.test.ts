@@ -51,4 +51,14 @@ describe("AnalogCameraFields", () => {
     expect(markup).toContain(">fps<");
     expect(markup).toContain('value="3.5"');
   });
+
+  it("does not pass NaN into the max continuous fps input for malformed values", () => {
+    const markup = renderAnalogCameraFields({
+      hasContinuousDrive: true,
+      maxContinuousFps: "not-a-number",
+    } as AnalogCameraSpecs);
+
+    expect(markup).toContain("Max Continuous FPS");
+    expect(markup).not.toContain('value="NaN"');
+  });
 });

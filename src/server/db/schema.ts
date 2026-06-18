@@ -633,6 +633,7 @@ export const gear = appSchema.table(
   }),
   (t) => [
     index("gear_search_idx").on(t.searchName),
+    index("gear_publication_state_idx").on(t.publicationState),
     index("gear_type_brand_idx").on(t.gearType, t.brandId),
     index("gear_brand_mount_idx").on(t.brandId, t.mountId),
   ],
