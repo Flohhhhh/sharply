@@ -1,12 +1,16 @@
 import "server-only";
 
-import { sql } from "drizzle-orm";
+import { eq,sql } from "drizzle-orm";
+import { GEAR_PUBLICATION_STATES } from "~/lib/gear/publication-state";
 import { db } from "~/server/db";
 import { gear,gearEdits,reviews } from "~/server/db/schema";
 
 /** Count all gear items */
 export async function getGearCount(): Promise<number> {
-  const row = await db.select({ c: sql<number>`count(*)` }).from(gear);
+  const row = await db
+    .select({ c: sql<number>`count(*)` })
+    .from(gear)
+    .where(eq(gear.publicationState, GEAR_PUBLICATION_STATES.PUBLISHED));
   return Number(row[0]?.c ?? 0);
 }
 

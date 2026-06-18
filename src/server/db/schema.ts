@@ -49,6 +49,11 @@ export const gearTypeEnum = pgEnum("gear_type", [
   "ANALOG_CAMERA",
   "LENS",
 ]);
+export const gearPublicationStateEnum = pgEnum("gear_publication_state", [
+  "PUBLISHED",
+  "RUMORED",
+  "HIDDEN",
+]);
 export const gearRegionEnum = pgEnum("gear_region", ["GLOBAL", "EU", "JP"]);
 export const proposalStatusEnum = pgEnum("proposal_status", [
   "PENDING",
@@ -576,6 +581,9 @@ export const gear = appSchema.table(
     name: varchar("name", { length: 240 }).notNull().unique(),
     modelNumber: varchar("model_number", { length: 240 }).unique(), // optional model number for de-duplication and display
     gearType: gearTypeEnum("gear_type").notNull(),
+    publicationState: gearPublicationStateEnum("publication_state")
+      .notNull()
+      .default("PUBLISHED"),
     brandId: varchar("brand_id", { length: 36 })
       .notNull()
       .references(() => brands.id, { onDelete: "restrict" }),

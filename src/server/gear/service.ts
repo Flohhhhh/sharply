@@ -5,6 +5,11 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { auth } from "~/auth";
 import { requireRole } from "~/lib/auth/auth-helpers";
+import {
+  isHiddenGear,
+  isPublishedGear,
+  isRumoredGear,
+} from "~/lib/gear/publication-state";
 import type {
   AutoApprovalDecisionMetadata,
   AutoApprovalPath,
@@ -179,8 +184,18 @@ export async function resolveGearIdOrThrow(slug: string) {
 }
 
 // Service-level helper: fetch core gear by slug via data layer
-export async function fetchGearBySlug(slug: string): Promise<GearItem> {
-  return fetchGearBySlugData(slug);
+export async function fetchGearBySlug(
+  slug: string,
+  options?: { includeRumored?: boolean; includeHidden?: boolean },
+): Promise<GearItem> {
+  const gearItem = await fetchGearBySlugData(slug);
+  if (!options?.includeHidden && isHiddenGear(gearItem)) {
+    throw Object.assign(new Error("Gear not found"), { status: 404 });
+  }
+  if (!options?.includeRumored && isRumoredGear(gearItem)) {
+    throw Object.assign(new Error("Gear not found"), { status: 404 });
+  }
+  return gearItem;
 }
 
 const instructionManualInput = z.object({
@@ -1282,7 +1297,9 @@ export async function listUnderConstruction(
   thresholdMissing = 1,
   minCompletionPercent?: number,
 ): Promise<UnderConstructionRow[]> {
-  const rows = await fetchAllGearForConstructionData();
+  const rows = (await fetchAllGearForConstructionData()).filter((row) =>
+    isPublishedGear(row),
+  );
 
   // Map to a minimal GearItem-like object only for getConstructionState
   type MinimalForConstruction = {

@@ -4,7 +4,7 @@
 import dynamic from "next/dynamic";
 
 import type { GearAlternativeRow } from "~/server/gear/service";
-import type { GearType,RawSample } from "~/types/gear";
+import type { GearPublicationState,GearType,RawSample } from "~/types/gear";
 
 const GearItemDockClient = dynamic(
   () => import("./gear-item-dock.client").then((mod) => mod.GearItemDockClient),
@@ -19,6 +19,7 @@ export interface GearItemDockProps {
   currentTopViewUrl?: string | null;
   currentRearViewUrl?: string | null;
   currentInstructionManualUrl?: string | null;
+  publicationState?: GearPublicationState | null;
   alternatives?: GearAlternativeRow[];
   rawSamples?: RawSample[];
   hasCreatorVideos?: boolean;
@@ -32,6 +33,7 @@ export function GearItemDock({
   currentTopViewUrl = null,
   currentRearViewUrl = null,
   currentInstructionManualUrl = null,
+  publicationState = null,
   alternatives = [],
   rawSamples = [],
   hasCreatorVideos = false,
@@ -45,6 +47,7 @@ export function GearItemDock({
       currentTopViewUrl={currentTopViewUrl}
       currentRearViewUrl={currentRearViewUrl}
       currentInstructionManualUrl={currentInstructionManualUrl}
+      publicationState={publicationState}
       alternatives={alternatives}
       rawSamples={rawSamples}
       hasCreatorVideos={hasCreatorVideos}

@@ -10,12 +10,13 @@ import {
 } from "~/components/ui/tooltip";
 import { useSession } from "~/lib/auth/auth-client";
 import { requireRole } from "~/lib/auth/auth-helpers";
+import { isRumoredGear } from "~/lib/gear/publication-state";
 import {
   actionAddGearRawSample,
   actionRemoveGearRawSample,
 } from "~/server/gear/actions";
 import type { GearAlternativeRow } from "~/server/gear/service";
-import type { GearType,RawSample } from "~/types/gear";
+import type { GearPublicationState,GearType,RawSample } from "~/types/gear";
 import { buildDockButtons } from "./dock-buttons";
 
 interface GearItemDockClientProps {
@@ -26,6 +27,7 @@ interface GearItemDockClientProps {
   currentTopViewUrl?: string | null;
   currentRearViewUrl?: string | null;
   currentInstructionManualUrl?: string | null;
+  publicationState?: GearPublicationState | null;
   alternatives?: GearAlternativeRow[];
   rawSamples?: RawSample[];
   hasCreatorVideos?: boolean;
@@ -80,6 +82,7 @@ export function GearItemDockClient({
   currentTopViewUrl = null,
   currentRearViewUrl = null,
   currentInstructionManualUrl = null,
+  publicationState = null,
   alternatives = [],
   rawSamples = [],
   hasCreatorVideos = false,
@@ -180,6 +183,7 @@ export function GearItemDockClient({
         currentInstructionManualUrl,
         instructionManualLabel: t("instructionManual.title"),
         instructionManualManageLabel: t("instructionManual.modalTitle"),
+        unavailableUntilPublishedLabel: t("rumoredItemDisabledAction"),
         locale,
         alternatives,
         hasCreatorVideos,
@@ -197,6 +201,7 @@ export function GearItemDockClient({
       currentTopViewUrl,
       currentRearViewUrl,
       currentInstructionManualUrl,
+      publicationState,
       t,
       locale,
       gearId,
@@ -218,6 +223,7 @@ export function GearItemDockClient({
   if (!isElevated) return null;
 
   const visibleButtons = buttons.filter((button) => button.allowed(user));
+  const isPreRelease = isRumoredGear({ publicationState });
 
   if (visibleButtons.length === 0) return null;
 
@@ -232,7 +238,9 @@ export function GearItemDockClient({
           // iconMagnification={55}
         >
           {visibleButtons.map((button) => (
-            <DockIcon key={button.id}>{button.render()}</DockIcon>
+            <DockIcon key={button.id}>
+              {button.render({ isPreRelease })}
+            </DockIcon>
           ))}
         </Dock>
       </div>

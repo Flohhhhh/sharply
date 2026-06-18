@@ -1092,7 +1092,21 @@
         "ovf": "OVF",
         "evf": "EVF"
       }
-    }
+    },
+    "publicationStateLabel": "Publication State",
+    "publicationStatePublished": "Published",
+    "publicationStateRumored": "Rumored",
+    "publicationStateHidden": "Hidden",
+    "publicationStateUpdated": "Publication state updated",
+    "publicationStateUpdateFailed": "Failed to update publication state",
+    "rumoredItemLabel": "Rumored Item",
+    "rumoredItemDescriptionPrimary": "This is a rumored item. We're pre-filling some information in anticipation for an official release.",
+    "rumoredItemDescriptionSecondary": "It's possible that the name of this item will change. All information shown here is subject to change.",
+    "rumoredItemEditCta": "Edit rumored item",
+    "rumoredItemBackToGear": "Back to Gear",
+    "rumoredItemDisabledAction": "This tool will be available after the item is published.",
+    "rumoredItemHeader": "This is a rumored item",
+    "rumoredItemBody": "We're pre-filling some information in anticipation of an official release. It's possible that the name of this item will change, and all information shown here is subject to change."
   },
   "userProfile": {
     "profileMetaTitle": "Profilo di {name}",

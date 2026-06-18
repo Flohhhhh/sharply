@@ -5,6 +5,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ConstructionFullPage } from "~/app/[locale]/(pages)/gear/_components/construction-full";
+import { RumoredFullPage } from "~/app/[locale]/(pages)/gear/_components/rumored-full";
+import { isRumoredGear } from "~/lib/gear/publication-state";
 import { GearActionButtons } from "~/app/[locale]/(pages)/gear/_components/gear-action-buttons";
 import { GearContributors } from "~/app/[locale]/(pages)/gear/_components/gear-contributors";
 import { GearImageCarousel } from "~/app/[locale]/(pages)/gear/_components/gear-image-carousel";
@@ -93,7 +95,7 @@ export default async function GearPage({ params }: GearPageProps) {
   const viewerRegion = resolveRegionFromCountryCode(null);
 
   // Fetch core gear data
-  const item = await fetchGearBySlug(slug).catch((err: any) => {
+  const item = await fetchGearBySlug(slug, { includeRumored: true }).catch((err: any) => {
     if ((err)?.status === 404) return null;
     throw err;
   });
@@ -111,6 +113,30 @@ export default async function GearPage({ params }: GearPageProps) {
 
   const isAuthenticated = false;
   const hasImageRequest: boolean | null = null;
+
+  if (isRumoredGear(item)) {
+    return (
+      <main className="mx-auto max-w-5xl space-y-8 px-4 pt-20 sm:px-6">
+        <GearItemDock
+          slug={slug}
+          gearId={item.id}
+          gearType={item.gearType}
+          currentThumbnailUrl={item.thumbnailUrl ?? null}
+          currentTopViewUrl={item.topViewUrl ?? null}
+          currentRearViewUrl={item.rearViewUrl ?? null}
+          currentInstructionManualUrl={item.linkInstructionManual ?? null}
+          publicationState={item.publicationState}
+          alternatives={[]}
+          rawSamples={item.rawSamples ?? []}
+          hasCreatorVideos={false}
+        />
+        <RumoredFullPage
+          gearName={regionalDisplayName}
+          slug={item.slug}
+        />
+      </main>
+    );
+  }
 
   // Fetch editorial content
   const [ratingsRows, staffVerdictRows, pendingChangeRequests] =
@@ -232,6 +258,7 @@ export default async function GearPage({ params }: GearPageProps) {
         currentTopViewUrl={item.topViewUrl ?? null}
         currentRearViewUrl={item.rearViewUrl ?? null}
         currentInstructionManualUrl={item.linkInstructionManual ?? null}
+        publicationState={item.publicationState}
         alternatives={alternatives}
         rawSamples={item.rawSamples ?? []}
         hasCreatorVideos={creatorVideos.length > 0}

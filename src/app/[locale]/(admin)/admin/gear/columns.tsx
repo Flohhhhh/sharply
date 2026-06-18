@@ -3,7 +3,7 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { Copy,Image as ImageIcon,Pencil,Trash2 } from "lucide-react";
-import { useLocale } from "next-intl";
+import { useLocale,useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -23,12 +23,23 @@ import {
 } from "~/components/ui/alert-dialog";
 import { Button } from "~/components/ui/button";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
+import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
+import { GEAR_PUBLICATION_STATES } from "~/lib/gear/publication-state";
 import { formatDate } from "~/lib/format/date";
-import { actionDeleteGear } from "~/server/admin/gear/actions";
+import {
+  actionDeleteGear,
+  actionUpdateGearPublicationState,
+} from "~/server/admin/gear/actions";
 import type { AdminGearTableRow } from "~/types/gear";
 
 // TO ADD A COLUMN:
@@ -195,6 +206,85 @@ function CreatedAtCell({ row }: { row: { original: AdminGearTableRow } }) {
   );
 }
 
+function PublicationStateCell({
+  row,
+}: {
+  row: { original: AdminGearTableRow };
+}) {
+  const t = useTranslations("gearDetail");
+  const [publicationState, setPublicationState] = useState(
+    row.original.publicationState,
+  );
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const syncTable = (nextState: AdminGearTableRow["publicationState"]) => {
+    void mutate(
+      (key) =>
+        typeof key === "string" && key.startsWith("/api/admin/gear/list?"),
+      (
+        current:
+          | { items: AdminGearTableRow[]; totalCount: number }
+          | undefined,
+      ) => {
+        if (!current) return current;
+        return {
+          ...current,
+          items: current.items.map((item) =>
+            item.id === row.original.id
+              ? { ...item, publicationState: nextState }
+              : item,
+          ),
+        };
+      },
+      { revalidate: true },
+    );
+  };
+
+  return (
+    <Select
+      value={publicationState}
+      onValueChange={async (nextState) => {
+        if (nextState === publicationState || isUpdating) return;
+
+        const previousState = publicationState;
+        const typedState = nextState as AdminGearTableRow["publicationState"];
+        setPublicationState(typedState);
+        setIsUpdating(true);
+
+        try {
+          await actionUpdateGearPublicationState({
+            gearId: row.original.id,
+            publicationState: typedState,
+          });
+          syncTable(typedState);
+          toast.success(t("publicationStateUpdated"));
+        } catch {
+          setPublicationState(previousState);
+          toast.error(t("publicationStateUpdateFailed"));
+        } finally {
+          setIsUpdating(false);
+        }
+      }}
+      disabled={isUpdating}
+    >
+      <SelectTrigger className="h-8 min-w-[130px]">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value={GEAR_PUBLICATION_STATES.PUBLISHED}>
+          {t("publicationStatePublished")}
+        </SelectItem>
+        <SelectItem value={GEAR_PUBLICATION_STATES.RUMORED}>
+          {t("publicationStateRumored")}
+        </SelectItem>
+        <SelectItem value={GEAR_PUBLICATION_STATES.HIDDEN}>
+          {t("publicationStateHidden")}
+        </SelectItem>
+      </SelectContent>
+    </Select>
+  );
+}
+
 export const columns: ColumnDef<AdminGearTableRow>[] = [
   {
     header: "Name",
@@ -218,6 +308,11 @@ export const columns: ColumnDef<AdminGearTableRow>[] = [
   {
     header: "Type",
     accessorKey: "gearType",
+  },
+  {
+    header: "State",
+    accessorKey: "publicationState",
+    cell: ({ row }) => <PublicationStateCell row={row} />,
   },
   {
     header: "Created At",

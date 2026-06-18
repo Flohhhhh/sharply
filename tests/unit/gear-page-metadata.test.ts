@@ -100,4 +100,33 @@ describe("gear page metadata", () => {
     expect(metadata.openGraph?.images).toEqual([]);
     expect(metadata.twitter?.images).toEqual([]);
   });
+
+  it("marks rumored gear as noindex and uses placeholder copy", async () => {
+    intlMocks.getTranslations.mockResolvedValue((key: string) => {
+      if (key === "rumoredItemLabel") return "Rumored Item";
+      if (key === "rumoredItemDescriptionPrimary")
+        return "This item is rumored.";
+      if (key === "rumoredItemDescriptionSecondary")
+        return "Details may change.";
+      return key;
+    });
+    gearServiceMocks.fetchGearBySlug.mockResolvedValue({
+      name: "Nikon Z9II",
+      regionalAliases: [],
+      publicationState: "RUMORED",
+      thumbnailUrl: "https://cdn.example.com/thumb.jpg",
+      ogImageUrl: "https://cdn.example.com/og.jpg",
+    });
+
+    const metadata = await generateGearPageMetadata({
+      locale: "en",
+      slug: "nikon-z9ii",
+    });
+
+    expect(metadata.title).toBe("Nikon Z6III | Rumored Item");
+    expect(metadata.description).toBe("This item is rumored. Details may change.");
+    expect(metadata.robots).toEqual({ index: false, follow: false });
+    expect(metadata.openGraph?.images).toEqual([]);
+    expect(metadata.twitter?.images).toEqual([]);
+  });
 });

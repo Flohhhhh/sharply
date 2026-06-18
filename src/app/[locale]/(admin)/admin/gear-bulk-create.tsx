@@ -1,6 +1,7 @@
 "use client";
 
 import { CheckCircle,Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import * as React from "react";
 import { useEffect,useState } from "react";
 import { z } from "zod";
@@ -32,6 +33,7 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { Textarea } from "~/components/ui/textarea";
+import { GEAR_PUBLICATION_STATES } from "~/lib/gear/publication-state";
 import { BRANDS,ENUMS } from "~/lib/constants";
 import { useDebounce } from "~/lib/hooks/useDebounce";
 import { humanizeKey } from "~/lib/utils";
@@ -430,8 +432,12 @@ function BulkCreateRow({
 }
 
 export default function GearBulkCreate(): React.JSX.Element {
+  const t = useTranslations("gearDetail");
   const [brandId, setBrandId] = React.useState<string>("");
   const [gearType, setGearType] = React.useState<GearType | "">("");
+  const [publicationState, setPublicationState] = React.useState<
+    "PUBLISHED" | "RUMORED" | "HIDDEN"
+  >(GEAR_PUBLICATION_STATES.PUBLISHED);
   const [selectedMountId, setSelectedMountId] = React.useState<string>("");
   const [rows, setRows] = React.useState<RowState[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -573,6 +579,7 @@ export default function GearBulkCreate(): React.JSX.Element {
             brandId,
             mountIds: mountPayload,
             gearType: gearType as GearType,
+            publicationState,
             force: r.proceedAnyway,
           });
           updateRow(r.id, { status: "created", createdSlug: result.slug });
@@ -597,6 +604,7 @@ export default function GearBulkCreate(): React.JSX.Element {
       setRows([]);
       setBrandId("");
       setGearType("");
+      setPublicationState(GEAR_PUBLICATION_STATES.PUBLISHED);
     } finally {
       setIsSubmitting(false);
     }
@@ -662,7 +670,7 @@ export default function GearBulkCreate(): React.JSX.Element {
           <CardTitle>Bulk Create Gear</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-3">
+          <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-4">
             <div className="space-y-1">
               <label className="text-sm font-medium">Brand</label>
               <BrandSelect
@@ -705,6 +713,35 @@ export default function GearBulkCreate(): React.JSX.Element {
                 showLabel={false}
                 className="w-full"
               />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">
+                {t("publicationStateLabel")}
+              </label>
+              <Select
+                value={publicationState}
+                onValueChange={(value) =>
+                  setPublicationState(
+                    value as "PUBLISHED" | "RUMORED" | "HIDDEN",
+                  )
+                }
+                disabled={isImporting || isSubmitting}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={GEAR_PUBLICATION_STATES.PUBLISHED}>
+                    {t("publicationStatePublished")}
+                  </SelectItem>
+                  <SelectItem value={GEAR_PUBLICATION_STATES.RUMORED}>
+                    {t("publicationStateRumored")}
+                  </SelectItem>
+                  <SelectItem value={GEAR_PUBLICATION_STATES.HIDDEN}>
+                    {t("publicationStateHidden")}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

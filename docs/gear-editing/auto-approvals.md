@@ -48,6 +48,15 @@ For **either** auto-approval path:
 
 If either fails, the new row stays **`PENDING`** and **`notifyChangeRequestModerators`** may run (see `src/server/admin/proposals/webhook.ts`).
 
+## Interaction with publication state
+
+Publication state and completeness are separate:
+
+- **`RUMORED`** items can still be edited by staff so specs can be prepared ahead of release.
+- **`HIDDEN`** items can also still be edited internally.
+- Trusted contributor auto-approval still keys off the existing **under-construction/completeness** logic, not the publication-state override.
+- Public under-construction surfaces intentionally exclude rumored and hidden items, so "not yet public" and "public but incomplete" do not overlap.
+
 ## Staff auto-approval (editor role and above)
 
 **Who:** `requireRole(user, ["EDITOR"])` — in practice **editor, admin, or superadmin** (role ordering in `src/lib/auth/auth-helpers.ts`).

@@ -35,7 +35,7 @@ import { requireRole } from "~/lib/auth/auth-helpers";
 import { formatDate } from "~/lib/format/date";
 import { UploadDropzone } from "~/lib/utils/uploadthing";
 import type { GearAlternativeRow } from "~/server/gear/service";
-import type { GearType,RawSample } from "~/types/gear";
+import type { GearType, RawSample } from "~/types/gear";
 
 type DockSample = Omit<RawSample, "createdAt" | "updatedAt"> & {
   createdAt?: string | null;
@@ -45,7 +45,7 @@ type DockSample = Omit<RawSample, "createdAt" | "updatedAt"> & {
 export type DockButtonConfig = {
   id: string;
   allowed: (user: AuthUser | null | undefined) => boolean;
-  render: () => React.ReactNode;
+  render: (params: { isPreRelease: boolean }) => React.ReactNode;
 };
 
 export interface BuildDockButtonsParams {
@@ -58,6 +58,7 @@ export interface BuildDockButtonsParams {
   currentInstructionManualUrl?: string | null;
   instructionManualLabel: string;
   instructionManualManageLabel: string;
+  unavailableUntilPublishedLabel: string;
   locale: string;
   alternatives: GearAlternativeRow[];
   hasCreatorVideos: boolean;
@@ -84,6 +85,7 @@ export function buildDockButtons({
   currentInstructionManualUrl,
   instructionManualLabel,
   instructionManualManageLabel,
+  unavailableUntilPublishedLabel,
   locale,
   alternatives,
   managedSamples,
@@ -94,6 +96,33 @@ export function buildDockButtons({
   handleSampleUploadCompletion,
   handleSampleRemoval,
 }: BuildDockButtonsParams): DockButtonConfig[] {
+  const disabledTriggerClass =
+    "flex h-10 w-10 cursor-not-allowed items-center justify-center rounded-full opacity-45 transition-opacity";
+
+  function renderUnavailableButton(
+    id: string,
+    label: string,
+    icon: React.ReactNode,
+  ) {
+    return (
+      <Tooltip key={id}>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            className={disabledTriggerClass}
+            aria-label={label}
+            disabled
+          >
+            {icon}
+          </button>
+        </TooltipTrigger>
+        <TooltipContent sideOffset={10}>
+          {unavailableUntilPublishedLabel}
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
   return [
     {
       id: "edit specs",
@@ -165,78 +194,95 @@ export function buildDockButtons({
       id: "alternatives",
       allowed: (currentUser) =>
         Boolean(gearId && requireRole(currentUser, ["EDITOR"])),
-      render: () =>
+      render: ({ isPreRelease }) =>
         gearId ? (
-          <Tooltip key="alternatives">
-            <AlternativesManager
-              gearId={gearId}
-              gearSlug={slug}
-              gearType={gearType}
-              initialAlternatives={alternatives}
-              trigger={
-                <TooltipTrigger asChild>
-                  <button
-                    className={baseTriggerClass}
-                    aria-label="Manage Alternatives"
-                  >
-                    <Swords className="text-foreground/70 size-4.5" />
-                    {/* {alternatives.length > 0 ? (
-                  <span className="bg-primary absolute -top-1 -right-1 rounded-full px-1.5 text-[10px] font-semibold text-white">
-                    {alternatives.length}
-                  </span>
-                ) : null} */}
-                  </button>
-                </TooltipTrigger>
-              }
-            />
-            <TooltipContent sideOffset={10}>Alternatives</TooltipContent>
-          </Tooltip>
+          isPreRelease ? (
+            renderUnavailableButton(
+              "alternatives-disabled",
+              "Manage Alternatives",
+              <Swords className="text-foreground/70 size-4.5" />,
+            )
+          ) : (
+            <Tooltip key="alternatives">
+              <AlternativesManager
+                gearId={gearId}
+                gearSlug={slug}
+                gearType={gearType}
+                initialAlternatives={alternatives}
+                trigger={
+                  <TooltipTrigger asChild>
+                    <button
+                      className={baseTriggerClass}
+                      aria-label="Manage Alternatives"
+                    >
+                      <Swords className="text-foreground/70 size-4.5" />
+                    </button>
+                  </TooltipTrigger>
+                }
+              />
+              <TooltipContent sideOffset={10}>Alternatives</TooltipContent>
+            </Tooltip>
+          )
         ) : null,
     },
     {
       id: "videos",
       allowed: (currentUser) => Boolean(requireRole(currentUser, ["EDITOR"])),
-      render: () => (
-        <Tooltip key="videos">
-          <ManageCreatorVideosModal
-            slug={slug}
-            trigger={
-              <TooltipTrigger asChild>
-                <button
-                  className={baseTriggerClass}
-                  aria-label="Manage Creator Videos"
-                >
-                  <Video className="text-foreground/70 size-4.5" />
-                </button>
-              </TooltipTrigger>
-            }
-          />
-          <TooltipContent sideOffset={10}>Creator Videos</TooltipContent>
-        </Tooltip>
-      ),
+      render: ({ isPreRelease }) =>
+        isPreRelease ? (
+          renderUnavailableButton(
+            "videos-disabled",
+            "Manage Creator Videos",
+            <Video className="text-foreground/70 size-4.5" />,
+          )
+        ) : (
+          <Tooltip key="videos">
+            <ManageCreatorVideosModal
+              slug={slug}
+              trigger={
+                <TooltipTrigger asChild>
+                  <button
+                    className={baseTriggerClass}
+                    aria-label="Manage Creator Videos"
+                  >
+                    <Video className="text-foreground/70 size-4.5" />
+                  </button>
+                </TooltipTrigger>
+              }
+            />
+            <TooltipContent sideOffset={10}>Creator Videos</TooltipContent>
+          </Tooltip>
+        ),
     },
     {
       id: "staff verdict",
       allowed: (currentUser) =>
         Boolean(requireRole(currentUser, ["ADMIN", "SUPERADMIN"])),
-      render: () => (
-        <Tooltip key="staff verdict">
-          <ManageStaffVerdictModal
-            slug={slug}
-            trigger={
-              <TooltipTrigger asChild>
-                <button
-                  className={baseTriggerClass}
-                  aria-label="Manage Staff Verdict"
-                >
-                  <FileBadge className="text-foreground/70 size-4.5" />
-                </button>
-              </TooltipTrigger>
-            }
-          />
-          <TooltipContent sideOffset={10}>Staff Verdict</TooltipContent>
-        </Tooltip>
-      ),
+      render: ({ isPreRelease }) =>
+        isPreRelease ? (
+          renderUnavailableButton(
+            "staff-verdict-disabled",
+            "Manage Staff Verdict",
+            <FileBadge className="text-foreground/70 size-4.5" />,
+          )
+        ) : (
+          <Tooltip key="staff verdict">
+            <ManageStaffVerdictModal
+              slug={slug}
+              trigger={
+                <TooltipTrigger asChild>
+                  <button
+                    className={baseTriggerClass}
+                    aria-label="Manage Staff Verdict"
+                  >
+                    <FileBadge className="text-foreground/70 size-4.5" />
+                  </button>
+                </TooltipTrigger>
+              }
+            />
+            <TooltipContent sideOffset={10}>Staff Verdict</TooltipContent>
+          </Tooltip>
+        ),
     },
     {
       id: "samples",
@@ -245,118 +291,125 @@ export function buildDockButtons({
           gearType === "CAMERA" &&
           requireRole(currentUser, ["ADMIN", "SUPERADMIN"]),
         ),
-      render: () => (
-        <Dialog open={isManagerOpen} onOpenChange={setIsManagerOpen}>
-          <Tooltip key="samples">
-            <TooltipTrigger asChild>
-              <DialogTrigger asChild>
-                <button
-                  type="button"
-                  className={baseTriggerClass}
-                  aria-label="Manage Samples"
-                >
-                  <FilePlus className="text-foreground/70 size-4.5" />
-                </button>
-              </DialogTrigger>
-            </TooltipTrigger>
-            <TooltipContent sideOffset={10}>Raw Samples</TooltipContent>
-          </Tooltip>
-          <DialogContent className="sm:max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Raw Sample Archive</DialogTitle>
-              <DialogDescription>
-                Upload and remove downloadable raw files for this gear item.
-              </DialogDescription>
-            </DialogHeader>
+      render: ({ isPreRelease }) =>
+        isPreRelease ? (
+          renderUnavailableButton(
+            "samples-disabled",
+            "Manage Samples",
+            <FilePlus className="text-foreground/70 size-4.5" />,
+          )
+        ) : (
+          <Dialog open={isManagerOpen} onOpenChange={setIsManagerOpen}>
+            <Tooltip key="samples">
+              <TooltipTrigger asChild>
+                <DialogTrigger asChild>
+                  <button
+                    type="button"
+                    className={baseTriggerClass}
+                    aria-label="Manage Samples"
+                  >
+                    <FilePlus className="text-foreground/70 size-4.5" />
+                  </button>
+                </DialogTrigger>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={10}>Raw Samples</TooltipContent>
+            </Tooltip>
+            <DialogContent className="sm:max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Raw Sample Archive</DialogTitle>
+                <DialogDescription>
+                  Upload and remove downloadable raw files for this gear item.
+                </DialogDescription>
+              </DialogHeader>
 
-            <div className="space-y-4">
-              <div className="border-border space-y-2 rounded-md border border-dashed p-4 text-sm">
-                {managedSamples.length >= MAX_SAMPLES ? (
-                  <div className="flex items-center gap-2">
-                    <Upload className="h-4 w-4" />
-                    <p className="text-xs">
-                      Maximum of three samples reached. Remove one to upload
-                      another.
-                    </p>
-                  </div>
-                ) : (
-                  <>
+              <div className="space-y-4">
+                <div className="border-border space-y-2 rounded-md border border-dashed p-4 text-sm">
+                  {managedSamples.length >= MAX_SAMPLES ? (
                     <div className="flex items-center gap-2">
                       <Upload className="h-4 w-4" />
-                      <span>Drop a file or click to upload</span>
+                      <p className="text-xs">
+                        Maximum of three samples reached. Remove one to upload
+                        another.
+                      </p>
                     </div>
-                    <UploadDropzone
-                      endpoint="rawSampleUploader"
-                      onClientUploadComplete={handleSampleUploadCompletion}
-                      onUploadError={(uploadError) => {
-                        const message =
-                          uploadError instanceof Error
-                            ? uploadError.message
-                            : "Upload failed";
-                        console.error(message);
-                      }}
-                      disabled={isUploading}
-                    />
-                  </>
-                )}
-              </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <Upload className="h-4 w-4" />
+                        <span>Drop a file or click to upload</span>
+                      </div>
+                      <UploadDropzone
+                        endpoint="rawSampleUploader"
+                        onClientUploadComplete={handleSampleUploadCompletion}
+                        onUploadError={(uploadError) => {
+                          const message =
+                            uploadError instanceof Error
+                              ? uploadError.message
+                              : "Upload failed";
+                          console.error(message);
+                        }}
+                        disabled={isUploading}
+                      />
+                    </>
+                  )}
+                </div>
 
-              <div className="space-y-3">
-                {managedSamples.length === 0 ? (
-                  <p className="text-sm">
-                    No samples yet. Upload a file to make it available.
-                  </p>
-                ) : (
-                  <ul className="space-y-2">
-                    {managedSamples.map((sample) => {
-                      const displayName =
-                        sample.originalFilename ?? sample.fileUrl;
-                      const timestamp = sample.createdAt ?? sample.updatedAt;
-                      return (
-                        <li
-                          key={sample.id}
-                          className="flex items-center justify-between gap-3 rounded-md border p-2"
-                        >
-                          <div className="space-y-1 text-sm">
-                            <p className="font-medium">{displayName}</p>
-                            <p className="text-xs">
-                              {timestamp
-                                ? formatDate(timestamp, {
-                                    locale,
-                                    preset: "datetime-short",
-                                  })
-                                : "Unknown date"}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Link
-                              href={sample.fileUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-primary text-xs underline"
-                            >
-                              View
-                            </Link>
-                            <Button
-                              size="icon"
-                              variant="outline"
-                              className="h-8 w-8 p-0"
-                              disabled={
-                                deletingSampleId === sample.id || isUploading
-                              }
-                              onClick={() => handleSampleRemoval(sample.id)}
-                            >
-                              <Trash className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
+                <div className="space-y-3">
+                  {managedSamples.length === 0 ? (
+                    <p className="text-sm">
+                      No samples yet. Upload a file to make it available.
+                    </p>
+                  ) : (
+                    <ul className="space-y-2">
+                      {managedSamples.map((sample) => {
+                        const displayName =
+                          sample.originalFilename ?? sample.fileUrl;
+                        const timestamp = sample.createdAt ?? sample.updatedAt;
+                        return (
+                          <li
+                            key={sample.id}
+                            className="flex items-center justify-between gap-3 rounded-md border p-2"
+                          >
+                            <div className="space-y-1 text-sm">
+                              <p className="font-medium">{displayName}</p>
+                              <p className="text-xs">
+                                {timestamp
+                                  ? formatDate(timestamp, {
+                                      locale,
+                                      preset: "datetime-short",
+                                    })
+                                  : "Unknown date"}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Link
+                                href={sample.fileUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-primary text-xs underline"
+                              >
+                                View
+                              </Link>
+                              <Button
+                                size="icon"
+                                variant="outline"
+                                className="h-8 w-8 p-0"
+                                disabled={
+                                  deletingSampleId === sample.id || isUploading
+                                }
+                                onClick={() => handleSampleRemoval(sample.id)}
+                              >
+                                <Trash className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
               </div>
-            </div>
-          </DialogContent>
+            </DialogContent>
         </Dialog>
       ),
     },

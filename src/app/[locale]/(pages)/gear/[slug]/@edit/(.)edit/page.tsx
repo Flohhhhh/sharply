@@ -42,7 +42,10 @@ export default async function EditGearModalPage({
   }
 
   // Fetch current gear data
-  const gearDataResult: GearItem = await fetchGearBySlug(slug);
+  const gearDataResult: GearItem = await fetchGearBySlug(slug, {
+    includeRumored: true,
+    includeHidden: true,
+  });
 
   console.log("[EditGearModalPage] gearDataResult", gearDataResult);
 

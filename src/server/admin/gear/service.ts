@@ -3,6 +3,7 @@ import "server-only";
 import { and,eq,inArray } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { requireRole } from "~/lib/auth/auth-helpers";
+import { GEAR_PUBLICATION_STATES } from "~/lib/gear/publication-state";
 import { buildGearSearchName } from "~/lib/gear/naming";
 import { GEAR_REGIONS,type GearRegion } from "~/lib/gear/region";
 import { shouldBlockFuzzyResults } from "~/lib/utils/gear-creation";
@@ -19,6 +20,7 @@ import {
   performFuzzySearch as performFuzzySearchData,
   renameGearData,
   updateGearOgImageData,
+  updateGearPublicationStateData,
   updateGearRearViewData,
   updateGearThumbnailData,
   updateGearTopViewData,
@@ -30,6 +32,7 @@ import {
   type GearCreationCheckResult,
   type GearCreationParams,
   type GearCreationResult,
+  type UpdateGearPublicationStateResult,
 } from "./data";
 
 export type { AdminGearTableRow,GearCreationParams } from "./data";
@@ -113,6 +116,28 @@ export async function createGearAdmin(
   });
 
   return created;
+}
+
+export async function updateGearPublicationStateService(params: {
+  gearId: string;
+  publicationState: "PUBLISHED" | "RUMORED" | "HIDDEN";
+}): Promise<UpdateGearPublicationStateResult> {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session.user, ["ADMIN", "EDITOR"])) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+
+  if (
+    params.publicationState !== GEAR_PUBLICATION_STATES.PUBLISHED &&
+    params.publicationState !== GEAR_PUBLICATION_STATES.RUMORED &&
+    params.publicationState !== GEAR_PUBLICATION_STATES.HIDDEN
+  ) {
+    throw Object.assign(new Error("Invalid publication state"), {
+      status: 400,
+    });
+  }
+
+  return updateGearPublicationStateData(params);
 }
 
 export async function fetchAdminGearItems(
