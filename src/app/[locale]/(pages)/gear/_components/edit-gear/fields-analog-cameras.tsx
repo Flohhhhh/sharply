@@ -458,10 +458,17 @@ export function AnalogCameraFields({
             <NumberInput
               id="maxContinuousFps"
               label={tf("editGear.fields.maxContinuousFps", "Max Continuous FPS")}
-              value={currentSpecs?.maxContinuousFps ?? null}
+              value={
+                currentSpecs?.maxContinuousFps != null
+                  ? parseFloat(String(currentSpecs.maxContinuousFps))
+                  : null
+              }
               onChange={(value) => onChange("maxContinuousFps", value)}
+              placeholder={tf("editGear.fields.fpsPlaceholder", "e.g., 20.0")}
               min={0}
-              step={1}
+              max={120}
+              step={0.1}
+              suffix="fps"
             />
           )}
         </div>

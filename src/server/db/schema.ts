@@ -946,7 +946,10 @@ export const analogCameraSpecs = appSchema.table(
     requiresBatteryForMetering: boolean("requires_battery_for_metering"),
     supportedBatteries: text("supported_batteries").array(),
     hasContinuousDrive: boolean("has_continuous_drive"),
-    maxContinuousFps: integer("max_continuous_fps"),
+    maxContinuousFps: decimal("max_continuous_fps", {
+      precision: 4,
+      scale: 1,
+    }),
     hasHotShoe: boolean("has_hot_shoe"),
     hasSelfTimer: boolean("has_self_timer"),
     hasIntervalometer: boolean("has_intervalometer"),

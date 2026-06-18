@@ -86,6 +86,15 @@ Stores detailed camera-specific specifications:
 - **Misc**: capture convenience and body feature flags such as built-in flash, hot shoe, illuminated buttons, intervalometer, self timer, and USB file transfer
 - **Flexibility**: JSONB extra field for additional specs
 
+#### `analogCameraSpecs` - Analog Camera Specifications
+
+Stores detailed analog-camera-specific specifications:
+
+- **Primary Key**: `gearId` (1:1 relationship with gear)
+- **Exposure / operation**: shutter, metering, exposure, ISO, focus-assist, and battery requirements
+- **Continuous drive**: `hasContinuousDrive` plus `max_continuous_fps` stored as decimal `numeric(4,1)` so fractional drive rates such as `3.5 fps` can be preserved
+- **Display**: continuous-drive FPS renders compactly, so round values show as `3 FPS` rather than `3.0 FPS`
+
 #### `lensSpecs` - Lens Specifications
 
 Stores detailed lens-specific specifications:

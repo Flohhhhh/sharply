@@ -38,4 +38,17 @@ describe("AnalogCameraFields", () => {
     expect(markup).toContain("sec.");
     expect(markup.match(/1\//g)?.length ?? 0).toBeGreaterThanOrEqual(2);
   });
+
+  it("renders max continuous fps with decimal input behavior like digital camera fields", () => {
+    const markup = renderAnalogCameraFields({
+      hasContinuousDrive: true,
+      maxContinuousFps: "3.5",
+    } as AnalogCameraSpecs);
+
+    expect(markup).toContain("Max Continuous FPS");
+    expect(markup).toContain('inputMode="decimal"');
+    expect(markup).toContain('pattern="\\d+(?:\\.\\d*)?"');
+    expect(markup).toContain(">fps<");
+    expect(markup).toContain('value="3.5"');
+  });
 });

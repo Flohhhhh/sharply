@@ -2005,8 +2005,10 @@ export const specDictionary: SpecSectionDef[] = [
         // only show if the camera has continuous drive
         condition: (item) =>
           item.analogCameraSpecs?.hasContinuousDrive === true,
-        formatDisplay: (raw) =>
-          raw != null ? `${Number(raw as number)} FPS` : undefined,
+        formatDisplay: (raw) => {
+          const formatted = formatDecimalCompact(raw as number | string | null);
+          return formatted ? `${formatted} FPS` : undefined;
+        },
       },
       {
         key: "requiresBatteryForShutter",

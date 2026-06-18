@@ -82,6 +82,11 @@ export function GearProposalsList() {
       locale,
       preset: "date-long",
     });
+  const formatCompactNumber = (value: unknown) => {
+    const num = typeof value === "number" ? value : Number(value);
+    if (!Number.isFinite(num)) return String(value);
+    return Number.isInteger(num) ? String(num) : String(Number(num.toFixed(1)));
+  };
 
   const getVideoBundle = (modes?: VideoModeNormalized[] | null) => {
     if (!Array.isArray(modes) || modes.length === 0) return null;
@@ -219,6 +224,7 @@ export function GearProposalsList() {
     if (k === "precaptureSupportLevel") {
       return formatPrecaptureSupport(v) ?? String(v);
     }
+    if (k === "maxContinuousFps") return formatCompactNumber(v);
     if (k === "maxFpsByShutter") return formatMaxFpsPlain(v);
     return String(v);
   };
@@ -242,6 +248,7 @@ export function GearProposalsList() {
     if (k === "precaptureSupportLevel") {
       return formatPrecaptureSupport(v) ?? String(v ?? "Empty");
     }
+    if (k === "maxContinuousFps") return formatCompactNumber(v);
     if (k === "maxFpsByShutter") return formatMaxFpsPlain(v);
     return String(v ?? "Empty");
   };

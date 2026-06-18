@@ -41,7 +41,45 @@ describe("normalizeProposalPayloadForDb", () => {
     ).toEqual({
       camera: {
         hasIlluminatedButtons: null,
+        },
+      });
+  });
+
+  it("preserves analog max continuous fps decimals", () => {
+    expect(
+      normalizeProposalPayloadForDb({
+        analogCamera: {
+          maxContinuousFps: "3.5",
+        },
+      }),
+    ).toEqual({
+      analogCamera: {
+        maxContinuousFps: 3.5,
       },
     });
+  });
+
+  it("preserves null when analog max continuous fps is cleared", () => {
+    expect(
+      normalizeProposalPayloadForDb({
+        analogCamera: {
+          maxContinuousFps: null,
+        },
+      }),
+    ).toEqual({
+      analogCamera: {
+        maxContinuousFps: null,
+      },
+    });
+  });
+
+  it("drops invalid analog max continuous fps values", () => {
+    expect(
+      normalizeProposalPayloadForDb({
+        analogCamera: {
+          maxContinuousFps: "fast",
+        },
+      }),
+    ).toEqual({});
   });
 });
