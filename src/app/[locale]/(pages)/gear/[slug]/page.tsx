@@ -57,6 +57,7 @@ import { buildGearBreadcrumbItems } from "../_components/gear-breadcrumb-items";
 import { GearBreadcrumbNameHydrator } from "../_components/gear-breadcrumb-name-hydrator";
 import { buildGearSectionNavItems } from "../_components/gear-section-nav";
 import GearStatsCard from "../_components/gear-stats-card";
+import { InstructionManualSection } from "../_components/instruction-manual-section";
 import { SignInToEditSpecsCta } from "../_components/sign-in-to-edit-cta";
 import { SpecsSection } from "../_components/specs-section";
 import { StaffVerdictSection } from "../_components/staff-verdict-section";
@@ -195,6 +196,7 @@ export default async function GearPage({ params }: GearPageProps) {
   ].filter(Boolean) as CrumbItem[];
   const sectionNavItems = buildGearSectionNavItems({
     hasEditorialReview: Boolean(review),
+    hasInstructionManual: Boolean(item.linkInstructionManual?.trim()),
     hasCreatorVideos: creatorVideos.length > 0,
     hasRawSamples: Boolean(
       item.gearType === "CAMERA" &&
@@ -207,6 +209,7 @@ export default async function GearPage({ params }: GearPageProps) {
     labels: {
       staffVerdict: t("staffVerdict"),
       specs: t("specs"),
+      instructionManual: t("instructionManual.navLabel"),
       review: t("review"),
       reviews: t("reviews"),
       rawSamples: t("rawSamples"),
@@ -228,6 +231,7 @@ export default async function GearPage({ params }: GearPageProps) {
         currentThumbnailUrl={item.thumbnailUrl ?? null}
         currentTopViewUrl={item.topViewUrl ?? null}
         currentRearViewUrl={item.rearViewUrl ?? null}
+        currentInstructionManualUrl={item.linkInstructionManual ?? null}
         alternatives={alternatives}
         rawSamples={item.rawSamples ?? []}
         hasCreatorVideos={creatorVideos.length > 0}
@@ -331,6 +335,9 @@ export default async function GearPage({ params }: GearPageProps) {
             sections={specSections}
             slug={item.slug}
             gearType={item.gearType}
+          />
+          <InstructionManualSection
+            linkInstructionManual={item.linkInstructionManual ?? null}
           />
           {/* Sign-in CTA banner for editing specs (client, only when signed out) */}
           <SignInToEditSpecsCta

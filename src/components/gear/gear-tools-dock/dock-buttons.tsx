@@ -1,4 +1,5 @@
 import {
+  BookOpen,
   FileBadge,
   FilePlus,
   ImageIcon,
@@ -11,6 +12,7 @@ import {
 import Link from "next/link";
 
 import { AlternativesManager } from "~/app/[locale]/(pages)/gear/_components/alternatives-manager";
+import { ManageInstructionManualModal } from "~/app/[locale]/(pages)/gear/_components/manage-instruction-manual-modal";
 import { ManageCreatorVideosModal } from "~/app/[locale]/(pages)/gear/_components/manage-creator-videos-modal";
 import { ManageStaffVerdictModal } from "~/app/[locale]/(pages)/gear/_components/manage-staff-verdict-modal";
 import type { AuthUser } from "~/auth";
@@ -53,6 +55,9 @@ export interface BuildDockButtonsParams {
   currentThumbnailUrl?: string | null;
   currentTopViewUrl?: string | null;
   currentRearViewUrl?: string | null;
+  currentInstructionManualUrl?: string | null;
+  instructionManualLabel: string;
+  instructionManualManageLabel: string;
   locale: string;
   alternatives: GearAlternativeRow[];
   hasCreatorVideos: boolean;
@@ -76,6 +81,9 @@ export function buildDockButtons({
   currentThumbnailUrl,
   currentTopViewUrl,
   currentRearViewUrl,
+  currentInstructionManualUrl,
+  instructionManualLabel,
+  instructionManualManageLabel,
   locale,
   alternatives,
   managedSamples,
@@ -125,6 +133,31 @@ export function buildDockButtons({
             }
           />
           <TooltipContent sideOffset={10}>Gear Images</TooltipContent>
+        </Tooltip>
+      ),
+    },
+    {
+      id: "instruction manual",
+      allowed: (currentUser) => Boolean(requireRole(currentUser, ["EDITOR"])),
+      render: () => (
+        <Tooltip key="instruction manual">
+          <ManageInstructionManualModal
+            slug={slug}
+            initialLinkInstructionManual={currentInstructionManualUrl ?? null}
+            trigger={
+              <TooltipTrigger asChild>
+                <button
+                  className={baseTriggerClass}
+                  aria-label={instructionManualManageLabel}
+                >
+                  <BookOpen className="text-foreground/70 size-4.5" />
+                </button>
+              </TooltipTrigger>
+            }
+          />
+          <TooltipContent sideOffset={10}>
+            {instructionManualLabel}
+          </TooltipContent>
         </Tooltip>
       ),
     },
@@ -218,6 +251,7 @@ export function buildDockButtons({
             <TooltipTrigger asChild>
               <DialogTrigger asChild>
                 <button
+                  type="button"
                   className={baseTriggerClass}
                   aria-label="Manage Samples"
                 >

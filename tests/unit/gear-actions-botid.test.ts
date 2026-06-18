@@ -17,6 +17,7 @@ const gearServiceMocks = vi.hoisted(() => ({
   toggleOwnership: vi.fn(),
   toggleWishlist: vi.fn(),
   updateGearAlternatives: vi.fn(),
+  updateGearInstructionManualLink: vi.fn(),
   upsertStaffVerdict: vi.fn(),
 }));
 

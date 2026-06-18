@@ -200,6 +200,31 @@ export async function getGearLinkMpb(params: {
   return row[0]?.linkMpb ?? null;
 }
 
+export async function updateGearInstructionManualLink(params: {
+  gearId: string;
+  linkInstructionManual: string | null;
+}): Promise<Pick<Gear, "id" | "slug" | "linkInstructionManual">> {
+  const rows = await db
+    .update(gear)
+    .set({
+      linkInstructionManual: params.linkInstructionManual,
+      updatedAt: new Date(),
+    })
+    .where(eq(gear.id, params.gearId))
+    .returning({
+      id: gear.id,
+      slug: gear.slug,
+      linkInstructionManual: gear.linkInstructionManual,
+    });
+
+  const updatedGear = rows[0];
+  if (!updatedGear) {
+    throw new Error("Failed to update instruction manual link");
+  }
+
+  return updatedGear;
+}
+
 /** Fetch full gearItem  by id */
 export async function fetchGearMetadataById(id: string): Promise<Gear> {
   const result = await db

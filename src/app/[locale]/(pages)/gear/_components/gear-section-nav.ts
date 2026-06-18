@@ -14,6 +14,7 @@ export interface GearSectionNavItem {
 
 interface BuildGearSectionNavItemsInput {
   hasEditorialReview: boolean;
+  hasInstructionManual: boolean;
   hasCreatorVideos: boolean;
   hasRawSamples: boolean;
   hasAlternatives: boolean;
@@ -22,6 +23,7 @@ interface BuildGearSectionNavItemsInput {
   labels?: {
     staffVerdict: string;
     specs: string;
+    instructionManual: string;
     review: string;
     reviews: string;
     rawSamples: string;
@@ -61,6 +63,7 @@ export function hasStaffVerdictContent(
 
 export function buildGearSectionNavItems({
   hasEditorialReview,
+  hasInstructionManual,
   hasCreatorVideos,
   hasRawSamples,
   hasAlternatives,
@@ -71,6 +74,7 @@ export function buildGearSectionNavItems({
   const resolvedLabels = {
     staffVerdict: labels?.staffVerdict ?? "Staff Verdict",
     specs: labels?.specs ?? "Specs",
+    instructionManual: labels?.instructionManual ?? "Resources",
     review: labels?.review ?? "Review",
     reviews: labels?.reviews ?? "Reviews",
     rawSamples: labels?.rawSamples ?? "Raw Samples",
@@ -85,6 +89,13 @@ export function buildGearSectionNavItems({
   }
 
   items.push({ href: "#specs", label: resolvedLabels.specs });
+
+  if (hasInstructionManual) {
+    items.push({
+      href: "#instruction-manual",
+      label: resolvedLabels.instructionManual,
+    });
+  }
 
   if (hasEditorialReview) {
     items.push({ href: "#editorial-review", label: resolvedLabels.review });

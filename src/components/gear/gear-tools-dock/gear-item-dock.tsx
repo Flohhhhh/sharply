@@ -18,6 +18,7 @@ export interface GearItemDockProps {
   currentThumbnailUrl?: string | null;
   currentTopViewUrl?: string | null;
   currentRearViewUrl?: string | null;
+  currentInstructionManualUrl?: string | null;
   alternatives?: GearAlternativeRow[];
   rawSamples?: RawSample[];
   hasCreatorVideos?: boolean;
@@ -30,6 +31,7 @@ export function GearItemDock({
   currentThumbnailUrl = null,
   currentTopViewUrl = null,
   currentRearViewUrl = null,
+  currentInstructionManualUrl = null,
   alternatives = [],
   rawSamples = [],
   hasCreatorVideos = false,
@@ -42,6 +44,7 @@ export function GearItemDock({
       currentThumbnailUrl={currentThumbnailUrl}
       currentTopViewUrl={currentTopViewUrl}
       currentRearViewUrl={currentRearViewUrl}
+      currentInstructionManualUrl={currentInstructionManualUrl}
       alternatives={alternatives}
       rawSamples={rawSamples}
       hasCreatorVideos={hasCreatorVideos}

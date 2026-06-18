@@ -246,6 +246,7 @@ The registry exports `buildGearSpecsSections(item: GearItem, options?)` which re
 - **Gear Pages**: `buildGearSpecsSections(item)` replaces inline spec definitions
 - **Compare Views**: `CompareSpecsTable` component reuses the same registry
 - **Future Surfaces**: Any new spec display can import and use the registry
+- **Intentional Exceptions**: Editor-managed resource links such as `gear.linkInstructionManual` may live on the core `gear` table while rendering outside the spec table and outside the public suggestion flow.
 
 ### Localization
 

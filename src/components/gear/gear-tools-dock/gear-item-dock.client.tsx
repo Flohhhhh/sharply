@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect,useMemo,useState } from "react";
 import { toast } from "sonner";
 
@@ -25,6 +25,7 @@ interface GearItemDockClientProps {
   currentThumbnailUrl?: string | null;
   currentTopViewUrl?: string | null;
   currentRearViewUrl?: string | null;
+  currentInstructionManualUrl?: string | null;
   alternatives?: GearAlternativeRow[];
   rawSamples?: RawSample[];
   hasCreatorVideos?: boolean;
@@ -78,11 +79,13 @@ export function GearItemDockClient({
   currentThumbnailUrl = null,
   currentTopViewUrl = null,
   currentRearViewUrl = null,
+  currentInstructionManualUrl = null,
   alternatives = [],
   rawSamples = [],
   hasCreatorVideos = false,
 }: GearItemDockClientProps) {
   const locale = useLocale();
+  const t = useTranslations("gearDetail");
   const { data } = useSession();
   const user = data?.user;
 
@@ -174,6 +177,9 @@ export function GearItemDockClient({
         currentThumbnailUrl,
         currentTopViewUrl,
         currentRearViewUrl,
+        currentInstructionManualUrl,
+        instructionManualLabel: t("instructionManual.title"),
+        instructionManualManageLabel: t("instructionManual.modalTitle"),
         locale,
         alternatives,
         hasCreatorVideos,
@@ -190,6 +196,8 @@ export function GearItemDockClient({
       currentThumbnailUrl,
       currentTopViewUrl,
       currentRearViewUrl,
+      currentInstructionManualUrl,
+      t,
       locale,
       gearId,
       gearType,

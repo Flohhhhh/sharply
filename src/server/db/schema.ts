@@ -612,6 +612,7 @@ export const gear = appSchema.table(
     heightMm: decimal("height_mm", { precision: 6, scale: 2 }),
     depthMm: decimal("depth_mm", { precision: 6, scale: 2 }),
     linkManufacturer: text("link_manufacturer"),
+    linkInstructionManual: text("link_instruction_manual"),
     linkMpb: text("link_mpb"),
     linkBh: text("link_bh"),
     linkAmazon: text("link_amazon"),

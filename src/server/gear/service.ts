@@ -74,6 +74,7 @@ import {
   removeOwnership as removeOwnershipData,
   resolveOpenReviewFlags as resolveOpenReviewFlagsData,
   setGearAlternatives as setGearAlternativesData,
+  updateGearInstructionManualLink as updateGearInstructionManualLinkData,
   updateGearEditMetadata as updateGearEditMetadataData,
   upsertStaffVerdictByGearIdData,
   type ContributorRow,
@@ -180,6 +181,61 @@ export async function resolveGearIdOrThrow(slug: string) {
 // Service-level helper: fetch core gear by slug via data layer
 export async function fetchGearBySlug(slug: string): Promise<GearItem> {
   return fetchGearBySlugData(slug);
+}
+
+const instructionManualInput = z.object({
+  linkInstructionManual: z.string().nullish(),
+});
+
+function normalizeInstructionManualLink(
+  value: string | null | undefined,
+): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed.length) {
+    return null;
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    throw Object.assign(new Error("INVALID_INSTRUCTION_MANUAL_URL"), {
+      status: 400,
+    });
+  }
+
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    throw Object.assign(new Error("INVALID_INSTRUCTION_MANUAL_URL"), {
+      status: 400,
+    });
+  }
+
+  return parsed.toString();
+}
+
+export async function updateGearInstructionManualLink(
+  slug: string,
+  body: unknown,
+) {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session?.user, ["EDITOR", "ADMIN", "SUPERADMIN"])) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+
+  const gearId = await resolveGearIdOrThrow(slug);
+  const data = instructionManualInput.parse(body ?? {});
+  const linkInstructionManual = normalizeInstructionManualLink(
+    data.linkInstructionManual,
+  );
+
+  return updateGearInstructionManualLinkData({
+    gearId,
+    linkInstructionManual,
+  });
 }
 
 export type RawSamplePayload = {
