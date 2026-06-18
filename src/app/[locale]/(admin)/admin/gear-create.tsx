@@ -1,5 +1,6 @@
 "use client";
 import { InfoIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect,useMemo,useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Card,CardContent,CardHeader,CardTitle } from "~/components/ui/card";
@@ -23,6 +24,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
+import { GEAR_PUBLICATION_STATES } from "~/lib/gear/publication-state";
 import { splitBrandsWithPriority } from "~/lib/brands";
 import { ENUMS } from "~/lib/constants";
 import { useDebounce } from "~/lib/hooks/useDebounce";
@@ -39,6 +41,7 @@ type Brand = { id: string; name: string };
 type FuzzyItem = { id: string; slug: string; name: string };
 
 export function GearCreateCard() {
+  const t = useTranslations("gearDetail");
   const [name, setName] = useState("");
   const [modelNumber, setModelNumber] = useState("");
   const [linkManufacturer, setLinkManufacturer] = useState("");
@@ -49,6 +52,9 @@ export function GearCreateCard() {
   const [mpbError, setMpbError] = useState<string | null>(null);
   const [brandId, setBrandId] = useState<string>("");
   const [gearType, setGearType] = useState<GearType | "">("");
+  const [publicationState, setPublicationState] = useState<
+    "PUBLISHED" | "RUMORED" | "HIDDEN"
+  >(GEAR_PUBLICATION_STATES.PUBLISHED);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(false);
   const [createdSlug, setCreatedSlug] = useState<string | null>(null);
@@ -163,7 +169,8 @@ export function GearCreateCard() {
       const result = await actionCreateGear({
         name: name.trim(),
         brandId,
-        gearType: gearType as "CAMERA" | "LENS",
+        gearType: gearType as GearType,
+        publicationState,
         modelNumber: modelNumber.trim() || undefined,
         linkManufacturer: linkManufacturer.trim() || undefined,
         linkMpb:
@@ -177,6 +184,7 @@ export function GearCreateCard() {
       setName("");
       setBrandId("");
       setGearType("");
+      setPublicationState(GEAR_PUBLICATION_STATES.PUBLISHED);
       setModelNumber("");
       setLinkManufacturer("");
       setLinkMpb("");
@@ -328,6 +336,32 @@ export function GearCreateCard() {
                     {v === "ANALOG_CAMERA" ? "Analog Camera" : humanizeKey(v)}
                   </SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label>{t("publicationStateLabel")}</Label>
+            <Select
+              value={publicationState}
+              onValueChange={(value) =>
+                setPublicationState(
+                  value as "PUBLISHED" | "RUMORED" | "HIDDEN",
+                )
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={GEAR_PUBLICATION_STATES.PUBLISHED}>
+                  {t("publicationStatePublished")}
+                </SelectItem>
+                <SelectItem value={GEAR_PUBLICATION_STATES.RUMORED}>
+                  {t("publicationStateRumored")}
+                </SelectItem>
+                <SelectItem value={GEAR_PUBLICATION_STATES.HIDDEN}>
+                  {t("publicationStateHidden")}
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>

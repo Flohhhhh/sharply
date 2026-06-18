@@ -12,6 +12,7 @@ import type {
   gearAliases,
   gearEdits,
   gearRawSamples,
+  gearPublicationStateEnum,
   gearRegionEnum,
   lensSpecs,
   mounts,
@@ -42,6 +43,8 @@ export type RawSample = typeof rawSamples.$inferSelect;
 export type GearRawSample = typeof gearRawSamples.$inferSelect;
 export type GearAlias = typeof gearAliases.$inferSelect;
 export type GearRegion = (typeof gearRegionEnum.enumValues)[number];
+export type GearPublicationState =
+  (typeof gearPublicationStateEnum.enumValues)[number];
 
 // Unified gear item types
 export type GearItem = Gear & {

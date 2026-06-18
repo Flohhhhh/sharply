@@ -22,10 +22,29 @@ The central table that stores common gear information:
   - `ogImageUrl` stores a precomputed padded social-preview image derived from the front thumbnail
   - `topViewUrl` applies to cameras and lenses
   - `rearViewUrl` applies only to `CAMERA` and `ANALOG_CAMERA`
+- **Publication State**: `publicationState` controls whether the item is publicly visible
+  - `PUBLISHED`: normal public gear page and discovery behavior
+  - `RUMORED`: hidden from browse/search/feed/sitemap discovery, but still reachable by direct `/gear/[slug]` where it renders a pre-release placeholder page
+  - `HIDDEN`: emergency off switch; hidden from all public surfaces and direct public gear URLs return 404
+  - Indexed in the `gear` table to support public browse/search/trending/popularity filters
 - **User Notes**: `notes` — `text[]` for unstructured notes
 - **Commerce**: `mpbMaxPriceUsdCents` — optional MPB max price (USD cents)
 - **Core Specs**: Physical dimensions (width, height, depth in mm), weight
 - **Timestamps**: Created/updated tracking
+
+### Publication State vs. Completeness
+
+Sharply now tracks two separate concepts on gear items:
+
+- **Publication state** decides whether the item is publicly discoverable at all.
+- **Completeness / under construction** decides whether a published item should show the normal detail page or the under-construction placeholder.
+
+Rules:
+
+- `RUMORED` is a manual override. If an item is rumored, the public gear page shows the rumored placeholder even when the item is also incomplete.
+- `HIDDEN` fully removes the item from public access and discovery.
+- The `/lists/under-construction` surface is only for incomplete **published** items.
+- Editors can still use normal admin and edit surfaces to prefill specs, images, and manuals on rumored or hidden items before publication.
 
 #### `gear_aliases` - Regional Display Names
 
@@ -85,6 +104,15 @@ Stores detailed camera-specific specifications:
 - **Video**: Mode matrix (`camera_video_modes`) plus capability flags: log profile, 10-bit, 12-bit, open gate, supports external recording, supports recording to a drive
 - **Misc**: capture convenience and body feature flags such as built-in flash, hot shoe, illuminated buttons, intervalometer, self timer, and USB file transfer
 - **Flexibility**: JSONB extra field for additional specs
+
+#### `analogCameraSpecs` - Analog Camera Specifications
+
+Stores detailed analog-camera-specific specifications:
+
+- **Primary Key**: `gearId` (1:1 relationship with gear)
+- **Exposure / operation**: shutter, metering, exposure, ISO, focus-assist, and battery requirements
+- **Continuous drive**: `hasContinuousDrive` plus `max_continuous_fps` stored as decimal `numeric(4,1)` so fractional drive rates such as `3.5 fps` can be preserved
+- **Display**: continuous-drive FPS renders compactly, so round values show as `3 FPS` rather than `3.0 FPS`
 
 #### `lensSpecs` - Lens Specifications
 
@@ -246,6 +274,7 @@ The registry exports `buildGearSpecsSections(item: GearItem, options?)` which re
 - **Gear Pages**: `buildGearSpecsSections(item)` replaces inline spec definitions
 - **Compare Views**: `CompareSpecsTable` component reuses the same registry
 - **Future Surfaces**: Any new spec display can import and use the registry
+- **Intentional Exceptions**: Editor-managed resource links such as `gear.linkInstructionManual` may live on the core `gear` table while rendering outside the spec table and outside the public suggestion flow.
 
 ### Localization
 
@@ -397,6 +426,13 @@ To add a new gear type (e.g., tripods, lighting):
 - Specs live in `analog_camera_specs` (1:1 on `gear.id`); integrated lenses still use `fixed_lens_specs` shared with digital cameras.
 - Under-construction rule: analog items are incomplete when `mount`, `cameraType`, or `captureMedium` are missing (plus fixed-lens focal length when the mount is `fixed-lens`).
 - Update data/service fetchers, edit/admin payloads, and the specs registry to treat analog cameras like digital cameras for integrated-lens display while using their own spec table.
+
+### Admin Workflow Notes
+
+- Staff can create gear directly as `PUBLISHED`, `RUMORED`, or `HIDDEN`.
+- The admin gear table can switch publication state after creation.
+- Rumored pages intentionally keep edit tooling available so staff can fill out specs and supporting assets before launch.
+- Public-only actions that do not make sense before release should be disabled on rumored pages rather than exposed as if the item were live.
 
 ### Adding New Specification Tables
 

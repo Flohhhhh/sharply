@@ -56,7 +56,7 @@ export function VideoSpecsSummary({
       >
         <VideoSummaryGrid
           lines={lines}
-          className="relative z-10"
+          className="relative"
           structuredClassName={
             interactive
               ? "space-y-1 text-foreground transition group-hover:opacity-40"

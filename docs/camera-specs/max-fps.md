@@ -6,6 +6,8 @@
   - `max_fps_raw` (numeric) – headline max RAW fps
   - `max_fps_jpg` (numeric) – headline max JPG fps
   - `max_fps_by_shutter` (jsonb, nullable) – per-shutter fps matrix
+- Column on `analog_camera_specs`:
+  - `max_continuous_fps` (numeric, nullable) – analog continuous-drive fps with one decimal place when needed
 - JSON shape (keys only for available shutters):
   - `mechanical`: `{ raw?: number | null, jpg?: number | null }`
   - `efc`: `{ raw?: number | null, jpg?: number | null }`
@@ -24,6 +26,7 @@
 - Single shutter: inline `20 fps (Raw) / 120 fps (JPG)`; if equal, `20 fps`.
 - Multiple shutters: vertical list with short labels `Mech.`, `EFC`, `Electronic`; values stack RAW and JPG when both exist. Labels muted, values bold/right-aligned with light row separators.
 - Fallback: if per-shutter data is absent, use headline `max_fps_raw` / `max_fps_jpg`.
+- Analog `max_continuous_fps` displays compactly: whole numbers render without `.0`, fractional values keep one decimal place.
 
 ## Change preview (edit confirmation)
 

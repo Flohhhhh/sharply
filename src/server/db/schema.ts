@@ -49,6 +49,11 @@ export const gearTypeEnum = pgEnum("gear_type", [
   "ANALOG_CAMERA",
   "LENS",
 ]);
+export const gearPublicationStateEnum = pgEnum("gear_publication_state", [
+  "PUBLISHED",
+  "RUMORED",
+  "HIDDEN",
+]);
 export const gearRegionEnum = pgEnum("gear_region", ["GLOBAL", "EU", "JP"]);
 export const proposalStatusEnum = pgEnum("proposal_status", [
   "PENDING",
@@ -576,6 +581,9 @@ export const gear = appSchema.table(
     name: varchar("name", { length: 240 }).notNull().unique(),
     modelNumber: varchar("model_number", { length: 240 }).unique(), // optional model number for de-duplication and display
     gearType: gearTypeEnum("gear_type").notNull(),
+    publicationState: gearPublicationStateEnum("publication_state")
+      .notNull()
+      .default("PUBLISHED"),
     brandId: varchar("brand_id", { length: 36 })
       .notNull()
       .references(() => brands.id, { onDelete: "restrict" }),
@@ -612,6 +620,7 @@ export const gear = appSchema.table(
     heightMm: decimal("height_mm", { precision: 6, scale: 2 }),
     depthMm: decimal("depth_mm", { precision: 6, scale: 2 }),
     linkManufacturer: text("link_manufacturer"),
+    linkInstructionManual: text("link_instruction_manual"),
     linkMpb: text("link_mpb"),
     linkBh: text("link_bh"),
     linkAmazon: text("link_amazon"),
@@ -624,6 +633,7 @@ export const gear = appSchema.table(
   }),
   (t) => [
     index("gear_search_idx").on(t.searchName),
+    index("gear_publication_state_idx").on(t.publicationState),
     index("gear_type_brand_idx").on(t.gearType, t.brandId),
     index("gear_brand_mount_idx").on(t.brandId, t.mountId),
   ],
@@ -945,7 +955,10 @@ export const analogCameraSpecs = appSchema.table(
     requiresBatteryForMetering: boolean("requires_battery_for_metering"),
     supportedBatteries: text("supported_batteries").array(),
     hasContinuousDrive: boolean("has_continuous_drive"),
-    maxContinuousFps: integer("max_continuous_fps"),
+    maxContinuousFps: decimal("max_continuous_fps", {
+      precision: 4,
+      scale: 1,
+    }),
     hasHotShoe: boolean("has_hot_shoe"),
     hasSelfTimer: boolean("has_self_timer"),
     hasIntervalometer: boolean("has_intervalometer"),

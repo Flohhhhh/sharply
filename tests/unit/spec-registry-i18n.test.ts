@@ -209,4 +209,26 @@ describe("spec registry i18n", () => {
         .some((row) => row.key === "hasIlluminatedButtons"),
     ).toBe(false);
   });
+
+  it("renders analog max continuous fps without trailing .0 for whole numbers", () => {
+    const sections = buildGearSpecsSections(
+      createGearItem({
+        gearType: "ANALOG_CAMERA",
+        analogCameraSpecs: {
+          hasContinuousDrive: true,
+          maxContinuousFps: "3.0",
+        } as GearItem["analogCameraSpecs"],
+      }),
+      {
+        locale: "en",
+      },
+    );
+    const analogSection = sections.find(
+      (section) => section.id === "analog-camera",
+    );
+
+    expect(
+      analogSection?.data.find((row) => row.key === "maxContinuousFps")?.value,
+    ).toBe("3 FPS");
+  });
 });

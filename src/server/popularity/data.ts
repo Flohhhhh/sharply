@@ -1,6 +1,7 @@
 import { and,desc,eq,gte,inArray,lt,sql,type SQL } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { unstable_cache } from "next/cache";
+import { GEAR_PUBLICATION_STATES } from "~/lib/gear/publication-state";
 import { db } from "~/server/db";
 import {
   brands,
@@ -22,6 +23,10 @@ import type {
 } from "~/types/popularity";
 
 const MIN_TRENDING_SCORE = 1;
+
+function buildPublishedGearClause() {
+  return eq(gear.publicationState, GEAR_PUBLICATION_STATES.PUBLISHED);
+}
 
 /**
  * Popularity data access layer (server-only)
@@ -84,6 +89,7 @@ export async function getTrendingData(
       // Base conditions: fixed timeframe and only the most recent snapshot for that timeframe
       const conditions: SQL[] = [
         eq(gearPopularityWindows.timeframe, timeframe),
+        buildPublishedGearClause(),
         sql`${gearPopularityWindows.asOfDate} = (
           SELECT MAX(as_of_date)
           FROM app.gear_popularity_windows
@@ -199,6 +205,7 @@ export async function getLiveTrendingSnapshot(
 
       const conditions: SQL[] = [
         sql`${gearPopularityIntraday.date} = CURRENT_DATE`,
+        buildPublishedGearClause(),
       ];
       if (filters.brandId) conditions.push(eq(gear.brandId, filters.brandId));
       if (filters.gearType)
@@ -297,6 +304,7 @@ export async function getTrendingTotalCount(
     async () => {
       const conditions: SQL[] = [
         eq(gearPopularityWindows.timeframe, timeframe),
+        buildPublishedGearClause(),
         sql`${gearPopularityWindows.asOfDate} = (
           SELECT MAX(as_of_date)
           FROM app.gear_popularity_windows
@@ -449,7 +457,9 @@ export async function fetchHighTrafficGearSlugsData(limit: number) {
     })
     .from(gearPopularityLifetime)
     .innerJoin(gear, eq(gearPopularityLifetime.gearId, gear.id))
-    .where(gte(gearPopularityLifetime.viewsLifetime, 1))
+    .where(
+      and(gte(gearPopularityLifetime.viewsLifetime, 1), buildPublishedGearClause()),
+    )
     .orderBy(
       desc(gearPopularityLifetime.viewsLifetime),
       desc(gear.updatedAt),

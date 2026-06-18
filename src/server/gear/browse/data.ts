@@ -1,6 +1,7 @@
 import { and,asc,desc,eq,inArray,sql,type SQL } from "drizzle-orm";
 import "server-only";
 import { orderBrandsWithPriority } from "~/lib/brands";
+import { GEAR_PUBLICATION_STATES } from "~/lib/gear/publication-state";
 import type { BrowseFilters } from "~/lib/browse/filters";
 import type { GearCategorySlug } from "~/lib/browse/routing";
 import {
@@ -48,6 +49,10 @@ const gearCategoryToTypes: Record<GearCategorySlug, GearType[]> = {
   cameras: ["CAMERA", "ANALOG_CAMERA"],
   lenses: ["LENS"],
 };
+
+function buildPublishedGearClause() {
+  return eq(gear.publicationState, GEAR_PUBLICATION_STATES.PUBLISHED);
+}
 
 // Prefer using BRANDS directly from constants at call sites; kept for legacy imports
 export async function getBrands() {
@@ -106,7 +111,7 @@ export type SearchInput = {
 export async function searchGear(
   input: SearchInput,
 ): Promise<SearchGearResult> {
-  const where: SQL[] = [];
+  const where: SQL[] = [buildPublishedGearClause()];
   if (input.brandId) where.push(eq(gear.brandId, input.brandId));
   if (input.category)
     where.push(inArray(gear.gearType, gearCategoryToTypes[input.category]));
@@ -243,7 +248,7 @@ export async function getReleaseOrderedGearPage(params: {
   const limit = Math.max(1, Math.min(params.limit ?? 12, 60));
   // No upper bound on offset - large offsets are expected for deep pagination
   const offset = Math.max(0, Math.floor(params.offset ?? 0));
-  const where: SQL[] = [];
+  const where: SQL[] = [buildPublishedGearClause()];
   const effectiveReleaseDate = sql`coalesce(${gear.releaseDate}, ${gear.announcedDate})`;
   if (params.brandId) where.push(eq(gear.brandId, params.brandId));
   else if (params.brandSlug) where.push(eq(brands.slug, params.brandSlug));

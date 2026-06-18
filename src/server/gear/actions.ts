@@ -12,6 +12,7 @@ import {
   toggleOwnership,
   toggleWishlist,
   updateGearAlternatives,
+  updateGearInstructionManualLink,
   upsertStaffVerdict,
   type RawSamplePayload,
 } from "./service";
@@ -88,6 +89,15 @@ export async function actionUpdateGearAlternatives(
   const res = await updateGearAlternatives(slug, { alternatives });
   revalidatePath(`/gear/${slug}`);
   return res;
+}
+
+export async function actionUpdateGearInstructionManualLink(
+  slug: string,
+  body: unknown,
+) {
+  const result = await updateGearInstructionManualLink(slug, body);
+  revalidatePath(`/gear/${slug}`);
+  return result;
 }
 
 export async function actionAddGearRawSample(

@@ -11,7 +11,10 @@ export default async function SubmittedPage({
   searchParams,
 }: SubmittedPageProps) {
   const [{ slug }, { editId }] = await Promise.all([params, searchParams]);
-  const gear = await fetchGearBySlug(slug);
+  const gear = await fetchGearBySlug(slug, {
+    includeRumored: true,
+    includeHidden: true,
+  });
 
   return (
     <div className="container mx-auto max-w-3xl p-6">

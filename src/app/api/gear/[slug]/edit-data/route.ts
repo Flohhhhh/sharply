@@ -7,7 +7,10 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
-    const gearItem = await fetchGearBySlug(slug);
+    const gearItem = await fetchGearBySlug(slug, {
+      includeRumored: true,
+      includeHidden: true,
+    });
     const payload = {
       ...gearItem,
       cameraSpecs: gearItem.cameraSpecs ?? null,

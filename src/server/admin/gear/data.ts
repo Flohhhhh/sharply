@@ -1,6 +1,7 @@
 import "server-only";
 
 import { and,count,desc,eq,ilike,inArray,isNull,ne,or,sql } from "drizzle-orm";
+import { GEAR_PUBLICATION_STATES } from "~/lib/gear/publication-state";
 import { buildGearSearchName } from "~/lib/gear/naming";
 import { normalizeMpbLinkForStorage } from "~/lib/links/mpb";
 import { normalizeFuzzyTokens } from "~/lib/utils/fuzzy";
@@ -16,7 +17,7 @@ import {
   mounts,
   recommendationItems,
 } from "~/server/db/schema";
-import type { GearType } from "~/types/gear";
+import type { GearPublicationState,GearType } from "~/types/gear";
 
 type DbTx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 type DbLike = typeof db | DbTx;
@@ -189,6 +190,7 @@ export interface GearCreationParams {
   name: string;
   brandId: string;
   gearType: GearType;
+  publicationState?: GearPublicationState;
   modelNumber?: string;
   /**
    * Optional mounts to associate. Multi-mount is supported via the junction
@@ -214,6 +216,7 @@ export async function createGearData(
     name,
     brandId,
     gearType,
+    publicationState = GEAR_PUBLICATION_STATES.PUBLISHED,
     modelNumber,
     mountIds,
     mountId,
@@ -297,6 +300,7 @@ export async function createGearData(
         name: displayName,
         slug,
         gearType,
+        publicationState,
         brandId,
         modelNumber: modelNumber || null,
         linkManufacturer: linkManufacturer || null,
@@ -362,6 +366,7 @@ const adminGearSelect = {
   name: gear.name,
   slug: gear.slug,
   gearType: gear.gearType,
+  publicationState: gear.publicationState,
   brandId: gear.brandId,
   brandName: brands.name,
   thumbnailUrl: gear.thumbnailUrl,
@@ -415,6 +420,40 @@ export type FetchAdminGearItemsResult = Awaited<
 >;
 
 export type AdminGearTableRow = FetchAdminGearItemsResult["items"][number];
+
+export interface UpdateGearPublicationStateParams {
+  gearId: string;
+  publicationState: GearPublicationState;
+}
+
+export interface UpdateGearPublicationStateResult {
+  id: string;
+  slug: string;
+  publicationState: GearPublicationState;
+}
+
+export async function updateGearPublicationStateData(
+  params: UpdateGearPublicationStateParams,
+): Promise<UpdateGearPublicationStateResult> {
+  const updated = await db
+    .update(gear)
+    .set({
+      publicationState: params.publicationState,
+      updatedAt: new Date(),
+    })
+    .where(eq(gear.id, params.gearId))
+    .returning({
+      id: gear.id,
+      slug: gear.slug,
+      publicationState: gear.publicationState,
+    });
+
+  if (!updated[0]) {
+    throw Object.assign(new Error("Gear not found"), { status: 404 });
+  }
+
+  return updated[0];
+}
 
 export interface RenameGearParams {
   gearId: string;

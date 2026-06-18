@@ -19,7 +19,10 @@ export async function generateMetadata({
   params,
 }: EditGearPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const item: GearItem = await fetchGearBySlug(slug);
+  const item: GearItem = await fetchGearBySlug(slug, {
+    includeRumored: true,
+    includeHidden: true,
+  });
   return {
     title: `Edit ${item.name}`,
     openGraph: {
@@ -55,7 +58,10 @@ export default async function EditGearPage({
   }
 
   // Fetch current gear data
-  const gearData: GearItem = await fetchGearBySlug(slug);
+  const gearData: GearItem = await fetchGearBySlug(slug, {
+    includeRumored: true,
+    includeHidden: true,
+  });
   const resolvedGearType: GearType =
     (type && (ENUMS.gear_type ?? []).includes(type as GearType)
       ? (type as GearType)

@@ -5,6 +5,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ConstructionFullPage } from "~/app/[locale]/(pages)/gear/_components/construction-full";
+import { RumoredFullPage } from "~/app/[locale]/(pages)/gear/_components/rumored-full";
+import { isRumoredGear } from "~/lib/gear/publication-state";
 import { GearActionButtons } from "~/app/[locale]/(pages)/gear/_components/gear-action-buttons";
 import { GearContributors } from "~/app/[locale]/(pages)/gear/_components/gear-contributors";
 import { GearImageCarousel } from "~/app/[locale]/(pages)/gear/_components/gear-image-carousel";
@@ -57,6 +59,7 @@ import { buildGearBreadcrumbItems } from "../_components/gear-breadcrumb-items";
 import { GearBreadcrumbNameHydrator } from "../_components/gear-breadcrumb-name-hydrator";
 import { buildGearSectionNavItems } from "../_components/gear-section-nav";
 import GearStatsCard from "../_components/gear-stats-card";
+import { InstructionManualSection } from "../_components/instruction-manual-section";
 import { SignInToEditSpecsCta } from "../_components/sign-in-to-edit-cta";
 import { SpecsSection } from "../_components/specs-section";
 import { StaffVerdictSection } from "../_components/staff-verdict-section";
@@ -92,7 +95,7 @@ export default async function GearPage({ params }: GearPageProps) {
   const viewerRegion = resolveRegionFromCountryCode(null);
 
   // Fetch core gear data
-  const item = await fetchGearBySlug(slug).catch((err: any) => {
+  const item = await fetchGearBySlug(slug, { includeRumored: true }).catch((err: any) => {
     if ((err)?.status === 404) return null;
     throw err;
   });
@@ -110,6 +113,30 @@ export default async function GearPage({ params }: GearPageProps) {
 
   const isAuthenticated = false;
   const hasImageRequest: boolean | null = null;
+
+  if (isRumoredGear(item)) {
+    return (
+      <main className="mx-auto max-w-5xl space-y-8 px-4 pt-20 sm:px-6">
+        <GearItemDock
+          slug={slug}
+          gearId={item.id}
+          gearType={item.gearType}
+          currentThumbnailUrl={item.thumbnailUrl ?? null}
+          currentTopViewUrl={item.topViewUrl ?? null}
+          currentRearViewUrl={item.rearViewUrl ?? null}
+          currentInstructionManualUrl={item.linkInstructionManual ?? null}
+          publicationState={item.publicationState}
+          alternatives={[]}
+          rawSamples={item.rawSamples ?? []}
+          hasCreatorVideos={false}
+        />
+        <RumoredFullPage
+          gearName={regionalDisplayName}
+          slug={item.slug}
+        />
+      </main>
+    );
+  }
 
   // Fetch editorial content
   const [ratingsRows, staffVerdictRows, pendingChangeRequests] =
@@ -195,6 +222,7 @@ export default async function GearPage({ params }: GearPageProps) {
   ].filter(Boolean) as CrumbItem[];
   const sectionNavItems = buildGearSectionNavItems({
     hasEditorialReview: Boolean(review),
+    hasInstructionManual: Boolean(item.linkInstructionManual?.trim()),
     hasCreatorVideos: creatorVideos.length > 0,
     hasRawSamples: Boolean(
       item.gearType === "CAMERA" &&
@@ -207,6 +235,7 @@ export default async function GearPage({ params }: GearPageProps) {
     labels: {
       staffVerdict: t("staffVerdict"),
       specs: t("specs"),
+      instructionManual: t("instructionManual.navLabel"),
       review: t("review"),
       reviews: t("reviews"),
       rawSamples: t("rawSamples"),
@@ -228,6 +257,8 @@ export default async function GearPage({ params }: GearPageProps) {
         currentThumbnailUrl={item.thumbnailUrl ?? null}
         currentTopViewUrl={item.topViewUrl ?? null}
         currentRearViewUrl={item.rearViewUrl ?? null}
+        currentInstructionManualUrl={item.linkInstructionManual ?? null}
+        publicationState={item.publicationState}
         alternatives={alternatives}
         rawSamples={item.rawSamples ?? []}
         hasCreatorVideos={creatorVideos.length > 0}
@@ -303,7 +334,7 @@ export default async function GearPage({ params }: GearPageProps) {
 
       {/* Intra-page nav bar */}
       {sectionNavItems.length > 0 && (
-        <section className="bg-background sticky top-16 z-10 hidden border-b py-2 md:block">
+        <section className="bg-background sticky top-16 z-20 hidden border-b py-2 md:block">
           <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
             {sectionNavItems.map((item) => (
               <Link
@@ -331,6 +362,9 @@ export default async function GearPage({ params }: GearPageProps) {
             sections={specSections}
             slug={item.slug}
             gearType={item.gearType}
+          />
+          <InstructionManualSection
+            linkInstructionManual={item.linkInstructionManual ?? null}
           />
           {/* Sign-in CTA banner for editing specs (client, only when signed out) */}
           <SignInToEditSpecsCta

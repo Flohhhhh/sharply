@@ -12,6 +12,7 @@ import {
   or,
   sql,
 } from "drizzle-orm";
+import { GEAR_PUBLICATION_STATES } from "~/lib/gear/publication-state";
 import { buildGearSearchName } from "~/lib/gear/naming";
 import type { AutoApprovalMetadata } from "~/lib/gear/auto-approval-reasons";
 import { db } from "~/server/db";
@@ -62,6 +63,10 @@ export type GearExportRow = {
   brand: string | null;
   mounts: string[];
 };
+
+function publishedGearWhereClause() {
+  return eq(gear.publicationState, GEAR_PUBLICATION_STATES.PUBLISHED);
+}
 
 // Reads
 export async function getGearIdBySlug(slug: string): Promise<string | null> {
@@ -198,6 +203,31 @@ export async function getGearLinkMpb(params: {
     .limit(1);
 
   return row[0]?.linkMpb ?? null;
+}
+
+export async function updateGearInstructionManualLink(params: {
+  gearId: string;
+  linkInstructionManual: string | null;
+}): Promise<Pick<Gear, "id" | "slug" | "linkInstructionManual">> {
+  const rows = await db
+    .update(gear)
+    .set({
+      linkInstructionManual: params.linkInstructionManual,
+      updatedAt: new Date(),
+    })
+    .where(eq(gear.id, params.gearId))
+    .returning({
+      id: gear.id,
+      slug: gear.slug,
+      linkInstructionManual: gear.linkInstructionManual,
+    });
+
+  const updatedGear = rows[0];
+  if (!updatedGear) {
+    throw new Error("Failed to update instruction manual link");
+  }
+
+  return updatedGear;
 }
 
 /** Fetch full gearItem  by id */
@@ -531,6 +561,7 @@ export async function fetchLatestGearCardsData(
     .leftJoin(brands, eq(gear.brandId, brands.id))
     .leftJoin(cameraSpecs, eq(gear.id, cameraSpecs.gearId))
     .leftJoin(lensSpecs, eq(gear.id, lensSpecs.gearId))
+    .where(publishedGearWhereClause())
     .orderBy(desc(gear.createdAt))
     .limit(limit);
   const aliasesById = await fetchGearAliasesByGearIds(
@@ -557,6 +588,7 @@ export async function fetchRecentGearActivityRows(
       eventAt,
     })
     .from(gear)
+    .where(publishedGearWhereClause())
     .orderBy(desc(eventAt), desc(gear.updatedAt), desc(gear.createdAt))
     .limit(limit);
 }
@@ -588,7 +620,7 @@ export async function fetchBrandGearData(
     .leftJoin(brands, eq(gear.brandId, brands.id))
     .leftJoin(cameraSpecs, eq(gear.id, cameraSpecs.gearId))
     .leftJoin(lensSpecs, eq(gear.id, lensSpecs.gearId))
-    .where(eq(gear.brandId, brandId))
+    .where(and(eq(gear.brandId, brandId), publishedGearWhereClause()))
     .orderBy(desc(gear.createdAt));
 
   // Fetch mounts for all gear items in one query
@@ -871,7 +903,10 @@ export async function upsertStaffVerdictByGearIdData(params: {
 }
 
 export async function fetchAllGearSlugsData() {
-  const rows = await db.select({ slug: gear.slug }).from(gear);
+  const rows = await db
+    .select({ slug: gear.slug })
+    .from(gear)
+    .where(publishedGearWhereClause());
   return rows.map((r) => r.slug);
 }
 
@@ -880,6 +915,7 @@ export async function fetchNewestGearSlugsData(limit: number) {
   const rows = await db
     .select({ slug: gear.slug })
     .from(gear)
+    .where(publishedGearWhereClause())
     .orderBy(desc(effectiveReleaseDate), desc(gear.createdAt), gear.slug)
     .limit(limit);
 
@@ -1006,6 +1042,7 @@ export type ConstructionMinimalRow = {
   slug: string;
   name: string;
   gearType: string;
+  publicationState: typeof gear.$inferSelect.publicationState;
   thumbnailUrl: string | null;
   brandId: string | null;
   brandName: string | null;
@@ -1040,6 +1077,7 @@ export async function fetchAllGearForConstructionData(): Promise<
       slug: gear.slug,
       name: gear.name,
       gearType: gear.gearType,
+      publicationState: gear.publicationState,
       thumbnailUrl: gear.thumbnailUrl,
       brandId: gear.brandId,
       brandName: brands.name,
@@ -1065,7 +1103,8 @@ export async function fetchAllGearForConstructionData(): Promise<
     .leftJoin(cameraSpecs, eq(gear.id, cameraSpecs.gearId))
     .leftJoin(analogCameraSpecs, eq(gear.id, analogCameraSpecs.gearId))
     .leftJoin(fixedLensSpecs, eq(gear.id, fixedLensSpecs.gearId))
-    .leftJoin(lensSpecs, eq(gear.id, lensSpecs.gearId));
+    .leftJoin(lensSpecs, eq(gear.id, lensSpecs.gearId))
+    .where(publishedGearWhereClause());
 
   const gearIds = rows.map((r) => r.id);
   const mountsRows = gearIds.length

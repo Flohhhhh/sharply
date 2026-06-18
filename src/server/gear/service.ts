@@ -5,6 +5,11 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { auth } from "~/auth";
 import { requireRole } from "~/lib/auth/auth-helpers";
+import {
+  isHiddenGear,
+  isPublishedGear,
+  isRumoredGear,
+} from "~/lib/gear/publication-state";
 import type {
   AutoApprovalDecisionMetadata,
   AutoApprovalPath,
@@ -74,6 +79,7 @@ import {
   removeOwnership as removeOwnershipData,
   resolveOpenReviewFlags as resolveOpenReviewFlagsData,
   setGearAlternatives as setGearAlternativesData,
+  updateGearInstructionManualLink as updateGearInstructionManualLinkData,
   updateGearEditMetadata as updateGearEditMetadataData,
   upsertStaffVerdictByGearIdData,
   type ContributorRow,
@@ -178,8 +184,73 @@ export async function resolveGearIdOrThrow(slug: string) {
 }
 
 // Service-level helper: fetch core gear by slug via data layer
-export async function fetchGearBySlug(slug: string): Promise<GearItem> {
-  return fetchGearBySlugData(slug);
+export async function fetchGearBySlug(
+  slug: string,
+  options?: { includeRumored?: boolean; includeHidden?: boolean },
+): Promise<GearItem> {
+  const gearItem = await fetchGearBySlugData(slug);
+  if (!options?.includeHidden && isHiddenGear(gearItem)) {
+    throw Object.assign(new Error("Gear not found"), { status: 404 });
+  }
+  if (!options?.includeRumored && isRumoredGear(gearItem)) {
+    throw Object.assign(new Error("Gear not found"), { status: 404 });
+  }
+  return gearItem;
+}
+
+const instructionManualInput = z.object({
+  linkInstructionManual: z.string().nullish(),
+});
+
+function normalizeInstructionManualLink(
+  value: string | null | undefined,
+): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed.length) {
+    return null;
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    throw Object.assign(new Error("INVALID_INSTRUCTION_MANUAL_URL"), {
+      status: 400,
+    });
+  }
+
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    throw Object.assign(new Error("INVALID_INSTRUCTION_MANUAL_URL"), {
+      status: 400,
+    });
+  }
+
+  return parsed.toString();
+}
+
+export async function updateGearInstructionManualLink(
+  slug: string,
+  body: unknown,
+) {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session?.user, ["EDITOR", "ADMIN", "SUPERADMIN"])) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+
+  const gearId = await resolveGearIdOrThrow(slug);
+  const data = instructionManualInput.parse(body ?? {});
+  const linkInstructionManual = normalizeInstructionManualLink(
+    data.linkInstructionManual,
+  );
+
+  return updateGearInstructionManualLinkData({
+    gearId,
+    linkInstructionManual,
+  });
 }
 
 export type RawSamplePayload = {
@@ -1226,7 +1297,9 @@ export async function listUnderConstruction(
   thresholdMissing = 1,
   minCompletionPercent?: number,
 ): Promise<UnderConstructionRow[]> {
-  const rows = await fetchAllGearForConstructionData();
+  const rows = (await fetchAllGearForConstructionData()).filter((row) =>
+    isPublishedGear(row),
+  );
 
   // Map to a minimal GearItem-like object only for getConstructionState
   type MinimalForConstruction = {

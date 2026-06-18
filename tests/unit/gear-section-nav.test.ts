@@ -34,6 +34,7 @@ describe("buildGearSectionNavItems", () => {
     expect(
       buildGearSectionNavItems({
         hasEditorialReview: false,
+        hasInstructionManual: false,
         hasCreatorVideos: false,
         hasRawSamples: false,
         hasAlternatives: true,
@@ -52,6 +53,7 @@ describe("buildGearSectionNavItems", () => {
     expect(
       buildGearSectionNavItems({
         hasEditorialReview: true,
+        hasInstructionManual: false,
         hasCreatorVideos: false,
         hasRawSamples: true,
         hasAlternatives: false,
@@ -73,6 +75,7 @@ describe("buildGearSectionNavItems", () => {
     expect(
       buildGearSectionNavItems({
         hasEditorialReview: false,
+        hasInstructionManual: false,
         hasCreatorVideos: true,
         hasRawSamples: false,
         hasAlternatives: false,
@@ -84,6 +87,24 @@ describe("buildGearSectionNavItems", () => {
       { href: "#reviews", label: "Reviews" },
       { href: "#creator-videos", label: "Creator Videos" },
       { href: "#related-articles", label: "Articles" },
+    ]);
+  });
+
+  it("inserts the instruction manual link after specs when present", () => {
+    expect(
+      buildGearSectionNavItems({
+        hasEditorialReview: false,
+        hasInstructionManual: true,
+        hasCreatorVideos: false,
+        hasRawSamples: false,
+        hasAlternatives: false,
+        hasRelatedArticles: false,
+        verdict: null,
+      }),
+    ).toEqual([
+      { href: "#specs", label: "Specs" },
+      { href: "#instruction-manual", label: "Resources" },
+      { href: "#reviews", label: "Reviews" },
     ]);
   });
 });

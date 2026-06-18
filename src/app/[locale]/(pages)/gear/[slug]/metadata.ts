@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import { isRumoredGear } from "~/lib/gear/publication-state";
 import { GetGearDisplayName } from "~/lib/gear/naming";
 import { resolveRegionFromCountryCode } from "~/lib/gear/region";
 import { buildGearMetaDescription } from "~/lib/seo/build-gear-meta-description";
@@ -16,7 +17,7 @@ export async function generateGearPageMetadata(params: {
   const t = await getTranslations({ locale, namespace: "gearDetail" });
 
   try {
-    const item: GearItem = await fetchGearBySlug(slug);
+    const item: GearItem = await fetchGearBySlug(slug, { includeRumored: true });
     const verdict = await fetchStaffVerdict(slug).catch(() => null);
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
     if (!baseUrl) {
@@ -32,6 +33,30 @@ export async function generateGearPageMetadata(params: {
       },
       { region: viewerRegion },
     );
+    if (isRumoredGear(item)) {
+      const title = `${displayName} | ${t("rumoredItemLabel")}`;
+      const description = `${t("rumoredItemDescriptionPrimary")} ${t("rumoredItemDescriptionSecondary")}`;
+
+      return buildLocalizedMetadata(`/gear/${slug}`, {
+        title,
+        description,
+        robots: { index: false, follow: false },
+        openGraph: {
+          type: "website",
+          title,
+          url: `${baseUrl}/gear/${slug}`,
+          description,
+          images: [],
+        },
+        twitter: {
+          card: "summary",
+          title,
+          description,
+          images: [],
+        },
+      });
+    }
+
     const description = buildGearMetaDescription({
       gear: item,
       displayName,

@@ -148,6 +148,13 @@
       "when": 1781493411803,
       "tag": "0020_cold_kinsey_walden",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1781791737186,
+      "tag": "0021_curious_namora",
+      "breakpoints": true
     }
   ]
 }

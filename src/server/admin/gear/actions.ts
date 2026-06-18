@@ -14,6 +14,7 @@ import {
   setGearRearViewService,
   setGearThumbnailService,
   setGearTopViewService,
+  updateGearPublicationStateService,
   updateGearAliasesService,
   type GearCreationParams,
 } from "./service";
@@ -140,5 +141,18 @@ export async function actionDeleteGear(gearId: string) {
   revalidatePath("/admin/gear");
   revalidatePath(`/gear/${result.slug}`);
   revalidatePath("/browse");
+  return result;
+}
+
+export async function actionUpdateGearPublicationState(params: {
+  gearId: string;
+  publicationState: "PUBLISHED" | "RUMORED" | "HIDDEN";
+}) {
+  const result = await updateGearPublicationStateService(params);
+  revalidatePath("/admin/gear");
+  revalidatePath(`/gear/${result.slug}`);
+  revalidatePath("/browse");
+  revalidatePath("/lists/under-construction");
+  revalidatePath("/");
   return result;
 }

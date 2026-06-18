@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect,useMemo,useState } from "react";
 import { toast } from "sonner";
 
@@ -10,12 +10,13 @@ import {
 } from "~/components/ui/tooltip";
 import { useSession } from "~/lib/auth/auth-client";
 import { requireRole } from "~/lib/auth/auth-helpers";
+import { isRumoredGear } from "~/lib/gear/publication-state";
 import {
   actionAddGearRawSample,
   actionRemoveGearRawSample,
 } from "~/server/gear/actions";
 import type { GearAlternativeRow } from "~/server/gear/service";
-import type { GearType,RawSample } from "~/types/gear";
+import type { GearPublicationState,GearType,RawSample } from "~/types/gear";
 import { buildDockButtons } from "./dock-buttons";
 
 interface GearItemDockClientProps {
@@ -25,6 +26,8 @@ interface GearItemDockClientProps {
   currentThumbnailUrl?: string | null;
   currentTopViewUrl?: string | null;
   currentRearViewUrl?: string | null;
+  currentInstructionManualUrl?: string | null;
+  publicationState?: GearPublicationState | null;
   alternatives?: GearAlternativeRow[];
   rawSamples?: RawSample[];
   hasCreatorVideos?: boolean;
@@ -78,11 +81,14 @@ export function GearItemDockClient({
   currentThumbnailUrl = null,
   currentTopViewUrl = null,
   currentRearViewUrl = null,
+  currentInstructionManualUrl = null,
+  publicationState = null,
   alternatives = [],
   rawSamples = [],
   hasCreatorVideos = false,
 }: GearItemDockClientProps) {
   const locale = useLocale();
+  const t = useTranslations("gearDetail");
   const { data } = useSession();
   const user = data?.user;
 
@@ -174,6 +180,10 @@ export function GearItemDockClient({
         currentThumbnailUrl,
         currentTopViewUrl,
         currentRearViewUrl,
+        currentInstructionManualUrl,
+        instructionManualLabel: t("instructionManual.title"),
+        instructionManualManageLabel: t("instructionManual.modalTitle"),
+        unavailableUntilPublishedLabel: t("rumoredItemDisabledAction"),
         locale,
         alternatives,
         hasCreatorVideos,
@@ -190,6 +200,9 @@ export function GearItemDockClient({
       currentThumbnailUrl,
       currentTopViewUrl,
       currentRearViewUrl,
+      currentInstructionManualUrl,
+      publicationState,
+      t,
       locale,
       gearId,
       gearType,
@@ -210,6 +223,7 @@ export function GearItemDockClient({
   if (!isElevated) return null;
 
   const visibleButtons = buttons.filter((button) => button.allowed(user));
+  const isPreRelease = isRumoredGear({ publicationState });
 
   if (visibleButtons.length === 0) return null;
 
@@ -224,7 +238,9 @@ export function GearItemDockClient({
           // iconMagnification={55}
         >
           {visibleButtons.map((button) => (
-            <DockIcon key={button.id}>{button.render()}</DockIcon>
+            <DockIcon key={button.id}>
+              {button.render({ isPreRelease })}
+            </DockIcon>
           ))}
         </Dock>
       </div>

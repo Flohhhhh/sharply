@@ -21,6 +21,8 @@ The project uses Drizzle ORM for schema, and we manage changes via generated SQL
 7. Add the matching `gearDetail.specRegistry.sections.<sectionId>.fields.<fieldKey>.label` entry to every locale file in `/messages`, using the **same stable field key** from the registry.
 8. Analog cameras use `analog_camera_specs` (1:1 on `gear.id`); integrated-lens data still lives in `fixed_lens_specs`. Treat `ANALOG_CAMERA` like cameras for fixed-lens UI/flows but use the analog schema for everything else.
 
+Special case: not every core gear field belongs in the public spec table or public edit proposal flow. Editor-managed fields such as `gear.linkInstructionManual` can live on `gear`, skip `src/lib/specs/registry.tsx`, and render through a dedicated page section + mutation path instead.
+
 #### Example – add Camera Type enum to camera specs
 
 1. Schema (`src/server/db/schema.ts`):

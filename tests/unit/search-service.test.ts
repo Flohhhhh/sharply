@@ -179,6 +179,70 @@ describe("search service high-impact behavior", () => {
     });
   });
 
+  it("shows a matched non-local alias as the title with the viewer-local name underneath", async () => {
+    searchDataMocks.queryGearSuggestions.mockResolvedValue([
+      {
+        id: "gear-1",
+        name: "Canon EOS Rebel T5",
+        slug: "canon-eos-rebel-t5",
+        brandName: "Canon",
+        gearType: "CAMERA",
+        relevance: 0.93,
+      },
+    ]);
+    gearDataMocks.fetchGearAliasesByGearIds.mockResolvedValue(
+      new Map([
+        [
+          "gear-1",
+          [{ region: "EU", name: "Canon EOS 1200D" }],
+        ],
+      ]),
+    );
+
+    const suggestions = await getSuggestions("Canon EOS 1200D", 8, "GLOBAL");
+
+    expect(suggestions[0]).toMatchObject({
+      title: "Canon EOS 1200D",
+      subtitle: "Canon EOS Rebel T5",
+      canonicalName: "Canon EOS Rebel T5",
+      localizedName: "Canon EOS Rebel T5",
+      matchedName: "Canon EOS 1200D",
+      matchSource: "alias",
+      isBestMatch: true,
+    });
+  });
+
+  it("uses the stored alias display text instead of the raw brand-stripped query", async () => {
+    searchDataMocks.queryGearSuggestions.mockResolvedValue([
+      {
+        id: "gear-1",
+        name: "Canon EOS Rebel T5i",
+        slug: "canon-eos-rebel-t5i",
+        brandName: "Canon",
+        gearType: "CAMERA",
+        relevance: 0.94,
+      },
+    ]);
+    gearDataMocks.fetchGearAliasesByGearIds.mockResolvedValue(
+      new Map([
+        [
+          "gear-1",
+          [{ region: "EU", name: "Canon EOS 700D" }],
+        ],
+      ]),
+    );
+
+    const suggestions = await getSuggestions("eos 700d", 8, "GLOBAL");
+
+    expect(suggestions[0]).toMatchObject({
+      title: "Canon EOS 700D",
+      subtitle: "Canon EOS Rebel T5i",
+      matchedName: "Canon EOS 700D",
+      matchSource: "alias",
+      isBestMatch: true,
+    });
+  });
+
   it("shows the canonical name as subtitle when the localized result name differs", async () => {
     searchDataMocks.queryGearSuggestions.mockResolvedValue([
       {
@@ -235,6 +299,38 @@ describe("search service high-impact behavior", () => {
       title: "Canon EOS Kiss X9i",
       subtitle: "Canon EOS Rebel T7i",
       matchSource: "localized",
+    });
+  });
+
+  it("keeps a matched non-local alias leading for partial alias matches", async () => {
+    searchDataMocks.queryGearSuggestions.mockResolvedValue([
+      {
+        id: "gear-1",
+        name: "Canon EOS Rebel T5",
+        slug: "canon-eos-rebel-t5",
+        brandName: "Canon",
+        gearType: "CAMERA",
+        relevance: 0.87,
+      },
+    ]);
+    gearDataMocks.fetchGearAliasesByGearIds.mockResolvedValue(
+      new Map([
+        [
+          "gear-1",
+          [{ region: "EU", name: "Canon EOS 1200D" }],
+        ],
+      ]),
+    );
+
+    const suggestions = await getSuggestions("1200", 8, "GLOBAL");
+
+    expect(suggestions[0]).toMatchObject({
+      kind: "camera",
+      title: "Canon EOS 1200D",
+      subtitle: "Canon EOS Rebel T5",
+      matchedName: "Canon EOS 1200D",
+      matchSource: "alias",
+      isBestMatch: false,
     });
   });
 

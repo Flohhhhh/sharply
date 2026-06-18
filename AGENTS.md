@@ -34,7 +34,7 @@ Sharply is a photography gear database and cataloging application built with Nex
 
 - **ALWAYS** make schema changes in `src/server/db/schema.ts`
 - **NEVER** modify the database directly without going through the schema
-- **NEVER** run `db:generate` or `db:push`, prompt the user to do it when needed.
+- **NEVER** write migration files, run `db:generate` or `db:push`, prompt the user to do it when needed.
 - All schema changes should be backwards compatible by default, using deprecations instead of deletions.
 - Use Drizzle's type-safe schema definitions
 

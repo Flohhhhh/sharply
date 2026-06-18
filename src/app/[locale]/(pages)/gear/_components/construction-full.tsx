@@ -2,6 +2,7 @@ import { ArrowLeft,BookOpen,Wrench } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { Badge } from "~/components/ui/badge";
+import { BlurFade } from "~/components/ui/blur-fade";
 import { Button } from "~/components/ui/button";
 import { TypingAnimation } from "~/components/ui/typing-animation";
 import { SuggestEditButton } from "./suggest-edit-button";
@@ -16,20 +17,24 @@ export async function ConstructionFullPage(props: {
   const { gearName, missing, slug, gearType } = props;
   return (
     <div className="mx-auto flex min-h-[60vh] flex-col items-center justify-center gap-6 py-8">
-      <Wrench className="text-muted-foreground h-8 w-8" aria-hidden="true" />
+      <BlurFade delay={0}>
+        <Wrench className="text-muted-foreground h-8 w-8" aria-hidden="true" />
+      </BlurFade>
 
-      <TypingAnimation
-        as="h1"
-        words={[gearName]}
-        blinkCursor={true}
-        showCursor={true}
-        className="text-center text-3xl font-bold tracking-tight sm:text-6xl"
-      >
-        {gearName}
-      </TypingAnimation>
+      <BlurFade delay={0.05}>
+        <TypingAnimation
+          as="h1"
+          words={[gearName]}
+          blinkCursor={true}
+          showCursor={true}
+          className="text-center text-3xl font-bold tracking-tight sm:text-6xl"
+        >
+          {gearName}
+        </TypingAnimation>
+      </BlurFade>
 
-      {missing.length > 0 && (
-        <div className="w-full max-w-lg text-center">
+      {missing.length > 0 ? (
+        <BlurFade delay={0.1} className="w-full max-w-lg text-center">
           <div className="mx-auto mb-2 max-w-sm text-sm font-semibold">
             {t("missingKeySpecsLong")}
           </div>
@@ -55,25 +60,32 @@ export async function ConstructionFullPage(props: {
               {completed}/{totalChecks} ({progress}%)
             </div>
           </div> */}
-        </div>
-      )}
+        </BlurFade>
+      ) : null}
 
-      <SuggestEditButton
-        slug={slug}
-        gearType={gearType}
-        label={t("contributeMissingInformation")}
-      />
+      <div className="flex h-9 items-center justify-center">
+        <BlurFade delay={0.15}>
+          <SuggestEditButton
+            slug={slug}
+            gearType={gearType}
+            label={t("contributeMissingInformation")}
+          />
+        </BlurFade>
+      </div>
 
-      <div className="mt-2 max-w-xl text-center">
+      <BlurFade delay={0.2} className="mt-2 max-w-xl text-center">
         <h2 className="mb-2 text-sm font-semibold">
           {t("crowdSourcedTitle")}
         </h2>
         <p className="text-muted-foreground text-sm">
           {t("crowdSourcedDescription")}
         </p>
-      </div>
+      </BlurFade>
 
-      <div className="flex items-center justify-center gap-2">
+      <BlurFade
+        delay={0.25}
+        className="flex items-center justify-center gap-2"
+      >
         <Button
           asChild
           variant="outline"
@@ -90,7 +102,7 @@ export async function ConstructionFullPage(props: {
         >
           <Link href="/about">{t("learnMore")}</Link>
         </Button>
-      </div>
+      </BlurFade>
     </div>
   );
 }

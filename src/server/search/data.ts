@@ -21,6 +21,7 @@ if (process.env.NEXT_RUNTIME) {
  */
 
 import { asc,desc,eq,ilike,sql,type SQL } from "drizzle-orm";
+import { GEAR_PUBLICATION_STATES } from "~/lib/gear/publication-state";
 import { db } from "~/server/db";
 import {
   analogCameraSpecs,
@@ -40,6 +41,10 @@ import {
   normalizeSearchQueryNoPunct,
   shouldGateSingleNumericToken,
 } from "./query-normalization";
+
+function buildPublishedGearClause() {
+  return eq(gear.publicationState, GEAR_PUBLICATION_STATES.PUBLISHED);
+}
 
 function buildNumericTokenMatchClause(
   searchLower: SQL,
@@ -290,7 +295,11 @@ export async function querySearchRows(options: {
 
   return query
     .groupBy(...groupByColumns)
-    .where(options.whereClause)
+    .where(
+      options.whereClause
+        ? sql`(${buildPublishedGearClause()}) AND (${options.whereClause})`
+        : buildPublishedGearClause(),
+    )
     .orderBy(...options.orderBy)
     .limit(options.pageSize)
     .offset(options.offset);
@@ -330,7 +339,11 @@ export async function querySearchTotal(
     query = query.leftJoin(analogCameraSpecs, eq(gear.id, analogCameraSpecs.gearId));
   }
 
-  const rows = await query.where(whereClause);
+  const rows = await query.where(
+    whereClause
+      ? sql`(${buildPublishedGearClause()}) AND (${whereClause})`
+      : buildPublishedGearClause(),
+  );
   return Number(rows[0]?.count ?? 0);
 }
 
@@ -352,7 +365,7 @@ export async function queryGearSuggestions(
     })
     .from(gear)
     .leftJoin(brands, sql`${gear.brandId} = ${brands.id}`)
-    .where(whereClause)
+    .where(sql`(${buildPublishedGearClause()}) AND (${whereClause})`)
     .orderBy(desc(relevanceExpr), asc(gear.name))
     .limit(5);
 }
