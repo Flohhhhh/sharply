@@ -307,7 +307,7 @@ export default async function GearPage({ params }: GearPageProps) {
 
       {/* Intra-page nav bar */}
       {sectionNavItems.length > 0 && (
-        <section className="bg-background sticky top-16 z-10 hidden border-b py-2 md:block">
+        <section className="bg-background sticky top-16 z-20 hidden border-b py-2 md:block">
           <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
             {sectionNavItems.map((item) => (
               <Link
