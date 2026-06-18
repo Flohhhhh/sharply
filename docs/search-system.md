@@ -40,10 +40,10 @@ Helper utilities for URLs live in `src/lib/utils/url.ts` (`buildSearchHref`, `me
 - Suggest (used by palette): `src/app/api/search/suggest/route.ts`
   - GET `q`
   - Returns: `{ suggestions: Suggestion[] }`
-  - `Suggestion` is a discriminated union:
-    - `gear`: region-aware item suggestion with `title`, `subtitle`, `canonicalName`, `localizedName`, `matchedName`, `matchSource`, `brandName`, `relevance`, `isBestMatch`
-    - `brand`: brand suggestion with `title`, `subtitle`, `brandName`, `relevance`
-    - `smart-action`: currently compare actions with `action: "compare"`, compare slugs/titles, and compare href
+- `Suggestion` is a discriminated union:
+  - `gear`: region-aware item suggestion with `title`, `subtitle`, `canonicalName`, `localizedName`, `matchedName`, `matchSource`, `brandName`, `relevance`, `isBestMatch`
+  - `brand`: brand suggestion with `title`, `subtitle`, `brandName`, `relevance`
+  - `smart-action`: currently compare actions with `action: "compare"`, compare slugs/titles, and compare href
   - Compatibility fields `label` and `type` are still emitted for older consumers.
 
 ## Database prerequisites
@@ -160,7 +160,7 @@ Optional ANDed filters for brand/mount/gearType/price range/sensor format. These
   - Instead it renders a selectable fallback row: `Search for "..."`.
 - Naming:
   - Gear rows prefer the localized display name.
-  - If the matched alias differs materially from the localized display name, the alias can lead and canonical/localized context moves to secondary text.
+  - If the matched alias differs materially from the localized display name, the alias leads and the viewer-local display name moves to secondary text.
 - Debug UI:
   - Relevance remains in the payload for ranking/diagnostics but is not shown in production UI.
 
@@ -203,6 +203,7 @@ Manual checks (examples):
 - 70-200 → includes 70–200 variants; excludes 24–70.
 - Brand bias → typing brand alone should not flood irrelevant models.
 - `Lumix GF9` → surfaces the GX850 record with alias-aware labeling and canonical/local-name context.
+- `Canon EOS 1200D` from a US/global session → surfaces the Rebel T5 record with `Canon EOS 1200D` as the title and `Canon EOS Rebel T5` as the subtitle.
 - `z50ii vs a6700` → shows a compare smart action and Enter opens the comparison page.
 - Header search stays closed on non-empty input until useful content arrives, then stays open until the input is cleared.
 - Plain Enter on a strong exact gear match opens the gear page directly; otherwise it opens `/search?q=...`.

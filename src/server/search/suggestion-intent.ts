@@ -23,6 +23,7 @@ type CompareIntent = {
 
 type MatchCandidate = {
   value: string;
+  matchValue?: string;
   source: GearSuggestionMatchSource;
 };
 
@@ -57,7 +58,9 @@ function buildMatchCandidates(
     if (!normalized) return;
     if (
       candidates.some(
-        (entry) => normalizeExactMatchValue(entry.value) === normalized,
+        (entry) =>
+          normalizeExactMatchValue(entry.matchValue ?? entry.value) ===
+          normalized,
       )
     ) {
       return;
@@ -71,10 +74,15 @@ function buildMatchCandidates(
         strippedNormalized &&
         !candidates.some(
           (entry) =>
-            normalizeExactMatchValue(entry.value) === strippedNormalized,
+            normalizeExactMatchValue(entry.matchValue ?? entry.value) ===
+            strippedNormalized,
         )
       ) {
-        candidates.push({ value: brandStripped, source });
+        candidates.push({
+          value,
+          matchValue: brandStripped,
+          source,
+        });
       }
     }
   };
@@ -99,7 +107,9 @@ function getCandidateMatch(
   candidate: MatchCandidate,
 ): CandidateMatch | null {
   const normalizedQuery = normalizeExactMatchValue(query);
-  const normalizedCandidate = normalizeExactMatchValue(candidate.value);
+  const normalizedCandidate = normalizeExactMatchValue(
+    candidate.matchValue ?? candidate.value,
+  );
 
   if (!normalizedQuery || !normalizedCandidate) return null;
   if (normalizedCandidate === normalizedQuery) {
@@ -126,6 +136,37 @@ function pickSubtitle(params: {
   if (gearType === "LENS") return "Lens";
   if (gearType === "ANALOG_CAMERA") return "Analog Camera";
   return "Camera";
+}
+
+function applyAliasFirstPresentation(
+  suggestion: GearSuggestion,
+  canonicalName: string,
+): GearSuggestion {
+  const matchedName = suggestion.matchedName.trim();
+  const localizedName = suggestion.localizedName.trim();
+
+  if (suggestion.matchSource !== "alias") {
+    return suggestion;
+  }
+
+  if (!matchedName || !localizedName) {
+    return suggestion;
+  }
+
+  if (
+    normalizeExactMatchValue(matchedName) ===
+    normalizeExactMatchValue(localizedName)
+  ) {
+    return suggestion;
+  }
+
+  return {
+    ...suggestion,
+    title: matchedName,
+    label: matchedName,
+    subtitle: localizedName,
+    canonicalName,
+  };
 }
 
 export function parseCompareIntent(query: string): CompareIntent | null {
@@ -223,11 +264,14 @@ export function applyExactMatchMetadata(
     const metadata = metadataBySuggestionId.get(suggestion.id);
     if (!metadata) return suggestion;
 
-    return {
-      ...suggestion,
-      matchedName: metadata.matchedName,
-      matchSource: metadata.matchSource,
-      isBestMatch: uniqueExactMatch && metadata.rank >= 300,
-    };
+    return applyAliasFirstPresentation(
+      {
+        ...suggestion,
+        matchedName: metadata.matchedName,
+        matchSource: metadata.matchSource,
+        isBestMatch: uniqueExactMatch && metadata.rank >= 300,
+      },
+      suggestion.canonicalName,
+    );
   });
 }

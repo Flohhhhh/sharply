@@ -22,6 +22,15 @@ export function getSuggestionKind(suggestion: Suggestion): SuggestionKind {
 }
 
 export function getSuggestionTitle(suggestion: Suggestion): string {
+  if (
+    (suggestion.kind === "camera" || suggestion.kind === "lens") &&
+    suggestion.matchSource === "alias" &&
+    normalizeSearchText(suggestion.matchedName) !==
+      normalizeSearchText(suggestion.localizedName)
+  ) {
+    return suggestion.matchedName;
+  }
+
   return suggestion.title ?? suggestion.label;
 }
 
@@ -29,6 +38,15 @@ export function getSuggestionSubtitle(
   suggestion: Suggestion,
   t: SearchTranslations,
 ): string | undefined {
+  if (
+    (suggestion.kind === "camera" || suggestion.kind === "lens") &&
+    suggestion.matchSource === "alias" &&
+    normalizeSearchText(suggestion.matchedName) !==
+      normalizeSearchText(suggestion.localizedName)
+  ) {
+    return suggestion.localizedName;
+  }
+
   if (typeof suggestion.subtitle === "string" && suggestion.subtitle.trim()) {
     return suggestion.subtitle.trim();
   }
