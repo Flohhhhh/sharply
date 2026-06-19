@@ -367,7 +367,7 @@ function CoreFieldsComponent({
     const hasExplicitClear = mountIdsRaw === null;
     const mountIdsArray = Array.isArray(mountIdsRaw) ? mountIdsRaw : undefined;
 
-    if (gearType === "CAMERA") {
+    if (gearType === "CAMERA" || gearType === "ANALOG_CAMERA") {
       // Single-select expects a single id string
       if (mountIdsArray !== undefined) return mountIdsArray[0] ?? "";
       if (hasExplicitClear) return "";
@@ -658,10 +658,14 @@ function CoreFieldsComponent({
               <MountSelect
                 value={formattedMountValue}
                 onChange={handleMountChange}
-                mode={gearType === "CAMERA" ? "single" : "multiple"}
+                mode={
+                  gearType === "CAMERA" || gearType === "ANALOG_CAMERA"
+                    ? "single"
+                    : "multiple"
+                }
                 label={getSpecFieldLabel(t, "core", "mounts", "Mount")}
                 placeholder={
-                  gearType === "CAMERA"
+                  gearType === "CAMERA" || gearType === "ANALOG_CAMERA"
                     ? tf("editGear.fields.mountPlaceholder", "Select mount")
                     : tf(
                         "editGear.fields.mountsPlaceholder",
