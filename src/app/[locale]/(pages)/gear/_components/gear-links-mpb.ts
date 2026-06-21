@@ -2,6 +2,7 @@ import {
   getMpbMountSuffix,
   hasKnownMpbMountSuffix,
   isMpbSearchInput,
+  normalizeMpbLinkInput,
   type Market,
 } from "~/lib/links/mpb";
 import type { GearType } from "~/types/gear";
@@ -42,6 +43,13 @@ export function buildMpbOutHref(
   return `/api/out/mpb?${params.toString()}`;
 }
 
+function getDirectLensDestinationPath(linkMpb: string) {
+  const normalizedLink = normalizeMpbLinkInput(linkMpb);
+  return normalizedLink.kind === "product"
+    ? normalizedLink.normalizedPath
+    : linkMpb;
+}
+
 export function resolveMpbLinkState({
   gearType,
   linkMpb,
@@ -79,9 +87,17 @@ export function resolveMpbLinkState({
     } else if (gearType !== "LENS") {
       directHref = buildMpbOutHref(linkMpb, market, null);
     } else if (supportedMpbMounts.length === 1 && directMountId) {
-      directHref = buildMpbOutHref(linkMpb, market, directMountId);
+      directHref = buildMpbOutHref(
+        getDirectLensDestinationPath(linkMpb),
+        market,
+        null,
+      );
     } else if (hasLegacyMountedLink) {
-      directHref = buildMpbOutHref(linkMpb, market, null);
+      directHref = buildMpbOutHref(
+        getDirectLensDestinationPath(linkMpb),
+        market,
+        null,
+      );
     }
   }
 
