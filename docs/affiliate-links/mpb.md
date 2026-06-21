@@ -20,7 +20,9 @@
 - For lenses with multiple mounts, the gear page checks the item’s `mountIds` against `MPB_MOUNT_PATHS_MAP`.
 - If more than one supported mount suffix is available, clicking the MPB card opens a modal so the user can choose the mount they want.
 - If a mount exists on the gear item but does not yet have an MPB suffix mapping, it is shown in the chooser as unavailable instead of redirecting to a broken URL.
-- If only one supported mount is available, the MPB card still opens directly without a modal.
+- If only one supported mount is available, the MPB card opens the normalized base product slug directly without appending `mountId` or rebuilding a fit suffix.
+- Legacy saved product paths that still include a known MPB `-...-fit` suffix are normalized back to the base product slug for those single-mount direct clicks.
+- Fit suffixes are only rebuilt when the user explicitly selects a mount from the multi-mount chooser.
 - If the selected locale has `mpb.isSupported: false`, the MPB card is omitted entirely, even when the gear record has a saved `linkMpb`.
 
 ### Market Detection & Internationalization
