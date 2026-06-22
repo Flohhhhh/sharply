@@ -29,6 +29,7 @@ import {
   gearAliases,
   gearAlternatives,
   gearCreatorVideos,
+  gearColorways,
   gearEdits,
   gearMounts,
   gearPopularityDaily,
@@ -53,7 +54,7 @@ import {
 import { incrementGearPopularityIntraday } from "~/server/popularity/data";
 import { hasEventForUserOnUtcDay } from "~/server/validation/dedupe";
 import { fetchVideoModesByGearId } from "~/server/video-modes/data";
-import type { Gear,GearAlias,GearItem,GearRegion } from "~/types/gear";
+import type { Gear, GearAlias, GearItem, GearRegion } from "~/types/gear";
 import type { GearActivityRow } from "./home-activity";
 
 type DbClient = Pick<typeof db, "select" | "update" | "insert" | "delete">;
@@ -115,6 +116,14 @@ export async function fetchGearAliasesByGearId(
 ): Promise<GearAlias[]> {
   const map = await fetchGearAliasesByGearIds([gearId]);
   return map.get(gearId) ?? [];
+}
+
+export async function fetchGearColorwaysByGearId(gearId: string) {
+  return db
+    .select()
+    .from(gearColorways)
+    .where(eq(gearColorways.gearId, gearId))
+    .orderBy(asc(gearColorways.sortOrder), asc(gearColorways.createdAt));
 }
 
 async function buildSearchNameForGearId(
@@ -276,12 +285,17 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
   }
 
   // Fetch all mount IDs for this gear from junction table
-  const mountIdRows = await db
-    .select({ mountId: gearMounts.mountId })
-    .from(gearMounts)
-    .where(eq(gearMounts.gearId, gearItem[0]!.gear.id));
-  const rawSampleRows = await fetchRawSamplesByGearId(gearItem[0]!.gear.id);
-  const aliasRows = await fetchGearAliasesByGearId(gearItem[0]!.gear.id);
+  const gearId = gearItem[0]!.gear.id;
+  const [mountIdRows, rawSampleRows, aliasRows, colorwayRows] =
+    await Promise.all([
+      db
+        .select({ mountId: gearMounts.mountId })
+        .from(gearMounts)
+        .where(eq(gearMounts.gearId, gearId)),
+      fetchRawSamplesByGearId(gearId),
+      fetchGearAliasesByGearId(gearId),
+      fetchGearColorwaysByGearId(gearId),
+    ]);
 
   const base: GearItem = {
     ...gearItem[0]!.gear,
@@ -292,6 +306,7 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
     mountIds: mountIdRows.map((r) => r.mountId),
     regionalAliases: aliasRows,
     rawSamples: rawSampleRows,
+    colorways: colorwayRows,
   };
 
   // CAMERA SPECS
@@ -407,7 +422,9 @@ export async function fetchAllGearExportRowsData(): Promise<GearExportRow[]> {
     new Set(
       rows
         .filter(
-          (row) => !mountsByGearId.has(row.id) && typeof row.legacyMountId === "string",
+          (row) =>
+            !mountsByGearId.has(row.id) &&
+            typeof row.legacyMountId === "string",
         )
         .map((row) => row.legacyMountId!),
     ),
@@ -651,9 +668,7 @@ export async function fetchBrandGearData(
     if (!mountsByGearId.has(m.gearId)) {
       mountsByGearId.set(m.gearId, []);
     }
-    mountsByGearId
-      .get(m.gearId)!
-      .push({ id: m.mountId, value: m.mountValue });
+    mountsByGearId.get(m.gearId)!.push({ id: m.mountId, value: m.mountValue });
   }
 
   const aliasesById = await fetchGearAliasesByGearIds(gearIds);
@@ -998,7 +1013,13 @@ export async function fetchContributorsByGearIdData(
         eq(gearCreatorVideos.isActive, true),
       ),
     )
-    .groupBy(users.id, users.name, users.handle, users.memberNumber, users.image);
+    .groupBy(
+      users.id,
+      users.name,
+      users.handle,
+      users.memberNumber,
+      users.image,
+    );
 
   const contributorRows: ContributorRow[] = editRows.map((row) => ({
     ...row,
@@ -1017,7 +1038,9 @@ export async function fetchContributorsByGearIdData(
     const existingRows = contributorByUserId.get(videoRow.userId);
     if (existingRows && existingRows.length > 0) {
       for (const row of existingRows) {
-        row.videoContributionCount = Number(videoRow.videoContributionCount ?? 0);
+        row.videoContributionCount = Number(
+          videoRow.videoContributionCount ?? 0,
+        );
       }
       continue;
     }
@@ -1372,7 +1395,10 @@ export async function resolveOpenReviewFlags(params: {
       updatedAt: now,
     })
     .where(
-      and(eq(reviewFlags.reviewId, params.reviewId), eq(reviewFlags.status, "OPEN")),
+      and(
+        eq(reviewFlags.reviewId, params.reviewId),
+        eq(reviewFlags.status, "OPEN"),
+      ),
     );
 }
 
@@ -1409,10 +1435,7 @@ export async function countApprovedGearEditsByUser(
     .select({ count: count() })
     .from(gearEdits)
     .where(
-      and(
-        eq(gearEdits.createdById, userId),
-        eq(gearEdits.status, "APPROVED"),
-      ),
+      and(eq(gearEdits.createdById, userId), eq(gearEdits.status, "APPROVED")),
     );
 
   return Number(row?.count ?? 0);

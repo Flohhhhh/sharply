@@ -1,13 +1,11 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect,useMemo,useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import { Dock,DockIcon } from "~/components/ui/dock";
-import {
-  TooltipProvider
-} from "~/components/ui/tooltip";
+import { Dock, DockIcon } from "~/components/ui/dock";
+import { TooltipProvider } from "~/components/ui/tooltip";
 import { useSession } from "~/lib/auth/auth-client";
 import { requireRole } from "~/lib/auth/auth-helpers";
 import { isRumoredGear } from "~/lib/gear/publication-state";
@@ -16,8 +14,17 @@ import {
   actionRemoveGearRawSample,
 } from "~/server/gear/actions";
 import type { GearAlternativeRow } from "~/server/gear/service";
-import type { GearPublicationState,GearType,RawSample } from "~/types/gear";
+import type {
+  GearColorway,
+  GearPublicationState,
+  GearType,
+  RawSample,
+} from "~/types/gear";
 import { buildDockButtons } from "./dock-buttons";
+
+const EMPTY_ALTERNATIVES: GearAlternativeRow[] = [];
+const EMPTY_SAMPLES: RawSample[] = [];
+const EMPTY_COLORWAYS: GearColorway[] = [];
 
 interface GearItemDockClientProps {
   slug: string;
@@ -31,6 +38,7 @@ interface GearItemDockClientProps {
   alternatives?: GearAlternativeRow[];
   rawSamples?: RawSample[];
   hasCreatorVideos?: boolean;
+  colorways?: GearColorway[];
 }
 
 type ManagedSampleState = Omit<RawSample, "createdAt" | "updatedAt"> & {
@@ -83,9 +91,10 @@ export function GearItemDockClient({
   currentRearViewUrl = null,
   currentInstructionManualUrl = null,
   publicationState = null,
-  alternatives = [],
-  rawSamples = [],
+  alternatives = EMPTY_ALTERNATIVES,
+  rawSamples = EMPTY_SAMPLES,
   hasCreatorVideos = false,
+  colorways = EMPTY_COLORWAYS,
 }: GearItemDockClientProps) {
   const locale = useLocale();
   const t = useTranslations("gearDetail");
@@ -114,10 +123,7 @@ export function GearItemDockClient({
       const uploadItems = items as RawSampleUploadItem[];
       for (const item of uploadItems) {
         const fileUrl =
-          item.serverData?.fileUrl ??
-          item.url ??
-          item.ufsUrl ??
-          "";
+          item.serverData?.fileUrl ?? item.url ?? item.ufsUrl ?? "";
         if (!fileUrl) continue;
         const originalFilename =
           item.serverData?.fileName ??
@@ -126,10 +132,7 @@ export function GearItemDockClient({
           fileUrl.split("/").pop() ??
           "sample";
         const contentType =
-          item.serverData?.contentType ??
-          item.mimeType ??
-          item.type ??
-          null;
+          item.serverData?.contentType ?? item.mimeType ?? item.type ?? null;
         const sizeBytes =
           typeof item.size === "number"
             ? item.size
@@ -180,10 +183,12 @@ export function GearItemDockClient({
         currentThumbnailUrl,
         currentTopViewUrl,
         currentRearViewUrl,
+        colorways,
         currentInstructionManualUrl,
         instructionManualLabel: t("instructionManual.title"),
         instructionManualManageLabel: t("instructionManual.modalTitle"),
         unavailableUntilPublishedLabel: t("rumoredItemDisabledAction"),
+        colorwaysManageLabel: t("colorways.manager.title"),
         locale,
         alternatives,
         hasCreatorVideos,
@@ -200,6 +205,7 @@ export function GearItemDockClient({
       currentThumbnailUrl,
       currentTopViewUrl,
       currentRearViewUrl,
+      colorways,
       currentInstructionManualUrl,
       publicationState,
       t,

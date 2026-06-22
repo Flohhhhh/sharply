@@ -55,6 +55,32 @@ function renderCarousel(
   );
 }
 
+function colorway(
+  id: string,
+  name: string,
+  sortOrder: number,
+  images: Partial<{
+    frontImageUrl: string | null;
+    topViewUrl: string | null;
+    rearViewUrl: string | null;
+  }> = {},
+) {
+  return {
+    id,
+    gearId: "gear-1",
+    name,
+    slug: name.toLowerCase(),
+    swatchColorA: "#171717",
+    swatchColorB: "#737373",
+    sortOrder,
+    frontImageUrl: images.frontImageUrl ?? null,
+    topViewUrl: images.topViewUrl ?? null,
+    rearViewUrl: images.rearViewUrl ?? null,
+    createdAt: new Date("2026-01-01T00:00:00Z"),
+    updatedAt: new Date("2026-01-01T00:00:00Z"),
+  };
+}
+
 describe("GearImageCarousel", () => {
   it("renders the no-image label from the gear images namespace", () => {
     const markup = renderCarousel();
@@ -122,5 +148,62 @@ describe("GearImageCarousel", () => {
 
     expect(markup).toContain('data-testid="carousel-previous"');
     expect(markup).toContain('data-testid="carousel-next"');
+  });
+
+  it("uses one explicit colorway and still renders its public color pill", () => {
+    const markup = renderCarousel({
+      thumbnailUrl: "https://cdn.example.com/legacy.webp",
+      colorways: [
+        colorway("silver", "Silver", 0, {
+          frontImageUrl: "https://cdn.example.com/silver.webp",
+        }),
+      ],
+    });
+
+    expect(markup).toContain("https://cdn.example.com/silver.webp");
+    expect(markup).not.toContain("https://cdn.example.com/legacy.webp");
+    expect(markup).toContain("Available colors");
+    expect(markup).toContain("Silver");
+  });
+
+  it("orders all colorway pills, left-aligns them, and disables empty colorways", () => {
+    const markup = renderCarousel({
+      colorways: [
+        colorway("black", "Black", 1),
+        colorway("white", "White", 2, {
+          topViewUrl: "https://cdn.example.com/white-top.webp",
+        }),
+        colorway("silver", "Silver", 0, {
+          frontImageUrl: "https://cdn.example.com/silver.webp",
+          rearViewUrl: "https://cdn.example.com/silver-rear.webp",
+        }),
+      ],
+    });
+
+    expect(markup).toContain("Available colors");
+    expect(markup.indexOf("Silver")).toBeLessThan(markup.indexOf("Black"));
+    expect(markup.indexOf("Silver")).toBeLessThan(markup.indexOf("White"));
+    expect(markup).toContain("https://cdn.example.com/silver.webp");
+    expect(markup).toContain("https://cdn.example.com/white-top.webp");
+    expect(markup).toContain("Black");
+    expect(markup).toContain("disabled");
+    expect(markup).not.toContain("No image available");
+    expect(markup).toContain("justify-start");
+    expect(markup).toContain('aria-pressed="true"');
+    expect(markup).toContain("ring-foreground/50");
+    expect(markup).toContain("border-foreground/50");
+  });
+
+  it("does not fall back to legacy images when every explicit colorway is empty and keeps disabled pills", () => {
+    const markup = renderCarousel({
+      thumbnailUrl: "https://cdn.example.com/legacy.webp",
+      colorways: [colorway("black", "Black", 0)],
+    });
+
+    expect(markup).not.toContain("https://cdn.example.com/legacy.webp");
+    expect(markup).toContain("Available colors");
+    expect(markup).toContain("Black");
+    expect(markup).toContain("disabled");
+    expect(markup).toContain("No image available");
   });
 });

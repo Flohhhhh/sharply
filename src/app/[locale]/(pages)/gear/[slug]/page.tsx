@@ -22,18 +22,18 @@ import { GearItemDock } from "~/components/gear/gear-tools-dock/gear-item-dock";
 import { RenameGearButton } from "~/components/gear/rename-gear-button";
 import { NewsCard } from "~/components/home/news-card";
 import { JsonLd } from "~/components/json-ld";
-import { Breadcrumbs,type CrumbItem } from "~/components/layout/breadcrumbs";
+import { Breadcrumbs, type CrumbItem } from "~/components/layout/breadcrumbs";
 import { Button } from "~/components/ui/button";
 import {
   Item,
   ItemActions,
   ItemContent,
-  ItemTitle
+  ItemTitle,
 } from "~/components/ui/item";
-import { formatDate,formatRelativeDate } from "~/lib/format/date";
+import { formatDate, formatRelativeDate } from "~/lib/format/date";
 import { GetGearDisplayName } from "~/lib/gear/naming";
 import { resolveRegionFromCountryCode } from "~/lib/gear/region";
-import { getItemDisplayPrice,PRICE_FALLBACK_TEXT } from "~/lib/mapping";
+import { getItemDisplayPrice, PRICE_FALLBACK_TEXT } from "~/lib/mapping";
 import { getBrandById } from "~/lib/mapping/brand-map";
 import { buildGearSpecsSections } from "~/lib/specs/registry";
 import { shouldPrebuildHeavyRouteLocale } from "~/lib/static-generation";
@@ -41,7 +41,14 @@ import { getConstructionState } from "~/lib/utils";
 import { isInHallOfFame } from "~/lib/utils/is-in-hall-of-fame";
 import { isNewRelease } from "~/lib/utils/is-new";
 import { fetchPublicGearCreatorVideos } from "~/server/creator-videos/service";
-import { fetchGearAlternatives,fetchGearBySlug,fetchNewestGearSlugs,fetchPendingEditCountForGear,fetchStaffVerdict,fetchUseCaseRatings } from "~/server/gear/service";
+import {
+  fetchGearAlternatives,
+  fetchGearBySlug,
+  fetchNewestGearSlugs,
+  fetchPendingEditCountForGear,
+  fetchStaffVerdict,
+  fetchUseCaseRatings,
+} from "~/server/gear/service";
 import {
   getNewsByRelatedGearSlug,
   getReviewByGearSlug,
@@ -95,10 +102,12 @@ export default async function GearPage({ params }: GearPageProps) {
   const viewerRegion = resolveRegionFromCountryCode(null);
 
   // Fetch core gear data
-  const item = await fetchGearBySlug(slug, { includeRumored: true }).catch((err: any) => {
-    if ((err)?.status === 404) return null;
-    throw err;
-  });
+  const item = await fetchGearBySlug(slug, { includeRumored: true }).catch(
+    (err: any) => {
+      if (err?.status === 404) return null;
+      throw err;
+    },
+  );
 
   if (!item) return notFound();
 
@@ -129,11 +138,9 @@ export default async function GearPage({ params }: GearPageProps) {
           alternatives={[]}
           rawSamples={item.rawSamples ?? []}
           hasCreatorVideos={false}
+          colorways={item.colorways ?? []}
         />
-        <RumoredFullPage
-          gearName={regionalDisplayName}
-          slug={item.slug}
-        />
+        <RumoredFullPage gearName={regionalDisplayName} slug={item.slug} />
       </main>
     );
   }
@@ -262,6 +269,7 @@ export default async function GearPage({ params }: GearPageProps) {
         alternatives={alternatives}
         rawSamples={item.rawSamples ?? []}
         hasCreatorVideos={creatorVideos.length > 0}
+        colorways={item.colorways ?? []}
       />
       {/* Track page visit for popularity */}
       <GearVisitTracker slug={slug} />
@@ -328,6 +336,7 @@ export default async function GearPage({ params }: GearPageProps) {
             rearViewUrl={item.rearViewUrl}
             slug={slug}
             hasImageRequest={hasImageRequest}
+            colorways={item.colorways}
           />
         </div>
       </section>
@@ -367,10 +376,7 @@ export default async function GearPage({ params }: GearPageProps) {
             linkInstructionManual={item.linkInstructionManual ?? null}
           />
           {/* Sign-in CTA banner for editing specs (client, only when signed out) */}
-          <SignInToEditSpecsCta
-            slug={item.slug}
-            gearType={item.gearType}
-          />
+          <SignInToEditSpecsCta slug={item.slug} gearType={item.gearType} />
           {/* Editorial Reviews*/}
           {review && (
             <section id="editorial-review" className="scroll-mt-24">
@@ -508,7 +514,9 @@ export default async function GearPage({ params }: GearPageProps) {
       {/* Articles about this item */}
       {relatedNews.length > 0 && (
         <section id="related-articles" className="scroll-mt-24">
-          <h2 className="mb-2 text-lg font-semibold">{t("articlesAboutItem")}</h2>
+          <h2 className="mb-2 text-lg font-semibold">
+            {t("articlesAboutItem")}
+          </h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
             {relatedNews.map((post) => {
               const image =

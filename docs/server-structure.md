@@ -14,6 +14,7 @@ This document explains how to organize server-only code under `src/server/**`.
     - `server/gear/data.ts`
     - `server/search/data.ts`
     - `server/admin/gear/data.ts`
+    - `server/admin/colorways/data.ts`
 
 - **service/** (domain logic)
   - Purpose: safe, reusable server functions for pages, API routes, and server components
@@ -26,6 +27,7 @@ This document explains how to organize server-only code under `src/server/**`.
     - `server/gear/service.ts`
     - `server/search/service.ts`
     - `server/admin/gear/service.ts`
+    - `server/admin/colorways/service.ts`
 
 - **actions/** (Next.js Server Actions)
   - Purpose: client-triggered mutations (CRUD) invoked from Client Components
@@ -35,6 +37,7 @@ This document explains how to organize server-only code under `src/server/**`.
     - May call `revalidatePath`/`revalidateTag`
   - Example files:
     - `server/gear/actions.ts`
+    - `server/admin/colorways/actions.ts`
 
 ## Guidelines
 

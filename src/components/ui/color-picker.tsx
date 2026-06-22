@@ -130,8 +130,7 @@ export function rgbaToHsl(value: RgbaColor): HslColor {
   let saturation = 0;
 
   if (delta !== 0) {
-    saturation =
-      delta / (1 - Math.abs(2 * lightness - 1));
+    saturation = delta / (1 - Math.abs(2 * lightness - 1));
 
     switch (max) {
       case r:
@@ -221,7 +220,8 @@ export function getSaturationLightnessFromPointerPosition(
   clientY: number,
   rect: { left: number; top: number; width: number; height: number },
 ): SaturationLightnessPoint {
-  const x = rect.width > 0 ? clamp((clientX - rect.left) / rect.width, 0, 1) : 0;
+  const x =
+    rect.width > 0 ? clamp((clientX - rect.left) / rect.width, 0, 1) : 0;
   const y =
     rect.height > 0 ? clamp((clientY - rect.top) / rect.height, 0, 1) : 0;
 
@@ -299,7 +299,7 @@ function CheckerboardSwatch({
     <span
       aria-hidden="true"
       className={cn(
-        "relative block overflow-hidden rounded-sm border border-border/80",
+        "border-border/80 relative block overflow-hidden rounded-sm border",
         className,
       )}
       style={{
@@ -310,10 +310,7 @@ function CheckerboardSwatch({
         backgroundSize: "8px 8px",
       }}
     >
-      <span
-        className="absolute inset-0"
-        style={{ backgroundColor: color }}
-      />
+      <span className="absolute inset-0" style={{ backgroundColor: color }} />
     </span>
   );
 }
@@ -331,14 +328,24 @@ export function ColorPickerPanel({
     () => normalizeRgbaColor(value, opacityEnabled),
     [opacityEnabled, value],
   );
-  const hsl = React.useMemo(() => rgbaToHsl(normalizedValue), [normalizedValue]);
-  const [hexInput, setHexInput] = React.useState(() => rgbaToHex(normalizedValue));
+  const hsl = React.useMemo(
+    () => rgbaToHsl(normalizedValue),
+    [normalizedValue],
+  );
+  const [hexInput, setHexInput] = React.useState(() =>
+    rgbaToHex(normalizedValue),
+  );
   const [alphaInput, setAlphaInput] = React.useState(() =>
     getAlphaText(normalizedValue.a),
   );
   const [isEditingHex, setIsEditingHex] = React.useState(false);
   const [isEditingAlpha, setIsEditingAlpha] = React.useState(false);
   const saturationRef = React.useRef<HTMLDivElement | null>(null);
+  const controlId = React.useId();
+  const hueId = `${controlId}-hue`;
+  const alphaSliderId = `${controlId}-alpha-slider`;
+  const hexId = `${controlId}-hex`;
+  const alphaId = `${controlId}-alpha`;
 
   React.useEffect(() => {
     if (!isEditingHex) {
@@ -364,7 +371,11 @@ export function ColorPickerPanel({
     (clientX: number, clientY: number) => {
       if (disabled || !saturationRef.current) return;
       const rect = saturationRef.current.getBoundingClientRect();
-      const next = getSaturationLightnessFromPointerPosition(clientX, clientY, rect);
+      const next = getSaturationLightnessFromPointerPosition(
+        clientX,
+        clientY,
+        rect,
+      );
       emitValue(
         applySaturationLightnessToColor(
           normalizedValue,
@@ -406,9 +417,7 @@ export function ColorPickerPanel({
       else return;
 
       event.preventDefault();
-      emitValue(
-        applySaturationLightnessToColor(normalizedValue, nextS, nextL),
-      );
+      emitValue(applySaturationLightnessToColor(normalizedValue, nextS, nextL));
     },
     [disabled, emitValue, hsl.l, hsl.s, normalizedValue],
   );
@@ -422,7 +431,11 @@ export function ColorPickerPanel({
   }, [emitValue, hexInput, normalizedValue, opacityEnabled]);
 
   const commitAlpha = React.useCallback(() => {
-    const result = commitAlphaInput(normalizedValue, alphaInput, opacityEnabled);
+    const result = commitAlphaInput(
+      normalizedValue,
+      alphaInput,
+      opacityEnabled,
+    );
     setAlphaInput(getAlphaText(result.nextValue.a));
     if (result.accepted) {
       emitValue(result.nextValue);
@@ -435,7 +448,10 @@ export function ColorPickerPanel({
   const rgbaCss = `rgba(${normalizedValue.r}, ${normalizedValue.g}, ${normalizedValue.b}, ${normalizedValue.a})`;
 
   return (
-    <div className={cn("space-y-3", className)} data-disabled={disabled || undefined}>
+    <div
+      className={cn("space-y-3", className)}
+      data-disabled={disabled || undefined}
+    >
       <div className="space-y-1.5">
         <Label className="sr-only">{resolvedLabels.saturationLightness}</Label>
         <div
@@ -443,7 +459,7 @@ export function ColorPickerPanel({
           aria-label={resolvedLabels.saturationLightness}
           aria-disabled={disabled}
           className={cn(
-            "relative h-36 w-full rounded-md border border-input outline-none",
+            "border-input relative h-36 w-full rounded-md border outline-none",
             disabled && "pointer-events-none opacity-60",
           )}
           onKeyDown={handleSaturationKeyDown}
@@ -466,7 +482,7 @@ export function ColorPickerPanel({
       </div>
 
       <div className="space-y-1.5">
-        <Label className="text-xs" htmlFor="color-picker-hue">
+        <Label className="text-xs" htmlFor={hueId}>
           {resolvedLabels.hue}
         </Label>
         <Slider
@@ -476,7 +492,7 @@ export function ColorPickerPanel({
             "[&_[data-slot=slider-track]]:bg-[linear-gradient(to_right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)]",
           )}
           disabled={disabled}
-          id="color-picker-hue"
+          id={hueId}
           max={360}
           min={0}
           onValueChange={(values) => {
@@ -489,7 +505,7 @@ export function ColorPickerPanel({
 
       {opacityEnabled ? (
         <div className="space-y-1.5">
-          <Label className="text-xs" htmlFor="color-picker-alpha-slider">
+          <Label className="text-xs" htmlFor={alphaSliderId}>
             {resolvedLabels.opacity}
           </Label>
           <Slider
@@ -499,7 +515,7 @@ export function ColorPickerPanel({
               "[&_[data-slot=slider-track]]:bg-[linear-gradient(to_right,rgba(0,0,0,0),rgba(0,0,0,1))]",
             )}
             disabled={disabled}
-            id="color-picker-alpha-slider"
+            id={alphaSliderId}
             max={100}
             min={0}
             onValueChange={(values) => {
@@ -521,13 +537,13 @@ export function ColorPickerPanel({
         )}
       >
         <div className="space-y-1.5">
-          <Label className="text-xs" htmlFor="color-picker-hex">
+          <Label className="text-xs" htmlFor={hexId}>
             {resolvedLabels.hex}
           </Label>
           <Input
             aria-label={resolvedLabels.hex}
             disabled={disabled}
-            id="color-picker-hex"
+            id={hexId}
             inputMode="text"
             onBlur={() => {
               setIsEditingHex(false);
@@ -552,13 +568,13 @@ export function ColorPickerPanel({
 
         {opacityEnabled ? (
           <div className="space-y-1.5">
-            <Label className="text-xs" htmlFor="color-picker-alpha">
+            <Label className="text-xs" htmlFor={alphaId}>
               {resolvedLabels.alpha}
             </Label>
             <Input
               aria-label={resolvedLabels.alpha}
               disabled={disabled}
-              id="color-picker-alpha"
+              id={alphaId}
               inputMode="decimal"
               onBlur={() => {
                 setIsEditingAlpha(false);
@@ -647,6 +663,8 @@ export function ColorPickerField({
   );
 }
 
-export function ColorPickerCheckIcon(props: React.ComponentProps<typeof Check>) {
+export function ColorPickerCheckIcon(
+  props: React.ComponentProps<typeof Check>,
+) {
   return <Check {...props} />;
 }

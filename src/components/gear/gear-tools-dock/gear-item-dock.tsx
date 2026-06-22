@@ -4,7 +4,16 @@
 import dynamic from "next/dynamic";
 
 import type { GearAlternativeRow } from "~/server/gear/service";
-import type { GearPublicationState,GearType,RawSample } from "~/types/gear";
+import type {
+  GearColorway,
+  GearPublicationState,
+  GearType,
+  RawSample,
+} from "~/types/gear";
+
+const EMPTY_ALTERNATIVES: GearAlternativeRow[] = [];
+const EMPTY_SAMPLES: RawSample[] = [];
+const EMPTY_COLORWAYS: GearColorway[] = [];
 
 const GearItemDockClient = dynamic(
   () => import("./gear-item-dock.client").then((mod) => mod.GearItemDockClient),
@@ -23,6 +32,7 @@ export interface GearItemDockProps {
   alternatives?: GearAlternativeRow[];
   rawSamples?: RawSample[];
   hasCreatorVideos?: boolean;
+  colorways?: GearColorway[];
 }
 
 export function GearItemDock({
@@ -34,9 +44,10 @@ export function GearItemDock({
   currentRearViewUrl = null,
   currentInstructionManualUrl = null,
   publicationState = null,
-  alternatives = [],
-  rawSamples = [],
+  alternatives = EMPTY_ALTERNATIVES,
+  rawSamples = EMPTY_SAMPLES,
   hasCreatorVideos = false,
+  colorways = EMPTY_COLORWAYS,
 }: GearItemDockProps) {
   return (
     <GearItemDockClient
@@ -51,6 +62,7 @@ export function GearItemDock({
       alternatives={alternatives}
       rawSamples={rawSamples}
       hasCreatorVideos={hasCreatorVideos}
+      colorways={colorways}
     />
   );
 }

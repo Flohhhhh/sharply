@@ -10,6 +10,7 @@ import type {
   fixedLensSpecs,
   gear,
   gearAliases,
+  gearColorways,
   gearEdits,
   gearRawSamples,
   gearPublicationStateEnum,
@@ -42,6 +43,7 @@ export type CameraVideoMode = typeof cameraVideoModes.$inferSelect;
 export type RawSample = typeof rawSamples.$inferSelect;
 export type GearRawSample = typeof gearRawSamples.$inferSelect;
 export type GearAlias = typeof gearAliases.$inferSelect;
+export type GearColorway = typeof gearColorways.$inferSelect;
 export type GearRegion = (typeof gearRegionEnum.enumValues)[number];
 export type GearPublicationState =
   (typeof gearPublicationStateEnum.enumValues)[number];
@@ -60,6 +62,7 @@ export type GearItem = Gear & {
   cameraCardSlots?: CameraCardSlot[] | null;
   videoModes?: (CameraVideoMode | VideoModeNormalized)[] | null;
   rawSamples?: RawSample[] | null;
+  colorways?: GearColorway[] | null;
 };
 
 export type PopularityEventType =

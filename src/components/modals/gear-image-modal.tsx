@@ -1,9 +1,9 @@
 "use client";
 
-import { ImageIcon,Trash,Upload } from "lucide-react";
+import { ImageIcon, Trash, Upload } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
-import { useEffect,useRef,useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { genUploader } from "uploadthing/client";
 import type { OurFileRouter } from "~/app/api/uploadthing/core";
@@ -24,6 +24,8 @@ import {
   shouldAutoGenerateGearOgImageOnThumbnailUpload,
 } from "~/lib/gear/og-image";
 import type { GearType } from "~/types/gear";
+import type { GearColorway } from "~/types/gear";
+import { actionSetGearColorwayImage } from "~/server/admin/colorways/actions";
 import {
   actionClearGearRearView,
   actionClearGearThumbnail,
@@ -32,6 +34,7 @@ import {
   actionSetGearThumbnail,
   actionSetGearTopView,
 } from "~/server/admin/gear/actions";
+import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 
 export interface GearImageModalProps {
   gearId?: string;
@@ -42,6 +45,7 @@ export interface GearImageModalProps {
   currentThumbnailUrl?: string;
   currentTopViewUrl?: string;
   currentRearViewUrl?: string;
+  currentColorways?: GearColorway[];
 }
 
 type ImageType = "thumbnail" | "topView" | "rearView";
@@ -70,6 +74,12 @@ export function GearImageModal(props: GearImageModalProps) {
   >(null);
   const [activeImageType, setActiveImageType] =
     useState<ImageType>("thumbnail");
+  const [localColorways, setLocalColorways] = useState(
+    () => props.currentColorways ?? [],
+  );
+  const [selectedColorwayId, setSelectedColorwayId] = useState<string | null>(
+    null,
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const topViewFileInputRef = useRef<HTMLInputElement>(null);
   const rearViewFileInputRef = useRef<HTMLInputElement>(null);
@@ -85,9 +95,30 @@ export function GearImageModal(props: GearImageModalProps) {
   );
   const supportsRearView =
     props.gearType === "CAMERA" || props.gearType === "ANALOG_CAMERA";
+  const activeColorwayId = localColorways.some(
+    (colorway) => colorway.id === selectedColorwayId,
+  )
+    ? (selectedColorwayId ?? "")
+    : (localColorways[0]?.id ?? "");
+  const selectedColorway = localColorways.find(
+    (colorway) => colorway.id === activeColorwayId,
+  );
+  const isExplicitMode = localColorways.length > 0;
+  const isDefaultColorway = localColorways[0]?.id === activeColorwayId;
+  const displayedThumbnailUrl = isExplicitMode
+    ? (selectedColorway?.frontImageUrl ?? undefined)
+    : localThumbnailUrl;
+  const displayedTopViewUrl = isExplicitMode
+    ? (selectedColorway?.topViewUrl ?? undefined)
+    : localTopViewUrl;
+  const displayedRearViewUrl = isExplicitMode
+    ? (selectedColorway?.rearViewUrl ?? undefined)
+    : localRearViewUrl;
 
   // Sync when parent changes item or current image
   useEffect(() => {
+    const nextColorways = props.currentColorways ?? [];
+    setLocalColorways(nextColorways);
     setLocalThumbnailUrl(props.currentThumbnailUrl ?? undefined);
     setLocalTopViewUrl(props.currentTopViewUrl ?? undefined);
     setLocalRearViewUrl(props.currentRearViewUrl ?? undefined);
@@ -97,11 +128,21 @@ export function GearImageModal(props: GearImageModalProps) {
     props.currentRearViewUrl,
     props.gearId,
     props.slug,
+    props.currentColorways,
   ]);
+
+  function selectColorway(colorwayId: string) {
+    const colorway = localColorways.find((item) => item.id === colorwayId);
+    if (!colorway) return;
+    setSelectedColorwayId(colorwayId);
+  }
 
   const { uploadFiles } = genUploader<OurFileRouter>();
 
-  async function uploadGearImageFile(file: File, onProgress?: (progress: number) => void) {
+  async function uploadGearImageFile(
+    file: File,
+    onProgress?: (progress: number) => void,
+  ) {
     const res = await uploadFiles("gearImageUploader", {
       files: [file],
       onUploadProgress: onProgress
@@ -162,10 +203,12 @@ export function GearImageModal(props: GearImageModalProps) {
       });
 
       let ogImageUrl: string | null | undefined;
-      const shouldGenerateOgImage = shouldAutoGenerateGearOgImageOnThumbnailUpload({
-        imageType,
-        currentThumbnailUrl: localThumbnailUrl,
-      });
+      const shouldGenerateOgImage =
+        (!isExplicitMode || isDefaultColorway) &&
+        shouldAutoGenerateGearOgImageOnThumbnailUpload({
+          imageType,
+          currentThumbnailUrl: displayedThumbnailUrl,
+        });
 
       if (imageType === "thumbnail" && shouldGenerateOgImage) {
         try {
@@ -179,10 +222,13 @@ export function GearImageModal(props: GearImageModalProps) {
             setCombinedProgress((prev) => (mapped > prev ? mapped : prev));
           });
         } catch (error) {
-          console.error("Failed to generate gear OG image during upload", error);
+          console.error(
+            "Failed to generate gear OG image during upload",
+            error,
+          );
           ogImageUrl = null;
         }
-      } else if (imageType === "thumbnail" && localThumbnailUrl) {
+      } else if (imageType === "thumbnail" && displayedThumbnailUrl) {
         // Replacements should fall back to the fresh thumbnail until an admin
         // backfill/regeneration run stores a new dedicated OG asset.
         ogImageUrl = null;
@@ -196,7 +242,24 @@ export function GearImageModal(props: GearImageModalProps) {
         setCombinedProgress((prev) => (prev < 95 ? prev + 2 : prev));
       }, 120);
 
-      if (imageType === "thumbnail") {
+      if (isExplicitMode && (!selectedColorway || !props.gearId)) {
+        throw new Error(t("colorwayContextMissing"));
+      }
+
+      if (isExplicitMode) {
+        const result = await actionSetGearColorwayImage({
+          gearId: props.gearId!,
+          colorwayId: selectedColorway!.id,
+          imageType: imageType === "thumbnail" ? "front" : imageType,
+          imageUrl: url,
+          ogImageUrl,
+        });
+        setLocalColorways((current) =>
+          current.map((item) =>
+            item.id === result.colorway.id ? result.colorway : item,
+          ),
+        );
+      } else if (imageType === "thumbnail") {
         await actionSetGearThumbnail({
           gearId: props.gearId,
           slug: props.slug,
@@ -268,7 +331,23 @@ export function GearImageModal(props: GearImageModalProps) {
       }, 120);
       savingTimerRef.current = interval;
 
-      if (imageType === "thumbnail") {
+      if (isExplicitMode && (!selectedColorway || !props.gearId)) {
+        throw new Error(t("colorwayContextMissing"));
+      }
+
+      if (isExplicitMode) {
+        const result = await actionSetGearColorwayImage({
+          gearId: props.gearId!,
+          colorwayId: selectedColorway!.id,
+          imageType: imageType === "thumbnail" ? "front" : imageType,
+          imageUrl: null,
+        });
+        setLocalColorways((current) =>
+          current.map((item) =>
+            item.id === result.colorway.id ? result.colorway : item,
+          ),
+        );
+      } else if (imageType === "thumbnail") {
         await actionClearGearThumbnail({
           gearId: props.gearId,
           slug: props.slug,
@@ -352,7 +431,7 @@ export function GearImageModal(props: GearImageModalProps) {
           </div>
         ) : (
           <div
-            className="bg-muted/40 dark:bg-card/60 flex h-52 w-full cursor-pointer items-center justify-center rounded border-2 border-dashed p-5 transition-colors hover:border-primary/50"
+            className="bg-muted/40 dark:bg-card/60 hover:border-primary/50 flex h-52 w-full cursor-pointer items-center justify-center rounded border-2 border-dashed p-5 transition-colors"
             onClick={() => inputRef.current?.click()}
             onDragOver={(e) => {
               e.preventDefault();
@@ -437,6 +516,22 @@ export function GearImageModal(props: GearImageModalProps) {
           </DialogDescription>
         </DialogHeader>
 
+        {isExplicitMode ? (
+          <Tabs value={activeColorwayId} onValueChange={selectColorway}>
+            <TabsList className="h-auto max-w-full justify-start gap-1 overflow-x-auto rounded-md border border-input/70 bg-background/70 p-1 shadow-sm">
+              {localColorways.map((colorway) => (
+                <TabsTrigger
+                  key={colorway.id}
+                  value={colorway.id}
+                  className="h-8 rounded-sm px-3 text-xs font-semibold text-foreground/70 data-[state=active]:border-border data-[state=active]:bg-foreground/10 data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                >
+                  {colorway.name}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        ) : null}
+
         <div
           className={`grid gap-10 ${
             supportsRearView ? "md:grid-cols-3" : "md:grid-cols-2"
@@ -444,20 +539,20 @@ export function GearImageModal(props: GearImageModalProps) {
         >
           <ImageSection
             title={t("frontView")}
-            imageUrl={localThumbnailUrl}
+            imageUrl={displayedThumbnailUrl}
             imageType="thumbnail"
             fileInputRef={fileInputRef}
           />
           <ImageSection
             title={t("topView")}
-            imageUrl={localTopViewUrl}
+            imageUrl={displayedTopViewUrl}
             imageType="topView"
             fileInputRef={topViewFileInputRef}
           />
           {supportsRearView ? (
             <ImageSection
               title={t("rearView")}
-              imageUrl={localRearViewUrl}
+              imageUrl={displayedRearViewUrl}
               imageType="rearView"
               fileInputRef={rearViewFileInputRef}
             />

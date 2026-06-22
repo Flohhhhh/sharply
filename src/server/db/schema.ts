@@ -1,6 +1,4 @@
- 
-
-import { relations,sql } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   type AnyPgColumn,
   boolean,
@@ -16,7 +14,7 @@ import {
   timestamp,
   uniqueIndex,
   uuid,
-  varchar
+  varchar,
 } from "drizzle-orm/pg-core";
 // Popularity event enum will be defined below for strong typing in DB
 
@@ -74,6 +72,14 @@ export const auditActionEnum = pgEnum("audit_action", [
   "GEAR_REAR_VIEW_UPLOAD",
   "GEAR_REAR_VIEW_REPLACE",
   "GEAR_REAR_VIEW_REMOVE",
+  "GEAR_COLORWAY_CREATE",
+  "GEAR_COLORWAY_UPDATE",
+  "GEAR_COLORWAY_REORDER",
+  "GEAR_COLORWAY_DELETE",
+  "GEAR_COLORWAY_RESET",
+  "GEAR_COLORWAY_IMAGE_UPLOAD",
+  "GEAR_COLORWAY_IMAGE_REPLACE",
+  "GEAR_COLORWAY_IMAGE_REMOVE",
   "GEAR_EDIT_PROPOSE",
   "GEAR_EDIT_APPROVE",
   "GEAR_EDIT_REJECT",
@@ -639,6 +645,32 @@ export const gear = appSchema.table(
   ],
 );
 
+export const gearColorways = appSchema.table(
+  "gear_colorways",
+  () => ({
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    gearId: varchar("gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    name: varchar("name", { length: 120 }).notNull(),
+    slug: varchar("slug", { length: 140 }).notNull(),
+    swatchColorA: varchar("swatch_color_a", { length: 7 }).notNull(),
+    swatchColorB: varchar("swatch_color_b", { length: 7 }).notNull(),
+    sortOrder: integer("sort_order").notNull(),
+    frontImageUrl: text("front_image_url"),
+    topViewUrl: text("top_view_url"),
+    rearViewUrl: text("rear_view_url"),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    uniqueIndex("gear_colorways_gear_slug_uidx").on(t.gearId, t.slug),
+    index("gear_colorways_gear_order_idx").on(t.gearId, t.sortOrder),
+  ],
+);
+
 // Regional aliases for gear names (one per gear + region)
 export const gearAliases = appSchema.table(
   "gear_aliases",
@@ -1195,12 +1227,11 @@ export const reviewFlags = appSchema.table(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     status: reviewFlagStatusEnum("status").notNull().default("OPEN"),
-    resolvedByUserId: varchar("resolved_by_user_id", { length: 255 }).references(
-      () => users.id,
-      {
-        onDelete: "set null",
-      },
-    ),
+    resolvedByUserId: varchar("resolved_by_user_id", {
+      length: 255,
+    }).references(() => users.id, {
+      onDelete: "set null",
+    }),
     resolvedAt: timestamp("resolved_at", { withTimezone: true }),
     createdAt,
     updatedAt,
@@ -1374,6 +1405,14 @@ export const gearRelations = relations(gear, ({ one, many }) => ({
   creatorVideos: many(gearCreatorVideos),
   rawSamples: many(gearRawSamples),
   aliases: many(gearAliases),
+  colorways: many(gearColorways),
+}));
+
+export const gearColorwaysRelations = relations(gearColorways, ({ one }) => ({
+  gear: one(gear, {
+    fields: [gearColorways.gearId],
+    references: [gear.id],
+  }),
 }));
 
 export const gearAliasesRelations = relations(gearAliases, ({ one }) => ({
@@ -1774,12 +1813,15 @@ export const gearExifAliases = appSchema.table(
   ],
 );
 
-export const gearExifAliasesRelations = relations(gearExifAliases, ({ one }) => ({
-  gear: one(gear, {
-    fields: [gearExifAliases.gearId],
-    references: [gear.id],
+export const gearExifAliasesRelations = relations(
+  gearExifAliases,
+  ({ one }) => ({
+    gear: one(gear, {
+      fields: [gearExifAliases.gearId],
+      references: [gear.id],
+    }),
   }),
-}));
+);
 
 export const exifTrackedCameras = appSchema.table(
   "exif_tracked_cameras",
@@ -2218,7 +2260,10 @@ export const bingoBoardTiles = appSchema.table(
     updatedAt,
   }),
   (t) => [
-    uniqueIndex("bingo_board_tiles_board_position_uq").on(t.boardId, t.position),
+    uniqueIndex("bingo_board_tiles_board_position_uq").on(
+      t.boardId,
+      t.position,
+    ),
     index("bingo_board_tiles_board_completed_idx").on(t.boardId, t.completedAt),
   ],
 );
