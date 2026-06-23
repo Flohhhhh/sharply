@@ -31,21 +31,15 @@ type SaturationLightnessPoint = {
 };
 
 type ColorPickerLabels = {
-  trigger: string;
   hex: string;
-  alpha: string;
   saturationLightness: string;
   hue: string;
+  alpha?: string;
   opacity: string;
 };
 
-const DEFAULT_LABELS: ColorPickerLabels = {
-  trigger: "Select color",
-  hex: "Hex",
-  alpha: "Alpha",
-  saturationLightness: "Saturation and lightness",
-  hue: "Hue",
-  opacity: "Opacity",
+type ColorPickerFieldLabels = ColorPickerLabels & {
+  trigger: string;
 };
 
 export interface ColorPickerPanelProps {
@@ -54,7 +48,7 @@ export interface ColorPickerPanelProps {
   disabled?: boolean;
   opacityEnabled?: boolean;
   className?: string;
-  labels?: Partial<ColorPickerLabels>;
+  labels: ColorPickerLabels;
 }
 
 export interface ColorPickerFieldProps extends ColorPickerPanelProps {
@@ -63,6 +57,7 @@ export interface ColorPickerFieldProps extends ColorPickerPanelProps {
   onOpenChange?: (open: boolean) => void;
   triggerClassName?: string;
   popoverContentClassName?: string;
+  labels: ColorPickerFieldLabels;
 }
 
 type CommitResult = {
@@ -279,10 +274,6 @@ export function commitAlphaInput(
   };
 }
 
-function getLabels(labels?: Partial<ColorPickerLabels>): ColorPickerLabels {
-  return { ...DEFAULT_LABELS, ...labels };
-}
-
 function getAlphaText(value: number) {
   const fixed = clamp(value, 0, 1).toFixed(2);
   return fixed.replace(/0+$/, "").replace(/\.$/, "") || "0";
@@ -323,7 +314,6 @@ export function ColorPickerPanel({
   className,
   labels,
 }: ColorPickerPanelProps) {
-  const resolvedLabels = getLabels(labels);
   const normalizedValue = React.useMemo(
     () => normalizeRgbaColor(value, opacityEnabled),
     [opacityEnabled, value],
@@ -453,10 +443,10 @@ export function ColorPickerPanel({
       data-disabled={disabled || undefined}
     >
       <div className="space-y-1.5">
-        <Label className="sr-only">{resolvedLabels.saturationLightness}</Label>
+        <Label className="sr-only">{labels.saturationLightness}</Label>
         <div
           ref={saturationRef}
-          aria-label={resolvedLabels.saturationLightness}
+          aria-label={labels.saturationLightness}
           aria-disabled={disabled}
           className={cn(
             "border-input relative h-36 w-full rounded-md border outline-none",
@@ -483,10 +473,10 @@ export function ColorPickerPanel({
 
       <div className="space-y-1.5">
         <Label className="text-xs" htmlFor={hueId}>
-          {resolvedLabels.hue}
+          {labels.hue}
         </Label>
         <Slider
-          aria-label={resolvedLabels.hue}
+          aria-label={labels.hue}
           className={cn(
             "[&_[data-slot=slider-range]]:bg-transparent",
             "[&_[data-slot=slider-track]]:bg-[linear-gradient(to_right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)]",
@@ -506,10 +496,10 @@ export function ColorPickerPanel({
       {opacityEnabled ? (
         <div className="space-y-1.5">
           <Label className="text-xs" htmlFor={alphaSliderId}>
-            {resolvedLabels.opacity}
+            {labels.opacity}
           </Label>
           <Slider
-            aria-label={resolvedLabels.opacity}
+            aria-label={labels.opacity}
             className={cn(
               "[&_[data-slot=slider-range]]:bg-transparent",
               "[&_[data-slot=slider-track]]:bg-[linear-gradient(to_right,rgba(0,0,0,0),rgba(0,0,0,1))]",
@@ -538,10 +528,10 @@ export function ColorPickerPanel({
       >
         <div className="space-y-1.5">
           <Label className="text-xs" htmlFor={hexId}>
-            {resolvedLabels.hex}
+            {labels.hex}
           </Label>
           <Input
-            aria-label={resolvedLabels.hex}
+            aria-label={labels.hex}
             disabled={disabled}
             id={hexId}
             inputMode="text"
@@ -569,10 +559,10 @@ export function ColorPickerPanel({
         {opacityEnabled ? (
           <div className="space-y-1.5">
             <Label className="text-xs" htmlFor={alphaId}>
-              {resolvedLabels.alpha}
+              {labels.alpha}
             </Label>
             <Input
-              aria-label={resolvedLabels.alpha}
+              aria-label={labels.alpha}
               disabled={disabled}
               id={alphaId}
               inputMode="decimal"
@@ -619,7 +609,6 @@ export function ColorPickerField({
   triggerClassName,
   popoverContentClassName,
 }: ColorPickerFieldProps) {
-  const resolvedLabels = getLabels(labels);
   const normalizedValue = React.useMemo(
     () => normalizeRgbaColor(value, opacityEnabled),
     [opacityEnabled, value],
@@ -633,7 +622,7 @@ export function ColorPickerField({
       <PopoverTrigger asChild>
         <button
           aria-disabled={disabled}
-          aria-label={resolvedLabels.trigger}
+          aria-label={labels.trigger}
           className={cn(
             "border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 flex h-9 w-full min-w-0 items-center gap-2 rounded-md border px-3 py-1 text-left text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50",
             className,
@@ -653,7 +642,7 @@ export function ColorPickerField({
       >
         <ColorPickerPanel
           disabled={disabled}
-          labels={resolvedLabels}
+          labels={labels}
           onValueChange={onValueChange}
           opacityEnabled={opacityEnabled}
           value={normalizedValue}

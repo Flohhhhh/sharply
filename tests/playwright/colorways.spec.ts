@@ -28,6 +28,9 @@ test.describe("gear colorways", () => {
       page.getByRole("dialog", { name: "Manage Colors" }),
     ).toBeVisible();
     await page.keyboard.press("Escape");
+    await expect(
+      page.getByRole("dialog", { name: "Manage Colors" }),
+    ).not.toBeVisible();
     await page.getByRole("button", { name: "Manage Images" }).click();
     await expect(
       page.getByRole("dialog", { name: "Manage Gear Images" }),

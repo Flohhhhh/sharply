@@ -93,6 +93,15 @@ const BASE_COLOR: RgbaColor = {
   a: 0.5,
 };
 
+const LABELS = {
+  trigger: "Select color",
+  hex: "Hex",
+  alpha: "Alpha",
+  saturationLightness: "Saturation and lightness",
+  hue: "Hue",
+  opacity: "Opacity",
+} as const;
+
 describe("color-picker helpers", () => {
   it("normalizes incoming rgba values and disables alpha when requested", () => {
     expect(
@@ -194,6 +203,7 @@ describe("color-picker markup", () => {
   it("renders the field from a controlled incoming value", () => {
     const markup = renderToStaticMarkup(
       React.createElement(ColorPickerField, {
+        labels: LABELS,
         value: BASE_COLOR,
         onValueChange: vi.fn(),
       }),
@@ -206,12 +216,14 @@ describe("color-picker markup", () => {
   it("renders alpha controls only when opacity is enabled", () => {
     const withoutOpacity = renderToStaticMarkup(
       React.createElement(ColorPickerPanel, {
+        labels: LABELS,
         value: BASE_COLOR,
         onValueChange: vi.fn(),
       }),
     );
     const withOpacity = renderToStaticMarkup(
       React.createElement(ColorPickerPanel, {
+        labels: LABELS,
         value: BASE_COLOR,
         onValueChange: vi.fn(),
         opacityEnabled: true,
@@ -226,12 +238,14 @@ describe("color-picker markup", () => {
   it("reflects parent updates in rendered output", () => {
     const first = renderToStaticMarkup(
       React.createElement(ColorPickerField, {
+        labels: LABELS,
         value: BASE_COLOR,
         onValueChange: vi.fn(),
       }),
     );
     const second = renderToStaticMarkup(
       React.createElement(ColorPickerField, {
+        labels: LABELS,
         value: { r: 0, g: 255, b: 0, a: 1 },
         onValueChange: vi.fn(),
       }),
@@ -244,6 +258,7 @@ describe("color-picker markup", () => {
   it("renders disabled field state", () => {
     const markup = renderToStaticMarkup(
       React.createElement(ColorPickerField, {
+        labels: LABELS,
         value: BASE_COLOR,
         onValueChange: vi.fn(),
         disabled: true,

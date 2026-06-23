@@ -6,7 +6,7 @@ Gear colorways describe visual variants of one product identity. They do not cre
 
 - **Implicit mode:** a gear item has no `gear_colorways` rows. The public carousel reads `gear.thumbnailUrl`, `gear.topViewUrl`, and `gear.rearViewUrl`.
 - **Explicit mode:** a gear item has one or more ordered colorway rows. The public carousel reads only colorway images. The lowest `sortOrder` is the default.
-- Enabling explicit mode creates the first stored colorway from the current gear images. A single stored colorway remains explicit even though public color pills are hidden.
+- Enabling explicit mode creates the first stored colorway from the current gear images.
 
 The first colorway's front, top, and rear images are mirrored to the legacy gear fields. This keeps browse cards, search results, metadata, and JSON-LD aligned with the visible default. Changing the default clears a stale dedicated OG image so metadata falls back to the mirrored thumbnail.
 

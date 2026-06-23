@@ -3,6 +3,9 @@ import "server-only";
 
 import { revalidatePath } from "next/cache";
 
+import { locales } from "~/i18n/config";
+import { localizePathname } from "~/i18n/routing";
+
 import {
   createGearColorwayService,
   deleteGearColorwayService,
@@ -16,9 +19,11 @@ import {
 async function revalidateColorwayResult<T extends { gearSlug: string }>(
   result: T,
 ) {
-  revalidatePath(`/gear/${result.gearSlug}`);
-  revalidatePath("/browse");
-  revalidatePath("/admin/gear");
+  for (const locale of locales) {
+    revalidatePath(localizePathname(`/gear/${result.gearSlug}`, locale));
+    revalidatePath(localizePathname("/browse", locale));
+    revalidatePath(localizePathname("/admin/gear", locale));
+  }
   return result;
 }
 

@@ -39,13 +39,16 @@ async function mirrorDefaultColorway(
   colorway: typeof gearColorways.$inferSelect,
   options: { ogImageUrl?: string | null; preserveOg?: boolean } = {},
 ) {
+  const shouldUpdateOgImage =
+    options.preserveOg === false || Object.hasOwn(options, "ogImageUrl");
+
   await tx
     .update(gear)
     .set({
       thumbnailUrl: colorway.frontImageUrl,
       topViewUrl: colorway.topViewUrl,
       rearViewUrl: colorway.rearViewUrl,
-      ...(options.preserveOg ? {} : { ogImageUrl: options.ogImageUrl ?? null }),
+      ...(shouldUpdateOgImage ? { ogImageUrl: options.ogImageUrl ?? null } : {}),
       updatedAt: new Date(),
     })
     .where(eq(gear.id, gearId));

@@ -15,6 +15,15 @@ import {
 import { ColorPickerField, type RgbaColor } from "./color-picker";
 import { Input } from "./input";
 
+const colorPickerLabels = {
+  trigger: "Select color",
+  hex: "Hex",
+  alpha: "Alpha",
+  saturationLightness: "Saturation and lightness",
+  hue: "Hue",
+  opacity: "Opacity",
+} as const;
+
 export function ExampleUsage() {
   const [accentColor, setAccentColor] = useState<RgbaColor>({
     r: 255,
@@ -101,6 +110,7 @@ export function ExampleUsage() {
           <div className="space-y-1.5">
             <p className="text-sm font-medium">Accent Color</p>
             <ColorPickerField
+              labels={colorPickerLabels}
               value={accentColor}
               onValueChange={setAccentColor}
             />
@@ -108,6 +118,7 @@ export function ExampleUsage() {
           <div className="space-y-1.5">
             <p className="text-sm font-medium">Overlay Color</p>
             <ColorPickerField
+              labels={colorPickerLabels}
               opacityEnabled
               value={overlayColor}
               onValueChange={setOverlayColor}

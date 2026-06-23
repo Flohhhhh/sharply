@@ -133,8 +133,10 @@ export function ColorwaySwatchEditor({
               opacityEnabled={false}
               labels={{
                 hex: labels.hex,
+                alpha: labels.hex,
                 hue: labels.hue,
                 saturationLightness: labels.saturationLightness,
+                opacity: labels.hue,
               }}
             />
           </div>
