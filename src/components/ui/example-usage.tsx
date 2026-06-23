@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { Avatar,AvatarFallback,AvatarImage } from "./avatar";
 import { Badge } from "./badge";
 import { Button } from "./button";
@@ -9,9 +12,32 @@ import {
   CardHeader,
   CardTitle,
 } from "./card";
+import { ColorPickerField, type RgbaColor } from "./color-picker";
 import { Input } from "./input";
 
+const colorPickerLabels = {
+  trigger: "Select color",
+  hex: "Hex",
+  alpha: "Alpha",
+  saturationLightness: "Saturation and lightness",
+  hue: "Hue",
+  opacity: "Opacity",
+} as const;
+
 export function ExampleUsage() {
+  const [accentColor, setAccentColor] = useState<RgbaColor>({
+    r: 255,
+    g: 122,
+    b: 0,
+    a: 1,
+  });
+  const [overlayColor, setOverlayColor] = useState<RgbaColor>({
+    r: 59,
+    g: 130,
+    b: 246,
+    a: 0.55,
+  });
+
   return (
     <div className="space-y-6 p-8">
       <div className="space-y-4">
@@ -74,6 +100,30 @@ export function ExampleUsage() {
           <Input placeholder="Enter your name" />
           <Input placeholder="Enter your email" type="email" />
           <Input placeholder="Enter your password" type="password" />
+        </div>
+      </div>
+
+      {/* Color Picker */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold">Color Picker</h2>
+        <div className="grid max-w-md gap-3">
+          <div className="space-y-1.5">
+            <p className="text-sm font-medium">Accent Color</p>
+            <ColorPickerField
+              labels={colorPickerLabels}
+              value={accentColor}
+              onValueChange={setAccentColor}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <p className="text-sm font-medium">Overlay Color</p>
+            <ColorPickerField
+              labels={colorPickerLabels}
+              opacityEnabled
+              value={overlayColor}
+              onValueChange={setOverlayColor}
+            />
+          </div>
         </div>
       </div>
 

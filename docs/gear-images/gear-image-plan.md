@@ -1,4 +1,6 @@
-Camera scale system plan
+# Camera Scale System Plan
+
+Color-specific image ownership and carousel behavior are documented in [color-variations.md](./color-variations.md). Gear-level images remain authoritative only while an item has no colorway rows; in explicit mode, the first ordered colorway is mirrored back to these legacy fields.
 
 Scope and views
 

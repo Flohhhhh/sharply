@@ -6,6 +6,10 @@ The gear specification system uses a flexible subtable approach to store detaile
 
 ## Architecture
 
+### Color variations
+
+Colorways are optional visual variants attached to a gear identity, not separate specification records. The ordered `gear_colorways` relationship and image-source rules are documented in [gear-images/color-variations.md](./gear-images/color-variations.md).
+
 ### Core Tables
 
 #### `gear` - Main Gear Table

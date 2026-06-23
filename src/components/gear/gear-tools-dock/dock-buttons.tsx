@@ -4,6 +4,7 @@ import {
   FilePlus,
   ImageIcon,
   Pencil,
+  Palette,
   Swords,
   Trash,
   Upload,
@@ -17,6 +18,7 @@ import { ManageCreatorVideosModal } from "~/app/[locale]/(pages)/gear/_component
 import { ManageStaffVerdictModal } from "~/app/[locale]/(pages)/gear/_components/manage-staff-verdict-modal";
 import type { AuthUser } from "~/auth";
 import { GearImageModal } from "~/components/modals/gear-image-modal";
+import { ManageColorwaysModal } from "~/components/gear/manage-colorways-modal";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -35,7 +37,7 @@ import { requireRole } from "~/lib/auth/auth-helpers";
 import { formatDate } from "~/lib/format/date";
 import { UploadDropzone } from "~/lib/utils/uploadthing";
 import type { GearAlternativeRow } from "~/server/gear/service";
-import type { GearType, RawSample } from "~/types/gear";
+import type { GearColorway, GearType, RawSample } from "~/types/gear";
 
 type DockSample = Omit<RawSample, "createdAt" | "updatedAt"> & {
   createdAt?: string | null;
@@ -55,10 +57,12 @@ export interface BuildDockButtonsParams {
   currentThumbnailUrl?: string | null;
   currentTopViewUrl?: string | null;
   currentRearViewUrl?: string | null;
+  colorways: GearColorway[];
   currentInstructionManualUrl?: string | null;
   instructionManualLabel: string;
   instructionManualManageLabel: string;
   unavailableUntilPublishedLabel: string;
+  colorwaysManageLabel: string;
   locale: string;
   alternatives: GearAlternativeRow[];
   hasCreatorVideos: boolean;
@@ -82,10 +86,12 @@ export function buildDockButtons({
   currentThumbnailUrl,
   currentTopViewUrl,
   currentRearViewUrl,
+  colorways,
   currentInstructionManualUrl,
   instructionManualLabel,
   instructionManualManageLabel,
   unavailableUntilPublishedLabel,
+  colorwaysManageLabel,
   locale,
   alternatives,
   managedSamples,
@@ -148,14 +154,20 @@ export function buildDockButtons({
       render: () => (
         <Tooltip key="images">
           <GearImageModal
+            gearId={gearId}
             slug={slug}
             gearType={gearType}
             currentThumbnailUrl={currentThumbnailUrl ?? undefined}
             currentTopViewUrl={currentTopViewUrl ?? undefined}
             currentRearViewUrl={currentRearViewUrl ?? undefined}
+            currentColorways={colorways}
             trigger={
               <TooltipTrigger asChild>
-                <button className={baseTriggerClass} aria-label="Manage Images">
+                <button
+                  type="button"
+                  className={baseTriggerClass}
+                  aria-label="Manage Images"
+                >
                   <ImageIcon className="text-foreground/70 size-4.5" />
                 </button>
               </TooltipTrigger>
@@ -164,6 +176,34 @@ export function buildDockButtons({
           <TooltipContent sideOffset={10}>Gear Images</TooltipContent>
         </Tooltip>
       ),
+    },
+    {
+      id: "colorways",
+      allowed: (currentUser) =>
+        Boolean(gearId && requireRole(currentUser, ["EDITOR"])),
+      render: () =>
+        gearId ? (
+          <Tooltip key="colorways">
+            <ManageColorwaysModal
+              gearId={gearId}
+              initialColorways={colorways}
+              trigger={
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className={baseTriggerClass}
+                    aria-label={colorwaysManageLabel}
+                  >
+                    <Palette className="text-foreground/70 size-4.5" />
+                  </button>
+                </TooltipTrigger>
+              }
+            />
+            <TooltipContent sideOffset={10}>
+              {colorwaysManageLabel}
+            </TooltipContent>
+          </Tooltip>
+        ) : null,
     },
     {
       id: "instruction manual",
@@ -176,6 +216,7 @@ export function buildDockButtons({
             trigger={
               <TooltipTrigger asChild>
                 <button
+                  type="button"
                   className={baseTriggerClass}
                   aria-label={instructionManualManageLabel}
                 >
@@ -212,6 +253,7 @@ export function buildDockButtons({
                 trigger={
                   <TooltipTrigger asChild>
                     <button
+                      type="button"
                       className={baseTriggerClass}
                       aria-label="Manage Alternatives"
                     >
@@ -242,6 +284,7 @@ export function buildDockButtons({
               trigger={
                 <TooltipTrigger asChild>
                   <button
+                    type="button"
                     className={baseTriggerClass}
                     aria-label="Manage Creator Videos"
                   >
@@ -272,6 +315,7 @@ export function buildDockButtons({
               trigger={
                 <TooltipTrigger asChild>
                   <button
+                    type="button"
                     className={baseTriggerClass}
                     aria-label="Manage Staff Verdict"
                   >
@@ -410,8 +454,8 @@ export function buildDockButtons({
                 </div>
               </div>
             </DialogContent>
-        </Dialog>
-      ),
+          </Dialog>
+        ),
     },
   ];
 }
