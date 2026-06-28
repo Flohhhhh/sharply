@@ -308,6 +308,7 @@ const useSpecForm = (initialSpecs) => {
 #### Form State Complexity
 
 - **Change Tracking**: Clear indication of unsaved modifications
+- **Navigation Protection**: Dirty forms trigger a native browser warning on refresh/tab close and a custom discard confirmation for in-app back/link navigation
 - **Validation State**: Real-time feedback without blocking submission
 - **Performance**: Debounced validation to prevent excessive API calls
 

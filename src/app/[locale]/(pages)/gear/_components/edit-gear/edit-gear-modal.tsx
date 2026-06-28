@@ -18,6 +18,7 @@ import {
   DialogContent
 } from "~/components/ui/dialog";
 import { translateGearDetailWithFallback } from "~/lib/i18n/gear-detail";
+import { useUnsavedChangesGuard } from "~/lib/hooks/useUnsavedChangesGuard";
 import type { GearItem,GearType } from "~/types/gear";
 import EditModalContent from "./edit-modal-content";
 
@@ -43,18 +44,25 @@ export function EditGearModal({
     translateGearDetailWithFallback(t, key, fallback);
   const router = useRouter();
   const [isDirty, setIsDirty] = useState(false);
-  const [confirmExitOpen, setConfirmExitOpen] = useState(false);
   const [showMissingOnly] = useState(Boolean(initialShowMissingOnly));
+  const {
+    cancelLeave,
+    confirmLeave,
+    isConfirmOpen,
+    leaveByHistoryBack,
+    requestLeave,
+  } = useUnsavedChangesGuard({
+    interceptHistory: true,
+    interceptLinks: true,
+    isDirty,
+    navigate: (href) => router.push(href),
+  });
 
   const requestClose = useCallback(
     (opts?: { force?: boolean }) => {
-      if (isDirty && !opts?.force) {
-        setConfirmExitOpen(true);
-        return;
-      }
-      router.back();
+      requestLeave(leaveByHistoryBack, opts);
     },
-    [isDirty, router],
+    [leaveByHistoryBack, requestLeave],
   );
 
   const handleOpenChange = useCallback(
@@ -84,7 +92,12 @@ export function EditGearModal({
         />
       </DialogContent>
       {/* Unsaved changes confirmation */}
-      <AlertDialog open={confirmExitOpen} onOpenChange={setConfirmExitOpen}>
+      <AlertDialog
+        open={isConfirmOpen}
+        onOpenChange={(open) => {
+          if (!open) cancelLeave();
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
@@ -98,15 +111,10 @@ export function EditGearModal({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setConfirmExitOpen(false)}>
+            <AlertDialogCancel onClick={cancelLeave}>
               {tf("editGear.stay", "Stay")}
             </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                setConfirmExitOpen(false);
-                router.back();
-              }}
-            >
+            <AlertDialogAction onClick={confirmLeave}>
               {tf("editGear.discardAndExit", "Discard & Exit")}
             </AlertDialogAction>
           </AlertDialogFooter>
