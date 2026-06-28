@@ -41,11 +41,11 @@ export function VideoMatrixModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl sm:max-w-5xl">
+      <DialogContent className="min-w-0 max-w-6xl sm:max-w-5xl">
         <DialogHeader>
           <DialogTitle>Video Specifications</DialogTitle>
         </DialogHeader>
-        <div className="space-y-6 text-sm">
+        <div className="min-w-0 space-y-6 text-sm">
           {/* <div className="text-muted-foreground space-y-1">
             {summaryLines.map((line) => (
               <div key={line}>{line}</div>
@@ -65,17 +65,18 @@ export function VideoMatrixModal({
             </div>
           )}
 
-          <div className="max-h-[60vh] overflow-auto rounded-md border">
-            <table className="min-w-full border-collapse text-sm">
+          <div className="max-w-full min-w-0">
+            <div className="max-h-[60vh] max-w-full overflow-x-auto overflow-y-auto rounded-md border">
+            <table className="w-max min-w-full border-collapse text-sm">
               <thead>
                 <tr>
-                  <th className="bg-background text-muted-foreground sticky left-0 px-3 py-2 text-left text-xs font-semibold tracking-wide uppercase">
+                  <th className="bg-background text-muted-foreground sticky top-0 left-0 z-30 border-r px-3 py-2 text-left text-xs font-semibold tracking-wide uppercase shadow-[10px_0_18px_-16px_rgba(0,0,0,0.9)]">
                     FPS ↓ / Resolution →
                   </th>
                   {orderedResolutions.map((resolution) => (
                     <th
                       key={resolution.key}
-                      className="text-muted-foreground px-3 py-2 text-left text-xs font-semibold tracking-wide uppercase"
+                      className="bg-background text-muted-foreground sticky top-0 z-20 min-w-[140px] px-3 py-2 text-left text-xs font-semibold tracking-wide uppercase"
                     >
                       {resolution.label}
                     </th>
@@ -85,7 +86,7 @@ export function VideoMatrixModal({
               <tbody>
                 {fpsValues.map((fps) => (
                   <tr key={fps} className="border-t">
-                    <td className="bg-background text-muted-foreground sticky left-0 px-3 py-1.5 text-xs font-semibold">
+                    <td className="bg-background text-muted-foreground sticky left-0 z-10 border-r px-3 py-1.5 text-xs font-semibold shadow-[10px_0_18px_-16px_rgba(0,0,0,0.9)]">
                       {fps} fps
                     </td>
                     {orderedResolutions.map((resolution) => {
@@ -93,7 +94,7 @@ export function VideoMatrixModal({
                       return (
                         <td
                           key={`${resolution.key}-${fps}`}
-                          className="min-w-[120px] px-2 py-2 align-top"
+                          className="min-w-[140px] px-2 py-2 align-top"
                         >
                           {cell ? (
                             (() => {
@@ -128,6 +129,7 @@ export function VideoMatrixModal({
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
 
           <div className="text-muted-foreground space-y-2 rounded-md text-xs">
