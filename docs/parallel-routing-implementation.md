@@ -46,7 +46,9 @@ app/(pages)/gear/[slug]/
 ### EditGearModal
 
 - Uses shadcn Dialog component
-- Handles modal open/close via router.back()
+- Handles modal open/close via history-aware back navigation
+- Shows a discard confirmation when the form is dirty and the user tries to close, go back, or click another in-app link
+- Registers a native browser `beforeunload` warning while the shared edit form is dirty
 - Responsive design with max-width and scroll
 
 ### EditGearForm
@@ -54,6 +56,7 @@ app/(pages)/gear/[slug]/
 - Shared form component used in both modal and full page
 - Basic form fields for gear specifications
 - Form validation and submission handling
+- Emits a shared dirty state used by both the modal and full-page leave guards
 
 ### Layout Integration
 
@@ -75,7 +78,8 @@ The gear page has two "Suggest Edit" buttons:
 - Clicking buttons navigates to `/gear/[slug]/edit`
 - Modal opens automatically on desktop
 - Full page loads on mobile
-- Browser back button closes modal
+- Browser back button closes the modal only when the form is clean
+- Dirty forms block accidental refresh, tab close, browser back, and same-tab in-app link navigation until the user confirms discard
 
 ## Benefits
 

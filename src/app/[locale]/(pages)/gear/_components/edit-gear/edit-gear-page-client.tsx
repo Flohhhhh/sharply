@@ -2,9 +2,21 @@
 
 import { Check,CheckCircle,ChevronRight,Circle } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { useMemo,useRef,useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "~/components/ui/alert-dialog";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
+import { useUnsavedChangesGuard } from "~/lib/hooks/useUnsavedChangesGuard";
 import { translateGearDetailWithFallback } from "~/lib/i18n/gear-detail";
 import { buildEditSidebarSections } from "~/lib/specs/registry";
 import type { CameraSpecs,GearItem } from "~/types/gear";
@@ -28,10 +40,17 @@ export default function EditGearClient({
   const t = useTranslations("gearDetail");
   const tf = (key: string, fallback: string) =>
     translateGearDetailWithFallback(t, key, fallback);
+  const router = useRouter();
   const [showMissingOnly, setShowMissingOnly] = useState(
     Boolean(initialShowMissingOnly),
   );
   const [isDirty, setIsDirty] = useState(false);
+  const { cancelLeave, confirmLeave, isConfirmOpen } = useUnsavedChangesGuard({
+    interceptHistory: true,
+    interceptLinks: true,
+    isDirty,
+    navigate: (href) => router.push(href),
+  });
 
   // Helpers to check if a field is filled (supports aggregated registry values)
   const isValueFilled = (v: unknown): boolean => {
@@ -227,7 +246,8 @@ export default function EditGearClient({
   };
 
   return (
-    <div className="flex flex-col">
+    <>
+      <div className="flex flex-col">
       <div className="border-b p-3">
         <div className="flex items-center justify-between gap-4">
           <h1 className="text-lg font-semibold">
@@ -364,6 +384,32 @@ export default function EditGearClient({
           />
         </div>
       </div>
-    </div>
+      </div>
+      <AlertDialog
+        open={isConfirmOpen}
+        onOpenChange={(open) => {
+          if (!open) cancelLeave();
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("editGear.discardTitle")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("editGear.discardDescription")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelLeave}>
+              {t("editGear.stay")}
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={confirmLeave}>
+              {t("editGear.discardAndExit")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

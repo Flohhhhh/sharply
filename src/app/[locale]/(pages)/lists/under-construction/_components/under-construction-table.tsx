@@ -36,6 +36,7 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { GEAR_TYPE_LABELS } from "~/lib/constants";
+import { useUnsavedChangesGuard } from "~/lib/hooks/useUnsavedChangesGuard";
 import type { GearItem,GearType } from "~/types/gear";
 
 type Row = {
@@ -74,8 +75,16 @@ export function UnderConstructionTable({
     type: GearType;
   } | null>(null);
   const [isDirty, setIsDirty] = useState(false);
-  const [confirmExitOpen, setConfirmExitOpen] = useState(false);
   const [showMissingOnly, setShowMissingOnly] = useState(true);
+  const {
+    cancelLeave,
+    confirmLeave,
+    isConfirmOpen,
+    requestLeave,
+  } = useUnsavedChangesGuard({
+    interceptHistory: true,
+    isDirty,
+  });
   const selectedEditDataUrl =
     open && selected ? `/api/gear/${selected.slug}/edit-data` : null;
   const { data: gearData, error, isLoading: loading } = useSWR<GearItem>(
@@ -89,14 +98,15 @@ export function UnderConstructionTable({
 
   const requestClose = useCallback(
     (opts?: { force?: boolean }) => {
-      if (isDirty && !opts?.force) {
-        setConfirmExitOpen(true);
-        return;
-      }
-      setOpen(false);
-      setIsDirty(false);
+      requestLeave(
+        () => {
+          setOpen(false);
+          setIsDirty(false);
+        },
+        opts,
+      );
     },
-    [isDirty],
+    [requestLeave],
   );
 
   const handleOpen = useCallback((slug: string, type: GearType) => {
@@ -275,7 +285,12 @@ export function UnderConstructionTable({
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={confirmExitOpen} onOpenChange={setConfirmExitOpen}>
+      <AlertDialog
+        open={isConfirmOpen}
+        onOpenChange={(open) => {
+          if (!open) cancelLeave();
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t("discardTitle")}</AlertDialogTitle>
@@ -284,15 +299,10 @@ export function UnderConstructionTable({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setConfirmExitOpen(false)}>
+            <AlertDialogCancel onClick={cancelLeave}>
               {t("stay")}
             </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                setConfirmExitOpen(false);
-                requestClose({ force: true });
-              }}
-            >
+            <AlertDialogAction onClick={confirmLeave}>
               {t("discardAndExit")}
             </AlertDialogAction>
           </AlertDialogFooter>

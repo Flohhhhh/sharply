@@ -65,4 +65,10 @@ export const hallOfFameItems: HallOfFameItem[] = [
     defaultText:
       "In the ultra-competitive 50mm prime lens market, Nikon's AF-S 50mm f/1.8G is one of the most well-known options. It is an excellent, budget-friendly full-frame 50mm prime lens for F-mount. As one of Nikon's best-selling lenses, it delivers so much value that most photographers have little reason to consider pricier options unless they specifically need top-tier professional performance. Many years later, it is still frequently recommended to new photographers and used by professionals.",
   },
+  {
+    slug: "fujifilm-x100vi",
+    textKey: "items.fujifilm-x100vi.text",
+    defaultText:
+      "Among the most anticipated camera launches in recent years, the Fujifilm X100VI takes an already beloved fixed-lens formula and elevates it with in-body image stabilization and a 40MP sensor. Its compact body, tactile controls, and distinctive design deliver a shooting experience that feels as intentional as the images it produces. Two years after release, used copies still routinely sell for $600–700 above MSRP — a rare sign of lasting demand for a premium everyday carry camera.",
+  },
 ];
