@@ -394,21 +394,18 @@ export default function EditGearClient({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {tf("editGear.discardTitle", "Discard unsaved changes?")}
+              {t("editGear.discardTitle")}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {tf(
-                "editGear.discardDescription",
-                "You have unsaved changes. If you exit now, your edits will be lost.",
-              )}
+              {t("editGear.discardDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={cancelLeave}>
-              {tf("editGear.stay", "Stay")}
+              {t("editGear.stay")}
             </AlertDialogCancel>
             <AlertDialogAction onClick={confirmLeave}>
-              {tf("editGear.discardAndExit", "Discard & Exit")}
+              {t("editGear.discardAndExit")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

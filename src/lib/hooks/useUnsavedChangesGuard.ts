@@ -17,6 +17,8 @@ export interface LinkNavigationCandidate {
   button?: number;
   ctrlKey?: boolean;
   currentOrigin: string;
+  currentPathname?: string;
+  currentSearch?: string;
   defaultPrevented?: boolean;
   download?: boolean;
   href: string | null;
@@ -81,6 +83,13 @@ export function getGuardedLinkNavigationHref(
   }
 
   if (destination.origin !== candidate.currentOrigin) return null;
+  if (
+    candidate.currentPathname === destination.pathname &&
+    candidate.currentSearch === destination.search &&
+    destination.hash.length > 0
+  ) {
+    return null;
+  }
 
   return `${destination.pathname}${destination.search}${destination.hash}`;
 }
@@ -170,6 +179,7 @@ export function useUnsavedChangesGuard({
   };
 
   const leaveByHistoryBack = () => {
+    suppressNextPopstateRef.current = true;
     window.history.go(getHistoryLeaveDelta(historyTrapArmedRef.current));
   };
 
@@ -214,13 +224,36 @@ export function useUnsavedChangesGuard({
 
     window.history.pushState({ [HISTORY_GUARD_KEY]: true }, "", window.location.href);
     historyTrapArmedRef.current = true;
+    return () => {
+      if (
+        !historyTrapArmedRef.current ||
+        !isGuardState(window.history.state)
+      ) {
+        return;
+      }
+
+      suppressGuardRef.current = true;
+      suppressNextPopstateRef.current = true;
+      historyTrapArmedRef.current = false;
+      window.history.back();
+      window.setTimeout(() => {
+        suppressGuardRef.current = false;
+        suppressNextPopstateRef.current = false;
+      }, 0);
+    };
   }, [interceptHistory, isDirty]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !interceptHistory) return;
 
     const handlePopState = (event: PopStateEvent) => {
-      if (suppressNextPopstateRef.current || suppressGuardRef.current) {
+      if (suppressNextPopstateRef.current) {
+        suppressNextPopstateRef.current = false;
+        historyTrapArmedRef.current = isGuardState(event.state);
+        return;
+      }
+
+      if (suppressGuardRef.current) {
         return;
       }
 
@@ -260,6 +293,8 @@ export function useUnsavedChangesGuard({
         button: event.button,
         ctrlKey: event.ctrlKey,
         currentOrigin: window.location.origin,
+        currentPathname: window.location.pathname,
+        currentSearch: window.location.search,
         defaultPrevented: event.defaultPrevented,
         download: anchor.hasAttribute("download"),
         href: anchor.href,

@@ -79,6 +79,17 @@ describe("getGuardedLinkNavigationHref", () => {
     ).toBe("/gear/nikon-zf?edit=1#top");
   });
 
+  it("ignores same-document hash navigation", () => {
+    expect(
+      getGuardedLinkNavigationHref({
+        currentOrigin: "https://sharply.test",
+        currentPathname: "/gear/nikon-zf",
+        currentSearch: "?edit=1",
+        href: "https://sharply.test/gear/nikon-zf?edit=1#specs",
+      }),
+    ).toBeNull();
+  });
+
   it("ignores modified clicks, new tabs, downloads, and external links", () => {
     expect(
       getGuardedLinkNavigationHref({
