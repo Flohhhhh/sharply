@@ -210,6 +210,46 @@ describe("spec registry i18n", () => {
     ).toBe(false);
   });
 
+  it("hides internal storage when the stored value is zero", () => {
+    const zeroSections = buildGearSpecsSections(
+      createGearItem({
+        gearType: "CAMERA",
+        cameraSpecs: {
+          internalStorageGb: "0",
+        } as GearItem["cameraSpecs"],
+      }),
+      {
+        locale: "en",
+      },
+    );
+    const nonZeroSections = buildGearSpecsSections(
+      createGearItem({
+        gearType: "CAMERA",
+        cameraSpecs: {
+          internalStorageGb: "128",
+        } as GearItem["cameraSpecs"],
+      }),
+      {
+        locale: "en",
+      },
+    );
+
+    expect(
+      zeroSections
+        .flatMap((section) => section.data)
+        .some((row) => row.key === "internalStorageGb"),
+    ).toBe(false);
+    expect(
+      nonZeroSections
+        .flatMap((section) => section.data)
+        .find((row) => row.key === "internalStorageGb"),
+    ).toMatchObject({
+      key: "internalStorageGb",
+      label: "Internal Storage",
+      value: "128 GB",
+    });
+  });
+
   it("renders analog max continuous fps without trailing .0 for whole numbers", () => {
     const sections = buildGearSpecsSections(
       createGearItem({

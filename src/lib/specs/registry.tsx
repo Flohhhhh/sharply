@@ -910,6 +910,12 @@ export const specDictionary: SpecSectionDef[] = [
         key: "internalStorageGb",
         label: "Internal Storage",
         getRawValue: (item) => item.cameraSpecs?.internalStorageGb,
+        condition: (item) => {
+          const value = item.cameraSpecs?.internalStorageGb;
+          if (value == null) return false;
+          const num = typeof value === "number" ? value : Number(value);
+          return Number.isFinite(num) && num > 0;
+        },
         formatDisplay: (raw) => formatStorageGb(raw),
         editElementId: "internalStorageGb",
       },
