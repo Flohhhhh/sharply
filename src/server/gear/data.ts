@@ -1083,6 +1083,7 @@ export type ConstructionMinimalRow = {
   lens_focalMax: number | null;
   lens_isPrime: boolean | null;
   lens_maxApertureWide: number | string | null;
+  lens_imageCircleSizeId: string | null;
   // Full spec rows (optional, for completion computation)
   cameraAll?: Record<string, unknown> | null;
   analogAll?: Record<string, unknown> | null;
@@ -1116,6 +1117,7 @@ export async function fetchAllGearForConstructionData(): Promise<
       lens_focalMax: lensSpecs.focalLengthMaxMm,
       lens_isPrime: lensSpecs.isPrime,
       lens_maxApertureWide: lensSpecs.maxApertureWide,
+      lens_imageCircleSizeId: lensSpecs.imageCircleSizeId,
       cameraAll: cameraSpecs,
       analogAll: analogCameraSpecs,
       lensAll: lensSpecs,

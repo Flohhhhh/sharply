@@ -458,6 +458,7 @@ export default async function GearPage({ params }: GearPageProps) {
               slug={item.slug}
               gearType={item.gearType}
               mountIds={item.mountIds ?? null}
+              lensImageCircleSizeId={item.lensSpecs?.imageCircleSizeId ?? null}
               brandName={item.brands?.name ?? brand?.name ?? null}
               linkManufacturer={item.linkManufacturer ?? null}
               linkMpb={item.linkMpb ?? null}

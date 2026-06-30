@@ -45,9 +45,11 @@ function countMissingForItem(item: GearItem): number {
   } else if (item.gearType === "LENS") {
     const lensExcludes = [
       ...baseExcludes,
+      "imageCircleSizeId",
       "focalLengthMinMm",
       "focalLengthMaxMm",
-      "maxAperture",
+      "isPrime",
+      "maxApertureWide",
     ];
     extra += countMissingValues(item.lensSpecs as any, lensExcludes);
   }

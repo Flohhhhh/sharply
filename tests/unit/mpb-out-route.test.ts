@@ -15,6 +15,8 @@ vi.mock("server-only", () => ({}));
 import { GET } from "../../src/app/api/out/mpb/route";
 
 const NIKON_F_MOUNT_ID = "1e930c0c-aadb-4dd3-93ae-7f691cc93296";
+const SONY_E_MOUNT_ID = "29cd7cf2-b6af-4818-ab36-590c31aa86df";
+const CANON_RF_MOUNT_ID = "21323f59-f91a-418a-8f88-09aeacd0f84d";
 
 describe("MPB out route", () => {
   beforeEach(() => {
@@ -134,6 +136,58 @@ describe("MPB out route", () => {
     );
   });
 
+  it("builds a Sony FE redirect when the variant is full-frame", async () => {
+    const response = await GET(
+      new Request(
+        `http://localhost/api/out/mpb?destinationPath=%2Fproduct%2Fsigma-24-70mm-f-2-8-dg-dn-art&mountId=${encodeURIComponent(SONY_E_MOUNT_ID)}&sonyVariant=fe&market=EU`,
+      ) as any,
+    );
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://www.mpb.com/en-eu/product/sigma-24-70mm-f-2-8-dg-dn-art-sony-fe-fit",
+    );
+  });
+
+  it("builds a Sony E redirect when the variant is APS-C", async () => {
+    const response = await GET(
+      new Request(
+        `http://localhost/api/out/mpb?destinationPath=%2Fproduct%2Fsigma-18-50mm-f-2-8-dc-dn-contemporary&mountId=${encodeURIComponent(SONY_E_MOUNT_ID)}&sonyVariant=e&market=EU`,
+      ) as any,
+    );
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://www.mpb.com/en-eu/product/sigma-18-50mm-f-2-8-dc-dn-contemporary-sony-e-fit",
+    );
+  });
+
+  it("builds a Canon RF redirect when the variant is full-frame", async () => {
+    const response = await GET(
+      new Request(
+        `http://localhost/api/out/mpb?destinationPath=%2Fproduct%2Fcanon-rf-24-70mm-f-2-8l-is-usm&mountId=${encodeURIComponent(CANON_RF_MOUNT_ID)}&canonVariant=rf&market=EU`,
+      ) as any,
+    );
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://www.mpb.com/en-eu/product/canon-rf-24-70mm-f-2-8l-is-usm-canon-rf-fit",
+    );
+  });
+
+  it("builds a Canon RF-S redirect when the variant is APS-C", async () => {
+    const response = await GET(
+      new Request(
+        `http://localhost/api/out/mpb?destinationPath=%2Fproduct%2Fcanon-rf-s-18-150mm-f-3-5-6-3-is-stm&mountId=${encodeURIComponent(CANON_RF_MOUNT_ID)}&canonVariant=rf-s&market=EU`,
+      ) as any,
+    );
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://www.mpb.com/en-eu/product/canon-rf-s-18-150mm-f-3-5-6-3-is-stm-canon-rf-s-fit",
+    );
+  });
+
   it("returns 400 when no destination can be resolved", async () => {
     const response = await GET(
       new Request("http://localhost/api/out/mpb?gearSlug=nikon-z6-iii") as any,
@@ -178,6 +232,34 @@ describe("MPB out route", () => {
     const response = await GET(
       new Request(
         "http://localhost/api/out/mpb?destinationPath=https%3A%2F%2Fwww.mpb.com%2Fen-us%2Fhelp%2Fshipping",
+      ) as any,
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(payload).toEqual({
+      message: "Invalid MPB destinationPath.",
+    });
+  });
+
+  it("returns 400 when Sony mirrorless routing is requested without coverage context", async () => {
+    const response = await GET(
+      new Request(
+        `http://localhost/api/out/mpb?destinationPath=%2Fproduct%2Fsigma-24-70mm-f-2-8-dg-dn-art&mountId=${encodeURIComponent(SONY_E_MOUNT_ID)}&market=EU`,
+      ) as any,
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(payload).toEqual({
+      message: "Invalid MPB destinationPath.",
+    });
+  });
+
+  it("returns 400 when Canon mirrorless routing is requested without coverage context", async () => {
+    const response = await GET(
+      new Request(
+        `http://localhost/api/out/mpb?destinationPath=%2Fproduct%2Fcanon-rf-24-70mm-f-2-8l-is-usm&mountId=${encodeURIComponent(CANON_RF_MOUNT_ID)}&market=EU`,
       ) as any,
     );
     const payload = await response.json();

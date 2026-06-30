@@ -1323,6 +1323,7 @@ export async function listUnderConstruction(
       focalLengthMinMm: number | null;
       focalLengthMaxMm: number | null;
       maxApertureWide: number | string | null;
+      imageCircleSizeId: string | null;
     } | null;
     fixedLensSpecs: {
       focalLengthMinMm: number | null;
@@ -1352,6 +1353,7 @@ export async function listUnderConstruction(
             focalLengthMinMm: r.lens_focalMin,
             focalLengthMaxMm: r.lens_focalMax,
             maxApertureWide: r.lens_maxApertureWide,
+            imageCircleSizeId: r.lens_imageCircleSizeId,
           }
         : null;
     const fixedLensSpecs =

@@ -1,6 +1,8 @@
-import { MOUNTS } from "~/lib/constants";
+import { MOUNTS, SENSOR_FORMATS } from "~/lib/constants";
 
 export type Market = "US" | "UK" | "EU" | "DE" | "FR" | "ES" | "IT";
+export type SonyMirrorlessVariant = "e" | "fe";
+export type CanonMirrorlessVariant = "rf" | "rf-s";
 
 const MPB_HOSTNAME = "www.mpb.com";
 
@@ -49,7 +51,11 @@ const MOUNT_VALUE_BY_ID = new Map(
 );
 
 const MPB_KNOWN_MOUNT_SUFFIXES = Array.from(
-  new Set([...Object.values(MPB_MOUNT_PATHS_MAP), "-sony-fe-fit"]),
+  new Set([
+    ...Object.values(MPB_MOUNT_PATHS_MAP),
+    "-sony-fe-fit",
+    "-canon-rf-s-fit",
+  ]),
 ).sort((a, b) => b.length - a.length);
 
 export type NormalizeMpbLinkResult =
@@ -67,6 +73,8 @@ interface GetMpbDestinationUrlInput {
   market: Market;
   destinationPath: string;
   mountId?: string | null;
+  sonyMirrorlessVariant?: SonyMirrorlessVariant | null;
+  canonMirrorlessVariant?: CanonMirrorlessVariant | null;
 }
 
 /**
@@ -77,6 +85,8 @@ export function getMpbDestinationUrl(input: GetMpbDestinationUrlInput) {
     input.destinationPath,
     input.market,
     input.mountId ?? null,
+    input.sonyMirrorlessVariant ?? null,
+    input.canonMirrorlessVariant ?? null,
   );
 }
 
@@ -135,10 +145,46 @@ export function normalizeMpbLinkForStorage(
   throw new Error("Invalid MPB URL.");
 }
 
-export function getMpbMountSuffix(mountId?: string | null): string | null {
+export function resolveSonyMirrorlessVariantFromCoverage(
+  imageCircleSizeId?: string | null,
+): SonyMirrorlessVariant | null {
+  const coverageSlug = getCoverageSlug(imageCircleSizeId);
+  if (coverageSlug === "full-frame") return "fe";
+  if (coverageSlug === "aps-c") return "e";
+  return null;
+}
+
+export function resolveCanonMirrorlessVariantFromCoverage(
+  imageCircleSizeId?: string | null,
+): CanonMirrorlessVariant | null {
+  const coverageSlug = getCoverageSlug(imageCircleSizeId);
+  if (coverageSlug === "full-frame") return "rf";
+  if (coverageSlug === "aps-c") return "rf-s";
+  return null;
+}
+
+export function getMpbMountSuffix(
+  mountId?: string | null,
+  options?: {
+    sonyMirrorlessVariant?: SonyMirrorlessVariant | null;
+    canonMirrorlessVariant?: CanonMirrorlessVariant | null;
+  },
+): string | null {
   if (!mountId) return null;
   const mountValue = MOUNT_VALUE_BY_ID.get(mountId);
   if (!mountValue) return null;
+
+  if (mountValue === "e-sony") {
+    if (options?.sonyMirrorlessVariant === "fe") return "-sony-fe-fit";
+    if (options?.sonyMirrorlessVariant === "e") return "-sony-e-fit";
+    return null;
+  }
+  if (mountValue === "rf-canon") {
+    if (options?.canonMirrorlessVariant === "rf") return "-canon-rf-fit";
+    if (options?.canonMirrorlessVariant === "rf-s") return "-canon-rf-s-fit";
+    return null;
+  }
+
   return MPB_MOUNT_PATHS_MAP[mountValue] ?? null;
 }
 
@@ -152,12 +198,16 @@ export function hasKnownMpbMountSuffix(
 export function buildMpbPathForMount(
   destinationPath: string,
   mountId?: string | null,
+  options?: {
+    sonyMirrorlessVariant?: SonyMirrorlessVariant | null;
+    canonMirrorlessVariant?: CanonMirrorlessVariant | null;
+  },
 ): string | null {
   const result = normalizeMpbLinkInput(destinationPath);
   if (result.kind !== "product") return null;
   if (!mountId) return result.originalPath;
 
-  const suffix = getMpbMountSuffix(mountId);
+  const suffix = getMpbMountSuffix(mountId, options);
   if (!suffix) return null;
 
   return appendMountSuffixToPath(result.normalizedPath, suffix);
@@ -171,6 +221,8 @@ function buildDestinationAddress(
   destinationPath: string,
   market: Market,
   mountId: string | null,
+  sonyMirrorlessVariant: SonyMirrorlessVariant | null,
+  canonMirrorlessVariant: CanonMirrorlessVariant | null,
 ) {
   const cleanedDestinationPath = destinationPath.trim();
 
@@ -183,6 +235,8 @@ function buildDestinationAddress(
       cleanedDestinationPath,
       market,
       mountId,
+      sonyMirrorlessVariant,
+      canonMirrorlessVariant,
     );
   }
 
@@ -190,6 +244,8 @@ function buildDestinationAddress(
     cleanedDestinationPath,
     market,
     mountId,
+    sonyMirrorlessVariant,
+    canonMirrorlessVariant,
   );
 }
 
@@ -197,6 +253,8 @@ function buildDestinationAddressFromAbsolute(
   address: string,
   market: Market,
   mountId: string | null,
+  sonyMirrorlessVariant: SonyMirrorlessVariant | null,
+  canonMirrorlessVariant: CanonMirrorlessVariant | null,
 ) {
   const parsedAddress = new URL(address);
   if (!isMpbHostname(parsedAddress.hostname)) {
@@ -210,6 +268,8 @@ function buildDestinationAddressFromAbsolute(
     parsedAddress.pathname,
     market,
     mountId,
+    sonyMirrorlessVariant,
+    canonMirrorlessVariant,
   );
   return parsedAddress.toString();
 }
@@ -218,6 +278,8 @@ function buildDestinationAddressFromRelative(
   address: string,
   market: Market,
   mountId: string | null,
+  sonyMirrorlessVariant: SonyMirrorlessVariant | null,
+  canonMirrorlessVariant: CanonMirrorlessVariant | null,
 ) {
   const parsedAddress = new URL(
     ensureLeadingSlash(address),
@@ -227,6 +289,8 @@ function buildDestinationAddressFromRelative(
     parsedAddress.pathname,
     market,
     mountId,
+    sonyMirrorlessVariant,
+    canonMirrorlessVariant,
   );
   return parsedAddress.toString();
 }
@@ -235,6 +299,8 @@ function buildMarketPath(
   pathname: string,
   market: Market,
   mountId: string | null,
+  sonyMirrorlessVariant: SonyMirrorlessVariant | null,
+  canonMirrorlessVariant: CanonMirrorlessVariant | null,
 ) {
   const normalizedSegment = stripMarketSegmentFromPath(pathname);
   if (isMpbSearchPath(normalizedSegment)) {
@@ -249,17 +315,39 @@ function buildMarketPath(
     throw new Error("MPB destination must be a product path.");
   }
   const mountedSegment = mountId
-    ? buildMountedPathOrThrow(normalizedSegment, mountId)
+    ? buildMountedPathOrThrow(
+        normalizedSegment,
+        mountId,
+        sonyMirrorlessVariant,
+        canonMirrorlessVariant,
+      )
     : normalizedSegment;
   return `/${MPB_MARKET_PATH_SEGMENT[market]}${mountedSegment}`;
 }
 
-function buildMountedPathOrThrow(pathname: string, mountId: string) {
-  const mountedPath = buildMpbPathForMount(pathname, mountId);
+function buildMountedPathOrThrow(
+  pathname: string,
+  mountId: string,
+  sonyMirrorlessVariant: SonyMirrorlessVariant | null,
+  canonMirrorlessVariant: CanonMirrorlessVariant | null,
+) {
+  const mountedPath = buildMpbPathForMount(pathname, mountId, {
+    sonyMirrorlessVariant,
+    canonMirrorlessVariant,
+  });
   if (!mountedPath) {
     throw new Error("MPB destination mount is unsupported.");
   }
   return mountedPath;
+}
+
+function getCoverageSlug(imageCircleSizeId?: string | null): string | null {
+  if (!imageCircleSizeId) return null;
+
+  const sensorFormat = SENSOR_FORMATS.find(
+    (format) => format.id === imageCircleSizeId,
+  );
+  return sensorFormat?.slug ?? null;
 }
 
 function stripKnownMountSuffixFromPath(pathname: string) {

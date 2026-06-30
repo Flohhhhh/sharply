@@ -75,6 +75,7 @@ function makeConstructionRow(params: {
     lens_focalMax: null,
     lens_isPrime: null,
     lens_maxApertureWide: null,
+    lens_imageCircleSizeId: null,
     cameraAll: null,
     analogAll: null,
     lensAll: null,

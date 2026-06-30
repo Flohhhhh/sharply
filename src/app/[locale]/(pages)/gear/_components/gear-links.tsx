@@ -20,7 +20,11 @@ import {
 } from "~/components/ui/dialog";
 import { BRANDS } from "~/lib/generated";
 import { useCountry } from "~/lib/hooks/useCountry";
-import { getMpbMountSuffix } from "~/lib/links/mpb";
+import {
+  getMpbMountSuffix,
+  resolveCanonMirrorlessVariantFromCoverage,
+  resolveSonyMirrorlessVariantFromCoverage,
+} from "~/lib/links/mpb";
 import { formatPrice } from "~/lib/mapping";
 import { getMountLongNameById } from "~/lib/mapping/mounts-map";
 import { parseAmazonAsin } from "~/lib/validation/amazon";
@@ -38,6 +42,7 @@ interface GearLinksProps {
   mpbMaxPriceUsdCents?: number | null;
   brandName: string | null;
   msrpNowUsdCents?: number | null;
+  lensImageCircleSizeId?: string | null;
 }
 
 type MpbMountOption = {
@@ -51,6 +56,7 @@ export function GearLinks({
   gearType,
   mountIds,
   brandName,
+  lensImageCircleSizeId,
   linkManufacturer,
   linkMpb,
   linkAmazon,
@@ -107,6 +113,14 @@ export function GearLinks({
       )?.slug ?? "")
     : "";
   const manufacturerStyles = getManufacturerStyles(brandSlug, t);
+  const sonyMirrorlessVariant = useMemo(
+    () => resolveSonyMirrorlessVariantFromCoverage(lensImageCircleSizeId),
+    [lensImageCircleSizeId],
+  );
+  const canonMirrorlessVariant = useMemo(
+    () => resolveCanonMirrorlessVariantFromCoverage(lensImageCircleSizeId),
+    [lensImageCircleSizeId],
+  );
 
   const mpbLinkState = resolveMpbLinkState({
     gearType,
@@ -114,6 +128,8 @@ export function GearLinks({
     mountIds,
     isMpbSupported: locale.mpb.isSupported,
     market: locale.mpb.market,
+    sonyMirrorlessVariant,
+    canonMirrorlessVariant,
   });
   const uniqueMountIds = useMemo(
     () => Array.from(new Set((mountIds ?? []).filter(Boolean))),
@@ -124,9 +140,14 @@ export function GearLinks({
       uniqueMountIds.map((mountId) => ({
         id: mountId,
         label: getMountLongNameById(mountId),
-        supported: Boolean(getMpbMountSuffix(mountId)),
+        supported: Boolean(
+          getMpbMountSuffix(mountId, {
+            sonyMirrorlessVariant,
+            canonMirrorlessVariant,
+          }),
+        ),
       })),
-    [uniqueMountIds],
+    [canonMirrorlessVariant, sonyMirrorlessVariant, uniqueMountIds],
   );
   const hasAny = !!(
     linkManufacturer ||
@@ -139,7 +160,13 @@ export function GearLinks({
 
   function handleMpbMountSelection(mountId: string) {
     if (!linkMpb) return;
-    const href = buildMpbOutHref(linkMpb, locale.mpb.market, mountId);
+    const href = buildMpbOutHref(
+      linkMpb,
+      locale.mpb.market,
+      mountId,
+      sonyMirrorlessVariant,
+      canonMirrorlessVariant,
+    );
     if (!href) return;
 
     void track("gear_link_click", {

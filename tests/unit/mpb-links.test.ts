@@ -9,6 +9,8 @@ import {
 } from "~/lib/links/mpb";
 
 const NIKON_F_MOUNT_ID = "1e930c0c-aadb-4dd3-93ae-7f691cc93296";
+const SONY_E_MOUNT_ID = "29cd7cf2-b6af-4818-ab36-590c31aa86df";
+const CANON_RF_MOUNT_ID = "21323f59-f91a-418a-8f88-09aeacd0f84d";
 
 describe("MPB link helpers", () => {
   it("rewrites relative paths into the selected market storefront", () => {
@@ -97,6 +99,64 @@ describe("MPB link helpers", () => {
     ).toBe(
       "https://www.mpb.com/en-eu/product/nikon-af-s-50mm-f-1-8g-nikon-fit",
     );
+  });
+
+  it("builds a Sony FE path when coverage resolves to full-frame", () => {
+    expect(
+      buildMpbPathForMount(
+        "/product/sigma-24-70mm-f-2-8-dg-dn-art",
+        SONY_E_MOUNT_ID,
+        { sonyMirrorlessVariant: "fe" },
+      ),
+    ).toBe("/product/sigma-24-70mm-f-2-8-dg-dn-art-sony-fe-fit");
+  });
+
+  it("builds a Sony E path when coverage resolves to APS-C", () => {
+    expect(
+      buildMpbPathForMount(
+        "/product/sigma-18-50mm-f-2-8-dc-dn-contemporary",
+        SONY_E_MOUNT_ID,
+        { sonyMirrorlessVariant: "e" },
+      ),
+    ).toBe("/product/sigma-18-50mm-f-2-8-dc-dn-contemporary-sony-e-fit");
+  });
+
+  it("builds a Canon RF path when coverage resolves to full-frame", () => {
+    expect(
+      buildMpbPathForMount(
+        "/product/canon-rf-24-70mm-f-2-8l-is-usm",
+        CANON_RF_MOUNT_ID,
+        { canonMirrorlessVariant: "rf" },
+      ),
+    ).toBe("/product/canon-rf-24-70mm-f-2-8l-is-usm-canon-rf-fit");
+  });
+
+  it("builds a Canon RF-S path when coverage resolves to APS-C", () => {
+    expect(
+      buildMpbPathForMount(
+        "/product/canon-rf-s-18-150mm-f-3-5-6-3-is-stm",
+        CANON_RF_MOUNT_ID,
+        { canonMirrorlessVariant: "rf-s" },
+      ),
+    ).toBe("/product/canon-rf-s-18-150mm-f-3-5-6-3-is-stm-canon-rf-s-fit");
+  });
+
+  it("returns null for Sony mirrorless when coverage is unknown", () => {
+    expect(
+      buildMpbPathForMount(
+        "/product/sigma-24-70mm-f-2-8-dg-dn-art",
+        SONY_E_MOUNT_ID,
+      ),
+    ).toBeNull();
+  });
+
+  it("returns null for Canon mirrorless when coverage is unknown", () => {
+    expect(
+      buildMpbPathForMount(
+        "/product/canon-rf-24-70mm-f-2-8l-is-usm",
+        CANON_RF_MOUNT_ID,
+      ),
+    ).toBeNull();
   });
 
   it("rejects non-MPB absolute URLs", () => {

@@ -3,7 +3,9 @@ import {
   hasKnownMpbMountSuffix,
   isMpbSearchInput,
   normalizeMpbLinkInput,
+  type CanonMirrorlessVariant,
   type Market,
+  type SonyMirrorlessVariant,
 } from "~/lib/links/mpb";
 import type { GearType } from "~/types/gear";
 
@@ -13,6 +15,8 @@ interface ResolveMpbLinkStateParams {
   mountIds?: string[] | null;
   isMpbSupported: boolean;
   market: Market | null;
+  sonyMirrorlessVariant?: SonyMirrorlessVariant | null;
+  canonMirrorlessVariant?: CanonMirrorlessVariant | null;
 }
 
 export interface MpbLinkState {
@@ -27,6 +31,8 @@ export function buildMpbOutHref(
   linkMpb: string,
   market: Market | null,
   mountId: string | null,
+  sonyMirrorlessVariant?: SonyMirrorlessVariant | null,
+  canonMirrorlessVariant?: CanonMirrorlessVariant | null,
 ) {
   const params = new URLSearchParams({
     destinationPath: linkMpb,
@@ -38,6 +44,14 @@ export function buildMpbOutHref(
 
   if (mountId) {
     params.set("mountId", mountId);
+  }
+
+  if (sonyMirrorlessVariant) {
+    params.set("sonyVariant", sonyMirrorlessVariant);
+  }
+
+  if (canonMirrorlessVariant) {
+    params.set("canonVariant", canonMirrorlessVariant);
   }
 
   return `/api/out/mpb?${params.toString()}`;
@@ -56,6 +70,8 @@ export function resolveMpbLinkState({
   mountIds,
   isMpbSupported,
   market,
+  sonyMirrorlessVariant,
+  canonMirrorlessVariant,
 }: ResolveMpbLinkStateParams): MpbLinkState {
   if (!linkMpb || !isMpbSupported) {
     return {
@@ -69,7 +85,12 @@ export function resolveMpbLinkState({
   const isLegacyMpbSearchLink = isMpbSearchInput(linkMpb);
   const uniqueMountIds = Array.from(new Set((mountIds ?? []).filter(Boolean)));
   const supportedMpbMounts = uniqueMountIds.filter((mountId) =>
-    Boolean(getMpbMountSuffix(mountId)),
+    Boolean(
+      getMpbMountSuffix(mountId, {
+        sonyMirrorlessVariant,
+        canonMirrorlessVariant,
+      }),
+    ),
   );
   const hasLegacyMountedLink = hasKnownMpbMountSuffix(linkMpb);
   const shouldShowChooser =
@@ -91,12 +112,16 @@ export function resolveMpbLinkState({
         getDirectLensDestinationPath(linkMpb),
         market,
         null,
+        sonyMirrorlessVariant,
+        canonMirrorlessVariant,
       );
     } else if (hasLegacyMountedLink) {
       directHref = buildMpbOutHref(
         getDirectLensDestinationPath(linkMpb),
         market,
         null,
+        sonyMirrorlessVariant,
+        canonMirrorlessVariant,
       );
     }
   }
