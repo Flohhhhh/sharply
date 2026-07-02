@@ -93,8 +93,8 @@ describe("BrandSortOrderTool", () => {
 
     expect(html).toContain("Canon");
     expect(html).toContain("Drag");
-    expect(html).toContain("Unrank");
-    expect(html).toContain("Rank");
+    expect(html).toMatch(/Canon[\s\S]*?Unrank<\/button>/);
+    expect(html).toMatch(/Sigma[\s\S]*?(?<!Un)Rank<\/button>/);
     expect(html).toContain(
       "appear across generated brand lists after the next rebuild",
     );
