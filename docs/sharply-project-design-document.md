@@ -77,6 +77,7 @@ It is designed to serve both experienced photographers seeking deep technical da
 ### **3.4 Contributor Profiles**
 
 - Public “gear fleet” and wishlist.
+- Collection presentation groups items by gear type first, then brand, then newest release date within each brand.
 - User-managed saved lists (default `Saved Items`) that coexist with wishlist/collection.
 - Optional published shared lists via `/list/[slug]-[publicId]`.
 - Badges for contributions (spec edits, reviews, curation).

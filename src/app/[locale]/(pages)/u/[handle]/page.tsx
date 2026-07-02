@@ -33,6 +33,7 @@ import {
   CollectionTableModal,
   type CollectionTableColumnKey,
 } from "~/app/[locale]/(pages)/u/_components/collection/collection-table-modal";
+import { sortCollectionItems } from "~/app/[locale]/(pages)/u/_components/collection/sort-collection-items";
 import { UserListsSectionDeferred } from "~/app/[locale]/(pages)/u/_components/lists/user-lists-section-deferred";
 import { WishlistGearCard } from "~/app/[locale]/(pages)/u/_components/wishlist-gear-card";
 import { auth } from "~/auth";
@@ -89,7 +90,7 @@ export default async function UserProfilePage({
     }),
   ]);
 
-  const sortedOwnedItems = sortOwnedItems(ownedItems);
+  const sortedOwnedItems = sortCollectionItems(ownedItems);
   const myProfile = profile.id === user?.id;
 
   if (myProfile && !profile.handle) {
@@ -394,121 +395,4 @@ function stripBrandFromName(name: string, brandName?: string | null) {
 
 function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function sortOwnedItems(items: GearItem[]) {
-  return [...items].sort((firstItem, secondItem) => {
-    const firstPriority = getGearTypePriority(firstItem);
-    const secondPriority = getGearTypePriority(secondItem);
-
-    const priorityDifference = firstPriority - secondPriority;
-    if (priorityDifference !== 0) {
-      return priorityDifference;
-    }
-
-    if (firstPriority === 0 && secondPriority === 0) {
-      const firstCameraRelease = getReleaseTimestamp(firstItem);
-      const secondCameraRelease = getReleaseTimestamp(secondItem);
-      if (firstCameraRelease !== null || secondCameraRelease !== null) {
-        if (firstCameraRelease === null) {
-          return 1;
-        }
-        if (secondCameraRelease === null) {
-          return -1;
-        }
-
-        const releaseDifference = secondCameraRelease - firstCameraRelease;
-        if (releaseDifference !== 0) {
-          return releaseDifference;
-        }
-      }
-    }
-
-    if (firstPriority === 1 && secondPriority === 1) {
-      const focalLengthDifference =
-        getLensMinimumFocalLength(firstItem) -
-        getLensMinimumFocalLength(secondItem);
-      if (focalLengthDifference !== 0) {
-        return focalLengthDifference;
-      }
-    }
-
-    return firstItem.name.localeCompare(secondItem.name);
-  });
-}
-
-function getGearTypePriority(item: GearItem) {
-  const gearTypeIdentifier = item.gearType?.toUpperCase() ?? "";
-  if (
-    gearTypeIdentifier === "CAMERA" ||
-    gearTypeIdentifier === "ANALOG_CAMERA"
-  ) {
-    return 0;
-  }
-
-  if (gearTypeIdentifier === "LENS") {
-    return 1;
-  }
-
-  return 2;
-}
-
-function getLensMinimumFocalLength(item: GearItem) {
-  const normalize = (value: number | null | undefined) =>
-    typeof value === "number" && Number.isFinite(value) ? value : null;
-
-  const primaryCandidate =
-    normalize(item.lensSpecs?.focalLengthMinMm) ??
-    normalize(item.fixedLensSpecs?.focalLengthMinMm);
-  if (primaryCandidate != null) {
-    return primaryCandidate;
-  }
-
-  const candidates: number[] = [];
-  const pushCandidate = (value: number | null | undefined) => {
-    if (typeof value === "number" && Number.isFinite(value)) {
-      candidates.push(value);
-    }
-  };
-
-  pushCandidate(item.lensSpecs?.focalLengthMaxMm);
-  pushCandidate(item.fixedLensSpecs?.focalLengthMaxMm);
-
-  const parsed = parseFocalFromName(item.name);
-  if (parsed != null) {
-    candidates.push(parsed);
-  }
-
-  if (candidates.length === 0) {
-    return Number.POSITIVE_INFINITY;
-  }
-
-  return Math.min(...candidates);
-}
-
-function parseFocalFromName(name?: string) {
-  if (!name) return null;
-  const rangeMatch = name.match(/(\d+(?:\.\d+)?)\s*-\s*\d+(?:\.\d+)?\s*mm/i);
-  if (rangeMatch) {
-    return Number(rangeMatch[1]);
-  }
-
-  const singleMatch = name.match(/(\d+(?:\.\d+)?)\s*mm/i);
-  if (!singleMatch) return null;
-  return Number(singleMatch[1]);
-}
-
-function getReleaseTimestamp(item: GearItem) {
-  const releaseValue = item.releaseDate;
-  if (!releaseValue) {
-    return null;
-  }
-
-  const parsedDate =
-    releaseValue instanceof Date ? releaseValue : new Date(releaseValue);
-  const timeValue = parsedDate.getTime();
-  if (Number.isNaN(timeValue)) {
-    return null;
-  }
-  return timeValue;
 }

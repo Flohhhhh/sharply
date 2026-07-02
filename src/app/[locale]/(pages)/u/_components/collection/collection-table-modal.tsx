@@ -28,6 +28,7 @@ import { getBrandNameById } from "~/lib/mapping/brand-map";
 import { getSpecFieldDefByKey } from "~/lib/specs/registry";
 import { actionToggleOwnership } from "~/server/gear/actions";
 import type { GearItem,GearRegion } from "~/types/gear";
+import { sortCollectionItems } from "./sort-collection-items";
 
 export const COLLECTION_TABLE_COLUMNS_DEFAULT = [
   "name",
@@ -224,7 +225,9 @@ export function CollectionTableModal(props: CollectionTableModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { region } = useCountry();
   const columnConfigMap = useMemo(() => buildColumnConfigMap(region), [region]);
-  const [itemsState, setItemsState] = useState<GearItem[]>(items);
+  const [itemsState, setItemsState] = useState<GearItem[]>(
+    sortCollectionItems(items),
+  );
   const [removingGearItemIds, setRemovingGearItemIds] = useState<Set<string>>(
     new Set(),
   );
@@ -233,7 +236,7 @@ export function CollectionTableModal(props: CollectionTableModalProps) {
   // the modal (and also when the prop changes due to a parent rerender).
   useEffect(() => {
     if (!isOpen) return;
-    setItemsState(items);
+    setItemsState(sortCollectionItems(items));
   }, [isOpen, items]);
 
   const addRemovingId = (gearItemId: string) => {
@@ -274,7 +277,7 @@ export function CollectionTableModal(props: CollectionTableModalProps) {
         if (previousItems.some((existingItem) => existingItem.id === item.id)) {
           return previousItems;
         }
-        return [...previousItems, item];
+        return sortCollectionItems([...previousItems, item]);
       });
     } finally {
       removeRemovingId(item.id);
