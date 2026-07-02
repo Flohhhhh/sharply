@@ -1263,7 +1263,7 @@ export async function updateOwnershipColorway(params: {
   userId: string;
   colorwayId: string | null;
 }) {
-  await db
+  const updated = await db
     .update(ownerships)
     .set({ colorwayId: params.colorwayId })
     .where(
@@ -1271,13 +1271,14 @@ export async function updateOwnershipColorway(params: {
         eq(ownerships.userId, params.userId),
         eq(ownerships.gearId, params.gearId),
       ),
-    );
+    )
+    .returning({
+      gearId: ownerships.gearId,
+      userId: ownerships.userId,
+      colorwayId: ownerships.colorwayId,
+    });
 
-  return {
-    gearId: params.gearId,
-    userId: params.userId,
-    colorwayId: params.colorwayId,
-  } as const;
+  return updated[0] ?? null;
 }
 
 export async function hasImageRequest(

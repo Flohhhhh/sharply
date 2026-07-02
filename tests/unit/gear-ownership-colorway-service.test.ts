@@ -137,6 +137,23 @@ describe("updateOwnedGearColorway", () => {
     expect(gearDataMocks.updateOwnershipColorway).not.toHaveBeenCalled();
   });
 
+  it("rejects updates when the ownership row no longer exists", async () => {
+    gearDataMocks.isOwned.mockResolvedValue(true);
+    gearDataMocks.updateOwnershipColorway.mockResolvedValue(null);
+
+    await expect(
+      updateOwnedGearColorway({
+        gearId: "gear-1",
+        colorwayId: null,
+      }),
+    ).rejects.toMatchObject({
+      message: "OWNERSHIP_NOT_FOUND",
+      status: 404,
+    });
+
+    expect(ownedItemMocks.fetchOwnedGearItemForUser).not.toHaveBeenCalled();
+  });
+
   it("allows clearing the ownership colorway selection", async () => {
     ownedItemMocks.fetchOwnedGearItemForUser.mockResolvedValue({
       id: "gear-1",

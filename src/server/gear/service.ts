@@ -436,11 +436,14 @@ export async function updateOwnedGearColorway(body: unknown) {
     }
   }
 
-  await updateOwnershipColorway({
+  const updated = await updateOwnershipColorway({
     gearId: input.gearId,
     userId: user.id,
     colorwayId: input.colorwayId,
   });
+  if (!updated) {
+    throw Object.assign(new Error("OWNERSHIP_NOT_FOUND"), { status: 404 });
+  }
 
   const item = await fetchOwnedGearItemForUser(user.id, input.gearId);
   if (!item) {
