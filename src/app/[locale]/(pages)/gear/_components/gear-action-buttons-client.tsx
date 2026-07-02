@@ -8,6 +8,7 @@ import {
   PackageOpen,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { useEffect,useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
@@ -20,6 +21,7 @@ import { ButtonGroup } from "~/components/ui/button-group";
 import { useSession } from "~/lib/auth/auth-client";
 import { fetchJson } from "~/lib/fetch-json";
 import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
+import { buildUserProfilePath } from "~/lib/profile-path";
 import { actionToggleOwnership } from "~/server/gear/actions";
 import type { GearAlias } from "~/types/gear";
 
@@ -85,8 +87,10 @@ export function GearActionButtonsClient({
   initialSaveState = null,
 }: GearActionButtonsClientProps) {
   const t = useTranslations("gearDetail");
+  const router = useRouter();
   const { data, isPending } = useSession();
   const displayName = useGearDisplayName({ name, regionalAliases });
+  const profilePath = buildUserProfilePath(data?.user);
 
   const session = data?.session;
   const activeUserId = session?.userId ?? null;
@@ -184,7 +188,16 @@ export function GearActionButtonsClient({
         );
 
         if (res.action === "added") {
-          toast.success(t("addedToCollection"));
+          toast.success(t("addedToCollection"), {
+            action: profilePath
+              ? {
+                  label: t("viewProfile"),
+                  onClick: () => {
+                    router.push(profilePath);
+                  },
+                }
+              : undefined,
+          });
         } else {
           toast.success(t("removedFromCollection"));
         }

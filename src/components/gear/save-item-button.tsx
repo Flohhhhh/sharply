@@ -25,6 +25,7 @@ import {
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { useSession } from "~/lib/auth/auth-client";
+import { buildUserProfilePath } from "~/lib/profile-path";
 import {
   actionAddGearToUserList,
   actionCreateUserList,
@@ -108,9 +109,7 @@ export function SaveItemButton({
   if (!pickerState) return null;
   const defaultListId = pickerState.defaultListId;
   const isSavedAnywhere = savedSet.size > 0;
-  const profilePath = data?.user
-    ? `/u/${data.user.handle || `user-${data.user.memberNumber}`}`
-    : null;
+  const profilePath = buildUserProfilePath(data?.user);
 
   const applyActionLists = (lists: ActionListShape[]) => {
     const nextState = toPickerState(lists, slug);
