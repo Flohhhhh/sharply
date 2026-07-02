@@ -1,8 +1,9 @@
 "use client";
 
 import { TrashIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect,useMemo,useState } from "react";
+import { startTransition,useMemo,useState } from "react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import {
@@ -21,12 +22,22 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import { GetGearDisplayName } from "~/lib/gear/naming";
 import { useCountry } from "~/lib/hooks/useCountry";
 import { getItemDisplayPrice,PRICE_FALLBACK_TEXT } from "~/lib/mapping";
 import { getBrandNameById } from "~/lib/mapping/brand-map";
 import { getSpecFieldDefByKey } from "~/lib/specs/registry";
-import { actionToggleOwnership } from "~/server/gear/actions";
+import {
+  actionToggleOwnership,
+  actionUpdateOwnedGearColorway,
+} from "~/server/gear/actions";
 import type { GearItem,GearRegion } from "~/types/gear";
 import { sortCollectionItems } from "./sort-collection-items";
 
@@ -53,6 +64,8 @@ type CollectionTableModalProps = {
   title?: string;
   description?: string;
 };
+
+const DEFAULT_COLLECTION_COLORWAY_VALUE = "__default__";
 
 function buildColumnConfigMap(region: GearRegion) {
   return {
@@ -212,8 +225,22 @@ function renderSpecFieldValue(params: {
   return renderedValue;
 }
 
+function getEligibleCollectionColorways(item: GearItem) {
+  return (item.colorways ?? []).filter((colorway) => colorway.frontImageUrl);
+}
+
+function getSelectedCollectionColorwayId(item: GearItem) {
+  const eligibleColorways = getEligibleCollectionColorways(item);
+  return eligibleColorways.some(
+    (colorway) => colorway.id === item.selectedColorwayId,
+  )
+    ? item.selectedColorwayId ?? null
+    : null;
+}
+
 export function CollectionTableModal(props: CollectionTableModalProps) {
   const t = useTranslations("userProfile");
+  const router = useRouter();
   const {
     items,
     columnKeys = COLLECTION_TABLE_COLUMNS_DEFAULT,
@@ -225,19 +252,28 @@ export function CollectionTableModal(props: CollectionTableModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { region } = useCountry();
   const columnConfigMap = useMemo(() => buildColumnConfigMap(region), [region]);
-  const [itemsState, setItemsState] = useState<GearItem[]>(
+  const [itemsState, setItemsState] = useState<GearItem[]>(() =>
     sortCollectionItems(items),
   );
+  const [itemsPropSnapshot, setItemsPropSnapshot] = useState(items);
   const [removingGearItemIds, setRemovingGearItemIds] = useState<Set<string>>(
     new Set(),
   );
+  const [updatingColorwayGearItemIds, setUpdatingColorwayGearItemIds] =
+    useState<Set<string>>(new Set());
 
-  // Keep local state aligned with the latest server-provided items when opening
-  // the modal (and also when the prop changes due to a parent rerender).
-  useEffect(() => {
-    if (!isOpen) return;
+  if (items !== itemsPropSnapshot) {
+    setItemsPropSnapshot(items);
+    if (isOpen) {
+      setItemsState(sortCollectionItems(items));
+    }
+  }
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    setIsOpen(nextOpen);
+    if (!nextOpen) return;
     setItemsState(sortCollectionItems(items));
-  }, [isOpen, items]);
+  };
 
   const addRemovingId = (gearItemId: string) => {
     setRemovingGearItemIds((previousIds) => {
@@ -249,6 +285,22 @@ export function CollectionTableModal(props: CollectionTableModalProps) {
 
   const removeRemovingId = (gearItemId: string) => {
     setRemovingGearItemIds((previousIds) => {
+      const nextIds = new Set(previousIds);
+      nextIds.delete(gearItemId);
+      return nextIds;
+    });
+  };
+
+  const addUpdatingColorwayId = (gearItemId: string) => {
+    setUpdatingColorwayGearItemIds((previousIds) => {
+      const nextIds = new Set(previousIds);
+      nextIds.add(gearItemId);
+      return nextIds;
+    });
+  };
+
+  const removeUpdatingColorwayId = (gearItemId: string) => {
+    setUpdatingColorwayGearItemIds((previousIds) => {
       const nextIds = new Set(previousIds);
       nextIds.delete(gearItemId);
       return nextIds;
@@ -273,12 +325,7 @@ export function CollectionTableModal(props: CollectionTableModalProps) {
 
     try {
       await undoPromise;
-      setItemsState((previousItems) => {
-        if (previousItems.some((existingItem) => existingItem.id === item.id)) {
-          return previousItems;
-        }
-        return sortCollectionItems([...previousItems, item]);
-      });
+      startTransition(() => router.refresh());
     } finally {
       removeRemovingId(item.id);
     }
@@ -308,8 +355,37 @@ export function CollectionTableModal(props: CollectionTableModalProps) {
       setItemsState((previousItems) =>
         previousItems.filter((existingItem) => existingItem.id !== item.id),
       );
+      startTransition(() => router.refresh());
     } finally {
       removeRemovingId(item.id);
+    }
+  };
+
+  const handleColorwayChange = async (
+    item: GearItem,
+    nextColorwayId: string | null,
+  ) => {
+    addUpdatingColorwayId(item.id);
+
+    try {
+      const result = await actionUpdateOwnedGearColorway({
+        gearId: item.id,
+        colorwayId: nextColorwayId,
+      });
+
+      setItemsState((previousItems) =>
+        sortCollectionItems(
+          previousItems.map((existingItem) =>
+            existingItem.id === item.id ? result.item : existingItem,
+          ),
+        ),
+      );
+      toast.success(t("collectionColorwayUpdated"));
+      startTransition(() => router.refresh());
+    } catch {
+      toast.error(t("collectionColorwayUpdateFailed"));
+    } finally {
+      removeUpdatingColorwayId(item.id);
     }
   };
 
@@ -334,7 +410,7 @@ export function CollectionTableModal(props: CollectionTableModalProps) {
     description ?? t("inspectAndManageCollectionItems");
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger>{modalTrigger}</DialogTrigger>
       <DialogContent className="sm:max-w-5xl">
         <DialogHeader>
@@ -349,30 +425,92 @@ export function CollectionTableModal(props: CollectionTableModalProps) {
                 {columns.map((column) => (
                   <TableHead key={column.key}>{column.label}</TableHead>
                 ))}
+                <TableHead className="w-[220px]">
+                  {t("collectionColorway")}
+                </TableHead>
                 <TableHead className="w-[80px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {itemsState.map((item) => (
-                <TableRow key={item.id} className="group">
-                  {columns.map((column) => (
-                    <TableCell key={column.key}>
-                      {column.render(item)}
+              {itemsState.map((item) => {
+                const eligibleColorways = getEligibleCollectionColorways(item);
+                const selectedColorwayId = getSelectedCollectionColorwayId(item);
+                const hasSelectableColorways = eligibleColorways.length > 1;
+                const currentColorway =
+                  eligibleColorways.find(
+                    (colorway) => colorway.id === selectedColorwayId,
+                  ) ?? null;
+
+                return (
+                  <TableRow key={item.id} className="group">
+                    {columns.map((column) => (
+                      <TableCell key={column.key}>
+                        {column.render(item)}
+                      </TableCell>
+                    ))}
+                    <TableCell>
+                      {hasSelectableColorways ? (
+                        <Select
+                          value={
+                            selectedColorwayId ??
+                            DEFAULT_COLLECTION_COLORWAY_VALUE
+                          }
+                          onValueChange={(value) =>
+                            void handleColorwayChange(
+                              item,
+                              value === DEFAULT_COLLECTION_COLORWAY_VALUE
+                                ? null
+                                : value,
+                            )
+                          }
+                          disabled={updatingColorwayGearItemIds.has(item.id)}
+                        >
+                          <SelectTrigger
+                            size="sm"
+                            className="w-full min-w-[180px]"
+                            aria-label={t("collectionColorwaySelectLabel")}
+                          >
+                            <SelectValue
+                              placeholder={t("collectionColorwayDefaultOption")}
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem
+                              value={DEFAULT_COLLECTION_COLORWAY_VALUE}
+                            >
+                              {t("collectionColorwayDefaultOption")}
+                            </SelectItem>
+                            {eligibleColorways.map((colorway) => (
+                              <SelectItem key={colorway.id} value={colorway.id}>
+                                {colorway.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">
+                          {currentColorway?.name ??
+                            t("collectionColorwayDefaultOption")}
+                        </span>
+                      )}
                     </TableCell>
-                  ))}
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="opacity-0 transition-opacity group-hover:opacity-100"
-                      onClick={() => handleRemove(item)}
-                      disabled={removingGearItemIds.has(item.id)}
-                    >
-                      <TrashIcon className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="opacity-0 transition-opacity group-hover:opacity-100"
+                        onClick={() => handleRemove(item)}
+                        disabled={
+                          removingGearItemIds.has(item.id) ||
+                          updatingColorwayGearItemIds.has(item.id)
+                        }
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>

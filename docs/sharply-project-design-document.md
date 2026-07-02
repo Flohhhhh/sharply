@@ -78,6 +78,7 @@ It is designed to serve both experienced photographers seeking deep technical da
 
 - Public “gear fleet” and wishlist.
 - Collection presentation groups items by gear type first, then brand, then newest release date within each brand.
+- Owned collection items can optionally pin a personal colorway choice for display, limited to colorways with a front-view image.
 - User-managed saved lists (default `Saved Items`) that coexist with wishlist/collection.
 - Optional published shared lists via `/list/[slug]-[publicId]`.
 - Badges for contributions (spec edits, reviews, curation).

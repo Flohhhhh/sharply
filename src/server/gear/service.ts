@@ -50,6 +50,7 @@ import {
   fetchBrandGearData,
   fetchContributorsByGearIdData,
   fetchGearBySlug as fetchGearBySlugData,
+  fetchGearColorwaysByGearId,
   fetchGearEditByIdData,
   fetchGearMetadataById as fetchGearMetadataByIdData,
   fetchLatestGearCardsData,
@@ -81,6 +82,7 @@ import {
   setGearAlternatives as setGearAlternativesData,
   updateGearInstructionManualLink as updateGearInstructionManualLinkData,
   updateGearEditMetadata as updateGearEditMetadataData,
+  updateOwnershipColorway as updateOwnershipColorwayData,
   upsertStaffVerdictByGearIdData,
   type ContributorRow,
   type GearAlternativeRow,
@@ -92,6 +94,7 @@ import {
   mapGearRowsToHomeActivityItems,
   type HomeActivityItem,
 } from "./home-activity";
+import { fetchOwnedGearItemForUser } from "../users/service";
 
 // Internal low-level reads moved to data.ts
 
@@ -130,6 +133,14 @@ async function addOwnership(gearId: string, userId: string) {
 
 async function removeOwnership(gearId: string, userId: string) {
   return removeOwnershipData(gearId, userId);
+}
+
+async function updateOwnershipColorway(params: {
+  gearId: string;
+  userId: string;
+  colorwayId: string | null;
+}) {
+  return updateOwnershipColorwayData(params);
 }
 
 async function createReview(params: {
@@ -390,6 +401,53 @@ export async function toggleOwnership(slug: string, action: "add" | "remove") {
     console.error("Failed to record ownership analytics", eventErr);
   }
   return { ok: true, action: "removed" as const };
+}
+
+const ownedGearColorwayInput = z.object({
+  gearId: z.string().trim().min(1, "Gear is required"),
+  colorwayId: z.string().trim().min(1).nullable(),
+});
+
+export async function updateOwnedGearColorway(body: unknown) {
+  const { user } = await getSessionOrThrow();
+  const input = ownedGearColorwayInput.parse(body ?? {});
+
+  const owned = await isOwned(input.gearId, user.id);
+  if (!owned) {
+    throw Object.assign(new Error("OWNERSHIP_NOT_FOUND"), { status: 404 });
+  }
+
+  if (input.colorwayId !== null) {
+    const colorways = await fetchGearColorwaysByGearId(input.gearId);
+    const selectedColorway =
+      colorways.find((colorway) => colorway.id === input.colorwayId) ?? null;
+
+    if (!selectedColorway) {
+      throw Object.assign(new Error("INVALID_OWNERSHIP_COLORWAY"), {
+        status: 400,
+      });
+    }
+
+    if (!selectedColorway.frontImageUrl) {
+      throw Object.assign(
+        new Error("OWNERSHIP_COLORWAY_FRONT_IMAGE_REQUIRED"),
+        { status: 400 },
+      );
+    }
+  }
+
+  await updateOwnershipColorway({
+    gearId: input.gearId,
+    userId: user.id,
+    colorwayId: input.colorwayId,
+  });
+
+  const item = await fetchOwnedGearItemForUser(user.id, input.gearId);
+  if (!item) {
+    throw Object.assign(new Error("OWNERSHIP_NOT_FOUND"), { status: 404 });
+  }
+
+  return { item };
 }
 
 export async function toggleImageRequest(slug: string, action: "add" | "remove") {

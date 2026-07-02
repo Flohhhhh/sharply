@@ -12,6 +12,7 @@ const gearServiceMocks = vi.hoisted(() => ({
   toggleImageRequest: vi.fn(),
   toggleOwnership: vi.fn(),
   toggleWishlist: vi.fn(),
+  updateOwnedGearColorway: vi.fn(),
   updateGearAlternatives: vi.fn(),
   updateGearInstructionManualLink: vi.fn(),
   upsertStaffVerdict: vi.fn(),

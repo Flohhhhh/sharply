@@ -63,6 +63,7 @@ export type GearItem = Gear & {
   videoModes?: (CameraVideoMode | VideoModeNormalized)[] | null;
   rawSamples?: RawSample[] | null;
   colorways?: GearColorway[] | null;
+  selectedColorwayId?: string | null;
 };
 
 export type PopularityEventType =

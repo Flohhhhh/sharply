@@ -54,7 +54,13 @@ import {
 import { incrementGearPopularityIntraday } from "~/server/popularity/data";
 import { hasEventForUserOnUtcDay } from "~/server/validation/dedupe";
 import { fetchVideoModesByGearId } from "~/server/video-modes/data";
-import type { Gear, GearAlias, GearItem, GearRegion } from "~/types/gear";
+import type {
+  Gear,
+  GearAlias,
+  GearColorway,
+  GearItem,
+  GearRegion,
+} from "~/types/gear";
 import type { GearActivityRow } from "./home-activity";
 
 type DbClient = Pick<typeof db, "select" | "update" | "insert" | "delete">;
@@ -124,6 +130,27 @@ export async function fetchGearColorwaysByGearId(gearId: string) {
     .from(gearColorways)
     .where(eq(gearColorways.gearId, gearId))
     .orderBy(asc(gearColorways.sortOrder), asc(gearColorways.createdAt));
+}
+
+export async function fetchGearColorwaysByGearIds(
+  gearIds: string[],
+): Promise<Map<string, GearColorway[]>> {
+  if (!gearIds.length) return new Map();
+
+  const rows = await db
+    .select()
+    .from(gearColorways)
+    .where(inArray(gearColorways.gearId, gearIds))
+    .orderBy(asc(gearColorways.sortOrder), asc(gearColorways.createdAt));
+
+  const byGearId = new Map<string, GearColorway[]>();
+  for (const row of rows) {
+    const existing = byGearId.get(row.gearId) ?? [];
+    existing.push(row);
+    byGearId.set(row.gearId, existing);
+  }
+
+  return byGearId;
 }
 
 async function buildSearchNameForGearId(
@@ -1229,6 +1256,28 @@ export async function removeOwnership(gearId: string, userId: string) {
     .delete(ownerships)
     .where(and(eq(ownerships.userId, userId), eq(ownerships.gearId, gearId)));
   return { removed: true } as const;
+}
+
+export async function updateOwnershipColorway(params: {
+  gearId: string;
+  userId: string;
+  colorwayId: string | null;
+}) {
+  await db
+    .update(ownerships)
+    .set({ colorwayId: params.colorwayId })
+    .where(
+      and(
+        eq(ownerships.userId, params.userId),
+        eq(ownerships.gearId, params.gearId),
+      ),
+    );
+
+  return {
+    gearId: params.gearId,
+    userId: params.userId,
+    colorwayId: params.colorwayId,
+  } as const;
 }
 
 export async function hasImageRequest(

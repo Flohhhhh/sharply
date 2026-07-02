@@ -14,6 +14,8 @@ The first colorway's front, top, and rear images are mirrored to the legacy gear
 
 `gear_colorways` stores a gear foreign key, stable per-gear slug, display name, two normalized `#RRGGBB` swatch colors, sort order, optional front/top/rear image URLs, and timestamps. Rear images are valid only for `CAMERA` and `ANALOG_CAMERA` gear.
 
+`ownerships` can optionally store a selected `colorwayId` for collection presentation. The relationship is nullable and uses `ON DELETE SET NULL` semantics so collection rows stay valid if a colorway is later removed.
+
 Schema changes are made only in `src/server/db/schema.ts`. Agents must not generate or apply the migration; the project owner runs the normal Drizzle migration workflow.
 
 ## Administration
@@ -23,6 +25,12 @@ Editors can enable colorways, add or rename rows, edit swatches, reorder rows, a
 Reset defaults to deleting every colorway row after copying the default colorway's images onto the base gear fields. Admins can instead choose a different colorway to apply first, or keep the base gear photos currently stored on the gear record.
 
 All mutations use `server/admin/colorways` through data → service → actions. Lifecycle and image mutations create audit records; image uploads and replacements create contribution payloads under `colorwayImageUpload`.
+
+## Collection display
+
+Owned gear can store a per-user collection colorway selection. The collection manager only offers colorways that have a `frontImageUrl`, and it only shows the picker when an item has more than one eligible front-view colorway.
+
+Collection cards and profile collection rows use the selected colorway's `frontImageUrl` when the saved `colorwayId` is still valid. If the saved selection is missing, deleted, or no longer has a front image, collection display falls back to the gear's normal mirrored default thumbnail.
 
 ## Public carousel
 
