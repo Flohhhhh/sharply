@@ -13,7 +13,13 @@ import {
 } from "~/components/ui/select";
 import { splitBrandsWithPriority } from "~/lib/brands";
 
-type Brand = { id: string; name: string; slug: string };
+type Brand = {
+  id: string;
+  name: string;
+  slug: string;
+  sortOrder?: number | null;
+  sort_order?: number | null;
+};
 
 export function OtherBrandsSelect({ brands }: { brands: Brand[] }) {
   const router = useRouter();

@@ -41,7 +41,11 @@ export default function NewChartContent() {
             <Label htmlFor="brand">Brand</Label>
             <BrandSelectField
               name="brand"
-              options={BRANDS.map((b) => ({ value: b.slug, label: b.name }))}
+              options={BRANDS.map((b) => ({
+                value: b.slug,
+                label: b.name,
+                sortOrder: b.sort_order ?? null,
+              }))}
             />
           </div>
           <div className="space-y-1">

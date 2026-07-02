@@ -58,6 +58,42 @@ Helper utilities for URLs live in `src/lib/utils/url.ts` (`buildSearchHref`, `me
 
 Implemented in `src/server/search/data.ts`, `src/server/search/service.ts`, and `src/server/search/query-normalization.ts`.
 
+### Search flow
+
+When a user types a query, the server-side search pipeline runs in this order:
+
+1. Normalize the raw query.
+   - Lowercase and trim it.
+   - Build `normalizedQueryNoPunct` by removing spaces, underscores, dots, slashes, and hyphens.
+2. Parse the query into search tokens.
+   - Split into parts.
+   - Extract strong text tokens, significant numeric tokens, explicit focal-length tokens, aperture tokens, and any allowlisted lens feature acronyms.
+   - Decide whether short acronyms such as `pf` or `is` should be treated as active high-signal tokens or ignored as low-information shorthand.
+3. Build normalized database-side comparison forms.
+   - `searchLower` for case-insensitive matching.
+   - `normalizedCol` for punctuation-insensitive matching.
+   - `normalizedNoBrand` for brand-agnostic matching.
+   - Relaxed normalized forms that tolerate omitted lens glue such as `mm` and `f`.
+4. Build the text-match `WHERE` clause.
+   - Add OR conditions for strong-token substring matches, normalized contains, brand-agnostic contains, relaxed contains, and conservative trigram similarity.
+   - Add boundary-aware acronym matches for active allowlisted lens feature tokens.
+5. Apply numeric and acronym gates.
+   - If the query has two or more significant numeric tokens, all of them must appear in the item text.
+   - If the query has exactly one significant numeric token plus strong text context, that numeric token is required.
+   - If the query has active lens feature acronyms, those acronym matches are also required.
+   - Low-information acronym-only queries use a narrow boundary-aware acronym match instead of broad substring matching.
+6. Build the relevance score.
+   - Start with additive base signals: raw contains, normalized contains, brand-agnostic contains, and relaxed contains.
+   - Add token-coverage bonuses for strong text, focal-length tokens, aperture tokens, and active lens acronyms.
+   - Apply the single-focal tie-break so exact `500mm` primes outrank zooms like `200-500mm` when the query is targeting a single focal length.
+   - Keep trigram similarity as a weaker fallback signal.
+7. Fetch and shape results.
+   - Full search sorts by relevance or the requested sort key, applies filters, paginates, and optionally counts totals.
+   - Suggest search fetches the top gear rows plus brand suggestions, applies exact-match metadata, and may prepend a smart compare action.
+8. Resolve UI behavior.
+   - Best-match gear suggestions can win plain Enter.
+   - Otherwise the UI falls back to the explicit `Search for "..."` action and the `/search?q=...` results page.
+
 ### Goals
 
 - Tolerant to punctuation/spacing (Z6III vs Z6 III, 70-200 vs 70200)
@@ -79,38 +115,60 @@ Implemented in `src/server/search/data.ts`, `src/server/search/service.ts`, and 
 - Split query on spaces/underscores only (keep hyphens intact): `/[\s_]+/`.
 - “Strong tokens” used for substring ILIKE: must contain a letter and be length ≥ 3.
   - Prevents numeric-only tokens (e.g., `70`) from widening results.
+- Lens feature acronyms are handled from a fixed allowlist:
+  - `pf`, `vr`, `is`, `oss`, `ois`, `vc`, `os`, `stm`, `usm`, `hsm`, `ssm`
+- Those acronyms only become high-signal ranking/gating tokens when the query also has lens evidence:
+  - at least one significant numeric token, or
+  - at least one strong text token
+- Low-information acronym-only queries avoid generic substring matching and fall back to boundary-aware token matching so short tokens like `is` do not behave like broad `ILIKE %is%` searches.
 
 ### Matching (WHERE clause)
 
 Combined with OR:
 
 - Substring on strong tokens: `gear.search_name ILIKE %token%`
+- Boundary-aware acronym matching: `lower(gear.search_name) ~ '(^|[^a-z0-9])token([^a-z0-9]|$)'`
 - Normalized contains: `normalizedCol ILIKE %normalizedQueryNoPunct%`
 - Brand-agnostic contains: `normalizedNoBrand ILIKE %normalizedQueryNoPunct%`
 - Fuzzy (conservative thresholds):
-  - `similarity(normalizedNoBrand, normalizedQueryNoPunct) > 0.25`
-  - `similarity(gear.search_name, normalizedQueryNoPunct) > 0.33`
+  - `similarity(normalizedNoBrand, normalizedQueryNoPunct) > 0.4`
+  - `similarity(gear.search_name, normalizedQueryNoPunct) > 0.5`
 
 ### Relevance ranking
 
-Final score uses `GREATEST(...)` to emphasize the strongest signal:
+Final score is additive, not `GREATEST(...)`, so multiple good signals can beat one broad match.
 
-- 1.0 if brand-agnostic normalized contains
-- `similarity(normalizedNoBrand, normalizedQueryNoPunct)`
-- `similarity(normalizedCol, normalizedQueryNoPunct) * 0.6`
-- `similarity(gear.search_name, normalizedQueryNoPunct) * 0.5`
+- Base signals:
+  - raw contains on `search_name`
+  - normalized contains
+  - brand-agnostic contains
+  - relaxed normalized contains for omitted `mm` / `f`
+- Additive token bonuses:
+  - strong token coverage
+  - lens feature acronym coverage
+  - focal-length token coverage
+  - aperture token coverage
+- Single-focal tie-break:
+  - when the query targets one focal length such as `500mm` or shorthand `500`, exact `500mm` lenses get a boost
+  - zoom overmatches such as `200-500mm` receive a penalty for those single-focal queries
+- Trigram similarity remains a weaker fallback signal instead of the primary ranking decision.
 
-Sort order: `DESC(relevance), ASC(name)` for `relevance`; otherwise `ASC(name)` or `DESC(release_date)`.
+Sort order remains `DESC(relevance), ASC(name)` for `relevance`; otherwise `ASC(name)` or `DESC(release_date)`.
 
 ### Best-match classification
 
 - Best-match is computed server-side for gear suggestions only.
-- A gear result is marked `isBestMatch` only when the normalized query exactly matches one candidate name and no competing gear suggestion shares that exact normalized match.
+- A gear result is marked `isBestMatch` when either:
+  - the normalized query exactly matches one candidate name, or
+  - for a multi-token query, one candidate uniquely covers every informative query token
+- In either case, no competing gear suggestion can share that same high-confidence match.
 - Exact candidates include:
   - canonical gear name
   - region-localized display name
   - regional aliases
   - brand-stripped variants for exact item-name entry (for example `z50ii` matching `Nikon Z50 II`)
+  - derived lens shorthand variants for suggestion intent only (for example `500 pf` or `35mm 1.8g`)
+- For lens-style token coverage, focal-length tokens ending in `mm` also contribute a bare numeric equivalent so queries like `150-600 contemporary` and `150-600mm contemporary` behave the same in best-match classification.
 - Brands never receive implicit direct-open behavior.
 
 ### Smart compare parsing
@@ -181,8 +239,19 @@ Optional ANDed filters for brand/mount/gearType/price range/sensor format. These
 Located in `src/server/search/data.ts` and `src/server/search/query-normalization.ts`:
 
 - Token gate: letter presence and `length ≥ 3` for substring ILIKE
-- Similarity thresholds: `> 0.25` (brand-agnostic), `> 0.33` (raw column)
-- Relevance weights: `1.0` (contains), `1.0` (noBrand sim), `0.6` (normalized sim), `0.5` (raw sim)
+- Similarity thresholds: `> 0.4` (brand-agnostic), `> 0.5` (raw column)
+- Relevance weights:
+  - `2.4` raw contains
+  - `1.9` normalized contains
+  - `1.2` brand-agnostic contains
+  - `0.8` relaxed contains
+  - `0.35` strong-token coverage
+  - `0.7` acronym coverage
+  - `1.0` focal-length coverage
+  - `0.65` aperture coverage
+  - `1.2` exact single-focal bonus
+  - `-0.95` single-focal zoom overmatch penalty
+  - `0.35` / `0.2` / `0.12` for the three similarity fallback terms
 
 Guidance:
 

@@ -11,6 +11,7 @@ import {
   toggleImageRequest,
   toggleOwnership,
   toggleWishlist,
+  updateOwnedGearColorway,
   updateGearAlternatives,
   updateGearInstructionManualLink,
   upsertStaffVerdict,
@@ -36,6 +37,10 @@ export async function actionToggleOwnership(
   const res = await toggleOwnership(slug, action);
   revalidatePath(`/gear/${slug}`);
   return res;
+}
+
+export async function actionUpdateOwnedGearColorway(body: unknown) {
+  return updateOwnedGearColorway(body);
 }
 
 export async function actionToggleImageRequest(

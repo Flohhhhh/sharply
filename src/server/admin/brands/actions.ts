@@ -1,0 +1,13 @@
+"use server";
+import "server-only";
+
+import { revalidatePath } from "next/cache";
+import { updateBrandSortOrdersService } from "./service";
+
+export async function actionUpdateBrandSortOrders(
+  params: Parameters<typeof updateBrandSortOrdersService>[0],
+) {
+  const result = await updateBrandSortOrdersService(params);
+  revalidatePath("/admin/tools");
+  return result;
+}

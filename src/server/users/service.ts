@@ -19,7 +19,10 @@ import {
   users,
   wishlists,
 } from "~/server/db/schema";
-import { fetchGearAliasesByGearIds } from "~/server/gear/data";
+import {
+  fetchGearAliasesByGearIds,
+  fetchGearColorwaysByGearIds,
+} from "~/server/gear/data";
 import type { GearItem,Mount } from "~/types/gear";
 import { createNotificationData } from "../notifications/data";
 import { updateUserSocialLinks } from "./data";
@@ -102,20 +105,15 @@ export async function fetchFullUserById(
   return row[0] as AuthUser | null;
 }
 
-type UserGearRelationshipTable = typeof wishlists | typeof ownerships;
-
-async function fetchGearItemsForUserList(
-  relationshipTable: UserGearRelationshipTable,
-  userId: string,
-): Promise<GearItem[]> {
+async function fetchWishlistGearItems(userId: string): Promise<GearItem[]> {
   const rows = await db
     .select()
-    .from(relationshipTable)
-    .innerJoin(gear, eq(relationshipTable.gearId, gear.id))
+    .from(wishlists)
+    .innerJoin(gear, eq(wishlists.gearId, gear.id))
     .leftJoin(brands, eq(gear.brandId, brands.id))
     .leftJoin(lensSpecs, eq(lensSpecs.gearId, gear.id))
     .leftJoin(fixedLensSpecs, eq(fixedLensSpecs.gearId, gear.id))
-    .where(eq(relationshipTable.userId, userId));
+    .where(eq(wishlists.userId, userId));
 
   if (!rows.length) return [];
 
@@ -173,14 +171,115 @@ async function fetchGearItemsForUserList(
   }));
 }
 
+function getEffectiveCollectionThumbnail(params: {
+  baseThumbnailUrl: string | null;
+  colorways: Array<{ id: string; frontImageUrl: string | null }>;
+  selectedColorwayId: string | null;
+}) {
+  const selectedColorway =
+    params.selectedColorwayId === null
+      ? null
+      : params.colorways.find(
+          (colorway) =>
+            colorway.id === params.selectedColorwayId && colorway.frontImageUrl,
+        ) ?? null;
+
+  return selectedColorway?.frontImageUrl ?? params.baseThumbnailUrl;
+}
+
+async function fetchOwnedGearItems(
+  userId: string,
+  gearId?: string,
+): Promise<GearItem[]> {
+  const rows = await db
+    .select()
+    .from(ownerships)
+    .innerJoin(gear, eq(ownerships.gearId, gear.id))
+    .leftJoin(brands, eq(gear.brandId, brands.id))
+    .leftJoin(lensSpecs, eq(lensSpecs.gearId, gear.id))
+    .leftJoin(fixedLensSpecs, eq(fixedLensSpecs.gearId, gear.id))
+    .where(
+      gearId
+        ? and(eq(ownerships.userId, userId), eq(ownerships.gearId, gearId))
+        : eq(ownerships.userId, userId),
+    );
+
+  if (!rows.length) return [];
+
+  const gearIdentifiers = rows.map((row) => row.gear.id);
+  const [mountRows, aliasesById, colorwaysByGearId] = await Promise.all([
+    db
+      .select({
+        gearId: gearMounts.gearId,
+        mount: mounts,
+      })
+      .from(gearMounts)
+      .leftJoin(mounts, eq(gearMounts.mountId, mounts.id))
+      .where(
+        sql`${gearMounts.gearId} IN (${sql.join(
+          gearIdentifiers.map((currentGearId) => sql`${currentGearId}`),
+          sql`, `,
+        )})`,
+      ),
+    fetchGearAliasesByGearIds(gearIdentifiers),
+    fetchGearColorwaysByGearIds(gearIdentifiers),
+  ]);
+
+  const mountsByGearId = new Map<string, Mount[]>();
+  for (const mountRow of mountRows) {
+    if (!mountRow.mount) continue;
+    const existingMounts = mountsByGearId.get(mountRow.gearId) ?? [];
+    existingMounts.push(mountRow.mount);
+    mountsByGearId.set(mountRow.gearId, existingMounts);
+  }
+
+  return rows.map((row) => {
+    const gearRecord = row.gear;
+    const gearMountsForItem = mountsByGearId.get(gearRecord.id) ?? [];
+    const mountIdentifierList =
+      gearMountsForItem.length > 0
+        ? gearMountsForItem.map((mountEntry) => mountEntry.id)
+        : gearRecord.mountId
+          ? [gearRecord.mountId]
+          : null;
+    const colorways = colorwaysByGearId.get(gearRecord.id) ?? [];
+    const selectedColorwayId = row.ownerships.colorwayId ?? null;
+
+    return {
+      ...gearRecord,
+      thumbnailUrl: getEffectiveCollectionThumbnail({
+        baseThumbnailUrl: gearRecord.thumbnailUrl,
+        colorways,
+        selectedColorwayId,
+      }),
+      brands: row.brands ?? null,
+      mounts: gearMountsForItem[0] ?? null,
+      mountIds: mountIdentifierList,
+      lensSpecs: row.lens_specs ?? null,
+      fixedLensSpecs: row.fixed_lens_specs ?? null,
+      regionalAliases: aliasesById.get(gearRecord.id) ?? [],
+      colorways,
+      selectedColorwayId,
+    } satisfies GearItem;
+  });
+}
+
 export async function fetchUserWishlistItems(
   userId: string,
 ): Promise<GearItem[]> {
-  return fetchGearItemsForUserList(wishlists, userId);
+  return fetchWishlistGearItems(userId);
 }
 
 export async function fetchUserOwnedItems(userId: string): Promise<GearItem[]> {
-  return fetchGearItemsForUserList(ownerships, userId);
+  return fetchOwnedGearItems(userId);
+}
+
+export async function fetchOwnedGearItemForUser(
+  userId: string,
+  gearId: string,
+): Promise<GearItem | null> {
+  const items = await fetchOwnedGearItems(userId, gearId);
+  return items[0] ?? null;
 }
 
 export async function fetchUsersWithAnniversaryToday(): Promise<

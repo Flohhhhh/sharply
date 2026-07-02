@@ -7,6 +7,7 @@
   - market-specific storefront prefixes (`en-us`, `en-uk`, `en-eu`)
   - mount-suffix normalization for storage
   - mount-suffix reconstruction for outbound clicks
+  - Sony and Canon mirrorless suffix selection from lens coverage (`imageCircleSizeId`)
 - Locale and country options now model MPB as storefront routing config, separate from affiliate settings.
 - The gear page renders an MPB button only when the selected locale supports MPB. Supported clicks point to `/api/out/mpb?destinationPath=<basePath>&market=<marketCode>` and, when needed, append `mountId=<mountId>`.
 - `src/app/api/out/mpb/route.ts` handles the redirection:
@@ -23,6 +24,13 @@
 - If only one supported mount is available, the MPB card opens the normalized base product slug directly without appending `mountId` or rebuilding a fit suffix.
 - Legacy saved product paths that still include a known MPB `-...-fit` suffix are normalized back to the base product slug for those single-mount direct clicks.
 - Fit suffixes are only rebuilt when the user explicitly selects a mount from the multi-mount chooser.
+- Sony mirrorless (`e-sony`) requires lens coverage to disambiguate MPB’s two Sony fits:
+  - `full-frame` coverage => `-sony-fe-fit`
+  - `aps-c` coverage => `-sony-e-fit`
+- Canon mirrorless (`rf-canon`) requires lens coverage to disambiguate MPB’s two RF fits:
+  - `full-frame` coverage => `-canon-rf-fit`
+  - `aps-c` coverage => `-canon-rf-s-fit`
+- Lenses missing `imageCircleSizeId` are treated as incomplete, so Sony and Canon mirrorless MPB routing does not guess between their full-frame and APS-C fit variants.
 - If the selected locale has `mpb.isSupported: false`, the MPB card is omitted entirely, even when the gear record has a saved `linkMpb`.
 
 ### Market Detection & Internationalization

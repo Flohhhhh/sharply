@@ -5,9 +5,11 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import {
+  type CanonMirrorlessVariant,
   getMpbDestinationUrl,
   isMpbSearchInput,
   type Market,
+  type SonyMirrorlessVariant,
 } from "~/lib/links/mpb";
 import { resolveGearLinkMpb } from "~/server/gear/service";
 
@@ -79,6 +81,20 @@ async function fetchGearLinkMpbFromService({
   });
 }
 
+function parseSonyVariantParam(
+  value: string | null,
+): SonyMirrorlessVariant | null {
+  if (value === "e" || value === "fe") return value;
+  return null;
+}
+
+function parseCanonVariantParam(
+  value: string | null,
+): CanonMirrorlessVariant | null {
+  if (value === "rf" || value === "rf-s") return value;
+  return null;
+}
+
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const params = url.searchParams;
@@ -86,6 +102,10 @@ export async function GET(request: NextRequest) {
   const marketParam = parseMarketParam(params.get("market"));
   const destinationPathParam = params.get("destinationPath");
   const mountId = params.get("mountId");
+  const sonyMirrorlessVariant = parseSonyVariantParam(params.get("sonyVariant"));
+  const canonMirrorlessVariant = parseCanonVariantParam(
+    params.get("canonVariant"),
+  );
   const gearSlug = params.get("gearSlug");
   const gearId = params.get("gearId");
 
@@ -130,6 +150,8 @@ export async function GET(request: NextRequest) {
       const redirectUrl = getMpbDestinationUrl({
         market,
         destinationPath,
+        sonyMirrorlessVariant,
+        canonMirrorlessVariant,
       });
       return NextResponse.redirect(redirectUrl, 307);
     } catch (error) {
@@ -151,6 +173,8 @@ export async function GET(request: NextRequest) {
       market,
       destinationPath,
       mountId,
+      sonyMirrorlessVariant,
+      canonMirrorlessVariant,
     });
     console.log("MPB out redirecting", {
       destinationPath,

@@ -211,7 +211,7 @@ CREATE TABLE sharply_lens_specs (
 - **Gear → Mounts**: Optional relationship (set null on delete)
 - **Gear Creator Videos → Approved Creators**: Required relationship (restrict delete)
 - **Camera Specs → Sensor Formats**: Optional relationship (set null on delete)
-- **Lens Specs → Sensor Formats** (`imageCircleSizeId`): Optional relationship (set null on delete)
+- **Lens Specs → Sensor Formats** (`imageCircleSizeId`): Optional relationship at the DB level (set null on delete), but treated as a required completeness spec for published lenses because it drives coverage-dependent behavior such as Sony FE vs Sony E MPB routing.
 - **Fixed-lens Specs → Sensor Formats** (`imageCircleSizeId`): Optional relationship (set null on delete)
 
 ### Cascade Behavior
@@ -279,6 +279,7 @@ The registry exports `buildGearSpecsSections(item: GearItem, options?)` which re
 - **Compare Views**: `CompareSpecsTable` component reuses the same registry
 - **Future Surfaces**: Any new spec display can import and use the registry
 - **Intentional Exceptions**: Editor-managed resource links such as `gear.linkInstructionManual` may live on the core `gear` table while rendering outside the spec table and outside the public suggestion flow.
+- **Display Conditions**: Prefer field-level `condition` functions for sentinel values that should not render at all. Example: `internalStorageGb` only renders when the numeric value is greater than `0`, so `0` does not show as a misleading graph/spec entry.
 
 ### Localization
 
@@ -429,6 +430,7 @@ To add a new gear type (e.g., tripods, lighting):
 - `gear_type` includes `ANALOG_CAMERA`.
 - Specs live in `analog_camera_specs` (1:1 on `gear.id`); integrated lenses still use `fixed_lens_specs` shared with digital cameras.
 - Under-construction rule: analog items are incomplete when `mount`, `cameraType`, or `captureMedium` are missing (plus fixed-lens focal length when the mount is `fixed-lens`).
+- Under-construction rule: lenses are incomplete when key catalog specs are missing, including focal length, prime/zoom state, max aperture, and `imageCircleSizeId` coverage.
 - Update data/service fetchers, edit/admin payloads, and the specs registry to treat analog cameras like digital cameras for integrated-lens display while using their own spec table.
 
 ### Admin Workflow Notes

@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+process.env.DATABASE_URL ??=
+  "postgres://postgres:postgres@localhost:5432/sharply";
+process.env.PAYLOAD_SECRET ??= "test-payload-secret";
+process.env.NEXT_PUBLIC_BASE_URL ??= "http://localhost:3000";
+
 const authMocks = vi.hoisted(() => ({
   getSessionOrThrow: vi.fn(),
 }));
@@ -34,6 +39,9 @@ const normalizerMocks = vi.hoisted(() => ({
 }));
 
 vi.mock("server-only", () => ({}));
+vi.mock("~/server/db", () => ({
+  db: {},
+}));
 vi.mock("~/auth", () => ({
   auth: {
     api: {

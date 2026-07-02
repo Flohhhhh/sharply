@@ -395,273 +395,312 @@ export const BRANDS = [
     "name": "Nikon",
     "slug": "nikon",
     "created_at": "2025-08-19 01:55:17.208672+00",
-    "updated_at": "2025-08-19 01:55:17.208672+00"
+    "updated_at": "2025-08-19 01:55:17.208672+00",
+    "sort_order": null
   },
   {
     "id": "7df18188-0939-4241-9ca7-6561c6e233e1",
     "name": "Canon",
     "slug": "canon",
     "created_at": "2025-08-19 01:55:17.459908+00",
-    "updated_at": "2025-08-19 01:55:17.459908+00"
+    "updated_at": "2025-08-19 01:55:17.459908+00",
+    "sort_order": null
   },
   {
     "id": "3f030fbd-3567-4b2d-85d4-900e5c69af4b",
     "name": "Sony",
     "slug": "sony",
     "created_at": "2025-08-19 01:55:17.751357+00",
-    "updated_at": "2025-08-19 01:55:17.751357+00"
+    "updated_at": "2025-08-19 01:55:17.751357+00",
+    "sort_order": null
   },
   {
     "id": "14807c17-227f-4349-a56d-401c1d5d4626",
     "name": "Fujifilm",
     "slug": "fujifilm",
     "created_at": "2025-08-19 01:55:18.000255+00",
-    "updated_at": "2025-08-19 01:55:18.000255+00"
+    "updated_at": "2025-08-19 01:55:18.000255+00",
+    "sort_order": null
   },
   {
     "id": "007b4cff-1dbf-4583-8104-35c04f1fd6d0",
     "name": "Leica",
     "slug": "leica",
     "created_at": "2025-08-19 01:55:18.237133+00",
-    "updated_at": "2025-08-19 01:55:18.237133+00"
+    "updated_at": "2025-08-19 01:55:18.237133+00",
+    "sort_order": null
   },
   {
     "id": "584d6aaf-4222-4caf-8570-e6476e2e13c0",
     "name": "Pentax",
     "slug": "pentax",
     "created_at": "2025-08-19 01:55:18.46779+00",
-    "updated_at": "2025-08-19 01:55:18.46779+00"
+    "updated_at": "2025-08-19 01:55:18.46779+00",
+    "sort_order": null
   },
   {
     "id": "c58b9ef7-4aa6-46c9-b1bb-5a9779b2a424",
     "name": "Sigma",
     "slug": "sigma",
     "created_at": "2025-08-19 01:55:18.708383+00",
-    "updated_at": "2025-08-19 01:55:18.708383+00"
+    "updated_at": "2025-08-19 01:55:18.708383+00",
+    "sort_order": null
   },
   {
     "id": "20069417-160a-4187-bf28-23a907a437ca",
     "name": "Tamron",
     "slug": "tamron",
     "created_at": "2025-08-19 01:55:19.070882+00",
-    "updated_at": "2025-08-19 01:55:19.070882+00"
+    "updated_at": "2025-08-19 01:55:19.070882+00",
+    "sort_order": null
   },
   {
     "id": "a2d28727-f063-4da1-aec2-843f25f4e721",
     "name": "Minolta",
     "slug": "minolta",
     "created_at": "2025-08-19 01:55:19.315055+00",
-    "updated_at": "2025-08-19 01:55:19.315055+00"
+    "updated_at": "2025-08-19 01:55:19.315055+00",
+    "sort_order": null
   },
   {
     "id": "77e0235b-19c3-4c14-b5e0-39a50f59ed50",
     "name": "Panasonic",
     "slug": "panasonic",
     "created_at": "2025-08-19 01:55:19.549312+00",
-    "updated_at": "2025-08-19 01:55:19.549312+00"
+    "updated_at": "2025-08-19 01:55:19.549312+00",
+    "sort_order": null
   },
   {
     "id": "48a8333a-84a1-4800-8b66-90cce7a79d3f",
     "name": "Hasselblad",
     "slug": "hasselblad",
     "created_at": "2025-08-19 01:55:19.771972+00",
-    "updated_at": "2025-08-19 01:55:19.771972+00"
+    "updated_at": "2025-08-19 01:55:19.771972+00",
+    "sort_order": null
   },
   {
     "id": "27c898a8-307d-4af9-9052-9046c2ee8043",
     "name": "Olympus",
     "slug": "olympus",
     "created_at": "2025-08-19 01:55:20.009869+00",
-    "updated_at": "2025-08-19 01:55:20.009869+00"
+    "updated_at": "2025-08-19 01:55:20.009869+00",
+    "sort_order": null
   },
   {
     "id": "2f96452f-e72a-49ce-8923-84e13393862f",
     "name": "PhaseOne",
     "slug": "phase-one",
     "created_at": "2025-08-19 01:55:20.276242+00",
-    "updated_at": "2025-08-19 01:55:20.276242+00"
+    "updated_at": "2025-08-19 01:55:20.276242+00",
+    "sort_order": null
   },
   {
     "id": "da73ec33-2823-4057-a890-0c1aaffbaaf4",
     "name": "Viltrox",
     "slug": "viltrox",
     "created_at": "2025-08-19 01:55:20.71279+00",
-    "updated_at": "2025-08-19 01:55:20.71279+00"
+    "updated_at": "2025-08-19 01:55:20.71279+00",
+    "sort_order": null
   },
   {
     "id": "d3fb1ef0-a2f7-43d5-a30f-77607840bab6",
     "name": "Samsung",
     "slug": "samsung",
     "created_at": "2025-08-19 01:55:20.950975+00",
-    "updated_at": "2025-08-19 01:55:20.950975+00"
+    "updated_at": "2025-08-19 01:55:20.950975+00",
+    "sort_order": null
   },
   {
     "id": "f87b739a-6f02-4251-ad3a-bb129bd1c731",
     "name": "Lensbaby",
     "slug": "lensbaby",
     "created_at": "2025-08-19 01:55:21.182549+00",
-    "updated_at": "2025-08-19 01:55:21.182549+00"
+    "updated_at": "2025-08-19 01:55:21.182549+00",
+    "sort_order": null
   },
   {
     "id": "94f2d1ff-db66-4e9b-b80a-169d725ebd5b",
     "name": "Tokina",
     "slug": "tokina",
     "created_at": "2025-08-19 01:55:21.427242+00",
-    "updated_at": "2025-08-19 01:55:21.427242+00"
+    "updated_at": "2025-08-19 01:55:21.427242+00",
+    "sort_order": null
   },
   {
     "id": "1601f80f-a7cc-4d5e-b643-5caf01b28fc1",
     "name": "TTAritsan",
     "slug": "ttartisan",
     "created_at": "2025-08-19 01:55:21.675145+00",
-    "updated_at": "2025-08-19 01:55:21.675145+00"
+    "updated_at": "2025-08-19 01:55:21.675145+00",
+    "sort_order": null
   },
   {
     "id": "6c6833ad-9aa5-43a3-8e05-fb2a51813c20",
     "name": "Meike",
     "slug": "meike",
     "created_at": "2025-08-19 01:55:21.910307+00",
-    "updated_at": "2025-08-19 01:55:21.910307+00"
+    "updated_at": "2025-08-19 01:55:21.910307+00",
+    "sort_order": null
   },
   {
     "id": "216afe1e-7c64-4a0a-8e27-77cd6b4ff0a9",
     "name": "Samyang/Rokinon",
     "slug": "samyang",
     "created_at": "2025-08-19 01:55:22.145443+00",
-    "updated_at": "2025-08-19 01:55:22.145443+00"
+    "updated_at": "2025-08-19 01:55:22.145443+00",
+    "sort_order": null
   },
   {
     "id": "b48e53de-53cc-40d0-a94b-33eccc656bd7",
     "name": "Voigtlander",
     "slug": "voigtlander",
     "created_at": "2025-08-19 01:55:22.379215+00",
-    "updated_at": "2025-08-19 01:55:22.379215+00"
+    "updated_at": "2025-08-19 01:55:22.379215+00",
+    "sort_order": null
   },
   {
     "id": "a6cb882a-eb11-4b63-848d-e49a87713503",
     "name": "Zeiss",
     "slug": "zeiss",
     "created_at": "2025-08-19 01:55:22.655656+00",
-    "updated_at": "2025-08-19 01:55:22.655656+00"
+    "updated_at": "2025-08-19 01:55:22.655656+00",
+    "sort_order": null
   },
   {
     "id": "f53397e4-a2b0-4e93-bcce-d9db04b234f4",
     "name": "7Artisans",
     "slug": "svn-artisans",
     "created_at": "2025-08-19 01:55:22.921577+00",
-    "updated_at": "2025-08-19 01:55:22.921577+00"
+    "updated_at": "2025-08-19 01:55:22.921577+00",
+    "sort_order": null
   },
   {
     "id": "9ba86a72-9556-4d2f-95e3-3a5aef8aa6ce",
     "name": "SIRUI",
     "slug": "sirui",
     "created_at": "2025-08-19 01:55:23.153427+00",
-    "updated_at": "2025-08-19 01:55:23.153427+00"
+    "updated_at": "2025-08-19 01:55:23.153427+00",
+    "sort_order": null
   },
   {
     "id": "f9cf3f35-a12a-4625-a38d-2e0c4e067bab",
     "name": "Yongnuo",
     "slug": "yongnuo",
     "created_at": "2025-08-19 01:55:23.382675+00",
-    "updated_at": "2025-08-19 01:55:23.382675+00"
+    "updated_at": "2025-08-19 01:55:23.382675+00",
+    "sort_order": null
   },
   {
     "id": "98ba2096-308b-4e4b-850b-41892ea65351",
     "name": "ARRI",
     "slug": "arri",
     "created_at": "2025-08-19 01:55:23.616965+00",
-    "updated_at": "2025-08-19 01:55:23.616965+00"
+    "updated_at": "2025-08-19 01:55:23.616965+00",
+    "sort_order": null
   },
   {
     "id": "06f9e7f1-e6e9-4f09-a369-5d90d2ceeb5d",
     "name": "Red",
     "slug": "red",
     "created_at": "2025-08-19 01:55:23.843491+00",
-    "updated_at": "2025-08-19 01:55:23.843491+00"
+    "updated_at": "2025-08-19 01:55:23.843491+00",
+    "sort_order": null
   },
   {
     "id": "eedb58fc-e4f6-4ed0-b3a4-2d2d8d70c9a8",
     "name": "Sphere Optics",
     "slug": "sphere-optics",
     "created_at": "2025-12-30 13:58:36.338099+00",
-    "updated_at": "2025-12-30 13:58:36.338099+00"
+    "updated_at": "2025-12-30 13:58:36.338099+00",
+    "sort_order": null
   },
   {
     "id": "044b575b-d060-44b5-9fa9-8d727dc7a9db",
     "name": "Kodak",
     "slug": "kodak",
     "created_at": "2026-01-01 18:07:50.384292+00",
-    "updated_at": "2026-01-01 18:07:50.384292+00"
+    "updated_at": "2026-01-01 18:07:50.384292+00",
+    "sort_order": null
   },
   {
     "id": "0bf28abb-b1b1-43e0-b799-be780632315d",
     "name": "Blackmagic Design",
     "slug": "blackmagic",
     "created_at": "2026-01-03 12:10:53.685766+00",
-    "updated_at": "2026-01-03 12:10:53.685766+00"
+    "updated_at": "2026-01-03 12:10:53.685766+00",
+    "sort_order": null
   },
   {
     "id": "3586b7b4-3910-4f85-86e1-c9d25a316df9",
     "name": "Retropia",
     "slug": "retropia",
     "created_at": "2026-01-11 00:58:08.626843+00",
-    "updated_at": "2026-01-11 00:58:08.626843+00"
+    "updated_at": "2026-01-11 00:58:08.626843+00",
+    "sort_order": null
   },
   {
     "id": "3120acc8-10c5-4719-b2c8-77be601178dd",
     "name": "AstrHori",
     "slug": "astrhori",
     "created_at": "2026-01-19 19:43:19.285118+00",
-    "updated_at": "2026-01-19 19:43:19.285118+00"
+    "updated_at": "2026-01-19 19:43:19.285118+00",
+    "sort_order": null
   },
   {
     "id": "7fbdf1df-52fc-4c3e-84a6-4f0e0c17c014",
     "name": "Laowa",
     "slug": "laowa",
     "created_at": "2026-01-19 19:43:19.28451+00",
-    "updated_at": "2026-01-19 19:43:19.28451+00"
+    "updated_at": "2026-01-19 19:43:19.28451+00",
+    "sort_order": null
   },
   {
     "id": "9f9a7761-8cd7-40a5-9652-c3f0af4d4de5",
     "name": "KIPON",
     "slug": "kipon",
     "created_at": "2026-01-19 19:44:17.759354+00",
-    "updated_at": "2026-01-19 19:44:17.759354+00"
+    "updated_at": "2026-01-19 19:44:17.759354+00",
+    "sort_order": null
   },
   {
     "id": "f9fcebe4-2e4d-4d94-80c6-840876d268dd",
     "name": "Mitakon",
     "slug": "mitakon",
     "created_at": "2026-01-19 20:17:25.333797+00",
-    "updated_at": "2026-01-19 20:17:25.333797+00"
+    "updated_at": "2026-01-19 20:17:25.333797+00",
+    "sort_order": null
   },
   {
     "id": "65b0e225-70c4-4ccd-8866-8532e0fcf96b",
     "name": "Mamiya",
     "slug": "mamiya",
     "created_at": "2026-02-04 17:12:42.107769+00",
-    "updated_at": "2026-02-04 17:12:42.107769+00"
+    "updated_at": "2026-02-04 17:12:42.107769+00",
+    "sort_order": null
   },
   {
     "id": "f02cb887-3bf8-4fbb-9743-f0fc86b68a24",
     "name": "Ricoh",
     "slug": "ricoh",
     "created_at": "2026-02-23 16:08:20.706598+00",
-    "updated_at": "2026-02-23 16:08:20.706598+00"
+    "updated_at": "2026-02-23 16:08:20.706598+00",
+    "sort_order": null
   },
   {
     "id": "c3240422-47b1-484d-8202-a4b5e8c9e892",
     "name": "PERGEAR",
     "slug": "pergear",
     "created_at": "2026-04-14 13:14:21.828644+00",
-    "updated_at": "2026-04-14 13:14:21.828644+00"
+    "updated_at": "2026-04-14 13:14:21.828644+00",
+    "sort_order": null
   },
   {
     "id": "4f10797d-6dae-48a9-bd63-b6476810651e",
     "name": "Thypoch",
     "slug": "thypoch",
     "created_at": "2026-04-15 12:43:26.0569+00",
-    "updated_at": "2026-04-15 12:43:26.0569+00"
+    "updated_at": "2026-04-15 12:43:26.0569+00",
+    "sort_order": null
   }
 ];
 export const GENRES = [

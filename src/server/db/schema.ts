@@ -497,6 +497,7 @@ export const brands = appSchema.table("brands", () => ({
     .default(sql`gen_random_uuid()::text`),
   name: varchar("name", { length: 200 }).notNull().unique(),
   slug: varchar("slug", { length: 200 }).notNull().unique(),
+  sortOrder: integer("sort_order"),
   createdAt,
   updatedAt,
 }));
@@ -1753,11 +1754,15 @@ export const ownerships = appSchema.table(
       .varchar("gear_id", { length: 36 })
       .notNull()
       .references(() => gear.id, { onDelete: "cascade" }),
+    colorwayId: d
+      .varchar("colorway_id", { length: 36 })
+      .references(() => gearColorways.id, { onDelete: "set null" }),
     createdAt,
   }),
   (t) => [
     primaryKey({ columns: [t.userId, t.gearId] }),
     index("ownership_gear_idx").on(t.gearId),
+    index("ownership_colorway_idx").on(t.colorwayId),
   ],
 );
 

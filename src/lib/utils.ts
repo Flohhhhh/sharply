@@ -96,11 +96,14 @@ export function getConstructionState(gearItem: GearItem) {
     if (!focalMin || !focalMax) {
       missing.push("Focal length");
     }
-    if (!gearItem.lensSpecs?.isPrime === null) {
+    if (gearItem.lensSpecs?.isPrime == null) {
       missing.push("Prime/Zoom");
     }
-    if (!gearItem.lensSpecs?.maxApertureWide === null) {
+    if (gearItem.lensSpecs?.maxApertureWide == null) {
       missing.push("Max aperture");
+    }
+    if (!gearItem.lensSpecs?.imageCircleSizeId) {
+      missing.push(humanizeKey("imageCircleSizeId"));
     }
   }
 

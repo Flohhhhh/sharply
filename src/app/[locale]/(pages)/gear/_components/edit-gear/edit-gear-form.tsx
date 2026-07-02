@@ -43,6 +43,7 @@ import {
 import { actionSubmitGearProposal } from "~/server/gear/actions";
 import type { FixedLensSpecs,GearItem,GearType } from "~/types/gear";
 import { AnalogCameraFields } from "./fields-analog-cameras";
+import { getInitialAutoSubmitValue } from "./auto-submit";
 import CameraFields from "./fields-cameras";
 import { CoreFields } from "./fields-core";
 import { FixedLensFields } from "./fields-fixed-lens";
@@ -211,7 +212,7 @@ function EditGearForm({
   };
   const router = useRouter();
   const [internalAutoSubmit, setInternalAutoSubmit] = useState(
-    Boolean(canToggleAutoSubmit),
+    getInitialAutoSubmitValue(autoSubmit),
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -989,6 +990,8 @@ function EditGearForm({
       console.log("[EditGearForm] submitting suggestion", {
         gearType,
         gearSlug,
+        autoSubmit: effectiveAutoSubmit,
+        canToggleAutoSubmit,
         payload,
       });
       console.time(`[EditGearForm] submit ${gearSlug}`);

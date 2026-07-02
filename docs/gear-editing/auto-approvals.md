@@ -37,7 +37,7 @@ Editors, admins, and superadmins (see `requireRole(..., ["EDITOR"])` on gear edi
 
 When **Auto-Submit** is **checked**, eligible staff submissions are applied immediately. When **unchecked**, staff intentionally submit **for moderator review** like a normal contributor (still creates a proposal; description in the submit confirmation dialog explains this).
 
-Contributors **without** editor-level role **do not** see this checkbox. The form still sends an `autoSubmit` boolean on submit; today that value defaults from the same form state model (`Boolean(canToggleAutoSubmit)` when no controlled `autoSubmit` prop is used). **Trusted auto-approval on the server only runs when `autoSubmit !== false`**, so any client that always sends `autoSubmit: false` for non-staff will never trigger trusted auto-apply even if every other rule passes. Align non-staff clients with the contract above if trusted immediate apply should work from the UI.
+Contributors **without** editor-level role **do not** see this checkbox. The standard gear edit UI still submits with `autoSubmit` enabled by default for those users so the trusted contributor path can run when the server-side eligibility checks pass. **Trusted auto-approval on the server only runs when `autoSubmit !== false`**, so any custom client that always sends `autoSubmit: false` for non-staff will never trigger trusted auto-apply even if every other rule passes.
 
 ## Shared preconditions (staff and trusted)
 

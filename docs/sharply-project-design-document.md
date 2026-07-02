@@ -37,6 +37,7 @@ It is designed to serve both experienced photographers seeking deep technical da
 - **External Resources**: Curated links to YouTube reviews, articles, tutorials.
 - **"I Have This" Gear Ownership Button**:
   - Adds the gear to a member’s collection.
+  - The add-success toast includes a shortcut to the member’s public profile.
   - Authenticated users see a **"Write a Review"** button; ownership is not required to leave a personal review.
   - Allows upload of sample images tied to that gear.
 - **Popularity Tracking**:
@@ -77,6 +78,8 @@ It is designed to serve both experienced photographers seeking deep technical da
 ### **3.4 Contributor Profiles**
 
 - Public “gear fleet” and wishlist.
+- Collection presentation groups items by gear type first, then brand, then newest release date within each brand.
+- Owned collection items can optionally pin a personal colorway choice for display, limited to colorways with a front-view image.
 - User-managed saved lists (default `Saved Items`) that coexist with wishlist/collection.
 - Optional published shared lists via `/list/[slug]-[publicId]`.
 - Badges for contributions (spec edits, reviews, curation).

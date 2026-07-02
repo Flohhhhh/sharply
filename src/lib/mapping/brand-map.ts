@@ -1,8 +1,11 @@
 import type { Brand } from "~/types/gear";
 import { BRANDS } from "../constants";
 
-type BrandConst = Pick<Brand, "id" | "name" | "slug">;
-const BRAND_LIST = BRANDS as BrandConst[];
+type BrandConst = Pick<Brand, "id" | "name" | "slug"> & {
+  sortOrder?: number | null;
+  sort_order?: number | null;
+};
+const BRAND_LIST = BRANDS as unknown as BrandConst[];
 
 export function getBrandNameById(id: string) {
   const brand = BRAND_LIST.find((brandEntry) => brandEntry.id === id);
@@ -10,7 +13,15 @@ export function getBrandNameById(id: string) {
 }
 
 export function getBrandById(id: string) {
-  return BRAND_LIST.find((brand) => brand.id === id);
+  const brand = BRAND_LIST.find((brandEntry) => brandEntry.id === id);
+  if (!brand) {
+    return undefined;
+  }
+
+  return {
+    ...brand,
+    sortOrder: brand.sortOrder ?? brand.sort_order ?? null,
+  };
 }
 
 export function getBrandSlugById(id: string) {

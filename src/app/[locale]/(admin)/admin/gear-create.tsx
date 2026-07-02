@@ -37,7 +37,7 @@ import {
 } from "~/lib/validation/gear-creation-validations";
 import type { GearType } from "~/types/gear";
 
-type Brand = { id: string; name: string };
+type Brand = { id: string; name: string; sortOrder: number | null };
 type FuzzyItem = { id: string; slug: string; name: string };
 
 export function GearCreateCard() {
@@ -89,7 +89,11 @@ export function GearCreateCard() {
             const typed = arr.filter((b): b is Brand => {
               if (typeof b !== "object" || b === null) return false;
               const rec = b as Record<string, unknown>;
-              return typeof rec.id === "string" && typeof rec.name === "string";
+              return (
+                typeof rec.id === "string" &&
+                typeof rec.name === "string" &&
+                (typeof rec.sortOrder === "number" || rec.sortOrder === null)
+              );
             });
             setBrands(typed);
           } else {

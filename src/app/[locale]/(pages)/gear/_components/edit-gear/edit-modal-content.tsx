@@ -19,6 +19,7 @@ import { translateGearDetailWithFallback } from "~/lib/i18n/gear-detail";
 import { sensorTypeLabel } from "~/lib/mapping/sensor-map";
 import { buildEditSidebarSections } from "~/lib/specs/registry";
 import type { CameraSpecs,GearItem,GearType } from "~/types/gear";
+import { getInitialAutoSubmitValue } from "./auto-submit";
 import { EditGearForm } from "./edit-gear-form";
 
 interface EditModalContentProps {
@@ -50,7 +51,7 @@ export function EditModalContent({
   const [showMissingOnly, setShowMissingOnly] = useState(
     Boolean(initialShowMissingOnly),
   );
-  const [autoSubmit, setAutoSubmit] = useState(Boolean(canToggleAutoSubmit));
+  const [autoSubmit, setAutoSubmit] = useState(getInitialAutoSubmitValue());
   const [isDirty, setIsDirty] = useState(false);
 
   const preparedData: GearItem = useMemo(() => {

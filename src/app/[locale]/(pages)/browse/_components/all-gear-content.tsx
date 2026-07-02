@@ -5,7 +5,7 @@ import type { JSX } from "react";
 import { Suspense } from "react";
 import { GearCard, GearCardSkeleton } from "~/components/gear/gear-card";
 import { Button } from "~/components/ui/button";
-import { splitBrandsWithPriority } from "~/lib/brands";
+import { orderBrandsWithPriority, splitBrandsWithPriority } from "~/lib/brands";
 import { BRANDS } from "~/lib/constants";
 import { getItemDisplayPrice } from "~/lib/mapping";
 import {
@@ -42,9 +42,9 @@ export default async function AllGearContent({
     id: b.id,
     name: b.name,
     slug: b.slug,
+    sortOrder: b.sort_order ?? null,
   }));
-  const featuredNames = ["Canon", "Nikon", "Sony"];
-  const featured = brandOptions.filter((b) => featuredNames.includes(b.name));
+  const featured = orderBrandsWithPriority(brandOptions).slice(0, 3);
 
   const prioritizedBrands = splitBrandsWithPriority(brandOptions);
   const initialReleasePage = await fetchReleaseFeedPage({

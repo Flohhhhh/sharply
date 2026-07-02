@@ -96,6 +96,27 @@ export function isSmartActionSuggestion(suggestion: Suggestion): boolean {
   return suggestion.kind === "smart-action";
 }
 
+export function shouldHoistSingleGearSuggestion(
+  suggestions: Suggestion[],
+): boolean {
+  const smartActionCount = suggestions.filter((suggestion) =>
+    isSmartActionSuggestion(suggestion),
+  ).length;
+  const bestMatchCount = suggestions.filter((suggestion) =>
+    isBestMatchSuggestion(suggestion),
+  ).length;
+  const gearSuggestions = suggestions.filter(
+    (suggestion) => suggestion.kind === "camera" || suggestion.kind === "lens",
+  );
+
+  return (
+    smartActionCount === 0 &&
+    bestMatchCount === 0 &&
+    gearSuggestions.length === 1 &&
+    suggestions.length === 1
+  );
+}
+
 export function asGearSuggestion(
   suggestion: Suggestion | null | undefined,
 ): GearSuggestion | null {
