@@ -18,7 +18,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Plus, SearchIcon, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -32,6 +32,7 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { splitBrandsWithPriority } from "~/lib/brands";
+import { resolveBrandSortSaveCompletion } from "~/lib/brand-sort-order-save";
 import { actionUpdateBrandSortOrders } from "~/server/admin/brands/actions";
 
 type AdminBrandRow = {
@@ -99,6 +100,10 @@ export function BrandSortOrderTool({
   );
   const [query, setQuery] = useState("");
   const [saveState, setSaveState] = useState<SaveState>("saved");
+  const [saveRetryToken, setSaveRetryToken] = useState(0);
+  const saveRequestIdRef = useRef(0);
+  const isSavingRef = useRef(false);
+  const queuedSignatureRef = useRef<string | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -123,23 +128,70 @@ export function BrandSortOrderTool({
   useEffect(() => {
     if (!changedUpdates.length) {
       setSaveState("saved");
+      queuedSignatureRef.current = null;
+      return;
+    }
+
+    if (isSavingRef.current) {
+      queuedSignatureRef.current = changedSignature;
       return;
     }
 
     setSaveState("debouncing");
+    const signatureToSave = changedSignature;
+
     const timer = window.setTimeout(() => {
-      const pendingUpdates = JSON.parse(changedSignature) as Array<{
+      const pendingUpdates = JSON.parse(signatureToSave) as Array<{
         id: string;
         sortOrder: number | null;
       }>;
 
+      const requestId = ++saveRequestIdRef.current;
+      isSavingRef.current = true;
       setSaveState("saving");
+
       void actionUpdateBrandSortOrders({ updates: pendingUpdates })
         .then((nextSavedBrands) => {
+          const completion = resolveBrandSortSaveCompletion({
+            responseRequestId: requestId,
+            latestRequestId: saveRequestIdRef.current,
+            queuedSignature: queuedSignatureRef.current,
+          });
+
+          if (completion.kind === "stale") {
+            return;
+          }
+
           setSavedBrands(normalizeDraftBrands(nextSavedBrands));
+          isSavingRef.current = false;
+
+          if (completion.kind === "requeue") {
+            queuedSignatureRef.current = null;
+            setSaveRetryToken((token) => token + 1);
+            return;
+          }
+
           setSaveState("saved");
         })
         .catch((error) => {
+          const completion = resolveBrandSortSaveCompletion({
+            responseRequestId: requestId,
+            latestRequestId: saveRequestIdRef.current,
+            queuedSignature: queuedSignatureRef.current,
+          });
+
+          if (completion.kind === "stale") {
+            return;
+          }
+
+          isSavingRef.current = false;
+
+          if (completion.kind === "requeue") {
+            queuedSignatureRef.current = null;
+            setSaveRetryToken((token) => token + 1);
+            return;
+          }
+
           setSaveState("error");
           toast.error(
             error instanceof Error
@@ -150,7 +202,7 @@ export function BrandSortOrderTool({
     }, 700);
 
     return () => window.clearTimeout(timer);
-  }, [changedSignature, changedUpdates.length]);
+  }, [changedSignature, changedUpdates.length, saveRetryToken]);
 
   const filteredOrderedBrands = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
