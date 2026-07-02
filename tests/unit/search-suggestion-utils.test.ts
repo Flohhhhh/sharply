@@ -2,8 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   getSuggestionSubtitle,
   getSuggestionTitle,
+  shouldHoistSingleGearSuggestion,
 } from "~/components/search/search-suggestion-utils";
-import type { GearSuggestion } from "~/types/search";
+import type { GearSuggestion,Suggestion } from "~/types/search";
 
 const translations = {
   camera: "Camera",
@@ -68,5 +69,36 @@ describe("search suggestion utils", () => {
     expect(getSuggestionSubtitle(suggestion, translations)).toBe(
       "Panasonic GX850",
     );
+  });
+
+  it("hoists a single non-best gear suggestion ahead of the generic search action", () => {
+    expect(shouldHoistSingleGearSuggestion([makeGearSuggestion()])).toBe(true);
+  });
+
+  it("does not hoist when the only suggestion is already a best match", () => {
+    expect(
+      shouldHoistSingleGearSuggestion([
+        makeGearSuggestion({ isBestMatch: true }),
+      ]),
+    ).toBe(false);
+  });
+
+  it("does not hoist when there are multiple suggestions", () => {
+    const brandSuggestion: Suggestion = {
+      id: "brand:1",
+      kind: "brand",
+      type: "brand",
+      title: "Nikon",
+      label: "Nikon",
+      subtitle: "Brand",
+      href: "/brand/nikon",
+      brandId: "brand-1",
+      brandName: "Nikon",
+      relevance: 0.4,
+    };
+
+    expect(
+      shouldHoistSingleGearSuggestion([makeGearSuggestion(), brandSuggestion]),
+    ).toBe(false);
   });
 });

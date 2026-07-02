@@ -299,6 +299,7 @@ describe("search service high-impact behavior", () => {
       title: "Canon EOS Kiss X9i",
       subtitle: "Canon EOS Rebel T7i",
       matchSource: "localized",
+      isBestMatch: true,
     });
   });
 
@@ -352,6 +353,156 @@ describe("search service high-impact behavior", () => {
       kind: "camera",
       title: "Nikon Z6 III",
       subtitle: "Camera",
+    });
+  });
+
+  it("treats lens shorthand like 500 pf as a best match when it resolves uniquely", async () => {
+    searchDataMocks.queryGearSuggestions.mockResolvedValue([
+      {
+        id: "gear-1",
+        name: "Nikon AF-S NIKKOR 500mm f/5.6E PF ED VR",
+        slug: "nikon-500-pf",
+        brandName: "Nikon",
+        gearType: "LENS",
+        relevance: 0.96,
+      },
+    ]);
+
+    const suggestions = await getSuggestions("500 pf", 8, "GLOBAL");
+
+    expect(suggestions[0]).toMatchObject({
+      kind: "lens",
+      matchedName: "Nikon AF-S NIKKOR 500mm f/5.6E PF ED VR",
+      isBestMatch: true,
+    });
+  });
+
+  it("treats lens shorthand like 35mm 1.8g as a best match when it resolves uniquely", async () => {
+    searchDataMocks.queryGearSuggestions.mockResolvedValue([
+      {
+        id: "gear-1",
+        name: "Nikon AF-S DX NIKKOR 35mm f/1.8G",
+        slug: "nikon-35mm-f18g",
+        brandName: "Nikon",
+        gearType: "LENS",
+        relevance: 0.95,
+      },
+    ]);
+
+    const suggestions = await getSuggestions("35mm 1.8g", 8, "GLOBAL");
+
+    expect(suggestions[0]).toMatchObject({
+      kind: "lens",
+      matchedName: "Nikon AF-S DX NIKKOR 35mm f/1.8G",
+      isBestMatch: true,
+    });
+  });
+
+  it("treats a unique multi-token lens family query as a best match", async () => {
+    searchDataMocks.queryGearSuggestions.mockResolvedValue([
+      {
+        id: "gear-1",
+        name: "Sigma 150-600mm F5-6.3 DG OS HSM Contemporary",
+        slug: "sigma-150-600mm-contemporary",
+        brandName: "Sigma",
+        gearType: "LENS",
+        relevance: 0.94,
+      },
+      {
+        id: "gear-2",
+        name: "Sigma 150-600mm f/5-6.3 DG DN OS Sports",
+        slug: "sigma-150-600mm-sports",
+        brandName: "Sigma",
+        gearType: "LENS",
+        relevance: 0.83,
+      },
+    ]);
+
+    const suggestions = await getSuggestions(
+      "sigma 150-600 contemporary",
+      8,
+      "GLOBAL",
+    );
+    const gearSuggestions = suggestions.filter(
+      (suggestion): suggestion is GearSuggestion =>
+        suggestion.kind === "camera" || suggestion.kind === "lens",
+    );
+
+    expect(gearSuggestions[0]).toMatchObject({
+      matchedName: "Sigma 150-600mm F5-6.3 DG OS HSM Contemporary",
+      isBestMatch: true,
+    });
+    expect(gearSuggestions[1]).toMatchObject({
+      matchedName: "Sigma 150-600mm f/5-6.3 DG DN OS Sports",
+      isBestMatch: false,
+    });
+  });
+
+  it("treats the explicit mm variant of the same lens family query as a best match", async () => {
+    searchDataMocks.queryGearSuggestions.mockResolvedValue([
+      {
+        id: "gear-1",
+        name: "Sigma 150-600mm F5-6.3 DG OS HSM Contemporary",
+        slug: "sigma-150-600mm-contemporary",
+        brandName: "Sigma",
+        gearType: "LENS",
+        relevance: 0.94,
+      },
+      {
+        id: "gear-2",
+        name: "Sigma 150-600mm f/5-6.3 DG DN OS Sports",
+        slug: "sigma-150-600mm-sports",
+        brandName: "Sigma",
+        gearType: "LENS",
+        relevance: 0.83,
+      },
+    ]);
+
+    const suggestions = await getSuggestions(
+      "sigma 150-600mm contemporary",
+      8,
+      "GLOBAL",
+    );
+    const gearSuggestions = suggestions.filter(
+      (suggestion): suggestion is GearSuggestion =>
+        suggestion.kind === "camera" || suggestion.kind === "lens",
+    );
+
+    expect(gearSuggestions[0]).toMatchObject({
+      matchedName: "Sigma 150-600mm F5-6.3 DG OS HSM Contemporary",
+      isBestMatch: true,
+    });
+    expect(gearSuggestions[1]).toMatchObject({
+      matchedName: "Sigma 150-600mm f/5-6.3 DG DN OS Sports",
+      isBestMatch: false,
+    });
+  });
+
+  it("does not mark single-token partial queries as best matches just because they are unique", async () => {
+    searchDataMocks.queryGearSuggestions.mockResolvedValue([
+      {
+        id: "gear-1",
+        name: "Panasonic GX850",
+        slug: "panasonic-gx850",
+        brandName: "Panasonic",
+        gearType: "CAMERA",
+        relevance: 0.82,
+      },
+    ]);
+    gearDataMocks.fetchGearAliasesByGearIds.mockResolvedValue(
+      new Map([
+        [
+          "gear-1",
+          [{ region: "JP", name: "Lumix GF9" }],
+        ],
+      ]),
+    );
+
+    const suggestions = await getSuggestions("lumix", 8, "JP");
+
+    expect(suggestions[0]).toMatchObject({
+      title: "Lumix GF9",
+      isBestMatch: false,
     });
   });
 

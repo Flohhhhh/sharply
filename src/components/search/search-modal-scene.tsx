@@ -40,6 +40,7 @@ import {
   getSuggestionTitle,
   isBestMatchSuggestion,
   isSmartActionSuggestion,
+  shouldHoistSingleGearSuggestion,
 } from "./search-suggestion-utils";
 
 type SearchModalSceneProps = {
@@ -184,20 +185,23 @@ export function SearchModalScene({
   const selectableItems = useMemo<SelectableItem[]>(() => {
     if (!hasQuery) return [];
 
+    const searchAction: SearchActionItem = {
+      id: "search-action",
+      kind: "search-action",
+      title: t("searchFor", { query: trimmedQuery }),
+      href: searchHref,
+    };
+    const hoistSingleGearSuggestion = shouldHoistSingleGearSuggestion(results);
+
     const items: SelectableItem[] = [
       ...suggestionRows.smartRows,
       ...suggestionRows.bestRows,
-      {
-        id: "search-action",
-        kind: "search-action",
-        title: t("searchFor", { query: trimmedQuery }),
-        href: searchHref,
-      },
-      ...suggestionRows.remainingRows,
+      ...(hoistSingleGearSuggestion ? suggestionRows.remainingRows : [searchAction]),
+      ...(hoistSingleGearSuggestion ? [searchAction] : suggestionRows.remainingRows),
     ];
 
     return items;
-  }, [hasQuery, searchHref, suggestionRows, t, trimmedQuery]);
+  }, [hasQuery, results, searchHref, suggestionRows, t, trimmedQuery]);
 
   const showResultsSection = hasQuery ? hasRevealedPanelForInput : false;
   const listboxId = `${comboboxId}-listbox`;

@@ -33,9 +33,34 @@ type CandidateMatch = MatchCandidate & {
 
 const COMPARE_QUERY_RE =
   /^\s*(?:compare\s+)?(.+?)\s+(?:vs|versus)\s+(.+?)\s*$/i;
+const LENS_FEATURE_SHORTHAND_RE = /\b(pf|vr|is|oss|ois|vc|os|stm|usm|hsm|ssm)\b/gi;
+const LENS_FOCAL_LENGTH_RE =
+  /(\d+(?:\.\d+)?)(?:\s*-\s*(\d+(?:\.\d+)?))?\s*mm\b/i;
+const LENS_APERTURE_RE = /(?:f|t)\s*\/?\s*(\d+(?:\.\d+)?)([a-z])?/i;
+const FOCAL_LENGTH_TOKEN_WITH_MM_RE = /^(\d+(?:\.\d+)?)mm$/i;
 
 function normalizeExactMatchValue(value: string) {
   return normalizeGearSearchText(value).replace(/\s+/g, "");
+}
+
+function getInformativeMatchTokens(value: string): string[] {
+  return normalizeGearSearchText(value)
+    .split(" ")
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 2);
+}
+
+function expandEquivalentMatchTokens(value: string): Set<string> {
+  const baseTokens = getInformativeMatchTokens(value);
+  const expandedTokens = new Set(baseTokens);
+
+  for (const token of baseTokens) {
+    const focalLengthMatch = token.match(FOCAL_LENGTH_TOKEN_WITH_MM_RE);
+    if (!focalLengthMatch) continue;
+    expandedTokens.add(focalLengthMatch[1]!);
+  }
+
+  return expandedTokens;
 }
 
 function stripBrandPrefix(value: string, brandName: string | null) {
@@ -48,36 +73,68 @@ function stripBrandPrefix(value: string, brandName: string | null) {
   return normalizedValue.slice(normalizedBrand.length).trim();
 }
 
+function buildLensShorthandCandidates(value: string): string[] {
+  const focalMatch = value.match(LENS_FOCAL_LENGTH_RE);
+  const apertureMatch = value.match(LENS_APERTURE_RE);
+  const featureMatches = Array.from(
+    value.matchAll(LENS_FEATURE_SHORTHAND_RE),
+    (match) => match[1]?.toLowerCase() ?? "",
+  ).filter(Boolean);
+
+  const focalMin = focalMatch?.[1];
+  const focalMax = focalMatch?.[2];
+  const focalRange = focalMin
+    ? focalMax
+      ? [`${focalMin}-${focalMax}`, `${focalMin} ${focalMax}`]
+      : [`${focalMin}mm`, focalMin]
+    : [];
+  const apertureValue = apertureMatch?.[1];
+  const apertureSuffix = apertureMatch?.[2]?.toLowerCase() ?? "";
+  const apertureToken = apertureValue
+    ? `${apertureValue}${apertureSuffix}`
+    : null;
+  const featureTokens = Array.from(new Set(featureMatches));
+  const candidates = new Set<string>();
+
+  for (const focal of focalRange) {
+    candidates.add(focal);
+
+    if (apertureToken) {
+      candidates.add(`${focal} ${apertureToken}`);
+    }
+
+    for (const feature of featureTokens) {
+      candidates.add(`${focal} ${feature}`);
+    }
+  }
+
+  return Array.from(candidates);
+}
+
 function buildMatchCandidates(
   item: GearSuggestionInput,
   region?: GearRegion | null,
 ): MatchCandidate[] {
   const candidates: MatchCandidate[] = [];
-  const pushUnique = (value: string, source: GearSuggestionMatchSource) => {
-    const normalized = normalizeExactMatchValue(value);
+  const hasCandidate = (normalized: string) =>
+    candidates.some(
+      (entry) =>
+        normalizeExactMatchValue(entry.matchValue ?? entry.value) === normalized,
+    );
+  const pushUnique = (
+    value: string,
+    source: GearSuggestionMatchSource,
+    matchValue?: string,
+  ) => {
+    const normalized = normalizeExactMatchValue(matchValue ?? value);
     if (!normalized) return;
-    if (
-      candidates.some(
-        (entry) =>
-          normalizeExactMatchValue(entry.matchValue ?? entry.value) ===
-          normalized,
-      )
-    ) {
-      return;
-    }
-    candidates.push({ value, source });
+    if (hasCandidate(normalized)) return;
+    candidates.push(matchValue ? { value, matchValue, source } : { value, source });
 
     const brandStripped = stripBrandPrefix(value, item.brandName);
     if (brandStripped && brandStripped !== normalizeGearSearchText(value)) {
       const strippedNormalized = normalizeExactMatchValue(brandStripped);
-      if (
-        strippedNormalized &&
-        !candidates.some(
-          (entry) =>
-            normalizeExactMatchValue(entry.matchValue ?? entry.value) ===
-            strippedNormalized,
-        )
-      ) {
+      if (strippedNormalized && !hasCandidate(strippedNormalized)) {
         candidates.push({
           value,
           matchValue: brandStripped,
@@ -86,17 +143,37 @@ function buildMatchCandidates(
       }
     }
   };
+  const pushLensShorthandCandidates = (value: string) => {
+    if (item.gearType !== "LENS") return;
+
+    for (const shorthand of buildLensShorthandCandidates(value)) {
+      pushUnique(value, "canonical", shorthand);
+    }
+  };
+
+  const pushValueAndDerivedCandidates = (
+    value: string,
+    source: GearSuggestionMatchSource,
+  ) => {
+    pushUnique(value, source);
+    if (source === "alias") {
+      pushLensShorthandCandidates(value);
+    }
+    if (source === "localized" || source === "canonical") {
+      pushLensShorthandCandidates(value);
+    }
+  }
 
   const localizedName = GetGearDisplayName(
     { name: item.name, regionalAliases: item.regionalAliases ?? [] },
     { region },
   );
 
-  pushUnique(localizedName, "localized");
-  pushUnique(item.name, "canonical");
+  pushValueAndDerivedCandidates(localizedName, "localized");
+  pushValueAndDerivedCandidates(item.name, "canonical");
 
   for (const alias of item.regionalAliases ?? []) {
-    pushUnique(alias.name, "alias");
+    pushValueAndDerivedCandidates(alias.name, "alias");
   }
 
   return candidates;
@@ -110,10 +187,20 @@ function getCandidateMatch(
   const normalizedCandidate = normalizeExactMatchValue(
     candidate.matchValue ?? candidate.value,
   );
+  const queryTokens = getInformativeMatchTokens(query);
+  const candidateTokens = expandEquivalentMatchTokens(
+    candidate.matchValue ?? candidate.value,
+  );
 
   if (!normalizedQuery || !normalizedCandidate) return null;
   if (normalizedCandidate === normalizedQuery) {
     return { ...candidate, rank: 300 };
+  }
+  if (
+    queryTokens.length >= 2 &&
+    queryTokens.every((token) => candidateTokens.has(token))
+  ) {
+    return { ...candidate, rank: 250 };
   }
   if (normalizedCandidate.startsWith(normalizedQuery)) {
     return { ...candidate, rank: 200 };
@@ -224,7 +311,7 @@ export function applyExactMatchMetadata(
   const normalizedQuery = normalizeExactMatchValue(query);
   if (!normalizedQuery) return suggestions;
 
-  const exactHits = new Map<string, number>();
+  const highConfidenceHits = new Map<string, number>();
   const metadataBySuggestionId = new Map<
     string,
     {
@@ -253,12 +340,15 @@ export function applyExactMatchMetadata(
       rank: bestMatch.rank,
     });
 
-    if (bestMatch.rank >= 300) {
-      exactHits.set(normalizedQuery, (exactHits.get(normalizedQuery) ?? 0) + 1);
+    if (bestMatch.rank >= 250) {
+      highConfidenceHits.set(
+        normalizedQuery,
+        (highConfidenceHits.get(normalizedQuery) ?? 0) + 1,
+      );
     }
   }
 
-  const uniqueExactMatch = exactHits.get(normalizedQuery) === 1;
+  const uniqueHighConfidenceMatch = highConfidenceHits.get(normalizedQuery) === 1;
 
   return suggestions.map((suggestion) => {
     const metadata = metadataBySuggestionId.get(suggestion.id);
@@ -269,7 +359,7 @@ export function applyExactMatchMetadata(
         ...suggestion,
         matchedName: metadata.matchedName,
         matchSource: metadata.matchSource,
-        isBestMatch: uniqueExactMatch && metadata.rank >= 300,
+        isBestMatch: uniqueHighConfidenceMatch && metadata.rank >= 250,
       },
       suggestion.canonicalName,
     );

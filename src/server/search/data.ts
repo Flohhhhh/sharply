@@ -35,10 +35,14 @@ import {
   sensorFormats,
 } from "~/server/db/schema";
 import {
+  buildApertureTokenRegex,
   buildDecimalNumericTokenRegex,
+  buildFocalLengthTokenRegex,
+  buildSingleFocalZoomOvermatchRegex,
+  buildWholeWordTokenRegex,
   getSignificantNumericTokens,
-  normalizeSearchQuery,
-  normalizeSearchQueryNoPunct,
+  parseSearchQueryTokens,
+  SEARCH_RANKING_WEIGHTS,
   shouldGateSingleNumericToken,
 } from "./query-normalization";
 
@@ -58,6 +62,14 @@ function buildNumericTokenMatchClause(
   return ilike(gear.searchName, `%${token}%`);
 }
 
+function buildRegexMatchClause(searchLower: SQL, pattern: string): SQL {
+  return sql`${searchLower} ~ ${pattern}`;
+}
+
+function buildScoreTerm(condition: SQL, weight: number): SQL {
+  return sql`CASE WHEN ${condition} THEN ${weight}::double precision ELSE 0::double precision END`;
+}
+
 /**
  * Build a strict WHERE clause for free-text search.
  * - Normalizes input (case-insensitive, punctuation-insensitive).
@@ -65,16 +77,11 @@ function buildNumericTokenMatchClause(
  * - Combines brand-agnostic and normalized contains with conservative fuzzy thresholds.
  */
 export function buildSearchWhereClause(query: string): SQL | undefined {
-  const normalizedQuery = normalizeSearchQuery(query);
-  const normalizedQueryNoPunct = normalizeSearchQueryNoPunct(query);
-
-  const parts = normalizedQuery
-    .split(/[\s_]+/)
-    .filter((part) => part.length > 0)
-    .map((part) => part.trim());
+  const parsedQuery = parseSearchQueryTokens(query);
+  const { normalizedQueryNoPunct, parts } = parsedQuery;
   if (parts.length === 0) return undefined;
 
-  const strongParts = parts.filter((p) => /[a-z]/i.test(p) && p.length >= 3);
+  const strongParts = parsedQuery.strongTextTokens;
 
   const searchLower = sql`lower(${gear.searchName})`;
   const normalizedCol = sql`regexp_replace(${searchLower}, '[[:space:]_.\/-]+', '', 'g')`;
@@ -99,6 +106,23 @@ export function buildSearchWhereClause(query: string): SQL | undefined {
   const normalizedNoBrandRelaxed = sql`regexp_replace(${normalizedNoBrandRelaxedStep1}, 'f([0-9])', '\\1', 'gi')`;
   const normalizedColRelaxedStep1 = sql`regexp_replace(${normalizedCol}, '([0-9])mm', '\\1', 'gi')`;
   const normalizedColRelaxed = sql`regexp_replace(${normalizedColRelaxedStep1}, 'f([0-9])', '\\1', 'gi')`;
+  const activeAcronymTokens = parsedQuery.activeLensFeatureAcronymTokens;
+  const acronymClauses = activeAcronymTokens.map((token) =>
+    buildRegexMatchClause(searchLower, buildWholeWordTokenRegex(token)),
+  );
+  const acronymAndClause =
+    acronymClauses.length > 0
+      ? sql`(${sql.join(acronymClauses, sql` AND `)})`
+      : null;
+
+  if (parsedQuery.isLowInformationFeatureAcronymQuery) {
+    const rawAcronymClauses = parsedQuery.rawLensFeatureAcronymTokens.map((token) =>
+      buildRegexMatchClause(searchLower, buildWholeWordTokenRegex(token)),
+    );
+    if (rawAcronymClauses.length > 0) {
+      return sql`(${sql.join(rawAcronymClauses, sql` AND `)})`;
+    }
+  }
 
   const conditions: SQL[] = [];
   if (strongParts.length >= 2) {
@@ -146,13 +170,16 @@ export function buildSearchWhereClause(query: string): SQL | undefined {
   // This helps lens queries like "50 1.8" where punctuation/letters (e.g., "f/")
   // in names would otherwise break contiguous substring matches.
   if (numericTokens.length >= 2) {
-    const andClauses = numericTokens.map((token) =>
+    const andClauses: SQL[] = numericTokens.map((token) =>
       buildNumericTokenMatchClause(searchLower, token),
     );
-    const numericAndForOr = sql`(${sql.join(andClauses as unknown as SQL[], sql` AND `)})`;
+    const numericAndForOr = sql`(${sql.join(andClauses, sql` AND `)})`;
     conditions.push(numericAndForOr);
   } else if (numericTokens.length === 1) {
     conditions.push(buildNumericTokenMatchClause(searchLower, numericTokens[0]!));
+  }
+  if (acronymAndClause) {
+    conditions.push(acronymAndClause);
   }
 
   const baseOr = sql`(${sql.join(conditions, sql` OR `)})`;
@@ -164,11 +191,12 @@ export function buildSearchWhereClause(query: string): SQL | undefined {
   });
 
   if (numericTokens.length >= 2) {
-    const andClauses = numericTokens.map((token) =>
+    const andClauses: SQL[] = numericTokens.map((token) =>
       buildNumericTokenMatchClause(searchLower, token),
     );
-    const numericAnd = sql`(${sql.join(andClauses as unknown as SQL[], sql` AND `)})`;
-    return sql`(${baseOr}) AND (${numericAnd})`;
+    const numericAnd = sql`(${sql.join(andClauses, sql` AND `)})`;
+    const gated = sql`(${baseOr}) AND (${numericAnd})`;
+    return acronymAndClause ? sql`(${gated}) AND (${acronymAndClause})` : gated;
   }
 
   if (shouldGateSingleNumeric) {
@@ -176,10 +204,11 @@ export function buildSearchWhereClause(query: string): SQL | undefined {
       searchLower,
       singleNumericToken!,
     );
-    return sql`(${baseOr}) AND (${singleNumeric})`;
+    const gated = sql`(${baseOr}) AND (${singleNumeric})`;
+    return acronymAndClause ? sql`(${gated}) AND (${acronymAndClause})` : gated;
   }
 
-  return baseOr;
+  return acronymAndClause ? sql`(${baseOr}) AND (${acronymAndClause})` : baseOr;
 }
 
 /**
@@ -190,6 +219,7 @@ export function buildRelevanceExpr(
   query: string,
   normalizedQueryNoPunct: string,
 ) {
+  const parsedQuery = parseSearchQueryTokens(query);
   const searchLower = sql`lower(${gear.searchName})`;
   const normalizedCol = sql`regexp_replace(${searchLower}, '[[:space:]_.\/-]+', '', 'g')`;
   const brandLower = sql`lower(${brands.name})`;
@@ -206,17 +236,90 @@ export function buildRelevanceExpr(
   const queryNormSql = sql`${normalizedQueryNoPunct}`;
   const queryNoBrand = sql`regexp_replace(${queryNormSql}, ${brandLower}, '', 'gi')`;
   const queryNoBrandWithSynonyms = sql`CASE WHEN ${brandLower} = 'nikon' THEN regexp_replace(${queryNoBrand}, 'nikkor', '', 'gi') ELSE ${queryNoBrand} END`;
+  const terms: SQL[] = [
+    buildScoreTerm(
+      sql`${searchLower} ILIKE ${`%${query.toLowerCase().trim()}%`}`,
+      SEARCH_RANKING_WEIGHTS.rawContains,
+    ),
+    buildScoreTerm(
+      sql`${normalizedCol} ILIKE ${`%${normalizedQueryNoPunct}%`}`,
+      SEARCH_RANKING_WEIGHTS.normalizedContains,
+    ),
+    buildScoreTerm(
+      sql`${normalizedNoBrand} ILIKE ('%' || ${queryNoBrandWithSynonyms} || '%')`,
+      SEARCH_RANKING_WEIGHTS.brandAgnosticContains,
+    ),
+    buildScoreTerm(
+      sql`${normalizedNoBrandRelaxed} ILIKE ('%' || ${queryNoBrandWithSynonyms} || '%')`,
+      SEARCH_RANKING_WEIGHTS.relaxedContains,
+    ),
+    buildScoreTerm(
+      sql`${normalizedColRelaxed} ILIKE ${`%${normalizedQueryNoPunct}%`}`,
+      SEARCH_RANKING_WEIGHTS.relaxedContains,
+    ),
+    sql`similarity(${normalizedNoBrand}, ${normalizedQueryNoPunct}) * ${SEARCH_RANKING_WEIGHTS.similarityNormalizedNoBrand}`,
+    sql`similarity(${normalizedCol}, ${normalizedQueryNoPunct}) * ${SEARCH_RANKING_WEIGHTS.similarityNormalizedCol}`,
+    sql`similarity(${gear.searchName}, ${normalizedQueryNoPunct}) * ${SEARCH_RANKING_WEIGHTS.similaritySearchName}`,
+  ];
 
-  return sql<number>`GREATEST(
-    CASE WHEN ${searchLower} ILIKE ${`%${query.toLowerCase().trim()}%`} THEN 2.0 ELSE 0 END,
-    CASE WHEN ${normalizedCol} ILIKE ${`%${normalizedQueryNoPunct}%`} THEN 1.8 ELSE 0 END,
-    CASE WHEN ${normalizedNoBrand} ILIKE ('%' || ${queryNoBrandWithSynonyms} || '%') THEN 1.0 ELSE 0 END,
-    CASE WHEN ${normalizedNoBrandRelaxed} ILIKE ('%' || ${queryNoBrandWithSynonyms} || '%') THEN 1.0 ELSE 0 END,
-    CASE WHEN ${normalizedColRelaxed} ILIKE ${`%${normalizedQueryNoPunct}%`} THEN 1.0 ELSE 0 END,
-    similarity(${normalizedNoBrand}, ${normalizedQueryNoPunct}) * 0.6,
-    similarity(${normalizedCol}, ${normalizedQueryNoPunct}) * 0.4,
-    similarity(${gear.searchName}, ${normalizedQueryNoPunct}) * 0.3
-  )`;
+  for (const token of parsedQuery.strongTextTokens) {
+    terms.push(
+      buildScoreTerm(
+        ilike(gear.searchName, `%${token}%`),
+        SEARCH_RANKING_WEIGHTS.strongToken,
+      ),
+    );
+  }
+
+  for (const token of parsedQuery.activeLensFeatureAcronymTokens) {
+    terms.push(
+      buildScoreTerm(
+        buildRegexMatchClause(searchLower, buildWholeWordTokenRegex(token)),
+        SEARCH_RANKING_WEIGHTS.featureAcronymToken,
+      ),
+    );
+  }
+
+  for (const token of parsedQuery.focalLengthTokens) {
+    terms.push(
+      buildScoreTerm(
+        buildRegexMatchClause(searchLower, buildFocalLengthTokenRegex(token)),
+        SEARCH_RANKING_WEIGHTS.focalToken,
+      ),
+    );
+  }
+
+  for (const token of parsedQuery.apertureTokens) {
+    terms.push(
+      buildScoreTerm(
+        buildRegexMatchClause(searchLower, buildApertureTokenRegex(token)),
+        SEARCH_RANKING_WEIGHTS.apertureToken,
+      ),
+    );
+  }
+
+  if (parsedQuery.focalLengthTokens.length === 1) {
+    const focalToken = parsedQuery.focalLengthTokens[0]!;
+    const exactFocalMatch = buildRegexMatchClause(
+      searchLower,
+      buildFocalLengthTokenRegex(focalToken),
+    );
+    const zoomOvermatch = buildRegexMatchClause(
+      searchLower,
+      buildSingleFocalZoomOvermatchRegex(focalToken),
+    );
+    terms.push(
+      buildScoreTerm(
+        sql`(${exactFocalMatch}) AND NOT (${zoomOvermatch})`,
+        SEARCH_RANKING_WEIGHTS.primarySingleFocal,
+      ),
+    );
+    terms.push(
+      sql`CASE WHEN ${zoomOvermatch} THEN ${-SEARCH_RANKING_WEIGHTS.singleFocalZoomPenalty}::double precision ELSE 0::double precision END`,
+    );
+  }
+
+  return sql<number>`(${sql.join(terms, sql` + `)})`;
 }
 
 /**
