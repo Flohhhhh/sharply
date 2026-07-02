@@ -428,7 +428,7 @@ export function CollectionTableModal(props: CollectionTableModalProps) {
                 <TableHead className="w-[220px]">
                   {t("collectionColorway")}
                 </TableHead>
-                <TableHead className="w-[80px]">Actions</TableHead>
+                <TableHead className="w-[80px]">{t("actionsColumnLabel")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

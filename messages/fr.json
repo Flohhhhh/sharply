@@ -1188,6 +1188,7 @@
     "collectionColorwayDefaultOption": "Utiliser l’image par défaut",
     "collectionColorwayUpdated": "Couleur de collection mise à jour",
     "collectionColorwayUpdateFailed": "Impossible de mettre à jour la couleur de collection",
+    "actionsColumnLabel": "Actions",
     "collectionEmptyMobileTitle": "Aucun matériel dans la collection pour le moment",
     "collectionEmptyMobileBrowse": "Parcourir le matériel pour l’ajouter à votre collection",
     "collectionEmptyOwnTitle": "Votre collection est vide",

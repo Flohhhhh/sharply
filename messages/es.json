@@ -1188,6 +1188,7 @@
     "collectionColorwayDefaultOption": "Usar imagen predeterminada",
     "collectionColorwayUpdated": "Color de la colección actualizado",
     "collectionColorwayUpdateFailed": "No se pudo actualizar el color de la colección",
+    "actionsColumnLabel": "Acciones",
     "collectionEmptyMobileTitle": "Todavía no hay equipo en la colección",
     "collectionEmptyMobileBrowse": "Explora equipo para añadirlo a tu colección",
     "collectionEmptyOwnTitle": "Tu colección está vacía",

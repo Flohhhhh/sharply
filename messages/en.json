@@ -1188,6 +1188,7 @@
     "collectionColorwayDefaultOption": "Use default image",
     "collectionColorwayUpdated": "Collection color updated",
     "collectionColorwayUpdateFailed": "Failed to update collection color",
+    "actionsColumnLabel": "Actions",
     "collectionEmptyMobileTitle": "No gear in collection yet",
     "collectionEmptyMobileBrowse": "Browse gear to add to your collection",
     "collectionEmptyOwnTitle": "Your collection is empty",

@@ -20,6 +20,12 @@ describe("CollectionTableModal colorway controls", () => {
     expect(source).toContain('value === DEFAULT_COLLECTION_COLORWAY_VALUE');
   });
 
+  it("uses translated labels for collection table headers", () => {
+    expect(source).toContain('{t("collectionColorway")}');
+    expect(source).toContain('{t("actionsColumnLabel")}');
+    expect(source).not.toContain(">Actions</TableHead>");
+  });
+
   it("updates the owned colorway through the server action and refreshes the route", () => {
     expect(source).toContain("actionUpdateOwnedGearColorway");
     expect(source).toContain("gearId: item.id");

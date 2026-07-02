@@ -1188,6 +1188,7 @@
     "collectionColorwayDefaultOption": "デフォルト画像を使用",
     "collectionColorwayUpdated": "コレクションのカラーを更新しました",
     "collectionColorwayUpdateFailed": "コレクションのカラーを更新できませんでした",
+    "actionsColumnLabel": "操作",
     "collectionEmptyMobileTitle": "コレクションに機材がまだありません",
     "collectionEmptyMobileBrowse": "機材を見てコレクションに追加する",
     "collectionEmptyOwnTitle": "あなたのコレクションは空です",
