@@ -88,6 +88,7 @@ Notes:
 ## UI Notes
 
 - Depth 0 (`/browse`): Featured brand buttons, Latest Gear, Trending Gear; no breadcrumbs.
+  - Brand ordering for browse pickers and featured buttons follows `BRANDS[*].sort_order` from generated constants when present, then falls back to alphabetical ordering for unranked brands.
   - The Trending Gear strip always tries to show 3 unique cards by using scoped `7d` trending first, then scoped `30d` trending, then newest gear as a final fallback.
 - Depth 1: Large buttons for Cameras/Lenses.
   - The nested brand hub content reuses the same 3-card trending fallback behavior.

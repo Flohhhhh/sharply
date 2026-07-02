@@ -11,7 +11,7 @@ import {
 } from "~/components/ui/select";
 import { splitBrandsWithPriority } from "~/lib/brands";
 
-type Option = { value: string; label: string };
+type Option = { value: string; label: string; sortOrder?: number | null };
 
 export function BrandSelectField({
   name = "brand",
@@ -24,7 +24,11 @@ export function BrandSelectField({
 }) {
   const [value, setValue] = useState<string>(defaultValue);
   const { hoisted, remaining } = useMemo(() => {
-    const normalized = options.map((opt) => ({ ...opt, name: opt.label }));
+    const normalized = options.map((opt) => ({
+      ...opt,
+      name: opt.label,
+      sortOrder: opt.sortOrder ?? null,
+    }));
     return splitBrandsWithPriority(normalized);
   }, [options]);
   const showDivider = hoisted.length > 0 && remaining.length > 0;

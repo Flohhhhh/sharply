@@ -31,6 +31,7 @@ const BrandSelect: React.FC<{
           label: b.name,
           value: b.slug,
           name: b.name,
+          sortOrder: b.sort_order ?? null,
         })),
       ).map(({ label, value }) => ({ label, value })),
     [],

@@ -17,6 +17,8 @@ type BrandOption = {
   id: string;
   name: string;
   slug: string;
+  sortOrder?: number | null;
+  sort_order?: number | null;
 };
 
 type BrandSelectProps = {
@@ -53,6 +55,10 @@ export function BrandSelect({
           id: brand.id,
           name: brand.name,
           slug: brand.slug,
+          sortOrder:
+            ("sortOrder" in brand ? brand.sortOrder : undefined) ??
+            ("sort_order" in brand ? brand.sort_order : undefined) ??
+            null,
         })),
       ),
     [brands],

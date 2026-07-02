@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { fetchLiveBoosts } from "~/server/popularity/service";
+import { fetchAdminBrands } from "~/server/admin/brands/service";
 import { AdminImageUploader } from "../admin-image-uploader";
 import { BadgesCatalog } from "../badges-catalog";
 import { BadgesTestToastButton } from "../badges-test-toast";
+import { BrandSortOrderTool } from "../brand-sort-order-tool";
 import { GearOgBackfillTool } from "../gear-og-backfill-tool";
 import { GradientImageTool } from "../gradient-image-tool";
 import { ManualGearRevalidateTool } from "../manual-gear-revalidate-tool";
@@ -12,9 +14,15 @@ import { SharedListOgPreviewTool } from "../shared-list-og-preview-tool";
 export const dynamic = "force-dynamic";
 
 export default async function ToolsPage() {
-  const liveBoosts = await fetchLiveBoosts({ limit: 100 });
+  const [liveBoosts, brands] = await Promise.all([
+    fetchLiveBoosts({ limit: 100 }),
+    fetchAdminBrands(),
+  ]);
   return (
     <div className="space-y-8 px-8">
+      <div>
+        <BrandSortOrderTool initialBrands={brands} />
+      </div>
       {/* Live Boosts Today */}
       <div>
         <h2 className="text-2xl font-bold">Live Boosts (Today)</h2>

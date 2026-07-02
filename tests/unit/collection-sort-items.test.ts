@@ -8,6 +8,7 @@ function makeItem(params: {
   gearType: string;
   brandName?: string | null;
   releaseDate?: string | null;
+  sortOrder?: number | null;
 }): GearItem {
   return {
     id: params.id,
@@ -21,6 +22,7 @@ function makeItem(params: {
           id: `${params.brandName}-id`,
           name: params.brandName,
           slug: params.brandName.toLowerCase(),
+          sortOrder: params.sortOrder ?? null,
         } as GearItem["brands"])
       : null,
   } as GearItem;
@@ -95,6 +97,32 @@ describe("sortCollectionItems", () => {
       "canon-new",
       "canon-old",
       "canon-missing-date",
+    ]);
+  });
+
+  it("respects manual brand order before release date within the same type", () => {
+    const sorted = sortCollectionItems([
+      makeItem({
+        id: "nikon-newer",
+        name: "Zf",
+        gearType: "CAMERA",
+        brandName: "Nikon",
+        releaseDate: "2023-09-20",
+        sortOrder: 2,
+      }),
+      makeItem({
+        id: "canon-older",
+        name: "EOS R6",
+        gearType: "CAMERA",
+        brandName: "Canon",
+        releaseDate: "2020-07-09",
+        sortOrder: 1,
+      }),
+    ]);
+
+    expect(sorted.map((item) => item.id)).toEqual([
+      "canon-older",
+      "nikon-newer",
     ]);
   });
 

@@ -61,6 +61,7 @@ export async function getBrands() {
       id: b.id,
       name: b.name,
       slug: b.slug,
+      sortOrder: b.sort_order ?? null,
     })),
   );
 }

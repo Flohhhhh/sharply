@@ -497,6 +497,7 @@ export const brands = appSchema.table("brands", () => ({
     .default(sql`gen_random_uuid()::text`),
   name: varchar("name", { length: 200 }).notNull().unique(),
   slug: varchar("slug", { length: 200 }).notNull().unique(),
+  sortOrder: integer("sort_order"),
   createdAt,
   updatedAt,
 }));

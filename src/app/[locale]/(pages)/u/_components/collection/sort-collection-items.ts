@@ -1,4 +1,5 @@
-import { getBrandNameById } from "~/lib/mapping/brand-map";
+import { compareBrandsWithPriority } from "~/lib/brands";
+import { getBrandById } from "~/lib/mapping/brand-map";
 import type { GearItem } from "~/types/gear";
 
 export function sortCollectionItems(items: GearItem[]) {
@@ -12,10 +13,16 @@ export function compareCollectionItems(firstItem: GearItem, secondItem: GearItem
     return priorityDifference;
   }
 
-  const brandDifference = compareNullableText(
-    getBrandName(firstItem),
-    getBrandName(secondItem),
-  );
+  const firstBrand = getBrandSortData(firstItem);
+  const secondBrand = getBrandSortData(secondItem);
+  if (!firstBrand.name && secondBrand.name) {
+    return 1;
+  }
+  if (firstBrand.name && !secondBrand.name) {
+    return -1;
+  }
+
+  const brandDifference = compareBrandsWithPriority(firstBrand, secondBrand);
   if (brandDifference !== 0) {
     return brandDifference;
   }
@@ -28,30 +35,20 @@ export function compareCollectionItems(firstItem: GearItem, secondItem: GearItem
   return firstItem.name.localeCompare(secondItem.name);
 }
 
-function getBrandName(item: GearItem) {
+function getBrandSortData(item: GearItem) {
   const directBrandName = item.brands?.name?.trim();
   if (directBrandName) {
-    return directBrandName;
+    return {
+      name: directBrandName,
+      sortOrder: item.brands?.sortOrder ?? null,
+    };
   }
 
-  const mappedBrandName = getBrandNameById(item.brandId)?.trim();
-  return mappedBrandName || null;
-}
-
-function compareNullableText(firstValue: string | null, secondValue: string | null) {
-  if (!firstValue && !secondValue) {
-    return 0;
-  }
-
-  if (!firstValue) {
-    return 1;
-  }
-
-  if (!secondValue) {
-    return -1;
-  }
-
-  return firstValue.localeCompare(secondValue);
+  const mappedBrand = item.brandId ? getBrandById(item.brandId) : undefined;
+  return {
+    name: mappedBrand?.name?.trim() ?? "",
+    sortOrder: mappedBrand?.sortOrder ?? null,
+  };
 }
 
 function compareReleaseDateDescending(firstItem: GearItem, secondItem: GearItem) {
