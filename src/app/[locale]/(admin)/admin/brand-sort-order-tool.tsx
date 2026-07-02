@@ -360,11 +360,11 @@ export function BrandSortOrderTool({
                       items={orderedIds}
                       strategy={verticalListSortingStrategy}
                     >
-                      {filteredOrderedBrands.map((brand, index) => (
+                      {filteredOrderedBrands.map((brand) => (
                         <SortableOrderedBrandRow
                           key={brand.id}
                           brand={brand}
-                          orderIndex={index + 1}
+                          orderIndex={brand.sortOrder ?? 0}
                           onUnpin={handleUnpinBrand}
                         />
                       ))}
