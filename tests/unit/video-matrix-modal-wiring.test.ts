@@ -13,7 +13,7 @@ const source = fs.readFileSync(
 describe("VideoMatrixModal scrolling layout", () => {
   it("uses a dedicated scroll viewport and a content-width table for wide matrices", () => {
     expect(source).toContain(
-      '<DialogContent className="min-w-0 max-w-6xl sm:max-w-5xl">',
+      '<DialogContent className="min-w-0 max-w-5xl sm:max-w-6xl">',
     );
     expect(source).toContain('<div className="min-w-0 space-y-6 text-sm">');
     expect(source).toContain('<div className="max-w-full min-w-0">');

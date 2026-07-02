@@ -41,7 +41,7 @@ export function VideoMatrixModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="min-w-0 max-w-6xl sm:max-w-5xl">
+      <DialogContent className="min-w-0 max-w-5xl sm:max-w-6xl">
         <DialogHeader>
           <DialogTitle>Video Specifications</DialogTitle>
         </DialogHeader>
