@@ -359,9 +359,9 @@ export async function runDailyPopularityRollup(
     // Invalidate cached trending endpoints since windows/lifetime changed
     try {
       const { revalidateTag } = await import("next/cache");
-      revalidateTag("trending");
+      revalidateTag("trending", "max");
       console.info("popularity_rollup: revalidated tag", { tag: "trending" });
-      revalidateTag("trending-live");
+      revalidateTag("trending-live", "max");
       console.info("popularity_rollup: revalidated tag", {
         tag: "trending-live",
       });

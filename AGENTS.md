@@ -100,4 +100,4 @@ Sharply is a photography gear database and cataloging application built with Nex
 - When a dev or CI agent needs auth to test a gated feature, prefer the dev bypass instead of OAuth or email flows.
 - Set `DEV_AUTH=true` in `.env`; optionally set `DEV_AUTH_EMAIL` to choose the test user.
 - Start the app locally and hit `/api/dev-login`, then continue testing with the issued Better Auth session cookie.
-- `DEV_AUTH` is ignored in production. `DEV_AUTH_LOCALHOST_ONLY` defaults to `true`, so use `localhost` hosts unless you intentionally set it to `false` for another dev/CI hostname.
+- `DEV_AUTH` by itself is ignored in production. For localhost preview/e2e runs against the built app, pair it with `DEV_AUTH_PREVIEW=true`. `DEV_AUTH_LOCALHOST_ONLY` defaults to `true`, so use `localhost` hosts unless you intentionally set it to `false` for another dev/CI hostname.

@@ -211,7 +211,7 @@ Sharply includes an opt-in dev login route for local work and automation:
 - `DEV_AUTH_LOCALHOST_ONLY` defaults to a localhost-only host check. Leave it enabled to require the incoming `Host` header to resolve to `localhost`; set it to `false` only when a non-localhost dev or CI hostname must use the bypass.
 - Visit `/api/dev-login` to create a real Better Auth session and redirect to `/`.
 
-This bypass is hard-disabled when `NODE_ENV=production`, even if `DEV_AUTH=true` is present. The route also returns `404` when the host check fails, so open-source deployments do not accidentally expose it on public domains.
+This bypass stays disabled when `NODE_ENV=production` unless you also set `DEV_AUTH_PREVIEW=true` for a localhost-only preview/e2e run. `DEV_AUTH=true` by itself is still ignored in production. The route also returns `404` when the host check fails, so open-source deployments do not accidentally expose it on public domains.
 
 ## Protected layout pattern
 

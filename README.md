@@ -175,6 +175,7 @@ This starts Next.js on `http://localhost:3000`.
 - `npm run test:e2e:headed` runs Chromium headed for local debugging.
 - If you already have the app running, set `PLAYWRIGHT_BASE_URL` to reuse that server instead of starting another one.
 - If you want a production-like server instead of `next dev`, set `PLAYWRIGHT_SERVER_COMMAND="npm run preview:e2e"` before running Playwright.
+- For authenticated preview-mode Playwright runs, pair `PLAYWRIGHT_SERVER_COMMAND="npm run preview:e2e"` with `DEV_AUTH=true`. The preview script adds the extra localhost-only auth override required for the built server.
 
 ## Project Structure
 

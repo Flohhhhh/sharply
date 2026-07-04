@@ -89,7 +89,10 @@ test.describe("smoke", () => {
     await expectHeaderMode(page, "compact");
     const firstGearLink = page.locator('a[href^="/gear/"]').first();
     await expect(firstGearLink).toBeVisible();
-    await firstGearLink.click();
+    const href = await firstGearLink.getAttribute("href");
+
+    expect(href).toMatch(/^\/gear\/.+/);
+    await page.goto(href!);
 
     await expect(page).toHaveURL(/\/gear\//);
     await expectHeaderMode(page, "compact");

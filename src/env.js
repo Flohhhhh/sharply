@@ -53,6 +53,7 @@ export const env = createEnv({
     DEV_AUTH: z.enum(["true", "false"]).optional(),
     DEV_AUTH_EMAIL: z.string().email().optional(),
     DEV_AUTH_LOCALHOST_ONLY: z.enum(["true", "false"]).optional(),
+    DEV_AUTH_PREVIEW: z.enum(["true", "false"]).optional(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -75,8 +76,8 @@ export const env = createEnv({
   },
 
   /**
-   * You can't destruct `process.env` as a regular object in the Next.js edge runtimes (e.g.
-   * middlewares) or client-side so we need to destruct manually.
+   * You can't destruct `process.env` as a regular object in the Next.js proxy runtime or
+   * client-side so we need to destruct manually.
    */
   runtimeEnv: {
     AUTH_SECRET: process.env.AUTH_SECRET,
@@ -105,6 +106,7 @@ export const env = createEnv({
     DEV_AUTH: process.env.DEV_AUTH,
     DEV_AUTH_EMAIL: process.env.DEV_AUTH_EMAIL,
     DEV_AUTH_LOCALHOST_ONLY: process.env.DEV_AUTH_LOCALHOST_ONLY,
+    DEV_AUTH_PREVIEW: process.env.DEV_AUTH_PREVIEW,
     UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN,
     NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
     NEXT_PUBLIC_BETTER_AUTH_URL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,

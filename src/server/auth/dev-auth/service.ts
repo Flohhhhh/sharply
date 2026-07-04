@@ -15,13 +15,23 @@ type DevelopmentAuthConfig = {
   devAuthFlag?: string;
   devAuthEmail?: string;
   localhostOnlyFlag?: string;
+  devAuthPreviewFlag?: string;
 };
 
 export function isDevelopmentAuthEnabledForConfig({
   nodeEnv,
   devAuthFlag,
+  devAuthPreviewFlag,
 }: DevelopmentAuthConfig) {
-  return nodeEnv !== "production" && devAuthFlag === "true";
+  if (devAuthFlag !== "true") {
+    return false;
+  }
+
+  if (nodeEnv !== "production") {
+    return true;
+  }
+
+  return devAuthPreviewFlag === "true";
 }
 
 export function resolveDevelopmentAuthEmail({
@@ -36,6 +46,7 @@ export function isDevelopmentAuthEnabled() {
   return isDevelopmentAuthEnabledForConfig({
     nodeEnv: env.NODE_ENV,
     devAuthFlag: env.DEV_AUTH,
+    devAuthPreviewFlag: env.DEV_AUTH_PREVIEW,
   });
 }
 
@@ -70,7 +81,7 @@ export function isDevelopmentAuthRequestAllowed(host: string | null | undefined)
 export async function getOrCreateDevelopmentAuthUser(): Promise<User> {
   if (!isDevelopmentAuthEnabled()) {
     throw new Error(
-      "Development auth bypass is disabled. Set DEV_AUTH=true outside production to enable it.",
+      "Development auth bypass is disabled. Set DEV_AUTH=true outside production, or add DEV_AUTH_PREVIEW=true for localhost preview/e2e runs.",
     );
   }
 

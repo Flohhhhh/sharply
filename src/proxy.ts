@@ -22,7 +22,7 @@ function getInternalLocalePath(pathname: string, locale: string) {
   return pathname === "/" ? `/${locale}` : `/${locale}${pathname}`;
 }
 
-export default function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const cookieLocale = getCookieLocale(request);
   const { pathname } = request.nextUrl;
   const search = request.nextUrl.search;

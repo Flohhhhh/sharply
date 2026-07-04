@@ -499,7 +499,7 @@ async function removeImageRequest(gearId: string, userId: string) {
 
 export async function fetchAllImageRequests() {
   // This is an admin-only function, but we don't enforce auth here
-  // because the admin analytics page is already protected by layout/middleware
+  // because the admin analytics page is already protected by layout/proxy
   return fetchAllImageRequestsData();
 }
 

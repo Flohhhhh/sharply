@@ -19,7 +19,7 @@ This document records the current cookie and analytics surface in Sharply so the
 
 - `NEXT_LOCALE`
   - Purpose: remembers language preference and localized routing behavior.
-  - Source: `src/middleware.ts`, `src/components/language-switcher.tsx`
+  - Source: `src/proxy.ts`, `src/components/language-switcher.tsx`
 
 - `sidebar_state`
   - Purpose: remembers the sidebar open/collapsed UI preference.

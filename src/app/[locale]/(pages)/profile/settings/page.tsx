@@ -1,10 +1,11 @@
+import type { Passkey } from "@better-auth/passkey";
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { auth } from "~/auth";
+import { auth, getAuth } from "~/auth";
 import { LocaleLink } from "~/components/locale-link";
 import { ProfilePictureSettingsSection } from "~/components/profile/profile-picture-settings-section";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
@@ -55,14 +56,20 @@ export default async function SettingsPage({
   }
 
   const linkedAccounts = await fetchLinkedAccountsForUser(user.id);
-  // console.log(linkedAccounts);
   const userEmail = user.email ?? null;
 
   // Fetch passkeys for display
-  const passkeys =
-    (await auth.api.listPasskeys({
-      headers: requestHeaders,
-    })) ?? [];
+  const passkeyApi = getAuth().api as {
+    listPasskeys: (input: { headers: Headers }) => Promise<unknown>;
+  };
+  const passkeyResult: unknown = await passkeyApi.listPasskeys({
+    headers: requestHeaders,
+  });
+  const passkeys: Passkey[] = Array.isArray(passkeyResult)
+    ? (passkeyResult as Passkey[])
+    : Array.isArray((passkeyResult as { data?: unknown }).data)
+      ? ((passkeyResult as { data: Passkey[] }).data ?? [])
+      : [];
 
   const providerAvailability = {
     discord:
