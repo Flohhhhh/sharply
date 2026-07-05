@@ -1,4 +1,4 @@
-import { ArrowRightIcon,BookOpenIcon,Library,Loader } from "lucide-react";
+import { ArrowRightIcon, BookOpenIcon, Library, Loader } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
@@ -12,8 +12,10 @@ import { LocaleLink } from "~/components/locale-link";
 import { GlobalSearchBar } from "~/components/search/global-search-bar";
 import TrendingList from "~/components/trending-list";
 import { Button } from "~/components/ui/button";
+import { LinkButton } from "~/components/ui/link-button";
 import { Separator } from "~/components/ui/separator";
-import { defaultLocale,isLocale } from "~/i18n/config";
+import { defaultLocale, isLocale } from "~/i18n/config";
+import { localizePathname } from "~/i18n/routing";
 import { formatDate } from "~/lib/format/date";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import type { Review } from "~/payload-types";
@@ -206,18 +208,21 @@ export default async function Home({
                   <ContributionCounter locale={locale} />
                 </div>
                 <div className="mt-4 flex items-center gap-4">
-                  <Button asChild icon={<Library className="h-4 w-4" />}>
-                    <LocaleLink href="/browse">{t("viewAllGear")}</LocaleLink>
-                  </Button>
-                  <Button
+                  <LinkButton
+                    href={localizePathname("/browse", locale)}
+                    icon={<Library className="h-4 w-4" />}
+                  >
+                    {t("viewAllGear")}
+                  </LinkButton>
+                  <LinkButton
+                    href={localizePathname("/about", locale)}
                     variant="link"
-                    asChild
                     icon={<ArrowRightIcon className="h-4 w-4" />}
                     iconPosition="right"
                     className="-ml-4"
                   >
-                    <LocaleLink href="/about">{t("learnMore")}</LocaleLink>
-                  </Button>
+                    {t("learnMore")}
+                  </LinkButton>
                 </div>
               </div>
               {/* Stats */}

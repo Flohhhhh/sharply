@@ -2,7 +2,7 @@
 
 import { useLocale } from "next-intl";
 import Image from "next/image";
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import type React from "react";
 import { useState } from "react";
 import { BRANDS } from "~/lib/constants";
@@ -105,6 +105,16 @@ export type GearCardProps = {
   className?: string;
 };
 
+export function GearCardLinkPendingState({
+  children,
+}: {
+  children: (pending: boolean) => React.ReactNode;
+}) {
+  const { pending } = useLinkStatus();
+
+  return children(pending);
+}
+
 export function formatGearCardDate(
   dateValue?: string | Date | null,
   precision?: DatePrecision | null,
@@ -169,91 +179,125 @@ export function GearCard(props: GearCardProps) {
       {/* Outer card with hover-thicker border */}
       <Link
         href={href}
-        className={cn(
-          "border-input bg-card/50 hover:border-foreground/40 block rounded-2xl border transition-all",
-          "shadow-sm hover:shadow-md",
-        )}
+        className="block"
+        data-gear-card-link="true"
       >
-        {/* Inset surface (border removed) */}
-        <div className="bg-background rounded-2xl p-2">
-          {/* Image area */}
-          <div className="bg-muted dark:bg-card relative aspect-video overflow-hidden rounded-xl">
-            {badgeNodes.length ? (
-              <div className="absolute top-2 left-2 flex flex-wrap gap-1">
-                {badgeNodes}
-              </div>
-            ) : null}
-            <div className="h-full w-full p-8">
-              <div className="relative h-full w-full">
-                {thumbnailUrl ? (
-                  // Transparent gear on gray background expected
-                  <Image
-                    src={thumbnailUrl}
-                    alt={displayName}
-                    fill
-                    sizes="(max-width: 640px) 85vw, 560px"
-                    className="pointer-events-none object-contain transition-opacity group-hover:opacity-50"
-                  />
-                ) : (
-                  <div className="text-muted-foreground/50 flex h-full w-full items-center justify-center text-xl font-bold">
-                    {trimmedName}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Hover actions overlay */}
+        <GearCardLinkPendingState>
+          {(pending) => (
             <div
               className={cn(
-                "pointer-events-none absolute inset-0 flex items-start justify-end p-2 transition-opacity",
-                moreMenuOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100",
+                "border-input bg-card/50 hover:border-foreground/40 relative rounded-2xl border transition-all",
+                "shadow-sm hover:shadow-md",
+                pending && "pointer-events-none",
               )}
+              data-gear-card-pending={pending ? "true" : "false"}
             >
-              <div className="pointer-events-auto">
-                <GearCardMoreMenu
-                  slug={slug}
-                  displayName={displayName}
-                  gearType={gearType}
-                  onOpenChange={setMoreMenuOpen}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Content below image */}
-          <div className="mt-3 space-y-2 px-1.5 pb-1 transition-opacity group-hover:opacity-50">
-            <div className="flex items-center justify-between">
-              <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                {brandName ? <span>{brandName}</span> : null}
-              </div>
-              {metaRight ? (
-                <span className="bg-secondary rounded-full px-2 py-1 text-xs">
-                  {metaRight}
-                </span>
-              ) : null}
-            </div>
-
-            <div className="text-foreground truncate text-lg font-semibold">
-              {trimmedName}
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="text-muted-foreground text-xs">{dateLabel}</div>
-              {priceText ? (
-                <span
+              {/* Inset surface (border removed) */}
+              <div className="bg-background relative rounded-2xl p-2">
+                <div
                   className={cn(
-                    "text-sm font-semibold",
-                    priceText === PRICE_FALLBACK_TEXT
-                      ? "text-muted-foreground"
-                      : "text-foreground",
+                    "transition-opacity duration-150",
+                    pending && "opacity-50",
                   )}
+                  data-gear-card-content-pending={pending ? "true" : "false"}
                 >
-                  {priceText}
-                </span>
-              ) : null}
+                  {/* Image area */}
+                  <div className="bg-muted dark:bg-card relative aspect-video overflow-hidden rounded-xl">
+                    {badgeNodes.length ? (
+                      <div className="absolute top-2 left-2 flex flex-wrap gap-1">
+                        {badgeNodes}
+                      </div>
+                    ) : null}
+                    <div className="h-full w-full p-8">
+                      <div className="relative h-full w-full">
+                        {thumbnailUrl ? (
+                          // Transparent gear on gray background expected
+                          <Image
+                            src={thumbnailUrl}
+                            alt={displayName}
+                            fill
+                            sizes="(max-width: 640px) 85vw, 560px"
+                            className="pointer-events-none object-contain transition-opacity group-hover:opacity-50"
+                          />
+                        ) : (
+                          <div className="text-muted-foreground/50 flex h-full w-full items-center justify-center text-xl font-bold">
+                            {trimmedName}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Hover actions overlay */}
+                    <div
+                      className={cn(
+                        "pointer-events-none absolute inset-0 flex items-start justify-end p-2 transition-opacity",
+                        pending
+                          ? "opacity-0"
+                          : moreMenuOpen
+                            ? "opacity-100"
+                            : "opacity-0 group-hover:opacity-100",
+                      )}
+                    >
+                      <div className="pointer-events-auto">
+                        <GearCardMoreMenu
+                          slug={slug}
+                          displayName={displayName}
+                          gearType={gearType}
+                          onOpenChange={setMoreMenuOpen}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Content below image */}
+                  <div className="mt-3 space-y-2 px-1.5 pb-1 transition-opacity group-hover:opacity-50">
+                    <div className="flex items-center justify-between">
+                      <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                        {brandName ? <span>{brandName}</span> : null}
+                      </div>
+                      {metaRight ? (
+                        <span className="bg-secondary rounded-full px-2 py-1 text-xs">
+                          {metaRight}
+                        </span>
+                      ) : null}
+                    </div>
+
+                    <div className="text-foreground truncate text-lg font-semibold">
+                      {trimmedName}
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="text-muted-foreground text-xs">
+                        {dateLabel}
+                      </div>
+                      {priceText ? (
+                        <span
+                          className={cn(
+                            "text-sm font-semibold",
+                            priceText === PRICE_FALLBACK_TEXT
+                              ? "text-muted-foreground"
+                              : "text-foreground",
+                          )}
+                        >
+                          {priceText}
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+
+                {pending ? (
+                  <div
+                    className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center"
+                    data-gear-card-pending-overlay="true"
+                  >
+                    <Spinner className="text-foreground size-6" />
+                  </div>
+                ) : null}
+              </div>
             </div>
-          </div>
-        </div>
+          )}
+        </GearCardLinkPendingState>
       </Link>
 
     </div>

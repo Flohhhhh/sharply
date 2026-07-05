@@ -1,5 +1,5 @@
-import { Slot,Slottable } from "@radix-ui/react-slot";
-import { cva,type VariantProps } from "class-variance-authority";
+import { Slot, Slottable } from "@radix-ui/react-slot";
+import { cva, type VariantProps } from "class-variance-authority";
 import { Loader2 } from "lucide-react";
 import * as React from "react";
 
@@ -45,7 +45,28 @@ export interface ButtonProps
   iconPosition?: "left" | "right";
 }
 
-const   Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+export function ButtonContent({
+  children,
+  icon,
+  loading,
+  iconPosition = "left",
+}: Pick<ButtonProps, "children" | "icon" | "loading" | "iconPosition">) {
+  const iconElement = loading ? (
+    <Loader2 className="size-4 animate-spin" />
+  ) : (
+    icon
+  );
+
+  return (
+    <>
+      {(loading || icon) && iconPosition === "left" && iconElement}
+      {children}
+      {(loading || icon) && iconPosition === "right" && iconElement}
+    </>
+  );
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
       className,
@@ -62,11 +83,7 @@ const   Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     const Comp = asChild ? Slot : "button";
     const isDisabled = disabled || loading;
-    const iconElement = loading ? (
-      <Loader2 className="size-4 animate-spin" />
-    ) : (
-      icon
-    );
+
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
@@ -74,13 +91,17 @@ const   Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
         disabled={isDisabled}
       >
-        {(loading || icon) && iconPosition === "left" && iconElement}
-        <Slottable>{props.children}</Slottable>
-        {(loading || icon) && iconPosition === "right" && iconElement}
+        <ButtonContent
+          icon={icon}
+          loading={loading}
+          iconPosition={iconPosition}
+        >
+          <Slottable>{props.children}</Slottable>
+        </ButtonContent>
       </Comp>
     );
   },
 );
 Button.displayName = "Button";
 
-export { Button,buttonVariants };
+export { Button, buttonVariants };
