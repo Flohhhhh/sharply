@@ -8,6 +8,7 @@ process.env.NEXT_PUBLIC_BASE_URL ??= "http://localhost:3000";
 const gearDataMocks = vi.hoisted(() => ({
   fetchAllGearForConstructionData: vi.fn(),
   fetchGearBySlug: vi.fn(),
+  fetchGearSummariesBySlugs: vi.fn(),
 }));
 
 const constructionMocks = vi.hoisted(() => ({
@@ -46,6 +47,7 @@ vi.mock("~/lib/utils", async (importOriginal) => {
 
 import {
   fetchGearBySlug,
+  fetchGearSummariesBySlugs,
   listUnderConstruction,
 } from "~/server/gear/service";
 
@@ -142,6 +144,105 @@ describe("gear publication state service", () => {
       slug: "nikon-z8",
       publicationState: "HIDDEN",
     });
+  });
+
+  it("filters lightweight gear summaries by publication state by default", async () => {
+    gearDataMocks.fetchGearSummariesBySlugs.mockResolvedValue([
+      {
+        id: "gear-1",
+        slug: "canon-r5ii",
+        name: "Canon R5 II",
+        brandName: "Canon",
+        thumbnailUrl: null,
+        releaseDate: null,
+        releaseDatePrecision: null,
+        announcedDate: null,
+        announceDatePrecision: null,
+        publicationState: "PUBLISHED",
+      },
+      {
+        id: "gear-2",
+        slug: "canon-r7ii",
+        name: "Canon R7 II",
+        brandName: "Canon",
+        thumbnailUrl: null,
+        releaseDate: null,
+        releaseDatePrecision: null,
+        announcedDate: null,
+        announceDatePrecision: null,
+        publicationState: "RUMORED",
+      },
+      {
+        id: "gear-3",
+        slug: "canon-r1-mark-ii",
+        name: "Canon R1 Mark II",
+        brandName: "Canon",
+        thumbnailUrl: null,
+        releaseDate: null,
+        releaseDatePrecision: null,
+        announcedDate: null,
+        announceDatePrecision: null,
+        publicationState: "HIDDEN",
+      },
+    ]);
+
+    await expect(
+      fetchGearSummariesBySlugs([
+        "canon-r5ii",
+        "canon-r7ii",
+        "canon-r1-mark-ii",
+      ]),
+    ).resolves.toEqual([
+      expect.objectContaining({
+        slug: "canon-r5ii",
+        publicationState: "PUBLISHED",
+      }),
+    ]);
+  });
+
+  it("allows rumored and hidden summaries when explicitly requested", async () => {
+    gearDataMocks.fetchGearSummariesBySlugs.mockResolvedValue([
+      {
+        id: "gear-1",
+        slug: "canon-r7ii",
+        name: "Canon R7 II",
+        brandName: "Canon",
+        thumbnailUrl: null,
+        releaseDate: null,
+        releaseDatePrecision: null,
+        announcedDate: null,
+        announceDatePrecision: null,
+        publicationState: "RUMORED",
+      },
+      {
+        id: "gear-2",
+        slug: "canon-r1-mark-ii",
+        name: "Canon R1 Mark II",
+        brandName: "Canon",
+        thumbnailUrl: null,
+        releaseDate: null,
+        releaseDatePrecision: null,
+        announcedDate: null,
+        announceDatePrecision: null,
+        publicationState: "HIDDEN",
+      },
+    ]);
+
+    await expect(
+      fetchGearSummariesBySlugs(["canon-r7ii", "canon-r1-mark-ii"], {
+        includeRumored: true,
+        includeHidden: true,
+      }),
+    ).resolves.toEqual([
+      expect.objectContaining({
+        slug: "canon-r7ii",
+        publicationState: "RUMORED",
+      }),
+      expect.objectContaining({
+        slug: "canon-r1-mark-ii",
+        publicationState: "HIDDEN",
+      }),
+    ]);
   });
 
   it("excludes rumored and hidden items from the under-construction list", async () => {
