@@ -238,7 +238,12 @@ export function GearCard(props: GearCardProps) {
                             : "opacity-0 group-hover:opacity-100",
                       )}
                     >
-                      <div className="pointer-events-auto">
+                      <div
+                        className={cn(
+                          "pointer-events-auto",
+                          pending && "pointer-events-none",
+                        )}
+                      >
                         <GearCardMoreMenu
                           slug={slug}
                           displayName={displayName}

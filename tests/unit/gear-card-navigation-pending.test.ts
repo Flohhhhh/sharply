@@ -79,17 +79,20 @@ describe("gear card navigation pending state", () => {
       expect(markup).toContain('data-gear-card-pending="false"');
       expect(markup).toContain('data-gear-card-content-pending="false"');
       expect(markup).not.toContain('data-gear-card-pending-overlay="true"');
+      expect(markup).toContain('class="pointer-events-auto"');
     },
   );
 
   it.each(["vertical", "horizontal"] as const)(
-    "renders the %s shared card with faded content and overlay while pending",
+    "renders the %s shared card with faded content, inert actions, and an overlay while pending",
     (variant) => {
       const markup = renderGearCard(variant, true);
 
       expect(markup).toContain('data-gear-card-pending="true"');
       expect(markup).toContain('data-gear-card-content-pending="true"');
       expect(markup).toContain('data-gear-card-pending-overlay="true"');
+      expect(markup).toContain('data-gear-card-more-menu="true"');
+      expect(markup).toContain('class="pointer-events-none"><div data-gear-card-more-menu="true"');
     },
   );
 });

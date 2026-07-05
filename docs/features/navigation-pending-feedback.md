@@ -59,7 +59,7 @@ It exists for surfaces where:
 
 Implementation notes:
 
-- reuses `ButtonContent` from `src/components/ui/button.tsx`
+- reuses `buttonVariants` from `src/components/ui/button.tsx` for consistent styling
 - binds the button loading state to `useLinkStatus()`
 - keeps icon placement working for both left and right icon buttons
 - marks pending state with `data-link-button-*` attributes for tests

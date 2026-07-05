@@ -6,6 +6,66 @@ import { Loader2 } from "lucide-react";
 import { buttonVariants, type ButtonProps } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 
+export const LINK_BUTTON_PRESS_RESET_MS = 1500;
+
+type LinkButtonClickEvent = Pick<
+  React.MouseEvent<HTMLAnchorElement>,
+  | "altKey"
+  | "button"
+  | "ctrlKey"
+  | "defaultPrevented"
+  | "metaKey"
+  | "shiftKey"
+  | "currentTarget"
+>;
+
+export function shouldStartLinkButtonPressedState(
+  event: LinkButtonClickEvent,
+) {
+  if (
+    event.defaultPrevented ||
+    event.button !== 0 ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    event.altKey
+  ) {
+    return false;
+  }
+
+  const target = event.currentTarget.target?.toLowerCase();
+  if (target && target !== "_self") {
+    return false;
+  }
+
+  return !event.currentTarget.download;
+}
+
+export function createLinkButtonPressedResetTimer(
+  onReset: () => void,
+  timeoutMs = LINK_BUTTON_PRESS_RESET_MS,
+) {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  return {
+    clear() {
+      if (!timeoutId) {
+        return;
+      }
+
+      clearTimeout(timeoutId);
+      timeoutId = undefined;
+    },
+    schedule() {
+      this.clear();
+      timeoutId = setTimeout(() => {
+        timeoutId = undefined;
+        onReset();
+      }, timeoutMs);
+    },
+  };
+}
+
 type LinkButtonProps = Omit<
   React.ComponentProps<typeof Link>,
   keyof LinkProps | "className" | "children"
@@ -66,6 +126,21 @@ const LinkButton = React.forwardRef<HTMLAnchorElement, LinkButtonProps>(
     const [linkPending, setLinkPending] = React.useState(false);
     const [pressed, setPressed] = React.useState(false);
     const isPending = loading || linkPending || pressed;
+    const pressedResetTimerRef = React.useRef<
+      ReturnType<typeof createLinkButtonPressedResetTimer> | null
+    >(null);
+
+    if (pressedResetTimerRef.current === null) {
+      pressedResetTimerRef.current = createLinkButtonPressedResetTimer(() => {
+        setPressed(false);
+      });
+    }
+
+    React.useEffect(() => {
+      return () => {
+        pressedResetTimerRef.current?.clear();
+      };
+    }, []);
 
     const handleClick = React.useCallback<
       NonNullable<React.ComponentProps<typeof Link>["onClick"]>
@@ -73,24 +148,24 @@ const LinkButton = React.forwardRef<HTMLAnchorElement, LinkButtonProps>(
       (event) => {
         onClick?.(event);
 
-        if (
-          event.defaultPrevented ||
-          event.button !== 0 ||
-          event.metaKey ||
-          event.ctrlKey ||
-          event.shiftKey ||
-          event.altKey
-        ) {
+        if (!shouldStartLinkButtonPressedState(event)) {
           return;
         }
 
         setPressed(true);
+        pressedResetTimerRef.current?.schedule();
       },
       [onClick],
     );
 
     const handlePendingChange = React.useCallback((pending: boolean) => {
       setLinkPending(pending);
+      if (pending) {
+        pressedResetTimerRef.current?.clear();
+        return;
+      }
+
+      pressedResetTimerRef.current?.clear();
       if (!pending) {
         setPressed(false);
       }

@@ -19,13 +19,18 @@ const globalForDb = globalThis as unknown as {
   db: ReturnType<typeof drizzle<typeof schema>> | undefined;
 };
 
+let cachedConn = globalForDb.conn;
+let cachedDb = globalForDb.db;
+
 function createDb() {
-  const conn = globalForDb.conn ?? postgres(env.DATABASE_URL);
+  const conn = cachedConn ?? globalForDb.conn ?? postgres(env.DATABASE_URL);
+  cachedConn = conn;
   if (env.NODE_ENV !== "production") {
     globalForDb.conn = conn;
   }
 
   const client = drizzle(conn, { schema });
+  cachedDb = client;
   if (env.NODE_ENV !== "production") {
     globalForDb.db = client;
   }
@@ -36,8 +41,8 @@ function createDb() {
 type DbClient = ReturnType<typeof createDb>;
 
 export function getDb(): DbClient {
-  if (globalForDb.db) {
-    return globalForDb.db;
+  if (cachedDb) {
+    return cachedDb;
   }
 
   return createDb();
