@@ -59,6 +59,7 @@ import type {
   GearAlias,
   GearColorway,
   GearItem,
+  GearSummary,
   GearRegion,
 } from "~/types/gear";
 import type { GearActivityRow } from "./home-activity";
@@ -83,6 +84,29 @@ export async function getGearIdBySlug(slug: string): Promise<string | null> {
     .where(eq(gear.slug, slug))
     .limit(1);
   return row[0]?.id ?? null;
+}
+
+export async function fetchGearSummariesBySlugs(
+  slugs: string[],
+): Promise<GearSummary[]> {
+  if (!slugs.length) return [];
+
+  return db
+    .select({
+      id: gear.id,
+      slug: gear.slug,
+      name: gear.name,
+      brandName: brands.name,
+      thumbnailUrl: gear.thumbnailUrl,
+      releaseDate: gear.releaseDate,
+      releaseDatePrecision: gear.releaseDatePrecision,
+      announcedDate: gear.announcedDate,
+      announceDatePrecision: gear.announceDatePrecision,
+      publicationState: gear.publicationState,
+    })
+    .from(gear)
+    .leftJoin(brands, eq(gear.brandId, brands.id))
+    .where(inArray(gear.slug, slugs));
 }
 
 export async function fetchGearAliasesByGearIds(

@@ -5,7 +5,7 @@ import {
   contactReasonLabels,
   type ContactFormInput,
 } from "~/lib/contact/contact-schema";
-import { resend } from "~/lib/email";
+import { getResend } from "~/lib/email";
 
 type ContactEmailPayload = ContactFormInput & {
   route: string;
@@ -13,6 +13,8 @@ type ContactEmailPayload = ContactFormInput & {
 };
 
 export async function sendContactEmail(payload: ContactEmailPayload) {
+  const resend = getResend();
+
   if (!resend || !env.RESEND_EMAIL_FROM) {
     return {
       ok: false,

@@ -11,6 +11,7 @@ import "./src/env.js";
 const emptyNodeFsPromisesPath = fileURLToPath(
   new URL("./src/lib/empty-node-fs-promises.js", import.meta.url),
 );
+const outputFileTracingRoot = fileURLToPath(new URL("./", import.meta.url));
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 /** @type {import("next").NextConfig} */
@@ -44,9 +45,6 @@ const config = {
       },
     ];
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   images: {
     unoptimized: process.env.NODE_ENV === "development",
     remotePatterns: [
@@ -76,6 +74,7 @@ const config = {
       },
     ],
   },
+  outputFileTracingRoot,
   serverExternalPackages: ["sharp"],
   webpack: (config, { isServer, webpack }) => {
     if (!isServer) {

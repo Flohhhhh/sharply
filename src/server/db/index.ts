@@ -16,9 +16,44 @@ import * as schema from "./schema";
  */
 const globalForDb = globalThis as unknown as {
   conn: postgres.Sql | undefined;
+  db: ReturnType<typeof drizzle<typeof schema>> | undefined;
 };
 
-const conn = globalForDb.conn ?? postgres(env.DATABASE_URL);
-if (env.NODE_ENV !== "production") globalForDb.conn = conn;
+let cachedConn = globalForDb.conn;
+let cachedDb = globalForDb.db;
 
-export const db = drizzle(conn, { schema });
+function createDb() {
+  const conn = cachedConn ?? globalForDb.conn ?? postgres(env.DATABASE_URL);
+  cachedConn = conn;
+  if (env.NODE_ENV !== "production") {
+    globalForDb.conn = conn;
+  }
+
+  const client = drizzle(conn, { schema });
+  cachedDb = client;
+  if (env.NODE_ENV !== "production") {
+    globalForDb.db = client;
+  }
+
+  return client;
+}
+
+type DbClient = ReturnType<typeof createDb>;
+
+export function getDb(): DbClient {
+  if (cachedDb) {
+    return cachedDb;
+  }
+
+  return createDb();
+}
+
+export const db: DbClient = new Proxy({} as DbClient, {
+  get(_target, prop) {
+    const client = getDb();
+    const value = client[prop as keyof DbClient];
+    return typeof value === "function"
+      ? value.bind(client)
+      : value;
+  },
+});

@@ -48,6 +48,21 @@ export type GearRegion = (typeof gearRegionEnum.enumValues)[number];
 export type GearPublicationState =
   (typeof gearPublicationStateEnum.enumValues)[number];
 
+export type GearSummary = Pick<
+  Gear,
+  | "id"
+  | "slug"
+  | "name"
+  | "thumbnailUrl"
+  | "releaseDate"
+  | "releaseDatePrecision"
+  | "announcedDate"
+  | "announceDatePrecision"
+  | "publicationState"
+> & {
+  brandName: string | null;
+};
+
 // Unified gear item types
 export type GearItem = Gear & {
   brands?: Brand | null;

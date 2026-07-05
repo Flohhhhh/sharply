@@ -62,7 +62,7 @@ export async function actionUpdateProfileImage(imageUrl: string);
 profilePictureUploader: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } });
 ```
 
-- Validates user authentication in middleware
+- Validates user authentication in the UploadThing middleware
 - Returns old image URL in metadata for potential cleanup
 - Max file size: 4MB
 - Only 1 file per upload

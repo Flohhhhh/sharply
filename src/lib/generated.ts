@@ -391,67 +391,11 @@ export const SENSOR_FORMATS = [
 ];
 export const BRANDS = [
   {
-    "id": "a19fbe71-3a17-4095-8d79-f40eb5475480",
-    "name": "Nikon",
-    "slug": "nikon",
-    "created_at": "2025-08-19 01:55:17.208672+00",
-    "updated_at": "2025-08-19 01:55:17.208672+00",
-    "sort_order": null
-  },
-  {
-    "id": "7df18188-0939-4241-9ca7-6561c6e233e1",
-    "name": "Canon",
-    "slug": "canon",
-    "created_at": "2025-08-19 01:55:17.459908+00",
-    "updated_at": "2025-08-19 01:55:17.459908+00",
-    "sort_order": null
-  },
-  {
-    "id": "3f030fbd-3567-4b2d-85d4-900e5c69af4b",
-    "name": "Sony",
-    "slug": "sony",
-    "created_at": "2025-08-19 01:55:17.751357+00",
-    "updated_at": "2025-08-19 01:55:17.751357+00",
-    "sort_order": null
-  },
-  {
-    "id": "14807c17-227f-4349-a56d-401c1d5d4626",
-    "name": "Fujifilm",
-    "slug": "fujifilm",
-    "created_at": "2025-08-19 01:55:18.000255+00",
-    "updated_at": "2025-08-19 01:55:18.000255+00",
-    "sort_order": null
-  },
-  {
-    "id": "007b4cff-1dbf-4583-8104-35c04f1fd6d0",
-    "name": "Leica",
-    "slug": "leica",
-    "created_at": "2025-08-19 01:55:18.237133+00",
-    "updated_at": "2025-08-19 01:55:18.237133+00",
-    "sort_order": null
-  },
-  {
     "id": "584d6aaf-4222-4caf-8570-e6476e2e13c0",
     "name": "Pentax",
     "slug": "pentax",
     "created_at": "2025-08-19 01:55:18.46779+00",
     "updated_at": "2025-08-19 01:55:18.46779+00",
-    "sort_order": null
-  },
-  {
-    "id": "c58b9ef7-4aa6-46c9-b1bb-5a9779b2a424",
-    "name": "Sigma",
-    "slug": "sigma",
-    "created_at": "2025-08-19 01:55:18.708383+00",
-    "updated_at": "2025-08-19 01:55:18.708383+00",
-    "sort_order": null
-  },
-  {
-    "id": "20069417-160a-4187-bf28-23a907a437ca",
-    "name": "Tamron",
-    "slug": "tamron",
-    "created_at": "2025-08-19 01:55:19.070882+00",
-    "updated_at": "2025-08-19 01:55:19.070882+00",
     "sort_order": null
   },
   {
@@ -468,14 +412,6 @@ export const BRANDS = [
     "slug": "panasonic",
     "created_at": "2025-08-19 01:55:19.549312+00",
     "updated_at": "2025-08-19 01:55:19.549312+00",
-    "sort_order": null
-  },
-  {
-    "id": "48a8333a-84a1-4800-8b66-90cce7a79d3f",
-    "name": "Hasselblad",
-    "slug": "hasselblad",
-    "created_at": "2025-08-19 01:55:19.771972+00",
-    "updated_at": "2025-08-19 01:55:19.771972+00",
     "sort_order": null
   },
   {
@@ -700,6 +636,118 @@ export const BRANDS = [
     "slug": "thypoch",
     "created_at": "2026-04-15 12:43:26.0569+00",
     "updated_at": "2026-04-15 12:43:26.0569+00",
+    "sort_order": null
+  },
+  {
+    "id": "e45a3ace-dfc4-47ae-ae90-202645bccd5d",
+    "name": "DJI",
+    "slug": "dji",
+    "created_at": "2026-06-21 23:18:58.19144+00",
+    "updated_at": "2026-06-21 23:18:58.19144+00",
+    "sort_order": null
+  },
+  {
+    "id": "3f030fbd-3567-4b2d-85d4-900e5c69af4b",
+    "name": "Sony",
+    "slug": "sony",
+    "created_at": "2025-08-19 01:55:17.751357+00",
+    "updated_at": "2026-07-02 20:56:04.638+00",
+    "sort_order": 3
+  },
+  {
+    "id": "7df18188-0939-4241-9ca7-6561c6e233e1",
+    "name": "Canon",
+    "slug": "canon",
+    "created_at": "2025-08-19 01:55:17.459908+00",
+    "updated_at": "2026-07-02 20:56:09.996+00",
+    "sort_order": 1
+  },
+  {
+    "id": "a19fbe71-3a17-4095-8d79-f40eb5475480",
+    "name": "Nikon",
+    "slug": "nikon",
+    "created_at": "2025-08-19 01:55:17.208672+00",
+    "updated_at": "2026-07-02 20:56:10.023+00",
+    "sort_order": 2
+  },
+  {
+    "id": "14807c17-227f-4349-a56d-401c1d5d4626",
+    "name": "Fujifilm",
+    "slug": "fujifilm",
+    "created_at": "2025-08-19 01:55:18.000255+00",
+    "updated_at": "2026-07-02 20:56:17.671+00",
+    "sort_order": 4
+  },
+  {
+    "id": "007b4cff-1dbf-4583-8104-35c04f1fd6d0",
+    "name": "Leica",
+    "slug": "leica",
+    "created_at": "2025-08-19 01:55:18.237133+00",
+    "updated_at": "2026-07-02 20:56:20.405+00",
+    "sort_order": 5
+  },
+  {
+    "id": "48a8333a-84a1-4800-8b66-90cce7a79d3f",
+    "name": "Hasselblad",
+    "slug": "hasselblad",
+    "created_at": "2025-08-19 01:55:19.771972+00",
+    "updated_at": "2026-07-02 20:56:24.054+00",
+    "sort_order": 6
+  },
+  {
+    "id": "c58b9ef7-4aa6-46c9-b1bb-5a9779b2a424",
+    "name": "Sigma",
+    "slug": "sigma",
+    "created_at": "2025-08-19 01:55:18.708383+00",
+    "updated_at": "2026-07-02 20:56:26.535+00",
+    "sort_order": 7
+  },
+  {
+    "id": "20069417-160a-4187-bf28-23a907a437ca",
+    "name": "Tamron",
+    "slug": "tamron",
+    "created_at": "2025-08-19 01:55:19.070882+00",
+    "updated_at": "2026-07-02 20:56:29.36+00",
+    "sort_order": 8
+  },
+  {
+    "id": "da4f3972-5b50-4150-b6dc-8c4a391b9b4b",
+    "name": "NiSi",
+    "slug": "nisi",
+    "created_at": "2026-07-02 21:23:18.341701+00",
+    "updated_at": "2026-07-02 21:23:18.341701+00",
+    "sort_order": null
+  },
+  {
+    "id": "b7f8124f-7e3a-4cab-ac4d-470992140e2e",
+    "name": "Rollei",
+    "slug": "rollei",
+    "created_at": "2026-07-02 21:23:18.343331+00",
+    "updated_at": "2026-07-02 21:23:18.343331+00",
+    "sort_order": null
+  },
+  {
+    "id": "b3139428-3508-4599-8563-7cbfb4d08168",
+    "name": "Brightin Star",
+    "slug": "brightin-star",
+    "created_at": "2026-07-02 21:23:18.342387+00",
+    "updated_at": "2026-07-02 21:23:18.342387+00",
+    "sort_order": null
+  },
+  {
+    "id": "397e9ad9-92da-4281-b69f-6fcab2260200",
+    "name": "Songraw",
+    "slug": "songraw",
+    "created_at": "2026-07-02 21:23:18.342862+00",
+    "updated_at": "2026-07-02 21:23:18.342862+00",
+    "sort_order": null
+  },
+  {
+    "id": "a9552118-004d-4d60-9555-c6384273f696",
+    "name": "BLAZAR",
+    "slug": "blazar",
+    "created_at": "2026-07-02 21:23:18.341268+00",
+    "updated_at": "2026-07-02 21:23:18.341268+00",
     "sort_order": null
   }
 ];
@@ -1212,6 +1260,14 @@ export const ENUMS = {
     "GEAR_REAR_VIEW_UPLOAD",
     "GEAR_REAR_VIEW_REPLACE",
     "GEAR_REAR_VIEW_REMOVE",
+    "GEAR_COLORWAY_CREATE",
+    "GEAR_COLORWAY_UPDATE",
+    "GEAR_COLORWAY_REORDER",
+    "GEAR_COLORWAY_DELETE",
+    "GEAR_COLORWAY_RESET",
+    "GEAR_COLORWAY_IMAGE_UPLOAD",
+    "GEAR_COLORWAY_IMAGE_REPLACE",
+    "GEAR_COLORWAY_IMAGE_REMOVE",
     "GEAR_EDIT_PROPOSE",
     "GEAR_EDIT_APPROVE",
     "GEAR_EDIT_REJECT",
@@ -1345,6 +1401,11 @@ export const ENUMS = {
     "electronic-confirm",
     "electronic-directional",
     "af-point"
+  ],
+  "gear_publication_state": [
+    "PUBLISHED",
+    "RUMORED",
+    "HIDDEN"
   ],
   "gear_region": [
     "GLOBAL",

@@ -1,5 +1,5 @@
-import { Slot,Slottable } from "@radix-ui/react-slot";
-import { cva,type VariantProps } from "class-variance-authority";
+import { Slot, Slottable } from "@radix-ui/react-slot";
+import { cva, type VariantProps } from "class-variance-authority";
 import { Loader2 } from "lucide-react";
 import * as React from "react";
 
@@ -45,7 +45,7 @@ export interface ButtonProps
   iconPosition?: "left" | "right";
 }
 
-const   Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
       className,
@@ -67,6 +67,7 @@ const   Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ) : (
       icon
     );
+
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
@@ -83,4 +84,4 @@ const   Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 Button.displayName = "Button";
 
-export { Button,buttonVariants };
+export { Button, buttonVariants };

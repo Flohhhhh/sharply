@@ -11,7 +11,7 @@ import {
   type DatePrecision,
 } from "~/lib/format/date";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
-import { fetchGearBySlug } from "~/server/gear/service";
+import { fetchGearSummariesBySlugs } from "~/server/gear/service";
 import { hallOfFameItems } from "./data";
 import { WreathIcon } from "./WreathIcon";
 
@@ -81,15 +81,6 @@ function formatForDisplay(
   });
 }
 
-function isNotFoundError(error: unknown): error is { status?: number } {
-  if (!error || typeof error !== "object") {
-    return false;
-  }
-
-  const status = (error as { status?: unknown }).status;
-  return typeof status === "number" && status === 404;
-}
-
 export default async function HallOfFamePage({
   params,
 }: {
@@ -97,16 +88,16 @@ export default async function HallOfFamePage({
 }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "hallOfFamePage" });
-  // Fetch gear for each entry at build time
-  const rawEntries = await Promise.all(
-    hallOfFameItems.map(async (item) => {
-      const gear = await fetchGearBySlug(item.slug).catch((error) => {
-        if (isNotFoundError(error)) {
-          return null;
-        }
-        throw error;
-      });
+  const gearBySlug = new Map(
+    (
+      await fetchGearSummariesBySlugs(
+        hallOfFameItems.map((item) => item.slug),
+      )
+    ).map((item) => [item.slug, item] as const),
+  );
 
+  const rawEntries = hallOfFameItems.map((item) => {
+      const gear = gearBySlug.get(item.slug);
       if (!gear) {
         return null;
       }
@@ -125,8 +116,7 @@ export default async function HallOfFamePage({
             sortDate: normalizeForSort(best.date, best.precision),
           }
         : null;
-    }),
-  );
+    });
 
   const entries = rawEntries
     .filter((e): e is NonNullable<typeof e> => Boolean(e))
@@ -182,8 +172,8 @@ export default async function HallOfFamePage({
             </BlurFade>
           ) : (
             entries.map((entry, index) => {
-              const title = entry.gear.brands?.name
-                ? `${entry.gear.brands.name} ${entry.gear.name}`
+              const title = entry.gear.brandName
+                ? `${entry.gear.brandName} ${entry.gear.name}`
                 : entry.gear.name;
               const formattedDate = formatForDisplay(
                 entry.bestDate,

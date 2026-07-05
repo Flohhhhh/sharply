@@ -31,7 +31,7 @@ import {
   type ReviewModerationCode,
 } from "~/server/reviews/moderation/service";
 import { maybeGenerateReviewSummary } from "~/server/reviews/summary/service";
-import type { GearItem,RawSample } from "~/types/gear";
+import type { GearItem,GearSummary,RawSample } from "~/types/gear";
 import {
   addImageRequest as addImageRequestData,
   addOwnership as addOwnershipData,
@@ -53,6 +53,7 @@ import {
   fetchGearColorwaysByGearId,
   fetchGearEditByIdData,
   fetchGearMetadataById as fetchGearMetadataByIdData,
+  fetchGearSummariesBySlugs as fetchGearSummariesBySlugsData,
   fetchLatestGearCardsData,
   fetchNewestGearSlugsData,
   fetchPendingEditForGear,
@@ -207,6 +208,23 @@ export async function fetchGearBySlug(
     throw Object.assign(new Error("Gear not found"), { status: 404 });
   }
   return gearItem;
+}
+
+export async function fetchGearSummariesBySlugs(
+  slugs: string[],
+  options?: { includeRumored?: boolean; includeHidden?: boolean },
+): Promise<GearSummary[]> {
+  const rows = await fetchGearSummariesBySlugsData(slugs);
+
+  return rows.filter((row) => {
+    if (!options?.includeHidden && isHiddenGear(row)) {
+      return false;
+    }
+    if (!options?.includeRumored && isRumoredGear(row)) {
+      return false;
+    }
+    return true;
+  });
 }
 
 const instructionManualInput = z.object({
@@ -499,7 +517,7 @@ async function removeImageRequest(gearId: string, userId: string) {
 
 export async function fetchAllImageRequests() {
   // This is an admin-only function, but we don't enforce auth here
-  // because the admin analytics page is already protected by layout/middleware
+  // because the admin analytics page is already protected by layout/proxy
   return fetchAllImageRequestsData();
 }
 

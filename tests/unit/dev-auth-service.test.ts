@@ -11,6 +11,7 @@ const envMocks = vi.hoisted(() => ({
     DEV_AUTH: undefined as string | undefined,
     DEV_AUTH_EMAIL: undefined as string | undefined,
     DEV_AUTH_LOCALHOST_ONLY: undefined as string | undefined,
+    DEV_AUTH_PREVIEW: undefined as string | undefined,
   },
 }));
 
@@ -55,15 +56,24 @@ describe("development auth service", () => {
     envMocks.env.DEV_AUTH = undefined;
     envMocks.env.DEV_AUTH_EMAIL = undefined;
     envMocks.env.DEV_AUTH_LOCALHOST_ONLY = undefined;
+    envMocks.env.DEV_AUTH_PREVIEW = undefined;
   });
 
-  it("never enables development auth in production", () => {
+  it("keeps production disabled unless the preview override is explicit", () => {
     expect(
       isDevelopmentAuthEnabledForConfig({
         nodeEnv: "production",
         devAuthFlag: "true",
       }),
     ).toBe(false);
+
+    expect(
+      isDevelopmentAuthEnabledForConfig({
+        nodeEnv: "production",
+        devAuthFlag: "true",
+        devAuthPreviewFlag: "true",
+      }),
+    ).toBe(true);
   });
 
   it("requires the explicit DEV_AUTH=true opt-in", () => {
@@ -101,6 +111,9 @@ describe("development auth service", () => {
 
     envMocks.env.NODE_ENV = "production";
     expect(isDevelopmentAuthEnabled()).toBe(false);
+
+    envMocks.env.DEV_AUTH_PREVIEW = "true";
+    expect(isDevelopmentAuthEnabled()).toBe(true);
   });
 
   it("requires localhost hosts by default", () => {
@@ -124,6 +137,9 @@ describe("development auth service", () => {
 
     envMocks.env.NODE_ENV = "production";
     expect(isDevelopmentAuthRequestAllowed("localhost:3000")).toBe(false);
+
+    envMocks.env.DEV_AUTH_PREVIEW = "true";
+    expect(isDevelopmentAuthRequestAllowed("localhost:3000")).toBe(true);
   });
 
   it("returns an existing dev user when one matches the configured email", async () => {
