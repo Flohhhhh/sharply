@@ -2,11 +2,8 @@
 
 import Link, { type LinkProps, useLinkStatus } from "next/link";
 import * as React from "react";
-import {
-  ButtonContent,
-  buttonVariants,
-  type ButtonProps,
-} from "~/components/ui/button";
+import { Loader2 } from "lucide-react";
+import { buttonVariants, type ButtonProps } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 
 type LinkButtonProps = Omit<
@@ -29,6 +26,11 @@ function LinkButtonPendingContent({
   onPendingChange: (pending: boolean) => void;
 }) {
   const { pending } = useLinkStatus();
+  const iconElement = loading || pending ? (
+    <Loader2 className="size-4 animate-spin" />
+  ) : (
+    icon
+  );
 
   React.useEffect(() => {
     onPendingChange(pending);
@@ -39,13 +41,9 @@ function LinkButtonPendingContent({
       className="inline-flex items-center gap-2"
       data-link-button-pending={pending ? "true" : "false"}
     >
-      <ButtonContent
-        icon={icon}
-        iconPosition={iconPosition}
-        loading={loading || pending}
-      >
-        {children}
-      </ButtonContent>
+      {(loading || pending || icon) && iconPosition === "left" && iconElement}
+      {children}
+      {(loading || pending || icon) && iconPosition === "right" && iconElement}
     </span>
   );
 }

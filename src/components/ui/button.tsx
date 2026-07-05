@@ -45,27 +45,6 @@ export interface ButtonProps
   iconPosition?: "left" | "right";
 }
 
-export function ButtonContent({
-  children,
-  icon,
-  loading,
-  iconPosition = "left",
-}: Pick<ButtonProps, "children" | "icon" | "loading" | "iconPosition">) {
-  const iconElement = loading ? (
-    <Loader2 className="size-4 animate-spin" />
-  ) : (
-    icon
-  );
-
-  return (
-    <>
-      {(loading || icon) && iconPosition === "left" && iconElement}
-      {children}
-      {(loading || icon) && iconPosition === "right" && iconElement}
-    </>
-  );
-}
-
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
@@ -83,6 +62,11 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     const Comp = asChild ? Slot : "button";
     const isDisabled = disabled || loading;
+    const iconElement = loading ? (
+      <Loader2 className="size-4 animate-spin" />
+    ) : (
+      icon
+    );
 
     return (
       <Comp
@@ -91,13 +75,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
         disabled={isDisabled}
       >
-        <ButtonContent
-          icon={icon}
-          loading={loading}
-          iconPosition={iconPosition}
-        >
-          <Slottable>{props.children}</Slottable>
-        </ButtonContent>
+        {(loading || icon) && iconPosition === "left" && iconElement}
+        <Slottable>{props.children}</Slottable>
+        {(loading || icon) && iconPosition === "right" && iconElement}
       </Comp>
     );
   },

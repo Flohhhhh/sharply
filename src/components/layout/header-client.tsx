@@ -18,6 +18,7 @@ import { useSession } from "~/lib/auth/auth-client";
 import { GlobalSearchBar } from "../search/global-search-bar";
 import { ThemeSwitcher } from "../theme-switcher";
 import { Button } from "../ui/button";
+import { LinkButton } from "../ui/link-button";
 import { NavMenuDesktop } from "./nav-menu-desktop";
 import { NavMenuMobile } from "./nav-menu-mobile";
 import { NavSheetDesktop } from "./nav-sheet-desktop";
@@ -206,16 +207,14 @@ export default function HeaderClient({
                     <SharedHeaderNotificationsDropdown />
                   </SharedHeaderNotificationsProvider>
                   {isAdminOrEditor && (
-                    <Button
+                    <LinkButton
                       variant="outline"
                       size="sm"
-                      asChild
                       icon={<LayoutDashboard />}
+                      href={model.adminHref}
                     >
-                      <Link href={model.adminHref}>
-                        {model.labels.adminPanel}
-                      </Link>
-                    </Button>
+                      {model.labels.adminPanel}
+                    </LinkButton>
                   )}
                   <UserMenu
                     user={user}
