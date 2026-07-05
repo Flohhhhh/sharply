@@ -1,6 +1,6 @@
 "use client";
 
-import { Moon,Sun } from "lucide-react";
+import { LaptopMinimal, Moon, Sun } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 
@@ -32,13 +32,16 @@ export function ThemeSwitcher() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => handleThemeChange("light")}>
-          {t("light")}
+          <Sun className="size-4" />
+          <span>{t("light")}</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleThemeChange("dark")}>
-          {t("dark")}
+          <Moon className="size-4" />
+          <span>{t("dark")}</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleThemeChange("system")}>
-          {t("system")}
+          <LaptopMinimal className="size-4" />
+          <span>{t("system")}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
