@@ -128,7 +128,13 @@
     "loadingComparison": "比較を読み込み中…"
   },
   "home": {
-    "heroTitle": "写真機材を、シンプルに。",
+    "heroTitleLine1": "写真機材を、",
+    "heroTitleLine2LeadIn": "",
+    "heroTitleRotatingWords": {
+      "simple": "シンプルに。",
+      "fast": "素早く。",
+      "easy": "簡単に。"
+    },
     "heroSubtitle": "あらゆる機材を検索し、スペックを確認し、ユーザーと専門家のレビューを読めます。",
     "loadingSearch": "検索を読み込み中…",
     "featuredBadge": "注目",

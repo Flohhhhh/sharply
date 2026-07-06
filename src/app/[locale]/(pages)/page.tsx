@@ -6,6 +6,8 @@ import DiscordBanner from "~/components/discord-banner";
 import { ActivityList } from "~/components/home/activity-list";
 import { ContributionCounter } from "~/components/home/contribution-counter";
 import { GearCounter } from "~/components/home/gear-counter";
+import { HeroTitle } from "~/components/home/hero-title";
+import { HERO_TITLE_ROTATING_WORD_KEYS } from "~/components/home/hero-title-config";
 import { NewsCard as HomeNewsCard } from "~/components/home/news-card";
 import { ReviewCard, type ReviewPost } from "~/components/home/review-card";
 import { LocaleLink } from "~/components/locale-link";
@@ -138,13 +140,17 @@ export default async function Home({
       {/* HERO */}
       <section className="w-full pt-20">
         <div className="mx-auto max-w-7xl px-2 sm:px-4 py-8 md:py-10">
-          <div className="mx-auto max-w-3xl space-y-4 text-center">
-            <h1 className="mb-12 text-3xl font-bold tracking-tight leading-tight md:text-7xl">
-              {t("heroTitle")}
-            </h1>
+          <div className="mx-auto space-y-4 text-center">
+            <HeroTitle
+              line1={t("heroTitleLine1")}
+              line2LeadIn={t("heroTitleLine2LeadIn")}
+              rotatingWords={HERO_TITLE_ROTATING_WORD_KEYS.map((key) =>
+                t(`heroTitleRotatingWords.${key}`),
+              )}
+            />
 
             {/* Search box */}
-            <div className="mx-auto w-full max-w-7xl">
+            <div className="mx-auto w-full max-w-3xl">
               <div className="relative">
                 <Suspense
                   fallback={

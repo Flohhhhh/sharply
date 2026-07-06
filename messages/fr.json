@@ -128,7 +128,13 @@
     "loadingComparison": "Chargement de la comparaison…"
   },
   "home": {
-    "heroTitle": "Le matériel photo, simplifié.",
+    "heroTitleLine1": "Le matériel photo,",
+    "heroTitleLine2LeadIn": "",
+    "heroTitleRotatingWords": {
+      "simple": "simple.",
+      "fast": "rapide.",
+      "easy": "facile."
+    },
     "heroSubtitle": "Recherchez n’importe quel matériel, trouvez les spécifications et lisez des avis d’utilisateurs comme d’experts.",
     "loadingSearch": "Chargement de la recherche…",
     "featuredBadge": "À la une",

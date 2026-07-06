@@ -128,7 +128,13 @@
     "loadingComparison": "Loading comparison…"
   },
   "home": {
-    "heroTitle": "Photography gear made simple.",
+    "heroTitleLine1": "Photography gear",
+    "heroTitleLine2LeadIn": "made",
+    "heroTitleRotatingWords": {
+      "simple": "simple.",
+      "fast": "fast.",
+      "easy": "easy."
+    },
     "heroSubtitle": "Search for any gear, find specs, and read reviews from both users and experts.",
     "loadingSearch": "Loading search…",
     "featuredBadge": "Featured",

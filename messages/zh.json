@@ -128,7 +128,13 @@
     "loadingComparison": "正在加载比较..."
   },
   "home": {
-    "heroTitle": "摄影器材，化繁为简。",
+    "heroTitleLine1": "摄影器材，",
+    "heroTitleLine2LeadIn": "",
+    "heroTitleRotatingWords": {
+      "simple": "简单。",
+      "fast": "快速。",
+      "easy": "轻松。"
+    },
     "heroSubtitle": "搜索任何器材、查找规格并阅读用户和专家的评论。",
     "loadingSearch": "正在加载搜索...",
     "featuredBadge": "精选",
