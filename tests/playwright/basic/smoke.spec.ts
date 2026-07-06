@@ -15,7 +15,7 @@ test.describe("smoke", () => {
     // Ensure headline and search trigger render, then opening search shows the dialog.
     await expect(
       page.getByRole("heading", {
-        name: "Real specs, real reviews, real fast.",
+        name: "Photography gear made simple.",
       }),
     ).toBeVisible();
     const searchTrigger = page.getByRole("button", { name: "Search" });

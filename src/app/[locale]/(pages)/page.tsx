@@ -7,7 +7,7 @@ import { ActivityList } from "~/components/home/activity-list";
 import { ContributionCounter } from "~/components/home/contribution-counter";
 import { GearCounter } from "~/components/home/gear-counter";
 import { NewsCard as HomeNewsCard } from "~/components/home/news-card";
-import { ReviewCard,type ReviewPost } from "~/components/home/review-card";
+import { ReviewCard, type ReviewPost } from "~/components/home/review-card";
 import { LocaleLink } from "~/components/locale-link";
 import { GlobalSearchBar } from "~/components/search/global-search-bar";
 import TrendingList from "~/components/trending-list";
@@ -20,7 +20,7 @@ import { formatDate } from "~/lib/format/date";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import type { Review } from "~/payload-types";
 import { fetchHomeActivity } from "~/server/gear/service";
-import { getNewsPosts,getReviews } from "~/server/payload/service";
+import { getNewsPosts, getReviews } from "~/server/payload/service";
 
 export const revalidate = 60;
 
@@ -137,9 +137,9 @@ export default async function Home({
     <div className="min-h-screen px-4 sm:px-6">
       {/* HERO */}
       <section className="w-full pt-20">
-        <div className="mx-auto max-w-7xl px-4 py-8 md:py-10">
+        <div className="mx-auto max-w-7xl px-2 sm:px-4 py-8 md:py-10">
           <div className="mx-auto max-w-3xl space-y-4 text-center">
-            <h1 className="mb-12 text-3xl font-bold tracking-tight md:text-6xl">
+            <h1 className="mb-12 text-3xl font-bold tracking-tight leading-tight md:text-7xl">
               {t("heroTitle")}
             </h1>
 
