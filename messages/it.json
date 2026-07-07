@@ -128,7 +128,13 @@
     "loadingComparison": "Caricamento confronto…"
   },
   "home": {
-    "heroTitle": "Specifiche reali, recensioni reali, davvero veloci.",
+    "heroTitleLine1": "Attrezzatura fotografica,",
+    "heroTitleLine2LeadIn": "",
+    "heroTitleRotatingWords": {
+      "simple": "semplice.",
+      "fast": "veloce.",
+      "easy": "facile."
+    },
     "heroSubtitle": "Cerca qualsiasi attrezzatura, trova le specifiche e leggi recensioni sia di utenti che di esperti.",
     "loadingSearch": "Caricamento ricerca…",
     "featuredBadge": "In evidenza",

@@ -87,10 +87,13 @@ export interface DiaTextRevealProps
   delay?: number;
   repeat?: boolean;
   repeatDelay?: number;
+  exitAnimation?: "fade" | "reverse" | "none";
+  exitDuration?: number;
   startOnView?: boolean;
   once?: boolean;
   className?: string;
   fixedWidth?: boolean;
+  animateWidth?: boolean;
 }
 
 export function DiaTextReveal({
@@ -101,10 +104,13 @@ export function DiaTextReveal({
   delay = 0,
   repeat = false,
   repeatDelay = 0.5,
+  exitAnimation,
+  exitDuration = 0.3,
   startOnView = true,
   once = true,
   className,
   fixedWidth = false,
+  animateWidth = true,
   ...props
 }: DiaTextRevealProps) {
   const texts = Array.isArray(text) ? text : [text];
@@ -119,6 +125,8 @@ export function DiaTextReveal({
     delay,
     repeat,
     repeatDelay,
+    exitAnimation: exitAnimation ?? (repeat ? "fade" : "none"),
+    exitDuration,
     texts,
   });
   optionsRef.current = {
@@ -128,6 +136,8 @@ export function DiaTextReveal({
     delay,
     repeat,
     repeatDelay,
+    exitAnimation: exitAnimation ?? (repeat ? "fade" : "none"),
+    exitDuration,
     texts,
   };
 
@@ -141,6 +151,7 @@ export function DiaTextReveal({
   const [measuredWidths, setMeasuredWidths] = useState<number[]>([]);
 
   const sweepPos = useMotionValue(SWEEP_START);
+  const opacity = useMotionValue(1);
   const backgroundImage = useTransform(sweepPos, (pos) =>
     buildGradient(pos, optionsRef.current.colors, optionsRef.current.textColor),
   );
@@ -148,9 +159,9 @@ export function DiaTextReveal({
 
   useEffect(() => {
     const element = spanRef.current;
-    if (!element || !isMulti) return;
+    if (!element || !isMulti || !animateWidth) return;
     setMeasuredWidths(measureWidths(element, texts));
-  }, [isMulti, text, texts]);
+  }, [animateWidth, isMulti, text, texts]);
 
   playRef.current = () => {
     const { duration, delay, repeat, repeatDelay, texts } = optionsRef.current;
@@ -164,10 +175,29 @@ export function DiaTextReveal({
       onComplete() {
         if (!repeat) return;
         timerRef.current = setTimeout(() => {
-          const nextIndex = (indexRef.current + 1) % texts.length;
-          indexRef.current = nextIndex;
-          setActiveIndex(nextIndex);
-          playRef.current();
+          void (async () => {
+            const { exitAnimation, exitDuration } = optionsRef.current;
+
+            if (exitAnimation === "fade") {
+              await animate(opacity, 0, { duration: exitDuration });
+            } else if (exitAnimation === "reverse") {
+              await animate(sweepPos, SWEEP_START, {
+                duration: exitDuration,
+                ease: sweepEase,
+              });
+            }
+
+            const nextIndex = (indexRef.current + 1) % texts.length;
+            indexRef.current = nextIndex;
+            setActiveIndex(nextIndex);
+
+            if (exitAnimation === "fade") {
+              sweepPos.set(SWEEP_START);
+              opacity.set(1);
+            }
+
+            playRef.current();
+          })();
         }, repeatDelay * 1000);
       },
     });
@@ -178,6 +208,7 @@ export function DiaTextReveal({
   useEffect(() => {
     if (prefersReducedMotion) {
       sweepPos.set(SWEEP_END);
+      opacity.set(1);
       return;
     }
     if (startOnView && !isInView) return;
@@ -190,24 +221,33 @@ export function DiaTextReveal({
       stopRef.current?.();
       clearTimeout(timerRef.current);
     };
-  }, [isInView, once, prefersReducedMotion, startOnView, sweepPos]);
+  }, [isInView, once, prefersReducedMotion, startOnView, sweepPos, opacity]);
 
   const fixedWidthValue =
-    isMulti && fixedWidth && measuredWidths.length > 0
+    isMulti && fixedWidth && animateWidth && measuredWidths.length > 0
       ? Math.max(...measuredWidths)
       : undefined;
 
   const animatedWidth =
-    isMulti && !fixedWidth && measuredWidths[activeIndex] != null
+    isMulti && animateWidth && !fixedWidth && measuredWidths[activeIndex] != null
       ? measuredWidths[activeIndex]
       : undefined;
+
+  const usesNaturalInlineWidth = isMulti && !fixedWidth && !animateWidth;
 
   return (
     <motion.span
       ref={spanRef}
-      className={cn("align-bottom leading-[100%] text-inherit", className)}
+      className={cn(
+        isMulti
+          ? "inline-block align-baseline text-inherit leading-[inherit]"
+          : "align-bottom leading-[100%] text-inherit",
+        usesNaturalInlineWidth && "w-auto max-w-none",
+        className,
+      )}
       style={{
-        transform: "translateY(-2px)",
+        ...(!isMulti ? { transform: "translateY(-2px)" } : {}),
+        opacity,
         color: "transparent",
         backgroundClip: "text",
         WebkitBackgroundClip: "text",
@@ -215,10 +255,16 @@ export function DiaTextReveal({
         backgroundImage,
         ...(isMulti && {
           display: "inline-block",
-          overflow: "hidden",
-          whiteSpace: "nowrap",
-          verticalAlign: "text-center",
-          ...(fixedWidthValue != null && { width: fixedWidthValue }),
+          verticalAlign: "baseline",
+          paddingInlineEnd: "0.12em",
+          marginInlineEnd: usesNaturalInlineWidth ? "-0.12em" : undefined,
+          ...(usesNaturalInlineWidth
+            ? { width: "auto" }
+            : {
+                overflow: "hidden",
+                whiteSpace: "nowrap",
+                ...(fixedWidthValue != null && { width: fixedWidthValue }),
+              }),
         }),
       }}
       animate={animatedWidth != null ? { width: animatedWidth } : undefined}

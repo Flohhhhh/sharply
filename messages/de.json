@@ -128,7 +128,13 @@
     "loadingComparison": "Vergleich wird geladen…"
   },
   "home": {
-    "heroTitle": "Echte Specs, echte Reviews, richtig schnell.",
+    "heroTitleLine1": "Fotoausrüstung",
+    "heroTitleLine2LeadIn": "–",
+    "heroTitleRotatingWords": {
+      "simple": "einfach.",
+      "fast": "schnell.",
+      "easy": "leicht."
+    },
     "heroSubtitle": "Suche nach beliebiger Ausrüstung, finde Spezifikationen und lies Reviews von Nutzern und Experten.",
     "loadingSearch": "Suche wird geladen…",
     "featuredBadge": "Empfohlen",

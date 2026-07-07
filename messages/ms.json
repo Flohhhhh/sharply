@@ -128,7 +128,13 @@
     "loadingComparison": "Memuatkan perbandingan…"
   },
   "home": {
-    "heroTitle": "Spesifikasi sebenar, ulasan sebenar, sangat pantas.",
+    "heroTitleLine1": "Peralatan fotografi",
+    "heroTitleLine2LeadIn": "",
+    "heroTitleRotatingWords": {
+      "simple": "mudah.",
+      "fast": "pantas.",
+      "easy": "ringan."
+    },
     "heroSubtitle": "Cari sebarang gear, cari spesifikasi dan baca ulasan daripada pengguna dan pakar.",
     "loadingSearch": "Memuatkan carian…",
     "featuredBadge": "Ditampilkan",

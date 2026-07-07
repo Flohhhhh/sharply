@@ -128,7 +128,13 @@
     "loadingComparison": "Cargando comparación…"
   },
   "home": {
-    "heroTitle": "Especificaciones reales, reseñas reales, muy rápido.",
+    "heroTitleLine1": "Equipamiento fotográfico,",
+    "heroTitleLine2LeadIn": "",
+    "heroTitleRotatingWords": {
+      "simple": "simple.",
+      "fast": "rápido.",
+      "easy": "fácil."
+    },
     "heroSubtitle": "Busca cualquier equipo, encuentra especificaciones y lee reseñas tanto de usuarios como de expertos.",
     "loadingSearch": "Cargando búsqueda…",
     "featuredBadge": "Destacado",
