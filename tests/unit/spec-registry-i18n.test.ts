@@ -1,5 +1,5 @@
 import { describe,expect,it } from "vitest";
-import { MOUNTS } from "~/lib/generated";
+import { MOUNTS,SENSOR_FORMATS } from "~/lib/generated";
 import {
   buildGearSpecsSections,
   buildEditSidebarSections,
@@ -270,5 +270,67 @@ describe("spec registry i18n", () => {
     expect(
       analogSection?.data.find((row) => row.key === "maxContinuousFps")?.value,
     ).toBe("3 FPS");
+  });
+
+  it("hides image circle as a separate integrated-lens row while preserving focal length equivalence", () => {
+    const fixedLensMount = MOUNTS.find((mount) => mount.value === "fixed-lens");
+    const apsC = SENSOR_FORMATS.find((format) => format.slug === "aps-c");
+    const item = createGearItem({
+      gearType: "CAMERA",
+      mountIds: fixedLensMount ? [fixedLensMount.id] : null,
+      cameraSpecs: {
+        sensorFormatId: apsC?.id,
+      } as GearItem["cameraSpecs"],
+      fixedLensSpecs: {
+        isPrime: true,
+        focalLengthMinMm: 23,
+        focalLengthMaxMm: 23,
+        imageCircleSizeId: apsC?.id,
+      } as GearItem["fixedLensSpecs"],
+    });
+
+    const sections = buildGearSpecsSections(item, {
+      locale: "en",
+    });
+    const fixedLensSection = sections.find(
+      (section) => section.id === "fixed-lens",
+    );
+
+    expect(
+      fixedLensSection?.data.some(
+        (row) => row.key === "fixedImageCircleSize",
+      ),
+    ).toBe(false);
+    expect(fixedLensSection?.data.find((row) => row.key === "focalLength")).toEqual(
+      expect.objectContaining({
+        label: "Focal Length",
+        value: expect.anything(),
+      }),
+    );
+  });
+
+  it("continues to show image circle for standalone lenses", () => {
+    const apsC = SENSOR_FORMATS.find((format) => format.slug === "aps-c");
+    const item = createGearItem({
+      gearType: "LENS",
+      lensSpecs: {
+        isPrime: true,
+        focalLengthMinMm: 35,
+        focalLengthMaxMm: 35,
+        imageCircleSizeId: apsC?.id,
+      } as GearItem["lensSpecs"],
+    });
+
+    const sections = buildGearSpecsSections(item, {
+      locale: "en",
+    });
+    const opticsSection = sections.find((section) => section.id === "lens-optics");
+
+    expect(opticsSection?.data.find((row) => row.key === "imageCircleSize")).toEqual(
+      expect.objectContaining({
+        label: "Image Circle Size",
+        value: "APS-C",
+      }),
+    );
   });
 });

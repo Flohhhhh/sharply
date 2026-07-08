@@ -283,6 +283,7 @@ export type SpecFieldDef = {
   ) => React.ReactNode; // Format for display (table, etc.)
   editElementId?: string; // DOM id to focus in the edit UI when navigating from sidebar
   condition?: (item: GearItem) => boolean; // Optional: when to show this field
+  hideInSpecsTable?: boolean; // Optional: keep field available to edit/navigation but hide from public specs table
   condenseOnMobile?: boolean; // Whether to condense the field on mobile
 };
 
@@ -811,6 +812,7 @@ export const specDictionary: SpecSectionDef[] = [
         formatDisplay: (raw) =>
           typeof raw === "string" ? sensorNameFromId(raw) : undefined,
         editElementId: "fixed-image-circle-size",
+        hideInSpecsTable: true,
       },
       {
         key: "maxAperture",
@@ -2135,7 +2137,11 @@ export function buildGearSpecsSections(
       title: resolveSectionTitle(section, translationContext),
       searchTerms: uniqueNonEmptyStrings([section.title]),
       data: section.fields
-        .filter((field) => !field.condition || field.condition(item))
+        .filter(
+          (field) =>
+            !field.hideInSpecsTable &&
+            (!field.condition || field.condition(item)),
+        )
         .map((field) => {
           const raw = field.getRawValue(item);
           const rawValue = field.formatDisplay
