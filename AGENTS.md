@@ -50,7 +50,7 @@ Sharply is a photography gear database and cataloging application built with Nex
 
 ## Agent-Specific Instructions
 
-- **Always check linting** errors after significant changes using `npm run lint` and correct any errors related to changed/touched files in the scope of your task. (Errors only, not warnings)
+- **Always check linting** errors after significant changes using `npm run lint` scoped to the touched files and correct any errors related to changed/touched files in the scope of your task. (Errors only, not warnings)
 
 ### Server Code Structure (data/service/actions)
 
@@ -74,9 +74,9 @@ Sharply is a photography gear database and cataloging application built with Nex
 
 ### Running lint and typecheck
 
-- `npm run lint` — runs the ESLint CLI.
+- `npm run lint` — runs the ESLint CLI. (can be scoped to check touched files)
 - `npm run typecheck` — runs TypeScript with `--noEmit`.
-- `npm run check` — runs the combined static validation pass (`lint` + `typecheck`).
+- `npm run check` — for large changes, runs the combined static validation pass (`lint` + `typecheck`).
 
 ### Running tests
 
