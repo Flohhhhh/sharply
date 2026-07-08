@@ -29,7 +29,7 @@ Notes:
 ## Depth Behavior
 
 - 0 segments: Global hub; applies brand affinity cookie for default brand context but never redirects.
-- 1 segment: Brand hub.
+- 1 segment: Brand hub. If the brand has published browse-visible gear in exactly one category, this route redirects to that category (`/browse/[brand]/cameras` or `/browse/[brand]/lenses`) instead of showing the intermediate category chooser.
 - 2 segments: Brand + category browse (always-on filters and mount chips).
 - 3 segments: Brand + category + mount minimal list.
 
@@ -90,7 +90,10 @@ Notes:
 - Depth 0 (`/browse`): Featured brand buttons, Latest Gear, Trending Gear; no breadcrumbs.
   - Brand ordering for browse pickers and featured buttons follows `BRANDS[*].sort_order` from generated constants when present, then falls back to alphabetical ordering for unranked brands.
   - The Trending Gear strip always tries to show 3 unique cards by using scoped `7d` trending first, then scoped `30d` trending, then newest gear as a final fallback.
-- Depth 1: Large buttons for Cameras/Lenses.
+- Depth 1: Large buttons for Cameras/Lenses when both categories have published gear.
+  - Empty categories are hidden.
+  - If exactly one category has published gear, the brand route redirects directly to that category.
+  - If neither category has published gear, the category button grid is omitted and the brand-scoped latest/trending content still renders.
   - The nested brand hub content reuses the same 3-card trending fallback behavior.
 - Depth 2: Large buttons for mounts; filter dialog + pills; "showing X results".
   - Mount layout (after filtering/auto-hide):

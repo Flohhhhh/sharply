@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { JSX } from "react";
 import { Suspense } from "react";
 import { GearCardSkeleton } from "~/components/gear/gear-card";
+import type { Locale } from "~/i18n/config";
+import { localizePathname } from "~/i18n/routing";
 import { BRANDS,MOUNTS } from "~/lib/constants";
 import { getMountDisplayName } from "~/lib/mapping/mounts-map";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
@@ -12,7 +15,10 @@ import {
 } from "~/lib/static-generation";
 import {
   buildSeo,
+  fetchBrandBrowseCategoryCounts,
   fetchBrowseListPage,
+  getBrowseCategoryAvailability,
+  getSingleCategoryBrandBrowseRedirectPath,
   resolveScopeOrThrow,
 } from "~/server/gear/browse/service";
 import { fetchTrendingSlugs } from "~/server/popularity/service";
@@ -83,11 +89,24 @@ export default async function BrowseCatchAll({
   }
 
   if (depth === 1) {
+    const categoryCounts = await fetchBrandBrowseCategoryCounts(brand!.id);
+    const redirectPath = getSingleCategoryBrandBrowseRedirectPath({
+      brandSlug: brand!.slug,
+      counts: categoryCounts,
+    });
+
+    if (redirectPath) {
+      redirect(localizePathname(redirectPath, locale as Locale));
+    }
+
     return (
       <main className="space-y-6 pb-24">
         <Breadcrumbs brand={{ name: brand!.name, slug: brand!.slug }} />
         <h1 className="text-3xl font-semibold">{brand!.name}</h1>
-        <BrandContent brandSlug={brand!.slug} />
+        <BrandContent
+          brandSlug={brand!.slug}
+          categoryAvailability={getBrowseCategoryAvailability(categoryCounts)}
+        />
       </main>
     );
   }

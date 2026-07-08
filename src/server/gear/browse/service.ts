@@ -1,5 +1,9 @@
 import { notFound } from "next/navigation";
 import "server-only";
+export {
+  getBrowseCategoryAvailability,
+  getSingleCategoryBrandBrowseRedirectPath,
+} from "~/lib/browse/category-availability";
 import type { BrowseFilters } from "~/lib/browse/filters";
 import {
   normalizeBrowseFilters,
@@ -22,6 +26,7 @@ import {
   getBrandBySlug,
   getMountByShortName,
   getMountsForBrand,
+  getPublishedGearCategoryCountsForBrand,
   getReleaseOrderedGearPage,
   searchGear,
 } from "./data";
@@ -95,6 +100,10 @@ export function selectBrowseTrendingRowItems(params: {
 
 export async function fetchMountsForBrand(brandId: string) {
   return getMountsForBrand(brandId);
+}
+
+export async function fetchBrandBrowseCategoryCounts(brandId: string) {
+  return getPublishedGearCategoryCountsForBrand(brandId);
 }
 
 export async function fetchBrowseTrendingRowItems(params: {

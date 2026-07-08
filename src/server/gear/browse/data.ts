@@ -79,6 +79,34 @@ export function getCategories() {
   return ["cameras", "lenses"] as GearCategorySlug[];
 }
 
+export type PublishedGearCategoryCounts = Record<GearCategorySlug, number>;
+
+export async function getPublishedGearCategoryCountsForBrand(
+  brandId: string,
+): Promise<PublishedGearCategoryCounts> {
+  const countCategory = async (category: GearCategorySlug) => {
+    const rows = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(gear)
+      .where(
+        and(
+          buildPublishedGearClause(),
+          eq(gear.brandId, brandId),
+          inArray(gear.gearType, gearCategoryToTypes[category]),
+        ),
+      );
+
+    return Number(rows[0]?.count ?? 0);
+  };
+
+  const [cameras, lenses] = await Promise.all([
+    countCategory("cameras"),
+    countCategory("lenses"),
+  ]);
+
+  return { cameras, lenses };
+}
+
 export async function getMountByShortName(shortName: string, brandId?: string) {
   const lc = shortName.toLowerCase();
   const row = MOUNT_CONSTANTS.find((m) => {
