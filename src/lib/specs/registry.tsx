@@ -87,6 +87,25 @@ function formatDecimalCompact(
   return Number.isInteger(n) ? String(n) : String(Number(n.toFixed(1)));
 }
 
+function formatWeightGrams(
+  value: number | string | null | undefined,
+): string | undefined {
+  if (value == null) return undefined;
+  if (typeof value === "string" && value.trim().length === 0) return undefined;
+
+  const n = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(n)) return undefined;
+
+  if (n >= 1000) {
+    const kg = n / 1000;
+    const formattedKg = Number.isInteger(kg) ? String(kg) : String(Number(kg.toFixed(2)));
+    return `${formattedKg} kg`;
+  }
+
+  const formattedGrams = Number.isInteger(n) ? String(n) : String(Number(n.toFixed(1)));
+  return `${formattedGrams} g`;
+}
+
 function formatStorageGb(value: unknown): string | undefined {
   if (value == null) return undefined;
   const num = typeof value === "number" ? value : Number(value);
@@ -418,10 +437,8 @@ export const specDictionary: SpecSectionDef[] = [
         label: "Weight",
         searchTerms: ["mass"],
         getRawValue: (item) => item.weightGrams,
-        formatDisplay: (raw) => {
-          const n = raw == null ? NaN : Number(raw);
-          return Number.isFinite(n) ? `${n} g` : undefined;
-        },
+        formatDisplay: (raw) =>
+          formatWeightGrams(raw as number | string | null | undefined),
         editElementId: "weight",
       },
       {

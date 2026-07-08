@@ -250,6 +250,27 @@ describe("spec registry i18n", () => {
     });
   });
 
+  it("formats weight grams with metric units", () => {
+    const getWeightValue = (weightGrams: number | string | null | undefined) =>
+      buildGearSpecsSections(
+        createGearItem({
+          weightGrams,
+        }),
+        {
+          locale: "en",
+        },
+      )
+        .find((section) => section.id === "core")
+        ?.data.find((row) => row.key === "weightGrams")?.value;
+
+    expect(getWeightValue(450)).toBe("450 g");
+    expect(getWeightValue("999.5")).toBe("999.5 g");
+    expect(getWeightValue(1000)).toBe("1 kg");
+    expect(getWeightValue(12520)).toBe("12.52 kg");
+    expect(getWeightValue("")).toBeUndefined();
+    expect(getWeightValue(null)).toBeUndefined();
+  });
+
   it("renders analog max continuous fps without trailing .0 for whole numbers", () => {
     const sections = buildGearSpecsSections(
       createGearItem({
