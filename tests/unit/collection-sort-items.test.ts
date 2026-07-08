@@ -9,6 +9,8 @@ function makeItem(params: {
   brandName?: string | null;
   releaseDate?: string | null;
   sortOrder?: number | null;
+  focalLengthMinMm?: number | null;
+  focalLengthMaxMm?: number | null;
 }): GearItem {
   return {
     id: params.id,
@@ -25,6 +27,15 @@ function makeItem(params: {
           sortOrder: params.sortOrder ?? null,
         } as GearItem["brands"])
       : null,
+    lensSpecs:
+      params.focalLengthMinMm !== undefined ||
+      params.focalLengthMaxMm !== undefined
+        ? ({
+            gearId: params.id,
+            focalLengthMinMm: params.focalLengthMinMm ?? null,
+            focalLengthMaxMm: params.focalLengthMaxMm ?? null,
+          } as GearItem["lensSpecs"])
+        : null,
   } as GearItem;
 }
 
@@ -123,6 +134,156 @@ describe("sortCollectionItems", () => {
     expect(sorted.map((item) => item.id)).toEqual([
       "canon-older",
       "nikon-newer",
+    ]);
+  });
+
+  it("places the camera brand group with the most items first", () => {
+    const sorted = sortCollectionItems([
+      makeItem({
+        id: "canon-new",
+        name: "EOS R5 II",
+        gearType: "CAMERA",
+        brandName: "Canon",
+        releaseDate: "2024-07-17",
+        sortOrder: 1,
+      }),
+      makeItem({
+        id: "nikon-old",
+        name: "Z6",
+        gearType: "CAMERA",
+        brandName: "Nikon",
+        releaseDate: "2018-08-23",
+        sortOrder: 2,
+      }),
+      makeItem({
+        id: "nikon-new",
+        name: "Zf",
+        gearType: "CAMERA",
+        brandName: "Nikon",
+        releaseDate: "2023-09-20",
+        sortOrder: 2,
+      }),
+    ]);
+
+    expect(sorted.map((item) => item.id)).toEqual([
+      "nikon-new",
+      "nikon-old",
+      "canon-new",
+    ]);
+  });
+
+  it("sorts lenses by brand and then focal length low to high before release date", () => {
+    const sorted = sortCollectionItems([
+      makeItem({
+        id: "nikon-400",
+        name: "NIKKOR Z 400mm f/4.5 VR S",
+        gearType: "LENS",
+        brandName: "Nikon",
+        releaseDate: "2022-06-29",
+        focalLengthMinMm: 400,
+        focalLengthMaxMm: 400,
+      }),
+      makeItem({
+        id: "canon-400",
+        name: "RF 400mm F2.8L IS USM",
+        gearType: "LENS",
+        brandName: "Canon",
+        releaseDate: "2021-04-14",
+        focalLengthMinMm: 400,
+        focalLengthMaxMm: 400,
+      }),
+      makeItem({
+        id: "nikon-14-30",
+        name: "NIKKOR Z 14-30mm f/4 S",
+        gearType: "LENS",
+        brandName: "Nikon",
+        releaseDate: "2019-01-08",
+        focalLengthMinMm: 14,
+        focalLengthMaxMm: 30,
+      }),
+      makeItem({
+        id: "canon-35",
+        name: "RF 35mm F1.8 Macro IS STM",
+        gearType: "LENS",
+        brandName: "Canon",
+        releaseDate: "2018-09-05",
+        focalLengthMinMm: 35,
+        focalLengthMaxMm: 35,
+      }),
+    ]);
+
+    expect(sorted.map((item) => item.id)).toEqual([
+      "canon-35",
+      "canon-400",
+      "nikon-14-30",
+      "nikon-400",
+    ]);
+  });
+
+  it("places the lens brand group with the most items first", () => {
+    const sorted = sortCollectionItems([
+      makeItem({
+        id: "canon-35",
+        name: "RF 35mm F1.8 Macro IS STM",
+        gearType: "LENS",
+        brandName: "Canon",
+        releaseDate: "2018-09-05",
+        sortOrder: 1,
+        focalLengthMinMm: 35,
+        focalLengthMaxMm: 35,
+      }),
+      makeItem({
+        id: "nikon-50",
+        name: "AF-S NIKKOR 50mm f/1.8G",
+        gearType: "LENS",
+        brandName: "Nikon",
+        releaseDate: "2011-04-27",
+        sortOrder: 2,
+        focalLengthMinMm: 50,
+        focalLengthMaxMm: 50,
+      }),
+      makeItem({
+        id: "nikon-40",
+        name: "NIKKOR Z 40mm f/2",
+        gearType: "LENS",
+        brandName: "Nikon",
+        releaseDate: "2021-09-14",
+        sortOrder: 2,
+        focalLengthMinMm: 40,
+        focalLengthMaxMm: 40,
+      }),
+    ]);
+
+    expect(sorted.map((item) => item.id)).toEqual([
+      "nikon-40",
+      "nikon-50",
+      "canon-35",
+    ]);
+  });
+
+  it("places lenses without focal length after lenses with focal length", () => {
+    const sorted = sortCollectionItems([
+      makeItem({
+        id: "unknown-lens",
+        name: "Repurposed Disposable Camera Lens",
+        gearType: "LENS",
+        brandName: "Retropia",
+        releaseDate: "2024-01-01",
+      }),
+      makeItem({
+        id: "known-lens",
+        name: "NIKKOR Z 40mm f/2",
+        gearType: "LENS",
+        brandName: "Nikon",
+        releaseDate: "2021-09-14",
+        focalLengthMinMm: 40,
+        focalLengthMaxMm: 40,
+      }),
+    ]);
+
+    expect(sorted.map((item) => item.id)).toEqual([
+      "known-lens",
+      "unknown-lens",
     ]);
   });
 

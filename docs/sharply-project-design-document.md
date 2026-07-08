@@ -78,7 +78,7 @@ It is designed to serve both experienced photographers seeking deep technical da
 ### **3.4 Contributor Profiles**
 
 - Public “gear fleet” and wishlist.
-- Collection presentation groups items by gear type first, then brand, then newest release date within each brand.
+- Collection presentation groups cameras first, then lenses. Within both camera and lens sections, the brand group with the most owned items appears first, with manual brand order/name as the tie-break. Cameras are sorted by newest release date within each brand. Lenses are sorted by minimum focal length from low to high within each brand; lenses missing focal-length specs appear after lenses with known focal lengths in that brand group.
 - Owned collection items can optionally pin a personal colorway choice for display, limited to colorways with a front-view image.
 - User-managed saved lists (default `Saved Items`) that coexist with wishlist/collection.
 - Optional published shared lists via `/list/[slug]-[publicId]`.
