@@ -26,6 +26,8 @@ This project keeps root-level configuration files to the minimum required by fra
   - `POST /api/exif-tracking/save`
   - `POST /exif-viewer/parse`
   - `POST /*/exif-viewer/parse`
+  - `POST /lists/under-construction`
+  - `POST /*/lists/under-construction`
   - `POST /gear/*`
   - `POST /*/gear/*`
 - Server-side BotID classification is isolated in `src/server/security/botid.ts`, which wraps `checkBotId()` and keeps request-scoped detection logic out of UI code.
