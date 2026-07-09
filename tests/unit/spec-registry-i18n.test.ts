@@ -1,5 +1,5 @@
 import { describe,expect,it } from "vitest";
-import { MOUNTS } from "~/lib/generated";
+import { MOUNTS,SENSOR_FORMATS } from "~/lib/generated";
 import {
   buildGearSpecsSections,
   buildEditSidebarSections,
@@ -250,6 +250,27 @@ describe("spec registry i18n", () => {
     });
   });
 
+  it("formats weight grams with metric units", () => {
+    const getWeightValue = (weightGrams: number | string | null | undefined) =>
+      buildGearSpecsSections(
+        createGearItem({
+          weightGrams,
+        }),
+        {
+          locale: "en",
+        },
+      )
+        .find((section) => section.id === "core")
+        ?.data.find((row) => row.key === "weightGrams")?.value;
+
+    expect(getWeightValue(450)).toBe("450 g");
+    expect(getWeightValue("999.5")).toBe("999.5 g");
+    expect(getWeightValue(1000)).toBe("1 kg");
+    expect(getWeightValue(12520)).toBe("12.52 kg");
+    expect(getWeightValue("")).toBeUndefined();
+    expect(getWeightValue(null)).toBeUndefined();
+  });
+
   it("renders analog max continuous fps without trailing .0 for whole numbers", () => {
     const sections = buildGearSpecsSections(
       createGearItem({
@@ -270,5 +291,67 @@ describe("spec registry i18n", () => {
     expect(
       analogSection?.data.find((row) => row.key === "maxContinuousFps")?.value,
     ).toBe("3 FPS");
+  });
+
+  it("hides image circle as a separate integrated-lens row while preserving focal length equivalence", () => {
+    const fixedLensMount = MOUNTS.find((mount) => mount.value === "fixed-lens");
+    const apsC = SENSOR_FORMATS.find((format) => format.slug === "aps-c");
+    const item = createGearItem({
+      gearType: "CAMERA",
+      mountIds: fixedLensMount ? [fixedLensMount.id] : null,
+      cameraSpecs: {
+        sensorFormatId: apsC?.id,
+      } as GearItem["cameraSpecs"],
+      fixedLensSpecs: {
+        isPrime: true,
+        focalLengthMinMm: 23,
+        focalLengthMaxMm: 23,
+        imageCircleSizeId: apsC?.id,
+      } as GearItem["fixedLensSpecs"],
+    });
+
+    const sections = buildGearSpecsSections(item, {
+      locale: "en",
+    });
+    const fixedLensSection = sections.find(
+      (section) => section.id === "fixed-lens",
+    );
+
+    expect(
+      fixedLensSection?.data.some(
+        (row) => row.key === "fixedImageCircleSize",
+      ),
+    ).toBe(false);
+    expect(fixedLensSection?.data.find((row) => row.key === "focalLength")).toEqual(
+      expect.objectContaining({
+        label: "Focal Length",
+        value: expect.anything(),
+      }),
+    );
+  });
+
+  it("continues to show image circle for standalone lenses", () => {
+    const apsC = SENSOR_FORMATS.find((format) => format.slug === "aps-c");
+    const item = createGearItem({
+      gearType: "LENS",
+      lensSpecs: {
+        isPrime: true,
+        focalLengthMinMm: 35,
+        focalLengthMaxMm: 35,
+        imageCircleSizeId: apsC?.id,
+      } as GearItem["lensSpecs"],
+    });
+
+    const sections = buildGearSpecsSections(item, {
+      locale: "en",
+    });
+    const opticsSection = sections.find((section) => section.id === "lens-optics");
+
+    expect(opticsSection?.data.find((row) => row.key === "imageCircleSize")).toEqual(
+      expect.objectContaining({
+        label: "Image Circle Size",
+        value: "APS-C",
+      }),
+    );
   });
 });

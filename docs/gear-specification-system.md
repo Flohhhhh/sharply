@@ -139,7 +139,7 @@ For cameras that use the `fixed-lens` mount, a simplified lens spec table stores
   - `focalLengthMinMm` (decimal, 0.1mm precision), `focalLengthMaxMm` (decimal, 0.1mm precision)
   - `maxApertureWide` (decimal), `maxApertureTele` (decimal)
   - `minApertureWide` (decimal), `minApertureTele` (decimal)
-  - `imageCircleSizeId` references `sensor_formats.id` to describe coverage
+  - `imageCircleSizeId` references `sensor_formats.id` to describe coverage for equivalent focal-length calculations and editing workflows; integrated-lens gear pages do not render it as a separate spec row
   - `hasAutofocus` (boolean)
   - `minimumFocusDistanceMm` (int)
   - `frontElementRotates` (boolean)
@@ -148,7 +148,7 @@ For cameras that use the `fixed-lens` mount, a simplified lens spec table stores
 
 UI: On the edit form, when the Mount is `fixed-lens` (via `mountIds[0]` or `mountId`), an "Integrated Lens" section appears, reusing the same focal length and aperture inputs as standalone lens editing.
 
-Rendering: On gear pages for cameras with `fixed-lens`, a dedicated "Integrated Lens" specs section is displayed.
+Rendering: On gear pages for cameras with `fixed-lens`, a dedicated "Integrated Lens" specs section is displayed. Focal length can use the integrated lens image-circle value for equivalent focal-length math, but Image Circle Size is hidden as its own row because the camera sensor format already describes the relevant capture area.
 
 #### Supporting Editorial Tables
 

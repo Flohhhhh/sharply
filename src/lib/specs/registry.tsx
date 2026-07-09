@@ -87,6 +87,25 @@ function formatDecimalCompact(
   return Number.isInteger(n) ? String(n) : String(Number(n.toFixed(1)));
 }
 
+function formatWeightGrams(
+  value: number | string | null | undefined,
+): string | undefined {
+  if (value == null) return undefined;
+  if (typeof value === "string" && value.trim().length === 0) return undefined;
+
+  const n = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(n)) return undefined;
+
+  if (n >= 1000) {
+    const kg = n / 1000;
+    const formattedKg = Number.isInteger(kg) ? String(kg) : String(Number(kg.toFixed(2)));
+    return `${formattedKg} kg`;
+  }
+
+  const formattedGrams = Number.isInteger(n) ? String(n) : String(Number(n.toFixed(1)));
+  return `${formattedGrams} g`;
+}
+
 function formatStorageGb(value: unknown): string | undefined {
   if (value == null) return undefined;
   const num = typeof value === "number" ? value : Number(value);
@@ -283,6 +302,7 @@ export type SpecFieldDef = {
   ) => React.ReactNode; // Format for display (table, etc.)
   editElementId?: string; // DOM id to focus in the edit UI when navigating from sidebar
   condition?: (item: GearItem) => boolean; // Optional: when to show this field
+  hideInSpecsTable?: boolean; // Optional: keep field available to edit/navigation but hide from public specs table
   condenseOnMobile?: boolean; // Whether to condense the field on mobile
 };
 
@@ -417,10 +437,8 @@ export const specDictionary: SpecSectionDef[] = [
         label: "Weight",
         searchTerms: ["mass"],
         getRawValue: (item) => item.weightGrams,
-        formatDisplay: (raw) => {
-          const n = raw == null ? NaN : Number(raw);
-          return Number.isFinite(n) ? `${n} g` : undefined;
-        },
+        formatDisplay: (raw) =>
+          formatWeightGrams(raw as number | string | null | undefined),
         editElementId: "weight",
       },
       {
@@ -811,6 +829,7 @@ export const specDictionary: SpecSectionDef[] = [
         formatDisplay: (raw) =>
           typeof raw === "string" ? sensorNameFromId(raw) : undefined,
         editElementId: "fixed-image-circle-size",
+        hideInSpecsTable: true,
       },
       {
         key: "maxAperture",
@@ -2135,7 +2154,11 @@ export function buildGearSpecsSections(
       title: resolveSectionTitle(section, translationContext),
       searchTerms: uniqueNonEmptyStrings([section.title]),
       data: section.fields
-        .filter((field) => !field.condition || field.condition(item))
+        .filter(
+          (field) =>
+            !field.hideInSpecsTable &&
+            (!field.condition || field.condition(item)),
+        )
         .map((field) => {
           const raw = field.getRawValue(item);
           const rawValue = field.formatDisplay
