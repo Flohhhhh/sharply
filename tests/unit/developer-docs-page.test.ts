@@ -76,7 +76,7 @@ describe("DeveloperDocsPage", () => {
     expect(markup.match(/exampleCurl/g)).toHaveLength(4);
     expect(markup.match(/exampleTypeScript/g)).toHaveLength(4);
     expect(markup.match(/curl -sS/g)).toHaveLength(4);
-    expect(markup.match(/class="pl-6"/g)).toHaveLength(4);
+    expect(markup.match(/class="pl-12"/g)).toHaveLength(4);
     expect(markup).not.toContain("tracking-wide uppercase");
     const endpointOrder = [
       "/api/v1/search</code>",
