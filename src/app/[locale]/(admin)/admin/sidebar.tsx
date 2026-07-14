@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import type { UserRole } from "~/auth";
 // import {
 //     IconCamera,
@@ -42,13 +43,14 @@ import {
   ListCheck,
   Lock,
   Plus,
+  SquareTerminal,
   Users,
   Video,
-  Wrench
+  Wrench,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
-import { Dialog,DialogContent,DialogTrigger } from "~/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useSession } from "~/lib/auth/auth-client";
 import { requireRole } from "~/lib/auth/auth-helpers";
@@ -116,9 +118,16 @@ const sidebarItems: SidebarItem[] = [
     icon: <Lock className="size-5" />,
     allowed: ["ADMIN", "SUPERADMIN"],
   },
+  {
+    label: "developerApi",
+    href: "/admin/developer-api",
+    icon: <SquareTerminal className="size-5" />,
+    allowed: ["ADMIN", "SUPERADMIN"],
+  },
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const t = useTranslations("developerApi");
   const { data, isPending, error } = useSession();
 
   if (isPending) {
@@ -183,7 +192,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     className="data-[slot=sidebar-menu-item]:!p-1.5"
                   >
                     <Link href={item.href}>
-                      {item.icon} {item.label}
+                      {item.icon}{" "}
+                      {item.label === "developerApi"
+                        ? t("admin.navLabel")
+                        : item.label}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

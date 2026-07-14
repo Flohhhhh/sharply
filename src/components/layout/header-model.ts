@@ -35,6 +35,7 @@ export type HeaderUser = {
   name?: string | null;
   email?: string | null;
   image?: string | null;
+  developerAccessEnabled?: boolean;
 } | null;
 
 export type HeaderNotificationsData = {
@@ -79,6 +80,7 @@ export type HeaderFooterItems = HeaderFooterItemsSource;
 
 export type HeaderLabels = {
   adminPanel: string;
+  developerPortal: string;
   signIn: string;
   profile: string;
   account: string;
@@ -90,6 +92,7 @@ export type HeaderViewModel = {
   homeHref: string;
   adminHref: string;
   accountHref: string;
+  developerHref: string;
   labels: HeaderLabels;
   navItems: HeaderNavItem[];
   footerItems: HeaderFooterItems;
@@ -101,7 +104,9 @@ export function buildHeaderRouteState(normalizedPathname: string): {
   scrollResponsive: boolean;
 } {
   const isHomePage = normalizedPathname === "/";
-  const isSearchResultsPage = normalizedPathname === "/search" || normalizedPathname.startsWith("/search/");
+  const isSearchResultsPage =
+    normalizedPathname === "/search" ||
+    normalizedPathname.startsWith("/search/");
 
   if (isHomePage) {
     return {
@@ -183,6 +188,7 @@ export function buildHeaderViewModel({
     homeHref: localizePathname("/", locale),
     adminHref: localizePathname("/admin", locale),
     accountHref: localizePathname("/profile/settings", locale),
+    developerHref: localizePathname("/developer", locale),
     labels,
     navItems: localizeHeaderNavItems(navItems, locale),
     footerItems: localizeHeaderFooterItems(footerItems, locale),

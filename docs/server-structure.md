@@ -78,6 +78,13 @@ This document explains how to organize server-only code under `src/server/**`.
   - `server/metrics/data.ts`: `getGearCount`, `getContributionCount`
   - `server/metrics/service.ts`: `fetchGearCount`, `fetchContributionCount`
 
+- Developer API
+  - `server/developer-api/data.ts`: API-key, rate-bucket, and usage aggregate persistence.
+  - `server/developer-api/service.ts`: access checks, key lifecycle, rate limiting, and composition of existing search/gear domain reads.
+  - `server/developer-api/actions.ts`: authenticated portal/admin mutations only.
+  - `server/developer-api/http.ts`: shared public-route authentication and response handling.
+  - Developer route handlers must not call the website’s API routes or access Drizzle directly.
+
 ## Import Rules
 
 - UI/Client Components → call Server Actions (for mutations) or import from `server/**/service.ts` (for reads).

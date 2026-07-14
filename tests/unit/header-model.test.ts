@@ -1,16 +1,17 @@
-import { describe,expect,it } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   buildHeaderCallbackUrl,
   buildHeaderRouteState,
   buildHeaderViewModel,
   type HeaderLabels,
 } from "~/components/layout/header-model";
-import { getFooterItems,getNavItems } from "~/lib/nav-items";
+import { getFooterItems, getNavItems } from "~/lib/nav-items";
 
 const t = (key: string) => key;
 
 const labels: HeaderLabels = {
   adminPanel: "Admin Panel",
+  developerPortal: "Developer Portal",
   signIn: "Sign In",
   profile: "Profile",
   account: "Account",
@@ -52,9 +53,12 @@ describe("header model", () => {
     expect(model.homeHref).toBe("/ja");
     expect(model.adminHref).toBe("/ja/admin");
     expect(model.accountHref).toBe("/ja/profile/settings");
+    expect(model.developerHref).toBe("/ja/developer");
     expect(model.navItems[0]?.href).toBe("/ja/about");
     expect(model.footerItems.bottomLinks).toEqual(
-      expect.arrayContaining([expect.objectContaining({ href: "/ja/contact" })]),
+      expect.arrayContaining([
+        expect.objectContaining({ href: "/ja/contact" }),
+      ]),
     );
   });
 
@@ -70,5 +74,6 @@ describe("header model", () => {
     expect(model.homeHref).toBe("/");
     expect(model.adminHref).toBe("/admin");
     expect(model.accountHref).toBe("/profile/settings");
+    expect(model.developerHref).toBe("/developer");
   });
 });
