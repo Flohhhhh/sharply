@@ -2529,6 +2529,11 @@ export const users = appSchema.table("user", (d) => ({
   inviteId: varchar("invite_id", { length: 36 }),
   // Social links (array of {label: string, url: string, icon?: string})
   socialLinks: jsonb("social_links"),
+  // Developer API access is explicitly granted by an administrator.
+  developerAccessEnabled: d
+    .boolean("developer_access_enabled")
+    .notNull()
+    .default(false),
   createdAt,
   updatedAt: d
     .timestamp("updated_at")
@@ -2553,6 +2558,77 @@ export const usersRelations = relations(users, ({ many }) => ({
 
 // Export the user type for use throughout the application
 export type User = typeof users.$inferSelect;
+
+// -- DEVELOPER API --
+
+/**
+ * User-owned credentials for the public developer API. The plaintext secret
+ * is never persisted: only a SHA-256 digest and non-sensitive display prefix
+ * are stored.
+ */
+export const developerApiKeys = appSchema.table(
+  "developer_api_keys",
+  (d) => ({
+    id: d
+      .varchar({ length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    userId: d
+      .varchar("user_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: d.varchar({ length: 100 }).notNull(),
+    keyPrefix: d.varchar("key_prefix", { length: 48 }).notNull(),
+    keyHash: d.varchar("key_hash", { length: 64 }).notNull().unique(),
+    lastUsedAt: d.timestamp("last_used_at", { withTimezone: true }),
+    revokedAt: d.timestamp("revoked_at", { withTimezone: true }),
+    revokedByUserId: d
+      .varchar("revoked_by_user_id", { length: 255 })
+      .references(() => users.id, { onDelete: "set null" }),
+    createdAt,
+  }),
+  (t) => [
+    index("developer_api_keys_user_active_idx").on(t.userId, t.revokedAt),
+    index("developer_api_keys_last_used_idx").on(t.lastUsedAt),
+  ],
+);
+
+/** Fixed UTC-minute counters used to atomically enforce per-key rate limits. */
+export const developerApiRateLimitBuckets = appSchema.table(
+  "developer_api_rate_limit_buckets",
+  (d) => ({
+    apiKeyId: d
+      .varchar("api_key_id", { length: 36 })
+      .notNull()
+      .references(() => developerApiKeys.id, { onDelete: "cascade" }),
+    windowStart: d.timestamp("window_start", { withTimezone: true }).notNull(),
+    requestCount: d.integer("request_count").notNull().default(0),
+  }),
+  (t) => [
+    primaryKey({ columns: [t.apiKeyId, t.windowStart] }),
+    index("developer_api_rate_limit_buckets_window_idx").on(t.windowStart),
+  ],
+);
+
+/** Daily request aggregates for the portal, admin view, and later billing. */
+export const developerApiUsageDaily = appSchema.table(
+  "developer_api_usage_daily",
+  (d) => ({
+    apiKeyId: d
+      .varchar("api_key_id", { length: 36 })
+      .notNull()
+      .references(() => developerApiKeys.id, { onDelete: "cascade" }),
+    usageDate: d.date("usage_date", { mode: "date" }).notNull(),
+    totalRequests: d.integer("total_requests").notNull().default(0),
+    searchRequests: d.integer("search_requests").notNull().default(0),
+    suggestionRequests: d.integer("suggestion_requests").notNull().default(0),
+    gearRequests: d.integer("gear_requests").notNull().default(0),
+  }),
+  (t) => [
+    primaryKey({ columns: [t.apiKeyId, t.usageDate] }),
+    index("developer_api_usage_daily_date_idx").on(t.usageDate),
+  ],
+);
 
 export const authSessions = appSchema.table(
   "auth_sessions",

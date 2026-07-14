@@ -18,6 +18,7 @@ export default async function Header({ locale }: { locale: Locale }) {
     footerItems: getFooterItems(tNav),
     labels: {
       adminPanel: tCommon("adminPanel"),
+      developerPortal: tCommon("developerPortal"),
       signIn: tCommon("signIn"),
       profile: tCommon("profile"),
       account: tCommon("account"),

@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { beforeEach,describe,expect,it,vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { HeaderViewModel } from "~/components/layout/header-model";
 
 const intlServerMocks = vi.hoisted(() => ({
@@ -37,13 +37,9 @@ describe("header server component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     intlServerMocks.getTranslations.mockImplementation(
-      async ({
-        namespace,
-      }: {
-        locale: string;
-        namespace: "common" | "nav";
-      }) =>
-        (key: string) => `${namespace}.${key}`,
+      async ({ namespace }: { locale: string; namespace: "common" | "nav" }) =>
+        (key: string) =>
+          `${namespace}.${key}`,
     );
   });
 
@@ -56,6 +52,7 @@ describe("header server component", () => {
     expect(model.homeHref).toBe("/ja");
     expect(model.adminHref).toBe("/ja/admin");
     expect(model.accountHref).toBe("/ja/profile/settings");
+    expect(model.developerHref).toBe("/ja/developer");
     expect(model.labels.signIn).toBe("common.signIn");
     expect(model.moreLabel).toBe("nav.more");
   });
@@ -68,8 +65,10 @@ describe("header server component", () => {
       homeHref: "/",
       adminHref: "/admin",
       accountHref: "/profile/settings",
+      developerHref: "/developer",
       labels: {
         adminPanel: "common.adminPanel",
+        developerPortal: "common.developerPortal",
         signIn: "common.signIn",
         profile: "common.profile",
         account: "common.account",

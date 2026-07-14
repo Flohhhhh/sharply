@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar,AvatarFallback,AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,9 +9,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut,Settings,User as UserIcon } from "lucide-react";
+import {
+  LogOut,
+  Settings,
+  SquareTerminal,
+  User as UserIcon,
+} from "lucide-react";
 import Link from "next/link";
-import { useMemo,useState } from "react";
+import { useMemo, useState } from "react";
 import type { HeaderLabels } from "~/components/layout/header-model";
 import { Spinner } from "~/components/ui/spinner";
 import { logOut } from "~/lib/auth";
@@ -24,6 +29,7 @@ export type UserMenuUser = {
   name?: string | null;
   email?: string | null;
   image?: string | null;
+  developerAccessEnabled?: boolean;
 } | null;
 
 export function UserMenu({
@@ -31,11 +37,16 @@ export function UserMenu({
   labels,
   profileHref,
   accountHref,
+  developerHref,
 }: {
   user: UserMenuUser;
-  labels: Pick<HeaderLabels, "account" | "anonymous" | "logOut" | "profile">;
+  labels: Pick<
+    HeaderLabels,
+    "account" | "anonymous" | "developerPortal" | "logOut" | "profile"
+  >;
   profileHref: string | null;
   accountHref: string;
+  developerHref: string;
 }) {
   const initials = useMemo(() => {
     const source = user?.name || user?.email || "?";
@@ -88,14 +99,22 @@ export function UserMenu({
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link
-            href={accountHref}
-            className="flex w-full items-center gap-2"
-          >
+          <Link href={accountHref} className="flex w-full items-center gap-2">
             <Settings className="size-4" />
             <span>{labels.account}</span>
           </Link>
         </DropdownMenuItem>
+        {user.developerAccessEnabled ? (
+          <DropdownMenuItem asChild>
+            <Link
+              href={developerHref}
+              className="flex w-full items-center gap-2"
+            >
+              <SquareTerminal className="size-4" />
+              <span>{labels.developerPortal}</span>
+            </Link>
+          </DropdownMenuItem>
+        ) : null}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           disabled={loggingOut}

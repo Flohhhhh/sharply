@@ -36,6 +36,11 @@ export const authAdditionalFields = {
       required: false,
       defaultValue: [],
     },
+    developerAccessEnabled: {
+      type: "boolean",
+      required: false,
+      defaultValue: false,
+    },
   },
 } satisfies {
   user: Record<string, DBFieldAttribute>;

@@ -169,6 +169,13 @@
       "when": 1783011090132,
       "tag": "0023_daily_zzzax",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1784051102838,
+      "tag": "0024_tiresome_lilandra",
+      "breakpoints": true
     }
   ]
 }

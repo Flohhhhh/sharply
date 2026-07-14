@@ -7,7 +7,10 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import Logo from "public/logo";
-import type { HeaderUser, HeaderViewModel } from "~/components/layout/header-model";
+import type {
+  HeaderUser,
+  HeaderViewModel,
+} from "~/components/layout/header-model";
 import {
   buildHeaderCallbackUrl,
   buildHeaderRouteState,
@@ -34,7 +37,9 @@ function HeaderSearchParamsSync({
   onNormalizedSearchChange: (value: string) => void;
 }) {
   const searchParams = useSearchParams();
-  const normalizedSearch = searchParams.toString() ? `?${searchParams.toString()}` : "";
+  const normalizedSearch = searchParams.toString()
+    ? `?${searchParams.toString()}`
+    : "";
 
   useEffect(() => {
     onNormalizedSearchChange(normalizedSearch);
@@ -75,11 +80,14 @@ export default function HeaderClient({
         name: session.user.name ?? null,
         email: session.user.email ?? null,
         image: session.user.image ?? null,
+        developerAccessEnabled: session.user.developerAccessEnabled ?? false,
       }
     : null;
 
   const isAdminOrEditor =
-    user?.role === "ADMIN" || user?.role === "SUPERADMIN" || user?.role === "EDITOR";
+    user?.role === "ADMIN" ||
+    user?.role === "SUPERADMIN" ||
+    user?.role === "EDITOR";
 
   const profileHref = (() => {
     if (!user) return null;
@@ -92,9 +100,12 @@ export default function HeaderClient({
     return profileSlug ? localizePathname(`/u/${profileSlug}`, locale) : null;
   })();
 
-  const { hasScrolled } = useScrollState(routeState.scrollResponsive ? 290 : Infinity);
+  const { hasScrolled } = useScrollState(
+    routeState.scrollResponsive ? 290 : Infinity,
+  );
   const shouldShowHeaderSearch =
-    routeState.initialMode === "compact" || (routeState.scrollResponsive && hasScrolled);
+    routeState.initialMode === "compact" ||
+    (routeState.scrollResponsive && hasScrolled);
   const sheetTopClass = shouldShowHeaderSearch
     ? "top-16 h-[calc(100vh-4rem)]"
     : "top-24 h-[calc(100vh-6rem)]";
@@ -221,6 +232,7 @@ export default function HeaderClient({
                     labels={model.labels}
                     profileHref={profileHref}
                     accountHref={model.accountHref}
+                    developerHref={model.developerHref}
                   />
                 </>
               ) : (

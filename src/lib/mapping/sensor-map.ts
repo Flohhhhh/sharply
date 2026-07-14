@@ -1,6 +1,11 @@
 import { SENSOR_FORMATS } from "~/lib/constants";
 import type { CameraSpecs } from "~/types/gear";
 
+export type SensorTypeSource = Pick<
+  CameraSpecs,
+  "sensorStackingType" | "sensorTechType" | "isBackSideIlluminated"
+>;
+
 // const FORMATS = SENSOR_FORMATS as Array<
 //   Pick<SensorFormat, "id" | "name" | "slug">
 // >;
@@ -29,7 +34,9 @@ export function sensorSlugFromId(
   return match?.slug;
 }
 
-export function sensorTypeLabel(cameraSpecs: CameraSpecs): string {
+export function sensorTypeLabel(
+  cameraSpecs: SensorTypeSource | null | undefined,
+): string {
   if (!cameraSpecs) {
     console.warn("[sensorTypeLabel] cameraSpecs is null");
     return "";

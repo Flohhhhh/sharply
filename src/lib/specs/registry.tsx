@@ -1,18 +1,16 @@
 import type { SpecsTableSection } from "~/app/[locale]/(pages)/gear/_components/specs-table";
 import { VideoSpecsSummary } from "~/app/[locale]/(pages)/gear/_components/video/video-summary";
 import { Badge } from "~/components/ui/badge";
-import {
-  formatDateWithPrecision,
-  type DatePrecision,
-} from "~/lib/format/date";
+import { isValidElement, type ReactNode } from "react";
+import { formatDateWithPrecision, type DatePrecision } from "~/lib/format/date";
 import { type GearRegion } from "~/lib/gear/region";
-import { AF_AREA_MODES,MOUNTS } from "~/lib/generated";
+import { AF_AREA_MODES, MOUNTS } from "~/lib/generated";
 import {
   formatCameraType,
   formatCardSlotDetails,
   formatPrecaptureSupport,
   formatPrice,
-  formatShutterType
+  formatShutterType,
 } from "~/lib/mapping";
 import {
   formatAnalogCameraType,
@@ -30,17 +28,19 @@ import { formatFilterType } from "~/lib/mapping/filter-types-map";
 import { formatFocalLengthRangeDisplay } from "~/lib/mapping/focal-length-map";
 import { formatFocusDistance } from "~/lib/mapping/focus-distance-map";
 import { formatMaxFpsDisplay } from "~/lib/mapping/max-fps-map";
+import { getMountLongNameById } from "~/lib/mapping/mounts-map";
 import {
-  getMountLongNameById
-} from "~/lib/mapping/mounts-map";
-import { sensorNameFromId,sensorTypeLabel } from "~/lib/mapping/sensor-map";
+  sensorNameFromId,
+  sensorTypeLabel,
+  type SensorTypeSource,
+} from "~/lib/mapping/sensor-map";
 import { cn } from "~/lib/utils";
 import {
   normalizedToCameraVideoModes,
   type VideoModeNormalized,
 } from "~/lib/video/mode-schema";
 import { buildVideoDisplayBundle } from "~/lib/video/transform";
-import type { CameraVideoMode,GearAlias,GearItem } from "~/types/gear";
+import type { CameraVideoMode, GearAlias, GearItem } from "~/types/gear";
 import { supportsVideoMeaningfully } from "./helpers";
 
 export type SpecTranslator = ((key: string) => string) & {
@@ -98,11 +98,15 @@ function formatWeightGrams(
 
   if (n >= 1000) {
     const kg = n / 1000;
-    const formattedKg = Number.isInteger(kg) ? String(kg) : String(Number(kg.toFixed(2)));
+    const formattedKg = Number.isInteger(kg)
+      ? String(kg)
+      : String(Number(kg.toFixed(2)));
     return `${formattedKg} kg`;
   }
 
-  const formattedGrams = Number.isInteger(n) ? String(n) : String(Number(n.toFixed(1)));
+  const formattedGrams = Number.isInteger(n)
+    ? String(n)
+    : String(Number(n.toFixed(1)));
   return `${formattedGrams} g`;
 }
 
@@ -186,7 +190,9 @@ function getVideoNotes(item: GearItem): string | null {
   return null;
 }
 
-function uniqueNonEmptyStrings(values: Array<string | null | undefined>): string[] {
+function uniqueNonEmptyStrings(
+  values: Array<string | null | undefined>,
+): string[] {
   return Array.from(
     new Set(
       values
@@ -250,7 +256,8 @@ function getFieldLabelKey(
   field: SpecFieldDef,
 ): string {
   return (
-    field.labelKey ?? `specRegistry.sections.${section.id}.fields.${field.key}.label`
+    field.labelKey ??
+    `specRegistry.sections.${section.id}.fields.${field.key}.label`
   );
 }
 
@@ -304,6 +311,37 @@ export type SpecFieldDef = {
   condition?: (item: GearItem) => boolean; // Optional: when to show this field
   hideInSpecsTable?: boolean; // Optional: keep field available to edit/navigation but hide from public specs table
   condenseOnMobile?: boolean; // Whether to condense the field on mobile
+  /** Set to null to exclude a website spec from the developer API. */
+  api?: null;
+};
+
+export type DeveloperApiSpecMetadata = {
+  /** Stable public field identifier. */
+  id: string;
+  /** Stable API grouping, intentionally independent from website sections. */
+  category: string;
+  /** English display label for the API category. */
+  categoryLabel: string;
+  /**
+   * Optional text-only exception for a field whose website formatter renders
+   * interactive or otherwise non-text UI. Normal fields reuse formatDisplay.
+   */
+  displayOverride?: (raw: unknown, item: GearItem) => string | undefined;
+};
+
+export type DeveloperApiSpecField = {
+  section: SpecSectionDef;
+  field: Omit<SpecFieldDef, "api"> & { api: DeveloperApiSpecMetadata };
+};
+
+export type DeveloperApiSpecCategory = {
+  id: string;
+  label: string;
+  fields: Array<{
+    id: string;
+    label: string;
+    searchTerms: string[];
+  }>;
 };
 
 export type SpecSectionDef = {
@@ -389,7 +427,8 @@ export const specDictionary: SpecSectionDef[] = [
           item.announcedDate
             ? formatDateWithPrecision(item.announcedDate, {
                 locale: locale ?? "en",
-                precision: (item.announceDatePrecision ?? "DAY") as DatePrecision,
+                precision: (item.announceDatePrecision ??
+                  "DAY") as DatePrecision,
               })
             : undefined,
         editElementId: "announced-date",
@@ -403,7 +442,8 @@ export const specDictionary: SpecSectionDef[] = [
           item.releaseDate
             ? formatDateWithPrecision(item.releaseDate, {
                 locale: locale ?? "en",
-                precision: (item.releaseDatePrecision ?? "DAY") as DatePrecision,
+                precision: (item.releaseDatePrecision ??
+                  "DAY") as DatePrecision,
               })
             : undefined,
         editElementId: "release-date",
@@ -606,7 +646,13 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "maxFpsByShutter",
         label: "Max Continuous FPS",
-        searchTerms: ["fps", "burst", "burst rate", "continuous shooting", "frame rate"],
+        searchTerms: [
+          "fps",
+          "burst",
+          "burst rate",
+          "continuous shooting",
+          "frame rate",
+        ],
         condenseOnMobile: true,
         getRawValue: (item) => ({
           perShutter: item.cameraSpecs?.maxFpsByShutter,
@@ -620,10 +666,14 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "sensorType",
         label: "Sensor Type",
-        getRawValue: (item) => item.cameraSpecs,
+        getRawValue: (item) => ({
+          sensorStackingType: item.cameraSpecs?.sensorStackingType,
+          sensorTechType: item.cameraSpecs?.sensorTechType,
+          isBackSideIlluminated: item.cameraSpecs?.isBackSideIlluminated,
+        }),
         formatDisplay: (raw) => {
           if (!raw) return undefined;
-          const label = sensorTypeLabel(raw as any);
+          const label = sensorTypeLabel(raw as SensorTypeSource);
           return label && label.trim().length > 0 ? label : undefined;
         },
         editElementId: "sensorStackingType",
@@ -640,7 +690,12 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "maxRawBitDepth",
         label: "Max Raw Bit Depth",
-        searchTerms: ["raw", "raw photo", "photo bit depth", "stills bit depth"],
+        searchTerms: [
+          "raw",
+          "raw photo",
+          "photo bit depth",
+          "stills bit depth",
+        ],
         getRawValue: (item) => item.cameraSpecs?.maxRawBitDepth,
         formatDisplay: (raw) =>
           typeof raw === "string" ? `${raw}-bit` : undefined,
@@ -1140,7 +1195,12 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "afSubjectCategories",
         label: "AF Subject Categories",
-        searchTerms: ["autofocus", "af", "subject detection", "subject recognition"],
+        searchTerms: [
+          "autofocus",
+          "af",
+          "subject detection",
+          "subject recognition",
+        ],
         getRawValue: (item) => item.cameraSpecs?.afSubjectCategories,
         formatDisplay: (raw, _, forceLeftAlign) => {
           if (!Array.isArray(raw)) return undefined;
@@ -1226,6 +1286,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "videoSummary",
         label: "Video Summary",
+        api: null,
         condenseOnMobile: true,
         editElementId: "video-modes-manager",
         getRawValue: (item) => item.videoModes,
@@ -1247,6 +1308,8 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "videoAvailableCodecs",
         label: "Available Codecs",
+        // Video-mode records are intentionally not part of the beta API.
+        api: null,
         getRawValue: (item) => item.videoModes,
         formatDisplay: (_, item) => {
           const list = Array.from(
@@ -1555,8 +1618,7 @@ export const specDictionary: SpecSectionDef[] = [
         key: "focusMotorType",
         label: "Focus Motor Type",
         getRawValue: (item) => item.lensSpecs?.focusMotorType,
-        formatDisplay: (raw) =>
-          typeof raw === "string" ? (raw) : undefined,
+        formatDisplay: (raw) => (typeof raw === "string" ? raw : undefined),
         condition: (item) => item.lensSpecs?.hasAutofocus === true,
       },
       {
@@ -1623,7 +1685,13 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "hasStabilization",
         label: "Has Image Stabilization",
-        searchTerms: ["stabilization", "ois", "vr", "os", "image stabilization"],
+        searchTerms: [
+          "stabilization",
+          "ois",
+          "vr",
+          "os",
+          "image stabilization",
+        ],
         getRawValue: (item) => item.lensSpecs?.hasStabilization,
         formatDisplay: (raw) =>
           typeof raw === "boolean" ? yesNoNull(raw) : undefined,
@@ -2119,6 +2187,173 @@ export const specDictionary: SpecSectionDef[] = [
 ];
 
 // ============================================================================
+// DEVELOPER API SPEC REGISTRY
+// ============================================================================
+
+type DeveloperApiSectionConfig = {
+  category: string;
+  label: string;
+  fieldCategories?: Record<
+    string,
+    Pick<DeveloperApiSectionConfig, "category" | "label">
+  >;
+  displayOverrides?: Record<
+    string,
+    (raw: unknown, item: GearItem) => string | undefined
+  >;
+};
+
+/**
+ * The public API has its own stable, purpose-built grouping layer. It maps
+ * website sections into categories that are useful to API consumers without
+ * constraining how the specs table is organized or displayed.
+ */
+const developerApiSectionConfig: Record<string, DeveloperApiSectionConfig> = {
+  core: { category: "gear.basics", label: "Gear basics" },
+  "camera-sensor-shutter": {
+    category: "camera.sensor",
+    label: "Camera sensor",
+    fieldCategories: {
+      maxFpsByShutter: { category: "camera.shutter", label: "Camera shutter" },
+      shutterSpeedMax: { category: "camera.shutter", label: "Camera shutter" },
+      shutterSpeedMin: { category: "camera.shutter", label: "Camera shutter" },
+      flashSyncSpeed: { category: "camera.shutter", label: "Camera shutter" },
+      hasSilentShootingAvailable: {
+        category: "camera.shutter",
+        label: "Camera shutter",
+      },
+      availableShutterTypes: {
+        category: "camera.shutter",
+        label: "Camera shutter",
+      },
+    },
+  },
+  "fixed-lens": { category: "camera.fixed-lens", label: "Integrated lens" },
+  "camera-hardware": { category: "camera.build", label: "Camera build" },
+  "camera-focus": { category: "camera.focus", label: "Camera focus" },
+  "camera-battery": { category: "camera.power", label: "Camera power" },
+  "camera-video": {
+    category: "camera.video",
+    label: "Camera video",
+    displayOverrides: {
+      videoSummary: (_raw, item) => {
+        const modes = coerceCameraVideoModes(item.videoModes);
+        if (!modes.length) return undefined;
+        const summaryLines = buildVideoDisplayBundle(modes).summaryLines;
+        return summaryLines.length ? summaryLines.join(" · ") : undefined;
+      },
+    },
+  },
+  "camera-misc": { category: "camera.features", label: "Camera features" },
+  "lens-optics": { category: "lens.optics", label: "Lens optics" },
+  "lens-aperture": { category: "lens.aperture", label: "Lens aperture" },
+  "lens-focus": { category: "lens.focus", label: "Lens focus" },
+  "lens-stabilization": {
+    category: "lens.stabilization",
+    label: "Lens stabilization",
+  },
+  "lens-build": { category: "lens.build", label: "Lens build" },
+  "lens-filters": { category: "lens.filters", label: "Lens filters" },
+  "lens-accessories": {
+    category: "lens.accessories",
+    label: "Lens accessories",
+  },
+  "lens-tilt-shift": { category: "lens.tiltShift", label: "Lens tilt-shift" },
+  "analog-camera": { category: "analog.camera", label: "Analog camera" },
+};
+
+function getDeveloperApiMetadata(
+  section: SpecSectionDef,
+  field: SpecFieldDef,
+): DeveloperApiSpecMetadata | undefined {
+  const config = developerApiSectionConfig[section.id];
+  if (!config || field.hideInSpecsTable || field.api === null) return undefined;
+  const category = config.fieldCategories?.[field.key] ?? config;
+  return {
+    id: `${category.category}.${field.key}`,
+    category: category.category,
+    categoryLabel: category.label,
+    displayOverride: config.displayOverrides?.[field.key],
+  };
+}
+
+/** Returns live public API fields in their stable API category and field order. */
+export function getDeveloperApiSpecFields(): DeveloperApiSpecField[] {
+  const fields: DeveloperApiSpecField[] = [];
+  for (const section of specDictionary) {
+    for (const field of section.fields) {
+      const api = getDeveloperApiMetadata(section, field);
+      if (!api) continue;
+      fields.push({ section, field: { ...field, api } });
+    }
+  }
+  return fields;
+}
+
+/** Generates the developer catalog from the currently deployed spec registry. */
+export function getDeveloperApiSpecCatalog(): DeveloperApiSpecCategory[] {
+  const categories = new Map<string, DeveloperApiSpecCategory>();
+  for (const { field } of getDeveloperApiSpecFields()) {
+    const category = categories.get(field.api.category) ?? {
+      id: field.api.category,
+      label: field.api.categoryLabel,
+      fields: [],
+    };
+    category.fields.push({
+      id: field.api.id,
+      label: field.label,
+      searchTerms: field.searchTerms ?? [],
+    });
+    categories.set(category.id, category);
+  }
+  return [...categories.values()];
+}
+
+function textFromSpecDisplay(value: ReactNode): string | undefined {
+  if (value == null || typeof value === "boolean") return undefined;
+  if (typeof value === "string" || typeof value === "number")
+    return String(value);
+  if (Array.isArray(value)) {
+    const values = value
+      .map((child) => textFromSpecDisplay(child))
+      .filter((child): child is string => Boolean(child));
+    return values.length ? values.join(" ") : undefined;
+  }
+  if (isValidElement(value)) {
+    return textFromSpecDisplay(
+      (value.props as { children?: ReactNode }).children,
+    );
+  }
+  return undefined;
+}
+
+/**
+ * Derives the API's English text display from the website formatter by
+ * default. Fields with interactive website UI can opt into api.displayOverride.
+ */
+export function getDeveloperApiSpecValue(
+  item: GearItem,
+  definition: DeveloperApiSpecField,
+) {
+  const { field } = definition;
+  if (definition.section.condition && !definition.section.condition(item)) {
+    return undefined;
+  }
+  if (field.condition && !field.condition(item)) return undefined;
+
+  const raw = field.getRawValue(item);
+  const formatted = field.api.displayOverride
+    ? field.api.displayOverride(raw, item)
+    : field.formatDisplay
+      ? field.formatDisplay(raw, item, true, "GLOBAL", "en")
+      : raw;
+  const display = textFromSpecDisplay(formatted as ReactNode);
+  if (!display?.trim()) return undefined;
+
+  return { id: field.api.id, raw, display };
+}
+
+// ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
 
@@ -2162,7 +2397,13 @@ export function buildGearSpecsSections(
         .map((field) => {
           const raw = field.getRawValue(item);
           const rawValue = field.formatDisplay
-            ? field.formatDisplay(raw, item, forceLeftAlign, viewerRegion, locale)
+            ? field.formatDisplay(
+                raw,
+                item,
+                forceLeftAlign,
+                viewerRegion,
+                locale,
+              )
             : (raw as React.ReactNode);
           const value =
             typeof rawValue === "string"

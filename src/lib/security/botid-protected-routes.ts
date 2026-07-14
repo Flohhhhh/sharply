@@ -24,6 +24,14 @@ export const botIdProtectedRoutes = [
     method: "POST",
   },
   {
+    path: "/lists/under-construction",
+    method: "POST",
+  },
+  {
+    path: "/*/lists/under-construction",
+    method: "POST",
+  },
+  {
     path: "/gear/*",
     method: "POST",
   },

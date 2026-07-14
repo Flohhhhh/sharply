@@ -350,6 +350,7 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
 
   const base: GearItem = {
     ...gearItem[0]!.gear,
+    brands: gearItem[0]!.brands ?? null,
     cameraSpecs: null,
     analogCameraSpecs: null,
     lensSpecs: null,
