@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { DeveloperApiError } from "./errors";
 import {
   createDeveloperApiKey,
   createDeveloperApiKeyForAdmin,
@@ -10,9 +11,14 @@ import {
 } from "./service";
 
 function actionError(error: unknown) {
-  void error;
+  if (error instanceof DeveloperApiError) {
+    return { ok: false as const, code: error.code, message: error.message };
+  }
+  console.error("Developer API action failed:", error);
   return {
     ok: false as const,
+    code: undefined,
+    message: undefined,
   };
 }
 

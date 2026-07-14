@@ -16,8 +16,7 @@ import {
 } from "./constants";
 import {
   consumeRateLimitBucket,
-  countActiveApiKeysForUser,
-  createApiKeyData,
+  createApiKeyWithinActiveLimitData,
   findUsableApiKeyByHash,
   getDeveloperAccessData,
   getUsageForKeyIdsSince,
@@ -207,17 +206,11 @@ export async function createDeveloperApiKey(input: {
     );
   }
   const name = parseKeyName(input.name);
-  const activeKeyCount = await countActiveApiKeysForUser(userId);
-  if (activeKeyCount >= DEVELOPER_API_MAX_ACTIVE_KEYS) {
-    throw new DeveloperApiError(
-      "key_limit_reached",
-      409,
-      "You can have up to three active API keys.",
-    );
-  }
-  const secret = newApiKey();
-  const key = await createApiKeyData({ userId, name, ...secret });
-  return { key, secret: secret.value };
+  return createDeveloperApiKeyForUser({
+    userId,
+    name,
+    limitErrorMessage: "You can have up to three active API keys.",
+  });
 }
 
 export async function revokeDeveloperApiKey(keyId: string) {
@@ -308,20 +301,30 @@ export async function createDeveloperApiKeyForAdmin(params: {
     );
   }
   const name = parseKeyName(params.name);
-  const activeKeyCount = await countActiveApiKeysForUser(params.userId);
-  if (activeKeyCount >= DEVELOPER_API_MAX_ACTIVE_KEYS) {
+  return createDeveloperApiKeyForUser({
+    userId: params.userId,
+    name,
+    limitErrorMessage: "This user already has three active API keys.",
+  });
+}
+
+async function createDeveloperApiKeyForUser(params: {
+  userId: string;
+  name: string;
+  limitErrorMessage: string;
+}) {
+  const secret = newApiKey();
+  const key = await createApiKeyWithinActiveLimitData(
+    { userId: params.userId, name: params.name, ...secret },
+    DEVELOPER_API_MAX_ACTIVE_KEYS,
+  );
+  if (!key) {
     throw new DeveloperApiError(
       "key_limit_reached",
       409,
-      "This user already has three active API keys.",
+      params.limitErrorMessage,
     );
   }
-  const secret = newApiKey();
-  const key = await createApiKeyData({
-    userId: params.userId,
-    name,
-    ...secret,
-  });
   return { key, secret: secret.value };
 }
 

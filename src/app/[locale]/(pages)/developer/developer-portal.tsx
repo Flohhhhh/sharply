@@ -12,7 +12,7 @@ import {
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -55,13 +55,19 @@ export function DeveloperPortal({
   const [isPending, startTransition] = useTransition();
   const [secret, setSecret] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [keyName, setKeyName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const activeKeyCount = data.keys.length;
   const documentationHref = localizePathname("/developer/docs", locale);
-  const dateFormatter = new Intl.DateTimeFormat(locale, {
-    dateStyle: "medium",
-  });
+  const dateFormatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat(locale, {
+        dateStyle: "medium",
+        timeZone: "UTC",
+      }),
+    [locale],
+  );
 
   function createKey(formData: FormData) {
     setError(null);
@@ -71,6 +77,7 @@ export function DeveloperPortal({
           setError(t("portal.actionFailed"));
           return;
         }
+        setKeyName("");
         setSecret(result.secret);
         setCreateDialogOpen(false);
         router.refresh();
@@ -204,12 +211,18 @@ export function DeveloperPortal({
               <Input
                 id="developer-key-name"
                 name="name"
+                value={keyName}
+                onChange={(event) => setKeyName(event.target.value)}
                 required
                 maxLength={100}
                 placeholder={t("portal.keyNamePlaceholder")}
               />
             </div>
-            {error ? <p className="text-destructive text-sm">{error}</p> : null}
+            {error ? (
+              <p role="alert" className="text-destructive text-sm">
+                {error}
+              </p>
+            ) : null}
             <Button
               type="submit"
               className="w-full"

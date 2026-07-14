@@ -54,6 +54,45 @@ export async function createApiKeyData(params: {
   return rows[0]!;
 }
 
+/**
+ * Creates a key only when the user remains below the active-key limit. The
+ * transaction-scoped advisory lock serializes this check per user so concurrent
+ * create requests cannot both consume the last available slot.
+ */
+export async function createApiKeyWithinActiveLimitData(
+  params: {
+    userId: string;
+    name: string;
+    keyPrefix: string;
+    keyHash: string;
+  },
+  maxActiveKeys: number,
+) {
+  return db.transaction(async (tx) => {
+    await tx.execute(
+      sql`select pg_advisory_xact_lock(hashtext('developer-api-keys'), hashtext(${params.userId}))`,
+    );
+
+    const rows = await tx
+      .select({ count: sql<number>`count(*)` })
+      .from(developerApiKeys)
+      .where(
+        and(
+          eq(developerApiKeys.userId, params.userId),
+          isNull(developerApiKeys.revokedAt),
+        ),
+      );
+
+    if (Number(rows[0]?.count ?? 0) >= maxActiveKeys) return null;
+
+    const created = await tx
+      .insert(developerApiKeys)
+      .values(params)
+      .returning();
+    return created[0]!;
+  });
+}
+
 export async function listApiKeysForUser(userId: string) {
   return db
     .select()

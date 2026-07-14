@@ -48,6 +48,7 @@ export function DeveloperApiAdminManager({
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [secret, setSecret] = useState<string | null>(null);
+  const [keyNames, setKeyNames] = useState<Record<string, string>>({});
   const [page, setPage] = useState(0);
   const pageSize = 10;
 
@@ -66,7 +67,7 @@ export function DeveloperApiAdminManager({
     (page + 1) * pageSize,
   );
 
-  function run(action: () => Promise<{ ok: boolean; error?: string }>) {
+  function run(action: () => Promise<{ ok: boolean }>) {
     setError(null);
     startTransition(() => {
       void action().then((result) => {
@@ -89,6 +90,10 @@ export function DeveloperApiAdminManager({
         if (!result.ok) setError(t("admin.actionFailed"));
         else {
           setSecret(result.secret);
+          const userId = formData.get("userId");
+          if (typeof userId === "string") {
+            setKeyNames((names) => ({ ...names, [userId]: "" }));
+          }
           router.refresh();
         }
       });
@@ -152,7 +157,11 @@ export function DeveloperApiAdminManager({
               placeholder={t("admin.searchPlaceholder")}
             />
           </div>
-          {error ? <p className="text-destructive text-sm">{error}</p> : null}
+          {error ? (
+            <p role="alert" className="text-destructive text-sm">
+              {error}
+            </p>
+          ) : null}
           <div className="space-y-4">
             {visibleUsers.map((user) => {
               const keys = data.keys.filter(
@@ -236,6 +245,13 @@ export function DeveloperApiAdminManager({
                         <Input
                           id={`key-name-${user.id}`}
                           name="name"
+                          value={keyNames[user.id] ?? ""}
+                          onChange={(event) =>
+                            setKeyNames((names) => ({
+                              ...names,
+                              [user.id]: event.target.value,
+                            }))
+                          }
                           required
                           maxLength={100}
                           placeholder={t("admin.keyNamePlaceholder")}

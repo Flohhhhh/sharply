@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   consumeRateLimitBucket: vi.fn(),
   countActiveApiKeysForUser: vi.fn(),
   createApiKeyData: vi.fn(),
+  createApiKeyWithinActiveLimitData: vi.fn(),
   findUsableApiKeyByHash: vi.fn(),
   getDeveloperAccessData: vi.fn(),
   getUsageForKeyIdsSince: vi.fn(),
@@ -38,6 +39,7 @@ vi.mock("~/server/developer-api/data", () => ({
   consumeRateLimitBucket: mocks.consumeRateLimitBucket,
   countActiveApiKeysForUser: mocks.countActiveApiKeysForUser,
   createApiKeyData: mocks.createApiKeyData,
+  createApiKeyWithinActiveLimitData: mocks.createApiKeyWithinActiveLimitData,
   findUsableApiKeyByHash: mocks.findUsableApiKeyByHash,
   getDeveloperAccessData: mocks.getDeveloperAccessData,
   getUsageForKeyIdsSince: mocks.getUsageForKeyIdsSince,
@@ -51,7 +53,10 @@ vi.mock("~/server/developer-api/data", () => ({
   touchApiKeyLastUsed: mocks.touchApiKeyLastUsed,
 }));
 
-import { getDeveloperPortalData } from "~/server/developer-api/service";
+import {
+  createDeveloperApiKey,
+  getDeveloperPortalData,
+} from "~/server/developer-api/service";
 
 describe("getDeveloperPortalData", () => {
   beforeEach(() => {
@@ -95,5 +100,29 @@ describe("getDeveloperPortalData", () => {
       ["active-key"],
       expect.any(Date),
     );
+  });
+
+  it("creates a key through the atomic active-key limit data operation", async () => {
+    mocks.createApiKeyWithinActiveLimitData.mockResolvedValue({ id: "key-1" });
+
+    const result = await createDeveloperApiKey({ name: "Production" });
+
+    expect(result.key).toEqual({ id: "key-1" });
+    expect(result.secret).toMatch(/^sharply_live_/);
+    expect(mocks.createApiKeyWithinActiveLimitData).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: "user-1", name: "Production" }),
+      3,
+    );
+  });
+
+  it("reports the active-key limit when the atomic creation operation declines", async () => {
+    mocks.createApiKeyWithinActiveLimitData.mockResolvedValue(null);
+
+    await expect(
+      createDeveloperApiKey({ name: "Production" }),
+    ).rejects.toMatchObject({
+      code: "key_limit_reached",
+      status: 409,
+    });
   });
 });
