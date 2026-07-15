@@ -1,16 +1,109 @@
 import "server-only";
 
-import { and, desc, eq, gte, inArray, isNull, sql } from "drizzle-orm";
+import { asc, and, desc, eq, gte, inArray, isNull, sql } from "drizzle-orm";
+import { GEAR_PUBLICATION_STATES } from "~/lib/gear/publication-state";
 import { db } from "~/server/db";
 import {
+  brands,
   developerApiKeys,
   developerApiRateLimitBuckets,
   developerApiUsageDaily,
+  gear,
+  gearMounts,
+  mounts,
+  sensorFormats,
   users,
 } from "~/server/db/schema";
 import type { DeveloperApiEndpoint } from "./constants";
 
 export type DeveloperApiKeyRow = typeof developerApiKeys.$inferSelect;
+
+export type DeveloperApiMount = {
+  value: string;
+  shortName: string | null;
+};
+
+export type DeveloperApiSensorFormat = {
+  slug: string;
+  name: string;
+  cropFactor: string;
+};
+
+export type DeveloperApiCatalogItem = {
+  name: string;
+  slug: string;
+  brandName: string;
+  gearType: string;
+  thumbnailUrl: string | null;
+  releaseDate: Date | null;
+  releaseDatePrecision: string | null;
+  announcedDate: Date | null;
+  announceDatePrecision: string | null;
+};
+
+/** A deliberately narrow, slug-sorted read for the downloadable API catalog. */
+export async function fetchDeveloperCatalogData(): Promise<
+  DeveloperApiCatalogItem[]
+> {
+  return db
+    .select({
+      name: gear.name,
+      slug: gear.slug,
+      brandName: brands.name,
+      gearType: gear.gearType,
+      thumbnailUrl: gear.thumbnailUrl,
+      releaseDate: gear.releaseDate,
+      releaseDatePrecision: gear.releaseDatePrecision,
+      announcedDate: gear.announcedDate,
+      announceDatePrecision: gear.announceDatePrecision,
+    })
+    .from(gear)
+    .innerJoin(brands, eq(gear.brandId, brands.id))
+    .where(eq(gear.publicationState, GEAR_PUBLICATION_STATES.PUBLISHED))
+    .orderBy(asc(gear.slug));
+}
+
+export async function fetchDeveloperGearMountsData(
+  gearId: string,
+): Promise<DeveloperApiMount[]> {
+  return db
+    .select({
+      value: mounts.value,
+      shortName: mounts.shortName,
+    })
+    .from(gearMounts)
+    .innerJoin(mounts, eq(gearMounts.mountId, mounts.id))
+    .where(eq(gearMounts.gearId, gearId))
+    .orderBy(asc(mounts.value));
+}
+
+export async function fetchDeveloperSensorFormatsData(
+  formatIds: Array<string | null | undefined>,
+): Promise<Map<string, DeveloperApiSensorFormat>> {
+  const ids = [...new Set(formatIds.filter((id): id is string => !!id))];
+  if (!ids.length) return new Map();
+
+  const rows = await db
+    .select({
+      id: sensorFormats.id,
+      slug: sensorFormats.slug,
+      name: sensorFormats.name,
+      cropFactor: sensorFormats.cropFactor,
+    })
+    .from(sensorFormats)
+    .where(inArray(sensorFormats.id, ids));
+
+  return new Map(
+    rows.map((format) => [
+      format.id,
+      {
+        slug: format.slug,
+        name: format.name,
+        cropFactor: format.cropFactor,
+      },
+    ]),
+  );
+}
 
 export async function findUsableApiKeyByHash(keyHash: string) {
   const rows = await db

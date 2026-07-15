@@ -1,13 +1,21 @@
 import "server-only";
 
 import { createHash, randomBytes } from "node:crypto";
+import { unstable_cache } from "next/cache";
 import { requireRole } from "~/lib/auth/auth-helpers";
 import { getSessionOrThrow } from "~/server/auth";
 import { fetchGearBySlug } from "~/server/gear/service";
 import { getSuggestions, searchGear } from "~/server/search/service";
-import type { GearRegion } from "~/types/gear";
+import type {
+  EnrichedCameraSpecs,
+  FixedLensSpecs,
+  GearItem,
+  GearRegion,
+  LensSpecs,
+} from "~/types/gear";
 import {
   DEVELOPER_API_KEY_DISPLAY_LENGTH,
+  DEVELOPER_API_CATALOG_CACHE_TAG,
   DEVELOPER_API_KEY_PREFIX,
   DEVELOPER_API_MAX_ACTIVE_KEYS,
   DEVELOPER_API_RATE_LIMIT,
@@ -18,6 +26,9 @@ import {
   consumeRateLimitBucket,
   createApiKeyWithinActiveLimitData,
   findUsableApiKeyByHash,
+  fetchDeveloperGearMountsData,
+  fetchDeveloperCatalogData,
+  fetchDeveloperSensorFormatsData,
   getDeveloperAccessData,
   getUsageForKeyIdsSince,
   incrementUsageData,
@@ -28,15 +39,95 @@ import {
   revokeApiKeyData,
   setDeveloperAccessData,
   touchApiKeyLastUsed,
+  type DeveloperApiMount,
+  type DeveloperApiSensorFormat,
 } from "./data";
 import { DeveloperApiError } from "./errors";
 import { parseKeyName } from "./schemas";
+import { serializeDeveloperCatalogData } from "./serializers";
 
 export type DeveloperApiCredential = {
   apiKeyId: string;
   userId: string;
   keyPrefix: string;
 };
+
+export type DeveloperApiCameraSpecs = Omit<
+  EnrichedCameraSpecs,
+  "gearId" | "sensorFormatId"
+> & {
+  sensorFormat: DeveloperApiSensorFormat | null;
+};
+
+export type DeveloperApiLensSpecs = Omit<
+  LensSpecs,
+  "gearId" | "imageCircleSizeId"
+> & {
+  imageCircle: DeveloperApiSensorFormat | null;
+};
+
+export type DeveloperApiFixedLensSpecs = Omit<
+  FixedLensSpecs,
+  "gearId" | "imageCircleSizeId"
+> & {
+  imageCircle: DeveloperApiSensorFormat | null;
+};
+
+export type DeveloperApiGear = Omit<
+  GearItem,
+  "mountIds" | "mounts" | "cameraSpecs" | "lensSpecs" | "fixedLensSpecs"
+> & {
+  mounts: DeveloperApiMount[];
+  cameraSpecs: DeveloperApiCameraSpecs | null;
+  lensSpecs: DeveloperApiLensSpecs | null;
+  fixedLensSpecs: DeveloperApiFixedLensSpecs | null;
+};
+
+export type DeveloperApiCatalogSnapshot = {
+  version: string;
+  generatedAt: string;
+  itemCount: number;
+  data: ReturnType<typeof serializeDeveloperCatalogData>;
+};
+
+const getCachedDeveloperCatalogSnapshot = unstable_cache(
+  async (): Promise<DeveloperApiCatalogSnapshot> => {
+    const data = serializeDeveloperCatalogData(
+      await fetchDeveloperCatalogData(),
+    );
+    const version = `sha256-${createHash("sha256")
+      .update(JSON.stringify(data))
+      .digest("hex")}`;
+
+    return {
+      version,
+      generatedAt: new Date().toISOString(),
+      itemCount: data.length,
+      data,
+    };
+  },
+  ["developer-api-catalog-v1"],
+  { revalidate: false, tags: [DEVELOPER_API_CATALOG_CACHE_TAG] },
+);
+
+export async function getDeveloperCatalogSnapshot() {
+  return getCachedDeveloperCatalogSnapshot();
+}
+
+export function createDeveloperCatalogEtag(version: string) {
+  return `"${version}"`;
+}
+
+export function matchesDeveloperCatalogEtag(
+  ifNoneMatch: string | null,
+  etag: string,
+) {
+  if (!ifNoneMatch) return false;
+  return ifNoneMatch.split(",").some((candidate) => {
+    const tag = candidate.trim();
+    return tag === "*" || tag.replace(/^W\//i, "") === etag;
+  });
+}
 
 function utcDay(date: Date) {
   return new Date(
@@ -356,6 +447,77 @@ export async function getDeveloperSuggestions(
   return getSuggestions(query, limit, region);
 }
 
-export async function getDeveloperGear(slug: string) {
+export async function getDeveloperGearForSpecs(slug: string) {
   return fetchGearBySlug(slug);
+}
+
+function composeDeveloperCameraSpecs(
+  specs: EnrichedCameraSpecs | null | undefined,
+  sensorFormat: DeveloperApiSensorFormat | null,
+): DeveloperApiCameraSpecs | null {
+  if (!specs) return null;
+  const { gearId, sensorFormatId, ...values } = specs;
+  void gearId;
+  void sensorFormatId;
+  return { ...values, sensorFormat };
+}
+
+function composeDeveloperLensSpecs(
+  specs: LensSpecs | null | undefined,
+  imageCircle: DeveloperApiSensorFormat | null,
+): DeveloperApiLensSpecs | null {
+  if (!specs) return null;
+  const { gearId, imageCircleSizeId, ...values } = specs;
+  void gearId;
+  void imageCircleSizeId;
+  return { ...values, imageCircle };
+}
+
+function composeDeveloperFixedLensSpecs(
+  specs: FixedLensSpecs | null | undefined,
+  imageCircle: DeveloperApiSensorFormat | null,
+): DeveloperApiFixedLensSpecs | null {
+  if (!specs) return null;
+  const { gearId, imageCircleSizeId, ...values } = specs;
+  void gearId;
+  void imageCircleSizeId;
+  return { ...values, imageCircle };
+}
+
+export async function getDeveloperGear(slug: string) {
+  const gear = await getDeveloperGearForSpecs(slug);
+  const { mountIds, mounts: legacyMounts, ...gearWithoutMountTaxonomy } = gear;
+  void mountIds;
+  void legacyMounts;
+  const [mounts, sensorFormats] = await Promise.all([
+    fetchDeveloperGearMountsData(gear.id),
+    fetchDeveloperSensorFormatsData([
+      gear.cameraSpecs?.sensorFormatId,
+      gear.lensSpecs?.imageCircleSizeId,
+      gear.fixedLensSpecs?.imageCircleSizeId,
+    ]),
+  ]);
+
+  return {
+    ...gearWithoutMountTaxonomy,
+    mounts,
+    cameraSpecs: composeDeveloperCameraSpecs(
+      gear.cameraSpecs,
+      (gear.cameraSpecs?.sensorFormatId
+        ? sensorFormats.get(gear.cameraSpecs.sensorFormatId)
+        : null) ?? null,
+    ),
+    lensSpecs: composeDeveloperLensSpecs(
+      gear.lensSpecs,
+      (gear.lensSpecs?.imageCircleSizeId
+        ? sensorFormats.get(gear.lensSpecs.imageCircleSizeId)
+        : null) ?? null,
+    ),
+    fixedLensSpecs: composeDeveloperFixedLensSpecs(
+      gear.fixedLensSpecs,
+      (gear.fixedLensSpecs?.imageCircleSizeId
+        ? sensorFormats.get(gear.fixedLensSpecs.imageCircleSizeId)
+        : null) ?? null,
+    ),
+  } satisfies DeveloperApiGear;
 }

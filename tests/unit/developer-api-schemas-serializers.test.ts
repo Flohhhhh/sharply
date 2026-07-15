@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { DeveloperApiError } from "~/server/developer-api/errors";
 import {
+  serializeDeveloperCatalogData,
   serializeDeveloperApiSpecs,
   serializeGear,
+  serializeSearchResponse,
   serializeSuggestions,
 } from "~/server/developer-api/serializers";
 import {
@@ -42,6 +44,60 @@ describe("developer API request schemas", () => {
 });
 
 describe("developer API serializers", () => {
+  it("serializes only the lightweight catalog allowlist in slug order", () => {
+    const catalog = serializeDeveloperCatalogData([
+      {
+        name: "Alpha",
+        slug: "alpha",
+        brandName: "Acme",
+        gearType: "CAMERA",
+        thumbnailUrl: "https://example.test/alpha.jpg",
+        releaseDate: new Date("2024-06-24T00:00:00.000Z"),
+        releaseDatePrecision: "DAY",
+        announcedDate: null,
+        announceDatePrecision: null,
+        id: "internal-id",
+        createdAt: new Date(),
+      },
+      {
+        name: "Zulu",
+        slug: "zulu",
+        brandName: "Acme",
+        gearType: "LENS",
+        thumbnailUrl: null,
+        releaseDate: null,
+        releaseDatePrecision: null,
+        announcedDate: new Date("2024-06-17T00:00:00.000Z"),
+        announceDatePrecision: "DAY",
+      },
+    ] as never);
+
+    expect(catalog).toEqual([
+      {
+        name: "Alpha",
+        slug: "alpha",
+        brandName: "Acme",
+        gearType: "CAMERA",
+        thumbnailUrl: "https://example.test/alpha.jpg",
+        releaseDate: "2024-06-24T00:00:00.000Z",
+        releaseDatePrecision: "DAY",
+        announcedDate: null,
+        announceDatePrecision: null,
+      },
+      {
+        name: "Zulu",
+        slug: "zulu",
+        brandName: "Acme",
+        gearType: "LENS",
+        thumbnailUrl: null,
+        releaseDate: null,
+        releaseDatePrecision: null,
+        announcedDate: "2024-06-17T00:00:00.000Z",
+        announceDatePrecision: "DAY",
+      },
+    ]);
+  });
+
   it("removes website-only smart actions from suggestions", () => {
     const response = serializeSuggestions([
       {
@@ -82,34 +138,117 @@ describe("developer API serializers", () => {
     ]);
   });
 
-  it("serializes full gear data while excluding database implementation fields", () => {
+  it("serializes an exact allowlisted full-gear payload", () => {
     const response = serializeGear({
       id: "internal-id",
+      internalOnly: "future database column",
       brandId: "brand-id",
       mountId: "legacy-mount",
       searchName: "nikon z6",
       slug: "nikon-z6",
       name: "Nikon Z6",
+      modelNumber: "Z6",
       gearType: "CAMERA",
       publicationState: "PUBLISHED",
+      notes: ["Internal editor note"],
+      announcedDate: new Date("2023-10-01T00:00:00.000Z"),
+      announceDatePrecision: "DAY",
+      releaseDate: new Date("2024-01-01T00:00:00.000Z"),
+      releaseDatePrecision: "DAY",
+      thumbnailUrl: "https://example.test/front.jpg",
+      topViewUrl: "https://example.test/top.jpg",
+      rearViewUrl: "https://example.test/rear.jpg",
+      widthMm: "134",
+      mounts: [
+        { value: "Nikon Z", shortName: "Z" },
+        { value: "Leica L", shortName: "L" },
+      ],
       createdAt: new Date("2024-01-01T00:00:00.000Z"),
       updatedAt: new Date("2024-01-02T00:00:00.000Z"),
       brands: {
         id: "brand-id",
+        internalOnly: "future brand field",
         name: "Nikon",
+        slug: "nikon",
+        sortOrder: 1,
         createdAt: new Date("2024-01-01T00:00:00.000Z"),
         updatedAt: new Date("2024-01-02T00:00:00.000Z"),
       },
+      regionalAliases: [
+        {
+          gearId: "internal-id",
+          region: "JP",
+          name: "Nikon Z6 JP",
+          createdAt: new Date("2024-01-01T00:00:00.000Z"),
+          updatedAt: new Date("2024-01-02T00:00:00.000Z"),
+        },
+      ],
       cameraSpecs: {
         gearId: "internal-id",
+        internalOnly: "future camera spec field",
+        sensorFormatId: "sensor-format-id",
+        sensorFormat: {
+          id: "sensor-format-id",
+          slug: "full-frame",
+          name: "Full Frame",
+          cropFactor: "1.00",
+        },
+        resolutionMp: "24.5",
+        maxFpsByShutter: { mechanical: { raw: 14, jpg: 14 } },
+        extra: { internalOnly: true },
+        afAreaModes: [
+          {
+            id: "af-mode-id",
+            brandId: "brand-id",
+            searchName: "single point",
+            name: "Single-point AF",
+            description: "Public description",
+            aliases: ["single point", 42],
+            createdAt: new Date("2024-01-01T00:00:00.000Z"),
+            updatedAt: new Date("2024-01-02T00:00:00.000Z"),
+          },
+        ],
+        createdAt: new Date("2024-01-01T00:00:00.000Z"),
+        updatedAt: new Date("2024-01-02T00:00:00.000Z"),
+      },
+      analogCameraSpecs: {
+        gearId: "internal-id",
+        cameraType: "slr",
+        createdAt: new Date("2024-01-01T00:00:00.000Z"),
+        updatedAt: new Date("2024-01-02T00:00:00.000Z"),
+      },
+      lensSpecs: {
+        gearId: "internal-id",
+        imageCircleSizeId: "sensor-format-id",
+        imageCircle: {
+          id: "sensor-format-id",
+          slug: "full-frame",
+          name: "Full Frame",
+          cropFactor: "1.00",
+        },
+        focalLengthMinMm: 24,
+        extra: { internalOnly: true },
+        createdAt: new Date("2024-01-01T00:00:00.000Z"),
+        updatedAt: new Date("2024-01-02T00:00:00.000Z"),
+      },
+      fixedLensSpecs: {
+        gearId: "internal-id",
+        imageCircleSizeId: "sensor-format-id",
+        imageCircle: null,
+        focalLengthMinMm: 35,
         createdAt: new Date("2024-01-01T00:00:00.000Z"),
         updatedAt: new Date("2024-01-02T00:00:00.000Z"),
       },
       cameraCardSlots: [
         {
           id: "card-slot-id",
+          internalOnly: "future card-slot field",
           gearId: "internal-id",
           slotIndex: 1,
+          supportedFormFactors: ["sd"],
+          supportedBuses: ["uhs_ii"],
+          supportedSpeedClasses: ["v90"],
+          notes: "Internal slot note",
           createdAt: new Date("2024-01-01T00:00:00.000Z"),
           updatedAt: new Date("2024-01-02T00:00:00.000Z"),
         },
@@ -125,31 +264,190 @@ describe("developer API serializers", () => {
       rawSamples: [
         {
           id: "sample-1",
+          internalOnly: "future sample field",
           fileUrl: "https://example.test/sample.nef",
+          originalFilename: "sample.nef",
+          contentType: "image/x-nikon-nef",
+          sizeBytes: 123,
           uploadedByUserId: "user-1",
           isDeleted: false,
           deletedAt: null,
+          createdAt: new Date("2024-01-01T00:00:00.000Z"),
+          updatedAt: new Date("2024-01-02T00:00:00.000Z"),
+        },
+      ],
+      colorways: [
+        {
+          id: "colorway-id",
+          internalOnly: "future colorway field",
+          gearId: "internal-id",
+          name: "Black",
+          slug: "black",
+          swatchColorA: "#000000",
+          swatchColorB: "#111111",
+          sortOrder: 1,
+          frontImageUrl: "https://example.test/black-front.jpg",
+          topViewUrl: null,
+          rearViewUrl: null,
+          createdAt: new Date("2024-01-01T00:00:00.000Z"),
+          updatedAt: new Date("2024-01-02T00:00:00.000Z"),
         },
       ],
     } as never);
 
-    expect(response.data).toMatchObject({
+    expect(response.data).toEqual({
       slug: "nikon-z6",
-      brands: { name: "Nikon" },
-      cameraSpecs: { gearId: "internal-id" },
-      cameraCardSlots: [{ gearId: "internal-id", slotIndex: 1 }],
+      name: "Nikon Z6",
+      modelNumber: "Z6",
+      gearType: "CAMERA",
+      announcedDate: "2023-10-01T00:00:00.000Z",
+      announceDatePrecision: "DAY",
+      releaseDate: "2024-01-01T00:00:00.000Z",
+      releaseDatePrecision: "DAY",
+      thumbnailUrl: "https://example.test/front.jpg",
+      topViewUrl: "https://example.test/top.jpg",
+      rearViewUrl: "https://example.test/rear.jpg",
+      widthMm: "134",
+      brands: { name: "Nikon", slug: "nikon" },
+      mounts: [
+        { value: "Nikon Z", shortName: "Z" },
+        { value: "Leica L", shortName: "L" },
+      ],
+      regionalAliases: [{ region: "JP", name: "Nikon Z6 JP" }],
+      cameraSpecs: {
+        sensorFormat: {
+          slug: "full-frame",
+          name: "Full Frame",
+          cropFactor: "1.00",
+        },
+        resolutionMp: "24.5",
+        maxFpsByShutter: { mechanical: { raw: 14, jpg: 14 } },
+        afAreaModes: [
+          {
+            name: "Single-point AF",
+            description: "Public description",
+            aliases: ["single point"],
+          },
+        ],
+      },
+      analogCameraSpecs: { cameraType: "slr" },
+      lensSpecs: {
+        imageCircle: {
+          slug: "full-frame",
+          name: "Full Frame",
+          cropFactor: "1.00",
+        },
+        focalLengthMinMm: 24,
+      },
+      fixedLensSpecs: { imageCircle: null, focalLengthMinMm: 35 },
+      cameraCardSlots: [
+        {
+          slotIndex: 1,
+          supportedFormFactors: ["sd"],
+          supportedBuses: ["uhs_ii"],
+          supportedSpeedClasses: ["v90"],
+        },
+      ],
+      colorways: [
+        {
+          name: "Black",
+          slug: "black",
+          swatchColorA: "#000000",
+          swatchColorB: "#111111",
+          sortOrder: 1,
+          frontImageUrl: "https://example.test/black-front.jpg",
+          topViewUrl: null,
+          rearViewUrl: null,
+        },
+      ],
     });
     expect(response.data).not.toHaveProperty("id");
+    expect(response.data).not.toHaveProperty("internalOnly");
     expect(response.data).not.toHaveProperty("createdAt");
     expect(response.data).not.toHaveProperty("updatedAt");
     expect(response.data).not.toHaveProperty("searchName");
+    expect(response.data).not.toHaveProperty("publicationState");
+    expect(response.data).not.toHaveProperty("notes");
+    expect(response.data).not.toHaveProperty("genres");
+    expect(response.data).not.toHaveProperty("mountIds");
+    expect(response.data).not.toHaveProperty("mounts.0.id");
     expect(response.data).not.toHaveProperty("videoModes");
     expect(response.data).not.toHaveProperty("brands.id");
+    expect(response.data).not.toHaveProperty("brands.internalOnly");
     expect(response.data).not.toHaveProperty("brands.createdAt");
+    expect(response.data).not.toHaveProperty("regionalAliases.0.gearId");
     expect(response.data).not.toHaveProperty("cameraSpecs.createdAt");
+    expect(response.data).not.toHaveProperty("cameraSpecs.sensorFormatId");
+    expect(response.data).not.toHaveProperty("cameraSpecs.sensorFormat.id");
+    expect(response.data).not.toHaveProperty("cameraSpecs.extra");
+    expect(response.data).not.toHaveProperty("cameraSpecs.internalOnly");
+    expect(response.data).not.toHaveProperty("cameraSpecs.afAreaModes.0.id");
+    expect(response.data).not.toHaveProperty("lensSpecs.imageCircle.id");
     expect(response.data).not.toHaveProperty("cameraCardSlots.0.id");
     expect(response.data).not.toHaveProperty("cameraCardSlots.0.updatedAt");
-    expect(response.data).not.toHaveProperty("rawSamples.0.uploadedByUserId");
+    expect(response.data).not.toHaveProperty("cameraCardSlots.0.notes");
+    expect(response.data).not.toHaveProperty("cameraCardSlots.0.internalOnly");
+    expect(response.data).not.toHaveProperty("rawSamples");
+    expect(response.data).not.toHaveProperty("colorways.0.gearId");
+    expect(response.data).not.toHaveProperty("colorways.0.internalOnly");
+  });
+
+  it("uses stable empty or null values for absent full-gear relations", () => {
+    const response = serializeGear({
+      slug: "nikon-z6",
+      name: "Nikon Z6",
+      gearType: "CAMERA",
+      mounts: [],
+    } as never);
+
+    expect(response.data).toMatchObject({
+      slug: "nikon-z6",
+      name: "Nikon Z6",
+      gearType: "CAMERA",
+      brands: null,
+      regionalAliases: [],
+      cameraSpecs: null,
+      analogCameraSpecs: null,
+      lensSpecs: null,
+      fixedLensSpecs: null,
+      cameraCardSlots: [],
+      colorways: [],
+    });
+  });
+
+  it("allowlists regional aliases in search responses", () => {
+    const response = serializeSearchResponse({
+      results: [
+        {
+          id: "internal-id",
+          slug: "nikon-z6",
+          name: "Nikon Z6",
+          brandName: "Nikon",
+          mountValue: null,
+          gearType: "CAMERA",
+          thumbnailUrl: null,
+          regionalAliases: [
+            {
+              gearId: "internal-id",
+              region: "JP",
+              name: "Nikon Z6 JP",
+              createdAt: new Date("2024-01-01T00:00:00.000Z"),
+              updatedAt: new Date("2024-01-02T00:00:00.000Z"),
+            },
+          ],
+        },
+      ],
+      page: 1,
+      pageSize: 20,
+      total: 1,
+      totalPages: 1,
+    });
+
+    expect(response.data[0]?.regionalAliases).toEqual([
+      { region: "JP", name: "Nikon Z6 JP" },
+    ]);
+    expect(response.data[0]).not.toHaveProperty("regionalAliases.0.gearId");
+    expect(response.data[0]).not.toHaveProperty("regionalAliases.0.createdAt");
   });
 
   it("serializes selected specs with structured raw values", () => {

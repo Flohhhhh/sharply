@@ -1,16 +1,23 @@
 import "server-only";
 
-import { and,eq,inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { requireRole } from "~/lib/auth/auth-helpers";
 import { GEAR_PUBLICATION_STATES } from "~/lib/gear/publication-state";
 import { buildGearSearchName } from "~/lib/gear/naming";
-import { GEAR_REGIONS,type GearRegion } from "~/lib/gear/region";
+import { GEAR_REGIONS, type GearRegion } from "~/lib/gear/region";
 import { shouldBlockFuzzyResults } from "~/lib/utils/gear-creation";
 import { getSessionOrThrow } from "~/server/auth";
 import { db } from "~/server/db";
-import { auditLogs,brands,gear,gearAliases,gearEdits } from "~/server/db/schema";
-import { clearImageRequestsForGear,getGearIdBySlug } from "~/server/gear/data";
+import {
+  auditLogs,
+  brands,
+  gear,
+  gearAliases,
+  gearEdits,
+} from "~/server/db/schema";
+import { invalidateDeveloperApiCatalogCache } from "~/server/developer-api/cache";
+import { clearImageRequestsForGear, getGearIdBySlug } from "~/server/gear/data";
 import {
   checkGearCreationData,
   createGearData,
@@ -35,7 +42,7 @@ import {
   type UpdateGearPublicationStateResult,
 } from "./data";
 
-export type { AdminGearTableRow,GearCreationParams } from "./data";
+export type { AdminGearTableRow, GearCreationParams } from "./data";
 
 function assertRearViewSupported(gearType: string) {
   if (gearType === "LENS") {
@@ -115,6 +122,8 @@ export async function createGearAdmin(
     gearId: created.id,
   });
 
+  invalidateDeveloperApiCatalogCache();
+
   return created;
 }
 
@@ -137,7 +146,9 @@ export async function updateGearPublicationStateService(params: {
     });
   }
 
-  return updateGearPublicationStateData(params);
+  const updated = await updateGearPublicationStateData(params);
+  invalidateDeveloperApiCatalogCache();
+  return updated;
 }
 
 export async function fetchAdminGearItems(
@@ -171,6 +182,8 @@ export async function renameGearService(params: {
       gearId: updated.id,
     });
   } catch {}
+
+  invalidateDeveloperApiCatalogCache();
 
   return updated;
 }
@@ -304,6 +317,8 @@ export async function setGearThumbnailService(params: {
     thumbnailUrl,
     ogImageUrl,
   });
+  const thumbnailChanged =
+    (currentGear.thumbnailUrl ?? null) !== updated.thumbnailUrl;
 
   if (thumbnailUrl) {
     // Clear outstanding image requests once an image is provided
@@ -347,6 +362,8 @@ export async function setGearThumbnailService(params: {
       });
     }
   } catch {}
+
+  if (thumbnailChanged) invalidateDeveloperApiCatalogCache();
 
   return updated;
 }
@@ -524,9 +541,7 @@ export async function setGearRearViewService(params: {
       | "GEAR_REAR_VIEW_REMOVE";
     if (rearViewUrl) {
       // Setting a new rear view
-      action = hadRearView
-        ? "GEAR_REAR_VIEW_REPLACE"
-        : "GEAR_REAR_VIEW_UPLOAD";
+      action = hadRearView ? "GEAR_REAR_VIEW_REPLACE" : "GEAR_REAR_VIEW_UPLOAD";
     } else {
       // Removing rear view
       action = "GEAR_REAR_VIEW_REMOVE";
@@ -574,7 +589,7 @@ export async function deleteGearService(
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
 
-  return db.transaction(async (tx) => {
+  const deleted = await db.transaction(async (tx) => {
     const existing = await tx
       .select({ id: gear.id })
       .from(gear)
@@ -601,4 +616,7 @@ export async function deleteGearService(
 
     return deleteGearData(gearId, tx);
   });
+
+  invalidateDeveloperApiCatalogCache();
+  return deleted;
 }

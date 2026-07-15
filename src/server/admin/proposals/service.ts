@@ -3,6 +3,7 @@ import "server-only";
 import { requireRole } from "~/lib/auth/auth-helpers";
 import { getSessionOrThrow } from "~/server/auth";
 import { evaluateForEvent } from "~/server/badges/service";
+import { invalidateDeveloperApiCatalogCache } from "~/server/developer-api/cache";
 import { createNotification } from "~/server/notifications/service";
 import type { GearEditProposal } from "~/types/gear";
 import {
@@ -37,6 +38,28 @@ type ProposalGroups = {
   resolvedRecent: ProposalGroup[];
   resolvedRecentCount: number;
 };
+
+const CATALOG_CORE_FIELDS = new Set([
+  "name",
+  "slug",
+  "brandId",
+  "gearType",
+  "thumbnailUrl",
+  "releaseDate",
+  "releaseDatePrecision",
+  "announcedDate",
+  "announceDatePrecision",
+  "publicationState",
+]);
+
+function proposalAffectsDeveloperCatalog(payload: unknown) {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return false;
+  }
+  const core = (payload as { core?: unknown }).core;
+  if (!core || typeof core !== "object" || Array.isArray(core)) return false;
+  return Object.keys(core).some((key) => CATALOG_CORE_FIELDS.has(key));
+}
 
 function groupProposals(proposals: EnrichedProposal[]): ProposalGroup[] {
   const groupedProposals = proposals.reduce<ProposalGroup[]>(
@@ -200,6 +223,10 @@ export async function applyTrustedContributorProposalApproval(
     filteredPayload,
   );
 
+  if (proposalAffectsDeveloperCatalog(filteredPayload ?? proposal.payload)) {
+    invalidateDeveloperApiCatalogCache();
+  }
+
   await notifyContributorOfApprovedGearEdit({
     gearId: proposal.gearId,
     proposalId: proposal.id,
@@ -236,6 +263,10 @@ export async function approveProposal(
     user.id,
     filteredPayload,
   );
+
+  if (proposalAffectsDeveloperCatalog(filteredPayload ?? proposal.payload)) {
+    invalidateDeveloperApiCatalogCache();
+  }
 
   await notifyContributorOfApprovedGearEdit({
     gearId: proposal.gearId,

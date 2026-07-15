@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { describe,expect,it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 function readSource(relativePath: string) {
   return readFileSync(path.join(process.cwd(), relativePath), "utf8");
@@ -48,6 +48,14 @@ describe("static route safety", () => {
     );
   });
 
+  it("refreshes the header session without its cookie cache for developer access", () => {
+    const headerClient = readSource("src/components/layout/header-client.tsx");
+
+    expect(headerClient).toContain(
+      "refetchSession({ query: { disableCookieCache: true } })",
+    );
+  });
+
   it("keeps the footer language switcher isolated behind Suspense", () => {
     const footer = readSource("src/components/layout/footer.tsx");
 
@@ -67,7 +75,9 @@ describe("static route safety", () => {
   });
 
   it("keeps gear ISR routes anchored to params locale and off request APIs", () => {
-    const gearPage = readSource("src/app/[locale]/(pages)/gear/[slug]/page.tsx");
+    const gearPage = readSource(
+      "src/app/[locale]/(pages)/gear/[slug]/page.tsx",
+    );
 
     expect(gearPage).toMatch(/setRequestLocale\(locale\);/);
     expect(gearPage).not.toMatch(/searchParams:/);
@@ -80,7 +90,9 @@ describe("static route safety", () => {
   it("rejects invalid locales during root layout metadata resolution", () => {
     const localeLayout = readSource("src/app/[locale]/layout.tsx");
 
-    expect(localeLayout).toMatch(/if \(!isLocale\(requestedLocale\)\) {\s*notFound\(\);/);
+    expect(localeLayout).toMatch(
+      /if \(!isLocale\(requestedLocale\)\) {\s*notFound\(\);/,
+    );
   });
 
   it("mounts BotID at the locale root instead of shared page chrome", () => {

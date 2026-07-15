@@ -8,6 +8,9 @@ export const DEVELOPER_API_ENDPOINTS = [
   "search",
   "suggestions",
   "gear",
+  "catalog",
 ] as const;
+
+export const DEVELOPER_API_CATALOG_CACHE_TAG = "developer-api-catalog";
 
 export type DeveloperApiEndpoint = (typeof DEVELOPER_API_ENDPOINTS)[number];

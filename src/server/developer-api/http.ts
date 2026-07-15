@@ -15,11 +15,21 @@ import {
   recordDeveloperApiUsage,
 } from "./service";
 
-type SuccessfulResponse = {
+type SuccessfulJsonResponse = {
   data: unknown;
   pagination?: unknown;
   headers?: Record<string, string>;
+  response?: never;
+  [key: string]: unknown;
 };
+
+type SuccessfulResponse = SuccessfulJsonResponse | { response: Response };
+
+function isNativeResponse(
+  response: SuccessfulResponse,
+): response is { response: Response } {
+  return response.response instanceof Response;
+}
 
 function buildRateLimitHeaders(params?: { remaining: number; resetAt: Date }) {
   if (!params) return undefined;
@@ -96,6 +106,17 @@ export async function runDeveloperApiRequest(
 
     const response = await handler();
     await recordUsageBestEffort({ apiKeyId: credential.apiKeyId, endpoint });
+
+    if (isNativeResponse(response)) {
+      response.response.headers.set("X-Request-Id", requestId);
+      for (const [name, value] of Object.entries(
+        buildRateLimitHeaders(rateLimit) ?? {},
+      )) {
+        response.response.headers.set(name, value);
+      }
+      return response.response;
+    }
+
     const { headers, ...body } = response;
     return NextResponse.json(
       { ...body, meta: { requestId } },
