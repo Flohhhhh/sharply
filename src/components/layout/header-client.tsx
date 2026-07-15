@@ -5,7 +5,7 @@ import { track } from "@vercel/analytics";
 import { LayoutDashboard, LogIn, Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import Logo from "public/logo";
 import type {
   HeaderUser,
@@ -70,7 +70,22 @@ export default function HeaderClient({
   const signInHref = `${signInBaseHref}?callbackUrl=${encodeURIComponent(callbackUrl)}`;
 
   // Client-side auth state — avoids headers() call on the server during ISR.
-  const { data: session, isPending: isSessionPending } = useSession();
+  const {
+    data: session,
+    isPending: isSessionPending,
+    refetch: refetchSession,
+  } = useSession();
+  const hasRefetchedSession = useRef(false);
+
+  // Developer access is granted by an admin outside of Better Auth's cached
+  // session payload. Refresh it once so a newly granted user sees the portal
+  // without waiting for the compact session cookie to expire.
+  useEffect(() => {
+    if (hasRefetchedSession.current) return;
+    hasRefetchedSession.current = true;
+    void refetchSession({ query: { disableCookieCache: true } });
+  }, [refetchSession]);
+
   const user: HeaderUser = session?.user
     ? {
         id: session.user.id,
