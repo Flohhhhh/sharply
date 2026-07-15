@@ -1,16 +1,72 @@
 import "server-only";
 
-import { and, desc, eq, gte, inArray, isNull, sql } from "drizzle-orm";
+import { asc, and, desc, eq, gte, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "~/server/db";
 import {
   developerApiKeys,
   developerApiRateLimitBuckets,
   developerApiUsageDaily,
+  gearMounts,
+  mounts,
+  sensorFormats,
   users,
 } from "~/server/db/schema";
 import type { DeveloperApiEndpoint } from "./constants";
 
 export type DeveloperApiKeyRow = typeof developerApiKeys.$inferSelect;
+
+export type DeveloperApiMount = {
+  value: string;
+  shortName: string | null;
+};
+
+export type DeveloperApiSensorFormat = {
+  slug: string;
+  name: string;
+  cropFactor: string;
+};
+
+export async function fetchDeveloperGearMountsData(
+  gearId: string,
+): Promise<DeveloperApiMount[]> {
+  return db
+    .select({
+      value: mounts.value,
+      shortName: mounts.shortName,
+    })
+    .from(gearMounts)
+    .innerJoin(mounts, eq(gearMounts.mountId, mounts.id))
+    .where(eq(gearMounts.gearId, gearId))
+    .orderBy(asc(mounts.value));
+}
+
+export async function fetchDeveloperSensorFormatsData(
+  formatIds: Array<string | null | undefined>,
+): Promise<Map<string, DeveloperApiSensorFormat>> {
+  const ids = [...new Set(formatIds.filter((id): id is string => !!id))];
+  if (!ids.length) return new Map();
+
+  const rows = await db
+    .select({
+      id: sensorFormats.id,
+      slug: sensorFormats.slug,
+      name: sensorFormats.name,
+      cropFactor: sensorFormats.cropFactor,
+    })
+    .from(sensorFormats)
+    .where(inArray(sensorFormats.id, ids));
+
+  return new Map(
+    rows.map((format) => [
+      format.id,
+      {
+        slug: format.slug,
+        name: format.name,
+        cropFactor: format.cropFactor,
+      },
+    ]),
+  );
+}
 
 export async function findUsableApiKeyByHash(keyHash: string) {
   const rows = await db

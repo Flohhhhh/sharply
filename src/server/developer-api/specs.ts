@@ -6,7 +6,7 @@ import {
   getDeveloperApiSpecValue,
 } from "~/lib/specs/registry";
 import { DeveloperApiError } from "./errors";
-import { getDeveloperGear } from "./service";
+import { getDeveloperGearForSpecs } from "./service";
 
 export function getDeveloperApiSpecsCatalog() {
   return getDeveloperApiSpecCatalog();
@@ -53,7 +53,7 @@ export async function getDeveloperGearSelectedSpecs(params: {
   selectors: string[];
 }) {
   const fields = resolveDeveloperApiSpecSelectors(params.selectors);
-  const gear = await getDeveloperGear(params.slug);
+  const gear = await getDeveloperGearForSpecs(params.slug);
 
   return fields
     .map((definition) => getDeveloperApiSpecValue(gear, definition))
