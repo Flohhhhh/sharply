@@ -1,16 +1,18 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useMemo,useState } from "react";
+import { useMemo, useState } from "react";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Progress } from "~/components/ui/progress";
 import {
   Select,
   SelectContent,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { splitBrandsWithPriority } from "~/lib/brands";
 import { GEAR_TYPE_LABELS } from "~/lib/constants";
 import UnderConstructionTable from "./under-construction-table";
 
@@ -30,7 +32,11 @@ type Row = {
   brandId?: string | null;
 };
 
-type Option = { value: string; label: string };
+type Option = {
+  value: string;
+  label: string;
+  sortOrder?: number | null;
+};
 type Summary = {
   totalCount: number;
   underConstructionCount: number;
@@ -55,6 +61,18 @@ export default function UnderConstructionClient({
   const [brandId, setBrandId] = useState<string>("all");
   const [gearType, setGearType] = useState<string>("all");
   const [missingImagesOnly, setMissingImagesOnly] = useState(false);
+  const { hoisted: priorityBrands, remaining: remainingBrands } = useMemo(
+    () =>
+      splitBrandsWithPriority(
+        brands.map((brand) => ({
+          ...brand,
+          name: brand.label,
+        })),
+      ),
+    [brands],
+  );
+  const showBrandDivider =
+    priorityBrands.length > 0 && remainingBrands.length > 0;
 
   const filtered = useMemo(() => {
     return items.filter((it) => {
@@ -81,7 +99,6 @@ export default function UnderConstructionClient({
           <p className="text-sm font-semibold">{summary.completedPercent}%</p>
         </div>
         <Progress value={summary.completedPercent} className="h-2.5" />
-
       </div>
 
       <div className="mb-3 flex flex-wrap items-center gap-4">
@@ -93,7 +110,13 @@ export default function UnderConstructionClient({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t("allBrands")}</SelectItem>
-              {brands.map((b) => (
+              {priorityBrands.map((b) => (
+                <SelectItem key={b.value} value={b.value}>
+                  {b.label}
+                </SelectItem>
+              ))}
+              {showBrandDivider ? <SelectSeparator /> : null}
+              {remainingBrands.map((b) => (
                 <SelectItem key={b.value} value={b.value}>
                   {b.label}
                 </SelectItem>

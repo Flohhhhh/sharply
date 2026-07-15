@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { beforeEach,describe,expect,it,vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { BRANDS } from "~/lib/generated";
 
 const gearServiceMocks = vi.hoisted(() => ({
   listUnderConstruction: vi.fn(),
@@ -57,6 +58,7 @@ import Page from "~/app/[locale]/(pages)/lists/under-construction/page";
 type ClientProps = {
   canToggleAutoSubmit: boolean;
   items: unknown[];
+  brands: Array<{ value: string; label: string; sortOrder: number | null }>;
   summary: {
     totalCount: number;
     underConstructionCount: number;
@@ -96,6 +98,13 @@ describe("under construction page", () => {
     expect(metricsMocks.fetchGearCount).toHaveBeenCalledTimes(1);
     expect(props.canToggleAutoSubmit).toBe(true);
     expect(props.items).toBe(items);
+    expect(props.brands).toEqual(
+      BRANDS.map((brand) => ({
+        value: brand.id,
+        label: brand.name,
+        sortOrder: brand.sort_order,
+      })),
+    );
     expect(props.summary).toEqual({
       totalCount: 10,
       underConstructionCount: 2,

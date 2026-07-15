@@ -3,8 +3,8 @@
 import { mergeSearchParams } from "@utils/url";
 import { Filter as FilterIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { usePathname,useRouter,useSearchParams } from "next/navigation";
-import { useEffect,useMemo,useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -13,17 +13,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
-import { RadioGroup,RadioGroupItem } from "~/components/ui/radio-group";
+import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import {
   Select,
   SelectContent,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
 import { Slider } from "~/components/ui/slider";
 import { useLocalePathnames } from "~/i18n/client";
-import { BRANDS,MOUNTS,SENSOR_FORMATS } from "~/lib/constants";
+import { splitBrandsWithPriority } from "~/lib/brands";
+import { BRANDS, MOUNTS, SENSOR_FORMATS } from "~/lib/constants";
 import { getMountLongName } from "~/lib/mapping/mounts-map";
 import { sortSensorFormats } from "~/lib/sensor-formats";
 
@@ -52,14 +54,17 @@ const SENSOR_OPTIONS = sortSensorFormats(
     name: string;
   }>,
 );
-const BRAND_OPTIONS = BRANDS as Array<{ id: string; name: string }>;
+const BRAND_OPTIONS = BRANDS as Array<{
+  id: string;
+  name: string;
+  sort_order?: number | null;
+}>;
 
 function useSyncedParam(key: string, fallback: string | undefined = undefined) {
   const sp = useSearchParams();
   const [value, setValue] = useState<string>(sp.get(key) ?? fallback ?? "");
   useEffect(() => {
     setValue(sp.get(key) ?? fallback ?? "");
-     
   }, [sp.toString(), key]);
   return [value, setValue] as const;
 }
@@ -71,6 +76,10 @@ export function FiltersModal() {
   const rawPathname = usePathname();
   const { pathname } = useLocalePathnames();
   const [open, setOpen] = useState(false);
+  const { hoisted: priorityBrandOptions, remaining: remainingBrandOptions } =
+    useMemo(() => splitBrandsWithPriority(BRAND_OPTIONS), []);
+  const showBrandDivider =
+    priorityBrandOptions.length > 0 && remainingBrandOptions.length > 0;
 
   // Controlled filter values synced from URL
   const [gearType, setGearType] = useSyncedParam("gearType", "");
@@ -95,7 +104,6 @@ export function FiltersModal() {
       Number.isFinite(min) ? min : 0,
       Number.isFinite(max) && max > 0 ? max : 0,
     ]);
-     
   }, [sp.toString()]);
 
   function pushParams(
@@ -219,7 +227,13 @@ export function FiltersModal() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="__any__">{t("anyBrand")}</SelectItem>
-              {BRAND_OPTIONS.map((b) => (
+              {priorityBrandOptions.map((b) => (
+                <SelectItem key={b.id} value={b.name}>
+                  {b.name}
+                </SelectItem>
+              ))}
+              {showBrandDivider ? <SelectSeparator /> : null}
+              {remainingBrandOptions.map((b) => (
                 <SelectItem key={b.id} value={b.name}>
                   {b.name}
                 </SelectItem>

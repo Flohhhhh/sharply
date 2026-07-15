@@ -7,7 +7,7 @@ The constants generator snapshots light-weight reference data (brands, mounts, s
 1. `scripts/generate-constants.ts` connects to the database specified by `DATABASE_URL`.
 2. The script **only runs** when `GENERATE_CONSTANTS=true` exists in the environment. Otherwise it logs `Skipping constants generation...` and returns without touching the DB or filesystem.
 3. On success it writes `src/lib/generated.ts`, exporting `MOUNTS`, `SENSOR_FORMATS`, `BRANDS`, `GENRES`, `AF_AREA_MODES`, and an `ENUMS` map plus the helper type `EnumValues`.
-4. `BRANDS` mirrors the full `app.brands` snapshot, including nullable ordering metadata such as `sort_order` when present.
+4. `BRANDS` mirrors the full `app.brands` snapshot, including nullable ordering metadata such as `sort_order` when present. Brand selectors use that metadata to show prioritized brands first, followed by the remaining brands alphabetically.
 5. `package.json` wires `npm run prebuild` to execute `npm run constants:generate`, so CI (Vercel, etc.) can regenerate before a build simply by setting `GENERATE_CONSTANTS=true`.
 
 ## Usage
