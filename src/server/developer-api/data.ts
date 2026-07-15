@@ -1,11 +1,14 @@
 import "server-only";
 
 import { asc, and, desc, eq, gte, inArray, isNull, sql } from "drizzle-orm";
+import { GEAR_PUBLICATION_STATES } from "~/lib/gear/publication-state";
 import { db } from "~/server/db";
 import {
+  brands,
   developerApiKeys,
   developerApiRateLimitBuckets,
   developerApiUsageDaily,
+  gear,
   gearMounts,
   mounts,
   sensorFormats,
@@ -25,6 +28,40 @@ export type DeveloperApiSensorFormat = {
   name: string;
   cropFactor: string;
 };
+
+export type DeveloperApiCatalogItem = {
+  name: string;
+  slug: string;
+  brandName: string;
+  gearType: string;
+  thumbnailUrl: string | null;
+  releaseDate: Date | null;
+  releaseDatePrecision: string | null;
+  announcedDate: Date | null;
+  announceDatePrecision: string | null;
+};
+
+/** A deliberately narrow, slug-sorted read for the downloadable API catalog. */
+export async function fetchDeveloperCatalogData(): Promise<
+  DeveloperApiCatalogItem[]
+> {
+  return db
+    .select({
+      name: gear.name,
+      slug: gear.slug,
+      brandName: brands.name,
+      gearType: gear.gearType,
+      thumbnailUrl: gear.thumbnailUrl,
+      releaseDate: gear.releaseDate,
+      releaseDatePrecision: gear.releaseDatePrecision,
+      announcedDate: gear.announcedDate,
+      announceDatePrecision: gear.announceDatePrecision,
+    })
+    .from(gear)
+    .innerJoin(brands, eq(gear.brandId, brands.id))
+    .where(eq(gear.publicationState, GEAR_PUBLICATION_STATES.PUBLISHED))
+    .orderBy(asc(gear.slug));
+}
 
 export async function fetchDeveloperGearMountsData(
   gearId: string,

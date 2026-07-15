@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createHash, randomBytes } from "node:crypto";
+import { unstable_cache } from "next/cache";
 import { requireRole } from "~/lib/auth/auth-helpers";
 import { getSessionOrThrow } from "~/server/auth";
 import { fetchGearBySlug } from "~/server/gear/service";
@@ -14,6 +15,7 @@ import type {
 } from "~/types/gear";
 import {
   DEVELOPER_API_KEY_DISPLAY_LENGTH,
+  DEVELOPER_API_CATALOG_CACHE_TAG,
   DEVELOPER_API_KEY_PREFIX,
   DEVELOPER_API_MAX_ACTIVE_KEYS,
   DEVELOPER_API_RATE_LIMIT,
@@ -25,6 +27,7 @@ import {
   createApiKeyWithinActiveLimitData,
   findUsableApiKeyByHash,
   fetchDeveloperGearMountsData,
+  fetchDeveloperCatalogData,
   fetchDeveloperSensorFormatsData,
   getDeveloperAccessData,
   getUsageForKeyIdsSince,
@@ -41,6 +44,7 @@ import {
 } from "./data";
 import { DeveloperApiError } from "./errors";
 import { parseKeyName } from "./schemas";
+import { serializeDeveloperCatalogData } from "./serializers";
 
 export type DeveloperApiCredential = {
   apiKeyId: string;
@@ -78,6 +82,52 @@ export type DeveloperApiGear = Omit<
   lensSpecs: DeveloperApiLensSpecs | null;
   fixedLensSpecs: DeveloperApiFixedLensSpecs | null;
 };
+
+export type DeveloperApiCatalogSnapshot = {
+  version: string;
+  generatedAt: string;
+  itemCount: number;
+  data: ReturnType<typeof serializeDeveloperCatalogData>;
+};
+
+const getCachedDeveloperCatalogSnapshot = unstable_cache(
+  async (): Promise<DeveloperApiCatalogSnapshot> => {
+    const data = serializeDeveloperCatalogData(
+      await fetchDeveloperCatalogData(),
+    );
+    const version = `sha256-${createHash("sha256")
+      .update(JSON.stringify(data))
+      .digest("hex")}`;
+
+    return {
+      version,
+      generatedAt: new Date().toISOString(),
+      itemCount: data.length,
+      data,
+    };
+  },
+  ["developer-api-catalog-v1"],
+  { revalidate: false, tags: [DEVELOPER_API_CATALOG_CACHE_TAG] },
+);
+
+export async function getDeveloperCatalogSnapshot() {
+  return getCachedDeveloperCatalogSnapshot();
+}
+
+export function createDeveloperCatalogEtag(version: string) {
+  return `"${version}"`;
+}
+
+export function matchesDeveloperCatalogEtag(
+  ifNoneMatch: string | null,
+  etag: string,
+) {
+  if (!ifNoneMatch) return false;
+  return ifNoneMatch.split(",").some((candidate) => {
+    const tag = candidate.trim();
+    return tag === "*" || tag.replace(/^W\//i, "") === etag;
+  });
+}
 
 function utcDay(date: Date) {
   return new Date(

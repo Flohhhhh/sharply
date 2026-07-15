@@ -64,6 +64,28 @@ describe("developer API HTTP wrapper", () => {
     logError.mockRestore();
   });
 
+  it("passes through native 304 responses with request and rate-limit headers", async () => {
+    const response = await runDeveloperApiRequest(
+      new Request("https://sharply.test/api/v1/catalog"),
+      "catalog",
+      async () => ({
+        response: new Response(null, {
+          status: 304,
+          headers: { ETag: '"sha256-catalog"' },
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(304);
+    expect(response.headers.get("ETag")).toBe('"sha256-catalog"');
+    expect(response.headers.get("X-Request-Id")).toBeTruthy();
+    expect(response.headers.get("X-RateLimit-Remaining")).toBe("59");
+    expect(serviceMocks.recordDeveloperApiUsage).toHaveBeenCalledWith({
+      apiKeyId: "key-1",
+      endpoint: "catalog",
+    });
+  });
+
   it("returns a consistent 429 without recording usage", async () => {
     serviceMocks.consumeDeveloperRateLimit.mockResolvedValue({
       allowed: false,

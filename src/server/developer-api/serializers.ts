@@ -12,7 +12,11 @@ import type {
   GearAlias,
   GearColorway,
 } from "~/types/gear";
-import type { DeveloperApiMount, DeveloperApiSensorFormat } from "./data";
+import type {
+  DeveloperApiCatalogItem,
+  DeveloperApiMount,
+  DeveloperApiSensorFormat,
+} from "./data";
 import type {
   DeveloperApiCameraSpecs,
   DeveloperApiFixedLensSpecs,
@@ -61,6 +65,23 @@ export function serializeJson(value: unknown): JsonValue {
 function serializeDate(value: Date | string | null | undefined) {
   if (value === null || value === undefined) return null;
   return value instanceof Date ? value.toISOString() : value;
+}
+
+/** The complete, intentionally lightweight allowlist for catalog downloads. */
+export function serializeDeveloperCatalogData(
+  items: DeveloperApiCatalogItem[],
+) {
+  return items.map((item) => ({
+    name: item.name,
+    slug: item.slug,
+    brandName: item.brandName,
+    gearType: item.gearType,
+    thumbnailUrl: item.thumbnailUrl,
+    releaseDate: serializeDate(item.releaseDate),
+    releaseDatePrecision: item.releaseDatePrecision,
+    announcedDate: serializeDate(item.announcedDate),
+    announceDatePrecision: item.announceDatePrecision,
+  }));
 }
 
 function serializeStringArray(value: unknown) {

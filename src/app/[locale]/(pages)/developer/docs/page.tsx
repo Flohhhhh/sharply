@@ -189,6 +189,63 @@ const { data, pagination } = await response.json();`}
       <article className="border-b py-8">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <span className="text-primary text-sm font-semibold">GET</span>
+          <code className="font-mono text-sm">/api/v1/catalog</code>
+        </div>
+        <h3 className="mt-3 text-xl font-semibold tracking-tight">
+          {t("catalogTitle")}
+        </h3>
+        <p className="text-muted-foreground mt-2 max-w-2xl text-sm leading-6">
+          {t("catalogDescription")}
+        </p>
+        <div className="pl-12">
+          <h4 className="mt-6 text-sm font-semibold">{t("exampleRequest")}</h4>
+          <RequestExampleTabs
+            curl={`curl -sS \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  "https://www.sharplyphoto.com/api/v1/catalog"`}
+            typescript={`const response = await fetch(
+  "https://www.sharplyphoto.com/api/v1/catalog",
+  {
+    headers: {
+      Authorization: "Bearer " + process.env.SHARPLY_API_KEY,
+    },
+  },
+);
+
+if (!response.ok) throw new Error("Sharply API request failed");
+
+const catalog = await response.json();`}
+          />
+          <h4 className="mt-6 text-sm font-semibold">{t("responseTitle")}</h4>
+          <CodeBlock>{`{
+  "version": "sha256-…",
+  "generatedAt": "2026-07-15T15:00:00.000Z",
+  "itemCount": 1,
+  "data": [{
+    "name": "Nikon Z6III",
+    "slug": "nikon-z6iii",
+    "brandName": "Nikon",
+    "gearType": "CAMERA",
+    "thumbnailUrl": "https://…",
+    "releaseDate": "2024-06-24T00:00:00.000Z",
+    "releaseDatePrecision": "DAY",
+    "announcedDate": "2024-06-17T00:00:00.000Z",
+    "announceDatePrecision": "DAY"
+  }]
+}`}</CodeBlock>
+          <CodeBlock>{`curl -i \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H 'If-None-Match: "sha256-…"' \\
+  "https://www.sharplyphoto.com/api/v1/catalog"`}</CodeBlock>
+          <p className="text-muted-foreground mt-4 max-w-2xl text-sm leading-6">
+            {t("catalogConditionalRequest")}
+          </p>
+        </div>
+      </article>
+
+      <article className="border-b py-8">
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <span className="text-primary text-sm font-semibold">GET</span>
           <code className="font-mono text-sm">/api/v1/gear/:slug</code>
         </div>
         <h3 className="mt-3 text-xl font-semibold tracking-tight">

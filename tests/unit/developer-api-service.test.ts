@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  fetchCatalog: vi.fn(),
   fetchGearBySlug: vi.fn(),
   fetchMounts: vi.fn(),
   fetchSensorFormats: vi.fn(),
@@ -25,10 +26,15 @@ vi.mock("~/server/search/service", () => ({
   searchGear: vi.fn(),
 }));
 
+vi.mock("next/cache", () => ({
+  unstable_cache: (resolver: () => Promise<unknown>) => resolver,
+}));
+
 vi.mock("~/server/developer-api/data", () => ({
   consumeRateLimitBucket: vi.fn(),
   createApiKeyWithinActiveLimitData: vi.fn(),
   findUsableApiKeyByHash: vi.fn(),
+  fetchDeveloperCatalogData: mocks.fetchCatalog,
   fetchDeveloperGearMountsData: mocks.fetchMounts,
   fetchDeveloperSensorFormatsData: mocks.fetchSensorFormats,
   getDeveloperAccessData: vi.fn(),
@@ -43,7 +49,12 @@ vi.mock("~/server/developer-api/data", () => ({
   touchApiKeyLastUsed: vi.fn(),
 }));
 
-import { getDeveloperGear } from "~/server/developer-api/service";
+import {
+  createDeveloperCatalogEtag,
+  getDeveloperCatalogSnapshot,
+  getDeveloperGear,
+  matchesDeveloperCatalogEtag,
+} from "~/server/developer-api/service";
 
 describe("getDeveloperGear", () => {
   beforeEach(() => {
@@ -112,5 +123,41 @@ describe("getDeveloperGear", () => {
       "format-lens",
       "missing-format",
     ]);
+  });
+
+  it("builds a stable catalog version from its serialized data", async () => {
+    mocks.fetchCatalog.mockResolvedValue([
+      {
+        name: "Nikon Z6III",
+        slug: "nikon-z6iii",
+        brandName: "Nikon",
+        gearType: "CAMERA",
+        thumbnailUrl: null,
+        releaseDate: new Date("2024-06-24T00:00:00.000Z"),
+        releaseDatePrecision: "DAY",
+        announcedDate: null,
+        announceDatePrecision: null,
+      },
+    ]);
+
+    const first = await getDeveloperCatalogSnapshot();
+    const second = await getDeveloperCatalogSnapshot();
+    const etag = createDeveloperCatalogEtag(first.version);
+
+    expect(first).toMatchObject({
+      version: expect.stringMatching(/^sha256-[a-f0-9]{64}$/),
+      itemCount: 1,
+      data: [
+        expect.objectContaining({
+          slug: "nikon-z6iii",
+          releaseDate: "2024-06-24T00:00:00.000Z",
+        }),
+      ],
+    });
+    expect(second.version).toBe(first.version);
+    expect(matchesDeveloperCatalogEtag(etag, etag)).toBe(true);
+    expect(matchesDeveloperCatalogEtag(`W/${etag}, "other"`, etag)).toBe(true);
+    expect(matchesDeveloperCatalogEtag("*", etag)).toBe(true);
+    expect(matchesDeveloperCatalogEtag('"other"', etag)).toBe(false);
   });
 });

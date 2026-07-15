@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DeveloperApiError } from "~/server/developer-api/errors";
 import {
+  serializeDeveloperCatalogData,
   serializeDeveloperApiSpecs,
   serializeGear,
   serializeSearchResponse,
@@ -43,6 +44,60 @@ describe("developer API request schemas", () => {
 });
 
 describe("developer API serializers", () => {
+  it("serializes only the lightweight catalog allowlist in slug order", () => {
+    const catalog = serializeDeveloperCatalogData([
+      {
+        name: "Alpha",
+        slug: "alpha",
+        brandName: "Acme",
+        gearType: "CAMERA",
+        thumbnailUrl: "https://example.test/alpha.jpg",
+        releaseDate: new Date("2024-06-24T00:00:00.000Z"),
+        releaseDatePrecision: "DAY",
+        announcedDate: null,
+        announceDatePrecision: null,
+        id: "internal-id",
+        createdAt: new Date(),
+      },
+      {
+        name: "Zulu",
+        slug: "zulu",
+        brandName: "Acme",
+        gearType: "LENS",
+        thumbnailUrl: null,
+        releaseDate: null,
+        releaseDatePrecision: null,
+        announcedDate: new Date("2024-06-17T00:00:00.000Z"),
+        announceDatePrecision: "DAY",
+      },
+    ] as never);
+
+    expect(catalog).toEqual([
+      {
+        name: "Alpha",
+        slug: "alpha",
+        brandName: "Acme",
+        gearType: "CAMERA",
+        thumbnailUrl: "https://example.test/alpha.jpg",
+        releaseDate: "2024-06-24T00:00:00.000Z",
+        releaseDatePrecision: "DAY",
+        announcedDate: null,
+        announceDatePrecision: null,
+      },
+      {
+        name: "Zulu",
+        slug: "zulu",
+        brandName: "Acme",
+        gearType: "LENS",
+        thumbnailUrl: null,
+        releaseDate: null,
+        releaseDatePrecision: null,
+        announcedDate: "2024-06-17T00:00:00.000Z",
+        announceDatePrecision: "DAY",
+      },
+    ]);
+  });
+
   it("removes website-only smart actions from suggestions", () => {
     const response = serializeSuggestions([
       {

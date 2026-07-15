@@ -63,6 +63,7 @@ describe("DeveloperDocsPage", () => {
     );
 
     expect(markup).toContain("/api/v1/search");
+    expect(markup).toContain("/api/v1/catalog");
     expect(markup).toContain("/api/v1/specs");
     expect(markup).toContain("/api/v1/gear/:slug/specs");
     expect(markup).toContain("camera.sensor");
@@ -78,13 +79,14 @@ describe("DeveloperDocsPage", () => {
     expect(markup).toContain("Authorization: Bearer sharply_live_…");
     expect(markup).toContain("serverOnlyNote");
     expect(markup).toContain("exampleRequest");
-    expect(markup.match(/exampleCurl/g)).toHaveLength(4);
-    expect(markup.match(/exampleTypeScript/g)).toHaveLength(4);
-    expect(markup.match(/curl -sS/g)).toHaveLength(4);
-    expect(markup.match(/class="pl-12"/g)).toHaveLength(4);
+    expect(markup.match(/exampleCurl/g)).toHaveLength(5);
+    expect(markup.match(/exampleTypeScript/g)).toHaveLength(5);
+    expect(markup.match(/curl -sS/g)).toHaveLength(5);
+    expect(markup.match(/class="pl-12"/g)).toHaveLength(5);
     expect(markup).not.toContain("tracking-wide uppercase");
     const endpointOrder = [
       "/api/v1/search</code>",
+      "/api/v1/catalog</code>",
       "/api/v1/gear/:slug</code>",
       "/api/v1/gear/:slug/specs</code>",
       "/api/v1/specs</code>",

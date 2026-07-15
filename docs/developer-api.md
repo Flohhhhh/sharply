@@ -33,11 +33,46 @@ Returns a ranked page of published results:
 }
 ```
 
+### `GET /api/v1/catalog`
+
+Downloads one shared, lightweight snapshot of every published gear record. It is
+slug-sorted and contains only `name`, `slug`, `brandName`, `gearType`,
+`thumbnailUrl`, `releaseDate`, `releaseDatePrecision`, `announcedDate`, and
+`announceDatePrecision` for each item. It deliberately excludes specifications,
+aliases, samples, colourways, prices, IDs, and audit metadata.
+
+```json
+{
+  "version": "sha256-...",
+  "generatedAt": "2026-07-15T15:00:00.000Z",
+  "itemCount": 123,
+  "data": []
+}
+```
+
+`version` is a SHA-256 hash of the deterministic `data` array. The endpoint
+returns the same value as a quoted `ETag`; `generatedAt` is fixed for the cached
+snapshot and does not affect the version. Send a standard `If-None-Match` header
+to revalidate a locally stored snapshot. Matching strong or weak tags,
+comma-separated tags, and `*` receive `304 Not Modified` with `ETag`, request,
+rate-limit, and cache headers. A `200` response also includes the normal
+`meta.requestId`.
+
+```sh
+curl -i -H "Authorization: Bearer sharply_live_..." \
+  -H 'If-None-Match: "sha256-..."' \
+  https://www.sharplyphoto.com/api/v1/catalog
+```
+
+The endpoint sends `Cache-Control: private, max-age=0, must-revalidate` and
+`Vary: Authorization, If-None-Match`. Its shared server snapshot is invalidated
+when published catalog membership or an included catalog field changes.
+
 ### `GET /api/v1/gear/:slug`
 
 Returns the complete currently publishable catalog record, including available related specifications, aliases, media, and colourways. The response keeps its established field names: `brands`, flattened image URL fields, `regionalAliases`, and `colorways`.
 
-The response is an explicit public allowlist. It includes catalog identity, release and price data, dimensions, public links, genre slugs, approved relation fields, and type-specific specification values. `mounts` contains `{ value, shortName }` records from the gear-to-mount relationship. `cameraSpecs.sensorFormat` and `lensSpecs.imageCircle` / `fixedLensSpecs.imageCircle` contain `{ slug, name, cropFactor }` when the referenced sensor format exists, otherwise `null`.
+The response is an explicit public allowlist. It includes catalog identity, release and price data, dimensions, public links, approved relation fields, and type-specific specification values. `mounts` contains `{ value, shortName }` records from the gear-to-mount relationship. `cameraSpecs.sensorFormat` and `lensSpecs.imageCircle` / `fixedLensSpecs.imageCircle` contain `{ slug, name, cropFactor }` when the referenced sensor format exists, otherwise `null`.
 
 Primary and foreign keys, audit timestamps, search helpers, publication workflow state, genre tags, raw samples, selected colourway IDs, internal notes, video-mode matrices, and flexible `extra` JSON are never returned. Adding a public field requires an intentional serializer, contract, and documentation update. Hidden and rumored gear return `404`.
 

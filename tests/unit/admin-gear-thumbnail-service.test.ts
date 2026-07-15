@@ -1,4 +1,4 @@
-import { beforeEach,describe,expect,it,vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const authMocks = vi.hoisted(() => ({
   getSessionOrThrow: vi.fn(),
@@ -37,6 +37,10 @@ const dbMocks = vi.hoisted(() => ({
   transaction: vi.fn(),
 }));
 
+const cacheMocks = vi.hoisted(() => ({
+  invalidateCatalog: vi.fn(),
+}));
+
 vi.mock("server-only", () => ({}));
 vi.mock("~/server/auth", () => authMocks);
 vi.mock("~/server/db", () => ({
@@ -51,6 +55,9 @@ vi.mock("~/server/db/schema", () => ({
 }));
 vi.mock("~/server/admin/gear/data", () => adminGearDataMocks);
 vi.mock("~/server/gear/data", () => gearDataMocks);
+vi.mock("~/server/developer-api/cache", () => ({
+  invalidateDeveloperApiCatalogCache: cacheMocks.invalidateCatalog,
+}));
 
 import {
   clearGearThumbnailService,
@@ -95,11 +102,14 @@ describe("thumbnail gear admin service", () => {
       thumbnailUrl: "https://cdn.example.com/front.jpg",
       ogImageUrl: "https://cdn.example.com/front-og.jpg",
     });
-    expect(gearDataMocks.clearImageRequestsForGear).toHaveBeenCalledWith("gear-1");
+    expect(gearDataMocks.clearImageRequestsForGear).toHaveBeenCalledWith(
+      "gear-1",
+    );
     expect(dbState.insertedValues[0]).toMatchObject({
       action: "GEAR_IMAGE_UPLOAD",
       gearId: "gear-1",
     });
+    expect(cacheMocks.invalidateCatalog).toHaveBeenCalledTimes(1);
   });
 
   it("clears any stored OG asset when replacing an existing thumbnail", async () => {
@@ -173,5 +183,6 @@ describe("thumbnail gear admin service", () => {
       gearId: "gear-1",
       ogImageUrl: "https://cdn.example.com/front-og.jpg",
     });
+    expect(cacheMocks.invalidateCatalog).not.toHaveBeenCalled();
   });
 });
