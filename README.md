@@ -6,7 +6,7 @@ Sharply is a photography gear database and cataloging application. It combines a
 
 ## Tech Stack
 
-- **Framework**: Next.js 15 (App Router) with React 19
+- **Framework**: Next.js 16 (App Router) with React 19
 - **Language**: TypeScript
 - **UI**: Tailwind CSS 4, shadcn/ui
 - **Database**: PostgreSQL with Drizzle ORM
