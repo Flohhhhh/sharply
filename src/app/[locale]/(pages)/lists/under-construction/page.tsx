@@ -60,9 +60,7 @@ export default async function Page({
   return (
     <div className="mx-auto mt-24 min-h-screen max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
       <header className="mb-4 space-y-4">
-        <h1 className="text-2xl font-semibold sm:text-4xl">
-          {t("pageTitle")}
-        </h1>
+        <h1 className="text-2xl font-semibold sm:text-4xl">{t("pageTitle")}</h1>
         <div className="text-muted-foreground max-w-4xl space-y-2 text-sm">
           <p>{t("intro1")}</p>
           <p>{t("intro2")}</p>
@@ -78,7 +76,11 @@ export default async function Page({
           completedCount,
           completedPercent,
         }}
-        brands={BRANDS.map((b) => ({ value: b.id, label: b.name }))}
+        brands={BRANDS.map((b) => ({
+          value: b.id,
+          label: b.name,
+          sortOrder: b.sort_order,
+        }))}
         types={GEAR_TYPES}
       />
     </div>
