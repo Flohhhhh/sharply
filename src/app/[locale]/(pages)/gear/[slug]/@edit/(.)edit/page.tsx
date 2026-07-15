@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { EditAlreadyPendingRedirect } from "~/app/[locale]/(pages)/gear/_components/edit-already-pending-redirect";
 import { EditGearModal } from "~/app/[locale]/(pages)/gear/_components/edit-gear/edit-gear-modal";
 import { auth } from "~/auth";
 import { requireRole } from "~/lib/auth/auth-helpers";
@@ -32,12 +33,15 @@ export default async function EditGearModalPage({
     redirect(`/auth/signin?callbackUrl=${encodeURIComponent(editUrl)}`);
   }
 
-  // Prevent duplicate submissions: if user already has a pending edit for this gear,
-  // redirect back to gear page with flags to show a toast
+  // Prevent duplicate submissions: if user already has a pending edit for this
+  // gear, render a client component that navigates back and shows a toast.
+  // NOTE: Do NOT use server-side `redirect()` here — it causes a runaway
+  // request loop because Next.js re-fetches parallel-route interception slots
+  // on every prefetch/soft-nav, and each fetch triggers a new redirect.
   if (session?.user) {
     const pendingId = await fetchPendingEditId(slug).catch(() => null);
     if (pendingId) {
-      redirect(`/gear/${slug}?editAlreadyPending=1&id=${pendingId}`);
+      return <EditAlreadyPendingRedirect slug={slug} pendingId={pendingId} />;
     }
   }
 

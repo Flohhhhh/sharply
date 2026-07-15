@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { EditAlreadyPendingRedirect } from "~/app/[locale]/(pages)/gear/_components/edit-already-pending-redirect";
 import EditGearClient from "~/app/[locale]/(pages)/gear/_components/edit-gear/edit-gear-page-client";
 import { auth } from "~/auth";
 import { requireRole } from "~/lib/auth/auth-helpers";
@@ -49,11 +50,15 @@ export default async function EditGearPage({
     redirect(`/auth/signin?callbackUrl=${encodeURIComponent(editUrl)}`);
   }
 
-  // Prevent duplicate submissions: redirect back if user already has a pending edit
+  // Prevent duplicate submissions: if user already has a pending edit,
+  // render a client component that navigates back and shows a toast.
+  // NOTE: Do NOT use server-side `redirect()` here — in the intercepting
+  // route variant this causes a runaway request loop; keep both routes
+  // consistent to avoid the same class of issue on hard navigations.
   if (session?.user) {
     const pendingId = await fetchPendingEditId(slug).catch(() => null);
     if (pendingId) {
-      redirect(`/gear/${slug}?editAlreadyPending=1&id=${pendingId}`);
+      return <EditAlreadyPendingRedirect slug={slug} pendingId={pendingId} />;
     }
   }
 

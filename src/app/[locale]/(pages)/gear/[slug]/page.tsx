@@ -60,6 +60,7 @@ import {
 } from "~/server/popularity/service";
 import { AiReviewBanner } from "../_components/ai-review-banner";
 import { CreatorVideosSection } from "../_components/creator-videos-section";
+import { EditAlreadyPendingToast } from "../_components/edit-already-pending-toast";
 import { EditAppliedToast } from "../_components/edit-applied-toast";
 import { GearAlternativesSection } from "../_components/gear-alternatives-section";
 import { buildGearBreadcrumbItems } from "../_components/gear-breadcrumb-items";
@@ -256,6 +257,7 @@ export default async function GearPage({ params }: GearPageProps) {
     <main className="mx-auto max-w-7xl space-y-8 px-4 pt-20 sm:px-6">
       <Suspense fallback={null}>
         <EditAppliedToast />
+        <EditAlreadyPendingToast />
       </Suspense>
       <GearItemDock
         slug={slug}
