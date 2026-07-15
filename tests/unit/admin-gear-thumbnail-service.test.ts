@@ -139,6 +139,26 @@ describe("thumbnail gear admin service", () => {
     });
   });
 
+  it("does not invalidate the catalog when only the OG asset changes", async () => {
+    gearDataMocks.fetchGearMetadataById.mockResolvedValue({
+      thumbnailUrl: "https://cdn.example.com/front.jpg",
+    });
+    adminGearDataMocks.updateGearThumbnailData.mockResolvedValue({
+      id: "gear-1",
+      slug: "nikon-z6iii",
+      thumbnailUrl: "https://cdn.example.com/front.jpg",
+      ogImageUrl: "https://cdn.example.com/front-og.jpg",
+    });
+
+    await setGearThumbnailService({
+      gearId: "gear-1",
+      thumbnailUrl: "https://cdn.example.com/front.jpg",
+      ogImageUrl: "https://cdn.example.com/front-og.jpg",
+    });
+
+    expect(cacheMocks.invalidateCatalog).not.toHaveBeenCalled();
+  });
+
   it("clearing a thumbnail also clears the stored OG asset", async () => {
     gearDataMocks.fetchGearMetadataById.mockResolvedValue({
       thumbnailUrl: "https://cdn.example.com/front.jpg",

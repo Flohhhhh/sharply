@@ -317,6 +317,8 @@ export async function setGearThumbnailService(params: {
     thumbnailUrl,
     ogImageUrl,
   });
+  const thumbnailChanged =
+    (currentGear.thumbnailUrl ?? null) !== updated.thumbnailUrl;
 
   if (thumbnailUrl) {
     // Clear outstanding image requests once an image is provided
@@ -361,7 +363,7 @@ export async function setGearThumbnailService(params: {
     }
   } catch {}
 
-  invalidateDeveloperApiCatalogCache();
+  if (thumbnailChanged) invalidateDeveloperApiCatalogCache();
 
   return updated;
 }
