@@ -25,10 +25,6 @@ export function EditAlreadyPendingRedirect({
   const router = useRouter();
 
   useEffect(() => {
-    toast.info("You already have a pending edit for this item.", {
-      description: "Your previous suggestion is still under review.",
-    });
-
     router.replace(`/gear/${slug}?editAlreadyPending=1&id=${pendingId}`, {
       scroll: false,
     });
