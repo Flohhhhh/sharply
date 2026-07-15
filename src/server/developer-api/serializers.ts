@@ -11,7 +11,6 @@ import type {
   CameraCardSlot,
   GearAlias,
   GearColorway,
-  RawSample,
 } from "~/types/gear";
 import type { DeveloperApiMount, DeveloperApiSensorFormat } from "./data";
 import type {
@@ -133,15 +132,6 @@ function serializeSensorFormat(format: DeveloperApiSensorFormat | null) {
     slug: format.slug,
     name: format.name,
     cropFactor: format.cropFactor,
-  };
-}
-
-function serializeRawSample(sample: RawSample) {
-  return {
-    fileUrl: sample.fileUrl,
-    originalFilename: sample.originalFilename,
-    contentType: sample.contentType,
-    sizeBytes: sample.sizeBytes,
   };
 }
 
@@ -449,7 +439,6 @@ export function serializeGear(item: DeveloperApiGear) {
       linkMpb: item.linkMpb,
       linkBh: item.linkBh,
       linkAmazon: item.linkAmazon,
-      genres: serializeStringArray(item.genres),
       brands: serializeBrand(item.brands),
       mounts: item.mounts.map(serializeMount),
       regionalAliases: serializeAliases(item.regionalAliases),
@@ -460,7 +449,6 @@ export function serializeGear(item: DeveloperApiGear) {
       cameraCardSlots: (item.cameraCardSlots ?? []).map(
         serializeCameraCardSlot,
       ),
-      rawSamples: (item.rawSamples ?? []).map(serializeRawSample),
       colorways: (item.colorways ?? []).map(serializeColorway),
     }),
   };

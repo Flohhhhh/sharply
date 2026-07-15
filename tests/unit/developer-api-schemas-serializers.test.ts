@@ -104,7 +104,6 @@ describe("developer API serializers", () => {
       topViewUrl: "https://example.test/top.jpg",
       rearViewUrl: "https://example.test/rear.jpg",
       widthMm: "134",
-      genres: ["travel"],
       mounts: [
         { value: "Nikon Z", shortName: "Z" },
         { value: "Leica L", shortName: "L" },
@@ -254,7 +253,6 @@ describe("developer API serializers", () => {
       topViewUrl: "https://example.test/top.jpg",
       rearViewUrl: "https://example.test/rear.jpg",
       widthMm: "134",
-      genres: ["travel"],
       brands: { name: "Nikon", slug: "nikon" },
       mounts: [
         { value: "Nikon Z", shortName: "Z" },
@@ -295,14 +293,6 @@ describe("developer API serializers", () => {
           supportedSpeedClasses: ["v90"],
         },
       ],
-      rawSamples: [
-        {
-          fileUrl: "https://example.test/sample.nef",
-          originalFilename: "sample.nef",
-          contentType: "image/x-nikon-nef",
-          sizeBytes: 123,
-        },
-      ],
       colorways: [
         {
           name: "Black",
@@ -323,6 +313,7 @@ describe("developer API serializers", () => {
     expect(response.data).not.toHaveProperty("searchName");
     expect(response.data).not.toHaveProperty("publicationState");
     expect(response.data).not.toHaveProperty("notes");
+    expect(response.data).not.toHaveProperty("genres");
     expect(response.data).not.toHaveProperty("mountIds");
     expect(response.data).not.toHaveProperty("mounts.0.id");
     expect(response.data).not.toHaveProperty("videoModes");
@@ -341,9 +332,7 @@ describe("developer API serializers", () => {
     expect(response.data).not.toHaveProperty("cameraCardSlots.0.updatedAt");
     expect(response.data).not.toHaveProperty("cameraCardSlots.0.notes");
     expect(response.data).not.toHaveProperty("cameraCardSlots.0.internalOnly");
-    expect(response.data).not.toHaveProperty("rawSamples.0.uploadedByUserId");
-    expect(response.data).not.toHaveProperty("rawSamples.0.id");
-    expect(response.data).not.toHaveProperty("rawSamples.0.internalOnly");
+    expect(response.data).not.toHaveProperty("rawSamples");
     expect(response.data).not.toHaveProperty("colorways.0.gearId");
     expect(response.data).not.toHaveProperty("colorways.0.internalOnly");
   });
@@ -367,7 +356,6 @@ describe("developer API serializers", () => {
       lensSpecs: null,
       fixedLensSpecs: null,
       cameraCardSlots: [],
-      rawSamples: [],
       colorways: [],
     });
   });

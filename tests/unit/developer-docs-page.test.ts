@@ -70,6 +70,11 @@ describe("DeveloperDocsPage", () => {
     expect(markup).toContain('aria-haspopup="dialog"');
     expect(markup).not.toContain("<details");
     expect(markup).toContain("/api/v1/gear/:slug");
+    expect(markup).toContain("/api/v1/gear/nikon-z6iii");
+    expect(markup).toContain("cameraSpecs");
+    expect(markup).toContain("sensorFormat");
+    expect(markup).toContain("mounts");
+    expect(markup).toContain("gearTaxonomyNote");
     expect(markup).toContain("Authorization: Bearer sharply_live_…");
     expect(markup).toContain("serverOnlyNote");
     expect(markup).toContain("exampleRequest");

@@ -35,11 +35,11 @@ Returns a ranked page of published results:
 
 ### `GET /api/v1/gear/:slug`
 
-Returns the complete currently publishable catalog record, including available related specifications, aliases, media, samples, and colourways. The response keeps its established field names: `brands`, flattened image URL fields, `regionalAliases`, `rawSamples`, and `colorways`.
+Returns the complete currently publishable catalog record, including available related specifications, aliases, media, and colourways. The response keeps its established field names: `brands`, flattened image URL fields, `regionalAliases`, and `colorways`.
 
 The response is an explicit public allowlist. It includes catalog identity, release and price data, dimensions, public links, genre slugs, approved relation fields, and type-specific specification values. `mounts` contains `{ value, shortName }` records from the gear-to-mount relationship. `cameraSpecs.sensorFormat` and `lensSpecs.imageCircle` / `fixedLensSpecs.imageCircle` contain `{ slug, name, cropFactor }` when the referenced sensor format exists, otherwise `null`.
 
-Primary and foreign keys, audit timestamps, search helpers, publication workflow state, selected colourway IDs, internal notes, video-mode matrices, and flexible `extra` JSON are never returned. Adding a public field requires an intentional serializer, contract, and documentation update. Hidden and rumored gear return `404`.
+Primary and foreign keys, audit timestamps, search helpers, publication workflow state, genre tags, raw samples, selected colourway IDs, internal notes, video-mode matrices, and flexible `extra` JSON are never returned. Adding a public field requires an intentional serializer, contract, and documentation update. Hidden and rumored gear return `404`.
 
 ### `GET /api/v1/specs`
 

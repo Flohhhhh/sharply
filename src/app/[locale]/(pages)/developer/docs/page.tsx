@@ -210,9 +210,9 @@ const { data, pagination } = await response.json();`}
           <RequestExampleTabs
             curl={`curl -sS \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
-  "https://www.sharplyphoto.com/api/v1/gear/nikon-z6-iii"`}
+  "https://www.sharplyphoto.com/api/v1/gear/nikon-z6iii"`}
             typescript={`const response = await fetch(
-  "https://www.sharplyphoto.com/api/v1/gear/nikon-z6-iii",
+  "https://www.sharplyphoto.com/api/v1/gear/nikon-z6iii",
   {
     headers: {
       Authorization: "Bearer " + process.env.SHARPLY_API_KEY,
@@ -227,12 +227,23 @@ const { data } = await response.json();`}
           <h4 className="mt-6 text-sm font-semibold">{t("responseTitle")}</h4>
           <CodeBlock>{`{
   "data": {
-    "slug": "nikon-z6-iii",
-    "name": "Nikon Z6 III",
+    "slug": "nikon-z6iii",
+    "name": "Nikon Z6III",
     "gearType": "CAMERA",
-    "cameraSpecs": { "resolutionMp": "24.5" }
+    "mounts": [{ "value": "z-nikon", "shortName": "z" }],
+    "cameraSpecs": {
+      "sensorFormat": {
+        "slug": "full-frame",
+        "name": "Full-frame",
+        "cropFactor": "1.00"
+      },
+      "resolutionMp": "24.50"
+    }
   }
 }`}</CodeBlock>
+          <p className="text-muted-foreground mt-4 max-w-2xl text-sm leading-6">
+            {t("gearTaxonomyNote")}
+          </p>
         </div>
       </article>
 

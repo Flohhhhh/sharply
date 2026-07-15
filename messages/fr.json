@@ -1895,6 +1895,7 @@
       "searchDescription": "Returns a ranked page of published gear matching a query.",
       "gearTitle": "Get gear detail",
       "gearDescription": "Returns the complete published catalog record and its available related data.",
+      "gearTaxonomyNote": "Mounts use value and shortName. Camera sensorFormat and lens/fixed-lens imageCircle use slug, name, and cropFactor; a missing sensor format is returned as null.",
       "parametersTitle": "Parameters",
       "exampleRequest": "Exemple de requête",
       "exampleCurl": "cURL",
