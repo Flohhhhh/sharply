@@ -259,8 +259,8 @@ const catalog = await response.json();`}
         <div className="pl-12">
           <h4 className="mt-6 text-sm font-semibold">{t("exampleRequest")}</h4>
           <RequestExampleTabs
-            curl={`curl -sS \
-  -H "Authorization: Bearer YOUR_API_KEY" \
+            curl={`curl -sS \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
   "https://www.sharplyphoto.com/api/v1/gear/random-low-completion"`}
             typescript={`const response = await fetch(
   "https://www.sharplyphoto.com/api/v1/gear/random-low-completion",
