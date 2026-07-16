@@ -41,6 +41,7 @@ export const env = createEnv({
         ? z.string().url()
         : z.string().url().optional(),
     DISCORD_CHANGE_REQUEST_WEBHOOK_URL: z.string().url().optional(),
+    DISCORD_GENERAL_LOGS_WEBHOOK_URL: z.string().url().optional(),
     DISCORD_BOT_INTERNAL_API_TOKEN: z.string().optional(),
     OPENAI_API_KEY:
       process.env.NODE_ENV === "production"
@@ -95,6 +96,8 @@ export const env = createEnv({
     DISCORD_ROLLUP_WEBHOOK_URL: process.env.DISCORD_ROLLUP_WEBHOOK_URL,
     DISCORD_CHANGE_REQUEST_WEBHOOK_URL:
       process.env.DISCORD_CHANGE_REQUEST_WEBHOOK_URL,
+    DISCORD_GENERAL_LOGS_WEBHOOK_URL:
+      process.env.DISCORD_GENERAL_LOGS_WEBHOOK_URL,
     DISCORD_BOT_INTERNAL_API_TOKEN:
       process.env.DISCORD_BOT_INTERNAL_API_TOKEN,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,

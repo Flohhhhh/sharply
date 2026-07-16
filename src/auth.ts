@@ -12,6 +12,7 @@ import { getResend } from "~/lib/email";
 import { resolveAuthOriginConfig } from "~/server/auth/auth-origin-config";
 import { db } from "~/server/db"; // your drizzle instance
 import * as schema from "~/server/db/schema";
+import { dispatchUserSignupNotification } from "~/server/discord-logs/user-signup";
 
 function createAuthOptions() {
   const resend = getResend();
@@ -81,6 +82,18 @@ function createAuthOptions() {
     user: {
       modelName: "user",
       additionalFields: authAdditionalFields.user,
+    },
+    databaseHooks: {
+      user: {
+        create: {
+          after: async (user, context) => {
+            dispatchUserSignupNotification({
+              authContext: context,
+              name: user.name,
+            });
+          },
+        },
+      },
     },
     plugins: [
       nextCookies(),

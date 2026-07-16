@@ -2,6 +2,7 @@ import "server-only";
 
 import { env } from "~/env";
 import type { User } from "~/server/db/schema";
+import { notifyUserSignup } from "~/server/discord-logs/general";
 
 import {
   createDevelopmentUserData,
@@ -92,5 +93,10 @@ export async function getOrCreateDevelopmentAuthUser(): Promise<User> {
     return existingUser;
   }
 
-  return createDevelopmentUserData(email);
+  const createdUser = await createDevelopmentUserData(email);
+  void notifyUserSignup({
+    name: createdUser.name,
+    provider: "Development bypass",
+  });
+  return createdUser;
 }
