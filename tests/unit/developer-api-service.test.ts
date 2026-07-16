@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   fetchCatalog: vi.fn(),
   fetchGearBySlug: vi.fn(),
+  fetchRandomLowCompletionGearUrl: vi.fn(),
   fetchMounts: vi.fn(),
   fetchSensorFormats: vi.fn(),
 }));
@@ -15,6 +16,7 @@ vi.mock("~/server/db", () => ({
 
 vi.mock("~/server/gear/service", () => ({
   fetchGearBySlug: mocks.fetchGearBySlug,
+  fetchRandomLowCompletionGearUrl: mocks.fetchRandomLowCompletionGearUrl,
 }));
 
 vi.mock("~/server/auth", () => ({
@@ -53,8 +55,31 @@ import {
   createDeveloperCatalogEtag,
   getDeveloperCatalogSnapshot,
   getDeveloperGear,
+  getDeveloperRandomLowCompletionGearUrl,
   matchesDeveloperCatalogEtag,
 } from "~/server/developer-api/service";
+
+describe("getDeveloperRandomLowCompletionGearUrl", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("converts an internal gear path to the canonical public URL", async () => {
+    mocks.fetchRandomLowCompletionGearUrl.mockResolvedValue(
+      "/gear/nikon-z6iii",
+    );
+
+    await expect(getDeveloperRandomLowCompletionGearUrl()).resolves.toBe(
+      "https://www.sharplyphoto.com/gear/nikon-z6iii",
+    );
+  });
+
+  it("preserves an empty catalog as a null URL", async () => {
+    mocks.fetchRandomLowCompletionGearUrl.mockResolvedValue(null);
+
+    await expect(getDeveloperRandomLowCompletionGearUrl()).resolves.toBeNull();
+  });
+});
 
 describe("getDeveloperGear", () => {
   beforeEach(() => {

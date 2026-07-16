@@ -68,6 +68,26 @@ The endpoint sends `Cache-Control: private, max-age=0, must-revalidate` and
 `Vary: Authorization, If-None-Match`. Its shared server snapshot is invalidated
 when published catalog membership or an included catalog field changes.
 
+### `GET /api/v1/gear/random-low-completion`
+
+Returns the canonical URL of a random published gear page that would benefit
+from more catalog data. The primary selection pool matches
+`/lists/under-construction`: items with at least one required field missing or
+less than 40% overall completion. When that pool is empty, the endpoint chooses
+from the 20 published items with the lowest completion percentage.
+
+The response is not cached, and repeated requests may return the same item. If
+there is no published gear, the endpoint still returns `200` with a null URL.
+
+```json
+{
+  "data": {
+    "url": "https://www.sharplyphoto.com/gear/nikon-z6iii"
+  },
+  "meta": { "requestId": "..." }
+}
+```
+
 ### `GET /api/v1/gear/:slug`
 
 Returns the complete currently publishable catalog record, including available related specifications, aliases, media, and colourways. The response keeps its established field names: `brands`, flattened image URL fields, `regionalAliases`, and `colorways`.

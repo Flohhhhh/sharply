@@ -152,6 +152,9 @@
     "newToPhotographyTitle": "摄影新手？",
     "newToPhotographyDescription": "我们整理了一份初学者指南，其中包含您入门所需了解的所有信息！查看我们的分步指南系列。",
     "getStarted": "开始使用",
+    "contributionQuestTitle": "给我个惊喜",
+    "contributionQuestDescription": "随机前往一个需要补充资料的器材页面。",
+    "contributionQuestAction": "随机器材",
     "latestReviewsTitle": "最新评论"
   },
   "gearDetail": {
@@ -1895,6 +1898,8 @@
       "searchDescription": "Returns a ranked page of published gear matching a query.",
       "catalogTitle": "Download catalog",
       "catalogDescription": "Returns a lightweight, slug-sorted snapshot of all published gear for local search prefilling.",
+      "randomLowCompletionTitle": "随机获取低完整度页面",
+      "randomLowCompletionDescription": "从“建设中”列表中随机返回一个已发布的器材页面；如果列表为空，则从完整度最低的20个条目中选择。没有已发布器材时，URL为null。",
       "catalogConditionalRequest": "Store the ETag and send it as If-None-Match on the next request. A matching snapshot returns 304 Not Modified.",
       "gearTitle": "Get gear detail",
       "gearDescription": "Returns the complete published catalog record and its available related data.",

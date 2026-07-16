@@ -152,6 +152,9 @@
     "newToPhotographyTitle": "写真を始めたばかりですか？",
     "newToPhotographyDescription": "始めるために必要なことをまとめた初心者向けガイドを用意しました。ステップごとのガイドシリーズをご覧ください。",
     "getStarted": "始める",
+    "contributionQuestTitle": "おまかせで選ぶ",
+    "contributionQuestDescription": "情報の追加が必要な機材ページをランダムに開きます。",
+    "contributionQuestAction": "ランダムな機材",
     "latestReviewsTitle": "最新レビュー"
   },
   "gearDetail": {
@@ -1895,6 +1898,8 @@
       "searchDescription": "Returns a ranked page of published gear matching a query.",
       "catalogTitle": "Download catalog",
       "catalogDescription": "Returns a lightweight, slug-sorted snapshot of all published gear for local search prefilling.",
+      "randomLowCompletionTitle": "完成度の低いページをランダムに取得",
+      "randomLowCompletionDescription": "「作成中」リストから公開済みの機材ページをランダムに返します。対象がない場合は、完成度が最も低い20件から選択します。公開済みの機材がない場合、URLはnullになります。",
       "catalogConditionalRequest": "Store the ETag and send it as If-None-Match on the next request. A matching snapshot returns 304 Not Modified.",
       "gearTitle": "Get gear detail",
       "gearDescription": "Returns the complete published catalog record and its available related data.",

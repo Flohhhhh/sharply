@@ -9,11 +9,10 @@ import { GearCounter } from "~/components/home/gear-counter";
 import { HeroTitle } from "~/components/home/hero-title";
 import { HERO_TITLE_ROTATING_WORD_KEYS } from "~/components/home/hero-title-config";
 import { NewsCard as HomeNewsCard } from "~/components/home/news-card";
+import { RandomContributionBanner } from "~/components/home/random-contribution-banner";
 import { ReviewCard, type ReviewPost } from "~/components/home/review-card";
-import { LocaleLink } from "~/components/locale-link";
 import { GlobalSearchBar } from "~/components/search/global-search-bar";
 import TrendingList from "~/components/trending-list";
-import { Button } from "~/components/ui/button";
 import { LinkButton } from "~/components/ui/link-button";
 import { Separator } from "~/components/ui/separator";
 import { defaultLocale, isLocale } from "~/i18n/config";
@@ -248,16 +247,15 @@ export default async function Home({
                     {t("newToPhotographyDescription")}
                   </p>
                 </div>
-                <Button
-                  asChild
+                <LinkButton
+                  href={localizePathname("/learn/basics", locale)}
                   className="w-full cursor-pointer"
                   icon={<BookOpenIcon className="h-4 w-4" />}
                 >
-                  <LocaleLink href="/learn/basics">
-                    {t("getStarted")}
-                  </LocaleLink>
-                </Button>
+                  {t("getStarted")}
+                </LinkButton>
               </div>
+              <RandomContributionBanner locale={locale} />
               <DiscordBanner vertical />
               <Separator className="my-2" />
               <ActivityList items={activityItems} locale={locale} />
