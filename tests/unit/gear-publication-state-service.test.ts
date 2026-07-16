@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 process.env.DATABASE_URL ??=
   "postgres://postgres:postgres@localhost:5432/sharply";
@@ -48,12 +48,17 @@ vi.mock("~/lib/utils", async (importOriginal) => {
 import {
   fetchGearBySlug,
   fetchGearSummariesBySlugs,
+  fetchRandomLowCompletionGearUrl,
   listUnderConstruction,
 } from "~/server/gear/service";
 
 function makeConstructionRow(params: {
   slug: string;
   publicationState: "PUBLISHED" | "RUMORED" | "HIDDEN";
+  brandId?: string | null;
+  mountId?: string | null;
+  cameraAll?: Record<string, unknown> | null;
+  createdAt?: Date;
 }) {
   return {
     id: `${params.slug}-id`,
@@ -62,11 +67,11 @@ function makeConstructionRow(params: {
     gearType: "CAMERA",
     publicationState: params.publicationState,
     thumbnailUrl: null,
-    brandId: "brand-1",
+    brandId: params.brandId === undefined ? "brand-1" : params.brandId,
     brandName: "Brand",
-    mountId: null,
+    mountId: params.mountId ?? null,
     mountIds: [],
-    createdAt: new Date("2026-06-18T00:00:00.000Z"),
+    createdAt: params.createdAt ?? new Date("2026-06-18T00:00:00.000Z"),
     camera_sensorFormatId: null,
     camera_resolutionMp: null,
     analog_cameraType: null,
@@ -78,16 +83,29 @@ function makeConstructionRow(params: {
     lens_isPrime: null,
     lens_maxApertureWide: null,
     lens_imageCircleSizeId: null,
-    cameraAll: null,
+    cameraAll: params.cameraAll ?? null,
     analogAll: null,
     lensAll: null,
     fixedAll: null,
   };
 }
 
+function makeCompletionFields(filled: number, total: number) {
+  return Object.fromEntries(
+    Array.from({ length: total }, (_, index) => [
+      `field-${index}`,
+      index < filled ? `value-${index}` : null,
+    ]),
+  );
+}
+
 describe("gear publication state service", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it("returns published gear by default", async () => {
@@ -273,5 +291,74 @@ describe("gear publication state service", () => {
       slug: "canon-r5ii",
       underConstruction: true,
     });
+  });
+
+  it("selects uniformly from the same candidate pool as the under-construction page", async () => {
+    gearDataMocks.fetchAllGearForConstructionData.mockResolvedValue([
+      makeConstructionRow({
+        slug: "missing-required-field",
+        publicationState: "PUBLISHED",
+        mountId: "mount-1",
+        cameraAll: makeCompletionFields(4, 4),
+      }),
+      makeConstructionRow({
+        slug: "low-completion",
+        publicationState: "PUBLISHED",
+        mountId: "mount-1",
+        cameraAll: makeCompletionFields(0, 4),
+      }),
+      makeConstructionRow({
+        slug: "complete",
+        publicationState: "PUBLISHED",
+        mountId: "mount-1",
+        cameraAll: makeCompletionFields(4, 4),
+      }),
+    ]);
+    constructionMocks.getConstructionState.mockImplementation(
+      (item: { slug: string }) =>
+        item.slug === "missing-required-field"
+          ? {
+              underConstruction: true,
+              missing: ["Sensor type"],
+            }
+          : { underConstruction: false, missing: [] },
+    );
+    vi.spyOn(Math, "random").mockReturnValue(0.75);
+
+    await expect(fetchRandomLowCompletionGearUrl()).resolves.toBe(
+      "/gear/low-completion",
+    );
+    expect(gearDataMocks.fetchAllGearForConstructionData).toHaveBeenCalledTimes(
+      1,
+    );
+  });
+
+  it("falls back to a random item from only the 20 lowest completion rows", async () => {
+    gearDataMocks.fetchAllGearForConstructionData.mockResolvedValue(
+      Array.from({ length: 21 }, (_, index) =>
+        makeConstructionRow({
+          slug: `fallback-${index}`,
+          publicationState: "PUBLISHED",
+          mountId: "mount-1",
+          cameraAll: makeCompletionFields(19 + index, 50),
+        }),
+      ),
+    );
+    constructionMocks.getConstructionState.mockReturnValue({
+      underConstruction: false,
+      missing: [],
+    });
+    vi.spyOn(Math, "random").mockReturnValue(0.999);
+
+    await expect(fetchRandomLowCompletionGearUrl()).resolves.toBe(
+      "/gear/fallback-19",
+    );
+  });
+
+  it("returns null when there is no published gear", async () => {
+    gearDataMocks.fetchAllGearForConstructionData.mockResolvedValue([]);
+
+    await expect(fetchRandomLowCompletionGearUrl()).resolves.toBeNull();
+    expect(constructionMocks.getConstructionState).not.toHaveBeenCalled();
   });
 });

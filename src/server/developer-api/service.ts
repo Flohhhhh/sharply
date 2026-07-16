@@ -4,7 +4,10 @@ import { createHash, randomBytes } from "node:crypto";
 import { unstable_cache } from "next/cache";
 import { requireRole } from "~/lib/auth/auth-helpers";
 import { getSessionOrThrow } from "~/server/auth";
-import { fetchGearBySlug } from "~/server/gear/service";
+import {
+  fetchGearBySlug,
+  fetchRandomLowCompletionGearUrl,
+} from "~/server/gear/service";
 import { getSuggestions, searchGear } from "~/server/search/service";
 import type {
   EnrichedCameraSpecs,
@@ -437,6 +440,13 @@ export async function searchDeveloperApi(
     sort: "relevance",
     includeTotal: true,
   });
+}
+
+export async function getDeveloperRandomLowCompletionGearUrl() {
+  const pathname = await fetchRandomLowCompletionGearUrl();
+  return pathname
+    ? new URL(pathname, "https://www.sharplyphoto.com").toString()
+    : null;
 }
 
 export async function getDeveloperSuggestions(

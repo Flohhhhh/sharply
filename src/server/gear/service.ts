@@ -1368,14 +1368,42 @@ export type UnderConstructionRow = {
   brandId?: string | null;
 };
 
-/**
- * Compute under-construction items with a threshold.
- * thresholdMissing: minimum number of missing key specs to include (default 1)
- */
-export async function listUnderConstruction(
-  thresholdMissing = 1,
-  minCompletionPercent?: number,
-): Promise<UnderConstructionRow[]> {
+const UNDER_CONSTRUCTION_MIN_MISSING = 1;
+const UNDER_CONSTRUCTION_MAX_COMPLETION = 40;
+const LOW_COMPLETION_FALLBACK_LIMIT = 20;
+
+function isUnderConstructionListCandidate(row: UnderConstructionRow) {
+  return (
+    row.missingCount >= UNDER_CONSTRUCTION_MIN_MISSING ||
+    row.completionPercent < UNDER_CONSTRUCTION_MAX_COMPLETION
+  );
+}
+
+function compareUnderConstructionRows(
+  a: UnderConstructionRow,
+  b: UnderConstructionRow,
+) {
+  // Most missing first, then lowest completion, then newest.
+  if (b.missingCount !== a.missingCount) {
+    return b.missingCount - a.missingCount;
+  }
+  if (a.completionPercent !== b.completionPercent) {
+    return a.completionPercent - b.completionPercent;
+  }
+  return b.createdAt.getTime() - a.createdAt.getTime();
+}
+
+function compareCompletionRows(
+  a: UnderConstructionRow,
+  b: UnderConstructionRow,
+) {
+  if (a.completionPercent !== b.completionPercent) {
+    return a.completionPercent - b.completionPercent;
+  }
+  return b.createdAt.getTime() - a.createdAt.getTime();
+}
+
+async function buildGearCompletenessRows(): Promise<UnderConstructionRow[]> {
   const rows = (await fetchAllGearForConstructionData()).filter((row) =>
     isPublishedGear(row),
   );
@@ -1504,7 +1532,18 @@ export async function listUnderConstruction(
     } satisfies UnderConstructionRow;
   });
 
-  return enriched
+  return enriched;
+}
+
+/**
+ * Compute under-construction items with a threshold.
+ * thresholdMissing: minimum number of missing key specs to include (default 1)
+ */
+export async function listUnderConstruction(
+  thresholdMissing = 1,
+  minCompletionPercent?: number,
+): Promise<UnderConstructionRow[]> {
+  return (await buildGearCompletenessRows())
     .filter((r) => {
       const meetsMissing = r.missingCount >= thresholdMissing;
       const meetsLowCompletion =
@@ -1513,14 +1552,26 @@ export async function listUnderConstruction(
           : false;
       return meetsMissing || meetsLowCompletion;
     })
-    .sort((a, b) => {
-      // Most missing first, then lowest completion, then newest
-      if (b.missingCount !== a.missingCount)
-        return b.missingCount - a.missingCount;
-      if (a.completionPercent !== b.completionPercent)
-        return a.completionPercent - b.completionPercent;
-      return b.createdAt.getTime() - a.createdAt.getTime();
-    });
+    .sort(compareUnderConstructionRows);
+}
+
+/** Return a random published gear path that would benefit from more data. */
+export async function fetchRandomLowCompletionGearUrl(): Promise<
+  string | null
+> {
+  const rows = await buildGearCompletenessRows();
+  if (rows.length === 0) return null;
+
+  const underConstructionRows = rows.filter(isUnderConstructionListCandidate);
+  const candidates =
+    underConstructionRows.length > 0
+      ? underConstructionRows
+      : [...rows]
+          .sort(compareCompletionRows)
+          .slice(0, LOW_COMPLETION_FALLBACK_LIMIT);
+  const selected = candidates[Math.floor(Math.random() * candidates.length)];
+
+  return selected ? `/gear/${selected.slug}` : null;
 }
 
 // --- Gear Alternatives ---

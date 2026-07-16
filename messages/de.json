@@ -152,6 +152,9 @@
     "newToPhotographyTitle": "Neu in der Fotografie?",
     "newToPhotographyDescription": "Wir haben einen Einsteigerleitfaden zusammengestellt, der alles abdeckt, was du für den Start wissen musst. Sieh dir unsere Schritt-für-Schritt-Guides an.",
     "getStarted": "Loslegen",
+    "contributionQuestTitle": "Überrasche mich",
+    "contributionQuestDescription": "Öffne einen zufälligen Ausrüstungsartikel, bei dem noch Beiträge fehlen.",
+    "contributionQuestAction": "Zufällige Ausrüstung",
     "latestReviewsTitle": "Neueste Reviews"
   },
   "gearDetail": {
@@ -1895,6 +1898,8 @@
       "searchDescription": "Returns a ranked page of published gear matching a query.",
       "catalogTitle": "Download catalog",
       "catalogDescription": "Returns a lightweight, slug-sorted snapshot of all published gear for local search prefilling.",
+      "randomLowCompletionTitle": "Zufällige Seite mit geringer Vollständigkeit abrufen",
+      "randomLowCompletionDescription": "Gibt eine zufällige veröffentlichte Ausrüstungsseite aus der Liste „In Bearbeitung“ zurück und greift andernfalls auf die 20 am wenigsten vollständigen Einträge zurück. Die URL ist null, wenn keine veröffentlichte Ausrüstung vorhanden ist.",
       "catalogConditionalRequest": "Store the ETag and send it as If-None-Match on the next request. A matching snapshot returns 304 Not Modified.",
       "gearTitle": "Get gear detail",
       "gearDescription": "Returns the complete published catalog record and its available related data.",

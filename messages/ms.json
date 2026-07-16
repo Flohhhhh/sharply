@@ -152,6 +152,9 @@
     "newToPhotographyTitle": "Baru dalam Fotografi?",
     "newToPhotographyDescription": "Kami telah mengumpulkan panduan pemula untuk semua yang anda perlu ketahui untuk bermula! Lihat siri panduan langkah demi langkah kami.",
     "getStarted": "Mulakan",
+    "contributionQuestTitle": "Kejutkan Saya",
+    "contributionQuestDescription": "Buka item peralatan secara rawak yang memerlukan sumbangan.",
+    "contributionQuestAction": "Item Rawak",
     "latestReviewsTitle": "Ulasan Terkini"
   },
   "gearDetail": {
@@ -1895,6 +1898,8 @@
       "searchDescription": "Returns a ranked page of published gear matching a query.",
       "catalogTitle": "Download catalog",
       "catalogDescription": "Returns a lightweight, slug-sorted snapshot of all published gear for local search prefilling.",
+      "randomLowCompletionTitle": "Dapatkan halaman kurang lengkap secara rawak",
+      "randomLowCompletionDescription": "Mengembalikan halaman peralatan diterbitkan secara rawak daripada senarai dalam pembinaan, dengan salah satu daripada 20 item paling kurang lengkap sebagai pilihan sandaran. URL ialah null apabila tiada peralatan diterbitkan.",
       "catalogConditionalRequest": "Store the ETag and send it as If-None-Match on the next request. A matching snapshot returns 304 Not Modified.",
       "gearTitle": "Get gear detail",
       "gearDescription": "Returns the complete published catalog record and its available related data.",

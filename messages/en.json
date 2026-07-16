@@ -152,6 +152,9 @@
     "newToPhotographyTitle": "New to Photography?",
     "newToPhotographyDescription": "We've put together a beginners guide to everything you need to know to get started! View our step-by-step guide series.",
     "getStarted": "Get Started",
+    "contributionQuestTitle": "Surprise Me",
+    "contributionQuestDescription": "Go to a random gear item that needs contributions.",
+    "contributionQuestAction": "Random Item",
     "latestReviewsTitle": "Latest Reviews"
   },
   "gearDetail": {
@@ -1895,6 +1898,8 @@
       "searchDescription": "Returns a ranked page of published gear matching a query.",
       "catalogTitle": "Download catalog",
       "catalogDescription": "Returns a lightweight, slug-sorted snapshot of all published gear for local search prefilling.",
+      "randomLowCompletionTitle": "Get a random low-completion page",
+      "randomLowCompletionDescription": "Returns a random published gear page from the under-construction list, falling back to the 20 least-complete items. The URL is null when no published gear exists.",
       "catalogConditionalRequest": "Store the ETag and send it as If-None-Match on the next request. A matching snapshot returns 304 Not Modified.",
       "gearTitle": "Get gear detail",
       "gearDescription": "Returns the complete published catalog record and its available related data.",

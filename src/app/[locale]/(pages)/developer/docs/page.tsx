@@ -246,6 +246,48 @@ const catalog = await response.json();`}
       <article className="border-b py-8">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <span className="text-primary text-sm font-semibold">GET</span>
+          <code className="font-mono text-sm">
+            /api/v1/gear/random-low-completion
+          </code>
+        </div>
+        <h3 className="mt-3 text-xl font-semibold tracking-tight">
+          {t("randomLowCompletionTitle")}
+        </h3>
+        <p className="text-muted-foreground mt-2 max-w-2xl text-sm leading-6">
+          {t("randomLowCompletionDescription")}
+        </p>
+        <div className="pl-12">
+          <h4 className="mt-6 text-sm font-semibold">{t("exampleRequest")}</h4>
+          <RequestExampleTabs
+            curl={`curl -sS \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  "https://www.sharplyphoto.com/api/v1/gear/random-low-completion"`}
+            typescript={`const response = await fetch(
+  "https://www.sharplyphoto.com/api/v1/gear/random-low-completion",
+  {
+    headers: {
+      Authorization: "Bearer " + process.env.SHARPLY_API_KEY,
+    },
+  },
+);
+
+if (!response.ok) throw new Error("Sharply API request failed");
+
+const { data } = await response.json();
+const randomGearUrl = data.url;`}
+          />
+          <h4 className="mt-6 text-sm font-semibold">{t("responseTitle")}</h4>
+          <CodeBlock>{`{
+  "data": {
+    "url": "https://www.sharplyphoto.com/gear/nikon-z6iii"
+  }
+}`}</CodeBlock>
+        </div>
+      </article>
+
+      <article className="border-b py-8">
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <span className="text-primary text-sm font-semibold">GET</span>
           <code className="font-mono text-sm">/api/v1/gear/:slug</code>
         </div>
         <h3 className="mt-3 text-xl font-semibold tracking-tight">
