@@ -52,7 +52,12 @@ export const gearPublicationStateEnum = pgEnum("gear_publication_state", [
   "RUMORED",
   "HIDDEN",
 ]);
-export const gearRegionEnum = pgEnum("gear_region", ["GLOBAL", "EU", "JP"]);
+export const gearRegionEnum = pgEnum("gear_region", [
+  "GLOBAL",
+  "US",
+  "EU",
+  "JP",
+]);
 export const proposalStatusEnum = pgEnum("proposal_status", [
   "PENDING",
   "APPROVED",

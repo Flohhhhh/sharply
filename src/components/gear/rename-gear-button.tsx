@@ -12,14 +12,12 @@ interface RenameGearButtonProps {
   currentName: string;
   currentSlug: string;
   regionalAliases?: GearAlias[] | null;
-  brandName?: string | null;
 }
 
 export function RenameGearButton({
   gearId,
   currentName,
   currentSlug,
-  brandName,
   regionalAliases,
 }: RenameGearButtonProps) {
   const { data } = useSession();
@@ -34,7 +32,6 @@ export function RenameGearButton({
       gearId={gearId}
       currentName={currentName}
       currentSlug={currentSlug}
-      brandName={brandName}
       regionalAliases={regionalAliases ?? undefined}
       trigger={
         <Button variant="ghost" size="sm">

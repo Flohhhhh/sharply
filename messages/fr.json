@@ -158,6 +158,26 @@
     "latestReviewsTitle": "Derniers avis"
   },
   "gearDetail": {
+    "renameDialog": {
+      "title": "Renommer le matériel",
+      "description": "Modifiez le nom de ce matériel. Le slug et l’index de recherche seront mis à jour automatiquement.",
+      "currentName": "Nom actuel",
+      "newName": "Nouveau nom",
+      "newNamePlaceholder": "Saisissez un nouveau nom...",
+      "canonicalHelp": "Le préfixe de la marque sera ajouté automatiquement s’il est absent.",
+      "regionalAliases": "Noms régionaux",
+      "regionalHelp": "Noms complets facultatifs pour certaines régions. Laissez un champ vide pour le supprimer. Les noms sont enregistrés exactement comme saisis.",
+      "aliasPlaceholder": "Nom pour {region}",
+      "navigateAfterRename": "Accéder à la page du matériel après le renommage",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "trigger": "Renommer",
+      "enterNewName": "Veuillez saisir un nouveau nom",
+      "noChanges": "Aucune modification à enregistrer",
+      "saved": "Enregistré",
+      "savedRenamed": "Enregistré — renommé en « {name} »",
+      "failure": "Impossible de renommer le matériel"
+    },
     "metaTitleSuffix": "Spécifications et avis",
     "itemNotFoundTitle": "Article introuvable",
     "itemNotFoundDescription": "Le matériel demandé est introuvable.",

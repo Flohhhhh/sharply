@@ -1,29 +1,29 @@
 ## Regional Naming System
 
-Sharply now maintains a single canonical gear record while also surfacing regional aliases for EU and Japan (plus automatic locale-aware fallbacks) in every layer that touches gear naming.
+Sharply maintains a single canonical gear record while also surfacing optional regional aliases for the United States, Europe, and Japan in every layer that touches gear naming.
 
 ### Schema and search plumbing
 
-- `gear_aliases` (composite PK `gear_id + region`) stores `name` per `GearRegion` (`GLOBAL`, `EU`, `JP`). The alias rows are joined in the core fetchers (`fetchGearBySlug`, browse endpoints, alternatives, popularity/trending queries, comparison data, search results) via the helpers `fetchGearAliasesByGearIds`/`fetchGearAliasesByGearId`.
+- `gear_aliases` (composite PK `gear_id + region`) stores `name` per `GearRegion` (`GLOBAL`, `US`, `EU`, `JP`). The alias rows are joined in the core fetchers (`fetchGearBySlug`, browse endpoints, alternatives, popularity/trending queries, comparison data, search results) via the helpers `fetchGearAliasesByGearIds`/`fetchGearAliasesByGearId`.
 - Display helpers (`GetGearDisplayName`, `buildGearSearchName`, `normalizeGearSearchText`) consume `regionalAliases` so alias names can influence both the rendered label and the normalized search index. Search suggestions and commands now accept `countryCode`/locale to resolve the right alias.
 - Search metadata (`metadata.tsx`, JSON-LD) now uses `GetGearDisplayName`, and rename workflows rebuild `search_name` after alias updates so results stay consistent.
 
 ### Locale tooling & regional routing
 
-- `src/lib/locale/locales.ts` defines the supported locale options (US, UK, EU, DE, FR, ES, IT, CN, MY, JP, Global) with explicit MPB routing config and canonical `gearRegion`. `CountryProvider` stores the locale id, resolves geo headers (including `EU`/`UK` pseudo codes), and exposes `locale`, `localeId`, `countryCode`, and `gearRegion`. The legacy `countryCode` setters now resolve to the locale map.
+- `src/lib/locale/locales.ts` defines the supported locale options (US, UK, EU, DE, FR, ES, IT, CN, MY, JP, Global) with explicit MPB routing config and canonical `gearRegion`. The US locale maps to `US`; the Global locale remains `GLOBAL`. `CountryProvider` stores the locale id, resolves geo headers, and exposes `locale`, `localeId`, `countryCode`, and `gearRegion`.
 - `CountrySelect` consumes this list (minus the Global option) so editors can choose US, UK, EU, or JP — each with consistent labels/flags — while `resolveRegionFromCountryCode` remains tolerant of `EU`/`UK` to keep alias resolution stable.
 - Gear commerce links (`gear/_components/gear-links.tsx`) now pass the locale’s MPB market rather than the raw country code so JP or EU selections go through the right storefront.
 
 ### Editor experience and alias persistence
 
-- The rename modal (`RenameGearDialog`) now includes EU and JP alias inputs alongside the new name field. Input text is automatically prefixed with the brand name (matching the canonical rename behavior). Submissions are allowed even when only aliases change, and the CTA enables whenever there’s any difference vs. the stored alias values.
+- The rename modal (`RenameGearDialog`) includes US, EU, and JP alias inputs alongside the canonical name field. Regional values are complete display names and are trimmed but otherwise stored exactly as entered, so an alias may use a different regional brand such as Rokinon. Canonical renames retain automatic brand prefixing. Submissions are allowed even when only aliases change.
 - Alias edits are saved via `actionUpdateGearAliases` → `updateGearAliasesService`, which filters to allowed regions, performs upserts/deletes, and rebuilds `gear.searchName` using `buildGearSearchName` (re-using brand tokens + alias names). This service also revalidates `/admin/gear`, `/gear`, and `/browse`.
-- The admin table and gear page pass the current `regionalAliases` + `brandName` into the dialog so existing alias values prefill.
+- The admin table and gear page pass current `regionalAliases` into the dialog so existing values prefill.
 
 ### Viewer-facing surfaces
 
-- Gear cards, hero sections, horizontal lists, browse/trending tables, alternatives, compare pages, wishlist/collection lists, price/metadata sections, reviews/news cards, and image carousel alt text now rely on `GetGearDisplayName` + `regionalAliases`, so EU/Japan viewers automatically see the correct name.
-- Specs table now includes a dedicated “Regional Names” row that mirrors the spacing/typography of other rows. It lists the EU alias, Japan alias, and (for non-global viewers) the base name so editors can verify all names at a glance.
+- Gear cards, hero sections, horizontal lists, browse/trending tables, alternatives, compare pages, wishlist/collection lists, price/metadata sections, reviews/news cards, and image carousel alt text rely on `GetGearDisplayName` + `regionalAliases`, so US/EU/JP viewers automatically receive an exact regional alias when one exists and otherwise receive the canonical name.
+- Specs table includes a dedicated “Regional Names” row so editors can verify stored aliases and the canonical fallback.
 - Metadata/JSON-LD, compare metadata, and command palette/search suggestions use the region-aware display name to keep sharing/search consistent.
 
 ### Outcome

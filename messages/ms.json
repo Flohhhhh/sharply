@@ -158,6 +158,26 @@
     "latestReviewsTitle": "Ulasan Terkini"
   },
   "gearDetail": {
+    "renameDialog": {
+      "title": "Namakan semula peralatan",
+      "description": "Kemas kini nama peralatan ini. Slug dan indeks carian akan dikemas kini secara automatik.",
+      "currentName": "Nama semasa",
+      "newName": "Nama baharu",
+      "newNamePlaceholder": "Masukkan nama baharu...",
+      "canonicalHelp": "Awalan jenama akan ditambah secara automatik jika tiada.",
+      "regionalAliases": "Nama serantau",
+      "regionalHelp": "Nama penuh pilihan untuk wilayah tertentu. Biarkan medan kosong untuk membuangnya. Nama disimpan tepat seperti yang dimasukkan.",
+      "aliasPlaceholder": "Nama untuk {region}",
+      "navigateAfterRename": "Pergi ke halaman item selepas menamakan semula",
+      "cancel": "Batal",
+      "save": "Simpan",
+      "trigger": "Namakan semula",
+      "enterNewName": "Sila masukkan nama baharu",
+      "noChanges": "Tiada perubahan untuk disimpan",
+      "saved": "Disimpan",
+      "savedRenamed": "Disimpan — dinamakan semula kepada \"{name}\"",
+      "failure": "Gagal menamakan semula peralatan"
+    },
     "metaTitleSuffix": "Spesifikasi & Ulasan",
     "itemNotFoundTitle": "Item tidak ditemui",
     "itemNotFoundDescription": "Gear yang diminta tidak ditemui.",

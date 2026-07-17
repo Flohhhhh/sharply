@@ -31,13 +31,13 @@ export function parseSuggestionParams(searchParams: URLSearchParams) {
   const query = querySchema.safeParse(searchParams.get("q"));
   const limit = positiveInteger(searchParams.get("limit"), 8, 10);
   const regionValue = searchParams.get("region") ?? "GLOBAL";
-  const region = z.enum(["GLOBAL", "EU", "JP"]).safeParse(regionValue);
+  const region = z.enum(["GLOBAL", "US", "EU", "JP"]).safeParse(regionValue);
 
   if (!query.success || limit === null || !region.success) {
     throw new DeveloperApiError(
       "invalid_request",
       400,
-      "q must be 2–200 characters, limit must be a positive integer, and region must be GLOBAL, EU, or JP.",
+      "q must be 2–200 characters, limit must be a positive integer, and region must be GLOBAL, US, EU, or JP.",
     );
   }
 

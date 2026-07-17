@@ -6,6 +6,13 @@ import {
 } from "~/lib/locale/locales";
 
 describe("locale market detection", () => {
+  it("maps the United States locale to the US gear region", () => {
+    expect(resolveLocaleFromCountryCode("US")).toMatchObject({
+      id: "us",
+      gearRegion: "US",
+    });
+  });
+
   it("resolves dedicated MPB countries to their own markets", () => {
     expect(resolveLocaleFromCountryCode("DE").id).toBe("de");
     expect(resolveLocaleFromCountryCode("FR").id).toBe("fr");
