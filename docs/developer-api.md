@@ -33,6 +33,10 @@ Returns a ranked page of published results:
 }
 ```
 
+### `GET /api/v1/search/suggestions`
+
+Required query parameter: `q` (2–200 characters). Optional `limit` defaults to 8 (maximum 10). Optional `region` defaults to `GLOBAL` and accepts `GLOBAL`, `US`, `EU`, or `JP`. A regional alias is returned when the requested region has one; otherwise the canonical name is used.
+
 ### `GET /api/v1/catalog`
 
 Downloads one shared, lightweight snapshot of every published gear record. It is

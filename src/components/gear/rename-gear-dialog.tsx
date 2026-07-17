@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useEffect,useMemo,useState,useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
@@ -16,57 +17,25 @@ import {
 } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { type GearRegion } from "~/lib/gear/region";
 import {
   actionRenameGear,
   actionUpdateGearAliases,
 } from "~/server/admin/gear/actions";
 import type { GearAlias } from "~/types/gear";
+import {
+  ALIAS_REGIONS,
+  buildInitialAliasMap,
+  buildRegionalAliasUpdates,
+  getRenameGearDialogOpenState,
+  type AliasMap,
+} from "./rename-gear-dialog-utils";
 
-type AliasMap = Partial<Record<GearRegion, string>>;
-const ALIAS_REGIONS: GearRegion[] = ["EU", "JP"];
 const EMPTY_REGIONAL_ALIASES: GearAlias[] = [];
-
-function ensureBrandPrefix(value: string, brandName: string | null): string {
-  if (!brandName) return value;
-  const normalizedValue = value.trim();
-  const normalizedBrand = brandName.trim();
-  if (!normalizedBrand) return normalizedValue;
-  const lowerValue = normalizedValue.toLowerCase();
-  const lowerBrand = normalizedBrand.toLowerCase();
-  if (lowerValue.startsWith(lowerBrand)) return normalizedValue;
-  return `${normalizedBrand} ${normalizedValue}`.trim();
-}
-
-export function buildInitialAliasMap(
-  regionalAliases: readonly GearAlias[] | undefined,
-): AliasMap {
-  const map: AliasMap = {};
-  for (const entry of regionalAliases ?? EMPTY_REGIONAL_ALIASES) {
-    if (ALIAS_REGIONS.includes(entry.region)) {
-      map[entry.region] = entry.name ?? "";
-    }
-  }
-  return map;
-}
-
-export function getRenameGearDialogOpenState(params: {
-  currentName: string;
-  defaultNavigateAfterRename: boolean;
-  regionalAliases: readonly GearAlias[] | undefined;
-}) {
-  return {
-    newName: params.currentName,
-    navigateAfterRename: params.defaultNavigateAfterRename,
-    aliases: buildInitialAliasMap(params.regionalAliases),
-  };
-}
 
 interface RenameGearDialogProps {
   gearId: string;
   currentName: string;
   currentSlug: string;
-  brandName?: string | null;
   regionalAliases?: GearAlias[];
   trigger?: React.ReactNode;
   onSuccess?: (result: { id: string; name: string; slug: string }) => void;
@@ -86,7 +55,6 @@ export function RenameGearDialog({
   gearId,
   currentName,
   currentSlug,
-  brandName,
   regionalAliases,
   trigger,
   onSuccess,
@@ -101,6 +69,7 @@ export function RenameGearDialog({
   );
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const t = useTranslations("gearDetail.renameDialog");
   const stableRegionalAliases = regionalAliases ?? EMPTY_REGIONAL_ALIASES;
 
   const initialAliasMap = useMemo<AliasMap>(() => {
@@ -141,12 +110,12 @@ export function RenameGearDialog({
     e.preventDefault();
 
     if (!trimmedName) {
-      toast.error("Please enter a new name");
+      toast.error(t("enterNewName"));
       return;
     }
 
     if (!hasChanges) {
-      toast.info("No changes to save");
+      toast.info(t("noChanges"));
       return;
     }
 
@@ -167,22 +136,15 @@ export function RenameGearDialog({
 
         // Handle alias updates if changed
         if (aliasChanged) {
-          const brandAwareAliases = ALIAS_REGIONS.map((region) => {
-            const raw = trimmedAliases[region] || "";
-            return {
-              region,
-              name: raw ? ensureBrandPrefix(raw, brandName ?? null) : null,
-            };
-          });
           await actionUpdateGearAliases({
             gearId,
             gearSlug: resultSlug,
-            aliases: brandAwareAliases,
+            aliases: buildRegionalAliasUpdates(trimmedAliases),
           });
         }
 
         toast.success(
-          `Saved${nameChanged ? ` — renamed to "${resultName}"` : ""}`,
+          nameChanged ? t("savedRenamed", { name: resultName }) : t("saved"),
         );
         setOpen(false);
 
@@ -197,8 +159,7 @@ export function RenameGearDialog({
 
         onSuccess?.({ id: gearId, name: resultName, slug: resultSlug });
       } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Failed to rename gear";
+        const message = error instanceof Error ? error.message : t("failure");
         toast.error(message);
       }
     });
@@ -207,21 +168,18 @@ export function RenameGearDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {trigger ?? <Button variant="outline">Rename</Button>}
+        {trigger ?? <Button variant="outline">{t("trigger")}</Button>}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Rename Gear Item</DialogTitle>
-            <DialogDescription>
-              Update the name of this gear item. The slug and search index will
-              be automatically updated.
-            </DialogDescription>
+            <DialogTitle>{t("title")}</DialogTitle>
+            <DialogDescription>{t("description")}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="current-name" className="text-muted-foreground">
-                Current Name
+                {t("currentName")}
               </Label>
               <Input
                 id="current-name"
@@ -231,24 +189,23 @@ export function RenameGearDialog({
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="new-name">New Name</Label>
+              <Label htmlFor="new-name">{t("newName")}</Label>
               <Input
                 id="new-name"
-                placeholder="Enter new name..."
+                placeholder={t("newNamePlaceholder")}
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 disabled={isPending}
                 autoFocus
               />
               <p className="text-muted-foreground text-xs">
-                Brand prefix will be added automatically if not present.
+                {t("canonicalHelp")}
               </p>
             </div>
             <div className="grid gap-2">
-              <Label>Regional Aliases</Label>
+              <Label>{t("regionalAliases")}</Label>
               <p className="text-muted-foreground text-xs">
-                Optional localized names for specific regions (leave blank to
-                remove). Brand prefix will be added automatically.
+                {t("regionalHelp")}
               </p>
               <div className="grid gap-2">
                 {ALIAS_REGIONS.map((region) => (
@@ -257,7 +214,7 @@ export function RenameGearDialog({
                       {region}
                     </Label>
                     <Input
-                      placeholder={`Alias for ${region}`}
+                      placeholder={t("aliasPlaceholder", { region })}
                       value={aliases[region] ?? ""}
                       onChange={(e) =>
                         setAliases((prev) => ({
@@ -282,7 +239,7 @@ export function RenameGearDialog({
                   disabled={isPending}
                 />
                 <Label htmlFor="navigate-after-rename">
-                  Go to item page after renaming
+                  {t("navigateAfterRename")}
                 </Label>
               </div>
             ) : null}
@@ -294,14 +251,14 @@ export function RenameGearDialog({
               onClick={() => setOpen(false)}
               disabled={isPending}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               type="submit"
               disabled={isPending || !trimmedName || !hasChanges}
               loading={isPending}
             >
-              Rename
+              {t("save")}
             </Button>
           </DialogFooter>
         </form>

@@ -176,6 +176,13 @@
       "when": 1784051102838,
       "tag": "0024_tiresome_lilandra",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1784291996503,
+      "tag": "0025_ordinary_valeria_richards",
+      "breakpoints": true
     }
   ]
 }

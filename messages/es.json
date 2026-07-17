@@ -158,6 +158,26 @@
     "latestReviewsTitle": "Últimas reseñas"
   },
   "gearDetail": {
+    "renameDialog": {
+      "title": "Cambiar nombre del equipo",
+      "description": "Actualiza el nombre de este equipo. El slug y el índice de búsqueda se actualizarán automáticamente.",
+      "currentName": "Nombre actual",
+      "newName": "Nombre nuevo",
+      "newNamePlaceholder": "Introduce un nombre nuevo...",
+      "canonicalHelp": "El prefijo de la marca se añadirá automáticamente si falta.",
+      "regionalAliases": "Nombres regionales",
+      "regionalHelp": "Nombres completos opcionales para regiones concretas. Deja un campo vacío para eliminarlo. Los nombres se guardan exactamente como se introducen.",
+      "aliasPlaceholder": "Nombre para {region}",
+      "navigateAfterRename": "Ir a la página del equipo después de cambiar el nombre",
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "trigger": "Cambiar nombre",
+      "enterNewName": "Introduce un nombre nuevo",
+      "noChanges": "No hay cambios para guardar",
+      "saved": "Guardado",
+      "savedRenamed": "Guardado — nombre cambiado a \"{name}\"",
+      "failure": "No se pudo cambiar el nombre del equipo"
+    },
     "metaTitleSuffix": "Especificaciones y reviews",
     "itemNotFoundTitle": "Elemento no encontrado",
     "itemNotFoundDescription": "No se pudo encontrar el equipo solicitado.",

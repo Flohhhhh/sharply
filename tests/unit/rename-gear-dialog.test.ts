@@ -10,6 +10,17 @@ const navigationMocks = vi.hoisted(() => ({
 }));
 
 vi.mock("next/navigation", () => navigationMocks);
+vi.mock("next-intl", () => ({
+  useTranslations: () =>
+    (key: string, values?: Record<string, string>) => {
+      const messages: Record<string, string> = {
+        title: "Rename Gear Item",
+        navigateAfterRename: "Go to item page after renaming",
+      };
+      if (key === "aliasPlaceholder") return `Name for ${values?.region}`;
+      return messages[key] ?? key;
+    },
+}));
 vi.mock("sonner", () => ({
   toast: {
     error: vi.fn(),
@@ -68,11 +79,12 @@ vi.mock("~/components/ui/dialog", () => ({
     createElement("h2", props, children),
 }));
 
+import { RenameGearDialog } from "~/components/gear/rename-gear-dialog";
 import {
   buildInitialAliasMap,
+  buildRegionalAliasUpdates,
   getRenameGearDialogOpenState,
-  RenameGearDialog,
-} from "~/components/gear/rename-gear-dialog";
+} from "~/components/gear/rename-gear-dialog-utils";
 
 describe("RenameGearDialog", () => {
   it("renders without aliases and includes the navigate option", () => {
@@ -106,8 +118,15 @@ describe("RenameGearDialog", () => {
     });
   });
 
-  it("prepopulates the EU and JP aliases in the dialog open state", () => {
+  it("prepopulates the US, EU, and JP aliases in the dialog open state", () => {
     const regionalAliases = [
+      {
+        gearId: "gear-1",
+        region: "US" as const,
+        name: "Rokinon AF 35mm F1.8",
+        createdAt: new Date("2026-01-01T00:00:00.000Z"),
+        updatedAt: new Date("2026-01-01T00:00:00.000Z"),
+      },
       {
         gearId: "gear-1",
         region: "EU" as const,
@@ -125,6 +144,7 @@ describe("RenameGearDialog", () => {
     ];
 
     expect(buildInitialAliasMap(regionalAliases)).toEqual({
+      US: "Rokinon AF 35mm F1.8",
       EU: "Canon EOS R5 EU",
       JP: "Canon EOS R5 JP",
     });
@@ -139,9 +159,24 @@ describe("RenameGearDialog", () => {
       newName: "Canon EOS R5",
       navigateAfterRename: false,
       aliases: {
+        US: "Rokinon AF 35mm F1.8",
         EU: "Canon EOS R5 EU",
         JP: "Canon EOS R5 JP",
       },
     });
+  });
+
+  it("builds verbatim regional alias updates and nulls blank values", () => {
+    expect(
+      buildRegionalAliasUpdates({
+        US: "  Rokinon AF 35mm F1.8  ",
+        EU: "Samyang AF 35mm F1.8",
+        JP: "   ",
+      }),
+    ).toEqual([
+      { region: "US", name: "Rokinon AF 35mm F1.8" },
+      { region: "EU", name: "Samyang AF 35mm F1.8" },
+      { region: "JP", name: null },
+    ]);
   });
 });

@@ -15,7 +15,7 @@ export type ProfileUserListState = {
       name: string;
       regionalAliases: Array<{
         gearId: string;
-        region: "GLOBAL" | "EU" | "JP";
+        region: "GLOBAL" | "US" | "EU" | "JP";
         name: string;
         createdAt: string | Date;
         updatedAt: string | Date;

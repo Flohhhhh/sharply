@@ -57,11 +57,12 @@ Stores alternate consumer-facing names used in specific regions (aliases, not lo
 
 - **Primary Key**: Composite (`gearId`, `region`) to enforce one alias per region
 - **Gear Reference**: Foreign key to `gear.id` (cascade on delete)
-- **Region**: `gear_region` enum (`GLOBAL`, `EU`, `JP`)
-- **Name**: Alternate display name for that region
+- **Region**: `gear_region` enum (`GLOBAL`, `US`, `EU`, `JP`)
+- **Name**: Complete alternate display name for that region, stored without canonical-brand prefix enforcement
 - **Use Cases**:
   - Canon "Kiss" line in Japan
   - Canon EU variants (secondary)
+  - Rokinon branding for Samyang products in the United States
 - **Search**: Aliases are denormalized into `gear.search_name` for query performance
 
 #### `gear_exif_aliases` - EXIF Metadata Model Aliases

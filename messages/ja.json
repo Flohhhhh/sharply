@@ -158,6 +158,26 @@
     "latestReviewsTitle": "最新レビュー"
   },
   "gearDetail": {
+    "renameDialog": {
+      "title": "機材名を変更",
+      "description": "この機材の名前を更新します。スラッグと検索インデックスは自動的に更新されます。",
+      "currentName": "現在の名前",
+      "newName": "新しい名前",
+      "newNamePlaceholder": "新しい名前を入力...",
+      "canonicalHelp": "ブランド名が含まれていない場合は自動的に追加されます。",
+      "regionalAliases": "地域別の名前",
+      "regionalHelp": "特定の地域で使用する完全な名前を任意で入力できます。削除するには空欄にしてください。名前は入力どおりに保存されます。",
+      "aliasPlaceholder": "{region}向けの名前",
+      "navigateAfterRename": "名前の変更後に機材ページへ移動",
+      "cancel": "キャンセル",
+      "save": "保存",
+      "trigger": "名前を変更",
+      "enterNewName": "新しい名前を入力してください",
+      "noChanges": "保存する変更はありません",
+      "saved": "保存しました",
+      "savedRenamed": "保存しました — 「{name}」に変更しました",
+      "failure": "機材名を変更できませんでした"
+    },
     "metaTitleSuffix": "スペック＆レビュー",
     "itemNotFoundTitle": "機材が見つかりません",
     "itemNotFoundDescription": "指定された機材は見つかりませんでした。",

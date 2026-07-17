@@ -27,11 +27,17 @@ describe("developer API request schemas", () => {
       parseSearchParams(new URLSearchParams("q=x&limit=26")),
     ).toThrow(DeveloperApiError);
     expect(() =>
-      parseSuggestionParams(new URLSearchParams("q=Z6&region=US")),
+      parseSuggestionParams(new URLSearchParams("q=Z6&region=CA")),
     ).toThrow(DeveloperApiError);
     expect(() => parseSpecSelectors(new URLSearchParams())).toThrow(
       DeveloperApiError,
     );
+  });
+
+  it("accepts the US suggestion region", () => {
+    expect(
+      parseSuggestionParams(new URLSearchParams("q=Rokinon&region=US")),
+    ).toEqual({ query: "Rokinon", limit: 8, region: "US" });
   });
 
   it("parses bounded spec field and category selectors", () => {

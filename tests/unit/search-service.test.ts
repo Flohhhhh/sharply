@@ -179,6 +179,38 @@ describe("search service high-impact behavior", () => {
     });
   });
 
+  it("shows a brand-independent US alias with the canonical name underneath", async () => {
+    searchDataMocks.queryGearSuggestions.mockResolvedValue([
+      {
+        id: "gear-1",
+        name: "Samyang AF 35mm F1.8",
+        slug: "samyang-af-35mm-f1-8",
+        brandName: "Samyang",
+        gearType: "LENS",
+        relevance: 0.95,
+      },
+    ]);
+    gearDataMocks.fetchGearAliasesByGearIds.mockResolvedValue(
+      new Map([
+        [
+          "gear-1",
+          [{ region: "US", name: "Rokinon AF 35mm F1.8" }],
+        ],
+      ]),
+    );
+
+    const suggestions = await getSuggestions("Rokinon AF 35mm", 8, "US");
+
+    expect(suggestions[0]).toMatchObject({
+      title: "Rokinon AF 35mm F1.8",
+      subtitle: "Samyang AF 35mm F1.8",
+      localizedName: "Rokinon AF 35mm F1.8",
+      matchedName: "Rokinon AF 35mm F1.8",
+      matchSource: "localized",
+      isBestMatch: true,
+    });
+  });
+
   it("shows a matched non-local alias as the title with the viewer-local name underneath", async () => {
     searchDataMocks.queryGearSuggestions.mockResolvedValue([
       {
