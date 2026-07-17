@@ -75,8 +75,8 @@ This document explains how to organize server-only code under `src/server/**`.
   - `server/admin/gear/service.ts`: `performFuzzySearchAdmin` (auth + role)
 
 - Metrics (global stats)
-  - `server/metrics/data.ts`: `getGearCount`, `getContributionCount`
-  - `server/metrics/service.ts`: `fetchGearCount`, `fetchContributionCount`
+  - `server/metrics/data.ts`: `getGearCount`, `getContributionCount`, `getPublishedGearCountsByBrand`
+  - `server/metrics/service.ts`: `fetchGearCount`, `fetchContributionCount`, `fetchPublishedGearCountsByBrand`
 
 - Developer API
   - `server/developer-api/data.ts`: API-key, rate-bucket, and usage aggregate persistence.

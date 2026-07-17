@@ -2,7 +2,13 @@
 
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
+import { ChevronRight } from "lucide-react";
 import { Checkbox } from "~/components/ui/checkbox";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "~/components/ui/collapsible";
 import { Progress } from "~/components/ui/progress";
 import {
   Select,
@@ -36,6 +42,8 @@ type Option = {
   value: string;
   label: string;
   sortOrder?: number | null;
+  totalCount: number;
+  underConstructionCount: number;
 };
 type Summary = {
   totalCount: number;
@@ -73,10 +81,11 @@ export default function UnderConstructionClient({
   );
   const showBrandDivider =
     priorityBrands.length > 0 && remainingBrands.length > 0;
+  const orderedBrands = [...priorityBrands, ...remainingBrands];
 
   const filtered = useMemo(() => {
     return items.filter((it) => {
-      if (brandId !== "all" && (it as any).brandId !== brandId) return false;
+      if (brandId !== "all" && it.brandId !== brandId) return false;
       if (gearType !== "all" && it.gearType !== gearType) return false;
       if (missingImagesOnly && it.hasImage) return false;
       return true;
@@ -85,27 +94,58 @@ export default function UnderConstructionClient({
 
   return (
     <>
-      <div className="bg-card mb-6 rounded-lg border p-4">
-        <div className="mb-2 flex items-center justify-between gap-3">
-          <div>
+      <Collapsible className="mb-6">
+        <CollapsibleTrigger className="group focus-visible:ring-ring w-full cursor-pointer rounded-sm text-left transition-opacity hover:opacity-70 focus-visible:ring-2 focus-visible:ring-offset-4 focus-visible:outline-none">
+          <div className="mb-2 flex items-center justify-between gap-3">
             <p className="text-sm font-medium">{t("catalogCompletion")}</p>
-            <p className="text-muted-foreground text-xs">
-              {t("catalogSummary", {
-                underConstructionCount: summary.underConstructionCount,
-                totalCount: summary.totalCount,
-              })}
-            </p>
+            <div className="flex items-center gap-2 text-sm tabular-nums">
+              <span className="font-semibold">{summary.completedPercent}%</span>
+              <span className="text-muted-foreground">
+                {summary.completedCount}/{summary.totalCount}
+              </span>
+              <ChevronRight className="text-muted-foreground size-4 transition-transform group-data-[state=open]:rotate-90" />
+            </div>
           </div>
-          <p className="text-sm font-semibold">{summary.completedPercent}%</p>
-        </div>
-        <Progress value={summary.completedPercent} className="h-2.5" />
-      </div>
+          <Progress value={summary.completedPercent} className="h-2.5" />
+        </CollapsibleTrigger>
+
+        <CollapsibleContent className="overflow-hidden">
+          <div className="grid gap-x-8 gap-y-5 pt-6 sm:grid-cols-2 lg:grid-cols-3">
+            {orderedBrands.map((brand) => {
+              const completedCount = Math.max(
+                brand.totalCount - brand.underConstructionCount,
+                0,
+              );
+              const completedPercent =
+                brand.totalCount > 0
+                  ? Math.round((completedCount / brand.totalCount) * 100)
+                  : 0;
+
+              return (
+                <div key={brand.value} className="border-b pb-4">
+                  <div className="mb-2 flex items-baseline justify-between gap-3">
+                    <p className="truncate text-sm font-medium">
+                      {brand.label}
+                    </p>
+                    <span className="text-muted-foreground text-xs font-medium tabular-nums">
+                      {completedPercent}%
+                    </span>
+                  </div>
+                  <Progress value={completedPercent} className="h-1.5" />
+                  <p className="text-muted-foreground mt-2 text-xs tabular-nums">
+                    {completedCount}/{brand.totalCount}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       <div className="mb-3 flex flex-wrap items-center gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-muted-foreground text-xs">{t("brand")}</span>
+        <div>
           <Select value={brandId} onValueChange={setBrandId}>
-            <SelectTrigger className="w-[220px]">
+            <SelectTrigger className="w-[220px]" aria-label={t("brand")}>
               <SelectValue placeholder={t("allBrands")} />
             </SelectTrigger>
             <SelectContent>
@@ -124,10 +164,9 @@ export default function UnderConstructionClient({
             </SelectContent>
           </Select>
         </div>
-        <div className="flex items-center gap-4">
-          <span className="text-muted-foreground text-xs">{t("type")}</span>
+        <div>
           <Select value={gearType} onValueChange={setGearType}>
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-[160px]" aria-label={t("type")}>
               <SelectValue placeholder={t("allTypes")} />
             </SelectTrigger>
             <SelectContent>

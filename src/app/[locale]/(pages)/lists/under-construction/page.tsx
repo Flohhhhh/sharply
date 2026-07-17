@@ -6,7 +6,10 @@ import { requireRole } from "~/lib/auth/auth-helpers";
 import { BRANDS } from "~/lib/generated";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import { listUnderConstruction } from "~/server/gear/service";
-import { fetchGearCount } from "~/server/metrics/service";
+import {
+  fetchGearCount,
+  fetchPublishedGearCountsByBrand,
+} from "~/server/metrics/service";
 import UnderConstructionClient from "./_components/under-construction-client";
 // Avoid importing runtime schema in pages; use a local constant
 const GEAR_TYPES = ["CAMERA", "ANALOG_CAMERA", "LENS"] as const;
@@ -47,15 +50,27 @@ export default async function Page({
   // Include items with at least 1 missing key OR less than 40% completion overall
   // fetchGearCount is non-critical: fall back to 0 so a metrics failure never
   // breaks the whole route.
-  const [items, session, totalCount] = await Promise.all([
+  const [items, session, totalCount, brandCounts] = await Promise.all([
     listUnderConstruction(1, 40),
     auth.api.getSession({ headers: await headers() }),
     fetchGearCount().catch(() => 0),
+    fetchPublishedGearCountsByBrand().catch(() => []),
   ]);
   const underConstructionCount = items.length;
   const completedCount = Math.max(totalCount - underConstructionCount, 0);
   const completedPercent =
     totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+  const totalByBrandId = new Map(
+    brandCounts.map(({ brandId, count }) => [brandId, count]),
+  );
+  const incompleteByBrandId = new Map<string, number>();
+  for (const item of items) {
+    if (!item.brandId) continue;
+    incompleteByBrandId.set(
+      item.brandId,
+      (incompleteByBrandId.get(item.brandId) ?? 0) + 1,
+    );
+  }
 
   return (
     <div className="mx-auto mt-24 min-h-screen max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
@@ -80,6 +95,8 @@ export default async function Page({
           value: b.id,
           label: b.name,
           sortOrder: b.sort_order,
+          totalCount: totalByBrandId.get(b.id) ?? 0,
+          underConstructionCount: incompleteByBrandId.get(b.id) ?? 0,
         }))}
         types={GEAR_TYPES}
       />
