@@ -158,6 +158,26 @@
     "latestReviewsTitle": "最新评论"
   },
   "gearDetail": {
+    "renameDialog": {
+      "title": "重命名器材",
+      "description": "更新此器材的名称。URL 标识和搜索索引将自动更新。",
+      "currentName": "当前名称",
+      "newName": "新名称",
+      "newNamePlaceholder": "输入新名称...",
+      "canonicalHelp": "如果未包含品牌前缀，系统会自动添加。",
+      "regionalAliases": "地区名称",
+      "regionalHelp": "可为特定地区填写完整名称。留空即可删除。名称会按输入内容原样保存。",
+      "aliasPlaceholder": "{region} 地区名称",
+      "navigateAfterRename": "重命名后前往器材页面",
+      "cancel": "取消",
+      "save": "保存",
+      "trigger": "重命名",
+      "enterNewName": "请输入新名称",
+      "noChanges": "没有可保存的更改",
+      "saved": "已保存",
+      "savedRenamed": "已保存 — 已重命名为“{name}”",
+      "failure": "器材重命名失败"
+    },
     "metaTitleSuffix": "规格与评论",
     "itemNotFoundTitle": "未找到项目",
     "itemNotFoundDescription": "找不到请求的器材。",

@@ -158,6 +158,26 @@
     "latestReviewsTitle": "Neueste Reviews"
   },
   "gearDetail": {
+    "renameDialog": {
+      "title": "Ausrüstung umbenennen",
+      "description": "Aktualisiere den Namen dieses Ausrüstungsartikels. Slug und Suchindex werden automatisch aktualisiert.",
+      "currentName": "Aktueller Name",
+      "newName": "Neuer Name",
+      "newNamePlaceholder": "Neuen Namen eingeben...",
+      "canonicalHelp": "Das Markenpräfix wird automatisch hinzugefügt, wenn es fehlt.",
+      "regionalAliases": "Regionale Namen",
+      "regionalHelp": "Optionale vollständige Namen für bestimmte Regionen. Leer lassen, um einen Namen zu entfernen. Namen werden genau wie eingegeben gespeichert.",
+      "aliasPlaceholder": "Name für {region}",
+      "navigateAfterRename": "Nach dem Umbenennen zur Artikelseite wechseln",
+      "cancel": "Abbrechen",
+      "save": "Speichern",
+      "trigger": "Umbenennen",
+      "enterNewName": "Bitte gib einen neuen Namen ein",
+      "noChanges": "Keine Änderungen zum Speichern",
+      "saved": "Gespeichert",
+      "savedRenamed": "Gespeichert — umbenannt in „{name}“",
+      "failure": "Ausrüstung konnte nicht umbenannt werden"
+    },
     "metaTitleSuffix": "Spezifikationen & Reviews",
     "itemNotFoundTitle": "Eintrag nicht gefunden",
     "itemNotFoundDescription": "Die angeforderte Ausrüstung konnte nicht gefunden werden.",

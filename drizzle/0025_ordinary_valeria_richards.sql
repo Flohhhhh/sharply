@@ -1,0 +1,1 @@
+ALTER TYPE "public"."gear_region" ADD VALUE 'US' BEFORE 'EU';

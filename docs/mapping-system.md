@@ -154,7 +154,7 @@ Regional aliases are resolved through a single helper to keep UI consistent:
 
 - **Helper**: `GetGearDisplayName(item)` in `src/lib/gear/naming.ts`
 - **Inputs**: canonical `name` plus optional `regionalAliases`
-- **Resolution**: country → region (GLOBAL/EU/JP), then alias match, else canonical
+- **Resolution**: country → region (GLOBAL/US/EU/JP), then exact alias match, else canonical; US does not inherit a `GLOBAL` alias
 - **Usage**: all gear name surfaces should use the helper or `useGearDisplayName`
 
 ## Routing note: Mount shortName

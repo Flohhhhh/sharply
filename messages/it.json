@@ -158,6 +158,26 @@
     "latestReviewsTitle": "Ultime recensioni"
   },
   "gearDetail": {
+    "renameDialog": {
+      "title": "Rinomina attrezzatura",
+      "description": "Aggiorna il nome di questa attrezzatura. Lo slug e l’indice di ricerca verranno aggiornati automaticamente.",
+      "currentName": "Nome attuale",
+      "newName": "Nuovo nome",
+      "newNamePlaceholder": "Inserisci un nuovo nome...",
+      "canonicalHelp": "Il prefisso del marchio verrà aggiunto automaticamente se non è presente.",
+      "regionalAliases": "Nomi regionali",
+      "regionalHelp": "Nomi completi facoltativi per regioni specifiche. Lascia vuoto un campo per rimuoverlo. I nomi vengono salvati esattamente come inseriti.",
+      "aliasPlaceholder": "Nome per {region}",
+      "navigateAfterRename": "Vai alla pagina dell’articolo dopo averlo rinominato",
+      "cancel": "Annulla",
+      "save": "Salva",
+      "trigger": "Rinomina",
+      "enterNewName": "Inserisci un nuovo nome",
+      "noChanges": "Nessuna modifica da salvare",
+      "saved": "Salvato",
+      "savedRenamed": "Salvato — rinominato in \"{name}\"",
+      "failure": "Impossibile rinominare l’attrezzatura"
+    },
     "metaTitleSuffix": "Specifiche e reviews",
     "itemNotFoundTitle": "Elemento non trovato",
     "itemNotFoundDescription": "L’attrezzatura richiesta non è stata trovata.",

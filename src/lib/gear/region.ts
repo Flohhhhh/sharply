@@ -1,4 +1,4 @@
-export const GEAR_REGIONS = ["GLOBAL", "EU", "JP"] as const;
+export const GEAR_REGIONS = ["GLOBAL", "US", "EU", "JP"] as const;
 
 export type GearRegion = (typeof GEAR_REGIONS)[number];
 
@@ -39,6 +39,7 @@ export function resolveRegionFromCountryCode(
 ): GearRegion {
   if (!countryCode) return "GLOBAL";
   const normalized = countryCode.trim().slice(0, 2).toUpperCase();
+  if (normalized === "US") return "US";
   if (normalized === "UK" || normalized === "GB") return "EU";
   if (normalized === "EU") return "EU";
   if (normalized === JP_COUNTRY_CODE) return "JP";

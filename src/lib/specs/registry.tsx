@@ -575,6 +575,11 @@ export const specDictionary: SpecSectionDef[] = [
             entries.push({ label: "Default Name", name: item.name });
           }
 
+          const usAlias = findAlias("US");
+          if (usAlias && viewer !== "US") {
+            entries.push({ label: "US", name: usAlias });
+          }
+
           const euAlias = findAlias("EU");
           if (euAlias && viewer !== "EU") {
             entries.push({ label: "EU Name", name: euAlias });

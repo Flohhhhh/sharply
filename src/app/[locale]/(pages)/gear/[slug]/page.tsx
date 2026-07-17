@@ -310,7 +310,6 @@ export default async function GearPage({ params }: GearPageProps) {
               gearId={item.id}
               currentName={item.name}
               currentSlug={item.slug}
-              brandName={item.brands?.name ?? brand?.name ?? null}
               regionalAliases={item.regionalAliases ?? undefined}
             />
           </div>

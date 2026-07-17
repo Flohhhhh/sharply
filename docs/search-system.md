@@ -56,7 +56,7 @@ The key-authenticated developer API has separate public endpoints at `/api/v1/se
 - Migration: `drizzle/0006_search_trgm.sql`
   - Creates extension if missing
   - Adds a GIN trigram index on `sharply_gear.search_name`
-- `gear.search_name` is denormalized to include canonical names plus any regional aliases.
+- `gear.search_name` is denormalized to include canonical names plus any US, EU, JP, or Global aliases. Aliases may contain a different regional brand, while search normalization retains canonical-brand tokens so either name can match.
 
 ## Core algorithm
 

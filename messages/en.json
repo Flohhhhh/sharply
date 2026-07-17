@@ -158,6 +158,26 @@
     "latestReviewsTitle": "Latest Reviews"
   },
   "gearDetail": {
+    "renameDialog": {
+      "title": "Rename Gear Item",
+      "description": "Update this gear item's name. The slug and search index will be updated automatically.",
+      "currentName": "Current Name",
+      "newName": "New Name",
+      "newNamePlaceholder": "Enter a new name...",
+      "canonicalHelp": "The brand prefix will be added automatically if it is not present.",
+      "regionalAliases": "Regional Names",
+      "regionalHelp": "Optional complete names for specific regions. Leave a field blank to remove it. Names are saved exactly as entered.",
+      "aliasPlaceholder": "Name for {region}",
+      "navigateAfterRename": "Go to item page after renaming",
+      "cancel": "Cancel",
+      "save": "Save",
+      "trigger": "Rename",
+      "enterNewName": "Please enter a new name",
+      "noChanges": "No changes to save",
+      "saved": "Saved",
+      "savedRenamed": "Saved — renamed to \"{name}\"",
+      "failure": "Failed to rename gear"
+    },
     "metaTitleSuffix": "Specs & Reviews",
     "itemNotFoundTitle": "Item not found",
     "itemNotFoundDescription": "The requested gear could not be found.",

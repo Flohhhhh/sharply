@@ -43,7 +43,7 @@ export type UserListItemDto = {
     name: string;
     regionalAliases: Array<{
       gearId: string;
-      region: "GLOBAL" | "EU" | "JP";
+      region: "GLOBAL" | "US" | "EU" | "JP";
       name: string;
       createdAt: Date;
       updatedAt: Date;

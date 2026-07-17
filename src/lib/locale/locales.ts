@@ -45,7 +45,7 @@ export const LOCALE_OPTIONS: LocaleOption[] = [
     label: "United States",
     countryCode: "US",
     affiliateCountryCode: "US",
-    gearRegion: "GLOBAL",
+    gearRegion: "US",
     mpb: {
       isSupported: true,
       market: "US",
@@ -252,9 +252,10 @@ const DEFAULT_LANGUAGE_MARKET_BY_LOCALE: Record<Locale, LanguageMarketOption> = 
 };
 
 const REGION_DEFAULT_LOCALE_ID: Partial<Record<GearRegion, LocaleId>> = {
+  US: "us",
   EU: "eu",
   JP: "jp",
-  GLOBAL: "us",
+  GLOBAL: "global",
 };
 
 export function getLocaleById(

@@ -106,7 +106,6 @@ function GearActionsCell({ row }: { row: { original: AdminGearTableRow } }) {
         gearId={row.original.id}
         currentName={row.original.name}
         currentSlug={row.original.slug}
-        brandName={row.original.brandName}
         showNavigateOption
         onSuccess={(res) => {
           // Optimistically update any cached admin gear list pages where this row exists,
