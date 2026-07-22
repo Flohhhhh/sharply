@@ -36,16 +36,13 @@ export type GearOption = {
   regionalAliases?: GearAlias[] | null;
   brandName?: string | null;
   gearType?: string | null;
-  thumbnailUrl?: string | null;
-  mountValue?: string | null;
 };
 
 type GearSearchFilters = {
-  brand?: string;
-  mount?: string;
   gearType?: string;
-  sensorFormat?: string;
 };
+
+const EMPTY_EXCLUDE_IDS: string[] = [];
 
 export type GearSearchComboboxProps = {
   value: GearOption | null;
@@ -93,7 +90,7 @@ export function GearSearchCombobox({
   buttonClassName,
   allowClear = true,
   filters,
-  excludeIds = [],
+  excludeIds = EMPTY_EXCLUDE_IDS,
   name,
   serializeValue = defaultSerialize,
   onSelectionChange,
@@ -119,6 +116,12 @@ export function GearSearchCombobox({
   const { region, countryCode } = useCountry();
 
   const gearTypeFilter = filters?.gearType;
+  // Stabilize effect deps when callers pass a fresh array with the same ids.
+  const excludeIdsKey = excludeIds.join("\0");
+  const stableExcludeIds = useMemo(
+    () => (excludeIdsKey.length === 0 ? EMPTY_EXCLUDE_IDS : excludeIdsKey.split("\0")),
+    [excludeIdsKey],
+  );
 
   useEffect(() => {
     if (containerRef.current) {
@@ -184,15 +187,16 @@ export function GearSearchCombobox({
         const suggestions = Array.isArray(data.suggestions)
           ? data.suggestions
           : [];
-        const mapped = mapGearSuggestionsToOptions(suggestions, excludeIds).map(
-          (option) => ({
-            id: option.id,
-            slug: option.slug,
-            name: option.name,
-            brandName: option.brandName,
-            gearType: option.gearType,
-          }),
-        );
+        const mapped = mapGearSuggestionsToOptions(
+          suggestions,
+          stableExcludeIds,
+        ).map((option) => ({
+          id: option.id,
+          slug: option.slug,
+          name: option.name,
+          brandName: option.brandName,
+          gearType: option.gearType,
+        }));
         setOptions(mapped);
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") {
@@ -211,7 +215,7 @@ export function GearSearchCombobox({
   }, [
     countryCode,
     debouncedQuery,
-    excludeIds,
+    stableExcludeIds,
     gearTypeFilter,
     limit,
     minChars,
