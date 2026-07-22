@@ -55,6 +55,7 @@ type SuggestionRow = {
   label?: string;
   name?: string;
   slug?: string;
+  href?: string;
   gearType?: string | null;
   brandName?: string | null;
   type?: "gear" | "brand";
@@ -63,6 +64,19 @@ type SuggestionRow = {
 type SuggestResponse = {
   suggestions?: SuggestionRow[];
 };
+
+/** Prefer explicit slug; otherwise parse `/gear/{slug}` from suggest-api href. */
+export function resolveGearSlugFromSuggestion(row: {
+  slug?: string | null;
+  href?: string | null;
+}): string {
+  const explicit = typeof row.slug === "string" ? row.slug.trim() : "";
+  if (explicit) return explicit;
+
+  const href = typeof row.href === "string" ? row.href.trim() : "";
+  const match = href.match(/^\/gear\/([^/?#]+)/);
+  return match?.[1] ? decodeURIComponent(match[1]) : "";
+}
 
 function useDebounced<T>(value: T, ms: number) {
   const [v, setV] = useState(value);
@@ -118,12 +132,12 @@ export function GearCombobox({
             .map((row) => ({
               id: String(row.id ?? ""),
               name: String(row.name ?? row.slug ?? ""),
-              slug: String(row.slug ?? ""),
+              slug: resolveGearSlugFromSuggestion(row),
               gearType: row.gearType ?? null,
               brandName: row.brandName ?? null,
               type: "gear" as const,
             }))
-            .filter((s) => s.id && s.name);
+            .filter((s) => s.id && s.name && s.slug);
           setOptions(mapped.filter((m) => (m.gearType ?? "") === "LENS"));
         } else {
           const r = await fetch(
@@ -138,14 +152,14 @@ export function GearCombobox({
             .map((row) => ({
               id: String(row.id ?? "").replace(/^gear:/, ""),
               name: String(row.label ?? row.name ?? row.slug ?? ""),
-              slug: String(row.slug ?? ""),
+              slug: resolveGearSlugFromSuggestion(row),
               gearType: row.gearType ?? null,
               brandName: row.brandName ?? null,
               type:
                 row.type ||
                 (String(row.id ?? "").startsWith("gear:") ? "gear" : undefined),
             }))
-            .filter((s) => s.id && s.name);
+            .filter((s) => s.id && s.name && s.slug);
           setOptions(mapped.filter((m) => m.type === "gear"));
         }
       } catch {
