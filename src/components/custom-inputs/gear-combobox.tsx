@@ -17,6 +17,9 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 import { cn } from "~/lib/utils";
+import { resolveGearSlugFromSuggestion } from "~/lib/search/resolve-gear-slug";
+
+export { resolveGearSlugFromSuggestion };
 
 export type GearSuggestion = {
   id: string; // gear id
@@ -55,6 +58,7 @@ type SuggestionRow = {
   label?: string;
   name?: string;
   slug?: string;
+  href?: string;
   gearType?: string | null;
   brandName?: string | null;
   type?: "gear" | "brand";
@@ -118,12 +122,12 @@ export function GearCombobox({
             .map((row) => ({
               id: String(row.id ?? ""),
               name: String(row.name ?? row.slug ?? ""),
-              slug: String(row.slug ?? ""),
+              slug: resolveGearSlugFromSuggestion(row),
               gearType: row.gearType ?? null,
               brandName: row.brandName ?? null,
               type: "gear" as const,
             }))
-            .filter((s) => s.id && s.name);
+            .filter((s) => s.id && s.name && s.slug);
           setOptions(mapped.filter((m) => (m.gearType ?? "") === "LENS"));
         } else {
           const r = await fetch(
@@ -138,14 +142,14 @@ export function GearCombobox({
             .map((row) => ({
               id: String(row.id ?? "").replace(/^gear:/, ""),
               name: String(row.label ?? row.name ?? row.slug ?? ""),
-              slug: String(row.slug ?? ""),
+              slug: resolveGearSlugFromSuggestion(row),
               gearType: row.gearType ?? null,
               brandName: row.brandName ?? null,
               type:
                 row.type ||
                 (String(row.id ?? "").startsWith("gear:") ? "gear" : undefined),
             }))
-            .filter((s) => s.id && s.name);
+            .filter((s) => s.id && s.name && s.slug);
           setOptions(mapped.filter((m) => m.type === "gear"));
         }
       } catch {

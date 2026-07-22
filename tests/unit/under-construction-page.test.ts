@@ -8,6 +8,7 @@ const gearServiceMocks = vi.hoisted(() => ({
 
 const metricsMocks = vi.hoisted(() => ({
   fetchGearCount: vi.fn(),
+  fetchPublishedGearCountsByBrand: vi.fn(),
 }));
 
 const authMocks = vi.hoisted(() => ({
@@ -58,7 +59,13 @@ import Page from "~/app/[locale]/(pages)/lists/under-construction/page";
 type ClientProps = {
   canToggleAutoSubmit: boolean;
   items: unknown[];
-  brands: Array<{ value: string; label: string; sortOrder: number | null }>;
+  brands: Array<{
+    value: string;
+    label: string;
+    sortOrder: number | null;
+    totalCount: number;
+    underConstructionCount: number;
+  }>;
   summary: {
     totalCount: number;
     underConstructionCount: number;
@@ -81,21 +88,41 @@ describe("under construction page", () => {
     headerMocks.headers.mockResolvedValue(new Headers());
     authMocks.auth.api.getSession.mockResolvedValue({ user: { id: "user-1" } });
     authHelperMocks.requireRole.mockReturnValue(true);
+    metricsMocks.fetchPublishedGearCountsByBrand.mockResolvedValue([]);
   });
 
   it("passes the computed catalog summary to the client", async () => {
     const items = [
-      { id: "1", slug: "alpha", name: "Alpha", createdAt: new Date() },
-      { id: "2", slug: "beta", name: "Beta", createdAt: new Date() },
+      {
+        id: "1",
+        slug: "alpha",
+        name: "Alpha",
+        brandId: BRANDS[0]!.id,
+        createdAt: new Date(),
+      },
+      {
+        id: "2",
+        slug: "beta",
+        name: "Beta",
+        brandId: BRANDS[0]!.id,
+        createdAt: new Date(),
+      },
     ];
     gearServiceMocks.listUnderConstruction.mockResolvedValue(items);
     metricsMocks.fetchGearCount.mockResolvedValue(10);
+    metricsMocks.fetchPublishedGearCountsByBrand.mockResolvedValue([
+      { brandId: BRANDS[0]!.id, count: 6 },
+      { brandId: BRANDS[1]!.id, count: 4 },
+    ]);
 
     renderToStaticMarkup(await Page(pageParams));
     const props = getClientProps();
 
     expect(gearServiceMocks.listUnderConstruction).toHaveBeenCalledWith(1, 40);
     expect(metricsMocks.fetchGearCount).toHaveBeenCalledTimes(1);
+    expect(metricsMocks.fetchPublishedGearCountsByBrand).toHaveBeenCalledTimes(
+      1,
+    );
     expect(props.canToggleAutoSubmit).toBe(true);
     expect(props.items).toBe(items);
     expect(props.brands).toEqual(
@@ -103,6 +130,9 @@ describe("under construction page", () => {
         value: brand.id,
         label: brand.name,
         sortOrder: brand.sort_order,
+        totalCount:
+          brand.id === BRANDS[0]!.id ? 6 : brand.id === BRANDS[1]!.id ? 4 : 0,
+        underConstructionCount: brand.id === BRANDS[0]!.id ? 2 : 0,
       })),
     );
     expect(props.summary).toEqual({
@@ -126,6 +156,10 @@ describe("under construction page", () => {
       completedCount: 0,
       completedPercent: 0,
     });
+    expect(props.brands.every((brand) => brand.totalCount === 0)).toBe(true);
+    expect(
+      props.brands.every((brand) => brand.underConstructionCount === 0),
+    ).toBe(true);
   });
 
   it("clamps completed items at zero when the backlog matches the total", async () => {

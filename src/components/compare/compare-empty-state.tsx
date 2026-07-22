@@ -2,7 +2,6 @@
 
 import { Scale } from "lucide-react";
 import { useTranslations } from "next-intl";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback,useState } from "react";
 import { useCompareLoadingOverlay } from "~/components/compare/compare-loading-overlay";
@@ -150,8 +149,6 @@ function CompareEmptyColumn({
     ? t("swapOrClearSlot")
     : placeholders[index]?.body;
 
-  const hasImage = Boolean(value?.thumbnailUrl);
-
   return (
     <div className="bg-card/30 rounded-2xl border border-dashed shadow-sm">
       <div className="border-border border-b px-4 py-4 md:px-6">
@@ -168,22 +165,9 @@ function CompareEmptyColumn({
       </div>
       <div className="flex flex-col items-center justify-center gap-3 px-8 py-12 text-center">
         {hasSelection ? (
-          hasImage ? (
-            <div className="bg-muted relative h-36 w-full max-w-[220px] overflow-hidden rounded-2xl">
-              <Image
-                src={value?.thumbnailUrl ?? "/image-temp.png"}
-                alt={displayName ?? t("selectedGear")}
-                fill
-                sizes="220px"
-                className="object-contain object-center"
-                priority={false}
-              />
-            </div>
-          ) : (
-            <div className="text-muted-foreground flex h-32 w-full max-w-[220px] items-center justify-center rounded-2xl border border-dashed text-xs tracking-wide uppercase">
-              {t("imageComingSoon")}
-            </div>
-          )
+          <div className="text-muted-foreground flex h-32 w-full max-w-[220px] items-center justify-center rounded-2xl border border-dashed text-xs tracking-wide uppercase">
+            {t("imageComingSoon")}
+          </div>
         ) : (
           <div className="flex h-12 w-12 items-center justify-center rounded-full border border-dashed">
             <Scale className="text-muted-foreground size-5" />

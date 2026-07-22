@@ -217,19 +217,42 @@ export async function searchGear(
   };
 }
 
+export type GetSuggestionsOptions = {
+  /** When `["gear"]`, return only gear suggestions (no brands / smart actions). */
+  types?: Array<"gear">;
+  filters?: {
+    gearType?: string;
+  };
+};
+
 export async function getSuggestions(
   query: string,
   limit = 8,
   region?: GearRegion | null,
+  options?: GetSuggestionsOptions,
 ): Promise<Suggestion[]> {
   if (!query || query.length < 2) return [];
+
+  const gearOnly = options?.types?.length === 1 && options.types[0] === "gear";
+  const gearTypeFilter = options?.filters?.gearType;
+
+  if (gearOnly) {
+    const gearLimit = Math.max(1, Math.min(20, limit));
+    return buildRankedSuggestions(query, region, {
+      gearOnly: true,
+      gearLimit,
+      gearType: gearTypeFilter,
+    });
+  }
 
   const compareIntent = parseCompareIntent(query);
   const smartAction = compareIntent
     ? await buildCompareSmartAction(compareIntent.left, compareIntent.right, region)
     : null;
 
-  const rankedSuggestions = await buildRankedSuggestions(query, region);
+  const rankedSuggestions = await buildRankedSuggestions(query, region, {
+    gearType: gearTypeFilter,
+  });
 
   return (smartAction
     ? [smartAction, ...rankedSuggestions]
@@ -246,17 +269,39 @@ type SuggestGearRow = {
   relevance?: number;
 };
 
+type BuildRankedSuggestionsOptions = {
+  gearOnly?: boolean;
+  gearLimit?: number;
+  gearType?: string;
+};
+
 async function buildRankedSuggestions(
   query: string,
   region?: GearRegion | null,
+  options?: BuildRankedSuggestionsOptions,
 ): Promise<Suggestion[]> {
   const normalizedQuery = normalizeSearchQuery(query);
   const normalizedQueryNoPunct = normalizeSearchQueryNoPunct(query);
-  const whereClause = buildSearchWhereClause(query)!;
+  let whereClause = buildSearchWhereClause(query)!;
+  if (options?.gearType) {
+    whereClause = sql`(${whereClause}) AND (${gear.gearType} = ${options.gearType})`;
+  }
   const relevanceExpr = buildRelevanceExpr(query, normalizedQueryNoPunct);
 
-  const gearResults = await queryGearSuggestions(whereClause, relevanceExpr);
+  const gearLimit = options?.gearOnly
+    ? Math.max(1, Math.min(20, options.gearLimit ?? 8))
+    : 5;
+  const gearResults = await queryGearSuggestions(
+    whereClause,
+    relevanceExpr,
+    gearLimit,
+  );
   const gearSuggestions = await buildGearSuggestions(gearResults, query, region);
+
+  if (options?.gearOnly) {
+    return gearSuggestions;
+  }
+
   const brandResults = await queryBrandSuggestions(normalizedQuery);
   const brandSuggestions: BrandSuggestion[] = brandResults.map((item) => ({
     id: `brand:${item.id}`,

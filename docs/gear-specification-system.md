@@ -48,6 +48,7 @@ Rules:
 - `RUMORED` is a manual override. If an item is rumored, the public gear page shows the rumored placeholder even when the item is also incomplete.
 - `HIDDEN` fully removes the item from public access and discovery.
 - The `/lists/under-construction` surface is only for incomplete **published** items.
+- Its catalog-completion disclosure compares completed published items with the total catalog, with the same completed/total progress available for every configured brand.
 - The homepage contribution banner links through `/contribute/random`, which chooses from the same under-construction pool and falls back to one of the 20 least-complete published items when that pool is empty.
 - Editors can still use normal admin and edit surfaces to prefill specs, images, and manuals on rumored or hidden items before publication.
 
