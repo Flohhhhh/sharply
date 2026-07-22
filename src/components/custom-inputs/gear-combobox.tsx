@@ -17,6 +17,9 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 import { cn } from "~/lib/utils";
+import { resolveGearSlugFromSuggestion } from "~/lib/search/resolve-gear-slug";
+
+export { resolveGearSlugFromSuggestion };
 
 export type GearSuggestion = {
   id: string; // gear id
@@ -64,19 +67,6 @@ type SuggestionRow = {
 type SuggestResponse = {
   suggestions?: SuggestionRow[];
 };
-
-/** Prefer explicit slug; otherwise parse `/gear/{slug}` from suggest-api href. */
-export function resolveGearSlugFromSuggestion(row: {
-  slug?: string | null;
-  href?: string | null;
-}): string {
-  const explicit = typeof row.slug === "string" ? row.slug.trim() : "";
-  if (explicit) return explicit;
-
-  const href = typeof row.href === "string" ? row.href.trim() : "";
-  const match = href.match(/^\/gear\/([^/?#]+)/);
-  return match?.[1] ? decodeURIComponent(match[1]) : "";
-}
 
 function useDebounced<T>(value: T, ms: number) {
   const [v, setV] = useState(value);

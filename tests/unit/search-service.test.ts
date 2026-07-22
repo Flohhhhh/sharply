@@ -620,4 +620,92 @@ describe("search service high-impact behavior", () => {
       href: "/compare?i=nikon-z50-ii&i=sony-a6700",
     });
   });
+
+  it("gear-only mode fetches request limit gear rows and skips brands/smart-actions", async () => {
+    searchDataMocks.queryGearSuggestions.mockResolvedValue([
+      {
+        id: "gear-1",
+        name: "Z6 III",
+        slug: "z6-iii",
+        brandName: "Nikon",
+        gearType: "CAMERA",
+        relevance: 0.95,
+      },
+      {
+        id: "gear-2",
+        name: "Z5 II",
+        slug: "z5-ii",
+        brandName: "Nikon",
+        gearType: "CAMERA",
+        relevance: 0.8,
+      },
+    ]);
+    searchDataMocks.queryBrandSuggestions.mockResolvedValue([
+      {
+        id: "brand-1",
+        name: "Nikon",
+        slug: "nikon",
+        relevance: 0.99,
+      },
+    ]);
+
+    const suggestions = await getSuggestions("nikon", 12, "GLOBAL", {
+      types: ["gear"],
+    });
+
+    expect(searchDataMocks.queryGearSuggestions).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      12,
+    );
+    expect(searchDataMocks.queryBrandSuggestions).not.toHaveBeenCalled();
+    expect(suggestions).toHaveLength(2);
+    expect(suggestions.every((item) => item.type === "gear")).toBe(true);
+    expect(suggestions.some((item) => item.kind === "smart-action")).toBe(
+      false,
+    );
+  });
+
+  it("gear-only mode applies gearType filter and still uses request limit", async () => {
+    searchDataMocks.queryGearSuggestions.mockResolvedValue([
+      {
+        id: "lens-1",
+        name: "Nikkor 50mm f/1.8",
+        slug: "nikkor-50-18",
+        brandName: "Nikon",
+        gearType: "LENS",
+        relevance: 0.9,
+      },
+    ]);
+
+    const suggestions = await getSuggestions("50", 10, null, {
+      types: ["gear"],
+      filters: { gearType: "LENS" },
+    });
+
+    expect(searchDataMocks.queryGearSuggestions).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      10,
+    );
+    expect(searchDataMocks.queryBrandSuggestions).not.toHaveBeenCalled();
+    expect(suggestions).toHaveLength(1);
+    expect(suggestions[0]).toMatchObject({
+      type: "gear",
+      kind: "lens",
+      gearType: "LENS",
+    });
+  });
+
+  it("default suggest path still requests the five-gear candidate window", async () => {
+    searchDataMocks.queryGearSuggestions.mockResolvedValue([]);
+
+    await getSuggestions("sony", 8);
+
+    expect(searchDataMocks.queryGearSuggestions).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      5,
+    );
+  });
 });

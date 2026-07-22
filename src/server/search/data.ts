@@ -452,10 +452,12 @@ export async function querySearchTotal(
 
 /**
  * Suggest top gear for a partial query using the given where clause and ranking.
+ * Default limit 5 preserves the modal/suggest mix; gear-only pickers pass a higher limit.
  */
 export async function queryGearSuggestions(
   whereClause: SQL,
   relevanceExpr: any,
+  limit = 5,
 ) {
   return db
     .select({
@@ -470,7 +472,7 @@ export async function queryGearSuggestions(
     .leftJoin(brands, sql`${gear.brandId} = ${brands.id}`)
     .where(sql`(${buildPublishedGearClause()}) AND (${whereClause})`)
     .orderBy(desc(relevanceExpr), asc(gear.name))
-    .limit(5);
+    .limit(limit);
 }
 
 /**

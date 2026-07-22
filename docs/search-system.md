@@ -37,9 +37,15 @@ Helper utilities for URLs live in `src/lib/utils/url.ts` (`buildSearchHref`, `me
 - Full search (optional for clients): `src/app/api/search/route.ts`
   - GET params: `q`, `sort`, `page`, `pageSize` (+ future filters)
   - Returns: `{ results, total, totalPages, page, pageSize }`
-- Suggest (used by palette): `src/app/api/search/suggest/route.ts`
-  - GET `q`
+- Suggest (used by palette and gear pickers): `src/app/api/search/suggest/route.ts`
+  - GET params: `q`, optional `limit` (1–20, default 8), optional `country`, optional `types=gear`, optional `gearType`
   - Returns: `{ suggestions: Suggestion[] }`
+  - Default (palette/modal): top 5 gear rows + brand suggestions + optional compare smart-action, then sliced to `limit`
+  - `types=gear`: gear-only mode for form pickers — no brands or smart-actions; gear SQL limit follows request `limit`
+  - `gearType`: optional exact gear-type filter (e.g. `LENS`) applied before ranking
+- Gear picker combobox: `src/components/gear/gear-search-combobox.tsx`
+  - Uses `/api/search/suggest?types=gear` (not full `/api/search`) so ranking and best-match metadata match the modal path
+  - Default `limit` 12; hoists `isBestMatch` rows; scrolls with viewport-aware max height and dialog-safe popover nesting
 - `Suggestion` is a discriminated union:
   - `gear`: region-aware item suggestion with `title`, `subtitle`, `canonicalName`, `localizedName`, `matchedName`, `matchSource`, `brandName`, `relevance`, `isBestMatch`
   - `brand`: brand suggestion with `title`, `subtitle`, `brandName`, `relevance`
@@ -93,7 +99,7 @@ When a user types a query, the server-side search pipeline runs in this order:
    - Keep trigram similarity as a weaker fallback signal.
 7. Fetch and shape results.
    - Full search sorts by relevance or the requested sort key, applies filters, paginates, and optionally counts totals.
-   - Suggest search fetches the top gear rows plus brand suggestions, applies exact-match metadata, and may prepend a smart compare action.
+   - Suggest search fetches the top gear rows (5 by default, or the request limit in gear-only mode) plus brand suggestions, applies exact-match metadata, and may prepend a smart compare action. Gear-only suggest skips brands and smart-actions.
 8. Resolve UI behavior.
    - Best-match gear suggestions can win plain Enter.
    - Otherwise the UI falls back to the explicit `Search for "..."` action and the `/search?q=...` results page.

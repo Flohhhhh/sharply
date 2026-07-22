@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveGearSlugFromSuggestion } from "~/components/custom-inputs/gear-combobox";
+import { resolveGearSlugFromSuggestion } from "~/lib/search/resolve-gear-slug";
 
 describe("resolveGearSlugFromSuggestion", () => {
   it("uses an explicit slug when present", () => {

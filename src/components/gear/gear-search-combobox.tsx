@@ -1,6 +1,6 @@
 "use client";
 
-import { Check,ChevronsUpDown,Loader,X } from "lucide-react";
+import { Check, ChevronsUpDown, Loader, X } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -19,16 +19,15 @@ import {
   CommandItem,
   CommandList,
 } from "~/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
+import * as PopoverBase from "~/components/ui/popover";
+import * as PopoverInDialog from "~/components/ui/popover-in-dialog";
 import { GetGearDisplayName } from "~/lib/gear/naming";
+import { mapGearSuggestionsToOptions } from "~/lib/search/gear-picker-options";
 import { useCountry } from "~/lib/hooks/useCountry";
 import { useDebounce } from "~/lib/hooks/useDebounce";
 import { cn } from "~/lib/utils";
 import type { GearAlias } from "~/types/gear";
+import type { Suggestion } from "~/types/search";
 
 export type GearOption = {
   id: string;
@@ -67,6 +66,7 @@ export type GearSearchComboboxProps = {
   onSelectionChange?: (value: GearOption | null) => void;
   fullWidth?: boolean;
   disableTriggerMeasurement?: boolean;
+  inDialog?: boolean;
   renderTrigger?: (details: {
     open: boolean;
     selection: GearOption | null;
@@ -74,17 +74,8 @@ export type GearSearchComboboxProps = {
   }) => ReactNode;
 };
 
-type SearchApiResult = {
-  results?: Array<{
-    id: string;
-    slug: string;
-    name: string;
-    regionalAliases?: GearAlias[] | null;
-    brandName?: string | null;
-    gearType?: string | null;
-    thumbnailUrl?: string | null;
-    mountValue?: string | null;
-  }>;
+type SuggestApiResult = {
+  suggestions?: Suggestion[];
 };
 
 const defaultSerialize = (option: GearOption | null) => option?.slug ?? "";
@@ -95,7 +86,7 @@ export function GearSearchCombobox({
   placeholder = "Select gear",
   searchPlaceholder = "Search gear…",
   emptyText = "No gear found",
-  limit = 8,
+  limit = 12,
   minChars = 2,
   disabled = false,
   className,
@@ -108,6 +99,7 @@ export function GearSearchCombobox({
   onSelectionChange,
   fullWidth = true,
   disableTriggerMeasurement = false,
+  inDialog,
   renderTrigger,
 }: GearSearchComboboxProps) {
   const [open, setOpen] = useState(false);
@@ -116,18 +108,32 @@ export function GearSearchCombobox({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [detectedInDialog, setDetectedInDialog] = useState(false);
   const debouncedQuery = useDebounce(query, 200);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const [triggerWidth, setTriggerWidth] = useState<number | undefined>(
     undefined,
   );
   const shouldMeasureTrigger = !renderTrigger && !disableTriggerMeasurement;
-  const { region } = useCountry();
+  const { region, countryCode } = useCountry();
 
-  const brandFilter = filters?.brand;
-  const mountFilter = filters?.mount;
   const gearTypeFilter = filters?.gearType;
-  const sensorFormatFilter = filters?.sensorFormat;
+
+  useEffect(() => {
+    if (containerRef.current) {
+      const isInsideDialog = !!containerRef.current.closest(
+        '[data-slot="dialog-content"]',
+      );
+      setDetectedInDialog(isInsideDialog);
+    }
+  }, []);
+
+  const useDialogPopover = useMemo(
+    () => (typeof inDialog === "boolean" ? inDialog : detectedInDialog),
+    [inDialog, detectedInDialog],
+  );
+  const P = useDialogPopover ? PopoverInDialog : PopoverBase;
 
   const resetQuery = useCallback(() => {
     setQuery("");
@@ -161,37 +167,32 @@ export function GearSearchCombobox({
 
     const params = new URLSearchParams({
       q: trimmed,
-      sort: "relevance",
-      page: "1",
-      pageSize: String(limit),
+      types: "gear",
+      limit: String(limit),
     });
-    if (brandFilter) params.set("brand", brandFilter);
-    if (mountFilter) params.set("mount", mountFilter);
+    if (countryCode) params.set("country", countryCode);
     if (gearTypeFilter) params.set("gearType", gearTypeFilter);
-    if (sensorFormatFilter) params.set("sensorFormat", sensorFormatFilter);
 
     const run = async () => {
       try {
-        const res = await fetch(`/api/search?${params.toString()}`, {
+        const res = await fetch(`/api/search/suggest?${params.toString()}`, {
           signal: controller.signal,
         });
-        const data: SearchApiResult = res.ok
-          ? ((await res.json()) as SearchApiResult)
-          : { results: [] };
-        const list = Array.isArray(data.results) ? data.results : [];
-        const mapped: GearOption[] = list
-          .filter((item) => item?.slug && item?.name)
-          .filter((item) => !excludeIds.includes(String(item.id)))
-          .map((item) => ({
-            id: String(item.id),
-            slug: String(item.slug),
-            name: String(item.name),
-            regionalAliases: item.regionalAliases ?? null,
-            brandName: item.brandName ?? null,
-            gearType: item.gearType ?? null,
-            thumbnailUrl: item.thumbnailUrl ?? null,
-            mountValue: item.mountValue ?? null,
-          }));
+        const data: SuggestApiResult = res.ok
+          ? ((await res.json()) as SuggestApiResult)
+          : { suggestions: [] };
+        const suggestions = Array.isArray(data.suggestions)
+          ? data.suggestions
+          : [];
+        const mapped = mapGearSuggestionsToOptions(suggestions, excludeIds).map(
+          (option) => ({
+            id: option.id,
+            slug: option.slug,
+            name: option.name,
+            brandName: option.brandName,
+            gearType: option.gearType,
+          }),
+        );
         setOptions(mapped);
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") {
@@ -208,15 +209,13 @@ export function GearSearchCombobox({
 
     return () => controller.abort();
   }, [
-    brandFilter,
+    countryCode,
     debouncedQuery,
     excludeIds,
     gearTypeFilter,
     limit,
     minChars,
-    mountFilter,
     open,
-    sensorFormatFilter,
   ]);
 
   useEffect(() => {
@@ -356,6 +355,7 @@ export function GearSearchCombobox({
 
   return (
     <div
+      ref={containerRef}
       className={cn(
         "flex flex-col gap-2",
         fullWidth ? "w-full" : "w-auto",
@@ -376,10 +376,10 @@ export function GearSearchCombobox({
           fullWidth ? "w-full" : "w-auto",
         )}
       >
-        <Popover open={open} onOpenChange={handleOpenChange}>
-          <PopoverTrigger asChild>{triggerContent}</PopoverTrigger>
-          <PopoverContent
-            className="p-0"
+        <P.Popover open={open} onOpenChange={handleOpenChange}>
+          <P.PopoverTrigger asChild>{triggerContent}</P.PopoverTrigger>
+          <P.PopoverContent
+            className="overflow-hidden p-0"
             align="start"
             onOpenAutoFocus={(event) => {
               event.preventDefault();
@@ -394,13 +394,13 @@ export function GearSearchCombobox({
             }}
             style={shouldMeasureTrigger ? { width: triggerWidth } : undefined}
           >
-            <Command shouldFilter={false}>
+            <Command shouldFilter={false} className="overflow-hidden">
               <CommandInput
                 value={query}
                 onValueChange={setQuery}
                 placeholder={searchPlaceholder}
               />
-              <CommandList>
+              <CommandList className="max-h-[min(300px,var(--radix-popover-content-available-height,300px))]">
                 <CommandEmpty>{emptyStateContent}</CommandEmpty>
                 <CommandGroup>
                   {options.map((option) => {
@@ -445,8 +445,8 @@ export function GearSearchCombobox({
                 </CommandGroup>
               </CommandList>
             </Command>
-          </PopoverContent>
-        </Popover>
+          </P.PopoverContent>
+        </P.Popover>
       </div>
     </div>
   );
