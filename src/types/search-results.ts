@@ -46,6 +46,14 @@ export type SearchResult = {
   announcedDate?: Date | string | null;
   announceDatePrecision?: string | null;
   relevance?: number;
+  mountNames?: string[];
+  sensorFormatName?: string | null;
+  weightGrams?: number | null;
+  focalLengthMinMm?: number | null;
+  focalLengthMaxMm?: number | null;
+  isPrime?: boolean | null;
+  maxApertureWide?: number | null;
+  maxApertureTele?: number | null;
 };
 
 export type SearchResponse = {

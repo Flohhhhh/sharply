@@ -1459,6 +1459,28 @@
     "priceLowHigh": "Precio: menor → mayor",
     "priceHighLow": "Precio: mayor → menor"
   },
+  "gearTable": {
+    "viewMode": "Modo de vista",
+    "gridView": "Vista de cuadrícula",
+    "listView": "Vista de lista",
+    "sortAscending": "Ordenar {column} ascendente",
+    "sortDescending": "Ordenar {column} descendente",
+    "noResults": "No se encontró equipo.",
+    "prime": "Fijo",
+    "zoom": "Zoom",
+    "columns": {
+      "name": "Nombre",
+      "brand": "Marca",
+      "mount": "Montura",
+      "sensorSize": "Tamaño del sensor",
+      "year": "Año",
+      "weight": "Peso",
+      "price": "Precio",
+      "focalLength": "Distancia focal",
+      "aperture": "Apertura",
+      "type": "Tipo"
+    }
+  },
   "underConstructionPage": {
     "metaTitle": "En construcción",
     "metaDescription": "Consulta qué fichas de equipo siguen incompletas y ayuda a completar las especificaciones que faltan.",

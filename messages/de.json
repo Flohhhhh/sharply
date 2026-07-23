@@ -1459,6 +1459,28 @@
     "priceLowHigh": "Preis: Niedrig → Hoch",
     "priceHighLow": "Preis: Hoch → Niedrig"
   },
+  "gearTable": {
+    "viewMode": "Ansichtsmodus",
+    "gridView": "Rasteransicht",
+    "listView": "Listenansicht",
+    "sortAscending": "{column} aufsteigend sortieren",
+    "sortDescending": "{column} absteigend sortieren",
+    "noResults": "Keine Ausrüstung gefunden.",
+    "prime": "Festbrennweite",
+    "zoom": "Zoom",
+    "columns": {
+      "name": "Name",
+      "brand": "Marke",
+      "mount": "Bajonett",
+      "sensorSize": "Sensorgröße",
+      "year": "Jahr",
+      "weight": "Gewicht",
+      "price": "Preis",
+      "focalLength": "Brennweite",
+      "aperture": "Blende",
+      "type": "Typ"
+    }
+  },
   "underConstructionPage": {
     "metaTitle": "Im Aufbau",
     "metaDescription": "Sieh dir an, welche Ausrüstungseinträge noch unvollständig sind, und hilf beim Ergänzen fehlender Spezifikationen.",

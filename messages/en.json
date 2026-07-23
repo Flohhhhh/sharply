@@ -1459,6 +1459,28 @@
     "priceLowHigh": "Price: Low → High",
     "priceHighLow": "Price: High → Low"
   },
+  "gearTable": {
+    "viewMode": "View mode",
+    "gridView": "Grid view",
+    "listView": "List view",
+    "sortAscending": "Sort {column} ascending",
+    "sortDescending": "Sort {column} descending",
+    "noResults": "No gear found.",
+    "prime": "Prime",
+    "zoom": "Zoom",
+    "columns": {
+      "name": "Name",
+      "brand": "Brand",
+      "mount": "Mount",
+      "sensorSize": "Sensor Size",
+      "year": "Year",
+      "weight": "Weight",
+      "price": "Price",
+      "focalLength": "Focal Length",
+      "aperture": "Aperture",
+      "type": "Type"
+    }
+  },
   "underConstructionPage": {
     "metaTitle": "Under Construction",
     "metaDescription": "See which gear entries are still incomplete and help fill in missing specs.",

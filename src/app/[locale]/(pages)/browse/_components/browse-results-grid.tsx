@@ -3,7 +3,7 @@
 import { mergeSearchParams } from "@utils/url";
 import { Loader } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { usePathname,useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   Suspense,
   useCallback,
@@ -14,7 +14,13 @@ import {
   useTransition,
 } from "react";
 import useSWRInfinite from "swr/infinite";
-import { GearCard,GearCardSkeleton } from "~/components/gear/gear-card";
+import { GearCard, GearCardSkeleton } from "~/components/gear/gear-card";
+import {
+  GearTable,
+  GearViewToggle,
+  toGearTableRows,
+  useGearResultsView,
+} from "~/components/table";
 import { Button } from "~/components/ui/button";
 import { useIsMobile } from "~/hooks/use-mobile";
 import {
@@ -77,6 +83,7 @@ function BrowseResultsGridContent({
   const searchParams = useSearchParams();
   const [isPending] = useTransition();
   const [infiniteActive, setInfiniteActive] = useState(false);
+  const { view, setView } = useGearResultsView();
   const [autoScrollLoads, setAutoScrollLoads] = useState(0);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const currentPageRef = useRef(1);
@@ -161,6 +168,7 @@ function BrowseResultsGridContent({
     () => pages.flatMap((page) => page?.items ?? []),
     [pages],
   );
+  const tableRows = useMemo(() => toGearTableRows(items), [items]);
   const trendingSet = useMemo(
     () => new Set(trendingSlugs ?? []),
     [trendingSlugs],
@@ -239,50 +247,55 @@ function BrowseResultsGridContent({
 
   return (
     <div className="space-y-4">
-      <p className="text-muted-foreground text-sm">
-        {isLoadingInitial
-          ? t("loadingResults")
-          : t("showingResults", { count: total })}
-      </p>
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-muted-foreground text-sm">
+          {isLoadingInitial
+            ? t("loadingResults")
+            : t("showingResults", { count: total })}
+        </p>
+        <GearViewToggle view={view} onViewChange={setView} />
+      </div>
 
       {errorText ? (
         <div className="text-destructive text-sm">{errorText}</div>
       ) : null}
 
       {showEmpty ? (
-        <div className="text-muted-foreground text-sm">
-          {t("noGearFound")}
-        </div>
+        <div className="text-muted-foreground text-sm">{t("noGearFound")}</div>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
-        {isLoadingInitial
-          ? BROWSE_RESULTS_SKELETON_KEYS.map((key) => (
-              <GearCardSkeleton key={key} />
-            ))
-          : null}
-        {items.map((g) => (
-          <GearCard
-            key={g.id}
-            href={`/gear/${g.slug}`}
-            slug={g.slug}
-            name={g.name}
-            regionalAliases={g.regionalAliases}
-            brandName={g.brandName ?? brandName}
-            thumbnailUrl={g.thumbnailUrl ?? undefined}
-            gearType={g.gearType ?? undefined}
-            isTrending={trendingSet.has(g.slug)}
-            releaseDate={g.releaseDate}
-            releaseDatePrecision={g.releaseDatePrecision}
-            announcedDate={g.announcedDate}
-            announceDatePrecision={g.announceDatePrecision}
-            priceText={getItemDisplayPrice(g, {
-              style: "short",
-              padWholeAmounts: true,
-            })}
-          />
-        ))}
-      </div>
+      {view === "list" && !isLoadingInitial ? (
+        <GearTable rows={tableRows} />
+      ) : (
+        <div className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
+          {isLoadingInitial
+            ? BROWSE_RESULTS_SKELETON_KEYS.map((key) => (
+                <GearCardSkeleton key={key} />
+              ))
+            : null}
+          {items.map((g) => (
+            <GearCard
+              key={g.id}
+              href={`/gear/${g.slug}`}
+              slug={g.slug}
+              name={g.name}
+              regionalAliases={g.regionalAliases}
+              brandName={g.brandName ?? brandName}
+              thumbnailUrl={g.thumbnailUrl ?? undefined}
+              gearType={g.gearType ?? undefined}
+              isTrending={trendingSet.has(g.slug)}
+              releaseDate={g.releaseDate}
+              releaseDatePrecision={g.releaseDatePrecision}
+              announcedDate={g.announcedDate}
+              announceDatePrecision={g.announceDatePrecision}
+              priceText={getItemDisplayPrice(g, {
+                style: "short",
+                padWholeAmounts: true,
+              })}
+            />
+          ))}
+        </div>
+      )}
 
       {hasMore && (isMobile || !infiniteActive) ? (
         <div className="flex justify-center">

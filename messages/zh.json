@@ -1459,6 +1459,28 @@
     "priceLowHigh": "价格：低→高",
     "priceHighLow": "价格：高→低"
   },
+  "gearTable": {
+    "viewMode": "视图模式",
+    "gridView": "网格视图",
+    "listView": "列表视图",
+    "sortAscending": "按{column}升序排序",
+    "sortDescending": "按{column}降序排序",
+    "noResults": "未找到器材。",
+    "prime": "定焦",
+    "zoom": "变焦",
+    "columns": {
+      "name": "名称",
+      "brand": "品牌",
+      "mount": "卡口",
+      "sensorSize": "传感器尺寸",
+      "year": "年份",
+      "weight": "重量",
+      "price": "价格",
+      "focalLength": "焦距",
+      "aperture": "光圈",
+      "type": "类型"
+    }
+  },
   "underConstructionPage": {
     "metaTitle": "建设中",
     "metaDescription": "查看哪些器材条目仍不完整，并帮助补充缺失规格。",

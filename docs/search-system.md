@@ -20,6 +20,7 @@ This document explains how search works in Sharply: routing, URL model, UI surfa
   - Server component; fully driven by `searchParams`.
   - Sort: `relevance` (default), `name`, `newest`.
   - Pagination: `page` (1-based), `pageSize` (internal default 20).
+  - Presentation: the existing grid can be switched to the reusable list table. The browser-local choice is shared with browse and does not alter the search URL or request model.
 
 ## Routing & URL model
 
@@ -37,6 +38,7 @@ Helper utilities for URLs live in `src/lib/utils/url.ts` (`buildSearchHref`, `me
 - Full search (optional for clients): `src/app/api/search/route.ts`
   - GET params: `q`, `sort`, `page`, `pageSize` (+ future filters)
   - Returns: `{ results, total, totalPages, page, pageSize }`
+  - Each result also includes display fields for the reusable gear table: all mount names, sensor format, weight, focal length, maximum aperture, and prime/zoom state. These enrich the existing page result; they do not change filtering or pagination.
 - Suggest (used by palette and gear pickers): `src/app/api/search/suggest/route.ts`
   - GET params: `q`, optional `limit` (1–20, default 8), optional `country`, optional `types=gear`, optional `gearType`
   - Returns: `{ suggestions: Suggestion[] }`

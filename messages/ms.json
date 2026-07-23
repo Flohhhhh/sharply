@@ -1459,6 +1459,28 @@
     "priceLowHigh": "Harga: Rendah → Tinggi",
     "priceHighLow": "Harga: Tinggi → Rendah"
   },
+  "gearTable": {
+    "viewMode": "Mod paparan",
+    "gridView": "Paparan grid",
+    "listView": "Paparan senarai",
+    "sortAscending": "Isih {column} menaik",
+    "sortDescending": "Isih {column} menurun",
+    "noResults": "Tiada peralatan ditemui.",
+    "prime": "Perdana",
+    "zoom": "Zum",
+    "columns": {
+      "name": "Nama",
+      "brand": "Jenama",
+      "mount": "Lekapan",
+      "sensorSize": "Saiz sensor",
+      "year": "Tahun",
+      "weight": "Berat",
+      "price": "Harga",
+      "focalLength": "Panjang fokus",
+      "aperture": "Apertur",
+      "type": "Jenis"
+    }
+  },
   "underConstructionPage": {
     "metaTitle": "Dalam Pembinaan",
     "metaDescription": "Lihat entri gear yang masih tidak lengkap dan bantu isikan spesifikasi yang hilang.",

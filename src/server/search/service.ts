@@ -5,7 +5,7 @@ if (process.env.NEXT_RUNTIME) {
   });
 }
 
-import { asc,desc,sql,type SQL } from "drizzle-orm";
+import { asc, desc, sql, type SQL } from "drizzle-orm";
 import { buildCompareHref } from "~/lib/utils/url";
 import {
   analogCameraSpecs,
@@ -18,7 +18,8 @@ import {
   sensorFormats,
 } from "~/server/db/schema";
 import { fetchGearAliasesByGearIds } from "~/server/gear/data";
-import type { GearAlias,GearRegion } from "~/types/gear";
+import { attachGearListingTableFields } from "~/server/gear/listing-table-service";
+import type { GearAlias, GearRegion } from "~/types/gear";
 import type {
   BrandSuggestion,
   CompareSmartActionSuggestion,
@@ -184,11 +185,12 @@ export async function searchGear(
     includeAnalogSpecs: Boolean(filters?.analogCameraType),
   })) as unknown as Array<{ id: string }>;
 
-  const aliasesById = await fetchGearAliasesByGearIds(
-    rows.map((row) => row.id),
-  );
+  const [tableRows, aliasesById] = await Promise.all([
+    attachGearListingTableFields(rows),
+    fetchGearAliasesByGearIds(rows.map((row) => row.id)),
+  ]);
 
-  const results = rows.map((row) => ({
+  const results = tableRows.map((row) => ({
     ...row,
     regionalAliases: aliasesById.get(row.id) ?? [],
   }));
@@ -247,16 +249,19 @@ export async function getSuggestions(
 
   const compareIntent = parseCompareIntent(query);
   const smartAction = compareIntent
-    ? await buildCompareSmartAction(compareIntent.left, compareIntent.right, region)
+    ? await buildCompareSmartAction(
+        compareIntent.left,
+        compareIntent.right,
+        region,
+      )
     : null;
 
   const rankedSuggestions = await buildRankedSuggestions(query, region, {
     gearType: gearTypeFilter,
   });
 
-  return (smartAction
-    ? [smartAction, ...rankedSuggestions]
-    : rankedSuggestions
+  return (
+    smartAction ? [smartAction, ...rankedSuggestions] : rankedSuggestions
   ).slice(0, limit);
 }
 
@@ -296,7 +301,11 @@ async function buildRankedSuggestions(
     relevanceExpr,
     gearLimit,
   );
-  const gearSuggestions = await buildGearSuggestions(gearResults, query, region);
+  const gearSuggestions = await buildGearSuggestions(
+    gearResults,
+    query,
+    region,
+  );
 
   if (options?.gearOnly) {
     return gearSuggestions;
@@ -341,7 +350,12 @@ async function buildGearSuggestions(
     return buildGearSuggestion({ ...item, regionalAliases }, region);
   });
 
-  return applyExactMatchMetadata(query, baseSuggestions, suggestionInputs, region);
+  return applyExactMatchMetadata(
+    query,
+    baseSuggestions,
+    suggestionInputs,
+    region,
+  );
 }
 
 async function buildCompareSmartAction(
@@ -365,9 +379,12 @@ async function buildCompareSmartAction(
     title: `Compare ${left.title} and ${right.title}`,
     label: `Compare ${left.title} and ${right.title}`,
     subtitle: `${left.canonicalName} vs ${right.canonicalName}`,
-    href: buildCompareHref([left.href.replace("/gear/", ""), right.href.replace("/gear/", "")], {
-      preserveOrder: true,
-    }),
+    href: buildCompareHref(
+      [left.href.replace("/gear/", ""), right.href.replace("/gear/", "")],
+      {
+        preserveOrder: true,
+      },
+    ),
     compareSlugs: [
       left.href.replace("/gear/", ""),
       right.href.replace("/gear/", ""),

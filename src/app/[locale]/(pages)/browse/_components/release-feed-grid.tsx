@@ -1,9 +1,15 @@
 "use client";
 
 import { Loader } from "lucide-react";
-import { useCallback,useEffect,useMemo,useRef,useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useSWRInfinite from "swr/infinite";
 import { GearCard } from "~/components/gear/gear-card";
+import {
+  GearTable,
+  GearViewToggle,
+  toGearTableRows,
+  useGearResultsView,
+} from "~/components/table";
 import { Button } from "~/components/ui/button";
 import { useIsMobile } from "~/hooks/use-mobile";
 import { getItemDisplayPrice } from "~/lib/mapping";
@@ -33,6 +39,7 @@ export function ReleaseFeedGrid({
 }: ReleaseFeedGridProps) {
   const isMobile = useIsMobile();
   const [infiniteActive, setInfiniteActive] = useState(false);
+  const { view, setView } = useGearResultsView();
   const [autoScrollLoads, setAutoScrollLoads] = useState(0);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const loadingRef = useRef(false);
@@ -72,6 +79,7 @@ export function ReleaseFeedGrid({
     () => pages.flatMap((page) => page?.items ?? []),
     [pages],
   );
+  const tableRows = useMemo(() => toGearTableRows(items), [items]);
   const trendingSet = useMemo(
     () => new Set(trendingSlugs ?? []),
     [trendingSlugs],
@@ -131,6 +139,9 @@ export function ReleaseFeedGrid({
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-end">
+        <GearViewToggle view={view} onViewChange={setView} />
+      </div>
       {errorText ? (
         <div className="text-destructive text-sm">{errorText}</div>
       ) : null}
@@ -141,29 +152,33 @@ export function ReleaseFeedGrid({
         </div>
       ) : null}
 
-      <div className="grid w-full grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
-        {items.map((g) => (
-          <GearCard
-            key={g.id}
-            href={`/gear/${g.slug}`}
-            slug={g.slug}
-            name={g.name}
-            regionalAliases={g.regionalAliases}
-            brandName={g.brandName ?? undefined}
-            thumbnailUrl={g.thumbnailUrl ?? undefined}
-            gearType={g.gearType}
-            isTrending={trendingSet.has(g.slug)}
-            releaseDate={g.releaseDate}
-            releaseDatePrecision={g.releaseDatePrecision}
-            announcedDate={g.announcedDate}
-            announceDatePrecision={g.announceDatePrecision}
-            priceText={getItemDisplayPrice(g, {
-              style: "short",
-              padWholeAmounts: true,
-            })}
-          />
-        ))}
-      </div>
+      {view === "list" ? (
+        <GearTable rows={tableRows} />
+      ) : (
+        <div className="grid w-full grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
+          {items.map((g) => (
+            <GearCard
+              key={g.id}
+              href={`/gear/${g.slug}`}
+              slug={g.slug}
+              name={g.name}
+              regionalAliases={g.regionalAliases}
+              brandName={g.brandName ?? undefined}
+              thumbnailUrl={g.thumbnailUrl ?? undefined}
+              gearType={g.gearType}
+              isTrending={trendingSet.has(g.slug)}
+              releaseDate={g.releaseDate}
+              releaseDatePrecision={g.releaseDatePrecision}
+              announcedDate={g.announcedDate}
+              announceDatePrecision={g.announceDatePrecision}
+              priceText={getItemDisplayPrice(g, {
+                style: "short",
+                padWholeAmounts: true,
+              })}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Always show button when more items available, or when infinite scroll is not active on desktop */}
       {hasMore && (isMobile || !infiniteActive) ? (
