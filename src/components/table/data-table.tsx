@@ -40,13 +40,13 @@ export function DataTable<TData>({
   });
 
   return (
-    <div className="overflow-hidden rounded-lg border">
+    <div>
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
+                <TableHead key={header.id} className="h-auto px-2 py-3">
                   {header.isPlaceholder
                     ? null
                     : flexRender(
@@ -61,17 +61,23 @@ export function DataTable<TData>({
         <TableBody>
           {table.getRowModel().rows.length ? (
             table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
+              <TableRow
+                key={row.id}
+                className="hover:bg-muted/50 odd:bg-transparent even:bg-transparent"
+              >
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
+                  <TableCell key={cell.id} className="px-2 py-3">
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
               </TableRow>
             ))
           ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
+            <TableRow className="odd:bg-transparent even:bg-transparent hover:bg-transparent">
+              <TableCell
+                colSpan={columns.length}
+                className="h-24 px-2 py-3 text-center"
+              >
                 {emptyContent}
               </TableCell>
             </TableRow>
