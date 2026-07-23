@@ -15,7 +15,6 @@ import type {
   AutoApprovalDecisionMetadata,
   AutoApprovalPath,
 } from "~/lib/gear/auto-approval-reasons";
-import { getConstructionState } from "~/lib/utils";
 import {
   applyTrustedContributorProposalApproval,
   approveProposal,
@@ -1086,18 +1085,6 @@ async function getTrustedAddOnlyAutoApprovalEligibility(params: {
   }
 
   const gearItem = await fetchGearBySlugData(params.gearSlug);
-  const construction = getConstructionState(gearItem);
-  if (!construction.underConstruction) {
-    return {
-      eligible: false,
-      path: "trusted_candidate",
-      reasonCode: "gear_not_under_construction",
-      approvedEdits,
-      autoSubmit: params.autoSubmit,
-      hasPendingEdits: params.hasPendingEdits,
-    };
-  }
-
   const eligible = isAddOnlyProposal(gearItem, params.payload);
   return {
     eligible,
