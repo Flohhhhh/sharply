@@ -325,6 +325,8 @@ export type SpecFieldDef = {
     locale?: string,
   ) => React.ReactNode; // Format for display (table, etc.)
   editElementId?: string; // DOM id to focus in the edit UI when navigating from sidebar
+  /** Keep this field editable when the editor is filtered to missing values. */
+  alwaysShowInEditor?: boolean;
   condition?: (item: GearItem) => boolean; // Optional: when to show this field
   hideInSpecsTable?: boolean; // Optional: keep field available to edit/navigation but hide from public specs table
   condenseOnMobile?: boolean; // Whether to condense the field on mobile
@@ -1172,6 +1174,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "hasAutofocus",
         label: "Has Autofocus",
+        alwaysShowInEditor: true,
         searchTerms: ["autofocus", "af"],
         getRawValue: (item) => item.cameraSpecs?.hasAutofocus,
         formatDisplay: (raw) =>
@@ -1337,6 +1340,7 @@ export const specDictionary: SpecSectionDef[] = [
       {
         key: "hasVideo",
         label: "Has Video",
+        alwaysShowInEditor: true,
         getRawValue: (item) => item.cameraSpecs?.hasVideo,
         formatDisplay: (raw) =>
           typeof raw === "boolean" ? yesNoNull(raw) : undefined,
@@ -2569,4 +2573,17 @@ export function getSpecFieldDefByKey(
     }
   }
   return undefined;
+}
+
+/** Whether a field must remain editable in the editor's missing-only mode. */
+export function isSpecAlwaysShownInEditor(
+  sectionId: string | undefined,
+  fieldKey: string,
+): boolean {
+  return (
+    specDictionary
+      .find((section) => section.id === sectionId)
+      ?.fields.find((field) => field.key === fieldKey)?.alwaysShowInEditor ===
+    true
+  );
 }

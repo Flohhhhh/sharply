@@ -27,6 +27,7 @@ import {
   getSpecFieldLabel,
   translateGearDetailWithFallback,
 } from "~/lib/i18n/gear-detail";
+import { isSpecAlwaysShownInEditor } from "~/lib/specs/registry";
 import { formatCameraType,PRECAPTURE_SUPPORT_OPTIONS } from "~/lib/mapping";
 import type { EnrichedCameraSpecs,GearItem } from "~/types/gear";
 import CardSlotsManager,{ type CardSlot } from "./card-slots-manager";
@@ -485,8 +486,11 @@ function CameraFieldsComponent({
     if (Array.isArray(v)) return v.length === 0;
     return false;
   };
-  const showWhenMissing = (v: unknown): boolean =>
-    !showMissingOnly || isMissing(v);
+  const showWhenMissing = (v: unknown, fieldKey?: string): boolean =>
+    !showMissingOnly ||
+    isMissing(v) ||
+    (fieldKey !== undefined &&
+      isSpecAlwaysShownInEditor(cameraFieldSections[fieldKey], fieldKey));
   const initialVideoModes = Array.isArray(initialGearItem?.videoModes)
     ? initialGearItem?.videoModes
     : [];
@@ -1083,7 +1087,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Has Autofocus */}
-          {showWhenMissing(initialSpecs?.hasAutofocus) && (
+          {showWhenMissing(initialSpecs?.hasAutofocus, "hasAutofocus") && (
             <BooleanInput
               id="hasAutofocus"
               label={specLabel("hasAutofocus", "Has Autofocus")}
@@ -1438,7 +1442,7 @@ function CameraFieldsComponent({
           )}
 
           {/* Has Video */}
-          {(!showMissingOnly || initialSpecs?.hasVideo !== true) && (
+          {showWhenMissing(initialSpecs?.hasVideo, "hasVideo") && (
             <BooleanInput
               id="hasVideo"
               label={specLabel("hasVideo", "Has Video")}

@@ -69,6 +69,32 @@ describe("CameraFields autofocus gating", () => {
     expect(markup).toContain('id="afSubjectCategories"');
     expect(markup).toContain("Has Focus Bracketing");
   });
+
+  it("keeps a false autofocus capability reversible in missing-only mode", () => {
+    const markup = renderToStaticMarkup(
+      React.createElement(NextIntlClientProvider, {
+        locale: "en",
+        messages,
+        timeZone: "America/New_York",
+        children: React.createElement(CameraFields, {
+          gearItem: { cameraCardSlots: [] } as unknown as GearItem,
+          initialSpecs: {
+            hasAutofocus: false,
+            afAreaModes: [],
+          } as unknown as EnrichedCameraSpecs,
+          currentSpecs: {
+            hasAutofocus: false,
+            afAreaModes: [],
+          } as unknown as EnrichedCameraSpecs,
+          showMissingOnly: true,
+          onChange: () => {},
+        }),
+      }),
+    );
+
+    expect(markup).toContain("Has Autofocus");
+    expect(markup).toContain('id="hasAutofocus"');
+  });
 });
 
 describe("CameraFields video gating", () => {
