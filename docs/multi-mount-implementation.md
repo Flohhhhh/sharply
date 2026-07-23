@@ -32,6 +32,14 @@ CREATE INDEX gear_mounts_mount_idx ON app.gear_mounts(mount_id);
 
 ## UI Components
 
+### Displayed physical specifications
+
+For lenses assigned to more than one mount, the gear page and comparison views
+display weight and length as approximations: their stored gram and millimetre
+values are rounded to the nearest whole number and prefixed with `~`. The
+underlying values and editing inputs remain unchanged. Contributors should enter
+an average across the supported mount variants.
+
 ### MountSelect Component
 
 Location: `src/components/custom-inputs/mount-select.tsx`

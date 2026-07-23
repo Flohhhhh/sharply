@@ -1,4 +1,5 @@
 import { describe,expect,it } from "vitest";
+import { renderToStaticMarkup } from "react-dom/server";
 import { MOUNTS,SENSOR_FORMATS } from "~/lib/generated";
 import {
   buildGearSpecsSections,
@@ -412,6 +413,52 @@ describe("spec registry i18n", () => {
     expect(getWeightValue(12520)).toBe("12.52 kg");
     expect(getWeightValue("")).toBeUndefined();
     expect(getWeightValue(null)).toBeUndefined();
+  });
+
+  it("marks multi-mount lens weight and length as rounded approximations", () => {
+    const [firstMount, secondMount] = MOUNTS;
+    const item = createGearItem({
+      gearType: "LENS",
+      mountIds: [firstMount!.id, secondMount!.id],
+      weightGrams: 450.6,
+      depthMm: "84.5",
+      widthMm: "72.4",
+    });
+
+    const coreSection = buildGearSpecsSections(item, { locale: "en" }).find(
+      (section) => section.id === "core",
+    );
+    const weight = coreSection?.data.find((row) => row.key === "weightGrams");
+    const dimensions = coreSection?.data.find((row) => row.key === "dimensions");
+
+    expect(weight?.value).toBe("~451 g");
+    expect(renderToStaticMarkup(dimensions?.value as React.ReactElement)).toContain(
+      "~85",
+    );
+    expect(renderToStaticMarkup(dimensions?.value as React.ReactElement)).toContain(
+      ">72.4<",
+    );
+  });
+
+  it("keeps single-mount lens dimensions and weight precise", () => {
+    const [mount] = MOUNTS;
+    const item = createGearItem({
+      gearType: "LENS",
+      mountIds: [mount!.id],
+      weightGrams: 450.6,
+      depthMm: "84.5",
+    });
+
+    const coreSection = buildGearSpecsSections(item, { locale: "en" }).find(
+      (section) => section.id === "core",
+    );
+    const weight = coreSection?.data.find((row) => row.key === "weightGrams");
+    const dimensions = coreSection?.data.find((row) => row.key === "dimensions");
+
+    expect(weight?.value).toBe("450.6 g");
+    expect(renderToStaticMarkup(dimensions?.value as React.ReactElement)).toContain(
+      "84.5",
+    );
   });
 
   it("renders analog max continuous fps without trailing .0 for whole numbers", () => {

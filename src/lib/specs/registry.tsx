@@ -110,6 +110,23 @@ function formatWeightGrams(
   return `${formattedGrams} g`;
 }
 
+function isMultiMountLens(item: GearItem): boolean {
+  return item.gearType === "LENS" && (item.mountIds?.length ?? 0) > 1;
+}
+
+function formatApproximateWeightGrams(
+  value: number | string | null | undefined,
+): string | undefined {
+  if (value == null) return undefined;
+  if (typeof value === "string" && value.trim().length === 0) return undefined;
+
+  const numericValue = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(numericValue)) return undefined;
+
+  const formatted = formatWeightGrams(Math.round(numericValue));
+  return formatted ? `~${formatted}` : undefined;
+}
+
 function formatStorageGb(value: unknown): string | undefined {
   if (value == null) return undefined;
   const num = typeof value === "number" ? value : Number(value);
@@ -477,8 +494,12 @@ export const specDictionary: SpecSectionDef[] = [
         label: "Weight",
         searchTerms: ["mass"],
         getRawValue: (item) => item.weightGrams,
-        formatDisplay: (raw) =>
-          formatWeightGrams(raw as number | string | null | undefined),
+        formatDisplay: (raw, item) =>
+          isMultiMountLens(item)
+            ? formatApproximateWeightGrams(
+                raw as number | string | null | undefined,
+              )
+            : formatWeightGrams(raw as number | string | null | undefined),
         editElementId: "weight",
       },
       {
@@ -498,8 +519,12 @@ export const specDictionary: SpecSectionDef[] = [
             const n = Number(v);
             return Number.isFinite(n) ? n : null;
           };
-          const fmt = (n: number): string =>
-            Number.isInteger(n) ? String(n) : String(Number(n.toFixed(1)));
+          const fmt = (n: number, approximate = false): string =>
+            approximate
+              ? `~${Math.round(n)}`
+              : Number.isInteger(n)
+                ? String(n)
+                : String(Number(n.toFixed(1)));
 
           const width = toNumber(item.widthMm);
           const height = toNumber(item.heightMm);
@@ -511,14 +536,16 @@ export const specDictionary: SpecSectionDef[] = [
           const DimensionRow = ({
             label,
             value,
+            approximate = false,
           }: {
             label: string;
             value: number;
+            approximate?: boolean;
           }) => (
             <div className="flex min-w-[160px] items-center justify-between gap-2">
               <span className="text-muted-foreground">{label}</span>
               <span className="text-right font-medium">
-                {fmt(value)}
+                {fmt(value, approximate)}
                 <span className="text-muted-foreground ml-1">mm</span>
               </span>
             </div>
@@ -528,10 +555,15 @@ export const specDictionary: SpecSectionDef[] = [
           if (item.gearType === "LENS") {
             const diameter = width ?? height;
             const length = depth;
+            const approximateLength = isMultiMountLens(item);
             return (
               <div className="flex w-fit flex-col items-end gap-1.5 text-right">
                 {length != null && (
-                  <DimensionRow label="Length" value={length} />
+                  <DimensionRow
+                    label="Length"
+                    value={length}
+                    approximate={approximateLength}
+                  />
                 )}
                 {diameter != null && (
                   <DimensionRow label="Diameter" value={diameter} />
