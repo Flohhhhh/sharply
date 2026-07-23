@@ -2,10 +2,10 @@
 
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { useLocale } from "next-intl";
-import Link from "next/link";
 import type { Column, ColumnDef } from "@tanstack/react-table";
 import type { ReactNode } from "react";
 import { formatGearCardDate } from "~/components/gear/gear-card";
+import { LocaleLink } from "~/components/locale-link";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import {
@@ -113,9 +113,12 @@ function SortableHeader({
 function GearNameCell({ row }: { row: GearTableRow }) {
   const displayName = useGearDisplayName(row);
   return (
-    <Link href={`/gear/${row.slug}`} className="font-medium hover:underline">
+    <LocaleLink
+      href={`/gear/${row.slug}`}
+      className="font-medium hover:underline"
+    >
       {displayName}
-    </Link>
+    </LocaleLink>
   );
 }
 
@@ -188,9 +191,11 @@ export function createGearTableColumns(
     label: string,
     cell: (row: GearTableRow) => ReactNode,
     sortingFn?: ColumnDef<GearTableRow, unknown>["sortingFn"],
+    accessorFn: (row: GearTableRow) => unknown = (row) =>
+      row[id as keyof GearTableRow],
   ): ColumnDef<GearTableRow, unknown> => ({
     id,
-    accessorFn: (row) => row[id as keyof GearTableRow],
+    accessorFn,
     header: ({ column }) => (
       <SortableHeader column={column} label={label} labels={labels} />
     ),
@@ -238,6 +243,7 @@ export function createGearTableColumns(
         getEffectiveDateValue(b.original),
         (left, right) => left - right,
       ),
+    getEffectiveDateValue,
   );
   const price = sortable(
     "price",
@@ -250,6 +256,7 @@ export function createGearTableColumns(
         getEffectivePrice(b.original),
         (left, right) => left - right,
       ),
+    getEffectivePrice,
   );
 
   if (scope === "camera") {
@@ -265,6 +272,7 @@ export function createGearTableColumns(
             getCameraTypeDisplay(b.original),
             (left, right) => left.localeCompare(right),
           ),
+        getCameraTypeDisplay,
       ),
       year,
       sortable(

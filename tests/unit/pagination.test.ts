@@ -9,6 +9,13 @@ describe("getPageLoadingState", () => {
     });
   });
 
+  it("never treats the initial page as an incremental request", () => {
+    expect(getPageLoadingState([undefined], 1, true)).toMatchObject({
+      isLoadingInitial: true,
+      isLoadingMore: false,
+    });
+  });
+
   it("shows incremental loading until the requested page has a payload", () => {
     expect(getPageLoadingState([{ id: 1 }, undefined], 2, true)).toEqual({
       isLoadingInitial: false,

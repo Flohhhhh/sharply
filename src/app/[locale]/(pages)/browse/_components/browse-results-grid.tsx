@@ -190,7 +190,9 @@ function BrowseResultsGridContent({
   const hasMore = lastPage?.hasMore ?? false;
   const { isLoadingInitial, isLoadingMore: isRequestedPageLoading } =
     getPageLoadingState(rawPages, targetPage, isValidating, Boolean(error));
-  const isLoadingMore = isRequestingMore || isPending || isRequestedPageLoading;
+  const isLoadingMore =
+    !isLoadingInitial &&
+    (isRequestingMore || isPending || isRequestedPageLoading);
   const showEmpty =
     !items.length && !error && !isLoadingInitial && !isLoadingMore;
   const listLoadedPageCount =
