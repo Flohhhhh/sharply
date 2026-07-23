@@ -13,7 +13,10 @@ import {
   actionAddGearRawSample,
   actionRemoveGearRawSample,
 } from "~/server/gear/actions";
-import type { GearAlternativeRow } from "~/server/gear/service";
+import type {
+  GearAlternativeRow,
+  GearLineageRelationships,
+} from "~/server/gear/service";
 import type {
   GearColorway,
   GearPublicationState,
@@ -23,6 +26,10 @@ import type {
 import { buildDockButtons } from "./dock-buttons";
 
 const EMPTY_ALTERNATIVES: GearAlternativeRow[] = [];
+const EMPTY_LINEAGE: GearLineageRelationships = {
+  predecessor: null,
+  successor: null,
+};
 const EMPTY_SAMPLES: RawSample[] = [];
 const EMPTY_COLORWAYS: GearColorway[] = [];
 
@@ -36,6 +43,7 @@ interface GearItemDockClientProps {
   currentInstructionManualUrl?: string | null;
   publicationState?: GearPublicationState | null;
   alternatives?: GearAlternativeRow[];
+  lineage?: GearLineageRelationships;
   rawSamples?: RawSample[];
   hasCreatorVideos?: boolean;
   colorways?: GearColorway[];
@@ -92,6 +100,7 @@ export function GearItemDockClient({
   currentInstructionManualUrl = null,
   publicationState = null,
   alternatives = EMPTY_ALTERNATIVES,
+  lineage = EMPTY_LINEAGE,
   rawSamples = EMPTY_SAMPLES,
   hasCreatorVideos = false,
   colorways = EMPTY_COLORWAYS,
@@ -189,8 +198,10 @@ export function GearItemDockClient({
         instructionManualManageLabel: t("instructionManual.modalTitle"),
         unavailableUntilPublishedLabel: t("rumoredItemDisabledAction"),
         colorwaysManageLabel: t("colorways.manager.title"),
+        relationshipsLabel: t("relationships.title"),
         locale,
         alternatives,
+        lineage,
         hasCreatorVideos,
         managedSamples,
         isManagerOpen,
@@ -202,6 +213,7 @@ export function GearItemDockClient({
       }),
     [
       alternatives,
+      lineage,
       currentThumbnailUrl,
       currentTopViewUrl,
       currentRearViewUrl,

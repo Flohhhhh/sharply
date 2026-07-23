@@ -30,6 +30,7 @@ import {
   createApiKeyWithinActiveLimitData,
   findUsableApiKeyByHash,
   fetchDeveloperGearMountsData,
+  fetchDeveloperGearLineageData,
   fetchDeveloperCatalogData,
   fetchDeveloperSensorFormatsData,
   getDeveloperAccessData,
@@ -43,6 +44,7 @@ import {
   setDeveloperAccessData,
   touchApiKeyLastUsed,
   type DeveloperApiMount,
+  type DeveloperApiGearLineageItem,
   type DeveloperApiSensorFormat,
 } from "./data";
 import { DeveloperApiError } from "./errors";
@@ -84,6 +86,8 @@ export type DeveloperApiGear = Omit<
   cameraSpecs: DeveloperApiCameraSpecs | null;
   lensSpecs: DeveloperApiLensSpecs | null;
   fixedLensSpecs: DeveloperApiFixedLensSpecs | null;
+  predecessor: Omit<DeveloperApiGearLineageItem, "id"> | null;
+  successor: Omit<DeveloperApiGearLineageItem, "id"> | null;
 };
 
 export type DeveloperApiCatalogSnapshot = {
@@ -499,18 +503,34 @@ export async function getDeveloperGear(slug: string) {
   const { mountIds, mounts: legacyMounts, ...gearWithoutMountTaxonomy } = gear;
   void mountIds;
   void legacyMounts;
-  const [mounts, sensorFormats] = await Promise.all([
+  const [mounts, sensorFormats, lineage] = await Promise.all([
     fetchDeveloperGearMountsData(gear.id),
     fetchDeveloperSensorFormatsData([
       gear.cameraSpecs?.sensorFormatId,
       gear.lensSpecs?.imageCircleSizeId,
       gear.fixedLensSpecs?.imageCircleSizeId,
     ]),
+    fetchDeveloperGearLineageData([
+      gear.predecessorGearId,
+      gear.successorGearId,
+    ]),
   ]);
 
   return {
     ...gearWithoutMountTaxonomy,
     mounts,
+    predecessor: gear.predecessorGearId
+      ? (() => {
+          const item = lineage.get(gear.predecessorGearId);
+          return item ? { slug: item.slug, name: item.name } : null;
+        })()
+      : null,
+    successor: gear.successorGearId
+      ? (() => {
+          const item = lineage.get(gear.successorGearId);
+          return item ? { slug: item.slug, name: item.name } : null;
+        })()
+      : null,
     cameraSpecs: composeDeveloperCameraSpecs(
       gear.cameraSpecs,
       (gear.cameraSpecs?.sensorFormatId

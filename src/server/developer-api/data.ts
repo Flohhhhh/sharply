@@ -29,6 +29,29 @@ export type DeveloperApiSensorFormat = {
   cropFactor: string;
 };
 
+export type DeveloperApiGearLineageItem = {
+  id: string;
+  slug: string;
+  name: string;
+};
+
+export async function fetchDeveloperGearLineageData(
+  ids: Array<string | null | undefined>,
+): Promise<Map<string, DeveloperApiGearLineageItem>> {
+  const validIds = [...new Set(ids.filter((id): id is string => Boolean(id)))];
+  if (!validIds.length) return new Map();
+  const rows = await db
+    .select({ id: gear.id, slug: gear.slug, name: gear.name })
+    .from(gear)
+    .where(
+      and(
+        inArray(gear.id, validIds),
+        eq(gear.publicationState, GEAR_PUBLICATION_STATES.PUBLISHED),
+      ),
+    );
+  return new Map(rows.map((row) => [row.id, row]));
+}
+
 export type DeveloperApiCatalogItem = {
   name: string;
   slug: string;

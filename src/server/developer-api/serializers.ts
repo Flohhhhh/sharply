@@ -461,6 +461,8 @@ export function serializeGear(item: DeveloperApiGear) {
       linkMpb: item.linkMpb,
       linkBh: item.linkBh,
       linkAmazon: item.linkAmazon,
+      predecessor: item.predecessor,
+      successor: item.successor,
       brands: serializeBrand(item.brands),
       mounts: item.mounts.map(serializeMount),
       regionalAliases: serializeAliases(item.regionalAliases),

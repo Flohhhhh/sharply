@@ -13,6 +13,8 @@ import {
   toggleWishlist,
   updateOwnedGearColorway,
   updateGearAlternatives,
+  updateGearLineage,
+  updateGearRelationships,
   updateGearInstructionManualLink,
   upsertStaffVerdict,
   type RawSamplePayload,
@@ -96,6 +98,32 @@ export async function actionUpdateGearAlternatives(
   return res;
 }
 
+export async function actionUpdateGearLineage(
+  slug: string,
+  lineage: { predecessorGearId: string | null; successorGearId: string | null },
+) {
+  const res = await updateGearLineage(slug, lineage);
+  for (const affectedSlug of new Set([slug, ...res.affectedSlugs])) {
+    revalidatePath(`/gear/${affectedSlug}`);
+  }
+  return res;
+}
+
+export async function actionUpdateGearRelationships(
+  slug: string,
+  relationships: {
+    alternatives: Array<{ gearId: string; isCompetitor: boolean }>;
+    predecessorGearId: string | null;
+    successorGearId: string | null;
+  },
+) {
+  const res = await updateGearRelationships(slug, relationships);
+  for (const affectedSlug of new Set([slug, ...res.affectedSlugs])) {
+    revalidatePath(`/gear/${affectedSlug}`);
+  }
+  return res;
+}
+
 export async function actionUpdateGearInstructionManualLink(
   slug: string,
   body: unknown,
@@ -114,7 +142,10 @@ export async function actionAddGearRawSample(
   return result;
 }
 
-export async function actionRemoveGearRawSample(slug: string, sampleId: string) {
+export async function actionRemoveGearRawSample(
+  slug: string,
+  sampleId: string,
+) {
   const result = await removeRawSampleFromGear(slug, sampleId);
   revalidatePath(`/gear/${slug}`);
   return result;

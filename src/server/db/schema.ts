@@ -631,6 +631,14 @@ export const gear = appSchema.table(
     widthMm: decimal("width_mm", { precision: 6, scale: 2 }),
     heightMm: decimal("height_mm", { precision: 6, scale: 2 }),
     depthMm: decimal("depth_mm", { precision: 6, scale: 2 }),
+    // Directional product lineage. These are kept reciprocal by gear services.
+    predecessorGearId: varchar("predecessor_gear_id", {
+      length: 36,
+    }).references((): AnyPgColumn => gear.id, { onDelete: "set null" }),
+    successorGearId: varchar("successor_gear_id", { length: 36 }).references(
+      (): AnyPgColumn => gear.id,
+      { onDelete: "set null" },
+    ),
     linkManufacturer: text("link_manufacturer"),
     linkInstructionManual: text("link_instruction_manual"),
     linkMpb: text("link_mpb"),
@@ -648,6 +656,8 @@ export const gear = appSchema.table(
     index("gear_publication_state_idx").on(t.publicationState),
     index("gear_type_brand_idx").on(t.gearType, t.brandId),
     index("gear_brand_mount_idx").on(t.brandId, t.mountId),
+    index("gear_predecessor_idx").on(t.predecessorGearId),
+    index("gear_successor_idx").on(t.successorGearId),
   ],
 );
 

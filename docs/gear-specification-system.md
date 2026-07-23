@@ -33,7 +33,9 @@ The central table that stores common gear information:
   - Indexed in the `gear` table to support public browse/search/trending/popularity filters
 - **User Notes**: `notes` — `text[]` for unstructured notes
 - **Commerce**: `mpbMaxPriceUsdCents` — optional MPB max price (USD cents)
-- **Core Specs**: Physical dimensions (width, height, depth in mm), weight
+- **Core Specs**: Physical dimensions (width, height, depth in mm), weight, and optional product lineage
+  - `predecessorGearId` and `successorGearId` are nullable same-type self-references for the prior and next model respectively.
+  - Editor relationship management keeps the two directions reciprocal. Deleting a referenced gear item sets the corresponding lineage field to `null`.
 - **Timestamps**: Created/updated tracking
 
 ### Publication State vs. Completeness
@@ -213,6 +215,7 @@ CREATE TABLE sharply_lens_specs (
 
 - **Gear → Brands**: Required relationship (restrict delete)
 - **Gear → Mounts**: Optional relationship (set null on delete)
+- **Gear → Gear lineage**: Optional predecessor and successor self-references (set null on delete); application services maintain reciprocal same-type links.
 - **Gear Creator Videos → Approved Creators**: Required relationship (restrict delete)
 - **Camera Specs → Sensor Formats**: Optional relationship (set null on delete)
 - **Lens Specs → Sensor Formats** (`imageCircleSizeId`): Optional relationship at the DB level (set null on delete), but treated as a required completeness spec for published lenses because it drives coverage-dependent behavior such as Sony FE vs Sony E MPB routing.

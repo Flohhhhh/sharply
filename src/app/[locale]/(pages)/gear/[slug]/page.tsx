@@ -43,6 +43,7 @@ import { isNewRelease } from "~/lib/utils/is-new";
 import { fetchPublicGearCreatorVideos } from "~/server/creator-videos/service";
 import {
   fetchGearAlternatives,
+  fetchGearLineage,
   fetchGearBySlug,
   fetchNewestGearSlugs,
   fetchPendingEditCountForGear,
@@ -137,6 +138,7 @@ export default async function GearPage({ params }: GearPageProps) {
           currentInstructionManualUrl={item.linkInstructionManual ?? null}
           publicationState={item.publicationState}
           alternatives={[]}
+          lineage={await fetchGearLineage(slug)}
           rawSamples={item.rawSamples ?? []}
           hasCreatorVideos={false}
           colorways={item.colorways ?? []}
@@ -161,12 +163,14 @@ export default async function GearPage({ params }: GearPageProps) {
   ratings.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
   const verdict = staffVerdictRows?.[0] ?? null;
 
-  const [review, relatedNews, alternatives, creatorVideos] = await Promise.all([
-    getReviewByGearSlug(item.slug),
-    getNewsByRelatedGearSlug(item.slug, 9),
-    fetchGearAlternatives(slug),
-    fetchPublicGearCreatorVideos(slug),
-  ]);
+  const [review, relatedNews, alternatives, creatorVideos, lineage] =
+    await Promise.all([
+      getReviewByGearSlug(item.slug),
+      getNewsByRelatedGearSlug(item.slug, 9),
+      fetchGearAlternatives(slug),
+      fetchPublicGearCreatorVideos(slug),
+      fetchGearLineage(slug),
+    ]);
   const isNew = isNewRelease(
     item.releaseDate ?? item.announcedDate,
     item.releaseDatePrecision ?? item.announceDatePrecision,
@@ -269,6 +273,7 @@ export default async function GearPage({ params }: GearPageProps) {
         currentInstructionManualUrl={item.linkInstructionManual ?? null}
         publicationState={item.publicationState}
         alternatives={alternatives}
+        lineage={lineage}
         rawSamples={item.rawSamples ?? []}
         hasCreatorVideos={creatorVideos.length > 0}
         colorways={item.colorways ?? []}
