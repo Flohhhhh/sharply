@@ -1669,10 +1669,15 @@ export async function setGearLineage(params: {
 }): Promise<string[]> {
   const { gearId, predecessorGearId, successorGearId } = params;
   return db.transaction(async (tx) => {
+    await tx.execute(
+      sql`select pg_advisory_xact_lock(hashtext('gear-lineage'))`,
+    );
     const affectedIds = new Set<string>([gearId]);
     const getRow = async (id: string) => {
       const rows = await tx
         .select({
+          id: gear.id,
+          gearType: gear.gearType,
           predecessorGearId: gear.predecessorGearId,
           successorGearId: gear.successorGearId,
         })
@@ -1683,6 +1688,38 @@ export async function setGearLineage(params: {
     };
     const current = await getRow(gearId);
     if (!current) throw new Error("Gear item not found");
+    const targets = [predecessorGearId, successorGearId].filter(
+      (id): id is string => Boolean(id),
+    );
+    if (targets.includes(gearId))
+      throw new Error("A gear item cannot be its own predecessor or successor");
+    if (predecessorGearId && predecessorGearId === successorGearId)
+      throw new Error("Predecessor and successor must be different gear items");
+    for (const id of targets) {
+      const target = await getRow(id);
+      if (!target) throw new Error("Selected gear item was not found");
+      if (target.gearType !== current.gearType)
+        throw new Error(
+          "Predecessor and successor must have the same gear type",
+        );
+    }
+    const assertNoCycle = async (
+      startId: string | null,
+      field: "predecessorGearId" | "successorGearId",
+    ) => {
+      const seen = new Set<string>([gearId]);
+      let cursor = startId;
+      for (let depth = 0; cursor; depth++) {
+        if (depth >= MAX_GEAR_LINEAGE_TRAVERSAL_DEPTH)
+          throw new Error("Gear lineage exceeds the maximum traversal depth");
+        if (seen.has(cursor))
+          throw new Error("This relationship would create a lineage cycle");
+        seen.add(cursor);
+        cursor = (await getRow(cursor))?.[field] ?? null;
+      }
+    };
+    await assertNoCycle(successorGearId, "successorGearId");
+    await assertNoCycle(predecessorGearId, "predecessorGearId");
 
     if (
       current.predecessorGearId &&

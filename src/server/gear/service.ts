@@ -1681,52 +1681,6 @@ export async function updateGearLineage(
 
   const gearId = await resolveGearIdOrThrow(slug);
   const data = lineageInput.parse(body);
-  const selectedIds = [data.predecessorGearId, data.successorGearId].filter(
-    (id): id is string => id !== null,
-  );
-  if (selectedIds.includes(gearId)) {
-    throw new Error("A gear item cannot be its own predecessor or successor");
-  }
-  if (
-    data.predecessorGearId &&
-    data.predecessorGearId === data.successorGearId
-  ) {
-    throw new Error("Predecessor and successor must be different gear items");
-  }
-
-  const rows = await fetchGearLineageValidationRows([gearId, ...selectedIds]);
-  const byId = new Map(rows.map((row) => [row.id, row]));
-  const current = byId.get(gearId);
-  if (!current) throw new Error("Gear item not found");
-  for (const selectedId of selectedIds) {
-    const selected = byId.get(selectedId);
-    if (!selected) throw new Error("Selected gear item was not found");
-    if (selected.gearType !== current.gearType) {
-      throw new Error("Predecessor and successor must have the same gear type");
-    }
-  }
-
-  const hasCycle = async (
-    startId: string | null,
-    field: "successorGearId" | "predecessorGearId",
-  ) => {
-    const seen = new Set<string>([gearId]);
-    let cursor = startId;
-    while (cursor) {
-      if (seen.has(cursor)) return true;
-      seen.add(cursor);
-      const nextRows = await fetchGearLineageValidationRows([cursor]);
-      cursor = nextRows[0]?.[field] ?? null;
-    }
-    return false;
-  };
-  if (
-    (await hasCycle(data.successorGearId, "successorGearId")) ||
-    (await hasCycle(data.predecessorGearId, "predecessorGearId"))
-  ) {
-    throw new Error("This relationship would create a lineage cycle");
-  }
-
   const affectedIds = await setGearLineageData({ gearId, ...data });
   const affectedRows = await fetchGearLineageValidationRows(affectedIds);
   return { ok: true, affectedSlugs: affectedRows.map((row) => row.slug) };

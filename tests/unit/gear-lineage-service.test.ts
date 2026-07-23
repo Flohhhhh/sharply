@@ -84,28 +84,27 @@ describe("updateGearLineage", () => {
     expect(result).toEqual({ ok: true, affectedSlugs: ["a", "b", "c"] });
   });
 
-  it("rejects self, duplicate, and cross-type selections", async () => {
+  it("surfaces validation errors from the locked data update", async () => {
+    dataMocks.setGearLineage.mockRejectedValueOnce(
+      new Error("A gear item cannot be its own predecessor or successor"),
+    );
     await expect(
       updateGearLineage("a", { predecessorGearId: "a", successorGearId: null }),
     ).rejects.toThrow("own predecessor");
+    dataMocks.setGearLineage.mockRejectedValueOnce(
+      new Error("Predecessor and successor must be different gear items"),
+    );
     await expect(
       updateGearLineage("a", { predecessorGearId: "b", successorGearId: "b" }),
     ).rejects.toThrow("must be different");
-    dataMocks.fetchGearLineageValidationRows.mockImplementation(
-      async (ids: string[]) =>
-        rows({ b: { gearType: "LENS" } }).filter((row) => ids.includes(row.id)),
+    dataMocks.setGearLineage.mockRejectedValueOnce(
+      new Error("Predecessor and successor must have the same gear type"),
     );
     await expect(
       updateGearLineage("a", { predecessorGearId: "b", successorGearId: null }),
     ).rejects.toThrow("same gear type");
-  });
-
-  it("rejects a lineage cycle", async () => {
-    dataMocks.fetchGearLineageValidationRows.mockImplementation(
-      async (ids: string[]) =>
-        rows({ b: { successorGearId: "a" } }).filter((row) =>
-          ids.includes(row.id),
-        ),
+    dataMocks.setGearLineage.mockRejectedValueOnce(
+      new Error("This relationship would create a lineage cycle"),
     );
     await expect(
       updateGearLineage("a", { predecessorGearId: null, successorGearId: "b" }),
