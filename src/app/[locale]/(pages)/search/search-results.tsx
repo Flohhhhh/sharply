@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { GearCard, GearCardSkeleton } from "~/components/gear/gear-card";
 import {
   GearTable,
+  GearTableSkeleton,
   toGearTableRows,
   type GearResultsView,
 } from "~/components/table";
@@ -47,6 +48,9 @@ export function SearchResults(props: SearchResultsProps) {
   }, [error]);
 
   if (isLoading) {
+    if (view === "list") {
+      return <GearTableSkeleton />;
+    }
     return (
       <div className="relative grid grid-cols-1 gap-1 pt-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <div className="from-background absolute right-0 bottom-0 left-0 z-10 h-full bg-linear-to-t to-transparent" />
@@ -99,13 +103,16 @@ export function SearchResults(props: SearchResultsProps) {
           ))}
         </div>
       )}
-      {isLoadingMore && (
-        <div className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {LOADING_SKELETON_KEYS.map((key) => (
-            <GearCardSkeleton key={key} />
-          ))}
-        </div>
-      )}
+      {isLoadingMore &&
+        (view === "list" ? (
+          <GearTableSkeleton rows={6} showHeader={false} />
+        ) : (
+          <div className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {LOADING_SKELETON_KEYS.map((key) => (
+              <GearCardSkeleton key={key} />
+            ))}
+          </div>
+        ))}
       {isReachingEnd && results.length > 0 && (
         <div className="text-muted-foreground py-24 text-center text-sm">
           You have reached the end.

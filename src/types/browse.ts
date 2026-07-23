@@ -16,6 +16,7 @@ export type BrowseFeedItem = {
   mpbMaxPriceUsdCents: number | null;
   mountNames: string[];
   sensorFormatName: string | null;
+  megapixels: number | null;
   weightGrams: number | null;
   focalLengthMinMm: number | null;
   focalLengthMaxMm: number | null;

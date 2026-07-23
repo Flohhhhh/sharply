@@ -21,6 +21,7 @@ const row: GearTableRow = {
   msrpNowUsdCents: 100_000,
   mpbMaxPriceUsdCents: 75_000,
   sensorFormatName: null,
+  megapixels: null,
   weightGrams: null,
   focalLengthMinMm: null,
   focalLengthMaxMm: null,

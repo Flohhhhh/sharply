@@ -7,6 +7,7 @@ import {
 const EMPTY_GEAR_LISTING_TABLE_FIELDS: GearListingTableFields = {
   mountNames: [],
   sensorFormatName: null,
+  megapixels: null,
   weightGrams: null,
   focalLengthMinMm: null,
   focalLengthMaxMm: null,

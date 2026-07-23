@@ -17,6 +17,7 @@ export type GearTableRow = {
   msrpNowUsdCents: number | null;
   mpbMaxPriceUsdCents: number | null;
   sensorFormatName: string | null;
+  megapixels: number | null;
   weightGrams: number | null;
   focalLengthMinMm: number | null;
   focalLengthMaxMm: number | null;
@@ -40,6 +41,7 @@ export type GearTableSource = {
   msrpNowUsdCents?: number | null;
   mpbMaxPriceUsdCents?: number | null;
   sensorFormatName?: string | null;
+  megapixels?: number | null;
   weightGrams?: number | null;
   focalLengthMinMm?: number | null;
   focalLengthMaxMm?: number | null;

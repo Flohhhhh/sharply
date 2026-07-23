@@ -10,9 +10,9 @@ The shared server helper `src/server/gear/listing-table-service.ts` enriches eac
 
 ## Scopes and columns
 
-- Camera and analog-camera-only results: Name, Brand, Mount, Sensor Size, Year, Weight, Price.
+- Camera and analog-camera-only results: Name, Brand, Mount, Sensor Format, Megapixels, Year, Weight, Price.
 - Lens-only results: Name, Brand, Mount(s), Focal Length, Aperture, Type, Year, Price.
-- Mixed result sets: Name, Brand, Mount(s), Year, Price.
+- Mixed result sets: Name, Brand, Mount(s), Type, Year, Price.
 
 The scope is resolved from the currently loaded rows. Unknown values render as an em dash. Dates and prices reuse the gear-card formatting rules.
 
@@ -21,6 +21,8 @@ The scope is resolved from the currently loaded rows. Unknown values render as a
 TanStack Table performs only in-memory sorting of rows already loaded by the owning browse or search surface. It does not add filtering, pagination, URL parameters, or requests. As the existing surface loads another page, the active client sort is applied to the expanded row set.
 
 The grid/list preference is stored under `sharply:gear-results-view` in localStorage. It defaults to grid during server render and is shared by all result surfaces in a browser.
+
+When list view is active, initial and incremental loading use `GearTableSkeleton` instead of card skeletons. The skeleton mirrors the current table shape, uses subtle pulsing rows, and fades at the bottom to keep long result loading states visually lightweight.
 
 ## Adding another surface
 

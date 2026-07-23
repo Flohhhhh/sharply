@@ -13,6 +13,7 @@ import {
 export type GearListingTableFields = {
   mountNames: string[];
   sensorFormatName: string | null;
+  megapixels: number | null;
   weightGrams: number | null;
   focalLengthMinMm: number | null;
   focalLengthMaxMm: number | null;
@@ -35,6 +36,7 @@ export async function fetchGearListingTableFields(gearIds: string[]) {
       gearId: gear.id,
       mountName: mounts.value,
       sensorFormatName: sensorFormats.name,
+      megapixels: cameraSpecs.resolutionMp,
       weightGrams: gear.weightGrams,
       focalLengthMinMm: lensSpecs.focalLengthMinMm,
       focalLengthMaxMm: lensSpecs.focalLengthMaxMm,
@@ -62,6 +64,7 @@ export async function fetchGearListingTableFields(gearIds: string[]) {
     result.set(row.gearId, {
       mountNames: row.mountName ? [row.mountName] : [],
       sensorFormatName: row.sensorFormatName ?? null,
+      megapixels: toNullableNumber(row.megapixels),
       weightGrams: row.weightGrams ?? null,
       focalLengthMinMm: row.focalLengthMinMm ?? null,
       focalLengthMaxMm: row.focalLengthMaxMm ?? null,

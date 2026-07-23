@@ -27,7 +27,8 @@ export type GearTableLabels = {
   name: string;
   brand: string;
   mount: string;
-  sensorSize: string;
+  sensorFormat: string;
+  megapixels: string;
   year: string;
   weight: string;
   price: string;
@@ -36,11 +37,17 @@ export type GearTableLabels = {
   type: string;
   prime: string;
   zoom: string;
+  camera: string;
+  lens: string;
   sortAscending: (values: { column: string }) => string;
   sortDescending: (values: { column: string }) => string;
 };
 
 const EMPTY_VALUE = "—";
+
+function MutedValue({ children }: { children: ReactNode }) {
+  return <span className="text-muted-foreground">{children}</span>;
+}
 
 function formatAperture(value: number | null, tele: number | null) {
   if (value == null && tele == null) return EMPTY_VALUE;
@@ -114,11 +121,13 @@ function GearNameCell({ row }: { row: GearTableRow }) {
 function GearYearCell({ row }: { row: GearTableRow }) {
   const locale = useLocale();
   return (
-    formatGearCardDate(
-      row.releaseDate ?? row.announcedDate,
-      row.releaseDatePrecision ?? row.announceDatePrecision,
-      locale,
-    ) || EMPTY_VALUE
+    <MutedValue>
+      {formatGearCardDate(
+        row.releaseDate ?? row.announcedDate,
+        row.releaseDatePrecision ?? row.announceDatePrecision,
+        locale,
+      ) || EMPTY_VALUE}
+    </MutedValue>
   );
 }
 
@@ -174,7 +183,7 @@ export function createGearTableColumns(
     sortable(
       "brandName",
       labels.brand,
-      (row) => row.brandName ?? EMPTY_VALUE,
+      (row) => <MutedValue>{row.brandName ?? EMPTY_VALUE}</MutedValue>,
       (a, b) =>
         compareNullable(
           a.original.brandName,
@@ -185,7 +194,9 @@ export function createGearTableColumns(
     sortable(
       "mountNames",
       labels.mount,
-      (row) => row.mountNames.join(", ") || EMPTY_VALUE,
+      (row) => (
+        <MutedValue>{row.mountNames.join(", ") || EMPTY_VALUE}</MutedValue>
+      ),
       (a, b) =>
         compareNullable(
           a.original.mountNames.join(", ") || null,
@@ -223,7 +234,7 @@ export function createGearTableColumns(
       ...common,
       sortable(
         "sensorFormatName",
-        labels.sensorSize,
+        labels.sensorFormat,
         (row) => row.sensorFormatName ?? EMPTY_VALUE,
         (a, b) =>
           compareNullable(
@@ -232,12 +243,29 @@ export function createGearTableColumns(
             (left, right) => left.localeCompare(right),
           ),
       ),
+      sortable(
+        "megapixels",
+        labels.megapixels,
+        (row) =>
+          row.megapixels == null
+            ? EMPTY_VALUE
+            : `${Number(row.megapixels).toFixed(1).replace(/\.0$/, "")} MP`,
+        (a, b) =>
+          compareNullable(
+            a.original.megapixels,
+            b.original.megapixels,
+            (left, right) => left - right,
+          ),
+      ),
       year,
       sortable(
         "weightGrams",
         labels.weight,
-        (row) =>
-          row.weightGrams == null ? EMPTY_VALUE : `${row.weightGrams} g`,
+        (row) => (
+          <MutedValue>
+            {row.weightGrams == null ? EMPTY_VALUE : `${row.weightGrams} g`}
+          </MutedValue>
+        ),
         (a, b) =>
           compareNullable(
             a.original.weightGrams,
@@ -293,5 +321,28 @@ export function createGearTableColumns(
       price,
     ];
   }
-  return [...common, year, price];
+  return [
+    ...common,
+    sortable(
+      "gearType",
+      labels.type,
+      (row) => (
+        <MutedValue>
+          {row.gearType === "LENS"
+            ? labels.lens
+            : row.gearType === "CAMERA" || row.gearType === "ANALOG_CAMERA"
+              ? labels.camera
+              : EMPTY_VALUE}
+        </MutedValue>
+      ),
+      (a, b) =>
+        compareNullable(
+          a.original.gearType,
+          b.original.gearType,
+          (left, right) => left.localeCompare(right),
+        ),
+    ),
+    year,
+    price,
+  ];
 }

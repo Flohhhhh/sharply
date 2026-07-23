@@ -17,6 +17,7 @@ import useSWRInfinite from "swr/infinite";
 import { GearCard, GearCardSkeleton } from "~/components/gear/gear-card";
 import {
   GearTable,
+  GearTableSkeleton,
   GearViewToggle,
   toGearTableRows,
   useGearResultsView,
@@ -59,13 +60,18 @@ export function BrowseResultsGrid({
   scope,
   trendingSlugs,
 }: BrowseResultsGridProps) {
+  const { view, setView } = useGearResultsView();
   return (
-    <Suspense fallback={<BrowseResultsGridFallback />}>
+    <Suspense
+      fallback={<BrowseResultsGridFallback scope={scope} view={view} />}
+    >
       <BrowseResultsGridContent
         initialPage={initialPage}
         brandName={brandName}
         scope={scope}
         trendingSlugs={trendingSlugs}
+        view={view}
+        setView={setView}
       />
     </Suspense>
   );
@@ -76,14 +82,15 @@ function BrowseResultsGridContent({
   brandName,
   scope,
   trendingSlugs,
-}: BrowseResultsGridProps) {
+  view,
+  setView,
+}: BrowseResultsGridProps & ReturnType<typeof useGearResultsView>) {
   const t = useTranslations("browsePage");
   const isMobile = useIsMobile();
   const rawPathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending] = useTransition();
   const [infiniteActive, setInfiniteActive] = useState(false);
-  const { view, setView } = useGearResultsView();
   const [autoScrollLoads, setAutoScrollLoads] = useState(0);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const currentPageRef = useRef(1);
@@ -264,7 +271,17 @@ function BrowseResultsGridContent({
         <div className="text-muted-foreground text-sm">{t("noGearFound")}</div>
       ) : null}
 
-      {view === "list" && !isLoadingInitial ? (
+      {view === "list" && isLoadingInitial ? (
+        <GearTableSkeleton
+          scope={
+            scope.categorySlug === "cameras"
+              ? "camera"
+              : scope.categorySlug === "lenses"
+                ? "lens"
+                : "mixed"
+          }
+        />
+      ) : view === "list" ? (
         <GearTable rows={tableRows} />
       ) : (
         <div className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
@@ -320,10 +337,14 @@ function BrowseResultsGridContent({
       {!isMobile && infiniteActive ? (
         <div className="flex flex-col items-center gap-2">
           {isLoadingMore ? (
-            <div className="text-muted-foreground flex items-center gap-2 text-sm">
-              <Loader className="h-4 w-4 animate-spin" />
-              {t("loadingMoreGear")}
-            </div>
+            view === "list" ? (
+              <GearTableSkeleton rows={4} showHeader={false} />
+            ) : (
+              <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                <Loader className="h-4 w-4 animate-spin" />
+                {t("loadingMoreGear")}
+              </div>
+            )
           ) : null}
           <div ref={sentinelRef} className="h-6 w-full" />
         </div>
@@ -332,16 +353,33 @@ function BrowseResultsGridContent({
   );
 }
 
-function BrowseResultsGridFallback() {
+function BrowseResultsGridFallback({
+  scope,
+  view,
+}: Pick<BrowseResultsGridProps, "scope"> & {
+  view: ReturnType<typeof useGearResultsView>["view"];
+}) {
   const t = useTranslations("browsePage");
   return (
     <div className="space-y-4">
       <p className="text-muted-foreground text-sm">{t("loadingResults")}</p>
-      <div className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
-        {BROWSE_RESULTS_SKELETON_KEYS.map((key) => (
-          <GearCardSkeleton key={key} />
-        ))}
-      </div>
+      {view === "list" ? (
+        <GearTableSkeleton
+          scope={
+            scope.categorySlug === "cameras"
+              ? "camera"
+              : scope.categorySlug === "lenses"
+                ? "lens"
+                : "mixed"
+          }
+        />
+      ) : (
+        <div className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
+          {BROWSE_RESULTS_SKELETON_KEYS.map((key) => (
+            <GearCardSkeleton key={key} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

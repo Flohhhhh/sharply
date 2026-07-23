@@ -6,6 +6,7 @@ import useSWRInfinite from "swr/infinite";
 import { GearCard } from "~/components/gear/gear-card";
 import {
   GearTable,
+  GearTableSkeleton,
   GearViewToggle,
   toGearTableRows,
   useGearResultsView,
@@ -205,10 +206,14 @@ export function ReleaseFeedGrid({
       {!isMobile && infiniteActive ? (
         <div className="flex flex-col items-center gap-2">
           {isLoadingMore ? (
-            <div className="text-muted-foreground flex items-center gap-2 text-sm">
-              <Loader className="h-4 w-4 animate-spin" />
-              Loading more gear...
-            </div>
+            view === "list" ? (
+              <GearTableSkeleton rows={4} showHeader={false} />
+            ) : (
+              <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                <Loader className="h-4 w-4 animate-spin" />
+                Loading more gear...
+              </div>
+            )
           ) : null}
           <div ref={sentinelRef} className="h-6 w-full" />
         </div>

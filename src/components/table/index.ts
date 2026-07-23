@@ -1,5 +1,6 @@
 export { DataTable } from "./data-table";
 export { GearTable } from "./gear-table";
+export { GearTableSkeleton } from "./gear-table-skeleton";
 export {
   GearViewToggle,
   useGearResultsView,
