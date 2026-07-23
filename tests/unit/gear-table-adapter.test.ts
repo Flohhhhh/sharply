@@ -18,6 +18,7 @@ describe("gear table adapter", () => {
     expect(row.mountNames).toEqual(["E", "L"]);
     expect(row.releaseDatePrecision).toBeNull();
     expect(row.sensorFormatName).toBeNull();
+    expect(row.analogCaptureMedium).toBeNull();
     expect(row.maxApertureWide).toBeNull();
   });
 

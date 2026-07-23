@@ -48,7 +48,7 @@ export type SearchResult = {
   relevance?: number;
   mountNames?: string[];
   sensorFormatName?: string | null;
-  megapixels?: number | null;
+  analogCaptureMedium?: string | null;
   weightGrams?: number | null;
   focalLengthMinMm?: number | null;
   focalLengthMaxMm?: number | null;

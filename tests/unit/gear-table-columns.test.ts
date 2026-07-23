@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   compareNullable,
   formatMountNames,
+  getCameraTypeDisplay,
   getEffectiveDateValue,
   getEffectivePrice,
   getMountDisplayNames,
@@ -23,7 +24,7 @@ const row: GearTableRow = {
   msrpNowUsdCents: 100_000,
   mpbMaxPriceUsdCents: 75_000,
   sensorFormatName: null,
-  megapixels: null,
+  analogCaptureMedium: null,
   weightGrams: null,
   focalLengthMinMm: null,
   focalLengthMaxMm: null,
@@ -37,6 +38,19 @@ describe("gear table sort values", () => {
     expect(formatMountNames(["ef-m-canon", "m43-panasonic"])).toBe(
       "EF-M - Canon, Micro 4/3 - Panasonic",
     );
+  });
+
+  it("uses sensor format for digital cameras and film medium for analog cameras", () => {
+    expect(
+      getCameraTypeDisplay({ ...row, sensorFormatName: "Full Frame" }),
+    ).toBe("Full Frame");
+    expect(
+      getCameraTypeDisplay({
+        ...row,
+        gearType: "ANALOG_CAMERA",
+        analogCaptureMedium: "35mm",
+      }),
+    ).toBe("35mm Film");
   });
 
   it("keeps the display names available for a three-mount table preview", () => {

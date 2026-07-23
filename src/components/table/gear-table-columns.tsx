@@ -21,6 +21,7 @@ import {
   formatMountNames,
   getEffectiveDateValue,
   getEffectivePrice,
+  getCameraTypeDisplay,
   getMountDisplayNames,
 } from "./gear-table-helpers";
 import type { GearTableRow, GearTableScope } from "./gear-table-types";
@@ -29,8 +30,6 @@ export type GearTableLabels = {
   name: string;
   brand: string;
   mount: string;
-  sensorFormat: string;
-  megapixels: string;
   year: string;
   weight: string;
   price: string;
@@ -257,28 +256,14 @@ export function createGearTableColumns(
     return [
       ...common,
       sortable(
-        "sensorFormatName",
-        labels.sensorFormat,
-        (row) => row.sensorFormatName ?? EMPTY_VALUE,
+        "cameraType",
+        labels.type,
+        (row) => getCameraTypeDisplay(row) ?? EMPTY_VALUE,
         (a, b) =>
           compareNullable(
-            a.original.sensorFormatName,
-            b.original.sensorFormatName,
+            getCameraTypeDisplay(a.original),
+            getCameraTypeDisplay(b.original),
             (left, right) => left.localeCompare(right),
-          ),
-      ),
-      sortable(
-        "megapixels",
-        labels.megapixels,
-        (row) =>
-          row.megapixels == null
-            ? EMPTY_VALUE
-            : `${Number(row.megapixels).toFixed(1).replace(/\.0$/, "")} MP`,
-        (a, b) =>
-          compareNullable(
-            a.original.megapixels,
-            b.original.megapixels,
-            (left, right) => left - right,
           ),
       ),
       year,

@@ -1,5 +1,6 @@
 "use client";
 
+import { ClockIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useSWRInfinite from "swr/infinite";
 import { GearCard, GearCardSkeleton } from "~/components/gear/gear-card";
@@ -17,6 +18,7 @@ import { getPageLoadingState } from "~/lib/pagination";
 import type { BrowseFeedPage } from "~/types/browse";
 
 type ReleaseFeedGridProps = {
+  heading: string;
   initialPage: BrowseFeedPage;
   brandSlug?: string;
   trendingSlugs?: string[];
@@ -25,7 +27,7 @@ type ReleaseFeedGridProps = {
 const PAGE_SIZE = 12;
 const MAX_AUTO_SCROLL_LOADS = 5;
 const APPENDED_CARD_SKELETON_KEYS = Array.from(
-  { length: 3 },
+  { length: 24 },
   (_, index) => `release-feed-more-skeleton-${index + 1}`,
 );
 
@@ -38,6 +40,7 @@ const fetcher = async (url: string) => {
 };
 
 export function ReleaseFeedGrid({
+  heading,
   initialPage,
   brandSlug,
   trendingSlugs,
@@ -183,7 +186,11 @@ export function ReleaseFeedGrid({
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="flex items-center gap-2 text-2xl font-semibold">
+          <ClockIcon className="text-muted-foreground size-5" />
+          {heading}
+        </h2>
         <GearViewToggle view={view} onViewChange={setView} />
       </div>
       {errorText ? (
@@ -226,9 +233,10 @@ export function ReleaseFeedGrid({
 
       {isLoadingMore ? (
         view === "list" ? (
-          <GearTableSkeleton rows={4} showHeader={false} />
+          <GearTableSkeleton rows={6} showHeader={false} />
         ) : (
-          <div className="grid w-full grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
+          <div className="relative grid w-full grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
+            <div className="from-background absolute right-0 bottom-0 left-0 z-10 h-full bg-linear-to-t to-transparent" />
             {APPENDED_CARD_SKELETON_KEYS.map((key) => (
               <GearCardSkeleton key={key} />
             ))}

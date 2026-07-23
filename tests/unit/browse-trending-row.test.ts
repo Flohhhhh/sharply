@@ -73,6 +73,7 @@ describe("selectBrowseTrendingRowItems", () => {
           ...item,
           mountNames: [],
           sensorFormatName: null,
+          analogCaptureMedium: null,
           weightGrams: null,
           focalLengthMinMm: null,
           focalLengthMaxMm: null,
@@ -178,6 +179,7 @@ describe("fetchBrowseTrendingRowItems", () => {
           ...releaseItem,
           mountNames: ["Nikon Z"],
           sensorFormatName: "Full Frame",
+          analogCaptureMedium: null,
           weightGrams: 705,
           focalLengthMinMm: null,
           focalLengthMaxMm: null,
@@ -193,6 +195,7 @@ describe("fetchBrowseTrendingRowItems", () => {
     expect(items[0]).toMatchObject({
       mountNames: ["Nikon Z"],
       sensorFormatName: "Full Frame",
+      analogCaptureMedium: null,
       weightGrams: 705,
     });
   });

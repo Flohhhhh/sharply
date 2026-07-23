@@ -22,8 +22,6 @@ export function GearTable({
         name: t("columns.name"),
         brand: t("columns.brand"),
         mount: t("columns.mount"),
-        sensorFormat: t("columns.sensorFormat"),
-        megapixels: t("columns.megapixels"),
         year: t("columns.year"),
         weight: t("columns.weight"),
         price: t("columns.price"),

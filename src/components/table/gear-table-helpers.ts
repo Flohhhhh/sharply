@@ -1,4 +1,5 @@
 import type { GearTableRow } from "./gear-table-types";
+import { formatAnalogMedium } from "~/lib/mapping/analog-types-map";
 import { getMountLongName } from "~/lib/mapping/mounts-map";
 
 export function getMountDisplayNames(mountNames: string[]) {
@@ -7,6 +8,12 @@ export function getMountDisplayNames(mountNames: string[]) {
 
 export function formatMountNames(mountNames: string[]) {
   return getMountDisplayNames(mountNames).join(", ");
+}
+
+export function getCameraTypeDisplay(row: GearTableRow) {
+  return row.gearType === "ANALOG_CAMERA"
+    ? (formatAnalogMedium(row.analogCaptureMedium) ?? null)
+    : row.sensorFormatName;
 }
 
 export function compareNullable<T>(

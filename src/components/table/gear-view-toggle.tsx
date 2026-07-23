@@ -50,18 +50,26 @@ export function GearViewToggle({
     >
       <Tooltip>
         <TooltipTrigger asChild>
-          <ToggleGroupItem value="grid" aria-label={t("gridView")}>
+          <ToggleGroupItem
+            value="grid"
+            aria-label={t("gridView")}
+            className="px-3"
+          >
             <Grid2X2 className="size-4" aria-hidden />
-            <span className="sr-only">{t("gridView")}</span>
+            <span>{t("gridView")}</span>
           </ToggleGroupItem>
         </TooltipTrigger>
         <TooltipContent>{t("gridView")}</TooltipContent>
       </Tooltip>
       <Tooltip>
         <TooltipTrigger asChild>
-          <ToggleGroupItem value="list" aria-label={t("listView")}>
+          <ToggleGroupItem
+            value="list"
+            aria-label={t("listView")}
+            className="px-3"
+          >
             <List className="size-4" aria-hidden />
-            <span className="sr-only">{t("listView")}</span>
+            <span>{t("listView")}</span>
           </ToggleGroupItem>
         </TooltipTrigger>
         <TooltipContent>{t("listView")}</TooltipContent>

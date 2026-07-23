@@ -1474,8 +1474,6 @@
       "name": "名前",
       "brand": "ブランド",
       "mount": "マウント",
-      "sensorFormat": "センサー形式",
-      "megapixels": "メガピクセル",
       "year": "年",
       "weight": "重量",
       "price": "価格",

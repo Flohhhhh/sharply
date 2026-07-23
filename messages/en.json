@@ -1474,8 +1474,6 @@
       "name": "Name",
       "brand": "Brand",
       "mount": "Mount",
-      "sensorFormat": "Sensor Format",
-      "megapixels": "Megapixels",
       "year": "Year",
       "weight": "Weight",
       "price": "Price",

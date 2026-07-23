@@ -1474,8 +1474,6 @@
       "name": "Nome",
       "brand": "Marca",
       "mount": "Attacco",
-      "sensorFormat": "Formato del sensore",
-      "megapixels": "Megapixel",
       "year": "Anno",
       "weight": "Peso",
       "price": "Prezzo",

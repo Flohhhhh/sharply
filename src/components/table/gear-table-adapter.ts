@@ -29,7 +29,7 @@ export function toGearTableRow(item: GearTableSource): GearTableRow {
     msrpNowUsdCents: item.msrpNowUsdCents ?? null,
     mpbMaxPriceUsdCents: item.mpbMaxPriceUsdCents ?? null,
     sensorFormatName: item.sensorFormatName ?? null,
-    megapixels: item.megapixels ?? null,
+    analogCaptureMedium: item.analogCaptureMedium ?? null,
     weightGrams: item.weightGrams ?? null,
     focalLengthMinMm: item.focalLengthMinMm ?? null,
     focalLengthMaxMm: item.focalLengthMaxMm ?? null,

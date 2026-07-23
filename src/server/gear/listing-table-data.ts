@@ -2,6 +2,7 @@ import { eq, inArray } from "drizzle-orm";
 import "server-only";
 import { db } from "~/server/db";
 import {
+  analogCameraSpecs,
   cameraSpecs,
   gear,
   gearMounts,
@@ -13,7 +14,7 @@ import {
 export type GearListingTableFields = {
   mountNames: string[];
   sensorFormatName: string | null;
-  megapixels: number | null;
+  analogCaptureMedium: string | null;
   weightGrams: number | null;
   focalLengthMinMm: number | null;
   focalLengthMaxMm: number | null;
@@ -36,7 +37,7 @@ export async function fetchGearListingTableFields(gearIds: string[]) {
       gearId: gear.id,
       mountName: mounts.value,
       sensorFormatName: sensorFormats.name,
-      megapixels: cameraSpecs.resolutionMp,
+      analogCaptureMedium: analogCameraSpecs.captureMedium,
       weightGrams: gear.weightGrams,
       focalLengthMinMm: lensSpecs.focalLengthMinMm,
       focalLengthMaxMm: lensSpecs.focalLengthMaxMm,
@@ -49,6 +50,7 @@ export async function fetchGearListingTableFields(gearIds: string[]) {
     .leftJoin(mounts, eq(gearMounts.mountId, mounts.id))
     .leftJoin(cameraSpecs, eq(gear.id, cameraSpecs.gearId))
     .leftJoin(sensorFormats, eq(cameraSpecs.sensorFormatId, sensorFormats.id))
+    .leftJoin(analogCameraSpecs, eq(gear.id, analogCameraSpecs.gearId))
     .leftJoin(lensSpecs, eq(gear.id, lensSpecs.gearId))
     .where(inArray(gear.id, gearIds));
 
@@ -64,7 +66,7 @@ export async function fetchGearListingTableFields(gearIds: string[]) {
     result.set(row.gearId, {
       mountNames: row.mountName ? [row.mountName] : [],
       sensorFormatName: row.sensorFormatName ?? null,
-      megapixels: toNullableNumber(row.megapixels),
+      analogCaptureMedium: row.analogCaptureMedium ?? null,
       weightGrams: row.weightGrams ?? null,
       focalLengthMinMm: row.focalLengthMinMm ?? null,
       focalLengthMaxMm: row.focalLengthMaxMm ?? null,

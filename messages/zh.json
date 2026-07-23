@@ -1474,8 +1474,6 @@
       "name": "名称",
       "brand": "品牌",
       "mount": "卡口",
-      "sensorFormat": "传感器格式",
-      "megapixels": "百万像素",
       "year": "年份",
       "weight": "重量",
       "price": "价格",

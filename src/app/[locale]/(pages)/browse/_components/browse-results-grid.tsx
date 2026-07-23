@@ -53,6 +53,10 @@ const BROWSE_RESULTS_SKELETON_KEYS = Array.from(
   { length: 12 },
   (_, index) => `browse-results-skeleton-${index + 1}`,
 );
+const BROWSE_LOADING_SKELETON_KEYS = Array.from(
+  { length: 24 },
+  (_, index) => `browse-results-loading-${index + 1}`,
+);
 
 export function BrowseResultsGrid({
   initialPage,
@@ -354,11 +358,12 @@ function BrowseResultsGridContent({
 
       {isLoadingMore ? (
         view === "list" ? (
-          <GearTableSkeleton rows={4} showHeader={false} />
+          <GearTableSkeleton rows={6} showHeader={false} />
         ) : (
-          <div className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
-            {BROWSE_RESULTS_SKELETON_KEYS.slice(0, 3).map((key) => (
-              <GearCardSkeleton key={`more-${key}`} />
+          <div className="relative grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
+            <div className="from-background absolute right-0 bottom-0 left-0 z-10 h-full bg-linear-to-t to-transparent" />
+            {BROWSE_LOADING_SKELETON_KEYS.map((key) => (
+              <GearCardSkeleton key={key} />
             ))}
           </div>
         )

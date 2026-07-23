@@ -56,6 +56,7 @@ describe("search service high-impact behavior", () => {
           ...item,
           mountNames: [],
           sensorFormatName: null,
+          analogCaptureMedium: null,
           weightGrams: null,
           focalLengthMinMm: null,
           focalLengthMaxMm: null,
@@ -91,6 +92,7 @@ describe("search service high-impact behavior", () => {
           gearType: "CAMERA",
           mountNames: ["Nikon Z"],
           sensorFormatName: "Full Frame",
+          analogCaptureMedium: null,
           weightGrams: 705,
           focalLengthMinMm: null,
           focalLengthMaxMm: null,
@@ -111,6 +113,7 @@ describe("search service high-impact behavior", () => {
     expect(result.results[0]).toMatchObject({
       mountNames: ["Nikon Z"],
       sensorFormatName: "Full Frame",
+      analogCaptureMedium: null,
       weightGrams: 705,
     });
   });

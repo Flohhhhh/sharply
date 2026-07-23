@@ -4,13 +4,13 @@ The reusable gear list presentation lives in `src/components/table`. It is used 
 
 ## Public component contract
 
-`GearTable` receives `GearTableRow[]`. Rows are JSON-safe and include identity/display data, all mount names, card-compatible date and price metadata, camera fields, and lens fields. `toGearTableRows` adapts the existing browse or search payloads into this contract.
+`GearTable` receives `GearTableRow[]`. Rows are JSON-safe and include identity/display data, all mount names, card-compatible date and price metadata, digital sensor formats, analog capture media, and lens fields. `toGearTableRows` adapts the existing browse or search payloads into this contract.
 
 The shared server helper `src/server/gear/listing-table-service.ts` enriches each existing result page in one batch. Mounts are read from `gear_mounts`; the legacy `gear.mountId` is not used for table display. The table formats canonical mount values with the shared mount display helper, shows at most three mounts per row, and provides a `[+N]` overflow indicator with the full list in a tooltip.
 
 ## Scopes and columns
 
-- Camera and analog-camera-only results: Name, Brand, Mount, Sensor Format, Megapixels, Year, Weight, Price.
+- Camera and analog-camera-only results: Name, Brand, Mount, Type, Year, Weight, Price. Type shows a digital camera's sensor format or an analog camera's formatted capture medium.
 - Lens-only results: Name, Brand, Mount(s), Focal Length, Aperture, Type, Year, Price.
 - Mixed result sets: Name, Brand, Mount(s), Type, Year, Price.
 
