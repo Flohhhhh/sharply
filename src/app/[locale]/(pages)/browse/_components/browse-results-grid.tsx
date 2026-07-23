@@ -1,7 +1,6 @@
 "use client";
 
 import { mergeSearchParams } from "@utils/url";
-import { Loader } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
@@ -96,7 +95,9 @@ function BrowseResultsGridContent({
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const currentPageRef = useRef(1);
   const loadingRef = useRef(false);
+  const requestedPageRef = useRef<number | null>(null);
   const autoScrollLoadsRef = useRef(0);
+  const [isRequestingMore, setIsRequestingMore] = useState(false);
   const searchParamsString = searchParams.toString();
 
   const filters = useMemo(
@@ -185,7 +186,7 @@ function BrowseResultsGridContent({
   const hasMore = lastPage?.hasMore ?? false;
   const { isLoadingInitial, isLoadingMore: isRequestedPageLoading } =
     getPageLoadingState(rawPages, targetPage, isValidating, Boolean(error));
-  const isLoadingMore = isPending || isRequestedPageLoading;
+  const isLoadingMore = isRequestingMore || isPending || isRequestedPageLoading;
   const showEmpty =
     !items.length && !error && !isLoadingInitial && !isLoadingMore;
   const listLoadedPageCount =
@@ -196,6 +197,15 @@ function BrowseResultsGridContent({
   useEffect(() => {
     loadingRef.current = isLoadingMore;
   }, [isLoadingMore]);
+
+  useEffect(() => {
+    const requestedPage = requestedPageRef.current;
+    if (!requestedPage || (!error && !rawPages[requestedPage - 1])) return;
+
+    requestedPageRef.current = null;
+    loadingRef.current = false;
+    setIsRequestingMore(false);
+  }, [error, rawPages]);
 
   useEffect(() => {
     currentPageRef.current = targetPage;
@@ -217,6 +227,19 @@ function BrowseResultsGridContent({
 
   const hasReachedAutoLoadLimit = autoScrollLoads >= MAX_AUTO_SCROLL_LOADS;
 
+  const requestNextPage = useCallback(
+    (nextPage: number) => {
+      if (!hasMore || loadingRef.current) return false;
+
+      loadingRef.current = true;
+      requestedPageRef.current = nextPage;
+      setIsRequestingMore(true);
+      updatePage(nextPage);
+      return true;
+    },
+    [hasMore, updatePage],
+  );
+
   useEffect(() => {
     if (isMobile || !infiniteActive || !hasMore || hasReachedAutoLoadLimit)
       return;
@@ -228,14 +251,16 @@ function BrowseResultsGridContent({
       (entries) => {
         const entry = entries[0];
         if (!entry) return;
-        if (entry.isIntersecting && !loadingRef.current) {
+        if (entry.isIntersecting) {
+          const nextPage = currentPageRef.current + 1;
+          if (!requestNextPage(nextPage)) return;
+
           const nextAutoLoadCount = autoScrollLoadsRef.current + 1;
           autoScrollLoadsRef.current = nextAutoLoadCount;
           setAutoScrollLoads(nextAutoLoadCount);
           if (nextAutoLoadCount >= MAX_AUTO_SCROLL_LOADS) {
             setInfiniteActive(false);
           }
-          updatePage(currentPageRef.current + 1);
         }
       },
       { rootMargin: "200px 0px" },
@@ -249,19 +274,19 @@ function BrowseResultsGridContent({
     isMobile,
     hasReachedAutoLoadLimit,
     listLoadedPageCount,
-    updatePage,
+    requestNextPage,
     view,
   ]);
 
   const handleLoadMore = useCallback(() => {
-    if (!hasMore || isLoadingMore) return;
+    if (loadingRef.current) return;
     if (!isMobile) {
       setInfiniteActive(true);
       autoScrollLoadsRef.current = 0;
       setAutoScrollLoads(0);
     }
-    updatePage(targetPage + 1);
-  }, [hasMore, isLoadingMore, isMobile, targetPage, updatePage]);
+    requestNextPage(targetPage + 1);
+  }, [isMobile, requestNextPage, targetPage]);
 
   const errorText = error ? t("loadError") : null;
 
@@ -327,6 +352,18 @@ function BrowseResultsGridContent({
         </div>
       )}
 
+      {isLoadingMore ? (
+        view === "list" ? (
+          <GearTableSkeleton rows={4} showHeader={false} />
+        ) : (
+          <div className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
+            {BROWSE_RESULTS_SKELETON_KEYS.slice(0, 3).map((key) => (
+              <GearCardSkeleton key={`more-${key}`} />
+            ))}
+          </div>
+        )
+      ) : null}
+
       {hasMore && (isMobile || !infiniteActive) ? (
         <div className="flex justify-center">
           <Button
@@ -335,30 +372,13 @@ function BrowseResultsGridContent({
             onClick={handleLoadMore}
             disabled={isLoadingMore}
           >
-            {isLoadingMore ? (
-              <>
-                <Loader className="mr-2 h-4 w-4 animate-spin" />
-                {t("loading")}
-              </>
-            ) : (
-              t("loadMore")
-            )}
+            {isLoadingMore ? t("loading") : t("loadMore")}
           </Button>
         </div>
       ) : null}
 
       {!isMobile && infiniteActive ? (
         <div className="flex flex-col items-center gap-2">
-          {isLoadingMore ? (
-            view === "list" ? (
-              <GearTableSkeleton rows={4} showHeader={false} />
-            ) : (
-              <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                <Loader className="h-4 w-4 animate-spin" />
-                {t("loadingMoreGear")}
-              </div>
-            )
-          ) : null}
           <div ref={sentinelRef} className="h-6 w-full" />
         </div>
       ) : null}
