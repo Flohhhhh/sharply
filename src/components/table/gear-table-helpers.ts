@@ -1,4 +1,13 @@
 import type { GearTableRow } from "./gear-table-types";
+import { getMountLongName } from "~/lib/mapping/mounts-map";
+
+export function getMountDisplayNames(mountNames: string[]) {
+  return mountNames.map(getMountLongName);
+}
+
+export function formatMountNames(mountNames: string[]) {
+  return getMountDisplayNames(mountNames).join(", ");
+}
 
 export function compareNullable<T>(
   left: T | null | undefined,

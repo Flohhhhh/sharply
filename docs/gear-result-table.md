@@ -6,7 +6,7 @@ The reusable gear list presentation lives in `src/components/table`. It is used 
 
 `GearTable` receives `GearTableRow[]`. Rows are JSON-safe and include identity/display data, all mount names, card-compatible date and price metadata, camera fields, and lens fields. `toGearTableRows` adapts the existing browse or search payloads into this contract.
 
-The shared server helper `src/server/gear/listing-table-service.ts` enriches each existing result page in one batch. Mounts are read from `gear_mounts`; the legacy `gear.mountId` is not used for table display.
+The shared server helper `src/server/gear/listing-table-service.ts` enriches each existing result page in one batch. Mounts are read from `gear_mounts`; the legacy `gear.mountId` is not used for table display. The table formats canonical mount values with the shared mount display helper, shows at most three mounts per row, and provides a `[+N]` overflow indicator with the full list in a tooltip.
 
 ## Scopes and columns
 

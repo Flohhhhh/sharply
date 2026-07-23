@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   compareNullable,
+  formatMountNames,
   getEffectiveDateValue,
   getEffectivePrice,
+  getMountDisplayNames,
 } from "~/components/table/gear-table-helpers";
 import type { GearTableRow } from "~/components/table/gear-table-types";
 
@@ -31,6 +33,28 @@ const row: GearTableRow = {
 };
 
 describe("gear table sort values", () => {
+  it("formats canonical mount values with the shared display helper", () => {
+    expect(formatMountNames(["ef-m-canon", "m43-panasonic"])).toBe(
+      "EF-M - Canon, Micro 4/3 - Panasonic",
+    );
+  });
+
+  it("keeps the display names available for a three-mount table preview", () => {
+    const mounts = getMountDisplayNames([
+      "fd-canon",
+      "ef-canon",
+      "ef-m-canon",
+      "rf-canon",
+    ]);
+
+    expect(mounts.slice(0, 3)).toEqual([
+      "FD - Canon",
+      "EF - Canon",
+      "EF-M - Canon",
+    ]);
+    expect(mounts.length - 3).toBe(1);
+  });
+
   it("uses announcement as the release fallback and MPB as the price preference", () => {
     expect(getEffectiveDateValue(row)).toBe(
       Date.parse(row.announcedDate as string),

@@ -18,8 +18,10 @@ import { formatFocalLengthRangeDisplay } from "~/lib/mapping/focal-length-map";
 import { getItemDisplayPrice } from "~/lib/mapping/price-map";
 import {
   compareNullable,
+  formatMountNames,
   getEffectiveDateValue,
   getEffectivePrice,
+  getMountDisplayNames,
 } from "./gear-table-helpers";
 import type { GearTableRow, GearTableScope } from "./gear-table-types";
 
@@ -131,6 +133,30 @@ function GearYearCell({ row }: { row: GearTableRow }) {
   );
 }
 
+function MountNamesCell({ mountNames }: { mountNames: string[] }) {
+  const displayNames = getMountDisplayNames(mountNames);
+  const visibleNames = displayNames.slice(0, 3);
+  const remainingCount = displayNames.length - visibleNames.length;
+
+  if (!visibleNames.length) return <MutedValue>{EMPTY_VALUE}</MutedValue>;
+
+  return (
+    <MutedValue>
+      {visibleNames.join(", ")}
+      {remainingCount > 0 ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="ml-1 cursor-help font-medium">
+              [+{remainingCount}]
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>{formatMountNames(mountNames)}</TooltipContent>
+        </Tooltip>
+      ) : null}
+    </MutedValue>
+  );
+}
+
 function LensTypePill({
   isPrime,
   labels,
@@ -194,9 +220,7 @@ export function createGearTableColumns(
     sortable(
       "mountNames",
       labels.mount,
-      (row) => (
-        <MutedValue>{row.mountNames.join(", ") || EMPTY_VALUE}</MutedValue>
-      ),
+      (row) => <MountNamesCell mountNames={row.mountNames} />,
       (a, b) =>
         compareNullable(
           a.original.mountNames.join(", ") || null,
