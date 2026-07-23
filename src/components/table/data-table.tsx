@@ -42,7 +42,7 @@ export function DataTable<TData>({
   return (
     <div>
       <Table>
-        <TableHeader className="bg-background/95 supports-[backdrop-filter]:bg-background/80 sticky top-20 z-20 shadow-sm backdrop-blur">
+        <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (

@@ -22,8 +22,6 @@ TanStack Table performs only in-memory sorting of rows already loaded by the own
 
 The grid/list preference is stored under `sharply:gear-results-view` in localStorage. It defaults to grid during server render and is shared by all result surfaces in a browser.
 
-Whenever a result table is rendered, its header remains sticky below the fixed site header while scrolling.
-
 When list view is active, initial and incremental loading use `GearTableSkeleton` instead of card skeletons. It uses dark, rounded full-width row placeholders with generous vertical spacing rather than simulated cells, so its layout stays stable across table scopes and viewport widths; the rows pulse subtly and use a vertical bottom fade to keep long result loading states visually lightweight. Grid mode uses card skeletons for the same incremental requests, rather than a standalone spinner.
 
 ## Adding another surface
