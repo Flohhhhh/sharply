@@ -10,6 +10,7 @@ import {
   isPublishedGear,
   isRumoredGear,
 } from "~/lib/gear/publication-state";
+import { allowsAutoApprovalOverwrite } from "~/lib/gear/change-request-field-policy";
 import type {
   AutoApprovalDecisionMetadata,
   AutoApprovalPath,
@@ -1023,9 +1024,13 @@ function isAddOnlyProposal(
         sectionKey,
         fieldKey,
       );
+      if (isEmptyProposalValue(proposedValue)) {
+        return false;
+      }
+
       if (
-        !isEmptyProposalValue(currentValue) ||
-        isEmptyProposalValue(proposedValue)
+        !isEmptyProposalValue(currentValue) &&
+        !allowsAutoApprovalOverwrite(sectionKey, fieldKey)
       ) {
         return false;
       }
