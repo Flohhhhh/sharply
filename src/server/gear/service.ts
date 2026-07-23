@@ -15,6 +15,7 @@ import type {
   AutoApprovalDecisionMetadata,
   AutoApprovalPath,
 } from "~/lib/gear/auto-approval-reasons";
+import { getConstructionState } from "~/lib/utils";
 import {
   applyTrustedContributorProposalApproval,
   approveProposal,
