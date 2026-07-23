@@ -15,11 +15,16 @@ export function GearTableSkeleton({
   return (
     <div
       aria-hidden
-      className="space-y-px [mask-image:linear-gradient(to_bottom,black_55%,transparent_100%)]"
+      className="pointer-events-none space-y-3 [mask-image:linear-gradient(to_bottom,black_0%,black_58%,transparent_100%)] py-4 [-webkit-mask-image:linear-gradient(to_bottom,black_0%,black_58%,transparent_100%)]"
     >
-      {showHeader ? <Skeleton className="h-10 w-full rounded-none" /> : null}
+      {showHeader ? (
+        <Skeleton className="bg-muted/40 dark:bg-muted/30 h-8 w-full rounded-lg" />
+      ) : null}
       {Array.from({ length: rows }, (_, index) => (
-        <Skeleton key={index} className="h-12 w-full rounded-none" />
+        <Skeleton
+          key={index}
+          className="bg-muted/45 dark:bg-muted/35 h-11 w-full rounded-lg"
+        />
       ))}
     </div>
   );

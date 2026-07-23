@@ -31,6 +31,7 @@ import {
 } from "~/lib/browse/query";
 import type { RouteScope } from "~/lib/browse/routing";
 import { getItemDisplayPrice } from "~/lib/mapping";
+import { getPageLoadingState } from "~/lib/pagination";
 import type { BrowseListPage } from "~/types/browse";
 
 type BrowseResultsGridProps = {
@@ -182,9 +183,13 @@ function BrowseResultsGridContent({
   );
   const lastPage = pages[pages.length - 1];
   const hasMore = lastPage?.hasMore ?? false;
-  const isLoadingMore = isPending || (isValidating && rawPages.length < size);
-  const isLoadingInitial = !rawPages.length && !error;
-  const showEmpty = !items.length && !error && !isLoadingMore;
+  const { isLoadingInitial, isLoadingMore: isRequestedPageLoading } =
+    getPageLoadingState(rawPages, targetPage, isValidating, Boolean(error));
+  const isLoadingMore = isPending || isRequestedPageLoading;
+  const showEmpty =
+    !items.length && !error && !isLoadingInitial && !isLoadingMore;
+  const listLoadedPageCount =
+    view === "list" ? rawPages.filter(Boolean).length : 0;
   const total =
     pages[0]?.total ?? (shouldUseFallbackData ? initialPage.total : 0);
 
@@ -238,7 +243,15 @@ function BrowseResultsGridContent({
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [hasMore, infiniteActive, isMobile, hasReachedAutoLoadLimit, updatePage]);
+  }, [
+    hasMore,
+    infiniteActive,
+    isMobile,
+    hasReachedAutoLoadLimit,
+    listLoadedPageCount,
+    updatePage,
+    view,
+  ]);
 
   const handleLoadMore = useCallback(() => {
     if (!hasMore || isLoadingMore) return;

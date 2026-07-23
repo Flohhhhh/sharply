@@ -14,6 +14,7 @@ import {
 import { Button } from "~/components/ui/button";
 import { useIsMobile } from "~/hooks/use-mobile";
 import { getItemDisplayPrice } from "~/lib/mapping";
+import { getPageLoadingState } from "~/lib/pagination";
 import type { BrowseFeedPage } from "~/types/browse";
 
 type ReleaseFeedGridProps = {
@@ -87,8 +88,15 @@ export function ReleaseFeedGrid({
   );
   const lastPage = pages[pages.length - 1] ?? initialPage;
   const hasMore = lastPage?.hasMore ?? false;
-  const isLoadingMore = isValidating && pages.length < size;
+  const { isLoadingMore } = getPageLoadingState(
+    pages,
+    size,
+    isValidating,
+    Boolean(error),
+  );
   const showEmpty = !items.length && !error && !isValidating;
+  const listLoadedPageCount =
+    view === "list" ? pages.filter(Boolean).length : 0;
 
   useEffect(() => {
     loadingRef.current = isLoadingMore;
@@ -123,7 +131,15 @@ export function ReleaseFeedGrid({
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [hasMore, infiniteActive, setSize, isMobile, hasReachedAutoLoadLimit]);
+  }, [
+    hasMore,
+    infiniteActive,
+    setSize,
+    isMobile,
+    hasReachedAutoLoadLimit,
+    listLoadedPageCount,
+    view,
+  ]);
 
   const handleLoadMore = useCallback(() => {
     if (!hasMore || isLoadingMore) return;
