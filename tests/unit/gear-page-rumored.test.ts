@@ -10,6 +10,10 @@ process.env.OPENAI_API_KEY ??= "test-openai-key";
 const gearServiceMocks = vi.hoisted(() => ({
   fetchGearAlternatives: vi.fn(),
   fetchGearBySlug: vi.fn(),
+  fetchGearLineage: vi.fn().mockResolvedValue({
+    predecessor: null,
+    successor: null,
+  }),
   fetchNewestGearSlugs: vi.fn(),
   fetchPendingEditCountForGear: vi.fn(),
   fetchStaffVerdict: vi.fn(),

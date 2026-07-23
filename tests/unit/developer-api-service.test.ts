@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   fetchCatalog: vi.fn(),
   fetchGearBySlug: vi.fn(),
+  fetchLineage: vi.fn().mockResolvedValue(new Map()),
   fetchRandomLowCompletionGearUrl: vi.fn(),
   fetchMounts: vi.fn(),
   fetchSensorFormats: vi.fn(),
@@ -37,6 +38,7 @@ vi.mock("~/server/developer-api/data", () => ({
   createApiKeyWithinActiveLimitData: vi.fn(),
   findUsableApiKeyByHash: vi.fn(),
   fetchDeveloperCatalogData: mocks.fetchCatalog,
+  fetchDeveloperGearLineageData: mocks.fetchLineage,
   fetchDeveloperGearMountsData: mocks.fetchMounts,
   fetchDeveloperSensorFormatsData: mocks.fetchSensorFormats,
   getDeveloperAccessData: vi.fn(),
