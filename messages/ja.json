@@ -1459,6 +1459,29 @@
     "priceLowHigh": "価格: 安い順",
     "priceHighLow": "価格: 高い順"
   },
+  "gearTable": {
+    "viewMode": "表示モード",
+    "gridView": "グリッド表示",
+    "listView": "リスト表示",
+    "sortAscending": "{column} を昇順で並べ替え",
+    "sortDescending": "{column} を降順で並べ替え",
+    "noResults": "機材が見つかりません。",
+    "camera": "カメラ",
+    "lens": "レンズ",
+    "prime": "単焦点",
+    "zoom": "ズーム",
+    "columns": {
+      "name": "名前",
+      "brand": "ブランド",
+      "mount": "マウント",
+      "year": "年",
+      "weight": "重量",
+      "price": "価格",
+      "focalLength": "焦点距離",
+      "aperture": "絞り",
+      "type": "タイプ"
+    }
+  },
   "underConstructionPage": {
     "metaTitle": "工事中",
     "metaDescription": "まだ未完成の機材項目を確認し、不足しているスペックの補完に協力できます。",

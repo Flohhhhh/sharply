@@ -4,7 +4,7 @@ They test the service with mocked data calls, then check which options and resul
 This keeps the tests fast while still proving the important search wiring works.
 */
 
-import { beforeEach,describe,expect,it,vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { GearSuggestion } from "~/types/search";
 
 const searchDataMocks = vi.hoisted(() => ({
@@ -20,10 +20,15 @@ const gearDataMocks = vi.hoisted(() => ({
   fetchGearAliasesByGearIds: vi.fn(),
 }));
 
+const listingTableServiceMocks = vi.hoisted(() => ({
+  attachGearListingTableFields: vi.fn(),
+}));
+
 vi.mock("~/server/search/data", () => searchDataMocks);
 vi.mock("~/server/gear/data", () => gearDataMocks);
+vi.mock("~/server/gear/listing-table-service", () => listingTableServiceMocks);
 
-import { getSuggestions,searchGear } from "~/server/search/service";
+import { getSuggestions, searchGear } from "~/server/search/service";
 
 describe("search service high-impact behavior", () => {
   beforeEach(() => {
@@ -45,6 +50,21 @@ describe("search service high-impact behavior", () => {
     searchDataMocks.queryGearSuggestions.mockResolvedValue([]);
     searchDataMocks.queryBrandSuggestions.mockResolvedValue([]);
     gearDataMocks.fetchGearAliasesByGearIds.mockResolvedValue(new Map());
+    listingTableServiceMocks.attachGearListingTableFields.mockImplementation(
+      async (items: Array<{ id: string }>) =>
+        items.map((item) => ({
+          ...item,
+          mountNames: [],
+          sensorFormatName: null,
+          analogCaptureMedium: null,
+          weightGrams: null,
+          focalLengthMinMm: null,
+          focalLengthMaxMm: null,
+          isPrime: null,
+          maxApertureWide: null,
+          maxApertureTele: null,
+        })),
+    );
   });
 
   it("skips counting total when includeTotal is false", async () => {
@@ -59,6 +79,43 @@ describe("search service high-impact behavior", () => {
     expect(searchDataMocks.querySearchTotal).not.toHaveBeenCalled();
     expect(result.total).toBeUndefined();
     expect(result.results).toHaveLength(1);
+  });
+
+  it("returns the shared table fields alongside existing search results", async () => {
+    listingTableServiceMocks.attachGearListingTableFields.mockResolvedValueOnce(
+      [
+        {
+          id: "gear-1",
+          name: "Camera One",
+          slug: "camera-one",
+          brandName: "Nikon",
+          gearType: "CAMERA",
+          mountNames: ["Nikon Z"],
+          sensorFormatName: "Full Frame",
+          analogCaptureMedium: null,
+          weightGrams: 705,
+          focalLengthMinMm: null,
+          focalLengthMaxMm: null,
+          isPrime: null,
+          maxApertureWide: null,
+          maxApertureTele: null,
+        },
+      ],
+    );
+
+    const result = await searchGear({
+      query: "nikon",
+      sort: "relevance",
+      page: 1,
+      pageSize: 10,
+    });
+
+    expect(result.results[0]).toMatchObject({
+      mountNames: ["Nikon Z"],
+      sensorFormatName: "Full Frame",
+      analogCaptureMedium: null,
+      weightGrams: 705,
+    });
   });
 
   it("passes include flags for mount, sensor, lens, and analog filters", async () => {
@@ -158,12 +215,7 @@ describe("search service high-impact behavior", () => {
       },
     ]);
     gearDataMocks.fetchGearAliasesByGearIds.mockResolvedValue(
-      new Map([
-        [
-          "gear-1",
-          [{ region: "JP", name: "Lumix GF9" }],
-        ],
-      ]),
+      new Map([["gear-1", [{ region: "JP", name: "Lumix GF9" }]]]),
     );
 
     const suggestions = await getSuggestions("Lumix GF9", 8, "JP");
@@ -191,12 +243,7 @@ describe("search service high-impact behavior", () => {
       },
     ]);
     gearDataMocks.fetchGearAliasesByGearIds.mockResolvedValue(
-      new Map([
-        [
-          "gear-1",
-          [{ region: "US", name: "Rokinon AF 35mm F1.8" }],
-        ],
-      ]),
+      new Map([["gear-1", [{ region: "US", name: "Rokinon AF 35mm F1.8" }]]]),
     );
 
     const suggestions = await getSuggestions("Rokinon AF 35mm", 8, "US");
@@ -223,12 +270,7 @@ describe("search service high-impact behavior", () => {
       },
     ]);
     gearDataMocks.fetchGearAliasesByGearIds.mockResolvedValue(
-      new Map([
-        [
-          "gear-1",
-          [{ region: "EU", name: "Canon EOS 1200D" }],
-        ],
-      ]),
+      new Map([["gear-1", [{ region: "EU", name: "Canon EOS 1200D" }]]]),
     );
 
     const suggestions = await getSuggestions("Canon EOS 1200D", 8, "GLOBAL");
@@ -256,12 +298,7 @@ describe("search service high-impact behavior", () => {
       },
     ]);
     gearDataMocks.fetchGearAliasesByGearIds.mockResolvedValue(
-      new Map([
-        [
-          "gear-1",
-          [{ region: "EU", name: "Canon EOS 700D" }],
-        ],
-      ]),
+      new Map([["gear-1", [{ region: "EU", name: "Canon EOS 700D" }]]]),
     );
 
     const suggestions = await getSuggestions("eos 700d", 8, "GLOBAL");
@@ -287,12 +324,7 @@ describe("search service high-impact behavior", () => {
       },
     ]);
     gearDataMocks.fetchGearAliasesByGearIds.mockResolvedValue(
-      new Map([
-        [
-          "gear-1",
-          [{ region: "JP", name: "Lumix GF9" }],
-        ],
-      ]),
+      new Map([["gear-1", [{ region: "JP", name: "Lumix GF9" }]]]),
     );
 
     const suggestions = await getSuggestions("lumix", 8, "JP");
@@ -316,12 +348,7 @@ describe("search service high-impact behavior", () => {
       },
     ]);
     gearDataMocks.fetchGearAliasesByGearIds.mockResolvedValue(
-      new Map([
-        [
-          "gear-1",
-          [{ region: "JP", name: "Canon EOS Kiss X9i" }],
-        ],
-      ]),
+      new Map([["gear-1", [{ region: "JP", name: "Canon EOS Kiss X9i" }]]]),
     );
 
     const suggestions = await getSuggestions("eos kiss", 8, "JP");
@@ -347,12 +374,7 @@ describe("search service high-impact behavior", () => {
       },
     ]);
     gearDataMocks.fetchGearAliasesByGearIds.mockResolvedValue(
-      new Map([
-        [
-          "gear-1",
-          [{ region: "EU", name: "Canon EOS 1200D" }],
-        ],
-      ]),
+      new Map([["gear-1", [{ region: "EU", name: "Canon EOS 1200D" }]]]),
     );
 
     const suggestions = await getSuggestions("1200", 8, "GLOBAL");
@@ -522,12 +544,7 @@ describe("search service high-impact behavior", () => {
       },
     ]);
     gearDataMocks.fetchGearAliasesByGearIds.mockResolvedValue(
-      new Map([
-        [
-          "gear-1",
-          [{ region: "JP", name: "Lumix GF9" }],
-        ],
-      ]),
+      new Map([["gear-1", [{ region: "JP", name: "Lumix GF9" }]]]),
     );
 
     const suggestions = await getSuggestions("lumix", 8, "JP");
@@ -572,11 +589,9 @@ describe("search service high-impact behavior", () => {
         suggestion.kind === "camera" || suggestion.kind === "lens",
     );
 
-    expect(gearSuggestions.map((suggestion) => suggestion.isBestMatch)).toEqual([
-      true,
-      false,
-      false,
-    ]);
+    expect(gearSuggestions.map((suggestion) => suggestion.isBestMatch)).toEqual(
+      [true, false, false],
+    );
   });
 
   it("prepends a compare smart action when both sides resolve strongly", async () => {

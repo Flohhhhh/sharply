@@ -1,15 +1,24 @@
 "use client";
 
-import { Loader } from "lucide-react";
-import { useCallback,useEffect,useMemo,useRef,useState } from "react";
+import { ClockIcon } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useSWRInfinite from "swr/infinite";
-import { GearCard } from "~/components/gear/gear-card";
+import { GearCard, GearCardSkeleton } from "~/components/gear/gear-card";
+import {
+  GearTable,
+  GearTableSkeleton,
+  GearViewToggle,
+  toGearTableRows,
+  useGearResultsView,
+} from "~/components/table";
 import { Button } from "~/components/ui/button";
 import { useIsMobile } from "~/hooks/use-mobile";
 import { getItemDisplayPrice } from "~/lib/mapping";
+import { getPageLoadingState } from "~/lib/pagination";
 import type { BrowseFeedPage } from "~/types/browse";
 
 type ReleaseFeedGridProps = {
+  heading: string;
   initialPage: BrowseFeedPage;
   brandSlug?: string;
   trendingSlugs?: string[];
@@ -17,6 +26,10 @@ type ReleaseFeedGridProps = {
 
 const PAGE_SIZE = 12;
 const MAX_AUTO_SCROLL_LOADS = 5;
+const APPENDED_CARD_SKELETON_KEYS = Array.from(
+  { length: 24 },
+  (_, index) => `release-feed-more-skeleton-${index + 1}`,
+);
 
 const fetcher = async (url: string) => {
   const res = await fetch(url, { cache: "no-store" });
@@ -27,16 +40,20 @@ const fetcher = async (url: string) => {
 };
 
 export function ReleaseFeedGrid({
+  heading,
   initialPage,
   brandSlug,
   trendingSlugs,
 }: ReleaseFeedGridProps) {
   const isMobile = useIsMobile();
   const [infiniteActive, setInfiniteActive] = useState(false);
+  const { view, setView } = useGearResultsView();
   const [autoScrollLoads, setAutoScrollLoads] = useState(0);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const loadingRef = useRef(false);
+  const requestedPageRef = useRef<number | null>(null);
   const autoScrollLoadsRef = useRef(0);
+  const [isRequestingMore, setIsRequestingMore] = useState(false);
 
   const buildKey = useCallback(
     (offset: number) => {
@@ -72,21 +89,50 @@ export function ReleaseFeedGrid({
     () => pages.flatMap((page) => page?.items ?? []),
     [pages],
   );
+  const tableRows = useMemo(() => toGearTableRows(items), [items]);
   const trendingSet = useMemo(
     () => new Set(trendingSlugs ?? []),
     [trendingSlugs],
   );
   const lastPage = pages[pages.length - 1] ?? initialPage;
   const hasMore = lastPage?.hasMore ?? false;
-  const isLoadingMore = isValidating && pages.length < size;
+  const { isLoadingMore: isRequestedPageLoading } = getPageLoadingState(
+    pages,
+    size,
+    isValidating,
+    Boolean(error),
+  );
+  const isLoadingMore = isRequestingMore || isRequestedPageLoading;
   const showEmpty = !items.length && !error && !isValidating;
+  const listLoadedPageCount =
+    view === "list" ? pages.filter(Boolean).length : 0;
 
   useEffect(() => {
     loadingRef.current = isLoadingMore;
   }, [isLoadingMore]);
 
+  useEffect(() => {
+    const requestedPage = requestedPageRef.current;
+    if (!requestedPage || (!error && !pages[requestedPage - 1])) return;
+
+    requestedPageRef.current = null;
+    loadingRef.current = false;
+    setIsRequestingMore(false);
+  }, [error, pages]);
+
   // Disable infinite scroll on mobile
   const hasReachedAutoLoadLimit = autoScrollLoads >= MAX_AUTO_SCROLL_LOADS;
+
+  const requestNextPage = useCallback(() => {
+    if (!hasMore || loadingRef.current) return false;
+
+    const nextPage = size + 1;
+    loadingRef.current = true;
+    requestedPageRef.current = nextPage;
+    setIsRequestingMore(true);
+    void setSize(nextPage);
+    return true;
+  }, [hasMore, setSize, size]);
 
   useEffect(() => {
     if (isMobile || !infiniteActive || !hasMore || hasReachedAutoLoadLimit)
@@ -99,14 +145,15 @@ export function ReleaseFeedGrid({
       (entries) => {
         const entry = entries[0];
         if (!entry) return;
-        if (entry.isIntersecting && !loadingRef.current) {
+        if (entry.isIntersecting) {
+          if (!requestNextPage()) return;
+
           const nextAutoLoadCount = autoScrollLoadsRef.current + 1;
           autoScrollLoadsRef.current = nextAutoLoadCount;
           setAutoScrollLoads(nextAutoLoadCount);
           if (nextAutoLoadCount >= MAX_AUTO_SCROLL_LOADS) {
             setInfiniteActive(false);
           }
-          void setSize((current) => current + 1);
         }
       },
       { rootMargin: "200px 0px" },
@@ -114,23 +161,38 @@ export function ReleaseFeedGrid({
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [hasMore, infiniteActive, setSize, isMobile, hasReachedAutoLoadLimit]);
+  }, [
+    hasMore,
+    infiniteActive,
+    isMobile,
+    hasReachedAutoLoadLimit,
+    listLoadedPageCount,
+    requestNextPage,
+    view,
+  ]);
 
   const handleLoadMore = useCallback(() => {
-    if (!hasMore || isLoadingMore) return;
+    if (loadingRef.current) return;
     // On desktop, enable infinite scroll after first manual load
     if (!isMobile) {
       setInfiniteActive(true);
       autoScrollLoadsRef.current = 0;
       setAutoScrollLoads(0);
     }
-    void setSize((current) => current + 1);
-  }, [hasMore, isLoadingMore, setSize, isMobile]);
+    requestNextPage();
+  }, [isMobile, requestNextPage]);
 
   const errorText = error ? "Unable to load more gear right now." : null;
 
   return (
     <div className="space-y-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="flex items-center gap-2 text-2xl font-semibold">
+          <ClockIcon className="text-muted-foreground size-5" />
+          {heading}
+        </h2>
+        <GearViewToggle view={view} onViewChange={setView} />
+      </div>
       {errorText ? (
         <div className="text-destructive text-sm">{errorText}</div>
       ) : null}
@@ -141,29 +203,46 @@ export function ReleaseFeedGrid({
         </div>
       ) : null}
 
-      <div className="grid w-full grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
-        {items.map((g) => (
-          <GearCard
-            key={g.id}
-            href={`/gear/${g.slug}`}
-            slug={g.slug}
-            name={g.name}
-            regionalAliases={g.regionalAliases}
-            brandName={g.brandName ?? undefined}
-            thumbnailUrl={g.thumbnailUrl ?? undefined}
-            gearType={g.gearType}
-            isTrending={trendingSet.has(g.slug)}
-            releaseDate={g.releaseDate}
-            releaseDatePrecision={g.releaseDatePrecision}
-            announcedDate={g.announcedDate}
-            announceDatePrecision={g.announceDatePrecision}
-            priceText={getItemDisplayPrice(g, {
-              style: "short",
-              padWholeAmounts: true,
-            })}
-          />
-        ))}
-      </div>
+      {view === "list" ? (
+        <GearTable rows={tableRows} />
+      ) : (
+        <div className="grid w-full grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
+          {items.map((g) => (
+            <GearCard
+              key={g.id}
+              href={`/gear/${g.slug}`}
+              slug={g.slug}
+              name={g.name}
+              regionalAliases={g.regionalAliases}
+              brandName={g.brandName ?? undefined}
+              thumbnailUrl={g.thumbnailUrl ?? undefined}
+              gearType={g.gearType}
+              isTrending={trendingSet.has(g.slug)}
+              releaseDate={g.releaseDate}
+              releaseDatePrecision={g.releaseDatePrecision}
+              announcedDate={g.announcedDate}
+              announceDatePrecision={g.announceDatePrecision}
+              priceText={getItemDisplayPrice(g, {
+                style: "short",
+                padWholeAmounts: true,
+              })}
+            />
+          ))}
+        </div>
+      )}
+
+      {isLoadingMore ? (
+        view === "list" ? (
+          <GearTableSkeleton rows={6} showHeader={false} />
+        ) : (
+          <div className="relative grid w-full grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
+            <div className="from-background absolute right-0 bottom-0 left-0 z-10 h-full bg-linear-to-t to-transparent" />
+            {APPENDED_CARD_SKELETON_KEYS.map((key) => (
+              <GearCardSkeleton key={key} />
+            ))}
+          </div>
+        )
+      ) : null}
 
       {/* Always show button when more items available, or when infinite scroll is not active on desktop */}
       {hasMore && (isMobile || !infiniteActive) ? (
@@ -174,14 +253,7 @@ export function ReleaseFeedGrid({
             onClick={handleLoadMore}
             disabled={isLoadingMore}
           >
-            {isLoadingMore ? (
-              <>
-                <Loader className="mr-2 h-4 w-4 animate-spin" />
-                Loading...
-              </>
-            ) : (
-              "Load more"
-            )}
+            {isLoadingMore ? "Loading..." : "Load more"}
           </Button>
         </div>
       ) : null}
@@ -189,12 +261,6 @@ export function ReleaseFeedGrid({
       {/* Only show infinite scroll sentinel on desktop when active */}
       {!isMobile && infiniteActive ? (
         <div className="flex flex-col items-center gap-2">
-          {isLoadingMore ? (
-            <div className="text-muted-foreground flex items-center gap-2 text-sm">
-              <Loader className="h-4 w-4 animate-spin" />
-              Loading more gear...
-            </div>
-          ) : null}
           <div ref={sentinelRef} className="h-6 w-full" />
         </div>
       ) : null}

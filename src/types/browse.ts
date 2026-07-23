@@ -14,6 +14,15 @@ export type BrowseFeedItem = {
   announceDatePrecision: "DAY" | "MONTH" | "YEAR" | null;
   msrpNowUsdCents: number | null;
   mpbMaxPriceUsdCents: number | null;
+  mountNames: string[];
+  sensorFormatName: string | null;
+  analogCaptureMedium: string | null;
+  weightGrams: number | null;
+  focalLengthMinMm: number | null;
+  focalLengthMaxMm: number | null;
+  isPrime: boolean | null;
+  maxApertureWide: number | null;
+  maxApertureTele: number | null;
 };
 
 export type BrowseFeedPage = {

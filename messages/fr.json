@@ -1459,6 +1459,29 @@
     "priceLowHigh": "Prix : croissant",
     "priceHighLow": "Prix : décroissant"
   },
+  "gearTable": {
+    "viewMode": "Mode d’affichage",
+    "gridView": "Vue en grille",
+    "listView": "Vue en liste",
+    "sortAscending": "Trier {column} par ordre croissant",
+    "sortDescending": "Trier {column} par ordre décroissant",
+    "noResults": "Aucun équipement trouvé.",
+    "camera": "Appareil photo",
+    "lens": "Objectif",
+    "prime": "Focale fixe",
+    "zoom": "Zoom",
+    "columns": {
+      "name": "Nom",
+      "brand": "Marque",
+      "mount": "Monture",
+      "year": "Année",
+      "weight": "Poids",
+      "price": "Prix",
+      "focalLength": "Focale",
+      "aperture": "Ouverture",
+      "type": "Type"
+    }
+  },
   "underConstructionPage": {
     "metaTitle": "En construction",
     "metaDescription": "Voyez quels éléments de matériel sont encore incomplets et aidez à compléter les spécifications manquantes.",

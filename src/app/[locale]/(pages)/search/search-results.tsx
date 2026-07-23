@@ -1,7 +1,13 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { GearCard,GearCardSkeleton } from "~/components/gear/gear-card";
-import { Empty,EmptyDescription,EmptyTitle } from "~/components/ui/empty";
+import { GearCard, GearCardSkeleton } from "~/components/gear/gear-card";
+import {
+  GearTable,
+  GearTableSkeleton,
+  toGearTableRows,
+  type GearResultsView,
+} from "~/components/table";
+import { Empty, EmptyDescription, EmptyTitle } from "~/components/ui/empty";
 import { getItemDisplayPrice } from "~/lib/mapping/price-map";
 import type { SearchResult } from "~/types/search-results";
 
@@ -21,6 +27,7 @@ type SearchResultsProps = {
   trendingSlugs?: string[];
   isLoadingMore?: boolean;
   isReachingEnd?: boolean;
+  view: GearResultsView;
 };
 export function SearchResults(props: SearchResultsProps) {
   const {
@@ -30,6 +37,7 @@ export function SearchResults(props: SearchResultsProps) {
     trendingSlugs = [],
     isLoadingMore = false,
     isReachingEnd = false,
+    view,
   } = props;
   const trendingSet = new Set(trendingSlugs);
 
@@ -40,6 +48,9 @@ export function SearchResults(props: SearchResultsProps) {
   }, [error]);
 
   if (isLoading) {
+    if (view === "list") {
+      return <GearTableSkeleton />;
+    }
     return (
       <div className="relative grid grid-cols-1 gap-1 pt-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <div className="from-background absolute right-0 bottom-0 left-0 z-10 h-full bg-linear-to-t to-transparent" />
@@ -61,38 +72,47 @@ export function SearchResults(props: SearchResultsProps) {
 
   return (
     <div className="space-y-4 pt-4">
-      <div className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {results.map((item) => (
-          <GearCard
-            key={item.id}
-            href={`/gear/${item.slug}`}
-            slug={item.slug}
-            name={item.name}
-            regionalAliases={item.regionalAliases}
-            brandName={item.brandName}
-            thumbnailUrl={item.thumbnailUrl}
-            isTrending={trendingSet.has(item.slug)}
-            priceText={getItemDisplayPrice(
-              {
-                msrpNowUsdCents: item.msrpNowUsdCents ?? null,
-                mpbMaxPriceUsdCents: item.mpbMaxPriceUsdCents ?? null,
-              },
-              { style: "short" },
-            )}
-            releaseDate={item.releaseDate ?? null}
-            releaseDatePrecision={(item.releaseDatePrecision as any) ?? null}
-            announcedDate={item.announcedDate ?? null}
-            announceDatePrecision={(item.announceDatePrecision as any) ?? null}
-          />
-        ))}
-      </div>
-      {isLoadingMore && (
+      {view === "list" ? (
+        <GearTable rows={toGearTableRows(results)} />
+      ) : (
         <div className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {LOADING_SKELETON_KEYS.map((key) => (
-            <GearCardSkeleton key={key} />
+          {results.map((item) => (
+            <GearCard
+              key={item.id}
+              href={`/gear/${item.slug}`}
+              slug={item.slug}
+              name={item.name}
+              regionalAliases={item.regionalAliases}
+              brandName={item.brandName}
+              thumbnailUrl={item.thumbnailUrl}
+              isTrending={trendingSet.has(item.slug)}
+              priceText={getItemDisplayPrice(
+                {
+                  msrpNowUsdCents: item.msrpNowUsdCents ?? null,
+                  mpbMaxPriceUsdCents: item.mpbMaxPriceUsdCents ?? null,
+                },
+                { style: "short" },
+              )}
+              releaseDate={item.releaseDate ?? null}
+              releaseDatePrecision={(item.releaseDatePrecision as any) ?? null}
+              announcedDate={item.announcedDate ?? null}
+              announceDatePrecision={
+                (item.announceDatePrecision as any) ?? null
+              }
+            />
           ))}
         </div>
       )}
+      {isLoadingMore &&
+        (view === "list" ? (
+          <GearTableSkeleton rows={6} showHeader={false} />
+        ) : (
+          <div className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {LOADING_SKELETON_KEYS.map((key) => (
+              <GearCardSkeleton key={key} />
+            ))}
+          </div>
+        ))}
       {isReachingEnd && results.length > 0 && (
         <div className="text-muted-foreground py-24 text-center text-sm">
           You have reached the end.

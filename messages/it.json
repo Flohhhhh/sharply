@@ -1459,6 +1459,29 @@
     "priceLowHigh": "Prezzo: basso → alto",
     "priceHighLow": "Prezzo: alto → basso"
   },
+  "gearTable": {
+    "viewMode": "Modalità di visualizzazione",
+    "gridView": "Vista griglia",
+    "listView": "Vista elenco",
+    "sortAscending": "Ordina {column} in ordine crescente",
+    "sortDescending": "Ordina {column} in ordine decrescente",
+    "noResults": "Nessuna attrezzatura trovata.",
+    "camera": "Fotocamera",
+    "lens": "Obiettivo",
+    "prime": "Fisso",
+    "zoom": "Zoom",
+    "columns": {
+      "name": "Nome",
+      "brand": "Marca",
+      "mount": "Attacco",
+      "year": "Anno",
+      "weight": "Peso",
+      "price": "Prezzo",
+      "focalLength": "Lunghezza focale",
+      "aperture": "Apertura",
+      "type": "Tipo"
+    }
+  },
   "underConstructionPage": {
     "metaTitle": "In costruzione",
     "metaDescription": "Scopri quali schede attrezzatura sono ancora incomplete e aiuta a completare le specifiche mancanti.",

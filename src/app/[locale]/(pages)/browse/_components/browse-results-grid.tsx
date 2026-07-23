@@ -1,9 +1,8 @@
 "use client";
 
 import { mergeSearchParams } from "@utils/url";
-import { Loader } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { usePathname,useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   Suspense,
   useCallback,
@@ -14,7 +13,14 @@ import {
   useTransition,
 } from "react";
 import useSWRInfinite from "swr/infinite";
-import { GearCard,GearCardSkeleton } from "~/components/gear/gear-card";
+import { GearCard, GearCardSkeleton } from "~/components/gear/gear-card";
+import {
+  GearTable,
+  GearTableSkeleton,
+  GearViewToggle,
+  toGearTableRows,
+  useGearResultsView,
+} from "~/components/table";
 import { Button } from "~/components/ui/button";
 import { useIsMobile } from "~/hooks/use-mobile";
 import {
@@ -24,6 +30,7 @@ import {
 } from "~/lib/browse/query";
 import type { RouteScope } from "~/lib/browse/routing";
 import { getItemDisplayPrice } from "~/lib/mapping";
+import { getPageLoadingState } from "~/lib/pagination";
 import type { BrowseListPage } from "~/types/browse";
 
 type BrowseResultsGridProps = {
@@ -46,6 +53,10 @@ const BROWSE_RESULTS_SKELETON_KEYS = Array.from(
   { length: 12 },
   (_, index) => `browse-results-skeleton-${index + 1}`,
 );
+const BROWSE_LOADING_SKELETON_KEYS = Array.from(
+  { length: 24 },
+  (_, index) => `browse-results-loading-${index + 1}`,
+);
 
 export function BrowseResultsGrid({
   initialPage,
@@ -53,13 +64,18 @@ export function BrowseResultsGrid({
   scope,
   trendingSlugs,
 }: BrowseResultsGridProps) {
+  const { view, setView } = useGearResultsView();
   return (
-    <Suspense fallback={<BrowseResultsGridFallback />}>
+    <Suspense
+      fallback={<BrowseResultsGridFallback scope={scope} view={view} />}
+    >
       <BrowseResultsGridContent
         initialPage={initialPage}
         brandName={brandName}
         scope={scope}
         trendingSlugs={trendingSlugs}
+        view={view}
+        setView={setView}
       />
     </Suspense>
   );
@@ -70,7 +86,9 @@ function BrowseResultsGridContent({
   brandName,
   scope,
   trendingSlugs,
-}: BrowseResultsGridProps) {
+  view,
+  setView,
+}: BrowseResultsGridProps & ReturnType<typeof useGearResultsView>) {
   const t = useTranslations("browsePage");
   const isMobile = useIsMobile();
   const rawPathname = usePathname();
@@ -81,7 +99,9 @@ function BrowseResultsGridContent({
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const currentPageRef = useRef(1);
   const loadingRef = useRef(false);
+  const requestedPageRef = useRef<number | null>(null);
   const autoScrollLoadsRef = useRef(0);
+  const [isRequestingMore, setIsRequestingMore] = useState(false);
   const searchParamsString = searchParams.toString();
 
   const filters = useMemo(
@@ -161,21 +181,37 @@ function BrowseResultsGridContent({
     () => pages.flatMap((page) => page?.items ?? []),
     [pages],
   );
+  const tableRows = useMemo(() => toGearTableRows(items), [items]);
   const trendingSet = useMemo(
     () => new Set(trendingSlugs ?? []),
     [trendingSlugs],
   );
   const lastPage = pages[pages.length - 1];
   const hasMore = lastPage?.hasMore ?? false;
-  const isLoadingMore = isPending || (isValidating && rawPages.length < size);
-  const isLoadingInitial = !rawPages.length && !error;
-  const showEmpty = !items.length && !error && !isLoadingMore;
+  const { isLoadingInitial, isLoadingMore: isRequestedPageLoading } =
+    getPageLoadingState(rawPages, targetPage, isValidating, Boolean(error));
+  const isLoadingMore =
+    !isLoadingInitial &&
+    (isRequestingMore || isPending || isRequestedPageLoading);
+  const showEmpty =
+    !items.length && !error && !isLoadingInitial && !isLoadingMore;
+  const listLoadedPageCount =
+    view === "list" ? rawPages.filter(Boolean).length : 0;
   const total =
     pages[0]?.total ?? (shouldUseFallbackData ? initialPage.total : 0);
 
   useEffect(() => {
     loadingRef.current = isLoadingMore;
   }, [isLoadingMore]);
+
+  useEffect(() => {
+    const requestedPage = requestedPageRef.current;
+    if (!requestedPage || (!error && !rawPages[requestedPage - 1])) return;
+
+    requestedPageRef.current = null;
+    loadingRef.current = false;
+    setIsRequestingMore(false);
+  }, [error, rawPages]);
 
   useEffect(() => {
     currentPageRef.current = targetPage;
@@ -197,6 +233,19 @@ function BrowseResultsGridContent({
 
   const hasReachedAutoLoadLimit = autoScrollLoads >= MAX_AUTO_SCROLL_LOADS;
 
+  const requestNextPage = useCallback(
+    (nextPage: number) => {
+      if (!hasMore || loadingRef.current) return false;
+
+      loadingRef.current = true;
+      requestedPageRef.current = nextPage;
+      setIsRequestingMore(true);
+      updatePage(nextPage);
+      return true;
+    },
+    [hasMore, updatePage],
+  );
+
   useEffect(() => {
     if (isMobile || !infiniteActive || !hasMore || hasReachedAutoLoadLimit)
       return;
@@ -208,14 +257,16 @@ function BrowseResultsGridContent({
       (entries) => {
         const entry = entries[0];
         if (!entry) return;
-        if (entry.isIntersecting && !loadingRef.current) {
+        if (entry.isIntersecting) {
+          const nextPage = currentPageRef.current + 1;
+          if (!requestNextPage(nextPage)) return;
+
           const nextAutoLoadCount = autoScrollLoadsRef.current + 1;
           autoScrollLoadsRef.current = nextAutoLoadCount;
           setAutoScrollLoads(nextAutoLoadCount);
           if (nextAutoLoadCount >= MAX_AUTO_SCROLL_LOADS) {
             setInfiniteActive(false);
           }
-          updatePage(currentPageRef.current + 1);
         }
       },
       { rootMargin: "200px 0px" },
@@ -223,66 +274,102 @@ function BrowseResultsGridContent({
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [hasMore, infiniteActive, isMobile, hasReachedAutoLoadLimit, updatePage]);
+  }, [
+    hasMore,
+    infiniteActive,
+    isMobile,
+    hasReachedAutoLoadLimit,
+    listLoadedPageCount,
+    requestNextPage,
+    view,
+  ]);
 
   const handleLoadMore = useCallback(() => {
-    if (!hasMore || isLoadingMore) return;
+    if (loadingRef.current) return;
     if (!isMobile) {
       setInfiniteActive(true);
       autoScrollLoadsRef.current = 0;
       setAutoScrollLoads(0);
     }
-    updatePage(targetPage + 1);
-  }, [hasMore, isLoadingMore, isMobile, targetPage, updatePage]);
+    requestNextPage(targetPage + 1);
+  }, [isMobile, requestNextPage, targetPage]);
 
   const errorText = error ? t("loadError") : null;
 
   return (
     <div className="space-y-4">
-      <p className="text-muted-foreground text-sm">
-        {isLoadingInitial
-          ? t("loadingResults")
-          : t("showingResults", { count: total })}
-      </p>
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-muted-foreground text-sm">
+          {isLoadingInitial
+            ? t("loadingResults")
+            : t("showingResults", { count: total })}
+        </p>
+        <GearViewToggle view={view} onViewChange={setView} />
+      </div>
 
       {errorText ? (
         <div className="text-destructive text-sm">{errorText}</div>
       ) : null}
 
       {showEmpty ? (
-        <div className="text-muted-foreground text-sm">
-          {t("noGearFound")}
-        </div>
+        <div className="text-muted-foreground text-sm">{t("noGearFound")}</div>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
-        {isLoadingInitial
-          ? BROWSE_RESULTS_SKELETON_KEYS.map((key) => (
+      {view === "list" && isLoadingInitial ? (
+        <GearTableSkeleton
+          scope={
+            scope.categorySlug === "cameras"
+              ? "camera"
+              : scope.categorySlug === "lenses"
+                ? "lens"
+                : "mixed"
+          }
+        />
+      ) : view === "list" ? (
+        <GearTable rows={tableRows} />
+      ) : (
+        <div className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
+          {isLoadingInitial
+            ? BROWSE_RESULTS_SKELETON_KEYS.map((key) => (
+                <GearCardSkeleton key={key} />
+              ))
+            : null}
+          {items.map((g) => (
+            <GearCard
+              key={g.id}
+              href={`/gear/${g.slug}`}
+              slug={g.slug}
+              name={g.name}
+              regionalAliases={g.regionalAliases}
+              brandName={g.brandName ?? brandName}
+              thumbnailUrl={g.thumbnailUrl ?? undefined}
+              gearType={g.gearType ?? undefined}
+              isTrending={trendingSet.has(g.slug)}
+              releaseDate={g.releaseDate}
+              releaseDatePrecision={g.releaseDatePrecision}
+              announcedDate={g.announcedDate}
+              announceDatePrecision={g.announceDatePrecision}
+              priceText={getItemDisplayPrice(g, {
+                style: "short",
+                padWholeAmounts: true,
+              })}
+            />
+          ))}
+        </div>
+      )}
+
+      {isLoadingMore ? (
+        view === "list" ? (
+          <GearTableSkeleton rows={6} showHeader={false} />
+        ) : (
+          <div className="relative grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
+            <div className="from-background absolute right-0 bottom-0 left-0 z-10 h-full bg-linear-to-t to-transparent" />
+            {BROWSE_LOADING_SKELETON_KEYS.map((key) => (
               <GearCardSkeleton key={key} />
-            ))
-          : null}
-        {items.map((g) => (
-          <GearCard
-            key={g.id}
-            href={`/gear/${g.slug}`}
-            slug={g.slug}
-            name={g.name}
-            regionalAliases={g.regionalAliases}
-            brandName={g.brandName ?? brandName}
-            thumbnailUrl={g.thumbnailUrl ?? undefined}
-            gearType={g.gearType ?? undefined}
-            isTrending={trendingSet.has(g.slug)}
-            releaseDate={g.releaseDate}
-            releaseDatePrecision={g.releaseDatePrecision}
-            announcedDate={g.announcedDate}
-            announceDatePrecision={g.announceDatePrecision}
-            priceText={getItemDisplayPrice(g, {
-              style: "short",
-              padWholeAmounts: true,
-            })}
-          />
-        ))}
-      </div>
+            ))}
+          </div>
+        )
+      ) : null}
 
       {hasMore && (isMobile || !infiniteActive) ? (
         <div className="flex justify-center">
@@ -292,26 +379,13 @@ function BrowseResultsGridContent({
             onClick={handleLoadMore}
             disabled={isLoadingMore}
           >
-            {isLoadingMore ? (
-              <>
-                <Loader className="mr-2 h-4 w-4 animate-spin" />
-                {t("loading")}
-              </>
-            ) : (
-              t("loadMore")
-            )}
+            {isLoadingMore ? t("loading") : t("loadMore")}
           </Button>
         </div>
       ) : null}
 
       {!isMobile && infiniteActive ? (
         <div className="flex flex-col items-center gap-2">
-          {isLoadingMore ? (
-            <div className="text-muted-foreground flex items-center gap-2 text-sm">
-              <Loader className="h-4 w-4 animate-spin" />
-              {t("loadingMoreGear")}
-            </div>
-          ) : null}
           <div ref={sentinelRef} className="h-6 w-full" />
         </div>
       ) : null}
@@ -319,16 +393,33 @@ function BrowseResultsGridContent({
   );
 }
 
-function BrowseResultsGridFallback() {
+function BrowseResultsGridFallback({
+  scope,
+  view,
+}: Pick<BrowseResultsGridProps, "scope"> & {
+  view: ReturnType<typeof useGearResultsView>["view"];
+}) {
   const t = useTranslations("browsePage");
   return (
     <div className="space-y-4">
       <p className="text-muted-foreground text-sm">{t("loadingResults")}</p>
-      <div className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
-        {BROWSE_RESULTS_SKELETON_KEYS.map((key) => (
-          <GearCardSkeleton key={key} />
-        ))}
-      </div>
+      {view === "list" ? (
+        <GearTableSkeleton
+          scope={
+            scope.categorySlug === "cameras"
+              ? "camera"
+              : scope.categorySlug === "lenses"
+                ? "lens"
+                : "mixed"
+          }
+        />
+      ) : (
+        <div className="grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3">
+          {BROWSE_RESULTS_SKELETON_KEYS.map((key) => (
+            <GearCardSkeleton key={key} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

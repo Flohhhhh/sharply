@@ -1,11 +1,12 @@
 "use client";
 
-import { RefreshCcwDot,SearchIcon } from "lucide-react";
+import { RefreshCcwDot, SearchIcon } from "lucide-react";
 import { useQueryState } from "nuqs";
-import { useEffect,useMemo,useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import useSwr from "swr";
 import useSWRInfinite from "swr/infinite";
 import { SortSelect } from "~/components/search/sort-select";
+import { GearViewToggle, useGearResultsView } from "~/components/table";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Spinner } from "~/components/ui/spinner";
@@ -32,6 +33,7 @@ type SearchClientProps = {
 };
 
 export function SearchClient({ initialPage }: SearchClientProps) {
+  const { view, setView } = useGearResultsView();
   const [q, setQ] = useQueryState("q");
   const [sort] = useQueryState("sort");
   const [brand, setBrand] = useQueryState("brand");
@@ -131,17 +133,20 @@ export function SearchClient({ initialPage }: SearchClientProps) {
     megapixelsMax,
   ]);
 
-  const { data, error, size, setSize } = useSWRInfinite<
-    SearchResponse
-  >(getKey, fetcher, {
-    initialSize: 1,
-    revalidateFirstPage: true,
-    fallbackData:
-      !debouncedQ && noFiltersActive && initialPage ? [initialPage] : undefined,
-  });
+  const { data, error, size, setSize } = useSWRInfinite<SearchResponse>(
+    getKey,
+    fetcher,
+    {
+      initialSize: 1,
+      revalidateFirstPage: true,
+      fallbackData:
+        !debouncedQ && noFiltersActive && initialPage
+          ? [initialPage]
+          : undefined,
+    },
+  );
 
-  const flattenedResults =
-    data?.flatMap((page) => page?.results ?? []) ?? [];
+  const flattenedResults = data?.flatMap((page) => page?.results ?? []) ?? [];
   const latestPage = data?.at?.(-1) ?? data?.[data.length - 1];
   const firstPage = data?.[0];
   // const totalPages = firstPage?.totalPages ?? latestPage?.totalPages ?? 0;
@@ -150,11 +155,10 @@ export function SearchClient({ initialPage }: SearchClientProps) {
   const isLoadingInitial = !data && !error;
   const isLoadingMore =
     isLoadingInitial || (size > 0 && typeof data?.[size - 1] === "undefined");
-  const isReachingEnd =
-    data?.length
-      ? (latestPage?.results?.length ?? 0) < PAGE_SIZE ||
-        (totalCount ? flattenedResults.length >= totalCount : false)
-      : false;
+  const isReachingEnd = data?.length
+    ? (latestPage?.results?.length ?? 0) < PAGE_SIZE ||
+      (totalCount ? flattenedResults.length >= totalCount : false)
+    : false;
 
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -229,7 +233,10 @@ export function SearchClient({ initialPage }: SearchClientProps) {
               Reset filters
             </Button>
           </div>
-          <SortSelect />
+          <div className="flex items-center gap-2">
+            <GearViewToggle view={view} onViewChange={setView} />
+            <SortSelect />
+          </div>
         </div>
       </section>
 
@@ -242,11 +249,10 @@ export function SearchClient({ initialPage }: SearchClientProps) {
             results={flattenedResults}
             isLoading={isLoadingInitial}
             error={error}
-            trendingSlugs={
-              trendingData?.items?.map((item) => item.slug) ?? []
-            }
+            trendingSlugs={trendingData?.items?.map((item) => item.slug) ?? []}
             isLoadingMore={isLoadingMore}
             isReachingEnd={isReachingEnd}
+            view={view}
           />
           <div ref={loadMoreRef} className="h-12 w-full" aria-hidden />
         </div>

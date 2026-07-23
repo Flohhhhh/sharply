@@ -1,4 +1,4 @@
-import { ClockIcon, FlameIcon, TrendingUpIcon } from "lucide-react";
+import { FlameIcon, TrendingUpIcon } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import type { JSX } from "react";
@@ -183,13 +183,8 @@ async function ReleaseSection({
 }): Promise<JSX.Element> {
   return (
     <section className="space-y-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="flex items-center gap-2 text-2xl font-semibold">
-          <ClockIcon className="text-muted-foreground size-5" />
-          {latestReleasesLabel}
-        </h2>
-      </div>
       <ReleaseFeedGrid
+        heading={latestReleasesLabel}
         initialPage={initialReleasePage}
         brandSlug={brandSlug}
         trendingSlugs={trendingSlugs}
