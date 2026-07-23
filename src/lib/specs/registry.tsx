@@ -110,6 +110,23 @@ function formatWeightGrams(
   return `${formattedGrams} g`;
 }
 
+function isMultiMountLens(item: GearItem): boolean {
+  return item.gearType === "LENS" && (item.mountIds?.length ?? 0) > 1;
+}
+
+function formatApproximateWeightGrams(
+  value: number | string | null | undefined,
+): string | undefined {
+  if (value == null) return undefined;
+  if (typeof value === "string" && value.trim().length === 0) return undefined;
+
+  const numericValue = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(numericValue)) return undefined;
+
+  const formatted = formatWeightGrams(Math.round(numericValue));
+  return formatted ? `~${formatted}` : undefined;
+}
+
 function formatStorageGb(value: unknown): string | undefined {
   if (value == null) return undefined;
   const num = typeof value === "number" ? value : Number(value);
@@ -308,6 +325,8 @@ export type SpecFieldDef = {
     locale?: string,
   ) => React.ReactNode; // Format for display (table, etc.)
   editElementId?: string; // DOM id to focus in the edit UI when navigating from sidebar
+  /** Keep this field editable when the editor is filtered to missing values. */
+  alwaysShowInEditor?: boolean;
   condition?: (item: GearItem) => boolean; // Optional: when to show this field
   hideInSpecsTable?: boolean; // Optional: keep field available to edit/navigation but hide from public specs table
   condenseOnMobile?: boolean; // Whether to condense the field on mobile
@@ -477,8 +496,12 @@ export const specDictionary: SpecSectionDef[] = [
         label: "Weight",
         searchTerms: ["mass"],
         getRawValue: (item) => item.weightGrams,
-        formatDisplay: (raw) =>
-          formatWeightGrams(raw as number | string | null | undefined),
+        formatDisplay: (raw, item) =>
+          isMultiMountLens(item)
+            ? formatApproximateWeightGrams(
+                raw as number | string | null | undefined,
+              )
+            : formatWeightGrams(raw as number | string | null | undefined),
         editElementId: "weight",
       },
       {
@@ -498,8 +521,12 @@ export const specDictionary: SpecSectionDef[] = [
             const n = Number(v);
             return Number.isFinite(n) ? n : null;
           };
-          const fmt = (n: number): string =>
-            Number.isInteger(n) ? String(n) : String(Number(n.toFixed(1)));
+          const fmt = (n: number, approximate = false): string =>
+            approximate
+              ? `~${Math.round(n)}`
+              : Number.isInteger(n)
+                ? String(n)
+                : String(Number(n.toFixed(1)));
 
           const width = toNumber(item.widthMm);
           const height = toNumber(item.heightMm);
@@ -511,14 +538,16 @@ export const specDictionary: SpecSectionDef[] = [
           const DimensionRow = ({
             label,
             value,
+            approximate = false,
           }: {
             label: string;
             value: number;
+            approximate?: boolean;
           }) => (
             <div className="flex min-w-[160px] items-center justify-between gap-2">
               <span className="text-muted-foreground">{label}</span>
               <span className="text-right font-medium">
-                {fmt(value)}
+                {fmt(value, approximate)}
                 <span className="text-muted-foreground ml-1">mm</span>
               </span>
             </div>
@@ -528,10 +557,15 @@ export const specDictionary: SpecSectionDef[] = [
           if (item.gearType === "LENS") {
             const diameter = width ?? height;
             const length = depth;
+            const approximateLength = isMultiMountLens(item);
             return (
               <div className="flex w-fit flex-col items-end gap-1.5 text-right">
                 {length != null && (
-                  <DimensionRow label="Length" value={length} />
+                  <DimensionRow
+                    label="Length"
+                    value={length}
+                    approximate={approximateLength}
+                  />
                 )}
                 {diameter != null && (
                   <DimensionRow label="Diameter" value={diameter} />
@@ -1045,6 +1079,8 @@ export const specDictionary: SpecSectionDef[] = [
         key: "viewfinderType",
         label: "Viewfinder Type",
         getRawValue: (item) => item.cameraSpecs?.viewfinderType,
+        // "none" is an explicit specification, not a missing value.
+        condition: (item) => item.cameraSpecs?.viewfinderType != null,
         formatDisplay: (raw) => {
           if (typeof raw !== "string") return undefined;
           const map: Record<string, string> = {
@@ -1136,10 +1172,20 @@ export const specDictionary: SpecSectionDef[] = [
     condition: (item) => item.gearType === "CAMERA",
     fields: [
       {
+        key: "hasAutofocus",
+        label: "Has Autofocus",
+        alwaysShowInEditor: true,
+        searchTerms: ["autofocus", "af"],
+        getRawValue: (item) => item.cameraSpecs?.hasAutofocus,
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+      },
+      {
         key: "focusPoints",
         label: "Focus Points",
         searchTerms: ["autofocus", "af points", "af"],
         getRawValue: (item) => item.cameraSpecs?.focusPoints,
+        condition: (item) => item.cameraSpecs?.hasAutofocus !== false,
         formatDisplay: (raw) =>
           typeof raw === "number" || typeof raw === "string"
             ? String(raw)
@@ -1157,6 +1203,7 @@ export const specDictionary: SpecSectionDef[] = [
         key: "hasFocusBracketing",
         label: "Has Focus Bracketing",
         getRawValue: (item) => item.cameraSpecs?.hasFocusBracketing,
+        condition: (item) => item.cameraSpecs?.hasAutofocus !== false,
         formatDisplay: (raw) =>
           typeof raw === "boolean" ? yesNoNull(raw, true) : undefined,
       },
@@ -1165,6 +1212,7 @@ export const specDictionary: SpecSectionDef[] = [
         label: "AF Area Modes",
         searchTerms: ["autofocus", "af", "focus modes", "focus areas"],
         getRawValue: (item) => item.cameraSpecs?.afAreaModes,
+        condition: (item) => item.cameraSpecs?.hasAutofocus !== false,
         formatDisplay: (raw, _, forceLeftAlign) => {
           if (!Array.isArray(raw) || raw.length === 0) return undefined;
           const toName = (
@@ -1207,6 +1255,7 @@ export const specDictionary: SpecSectionDef[] = [
           "subject recognition",
         ],
         getRawValue: (item) => item.cameraSpecs?.afSubjectCategories,
+        condition: (item) => item.cameraSpecs?.hasAutofocus !== false,
         formatDisplay: (raw, _, forceLeftAlign) => {
           if (!Array.isArray(raw)) return undefined;
           const categories = raw
@@ -1289,12 +1338,21 @@ export const specDictionary: SpecSectionDef[] = [
     condition: (item) => item.gearType === "CAMERA",
     fields: [
       {
+        key: "hasVideo",
+        label: "Has Video",
+        alwaysShowInEditor: true,
+        getRawValue: (item) => item.cameraSpecs?.hasVideo,
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+      },
+      {
         key: "videoSummary",
         label: "Video Summary",
         api: null,
         condenseOnMobile: true,
         editElementId: "video-modes-manager",
         getRawValue: (item) => item.videoModes,
+        condition: (item) => item.cameraSpecs?.hasVideo !== false,
         formatDisplay: (_, item) => {
           const modes = coerceCameraVideoModes(item.videoModes);
           if (!modes.length) return undefined;
@@ -1316,6 +1374,7 @@ export const specDictionary: SpecSectionDef[] = [
         // Video-mode records are intentionally not part of the beta API.
         api: null,
         getRawValue: (item) => item.videoModes,
+        condition: (item) => item.cameraSpecs?.hasVideo !== false,
         formatDisplay: (_, item) => {
           const list = Array.from(
             new Set(
@@ -1344,6 +1403,7 @@ export const specDictionary: SpecSectionDef[] = [
         key: "hasLogColorProfile",
         label: "Has Log Color Profile",
         getRawValue: (item) => item.cameraSpecs?.hasLogColorProfile,
+        condition: (item) => item.cameraSpecs?.hasVideo !== false,
         formatDisplay: (raw, item) =>
           typeof raw === "boolean"
             ? yesNoNull(raw, !supportsVideoMeaningfully(item))
@@ -1353,6 +1413,7 @@ export const specDictionary: SpecSectionDef[] = [
         key: "has10BitVideo",
         label: "Has 10 Bit Video",
         getRawValue: (item) => item.cameraSpecs?.has10BitVideo,
+        condition: (item) => item.cameraSpecs?.hasVideo !== false,
         formatDisplay: (raw, item) =>
           typeof raw === "boolean"
             ? yesNoNull(raw, !supportsVideoMeaningfully(item))
@@ -1362,6 +1423,7 @@ export const specDictionary: SpecSectionDef[] = [
         key: "has12BitVideo",
         label: "Has 12 Bit Video",
         getRawValue: (item) => item.cameraSpecs?.has12BitVideo,
+        condition: (item) => item.cameraSpecs?.hasVideo !== false,
         formatDisplay: (raw, item) =>
           typeof raw === "boolean"
             ? yesNoNull(
@@ -1375,6 +1437,7 @@ export const specDictionary: SpecSectionDef[] = [
         key: "hasOpenGateVideo",
         label: "Has Open Gate Video",
         getRawValue: (item) => item.cameraSpecs?.hasOpenGateVideo,
+        condition: (item) => item.cameraSpecs?.hasVideo !== false,
         formatDisplay: (raw) =>
           typeof raw === "boolean" ? yesNoNull(raw, true) : undefined,
       },
@@ -1382,6 +1445,7 @@ export const specDictionary: SpecSectionDef[] = [
         key: "supportsExternalRecording",
         label: "Supports External Recording",
         getRawValue: (item) => item.cameraSpecs?.supportsExternalRecording,
+        condition: (item) => item.cameraSpecs?.hasVideo !== false,
         formatDisplay: (raw, item) =>
           typeof raw === "boolean"
             ? yesNoNull(raw, !supportsVideoMeaningfully(item))
@@ -1391,6 +1455,7 @@ export const specDictionary: SpecSectionDef[] = [
         key: "supportsRecordToDrive",
         label: "Supports Recording to Drive",
         getRawValue: (item) => item.cameraSpecs?.supportsRecordToDrive,
+        condition: (item) => item.cameraSpecs?.hasVideo !== false,
         formatDisplay: (raw, item) =>
           typeof raw === "boolean"
             ? yesNoNull(raw, !supportsVideoMeaningfully(item))
@@ -2508,4 +2573,17 @@ export function getSpecFieldDefByKey(
     }
   }
   return undefined;
+}
+
+/** Whether a field must remain editable in the editor's missing-only mode. */
+export function isSpecAlwaysShownInEditor(
+  sectionId: string | undefined,
+  fieldKey: string,
+): boolean {
+  return (
+    specDictionary
+      .find((section) => section.id === sectionId)
+      ?.fields.find((field) => field.key === fieldKey)?.alwaysShowInEditor ===
+    true
+  );
 }

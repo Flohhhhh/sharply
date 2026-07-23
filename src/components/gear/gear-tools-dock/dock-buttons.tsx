@@ -5,14 +5,14 @@ import {
   ImageIcon,
   Pencil,
   Palette,
-  Swords,
+  Waypoints,
   Trash,
   Upload,
   Video,
 } from "lucide-react";
 import Link from "next/link";
 
-import { AlternativesManager } from "~/app/[locale]/(pages)/gear/_components/alternatives-manager";
+import { RelationshipsManager } from "~/app/[locale]/(pages)/gear/_components/relationships-manager";
 import { ManageInstructionManualModal } from "~/app/[locale]/(pages)/gear/_components/manage-instruction-manual-modal";
 import { ManageCreatorVideosModal } from "~/app/[locale]/(pages)/gear/_components/manage-creator-videos-modal";
 import { ManageStaffVerdictModal } from "~/app/[locale]/(pages)/gear/_components/manage-staff-verdict-modal";
@@ -36,7 +36,10 @@ import {
 import { requireRole } from "~/lib/auth/auth-helpers";
 import { formatDate } from "~/lib/format/date";
 import { UploadDropzone } from "~/lib/utils/uploadthing";
-import type { GearAlternativeRow } from "~/server/gear/service";
+import type {
+  GearAlternativeRow,
+  GearLineageRelationships,
+} from "~/server/gear/service";
 import type { GearColorway, GearType, RawSample } from "~/types/gear";
 
 type DockSample = Omit<RawSample, "createdAt" | "updatedAt"> & {
@@ -63,8 +66,10 @@ export interface BuildDockButtonsParams {
   instructionManualManageLabel: string;
   unavailableUntilPublishedLabel: string;
   colorwaysManageLabel: string;
+  relationshipsLabel: string;
   locale: string;
   alternatives: GearAlternativeRow[];
+  lineage: GearLineageRelationships;
   hasCreatorVideos: boolean;
   managedSamples: DockSample[];
   isManagerOpen: boolean;
@@ -92,8 +97,10 @@ export function buildDockButtons({
   instructionManualManageLabel,
   unavailableUntilPublishedLabel,
   colorwaysManageLabel,
+  relationshipsLabel,
   locale,
   alternatives,
+  lineage,
   managedSamples,
   isManagerOpen,
   setIsManagerOpen,
@@ -232,39 +239,34 @@ export function buildDockButtons({
       ),
     },
     {
-      id: "alternatives",
+      id: "relationships",
       allowed: (currentUser) =>
         Boolean(gearId && requireRole(currentUser, ["EDITOR"])),
-      render: ({ isPreRelease }) =>
+      render: () =>
         gearId ? (
-          isPreRelease ? (
-            renderUnavailableButton(
-              "alternatives-disabled",
-              "Manage Alternatives",
-              <Swords className="text-foreground/70 size-4.5" />,
-            )
-          ) : (
-            <Tooltip key="alternatives">
-              <AlternativesManager
-                gearId={gearId}
-                gearSlug={slug}
-                gearType={gearType}
-                initialAlternatives={alternatives}
-                trigger={
-                  <TooltipTrigger asChild>
-                    <button
-                      type="button"
-                      className={baseTriggerClass}
-                      aria-label="Manage Alternatives"
-                    >
-                      <Swords className="text-foreground/70 size-4.5" />
-                    </button>
-                  </TooltipTrigger>
-                }
-              />
-              <TooltipContent sideOffset={10}>Alternatives</TooltipContent>
-            </Tooltip>
-          )
+          <Tooltip key="relationships">
+            <RelationshipsManager
+              gearId={gearId}
+              gearSlug={slug}
+              gearType={gearType}
+              initialAlternatives={alternatives}
+              initialLineage={lineage}
+              trigger={
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className={baseTriggerClass}
+                    aria-label={relationshipsLabel}
+                  >
+                    <Waypoints className="text-foreground/70 size-4.5" />
+                  </button>
+                </TooltipTrigger>
+              }
+            />
+            <TooltipContent sideOffset={10}>
+              {relationshipsLabel}
+            </TooltipContent>
+          </Tooltip>
         ) : null,
     },
     {

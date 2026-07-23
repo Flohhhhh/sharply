@@ -631,6 +631,14 @@ export const gear = appSchema.table(
     widthMm: decimal("width_mm", { precision: 6, scale: 2 }),
     heightMm: decimal("height_mm", { precision: 6, scale: 2 }),
     depthMm: decimal("depth_mm", { precision: 6, scale: 2 }),
+    // Directional product lineage. These are kept reciprocal by gear services.
+    predecessorGearId: varchar("predecessor_gear_id", {
+      length: 36,
+    }).references((): AnyPgColumn => gear.id, { onDelete: "set null" }),
+    successorGearId: varchar("successor_gear_id", { length: 36 }).references(
+      (): AnyPgColumn => gear.id,
+      { onDelete: "set null" },
+    ),
     linkManufacturer: text("link_manufacturer"),
     linkInstructionManual: text("link_instruction_manual"),
     linkMpb: text("link_mpb"),
@@ -648,6 +656,8 @@ export const gear = appSchema.table(
     index("gear_publication_state_idx").on(t.publicationState),
     index("gear_type_brand_idx").on(t.gearType, t.brandId),
     index("gear_brand_mount_idx").on(t.brandId, t.mountId),
+    index("gear_predecessor_idx").on(t.predecessorGearId),
+    index("gear_successor_idx").on(t.successorGearId),
   ],
 );
 
@@ -823,6 +833,7 @@ export const cameraSpecs = appSchema.table(
     processorName: varchar("processor_name", { length: 200 }),
     hasWeatherSealing: boolean("has_weather_sealing"),
     // focus
+    hasAutofocus: boolean("has_autofocus"),
     focusPoints: integer("focus_points"),
     afSubjectCategories: afSubjectCategoriesEnum(
       "af_subject_categories",
@@ -848,6 +859,7 @@ export const cameraSpecs = appSchema.table(
     usbPowerDelivery: boolean("usb_power_delivery"),
     usbCharging: boolean("usb_charging"),
     // video
+    hasVideo: boolean("has_video"),
     hasLogColorProfile: boolean("has_log_color_profile"),
     has10BitVideo: boolean("has_10_bit_video"),
     has12BitVideo: boolean("has_12_bit_video"),

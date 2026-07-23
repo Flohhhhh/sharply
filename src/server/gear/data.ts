@@ -1585,6 +1585,231 @@ export type GearAlternativeRow = {
   mpbMaxPriceUsdCents: number | null;
 };
 
+export type GearLineageItem = {
+  gearId: string;
+  name: string;
+  slug: string;
+  brandName: string | null;
+  gearType: string;
+};
+
+export type GearLineageRelationships = {
+  predecessor: GearLineageItem | null;
+  successor: GearLineageItem | null;
+};
+
+export async function fetchGearLineageByGearId(
+  gearId: string,
+): Promise<GearLineageRelationships> {
+  const current = await db
+    .select({
+      predecessorGearId: gear.predecessorGearId,
+      successorGearId: gear.successorGearId,
+    })
+    .from(gear)
+    .where(eq(gear.id, gearId))
+    .limit(1);
+  const relationshipIds = [
+    current[0]?.predecessorGearId,
+    current[0]?.successorGearId,
+  ].filter((id): id is string => Boolean(id));
+  if (!relationshipIds.length) return { predecessor: null, successor: null };
+
+  const rows = await db
+    .select({
+      gearId: gear.id,
+      name: gear.name,
+      slug: gear.slug,
+      brandName: brands.name,
+      gearType: gear.gearType,
+    })
+    .from(gear)
+    .leftJoin(brands, eq(gear.brandId, brands.id))
+    .where(inArray(gear.id, relationshipIds));
+  const byId = new Map(rows.map((row) => [row.gearId, row]));
+  return {
+    predecessor: current[0]?.predecessorGearId
+      ? (byId.get(current[0].predecessorGearId) ?? null)
+      : null,
+    successor: current[0]?.successorGearId
+      ? (byId.get(current[0].successorGearId) ?? null)
+      : null,
+  };
+}
+
+export type GearLineageValidationRow = {
+  id: string;
+  slug: string;
+  gearType: string;
+  predecessorGearId: string | null;
+  successorGearId: string | null;
+};
+
+export async function fetchGearLineageValidationRows(
+  ids: string[],
+): Promise<GearLineageValidationRow[]> {
+  if (!ids.length) return [];
+  return db
+    .select({
+      id: gear.id,
+      slug: gear.slug,
+      gearType: gear.gearType,
+      predecessorGearId: gear.predecessorGearId,
+      successorGearId: gear.successorGearId,
+    })
+    .from(gear)
+    .where(inArray(gear.id, [...new Set(ids)]));
+}
+
+/** Atomically reconciles reciprocal, one-to-one predecessor/successor links. */
+export async function setGearLineage(params: {
+  gearId: string;
+  predecessorGearId: string | null;
+  successorGearId: string | null;
+}): Promise<string[]> {
+  const { gearId, predecessorGearId, successorGearId } = params;
+  return db.transaction(async (tx) => {
+    await tx.execute(
+      sql`select pg_advisory_xact_lock(hashtext('gear-lineage'))`,
+    );
+    const affectedIds = new Set<string>([gearId]);
+    const getRow = async (id: string) => {
+      const rows = await tx
+        .select({
+          id: gear.id,
+          gearType: gear.gearType,
+          predecessorGearId: gear.predecessorGearId,
+          successorGearId: gear.successorGearId,
+        })
+        .from(gear)
+        .where(eq(gear.id, id))
+        .limit(1);
+      return rows[0] ?? null;
+    };
+    const current = await getRow(gearId);
+    if (!current) throw new Error("Gear item not found");
+    const targets = [predecessorGearId, successorGearId].filter(
+      (id): id is string => Boolean(id),
+    );
+    if (targets.includes(gearId))
+      throw new Error("A gear item cannot be its own predecessor or successor");
+    if (predecessorGearId && predecessorGearId === successorGearId)
+      throw new Error("Predecessor and successor must be different gear items");
+    for (const id of targets) {
+      const target = await getRow(id);
+      if (!target) throw new Error("Selected gear item was not found");
+      if (target.gearType !== current.gearType)
+        throw new Error(
+          "Predecessor and successor must have the same gear type",
+        );
+    }
+    const assertNoCycle = async (
+      startId: string | null,
+      field: "predecessorGearId" | "successorGearId",
+    ) => {
+      const seen = new Set<string>([gearId]);
+      let cursor = startId;
+      for (let depth = 0; cursor; depth++) {
+        if (depth >= MAX_GEAR_LINEAGE_TRAVERSAL_DEPTH)
+          throw new Error("Gear lineage exceeds the maximum traversal depth");
+        if (seen.has(cursor))
+          throw new Error("This relationship would create a lineage cycle");
+        seen.add(cursor);
+        cursor = (await getRow(cursor))?.[field] ?? null;
+      }
+    };
+    await assertNoCycle(successorGearId, "successorGearId");
+    await assertNoCycle(predecessorGearId, "predecessorGearId");
+
+    if (
+      current.predecessorGearId &&
+      current.predecessorGearId !== predecessorGearId
+    ) {
+      affectedIds.add(current.predecessorGearId);
+      await tx
+        .update(gear)
+        .set({ successorGearId: null })
+        .where(
+          and(
+            eq(gear.id, current.predecessorGearId),
+            eq(gear.successorGearId, gearId),
+          ),
+        );
+    }
+    if (
+      current.successorGearId &&
+      current.successorGearId !== successorGearId
+    ) {
+      affectedIds.add(current.successorGearId);
+      await tx
+        .update(gear)
+        .set({ predecessorGearId: null })
+        .where(
+          and(
+            eq(gear.id, current.successorGearId),
+            eq(gear.predecessorGearId, gearId),
+          ),
+        );
+    }
+
+    if (predecessorGearId) {
+      const predecessor = await getRow(predecessorGearId);
+      if (!predecessor) throw new Error("Predecessor gear item not found");
+      affectedIds.add(predecessorGearId);
+      if (
+        predecessor.successorGearId &&
+        predecessor.successorGearId !== gearId
+      ) {
+        affectedIds.add(predecessor.successorGearId);
+        await tx
+          .update(gear)
+          .set({ predecessorGearId: null })
+          .where(
+            and(
+              eq(gear.id, predecessor.successorGearId),
+              eq(gear.predecessorGearId, predecessorGearId),
+            ),
+          );
+      }
+      await tx
+        .update(gear)
+        .set({ successorGearId: gearId })
+        .where(eq(gear.id, predecessorGearId));
+    }
+
+    if (successorGearId) {
+      const successor = await getRow(successorGearId);
+      if (!successor) throw new Error("Successor gear item not found");
+      affectedIds.add(successorGearId);
+      if (
+        successor.predecessorGearId &&
+        successor.predecessorGearId !== gearId
+      ) {
+        affectedIds.add(successor.predecessorGearId);
+        await tx
+          .update(gear)
+          .set({ successorGearId: null })
+          .where(
+            and(
+              eq(gear.id, successor.predecessorGearId),
+              eq(gear.successorGearId, successorGearId),
+            ),
+          );
+      }
+      await tx
+        .update(gear)
+        .set({ predecessorGearId: gearId })
+        .where(eq(gear.id, successorGearId));
+    }
+
+    await tx
+      .update(gear)
+      .set({ predecessorGearId, successorGearId })
+      .where(eq(gear.id, gearId));
+    return [...affectedIds];
+  });
+}
+
 /**
  * Fetch all alternatives for a gear item (both directions due to symmetric storage).
  * Returns the "other" gear item in each pair along with metadata.
@@ -1803,4 +2028,170 @@ export async function setGearAlternatives(
       isCompetitor: alt.isCompetitor,
     });
   }
+}
+
+export const MAX_GEAR_LINEAGE_TRAVERSAL_DEPTH = 100;
+
+/**
+ * Atomically replaces alternatives and reciprocal lineage. A transaction-scoped
+ * advisory lock serializes this intentionally rare editor workflow.
+ */
+export async function updateGearRelationshipsData(params: {
+  gearId: string;
+  alternatives: Array<{ alternativeGearId: string; isCompetitor: boolean }>;
+  predecessorGearId: string | null;
+  successorGearId: string | null;
+}): Promise<string[]> {
+  const { gearId, alternatives, predecessorGearId, successorGearId } = params;
+  return db.transaction(async (tx) => {
+    await tx.execute(
+      sql`select pg_advisory_xact_lock(hashtext('gear-lineage'))`,
+    );
+    const affectedIds = new Set<string>([gearId]);
+    const getRow = async (id: string) => {
+      const rows = await tx
+        .select({
+          id: gear.id,
+          gearType: gear.gearType,
+          predecessorGearId: gear.predecessorGearId,
+          successorGearId: gear.successorGearId,
+        })
+        .from(gear)
+        .where(eq(gear.id, id))
+        .limit(1);
+      return rows[0] ?? null;
+    };
+    const current = await getRow(gearId);
+    if (!current) throw new Error("Gear item not found");
+    const targets = [predecessorGearId, successorGearId].filter(
+      (id): id is string => Boolean(id),
+    );
+    if (targets.includes(gearId))
+      throw new Error("A gear item cannot be its own predecessor or successor");
+    if (predecessorGearId && predecessorGearId === successorGearId)
+      throw new Error("Predecessor and successor must be different gear items");
+    for (const id of targets) {
+      const target = await getRow(id);
+      if (!target) throw new Error("Selected gear item was not found");
+      if (target.gearType !== current.gearType)
+        throw new Error(
+          "Predecessor and successor must have the same gear type",
+        );
+    }
+    const assertNoCycle = async (
+      startId: string | null,
+      field: "predecessorGearId" | "successorGearId",
+    ) => {
+      const seen = new Set<string>([gearId]);
+      let cursor = startId;
+      for (let depth = 0; cursor; depth++) {
+        if (depth >= MAX_GEAR_LINEAGE_TRAVERSAL_DEPTH)
+          throw new Error("Gear lineage exceeds the maximum traversal depth");
+        if (seen.has(cursor))
+          throw new Error("This relationship would create a lineage cycle");
+        seen.add(cursor);
+        cursor = (await getRow(cursor))?.[field] ?? null;
+      }
+    };
+    await assertNoCycle(successorGearId, "successorGearId");
+    await assertNoCycle(predecessorGearId, "predecessorGearId");
+
+    const clearInverse = async (
+      id: string | null,
+      field: "predecessorGearId" | "successorGearId",
+      expectedLinkedGearId: string = gearId,
+    ) => {
+      if (!id) return;
+      affectedIds.add(id);
+      await tx
+        .update(gear)
+        .set({ [field]: null })
+        .where(and(eq(gear.id, id), eq(gear[field], expectedLinkedGearId)));
+    };
+    if (current.predecessorGearId !== predecessorGearId)
+      await clearInverse(current.predecessorGearId, "successorGearId");
+    if (current.successorGearId !== successorGearId)
+      await clearInverse(current.successorGearId, "predecessorGearId");
+    if (predecessorGearId) {
+      const predecessor = await getRow(predecessorGearId);
+      if (
+        predecessor?.successorGearId &&
+        predecessor.successorGearId !== gearId
+      )
+        await clearInverse(
+          predecessor.successorGearId,
+          "predecessorGearId",
+          predecessorGearId,
+        );
+      affectedIds.add(predecessorGearId);
+      await tx
+        .update(gear)
+        .set({ successorGearId: gearId })
+        .where(eq(gear.id, predecessorGearId));
+    }
+    if (successorGearId) {
+      const successor = await getRow(successorGearId);
+      if (
+        successor?.predecessorGearId &&
+        successor.predecessorGearId !== gearId
+      )
+        await clearInverse(
+          successor.predecessorGearId,
+          "successorGearId",
+          successorGearId,
+        );
+      affectedIds.add(successorGearId);
+      await tx
+        .update(gear)
+        .set({ predecessorGearId: gearId })
+        .where(eq(gear.id, successorGearId));
+    }
+    await tx
+      .update(gear)
+      .set({ predecessorGearId, successorGearId })
+      .where(eq(gear.id, gearId));
+
+    const currentAlternativeRows = await tx
+      .select({
+        gearAId: gearAlternatives.gearAId,
+        gearBId: gearAlternatives.gearBId,
+      })
+      .from(gearAlternatives)
+      .where(
+        or(
+          eq(gearAlternatives.gearAId, gearId),
+          eq(gearAlternatives.gearBId, gearId),
+        ),
+      );
+    for (const row of currentAlternativeRows)
+      affectedIds.add(row.gearAId === gearId ? row.gearBId : row.gearAId);
+    for (const alternative of alternatives) {
+      if (alternative.alternativeGearId === gearId)
+        throw new Error("Cannot add a gear item as its own alternative");
+      affectedIds.add(alternative.alternativeGearId);
+    }
+    await tx
+      .delete(gearAlternatives)
+      .where(
+        or(
+          eq(gearAlternatives.gearAId, gearId),
+          eq(gearAlternatives.gearBId, gearId),
+        ),
+      );
+    if (alternatives.length)
+      await tx.insert(gearAlternatives).values(
+        alternatives.map((alternative) => {
+          const [gearAId, gearBId] = canonicalPair(
+            gearId,
+            alternative.alternativeGearId,
+          );
+          return { gearAId, gearBId, isCompetitor: alternative.isCompetitor };
+        }),
+      );
+    const affectedRows = await tx
+      .select({ slug: gear.slug })
+      .from(gear)
+      .where(inArray(gear.id, [...affectedIds]));
+    return affectedRows.map((row) => row.slug);
+  });
 }

@@ -10,6 +10,8 @@ import {
   formatDateWithPrecision,
   type DatePrecision,
 } from "~/lib/format/date";
+import { GetGearDisplayName } from "~/lib/gear/naming";
+import { stripLeadingBrand } from "~/lib/mapping/brand-map";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import { fetchGearSummariesBySlugs } from "~/server/gear/service";
 import { hallOfFameItems } from "./data";
@@ -172,9 +174,15 @@ export default async function HallOfFamePage({
             </BlurFade>
           ) : (
             entries.map((entry, index) => {
+              const displayName = GetGearDisplayName({
+                name: entry.gear.name,
+              });
+              const modelName = entry.gear.brandName
+                ? stripLeadingBrand(displayName, entry.gear.brandName)
+                : displayName;
               const title = entry.gear.brandName
-                ? `${entry.gear.brandName} ${entry.gear.name}`
-                : entry.gear.name;
+                ? `${entry.gear.brandName} ${modelName}`
+                : modelName;
               const formattedDate = formatForDisplay(
                 entry.bestDate,
                 entry.bestPrecision,

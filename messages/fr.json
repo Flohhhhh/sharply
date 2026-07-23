@@ -191,6 +191,27 @@
     "reviews": "Avis",
     "rawSamples": "Échantillons RAW",
     "alternatives": "Alternatives",
+    "relationships": {
+      "title": "Relations",
+      "description": "Gérez les alternatives et la lignée de produits de cet équipement.",
+      "predecessor": "Prédécesseur",
+      "successor": "Successeur",
+      "selectPredecessor": "Sélectionner le prédécesseur",
+      "selectSuccessor": "Sélectionner le successeur",
+      "searchGear": "Rechercher un équipement...",
+      "currentAlternatives": "Alternatives actuelles",
+      "addAlternative": "Ajouter une alternative",
+      "noAlternatives": "Aucune alternative ajoutée",
+      "competitor": "Concurrent",
+      "removeAlternative": "Supprimer {name}",
+      "cannotSelf": "Cet équipement ne peut pas être sa propre alternative",
+      "alreadyAlternative": "Cet équipement est déjà une alternative",
+      "updated": "Relations mises à jour",
+      "updateFailed": "Impossible de mettre à jour les relations",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "saving": "Enregistrement..."
+    },
     "creatorVideos": "Vidéos de créateurs",
     "articles": "Articles",
     "articlesAboutItem": "Articles sur ce matériel",
@@ -838,6 +859,9 @@
         "camera-focus": {
           "title": "Mise au point",
           "fields": {
+            "hasAutofocus": {
+              "label": "Autofocus"
+            },
             "focusPoints": {
               "label": "Points AF"
             },
@@ -880,6 +904,9 @@
             },
             "videoAvailableCodecs": {
               "label": "Codecs disponibles"
+            },
+            "hasVideo": {
+              "label": "Prend en charge la vidéo"
             },
             "hasLogColorProfile": {
               "label": "Profil couleur Log"
@@ -1506,7 +1533,7 @@
         "text": "Le premier objectif Nikon DX à proposer une ouverture f/1.8, parfait pour la basse lumière et le portrait."
       },
       "nikon-nikkor-z-24-70mm-f-2-8-s-ii": {
-        "text": "En tant que premier zoom standard f/2.8 doté d’un mécanisme de zoom interne, le Nikkor Z 24-70 f/2.8 S II gagne sa place dans notre hall of fame comme un zoom standard professionnel exceptionnel, malgré seulement de légères améliorations par rapport à son déjà impressionnant prédécesseur. C’est un objectif polyvalent, toujours populaire aujourd’hui, et un excellent passe-partout."
+        "text": "En tant que premier zoom standard f/2.8 doté d’un mécanisme de zoom interne, le Nikkor Z 24-70 f/2.8 S II gagne sa place dans notre hall of fame comme un zoom standard professionnel exceptionnel, malgré seulement de légères améliorations par rapport à son déjà impressionnant prédécesseur. C’est un objectif polyvalent et un excellent passe-partout."
       },
       "canon-rf28-70mm-f2-l-usm": {
         "text": "Le Canon RF 28-70mm f/2 L USM est le premier zoom standard à ouverture constante f/2 pour les appareils plein format."

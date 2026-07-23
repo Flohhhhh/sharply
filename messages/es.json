@@ -191,6 +191,27 @@
     "reviews": "Reseñas",
     "rawSamples": "Muestras RAW",
     "alternatives": "Alternativas",
+    "relationships": {
+      "title": "Relaciones",
+      "description": "Gestiona alternativas y la línea de productos de este equipo.",
+      "predecessor": "Predecesor",
+      "successor": "Sucesor",
+      "selectPredecessor": "Seleccionar predecesor",
+      "selectSuccessor": "Seleccionar sucesor",
+      "searchGear": "Buscar equipo...",
+      "currentAlternatives": "Alternativas actuales",
+      "addAlternative": "Añadir alternativa",
+      "noAlternatives": "Aún no se han añadido alternativas",
+      "competitor": "Competidor",
+      "removeAlternative": "Eliminar {name}",
+      "cannotSelf": "No se puede añadir este equipo como su propia alternativa",
+      "alreadyAlternative": "Este equipo ya es una alternativa",
+      "updated": "Relaciones actualizadas",
+      "updateFailed": "No se pudieron actualizar las relaciones",
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "saving": "Guardando..."
+    },
     "creatorVideos": "Vídeos de creadores",
     "articles": "Artículos",
     "articlesAboutItem": "Artículos sobre este equipo",
@@ -838,6 +859,9 @@
         "camera-focus": {
           "title": "Enfoque",
           "fields": {
+            "hasAutofocus": {
+              "label": "Tiene enfoque automático"
+            },
             "focusPoints": {
               "label": "Puntos de enfoque"
             },
@@ -880,6 +904,9 @@
             },
             "videoAvailableCodecs": {
               "label": "Códecs disponibles"
+            },
+            "hasVideo": {
+              "label": "Tiene video"
             },
             "hasLogColorProfile": {
               "label": "Perfil de color log"
@@ -1506,7 +1533,7 @@
         "text": "El primer objetivo Nikon DX con apertura f/1.8, perfecto para fotografía con poca luz y retratos."
       },
       "nikon-nikkor-z-24-70mm-f-2-8-s-ii": {
-        "text": "Como el primer zoom estándar f/2.8 con un mecanismo de zoom interno, el Nikkor Z 24-70 f/2.8 S II se gana su lugar en nuestro hall of fame como un excepcional zoom estándar profesional, a pesar de ofrecer solo mejoras marginales sobre su ya impresionante predecesor. Es un objetivo versátil que sigue siendo popular hoy y funciona muy bien en casi cualquier situación."
+        "text": "Como el primer zoom estándar f/2.8 con un mecanismo de zoom interno, el Nikkor Z 24-70 f/2.8 S II se gana su lugar en nuestro hall of fame como un excepcional zoom estándar profesional, a pesar de ofrecer solo mejoras marginales sobre su ya impresionante predecesor. Es un objetivo versátil que funciona muy bien en casi cualquier situación."
       },
       "canon-rf28-70mm-f2-l-usm": {
         "text": "El Canon RF 28-70mm f/2 L USM es el primer zoom estándar de apertura constante f/2 para cámaras de fotograma completo."

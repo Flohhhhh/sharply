@@ -27,6 +27,7 @@ import {
   getSpecFieldLabel,
   translateGearDetailWithFallback,
 } from "~/lib/i18n/gear-detail";
+import { isSpecAlwaysShownInEditor } from "~/lib/specs/registry";
 import { formatCameraType,PRECAPTURE_SUPPORT_OPTIONS } from "~/lib/mapping";
 import type { EnrichedCameraSpecs,GearItem } from "~/types/gear";
 import CardSlotsManager,{ type CardSlot } from "./card-slots-manager";
@@ -81,6 +82,7 @@ const cameraFieldSections: Record<string, string> = {
   viewfinderResolutionMillionDots: "camera-hardware",
   hasTopDisplay: "camera-hardware",
   hasRearTouchscreen: "camera-hardware",
+  hasAutofocus: "camera-focus",
   focusPoints: "camera-focus",
   afAreaModes: "camera-focus",
   afSubjectCategories: "camera-focus",
@@ -90,6 +92,7 @@ const cameraFieldSections: Record<string, string> = {
   supportedBatteries: "camera-battery",
   usbCharging: "camera-battery",
   usbPowerDelivery: "camera-battery",
+  hasVideo: "camera-video",
   hasLogColorProfile: "camera-video",
   has10BitVideo: "camera-video",
   has12BitVideo: "camera-video",
@@ -483,13 +486,17 @@ function CameraFieldsComponent({
     if (Array.isArray(v)) return v.length === 0;
     return false;
   };
-  const showWhenMissing = (v: unknown): boolean =>
-    !showMissingOnly || isMissing(v);
+  const showWhenMissing = (v: unknown, fieldKey?: string): boolean =>
+    !showMissingOnly ||
+    isMissing(v) ||
+    (fieldKey !== undefined &&
+      isSpecAlwaysShownInEditor(cameraFieldSections[fieldKey], fieldKey));
   const initialVideoModes = Array.isArray(initialGearItem?.videoModes)
     ? initialGearItem?.videoModes
     : [];
   const shouldShowVideoModes =
     !showMissingOnly || initialVideoModes.length === 0;
+  const canEditVideo = currentSpecs?.hasVideo === true;
 
   return (
     <Card
@@ -1079,45 +1086,63 @@ function CameraFieldsComponent({
             />
           )}
 
-          {/* Focus Points */}
-          {showWhenMissing(initialSpecs?.focusPoints) && (
-            <NumberInput
-              id="focusPoints"
-              label={specLabel("focusPoints", "Focus Points")}
-              value={currentSpecs?.focusPoints ?? null}
-              onChange={(value) => handleFieldChange("focusPoints", value)}
+          {/* Has Autofocus */}
+          {showWhenMissing(initialSpecs?.hasAutofocus, "hasAutofocus") && (
+            <BooleanInput
+              id="hasAutofocus"
+              label={specLabel("hasAutofocus", "Has Autofocus")}
+              checked={currentSpecs?.hasAutofocus ?? null}
+              allowNull
+              showStateText
+              onChange={(value) => handleFieldChange("hasAutofocus", value)}
             />
+          )}
+
+          {/* Autofocus-dependent fields remain visible but disabled until
+              autofocus is confirmed as available. */}
+          {showWhenMissing(initialSpecs?.focusPoints) && (
+              <NumberInput
+                id="focusPoints"
+                label={specLabel("focusPoints", "Focus Points")}
+                value={currentSpecs?.focusPoints ?? null}
+                onChange={(value) => handleFieldChange("focusPoints", value)}
+                disabled={currentSpecs?.hasAutofocus !== true}
+              />
           )}
 
           {/* AF Area Modes */}
           {/* TODO: add a way for creating new af area modes (review plan)*/}
           {showWhenMissing(initialSpecs?.afAreaModes) && (
-            <div id="afAreaModes" className="space-y-2">
-              <Label htmlFor="afAreaModes">
-                {specLabel("afAreaModes", "AF Area Modes")}
-              </Label>
-              <MultiSelect
-                options={afAreaModeOptions}
-                value={selectedAfAreaModeIds}
-                onChange={(value) => handleFieldChange("afAreaModes", value)}
-              />
-            </div>
+              <div id="afAreaModes" className="space-y-2">
+                <Label htmlFor="afAreaModes">
+                  {specLabel("afAreaModes", "AF Area Modes")}
+                </Label>
+                <MultiSelect
+                  options={afAreaModeOptions}
+                  value={selectedAfAreaModeIds}
+                  onChange={(value) =>
+                    handleFieldChange("afAreaModes", value)
+                  }
+                  disabled={currentSpecs?.hasAutofocus !== true}
+                />
+              </div>
           )}
 
           {/* AF Subject Categories */}
           {showWhenMissing(initialSpecs?.afSubjectCategories) && (
-            <div id="afSubjectCategories" className="space-y-2">
-              <Label htmlFor="afSubjectCategories">
-                {specLabel("afSubjectCategories", "AF Subject Categories")}
-              </Label>
-              <MultiSelect
-                options={afSubjectCategoryOptions}
-                value={selectedAfSubjectCategories}
-                onChange={(ids) =>
-                  handleFieldChange("afSubjectCategories", ids)
-                }
-              />
-            </div>
+              <div id="afSubjectCategories" className="space-y-2">
+                <Label htmlFor="afSubjectCategories">
+                  {specLabel("afSubjectCategories", "AF Subject Categories")}
+                </Label>
+                <MultiSelect
+                  options={afSubjectCategoryOptions}
+                  value={selectedAfSubjectCategories}
+                  onChange={(ids) =>
+                    handleFieldChange("afSubjectCategories", ids)
+                  }
+                  disabled={currentSpecs?.hasAutofocus !== true}
+                />
+              </div>
           )}
 
           {/* Has Focus Peaking */}
@@ -1134,16 +1159,17 @@ function CameraFieldsComponent({
 
           {/* Has Focus Bracketing */}
           {showWhenMissing(initialSpecs?.hasFocusBracketing) && (
-            <BooleanInput
-              id="hasFocusBracketing"
-              label={specLabel("hasFocusBracketing", "Has Focus Bracketing")}
-              checked={currentSpecs?.hasFocusBracketing ?? null}
-              allowNull
-              showStateText
-              onChange={(value) =>
-                handleFieldChange("hasFocusBracketing", value)
-              }
-            />
+              <BooleanInput
+                id="hasFocusBracketing"
+                label={specLabel("hasFocusBracketing", "Has Focus Bracketing")}
+                checked={currentSpecs?.hasFocusBracketing ?? null}
+                allowNull
+                showStateText
+                disabled={currentSpecs?.hasAutofocus !== true}
+                onChange={(value) =>
+                  handleFieldChange("hasFocusBracketing", value)
+                }
+              />
           )}
 
           {/* Shutter Speed Max */}
@@ -1415,12 +1441,27 @@ function CameraFieldsComponent({
             />
           )}
 
+          {/* Has Video */}
+          {showWhenMissing(initialSpecs?.hasVideo, "hasVideo") && (
+            <BooleanInput
+              id="hasVideo"
+              label={specLabel("hasVideo", "Has Video")}
+              checked={currentSpecs?.hasVideo ?? null}
+              allowNull
+              showStateText
+              onChange={(value) => handleFieldChange("hasVideo", value)}
+            />
+          )}
+
+          {/* Video-dependent fields remain visible but disabled until video
+              support is confirmed as available. */}
           {/* Has Log Color Profile */}
           {showWhenMissing(initialSpecs?.hasLogColorProfile) && (
             <BooleanInput
               id="hasLogColorProfile"
               label={specLabel("hasLogColorProfile", "Has Log Color Profile")}
               checked={currentSpecs?.hasLogColorProfile ?? null}
+              disabled={!canEditVideo}
               allowNull
               showStateText
               onChange={(value) =>
@@ -1435,6 +1476,7 @@ function CameraFieldsComponent({
               id="has10BitVideo"
               label={specLabel("has10BitVideo", "Has 10 Bit Video")}
               checked={currentSpecs?.has10BitVideo ?? null}
+              disabled={!canEditVideo}
               allowNull
               showStateText
               onChange={(value) => handleFieldChange("has10BitVideo", value)}
@@ -1447,6 +1489,7 @@ function CameraFieldsComponent({
               id="has12BitVideo"
               label={specLabel("has12BitVideo", "Has 12 Bit Video")}
               checked={currentSpecs?.has12BitVideo ?? null}
+              disabled={!canEditVideo}
               allowNull
               showStateText
               onChange={(value) => handleFieldChange("has12BitVideo", value)}
@@ -1459,6 +1502,7 @@ function CameraFieldsComponent({
               id="hasOpenGateVideo"
               label={specLabel("hasOpenGateVideo", "Has Open Gate Video")}
               checked={currentSpecs?.hasOpenGateVideo ?? null}
+              disabled={!canEditVideo}
               allowNull
               showStateText
               onChange={(value) => handleFieldChange("hasOpenGateVideo", value)}
@@ -1474,6 +1518,7 @@ function CameraFieldsComponent({
                 "Supports External Recording",
               )}
               checked={currentSpecs?.supportsExternalRecording ?? null}
+              disabled={!canEditVideo}
               allowNull
               showStateText
               onChange={(value) =>
@@ -1488,6 +1533,7 @@ function CameraFieldsComponent({
               id="supportsRecordToDrive"
               label={specLabel("supportsRecordToDrive", "Supports Recording to Drive")}
               checked={currentSpecs?.supportsRecordToDrive ?? null}
+              disabled={!canEditVideo}
               allowNull
               showStateText
               onChange={(value) =>
@@ -1500,6 +1546,7 @@ function CameraFieldsComponent({
             <VideoModesManager
               value={gearItem.videoModes ?? []}
               initialModes={initialGearItem?.videoModes ?? []}
+              disabled={!canEditVideo}
               onChange={(modes) => onChangeTopLevel?.("videoModes", modes)}
             />
           )}

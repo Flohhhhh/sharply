@@ -3,7 +3,10 @@
 
 import dynamic from "next/dynamic";
 
-import type { GearAlternativeRow } from "~/server/gear/service";
+import type {
+  GearAlternativeRow,
+  GearLineageRelationships,
+} from "~/server/gear/service";
 import type {
   GearColorway,
   GearPublicationState,
@@ -12,6 +15,10 @@ import type {
 } from "~/types/gear";
 
 const EMPTY_ALTERNATIVES: GearAlternativeRow[] = [];
+const EMPTY_LINEAGE: GearLineageRelationships = {
+  predecessor: null,
+  successor: null,
+};
 const EMPTY_SAMPLES: RawSample[] = [];
 const EMPTY_COLORWAYS: GearColorway[] = [];
 
@@ -30,6 +37,7 @@ export interface GearItemDockProps {
   currentInstructionManualUrl?: string | null;
   publicationState?: GearPublicationState | null;
   alternatives?: GearAlternativeRow[];
+  lineage?: GearLineageRelationships;
   rawSamples?: RawSample[];
   hasCreatorVideos?: boolean;
   colorways?: GearColorway[];
@@ -45,6 +53,7 @@ export function GearItemDock({
   currentInstructionManualUrl = null,
   publicationState = null,
   alternatives = EMPTY_ALTERNATIVES,
+  lineage = EMPTY_LINEAGE,
   rawSamples = EMPTY_SAMPLES,
   hasCreatorVideos = false,
   colorways = EMPTY_COLORWAYS,
@@ -60,6 +69,7 @@ export function GearItemDock({
       currentInstructionManualUrl={currentInstructionManualUrl}
       publicationState={publicationState}
       alternatives={alternatives}
+      lineage={lineage}
       rawSamples={rawSamples}
       hasCreatorVideos={hasCreatorVideos}
       colorways={colorways}

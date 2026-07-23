@@ -23,6 +23,7 @@ type MultiSelectProps = {
   className?: string;
   searchPlaceholder?: string;
   inDialog?: boolean;
+  disabled?: boolean;
 };
 
 export function MultiSelect({
@@ -34,6 +35,7 @@ export function MultiSelect({
   className,
   searchPlaceholder = "Search...",
   inDialog,
+  disabled = false,
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
@@ -72,6 +74,7 @@ export function MultiSelect({
   }, [options, query]);
 
   const toggle = (id: string) => {
+    if (disabled) return;
     const isNone = id.toLowerCase() === "none";
 
     // If selecting the special "none" option, make it exclusive
@@ -102,7 +105,9 @@ export function MultiSelect({
     }
   };
 
-  const remove = (id: string) => onChange(value.filter((v) => v !== id));
+  const remove = (id: string) => {
+    if (!disabled) onChange(value.filter((v) => v !== id));
+  };
 
   return (
     <div ref={containerRef} className={cn("w-full", className)}>
@@ -113,6 +118,7 @@ export function MultiSelect({
             role="combobox"
             data-sidebar-focus-target="true"
             aria-expanded={open}
+            disabled={disabled}
             className="h-auto min-h-9 w-full items-start justify-between"
           >
             <div className="flex min-h-5 flex-1 flex-wrap items-center gap-1">
@@ -138,6 +144,7 @@ export function MultiSelect({
                     <span
                       className="pointer-events-auto inline-flex h-3 w-3 items-center justify-center"
                       role="button"
+                      aria-disabled={disabled}
                       aria-label={`Remove ${s.name}`}
                       onMouseDown={(e) => {
                         e.preventDefault();
@@ -188,17 +195,17 @@ export function MultiSelect({
                 );
               }
               const isSelected = value.includes(opt.id);
-              const disabled =
+              const optionDisabled =
                 !!maxSelected && !isSelected && value.length >= maxSelected;
               return (
                 <button
                   type="button"
                   key={opt.id}
                   onClick={() => toggle(opt.id)}
-                  disabled={disabled}
+                  disabled={disabled || optionDisabled}
                   className={cn(
                     "hover:bg-accent flex w-full items-center justify-between rounded px-2 py-1 text-left text-sm",
-                    disabled && "opacity-50",
+                    (disabled || optionDisabled) && "opacity-50",
                   )}
                 >
                   <span>{opt.name}</span>

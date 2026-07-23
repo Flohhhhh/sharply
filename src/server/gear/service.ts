@@ -10,6 +10,7 @@ import {
   isPublishedGear,
   isRumoredGear,
 } from "~/lib/gear/publication-state";
+import { allowsAutoApprovalOverwrite } from "~/lib/gear/change-request-field-policy";
 import type {
   AutoApprovalDecisionMetadata,
   AutoApprovalPath,
@@ -31,7 +32,7 @@ import {
   type ReviewModerationCode,
 } from "~/server/reviews/moderation/service";
 import { maybeGenerateReviewSummary } from "~/server/reviews/summary/service";
-import type { GearItem,GearSummary,RawSample } from "~/types/gear";
+import type { GearItem, GearSummary, RawSample } from "~/types/gear";
 import {
   addImageRequest as addImageRequestData,
   addOwnership as addOwnershipData,
@@ -47,6 +48,8 @@ import {
   fetchAllGearSlugsData,
   fetchAllImageRequests as fetchAllImageRequestsData,
   fetchAlternativesByGearId,
+  fetchGearLineageByGearId,
+  fetchGearLineageValidationRows,
   fetchBrandGearData,
   fetchContributorsByGearIdData,
   fetchGearBySlug as fetchGearBySlugData,
@@ -81,6 +84,8 @@ import {
   removeOwnership as removeOwnershipData,
   resolveOpenReviewFlags as resolveOpenReviewFlagsData,
   setGearAlternatives as setGearAlternativesData,
+  setGearLineage as setGearLineageData,
+  updateGearRelationshipsData,
   updateGearInstructionManualLink as updateGearInstructionManualLinkData,
   updateGearEditMetadata as updateGearEditMetadataData,
   updateOwnershipColorway as updateOwnershipColorwayData,
@@ -90,6 +95,7 @@ import {
   type GearCardRow,
   type GearEditView,
   type GearExportRow,
+  type GearLineageRelationships,
 } from "./data";
 import {
   mapGearRowsToHomeActivityItems,
@@ -471,7 +477,10 @@ export async function updateOwnedGearColorway(body: unknown) {
   return { item };
 }
 
-export async function toggleImageRequest(slug: string, action: "add" | "remove") {
+export async function toggleImageRequest(
+  slug: string,
+  action: "add" | "remove",
+) {
   const { user } = await getSessionOrThrow();
   const userId = user.id;
   const gearId = await resolveGearIdOrThrow(slug);
@@ -503,7 +512,10 @@ export async function fetchImageRequestStatus(slug: string) {
   return { hasRequested };
 }
 
-async function hasImageRequest(gearId: string, userId: string): Promise<boolean> {
+async function hasImageRequest(
+  gearId: string,
+  userId: string,
+): Promise<boolean> {
   return hasImageRequestData(gearId, userId);
 }
 
@@ -613,7 +625,10 @@ export async function submitReview(
     console.error("Failed to record review completion analytics", eventErr);
   }
 
-  await evaluateForEvent({ type: "review.approved", context: { gearId } }, userId);
+  await evaluateForEvent(
+    { type: "review.approved", context: { gearId } },
+    userId,
+  );
   void (async () => {
     try {
       const gearMeta = await fetchGearMetadataByIdData(gearId);
@@ -717,7 +732,10 @@ export async function deleteOwnReview(
         gearName: gearMeta.name ?? "this gear",
       });
     } catch (summaryError) {
-      console.error("[deleteOwnReview] failed to refresh summary", summaryError);
+      console.error(
+        "[deleteOwnReview] failed to refresh summary",
+        summaryError,
+      );
     }
   })();
 
@@ -962,7 +980,9 @@ function getCurrentProposalFieldValue(
       );
     case "analogCamera":
       return normalizeCurrentProposalValue(
-        (gearItem.analogCameraSpecs as Record<string, unknown> | null)?.[fieldKey],
+        (gearItem.analogCameraSpecs as Record<string, unknown> | null)?.[
+          fieldKey
+        ],
         fieldKey,
       );
     case "lens":
@@ -1004,9 +1024,13 @@ function isAddOnlyProposal(
         sectionKey,
         fieldKey,
       );
+      if (isEmptyProposalValue(proposedValue)) {
+        return false;
+      }
+
       if (
-        !isEmptyProposalValue(currentValue) ||
-        isEmptyProposalValue(proposedValue)
+        !isEmptyProposalValue(currentValue) &&
+        !allowsAutoApprovalOverwrite(sectionKey, fieldKey)
       ) {
         return false;
       }
@@ -1062,18 +1086,6 @@ async function getTrustedAddOnlyAutoApprovalEligibility(params: {
   }
 
   const gearItem = await fetchGearBySlugData(params.gearSlug);
-  const construction = getConstructionState(gearItem);
-  if (!construction.underConstruction) {
-    return {
-      eligible: false,
-      path: "trusted_candidate",
-      reasonCode: "gear_not_under_construction",
-      approvedEdits,
-      autoSubmit: params.autoSubmit,
-      hasPendingEdits: params.hasPendingEdits,
-    };
-  }
-
   const eligible = isAddOnlyProposal(gearItem, params.payload);
   return {
     eligible,
@@ -1144,9 +1156,7 @@ export async function submitGearEditProposal(body: unknown) {
   const { user } = await getSessionOrThrow();
   const userId = user.id;
   const data = proposalInput.parse(body);
-  const normalizedPayload = normalizeProposalPayloadForDb(
-    data.payload,
-  );
+  const normalizedPayload = normalizeProposalPayloadForDb(data.payload);
   const proposalStats = summarizeProposalPayload(normalizedPayload);
   const gearId =
     data.gearId ??
@@ -1264,11 +1274,14 @@ export async function submitGearEditProposal(body: unknown) {
       try {
         await notifyAutoApprovedChangeRequest(autoApprovedWebhookPayload);
       } catch (error) {
-        console.error("[submitGearEditProposal] auto-approved webhook notify failed", {
-          proposalId: proposal.id,
-          gearId,
-          error,
-        });
+        console.error(
+          "[submitGearEditProposal] auto-approved webhook notify failed",
+          {
+            proposalId: proposal.id,
+            gearId,
+            error,
+          },
+        );
       }
     }
   }
@@ -1320,11 +1333,14 @@ export async function submitGearEditProposal(body: unknown) {
         hasNote: Boolean(data.note?.trim()),
       });
     } catch (error) {
-      console.error("[submitGearEditProposal] moderator webhook notify failed", {
-        proposalId: resultProposal.id,
-        gearId,
-        error,
-      });
+      console.error(
+        "[submitGearEditProposal] moderator webhook notify failed",
+        {
+          proposalId: resultProposal.id,
+          gearId,
+          error,
+        },
+      );
     }
   }
 
@@ -1590,6 +1606,16 @@ export async function fetchGearAlternatives(
 // Re-export type for convenience
 export type { GearAlternativeRow };
 
+export type { GearLineageRelationships };
+
+/** Fetch the editor-only lineage selections for a gear item. */
+export async function fetchGearLineage(
+  slug: string,
+): Promise<GearLineageRelationships> {
+  const gearId = await resolveGearIdOrThrow(slug);
+  return fetchGearLineageByGearId(gearId);
+}
+
 const alternativesInput = z.object({
   alternatives: z.array(
     z.object({
@@ -1624,4 +1650,57 @@ export async function updateGearAlternatives(
   );
 
   return { ok: true };
+}
+
+const lineageInput = z.object({
+  predecessorGearId: z.string().min(1).nullable(),
+  successorGearId: z.string().min(1).nullable(),
+});
+
+/** Update reciprocal predecessor/successor relationships (requires EDITOR+). */
+export async function updateGearLineage(
+  slug: string,
+  body: unknown,
+): Promise<{ ok: true; affectedSlugs: string[] }> {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session?.user, ["EDITOR", "ADMIN", "SUPERADMIN"])) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+
+  const gearId = await resolveGearIdOrThrow(slug);
+  const data = lineageInput.parse(body);
+  const affectedIds = await setGearLineageData({ gearId, ...data });
+  const affectedRows = await fetchGearLineageValidationRows(affectedIds);
+  return { ok: true, affectedSlugs: affectedRows.map((row) => row.slug) };
+}
+
+const relationshipsInput = z.object({
+  alternatives: z.array(
+    z.object({ gearId: z.string().min(1), isCompetitor: z.boolean() }),
+  ),
+  predecessorGearId: z.string().min(1).nullable(),
+  successorGearId: z.string().min(1).nullable(),
+});
+
+/** Atomically update alternatives and reciprocal lineage (requires EDITOR+). */
+export async function updateGearRelationships(
+  slug: string,
+  body: unknown,
+): Promise<{ ok: true; affectedSlugs: string[] }> {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session?.user, ["EDITOR", "ADMIN", "SUPERADMIN"])) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+  const gearId = await resolveGearIdOrThrow(slug);
+  const data = relationshipsInput.parse(body);
+  const affectedSlugs = await updateGearRelationshipsData({
+    gearId,
+    predecessorGearId: data.predecessorGearId,
+    successorGearId: data.successorGearId,
+    alternatives: data.alternatives.map((alternative) => ({
+      alternativeGearId: alternative.gearId,
+      isCompetitor: alternative.isCompetitor,
+    })),
+  });
+  return { ok: true, affectedSlugs };
 }

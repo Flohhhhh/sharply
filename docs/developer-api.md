@@ -96,7 +96,19 @@ there is no published gear, the endpoint still returns `200` with a null URL.
 
 Returns the complete currently publishable catalog record, including available related specifications, aliases, media, and colourways. The response keeps its established field names: `brands`, flattened image URL fields, `regionalAliases`, and `colorways`.
 
-The response is an explicit public allowlist. It includes catalog identity, release and price data, dimensions, public links, approved relation fields, and type-specific specification values. `mounts` contains `{ value, shortName }` records from the gear-to-mount relationship. `cameraSpecs.sensorFormat` and `lensSpecs.imageCircle` / `fixedLensSpecs.imageCircle` contain `{ slug, name, cropFactor }` when the referenced sensor format exists, otherwise `null`.
+The response is an explicit public allowlist. It includes catalog identity, release and price data, dimensions, public links, approved relation fields, and type-specific specification values. `mounts` contains `{ value, shortName }` records from the gear-to-mount relationship. `predecessor` and `successor` are nullable `{ slug, name }` objects describing the adjacent product lineage. `cameraSpecs.sensorFormat` and `lensSpecs.imageCircle` / `fixedLensSpecs.imageCircle` contain `{ slug, name, cropFactor }` when the referenced sensor format exists, otherwise `null`.
+
+```json
+{
+  "data": {
+    "slug": "canon-eos-r5-mark-ii",
+    "predecessor": { "slug": "canon-eos-r5", "name": "Canon EOS R5" },
+    "successor": null
+  }
+}
+```
+
+Lineage is intentionally available only on this full gear endpoint; catalog, search, suggestion, selected-spec, and random-low-completion responses remain lightweight and do not include it.
 
 Primary and foreign keys, audit timestamps, search helpers, publication workflow state, genre tags, raw samples, selected colourway IDs, internal notes, video-mode matrices, and flexible `extra` JSON are never returned. Adding a public field requires an intentional serializer, contract, and documentation update. Hidden and rumored gear return `404`.
 

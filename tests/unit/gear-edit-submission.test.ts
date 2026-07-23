@@ -110,6 +110,22 @@ function makeUnderConstructionGear(overrides: Record<string, unknown> = {}) {
   };
 }
 
+function makeCompleteGear(overrides: Record<string, unknown> = {}) {
+  return makeUnderConstructionGear({
+    brandId: "brand-1",
+    mountId: "mount-1",
+    mountIds: ["mount-1"],
+    cameraSpecs: {
+      sensorFormatId: "full-frame",
+      resolutionMp: 24,
+      afAreaModes: [],
+      supportedBatteries: [],
+      availableShutterTypes: [],
+    },
+    ...overrides,
+  });
+}
+
 describe("gear edit submission", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -131,7 +147,9 @@ describe("gear edit submission", () => {
 
     gearDataMocks.hasPendingEditsForGear.mockResolvedValue(false);
     gearDataMocks.countApprovedGearEditsByUser.mockResolvedValue(0);
-    gearDataMocks.fetchGearBySlug.mockResolvedValue(makeUnderConstructionGear());
+    gearDataMocks.fetchGearBySlug.mockResolvedValue(
+      makeUnderConstructionGear(),
+    );
     gearDataMocks.fetchGearMetadataById.mockResolvedValue({
       gearType: "CAMERA",
       name: "Nikon Zf",
@@ -326,15 +344,16 @@ describe("gear edit submission", () => {
     expect(webhookMocks.notifyChangeRequestModerators).toHaveBeenCalledTimes(1);
   });
 
-  it("auto-approves trusted contributors for add-only under-construction edits", async () => {
+  it("auto-approves trusted contributors for add-only edits on complete gear", async () => {
     authMocks.getSessionOrThrow.mockResolvedValue({
       user: { id: "user-1", role: "USER", name: "Alex Photographer" },
     });
     gearDataMocks.countApprovedGearEditsByUser.mockResolvedValue(1);
+    gearDataMocks.fetchGearBySlug.mockResolvedValue(makeCompleteGear());
 
     const result = await submitGearEditProposal({
       gearId: "22222222-2222-4222-8222-222222222222",
-      payload: { core: { brandId: "brand-1" } },
+      payload: { core: { announcedDate: "2024-01-01" } },
       autoSubmit: true,
     });
 
@@ -418,6 +437,87 @@ describe("gear edit submission", () => {
     );
     expect(webhookMocks.notifyChangeRequestModerators).toHaveBeenCalledTimes(1);
   });
+
+  it.each([
+    ["releaseDatePrecision", "DAY", "MONTH"],
+    ["announceDatePrecision", "MONTH", "YEAR"],
+  ] as const)(
+    "auto-approves trusted contributors when they replace %s",
+    async (fieldKey, currentValue, proposedValue) => {
+      authMocks.getSessionOrThrow.mockResolvedValue({
+        user: { id: "user-1", role: "USER", name: "Alex Photographer" },
+      });
+      gearDataMocks.countApprovedGearEditsByUser.mockResolvedValue(1);
+      gearDataMocks.fetchGearBySlug.mockResolvedValue(
+        makeUnderConstructionGear({ [fieldKey]: currentValue }),
+      );
+
+      const result = await submitGearEditProposal({
+        gearId: "22222222-2222-4222-8222-222222222222",
+        payload: { core: { [fieldKey]: proposedValue } },
+        autoSubmit: true,
+      });
+
+      expect(result.autoApproved).toBe(true);
+      expect(result.proposal.status).toBe("APPROVED");
+      expect(
+        proposalServiceMocks.applyTrustedContributorProposalApproval,
+      ).toHaveBeenCalledTimes(1);
+      expect(webhookMocks.notifyChangeRequestModerators).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(["releaseDatePrecision", "announceDatePrecision"] as const)(
+    "keeps trusted contributors pending when they clear %s",
+    async (fieldKey) => {
+      authMocks.getSessionOrThrow.mockResolvedValue({
+        user: { id: "user-1", role: "USER", name: "Alex Photographer" },
+      });
+      gearDataMocks.countApprovedGearEditsByUser.mockResolvedValue(1);
+      gearDataMocks.fetchGearBySlug.mockResolvedValue(
+        makeUnderConstructionGear({ [fieldKey]: "DAY" }),
+      );
+
+      const result = await submitGearEditProposal({
+        gearId: "22222222-2222-4222-8222-222222222222",
+        payload: { core: { [fieldKey]: null } },
+        autoSubmit: true,
+      });
+
+      expect(result.autoApproved).toBe(false);
+      expect(result.proposal.status).toBe("PENDING");
+      expect(
+        proposalServiceMocks.applyTrustedContributorProposalApproval,
+      ).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(["releaseDate", "announcedDate"] as const)(
+    "keeps trusted contributors pending when they replace %s",
+    async (fieldKey) => {
+      authMocks.getSessionOrThrow.mockResolvedValue({
+        user: { id: "user-1", role: "USER", name: "Alex Photographer" },
+      });
+      gearDataMocks.countApprovedGearEditsByUser.mockResolvedValue(1);
+      gearDataMocks.fetchGearBySlug.mockResolvedValue(
+        makeUnderConstructionGear({
+          [fieldKey]: new Date("2024-01-01T00:00:00.000Z"),
+        }),
+      );
+
+      const result = await submitGearEditProposal({
+        gearId: "22222222-2222-4222-8222-222222222222",
+        payload: { core: { [fieldKey]: "2024-02-01" } },
+        autoSubmit: true,
+      });
+
+      expect(result.autoApproved).toBe(false);
+      expect(result.proposal.status).toBe("PENDING");
+      expect(
+        proposalServiceMocks.applyTrustedContributorProposalApproval,
+      ).not.toHaveBeenCalled();
+    },
+  );
 
   it("keeps trusted contributors pending when they clear a value", async () => {
     authMocks.getSessionOrThrow.mockResolvedValue({
@@ -566,13 +666,17 @@ describe("gear edit submission", () => {
     expect(result.autoApproved).toBe(true);
     expect(result.proposal.status).toBe("APPROVED");
     expect(proposalServiceMocks.approveProposal).toHaveBeenCalledTimes(1);
-    expect(webhookMocks.notifyAutoApprovedChangeRequest).toHaveBeenCalledTimes(1);
+    expect(webhookMocks.notifyAutoApprovedChangeRequest).toHaveBeenCalledTimes(
+      1,
+    );
     expect(console.info).not.toHaveBeenCalled();
     expect(webhookMocks.notifyChangeRequestModerators).not.toHaveBeenCalled();
   });
 
   it("stores a failed auto-approval reason when apply fails and leaves the request pending", async () => {
-    proposalServiceMocks.approveProposal.mockRejectedValueOnce(new Error("db down"));
+    proposalServiceMocks.approveProposal.mockRejectedValueOnce(
+      new Error("db down"),
+    );
 
     const result = await submitGearEditProposal({
       gearId: "22222222-2222-4222-8222-222222222222",
@@ -638,7 +742,9 @@ describe("gear edit submission", () => {
   });
 
   it("throws when auto-approval failure metadata cannot be persisted", async () => {
-    proposalServiceMocks.approveProposal.mockRejectedValueOnce(new Error("db down"));
+    proposalServiceMocks.approveProposal.mockRejectedValueOnce(
+      new Error("db down"),
+    );
     gearDataMocks.updateGearEditMetadata.mockRejectedValueOnce(
       new Error("write failed"),
     );

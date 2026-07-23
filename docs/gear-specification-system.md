@@ -33,7 +33,9 @@ The central table that stores common gear information:
   - Indexed in the `gear` table to support public browse/search/trending/popularity filters
 - **User Notes**: `notes` — `text[]` for unstructured notes
 - **Commerce**: `mpbMaxPriceUsdCents` — optional MPB max price (USD cents)
-- **Core Specs**: Physical dimensions (width, height, depth in mm), weight
+- **Core Specs**: Physical dimensions (width, height, depth in mm), weight, and optional product lineage
+  - `predecessorGearId` and `successorGearId` are nullable same-type self-references for the prior and next model respectively.
+  - Editor relationship management keeps the two directions reciprocal. Deleting a referenced gear item sets the corresponding lineage field to `null`.
 - **Timestamps**: Created/updated tracking
 
 ### Publication State vs. Completeness
@@ -99,6 +101,7 @@ Stores detailed camera-specific specifications:
 - **Primary Key**: `gearId` (1:1 relationship with gear)
 - **Sensor**: Format reference, resolution in megapixels
 - **Performance**: ISO range (min/max), IBIS (in-body stabilization), available shutter types, viewfinder type
+- **Focus**: `hasAutofocus` is nullable so unknown capability is distinct from a confirmed absence. When it is explicitly `false`, autofocus-specific detail rows (focus points, AF area modes, AF subject categories, and focus bracketing) are hidden; stored values are retained for a future correction. The edit form keeps those controls visible but disabled unless autofocus is explicitly `true`, while the edit sidebar hides them when autofocus is `false`.
 - **Burst rate**:
   - `max_fps_by_shutter` (JSONB, nullable) stores per-shutter continuous FPS for RAW/JPG. Keys: `mechanical`, `efc`, `electronic` with `{ raw, jpg }` numeric values.
   - Headline `max_fps_raw` and `max_fps_jpg` mirror the maximum RAW/JPG values across the JSON object for backward compatibility.
@@ -108,7 +111,7 @@ Stores detailed camera-specific specifications:
   - `2`: Yes (JPEG only)
 - **Displays**: rear display type (none, fixed, single_axis_tilt, dual_axis_tilt, fully_articulated, four_axis_tilt_flip, other), rear display size (inches), rear display resolution (million dots), has top display, has rear touchscreen
 - **Viewfinder**: type (none/optical/electronic), magnification (x), resolution (million dots)
-- **Video**: Mode matrix (`camera_video_modes`) plus capability flags: log profile, 10-bit, 12-bit, open gate, supports external recording, supports recording to a drive
+- **Video**: `hasVideo` is nullable to distinguish unknown support from confirmed availability or absence. Editors can change the dependent video capabilities and mode matrix only when it is `true`; `null` keeps legacy stored video details visible publicly, while `false` hides all dependent video details without deleting them. The mode matrix (`camera_video_modes`) and dependent capability flags cover log profile, 10-bit, 12-bit, open gate, external recording, and recording to a drive.
 - **Misc**: capture convenience and body feature flags such as built-in flash, hot shoe, illuminated buttons, intervalometer, self timer, and USB file transfer
 - **Flexibility**: JSONB extra field for additional specs
 
@@ -212,6 +215,7 @@ CREATE TABLE sharply_lens_specs (
 
 - **Gear → Brands**: Required relationship (restrict delete)
 - **Gear → Mounts**: Optional relationship (set null on delete)
+- **Gear → Gear lineage**: Optional predecessor and successor self-references (set null on delete); application services maintain reciprocal same-type links.
 - **Gear Creator Videos → Approved Creators**: Required relationship (restrict delete)
 - **Camera Specs → Sensor Formats**: Optional relationship (set null on delete)
 - **Lens Specs → Sensor Formats** (`imageCircleSizeId`): Optional relationship at the DB level (set null on delete), but treated as a required completeness spec for published lenses because it drives coverage-dependent behavior such as Sony FE vs Sony E MPB routing.
@@ -283,6 +287,7 @@ The registry exports `buildGearSpecsSections(item: GearItem, options?)` which re
 - **Future Surfaces**: Any new spec display can import and use the registry
 - **Intentional Exceptions**: Editor-managed resource links such as `gear.linkInstructionManual` may live on the core `gear` table while rendering outside the spec table and outside the public suggestion flow.
 - **Display Conditions**: Prefer field-level `condition` functions for sentinel values that should not render at all. Example: `internalStorageGb` only renders when the numeric value is greater than `0`, so `0` does not show as a misleading graph/spec entry.
+- **Missing-only Editor Mode**: Fields with `alwaysShowInEditor: true` remain editable even when they already have a value. Use this only for capability toggles whose current `false` value would otherwise lock their dependent editor fields.
 
 ### Localization
 

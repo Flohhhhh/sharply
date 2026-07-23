@@ -1,4 +1,5 @@
 import { describe,expect,it } from "vitest";
+import { renderToStaticMarkup } from "react-dom/server";
 import { MOUNTS,SENSOR_FORMATS } from "~/lib/generated";
 import {
   buildGearSpecsSections,
@@ -210,6 +211,149 @@ describe("spec registry i18n", () => {
     ).toBe(false);
   });
 
+  it("keeps an explicit no-viewfinder value in the specifications table", () => {
+    const sections = buildGearSpecsSections(
+      createGearItem({
+        gearType: "CAMERA",
+        cameraSpecs: {
+          viewfinderType: "none",
+        } as GearItem["cameraSpecs"],
+      }),
+    );
+
+    expect(
+      sections
+        .flatMap((section) => section.data)
+        .find((row) => row.key === "viewfinderType"),
+    ).toMatchObject({
+      label: "Viewfinder Type",
+      value: "None",
+    });
+  });
+
+  it("keeps existing autofocus details visible while capability is unset", () => {
+    const buildFocusRows = (
+      hasAutofocus: boolean | null,
+    ) =>
+      buildGearSpecsSections(
+        createGearItem({
+          gearType: "CAMERA",
+          cameraSpecs: {
+            hasAutofocus,
+            focusPoints: 693,
+            afAreaModes: ["single_point"],
+            afSubjectCategories: ["human"],
+            hasFocusBracketing: true,
+            hasFocusPeaking: true,
+          } as unknown as GearItem["cameraSpecs"],
+        }),
+        { locale: "en" },
+      )
+        .find((section) => section.id === "camera-focus")
+        ?.data.map((row) => row.key) ?? [];
+
+    expect(buildFocusRows(null)).toEqual(
+      expect.arrayContaining([
+        "focusPoints",
+        "afAreaModes",
+        "afSubjectCategories",
+        "hasFocusBracketing",
+        "hasFocusPeaking",
+      ]),
+    );
+    expect(buildFocusRows(true)).toEqual(
+      expect.arrayContaining([
+        "hasAutofocus",
+        "focusPoints",
+        "afAreaModes",
+        "afSubjectCategories",
+        "hasFocusBracketing",
+      ]),
+    );
+    expect(buildFocusRows(false)).toEqual(
+      expect.arrayContaining(["hasAutofocus", "hasFocusPeaking"]),
+    );
+    expect(buildFocusRows(false)).not.toEqual(
+      expect.arrayContaining([
+        "focusPoints",
+        "afAreaModes",
+        "afSubjectCategories",
+        "hasFocusBracketing",
+      ]),
+    );
+
+    const editFocusFields = buildEditSidebarSections(
+      createGearItem({
+        gearType: "CAMERA",
+        cameraSpecs: { hasAutofocus: false } as GearItem["cameraSpecs"],
+      }),
+      { locale: "en" },
+    )
+      .find((section) => section.id === "camera-focus")
+      ?.fields.map((field) => field.key);
+
+    expect(editFocusFields).toContain("hasAutofocus");
+    expect(editFocusFields).not.toEqual(
+      expect.arrayContaining([
+        "focusPoints",
+        "afAreaModes",
+        "afSubjectCategories",
+        "hasFocusBracketing",
+      ]),
+    );
+  });
+
+  it("uses hasVideo as an authoritative public visibility gate", () => {
+    const buildVideoRows = (hasVideo: boolean | null) =>
+      buildGearSpecsSections(
+        createGearItem({
+          gearType: "CAMERA",
+          cameraSpecs: {
+            hasVideo,
+            hasLogColorProfile: true,
+            has10BitVideo: true,
+            has12BitVideo: true,
+            hasOpenGateVideo: true,
+            supportsExternalRecording: true,
+            supportsRecordToDrive: true,
+          } as GearItem["cameraSpecs"],
+          videoModes: [
+            {
+              id: "video-mode-1",
+              gearId: "gear-1",
+              resolutionKey: "4k-uhd",
+              resolutionLabel: "4K UHD",
+              resolutionHorizontal: 3840,
+              resolutionVertical: 2160,
+              fps: 60,
+              codecLabel: "H.265",
+              bitDepth: 10,
+              cropFactor: false,
+              notes: null,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+          ],
+        }),
+        { locale: "en" },
+      )
+        .find((section) => section.id === "camera-video")
+        ?.data.map((row) => row.key) ?? [];
+
+    expect(buildVideoRows(null)).toEqual(
+      expect.arrayContaining([
+        "videoSummary",
+        "videoAvailableCodecs",
+        "hasLogColorProfile",
+        "has10BitVideo",
+      ]),
+    );
+    expect(buildVideoRows(true)).toEqual(
+      expect.arrayContaining(["hasVideo", "videoSummary", "has10BitVideo"]),
+    );
+    expect(buildVideoRows(false)).toEqual(["hasVideo"]);
+  });
+
   it("hides internal storage when the stored value is zero", () => {
     const zeroSections = buildGearSpecsSections(
       createGearItem({
@@ -269,6 +413,52 @@ describe("spec registry i18n", () => {
     expect(getWeightValue(12520)).toBe("12.52 kg");
     expect(getWeightValue("")).toBeUndefined();
     expect(getWeightValue(null)).toBeUndefined();
+  });
+
+  it("marks multi-mount lens weight and length as rounded approximations", () => {
+    const [firstMount, secondMount] = MOUNTS;
+    const item = createGearItem({
+      gearType: "LENS",
+      mountIds: [firstMount!.id, secondMount!.id],
+      weightGrams: 450.6,
+      depthMm: "84.5",
+      widthMm: "72.4",
+    });
+
+    const coreSection = buildGearSpecsSections(item, { locale: "en" }).find(
+      (section) => section.id === "core",
+    );
+    const weight = coreSection?.data.find((row) => row.key === "weightGrams");
+    const dimensions = coreSection?.data.find((row) => row.key === "dimensions");
+
+    expect(weight?.value).toBe("~451 g");
+    expect(renderToStaticMarkup(dimensions?.value as React.ReactElement)).toContain(
+      "~85",
+    );
+    expect(renderToStaticMarkup(dimensions?.value as React.ReactElement)).toContain(
+      ">72.4<",
+    );
+  });
+
+  it("keeps single-mount lens dimensions and weight precise", () => {
+    const [mount] = MOUNTS;
+    const item = createGearItem({
+      gearType: "LENS",
+      mountIds: [mount!.id],
+      weightGrams: 450.6,
+      depthMm: "84.5",
+    });
+
+    const coreSection = buildGearSpecsSections(item, { locale: "en" }).find(
+      (section) => section.id === "core",
+    );
+    const weight = coreSection?.data.find((row) => row.key === "weightGrams");
+    const dimensions = coreSection?.data.find((row) => row.key === "dimensions");
+
+    expect(weight?.value).toBe("450.6 g");
+    expect(renderToStaticMarkup(dimensions?.value as React.ReactElement)).toContain(
+      "84.5",
+    );
   });
 
   it("renders analog max continuous fps without trailing .0 for whole numbers", () => {

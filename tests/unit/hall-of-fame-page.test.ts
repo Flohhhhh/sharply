@@ -65,7 +65,7 @@ describe("hall of fame page", () => {
       {
         id: "gear-1",
         slug: "sony-a9-iii",
-        name: "a9 III",
+        name: "Sony a9 III",
         brandName: "Sony",
         thumbnailUrl: "https://cdn.example.com/a9iii.jpg",
         releaseDate: new Date("2024-03-08T00:00:00.000Z"),
@@ -94,6 +94,7 @@ describe("hall of fame page", () => {
 
     expect(gearServiceMocks.fetchGearSummariesBySlugs).toHaveBeenCalledTimes(1);
     expect(html).toContain("Sony a9 III");
+    expect(html).not.toContain("Sony Sony a9 III");
     expect(html).toContain("Nikon D500");
     expect(html).not.toContain("Tamron 35-150mm");
     expect(html.indexOf("Sony a9 III")).toBeLessThan(html.indexOf("Nikon D500"));

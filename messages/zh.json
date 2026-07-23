@@ -191,6 +191,27 @@
     "reviews": "评测",
     "rawSamples": "原始样品",
     "alternatives": "替代方案",
+    "relationships": {
+      "title": "关系",
+      "description": "管理此器材的替代产品和产品谱系。",
+      "predecessor": "前代产品",
+      "successor": "后继产品",
+      "selectPredecessor": "选择前代产品",
+      "selectSuccessor": "选择后继产品",
+      "searchGear": "搜索器材...",
+      "currentAlternatives": "当前替代产品",
+      "addAlternative": "添加替代产品",
+      "noAlternatives": "尚未添加替代产品",
+      "competitor": "竞争产品",
+      "removeAlternative": "移除{name}",
+      "cannotSelf": "不能将此器材添加为自身的替代产品",
+      "alreadyAlternative": "此器材已经是替代产品",
+      "updated": "关系已更新",
+      "updateFailed": "无法更新关系",
+      "cancel": "取消",
+      "save": "保存",
+      "saving": "正在保存..."
+    },
     "creatorVideos": "创作者视频",
     "articles": "文章",
     "articlesAboutItem": "关于该商品的文章",
@@ -838,6 +859,9 @@
         "camera-focus": {
           "title": "重点",
           "fields": {
+            "hasAutofocus": {
+              "label": "具有自动对焦功能"
+            },
             "focusPoints": {
               "label": "焦点"
             },
@@ -880,6 +904,9 @@
             },
             "videoAvailableCodecs": {
               "label": "可用的编解码器"
+            },
+            "hasVideo": {
+              "label": "支持视频"
             },
             "hasLogColorProfile": {
               "label": "具有原木颜色配置文件"

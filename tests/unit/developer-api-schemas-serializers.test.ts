@@ -200,6 +200,8 @@ describe("developer API serializers", () => {
           cropFactor: "1.00",
         },
         resolutionMp: "24.5",
+        hasAutofocus: true,
+        hasVideo: true,
         maxFpsByShutter: { mechanical: { raw: 14, jpg: 14 } },
         extra: { internalOnly: true },
         afAreaModes: [
@@ -327,6 +329,8 @@ describe("developer API serializers", () => {
           cropFactor: "1.00",
         },
         resolutionMp: "24.5",
+        hasAutofocus: true,
+        hasVideo: true,
         maxFpsByShutter: { mechanical: { raw: 14, jpg: 14 } },
         afAreaModes: [
           {

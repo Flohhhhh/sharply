@@ -54,7 +54,7 @@ Publication state and completeness are separate:
 
 - **`RUMORED`** items can still be edited by staff so specs can be prepared ahead of release.
 - **`HIDDEN`** items can also still be edited internally.
-- Trusted contributor auto-approval still keys off the existing **under-construction/completeness** logic, not the publication-state override.
+- Trusted contributor auto-approval does not depend on completeness or publication state; the add-only and trust checks determine eligibility.
 - Public under-construction surfaces intentionally exclude rumored and hidden items, so "not yet public" and "public but incomplete" do not overlap.
 
 ## Staff auto-approval (editor role and above)
@@ -73,12 +73,13 @@ Publication state and completeness are separate:
 
 **Trust signal:** At least **one** prior change request by the same user with **`status === APPROVED`** (`countApprovedGearEditsByUser` in `src/server/gear/data.ts`).
 
-**Gear state:** The gear must be **under construction** (`getConstructionState` in `src/lib/utils.ts` — missing required catalog fields for that gear type).
+**Gear state:** The gear may be at any completeness level or publication state. Trusted auto-approval does not require it to be under construction.
 
 **Payload shape:** The proposal must be **strictly add-only** (`isAddOnlyProposal` in `src/server/gear/service.ts`):
 
-- For each included key under `core`, `camera`, `analogCamera`, `lens`, and `fixedLens`, the **current** value on the gear must be “empty” and the **proposed** value must be non-empty (no overwrites, no clearing).
+- For each included key under `core`, `camera`, `analogCamera`, `lens`, and `fixedLens`, the **current** value on the gear must be “empty” and the **proposed** value must be non-empty (no overwrites, no clearing), except registered overwrite allowlist entries.
 - Same idea for top-level **`cameraCardSlots`** and **`videoModes`**: only allowed when the current value is empty and the proposal fills them.
+- The current overwrite allowlist permits non-empty replacements of `core.releaseDatePrecision` and `core.announceDatePrecision`; clearing either field or replacing any other populated value still requires review.
 
 **Slug:** Eligibility loads the full gear row by **`gearMeta.slug`**; if slug is missing, trusted eligibility is false.
 
@@ -118,18 +119,18 @@ Publication state and completeness are separate:
 
 ## Quick reference
 
-| Concern | Location |
-|--------|----------|
-| Orchestration and gates | `src/server/gear/service.ts` (`submitGearEditProposal`, `isAddOnlyProposal`, `evaluateAutoApprovalDecision`) |
-| Staff approve + trusted apply + notifications | `src/server/admin/proposals/service.ts` |
-| DB apply / transactions | `src/server/admin/proposals/data.ts` (`approveProposalData`) |
-| Proposal metadata persistence | `src/server/gear/data.ts` (`createGearEditProposal`, `updateGearEditMetadata`) |
-| Approved-edit count for trust | `src/server/gear/data.ts` (`countApprovedGearEditsByUser`) |
-| Under construction definition | `src/lib/utils.ts` (`getConstructionState`) |
-| Moderator webhook for pending + auto-approved logging | `src/server/admin/proposals/webhook.ts` |
-| Human-readable admin reason mapping | `src/lib/gear/auto-approval-reasons.ts` |
-| Server action + revalidation | `src/server/gear/actions.ts` |
-| Auto-Submit UI (staff) | `edit-gear-form.tsx`, `edit-modal-content.tsx` |
+| Concern                                               | Location                                                                                                     |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Orchestration and gates                               | `src/server/gear/service.ts` (`submitGearEditProposal`, `isAddOnlyProposal`, `evaluateAutoApprovalDecision`) |
+| Staff approve + trusted apply + notifications         | `src/server/admin/proposals/service.ts`                                                                      |
+| DB apply / transactions                               | `src/server/admin/proposals/data.ts` (`approveProposalData`)                                                 |
+| Proposal metadata persistence                         | `src/server/gear/data.ts` (`createGearEditProposal`, `updateGearEditMetadata`)                               |
+| Approved-edit count for trust                         | `src/server/gear/data.ts` (`countApprovedGearEditsByUser`)                                                   |
+| Under construction definition                         | `src/lib/utils.ts` (`getConstructionState`)                                                                  |
+| Moderator webhook for pending + auto-approved logging | `src/server/admin/proposals/webhook.ts`                                                                      |
+| Human-readable admin reason mapping                   | `src/lib/gear/auto-approval-reasons.ts`                                                                      |
+| Server action + revalidation                          | `src/server/gear/actions.ts`                                                                                 |
+| Auto-Submit UI (staff)                                | `edit-gear-form.tsx`, `edit-modal-content.tsx`                                                               |
 
 ## Related product docs
 
