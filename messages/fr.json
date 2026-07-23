@@ -838,6 +838,9 @@
         "camera-focus": {
           "title": "Mise au point",
           "fields": {
+            "hasAutofocus": {
+              "label": "Autofocus"
+            },
             "focusPoints": {
               "label": "Points AF"
             },

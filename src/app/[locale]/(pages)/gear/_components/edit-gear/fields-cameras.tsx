@@ -81,6 +81,7 @@ const cameraFieldSections: Record<string, string> = {
   viewfinderResolutionMillionDots: "camera-hardware",
   hasTopDisplay: "camera-hardware",
   hasRearTouchscreen: "camera-hardware",
+  hasAutofocus: "camera-focus",
   focusPoints: "camera-focus",
   afAreaModes: "camera-focus",
   afSubjectCategories: "camera-focus",
@@ -1079,45 +1080,63 @@ function CameraFieldsComponent({
             />
           )}
 
-          {/* Focus Points */}
-          {showWhenMissing(initialSpecs?.focusPoints) && (
-            <NumberInput
-              id="focusPoints"
-              label={specLabel("focusPoints", "Focus Points")}
-              value={currentSpecs?.focusPoints ?? null}
-              onChange={(value) => handleFieldChange("focusPoints", value)}
+          {/* Has Autofocus */}
+          {showWhenMissing(initialSpecs?.hasAutofocus) && (
+            <BooleanInput
+              id="hasAutofocus"
+              label={specLabel("hasAutofocus", "Has Autofocus")}
+              checked={currentSpecs?.hasAutofocus ?? null}
+              allowNull
+              showStateText
+              onChange={(value) => handleFieldChange("hasAutofocus", value)}
             />
+          )}
+
+          {/* Autofocus-dependent fields remain visible but disabled until
+              autofocus is confirmed as available. */}
+          {showWhenMissing(initialSpecs?.focusPoints) && (
+              <NumberInput
+                id="focusPoints"
+                label={specLabel("focusPoints", "Focus Points")}
+                value={currentSpecs?.focusPoints ?? null}
+                onChange={(value) => handleFieldChange("focusPoints", value)}
+                disabled={currentSpecs?.hasAutofocus !== true}
+              />
           )}
 
           {/* AF Area Modes */}
           {/* TODO: add a way for creating new af area modes (review plan)*/}
           {showWhenMissing(initialSpecs?.afAreaModes) && (
-            <div id="afAreaModes" className="space-y-2">
-              <Label htmlFor="afAreaModes">
-                {specLabel("afAreaModes", "AF Area Modes")}
-              </Label>
-              <MultiSelect
-                options={afAreaModeOptions}
-                value={selectedAfAreaModeIds}
-                onChange={(value) => handleFieldChange("afAreaModes", value)}
-              />
-            </div>
+              <div id="afAreaModes" className="space-y-2">
+                <Label htmlFor="afAreaModes">
+                  {specLabel("afAreaModes", "AF Area Modes")}
+                </Label>
+                <MultiSelect
+                  options={afAreaModeOptions}
+                  value={selectedAfAreaModeIds}
+                  onChange={(value) =>
+                    handleFieldChange("afAreaModes", value)
+                  }
+                  disabled={currentSpecs?.hasAutofocus !== true}
+                />
+              </div>
           )}
 
           {/* AF Subject Categories */}
           {showWhenMissing(initialSpecs?.afSubjectCategories) && (
-            <div id="afSubjectCategories" className="space-y-2">
-              <Label htmlFor="afSubjectCategories">
-                {specLabel("afSubjectCategories", "AF Subject Categories")}
-              </Label>
-              <MultiSelect
-                options={afSubjectCategoryOptions}
-                value={selectedAfSubjectCategories}
-                onChange={(ids) =>
-                  handleFieldChange("afSubjectCategories", ids)
-                }
-              />
-            </div>
+              <div id="afSubjectCategories" className="space-y-2">
+                <Label htmlFor="afSubjectCategories">
+                  {specLabel("afSubjectCategories", "AF Subject Categories")}
+                </Label>
+                <MultiSelect
+                  options={afSubjectCategoryOptions}
+                  value={selectedAfSubjectCategories}
+                  onChange={(ids) =>
+                    handleFieldChange("afSubjectCategories", ids)
+                  }
+                  disabled={currentSpecs?.hasAutofocus !== true}
+                />
+              </div>
           )}
 
           {/* Has Focus Peaking */}
@@ -1134,16 +1153,17 @@ function CameraFieldsComponent({
 
           {/* Has Focus Bracketing */}
           {showWhenMissing(initialSpecs?.hasFocusBracketing) && (
-            <BooleanInput
-              id="hasFocusBracketing"
-              label={specLabel("hasFocusBracketing", "Has Focus Bracketing")}
-              checked={currentSpecs?.hasFocusBracketing ?? null}
-              allowNull
-              showStateText
-              onChange={(value) =>
-                handleFieldChange("hasFocusBracketing", value)
-              }
-            />
+              <BooleanInput
+                id="hasFocusBracketing"
+                label={specLabel("hasFocusBracketing", "Has Focus Bracketing")}
+                checked={currentSpecs?.hasFocusBracketing ?? null}
+                allowNull
+                showStateText
+                disabled={currentSpecs?.hasAutofocus !== true}
+                onChange={(value) =>
+                  handleFieldChange("hasFocusBracketing", value)
+                }
+              />
           )}
 
           {/* Shutter Speed Max */}

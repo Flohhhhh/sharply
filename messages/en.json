@@ -838,6 +838,9 @@
         "camera-focus": {
           "title": "Focus",
           "fields": {
+            "hasAutofocus": {
+              "label": "Has Autofocus"
+            },
             "focusPoints": {
               "label": "Focus Points"
             },

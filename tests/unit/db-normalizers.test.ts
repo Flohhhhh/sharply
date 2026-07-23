@@ -45,6 +45,30 @@ describe("normalizeProposalPayloadForDb", () => {
       });
   });
 
+  it.each([
+    [true, true],
+    [false, false],
+    [null, null],
+    ["true", true],
+    ["false", false],
+  ])("normalizes camera autofocus value %o", (input, expected) => {
+    expect(
+      normalizeProposalPayloadForDb({
+        camera: { hasAutofocus: input },
+      }),
+    ).toEqual({
+      camera: { hasAutofocus: expected },
+    });
+  });
+
+  it("drops invalid camera autofocus values", () => {
+    expect(
+      normalizeProposalPayloadForDb({
+        camera: { hasAutofocus: "sometimes" },
+      }),
+    ).toEqual({});
+  });
+
   it("preserves analog max continuous fps decimals", () => {
     expect(
       normalizeProposalPayloadForDb({

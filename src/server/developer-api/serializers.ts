@@ -209,6 +209,7 @@ function serializeCameraSpecs(
     cameraType: specs.cameraType,
     processorName: specs.processorName,
     hasWeatherSealing: specs.hasWeatherSealing,
+    hasAutofocus: specs.hasAutofocus,
     focusPoints: specs.focusPoints,
     afSubjectCategories: specs.afSubjectCategories,
     hasFocusPeaking: specs.hasFocusPeaking,

@@ -99,6 +99,7 @@ Stores detailed camera-specific specifications:
 - **Primary Key**: `gearId` (1:1 relationship with gear)
 - **Sensor**: Format reference, resolution in megapixels
 - **Performance**: ISO range (min/max), IBIS (in-body stabilization), available shutter types, viewfinder type
+- **Focus**: `hasAutofocus` is nullable so unknown capability is distinct from a confirmed absence. When it is explicitly `false`, autofocus-specific detail rows (focus points, AF area modes, AF subject categories, and focus bracketing) are hidden; stored values are retained for a future correction. The edit form keeps those controls visible but disabled unless autofocus is explicitly `true`, while the edit sidebar hides them when autofocus is `false`.
 - **Burst rate**:
   - `max_fps_by_shutter` (JSONB, nullable) stores per-shutter continuous FPS for RAW/JPG. Keys: `mechanical`, `efc`, `electronic` with `{ raw, jpg }` numeric values.
   - Headline `max_fps_raw` and `max_fps_jpg` mirror the maximum RAW/JPG values across the JSON object for backward compatibility.

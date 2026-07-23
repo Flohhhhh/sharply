@@ -1136,10 +1136,19 @@ export const specDictionary: SpecSectionDef[] = [
     condition: (item) => item.gearType === "CAMERA",
     fields: [
       {
+        key: "hasAutofocus",
+        label: "Has Autofocus",
+        searchTerms: ["autofocus", "af"],
+        getRawValue: (item) => item.cameraSpecs?.hasAutofocus,
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+      },
+      {
         key: "focusPoints",
         label: "Focus Points",
         searchTerms: ["autofocus", "af points", "af"],
         getRawValue: (item) => item.cameraSpecs?.focusPoints,
+        condition: (item) => item.cameraSpecs?.hasAutofocus !== false,
         formatDisplay: (raw) =>
           typeof raw === "number" || typeof raw === "string"
             ? String(raw)
@@ -1157,6 +1166,7 @@ export const specDictionary: SpecSectionDef[] = [
         key: "hasFocusBracketing",
         label: "Has Focus Bracketing",
         getRawValue: (item) => item.cameraSpecs?.hasFocusBracketing,
+        condition: (item) => item.cameraSpecs?.hasAutofocus !== false,
         formatDisplay: (raw) =>
           typeof raw === "boolean" ? yesNoNull(raw, true) : undefined,
       },
@@ -1165,6 +1175,7 @@ export const specDictionary: SpecSectionDef[] = [
         label: "AF Area Modes",
         searchTerms: ["autofocus", "af", "focus modes", "focus areas"],
         getRawValue: (item) => item.cameraSpecs?.afAreaModes,
+        condition: (item) => item.cameraSpecs?.hasAutofocus !== false,
         formatDisplay: (raw, _, forceLeftAlign) => {
           if (!Array.isArray(raw) || raw.length === 0) return undefined;
           const toName = (
@@ -1207,6 +1218,7 @@ export const specDictionary: SpecSectionDef[] = [
           "subject recognition",
         ],
         getRawValue: (item) => item.cameraSpecs?.afSubjectCategories,
+        condition: (item) => item.cameraSpecs?.hasAutofocus !== false,
         formatDisplay: (raw, _, forceLeftAlign) => {
           if (!Array.isArray(raw)) return undefined;
           const categories = raw

@@ -838,6 +838,9 @@
         "camera-focus": {
           "title": "Messa a fuoco",
           "fields": {
+            "hasAutofocus": {
+              "label": "Autofocus"
+            },
             "focusPoints": {
               "label": "Punti AF"
             },

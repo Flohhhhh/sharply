@@ -823,6 +823,7 @@ export const cameraSpecs = appSchema.table(
     processorName: varchar("processor_name", { length: 200 }),
     hasWeatherSealing: boolean("has_weather_sealing"),
     // focus
+    hasAutofocus: boolean("has_autofocus"),
     focusPoints: integer("focus_points"),
     afSubjectCategories: afSubjectCategoriesEnum(
       "af_subject_categories",

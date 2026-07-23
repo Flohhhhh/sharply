@@ -838,6 +838,9 @@
         "camera-focus": {
           "title": "Enfoque",
           "fields": {
+            "hasAutofocus": {
+              "label": "Tiene enfoque automático"
+            },
             "focusPoints": {
               "label": "Puntos de enfoque"
             },

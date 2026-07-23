@@ -210,6 +210,78 @@ describe("spec registry i18n", () => {
     ).toBe(false);
   });
 
+  it("keeps existing autofocus details visible while capability is unset", () => {
+    const buildFocusRows = (
+      hasAutofocus: boolean | null,
+    ) =>
+      buildGearSpecsSections(
+        createGearItem({
+          gearType: "CAMERA",
+          cameraSpecs: {
+            hasAutofocus,
+            focusPoints: 693,
+            afAreaModes: ["single_point"],
+            afSubjectCategories: ["human"],
+            hasFocusBracketing: true,
+            hasFocusPeaking: true,
+          } as unknown as GearItem["cameraSpecs"],
+        }),
+        { locale: "en" },
+      )
+        .find((section) => section.id === "camera-focus")
+        ?.data.map((row) => row.key) ?? [];
+
+    expect(buildFocusRows(null)).toEqual(
+      expect.arrayContaining([
+        "focusPoints",
+        "afAreaModes",
+        "afSubjectCategories",
+        "hasFocusBracketing",
+        "hasFocusPeaking",
+      ]),
+    );
+    expect(buildFocusRows(true)).toEqual(
+      expect.arrayContaining([
+        "hasAutofocus",
+        "focusPoints",
+        "afAreaModes",
+        "afSubjectCategories",
+        "hasFocusBracketing",
+      ]),
+    );
+    expect(buildFocusRows(false)).toEqual(
+      expect.arrayContaining(["hasAutofocus", "hasFocusPeaking"]),
+    );
+    expect(buildFocusRows(false)).not.toEqual(
+      expect.arrayContaining([
+        "focusPoints",
+        "afAreaModes",
+        "afSubjectCategories",
+        "hasFocusBracketing",
+      ]),
+    );
+
+    const editFocusFields = buildEditSidebarSections(
+      createGearItem({
+        gearType: "CAMERA",
+        cameraSpecs: { hasAutofocus: false } as GearItem["cameraSpecs"],
+      }),
+      { locale: "en" },
+    )
+      .find((section) => section.id === "camera-focus")
+      ?.fields.map((field) => field.key);
+
+    expect(editFocusFields).toContain("hasAutofocus");
+    expect(editFocusFields).not.toEqual(
+      expect.arrayContaining([
+        "focusPoints",
+        "afAreaModes",
+        "afSubjectCategories",
+        "hasFocusBracketing",
+      ]),
+    );
+  });
+
   it("hides internal storage when the stored value is zero", () => {
     const zeroSections = buildGearSpecsSections(
       createGearItem({

@@ -838,6 +838,9 @@
         "camera-focus": {
           "title": "重点",
           "fields": {
+            "hasAutofocus": {
+              "label": "具有自动对焦功能"
+            },
             "focusPoints": {
               "label": "焦点"
             },
