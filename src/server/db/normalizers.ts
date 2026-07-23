@@ -587,6 +587,13 @@ export function normalizeProposalPayloadForDb(
           z.boolean().nullable().optional(),
         )
         .optional(),
+      hasVideo: z
+        .preprocess(
+          (value) =>
+            value === null ? null : (coerceBoolean(value) ?? undefined),
+          z.boolean().nullable().optional(),
+        )
+        .optional(),
       hasLogColorProfile: z
         .preprocess(
           (value) =>

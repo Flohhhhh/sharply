@@ -859,6 +859,7 @@ export const cameraSpecs = appSchema.table(
     usbPowerDelivery: boolean("usb_power_delivery"),
     usbCharging: boolean("usb_charging"),
     // video
+    hasVideo: boolean("has_video"),
     hasLogColorProfile: boolean("has_log_color_profile"),
     has10BitVideo: boolean("has_10_bit_video"),
     has12BitVideo: boolean("has_12_bit_video"),

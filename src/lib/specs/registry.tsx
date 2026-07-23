@@ -1301,12 +1301,20 @@ export const specDictionary: SpecSectionDef[] = [
     condition: (item) => item.gearType === "CAMERA",
     fields: [
       {
+        key: "hasVideo",
+        label: "Has Video",
+        getRawValue: (item) => item.cameraSpecs?.hasVideo,
+        formatDisplay: (raw) =>
+          typeof raw === "boolean" ? yesNoNull(raw) : undefined,
+      },
+      {
         key: "videoSummary",
         label: "Video Summary",
         api: null,
         condenseOnMobile: true,
         editElementId: "video-modes-manager",
         getRawValue: (item) => item.videoModes,
+        condition: (item) => item.cameraSpecs?.hasVideo !== false,
         formatDisplay: (_, item) => {
           const modes = coerceCameraVideoModes(item.videoModes);
           if (!modes.length) return undefined;
@@ -1328,6 +1336,7 @@ export const specDictionary: SpecSectionDef[] = [
         // Video-mode records are intentionally not part of the beta API.
         api: null,
         getRawValue: (item) => item.videoModes,
+        condition: (item) => item.cameraSpecs?.hasVideo !== false,
         formatDisplay: (_, item) => {
           const list = Array.from(
             new Set(
@@ -1356,6 +1365,7 @@ export const specDictionary: SpecSectionDef[] = [
         key: "hasLogColorProfile",
         label: "Has Log Color Profile",
         getRawValue: (item) => item.cameraSpecs?.hasLogColorProfile,
+        condition: (item) => item.cameraSpecs?.hasVideo !== false,
         formatDisplay: (raw, item) =>
           typeof raw === "boolean"
             ? yesNoNull(raw, !supportsVideoMeaningfully(item))
@@ -1365,6 +1375,7 @@ export const specDictionary: SpecSectionDef[] = [
         key: "has10BitVideo",
         label: "Has 10 Bit Video",
         getRawValue: (item) => item.cameraSpecs?.has10BitVideo,
+        condition: (item) => item.cameraSpecs?.hasVideo !== false,
         formatDisplay: (raw, item) =>
           typeof raw === "boolean"
             ? yesNoNull(raw, !supportsVideoMeaningfully(item))
@@ -1374,6 +1385,7 @@ export const specDictionary: SpecSectionDef[] = [
         key: "has12BitVideo",
         label: "Has 12 Bit Video",
         getRawValue: (item) => item.cameraSpecs?.has12BitVideo,
+        condition: (item) => item.cameraSpecs?.hasVideo !== false,
         formatDisplay: (raw, item) =>
           typeof raw === "boolean"
             ? yesNoNull(
@@ -1387,6 +1399,7 @@ export const specDictionary: SpecSectionDef[] = [
         key: "hasOpenGateVideo",
         label: "Has Open Gate Video",
         getRawValue: (item) => item.cameraSpecs?.hasOpenGateVideo,
+        condition: (item) => item.cameraSpecs?.hasVideo !== false,
         formatDisplay: (raw) =>
           typeof raw === "boolean" ? yesNoNull(raw, true) : undefined,
       },
@@ -1394,6 +1407,7 @@ export const specDictionary: SpecSectionDef[] = [
         key: "supportsExternalRecording",
         label: "Supports External Recording",
         getRawValue: (item) => item.cameraSpecs?.supportsExternalRecording,
+        condition: (item) => item.cameraSpecs?.hasVideo !== false,
         formatDisplay: (raw, item) =>
           typeof raw === "boolean"
             ? yesNoNull(raw, !supportsVideoMeaningfully(item))
@@ -1403,6 +1417,7 @@ export const specDictionary: SpecSectionDef[] = [
         key: "supportsRecordToDrive",
         label: "Supports Recording to Drive",
         getRawValue: (item) => item.cameraSpecs?.supportsRecordToDrive,
+        condition: (item) => item.cameraSpecs?.hasVideo !== false,
         formatDisplay: (raw, item) =>
           typeof raw === "boolean"
             ? yesNoNull(raw, !supportsVideoMeaningfully(item))

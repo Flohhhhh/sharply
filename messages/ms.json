@@ -905,6 +905,9 @@
             "videoAvailableCodecs": {
               "label": "Codec tersedia"
             },
+            "hasVideo": {
+              "label": "Mempunyai video"
+            },
             "hasLogColorProfile": {
               "label": "Profil warna log"
             },

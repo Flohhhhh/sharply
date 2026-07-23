@@ -91,6 +91,7 @@ const cameraFieldSections: Record<string, string> = {
   supportedBatteries: "camera-battery",
   usbCharging: "camera-battery",
   usbPowerDelivery: "camera-battery",
+  hasVideo: "camera-video",
   hasLogColorProfile: "camera-video",
   has10BitVideo: "camera-video",
   has12BitVideo: "camera-video",
@@ -491,6 +492,7 @@ function CameraFieldsComponent({
     : [];
   const shouldShowVideoModes =
     !showMissingOnly || initialVideoModes.length === 0;
+  const canEditVideo = currentSpecs?.hasVideo === true;
 
   return (
     <Card
@@ -1435,12 +1437,27 @@ function CameraFieldsComponent({
             />
           )}
 
+          {/* Has Video */}
+          {(!showMissingOnly || initialSpecs?.hasVideo !== true) && (
+            <BooleanInput
+              id="hasVideo"
+              label={specLabel("hasVideo", "Has Video")}
+              checked={currentSpecs?.hasVideo ?? null}
+              allowNull
+              showStateText
+              onChange={(value) => handleFieldChange("hasVideo", value)}
+            />
+          )}
+
+          {/* Video-dependent fields remain visible but disabled until video
+              support is confirmed as available. */}
           {/* Has Log Color Profile */}
           {showWhenMissing(initialSpecs?.hasLogColorProfile) && (
             <BooleanInput
               id="hasLogColorProfile"
               label={specLabel("hasLogColorProfile", "Has Log Color Profile")}
               checked={currentSpecs?.hasLogColorProfile ?? null}
+              disabled={!canEditVideo}
               allowNull
               showStateText
               onChange={(value) =>
@@ -1455,6 +1472,7 @@ function CameraFieldsComponent({
               id="has10BitVideo"
               label={specLabel("has10BitVideo", "Has 10 Bit Video")}
               checked={currentSpecs?.has10BitVideo ?? null}
+              disabled={!canEditVideo}
               allowNull
               showStateText
               onChange={(value) => handleFieldChange("has10BitVideo", value)}
@@ -1467,6 +1485,7 @@ function CameraFieldsComponent({
               id="has12BitVideo"
               label={specLabel("has12BitVideo", "Has 12 Bit Video")}
               checked={currentSpecs?.has12BitVideo ?? null}
+              disabled={!canEditVideo}
               allowNull
               showStateText
               onChange={(value) => handleFieldChange("has12BitVideo", value)}
@@ -1479,6 +1498,7 @@ function CameraFieldsComponent({
               id="hasOpenGateVideo"
               label={specLabel("hasOpenGateVideo", "Has Open Gate Video")}
               checked={currentSpecs?.hasOpenGateVideo ?? null}
+              disabled={!canEditVideo}
               allowNull
               showStateText
               onChange={(value) => handleFieldChange("hasOpenGateVideo", value)}
@@ -1494,6 +1514,7 @@ function CameraFieldsComponent({
                 "Supports External Recording",
               )}
               checked={currentSpecs?.supportsExternalRecording ?? null}
+              disabled={!canEditVideo}
               allowNull
               showStateText
               onChange={(value) =>
@@ -1508,6 +1529,7 @@ function CameraFieldsComponent({
               id="supportsRecordToDrive"
               label={specLabel("supportsRecordToDrive", "Supports Recording to Drive")}
               checked={currentSpecs?.supportsRecordToDrive ?? null}
+              disabled={!canEditVideo}
               allowNull
               showStateText
               onChange={(value) =>
@@ -1520,6 +1542,7 @@ function CameraFieldsComponent({
             <VideoModesManager
               value={gearItem.videoModes ?? []}
               initialModes={initialGearItem?.videoModes ?? []}
+              disabled={!canEditVideo}
               onChange={(modes) => onChangeTopLevel?.("videoModes", modes)}
             />
           )}

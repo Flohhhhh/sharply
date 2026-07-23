@@ -905,6 +905,9 @@
             "videoAvailableCodecs": {
               "label": "対応コーデック"
             },
+            "hasVideo": {
+              "label": "動画対応"
+            },
             "hasLogColorProfile": {
               "label": "Logカラープロファイル対応"
             },

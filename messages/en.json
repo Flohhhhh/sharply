@@ -905,6 +905,9 @@
             "videoAvailableCodecs": {
               "label": "Available Codecs"
             },
+            "hasVideo": {
+              "label": "Has Video"
+            },
             "hasLogColorProfile": {
               "label": "Has Log Color Profile"
             },

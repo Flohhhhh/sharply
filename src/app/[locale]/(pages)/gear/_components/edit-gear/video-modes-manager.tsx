@@ -352,12 +352,14 @@ function generateGuidedModesDetailed(
 interface VideoModesManagerProps {
   value?: VideoModeLike[] | null;
   initialModes?: VideoModeLike[] | null;
+  disabled?: boolean;
   onChange: (modes: VideoModeNormalized[]) => void;
 }
 
 export function VideoModesManager({
   value,
   initialModes,
+  disabled = false,
   onChange,
 }: VideoModesManagerProps) {
   const t = useTranslations("gearDetail");
@@ -782,7 +784,11 @@ export function VideoModesManager({
               {tf("editGear.sections.videoModes", "Video Modes")}
             </div>
           </div>
-          <Button type="button" onClick={() => setOpen(true)}>
+          <Button
+            type="button"
+            onClick={() => setOpen(true)}
+            disabled={disabled}
+          >
             {tf("editGear.videoModes.open", "Open Video Modes Manager")}
           </Button>
         </div>
@@ -806,7 +812,7 @@ export function VideoModesManager({
         )}
       </div>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={disabled ? false : open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-5xl">
           <div className="max-h-[80vh] overflow-y-auto pr-1">
             <DialogHeader className="flex flex-row items-center justify-between space-y-0">

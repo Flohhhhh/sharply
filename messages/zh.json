@@ -905,6 +905,9 @@
             "videoAvailableCodecs": {
               "label": "可用的编解码器"
             },
+            "hasVideo": {
+              "label": "支持视频"
+            },
             "hasLogColorProfile": {
               "label": "具有原木颜色配置文件"
             },

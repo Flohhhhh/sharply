@@ -111,7 +111,7 @@ Stores detailed camera-specific specifications:
   - `2`: Yes (JPEG only)
 - **Displays**: rear display type (none, fixed, single_axis_tilt, dual_axis_tilt, fully_articulated, four_axis_tilt_flip, other), rear display size (inches), rear display resolution (million dots), has top display, has rear touchscreen
 - **Viewfinder**: type (none/optical/electronic), magnification (x), resolution (million dots)
-- **Video**: Mode matrix (`camera_video_modes`) plus capability flags: log profile, 10-bit, 12-bit, open gate, supports external recording, supports recording to a drive
+- **Video**: `hasVideo` is nullable to distinguish unknown support from confirmed availability or absence. Editors can change the dependent video capabilities and mode matrix only when it is `true`; `null` keeps legacy stored video details visible publicly, while `false` hides all dependent video details without deleting them. The mode matrix (`camera_video_modes`) and dependent capability flags cover log profile, 10-bit, 12-bit, open gate, external recording, and recording to a drive.
 - **Misc**: capture convenience and body feature flags such as built-in flash, hot shoe, illuminated buttons, intervalometer, self timer, and USB file transfer
 - **Flexibility**: JSONB extra field for additional specs
 

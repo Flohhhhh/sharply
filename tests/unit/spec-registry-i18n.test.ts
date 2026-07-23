@@ -282,6 +282,57 @@ describe("spec registry i18n", () => {
     );
   });
 
+  it("uses hasVideo as an authoritative public visibility gate", () => {
+    const buildVideoRows = (hasVideo: boolean | null) =>
+      buildGearSpecsSections(
+        createGearItem({
+          gearType: "CAMERA",
+          cameraSpecs: {
+            hasVideo,
+            hasLogColorProfile: true,
+            has10BitVideo: true,
+            has12BitVideo: true,
+            hasOpenGateVideo: true,
+            supportsExternalRecording: true,
+            supportsRecordToDrive: true,
+          } as GearItem["cameraSpecs"],
+          videoModes: [
+            {
+              id: "video-mode-1",
+              gearId: "gear-1",
+              resolutionKey: "4k-uhd",
+              resolutionLabel: "4K UHD",
+              resolutionHorizontal: 3840,
+              resolutionVertical: 2160,
+              fps: 60,
+              codecLabel: "H.265",
+              bitDepth: 10,
+              cropFactor: false,
+              notes: null,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+          ],
+        }),
+        { locale: "en" },
+      )
+        .find((section) => section.id === "camera-video")
+        ?.data.map((row) => row.key) ?? [];
+
+    expect(buildVideoRows(null)).toEqual(
+      expect.arrayContaining([
+        "videoSummary",
+        "videoAvailableCodecs",
+        "hasLogColorProfile",
+        "has10BitVideo",
+      ]),
+    );
+    expect(buildVideoRows(true)).toEqual(
+      expect.arrayContaining(["hasVideo", "videoSummary", "has10BitVideo"]),
+    );
+    expect(buildVideoRows(false)).toEqual(["hasVideo"]);
+  });
+
   it("hides internal storage when the stored value is zero", () => {
     const zeroSections = buildGearSpecsSections(
       createGearItem({

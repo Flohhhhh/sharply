@@ -2,6 +2,8 @@
 
 The video specs system stores every advertised capture mode as an individual row in `camera_video_modes`. These rows power the public summary line, the detail matrix modal, and both editor experiences on the gear edit form.
 
+`camera_specs.has_video` controls these surfaces without deleting mode rows. The manager is editable only when the value is `true`; it is locked when the value is `null` or `false`. Existing modes remain publicly visible while the value is `null`, but are hidden with all other video specs when it is explicitly `false`.
+
 ### Table: `camera_video_modes`
 
 | Column | Type | Notes |

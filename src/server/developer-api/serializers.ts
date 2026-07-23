@@ -227,6 +227,7 @@ function serializeCameraSpecs(
     supportedBatteries: specs.supportedBatteries,
     usbPowerDelivery: specs.usbPowerDelivery,
     usbCharging: specs.usbCharging,
+    hasVideo: specs.hasVideo,
     hasLogColorProfile: specs.hasLogColorProfile,
     has10BitVideo: specs.has10BitVideo,
     has12BitVideo: specs.has12BitVideo,

@@ -467,6 +467,7 @@ Schema (`src/server/db/schema.ts`):
 
 ```ts
 // camera_specs (video)
+hasVideo: boolean("has_video"),
 hasOpenGateVideo: boolean("has_open_gate_video"),
 // camera_specs (misc)
 hasIlluminatedButtons: boolean("has_illuminated_buttons"),
@@ -476,6 +477,9 @@ hasUsbFileTransfer: boolean("has_usb_file_transfer"),
 Normalizer (`src/server/db/normalizers.ts`):
 
 ```ts
+hasVideo: z
+  .preprocess((v) => (v === null ? null : coerceBoolean(v) ?? undefined), z.boolean().nullable().optional())
+  .optional(),
 hasOpenGateVideo: z
   .preprocess((v) => (v === null ? null : coerceBoolean(v) ?? undefined), z.boolean().nullable().optional())
   .optional(),
@@ -490,6 +494,14 @@ hasUsbFileTransfer: z
 UI (`fields-cameras.tsx`):
 
 ```tsx
+<BooleanInput
+  id="hasVideo"
+  label="Has Video"
+  checked={currentSpecs?.hasVideo ?? null}
+  allowNull
+  showStateText
+  onChange={(v) => handleFieldChange("hasVideo", v)}
+/>
 <BooleanInput
   id="hasOpenGateVideo"
   label="Has Open Gate Video"
@@ -519,7 +531,8 @@ UI (`fields-cameras.tsx`):
 Display (`src/lib/specs/registry.tsx`):
 
 ```tsx
-{ key: "hasOpenGateVideo", label: "Has Open Gate Video", getRawValue: (i) => i.cameraSpecs?.hasOpenGateVideo, formatDisplay: (raw) => typeof raw === "boolean" ? (raw ? "Yes" : "No") : undefined }
+{ key: "hasVideo", label: "Has Video", getRawValue: (i) => i.cameraSpecs?.hasVideo, formatDisplay: (raw) => typeof raw === "boolean" ? (raw ? "Yes" : "No") : undefined }
+{ key: "hasOpenGateVideo", label: "Has Open Gate Video", getRawValue: (i) => i.cameraSpecs?.hasOpenGateVideo, condition: (i) => i.cameraSpecs?.hasVideo !== false, formatDisplay: (raw) => typeof raw === "boolean" ? (raw ? "Yes" : "No") : undefined }
 { key: "hasIlluminatedButtons", label: "Has Illuminated Buttons", getRawValue: (i) => i.cameraSpecs?.hasIlluminatedButtons, formatDisplay: (raw) => typeof raw === "boolean" ? (raw ? "Yes" : undefined) : undefined }
 { key: "hasUsbFileTransfer", label: "Has USB File Transfer", getRawValue: (i) => i.cameraSpecs?.hasUsbFileTransfer, formatDisplay: (raw) => typeof raw === "boolean" ? (raw ? "Yes" : "No") : undefined }
 ```
@@ -532,6 +545,7 @@ const cameraKeys = [
   "sensorFormatId",
   "resolutionMp",
   // ...
+  "hasVideo",
   "has10BitVideo",
   "has12BitVideo",
   "hasOpenGateVideo", // <= add
