@@ -1045,6 +1045,8 @@ export const specDictionary: SpecSectionDef[] = [
         key: "viewfinderType",
         label: "Viewfinder Type",
         getRawValue: (item) => item.cameraSpecs?.viewfinderType,
+        // "none" is an explicit specification, not a missing value.
+        condition: (item) => item.cameraSpecs?.viewfinderType != null,
         formatDisplay: (raw) => {
           if (typeof raw !== "string") return undefined;
           const map: Record<string, string> = {

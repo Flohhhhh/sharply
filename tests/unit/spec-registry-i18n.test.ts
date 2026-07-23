@@ -210,6 +210,26 @@ describe("spec registry i18n", () => {
     ).toBe(false);
   });
 
+  it("keeps an explicit no-viewfinder value in the specifications table", () => {
+    const sections = buildGearSpecsSections(
+      createGearItem({
+        gearType: "CAMERA",
+        cameraSpecs: {
+          viewfinderType: "none",
+        } as GearItem["cameraSpecs"],
+      }),
+    );
+
+    expect(
+      sections
+        .flatMap((section) => section.data)
+        .find((row) => row.key === "viewfinderType"),
+    ).toMatchObject({
+      label: "Viewfinder Type",
+      value: "None",
+    });
+  });
+
   it("keeps existing autofocus details visible while capability is unset", () => {
     const buildFocusRows = (
       hasAutofocus: boolean | null,
