@@ -183,6 +183,13 @@
       "when": 1784291996503,
       "tag": "0025_ordinary_valeria_richards",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1784830292458,
+      "tag": "0026_youthful_vengeance",
+      "breakpoints": true
     }
   ]
 }
