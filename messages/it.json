@@ -320,11 +320,16 @@
     "gearImages": {
       "manageTitle": "Gestisci immagini dell’attrezzatura",
       "manageDescription": "Carica immagini della vista frontale, superiore e posteriore per questo elemento dell’attrezzatura.",
-      "manageDescriptionNoRearView": "Carica immagini della vista frontale e superiore per questo elemento dell’attrezzatura.",
+      "manageDescriptionCamera": "Carica immagini della vista frontale, superiore, posteriore, laterale sinistra e laterale destra per questo elemento dell’attrezzatura.",
+      "manageDescriptionNoRearView": "Carica immagini prospettiche e ortografiche per questo elemento dell’attrezzatura.",
       "manageButton": "Gestisci immagini",
       "frontView": "Vista frontale",
       "topView": "Vista dall’alto",
       "rearView": "Vista posteriore",
+      "leftView": "Lato sinistro",
+      "rightView": "Lato destro",
+      "perspectiveView": "Prospettiva",
+      "orthographicView": "Ortografica",
       "updated": "{view} aggiornata.",
       "removed": "{view} rimossa.",
       "removeImageAdminOnly": "Solo gli amministratori possono rimuovere le immagini.",
@@ -337,7 +342,11 @@
       "noImageAvailable": "Nessuna immagine disponibile",
       "colorwaysLabel": "Colori disponibili",
       "topViewAlt": "{name} - Vista dall’alto",
-      "rearViewAlt": "{name} - Vista posteriore"
+      "rearViewAlt": "{name} - Vista posteriore",
+      "leftViewAlt": "{name} - Lato sinistro",
+      "rightViewAlt": "{name} - Lato destro",
+      "perspectiveViewAlt": "{name} - Prospettiva",
+      "orthographicViewAlt": "{name} - Ortografica"
     },
     "colorways": {
       "manager": {

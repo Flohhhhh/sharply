@@ -5,14 +5,18 @@ const cacheMocks = vi.hoisted(() => ({
 }));
 
 const serviceMocks = vi.hoisted(() => ({
+  clearGearLeftViewService: vi.fn(),
   clearGearRearViewService: vi.fn(),
+  clearGearRightViewService: vi.fn(),
   clearGearThumbnailService: vi.fn(),
   clearGearTopViewService: vi.fn(),
   createGearAdmin: vi.fn(),
   deleteGearService: vi.fn(),
   renameGearService: vi.fn(),
+  setGearLeftViewService: vi.fn(),
   setGearOgImageService: vi.fn(),
   setGearRearViewService: vi.fn(),
+  setGearRightViewService: vi.fn(),
   setGearThumbnailService: vi.fn(),
   setGearTopViewService: vi.fn(),
   updateGearAliasesService: vi.fn(),

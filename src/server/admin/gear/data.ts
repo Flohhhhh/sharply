@@ -372,6 +372,8 @@ const adminGearSelect = {
   thumbnailUrl: gear.thumbnailUrl,
   topViewUrl: gear.topViewUrl,
   rearViewUrl: gear.rearViewUrl,
+  leftViewUrl: gear.leftViewUrl,
+  rightViewUrl: gear.rightViewUrl,
   createdAt: gear.createdAt,
 };
 
@@ -713,6 +715,16 @@ export interface UpdateGearRearViewParams {
   rearViewUrl: string | null;
 }
 
+export interface UpdateGearLeftViewParams {
+  gearId: string;
+  leftViewUrl: string | null;
+}
+
+export interface UpdateGearRightViewParams {
+  gearId: string;
+  rightViewUrl: string | null;
+}
+
 export interface DeleteGearResult {
   id: string;
   slug: string;
@@ -819,6 +831,62 @@ export async function updateGearRearViewData(
       id: gear.id,
       slug: gear.slug,
       rearViewUrl: gear.rearViewUrl,
+    });
+  if (!updated[0]) {
+    throw Object.assign(new Error("Gear not found"), { status: 404 });
+  }
+  return updated[0];
+}
+
+export interface UpdateGearLeftViewResult {
+  id: string;
+  slug: string;
+  leftViewUrl: string | null;
+}
+
+/**
+ * Update a gear item's left side view URL by id.
+ */
+export async function updateGearLeftViewData(
+  params: UpdateGearLeftViewParams,
+): Promise<UpdateGearLeftViewResult> {
+  const { gearId, leftViewUrl } = params;
+  const updated = await db
+    .update(gear)
+    .set({ leftViewUrl, updatedAt: new Date() })
+    .where(eq(gear.id, gearId))
+    .returning({
+      id: gear.id,
+      slug: gear.slug,
+      leftViewUrl: gear.leftViewUrl,
+    });
+  if (!updated[0]) {
+    throw Object.assign(new Error("Gear not found"), { status: 404 });
+  }
+  return updated[0];
+}
+
+export interface UpdateGearRightViewResult {
+  id: string;
+  slug: string;
+  rightViewUrl: string | null;
+}
+
+/**
+ * Update a gear item's right side view URL by id.
+ */
+export async function updateGearRightViewData(
+  params: UpdateGearRightViewParams,
+): Promise<UpdateGearRightViewResult> {
+  const { gearId, rightViewUrl } = params;
+  const updated = await db
+    .update(gear)
+    .set({ rightViewUrl, updatedAt: new Date() })
+    .where(eq(gear.id, gearId))
+    .returning({
+      id: gear.id,
+      slug: gear.slug,
+      rightViewUrl: gear.rightViewUrl,
     });
   if (!updated[0]) {
     throw Object.assign(new Error("Gear not found"), { status: 404 });

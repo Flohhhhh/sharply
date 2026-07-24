@@ -3,7 +3,14 @@
 import { ImageIcon, Trash, Upload } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import {
+  type DragEvent,
+  type ReactNode,
+  type RefObject,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 import { genUploader } from "uploadthing/client";
 import type { OurFileRouter } from "~/app/api/uploadthing/core";
@@ -27,10 +34,14 @@ import type { GearType } from "~/types/gear";
 import type { GearColorway } from "~/types/gear";
 import { actionSetGearColorwayImage } from "~/server/admin/colorways/actions";
 import {
+  actionClearGearLeftView,
   actionClearGearRearView,
+  actionClearGearRightView,
   actionClearGearThumbnail,
   actionClearGearTopView,
+  actionSetGearLeftView,
   actionSetGearRearView,
+  actionSetGearRightView,
   actionSetGearThumbnail,
   actionSetGearTopView,
 } from "~/server/admin/gear/actions";
@@ -40,15 +51,22 @@ export interface GearImageModalProps {
   gearId?: string;
   slug?: string;
   gearType: GearType;
-  trigger?: React.ReactNode;
+  trigger?: ReactNode;
   onSuccess?: (params: { url: string }) => void;
   currentThumbnailUrl?: string;
   currentTopViewUrl?: string;
   currentRearViewUrl?: string;
+  currentLeftViewUrl?: string;
+  currentRightViewUrl?: string;
   currentColorways?: GearColorway[];
 }
 
-type ImageType = "thumbnail" | "topView" | "rearView";
+type ImageType =
+  | "thumbnail"
+  | "topView"
+  | "rearView"
+  | "leftView"
+  | "rightView";
 
 type GearImageUploadResult = {
   url?: string;
@@ -83,6 +101,8 @@ export function GearImageModal(props: GearImageModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const topViewFileInputRef = useRef<HTMLInputElement>(null);
   const rearViewFileInputRef = useRef<HTMLInputElement>(null);
+  const leftViewFileInputRef = useRef<HTMLInputElement>(null);
+  const rightViewFileInputRef = useRef<HTMLInputElement>(null);
   const savingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [localThumbnailUrl, setLocalThumbnailUrl] = useState<
     string | undefined
@@ -93,8 +113,15 @@ export function GearImageModal(props: GearImageModalProps) {
   const [localRearViewUrl, setLocalRearViewUrl] = useState<string | undefined>(
     props.currentRearViewUrl ?? undefined,
   );
+  const [localLeftViewUrl, setLocalLeftViewUrl] = useState<string | undefined>(
+    props.currentLeftViewUrl ?? undefined,
+  );
+  const [localRightViewUrl, setLocalRightViewUrl] = useState<
+    string | undefined
+  >(props.currentRightViewUrl ?? undefined);
   const supportsRearView =
     props.gearType === "CAMERA" || props.gearType === "ANALOG_CAMERA";
+  const supportsSideViews = supportsRearView;
   const activeColorwayId = localColorways.some(
     (colorway) => colorway.id === selectedColorwayId,
   )
@@ -114,6 +141,13 @@ export function GearImageModal(props: GearImageModalProps) {
   const displayedRearViewUrl = isExplicitMode
     ? (selectedColorway?.rearViewUrl ?? undefined)
     : localRearViewUrl;
+  const displayedLeftViewUrl = isExplicitMode
+    ? (selectedColorway?.leftViewUrl ?? undefined)
+    : localLeftViewUrl;
+  const displayedRightViewUrl = isExplicitMode
+    ? (selectedColorway?.rightViewUrl ?? undefined)
+    : localRightViewUrl;
+  const isBusy = isUploading || isUpdating;
 
   // Sync when parent changes item or current image
   useEffect(() => {
@@ -122,10 +156,14 @@ export function GearImageModal(props: GearImageModalProps) {
     setLocalThumbnailUrl(props.currentThumbnailUrl ?? undefined);
     setLocalTopViewUrl(props.currentTopViewUrl ?? undefined);
     setLocalRearViewUrl(props.currentRearViewUrl ?? undefined);
+    setLocalLeftViewUrl(props.currentLeftViewUrl ?? undefined);
+    setLocalRightViewUrl(props.currentRightViewUrl ?? undefined);
   }, [
     props.currentThumbnailUrl,
     props.currentTopViewUrl,
     props.currentRearViewUrl,
+    props.currentLeftViewUrl,
+    props.currentRightViewUrl,
     props.gearId,
     props.slug,
     props.currentColorways,
@@ -185,6 +223,7 @@ export function GearImageModal(props: GearImageModalProps) {
   if (!access) return null;
 
   async function handleUploadSelected(file: File, imageType: ImageType) {
+    if (isBusy) return;
     if (file.size > 4 * 1024 * 1024) {
       toast.error(profileT("imageExceedsLimit"));
       return;
@@ -274,17 +313,31 @@ export function GearImageModal(props: GearImageModalProps) {
           topViewUrl: url,
         });
         setLocalTopViewUrl(url);
-      } else {
+      } else if (imageType === "rearView") {
         await actionSetGearRearView({
           gearId: props.gearId,
           slug: props.slug,
           rearViewUrl: url,
         });
         setLocalRearViewUrl(url);
+      } else if (imageType === "leftView") {
+        await actionSetGearLeftView({
+          gearId: props.gearId,
+          slug: props.slug,
+          leftViewUrl: url,
+        });
+        setLocalLeftViewUrl(url);
+      } else {
+        await actionSetGearRightView({
+          gearId: props.gearId,
+          slug: props.slug,
+          rightViewUrl: url,
+        });
+        setLocalRightViewUrl(url);
       }
       toast.success(
         t("updated", {
-          view: getImageTypeLabel(t, imageType),
+          view: getImageTypeLabel(t, imageType, supportsSideViews),
         }),
       );
 
@@ -310,10 +363,14 @@ export function GearImageModal(props: GearImageModalProps) {
       if (fileInputRef.current) fileInputRef.current.value = "";
       if (topViewFileInputRef.current) topViewFileInputRef.current.value = "";
       if (rearViewFileInputRef.current) rearViewFileInputRef.current.value = "";
+      if (leftViewFileInputRef.current) leftViewFileInputRef.current.value = "";
+      if (rightViewFileInputRef.current)
+        rightViewFileInputRef.current.value = "";
     }
   }
 
   async function handleRemoveImage(imageType: ImageType) {
+    if (isBusy) return;
     if (!canDelete) {
       toast.error(t("removeImageAdminOnly"));
       return;
@@ -359,16 +416,28 @@ export function GearImageModal(props: GearImageModalProps) {
           slug: props.slug,
         });
         setLocalTopViewUrl(undefined);
-      } else {
+      } else if (imageType === "rearView") {
         await actionClearGearRearView({
           gearId: props.gearId,
           slug: props.slug,
         });
         setLocalRearViewUrl(undefined);
+      } else if (imageType === "leftView") {
+        await actionClearGearLeftView({
+          gearId: props.gearId,
+          slug: props.slug,
+        });
+        setLocalLeftViewUrl(undefined);
+      } else {
+        await actionClearGearRightView({
+          gearId: props.gearId,
+          slug: props.slug,
+        });
+        setLocalRightViewUrl(undefined);
       }
       toast.success(
         t("removed", {
-          view: getImageTypeLabel(t, imageType),
+          view: getImageTypeLabel(t, imageType, supportsSideViews),
         }),
       );
 
@@ -404,20 +473,42 @@ export function GearImageModal(props: GearImageModalProps) {
     imageUrl,
     imageType,
     fileInputRef: inputRef,
+    mediaClassName = "h-52",
   }: {
     title: string;
     imageUrl: string | undefined;
     imageType: ImageType;
-    fileInputRef: React.RefObject<HTMLInputElement | null>;
+    fileInputRef: RefObject<HTMLInputElement | null>;
+    mediaClassName?: string;
   }) => {
     const isActive = activeImageType === imageType;
-    const isProcessing = (isUploading || isUpdating) && isActive;
+    const isDisabled = isBusy && !isActive;
+
+    const handleDrop = async (e: DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (isBusy) return;
+      const file = e.dataTransfer?.files?.[0];
+      if (file) await handleUploadSelected(file, imageType);
+    };
 
     return (
-      <div className="space-y-2">
+      <div
+        className={`space-y-2 ${isDisabled ? "pointer-events-none opacity-50" : ""}`}
+      >
         <div className="text-muted-foreground text-xs font-medium">{title}</div>
         {imageUrl ? (
-          <div className="bg-muted dark:bg-card h-52 w-full rounded border p-5">
+          <div
+            className={`bg-muted dark:bg-card hover:border-primary/50 w-full rounded border p-5 transition-colors ${mediaClassName}`}
+            onClick={() => {
+              if (!isBusy) inputRef.current?.click();
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onDrop={handleDrop}
+          >
             <div className="relative h-full w-full overflow-hidden rounded-sm">
               <Image
                 src={imageUrl}
@@ -431,18 +522,15 @@ export function GearImageModal(props: GearImageModalProps) {
           </div>
         ) : (
           <div
-            className="bg-muted/40 dark:bg-card/60 hover:border-primary/50 flex h-52 w-full cursor-pointer items-center justify-center rounded border-2 border-dashed p-5 transition-colors"
-            onClick={() => inputRef.current?.click()}
+            className={`bg-muted/40 dark:bg-card/60 hover:border-primary/50 flex w-full cursor-pointer items-center justify-center rounded border-2 border-dashed p-5 transition-colors ${mediaClassName}`}
+            onClick={() => {
+              if (!isBusy) inputRef.current?.click();
+            }}
             onDragOver={(e) => {
               e.preventDefault();
               e.stopPropagation();
             }}
-            onDrop={async (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              const file = e.dataTransfer?.files?.[0];
-              if (file) await handleUploadSelected(file, imageType);
-            }}
+            onDrop={handleDrop}
           >
             <div className="text-muted-foreground text-center text-sm">
               <div>{profileT("dropImageHere")}</div>
@@ -455,6 +543,7 @@ export function GearImageModal(props: GearImageModalProps) {
           type="file"
           accept="image/*"
           className="hidden"
+          disabled={isBusy}
           onChange={async (e) => {
             const file = e.target.files?.[0];
             if (!file) return;
@@ -466,8 +555,10 @@ export function GearImageModal(props: GearImageModalProps) {
           <Button
             size="sm"
             icon={<Upload className="h-4 w-4" />}
-            onClick={() => inputRef.current?.click()}
-            disabled={isProcessing}
+            onClick={() => {
+              if (!isBusy) inputRef.current?.click();
+            }}
+            disabled={isBusy}
             loading={isUploading && isActive}
             className="w-full"
           >
@@ -485,7 +576,7 @@ export function GearImageModal(props: GearImageModalProps) {
               size="sm"
               icon={<Trash className="h-4 w-4" />}
               variant="destructive"
-              disabled={isProcessing || !canDelete}
+              disabled={isBusy || !canDelete}
               className="w-full"
               onClick={() => handleRemoveImage(imageType)}
             >
@@ -510,8 +601,8 @@ export function GearImageModal(props: GearImageModalProps) {
         <DialogHeader>
           <DialogTitle>{t("manageTitle")}</DialogTitle>
           <DialogDescription>
-            {supportsRearView
-              ? t("manageDescription")
+            {supportsSideViews
+              ? t("manageDescriptionCamera")
               : t("manageDescriptionNoRearView")}
           </DialogDescription>
         </DialogHeader>
@@ -523,6 +614,7 @@ export function GearImageModal(props: GearImageModalProps) {
                 <TabsTrigger
                   key={colorway.id}
                   value={colorway.id}
+                  disabled={isBusy}
                   className="h-8 rounded-sm px-3 text-xs font-semibold text-foreground/70 data-[state=active]:border-border data-[state=active]:bg-foreground/10 data-[state=active]:text-foreground data-[state=active]:shadow-none"
                 >
                   {colorway.name}
@@ -532,51 +624,88 @@ export function GearImageModal(props: GearImageModalProps) {
           </Tabs>
         ) : null}
 
-        <div
-          className={`grid gap-10 ${
-            supportsRearView ? "md:grid-cols-3" : "md:grid-cols-2"
-          }`}
-        >
-          <ImageSection
-            title={t("frontView")}
-            imageUrl={displayedThumbnailUrl}
-            imageType="thumbnail"
-            fileInputRef={fileInputRef}
-          />
-          <ImageSection
-            title={t("topView")}
-            imageUrl={displayedTopViewUrl}
-            imageType="topView"
-            fileInputRef={topViewFileInputRef}
-          />
-          {supportsRearView ? (
-            <ImageSection
-              title={t("rearView")}
-              imageUrl={displayedRearViewUrl}
-              imageType="rearView"
-              fileInputRef={rearViewFileInputRef}
-            />
-          ) : null}
-        </div>
-
-        {showProgress && (
-          <div className="space-y-2">
-            <Progress value={combinedProgress} />
-            <div className="text-muted-foreground text-xs">
-              {progressMode === "upload"
-                ? profileT("uploadingProgress", {
-                    percent: Math.min(100, Math.round(uploadProgress)),
-                  })
-                : progressMode === "delete"
-                  ? combinedProgress < 100
-                    ? t("deleting")
-                    : t("deleted")
-                  : combinedProgress < 100
-                    ? profileT("saving")
-                    : profileT("done")}
+        {supportsSideViews ? (
+          <div className="space-y-8">
+            <div className="mx-auto max-w-2xl">
+              <ImageSection
+                title={t("frontView")}
+                imageUrl={displayedThumbnailUrl}
+                imageType="thumbnail"
+                fileInputRef={fileInputRef}
+                mediaClassName="h-72"
+              />
+            </div>
+            <div className="grid gap-6 md:grid-cols-4">
+              <ImageSection
+                title={t("topView")}
+                imageUrl={displayedTopViewUrl}
+                imageType="topView"
+                fileInputRef={topViewFileInputRef}
+                mediaClassName="h-36"
+              />
+              <ImageSection
+                title={t("rearView")}
+                imageUrl={displayedRearViewUrl}
+                imageType="rearView"
+                fileInputRef={rearViewFileInputRef}
+                mediaClassName="h-36"
+              />
+              <ImageSection
+                title={t("leftView")}
+                imageUrl={displayedLeftViewUrl}
+                imageType="leftView"
+                fileInputRef={leftViewFileInputRef}
+                mediaClassName="h-36"
+              />
+              <ImageSection
+                title={t("rightView")}
+                imageUrl={displayedRightViewUrl}
+                imageType="rightView"
+                fileInputRef={rightViewFileInputRef}
+                mediaClassName="h-36"
+              />
             </div>
           </div>
+        ) : (
+          <div className="grid gap-10 md:grid-cols-2">
+            <ImageSection
+              title={t("perspectiveView")}
+              imageUrl={displayedThumbnailUrl}
+              imageType="thumbnail"
+              fileInputRef={fileInputRef}
+            />
+            <ImageSection
+              title={t("orthographicView")}
+              imageUrl={displayedTopViewUrl}
+              imageType="topView"
+              fileInputRef={topViewFileInputRef}
+            />
+          </div>
         )}
+
+        <div className="min-h-10 space-y-2">
+          <Progress
+            value={showProgress ? combinedProgress : 0}
+            className={showProgress ? "" : "opacity-0"}
+          />
+          <div
+            className={`text-muted-foreground text-xs ${
+              showProgress ? "" : "opacity-0"
+            }`}
+          >
+            {progressMode === "upload"
+              ? profileT("uploadingProgress", {
+                  percent: Math.min(100, Math.round(uploadProgress)),
+                })
+              : progressMode === "delete"
+                ? combinedProgress < 100
+                  ? t("deleting")
+                  : t("deleted")
+                : combinedProgress < 100
+                  ? profileT("saving")
+                  : profileT("done")}
+          </div>
+        </div>
 
         <div className="text-muted-foreground space-y-1 text-xs">
           <div>{t("limits")}</div>
@@ -594,10 +723,26 @@ export function GearImageModal(props: GearImageModalProps) {
 export default GearImageModal;
 
 function getImageTypeLabel(
-  t: (key: "frontView" | "topView" | "rearView") => string,
+  t: (
+    key:
+      | "frontView"
+      | "topView"
+      | "rearView"
+      | "leftView"
+      | "rightView"
+      | "perspectiveView"
+      | "orthographicView",
+  ) => string,
   imageType: ImageType,
+  supportsSideViews: boolean,
 ) {
-  if (imageType === "thumbnail") return t("frontView");
-  if (imageType === "topView") return t("topView");
-  return t("rearView");
+  if (imageType === "thumbnail") {
+    return supportsSideViews ? t("frontView") : t("perspectiveView");
+  }
+  if (imageType === "topView") {
+    return supportsSideViews ? t("topView") : t("orthographicView");
+  }
+  if (imageType === "rearView") return t("rearView");
+  if (imageType === "leftView") return t("leftView");
+  return t("rightView");
 }

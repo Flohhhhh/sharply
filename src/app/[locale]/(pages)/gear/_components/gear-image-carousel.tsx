@@ -25,6 +25,8 @@ interface GearImageCarouselProps {
   thumbnailUrl: string | null;
   topViewUrl: string | null;
   rearViewUrl: string | null;
+  leftViewUrl?: string | null;
+  rightViewUrl?: string | null;
   slug: string;
   hasImageRequest: boolean | null;
   colorways?: GearColorway[] | null;
@@ -33,7 +35,7 @@ interface GearImageCarouselProps {
 type CarouselSlide = {
   key: string;
   colorwayId?: string;
-  imageType: "front" | "topView" | "rearView";
+  imageType: "front" | "topView" | "rearView" | "leftView" | "rightView";
   url: string;
 };
 
@@ -46,6 +48,8 @@ export function GearImageCarousel({
   thumbnailUrl,
   topViewUrl,
   rearViewUrl,
+  leftViewUrl = null,
+  rightViewUrl = null,
   slug,
   hasImageRequest,
   colorways = EMPTY_COLORWAYS,
@@ -65,7 +69,10 @@ export function GearImageCarousel({
         (colorway) =>
           colorway.frontImageUrl ||
           colorway.topViewUrl ||
-          (supportsRearView && colorway.rearViewUrl),
+          (supportsRearView &&
+            (colorway.rearViewUrl ||
+              colorway.leftViewUrl ||
+              colorway.rightViewUrl)),
       ),
     [orderedColorways, supportsRearView],
   );
@@ -94,6 +101,20 @@ export function GearImageCarousel({
               key: "base-rear",
               imageType: "rearView" as const,
               url: rearViewUrl,
+            }
+          : null,
+        supportsRearView && leftViewUrl
+          ? {
+              key: "base-left",
+              imageType: "leftView" as const,
+              url: leftViewUrl,
+            }
+          : null,
+        supportsRearView && rightViewUrl
+          ? {
+              key: "base-right",
+              imageType: "rightView" as const,
+              url: rightViewUrl,
             }
           : null,
       ];
@@ -128,6 +149,22 @@ export function GearImageCarousel({
               url: colorway.rearViewUrl,
             }
           : null,
+        supportsRearView && colorway.leftViewUrl
+          ? {
+              key: `${colorway.id}-left`,
+              colorwayId: colorway.id,
+              imageType: "leftView" as const,
+              url: colorway.leftViewUrl,
+            }
+          : null,
+        supportsRearView && colorway.rightViewUrl
+          ? {
+              key: `${colorway.id}-right`,
+              colorwayId: colorway.id,
+              imageType: "rightView" as const,
+              url: colorway.rightViewUrl,
+            }
+          : null,
       ];
       return candidates.filter((slide): slide is CarouselSlide =>
         Boolean(slide),
@@ -135,7 +172,9 @@ export function GearImageCarousel({
     });
   }, [
     orderedColorways,
+    leftViewUrl,
     rearViewUrl,
+    rightViewUrl,
     supportsRearView,
     thumbnailUrl,
     topViewUrl,
@@ -231,10 +270,24 @@ export function GearImageCarousel({
                   src={slide.url}
                   alt={
                     slide.imageType === "topView"
-                      ? gearImagesT("topViewAlt", { name: displayName })
+                      ? supportsRearView
+                        ? gearImagesT("topViewAlt", { name: displayName })
+                        : gearImagesT("orthographicViewAlt", {
+                            name: displayName,
+                          })
                       : slide.imageType === "rearView"
                         ? gearImagesT("rearViewAlt", { name: displayName })
-                        : displayName
+                        : slide.imageType === "leftView"
+                          ? gearImagesT("leftViewAlt", { name: displayName })
+                          : slide.imageType === "rightView"
+                            ? gearImagesT("rightViewAlt", {
+                                name: displayName,
+                              })
+                            : supportsRearView
+                              ? displayName
+                              : gearImagesT("perspectiveViewAlt", {
+                                  name: displayName,
+                                })
                   }
                   className="h-full w-full max-w-[600px] object-contain"
                   width={720}

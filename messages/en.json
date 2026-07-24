@@ -320,11 +320,16 @@
     "gearImages": {
       "manageTitle": "Manage Gear Images",
       "manageDescription": "Upload front view, top view, and rear view images for this gear item.",
-      "manageDescriptionNoRearView": "Upload front view and top view images for this gear item.",
+      "manageDescriptionCamera": "Upload front view, top view, rear view, left side, and right side images for this gear item.",
+      "manageDescriptionNoRearView": "Upload perspective and orthographic images for this gear item.",
       "manageButton": "Manage Images",
       "frontView": "Front View",
       "topView": "Top View",
       "rearView": "Rear View",
+      "leftView": "Left Side",
+      "rightView": "Right Side",
+      "perspectiveView": "Perspective",
+      "orthographicView": "Orthographic",
       "updated": "{view} updated.",
       "removed": "{view} removed.",
       "removeImageAdminOnly": "Only admins can remove images.",
@@ -337,7 +342,11 @@
       "noImageAvailable": "No image available",
       "colorwaysLabel": "Available colors",
       "topViewAlt": "{name} - Top View",
-      "rearViewAlt": "{name} - Rear View"
+      "rearViewAlt": "{name} - Rear View",
+      "leftViewAlt": "{name} - Left Side",
+      "rightViewAlt": "{name} - Right Side",
+      "perspectiveViewAlt": "{name} - Perspective",
+      "orthographicViewAlt": "{name} - Orthographic"
     },
     "colorways": {
       "manager": {

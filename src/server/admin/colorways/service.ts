@@ -164,7 +164,11 @@ export async function setGearColorwayImageService(params: {
   const session = params.imageUrl
     ? await editorSession()
     : await adminSession();
-  if (!["front", "topView", "rearView"].includes(params.imageType)) {
+  if (
+    !["front", "topView", "rearView", "leftView", "rightView"].includes(
+      params.imageType,
+    )
+  ) {
     throw Object.assign(new Error("Invalid image type"), { status: 400 });
   }
   return setGearColorwayImageData({ ...params, actorUserId: session.user.id });

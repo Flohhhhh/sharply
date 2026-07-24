@@ -2,6 +2,7 @@ import "server-only";
 
 import { and, eq, inArray } from "drizzle-orm";
 import { nanoid } from "nanoid";
+import type { AuthUser } from "~/auth";
 import { requireRole } from "~/lib/auth/auth-helpers";
 import { GEAR_PUBLICATION_STATES } from "~/lib/gear/publication-state";
 import { buildGearSearchName } from "~/lib/gear/naming";
@@ -27,8 +28,10 @@ import {
   performFuzzySearch as performFuzzySearchData,
   renameGearData,
   updateGearOgImageData,
+  updateGearLeftViewData,
   updateGearPublicationStateData,
   updateGearRearViewData,
+  updateGearRightViewData,
   updateGearThumbnailData,
   updateGearTopViewData,
   type DeleteGearResult,
@@ -53,6 +56,30 @@ function assertRearViewSupported(gearType: string) {
         code: "REAR_VIEW_UNSUPPORTED_GEAR_TYPE",
       },
     );
+  }
+}
+
+function assertSideViewSupported(gearType: string) {
+  if (gearType === "LENS") {
+    throw Object.assign(
+      new Error("Side-view images are only supported for cameras"),
+      {
+        status: 400,
+        code: "SIDE_VIEW_UNSUPPORTED_GEAR_TYPE",
+      },
+    );
+  }
+}
+
+function requireImageMutationRole(
+  user: AuthUser | null | undefined,
+  imageUrl: string | null,
+) {
+  const roles: Parameters<typeof requireRole>[1] = imageUrl
+    ? ["ADMIN", "EDITOR"]
+    : ["ADMIN"];
+  if (!requireRole(user, roles)) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
   }
 }
 
@@ -293,11 +320,9 @@ export async function setGearThumbnailService(params: {
   ogImageUrl: string | null;
 }> {
   const session = await getSessionOrThrow();
-  if (!requireRole(session.user, ["ADMIN", "EDITOR"])) {
-    throw Object.assign(new Error("Unauthorized"), { status: 401 });
-  }
 
   const { gearId: maybeId, slug, thumbnailUrl, ogImageUrl } = params;
+  requireImageMutationRole(session.user, thumbnailUrl);
   let gearId = maybeId;
   if (!gearId) {
     if (!slug)
@@ -426,11 +451,9 @@ export async function setGearTopViewService(params: {
   topViewUrl: string | null;
 }): Promise<{ id: string; slug: string; topViewUrl: string | null }> {
   const session = await getSessionOrThrow();
-  if (!requireRole(session.user, ["ADMIN", "EDITOR"])) {
-    throw Object.assign(new Error("Unauthorized"), { status: 401 });
-  }
 
   const { gearId: maybeId, slug, topViewUrl } = params;
+  requireImageMutationRole(session.user, topViewUrl);
   let gearId = maybeId;
   if (!gearId) {
     if (!slug)
@@ -506,11 +529,9 @@ export async function setGearRearViewService(params: {
   rearViewUrl: string | null;
 }): Promise<{ id: string; slug: string; rearViewUrl: string | null }> {
   const session = await getSessionOrThrow();
-  if (!requireRole(session.user, ["ADMIN", "EDITOR"])) {
-    throw Object.assign(new Error("Unauthorized"), { status: 401 });
-  }
 
   const { gearId: maybeId, slug, rearViewUrl } = params;
+  requireImageMutationRole(session.user, rearViewUrl);
   let gearId = maybeId;
   if (!gearId) {
     if (!slug)
@@ -579,6 +600,144 @@ export async function clearGearRearViewService(params: {
   slug?: string;
 }): Promise<{ id: string; slug: string; rearViewUrl: string | null }> {
   return setGearRearViewService({ ...params, rearViewUrl: null });
+}
+
+export async function setGearLeftViewService(params: {
+  gearId?: string;
+  slug?: string;
+  leftViewUrl: string | null;
+}): Promise<{ id: string; slug: string; leftViewUrl: string | null }> {
+  const session = await getSessionOrThrow();
+
+  const { gearId: maybeId, slug, leftViewUrl } = params;
+  requireImageMutationRole(session.user, leftViewUrl);
+  let gearId = maybeId;
+  if (!gearId) {
+    if (!slug)
+      throw Object.assign(new Error("Missing gear reference"), { status: 400 });
+    const id = await getGearIdBySlug(slug);
+    if (!id) throw Object.assign(new Error("Gear not found"), { status: 404 });
+    gearId = id;
+  }
+
+  const { fetchGearMetadataById } = await import("~/server/gear/data");
+  const currentGear = await fetchGearMetadataById(gearId);
+  assertSideViewSupported(currentGear.gearType);
+  const hadLeftView = !!currentGear.leftViewUrl;
+
+  const updated = await updateGearLeftViewData({ gearId, leftViewUrl });
+
+  if (leftViewUrl) {
+    await clearImageRequestsForGear(gearId);
+  }
+
+  try {
+    const action = leftViewUrl
+      ? hadLeftView
+        ? "GEAR_LEFT_VIEW_REPLACE"
+        : "GEAR_LEFT_VIEW_UPLOAD"
+      : "GEAR_LEFT_VIEW_REMOVE";
+
+    await db.insert(auditLogs).values({
+      action,
+      actorUserId: session.user?.id ?? "",
+      gearId: updated.id,
+    });
+
+    if (leftViewUrl) {
+      await db.insert(gearEdits).values({
+        id: nanoid(),
+        gearId: updated.id,
+        createdById: session.user?.id ?? "",
+        status: "APPROVED",
+        payload: {
+          imageUpload: {
+            type: "leftView",
+            url: leftViewUrl,
+            action: hadLeftView ? "replace" : "upload",
+          },
+        },
+      });
+    }
+  } catch {}
+
+  return updated;
+}
+
+export async function clearGearLeftViewService(params: {
+  gearId?: string;
+  slug?: string;
+}): Promise<{ id: string; slug: string; leftViewUrl: string | null }> {
+  return setGearLeftViewService({ ...params, leftViewUrl: null });
+}
+
+export async function setGearRightViewService(params: {
+  gearId?: string;
+  slug?: string;
+  rightViewUrl: string | null;
+}): Promise<{ id: string; slug: string; rightViewUrl: string | null }> {
+  const session = await getSessionOrThrow();
+
+  const { gearId: maybeId, slug, rightViewUrl } = params;
+  requireImageMutationRole(session.user, rightViewUrl);
+  let gearId = maybeId;
+  if (!gearId) {
+    if (!slug)
+      throw Object.assign(new Error("Missing gear reference"), { status: 400 });
+    const id = await getGearIdBySlug(slug);
+    if (!id) throw Object.assign(new Error("Gear not found"), { status: 404 });
+    gearId = id;
+  }
+
+  const { fetchGearMetadataById } = await import("~/server/gear/data");
+  const currentGear = await fetchGearMetadataById(gearId);
+  assertSideViewSupported(currentGear.gearType);
+  const hadRightView = !!currentGear.rightViewUrl;
+
+  const updated = await updateGearRightViewData({ gearId, rightViewUrl });
+
+  if (rightViewUrl) {
+    await clearImageRequestsForGear(gearId);
+  }
+
+  try {
+    const action = rightViewUrl
+      ? hadRightView
+        ? "GEAR_RIGHT_VIEW_REPLACE"
+        : "GEAR_RIGHT_VIEW_UPLOAD"
+      : "GEAR_RIGHT_VIEW_REMOVE";
+
+    await db.insert(auditLogs).values({
+      action,
+      actorUserId: session.user?.id ?? "",
+      gearId: updated.id,
+    });
+
+    if (rightViewUrl) {
+      await db.insert(gearEdits).values({
+        id: nanoid(),
+        gearId: updated.id,
+        createdById: session.user?.id ?? "",
+        status: "APPROVED",
+        payload: {
+          imageUpload: {
+            type: "rightView",
+            url: rightViewUrl,
+            action: hadRightView ? "replace" : "upload",
+          },
+        },
+      });
+    }
+  } catch {}
+
+  return updated;
+}
+
+export async function clearGearRightViewService(params: {
+  gearId?: string;
+  slug?: string;
+}): Promise<{ id: string; slug: string; rightViewUrl: string | null }> {
+  return setGearRightViewService({ ...params, rightViewUrl: null });
 }
 
 export async function deleteGearService(

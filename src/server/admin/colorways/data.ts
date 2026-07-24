@@ -12,7 +12,12 @@ import {
   imageRequests,
 } from "~/server/db/schema";
 
-export type ColorwayImageType = "front" | "topView" | "rearView";
+export type ColorwayImageType =
+  | "front"
+  | "topView"
+  | "rearView"
+  | "leftView"
+  | "rightView";
 export type ColorwayResetMode = "keepGearImages" | "applyColorway";
 
 type ColorwayInput = {
@@ -48,6 +53,8 @@ async function mirrorDefaultColorway(
       thumbnailUrl: colorway.frontImageUrl,
       topViewUrl: colorway.topViewUrl,
       rearViewUrl: colorway.rearViewUrl,
+      leftViewUrl: colorway.leftViewUrl,
+      rightViewUrl: colorway.rightViewUrl,
       ...(shouldUpdateOgImage ? { ogImageUrl: options.ogImageUrl ?? null } : {}),
       updatedAt: new Date(),
     })
@@ -100,6 +107,8 @@ export async function enableGearColorwaysData(params: {
         frontImageUrl: gearRow.thumbnailUrl,
         topViewUrl: gearRow.topViewUrl,
         rearViewUrl: gearRow.rearViewUrl,
+        leftViewUrl: gearRow.leftViewUrl,
+        rightViewUrl: gearRow.rightViewUrl,
       })
       .returning();
 
@@ -381,9 +390,18 @@ export async function setGearColorwayImageData(params: {
       .limit(1);
     if (!gearRow)
       throw Object.assign(new Error("Gear not found"), { status: 404 });
-    if (params.imageType === "rearView" && gearRow.gearType === "LENS") {
+    if (
+      (params.imageType === "rearView" ||
+        params.imageType === "leftView" ||
+        params.imageType === "rightView") &&
+      gearRow.gearType === "LENS"
+    ) {
       throw Object.assign(
-        new Error("Rear-view images are only supported for cameras"),
+        new Error(
+          params.imageType === "rearView"
+            ? "Rear-view images are only supported for cameras"
+            : "Side-view images are only supported for cameras",
+        ),
         { status: 400 },
       );
     }
@@ -396,7 +414,11 @@ export async function setGearColorwayImageData(params: {
         ? "frontImageUrl"
         : params.imageType === "topView"
           ? "topViewUrl"
-          : "rearViewUrl";
+          : params.imageType === "rearView"
+            ? "rearViewUrl"
+            : params.imageType === "leftView"
+              ? "leftViewUrl"
+              : "rightViewUrl";
     const previousUrl = before[field];
     const [updated] = await tx
       .update(gearColorways)

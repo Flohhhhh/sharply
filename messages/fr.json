@@ -320,11 +320,16 @@
     "gearImages": {
       "manageTitle": "Gérer les images du matériel",
       "manageDescription": "Téléversez des images de face, de dessus et de l’arrière pour cet élément de matériel.",
-      "manageDescriptionNoRearView": "Téléversez des images de face et de dessus pour cet élément de matériel.",
+      "manageDescriptionCamera": "Téléversez des images de face, de dessus, de l’arrière, du côté gauche et du côté droit pour cet élément de matériel.",
+      "manageDescriptionNoRearView": "Téléversez des images en perspective et orthographiques pour cet élément de matériel.",
       "manageButton": "Gérer les images",
       "frontView": "Vue de face",
       "topView": "Vue de dessus",
       "rearView": "Vue arrière",
+      "leftView": "Côté gauche",
+      "rightView": "Côté droit",
+      "perspectiveView": "Perspective",
+      "orthographicView": "Orthographique",
       "updated": "{view} mise à jour.",
       "removed": "{view} supprimée.",
       "removeImageAdminOnly": "Seuls les administrateurs peuvent supprimer des images.",
@@ -337,7 +342,11 @@
       "noImageAvailable": "Aucune image disponible",
       "colorwaysLabel": "Couleurs disponibles",
       "topViewAlt": "{name} - Vue de dessus",
-      "rearViewAlt": "{name} - Vue arrière"
+      "rearViewAlt": "{name} - Vue arrière",
+      "leftViewAlt": "{name} - Côté gauche",
+      "rightViewAlt": "{name} - Côté droit",
+      "perspectiveViewAlt": "{name} - Perspective",
+      "orthographicViewAlt": "{name} - Orthographique"
     },
     "colorways": {
       "manager": {

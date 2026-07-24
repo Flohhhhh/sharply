@@ -137,6 +137,8 @@ function serializeMedia(item: DeveloperApiGear) {
     ogImageUrl: item.ogImageUrl,
     topViewUrl: item.topViewUrl,
     rearViewUrl: item.rearViewUrl,
+    leftViewUrl: item.leftViewUrl,
+    rightViewUrl: item.rightViewUrl,
   };
 }
 
@@ -166,6 +168,8 @@ function serializeColorway(colorway: GearColorway) {
     frontImageUrl: colorway.frontImageUrl,
     topViewUrl: colorway.topViewUrl,
     rearViewUrl: colorway.rearViewUrl,
+    leftViewUrl: colorway.leftViewUrl,
+    rightViewUrl: colorway.rightViewUrl,
   };
 }
 
@@ -453,6 +457,8 @@ export function serializeGear(item: DeveloperApiGear) {
       ogImageUrl: media.ogImageUrl,
       topViewUrl: media.topViewUrl,
       rearViewUrl: media.rearViewUrl,
+      leftViewUrl: media.leftViewUrl,
+      rightViewUrl: media.rightViewUrl,
       weightGrams: item.weightGrams,
       widthMm: item.widthMm,
       heightMm: item.heightMm,

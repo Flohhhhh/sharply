@@ -320,11 +320,16 @@
     "gearImages": {
       "manageTitle": "管理器材图片",
       "manageDescription": "为这件器材上传正面图、顶部图和背面图。",
-      "manageDescriptionNoRearView": "为这件器材上传正面图和顶部图。",
+      "manageDescriptionCamera": "为这件器材上传正面图、顶部图、背面图、左侧图和右侧图。",
+      "manageDescriptionNoRearView": "为这件器材上传透视图和正交图。",
       "manageButton": "管理图片",
       "frontView": "正面图",
       "topView": "顶部图",
       "rearView": "背面图",
+      "leftView": "左侧图",
+      "rightView": "右侧图",
+      "perspectiveView": "透视图",
+      "orthographicView": "正交图",
       "updated": "{view}已更新。",
       "removed": "{view}已删除。",
       "removeImageAdminOnly": "只有管理员可以删除图片。",
@@ -337,7 +342,11 @@
       "noImageAvailable": "无可用图像",
       "colorwaysLabel": "可选颜色",
       "topViewAlt": "{name} - 顶部图",
-      "rearViewAlt": "{name} - 背面图"
+      "rearViewAlt": "{name} - 背面图",
+      "leftViewAlt": "{name} - 左侧图",
+      "rightViewAlt": "{name} - 右侧图",
+      "perspectiveViewAlt": "{name} - 透视图",
+      "orthographicViewAlt": "{name} - 正交图"
     },
     "colorways": {
       "manager": {

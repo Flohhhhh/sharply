@@ -94,7 +94,7 @@ there is no published gear, the endpoint still returns `200` with a null URL.
 
 ### `GET /api/v1/gear/:slug`
 
-Returns the complete currently publishable catalog record, including available related specifications, aliases, media, and colourways. The response keeps its established field names: `brands`, flattened image URL fields, `regionalAliases`, and `colorways`.
+Returns the complete currently publishable catalog record, including available related specifications, aliases, media, and colourways. The response keeps its established field names: `brands`, flattened image URL fields including side-view URLs, `regionalAliases`, and `colorways`.
 
 The response is an explicit public allowlist. It includes catalog identity, release and price data, dimensions, public links, approved relation fields, and type-specific specification values. `mounts` contains `{ value, shortName }` records from the gear-to-mount relationship. `predecessor` and `successor` are nullable `{ slug, name }` objects describing the adjacent product lineage. `cameraSpecs.sensorFormat` and `lensSpecs.imageCircle` / `fixedLensSpecs.imageCircle` contain `{ slug, name, cropFactor }` when the referenced sensor format exists, otherwise `null`.
 

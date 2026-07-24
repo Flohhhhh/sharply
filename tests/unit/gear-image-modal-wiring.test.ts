@@ -14,17 +14,32 @@ describe("GearImageModal rear view wiring", () => {
 
     expect(source).toContain("gearType: GearType;");
     expect(source).toContain("currentRearViewUrl?: string;");
+    expect(source).toContain("currentLeftViewUrl?: string;");
+    expect(source).toContain("currentRightViewUrl?: string;");
     expect(source).toContain(
-      'type ImageType = "thumbnail" | "topView" | "rearView"',
+      '"leftView"',
     );
+    expect(source).toContain('"rightView"');
     expect(source).toContain(
       'props.gearType === "CAMERA" || props.gearType === "ANALOG_CAMERA"',
     );
     expect(source).toContain("actionSetGearRearView");
     expect(source).toContain("actionClearGearRearView");
+    expect(source).toContain("actionSetGearLeftView");
+    expect(source).toContain("actionClearGearLeftView");
+    expect(source).toContain("actionSetGearRightView");
+    expect(source).toContain("actionClearGearRightView");
     expect(source).toContain('t("manageDescriptionNoRearView")');
-    expect(source).toContain("supportsRearView ? (");
+    expect(source).toContain("supportsSideViews ? (");
     expect(source).toContain('imageType="rearView"');
+    expect(source).toContain('imageType="leftView"');
+    expect(source).toContain('imageType="rightView"');
+    expect(source).toContain('title={t("frontView")}');
+    expect(source).toContain('title={t("topView")}');
+    expect(source).toContain('title={t("leftView")}');
+    expect(source).toContain('title={t("rightView")}');
+    expect(source).toContain('title={t("perspectiveView")}');
+    expect(source).toContain('title={t("orthographicView")}');
   });
 
   it("only auto-generates gear OG assets for the first front-view image", () => {
@@ -66,5 +81,23 @@ describe("GearImageModal rear view wiring", () => {
     expect(source).toContain(
       'className="h-8 rounded-sm px-3 text-xs font-semibold text-foreground/70 data-[state=active]:border-border data-[state=active]:bg-foreground/10 data-[state=active]:text-foreground data-[state=active]:shadow-none"',
     );
+  });
+
+  it("supports drag-and-drop replacement and disables other slots while busy", () => {
+    const source = read("src/components/modals/gear-image-modal.tsx");
+
+    expect(source).toContain("const isBusy = isUploading || isUpdating");
+    expect(source).toContain("const isDisabled = isBusy && !isActive");
+    expect(source).toContain("pointer-events-none opacity-50");
+    expect(source).toContain("onDrop={handleDrop}");
+    expect(source).toContain("if (isBusy) return;");
+    expect(source).toContain("disabled={isBusy}");
+    expect(source).toContain("disabled={isBusy || !canDelete}");
+    expect(source).toContain('className="mx-auto max-w-2xl"');
+    expect(source).toContain('className="grid gap-6 md:grid-cols-4"');
+    expect(source).toContain('mediaClassName="h-72"');
+    expect(source).toContain('mediaClassName="h-36"');
+    expect(source).toContain('className="min-h-10 space-y-2"');
+    expect(source).toContain('className={showProgress ? "" : "opacity-0"}');
   });
 });

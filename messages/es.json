@@ -320,11 +320,16 @@
     "gearImages": {
       "manageTitle": "Administrar imágenes del equipo",
       "manageDescription": "Sube imágenes de vista frontal, superior y trasera para este artículo de equipo.",
-      "manageDescriptionNoRearView": "Sube imágenes de vista frontal y superior para este artículo de equipo.",
+      "manageDescriptionCamera": "Sube imágenes de vista frontal, superior, trasera, lateral izquierda y lateral derecha para este artículo de equipo.",
+      "manageDescriptionNoRearView": "Sube imágenes de perspectiva y ortográficas para este artículo de equipo.",
       "manageButton": "Administrar imágenes",
       "frontView": "Vista frontal",
       "topView": "Vista superior",
       "rearView": "Vista trasera",
+      "leftView": "Lateral izquierdo",
+      "rightView": "Lateral derecho",
+      "perspectiveView": "Perspectiva",
+      "orthographicView": "Ortográfica",
       "updated": "Se actualizó {view}.",
       "removed": "Se eliminó {view}.",
       "removeImageAdminOnly": "Solo los administradores pueden eliminar imágenes.",
@@ -337,7 +342,11 @@
       "noImageAvailable": "No hay imagen disponible",
       "colorwaysLabel": "Colores disponibles",
       "topViewAlt": "{name} - Vista superior",
-      "rearViewAlt": "{name} - Vista trasera"
+      "rearViewAlt": "{name} - Vista trasera",
+      "leftViewAlt": "{name} - Lateral izquierdo",
+      "rightViewAlt": "{name} - Lateral derecho",
+      "perspectiveViewAlt": "{name} - Perspectiva",
+      "orthographicViewAlt": "{name} - Ortográfica"
     },
     "colorways": {
       "manager": {

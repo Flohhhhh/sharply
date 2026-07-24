@@ -44,9 +44,11 @@ function renderCarousel(
       children: React.createElement(GearImageCarousel, {
         name: "Nikon Zf",
         gearType: "CAMERA",
-        thumbnailUrl: null,
-        topViewUrl: null,
-        rearViewUrl: null,
+    thumbnailUrl: null,
+    topViewUrl: null,
+    rearViewUrl: null,
+    leftViewUrl: null,
+    rightViewUrl: null,
         slug: "nikon-zf",
         hasImageRequest: false,
         ...props,
@@ -63,6 +65,8 @@ function colorway(
     frontImageUrl: string | null;
     topViewUrl: string | null;
     rearViewUrl: string | null;
+    leftViewUrl: string | null;
+    rightViewUrl: string | null;
   }> = {},
 ) {
   return {
@@ -76,6 +80,8 @@ function colorway(
     frontImageUrl: images.frontImageUrl ?? null,
     topViewUrl: images.topViewUrl ?? null,
     rearViewUrl: images.rearViewUrl ?? null,
+    leftViewUrl: images.leftViewUrl ?? null,
+    rightViewUrl: images.rightViewUrl ?? null,
     createdAt: new Date("2026-01-01T00:00:00Z"),
     updatedAt: new Date("2026-01-01T00:00:00Z"),
   };
@@ -124,20 +130,39 @@ describe("GearImageCarousel", () => {
     expect(markup).not.toContain('data-testid="carousel-next"');
   });
 
-  it("renders front, top, and rear images in order", () => {
+  it("renders camera front, top, rear, left, and right images in order", () => {
     const markup = renderCarousel({
       thumbnailUrl: "https://cdn.example.com/front.webp",
       topViewUrl: "https://cdn.example.com/top.webp",
       rearViewUrl: "https://cdn.example.com/rear.webp",
+      leftViewUrl: "https://cdn.example.com/left.webp",
+      rightViewUrl: "https://cdn.example.com/right.webp",
     });
 
     const frontIndex = markup.indexOf("https://cdn.example.com/front.webp");
     const topIndex = markup.indexOf("https://cdn.example.com/top.webp");
     const rearIndex = markup.indexOf("https://cdn.example.com/rear.webp");
+    const leftIndex = markup.indexOf("https://cdn.example.com/left.webp");
+    const rightIndex = markup.indexOf("https://cdn.example.com/right.webp");
 
     expect(frontIndex).toBeGreaterThan(-1);
     expect(topIndex).toBeGreaterThan(frontIndex);
     expect(rearIndex).toBeGreaterThan(topIndex);
+    expect(leftIndex).toBeGreaterThan(rearIndex);
+    expect(rightIndex).toBeGreaterThan(leftIndex);
+    expect(markup).toContain("Nikon Zf - Left Side");
+    expect(markup).toContain("Nikon Zf - Right Side");
+  });
+
+  it("uses perspective and orthographic alt labels for lens image slots", () => {
+    const markup = renderCarousel({
+      gearType: "LENS",
+      thumbnailUrl: "https://cdn.example.com/perspective.webp",
+      topViewUrl: "https://cdn.example.com/orthographic.webp",
+    });
+
+    expect(markup).toContain("Nikon Zf - Perspective");
+    expect(markup).toContain("Nikon Zf - Orthographic");
   });
 
   it("shows navigation controls when rear view is present with another image", () => {
@@ -176,6 +201,7 @@ describe("GearImageCarousel", () => {
         colorway("silver", "Silver", 0, {
           frontImageUrl: "https://cdn.example.com/silver.webp",
           rearViewUrl: "https://cdn.example.com/silver-rear.webp",
+          leftViewUrl: "https://cdn.example.com/silver-left.webp",
         }),
       ],
     });
@@ -185,6 +211,7 @@ describe("GearImageCarousel", () => {
     expect(markup.indexOf("Silver")).toBeLessThan(markup.indexOf("White"));
     expect(markup).toContain("https://cdn.example.com/silver.webp");
     expect(markup).toContain("https://cdn.example.com/white-top.webp");
+    expect(markup).toContain("https://cdn.example.com/silver-left.webp");
     expect(markup).toContain("Black");
     expect(markup).toContain("disabled");
     expect(markup).not.toContain("No image available");

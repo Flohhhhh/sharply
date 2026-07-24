@@ -135,6 +135,8 @@ export default async function GearPage({ params }: GearPageProps) {
           currentThumbnailUrl={item.thumbnailUrl ?? null}
           currentTopViewUrl={item.topViewUrl ?? null}
           currentRearViewUrl={item.rearViewUrl ?? null}
+          currentLeftViewUrl={item.leftViewUrl ?? null}
+          currentRightViewUrl={item.rightViewUrl ?? null}
           currentInstructionManualUrl={item.linkInstructionManual ?? null}
           publicationState={item.publicationState}
           alternatives={[]}
@@ -270,6 +272,8 @@ export default async function GearPage({ params }: GearPageProps) {
         currentThumbnailUrl={item.thumbnailUrl ?? null}
         currentTopViewUrl={item.topViewUrl ?? null}
         currentRearViewUrl={item.rearViewUrl ?? null}
+        currentLeftViewUrl={item.leftViewUrl ?? null}
+        currentRightViewUrl={item.rightViewUrl ?? null}
         currentInstructionManualUrl={item.linkInstructionManual ?? null}
         publicationState={item.publicationState}
         alternatives={alternatives}
@@ -340,6 +344,8 @@ export default async function GearPage({ params }: GearPageProps) {
             thumbnailUrl={item.thumbnailUrl}
             topViewUrl={item.topViewUrl}
             rearViewUrl={item.rearViewUrl}
+            leftViewUrl={item.leftViewUrl}
+            rightViewUrl={item.rightViewUrl}
             slug={slug}
             hasImageRequest={hasImageRequest}
             colorways={item.colorways}

@@ -12,6 +12,10 @@ describe("colorway transactional data wiring", () => {
     expect(source).toContain("frontImageUrl: gearRow.thumbnailUrl");
     expect(source).toContain("topViewUrl: gearRow.topViewUrl");
     expect(source).toContain("rearViewUrl: gearRow.rearViewUrl");
+    expect(source).toContain("leftViewUrl: gearRow.leftViewUrl");
+    expect(source).toContain("rightViewUrl: gearRow.rightViewUrl");
+    expect(source).toContain("leftViewUrl: colorway.leftViewUrl");
+    expect(source).toContain("rightViewUrl: colorway.rightViewUrl");
   });
 
   it("mirrors reordered defaults and protects the final row", () => {

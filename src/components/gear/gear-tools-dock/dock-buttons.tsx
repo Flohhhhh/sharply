@@ -60,6 +60,8 @@ export interface BuildDockButtonsParams {
   currentThumbnailUrl?: string | null;
   currentTopViewUrl?: string | null;
   currentRearViewUrl?: string | null;
+  currentLeftViewUrl?: string | null;
+  currentRightViewUrl?: string | null;
   colorways: GearColorway[];
   currentInstructionManualUrl?: string | null;
   instructionManualLabel: string;
@@ -91,6 +93,8 @@ export function buildDockButtons({
   currentThumbnailUrl,
   currentTopViewUrl,
   currentRearViewUrl,
+  currentLeftViewUrl,
+  currentRightViewUrl,
   colorways,
   currentInstructionManualUrl,
   instructionManualLabel,
@@ -167,6 +171,8 @@ export function buildDockButtons({
             currentThumbnailUrl={currentThumbnailUrl ?? undefined}
             currentTopViewUrl={currentTopViewUrl ?? undefined}
             currentRearViewUrl={currentRearViewUrl ?? undefined}
+            currentLeftViewUrl={currentLeftViewUrl ?? undefined}
+            currentRightViewUrl={currentRightViewUrl ?? undefined}
             currentColorways={colorways}
             trigger={
               <TooltipTrigger asChild>

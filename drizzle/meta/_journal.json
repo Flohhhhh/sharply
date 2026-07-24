@@ -190,6 +190,13 @@
       "when": 1784830292458,
       "tag": "0026_youthful_vengeance",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1784916657197,
+      "tag": "0027_fat_peter_parker",
+      "breakpoints": true
     }
   ]
 }

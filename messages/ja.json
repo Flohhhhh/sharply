@@ -320,11 +320,16 @@
     "gearImages": {
       "manageTitle": "機材画像を管理",
       "manageDescription": "この機材の正面、上面、背面の画像をアップロードします。",
-      "manageDescriptionNoRearView": "この機材の正面と上面の画像をアップロードします。",
+      "manageDescriptionCamera": "この機材の正面、上面、背面、左側面、右側面の画像をアップロードします。",
+      "manageDescriptionNoRearView": "この機材のパース画像と正投影画像をアップロードします。",
       "manageButton": "画像を管理",
       "frontView": "正面",
       "topView": "上面",
       "rearView": "背面",
+      "leftView": "左側面",
+      "rightView": "右側面",
+      "perspectiveView": "パース",
+      "orthographicView": "正投影",
       "updated": "{view}を更新しました。",
       "removed": "{view}を削除しました。",
       "removeImageAdminOnly": "画像を削除できるのは管理者のみです。",
@@ -337,7 +342,11 @@
       "noImageAvailable": "画像はありません",
       "colorwaysLabel": "利用可能なカラー",
       "topViewAlt": "{name} - 上面",
-      "rearViewAlt": "{name} - 背面"
+      "rearViewAlt": "{name} - 背面",
+      "leftViewAlt": "{name} - 左側面",
+      "rightViewAlt": "{name} - 右側面",
+      "perspectiveViewAlt": "{name} - パース",
+      "orthographicViewAlt": "{name} - 正投影"
     },
     "colorways": {
       "manager": {

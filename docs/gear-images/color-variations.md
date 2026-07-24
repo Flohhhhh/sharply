@@ -4,15 +4,15 @@ Gear colorways describe visual variants of one product identity. They do not cre
 
 ## Modes and image ownership
 
-- **Implicit mode:** a gear item has no `gear_colorways` rows. The public carousel reads `gear.thumbnailUrl`, `gear.topViewUrl`, and `gear.rearViewUrl`.
+- **Implicit mode:** a gear item has no `gear_colorways` rows. The public carousel reads `gear.thumbnailUrl`, `gear.topViewUrl`, `gear.rearViewUrl`, `gear.leftViewUrl`, and `gear.rightViewUrl`.
 - **Explicit mode:** a gear item has one or more ordered colorway rows. The public carousel reads only colorway images. The lowest `sortOrder` is the default.
 - Enabling explicit mode creates the first stored colorway from the current gear images.
 
-The first colorway's front, top, and rear images are mirrored to the legacy gear fields. This keeps browse cards, search results, metadata, and JSON-LD aligned with the visible default. Changing the default clears a stale dedicated OG image so metadata falls back to the mirrored thumbnail.
+The first colorway's front, top, rear, left-side, and right-side images are mirrored to the legacy gear fields. This keeps browse cards, search results, metadata, and JSON-LD aligned with the visible default. Changing the default clears a stale dedicated OG image so metadata falls back to the mirrored thumbnail.
 
 ## Schema
 
-`gear_colorways` stores a gear foreign key, stable per-gear slug, display name, two normalized `#RRGGBB` swatch colors, sort order, optional front/top/rear image URLs, and timestamps. Rear images are valid only for `CAMERA` and `ANALOG_CAMERA` gear.
+`gear_colorways` stores a gear foreign key, stable per-gear slug, display name, two normalized `#RRGGBB` swatch colors, sort order, optional front/top/rear/left/right image URLs, and timestamps. Rear and side images are valid only for `CAMERA` and `ANALOG_CAMERA` gear.
 
 `ownerships` can optionally store a selected `colorwayId` for collection presentation. The relationship is nullable and uses `ON DELETE SET NULL` semantics so collection rows stay valid if a colorway is later removed.
 

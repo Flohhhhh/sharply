@@ -13,7 +13,9 @@ const adminGearDataMocks = vi.hoisted(() => ({
   performFuzzySearch: vi.fn(),
   renameGearData: vi.fn(),
   updateGearOgImageData: vi.fn(),
+  updateGearLeftViewData: vi.fn(),
   updateGearRearViewData: vi.fn(),
+  updateGearRightViewData: vi.fn(),
   updateGearThumbnailData: vi.fn(),
   updateGearTopViewData: vi.fn(),
 }));
@@ -160,6 +162,9 @@ describe("thumbnail gear admin service", () => {
   });
 
   it("clearing a thumbnail also clears the stored OG asset", async () => {
+    authMocks.getSessionOrThrow.mockResolvedValue({
+      user: { id: "admin-1", role: "ADMIN" },
+    });
     gearDataMocks.fetchGearMetadataById.mockResolvedValue({
       thumbnailUrl: "https://cdn.example.com/front.jpg",
     });
@@ -181,6 +186,16 @@ describe("thumbnail gear admin service", () => {
       thumbnailUrl: null,
       ogImageUrl: null,
     });
+  });
+
+  it("rejects editor attempts to clear a thumbnail", async () => {
+    await expect(
+      clearGearThumbnailService({ gearId: "gear-1" }),
+    ).rejects.toMatchObject({ message: "Unauthorized", status: 401 });
+
+    expect(gearDataMocks.fetchGearMetadataById).not.toHaveBeenCalled();
+    expect(adminGearDataMocks.updateGearThumbnailData).not.toHaveBeenCalled();
+    expect(dbState.insertedValues).toHaveLength(0);
   });
 
   it("updates stored OG assets directly for admin backfill runs", async () => {

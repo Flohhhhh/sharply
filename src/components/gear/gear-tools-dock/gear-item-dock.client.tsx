@@ -40,6 +40,8 @@ interface GearItemDockClientProps {
   currentThumbnailUrl?: string | null;
   currentTopViewUrl?: string | null;
   currentRearViewUrl?: string | null;
+  currentLeftViewUrl?: string | null;
+  currentRightViewUrl?: string | null;
   currentInstructionManualUrl?: string | null;
   publicationState?: GearPublicationState | null;
   alternatives?: GearAlternativeRow[];
@@ -97,6 +99,8 @@ export function GearItemDockClient({
   currentThumbnailUrl = null,
   currentTopViewUrl = null,
   currentRearViewUrl = null,
+  currentLeftViewUrl = null,
+  currentRightViewUrl = null,
   currentInstructionManualUrl = null,
   publicationState = null,
   alternatives = EMPTY_ALTERNATIVES,
@@ -192,6 +196,8 @@ export function GearItemDockClient({
         currentThumbnailUrl,
         currentTopViewUrl,
         currentRearViewUrl,
+        currentLeftViewUrl,
+        currentRightViewUrl,
         colorways,
         currentInstructionManualUrl,
         instructionManualLabel: t("instructionManual.title"),
@@ -217,6 +223,8 @@ export function GearItemDockClient({
       currentThumbnailUrl,
       currentTopViewUrl,
       currentRearViewUrl,
+      currentLeftViewUrl,
+      currentRightViewUrl,
       colorways,
       currentInstructionManualUrl,
       publicationState,

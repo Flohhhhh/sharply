@@ -164,6 +164,8 @@ describe("developer API serializers", () => {
       thumbnailUrl: "https://example.test/front.jpg",
       topViewUrl: "https://example.test/top.jpg",
       rearViewUrl: "https://example.test/rear.jpg",
+      leftViewUrl: "https://example.test/left.jpg",
+      rightViewUrl: "https://example.test/right.jpg",
       widthMm: "134",
       mounts: [
         { value: "Nikon Z", shortName: "Z" },
@@ -297,6 +299,8 @@ describe("developer API serializers", () => {
           frontImageUrl: "https://example.test/black-front.jpg",
           topViewUrl: null,
           rearViewUrl: null,
+          leftViewUrl: "https://example.test/black-left.jpg",
+          rightViewUrl: null,
           createdAt: new Date("2024-01-01T00:00:00.000Z"),
           updatedAt: new Date("2024-01-02T00:00:00.000Z"),
         },
@@ -315,6 +319,8 @@ describe("developer API serializers", () => {
       thumbnailUrl: "https://example.test/front.jpg",
       topViewUrl: "https://example.test/top.jpg",
       rearViewUrl: "https://example.test/rear.jpg",
+      leftViewUrl: "https://example.test/left.jpg",
+      rightViewUrl: "https://example.test/right.jpg",
       widthMm: "134",
       brands: { name: "Nikon", slug: "nikon" },
       mounts: [
@@ -368,6 +374,8 @@ describe("developer API serializers", () => {
           frontImageUrl: "https://example.test/black-front.jpg",
           topViewUrl: null,
           rearViewUrl: null,
+          leftViewUrl: "https://example.test/black-left.jpg",
+          rightViewUrl: null,
         },
       ],
     });

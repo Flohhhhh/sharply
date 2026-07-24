@@ -34,6 +34,8 @@ export interface GearItemDockProps {
   currentThumbnailUrl?: string | null;
   currentTopViewUrl?: string | null;
   currentRearViewUrl?: string | null;
+  currentLeftViewUrl?: string | null;
+  currentRightViewUrl?: string | null;
   currentInstructionManualUrl?: string | null;
   publicationState?: GearPublicationState | null;
   alternatives?: GearAlternativeRow[];
@@ -50,6 +52,8 @@ export function GearItemDock({
   currentThumbnailUrl = null,
   currentTopViewUrl = null,
   currentRearViewUrl = null,
+  currentLeftViewUrl = null,
+  currentRightViewUrl = null,
   currentInstructionManualUrl = null,
   publicationState = null,
   alternatives = EMPTY_ALTERNATIVES,
@@ -66,6 +70,8 @@ export function GearItemDock({
       currentThumbnailUrl={currentThumbnailUrl}
       currentTopViewUrl={currentTopViewUrl}
       currentRearViewUrl={currentRearViewUrl}
+      currentLeftViewUrl={currentLeftViewUrl}
+      currentRightViewUrl={currentRightViewUrl}
       currentInstructionManualUrl={currentInstructionManualUrl}
       publicationState={publicationState}
       alternatives={alternatives}

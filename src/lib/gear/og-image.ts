@@ -4,7 +4,12 @@ export const GEAR_OG_PADDING = 64;
 export const GEAR_OG_BACKGROUND = "#18181b";
 export const GEAR_OG_JPEG_QUALITY = 0.9;
 
-export type GearImageType = "thumbnail" | "topView" | "rearView";
+export type GearImageType =
+  | "thumbnail"
+  | "topView"
+  | "rearView"
+  | "leftView"
+  | "rightView";
 
 export function shouldAutoGenerateGearOgImageOnThumbnailUpload(params: {
   imageType: GearImageType;

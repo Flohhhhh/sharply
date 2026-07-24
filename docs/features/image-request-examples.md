@@ -189,6 +189,8 @@ export default async function GearPage({ params }: GearPageProps) {
       thumbnailUrl={item.thumbnailUrl}
       topViewUrl={item.topViewUrl}
       rearViewUrl={item.rearViewUrl}
+      leftViewUrl={item.leftViewUrl}
+      rightViewUrl={item.rightViewUrl}
       slug={slug}
       hasImageRequest={hasImageRequest}
     />
@@ -196,7 +198,7 @@ export default async function GearPage({ params }: GearPageProps) {
 }
 ```
 
-`rearViewUrl` is camera-only. Lenses continue to use front and top views.
+`rearViewUrl`, `leftViewUrl`, and `rightViewUrl` are camera-only. Lenses continue to use the stored front and top slots, labeled in the UI as perspective and orthographic.
 
 ### 7. Admin Analytics List (image-requests-list.tsx)
 

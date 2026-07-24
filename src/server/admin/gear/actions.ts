@@ -4,14 +4,18 @@ import "server-only";
 import { revalidatePath } from "next/cache";
 import { type GearRegion } from "~/lib/gear/region";
 import {
+  clearGearLeftViewService,
   clearGearRearViewService,
+  clearGearRightViewService,
   clearGearThumbnailService,
   clearGearTopViewService,
   createGearAdmin,
   deleteGearService,
   renameGearService,
+  setGearLeftViewService,
   setGearOgImageService,
   setGearRearViewService,
+  setGearRightViewService,
   setGearThumbnailService,
   setGearTopViewService,
   updateGearPublicationStateService,
@@ -130,6 +134,52 @@ export async function actionClearGearRearView(params: {
   slug?: string;
 }) {
   const result = await clearGearRearViewService(params);
+  revalidatePath("/admin/gear");
+  revalidatePath(`/gear/${result.slug}`);
+  revalidatePath("/browse");
+  return result;
+}
+
+export async function actionSetGearLeftView(params: {
+  gearId?: string;
+  slug?: string;
+  leftViewUrl: string;
+}) {
+  const result = await setGearLeftViewService(params);
+  revalidatePath("/admin/gear");
+  revalidatePath(`/gear/${result.slug}`);
+  revalidatePath("/browse");
+  return result;
+}
+
+export async function actionClearGearLeftView(params: {
+  gearId?: string;
+  slug?: string;
+}) {
+  const result = await clearGearLeftViewService(params);
+  revalidatePath("/admin/gear");
+  revalidatePath(`/gear/${result.slug}`);
+  revalidatePath("/browse");
+  return result;
+}
+
+export async function actionSetGearRightView(params: {
+  gearId?: string;
+  slug?: string;
+  rightViewUrl: string;
+}) {
+  const result = await setGearRightViewService(params);
+  revalidatePath("/admin/gear");
+  revalidatePath(`/gear/${result.slug}`);
+  revalidatePath("/browse");
+  return result;
+}
+
+export async function actionClearGearRightView(params: {
+  gearId?: string;
+  slug?: string;
+}) {
+  const result = await clearGearRightViewService(params);
   revalidatePath("/admin/gear");
   revalidatePath(`/gear/${result.slug}`);
   revalidatePath("/browse");

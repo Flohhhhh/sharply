@@ -320,11 +320,16 @@
     "gearImages": {
       "manageTitle": "Urus Imej Peralatan",
       "manageDescription": "Muat naik imej pandangan hadapan, atas dan belakang untuk item peralatan ini.",
-      "manageDescriptionNoRearView": "Muat naik imej pandangan hadapan dan atas untuk item peralatan ini.",
+      "manageDescriptionCamera": "Muat naik imej pandangan hadapan, atas, belakang, sisi kiri dan sisi kanan untuk item peralatan ini.",
+      "manageDescriptionNoRearView": "Muat naik imej perspektif dan ortografik untuk item peralatan ini.",
       "manageButton": "Urus Imej",
       "frontView": "Pandangan Hadapan",
       "topView": "Pandangan Atas",
       "rearView": "Pandangan Belakang",
+      "leftView": "Sisi Kiri",
+      "rightView": "Sisi Kanan",
+      "perspectiveView": "Perspektif",
+      "orthographicView": "Ortografik",
       "updated": "{view} dikemas kini.",
       "removed": "{view} dipadam.",
       "removeImageAdminOnly": "Hanya pentadbir boleh memadam imej.",
@@ -337,7 +342,11 @@
       "noImageAvailable": "Tiada imej tersedia",
       "colorwaysLabel": "Warna tersedia",
       "topViewAlt": "{name} - Pandangan Atas",
-      "rearViewAlt": "{name} - Pandangan Belakang"
+      "rearViewAlt": "{name} - Pandangan Belakang",
+      "leftViewAlt": "{name} - Sisi Kiri",
+      "rightViewAlt": "{name} - Sisi Kanan",
+      "perspectiveViewAlt": "{name} - Perspektif",
+      "orthographicViewAlt": "{name} - Ortografik"
     },
     "colorways": {
       "manager": {
