@@ -37,6 +37,7 @@ import {
 import {
   buildApertureTokenRegex,
   buildDecimalNumericTokenRegex,
+  buildFocalLengthRangeTokenRegex,
   buildFocalLengthTokenRegex,
   buildSingleFocalZoomOvermatchRegex,
   buildWholeWordTokenRegex,
@@ -284,6 +285,18 @@ export function buildRelevanceExpr(
     terms.push(
       buildScoreTerm(
         buildRegexMatchClause(searchLower, buildFocalLengthTokenRegex(token)),
+        SEARCH_RANKING_WEIGHTS.focalToken,
+      ),
+    );
+  }
+
+  for (const token of parsedQuery.focalLengthRangeTokens) {
+    terms.push(
+      buildScoreTerm(
+        buildRegexMatchClause(
+          searchLower,
+          buildFocalLengthRangeTokenRegex(token),
+        ),
         SEARCH_RANKING_WEIGHTS.focalToken,
       ),
     );

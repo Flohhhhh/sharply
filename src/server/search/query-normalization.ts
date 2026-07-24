@@ -20,6 +20,8 @@ const LENS_FEATURE_ACRONYM_SET = new Set<string>(
 
 const APERTURE_TOKEN_RE = /(?:\bf\s*\/?\s*|\bt\s*\/?\s*)(\d+(?:\.\d+)?)/gi;
 const FOCAL_LENGTH_TOKEN_RE = /(\d+(?:\.\d+)?)\s*mm\b/gi;
+const FOCAL_LENGTH_RANGE_TOKEN_RE =
+  /(^|[^a-z0-9./])(\d+(?:\.\d+)?)\s*[-–—]\s*(\d+(?:\.\d+)?)(?:\s*mm)?(?=$|[^a-z0-9])/gi;
 
 // These weights are mirrored by the SQL relevance builder in data.ts.
 export const SEARCH_RANKING_WEIGHTS = {
@@ -46,6 +48,7 @@ export type SearchQueryTokens = {
   significantNumericTokens: string[];
   apertureTokens: string[];
   focalLengthTokens: string[];
+  focalLengthRangeTokens: string[];
   rawLensFeatureAcronymTokens: string[];
   activeLensFeatureAcronymTokens: string[];
   hasLensEvidence: boolean;
@@ -58,7 +61,7 @@ export function normalizeSearchQuery(query: string): string {
 }
 
 export function normalizeSearchQueryNoPunct(query: string): string {
-  return normalizeSearchQuery(query).replace(/[\s\-_.\/]+/g, "");
+  return normalizeSearchQuery(query).replace(/[\s\-–—_.\/]+/g, "");
 }
 
 // Query token extraction
@@ -134,6 +137,20 @@ export function getExplicitFocalLengthTokens(query: string): string[] {
   );
 }
 
+export function getFocalLengthRangeTokens(query: string): string[] {
+  return uniqueTokens(
+    Array.from(
+      normalizeSearchQuery(query).matchAll(FOCAL_LENGTH_RANGE_TOKEN_RE),
+    )
+      .map((match) => {
+        const minimum = match[2]?.trim();
+        const maximum = match[3]?.trim();
+        return minimum && maximum ? `${minimum}-${maximum}` : "";
+      })
+      .filter(Boolean),
+  );
+}
+
 export function parseSearchQueryTokens(query: string): SearchQueryTokens {
   const normalizedQuery = normalizeSearchQuery(query);
   const normalizedQueryNoPunct = normalizeSearchQueryNoPunct(query);
@@ -142,9 +159,12 @@ export function parseSearchQueryTokens(query: string): SearchQueryTokens {
   const significantNumericTokens = getSignificantNumericTokens(query);
   const apertureTokens = getApertureTokens(query);
   const explicitFocalLengthTokens = getExplicitFocalLengthTokens(query);
+  const focalLengthRangeTokens = getFocalLengthRangeTokens(query);
   const rawLensFeatureAcronymTokens = getLensFeatureAcronymTokens(query);
   const hasContextForLensFeatureAcronyms =
-    significantNumericTokens.length > 0 || strongTextTokens.length > 0;
+    focalLengthRangeTokens.length > 0 ||
+    significantNumericTokens.length > 0 ||
+    strongTextTokens.length > 0;
   // Keep track of raw acronym detection separately from the "active" list.
   // Example: a bare query like "is" should still be recognized as an acronym
   // token, but we do not want to treat it like a strong lens feature signal
@@ -153,9 +173,11 @@ export function parseSearchQueryTokens(query: string): SearchQueryTokens {
     ? rawLensFeatureAcronymTokens
     : [];
   const focalLengthTokens =
-    explicitFocalLengthTokens.length > 0
-      ? explicitFocalLengthTokens
-      : significantNumericTokens.filter((token) => !token.includes("."));
+    focalLengthRangeTokens.length > 0
+      ? []
+      : explicitFocalLengthTokens.length > 0
+        ? explicitFocalLengthTokens
+        : significantNumericTokens.filter((token) => !token.includes("."));
 
   return {
     normalizedQuery,
@@ -165,9 +187,11 @@ export function parseSearchQueryTokens(query: string): SearchQueryTokens {
     significantNumericTokens,
     apertureTokens,
     focalLengthTokens,
+    focalLengthRangeTokens,
     rawLensFeatureAcronymTokens,
     activeLensFeatureAcronymTokens,
     hasLensEvidence:
+      focalLengthRangeTokens.length > 0 ||
       explicitFocalLengthTokens.length > 0 ||
       apertureTokens.length > 0 ||
       hasContextForLensFeatureAcronyms,
@@ -206,6 +230,12 @@ export function buildFocalLengthTokenRegex(token: string): string {
   return `(^|[^0-9])${escapeRegexValue(token)}\\s*mm([^0-9]|$)`;
 }
 
+export function buildFocalLengthRangeTokenRegex(token: string): string {
+  const [minimum, maximum] = token.split("-");
+
+  return `(^|[^0-9])${escapeRegexValue(minimum ?? "")}\\s*[-–—]\\s*${escapeRegexValue(maximum ?? "")}\\s*mm([^a-z0-9]|$)`;
+}
+
 export function buildApertureTokenRegex(token: string): string {
   const decimalPattern =
     buildDecimalNumericTokenRegex(token) ??
@@ -223,7 +253,7 @@ export function buildSingleFocalZoomOvermatchRegex(token: string): string {
 
 // Comparable text normalization for test-side ranking.
 function normalizeComparableText(value: string): string {
-  return normalizeSearchQuery(value).replace(/[\s\-_.\/]+/g, "");
+  return normalizeSearchQuery(value).replace(/[\s\-–—_.\/]+/g, "");
 }
 
 function stripBrandPrefixForComparison(params: {
@@ -320,6 +350,11 @@ export function scoreSearchTextAgainstQuery(params: {
   }
   for (const token of tokens.focalLengthTokens) {
     if (regexMatches(searchLower, buildFocalLengthTokenRegex(token))) {
+      score += SEARCH_RANKING_WEIGHTS.focalToken;
+    }
+  }
+  for (const token of tokens.focalLengthRangeTokens) {
+    if (regexMatches(searchLower, buildFocalLengthRangeTokenRegex(token))) {
       score += SEARCH_RANKING_WEIGHTS.focalToken;
     }
   }

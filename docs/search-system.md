@@ -76,10 +76,11 @@ When a user types a query, the server-side search pipeline runs in this order:
 
 1. Normalize the raw query.
    - Lowercase and trim it.
-   - Build `normalizedQueryNoPunct` by removing spaces, underscores, dots, slashes, and hyphens.
+   - Build `normalizedQueryNoPunct` by removing spaces, underscores, dots, slashes, and common dash characters.
 2. Parse the query into search tokens.
    - Split into parts.
-   - Extract strong text tokens, significant numeric tokens, explicit focal-length tokens, aperture tokens, and any allowlisted lens feature acronyms.
+   - Extract strong text tokens, explicit dashed focal-length ranges, significant numeric tokens, explicit single focal-length tokens, aperture tokens, and any allowlisted lens feature acronyms.
+   - Canonicalize focal ranges such as `70-200`, `70 – 200`, and `70-200mm` to one range token before applying generic numeric fallback behavior.
    - Decide whether short acronyms such as `pf` or `is` should be treated as active high-signal tokens or ignored as low-information shorthand.
 3. Build normalized database-side comparison forms.
    - `searchLower` for case-insensitive matching.
@@ -96,8 +97,8 @@ When a user types a query, the server-side search pipeline runs in this order:
    - Low-information acronym-only queries use a narrow boundary-aware acronym match instead of broad substring matching.
 6. Build the relevance score.
    - Start with additive base signals: raw contains, normalized contains, brand-agnostic contains, and relaxed contains.
-   - Add token-coverage bonuses for strong text, focal-length tokens, aperture tokens, and active lens acronyms.
-   - Apply the single-focal tie-break so exact `500mm` primes outrank zooms like `200-500mm` when the query is targeting a single focal length.
+   - Add token-coverage bonuses for strong text, complete focal-length ranges, single focal-length tokens, aperture tokens, and active lens acronyms.
+   - Apply the single-focal tie-break so exact `500mm` primes outrank zooms like `200-500mm` only when the query is targeting a true single focal length.
    - Keep trigram similarity as a weaker fallback signal.
 7. Fetch and shape results.
    - Full search sorts by relevance or the requested sort key, applies filters, paginates, and optionally counts totals.
@@ -127,6 +128,10 @@ When a user types a query, the server-side search pipeline runs in this order:
 - Split query on spaces/underscores only (keep hyphens intact): `/[\s_]+/`.
 - “Strong tokens” used for substring ILIKE: must contain a letter and be length ≥ 3.
   - Prevents numeric-only tokens (e.g., `70`) from widening results.
+- Explicit focal-length ranges are detected before generic numeric fallback:
+  - A dashed range such as `24-70`, `70-200mm`, or `70 – 200` becomes one canonical range token.
+  - The complete range must appear before `mm` in a candidate name to earn the focal-range relevance bonus.
+  - Range endpoints are not reused as standalone focal tokens, so `70-200` is not treated as a single `200mm` query.
 - Lens feature acronyms are handled from a fixed allowlist:
   - `pf`, `vr`, `is`, `oss`, `ois`, `vc`, `os`, `stm`, `usm`, `hsm`, `ssm`
 - Those acronyms only become high-signal ranking/gating tokens when the query also has lens evidence:
@@ -158,11 +163,13 @@ Final score is additive, not `GREATEST(...)`, so multiple good signals can beat 
 - Additive token bonuses:
   - strong token coverage
   - lens feature acronym coverage
+  - complete focal-range coverage
   - focal-length token coverage
   - aperture token coverage
 - Single-focal tie-break:
   - when the query targets one focal length such as `500mm` or shorthand `500`, exact `500mm` lenses get a boost
   - zoom overmatches such as `200-500mm` receive a penalty for those single-focal queries
+  - explicit range queries skip both the single-focal bonus and the zoom-overmatch penalty
 - Trigram similarity remains a weaker fallback signal instead of the primary ranking decision.
 
 Sort order remains `DESC(relevance), ASC(name)` for `relevance`; otherwise `ASC(name)` or `DESC(release_date)`.
@@ -198,6 +205,7 @@ Optional ANDed filters for brand/mount/gearType/price range/sensor format. These
 
 ### Numeric tokens
 
+- Explicit dashed focal ranges are parsed first and ranked as complete ranges. This preserves short endpoints such as `24` or `70` without broadening generic numeric matching.
 - If a query contains two or more significant numeric tokens (integers with ≥3 digits like `400` or decimals like `4.5`), the search additionally requires that all numeric tokens appear in the item’s `search_name`.
 - If a query contains exactly one significant numeric token and at least one alphabetic “strong token” (e.g., `nikon z 400`), the match is gated on that numeric token appearing in the item’s `search_name`. This makes mixed queries surface the expected lenses (e.g., `400mm`) without broadly relaxing other matches.
 - Decimal numeric tokens are matched with a digit-sequence regex so `f/1.4`, `F1.4`, and the normalized `search_name` form (`f1 4`) all satisfy the same gate.
