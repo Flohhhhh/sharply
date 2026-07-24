@@ -73,6 +73,8 @@
     "clearSearch": "Cancella ricerca",
     "searchFor": "Cerca “{query}”",
     "searchAction": "Cerca",
+    "advancedSearch": "Ricerca avanzata",
+    "enterKey": "Invio",
     "compareItems": "Confronta elementi",
     "bestMatch": "Migliore corrispondenza",
     "openBrand": "Apri marchio",

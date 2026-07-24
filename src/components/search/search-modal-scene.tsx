@@ -17,7 +17,7 @@ import {
   m,
   useReducedMotion,
 } from "motion/react";
-import { useLocale,useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import {
   type KeyboardEvent as ReactKeyboardEvent,
@@ -42,6 +42,7 @@ import {
   isSmartActionSuggestion,
   shouldHoistSingleGearSuggestion,
 } from "./search-suggestion-utils";
+import { getEmptySearchSubmitHref } from "./search-modal-utils";
 
 type SearchModalSceneProps = {
   open: boolean;
@@ -111,6 +112,7 @@ export function SearchModalScene({
 
   const trimmedQuery = query.trim();
   const hasQuery = trimmedQuery.length >= 2;
+  const showAdvancedSearchHint = trimmedQuery.length === 0;
   const isSearching = hasQuery && (typingPending || networkLoading);
   const searchHref = buildSearchHref("/search", { q: trimmedQuery, page: 1 });
 
@@ -196,8 +198,12 @@ export function SearchModalScene({
     const items: SelectableItem[] = [
       ...suggestionRows.smartRows,
       ...suggestionRows.bestRows,
-      ...(hoistSingleGearSuggestion ? suggestionRows.remainingRows : [searchAction]),
-      ...(hoistSingleGearSuggestion ? [searchAction] : suggestionRows.remainingRows),
+      ...(hoistSingleGearSuggestion
+        ? suggestionRows.remainingRows
+        : [searchAction]),
+      ...(hoistSingleGearSuggestion
+        ? [searchAction]
+        : suggestionRows.remainingRows),
     ];
 
     return items;
@@ -281,6 +287,13 @@ export function SearchModalScene({
     }
 
     if (event.key === "Enter") {
+      const emptySearchHref = getEmptySearchSubmitHref(query);
+      if (emptySearchHref) {
+        event.preventDefault();
+        navigateTo(emptySearchHref);
+        return;
+      }
+
       if (selectableItems.length === 0) return;
       event.preventDefault();
       executeItem(selectableItems[selectedIndex] ?? selectableItems[0]);
@@ -297,17 +310,17 @@ export function SearchModalScene({
                 opacity: 0,
                 scale: 0.96,
                 y: 12,
-                height: 64,
               }
         }
         animate={{
           opacity: 1,
           scale: 1,
           y: 0,
-          height: showResultsSection ? 480 : 64,
         }}
         transition={shellTransition}
-        className="bg-background dark:supports-backdrop-filter:bg-background/50 flex origin-top overflow-hidden rounded-2xl border border-black/40 shadow-[0_28px_90px_-42px_rgba(0,0,0,0.88),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl dark:border-white/40"
+        className={`bg-background dark:supports-backdrop-filter:bg-background flex origin-top overflow-hidden rounded-2xl border border-black/40 shadow-[0_28px_90px_-42px_rgba(0,0,0,0.88),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl dark:border-white/40 ${
+          showResultsSection ? "h-[480px]" : "h-16"
+        }`}
       >
         <div className="flex min-h-0 flex-1 flex-col">
           <div className="flex h-16 shrink-0 items-center gap-3 px-5">
@@ -330,7 +343,15 @@ export function SearchModalScene({
               autoCorrect="off"
               autoCapitalize="none"
             />
-            <div className="flex min-w-8 justify-end">
+            <div className="flex shrink-0 items-center justify-end gap-3">
+              {showAdvancedSearchHint ? (
+                <span className="text-muted-foreground hidden items-center gap-2 text-sm sm:inline-flex">
+                  <kbd className="bg-muted text-foreground inline-flex min-w-6 items-center justify-center rounded border px-1.5 py-0.5 font-mono text-[0.7rem] font-medium shadow-xs">
+                    {t("enterKey")}
+                  </kbd>
+                  <span>{t("advancedSearch")}</span>
+                </span>
+              ) : null}
               {isSearching ? (
                 <Loader2 className="text-muted-foreground size-4 animate-spin" />
               ) : query ? (

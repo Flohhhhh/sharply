@@ -73,6 +73,8 @@
     "clearSearch": "検索をクリア",
     "searchFor": "「{query}」を検索",
     "searchAction": "検索",
+    "advancedSearch": "詳細検索",
+    "enterKey": "Enter",
     "compareItems": "項目を比較",
     "bestMatch": "最適な一致",
     "openBrand": "ブランドを開く",

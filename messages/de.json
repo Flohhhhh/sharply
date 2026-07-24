@@ -73,6 +73,8 @@
     "clearSearch": "Suche löschen",
     "searchFor": "Suche nach „{query}“",
     "searchAction": "Suchen",
+    "advancedSearch": "Erweiterte Suche",
+    "enterKey": "Eingabe",
     "compareItems": "Elemente vergleichen",
     "bestMatch": "Bester Treffer",
     "openBrand": "Marke öffnen",

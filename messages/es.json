@@ -73,6 +73,8 @@
     "clearSearch": "Borrar búsqueda",
     "searchFor": "Buscar “{query}”",
     "searchAction": "Buscar",
+    "advancedSearch": "Búsqueda avanzada",
+    "enterKey": "Intro",
     "compareItems": "Comparar elementos",
     "bestMatch": "Mejor coincidencia",
     "openBrand": "Abrir marca",

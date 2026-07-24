@@ -73,6 +73,8 @@
     "clearSearch": "清除搜索",
     "searchFor": "搜索“{query}”",
     "searchAction": "搜索",
+    "advancedSearch": "高级搜索",
+    "enterKey": "Enter",
     "compareItems": "比较项目",
     "bestMatch": "最佳匹配",
     "openBrand": "打开品牌",

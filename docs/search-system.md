@@ -234,7 +234,7 @@ Numeric range bounds are non-negative (positive where zero is not meaningful); r
 - Loading indicator:
   - The inline header search shows a persistent spinner inside the input as soon as the user starts typing and keeps it visible through the debounced fetch lifecycle.
 - Dropdown/panel behavior:
-  - Empty input: only recent-search history may open the panel.
+  - Empty input: show an `Enter` → `Advanced Search` hint at the input’s right edge on desktop only. Pressing Enter closes the palette and opens `/search`, where the full filter controls are available.
   - Non-empty input: the panel waits for useful content before opening.
   - Once useful non-empty content has appeared, the panel remains open until the query is cleared, even if later requests return no direct suggestions.
 - Enter behavior:
@@ -242,6 +242,7 @@ Numeric range bounds are non-negative (positive where zero is not meaningful); r
   - Otherwise, smart action wins.
   - Otherwise, a `gear` suggestion with `isBestMatch` wins.
   - Otherwise, Enter navigates to `/search?q=...`.
+  - With an empty or whitespace-only query, Enter navigates to `/search`.
 - Search actions:
   - The UI no longer renders a standalone submit button.
   - Instead it renders a selectable fallback row: `Search for "..."`.
