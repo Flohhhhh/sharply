@@ -1527,6 +1527,7 @@
     "actions": "Aktionen",
     "moreMissing": "+{count} weitere",
     "statusUnderConstruction": "Im Aufbau",
+    "searchIndicatorTooltip": "Dieser Eintrag befindet sich im Aufbau.",
     "statusLowCompleteness": "Geringe Vollständigkeit",
     "openModal": "Modal öffnen",
     "editItem": "{slug} bearbeiten",

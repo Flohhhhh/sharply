@@ -16,6 +16,7 @@ const row: GearTableRow = {
   regionalAliases: [],
   brandName: "Brand",
   gearType: "CAMERA",
+  isUnderConstruction: false,
   mountNames: [],
   releaseDate: null,
   releaseDatePrecision: null,

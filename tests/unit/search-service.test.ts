@@ -19,6 +19,7 @@ const searchDataMocks = vi.hoisted(() => ({
 
 const gearDataMocks = vi.hoisted(() => ({
   fetchGearAliasesByGearIds: vi.fn(),
+  fetchGearConstructionDataByIds: vi.fn(),
 }));
 
 const listingTableServiceMocks = vi.hoisted(() => ({
@@ -54,6 +55,28 @@ describe("search service high-impact behavior", () => {
     searchDataMocks.queryGearSuggestions.mockResolvedValue([]);
     searchDataMocks.queryBrandSuggestions.mockResolvedValue([]);
     gearDataMocks.fetchGearAliasesByGearIds.mockResolvedValue(new Map());
+    gearDataMocks.fetchGearConstructionDataByIds.mockResolvedValue([
+      {
+        id: "gear-1",
+        slug: "camera-one",
+        name: "Camera One",
+        gearType: "CAMERA",
+        brandId: "brand-1",
+        mountId: null,
+        mountIds: ["mount-1"],
+        camera_sensorFormatId: "sensor-1",
+        camera_resolutionMp: 24,
+        analog_cameraType: null,
+        analog_captureMedium: null,
+        fixed_focalMin: null,
+        fixed_focalMax: null,
+        lens_focalMin: null,
+        lens_focalMax: null,
+        lens_isPrime: null,
+        lens_maxApertureWide: null,
+        lens_imageCircleSizeId: null,
+      },
+    ]);
     listingTableServiceMocks.attachGearListingTableFields.mockImplementation(
       async (items: Array<{ id: string }>) =>
         items.map((item) => ({
@@ -81,6 +104,7 @@ describe("search service high-impact behavior", () => {
     });
 
     expect(searchDataMocks.querySearchTotal).not.toHaveBeenCalled();
+    expect(gearDataMocks.fetchGearConstructionDataByIds).not.toHaveBeenCalled();
     expect(result.total).toBeUndefined();
     expect(result.results).toHaveLength(1);
   });
@@ -112,6 +136,7 @@ describe("search service high-impact behavior", () => {
       sort: "relevance",
       page: 1,
       pageSize: 10,
+      includeConstructionState: true,
     });
 
     expect(result.results[0]).toMatchObject({
@@ -119,7 +144,46 @@ describe("search service high-impact behavior", () => {
       sensorFormatName: "Full Frame",
       analogCaptureMedium: null,
       weightGrams: 705,
+      isUnderConstruction: false,
     });
+  });
+
+  it("marks results under construction with the shared construction rules", async () => {
+    gearDataMocks.fetchGearConstructionDataByIds.mockResolvedValueOnce([
+      {
+        id: "gear-1",
+        slug: "camera-one",
+        name: "Camera One",
+        gearType: "LENS",
+        brandId: "brand-1",
+        mountId: null,
+        mountIds: ["mount-1"],
+        camera_sensorFormatId: null,
+        camera_resolutionMp: null,
+        analog_cameraType: null,
+        analog_captureMedium: null,
+        fixed_focalMin: null,
+        fixed_focalMax: null,
+        lens_focalMin: 24,
+        lens_focalMax: 70,
+        lens_isPrime: false,
+        lens_maxApertureWide: "2.8",
+        lens_imageCircleSizeId: null,
+      },
+    ]);
+
+    const result = await searchGear({
+      query: "camera",
+      sort: "relevance",
+      page: 1,
+      pageSize: 10,
+      includeConstructionState: true,
+    });
+
+    expect(result.results[0]).toMatchObject({ isUnderConstruction: true });
+    expect(gearDataMocks.fetchGearConstructionDataByIds).toHaveBeenCalledWith([
+      "gear-1",
+    ]);
   });
 
   it("passes include flags for mount, sensor, lens, and analog filters", async () => {

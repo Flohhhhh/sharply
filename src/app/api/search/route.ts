@@ -105,6 +105,7 @@ export async function GET(request: NextRequest) {
       page,
       pageSize,
       includeTotal,
+      includeConstructionState: true,
       filters: Object.keys(filters).length > 0 ? filters : undefined,
     });
 

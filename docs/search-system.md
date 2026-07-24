@@ -38,7 +38,7 @@ Helper utilities for URLs live in `src/lib/utils/url.ts` (`buildSearchHref`, `me
 - Full search (optional for clients): `src/app/api/search/route.ts`
   - GET params: `q`, `sort`, `page`, `pageSize` (+ future filters)
   - Returns: `{ results, total, totalPages, page, pageSize }`
-  - Each result also includes display fields for the reusable gear table: all mount names, sensor format, weight, focal length, maximum aperture, and prime/zoom state. These enrich the existing page result; they do not change filtering or pagination.
+  - Each result also includes display fields for the reusable gear table: all mount names, sensor format, weight, focal length, maximum aperture, prime/zoom state, and `isUnderConstruction`. The construction flag uses the same required-spec rules as gear pages; it renders as a gray badge in cards and an amber pencil-ruler icon beside names in table view. These enrich the existing page result; they do not change filtering or pagination.
 - Suggest (used by palette and gear pickers): `src/app/api/search/suggest/route.ts`
   - GET params: `q`, optional `limit` (1–20, default 8), optional `country`, optional `types=gear`, optional `gearType`
   - Returns: `{ suggestions: Suggestion[] }`

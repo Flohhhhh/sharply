@@ -5,6 +5,7 @@ import { useLocale } from "next-intl";
 import type { Column, ColumnDef } from "@tanstack/react-table";
 import type { ReactNode } from "react";
 import { formatGearCardDate } from "~/components/gear/gear-card";
+import { UnderConstructionIndicator } from "~/components/gear/under-construction-indicator";
 import { LocaleLink } from "~/components/locale-link";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -40,6 +41,8 @@ export type GearTableLabels = {
   zoom: string;
   camera: string;
   lens: string;
+  underConstruction: string;
+  underConstructionTooltip: string;
   sortAscending: (values: { column: string }) => string;
   sortDescending: (values: { column: string }) => string;
 };
@@ -110,14 +113,32 @@ function SortableHeader({
   );
 }
 
-function GearNameCell({ row }: { row: GearTableRow }) {
+function GearNameCell({
+  row,
+  labels,
+}: {
+  row: GearTableRow;
+  labels: Pick<
+    GearTableLabels,
+    "underConstruction" | "underConstructionTooltip"
+  >;
+}) {
   const displayName = useGearDisplayName(row);
   return (
     <LocaleLink
       href={`/gear/${row.slug}`}
       className="font-medium hover:underline"
     >
-      {displayName}
+      <span className="inline-flex items-center gap-1.5">
+        {displayName}
+        {row.isUnderConstruction ? (
+          <UnderConstructionIndicator
+            variant="icon"
+            label={labels.underConstruction}
+            tooltip={labels.underConstructionTooltip}
+          />
+        ) : null}
+      </span>
     </LocaleLink>
   );
 }
@@ -207,7 +228,7 @@ export function createGearTableColumns(
     sortable(
       "name",
       labels.name,
-      (row) => <GearNameCell row={row} />,
+      (row) => <GearNameCell row={row} labels={labels} />,
       (a, b) => a.original.name.localeCompare(b.original.name),
     ),
     sortable(

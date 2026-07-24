@@ -1,6 +1,8 @@
 import { useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { GearCard, GearCardSkeleton } from "~/components/gear/gear-card";
+import { UnderConstructionIndicator } from "~/components/gear/under-construction-indicator";
 import {
   GearTable,
   GearTableSkeleton,
@@ -39,6 +41,7 @@ export function SearchResults(props: SearchResultsProps) {
     isReachingEnd = false,
     view,
   } = props;
+  const construction = useTranslations("underConstructionPage");
   const trendingSet = new Set(trendingSlugs);
 
   useEffect(() => {
@@ -86,6 +89,15 @@ export function SearchResults(props: SearchResultsProps) {
               brandName={item.brandName}
               thumbnailUrl={item.thumbnailUrl}
               isTrending={trendingSet.has(item.slug)}
+              badges={
+                item.isUnderConstruction ? (
+                  <UnderConstructionIndicator
+                    variant="badge"
+                    label={construction("statusUnderConstruction")}
+                    tooltip={construction("searchIndicatorTooltip")}
+                  />
+                ) : undefined
+              }
               priceText={getItemDisplayPrice(
                 {
                   msrpNowUsdCents: item.msrpNowUsdCents ?? null,

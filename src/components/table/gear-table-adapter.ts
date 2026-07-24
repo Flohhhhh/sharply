@@ -21,6 +21,7 @@ export function toGearTableRow(item: GearTableSource): GearTableRow {
     regionalAliases: item.regionalAliases ?? [],
     brandName: item.brandName ?? null,
     gearType: item.gearType ?? null,
+    isUnderConstruction: item.isUnderConstruction ?? false,
     mountNames: item.mountNames ?? [],
     releaseDate: item.releaseDate ?? null,
     releaseDatePrecision: normalizeDatePrecision(item.releaseDatePrecision),

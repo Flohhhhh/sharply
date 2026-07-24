@@ -15,6 +15,7 @@ export function GearTable({
   scope?: GearTableScope;
 }) {
   const t = useTranslations("gearTable");
+  const construction = useTranslations("underConstructionPage");
   const resolvedScope = scope ?? resolveGearTableScope(rows);
   const columns = useMemo(
     () =>
@@ -32,10 +33,12 @@ export function GearTable({
         zoom: t("zoom"),
         camera: t("camera"),
         lens: t("lens"),
+        underConstruction: construction("statusUnderConstruction"),
+        underConstructionTooltip: construction("searchIndicatorTooltip"),
         sortAscending: (values) => t("sortAscending", values),
         sortDescending: (values) => t("sortDescending", values),
       }),
-    [resolvedScope, t],
+    [construction, resolvedScope, t],
   );
 
   return (

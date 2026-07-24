@@ -29,6 +29,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         page: 1,
         pageSize: 24,
         includeTotal: true,
+        includeConstructionState: true,
         filters: undefined,
       });
 

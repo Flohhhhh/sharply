@@ -1527,6 +1527,7 @@
     "actions": "行动",
     "moreMissing": "+{count} 更多",
     "statusUnderConstruction": "建设中",
+    "searchIndicatorTooltip": "此项目正在建设中。",
     "statusLowCompleteness": "完整性低",
     "openModal": "打开模态",
     "editItem": "编辑{slug}",

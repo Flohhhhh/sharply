@@ -1527,6 +1527,7 @@
     "actions": "Acciones",
     "moreMissing": "+{count} más",
     "statusUnderConstruction": "En construcción",
+    "searchIndicatorTooltip": "Este elemento está en construcción.",
     "statusLowCompleteness": "Baja completitud",
     "openModal": "Abrir modal",
     "editItem": "Editar {slug}",

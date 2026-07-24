@@ -11,6 +11,7 @@ describe("gear table adapter", () => {
       slug: "lens-1",
       name: "Lens One",
       gearType: "LENS",
+      isUnderConstruction: true,
       mountNames: ["E", "L"],
       releaseDatePrecision: "UNSUPPORTED",
     });
@@ -20,6 +21,7 @@ describe("gear table adapter", () => {
     expect(row.sensorFormatName).toBeNull();
     expect(row.analogCaptureMedium).toBeNull();
     expect(row.maxApertureWide).toBeNull();
+    expect(row.isUnderConstruction).toBe(true);
   });
 
   it("chooses the type-specific scope only for uniform loaded rows", () => {

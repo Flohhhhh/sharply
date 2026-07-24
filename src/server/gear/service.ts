@@ -16,6 +16,7 @@ import type {
   AutoApprovalPath,
 } from "~/lib/gear/auto-approval-reasons";
 import { getConstructionState } from "~/lib/utils";
+import { toConstructionGearItem } from "~/server/gear/construction-service";
 import {
   applyTrustedContributorProposalApproval,
   approveProposal,
@@ -1424,85 +1425,10 @@ async function buildGearCompletenessRows(): Promise<UnderConstructionRow[]> {
     isPublishedGear(row),
   );
 
-  // Map to a minimal GearItem-like object only for getConstructionState
-  type MinimalForConstruction = {
-    id: string;
-    slug: string;
-    name: string;
-    gearType: string;
-    brandId: string | null;
-    mountId: string | null;
-    mountIds: string[];
-    cameraSpecs: {
-      sensorFormatId: string | null;
-      resolutionMp: number | string | null;
-    } | null;
-    analogCameraSpecs: {
-      cameraType: string | null;
-      captureMedium: string | null;
-    } | null;
-    lensSpecs: {
-      isPrime: boolean | null;
-      focalLengthMinMm: number | null;
-      focalLengthMaxMm: number | null;
-      maxApertureWide: number | string | null;
-      imageCircleSizeId: string | null;
-    } | null;
-    fixedLensSpecs: {
-      focalLengthMinMm: number | null;
-      focalLengthMaxMm: number | null;
-    } | null;
-  };
-
-  const items: MinimalForConstruction[] = rows.map((r) => {
-    const cameraSpecs =
-      r.gearType === "CAMERA"
-        ? {
-            sensorFormatId: r.camera_sensorFormatId,
-            resolutionMp: r.camera_resolutionMp,
-          }
-        : null;
-    const analogCameraSpecs =
-      r.gearType === "ANALOG_CAMERA"
-        ? {
-            cameraType: r.analog_cameraType,
-            captureMedium: r.analog_captureMedium,
-          }
-        : null;
-    const lensSpecs =
-      r.gearType === "LENS"
-        ? {
-            isPrime: r.lens_isPrime,
-            focalLengthMinMm: r.lens_focalMin,
-            focalLengthMaxMm: r.lens_focalMax,
-            maxApertureWide: r.lens_maxApertureWide,
-            imageCircleSizeId: r.lens_imageCircleSizeId,
-          }
-        : null;
-    const fixedLensSpecs =
-      r.gearType === "CAMERA" || r.gearType === "ANALOG_CAMERA"
-        ? {
-            focalLengthMinMm: r.fixed_focalMin,
-            focalLengthMaxMm: r.fixed_focalMax,
-          }
-        : null;
-    return {
-      id: r.id,
-      slug: r.slug,
-      name: r.name,
-      gearType: r.gearType,
-      brandId: r.brandId,
-      mountId: r.mountId,
-      mountIds: r.mountIds,
-      cameraSpecs,
-      analogCameraSpecs,
-      lensSpecs,
-      fixedLensSpecs,
-    };
-  });
+  const items = rows.map(toConstructionGearItem);
 
   const enriched = items.map((it, idx) => {
-    const construction = getConstructionState(it as unknown as GearItem);
+    const construction = getConstructionState(it);
     const missing = construction.missing;
     // True completion based on presence of fields in spec objects + core fields
     const src = rows[idx]!;

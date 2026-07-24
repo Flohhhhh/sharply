@@ -29,6 +29,7 @@ describe("search route filter parsing", () => {
     expect(response.status).toBe(200);
     expect(searchServiceMocks.searchGear).toHaveBeenCalledWith(
       expect.objectContaining({
+        includeConstructionState: true,
         filters: expect.objectContaining({
           megapixelsMin: 24,
           megapixelsMax: 60,
@@ -55,7 +56,10 @@ describe("search route filter parsing", () => {
     );
 
     expect(searchServiceMocks.searchGear).toHaveBeenCalledWith(
-      expect.objectContaining({ filters: undefined }),
+      expect.objectContaining({
+        includeConstructionState: true,
+        filters: undefined,
+      }),
     );
   });
 });

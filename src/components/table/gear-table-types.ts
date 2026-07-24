@@ -9,6 +9,7 @@ export type GearTableRow = {
   regionalAliases?: GearAlias[] | null;
   brandName: string | null;
   gearType: string | null;
+  isUnderConstruction: boolean;
   mountNames: string[];
   releaseDate: string | Date | null;
   releaseDatePrecision: "DAY" | "MONTH" | "YEAR" | null;
@@ -33,6 +34,7 @@ export type GearTableSource = {
   regionalAliases?: GearAlias[] | null;
   brandName?: string | null;
   gearType?: string | null;
+  isUnderConstruction?: boolean;
   mountNames?: string[] | null;
   releaseDate?: string | Date | null;
   releaseDatePrecision?: string | null;

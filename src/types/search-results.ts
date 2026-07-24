@@ -37,6 +37,7 @@ export type SearchParams = {
   pageSize: number;
   filters?: SearchFilters;
   includeTotal?: boolean;
+  includeConstructionState?: boolean;
 };
 
 export type SearchResult = {
@@ -47,6 +48,7 @@ export type SearchResult = {
   brandName: string | null;
   mountValue: string | null;
   gearType: string;
+  isUnderConstruction: boolean;
   thumbnailUrl: string | null;
   msrpNowUsdCents?: number | null;
   msrpAtLaunchUsdCents?: number | null;

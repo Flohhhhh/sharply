@@ -1527,6 +1527,7 @@
     "actions": "操作",
     "moreMissing": "さらに {count} 件",
     "statusUnderConstruction": "工事中",
+    "searchIndicatorTooltip": "この項目は作成中です。",
     "statusLowCompleteness": "完成度低め",
     "openModal": "モーダルを開く",
     "editItem": "{slug} を編集",

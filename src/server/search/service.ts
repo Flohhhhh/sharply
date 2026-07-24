@@ -6,9 +6,14 @@ if (process.env.NEXT_RUNTIME) {
 }
 
 import { asc, desc, sql, type SQL } from "drizzle-orm";
+import { getConstructionState } from "~/lib/utils";
 import { buildCompareHref } from "~/lib/utils/url";
 import { gear } from "~/server/db/schema";
-import { fetchGearAliasesByGearIds } from "~/server/gear/data";
+import { toConstructionGearItem } from "~/server/gear/construction-service";
+import {
+  fetchGearAliasesByGearIds,
+  fetchGearConstructionDataByIds,
+} from "~/server/gear/data";
 import { attachGearListingTableFields } from "~/server/gear/listing-table-service";
 import type { GearAlias, GearRegion } from "~/types/gear";
 import type {
@@ -62,7 +67,15 @@ export type {
 export async function searchGear(
   params: SearchParams,
 ): Promise<SearchResponse> {
-  const { query, sort, page, pageSize, filters, includeTotal } = params;
+  const {
+    query,
+    sort,
+    page,
+    pageSize,
+    filters,
+    includeTotal,
+    includeConstructionState = false,
+  } = params;
   const offset = (page - 1) * pageSize;
 
   let whereClause: SQL | undefined = undefined;
@@ -110,14 +123,25 @@ export async function searchGear(
     includeAnalogSpecs: Boolean(filters?.analogCameraType),
   })) as unknown as Array<{ id: string }>;
 
-  const [tableRows, aliasesById] = await Promise.all([
+  const resultIds = rows.map((row) => row.id);
+  const [tableRows, aliasesById, constructionRows] = await Promise.all([
     attachGearListingTableFields(rows),
-    fetchGearAliasesByGearIds(rows.map((row) => row.id)),
+    fetchGearAliasesByGearIds(resultIds),
+    includeConstructionState
+      ? fetchGearConstructionDataByIds(resultIds)
+      : Promise.resolve([]),
   ]);
+  const constructionById = new Map(
+    constructionRows.map((row) => [
+      row.id,
+      getConstructionState(toConstructionGearItem(row)).underConstruction,
+    ]),
+  );
 
   const results = tableRows.map((row) => ({
     ...row,
     regionalAliases: aliasesById.get(row.id) ?? [],
+    isUnderConstruction: constructionById.get(row.id) ?? false,
   }));
 
   const total =

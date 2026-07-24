@@ -1527,6 +1527,7 @@
     "actions": "Tindakan",
     "moreMissing": "+{count} lagi",
     "statusUnderConstruction": "Dalam pembinaan",
+    "searchIndicatorTooltip": "Item ini sedang dalam pembinaan.",
     "statusLowCompleteness": "Kesempurnaan rendah",
     "openModal": "Buka modal",
     "editItem": "Edit {slug}",
