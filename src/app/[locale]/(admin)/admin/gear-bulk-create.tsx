@@ -51,12 +51,11 @@ import { Textarea } from "~/components/ui/textarea";
 import {
   BULK_IMPORT_FIELD_GUIDE,
   BULK_IMPORT_TEMPLATE_CSV,
+  applyLensInferencesFromName,
   buildBulkImportAiFixPrompt,
   buildBulkImportValidationReport,
   getMappedValueCount,
   parseGearBulkImportCsv,
-  parseApertureFromName,
-  parseFocalLengthFromName,
   type BulkImportParsedRow,
   type BulkImportValidationMessage,
 } from "~/lib/admin/gear-bulk-import";
@@ -137,54 +136,11 @@ function makeManualRow(params: {
 }
 
 function applyNameInferences(row: ImportRowState): ImportRowState {
-  const lens = { ...row.lens };
-  const focal = parseFocalLengthFromName(row.name);
-  let focalInferred = row.inferred.focalLength;
-  if (
-    focal &&
-    (row.inferred.focalLength ||
-      (lens.focalLengthMinMm === undefined &&
-        lens.focalLengthMaxMm === undefined))
-  ) {
-    lens.focalLengthMinMm = focal.min;
-    lens.focalLengthMaxMm = focal.max;
-    lens.isPrime = focal.isPrime;
-    focalInferred = true;
-  } else if (!focal && row.inferred.focalLength) {
-    delete lens.focalLengthMinMm;
-    delete lens.focalLengthMaxMm;
-    delete lens.isPrime;
-    focalInferred = false;
-  }
-
-  const aperture = parseApertureFromName(row.name);
-  let apertureInferred = row.inferred.aperture;
-  if (
-    aperture &&
-    (row.inferred.aperture ||
-      (lens.maxApertureWide === undefined &&
-        lens.maxApertureTele === undefined))
-  ) {
-    lens.maxApertureWide = aperture.wide;
-    if (aperture.tele !== undefined) {
-      lens.maxApertureTele = aperture.tele;
-    } else {
-      delete lens.maxApertureTele;
-    }
-    apertureInferred = true;
-  } else if (!aperture && row.inferred.aperture) {
-    delete lens.maxApertureWide;
-    delete lens.maxApertureTele;
-    apertureInferred = false;
-  }
-
+  const { lens, inferred } = applyLensInferencesFromName(row.name, row.lens);
   return {
     ...row,
     lens,
-    inferred: {
-      focalLength: focalInferred,
-      aperture: apertureInferred,
-    },
+    inferred,
   };
 }
 

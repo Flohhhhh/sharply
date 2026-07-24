@@ -9,23 +9,12 @@ export const BULK_IMPORT_HEADERS = [
   "msrpNowUsd",
   "msrpAtLaunchUsd",
   "weightGrams",
-  "linkManufacturer",
-  "linkMpb",
-  "linkAmazon",
-  "focalLengthMinMm",
-  "focalLengthMaxMm",
-  "maxApertureWide",
-  "maxApertureTele",
-  "minApertureWide",
-  "minApertureTele",
-  "isPrime",
   "imageCircleSize",
   "hasAutofocus",
   "hasStabilization",
   "isMacro",
   "frontFilterThreadSizeMm",
   "hasWeatherSealing",
-  "notes",
 ] as const;
 
 export type BulkImportHeader = (typeof BULK_IMPORT_HEADERS)[number];
@@ -50,10 +39,6 @@ export type BulkImportParsedRow = {
     msrpNowUsdCents?: number;
     msrpAtLaunchUsdCents?: number;
     weightGrams?: number;
-    linkManufacturer?: string;
-    linkMpb?: string;
-    linkAmazon?: string;
-    notes?: string[];
   };
   lens: {
     isPrime?: boolean;
@@ -62,8 +47,6 @@ export type BulkImportParsedRow = {
     imageCircleSizeId?: string;
     maxApertureWide?: number;
     maxApertureTele?: number;
-    minApertureWide?: number;
-    minApertureTele?: number;
     hasAutofocus?: boolean;
     hasStabilization?: boolean;
     isMacro?: boolean;
@@ -101,18 +84,6 @@ const headerAliases: Record<string, BulkImportHeader> = {
   msrp_at_launch_usd: "msrpAtLaunchUsd",
   weight: "weightGrams",
   weight_g: "weightGrams",
-  manufacturer_url: "linkManufacturer",
-  mpb_url: "linkMpb",
-  amazon_url: "linkAmazon",
-  focal_min: "focalLengthMinMm",
-  focal_max: "focalLengthMaxMm",
-  focal_length_min_mm: "focalLengthMinMm",
-  focal_length_max_mm: "focalLengthMaxMm",
-  max_aperture_wide: "maxApertureWide",
-  max_aperture_tele: "maxApertureTele",
-  min_aperture_wide: "minApertureWide",
-  min_aperture_tele: "minApertureTele",
-  is_prime: "isPrime",
   image_circle: "imageCircleSize",
   has_autofocus: "hasAutofocus",
   has_stabilization: "hasStabilization",
@@ -121,20 +92,60 @@ const headerAliases: Record<string, BulkImportHeader> = {
   has_weather_sealing: "hasWeatherSealing",
 };
 
+/** Former CSV columns; ignored so old templates do not warn. */
+const IGNORED_BULK_IMPORT_HEADERS = new Set([
+  "focallengthminmm",
+  "focallengthmaxmm",
+  "maxaperturewide",
+  "maxaperturetele",
+  "minaperturewide",
+  "minaperturetele",
+  "isprime",
+  "focal_min",
+  "focal_max",
+  "focal_length_min_mm",
+  "focal_length_max_mm",
+  "max_aperture_wide",
+  "max_aperture_tele",
+  "min_aperture_wide",
+  "min_aperture_tele",
+  "is_prime",
+  "linkmanufacturer",
+  "linkmpb",
+  "linkamazon",
+  "manufacturer_url",
+  "mpb_url",
+  "amazon_url",
+  "notes",
+]);
+
 const headerSet = new Set<string>(BULK_IMPORT_HEADERS);
 
 function normalizeHeader(header: string): string {
   return header.trim().replace(/^\uFEFF/, "");
 }
 
-function canonicalHeader(header: string): BulkImportHeader | null {
-  const trimmed = normalizeHeader(header);
-  if (headerSet.has(trimmed)) return trimmed as BulkImportHeader;
-  const snake = trimmed
+function headerLookupKey(header: string): string {
+  return normalizeHeader(header)
     .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_+|_+$/g, "");
+}
+
+function isIgnoredBulkImportHeader(header: string): boolean {
+  const trimmed = normalizeHeader(header);
+  if (!trimmed) return false;
+  return (
+    IGNORED_BULK_IMPORT_HEADERS.has(trimmed.toLowerCase()) ||
+    IGNORED_BULK_IMPORT_HEADERS.has(headerLookupKey(trimmed))
+  );
+}
+
+function canonicalHeader(header: string): BulkImportHeader | null {
+  const trimmed = normalizeHeader(header);
+  if (headerSet.has(trimmed)) return trimmed as BulkImportHeader;
+  const snake = headerLookupKey(trimmed);
   return headerAliases[snake] ?? null;
 }
 
@@ -301,23 +312,81 @@ export function parseFocalLengthFromName(
   return null;
 }
 
+/**
+ * Parse max aperture from a lens name.
+ * Supports the common manufacturer conventions:
+ * - f-stop: f/2.8, f2.8, F2.8, f 2.8, f/4.5-6.3 (also unicode ƒ)
+ * - ratio: 1:2.8, 1:2.8-4
+ * - cine T-stop: T2.9, T/2.9
+ */
 export function parseApertureFromName(
   name: string,
 ): { wide: number; tele?: number } | null {
-  const normalized = name.replace(/\u0192/g, "f");
-  const match =
-    normalized.match(
-      /\bf\s*\/?\s*(\d+(?:\.\d+)?)(?:\s*[-–]\s*(\d+(?:\.\d+)?))?/i,
-    ) ??
-    normalized.match(/\b1:\s*(\d+(?:\.\d+)?)(?:\s*[-–]\s*(\d+(?:\.\d+)?))?/i);
+  const normalized = name
+    .replace(/\u0192/g, "f")
+    .replace(/[—–]/g, "-");
 
-  const wideRaw = match?.[1];
-  if (!wideRaw) return null;
-  const wide = Number(wideRaw);
-  const tele = match?.[2] ? Number(match[2]) : undefined;
-  if (!Number.isFinite(wide)) return null;
-  if (tele !== undefined && !Number.isFinite(tele)) return null;
-  return tele === undefined ? { wide } : { wide, tele };
+  const patterns = [
+    /\bf\s*\/?\s*(\d+(?:\.\d+)?)(?:\s*-\s*(\d+(?:\.\d+)?))?/i,
+    /\b1\s*:\s*(\d+(?:\.\d+)?)(?:\s*-\s*(\d+(?:\.\d+)?))?/i,
+    /\bt\s*\/?\s*(\d+(?:\.\d+)?)(?:\s*-\s*(\d+(?:\.\d+)?))?/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = normalized.match(pattern);
+    const wideRaw = match?.[1];
+    if (!wideRaw) continue;
+    const wide = Number(wideRaw);
+    const tele = match?.[2] ? Number(match[2]) : undefined;
+    if (!Number.isFinite(wide)) continue;
+    if (tele !== undefined && !Number.isFinite(tele)) continue;
+    return tele === undefined ? { wide } : { wide, tele };
+  }
+
+  return null;
+}
+
+/**
+ * Apply name-derived focal length and max aperture onto a lens object.
+ * Always overwrites previous inferred values from the name.
+ */
+export function applyLensInferencesFromName(
+  name: string,
+  lens: BulkImportParsedRow["lens"] = {},
+): {
+  lens: BulkImportParsedRow["lens"];
+  inferred: { focalLength: boolean; aperture: boolean };
+} {
+  const nextLens: BulkImportParsedRow["lens"] = { ...lens };
+  delete nextLens.focalLengthMinMm;
+  delete nextLens.focalLengthMaxMm;
+  delete nextLens.isPrime;
+  delete nextLens.maxApertureWide;
+  delete nextLens.maxApertureTele;
+
+  const inferredFocal = parseFocalLengthFromName(name);
+  let focalLength = false;
+  if (inferredFocal) {
+    nextLens.focalLengthMinMm = inferredFocal.min;
+    nextLens.focalLengthMaxMm = inferredFocal.max;
+    nextLens.isPrime = inferredFocal.isPrime;
+    focalLength = true;
+  }
+
+  const inferredAperture = parseApertureFromName(name);
+  let aperture = false;
+  if (inferredAperture) {
+    nextLens.maxApertureWide = inferredAperture.wide;
+    if (inferredAperture.tele !== undefined) {
+      nextLens.maxApertureTele = inferredAperture.tele;
+    }
+    aperture = true;
+  }
+
+  return {
+    lens: nextLens,
+    inferred: { focalLength, aperture },
+  };
 }
 
 function resolveSensorFormat(value: string | undefined): string | undefined {
@@ -357,7 +426,10 @@ export function parseGearBulkImportCsv(input: string): BulkImportParseResult {
   const headers = headerValues.map(canonicalHeader);
   const unknownHeaders = headerValues
     .map(normalizeHeader)
-    .filter((header, index) => header.length > 0 && !headers[index]);
+    .filter(
+      (header, index) =>
+        header.length > 0 && !headers[index] && !isIgnoredBulkImportHeader(header),
+    );
 
   if (!headers.includes("name")) {
     return {
@@ -414,58 +486,8 @@ export function parseGearBulkImportCsv(input: string): BulkImportParseResult {
     }
     const weightGrams = parseInteger(raw.weightGrams);
     if (weightGrams !== undefined) core.weightGrams = weightGrams;
-    const linkManufacturer = compactString(raw.linkManufacturer);
-    if (linkManufacturer) core.linkManufacturer = linkManufacturer;
-    const linkMpb = compactString(raw.linkMpb);
-    if (linkMpb) core.linkMpb = linkMpb;
-    const linkAmazon = compactString(raw.linkAmazon);
-    if (linkAmazon) core.linkAmazon = linkAmazon;
-    const notes = parseList(raw.notes);
-    if (notes.length > 0) core.notes = notes;
 
     const lens: BulkImportParsedRow["lens"] = {};
-    const inferredFocal = parseFocalLengthFromName(name);
-    const focalMin = parseNumber(raw.focalLengthMinMm);
-    const focalMax = parseNumber(raw.focalLengthMaxMm);
-    let inferredFocalApplied = false;
-    if (focalMin !== undefined) lens.focalLengthMinMm = focalMin;
-    if (focalMax !== undefined) lens.focalLengthMaxMm = focalMax;
-    if (
-      inferredFocal &&
-      lens.focalLengthMinMm === undefined &&
-      lens.focalLengthMaxMm === undefined
-    ) {
-      lens.focalLengthMinMm = inferredFocal.min;
-      lens.focalLengthMaxMm = inferredFocal.max;
-      lens.isPrime = inferredFocal.isPrime;
-      inferredFocalApplied = true;
-    }
-
-    const isPrime = parseBoolean(raw.isPrime);
-    if (isPrime !== undefined) lens.isPrime = isPrime;
-
-    const inferredAperture = parseApertureFromName(name);
-    const maxApertureWide = parseNumber(raw.maxApertureWide);
-    const maxApertureTele = parseNumber(raw.maxApertureTele);
-    let inferredApertureApplied = false;
-    if (maxApertureWide !== undefined) lens.maxApertureWide = maxApertureWide;
-    if (maxApertureTele !== undefined) lens.maxApertureTele = maxApertureTele;
-    if (
-      inferredAperture &&
-      lens.maxApertureWide === undefined &&
-      lens.maxApertureTele === undefined
-    ) {
-      lens.maxApertureWide = inferredAperture.wide;
-      if (inferredAperture.tele !== undefined) {
-        lens.maxApertureTele = inferredAperture.tele;
-      }
-      inferredApertureApplied = true;
-    }
-
-    const minApertureWide = parseNumber(raw.minApertureWide);
-    if (minApertureWide !== undefined) lens.minApertureWide = minApertureWide;
-    const minApertureTele = parseNumber(raw.minApertureTele);
-    if (minApertureTele !== undefined) lens.minApertureTele = minApertureTele;
     const imageCircleSizeId = resolveSensorFormat(raw.imageCircleSize);
     if (raw.imageCircleSize?.trim() && !imageCircleSizeId) {
       validations.push({
@@ -493,6 +515,11 @@ export function parseGearBulkImportCsv(input: string): BulkImportParseResult {
       lens.hasWeatherSealing = hasWeatherSealing;
     }
 
+    const { lens: lensWithInferences, inferred } = applyLensInferencesFromName(
+      name,
+      lens,
+    );
+
     return {
       rowNumber: csvRow.rowNumber,
       raw,
@@ -503,11 +530,8 @@ export function parseGearBulkImportCsv(input: string): BulkImportParseResult {
       mountIds: mountResolution.mountIds,
       mountValues: mountResolution.mountValues,
       core,
-      lens,
-      inferred: {
-        focalLength: inferredFocalApplied,
-        aperture: inferredApertureApplied,
-      },
+      lens: lensWithInferences,
+      inferred,
       validations,
     };
   });
@@ -558,7 +582,7 @@ export function buildBulkImportAiFixPrompt(params: {
     "- Preserve valid rows and all known-good values.",
     "- Use mount values like z-nikon or e-sony in the mounts column.",
     "- Use imageCircleSize slugs such as full-frame, aps-c, or micro-4-3.",
-    "- Use numeric spec values: aperture floats without f/ and focal lengths in millimeters.",
+    "- Do not include focal length, aperture, isPrime, link, or notes columns; focal length and max aperture are inferred from the name.",
     "",
     "Importer field guide:",
     params.fieldGuide.trim(),
@@ -574,21 +598,16 @@ export function buildBulkImportAiFixPrompt(params: {
 }
 
 export const BULK_IMPORT_TEMPLATE_CSV = `${BULK_IMPORT_HEADERS.join(",")}
-Nikon Nikkor Z 24-70mm f/2.8 S,NIKKOR-Z-24-70-28,z-nikon,2019-02-14,2019-02-14,2299.95,2299.95,805,https://www.nikonusa.com/,,https://www.amazon.com/,24,70,2.8,,22,,false,full-frame,true,false,false,82,true,Professional standard zoom`;
+Nikon Nikkor Z 24-70mm f/2.8 S,NIKKOR-Z-24-70-28,z-nikon,2019-02-14,2019-02-14,2299.95,2299.95,805,full-frame,true,false,false,82,true`;
 
 export const BULK_IMPORT_FIELD_GUIDE = [
-  "name: Required. Must start with a known brand name. Lens focal length/aperture can be inferred from names like 60mm f/2.8.",
+  "name: Required. Must start with a known brand name. Focal length, prime/zoom, and max aperture are inferred from names. Aperture forms: f/2.8 or F2.8, 1:2.8, and cine T2.9 / T/2.9 (ranges like f/4.5-6.3 and 1:2.8-4 included).",
   "modelNumber: Optional unique manufacturer model code.",
   "mounts: Optional mount.value list separated by | or ;. Example: z-nikon|e-sony.",
   "releaseDate, announcedDate: Optional parseable dates, preferably YYYY-MM-DD.",
   "msrpNowUsd, msrpAtLaunchUsd: Optional decimal USD amounts like 1299.95; importer stores cents.",
   "weightGrams: Optional integer grams like 805.",
-  "linkManufacturer, linkMpb, linkAmazon: Optional URLs.",
-  "focalLengthMinMm, focalLengthMaxMm: Optional numeric millimeter values. Use integers or decimals like 24, 70, 14.5. Blank cells are inferred from name when possible.",
-  "maxApertureWide, maxApertureTele: Optional aperture floats without f/ prefix, e.g. 1.8, 2.8, 4.5, 6.3. Blank cells are inferred from name when possible.",
-  "minApertureWide, minApertureTele: Optional aperture floats without f/ prefix, e.g. 16, 22, 32.",
-  "isPrime, hasAutofocus, hasStabilization, isMacro, hasWeatherSealing: true/false, yes/no, or 1/0.",
+  "hasAutofocus, hasStabilization, isMacro, hasWeatherSealing: true/false, yes/no, or 1/0.",
   "imageCircleSize: Optional sensor format slug, id, or name. Prefer these slugs when mapping coverage: micro-4-3, aps-c, full-frame, medium-format-45x30, medium-format-55x40, medium-format-44x33, cinema-large-format.",
   "frontFilterThreadSizeMm: Optional integer millimeters like 67, 77, 82.",
-  "notes: Optional notes separated by | or ;.",
 ].join("\n");

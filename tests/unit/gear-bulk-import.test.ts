@@ -32,23 +32,45 @@ describe("gear bulk import utilities", () => {
   it.each([
     ["Nikon Nikkor Z 60mm f/2.8", { min: 60, max: 60, isPrime: true }],
     ["Nikon Nikkor Z 24-70mm f/2.8", { min: 24, max: 70, isPrime: false }],
+    ["Canon EF 8-15mm f/4L Fisheye USM", { min: 8, max: 15, isPrime: false }],
   ])("parses focal length from %s", (name, expected) => {
     expect(parseFocalLengthFromName(name)).toEqual(expected);
   });
 
   it.each([
+    // f-stop forms
     ["Nikon Nikkor Z 60mm f/2.8", { wide: 2.8 }],
+    ["Nikon Nikkor Z 50mm f1.8", { wide: 1.8 }],
+    ["Nikon Nikkor Z 50mm F1.8", { wide: 1.8 }],
+    ["Nikon Nikkor Z 50mm f 1.8", { wide: 1.8 }],
+    ["Nikon Nikkor Z 50mm ƒ/1.8", { wide: 1.8 }],
+    ["Sigma 24-70mm F2.8 DG DN Art", { wide: 2.8 }],
     ["Sigma 150-600mm F4.5-6.3", { wide: 4.5, tele: 6.3 }],
+    ["Canon RF 24-105mm f/4-7.1", { wide: 4, tele: 7.1 }],
+    ["Canon EF 24-105mm f/4L IS USM", { wide: 4 }],
+    ["Nikon AF-S NIKKOR 500mm f/5.6E PF", { wide: 5.6 }],
+    // ratio forms
     ["Leica 50mm 1:2.8", { wide: 2.8 }],
+    ["Leica 50mm 1: 2.8", { wide: 2.8 }],
+    ["Leica 35-70mm 1:2.8-4", { wide: 2.8, tele: 4 }],
+    ["Leica 35-70mm 1 : 2.8-4", { wide: 2.8, tele: 4 }],
+    // cine T-stop forms
+    ["Cooke S4/i 50mm T2.0", { wide: 2 }],
+    ["ARRI Signature Prime 47mm T1.8", { wide: 1.8 }],
+    ["Zeiss Compact Prime CP.3 50mm T/2.1", { wide: 2.1 }],
   ])("parses aperture from %s", (name, expected) => {
     expect(parseApertureFromName(name)).toEqual(expected);
+  });
+
+  it("returns null when no aperture token is present", () => {
+    expect(parseApertureFromName("Nikon Nikkor Z 50mm")).toBeNull();
   });
 
   it("parses structured CSV rows with inferred brand, mounts, focal length, and aperture", () => {
     const parsed = parseGearBulkImportCsv(
       [
-        "name,modelNumber,mounts,msrpNowUsd,focalLengthMinMm,focalLengthMaxMm,maxApertureWide",
-        "Nikon Nikkor Z 60mm f/2.8,MODEL-60,z-nikon,999.95,,,",
+        "name,modelNumber,mounts,msrpNowUsd",
+        "Nikon Nikkor Z 60mm f/2.8,MODEL-60,z-nikon,999.95",
       ].join("\n"),
     );
 
@@ -67,6 +89,46 @@ describe("gear bulk import utilities", () => {
       },
       inferred: { focalLength: true, aperture: true },
     });
+  });
+
+  it("infers zoom focal range and isPrime from the name only", () => {
+    const parsed = parseGearBulkImportCsv(
+      ["name,mounts", "Canon EF 8-15mm f/4L Fisheye USM,ef-canon"].join("\n"),
+    );
+
+    expect(parsed.errors).toEqual([]);
+    expect(parsed.rows[0]).toMatchObject({
+      lens: {
+        focalLengthMinMm: 8,
+        focalLengthMaxMm: 15,
+        maxApertureWide: 4,
+        isPrime: false,
+      },
+      inferred: { focalLength: true, aperture: true },
+    });
+  });
+
+  it("ignores deprecated focal, aperture, link, and notes columns without warning", () => {
+    const parsed = parseGearBulkImportCsv(
+      [
+        "name,focalLengthMinMm,focalLengthMaxMm,maxApertureWide,linkManufacturer,notes",
+        "Nikon Nikkor Z 24-70mm f/2.8,8,999,1.2,https://example.com,should-ignore",
+      ].join("\n"),
+    );
+
+    expect(parsed.errors).toEqual([]);
+    expect(parsed.unknownHeaders).toEqual([]);
+    expect(parsed.rows[0]).toMatchObject({
+      lens: {
+        focalLengthMinMm: 24,
+        focalLengthMaxMm: 70,
+        maxApertureWide: 2.8,
+        isPrime: false,
+      },
+      core: {},
+    });
+    expect(parsed.rows[0]?.core).not.toHaveProperty("linkManufacturer");
+    expect(parsed.rows[0]?.core).not.toHaveProperty("notes");
   });
 
   it("builds an LLM-friendly validation report with row identifiers", () => {
@@ -105,15 +167,16 @@ describe("gear bulk import utilities", () => {
     expect(BULK_IMPORT_FIELD_GUIDE).toContain("cinema-large-format");
   });
 
-  it("documents spec value formats in the field guide", () => {
+  it("documents inference-only optics and omits removed CSV columns", () => {
+    expect(BULK_IMPORT_FIELD_GUIDE).toContain("inferred from names");
     expect(BULK_IMPORT_FIELD_GUIDE).toContain("decimal USD amounts");
     expect(BULK_IMPORT_FIELD_GUIDE).toContain("integer grams");
-    expect(BULK_IMPORT_FIELD_GUIDE).toContain("numeric millimeter values");
-    expect(BULK_IMPORT_FIELD_GUIDE).toContain(
-      "aperture floats without f/ prefix",
-    );
     expect(BULK_IMPORT_FIELD_GUIDE).toContain("true/false, yes/no, or 1/0");
     expect(BULK_IMPORT_FIELD_GUIDE).toContain("integer millimeters");
+    expect(BULK_IMPORT_FIELD_GUIDE).not.toContain("focalLengthMinMm");
+    expect(BULK_IMPORT_FIELD_GUIDE).not.toContain("maxApertureWide");
+    expect(BULK_IMPORT_FIELD_GUIDE).not.toContain("linkManufacturer");
+    expect(BULK_IMPORT_FIELD_GUIDE).not.toContain("notes:");
   });
 
   it("builds a copy-pasteable AI fix prompt with instructions and CSV", () => {
@@ -130,5 +193,8 @@ describe("gear bulk import utilities", () => {
     expect(prompt).toContain("```csv");
     expect(prompt).toContain("name,mounts");
     expect(prompt).toContain("Use mount values like z-nikon");
+    expect(prompt).toContain(
+      "Do not include focal length, aperture, isPrime, link, or notes columns",
+    );
   });
 });

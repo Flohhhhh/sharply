@@ -144,9 +144,11 @@ Stores detailed lens-specific specifications:
 Admin CSV bulk import can create the initial lens spec row with mapped values.
 The lens-oriented template includes `imageCircleSize`, which accepts a sensor
 format slug, id, or exact name and stores the resolved `sensor_formats.id`.
-When focal length or maximum aperture cells are blank, the importer can infer
-them from conventional lens names such as `60mm f/2.8`, `24-70mm f/2.8`, or
-`f/4.5-6.3`.
+Focal length, prime/zoom (`isPrime`), and maximum aperture are not CSV columns;
+the importer always infers them from conventional lens names such as
+`60mm f/2.8`, `24-70mm F2.8`, `50mm 1:2.8`, `f/4.5-6.3`, or cine `T2.9` /
+`T/2.1`. Link and notes columns are also omitted from bulk import (edit those
+after create).
 
 #### `fixed_lens_specs` - Integrated Lens Specifications (Cameras)
 

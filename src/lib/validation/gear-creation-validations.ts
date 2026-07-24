@@ -24,16 +24,16 @@ function normalize(value?: string): string {
  * - f/2.8, f2.8, F2.8, f 2.8
  * - 1:2.8, 1:2.8-4
  * - T2.9, T/2.9 (cine lenses)
- * - Unicode \u0192 slash style:
+ * - Unicode ƒ slash style
  */
 function hasApertureIndicator(normalizedName: string): boolean {
   if (!normalizedName) return false;
   const patterns: RegExp[] = [
     /\bf\s*\/\s*\d+(?:\.\d+)?/i, // f/2.8
     /\bf\s*\d+(?:\.\d+)?/i, // f2.8 or F4-6.3 (range still matches f4)
-    /\b1:\s*\d+(?:\.\d+)?/i, // 1:2.8
+    /\b1\s*:\s*\d+(?:\.\d+)?/i, // 1:2.8
     /\bt\s*\/?\s*\d+(?:\.\d+)?/i, // T2.9 or T/2.9
-    /ƒ\s*\/\s*\d+(?:\.\d+)?/i, // unicode f with slash
+    /ƒ\s*\/?\s*\d+(?:\.\d+)?/i, // unicode f
   ];
   return patterns.some((re) => re.test(normalizedName));
 }
