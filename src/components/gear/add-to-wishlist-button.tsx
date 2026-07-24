@@ -8,6 +8,7 @@ import { withBadgeToasts } from "~/components/badges/badge-toast";
 import type { ButtonProps } from "~/components/ui/button";
 import { Button } from "~/components/ui/button";
 import { useSession } from "~/lib/auth/auth-client";
+import { buildUserProfilePath } from "~/lib/profile-path";
 import { actionToggleWishlist } from "~/server/gear/actions";
 
 export function AddToWishlistButton({
@@ -40,6 +41,7 @@ export function AddToWishlistButton({
   const { data } = useSession();
   const session = data?.session;
   const user = data?.user;
+  const profilePath = buildUserProfilePath(user);
 
   const [inWishlist, setInWishlist] = useState<boolean | null>(
     initialInWishlist,
@@ -73,12 +75,14 @@ export function AddToWishlistButton({
           return {
             message: t("addedToWishlist"),
             description: t("addedToWishlistDescription", { name: gearName }),
-            action: {
-              label: t("viewProfile"),
-              onClick: () => {
-                window.location.href = `/u/${user.id}`;
-              },
-            },
+            action: profilePath
+              ? {
+                  label: t("viewProfile"),
+                  onClick: () => {
+                    window.location.href = profilePath;
+                  },
+                }
+              : undefined,
           };
         } else if (res.ok && res.action === "removed") {
           setInWishlist(false);

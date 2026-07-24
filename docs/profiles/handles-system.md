@@ -28,7 +28,14 @@ To encourage adoption without forcing friction during sign-up:
 - **Profile Banner**: If a user views their own profile and hasn't set a handle, a `HandleSetupBanner` appears at the top.
 - **Automated Notification**: The first time a user without a handle visits their profile, a `prompt_handle_setup` notification is triggered to guide them to settings.
 
-## 4. Key Implementation Files
+## 4. Generating Profile Links
+
+New client-facing links to a user profile must use `buildUserProfilePath` from
+`src/lib/profile-path.ts`. It selects the custom handle when present and falls
+back to `user-{memberNumber}`. UUID paths are supported only for legacy links
+and internal compatibility.
+
+## 5. Key Implementation Files
 
 - **Schema**: `src/server/db/schema.ts` (Handle column & Unique index).
 - **Service**: `src/server/users/service.ts` (`fetchUserByHandle`, `updateUserHandle`).
