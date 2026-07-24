@@ -290,8 +290,10 @@ export function resolveMountValues(values: string[]): {
 export function parseFocalLengthFromName(
   name: string,
 ): { min: number; max: number; isPrime: boolean } | null {
+  // Allow mount prefixes glued to the focal token (FD100mm, FE24-70mm).
+  // Do not require a leading word boundary before the digits.
   const range = name.match(
-    /\b(\d+(?:\.\d+)?)\s*[-–]\s*(\d+(?:\.\d+)?)\s*mm\b/i,
+    /(\d+(?:\.\d+)?)\s*[-–]\s*(\d+(?:\.\d+)?)\s*mm\b/i,
   );
   if (range?.[1] && range[2]) {
     const min = Number(range[1]);
@@ -301,7 +303,7 @@ export function parseFocalLengthFromName(
     }
   }
 
-  const prime = name.match(/\b(\d+(?:\.\d+)?)\s*mm\b/i);
+  const prime = name.match(/(\d+(?:\.\d+)?)\s*mm\b/i);
   if (prime?.[1]) {
     const focal = Number(prime[1]);
     if (Number.isFinite(focal)) {

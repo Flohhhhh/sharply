@@ -7,6 +7,7 @@ import { BadgesCatalog } from "../badges-catalog";
 import { BadgesTestToastButton } from "../badges-test-toast";
 import { BrandSortOrderTool } from "../brand-sort-order-tool";
 import { GearOgBackfillTool } from "../gear-og-backfill-tool";
+import { GearOpticsBackfillTool } from "../gear-optics-backfill-tool";
 import { GradientImageTool } from "../gradient-image-tool";
 import { ManualGearRevalidateTool } from "../manual-gear-revalidate-tool";
 import { SharedListOgPreviewTool } from "../shared-list-og-preview-tool";
@@ -127,6 +128,11 @@ export default async function ToolsPage() {
         </p>
         <div className="mt-4">
           <SharedListOgPreviewTool />
+        </div>
+      </div>
+      <div>
+        <div className="mt-4">
+          <GearOpticsBackfillTool />
         </div>
       </div>
       <div>

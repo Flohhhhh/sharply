@@ -1981,6 +1981,42 @@
         "generateFailed": "Failed to generate one or more gear OG assets.",
         "uploadFailed": "Failed to upload generated gear OG image."
       }
+    },
+    "gearOpticsBackfill": {
+      "title": "Lens Optics Backfill",
+      "description": "Scan lenses missing focal length, prime/zoom, or max aperture and apply high-confidence fills parsed from the name. Review 25–50 rows at a time.",
+      "limitLabel": "Items per scan",
+      "limitHint": "Loads {min}–{max} incomplete lenses per scan for manual review.",
+      "scan": "Scan",
+      "applySelected": "Apply Selected",
+      "applyAll": "Apply All On Page",
+      "stopAfterCurrent": "Stop After Current",
+      "stopRequested": "Stop Requested",
+      "idle": "Idle",
+      "empty": "Scan to load high-confidence optics proposals.",
+      "selectAll": "Select all",
+      "columns": {
+        "name": "Name",
+        "missing": "Missing",
+        "current": "Current",
+        "proposed": "Proposed fill",
+        "fills": "Fields"
+      },
+      "stats": {
+        "eligible": "Eligible",
+        "actionable": "Actionable",
+        "skippedScan": "No parse in batch",
+        "limit": "Limit",
+        "processed": "Processed",
+        "succeeded": "Succeeded",
+        "failed": "Failed",
+        "skipped": "Skipped",
+        "current": "Current"
+      },
+      "errors": {
+        "scanFailed": "Failed to load optics backfill candidates.",
+        "applyFailed": "Failed to apply one or more optics fills."
+      }
     }
   },
   "developerApi": {

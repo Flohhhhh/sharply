@@ -150,6 +150,11 @@ the importer always infers them from conventional lens names such as
 `T/2.1`. Link and notes columns are also omitted from bulk import (edit those
 after create).
 
+Admins can backfill the same missing optics on existing lenses via
+`/admin/tools` (Lens Optics Backfill): scans incomplete LENS rows in batches of
+25–50, proposes high-confidence name parses, and applies only null fields after
+manual review.
+
 #### `fixed_lens_specs` - Integrated Lens Specifications (Cameras)
 
 For cameras that use the `fixed-lens` mount, a simplified lens spec table stores the integrated lens details:

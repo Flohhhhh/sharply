@@ -9,6 +9,7 @@ import {
   clearGearRightViewService,
   clearGearThumbnailService,
   clearGearTopViewService,
+  applyLensOpticsBackfillService,
   createGearAdmin,
   deleteGearService,
   renameGearService,
@@ -204,5 +205,17 @@ export async function actionUpdateGearPublicationState(params: {
   revalidatePath("/browse");
   revalidatePath("/lists/under-construction");
   revalidatePath("/");
+  return result;
+}
+
+export async function actionApplyLensOpticsBackfill(params: {
+  gearId: string;
+}) {
+  const result = await applyLensOpticsBackfillService(params);
+  revalidatePath("/admin/tools");
+  revalidatePath("/admin/gear");
+  revalidatePath(`/gear/${result.slug}`);
+  revalidatePath("/lists/under-construction");
+  revalidatePath("/browse");
   return result;
 }

@@ -20,11 +20,17 @@ import {
 import { invalidateDeveloperApiCatalogCache } from "~/server/developer-api/cache";
 import { clearImageRequestsForGear, getGearIdBySlug } from "~/server/gear/data";
 import {
+  proposeLensOpticsBackfillFromName,
+  type LensOpticsBackfillProposal,
+} from "~/lib/admin/lens-optics-backfill";
+import {
   checkGearCreationData,
   createGearData,
   deleteGearData,
   fetchGearOgBackfillCandidatesData,
   fetchAdminGearItemsData,
+  fetchLensOpticsBackfillCandidateByIdData,
+  fetchLensOpticsBackfillCandidatesData,
   performFuzzySearch as performFuzzySearchData,
   renameGearData,
   updateGearOgImageData,
@@ -34,6 +40,7 @@ import {
   updateGearRightViewData,
   updateGearThumbnailData,
   updateGearTopViewData,
+  updateLensOpticsBackfillData,
   type DeleteGearResult,
   type FetchGearOgBackfillCandidatesResult,
   type FetchAdminGearItemsParams,
@@ -42,6 +49,7 @@ import {
   type GearCreationCheckResult,
   type GearCreationParams,
   type GearCreationResult,
+  type LensOpticsBackfillCandidateRow,
   type UpdateGearPublicationStateResult,
 } from "./data";
 
@@ -778,4 +786,109 @@ export async function deleteGearService(
 
   invalidateDeveloperApiCatalogCache();
   return deleted;
+}
+
+export type LensOpticsBackfillCandidateItem = LensOpticsBackfillCandidateRow & {
+  proposal: LensOpticsBackfillProposal;
+};
+
+export type FetchLensOpticsBackfillCandidatesResult = {
+  eligibleCount: number;
+  actionableCount: number;
+  skippedCount: number;
+  items: LensOpticsBackfillCandidateItem[];
+};
+
+function toOpticsCurrent(row: LensOpticsBackfillCandidateRow) {
+  return {
+    focalLengthMinMm: row.focalLengthMinMm,
+    focalLengthMaxMm: row.focalLengthMaxMm,
+    isPrime: row.isPrime,
+    maxApertureWide: row.maxApertureWide,
+    maxApertureTele: row.maxApertureTele,
+  };
+}
+
+export async function fetchLensOpticsBackfillCandidatesService(params: {
+  limit: number;
+}): Promise<FetchLensOpticsBackfillCandidatesResult> {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session.user, ["ADMIN", "EDITOR"])) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+
+  // Over-fetch incomplete rows so a 25–50 review page can fill with actionable proposals.
+  const fetchLimit = Math.min(200, Math.max(params.limit * 4, params.limit));
+  const result = await fetchLensOpticsBackfillCandidatesData({
+    limit: fetchLimit,
+  });
+  const withProposals = result.items.map((item) => ({
+    ...item,
+    proposal: proposeLensOpticsBackfillFromName(
+      item.name,
+      toOpticsCurrent(item),
+    ),
+  }));
+
+  const actionable = withProposals
+    .filter((item) => item.proposal.actionable)
+    .slice(0, params.limit);
+  const considered = withProposals.slice(
+    0,
+    Math.min(withProposals.length, fetchLimit),
+  );
+  const skippedInBatch = considered.filter(
+    (item) => !item.proposal.actionable,
+  ).length;
+
+  return {
+    eligibleCount: result.eligibleCount,
+    actionableCount: actionable.length,
+    skippedCount: skippedInBatch,
+    items: actionable,
+  };
+}
+
+export async function applyLensOpticsBackfillService(params: {
+  gearId: string;
+}): Promise<{
+  id: string;
+  slug: string;
+  fills: LensOpticsBackfillProposal["fills"];
+  proposed: LensOpticsBackfillProposal["proposed"];
+}> {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session.user, ["ADMIN", "EDITOR"])) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+
+  const row = await fetchLensOpticsBackfillCandidateByIdData(params.gearId);
+  if (!row) {
+    throw Object.assign(new Error("Gear not found"), { status: 404 });
+  }
+
+  const proposal = proposeLensOpticsBackfillFromName(
+    row.name,
+    toOpticsCurrent(row),
+  );
+  if (!proposal.actionable) {
+    throw Object.assign(
+      new Error("No high-confidence optics fills available"),
+      { status: 400 },
+    );
+  }
+
+  const updated = await updateLensOpticsBackfillData({
+    gearId: params.gearId,
+    update: proposal.proposed,
+  });
+
+  invalidateDeveloperApiCatalogCache();
+
+  return {
+    id: updated.id,
+    slug: updated.slug,
+    fills: proposal.fills,
+    proposed: proposal.proposed,
+  };
 }

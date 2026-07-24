@@ -956,3 +956,155 @@ export async function updateGearRightViewData(
   }
   return updated[0];
 }
+
+export type LensOpticsBackfillCandidateRow = {
+  id: string;
+  slug: string;
+  name: string;
+  publicationState: GearPublicationState;
+  focalLengthMinMm: number | null;
+  focalLengthMaxMm: number | null;
+  isPrime: boolean | null;
+  maxApertureWide: number | null;
+  maxApertureTele: number | null;
+};
+
+function buildLensOpticsIncompleteWhere() {
+  return and(
+    eq(gear.gearType, "LENS"),
+    or(
+      isNull(lensSpecs.focalLengthMinMm),
+      isNull(lensSpecs.focalLengthMaxMm),
+      isNull(lensSpecs.isPrime),
+      isNull(lensSpecs.maxApertureWide),
+    ),
+  );
+}
+
+export async function fetchLensOpticsBackfillCandidatesData(params: {
+  limit: number;
+}): Promise<{
+  eligibleCount: number;
+  items: LensOpticsBackfillCandidateRow[];
+}> {
+  const whereClause = buildLensOpticsIncompleteWhere();
+  const countRows = await db
+    .select({ value: count() })
+    .from(gear)
+    .innerJoin(lensSpecs, eq(lensSpecs.gearId, gear.id))
+    .where(whereClause);
+  const eligibleCount = countRows[0]?.value ?? 0;
+
+  const items = await db
+    .select({
+      id: gear.id,
+      slug: gear.slug,
+      name: gear.name,
+      publicationState: gear.publicationState,
+      focalLengthMinMm: lensSpecs.focalLengthMinMm,
+      focalLengthMaxMm: lensSpecs.focalLengthMaxMm,
+      isPrime: lensSpecs.isPrime,
+      maxApertureWide: lensSpecs.maxApertureWide,
+      maxApertureTele: lensSpecs.maxApertureTele,
+    })
+    .from(gear)
+    .innerJoin(lensSpecs, eq(lensSpecs.gearId, gear.id))
+    .where(whereClause)
+    .orderBy(gear.name)
+    .limit(params.limit);
+
+  return {
+    eligibleCount,
+    items: items.map((item) => ({
+      ...item,
+      focalLengthMinMm:
+        item.focalLengthMinMm == null ? null : Number(item.focalLengthMinMm),
+      focalLengthMaxMm:
+        item.focalLengthMaxMm == null ? null : Number(item.focalLengthMaxMm),
+      maxApertureWide:
+        item.maxApertureWide == null ? null : Number(item.maxApertureWide),
+      maxApertureTele:
+        item.maxApertureTele == null ? null : Number(item.maxApertureTele),
+    })),
+  };
+}
+
+export async function fetchLensOpticsBackfillCandidateByIdData(
+  gearId: string,
+): Promise<LensOpticsBackfillCandidateRow | null> {
+  const rows = await db
+    .select({
+      id: gear.id,
+      slug: gear.slug,
+      name: gear.name,
+      publicationState: gear.publicationState,
+      focalLengthMinMm: lensSpecs.focalLengthMinMm,
+      focalLengthMaxMm: lensSpecs.focalLengthMaxMm,
+      isPrime: lensSpecs.isPrime,
+      maxApertureWide: lensSpecs.maxApertureWide,
+      maxApertureTele: lensSpecs.maxApertureTele,
+    })
+    .from(gear)
+    .innerJoin(lensSpecs, eq(lensSpecs.gearId, gear.id))
+    .where(and(eq(gear.id, gearId), eq(gear.gearType, "LENS")))
+    .limit(1);
+
+  const item = rows[0];
+  if (!item) return null;
+
+  return {
+    ...item,
+    focalLengthMinMm:
+      item.focalLengthMinMm == null ? null : Number(item.focalLengthMinMm),
+    focalLengthMaxMm:
+      item.focalLengthMaxMm == null ? null : Number(item.focalLengthMaxMm),
+    maxApertureWide:
+      item.maxApertureWide == null ? null : Number(item.maxApertureWide),
+    maxApertureTele:
+      item.maxApertureTele == null ? null : Number(item.maxApertureTele),
+  };
+}
+
+export type LensOpticsBackfillUpdate = {
+  focalLengthMinMm?: number;
+  focalLengthMaxMm?: number;
+  isPrime?: boolean;
+  maxApertureWide?: number;
+  maxApertureTele?: number;
+};
+
+export async function updateLensOpticsBackfillData(params: {
+  gearId: string;
+  update: LensOpticsBackfillUpdate;
+}): Promise<{ id: string; slug: string }> {
+  const { gearId, update } = params;
+  if (Object.keys(update).length === 0) {
+    throw Object.assign(new Error("No optics fields to update"), {
+      status: 400,
+    });
+  }
+
+  return await db.transaction(async (tx) => {
+    const updatedSpecs = await tx
+      .update(lensSpecs)
+      .set(update)
+      .where(eq(lensSpecs.gearId, gearId))
+      .returning({ gearId: lensSpecs.gearId });
+
+    if (!updatedSpecs[0]) {
+      throw Object.assign(new Error("Lens specs not found"), { status: 404 });
+    }
+
+    const updatedGear = await tx
+      .update(gear)
+      .set({ updatedAt: new Date() })
+      .where(eq(gear.id, gearId))
+      .returning({ id: gear.id, slug: gear.slug });
+
+    if (!updatedGear[0]) {
+      throw Object.assign(new Error("Gear not found"), { status: 404 });
+    }
+
+    return updatedGear[0];
+  });
+}

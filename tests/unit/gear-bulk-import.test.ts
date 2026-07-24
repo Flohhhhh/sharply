@@ -9,6 +9,7 @@ import {
   parseGearBulkImportCsv,
   resolveMountValues,
 } from "~/lib/admin/gear-bulk-import";
+import { proposeLensOpticsBackfillFromName } from "~/lib/admin/lens-optics-backfill";
 import { MOUNTS } from "~/lib/constants";
 
 describe("gear bulk import utilities", () => {
@@ -33,8 +34,29 @@ describe("gear bulk import utilities", () => {
     ["Nikon Nikkor Z 60mm f/2.8", { min: 60, max: 60, isPrime: true }],
     ["Nikon Nikkor Z 24-70mm f/2.8", { min: 24, max: 70, isPrime: false }],
     ["Canon EF 8-15mm f/4L Fisheye USM", { min: 8, max: 15, isPrime: false }],
+    ["Canon FD100mm f/2.8 S.S.C.", { min: 100, max: 100, isPrime: true }],
+    ["Sony FE24-70mm F2.8 GM", { min: 24, max: 70, isPrime: false }],
   ])("parses focal length from %s", (name, expected) => {
     expect(parseFocalLengthFromName(name)).toEqual(expected);
+  });
+
+  it("backfills glued mount+focal names like Canon FD100mm", () => {
+    const proposal = proposeLensOpticsBackfillFromName(
+      "Canon FD100mm f/2.8 S.S.C.",
+      {
+        focalLengthMinMm: null,
+        focalLengthMaxMm: null,
+        isPrime: null,
+        maxApertureWide: null,
+        maxApertureTele: null,
+      },
+    );
+    expect(proposal.proposed).toEqual({
+      focalLengthMinMm: 100,
+      focalLengthMaxMm: 100,
+      isPrime: true,
+      maxApertureWide: 2.8,
+    });
   });
 
   it.each([
