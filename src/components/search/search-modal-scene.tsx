@@ -206,7 +206,7 @@ export function SearchModalScene({
         }),
         badge: isSmartActionSuggestion(suggestion)
           ? isParsedSearchSmartAction
-            ? t("smartSearch")
+            ? undefined
             : t("compareItems")
           : isBestMatchSuggestion(suggestion)
             ? t("bestMatch")
