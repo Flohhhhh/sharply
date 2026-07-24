@@ -7,7 +7,7 @@ if (process.env.NEXT_RUNTIME) {
 
 import { asc, desc, sql, type SQL } from "drizzle-orm";
 import { getConstructionState } from "~/lib/utils";
-import { buildCompareHref } from "~/lib/utils/url";
+import { buildCompareHref, buildSearchHref } from "~/lib/utils/url";
 import { gear } from "~/server/db/schema";
 import { toConstructionGearItem } from "~/server/gear/construction-service";
 import {
@@ -20,6 +20,8 @@ import type {
   BrandSuggestion,
   CompareSmartActionSuggestion,
   GearSuggestion,
+  ParsedSearchIntentKind,
+  ParsedSearchSmartActionSuggestion,
   Suggestion,
 } from "~/types/search";
 import {
@@ -28,9 +30,11 @@ import {
   buildSearchWhereClause,
   queryBrandSuggestions,
   queryGearSuggestions,
+  queryMountValuesByGearIds,
   querySearchRows,
   querySearchTotal,
 } from "./data";
+import { parseNaturalLanguageSearchIntent } from "./natural-language-intent";
 import {
   normalizeSearchQuery,
   normalizeSearchQueryNoPunct,
@@ -219,12 +223,20 @@ export async function getSuggestions(
   }
 
   const compareIntent = parseCompareIntent(query);
-  const smartAction = compareIntent
+  const compareSmartAction = compareIntent
     ? await buildCompareSmartAction(
         compareIntent.left,
         compareIntent.right,
         region,
       )
+    : null;
+  const parsedSearchIntent = compareSmartAction
+    ? null
+    : await parseNaturalLanguageSearchIntent(query, async (cameraQuery) =>
+        resolveStrongGearMatch(cameraQuery, region, { gearType: "CAMERA" }),
+      );
+  const parsedSearchSmartAction = parsedSearchIntent
+    ? buildParsedSearchSmartAction(parsedSearchIntent)
     : null;
 
   const rankedSuggestions = await buildRankedSuggestions(query, region, {
@@ -232,7 +244,11 @@ export async function getSuggestions(
   });
 
   return (
-    smartAction ? [smartAction, ...rankedSuggestions] : rankedSuggestions
+    compareSmartAction
+      ? [compareSmartAction, ...rankedSuggestions]
+      : parsedSearchSmartAction
+        ? [parsedSearchSmartAction, ...rankedSuggestions]
+        : rankedSuggestions
   ).slice(0, limit);
 }
 
@@ -365,11 +381,50 @@ async function buildCompareSmartAction(
   };
 }
 
+function buildParsedSearchSmartAction(intent: {
+  kind: ParsedSearchIntentKind;
+  subject: string;
+  filters: {
+    q?: string;
+    gearType: "LENS" | "CAMERA";
+    brand?: string;
+    mount?: string;
+  };
+}): ParsedSearchSmartActionSuggestion {
+  return {
+    id: `smart-action:parsed-search:${intent.kind}:${intent.subject.toLowerCase()}`,
+    kind: "smart-action",
+    type: "smart-action",
+    action: "parsed-search",
+    title: intent.subject,
+    label: intent.subject,
+    subtitle: null,
+    href: buildSearchHref("/search", {
+      page: 1,
+      gearType: intent.filters.gearType,
+      brand: intent.filters.brand,
+      mount: intent.filters.mount,
+      q: intent.filters.q,
+      nl: 1,
+      nlIntent: intent.kind,
+      nlSubject: intent.subject,
+    }),
+    relevance: 1_000,
+    parsedSearchKind: intent.kind,
+    parsedSearchSubject: intent.subject,
+    parsedSearchQueryRemainder: intent.filters.q,
+    parsedSearchFilters: intent.filters,
+  };
+}
+
 async function resolveStrongGearMatch(
   query: string,
   region?: GearRegion | null,
-): Promise<GearSuggestion | null> {
-  const ranked = await buildRankedSuggestions(query, region);
+  options?: {
+    gearType?: string;
+  },
+): Promise<(GearSuggestion & { mountValue?: string | null }) | null> {
+  const ranked = await buildRankedSuggestions(query, region, options);
   const exactGearMatches = ranked.filter(
     (suggestion): suggestion is GearSuggestion =>
       (suggestion.kind === "camera" || suggestion.kind === "lens") &&
@@ -378,5 +433,12 @@ async function resolveStrongGearMatch(
 
   if (exactGearMatches.length !== 1) return null;
 
-  return exactGearMatches[0] ?? null;
+  const exactMatch = exactGearMatches[0] ?? null;
+  if (!exactMatch) return null;
+
+  const mountsByGearId = await queryMountValuesByGearIds([exactMatch.gearId]);
+  return {
+    ...exactMatch,
+    mountValue: mountsByGearId.get(exactMatch.gearId)?.[0] ?? null,
+  };
 }

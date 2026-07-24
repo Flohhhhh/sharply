@@ -6,6 +6,7 @@ This document explains how search works in Sharply: routing, URL model, UI surfa
 
 - `Header` global search: `src/components/layout/header.tsx`
   - Spotlight-style inline search with a floating preview panel.
+  - The closed trigger rotates through plain-text example queries, mixing basic searches and high-confidence smart-search phrases, while preserving the existing muted placeholder styling.
   - Empty focus opens recent searches only when history exists.
   - Non-empty input stays visually closed until useful suggestions arrive.
   - After non-empty suggestions have appeared once, the panel stays open until the input is cleared.
@@ -15,6 +16,7 @@ This document explains how search works in Sharply: routing, URL model, UI surfa
   - Opens with ⌘K/Ctrl+K or programmatically via `document.dispatchEvent(new CustomEvent("sharply:open-command-palette"))`.
   - Debounced typeahead (200ms) calling `/api/search/suggest`.
   - Uses the same suggestion contract and Enter priority as the header search.
+  - When the query is empty, the input shows the same rotating plain-text example queries used by the closed global search trigger.
   - The inline `GlobalSearchBar` only shows the visual ⌘K/Ctrl+K hint from the `sm` breakpoint upward; mobile keeps the shortcut behavior but hides the hint chip.
   - Built-in cmdk filtering is disabled so server-ranked results always render.
 - Search results page: `src/app/[locale]/(pages)/search/page.tsx`
@@ -22,6 +24,7 @@ This document explains how search works in Sharply: routing, URL model, UI surfa
   - Sort: `relevance` (default), `name`, `newest`.
   - Pagination: `page` (1-based), `pageSize` (internal default 20).
   - Presentation: the existing grid can be switched to the reusable list table. The browser-local choice is shared with browse and does not alter the search URL or request model.
+  - Loading: the route reserves at least a viewport of space and uses the saved browser-local view choice to show either grid-card or list-table skeletons, preventing the footer from appearing above the fold while results are loading.
 
 ## Routing & URL model
 
@@ -44,6 +47,7 @@ Helper utilities for URLs live in `src/lib/utils/url.ts` (`buildSearchHref`, `me
   - GET params: `q`, optional `limit` (1–20, default 8), optional `country`, optional `types=gear`, optional `gearType`
   - Returns: `{ suggestions: Suggestion[] }`
   - Default (palette/modal): top 5 gear rows + brand suggestions + optional compare smart-action, then sliced to `limit`
+  - Command-palette-only natural-language parsing can also prepend a parsed-search smart action that routes to `/search` with existing URL filters applied. This path is only used for high-confidence patterns and never changes `/search` page typing behavior directly.
   - `types=gear`: gear-only mode for form pickers — no brands or smart-actions; gear SQL limit follows request `limit`
   - `gearType`: optional exact gear-type filter (e.g. `LENS`) applied before ranking
 - Gear picker combobox: `src/components/gear/gear-search-combobox.tsx`
@@ -52,7 +56,7 @@ Helper utilities for URLs live in `src/lib/utils/url.ts` (`buildSearchHref`, `me
 - `Suggestion` is a discriminated union:
   - `gear`: region-aware item suggestion with `title`, `subtitle`, `canonicalName`, `localizedName`, `matchedName`, `matchSource`, `brandName`, `relevance`, `isBestMatch`
   - `brand`: brand suggestion with `title`, `subtitle`, `brandName`, `relevance`
-  - `smart-action`: currently compare actions with `action: "compare"`, compare slugs/titles, and compare href
+  - `smart-action`: compare actions with `action: "compare"` and parsed-search actions with `action: "parsed-search"`
   - Compatibility fields `label` and `type` are still emitted for older consumers.
 
 ### Developer API
@@ -199,6 +203,21 @@ Sort order remains `DESC(relevance), ASC(name)` for `relevance`; otherwise `ASC(
   - `compare A vs B`
 - When both sides resolve to strong exact gear matches, the suggest API prepends a `smart-action` row that routes directly to `/compare?...`.
 - If either side is ambiguous or weak, no smart action is emitted and the query falls back to normal ranked suggestions.
+
+### Natural-language parsed search
+
+- The global search command palette also recognizes a narrow set of high-confidence patterns and converts them into existing `/search` URL filters:
+  - `[brand] lenses`
+  - `[mount] mount lenses`
+  - `lenses for [camera]`
+  - `[brand] cameras`
+  - `[mount] mount cameras`
+- Parsing is strict:
+  - the parser only emits a smart action when the brand or mount resolves uniquely
+  - `lenses for [camera]` only succeeds when the camera phrase resolves to one strong camera match through the existing suggestion-ranking pipeline
+  - ambiguous inputs fall back to normal suggestions
+- Parsed search actions leave `q` blank when the phrase is fully consumed, and only keep leftover text in `q` when some suffix remains unparsed.
+- The `/search` page remains a normal URL-driven search surface. It does not run parser logic while typing; it only shows a one-time arrival toast when navigation came from a parsed command-palette action.
 
 ### Filters
 

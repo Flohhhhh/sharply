@@ -8,8 +8,18 @@ vi.mock("next-intl", () => ({
     ({
       dialogTitle: "Search Sharply",
       inputPlaceholder: "Search Sharply",
+      searchAction: "Search",
       advancedSearch: "Advanced Search",
       enterKey: "Enter",
+      rotatingExampleAnything: "for anything",
+      rotatingExampleCameraBasic: "Nikon Z8",
+      rotatingExampleLensBasic: "35mm f/1.8 lenses",
+      rotatingExampleSonyBasic: "Sony A7 IV",
+      rotatingExampleFujifilmBasic: "Fujifilm X100VI",
+      rotatingExampleBrandLenses: "Canon lenses",
+      rotatingExampleMountLenses: "Nikon Z lenses",
+      rotatingExampleLensesForCamera: "lenses for D5300",
+      rotatingExampleBrandMountCameras: "Canon RF cameras",
     })[key] ?? key,
 }));
 
@@ -34,6 +44,17 @@ vi.mock("motion/react", () => ({
   AnimatePresence: ({ children }: { children: ReactNode }) => children,
   LazyMotion: ({ children }: { children: ReactNode }) => children,
   domAnimation: {},
+  motion: {
+    span: ({
+      children,
+      initial: _initial,
+      animate: _animate,
+      exit: _exit,
+      transition: _transition,
+      ...props
+    }: ComponentProps<"span"> & Record<string, unknown>) =>
+      createElement("span", props, children),
+  },
   m: {
     div: ({
       children,
@@ -58,6 +79,8 @@ describe("SearchModalScene", () => {
       createElement(SearchModalScene, { open: false, onOpenChange: vi.fn() }),
     );
 
+    expect(markup).toContain(">Search</span>");
+    expect(markup).toContain(">for anything</");
     expect(markup).toContain("Enter");
     expect(markup).toContain("Advanced Search");
     expect(markup).toContain(

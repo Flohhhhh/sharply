@@ -62,4 +62,17 @@ describe("search route filter parsing", () => {
       }),
     );
   });
+
+  it("normalizes uppercase gearType values from smart-search URLs", async () => {
+    await GET(new NextRequest("http://localhost/api/search?gearType=LENS"));
+
+    expect(searchServiceMocks.searchGear).toHaveBeenCalledWith(
+      expect.objectContaining({
+        includeConstructionState: true,
+        filters: expect.objectContaining({
+          gearType: "LENS",
+        }),
+      }),
+    );
+  });
 });

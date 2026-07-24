@@ -11,6 +11,10 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Spinner } from "~/components/ui/spinner";
 import { useDebounce } from "~/lib/hooks/useDebounce";
+import {
+  normalizeSearchGearTypeForApi,
+  normalizeSearchGearTypeForUi,
+} from "~/lib/search/gear-type-param";
 import type { SearchResponse } from "~/types/search-results";
 import { buildSearchHref } from "~/lib/utils/url";
 import { FiltersSidebar } from "./filters-sidebar";
@@ -64,20 +68,14 @@ export function SearchClient({ initialPage }: SearchClientProps) {
     useQueryState("hasWeatherSealing");
   const debouncedQ = useDebounce(q, 400);
 
-  const mappedGearType = useMemo(() => {
-    switch (gearType) {
-      case "all":
-        return undefined;
-      case "camera":
-        return "CAMERA";
-      case "lens":
-        return "LENS";
-      case "analog-camera":
-        return "ANALOG_CAMERA";
-      default:
-        return undefined;
-    }
-  }, [gearType]);
+  const normalizedGearType = useMemo(
+    () => normalizeSearchGearTypeForUi(gearType),
+    [gearType],
+  );
+  const mappedGearType = useMemo(
+    () => normalizeSearchGearTypeForApi(gearType),
+    [gearType],
+  );
 
   // Default sort: newest when no query; relevance when query present
   const effectiveSort = useMemo(() => {
@@ -150,7 +148,7 @@ export function SearchClient({ initialPage }: SearchClientProps) {
     return (
       !brand &&
       !mount &&
-      !gearType &&
+      !normalizedGearType &&
       !sensorFormat &&
       !lensType &&
       !analogCameraType &&
@@ -172,7 +170,7 @@ export function SearchClient({ initialPage }: SearchClientProps) {
   }, [
     brand,
     mount,
-    gearType,
+    normalizedGearType,
     sensorFormat,
     lensType,
     analogCameraType,

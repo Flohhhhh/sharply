@@ -12,11 +12,8 @@ import {
 import { Empty, EmptyDescription, EmptyTitle } from "~/components/ui/empty";
 import { getItemDisplayPrice } from "~/lib/mapping/price-map";
 import type { SearchResult } from "~/types/search-results";
+import { SearchResultsSkeleton } from "./search-results-skeleton";
 
-const INITIAL_SKELETON_KEYS = Array.from(
-  { length: 16 },
-  (_, idx) => `search-skeleton-${idx}`,
-);
 const LOADING_SKELETON_KEYS = Array.from(
   { length: 24 },
   (_, idx) => `search-loading-${idx}`,
@@ -51,17 +48,7 @@ export function SearchResults(props: SearchResultsProps) {
   }, [error]);
 
   if (isLoading) {
-    if (view === "list") {
-      return <GearTableSkeleton />;
-    }
-    return (
-      <div className="relative grid grid-cols-1 gap-1 pt-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <div className="from-background absolute right-0 bottom-0 left-0 z-10 h-full bg-linear-to-t to-transparent" />
-        {INITIAL_SKELETON_KEYS.map((key) => (
-          <GearCardSkeleton key={key} />
-        ))}
-      </div>
-    );
+    return <SearchResultsSkeleton view={view} />;
   }
 
   if (results.length === 0) {

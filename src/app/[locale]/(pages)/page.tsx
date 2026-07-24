@@ -161,7 +161,7 @@ export default async function Home({
                     </div>
                   }
                 >
-                  <GlobalSearchBar size="lg" />
+                  <GlobalSearchBar size="lg" showRotatingExamples />
                 </Suspense>
               </div>
 

@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { getMountIdFromSlug } from "~/lib/mapping/mounts-map";
+import { normalizeSearchGearTypeForApi } from "~/lib/search/gear-type-param";
 import { searchGear, type SearchFilters } from "~/server/search/service";
 
 function parsePriceParam(value: string | null) {
@@ -46,7 +47,9 @@ export async function GET(request: NextRequest) {
   const mount = searchParams.get("mount")
     ? getMountIdFromSlug(searchParams.get("mount")!)
     : null;
-  const gearType = searchParams.get("gearType");
+  const gearType = normalizeSearchGearTypeForApi(
+    searchParams.get("gearType"),
+  );
   const sensorFormat = searchParams.get("sensorFormat");
   const lensType = searchParams.get("lensType");
   const analogCameraType = searchParams.get("analogCameraType");

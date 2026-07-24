@@ -25,6 +25,7 @@ import { Separator } from "~/components/ui/separator";
 import { Slider } from "~/components/ui/slider";
 import { ANALOG_OPTIONS } from "~/lib/mapping/analog-types-map";
 import { getMountIdFromSlug, getMountSlugById } from "~/lib/mapping/mounts-map";
+import { normalizeSearchGearTypeForUi } from "~/lib/search/gear-type-param";
 import { DeferredNumberInput } from "./deferred-number-input";
 
 // Slider curve: 1 = linear, higher = more weight to low prices (exponential).
@@ -109,6 +110,7 @@ export function FiltersSidebar({
   const [hasIbis, setHasIbis] = useQueryState("hasIbis");
   const [hasWeatherSealing, setHasWeatherSealing] =
     useQueryState("hasWeatherSealing");
+  const normalizedGearType = normalizeSearchGearTypeForUi(gearType);
   const [selectedIsoMin, selectedIsoMax] = normalizeIsoRange(
     parseIsoValue(isoMin),
     parseIsoValue(isoMax),
@@ -192,7 +194,7 @@ export function FiltersSidebar({
         <div className="text-sm font-medium">{t("typeOfGear")}</div>
         <RadioGroup
           defaultValue="all"
-          value={gearType ?? "all"}
+          value={normalizedGearType ?? "all"}
           onValueChange={handleGearTypeChange}
         >
           <div className="flex items-center gap-2">
@@ -292,13 +294,13 @@ export function FiltersSidebar({
       <Separator className="my-8" />
 
       <section className="space-y-4">
-        {gearType === "all" || !gearType ? (
+        {normalizedGearType === "all" || !normalizedGearType ? (
           <div className="space-y-2">
             <span className="text-muted-foreground text-center text-sm">
               {t("selectGearTypeForFilters")}
             </span>
           </div>
-        ) : gearType === "camera" ? (
+        ) : normalizedGearType === "camera" ? (
           <>
             <div className="space-y-2">
               <SensorFormatInput
@@ -404,7 +406,7 @@ export function FiltersSidebar({
               }
             />
           </>
-        ) : gearType === "lens" ? (
+        ) : normalizedGearType === "lens" ? (
           <div className="space-y-4">
             <div className="space-y-2">
               <div className="text-sm font-medium">{t("lensType")}</div>
@@ -486,7 +488,7 @@ export function FiltersSidebar({
               }
             />
           </div>
-        ) : gearType === "analog-camera" ? (
+        ) : normalizedGearType === "analog-camera" ? (
           <div className="space-y-2">
             <div className="text-sm font-medium">{t("analogCameraType")}</div>
             <Select

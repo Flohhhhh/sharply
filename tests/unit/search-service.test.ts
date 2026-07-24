@@ -15,6 +15,7 @@ const searchDataMocks = vi.hoisted(() => ({
   querySearchTotal: vi.fn(),
   queryGearSuggestions: vi.fn(),
   queryBrandSuggestions: vi.fn(),
+  queryMountValuesByGearIds: vi.fn(),
 }));
 
 const gearDataMocks = vi.hoisted(() => ({
@@ -54,6 +55,7 @@ describe("search service high-impact behavior", () => {
     searchDataMocks.querySearchTotal.mockResolvedValue(1);
     searchDataMocks.queryGearSuggestions.mockResolvedValue([]);
     searchDataMocks.queryBrandSuggestions.mockResolvedValue([]);
+    searchDataMocks.queryMountValuesByGearIds.mockResolvedValue(new Map());
     gearDataMocks.fetchGearAliasesByGearIds.mockResolvedValue(new Map());
     gearDataMocks.fetchGearConstructionDataByIds.mockResolvedValue([
       {
@@ -841,5 +843,41 @@ describe("search service high-impact behavior", () => {
       expect.anything(),
       5,
     );
+  });
+
+  it("prepends a parsed-search smart action for high-confidence natural language queries", async () => {
+    const suggestions = await getSuggestions("Canon lenses", 8);
+
+    expect(suggestions[0]).toMatchObject({
+      kind: "smart-action",
+      action: "parsed-search",
+      parsedSearchKind: "brand-lenses",
+      parsedSearchSubject: "Canon",
+    });
+    expect(suggestions[0]?.href).toContain("/search?");
+    expect(suggestions[0]?.href).toContain("gearType=LENS");
+    expect(suggestions[0]?.href).toContain("brand=canon");
+    expect(suggestions[0]?.href).toContain("nl=1");
+  });
+
+  it("falls back to normal suggestions when the natural language parse is ambiguous", async () => {
+    searchDataMocks.queryBrandSuggestions.mockResolvedValue([
+      {
+        id: "brand-1",
+        name: "Sony",
+        slug: "sony",
+        relevance: 0.6,
+      },
+    ]);
+
+    const suggestions = await getSuggestions("S mount lenses", 8);
+
+    expect(suggestions.some((item) => item.kind === "smart-action")).toBe(
+      false,
+    );
+    expect(suggestions[0]).toMatchObject({
+      kind: "brand",
+      brandName: "Sony",
+    });
   });
 });

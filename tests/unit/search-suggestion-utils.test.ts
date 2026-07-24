@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   getSuggestionSubtitle,
   getSuggestionTitle,
+  localizeParsedSearchTitle,
   shouldHoistSingleGearSuggestion,
 } from "~/components/search/search-suggestion-utils";
 import type { GearSuggestion,Suggestion } from "~/types/search";
@@ -11,6 +12,13 @@ const translations = {
   lens: "Lens",
   analogCamera: "Analog Camera",
   brand: "Brand",
+  smartSearchBrandLensesTitle: "Search {brand} lenses",
+  smartSearchMountLensesTitle: "Search {mount} lenses",
+  smartSearchLensesForCameraTitle: "Search lenses for {camera}",
+  smartSearchBrandCamerasTitle: "Search {brand} cameras",
+  smartSearchMountCamerasTitle: "Search {mount} cameras",
+  smartSearchApplyFilters: "Apply detected filters",
+  smartSearchWithQuery: "Also search for “{query}”",
 };
 
 function makeGearSuggestion(
@@ -100,5 +108,47 @@ describe("search suggestion utils", () => {
     expect(
       shouldHoistSingleGearSuggestion([makeGearSuggestion(), brandSuggestion]),
     ).toBe(false);
+  });
+
+  it("localizes parsed-search smart action labels and subtitles", () => {
+    const suggestion: Suggestion = {
+      id: "smart-action:parsed-search:brand-lenses:canon",
+      kind: "smart-action",
+      type: "smart-action",
+      action: "parsed-search",
+      title: "Canon",
+      label: "Canon",
+      subtitle: null,
+      href: "/search?gearType=LENS&brand=canon&nl=1",
+      parsedSearchKind: "brand-lenses",
+      parsedSearchSubject: "Canon",
+      parsedSearchQueryRemainder: "macro",
+      parsedSearchFilters: {
+        gearType: "LENS",
+        brand: "canon",
+        q: "macro",
+      },
+    };
+
+    expect(
+      localizeParsedSearchTitle(suggestion, ({ kind, subject }) => {
+        switch (kind) {
+          case "brand-lenses":
+            return `Search ${subject} lenses`;
+          case "mount-lenses":
+            return `Search ${subject} lenses`;
+          case "lenses-for-camera":
+            return `Search lenses for ${subject}`;
+          case "brand-cameras":
+            return `Search ${subject} cameras`;
+          case "mount-cameras":
+            return `Search ${subject} cameras`;
+        }
+      }),
+    ).toBe("Search Canon lenses");
+    expect(getSuggestionSubtitle(suggestion, translations)).toBe(
+      "Also search for “macro”",
+    );
+    expect(getSuggestionTitle(suggestion)).toBe("Canon");
   });
 });

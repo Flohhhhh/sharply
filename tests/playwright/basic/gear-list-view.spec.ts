@@ -19,6 +19,53 @@ test("search can switch its loaded results into list view", async ({
   await expect(page.getByRole("table")).toBeVisible();
 });
 
+test("search loading skeleton uses the saved list view", async ({ page }) => {
+  let releaseSearch!: () => void;
+  const searchResponse = new Promise<void>((resolve) => {
+    releaseSearch = resolve;
+  });
+
+  await page.addInitScript(() => {
+    window.localStorage.setItem("sharply:gear-results-view", "list");
+  });
+  await page.route("**/api/search?**", async (route) => {
+    await searchResponse;
+    await route.fulfill({
+      json: { results: [], total: 0, totalPages: 0, page: 1, pageSize: 24 },
+    });
+  });
+
+  await page.goto("/search?q=nikon", { waitUntil: "domcontentloaded" });
+  await expect(
+    page.locator('[data-testid="search-results-skeleton"][data-view="list"]'),
+  ).toBeVisible();
+
+  releaseSearch();
+});
+
+test("search loading skeleton defaults to grid without a saved preference", async ({
+  page,
+}) => {
+  let releaseSearch!: () => void;
+  const searchResponse = new Promise<void>((resolve) => {
+    releaseSearch = resolve;
+  });
+
+  await page.route("**/api/search?**", async (route) => {
+    await searchResponse;
+    await route.fulfill({
+      json: { results: [], total: 0, totalPages: 0, page: 1, pageSize: 24 },
+    });
+  });
+
+  await page.goto("/search?q=nikon", { waitUntil: "domcontentloaded" });
+  await expect(
+    page.locator('[data-testid="search-results-skeleton"][data-view="grid"]'),
+  ).toBeVisible();
+
+  releaseSearch();
+});
+
 test("search applies and clears specification filters by gear type", async ({
   page,
 }) => {

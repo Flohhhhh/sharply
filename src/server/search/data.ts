@@ -20,7 +20,7 @@ if (process.env.NEXT_RUNTIME) {
  * - queryGearSuggestions / queryBrandSuggestions: lighter-weight suggestion queries.
  */
 
-import { asc, desc, eq, ilike, sql, type SQL } from "drizzle-orm";
+import { asc, desc, eq, ilike, inArray, sql, type SQL } from "drizzle-orm";
 import { GEAR_PUBLICATION_STATES } from "~/lib/gear/publication-state";
 import { db } from "~/server/db";
 import {
@@ -603,4 +603,29 @@ export async function queryBrandSuggestions(normalizedQuery: string) {
     .where(ilike(brands.name, `%${normalizedQuery}%`))
     .orderBy(sql`similarity(${brands.name}, ${normalizedQuery}) DESC`)
     .limit(3);
+}
+
+export async function queryMountValuesByGearIds(gearIds: string[]) {
+  if (gearIds.length === 0) return new Map<string, string[]>();
+
+  const rows = await db
+    .select({
+      gearId: gearMounts.gearId,
+      mountValue: mounts.value,
+    })
+    .from(gearMounts)
+    .innerJoin(mounts, eq(gearMounts.mountId, mounts.id))
+    .where(inArray(gearMounts.gearId, gearIds))
+    .orderBy(asc(mounts.value));
+
+  const mountsByGearId = new Map<string, string[]>();
+  for (const row of rows) {
+    if (!row.mountValue) continue;
+    mountsByGearId.set(row.gearId, [
+      ...(mountsByGearId.get(row.gearId) ?? []),
+      row.mountValue,
+    ]);
+  }
+
+  return mountsByGearId;
 }
