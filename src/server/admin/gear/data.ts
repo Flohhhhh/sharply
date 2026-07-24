@@ -1084,10 +1084,34 @@ export async function updateLensOpticsBackfillData(params: {
     });
   }
 
+  // Focal decimals use mode:"number"; aperture decimals default to string mode.
+  const drizzleUpdate: {
+    focalLengthMinMm?: number;
+    focalLengthMaxMm?: number;
+    isPrime?: boolean;
+    maxApertureWide?: string;
+    maxApertureTele?: string;
+  } = {};
+  if (update.focalLengthMinMm !== undefined) {
+    drizzleUpdate.focalLengthMinMm = update.focalLengthMinMm;
+  }
+  if (update.focalLengthMaxMm !== undefined) {
+    drizzleUpdate.focalLengthMaxMm = update.focalLengthMaxMm;
+  }
+  if (update.isPrime !== undefined) {
+    drizzleUpdate.isPrime = update.isPrime;
+  }
+  if (update.maxApertureWide !== undefined) {
+    drizzleUpdate.maxApertureWide = String(update.maxApertureWide);
+  }
+  if (update.maxApertureTele !== undefined) {
+    drizzleUpdate.maxApertureTele = String(update.maxApertureTele);
+  }
+
   return await db.transaction(async (tx) => {
     const updatedSpecs = await tx
       .update(lensSpecs)
-      .set(update)
+      .set(drizzleUpdate)
       .where(eq(lensSpecs.gearId, gearId))
       .returning({ gearId: lensSpecs.gearId });
 
