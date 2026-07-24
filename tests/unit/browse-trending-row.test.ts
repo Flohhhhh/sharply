@@ -20,11 +20,16 @@ const popularityServiceMocks = vi.hoisted(() => ({
   fetchTrending: vi.fn(),
 }));
 
+const listingTableServiceMocks = vi.hoisted(() => ({
+  attachGearListingTableFields: vi.fn(),
+}));
+
 vi.mock("server-only", () => ({}));
 vi.mock("next/navigation", () => navigationMocks);
 vi.mock("~/server/gear/data", () => gearDataMocks);
 vi.mock("~/server/gear/browse/data", () => browseDataMocks);
 vi.mock("~/server/popularity/service", () => popularityServiceMocks);
+vi.mock("~/server/gear/listing-table-service", () => listingTableServiceMocks);
 
 import {
   fetchBrowseTrendingRowItems,
@@ -62,6 +67,21 @@ describe("selectBrowseTrendingRowItems", () => {
       hasMore: false,
     });
     popularityServiceMocks.fetchTrending.mockResolvedValue([]);
+    listingTableServiceMocks.attachGearListingTableFields.mockImplementation(
+      async (items: Array<{ id: string }>) =>
+        items.map((item) => ({
+          ...item,
+          mountNames: [],
+          sensorFormatName: null,
+          analogCaptureMedium: null,
+          weightGrams: null,
+          focalLengthMinMm: null,
+          focalLengthMaxMm: null,
+          isPrime: null,
+          maxApertureWide: null,
+          maxApertureTele: null,
+        })),
+    );
   });
 
   it("returns the original 7d trending items when three exist", () => {
@@ -131,6 +151,53 @@ describe("fetchBrowseTrendingRowItems", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     gearDataMocks.fetchGearAliasesByGearIds.mockResolvedValue(new Map());
+  });
+
+  it("enriches release fallback rows with shared table fields", async () => {
+    const releaseItem = {
+      id: "gear-1",
+      slug: "camera-one",
+      name: "Camera One",
+      brandName: "Nikon",
+      thumbnailUrl: null,
+      gearType: "CAMERA",
+      releaseDate: null,
+      releaseDatePrecision: null,
+      announcedDate: null,
+      announceDatePrecision: null,
+      msrpNowUsdCents: null,
+      mpbMaxPriceUsdCents: null,
+    };
+    popularityServiceMocks.fetchTrending.mockResolvedValue([]);
+    browseDataMocks.getReleaseOrderedGearPage.mockResolvedValue({
+      items: [releaseItem],
+      hasMore: false,
+    });
+    listingTableServiceMocks.attachGearListingTableFields.mockResolvedValueOnce(
+      [
+        {
+          ...releaseItem,
+          mountNames: ["Nikon Z"],
+          sensorFormatName: "Full Frame",
+          analogCaptureMedium: null,
+          weightGrams: 705,
+          focalLengthMinMm: null,
+          focalLengthMaxMm: null,
+          isPrime: null,
+          maxApertureWide: null,
+          maxApertureTele: null,
+        },
+      ],
+    );
+
+    const items = await fetchBrowseTrendingRowItems({ limit: 1 });
+
+    expect(items[0]).toMatchObject({
+      mountNames: ["Nikon Z"],
+      sensorFormatName: "Full Frame",
+      analogCaptureMedium: null,
+      weightGrams: 705,
+    });
   });
 
   it("forwards brand scope, over-fetches candidates, and merges back to the requested limit", async () => {

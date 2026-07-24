@@ -1,4 +1,4 @@
-import { and,asc,desc,eq,inArray,sql,type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql, type SQL } from "drizzle-orm";
 import "server-only";
 import { orderBrandsWithPriority } from "~/lib/brands";
 import { GEAR_PUBLICATION_STATES } from "~/lib/gear/publication-state";
@@ -9,13 +9,9 @@ import {
   MOUNTS as MOUNT_CONSTANTS,
 } from "~/lib/constants";
 import { db } from "~/server/db";
-import {
-  brands,
-  gear,
-  gearMounts,
-  lensSpecs
-} from "~/server/db/schema";
-import type { GearAlias,GearType } from "~/types/gear";
+import { brands, gear, gearMounts, lensSpecs } from "~/server/db/schema";
+import type { GearListingTableFields } from "~/server/gear/listing-table-data";
+import type { GearAlias, GearType } from "~/types/gear";
 import {
   LENS_FOCAL_LENGTH_SORT,
   lensFocalLengthSortExpression,
@@ -38,7 +34,7 @@ export type BrowseGearRow = {
   mpbMaxPriceUsdCents: number | null;
   lensFocalLengthMinMm?: number | null;
   lensFocalLengthMaxMm?: number | null;
-};
+} & Partial<GearListingTableFields>;
 
 export type SearchGearResult = {
   items: BrowseGearRow[];
@@ -216,9 +212,7 @@ export async function searchGear(
       LENS_FOCAL_LENGTH_SORT,
     ] as const;
     type SortKey = (typeof allowed)[number];
-    const sortKey: SortKey = allowed.includes(f.sort)
-      ? (f.sort)
-      : "newest";
+    const sortKey: SortKey = allowed.includes(f.sort) ? f.sort : "newest";
     switch (sortKey) {
       case "newest":
         return [sql`${effectiveReleaseDate} DESC NULLS LAST`, asc(gear.name)];

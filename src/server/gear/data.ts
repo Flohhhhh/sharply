@@ -1143,9 +1143,12 @@ export type ConstructionMinimalRow = {
   fixedAll?: Record<string, unknown> | null;
 };
 
-export async function fetchAllGearForConstructionData(): Promise<
-  Array<ConstructionMinimalRow & { mountIds: string[] }>
-> {
+async function fetchGearForConstructionData(
+  gearIds?: string[],
+  includeFullSpecs = false,
+): Promise<Array<ConstructionMinimalRow & { mountIds: string[] }>> {
+  if (gearIds?.length === 0) return [];
+
   // Base rows with minimal joins
   const rows = await db
     .select({
@@ -1170,10 +1173,14 @@ export async function fetchAllGearForConstructionData(): Promise<
       lens_isPrime: lensSpecs.isPrime,
       lens_maxApertureWide: lensSpecs.maxApertureWide,
       lens_imageCircleSizeId: lensSpecs.imageCircleSizeId,
-      cameraAll: cameraSpecs,
-      analogAll: analogCameraSpecs,
-      lensAll: lensSpecs,
-      fixedAll: fixedLensSpecs,
+      ...(includeFullSpecs
+        ? {
+            cameraAll: cameraSpecs,
+            analogAll: analogCameraSpecs,
+            lensAll: lensSpecs,
+            fixedAll: fixedLensSpecs,
+          }
+        : {}),
     })
     .from(gear)
     .leftJoin(brands, eq(gear.brandId, brands.id))
@@ -1181,19 +1188,18 @@ export async function fetchAllGearForConstructionData(): Promise<
     .leftJoin(analogCameraSpecs, eq(gear.id, analogCameraSpecs.gearId))
     .leftJoin(fixedLensSpecs, eq(gear.id, fixedLensSpecs.gearId))
     .leftJoin(lensSpecs, eq(gear.id, lensSpecs.gearId))
-    .where(publishedGearWhereClause());
+    .where(
+      gearIds
+        ? and(publishedGearWhereClause(), inArray(gear.id, gearIds))
+        : publishedGearWhereClause(),
+    );
 
-  const gearIds = rows.map((r) => r.id);
-  const mountsRows = gearIds.length
+  const fetchedGearIds = rows.map((r) => r.id);
+  const mountsRows = fetchedGearIds.length
     ? await db
         .select({ gearId: gearMounts.gearId, mountId: gearMounts.mountId })
         .from(gearMounts)
-        .where(
-          sql`${gearMounts.gearId} IN (${sql.join(
-            gearIds.map((id) => sql`${id}`),
-            sql`, `,
-          )})`,
-        )
+        .where(inArray(gearMounts.gearId, fetchedGearIds))
     : [];
 
   const mountIdsByGearId = new Map<string, string[]>();
@@ -1206,6 +1212,18 @@ export async function fetchAllGearForConstructionData(): Promise<
     ...r,
     mountIds: mountIdsByGearId.get(r.id) ?? [],
   }));
+}
+
+export async function fetchAllGearForConstructionData(): Promise<
+  Array<ConstructionMinimalRow & { mountIds: string[] }>
+> {
+  return fetchGearForConstructionData(undefined, true);
+}
+
+export async function fetchGearConstructionDataByIds(
+  gearIds: string[],
+): Promise<Array<ConstructionMinimalRow & { mountIds: string[] }>> {
+  return fetchGearForConstructionData(gearIds);
 }
 
 // Writes

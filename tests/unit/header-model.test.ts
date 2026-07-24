@@ -76,4 +76,23 @@ describe("header model", () => {
     expect(model.accountHref).toBe("/profile/settings");
     expect(model.developerHref).toBe("/developer");
   });
+
+  it("places Search directly after News as a standalone header link", () => {
+    const model = buildHeaderViewModel({
+      locale: "en",
+      navItems: getNavItems(t),
+      footerItems: getFooterItems(t),
+      labels,
+      moreLabel: "More",
+    });
+    const newsIndex = model.navItems.findIndex((item) => item.href === "/news");
+    const searchIndex = model.navItems.findIndex(
+      (item) => item.href === "/search",
+    );
+
+    expect(newsIndex).toBeGreaterThanOrEqual(0);
+    expect(searchIndex).toBeGreaterThanOrEqual(0);
+    expect(searchIndex).toBe(newsIndex + 1);
+    expect(model.navItems[searchIndex]?.items).toBeUndefined();
+  });
 });

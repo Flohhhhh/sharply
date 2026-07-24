@@ -4,31 +4,42 @@ They test the service with mocked data calls, then check which options and resul
 This keeps the tests fast while still proving the important search wiring works.
 */
 
-import { beforeEach,describe,expect,it,vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { GearSuggestion } from "~/types/search";
 
 const searchDataMocks = vi.hoisted(() => ({
   buildSearchWhereClause: vi.fn(),
+  buildSearchFilterClause: vi.fn(),
   buildRelevanceExpr: vi.fn(),
   querySearchRows: vi.fn(),
   querySearchTotal: vi.fn(),
   queryGearSuggestions: vi.fn(),
   queryBrandSuggestions: vi.fn(),
+  queryMountValuesByGearIds: vi.fn(),
 }));
 
 const gearDataMocks = vi.hoisted(() => ({
   fetchGearAliasesByGearIds: vi.fn(),
+  fetchGearConstructionDataByIds: vi.fn(),
+}));
+
+const listingTableServiceMocks = vi.hoisted(() => ({
+  attachGearListingTableFields: vi.fn(),
 }));
 
 vi.mock("~/server/search/data", () => searchDataMocks);
 vi.mock("~/server/gear/data", () => gearDataMocks);
+vi.mock("~/server/gear/listing-table-service", () => listingTableServiceMocks);
 
-import { getSuggestions,searchGear } from "~/server/search/service";
+import { getSuggestions, searchGear } from "~/server/search/service";
 
 describe("search service high-impact behavior", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     searchDataMocks.buildSearchWhereClause.mockReturnValue({ clause: "where" });
+    searchDataMocks.buildSearchFilterClause.mockReturnValue({
+      clause: "filters",
+    });
     searchDataMocks.buildRelevanceExpr.mockReturnValue({ clause: "relevance" });
     searchDataMocks.querySearchRows.mockResolvedValue([
       {
@@ -44,7 +55,45 @@ describe("search service high-impact behavior", () => {
     searchDataMocks.querySearchTotal.mockResolvedValue(1);
     searchDataMocks.queryGearSuggestions.mockResolvedValue([]);
     searchDataMocks.queryBrandSuggestions.mockResolvedValue([]);
+    searchDataMocks.queryMountValuesByGearIds.mockResolvedValue(new Map());
     gearDataMocks.fetchGearAliasesByGearIds.mockResolvedValue(new Map());
+    gearDataMocks.fetchGearConstructionDataByIds.mockResolvedValue([
+      {
+        id: "gear-1",
+        slug: "camera-one",
+        name: "Camera One",
+        gearType: "CAMERA",
+        brandId: "brand-1",
+        mountId: null,
+        mountIds: ["mount-1"],
+        camera_sensorFormatId: "sensor-1",
+        camera_resolutionMp: 24,
+        analog_cameraType: null,
+        analog_captureMedium: null,
+        fixed_focalMin: null,
+        fixed_focalMax: null,
+        lens_focalMin: null,
+        lens_focalMax: null,
+        lens_isPrime: null,
+        lens_maxApertureWide: null,
+        lens_imageCircleSizeId: null,
+      },
+    ]);
+    listingTableServiceMocks.attachGearListingTableFields.mockImplementation(
+      async (items: Array<{ id: string }>) =>
+        items.map((item) => ({
+          ...item,
+          mountNames: [],
+          sensorFormatName: null,
+          analogCaptureMedium: null,
+          weightGrams: null,
+          focalLengthMinMm: null,
+          focalLengthMaxMm: null,
+          isPrime: null,
+          maxApertureWide: null,
+          maxApertureTele: null,
+        })),
+    );
   });
 
   it("skips counting total when includeTotal is false", async () => {
@@ -57,8 +106,86 @@ describe("search service high-impact behavior", () => {
     });
 
     expect(searchDataMocks.querySearchTotal).not.toHaveBeenCalled();
+    expect(gearDataMocks.fetchGearConstructionDataByIds).not.toHaveBeenCalled();
     expect(result.total).toBeUndefined();
     expect(result.results).toHaveLength(1);
+  });
+
+  it("returns the shared table fields alongside existing search results", async () => {
+    listingTableServiceMocks.attachGearListingTableFields.mockResolvedValueOnce(
+      [
+        {
+          id: "gear-1",
+          name: "Camera One",
+          slug: "camera-one",
+          brandName: "Nikon",
+          gearType: "CAMERA",
+          mountNames: ["Nikon Z"],
+          sensorFormatName: "Full Frame",
+          analogCaptureMedium: null,
+          weightGrams: 705,
+          focalLengthMinMm: null,
+          focalLengthMaxMm: null,
+          isPrime: null,
+          maxApertureWide: null,
+          maxApertureTele: null,
+        },
+      ],
+    );
+
+    const result = await searchGear({
+      query: "nikon",
+      sort: "relevance",
+      page: 1,
+      pageSize: 10,
+      includeConstructionState: true,
+    });
+
+    expect(result.results[0]).toMatchObject({
+      mountNames: ["Nikon Z"],
+      sensorFormatName: "Full Frame",
+      analogCaptureMedium: null,
+      weightGrams: 705,
+      isUnderConstruction: false,
+    });
+  });
+
+  it("marks results under construction with the shared construction rules", async () => {
+    gearDataMocks.fetchGearConstructionDataByIds.mockResolvedValueOnce([
+      {
+        id: "gear-1",
+        slug: "camera-one",
+        name: "Camera One",
+        gearType: "LENS",
+        brandId: "brand-1",
+        mountId: null,
+        mountIds: ["mount-1"],
+        camera_sensorFormatId: null,
+        camera_resolutionMp: null,
+        analog_cameraType: null,
+        analog_captureMedium: null,
+        fixed_focalMin: null,
+        fixed_focalMax: null,
+        lens_focalMin: 24,
+        lens_focalMax: 70,
+        lens_isPrime: false,
+        lens_maxApertureWide: "2.8",
+        lens_imageCircleSizeId: null,
+      },
+    ]);
+
+    const result = await searchGear({
+      query: "camera",
+      sort: "relevance",
+      page: 1,
+      pageSize: 10,
+      includeConstructionState: true,
+    });
+
+    expect(result.results[0]).toMatchObject({ isUnderConstruction: true });
+    expect(gearDataMocks.fetchGearConstructionDataByIds).toHaveBeenCalledWith([
+      "gear-1",
+    ]);
   });
 
   it("passes include flags for mount, sensor, lens, and analog filters", async () => {
@@ -72,6 +199,16 @@ describe("search service high-impact behavior", () => {
         sensorFormat: "full-frame",
         lensType: "prime",
         analogCameraType: "SLR",
+        focalIncludes: 85,
+        widestFocalMax: 35,
+        longestFocalMin: 120,
+        fastestApertureMax: 2.8,
+        hasAutofocus: true,
+        hasStabilization: true,
+        isoMin: 100,
+        isoMax: 25_600,
+        hasIbis: true,
+        hasWeatherSealing: true,
       },
     });
 
@@ -84,12 +221,53 @@ describe("search service high-impact behavior", () => {
       }),
     );
 
+    expect(searchDataMocks.buildSearchFilterClause).toHaveBeenCalledWith(
+      expect.objectContaining({
+        focalIncludes: 85,
+        widestFocalMax: 35,
+        longestFocalMin: 120,
+        fastestApertureMax: 2.8,
+        isoMin: 100,
+        isoMax: 25_600,
+        hasAutofocus: true,
+        hasStabilization: true,
+        hasIbis: true,
+        hasWeatherSealing: true,
+      }),
+    );
+
     expect(searchDataMocks.querySearchTotal).toHaveBeenCalledWith(
       expect.anything(),
       true,
       true,
       true,
       true,
+    );
+  });
+
+  it("joins specification tables for the new filters without unrelated filters", async () => {
+    await searchGear({
+      query: undefined,
+      sort: "newest",
+      page: 1,
+      pageSize: 10,
+      filters: { focalIncludes: 85, isoMax: 25_600 },
+    });
+
+    expect(searchDataMocks.querySearchRows).toHaveBeenCalledWith(
+      expect.objectContaining({
+        includeMounts: false,
+        includeSensorFormats: true,
+        includeLensSpecs: true,
+        includeAnalogSpecs: false,
+      }),
+    );
+    expect(searchDataMocks.querySearchTotal).toHaveBeenCalledWith(
+      expect.anything(),
+      false,
+      true,
+      true,
+      false,
     );
   });
 
@@ -158,12 +336,7 @@ describe("search service high-impact behavior", () => {
       },
     ]);
     gearDataMocks.fetchGearAliasesByGearIds.mockResolvedValue(
-      new Map([
-        [
-          "gear-1",
-          [{ region: "JP", name: "Lumix GF9" }],
-        ],
-      ]),
+      new Map([["gear-1", [{ region: "JP", name: "Lumix GF9" }]]]),
     );
 
     const suggestions = await getSuggestions("Lumix GF9", 8, "JP");
@@ -191,12 +364,7 @@ describe("search service high-impact behavior", () => {
       },
     ]);
     gearDataMocks.fetchGearAliasesByGearIds.mockResolvedValue(
-      new Map([
-        [
-          "gear-1",
-          [{ region: "US", name: "Rokinon AF 35mm F1.8" }],
-        ],
-      ]),
+      new Map([["gear-1", [{ region: "US", name: "Rokinon AF 35mm F1.8" }]]]),
     );
 
     const suggestions = await getSuggestions("Rokinon AF 35mm", 8, "US");
@@ -223,12 +391,7 @@ describe("search service high-impact behavior", () => {
       },
     ]);
     gearDataMocks.fetchGearAliasesByGearIds.mockResolvedValue(
-      new Map([
-        [
-          "gear-1",
-          [{ region: "EU", name: "Canon EOS 1200D" }],
-        ],
-      ]),
+      new Map([["gear-1", [{ region: "EU", name: "Canon EOS 1200D" }]]]),
     );
 
     const suggestions = await getSuggestions("Canon EOS 1200D", 8, "GLOBAL");
@@ -256,12 +419,7 @@ describe("search service high-impact behavior", () => {
       },
     ]);
     gearDataMocks.fetchGearAliasesByGearIds.mockResolvedValue(
-      new Map([
-        [
-          "gear-1",
-          [{ region: "EU", name: "Canon EOS 700D" }],
-        ],
-      ]),
+      new Map([["gear-1", [{ region: "EU", name: "Canon EOS 700D" }]]]),
     );
 
     const suggestions = await getSuggestions("eos 700d", 8, "GLOBAL");
@@ -287,12 +445,7 @@ describe("search service high-impact behavior", () => {
       },
     ]);
     gearDataMocks.fetchGearAliasesByGearIds.mockResolvedValue(
-      new Map([
-        [
-          "gear-1",
-          [{ region: "JP", name: "Lumix GF9" }],
-        ],
-      ]),
+      new Map([["gear-1", [{ region: "JP", name: "Lumix GF9" }]]]),
     );
 
     const suggestions = await getSuggestions("lumix", 8, "JP");
@@ -316,12 +469,7 @@ describe("search service high-impact behavior", () => {
       },
     ]);
     gearDataMocks.fetchGearAliasesByGearIds.mockResolvedValue(
-      new Map([
-        [
-          "gear-1",
-          [{ region: "JP", name: "Canon EOS Kiss X9i" }],
-        ],
-      ]),
+      new Map([["gear-1", [{ region: "JP", name: "Canon EOS Kiss X9i" }]]]),
     );
 
     const suggestions = await getSuggestions("eos kiss", 8, "JP");
@@ -347,12 +495,7 @@ describe("search service high-impact behavior", () => {
       },
     ]);
     gearDataMocks.fetchGearAliasesByGearIds.mockResolvedValue(
-      new Map([
-        [
-          "gear-1",
-          [{ region: "EU", name: "Canon EOS 1200D" }],
-        ],
-      ]),
+      new Map([["gear-1", [{ region: "EU", name: "Canon EOS 1200D" }]]]),
     );
 
     const suggestions = await getSuggestions("1200", 8, "GLOBAL");
@@ -522,12 +665,7 @@ describe("search service high-impact behavior", () => {
       },
     ]);
     gearDataMocks.fetchGearAliasesByGearIds.mockResolvedValue(
-      new Map([
-        [
-          "gear-1",
-          [{ region: "JP", name: "Lumix GF9" }],
-        ],
-      ]),
+      new Map([["gear-1", [{ region: "JP", name: "Lumix GF9" }]]]),
     );
 
     const suggestions = await getSuggestions("lumix", 8, "JP");
@@ -572,11 +710,9 @@ describe("search service high-impact behavior", () => {
         suggestion.kind === "camera" || suggestion.kind === "lens",
     );
 
-    expect(gearSuggestions.map((suggestion) => suggestion.isBestMatch)).toEqual([
-      true,
-      false,
-      false,
-    ]);
+    expect(gearSuggestions.map((suggestion) => suggestion.isBestMatch)).toEqual(
+      [true, false, false],
+    );
   });
 
   it("prepends a compare smart action when both sides resolve strongly", async () => {
@@ -707,5 +843,41 @@ describe("search service high-impact behavior", () => {
       expect.anything(),
       5,
     );
+  });
+
+  it("prepends a parsed-search smart action for high-confidence natural language queries", async () => {
+    const suggestions = await getSuggestions("Canon lenses", 8);
+
+    expect(suggestions[0]).toMatchObject({
+      kind: "smart-action",
+      action: "parsed-search",
+      parsedSearchKind: "brand-lenses",
+      parsedSearchSubject: "Canon",
+    });
+    expect(suggestions[0]?.href).toContain("/search?");
+    expect(suggestions[0]?.href).toContain("gearType=LENS");
+    expect(suggestions[0]?.href).toContain("brand=canon");
+    expect(suggestions[0]?.href).toContain("nl=1");
+  });
+
+  it("falls back to normal suggestions when the natural language parse is ambiguous", async () => {
+    searchDataMocks.queryBrandSuggestions.mockResolvedValue([
+      {
+        id: "brand-1",
+        name: "Sony",
+        slug: "sony",
+        relevance: 0.6,
+      },
+    ]);
+
+    const suggestions = await getSuggestions("S mount lenses", 8);
+
+    expect(suggestions.some((item) => item.kind === "smart-action")).toBe(
+      false,
+    );
+    expect(suggestions[0]).toMatchObject({
+      kind: "brand",
+      brandName: "Sony",
+    });
   });
 });

@@ -435,6 +435,7 @@ describe("developer API serializers", () => {
           brandName: "Nikon",
           mountValue: null,
           gearType: "CAMERA",
+          isUnderConstruction: false,
           thumbnailUrl: null,
           regionalAliases: [
             {

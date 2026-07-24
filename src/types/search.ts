@@ -44,7 +44,31 @@ export type CompareSmartActionSuggestion = SuggestionBase & {
   compareTitles: [string, string];
 };
 
+export type ParsedSearchIntentKind =
+  | "brand-lenses"
+  | "mount-lenses"
+  | "lenses-for-camera"
+  | "brand-cameras"
+  | "mount-cameras";
+
+export type ParsedSearchFilters = {
+  q?: string;
+  gearType: "LENS" | "CAMERA";
+  brand?: string;
+  mount?: string;
+};
+
+export type ParsedSearchSmartActionSuggestion = SuggestionBase & {
+  kind: "smart-action";
+  action: "parsed-search";
+  parsedSearchKind: ParsedSearchIntentKind;
+  parsedSearchSubject: string;
+  parsedSearchQueryRemainder?: string;
+  parsedSearchFilters: ParsedSearchFilters;
+};
+
 export type Suggestion =
   | GearSuggestion
   | BrandSuggestion
-  | CompareSmartActionSuggestion;
+  | CompareSmartActionSuggestion
+  | ParsedSearchSmartActionSuggestion;

@@ -17,7 +17,7 @@ import {
   m,
   useReducedMotion,
 } from "motion/react";
-import { useLocale,useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import {
   type KeyboardEvent as ReactKeyboardEvent,
@@ -33,8 +33,10 @@ import { useCountry } from "~/lib/hooks/useCountry";
 import { buildSearchHref } from "~/lib/utils/url";
 import type { Suggestion } from "~/types/search";
 import { SearchSuggestionRow } from "./search-suggestion-row";
+import { RotatingSearchPlaceholder } from "./rotating-search-placeholder";
 import {
   getSuggestionKind,
+  localizeParsedSearchTitle,
   getSuggestionMeta,
   getSuggestionSubtitle,
   getSuggestionTitle,
@@ -42,6 +44,7 @@ import {
   isSmartActionSuggestion,
   shouldHoistSingleGearSuggestion,
 } from "./search-suggestion-utils";
+import { getEmptySearchSubmitHref } from "./search-modal-utils";
 
 type SearchModalSceneProps = {
   open: boolean;
@@ -97,6 +100,20 @@ export function SearchModalScene({
   const [hasRevealedPanelForInput, setHasRevealedPanelForInput] =
     useState(false);
   const { countryCode } = useCountry();
+  const rotatingExamples = useMemo(
+    () => [
+      t("rotatingExampleAnything"),
+      t("rotatingExampleCameraBasic"),
+      t("rotatingExampleLensBasic"),
+      t("rotatingExampleSonyBasic"),
+      t("rotatingExampleFujifilmBasic"),
+      t("rotatingExampleBrandLenses"),
+      t("rotatingExampleMountLenses"),
+      t("rotatingExampleLensesForCamera"),
+      t("rotatingExampleBrandMountCameras"),
+    ],
+    [t],
+  );
 
   const {
     results,
@@ -111,6 +128,7 @@ export function SearchModalScene({
 
   const trimmedQuery = query.trim();
   const hasQuery = trimmedQuery.length >= 2;
+  const showAdvancedSearchHint = trimmedQuery.length === 0;
   const isSearching = hasQuery && (typingPending || networkLoading);
   const searchHref = buildSearchHref("/search", { q: trimmedQuery, page: 1 });
 
@@ -147,27 +165,55 @@ export function SearchModalScene({
   }, [hasQuery, hasShownResultsForCurrentInput, networkLoading, typingPending]);
 
   const suggestionRows = useMemo(() => {
-    const mapped: SuggestionRow[] = results.map((suggestion) => ({
-      id: suggestion.id,
-      kind: suggestion.kind,
-      suggestion,
-      title: getSuggestionTitle(suggestion),
-      subtitle: getSuggestionSubtitle(suggestion, {
-        camera: t("camera"),
-        lens: t("lens"),
-        analogCamera: t("analogCamera"),
-        brand: t("brand"),
-      }),
-      meta: getSuggestionMeta(suggestion, {
-        brand: t("brand"),
-      }),
-      badge: isSmartActionSuggestion(suggestion)
-        ? t("compareItems")
-        : isBestMatchSuggestion(suggestion)
-          ? t("bestMatch")
-          : undefined,
-      href: suggestion.href,
-    }));
+    const mapped: SuggestionRow[] = results.map((suggestion) => {
+      const isParsedSearchSmartAction =
+        suggestion.kind === "smart-action" &&
+        suggestion.action === "parsed-search";
+
+      return {
+        id: suggestion.id,
+        kind: suggestion.kind,
+        suggestion,
+        title:
+          localizeParsedSearchTitle(suggestion, ({ kind, subject }) => {
+            switch (kind) {
+              case "brand-lenses":
+                return t("smartSearchBrandLensesTitle", { brand: subject });
+              case "mount-lenses":
+                return t("smartSearchMountLensesTitle", { mount: subject });
+              case "lenses-for-camera":
+                return t("smartSearchLensesForCameraTitle", {
+                  camera: subject,
+                });
+              case "brand-cameras":
+                return t("smartSearchBrandCamerasTitle", { brand: subject });
+              case "mount-cameras":
+                return t("smartSearchMountCamerasTitle", { mount: subject });
+              default:
+                return subject;
+            }
+          }) ?? getSuggestionTitle(suggestion),
+        subtitle: getSuggestionSubtitle(suggestion, {
+          camera: t("camera"),
+          lens: t("lens"),
+          analogCamera: t("analogCamera"),
+          brand: t("brand"),
+          smartSearchApplyFilters: t("smartSearchApplyFilters"),
+          smartSearchWithQuery: t("smartSearchWithQuery"),
+        }),
+        meta: getSuggestionMeta(suggestion, {
+          brand: t("brand"),
+        }),
+        badge: isSmartActionSuggestion(suggestion)
+          ? isParsedSearchSmartAction
+            ? undefined
+            : t("compareItems")
+          : isBestMatchSuggestion(suggestion)
+            ? t("bestMatch")
+            : undefined,
+        href: suggestion.href,
+      };
+    });
 
     return {
       smartRows: mapped.filter((row) =>
@@ -180,7 +226,7 @@ export function SearchModalScene({
           !isBestMatchSuggestion(row.suggestion),
       ),
     };
-  }, [results]);
+  }, [results, t]);
 
   const selectableItems = useMemo<SelectableItem[]>(() => {
     if (!hasQuery) return [];
@@ -196,8 +242,12 @@ export function SearchModalScene({
     const items: SelectableItem[] = [
       ...suggestionRows.smartRows,
       ...suggestionRows.bestRows,
-      ...(hoistSingleGearSuggestion ? suggestionRows.remainingRows : [searchAction]),
-      ...(hoistSingleGearSuggestion ? [searchAction] : suggestionRows.remainingRows),
+      ...(hoistSingleGearSuggestion
+        ? suggestionRows.remainingRows
+        : [searchAction]),
+      ...(hoistSingleGearSuggestion
+        ? [searchAction]
+        : suggestionRows.remainingRows),
     ];
 
     return items;
@@ -281,6 +331,13 @@ export function SearchModalScene({
     }
 
     if (event.key === "Enter") {
+      const emptySearchHref = getEmptySearchSubmitHref(query);
+      if (emptySearchHref) {
+        event.preventDefault();
+        navigateTo(emptySearchHref);
+        return;
+      }
+
       if (selectableItems.length === 0) return;
       event.preventDefault();
       executeItem(selectableItems[selectedIndex] ?? selectableItems[0]);
@@ -297,40 +354,61 @@ export function SearchModalScene({
                 opacity: 0,
                 scale: 0.96,
                 y: 12,
-                height: 64,
               }
         }
         animate={{
           opacity: 1,
           scale: 1,
           y: 0,
-          height: showResultsSection ? 480 : 64,
         }}
         transition={shellTransition}
-        className="bg-background dark:supports-backdrop-filter:bg-background/50 flex origin-top overflow-hidden rounded-2xl border border-black/40 shadow-[0_28px_90px_-42px_rgba(0,0,0,0.88),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl dark:border-white/40"
+        className={`bg-background dark:supports-backdrop-filter:bg-background flex origin-top overflow-hidden rounded-2xl border border-black/40 shadow-[0_28px_90px_-42px_rgba(0,0,0,0.88),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl dark:border-white/40 ${
+          showResultsSection ? "h-[480px]" : "h-16"
+        }`}
       >
         <div className="flex min-h-0 flex-1 flex-col">
           <div className="flex h-16 shrink-0 items-center gap-3 px-5">
             <SearchIcon className="text-muted-foreground size-5 shrink-0 md:size-6" />
-            <input
-              ref={inputRef}
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              onKeyDown={handleInputKeyDown}
-              aria-label={t("dialogTitle")}
-              aria-activedescendant={activeOptionId}
-              aria-autocomplete="list"
-              aria-controls={showResultsSection ? listboxId : undefined}
-              aria-expanded={showResultsSection}
-              aria-haspopup="listbox"
-              placeholder={t("inputPlaceholder")}
-              className="placeholder:text-muted-foreground dark:placeholder:text-muted-foreground/60 text-foreground flex-1 bg-transparent text-sm outline-none md:text-lg"
-              role="combobox"
-              spellCheck={false}
-              autoCorrect="off"
-              autoCapitalize="none"
-            />
-            <div className="flex min-w-8 justify-end">
+            <div className="relative flex-1">
+              <input
+                ref={inputRef}
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                onKeyDown={handleInputKeyDown}
+                aria-label={t("dialogTitle")}
+                aria-activedescendant={activeOptionId}
+                aria-autocomplete="list"
+                aria-controls={showResultsSection ? listboxId : undefined}
+                aria-expanded={showResultsSection}
+                aria-haspopup="listbox"
+                placeholder=""
+                className="text-foreground flex w-full bg-transparent text-sm outline-none md:text-lg"
+                role="combobox"
+                spellCheck={false}
+                autoCorrect="off"
+                autoCapitalize="none"
+              />
+              {!query ? (
+                <div className="pointer-events-none absolute inset-0 flex items-center">
+                  <div className="text-muted-foreground dark:text-muted-foreground/60 flex w-full items-center gap-1 text-sm md:text-lg">
+                    <span className="shrink-0">{t("searchAction")}</span>
+                    <RotatingSearchPlaceholder
+                      examples={rotatingExamples}
+                      className="min-w-0 flex-1"
+                    />
+                  </div>
+                </div>
+              ) : null}
+            </div>
+            <div className="flex shrink-0 items-center justify-end gap-3">
+              {showAdvancedSearchHint ? (
+                <span className="text-muted-foreground hidden items-center gap-2 text-sm sm:inline-flex">
+                  <kbd className="bg-muted text-foreground inline-flex min-w-6 items-center justify-center rounded border px-1.5 py-0.5 font-mono text-[0.7rem] font-medium shadow-xs">
+                    {t("enterKey")}
+                  </kbd>
+                  <span>{t("advancedSearch")}</span>
+                </span>
+              ) : null}
               {isSearching ? (
                 <Loader2 className="text-muted-foreground size-4 animate-spin" />
               ) : query ? (
@@ -373,6 +451,16 @@ export function SearchModalScene({
                         {selectableItems.map((item, index) => {
                           const selected = index === selectedIndex;
                           const optionId = `${comboboxId}-option-${index}`;
+                          const isSmartAction =
+                            item.kind !== "search-action" &&
+                            isSmartActionSuggestion(item.suggestion);
+                          const smartActionLabel =
+                            item.kind !== "search-action" &&
+                            item.suggestion.kind === "smart-action"
+                              ? item.suggestion.action === "parsed-search"
+                                ? t("smartSearch")
+                                : t("compareItems")
+                              : null;
 
                           if (item.kind === "search-action") {
                             return (
@@ -424,7 +512,7 @@ export function SearchModalScene({
                                 kind={getSuggestionKind(item.suggestion)}
                                 surface="inline"
                                 tone={
-                                  isSmartActionSuggestion(item.suggestion)
+                                  isSmartAction
                                     ? "smart-action"
                                     : isBestMatchSuggestion(item.suggestion)
                                       ? "best-match"
@@ -440,8 +528,8 @@ export function SearchModalScene({
                                 meta={item.meta}
                                 badge={item.badge}
                                 actionLabel={
-                                  isSmartActionSuggestion(item.suggestion)
-                                    ? t("compareItems")
+                                  smartActionLabel
+                                    ? smartActionLabel
                                     : isBestMatchSuggestion(item.suggestion)
                                       ? t("bestMatch")
                                       : item.suggestion.kind === "brand"

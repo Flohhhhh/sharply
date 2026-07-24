@@ -17,6 +17,16 @@ export type SearchFilters = {
   lensType?: "prime" | "zoom";
   megapixelsMin?: number;
   megapixelsMax?: number;
+  focalIncludes?: number;
+  widestFocalMax?: number;
+  longestFocalMin?: number;
+  fastestApertureMax?: number;
+  isoMin?: number;
+  isoMax?: number;
+  hasAutofocus?: boolean;
+  hasStabilization?: boolean;
+  hasIbis?: boolean;
+  hasWeatherSealing?: boolean;
   analogCameraType?: string;
 };
 
@@ -27,6 +37,7 @@ export type SearchParams = {
   pageSize: number;
   filters?: SearchFilters;
   includeTotal?: boolean;
+  includeConstructionState?: boolean;
 };
 
 export type SearchResult = {
@@ -37,6 +48,7 @@ export type SearchResult = {
   brandName: string | null;
   mountValue: string | null;
   gearType: string;
+  isUnderConstruction: boolean;
   thumbnailUrl: string | null;
   msrpNowUsdCents?: number | null;
   msrpAtLaunchUsdCents?: number | null;
@@ -46,6 +58,15 @@ export type SearchResult = {
   announcedDate?: Date | string | null;
   announceDatePrecision?: string | null;
   relevance?: number;
+  mountNames?: string[];
+  sensorFormatName?: string | null;
+  analogCaptureMedium?: string | null;
+  weightGrams?: number | null;
+  focalLengthMinMm?: number | null;
+  focalLengthMaxMm?: number | null;
+  isPrime?: boolean | null;
+  maxApertureWide?: number | null;
+  maxApertureTele?: number | null;
 };
 
 export type SearchResponse = {

@@ -1,11 +1,19 @@
 "use client";
 import { useQueryState } from "nuqs";
-import { useEffect,useState } from "react";
+import { useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
 import { BrandSelect } from "~/components/custom-inputs/brand-select";
+import IsoInput from "~/components/custom-inputs/iso-input";
 import { MountSelect } from "~/components/custom-inputs/mount-select";
 import SensorFormatInput from "~/components/custom-inputs/sensor-format-input";
+import { Checkbox } from "~/components/ui/checkbox";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "~/components/ui/collapsible";
 import { Label } from "~/components/ui/label";
-import { RadioGroup,RadioGroupItem } from "~/components/ui/radio-group";
+import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -16,11 +24,27 @@ import {
 import { Separator } from "~/components/ui/separator";
 import { Slider } from "~/components/ui/slider";
 import { ANALOG_OPTIONS } from "~/lib/mapping/analog-types-map";
-import { getMountIdFromSlug,getMountSlugById } from "~/lib/mapping/mounts-map";
+import { getMountIdFromSlug, getMountSlugById } from "~/lib/mapping/mounts-map";
+import { normalizeSearchGearTypeForUi } from "~/lib/search/gear-type-param";
+import { DeferredNumberInput } from "./deferred-number-input";
 
 // Slider curve: 1 = linear, higher = more weight to low prices (exponential).
 const PRICE_SLIDER_CURVE = 3;
 const MP_SLIDER_CURVE = 2;
+
+function parseIsoValue(value: string | null): number | undefined {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+}
+
+function normalizeIsoRange(
+  min: number | undefined,
+  max: number | undefined,
+): [number | undefined, number | undefined] {
+  return min !== undefined && max !== undefined && min > max
+    ? [max, min]
+    : [min, max];
+}
 
 function priceToSlider(value: number, maxPrice: number) {
   const clamped = Math.max(0, Math.min(value, maxPrice));
@@ -48,7 +72,19 @@ function sliderToMp(value: number, maxMp: number) {
   return Math.round(mp);
 }
 
-export function FiltersSidebar() {
+type FiltersSidebarProps = {
+  idPrefix?: string;
+  variant?: "sidebar" | "drawer";
+  showTitle?: boolean;
+};
+
+export function FiltersSidebar({
+  idPrefix = "",
+  variant = "sidebar",
+  showTitle = true,
+}: FiltersSidebarProps) {
+  const t = useTranslations("search");
+  const id = (value: string) => `${idPrefix}${value}`;
   const [brand, setBrand] = useQueryState("brand");
   const [mount, setMount] = useQueryState("mount");
   const [sensorFormat, setSensorFormat] = useQueryState("sensorFormat");
@@ -60,6 +96,25 @@ export function FiltersSidebar() {
   const [megapixelsMax, setMegapixelsMax] = useQueryState("megapixelsMax");
   const [analogCameraType, setAnalogCameraType] =
     useQueryState("analogCameraType");
+  const [focalIncludes, setFocalIncludes] = useQueryState("focalIncludes");
+  const [widestFocalMax, setWidestFocalMax] = useQueryState("widestFocalMax");
+  const [longestFocalMin, setLongestFocalMin] =
+    useQueryState("longestFocalMin");
+  const [fastestApertureMax, setFastestApertureMax] =
+    useQueryState("fastestApertureMax");
+  const [isoMin, setIsoMin] = useQueryState("isoMin");
+  const [isoMax, setIsoMax] = useQueryState("isoMax");
+  const [hasAutofocus, setHasAutofocus] = useQueryState("hasAutofocus");
+  const [hasStabilization, setHasStabilization] =
+    useQueryState("hasStabilization");
+  const [hasIbis, setHasIbis] = useQueryState("hasIbis");
+  const [hasWeatherSealing, setHasWeatherSealing] =
+    useQueryState("hasWeatherSealing");
+  const normalizedGearType = normalizeSearchGearTypeForUi(gearType);
+  const [selectedIsoMin, selectedIsoMax] = normalizeIsoRange(
+    parseIsoValue(isoMin),
+    parseIsoValue(isoMax),
+  );
 
   const PRICE_MAX = 20000; // USD
   const MP_MAX = 100;
@@ -111,41 +166,59 @@ export function FiltersSidebar() {
     void setMegapixelsMin(null);
     void setMegapixelsMax(null);
     void setAnalogCameraType(null);
+    void setFocalIncludes(null);
+    void setWidestFocalMax(null);
+    void setLongestFocalMin(null);
+    void setFastestApertureMax(null);
+    void setIsoMin(null);
+    void setIsoMax(null);
+    void setHasAutofocus(null);
+    void setHasStabilization(null);
+    void setHasIbis(null);
+    void setHasWeatherSealing(null);
   };
 
   return (
-    <div className="sticky top-24 mt-4 w-full space-y-4 border-r pr-6">
-      <div className="text-xl font-bold">Filters</div>
+    <div
+      className={
+        variant === "sidebar"
+          ? "sticky top-24 mt-4 w-full space-y-4 border-r pr-6"
+          : "w-full space-y-4"
+      }
+    >
+      {showTitle ? (
+        <div className="text-xl font-bold">{t("filters")}</div>
+      ) : null}
       {/* Gear Type */}
       <div className="space-y-2">
-        <div className="text-sm font-medium">Gear Type</div>
+        <div className="text-sm font-medium">{t("typeOfGear")}</div>
         <RadioGroup
           defaultValue="all"
-          value={gearType ?? "all"}
+          value={normalizedGearType ?? "all"}
           onValueChange={handleGearTypeChange}
         >
           <div className="flex items-center gap-2">
-            <RadioGroupItem value="all" id="gt-all" />
-            <label htmlFor="gt-all">All</label>
+            <RadioGroupItem value="all" id={id("gt-all")} />
+            <label htmlFor={id("gt-all")}>{t("any")}</label>
           </div>
           <div className="flex items-center gap-2">
-            <RadioGroupItem value="camera" id="gt-camera" />
-            <label htmlFor="gt-camera">Camera</label>
+            <RadioGroupItem value="camera" id={id("gt-camera")} />
+            <label htmlFor={id("gt-camera")}>{t("camera")}</label>
           </div>
           <div className="flex items-center gap-2">
-            <RadioGroupItem value="lens" id="gt-lens" />
-            <label htmlFor="gt-lens">Lens</label>
+            <RadioGroupItem value="lens" id={id("gt-lens")} />
+            <label htmlFor={id("gt-lens")}>{t("lens")}</label>
           </div>
           <div className="flex items-center gap-2">
-            <RadioGroupItem value="analog-camera" id="gt-analog-camera" />
-            <label htmlFor="gt-analog-camera">Analog Camera</label>
+            <RadioGroupItem value="analog-camera" id={id("gt-analog-camera")} />
+            <label htmlFor={id("gt-analog-camera")}>{t("analogCamera")}</label>
           </div>
         </RadioGroup>
       </div>
 
       {/* Brand */}
       <div className="space-y-2">
-        <div className="text-sm font-medium">Brand</div>
+        <div className="text-sm font-medium">{t("brand")}</div>
         <BrandSelect
           value={brand ?? ""}
           onChange={(value) => {
@@ -153,7 +226,7 @@ export function FiltersSidebar() {
             void setMount(null);
           }}
           valueKey="slug"
-          placeholder="Select a brand"
+          placeholder={t("selectBrand")}
           className="w-full"
         />
       </div>
@@ -176,7 +249,7 @@ export function FiltersSidebar() {
 
       {/* Price range */}
       <div className="space-y-2">
-        <div className="text-sm font-medium">Price range</div>
+        <div className="text-sm font-medium">{t("priceRange")}</div>
         <Slider
           value={[
             priceToSlider(
@@ -213,26 +286,26 @@ export function FiltersSidebar() {
           <span>
             {priceRange[1] && priceRange[1] < PRICE_MAX
               ? `$${priceRange[1]}`
-              : "No max"}
+              : t("noMax")}
           </span>
         </div>
       </div>
 
       <Separator className="my-8" />
 
-      <section className="h-48 space-y-4">
-        {gearType === "all" || !gearType ? (
+      <section className="space-y-4">
+        {normalizedGearType === "all" || !normalizedGearType ? (
           <div className="space-y-2">
             <span className="text-muted-foreground text-center text-sm">
-              Select a gear type to see more filters
+              {t("selectGearTypeForFilters")}
             </span>
           </div>
-        ) : gearType === "camera" ? (
+        ) : normalizedGearType === "camera" ? (
           <>
             <div className="space-y-2">
               <SensorFormatInput
-                id="sensor-format"
-                label="Sensor format"
+                id={id("sensor-format")}
+                label={t("sensorFormat")}
                 value={sensorFormat ?? null}
                 onChange={(value: string | undefined) =>
                   void setSensorFormat(value || null)
@@ -241,8 +314,9 @@ export function FiltersSidebar() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="megapixels">Megapixels</Label>
+              <Label htmlFor={id("megapixels")}>{t("megapixels")}</Label>
               <Slider
+                id={id("megapixels")}
                 value={[
                   mpToSlider(megapixelsRange[0], MP_MAX),
                   mpToSlider(megapixelsRange[1], MP_MAX),
@@ -270,39 +344,160 @@ export function FiltersSidebar() {
                 <span>
                   {megapixelsRange[1] && megapixelsRange[1] < MP_MAX
                     ? `${megapixelsRange[1]}MP`
-                    : "No max"}
+                    : t("noMax")}
                 </span>
               </div>
             </div>
-          </>
-        ) : gearType === "lens" ? (
-          <div className="space-y-2">
-            <div className="text-sm font-medium">Lens type</div>
-            <Select
-              value={lensType ?? ""}
-              onValueChange={(value) =>
-                void setLensType(value === "all" ? null : value)
+
+            <div className="space-y-2">
+              <Label>{t("nativeIsoCoverage")}</Label>
+              <div className="space-y-2">
+                <IsoInput
+                  id={id("minimum-iso")}
+                  label={t("minimumIso")}
+                  value={selectedIsoMin}
+                  maxValue={selectedIsoMax}
+                  allowClear
+                  clearLabel={t("any")}
+                  onChange={(value) => {
+                    void setIsoMin(value ? String(value) : null);
+                    if (
+                      value !== undefined &&
+                      selectedIsoMax !== undefined &&
+                      value > selectedIsoMax
+                    ) {
+                      void setIsoMax(null);
+                    }
+                  }}
+                />
+                <IsoInput
+                  id={id("maximum-iso")}
+                  label={t("maximumIso")}
+                  value={selectedIsoMax}
+                  minValue={selectedIsoMin}
+                  allowClear
+                  clearLabel={t("any")}
+                  onChange={(value) => {
+                    void setIsoMax(value ? String(value) : null);
+                    if (
+                      value !== undefined &&
+                      selectedIsoMin !== undefined &&
+                      value < selectedIsoMin
+                    ) {
+                      void setIsoMin(null);
+                    }
+                  }}
+                />
+              </div>
+            </div>
+            <FilterCheckbox
+              id={id("has-ibis")}
+              label={t("hasIbis")}
+              checked={hasIbis === "true"}
+              onCheckedChange={(checked) =>
+                void setHasIbis(checked ? "true" : null)
               }
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a lens type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="prime">Prime</SelectItem>
-                <SelectItem value="zoom">Zoom</SelectItem>
-              </SelectContent>
-            </Select>
+            />
+            <FilterCheckbox
+              id={id("has-weather-sealing")}
+              label={t("hasWeatherSealing")}
+              checked={hasWeatherSealing === "true"}
+              onCheckedChange={(checked) =>
+                void setHasWeatherSealing(checked ? "true" : null)
+              }
+            />
+          </>
+        ) : normalizedGearType === "lens" ? (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <div className="text-sm font-medium">{t("lensType")}</div>
+              <Select
+                value={lensType ?? ""}
+                onValueChange={(value) =>
+                  void setLensType(value === "all" ? null : value)
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={t("selectLensType")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("any")}</SelectItem>
+                  <SelectItem value="prime">{t("prime")}</SelectItem>
+                  <SelectItem value="zoom">{t("zoom")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor={id("focal-includes")}>{t("focalLength")}</Label>
+              <DeferredNumberInput
+                id={id("focal-includes")}
+                value={focalIncludes ?? ""}
+                onCommit={(value) => void setFocalIncludes(value)}
+                placeholder={t("focalIncludesPlaceholder")}
+              />
+              <Collapsible>
+                <CollapsibleTrigger className="text-muted-foreground focus-visible:ring-ring rounded-sm text-sm underline focus-visible:ring-1 focus-visible:outline-none">
+                  {t("advanced")}
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-2 pt-2">
+                  <Label htmlFor={id("widest-focal")}>
+                    {t("widestFocalLength")}
+                  </Label>
+                  <DeferredNumberInput
+                    id={id("widest-focal")}
+                    value={widestFocalMax ?? ""}
+                    onCommit={(value) => void setWidestFocalMax(value)}
+                    placeholder={t("widestFocalPlaceholder")}
+                  />
+                  <Label htmlFor={id("longest-focal")}>
+                    {t("longestFocalLength")}
+                  </Label>
+                  <DeferredNumberInput
+                    id={id("longest-focal")}
+                    value={longestFocalMin ?? ""}
+                    onCommit={(value) => void setLongestFocalMin(value)}
+                    placeholder={t("longestFocalPlaceholder")}
+                  />
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor={id("fastest-aperture")}>
+                {t("fastestAperture")}
+              </Label>
+              <DeferredNumberInput
+                id={id("fastest-aperture")}
+                value={fastestApertureMax ?? ""}
+                onCommit={(value) => void setFastestApertureMax(value)}
+                placeholder={t("fastestAperturePlaceholder")}
+              />
+            </div>
+            <FilterCheckbox
+              id={id("has-autofocus")}
+              label={t("hasAutofocus")}
+              checked={hasAutofocus === "true"}
+              onCheckedChange={(checked) =>
+                void setHasAutofocus(checked ? "true" : null)
+              }
+            />
+            <FilterCheckbox
+              id={id("has-stabilization")}
+              label={t("hasStabilization")}
+              checked={hasStabilization === "true"}
+              onCheckedChange={(checked) =>
+                void setHasStabilization(checked ? "true" : null)
+              }
+            />
           </div>
-        ) : gearType === "analog-camera" ? (
+        ) : normalizedGearType === "analog-camera" ? (
           <div className="space-y-2">
-            <div className="text-sm font-medium">Analog camera type</div>
+            <div className="text-sm font-medium">{t("analogCameraType")}</div>
             <Select
               value={analogCameraType ?? ""}
               onValueChange={(value) => void setAnalogCameraType(value || null)}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select an analog camera type" />
+                <SelectValue placeholder={t("selectAnalogCameraType")} />
               </SelectTrigger>
               <SelectContent>
                 {ANALOG_OPTIONS.cameraTypes.map((opt) => (
@@ -316,5 +511,28 @@ export function FiltersSidebar() {
         ) : null}
       </section>
     </div>
+  );
+}
+
+function FilterCheckbox({
+  id,
+  label,
+  checked,
+  onCheckedChange,
+}: {
+  id: string;
+  label: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+}) {
+  return (
+    <label htmlFor={id} className="flex items-center gap-2 text-sm font-medium">
+      <Checkbox
+        id={id}
+        checked={checked}
+        onCheckedChange={(value) => onCheckedChange(value === true)}
+      />
+      {label}
+    </label>
   );
 }

@@ -2,15 +2,17 @@
 
 import { Search as SearchIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect,useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Kbd } from "~/components/ui/kbd";
 import { cn } from "~/lib/utils";
 import { dispatchOpenSearchSurface } from "./search-events";
+import { RotatingSearchPlaceholder } from "./rotating-search-placeholder";
 
 type GlobalSearchBarProps = {
   placeholder?: string;
   className?: string;
   size?: "sm" | "md" | "lg";
+  showRotatingExamples?: boolean;
 };
 
 const sizeVariants = {
@@ -35,11 +37,26 @@ export function GlobalSearchBar({
   placeholder,
   className,
   size = "md",
+  showRotatingExamples = false,
 }: GlobalSearchBarProps) {
   const t = useTranslations("search");
   const sizes = sizeVariants[size];
   const [isMac, setIsMac] = useState(true);
   const resolvedPlaceholder = placeholder ?? t("inputPlaceholder");
+  const rotatingExamples = useMemo(
+    () => [
+      t("rotatingExampleAnything"),
+      t("rotatingExampleCameraBasic"),
+      t("rotatingExampleLensBasic"),
+      t("rotatingExampleSonyBasic"),
+      t("rotatingExampleFujifilmBasic"),
+      t("rotatingExampleBrandLenses"),
+      t("rotatingExampleMountLenses"),
+      t("rotatingExampleLensesForCamera"),
+      t("rotatingExampleBrandMountCameras"),
+    ],
+    [t],
+  );
 
   useEffect(() => {
     setIsMac(navigator.platform.toUpperCase().includes("MAC"));
@@ -60,7 +77,19 @@ export function GlobalSearchBar({
     >
       <SearchIcon className={cn("shrink-0", sizes.icon)} />
       <span className="min-w-0 flex-1 truncate text-left">
-        {resolvedPlaceholder}
+        {placeholder ? (
+          resolvedPlaceholder
+        ) : !showRotatingExamples ? (
+          t("staticPlaceholder")
+        ) : (
+          <span className="flex min-w-0 items-center gap-1">
+            <span className="shrink-0">{t("searchAction")}</span>
+            <RotatingSearchPlaceholder
+              examples={rotatingExamples}
+              className="min-w-0 flex-1"
+            />
+          </span>
+        )}
       </span>
       <span className={cn("shrink-0", sizes.hint)}>
         {isMac ? (

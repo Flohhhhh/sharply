@@ -3,9 +3,11 @@ import { describe,expect,it } from "vitest";
 import {
   buildApertureTokenRegex,
   buildDecimalNumericTokenRegex,
+  buildFocalLengthRangeTokenRegex,
   buildWholeWordTokenRegex,
   getApertureTokens,
   getLensFeatureAcronymTokens,
+  getFocalLengthRangeTokens,
   getSignificantNumericTokens,
   normalizeSearchQueryNoPunct,
   parseSearchQueryTokens,
@@ -60,6 +62,72 @@ describe("search query normalization", () => {
     expect(tokens.apertureTokens).toEqual(["4"]);
     expect(tokens.focalLengthTokens).toEqual(["300"]);
     expect(tokens.activeLensFeatureAcronymTokens).toEqual(["pf"]);
+  });
+
+  it.each([
+    ["lumix 70-200", "70-200"],
+    ["lumix 70-200mm", "70-200"],
+    ["lumix 70 - 200", "70-200"],
+    ["lumix 70–200mm", "70-200"],
+  ])("parses %s as the focal range %s", (query, expectedRange) => {
+    const tokens = parseSearchQueryTokens(query);
+
+    expect(tokens.focalLengthRangeTokens).toEqual([expectedRange]);
+    expect(tokens.focalLengthTokens).toEqual([]);
+    expect(tokens.hasLensEvidence).toBe(true);
+  });
+
+  it("recognizes focal ranges whose endpoints are both short integers", () => {
+    expect(getFocalLengthRangeTokens("lumix 24-70")).toEqual(["24-70"]);
+    expect(parseSearchQueryTokens("lumix 24-70").focalLengthTokens).toEqual([]);
+  });
+
+  it("does not infer range intent from spaced or concatenated numbers", () => {
+    expect(getFocalLengthRangeTokens("lumix 70 200")).toEqual([]);
+    expect(getFocalLengthRangeTokens("lumix 70200")).toEqual([]);
+  });
+
+  it("matches complete focal ranges without matching primes or other ranges", () => {
+    const pattern = new RegExp(buildFocalLengthRangeTokenRegex("70-200"), "i");
+
+    expect("Panasonic Lumix S PRO 70-200mm f/4 O.I.S.").toMatch(pattern);
+    expect("Panasonic Lumix S PRO 70–200mm f/2.8 O.I.S.").toMatch(pattern);
+    expect("Panasonic LEICA DG ELMARIT 200mm F2.8 POWER O.I.S.").not.toMatch(
+      pattern,
+    );
+    expect("Laowa 200mm f/2 AF FF").not.toMatch(pattern);
+    expect("Panasonic Lumix S 28-200mm f/4-7.1 MACRO O.I.S.").not.toMatch(
+      pattern,
+    );
+    expect("Panasonic Lumix ZS200").not.toMatch(pattern);
+  });
+
+  it("ranks lumix 70-200 zooms above 200mm primes", () => {
+    const query = "lumix 70-200";
+    const zoomScores = [
+      "Panasonic Lumix S PRO 70-200mm f/4 O.I.S.",
+      "Panasonic Lumix S PRO 70-200mm f/2.8 O.I.S.",
+    ].map((searchText) =>
+      scoreSearchTextAgainstQuery({
+        query,
+        searchText,
+        brandName: "Panasonic",
+      }),
+    );
+    const primeScores = [
+      {
+        searchText: "Panasonic LEICA DG ELMARIT 200mm F2.8 POWER O.I.S.",
+        brandName: "Panasonic",
+      },
+      {
+        searchText: "Laowa 200mm f/2 AF FF",
+        brandName: "Laowa",
+      },
+    ].map(({ searchText, brandName }) =>
+      scoreSearchTextAgainstQuery({ query, searchText, brandName }),
+    );
+
+    expect(Math.min(...zoomScores)).toBeGreaterThan(Math.max(...primeScores));
   });
 
   it("keeps low-information acronym-only queries gated", () => {

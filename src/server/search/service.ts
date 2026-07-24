@@ -5,34 +5,36 @@ if (process.env.NEXT_RUNTIME) {
   });
 }
 
-import { asc,desc,sql,type SQL } from "drizzle-orm";
-import { buildCompareHref } from "~/lib/utils/url";
+import { asc, desc, sql, type SQL } from "drizzle-orm";
+import { getConstructionState } from "~/lib/utils";
+import { buildCompareHref, buildSearchHref } from "~/lib/utils/url";
+import { gear } from "~/server/db/schema";
+import { toConstructionGearItem } from "~/server/gear/construction-service";
 import {
-  analogCameraSpecs,
-  brands,
-  cameraSpecs,
-  fixedLensSpecs,
-  gear,
-  lensSpecs,
-  mounts,
-  sensorFormats,
-} from "~/server/db/schema";
-import { fetchGearAliasesByGearIds } from "~/server/gear/data";
-import type { GearAlias,GearRegion } from "~/types/gear";
+  fetchGearAliasesByGearIds,
+  fetchGearConstructionDataByIds,
+} from "~/server/gear/data";
+import { attachGearListingTableFields } from "~/server/gear/listing-table-service";
+import type { GearAlias, GearRegion } from "~/types/gear";
 import type {
   BrandSuggestion,
   CompareSmartActionSuggestion,
   GearSuggestion,
+  ParsedSearchIntentKind,
+  ParsedSearchSmartActionSuggestion,
   Suggestion,
 } from "~/types/search";
 import {
   buildRelevanceExpr,
+  buildSearchFilterClause,
   buildSearchWhereClause,
   queryBrandSuggestions,
   queryGearSuggestions,
+  queryMountValuesByGearIds,
   querySearchRows,
   querySearchTotal,
 } from "./data";
+import { parseNaturalLanguageSearchIntent } from "./natural-language-intent";
 import {
   normalizeSearchQuery,
   normalizeSearchQueryNoPunct,
@@ -43,6 +45,7 @@ import {
   parseCompareIntent,
 } from "./suggestion-intent";
 import type {
+  SearchFilters,
   SearchParams,
   SearchResponse,
   SearchResult,
@@ -68,7 +71,15 @@ export type {
 export async function searchGear(
   params: SearchParams,
 ): Promise<SearchResponse> {
-  const { query, sort, page, pageSize, filters, includeTotal } = params;
+  const {
+    query,
+    sort,
+    page,
+    pageSize,
+    filters,
+    includeTotal,
+    includeConstructionState = false,
+  } = params;
   const offset = (page - 1) * pageSize;
 
   let whereClause: SQL | undefined = undefined;
@@ -79,73 +90,8 @@ export async function searchGear(
   }
 
   if (filters) {
-    const filterConditions: SQL[] = [];
-    const hasPrice = sql`
-      ${gear.msrpNowUsdCents} IS NOT NULL
-      OR ${gear.msrpAtLaunchUsdCents} IS NOT NULL
-      OR ${gear.mpbMaxPriceUsdCents} IS NOT NULL
-    `;
-    // Prefer current MSRP, then used market (MPB), then launch MSRP.
-    const effectivePriceCentsForMax = sql`COALESCE(${gear.msrpNowUsdCents}, ${gear.mpbMaxPriceUsdCents}, ${gear.msrpAtLaunchUsdCents})`;
-    // For min bounds, prefer current MSRP, then launch, then used price.
-    const effectivePriceCentsForMin = sql`COALESCE(${gear.msrpNowUsdCents}, ${gear.msrpAtLaunchUsdCents}, ${gear.mpbMaxPriceUsdCents})`;
-    if (filters.brand) {
-      filterConditions.push(sql`${brands.name} ILIKE ${`%${filters.brand}%`}`);
-    }
-    if (filters.mount) {
-      filterConditions.push(sql`${mounts.id} = ${filters.mount}`);
-    }
-    if (filters.gearType) {
-      filterConditions.push(sql`${gear.gearType} = ${filters.gearType}`);
-    }
-    if (filters.sensorFormat) {
-      filterConditions.push(
-        sql`${sensorFormats.slug} = ${filters.sensorFormat}`,
-      );
-    }
-    if (filters.lensType) {
-      const isPrime = filters.lensType === "prime";
-      filterConditions.push(
-        sql`(${lensSpecs.isPrime} = ${isPrime} OR ${fixedLensSpecs.isPrime} = ${isPrime})`,
-      );
-    }
-    if (filters.analogCameraType) {
-      filterConditions.push(
-        sql`${analogCameraSpecs.cameraType} = ${filters.analogCameraType}`,
-      );
-    }
-    const adjustedMpMin =
-      filters.megapixelsMin !== undefined
-        ? Math.max(0, filters.megapixelsMin - 0.9)
-        : undefined;
-    const adjustedMpMax =
-      filters.megapixelsMax !== undefined
-        ? filters.megapixelsMax + 0.9
-        : undefined;
-    if (filters.megapixelsMin !== undefined) {
-      filterConditions.push(
-        sql`${cameraSpecs.resolutionMp} >= ${adjustedMpMin!}`,
-      );
-    }
-    if (filters.megapixelsMax !== undefined) {
-      filterConditions.push(
-        sql`${cameraSpecs.resolutionMp} <= ${adjustedMpMax!}`,
-      );
-    }
-    if (filters.priceMin !== undefined) {
-      // Require a known price and enforce the lower bound.
-      filterConditions.push(
-        sql`(${hasPrice}) AND (${effectivePriceCentsForMin} >= ${filters.priceMin * 100})`,
-      );
-    }
-    if (filters.priceMax !== undefined) {
-      filterConditions.push(
-        sql`(NOT (${hasPrice}) OR ${effectivePriceCentsForMax} <= ${filters.priceMax * 100})`,
-      );
-    }
-
-    if (filterConditions.length > 0) {
-      const filterClause = sql`(${sql.join(filterConditions, sql` AND `)})`;
+    const filterClause = buildSearchFilterClause(filters);
+    if (filterClause) {
       whereClause = whereClause
         ? sql`(${whereClause}) AND (${filterClause})`
         : filterClause;
@@ -176,21 +122,30 @@ export async function searchGear(
     offset,
     relevanceExpr: query && sort === "relevance" ? relevanceExpr : undefined,
     includeMounts: Boolean(filters?.mount),
-    includeSensorFormats:
-      Boolean(filters?.sensorFormat) ||
-      filters?.megapixelsMin !== undefined ||
-      filters?.megapixelsMax !== undefined,
-    includeLensSpecs: Boolean(filters?.lensType),
+    includeSensorFormats: needsCameraSpecs(filters),
+    includeLensSpecs: needsLensSpecs(filters),
     includeAnalogSpecs: Boolean(filters?.analogCameraType),
   })) as unknown as Array<{ id: string }>;
 
-  const aliasesById = await fetchGearAliasesByGearIds(
-    rows.map((row) => row.id),
+  const resultIds = rows.map((row) => row.id);
+  const [tableRows, aliasesById, constructionRows] = await Promise.all([
+    attachGearListingTableFields(rows),
+    fetchGearAliasesByGearIds(resultIds),
+    includeConstructionState
+      ? fetchGearConstructionDataByIds(resultIds)
+      : Promise.resolve([]),
+  ]);
+  const constructionById = new Map(
+    constructionRows.map((row) => [
+      row.id,
+      getConstructionState(toConstructionGearItem(row)).underConstruction,
+    ]),
   );
 
-  const results = rows.map((row) => ({
+  const results = tableRows.map((row) => ({
     ...row,
     regionalAliases: aliasesById.get(row.id) ?? [],
+    isUnderConstruction: constructionById.get(row.id) ?? false,
   }));
 
   const total =
@@ -199,10 +154,8 @@ export async function searchGear(
       : await querySearchTotal(
           whereClause,
           Boolean(filters?.mount),
-          Boolean(filters?.sensorFormat) ||
-            filters?.megapixelsMin !== undefined ||
-            filters?.megapixelsMax !== undefined,
-          Boolean(filters?.lensType),
+          needsCameraSpecs(filters),
+          needsLensSpecs(filters),
           Boolean(filters?.analogCameraType),
         );
   const totalPages =
@@ -215,6 +168,30 @@ export async function searchGear(
     page,
     pageSize,
   };
+}
+
+function needsCameraSpecs(filters?: SearchFilters) {
+  return (
+    Boolean(filters?.sensorFormat) ||
+    filters?.megapixelsMin !== undefined ||
+    filters?.megapixelsMax !== undefined ||
+    filters?.isoMin !== undefined ||
+    filters?.isoMax !== undefined ||
+    Boolean(filters?.hasIbis) ||
+    Boolean(filters?.hasWeatherSealing)
+  );
+}
+
+function needsLensSpecs(filters?: SearchFilters) {
+  return (
+    Boolean(filters?.lensType) ||
+    filters?.focalIncludes !== undefined ||
+    filters?.widestFocalMax !== undefined ||
+    filters?.longestFocalMin !== undefined ||
+    filters?.fastestApertureMax !== undefined ||
+    Boolean(filters?.hasAutofocus) ||
+    Boolean(filters?.hasStabilization)
+  );
 }
 
 export type GetSuggestionsOptions = {
@@ -246,17 +223,32 @@ export async function getSuggestions(
   }
 
   const compareIntent = parseCompareIntent(query);
-  const smartAction = compareIntent
-    ? await buildCompareSmartAction(compareIntent.left, compareIntent.right, region)
+  const compareSmartAction = compareIntent
+    ? await buildCompareSmartAction(
+        compareIntent.left,
+        compareIntent.right,
+        region,
+      )
+    : null;
+  const parsedSearchIntent = compareSmartAction
+    ? null
+    : await parseNaturalLanguageSearchIntent(query, async (cameraQuery) =>
+        resolveStrongGearMatch(cameraQuery, region, { gearType: "CAMERA" }),
+      );
+  const parsedSearchSmartAction = parsedSearchIntent
+    ? buildParsedSearchSmartAction(parsedSearchIntent)
     : null;
 
   const rankedSuggestions = await buildRankedSuggestions(query, region, {
     gearType: gearTypeFilter,
   });
 
-  return (smartAction
-    ? [smartAction, ...rankedSuggestions]
-    : rankedSuggestions
+  return (
+    compareSmartAction
+      ? [compareSmartAction, ...rankedSuggestions]
+      : parsedSearchSmartAction
+        ? [parsedSearchSmartAction, ...rankedSuggestions]
+        : rankedSuggestions
   ).slice(0, limit);
 }
 
@@ -296,7 +288,11 @@ async function buildRankedSuggestions(
     relevanceExpr,
     gearLimit,
   );
-  const gearSuggestions = await buildGearSuggestions(gearResults, query, region);
+  const gearSuggestions = await buildGearSuggestions(
+    gearResults,
+    query,
+    region,
+  );
 
   if (options?.gearOnly) {
     return gearSuggestions;
@@ -341,7 +337,12 @@ async function buildGearSuggestions(
     return buildGearSuggestion({ ...item, regionalAliases }, region);
   });
 
-  return applyExactMatchMetadata(query, baseSuggestions, suggestionInputs, region);
+  return applyExactMatchMetadata(
+    query,
+    baseSuggestions,
+    suggestionInputs,
+    region,
+  );
 }
 
 async function buildCompareSmartAction(
@@ -365,9 +366,12 @@ async function buildCompareSmartAction(
     title: `Compare ${left.title} and ${right.title}`,
     label: `Compare ${left.title} and ${right.title}`,
     subtitle: `${left.canonicalName} vs ${right.canonicalName}`,
-    href: buildCompareHref([left.href.replace("/gear/", ""), right.href.replace("/gear/", "")], {
-      preserveOrder: true,
-    }),
+    href: buildCompareHref(
+      [left.href.replace("/gear/", ""), right.href.replace("/gear/", "")],
+      {
+        preserveOrder: true,
+      },
+    ),
     compareSlugs: [
       left.href.replace("/gear/", ""),
       right.href.replace("/gear/", ""),
@@ -377,11 +381,50 @@ async function buildCompareSmartAction(
   };
 }
 
+function buildParsedSearchSmartAction(intent: {
+  kind: ParsedSearchIntentKind;
+  subject: string;
+  filters: {
+    q?: string;
+    gearType: "LENS" | "CAMERA";
+    brand?: string;
+    mount?: string;
+  };
+}): ParsedSearchSmartActionSuggestion {
+  return {
+    id: `smart-action:parsed-search:${intent.kind}:${intent.subject.toLowerCase()}`,
+    kind: "smart-action",
+    type: "smart-action",
+    action: "parsed-search",
+    title: intent.subject,
+    label: intent.subject,
+    subtitle: null,
+    href: buildSearchHref("/search", {
+      page: 1,
+      gearType: intent.filters.gearType,
+      brand: intent.filters.brand,
+      mount: intent.filters.mount,
+      q: intent.filters.q,
+      nl: 1,
+      nlIntent: intent.kind,
+      nlSubject: intent.subject,
+    }),
+    relevance: 1_000,
+    parsedSearchKind: intent.kind,
+    parsedSearchSubject: intent.subject,
+    parsedSearchQueryRemainder: intent.filters.q,
+    parsedSearchFilters: intent.filters,
+  };
+}
+
 async function resolveStrongGearMatch(
   query: string,
   region?: GearRegion | null,
-): Promise<GearSuggestion | null> {
-  const ranked = await buildRankedSuggestions(query, region);
+  options?: {
+    gearType?: string;
+  },
+): Promise<(GearSuggestion & { mountValue?: string | null }) | null> {
+  const ranked = await buildRankedSuggestions(query, region, options);
   const exactGearMatches = ranked.filter(
     (suggestion): suggestion is GearSuggestion =>
       (suggestion.kind === "camera" || suggestion.kind === "lens") &&
@@ -390,5 +433,12 @@ async function resolveStrongGearMatch(
 
   if (exactGearMatches.length !== 1) return null;
 
-  return exactGearMatches[0] ?? null;
+  const exactMatch = exactGearMatches[0] ?? null;
+  if (!exactMatch) return null;
+
+  const mountsByGearId = await queryMountValuesByGearIds([exactMatch.gearId]);
+  return {
+    ...exactMatch,
+    mountValue: mountsByGearId.get(exactMatch.gearId)?.[0] ?? null,
+  };
 }

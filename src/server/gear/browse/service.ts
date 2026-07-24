@@ -16,6 +16,7 @@ import {
   type RouteScope,
 } from "~/lib/browse/routing";
 import { fetchGearAliasesByGearIds } from "~/server/gear/data";
+import { attachGearListingTableFields } from "~/server/gear/listing-table-service";
 import type {
   BrowseFeedPage,
   BrowseListItem,
@@ -292,11 +293,11 @@ export async function fetchReleaseFeedPage(params: {
     offset,
   });
 
-  const aliasesById = await fetchGearAliasesByGearIds(
-    page.items.map((item) => item.id),
-  );
-
-  const items = page.items.map((item) => ({
+  const [aliasesById, tableItems] = await Promise.all([
+    fetchGearAliasesByGearIds(page.items.map((item) => item.id)),
+    attachGearListingTableFields(page.items),
+  ]);
+  const items = tableItems.map((item) => ({
     ...item,
     regionalAliases: aliasesById.get(item.id) ?? [],
     releaseDate: item.releaseDate ? item.releaseDate.toISOString() : null,
@@ -312,6 +313,15 @@ export async function fetchReleaseFeedPage(params: {
       typeof item.mpbMaxPriceUsdCents === "number"
         ? item.mpbMaxPriceUsdCents
         : null,
+    mountNames: item.mountNames,
+    sensorFormatName: item.sensorFormatName,
+    analogCaptureMedium: item.analogCaptureMedium,
+    weightGrams: item.weightGrams,
+    focalLengthMinMm: item.focalLengthMinMm,
+    focalLengthMaxMm: item.focalLengthMaxMm,
+    isPrime: item.isPrime,
+    maxApertureWide: item.maxApertureWide,
+    maxApertureTele: item.maxApertureTele,
   }));
 
   const nextCursor = page.hasMore
@@ -366,16 +376,26 @@ function serializeBrowseListItem(
       typeof item.mpbMaxPriceUsdCents === "number"
         ? item.mpbMaxPriceUsdCents
         : null,
+    mountNames: item.mountNames ?? [],
+    sensorFormatName: item.sensorFormatName ?? null,
+    analogCaptureMedium: item.analogCaptureMedium ?? null,
+    weightGrams: item.weightGrams ?? null,
+    focalLengthMinMm: item.focalLengthMinMm ?? null,
+    focalLengthMaxMm: item.focalLengthMaxMm ?? null,
+    isPrime: item.isPrime ?? null,
+    maxApertureWide: item.maxApertureWide ?? null,
+    maxApertureTele: item.maxApertureTele ?? null,
   };
 }
 
 async function attachAliasesToLists(lists: SearchGearResult) {
-  const aliasesById = await fetchGearAliasesByGearIds(
-    lists.items.map((item) => item.id),
-  );
+  const [tableItems, aliasesById] = await Promise.all([
+    attachGearListingTableFields(lists.items),
+    fetchGearAliasesByGearIds(lists.items.map((item) => item.id)),
+  ]);
   return {
     ...lists,
-    items: lists.items.map((item) => ({
+    items: tableItems.map((item) => ({
       ...item,
       regionalAliases: aliasesById.get(item.id) ?? [],
     })),

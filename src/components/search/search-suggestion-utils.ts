@@ -11,6 +11,8 @@ type SearchTranslations = {
   lens: string;
   analogCamera: string;
   brand: string;
+  smartSearchApplyFilters: string;
+  smartSearchWithQuery: string;
 };
 
 export function normalizeSearchText(value: string): string {
@@ -22,6 +24,13 @@ export function getSuggestionKind(suggestion: Suggestion): SuggestionKind {
 }
 
 export function getSuggestionTitle(suggestion: Suggestion): string {
+  if (
+    suggestion.kind === "smart-action" &&
+    suggestion.action === "parsed-search"
+  ) {
+    return suggestion.title;
+  }
+
   if (
     (suggestion.kind === "camera" || suggestion.kind === "lens") &&
     suggestion.matchSource === "alias" &&
@@ -38,6 +47,18 @@ export function getSuggestionSubtitle(
   suggestion: Suggestion,
   t: SearchTranslations,
 ): string | undefined {
+  if (
+    suggestion.kind === "smart-action" &&
+    suggestion.action === "parsed-search"
+  ) {
+    return suggestion.parsedSearchQueryRemainder
+      ? t.smartSearchWithQuery.replace(
+          "{query}",
+          suggestion.parsedSearchQueryRemainder,
+        )
+      : t.smartSearchApplyFilters;
+  }
+
   if (
     (suggestion.kind === "camera" || suggestion.kind === "lens") &&
     suggestion.matchSource === "alias" &&
@@ -83,6 +104,31 @@ export function getSuggestionMeta(
   }
 
   return undefined;
+}
+
+export function localizeParsedSearchTitle(
+  suggestion: Suggestion,
+  formatTitle: (params: {
+    kind:
+      | "brand-lenses"
+      | "mount-lenses"
+      | "lenses-for-camera"
+      | "brand-cameras"
+      | "mount-cameras";
+    subject: string;
+  }) => string,
+): string | null {
+  if (
+    suggestion.kind !== "smart-action" ||
+    suggestion.action !== "parsed-search"
+  ) {
+    return null;
+  }
+
+  return formatTitle({
+    kind: suggestion.parsedSearchKind,
+    subject: suggestion.parsedSearchSubject,
+  });
 }
 
 export function isBestMatchSuggestion(suggestion: Suggestion): boolean {

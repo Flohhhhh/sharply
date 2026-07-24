@@ -1,18 +1,24 @@
 "use client";
 
-import { RefreshCcwDot,SearchIcon } from "lucide-react";
+import { RefreshCcwDot, SearchIcon } from "lucide-react";
 import { useQueryState } from "nuqs";
-import { useEffect,useMemo,useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import useSwr from "swr";
 import useSWRInfinite from "swr/infinite";
 import { SortSelect } from "~/components/search/sort-select";
+import { GearViewToggle, useGearResultsView } from "~/components/table";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Spinner } from "~/components/ui/spinner";
 import { useDebounce } from "~/lib/hooks/useDebounce";
+import {
+  normalizeSearchGearTypeForApi,
+  normalizeSearchGearTypeForUi,
+} from "~/lib/search/gear-type-param";
 import type { SearchResponse } from "~/types/search-results";
 import { buildSearchHref } from "~/lib/utils/url";
 import { FiltersSidebar } from "./filters-sidebar";
+import { MobileFiltersDrawer } from "./mobile-filters-drawer";
 import { SearchResults } from "./search-results";
 
 const fetcher = <T,>(url: string): Promise<T> =>
@@ -32,6 +38,7 @@ type SearchClientProps = {
 };
 
 export function SearchClient({ initialPage }: SearchClientProps) {
+  const { view, setView } = useGearResultsView();
   const [q, setQ] = useQueryState("q");
   const [sort] = useQueryState("sort");
   const [brand, setBrand] = useQueryState("brand");
@@ -45,22 +52,30 @@ export function SearchClient({ initialPage }: SearchClientProps) {
   const [priceMax, setPriceMax] = useQueryState("priceMax");
   const [megapixelsMin, setMegapixelsMin] = useQueryState("megapixelsMin");
   const [megapixelsMax, setMegapixelsMax] = useQueryState("megapixelsMax");
+  const [focalIncludes, setFocalIncludes] = useQueryState("focalIncludes");
+  const [widestFocalMax, setWidestFocalMax] = useQueryState("widestFocalMax");
+  const [longestFocalMin, setLongestFocalMin] =
+    useQueryState("longestFocalMin");
+  const [fastestApertureMax, setFastestApertureMax] =
+    useQueryState("fastestApertureMax");
+  const [isoMin, setIsoMin] = useQueryState("isoMin");
+  const [isoMax, setIsoMax] = useQueryState("isoMax");
+  const [hasAutofocus, setHasAutofocus] = useQueryState("hasAutofocus");
+  const [hasStabilization, setHasStabilization] =
+    useQueryState("hasStabilization");
+  const [hasIbis, setHasIbis] = useQueryState("hasIbis");
+  const [hasWeatherSealing, setHasWeatherSealing] =
+    useQueryState("hasWeatherSealing");
   const debouncedQ = useDebounce(q, 400);
 
-  const mappedGearType = useMemo(() => {
-    switch (gearType) {
-      case "all":
-        return undefined;
-      case "camera":
-        return "CAMERA";
-      case "lens":
-        return "LENS";
-      case "analog-camera":
-        return "ANALOG_CAMERA";
-      default:
-        return undefined;
-    }
-  }, [gearType]);
+  const normalizedGearType = useMemo(
+    () => normalizeSearchGearTypeForUi(gearType),
+    [gearType],
+  );
+  const mappedGearType = useMemo(
+    () => normalizeSearchGearTypeForApi(gearType),
+    [gearType],
+  );
 
   // Default sort: newest when no query; relevance when query present
   const effectiveSort = useMemo(() => {
@@ -90,6 +105,16 @@ export function SearchClient({ initialPage }: SearchClientProps) {
         analogCameraType,
         megapixelsMin,
         megapixelsMax,
+        focalIncludes,
+        widestFocalMax,
+        longestFocalMin,
+        fastestApertureMax,
+        isoMin,
+        isoMax,
+        hasAutofocus,
+        hasStabilization,
+        hasIbis,
+        hasWeatherSealing,
         priceMin,
         priceMax,
       });
@@ -105,6 +130,16 @@ export function SearchClient({ initialPage }: SearchClientProps) {
     analogCameraType,
     megapixelsMin,
     megapixelsMax,
+    focalIncludes,
+    widestFocalMax,
+    longestFocalMin,
+    fastestApertureMax,
+    isoMin,
+    isoMax,
+    hasAutofocus,
+    hasStabilization,
+    hasIbis,
+    hasWeatherSealing,
     priceMin,
     priceMax,
   ]);
@@ -113,35 +148,62 @@ export function SearchClient({ initialPage }: SearchClientProps) {
     return (
       !brand &&
       !mount &&
-      !gearType &&
+      !normalizedGearType &&
       !sensorFormat &&
       !lensType &&
       !analogCameraType &&
       !megapixelsMin &&
-      !megapixelsMax
+      !megapixelsMax &&
+      !focalIncludes &&
+      !widestFocalMax &&
+      !longestFocalMin &&
+      !fastestApertureMax &&
+      !isoMin &&
+      !isoMax &&
+      !hasAutofocus &&
+      !hasStabilization &&
+      !hasIbis &&
+      !hasWeatherSealing &&
+      !priceMin &&
+      !priceMax
     );
   }, [
     brand,
     mount,
-    gearType,
+    normalizedGearType,
     sensorFormat,
     lensType,
     analogCameraType,
     megapixelsMin,
     megapixelsMax,
+    focalIncludes,
+    widestFocalMax,
+    longestFocalMin,
+    fastestApertureMax,
+    isoMin,
+    isoMax,
+    hasAutofocus,
+    hasStabilization,
+    hasIbis,
+    hasWeatherSealing,
+    priceMin,
+    priceMax,
   ]);
 
-  const { data, error, size, setSize } = useSWRInfinite<
-    SearchResponse
-  >(getKey, fetcher, {
-    initialSize: 1,
-    revalidateFirstPage: true,
-    fallbackData:
-      !debouncedQ && noFiltersActive && initialPage ? [initialPage] : undefined,
-  });
+  const { data, error, size, setSize } = useSWRInfinite<SearchResponse>(
+    getKey,
+    fetcher,
+    {
+      initialSize: 1,
+      revalidateFirstPage: true,
+      fallbackData:
+        !debouncedQ && noFiltersActive && initialPage
+          ? [initialPage]
+          : undefined,
+    },
+  );
 
-  const flattenedResults =
-    data?.flatMap((page) => page?.results ?? []) ?? [];
+  const flattenedResults = data?.flatMap((page) => page?.results ?? []) ?? [];
   const latestPage = data?.at?.(-1) ?? data?.[data.length - 1];
   const firstPage = data?.[0];
   // const totalPages = firstPage?.totalPages ?? latestPage?.totalPages ?? 0;
@@ -150,11 +212,10 @@ export function SearchClient({ initialPage }: SearchClientProps) {
   const isLoadingInitial = !data && !error;
   const isLoadingMore =
     isLoadingInitial || (size > 0 && typeof data?.[size - 1] === "undefined");
-  const isReachingEnd =
-    data?.length
-      ? (latestPage?.results?.length ?? 0) < PAGE_SIZE ||
-        (totalCount ? flattenedResults.length >= totalCount : false)
-      : false;
+  const isReachingEnd = data?.length
+    ? (latestPage?.results?.length ?? 0) < PAGE_SIZE ||
+      (totalCount ? flattenedResults.length >= totalCount : false)
+    : false;
 
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -214,7 +275,7 @@ export function SearchClient({ initialPage }: SearchClientProps) {
               size="sm"
               icon={<RefreshCcwDot className="size-4" />}
               onClick={() => {
-                void setGearType("all");
+                void setGearType(null);
                 void setMount(null);
                 void setSensorFormat(null);
                 void setBrand(null);
@@ -224,12 +285,28 @@ export function SearchClient({ initialPage }: SearchClientProps) {
                 void setPriceMax(null);
                 void setMegapixelsMin(null);
                 void setMegapixelsMax(null);
+                void setFocalIncludes(null);
+                void setWidestFocalMax(null);
+                void setLongestFocalMin(null);
+                void setFastestApertureMax(null);
+                void setIsoMin(null);
+                void setIsoMax(null);
+                void setHasAutofocus(null);
+                void setHasStabilization(null);
+                void setHasIbis(null);
+                void setHasWeatherSealing(null);
               }}
             >
               Reset filters
             </Button>
           </div>
-          <SortSelect />
+          <div className="flex items-center gap-2">
+            <div className="sm:hidden">
+              <MobileFiltersDrawer />
+            </div>
+            <GearViewToggle view={view} onViewChange={setView} />
+            <SortSelect />
+          </div>
         </div>
       </section>
 
@@ -242,11 +319,10 @@ export function SearchClient({ initialPage }: SearchClientProps) {
             results={flattenedResults}
             isLoading={isLoadingInitial}
             error={error}
-            trendingSlugs={
-              trendingData?.items?.map((item) => item.slug) ?? []
-            }
+            trendingSlugs={trendingData?.items?.map((item) => item.slug) ?? []}
             isLoadingMore={isLoadingMore}
             isReachingEnd={isReachingEnd}
+            view={view}
           />
           <div ref={loadMoreRef} className="h-12 w-full" aria-hidden />
         </div>
