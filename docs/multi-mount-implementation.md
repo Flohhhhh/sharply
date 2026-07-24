@@ -125,6 +125,15 @@ Commit transaction
 
 ## API & Service Layer
 
+### Admin CSV Creation
+
+The `/admin/gear` CSV bulk importer accepts mount values using `mounts.value`
+identifiers such as `z-nikon` and `e-sony`, separated by `|` or `;`. During
+admin creation, these are resolved to mount IDs and passed as `mountIds` so
+`createGearData` writes the full `gear_mounts` set in the same transaction that
+creates the gear item. The deprecated `gear.mountId` column is still populated
+with the first resolved mount for backward compatibility.
+
 ### Normalizer (Validation)
 
 Location: `src/server/db/normalizers.ts`

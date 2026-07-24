@@ -1,6 +1,17 @@
 import "server-only";
 
-import { and,count,desc,eq,ilike,inArray,isNull,ne,or,sql } from "drizzle-orm";
+import {
+  and,
+  count,
+  desc,
+  eq,
+  ilike,
+  inArray,
+  isNull,
+  ne,
+  or,
+  sql,
+} from "drizzle-orm";
 import { GEAR_PUBLICATION_STATES } from "~/lib/gear/publication-state";
 import { buildGearSearchName } from "~/lib/gear/naming";
 import { normalizeMpbLinkForStorage } from "~/lib/links/mpb";
@@ -17,7 +28,7 @@ import {
   mounts,
   recommendationItems,
 } from "~/server/db/schema";
-import type { GearPublicationState,GearType } from "~/types/gear";
+import type { GearPublicationState, GearType } from "~/types/gear";
 
 type DbTx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 type DbLike = typeof db | DbTx;
@@ -201,6 +212,32 @@ export interface GearCreationParams {
   linkManufacturer?: string;
   linkMpb?: string;
   linkAmazon?: string;
+  initialCore?: {
+    announcedDate?: string | Date;
+    releaseDate?: string | Date;
+    msrpNowUsdCents?: number;
+    msrpAtLaunchUsdCents?: number;
+    weightGrams?: number;
+    linkManufacturer?: string;
+    linkMpb?: string;
+    linkAmazon?: string;
+    notes?: string[];
+  };
+  initialLensSpecs?: {
+    isPrime?: boolean;
+    focalLengthMinMm?: number;
+    focalLengthMaxMm?: number;
+    imageCircleSizeId?: string;
+    maxApertureWide?: number;
+    maxApertureTele?: number;
+    minApertureWide?: number;
+    minApertureTele?: number;
+    hasAutofocus?: boolean;
+    hasStabilization?: boolean;
+    isMacro?: boolean;
+    frontFilterThreadSizeMm?: number;
+    hasWeatherSealing?: boolean;
+  };
   force?: boolean;
 }
 
@@ -223,9 +260,13 @@ export async function createGearData(
     linkManufacturer,
     linkMpb,
     linkAmazon,
+    initialCore,
+    initialLensSpecs,
   } = params;
 
-  const normalizedLinkMpb = normalizeMpbLinkForStorage(linkMpb);
+  const normalizedLinkMpb = normalizeMpbLinkForStorage(
+    linkMpb ?? initialCore?.linkMpb,
+  );
 
   // Validate brand exists
   const b = await db
@@ -294,6 +335,18 @@ export async function createGearData(
   }
 
   const created = await db.transaction(async (tx) => {
+    const parseDate = (value: string | Date | undefined): Date | null => {
+      if (!value) return null;
+      if (value instanceof Date)
+        return Number.isNaN(value.getTime()) ? null : value;
+      const parsed = new Date(value);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    };
+    const pruneUndefined = <T extends Record<string, unknown>>(value: T): T =>
+      Object.fromEntries(
+        Object.entries(value).filter(([, entry]) => entry !== undefined),
+      ) as T;
+
     const inserted = await tx
       .insert(gear)
       .values({
@@ -303,9 +356,16 @@ export async function createGearData(
         publicationState,
         brandId,
         modelNumber: modelNumber || null,
-        linkManufacturer: linkManufacturer || null,
+        announcedDate: parseDate(initialCore?.announcedDate),
+        releaseDate: parseDate(initialCore?.releaseDate),
+        msrpNowUsdCents: initialCore?.msrpNowUsdCents,
+        msrpAtLaunchUsdCents: initialCore?.msrpAtLaunchUsdCents,
+        weightGrams: initialCore?.weightGrams,
+        linkManufacturer:
+          linkManufacturer || initialCore?.linkManufacturer || null,
         linkMpb: normalizedLinkMpb,
-        linkAmazon: linkAmazon || null,
+        linkAmazon: linkAmazon || initialCore?.linkAmazon || null,
+        notes: initialCore?.notes,
         mountId: normalizedMountIds[0] ?? null,
         searchName: buildGearSearchName({ name: displayName, brandName }),
       })
@@ -328,7 +388,10 @@ export async function createGearData(
     } else if (gearType === "ANALOG_CAMERA") {
       await tx.insert(analogCameraSpecs).values({ gearId: createdGear.id });
     } else if (gearType === "LENS") {
-      await tx.insert(lensSpecs).values({ gearId: createdGear.id });
+      await tx.insert(lensSpecs).values({
+        gearId: createdGear.id,
+        ...(pruneUndefined(initialLensSpecs ?? {}) as Record<string, unknown>),
+      } as typeof lensSpecs.$inferInsert);
     }
 
     return createdGear;
@@ -699,8 +762,8 @@ export async function fetchGearOgBackfillCandidatesData(
 
   return {
     eligibleCount,
-    items: items.filter(
-      (item): item is GearOgBackfillCandidate => Boolean(item.thumbnailUrl),
+    items: items.filter((item): item is GearOgBackfillCandidate =>
+      Boolean(item.thumbnailUrl),
     ),
   };
 }

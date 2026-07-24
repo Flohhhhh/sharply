@@ -18,7 +18,8 @@ export default async function AdminGearPage() {
       <div>
         <h2 className="text-2xl font-bold">Bulk Create</h2>
         <p className="text-muted-foreground mt-2">
-          Create many gear items for a brand and type with validation.
+          Import CSV rows, infer brands from names, map lens specs, and validate
+          duplicates before creating gear.
         </p>
         <div className="mt-4">
           <GearBulkCreate />

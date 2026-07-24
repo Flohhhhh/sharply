@@ -1,20 +1,29 @@
 "use client";
 
-import { CheckCircle,Loader2 } from "lucide-react";
+import {
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+  type ColumnDef,
+} from "@tanstack/react-table";
+import {
+  CheckCircle,
+  ChevronDown,
+  Clipboard,
+  Copy,
+  Loader2,
+  Trash2,
+  Upload,
+  XCircle,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import * as React from "react";
-import { useEffect,useState } from "react";
+import { toast } from "sonner";
 import { z } from "zod";
 import { BrandSelect } from "~/components/custom-inputs/brand-select";
-import { MountSelect } from "~/components/custom-inputs/mount-select";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
-import { Card,CardContent,CardHeader,CardTitle } from "~/components/ui/card";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "~/components/ui/collapsible";
+import { Collapsible, CollapsibleContent } from "~/components/ui/collapsible";
 import {
   Dialog,
   DialogContent,
@@ -22,8 +31,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import { Input } from "~/components/ui/input";
-import { Select,SelectContent,SelectItem,SelectTrigger,SelectValue } from "~/components/ui/select";
 import {
   Table,
   TableBody,
@@ -33,11 +48,21 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { Textarea } from "~/components/ui/textarea";
+import {
+  BULK_IMPORT_FIELD_GUIDE,
+  BULK_IMPORT_TEMPLATE_CSV,
+  buildBulkImportAiFixPrompt,
+  buildBulkImportValidationReport,
+  getMappedValueCount,
+  parseGearBulkImportCsv,
+  parseApertureFromName,
+  parseFocalLengthFromName,
+  type BulkImportParsedRow,
+  type BulkImportValidationMessage,
+} from "~/lib/admin/gear-bulk-import";
+import { BRANDS, ENUMS } from "~/lib/constants";
 import { GEAR_PUBLICATION_STATES } from "~/lib/gear/publication-state";
-import { BRANDS,ENUMS } from "~/lib/constants";
-import { useDebounce } from "~/lib/hooks/useDebounce";
 import { humanizeKey } from "~/lib/utils";
-import { parseSingleColumnCsv } from "~/lib/utils/csv";
 import {
   getNameSoftWarnings,
   isBrandNameOnly as isBrandOnlyName,
@@ -51,13 +76,13 @@ type RowValidation = {
   fuzzyMatches: { id: string; name: string; slug: string }[];
 };
 
-type RowState = {
+type ImportRowState = BulkImportParsedRow & {
   id: string;
-  name: string;
-  modelNumber: string;
   validation: RowValidation | null;
+  validationStatus: "pending" | "validating" | "done" | "error";
   proceedAnyway: boolean;
-  status: "idle" | "blocked" | "creating" | "created" | "error" | "pending";
+  expanded: boolean;
+  status: "idle" | "creating" | "created" | "error";
   errorMessage?: string;
   createdSlug?: string;
 };
@@ -67,6 +92,7 @@ const FuzzyItemSchema = z.object({
   name: z.string(),
   slug: z.string(),
 });
+
 const CheckResponse = z.object({
   slugPreview: z.string().default(""),
   hard: z
@@ -78,878 +104,995 @@ const CheckResponse = z.object({
   fuzzy: z.array(FuzzyItemSchema).default([]),
 });
 
-type BulkCreateRowProps = {
-  row: RowState;
-  brandId: string;
-  gearType: GearType | "";
-  canEditRows: boolean;
-  updateRow: (id: string, patch: Partial<RowState>) => void;
-  removeRow: (id: string) => void;
-};
+function getBrandById(brandId: string | undefined) {
+  if (!brandId) return undefined;
+  return BRANDS.find((brand) => brand.id === brandId);
+}
 
-function BulkCreateRow({
-  row,
-  brandId,
-  gearType,
-  canEditRows,
-  updateRow,
-  removeRow,
-}: BulkCreateRowProps): React.JSX.Element {
-  const debounced = useDebounce(
-    `${brandId}|${gearType}|${row.name}|${row.modelNumber}`,
-    450,
-  );
-  const [isValidating, setIsValidating] = React.useState(false);
-  const [isExpanded, setIsExpanded] = React.useState(false);
+function makeManualRow(params: {
+  rowNumber: number;
+  brandId?: string;
+}): ImportRowState {
+  const brand = getBrandById(params.brandId);
+  return {
+    id: crypto.randomUUID(),
+    rowNumber: params.rowNumber,
+    raw: {},
+    name: "",
+    modelNumber: undefined,
+    brandId: brand?.id,
+    brandName: brand?.name,
+    mountIds: [],
+    mountValues: [],
+    core: {},
+    lens: {},
+    inferred: { focalLength: false, aperture: false },
+    validations: [],
+    validation: null,
+    validationStatus: "done",
+    proceedAnyway: false,
+    expanded: false,
+    status: "idle",
+  };
+}
 
-  React.useEffect(() => {
-    const name = row.name.trim();
-    if (!canEditRows || !name) {
-      setIsValidating(false);
-      if (!name) updateRow(row.id, { validation: null });
-      return;
+function applyNameInferences(row: ImportRowState): ImportRowState {
+  const lens = { ...row.lens };
+  const focal = parseFocalLengthFromName(row.name);
+  let focalInferred = row.inferred.focalLength;
+  if (
+    focal &&
+    (row.inferred.focalLength ||
+      (lens.focalLengthMinMm === undefined &&
+        lens.focalLengthMaxMm === undefined))
+  ) {
+    lens.focalLengthMinMm = focal.min;
+    lens.focalLengthMaxMm = focal.max;
+    lens.isPrime = focal.isPrime;
+    focalInferred = true;
+  } else if (!focal && row.inferred.focalLength) {
+    delete lens.focalLengthMinMm;
+    delete lens.focalLengthMaxMm;
+    delete lens.isPrime;
+    focalInferred = false;
+  }
+
+  const aperture = parseApertureFromName(row.name);
+  let apertureInferred = row.inferred.aperture;
+  if (
+    aperture &&
+    (row.inferred.aperture ||
+      (lens.maxApertureWide === undefined &&
+        lens.maxApertureTele === undefined))
+  ) {
+    lens.maxApertureWide = aperture.wide;
+    if (aperture.tele !== undefined) {
+      lens.maxApertureTele = aperture.tele;
+    } else {
+      delete lens.maxApertureTele;
     }
-    setIsValidating(true);
-    const params = new URLSearchParams({
-      brandId,
-      name,
-      modelNumber: row.modelNumber.trim(),
-    }).toString();
-    fetch(`/api/admin/gear/create/check?${params}`)
-      .then((r) => r.json())
-      .then((json) => CheckResponse.parse(json))
-      .then((data) => {
-        const validation: RowValidation = {
-          slugPreview: data.slugPreview ?? "",
-          slugConflict: Boolean(data.hard?.slug),
-          modelConflict: Boolean(data.hard?.modelName),
-          fuzzyMatches: data.fuzzy ?? [],
-        };
-        updateRow(row.id, { validation });
-      })
-      .catch(() => {
-        updateRow(row.id, { validation: null });
-      })
-      .finally(() => setIsValidating(false));
-     
-  }, [debounced]);
+    apertureInferred = true;
+  } else if (!aperture && row.inferred.aperture) {
+    delete lens.maxApertureWide;
+    delete lens.maxApertureTele;
+    apertureInferred = false;
+  }
 
+  return {
+    ...row,
+    lens,
+    inferred: {
+      focalLength: focalInferred,
+      aperture: apertureInferred,
+    },
+  };
+}
+
+function validationMessagesForRow(
+  row: ImportRowState,
+  gearType: GearType | "",
+): BulkImportValidationMessage[] {
+  const messages: BulkImportValidationMessage[] = [];
   const v = row.validation;
-  const brandName = BRANDS.find((b) => b.id === brandId)?.name;
-  const isBrandNameOnly = isBrandOnlyName({ name: row.name, brandName });
-  const softWarnings = getNameSoftWarnings({
+  const brandNameOnly = isBrandOnlyName({
     name: row.name,
-    brandName,
-    gearType,
+    brandName: row.brandName,
   });
-  const nikkorWarn = softWarnings.some((w) => w.id === "nikkor");
-  const missingMmWarn = softWarnings.some((w) => w.id === "missing-mm");
-  const missingApertureWarn = softWarnings.some(
-    (w) => w.id === "missing-aperture",
+
+  if (!row.name.trim()) {
+    messages.push({ level: "error", message: "Name is required." });
+  }
+  if (!row.brandId) {
+    messages.push({ level: "error", message: "Brand is required." });
+  }
+  if (
+    row.validationStatus === "pending" ||
+    row.validationStatus === "validating"
+  ) {
+    messages.push({
+      level: "warning",
+      message: "Duplicate check is still running.",
+    });
+  }
+  if (row.validationStatus === "error") {
+    messages.push({
+      level: "warning",
+      message: "Duplicate check failed. Try importing again.",
+    });
+  }
+  if (brandNameOnly) {
+    messages.push({
+      level: "error",
+      message: `Name is only the brand "${row.brandName}". Add the specific product name.`,
+    });
+  }
+  if (v?.slugConflict) {
+    messages.push({
+      level: "error",
+      message: `Slug "${v.slugPreview}" already exists.`,
+    });
+  }
+  if (v?.modelConflict) {
+    messages.push({
+      level: "error",
+      message: `Model number "${row.modelNumber}" already exists.`,
+    });
+  }
+  if ((v?.fuzzyMatches.length ?? 0) > 0 && !row.proceedAnyway) {
+    messages.push({
+      level: "warning",
+      message: `Similar items found: ${v!.fuzzyMatches
+        .slice(0, 5)
+        .map((match) => `${match.name} (${match.slug})`)
+        .join("; ")}. Mark reviewed if this is not a duplicate.`,
+    });
+  }
+
+  for (const warning of getNameSoftWarnings({
+    name: row.name,
+    brandName: row.brandName,
+    gearType,
+  })) {
+    messages.push({ level: "warning", message: warning.description });
+  }
+
+  if (row.status === "error") {
+    messages.push({
+      level: "error",
+      message: `Creation failed: ${row.errorMessage ?? "Create failed."}`,
+    });
+  }
+
+  return messages;
+}
+
+function isRowReady(row: ImportRowState, gearType: GearType | ""): boolean {
+  const parseErrors = row.validations.some(
+    (message) => message.level === "error",
   );
-  const lensFormatWarn = missingMmWarn || missingApertureWarn;
-  const hardBlocked = v?.slugConflict || v?.modelConflict || isBrandNameOnly;
-  const fuzzyWarn = (v?.fuzzyMatches?.length || 0) > 0;
-  const softWarn = nikkorWarn || missingMmWarn || missingApertureWarn;
-  const canProceed = !hardBlocked && (!fuzzyWarn || row.proceedAnyway);
-  const isFailing =
-    !!row.name.trim() && (!canProceed || row.status === "error");
-  const isSoftOnly = softWarn && !hardBlocked && !fuzzyWarn;
-  const isReviewed = row.proceedAnyway || !isFailing;
-  const hasValidationIssues = hardBlocked || fuzzyWarn || softWarn;
-  const columnCount = 5;
+  const duplicateMessages = validationMessagesForRow(row, gearType);
+  const hardErrors = duplicateMessages.some(
+    (message) => message.level === "error",
+  );
+  const fuzzyNeedsReview =
+    (row.validation?.fuzzyMatches.length ?? 0) > 0 && !row.proceedAnyway;
 
   return (
-    <>
-      <TableRow
-        key={row.id}
-        className={
-          isFailing && !row.proceedAnyway
-            ? "bg-red-50 hover:bg-red-50 dark:bg-red-950/20"
-            : undefined
-        }
-      >
-        <TableCell>
-          <Input
-            value={row.name}
-            onChange={(e) => updateRow(row.id, { name: e.target.value })}
-            placeholder={
-              canEditRows ? "Product name…" : "Select brand and type first"
-            }
-            disabled={!canEditRows || row.status === "created"}
-          />
-        </TableCell>
-        <TableCell>
-          <Input
-            value={row.modelNumber}
-            onChange={(e) => updateRow(row.id, { modelNumber: e.target.value })}
-            placeholder="Optional"
-            disabled={!canEditRows || row.status === "created"}
-          />
-        </TableCell>
-        <TableCell>
-          <div className="text-muted-foreground truncate text-sm">
-            {v?.slugPreview || "—"}
-          </div>
-        </TableCell>
-        <TableCell>
-          <div className="flex flex-wrap items-start gap-2">
-            {isValidating ? (
-              <Loader2 className="text-muted-foreground h-4 w-4 animate-spin" />
-            ) : hasValidationIssues ? (
-              <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-                <CollapsibleTrigger asChild>
-                  <Badge
-                    variant={isSoftOnly ? "secondary" : "destructive"}
-                    className={`cursor-pointer ${
-                      isSoftOnly ? "0 bg-amber-500/80 text-amber-950" : ""
-                    }`}
-                  >
-                    {isReviewed ? "Reviewed" : "Needs review"}
-                    <svg
-                      className={`ml-1 h-3 w-3 transition-transform ${
-                        isExpanded ? "rotate-180" : ""
-                      }`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </Badge>
-                </CollapsibleTrigger>
-              </Collapsible>
-            ) : row.validation ? (
-              <CheckCircle className="h-4 w-4 text-emerald-500" />
-            ) : (
-              <div className="h-4 w-4" />
-            )}
-          </div>
-        </TableCell>
-        <TableCell>
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => removeRow(row.id)}
-              disabled={!canEditRows || row.status === "creating"}
-            >
-              Remove
-            </Button>
-          </div>
-        </TableCell>
-      </TableRow>
-      {hasValidationIssues && (
-        <TableRow>
-          <TableCell colSpan={columnCount} className="p-0">
-            <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-              <CollapsibleContent className="mb-2 space-y-3 rounded-md p-3">
-                {v?.slugConflict && (
-                  <div className="space-y-2">
-                    <h4 className="text-destructive font-medium">
-                      Slug Conflict
-                    </h4>
-                    <p className="text-muted-foreground text-sm">
-                      The slug "{v.slugPreview}" already exists in the database.
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          window.open(`/gear/${v.slugPreview}`, "_blank")
-                        }
-                      >
-                        View existing item
-                      </Button>
-                    </div>
-                  </div>
-                )}
-                {isBrandNameOnly && (
-                  <div className="space-y-2">
-                    <h4 className="text-destructive font-medium">
-                      Brand Name Only
-                    </h4>
-                    <p className="text-muted-foreground text-sm">
-                      Please enter the specific product name, not just the brand
-                      name "{brandName}".
-                    </p>
-                  </div>
-                )}
-                {nikkorWarn && (
-                  <div className="space-y-2">
-                    <h4 className="font-medium text-amber-600">
-                      Suggestion: add "Nikkor"
-                    </h4>
-                    <p className="text-muted-foreground text-sm">
-                      Nikon lenses are commonly named with the Nikkor prefix,
-                      e.g.
-                      <span className="font-medium">
-                        {" "}
-                        Nikon Nikkor Z 400 f/4.5
-                      </span>
-                      . Consider adding "Nikkor" after "Nikon".
-                    </p>
-                  </div>
-                )}
-                {lensFormatWarn && (
-                  <div className="space-y-2">
-                    <h4 className="font-medium text-amber-600">
-                      Suggestion: add focal length and aperture
-                    </h4>
-                    <p className="text-muted-foreground text-sm">
-                      Lens names typically include focal length (e.g.,
-                      "24-70mm") and maximum aperture (e.g., "f/2.8"). Consider
-                      adding these details.
-                    </p>
-                  </div>
-                )}
-                {missingMmWarn && (
-                  <div className="space-y-2">
-                    <h4 className="font-medium text-amber-600">
-                      Suggestion: add focal length
-                    </h4>
-                    <p className="text-muted-foreground text-sm">
-                      Lens names typically include focal length, e.g.,
-                      "24-70mm".
-                    </p>
-                  </div>
-                )}
-                {missingApertureWarn && (
-                  <div className="space-y-2">
-                    <h4 className="font-medium text-amber-600">
-                      Suggestion: add maximum aperture
-                    </h4>
-                    <p className="text-muted-foreground text-sm">
-                      Lens names typically include maximum aperture, e.g.,
-                      "f/2.8".
-                    </p>
-                  </div>
-                )}
-                {softWarnings.some((w) => w.id === "canon-eos") && (
-                  <div className="space-y-2">
-                    <h4 className="font-medium text-amber-600">
-                      Suggestion: add "EOS"
-                    </h4>
-                    <p className="text-muted-foreground text-sm">
-                      Canon digital ILC cameras are typically named with the EOS
-                      prefix (e.g., "Canon EOS R5"). Consider adding "EOS" after
-                      "Canon".
-                    </p>
-                  </div>
-                )}
-                {v?.modelConflict && (
-                  <div className="space-y-2">
-                    <h4 className="text-destructive font-medium">
-                      Model Number Conflict
-                    </h4>
-                    <p className="text-muted-foreground text-sm">
-                      The model number "{row.modelNumber}" already exists in the
-                      database.
-                    </p>
-                  </div>
-                )}
-                {fuzzyWarn &&
-                  v?.fuzzyMatches &&
-                  v.fuzzyMatches.length > 0 &&
-                  !v?.slugConflict && (
-                    <div className="space-y-2">
-                      <h4 className="font-medium text-amber-600">
-                        Fuzzy Matches ({v.fuzzyMatches.length})
-                      </h4>
-                      <p className="text-muted-foreground text-sm">
-                        Similar items were found. Review to avoid duplicates.
-                      </p>
-                      <div className="space-y-2">
-                        {v.fuzzyMatches.slice(0, 5).map((match) => (
-                          <div
-                            key={match.id}
-                            className="bg-background flex items-center justify-between rounded border p-2"
-                          >
-                            <div>
-                              <p className="font-medium">{match.name}</p>
-                              <p className="text-muted-foreground text-sm">
-                                {match.slug}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                        {v.fuzzyMatches.length > 5 && (
-                          <p className="text-muted-foreground text-sm">
-                            ... and {v.fuzzyMatches.length - 5} more matches
-                          </p>
-                        )}
-                      </div>
-                      {!v?.slugConflict && !v?.modelConflict && (
-                        <div className="flex items-center gap-2">
-                          <input
-                            id={`proceed-${row.id}`}
-                            type="checkbox"
-                            className="h-4 w-4"
-                            checked={row.proceedAnyway}
-                            onChange={(e) =>
-                              updateRow(row.id, {
-                                proceedAnyway: e.target.checked,
-                              })
-                            }
-                            disabled={row.status === "created"}
-                          />
-                          <label
-                            htmlFor={`proceed-${row.id}`}
-                            className="text-sm"
-                          >
-                            {row.proceedAnyway
-                              ? "Reviewed – not a duplicate"
-                              : "Proceed anyway – I confirm this isn’t a duplicate"}
-                          </label>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                {row.status === "error" && (
-                  <div className="mt-2 text-sm text-red-600">
-                    {row.errorMessage || "Error"}
-                  </div>
-                )}
-                {row.status === "created" && row.createdSlug && (
-                  <div className="mt-2 text-sm text-green-600">
-                    Created: {row.createdSlug}
-                  </div>
-                )}
-              </CollapsibleContent>
-            </Collapsible>
-          </TableCell>
-        </TableRow>
-      )}
-    </>
+    row.name.trim().length > 0 &&
+    Boolean(row.brandId) &&
+    !parseErrors &&
+    !hardErrors &&
+    !fuzzyNeedsReview &&
+    row.validationStatus === "done" &&
+    row.status !== "created"
   );
+}
+
+function formatFocal(row: ImportRowState): string {
+  const min = row.lens.focalLengthMinMm;
+  const max = row.lens.focalLengthMaxMm;
+  if (min === undefined && max === undefined) return "—";
+  if (min !== undefined && max !== undefined && min !== max) {
+    return `${min}-${max}mm${row.inferred.focalLength ? " inferred" : ""}`;
+  }
+  return `${min ?? max}mm${row.inferred.focalLength ? " inferred" : ""}`;
+}
+
+function formatAperture(row: ImportRowState): string {
+  const wide = row.lens.maxApertureWide;
+  const tele = row.lens.maxApertureTele;
+  if (wide === undefined) return "—";
+  if (tele !== undefined && tele !== wide) {
+    return `f/${wide}-${tele}${row.inferred.aperture ? " inferred" : ""}`;
+  }
+  return `f/${wide}${row.inferred.aperture ? " inferred" : ""}`;
+}
+
+function RowDetails({
+  row,
+  gearType,
+  onToggleProceed,
+}: {
+  row: ImportRowState;
+  gearType: GearType | "";
+  onToggleProceed: (id: string) => void;
+}) {
+  const messages = [
+    ...row.validations,
+    ...validationMessagesForRow(row, gearType),
+  ];
+
+  return (
+    <div className="max-w-full min-w-0 overflow-hidden p-4">
+      {messages.length > 0 ? (
+        <div className="flex flex-col gap-2">
+          {messages.map((message, index) => (
+            <div
+              key={`${message.level}-${index}`}
+              className="flex min-w-0 items-start gap-2 text-sm"
+            >
+              <Badge
+                variant={
+                  message.level === "error" ? "destructive" : "secondary"
+                }
+                className="shrink-0"
+              >
+                {message.level}
+              </Badge>
+              <span className="min-w-0 break-words whitespace-normal">
+                {message.message}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-muted-foreground text-sm">
+          No validation issues.
+        </div>
+      )}
+      {(row.validation?.fuzzyMatches.length ?? 0) > 0 ? (
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={row.proceedAnyway}
+            onChange={() => onToggleProceed(row.id)}
+            disabled={row.status === "created"}
+          />
+          Reviewed; this row is not a duplicate.
+        </label>
+      ) : null}
+    </div>
+  );
+}
+
+async function copyText(text: string, label: string) {
+  await navigator.clipboard.writeText(text);
+  toast.success(label);
 }
 
 export default function GearBulkCreate(): React.JSX.Element {
   const t = useTranslations("gearDetail");
-  const [brandId, setBrandId] = React.useState<string>("");
-  const [gearType, setGearType] = React.useState<GearType | "">("");
+  const [gearType, setGearType] = React.useState<GearType | "">("LENS");
   const [publicationState, setPublicationState] = React.useState<
     "PUBLISHED" | "RUMORED" | "HIDDEN"
   >(GEAR_PUBLICATION_STATES.PUBLISHED);
-  const [selectedMountId, setSelectedMountId] = React.useState<string>("");
-  const [rows, setRows] = React.useState<RowState[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [successCount, setSuccessCount] = useState(0);
-  const [isCsvOpen, setIsCsvOpen] = useState(false);
-  const [csvText, setCsvText] = useState("");
+  const [rows, setRows] = React.useState<ImportRowState[]>([]);
+  const [csvText, setCsvText] = React.useState(BULK_IMPORT_TEMPLATE_CSV);
+  const [isCsvOpen, setIsCsvOpen] = React.useState(false);
+  const [isImporting, setIsImporting] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [parseErrors, setParseErrors] = React.useState<string[]>([]);
+  const [unknownHeaders, setUnknownHeaders] = React.useState<string[]>([]);
+  const validationTimers = React.useRef<
+    Map<string, ReturnType<typeof setTimeout>>
+  >(new Map());
 
-  // Brands come from generated constants
+  const patchRow = React.useCallback(
+    (id: string, patch: Partial<ImportRowState>) => {
+      setRows((current) =>
+        current.map((row) => (row.id === id ? { ...row, ...patch } : row)),
+      );
+    },
+    [],
+  );
 
-  const canEditRows = Boolean(brandId && gearType);
-  const canInteractRows =
-    canEditRows && !isSubmitting && !isImporting && !isSuccess;
-  const validRows = rows.filter((r) => {
-    const v = r.validation;
-    const brandName = BRANDS.find((b) => b.id === brandId)?.name;
-    const isBrandNameOnly = isBrandOnlyName({ name: r.name, brandName });
+  const validateRows = React.useCallback(
+    async (rowsToValidate: ImportRowState[]) => {
+      for (const row of rowsToValidate) {
+        if (!row.brandId || !row.name.trim()) {
+          patchRow(row.id, { validationStatus: "done", validation: null });
+          continue;
+        }
 
-    return (
-      v &&
-      !v.slugConflict &&
-      !v.modelConflict &&
-      (v.fuzzyMatches.length === 0 || r.proceedAnyway) &&
-      !isBrandNameOnly
-    );
-  });
-  const anyFailing = rows.some((r) => {
-    const v = r.validation;
-    const brandName = BRANDS.find((b) => b.id === brandId)?.name;
-    const isBrandNameOnly = isBrandOnlyName({ name: r.name, brandName });
+        patchRow(row.id, { validationStatus: "validating" });
+        const params = new URLSearchParams({
+          brandId: row.brandId,
+          name: row.name,
+          modelNumber: row.modelNumber ?? "",
+        }).toString();
 
-    return (
-      !!r.name.trim() &&
-      (!v ||
-        v.slugConflict ||
-        v.modelConflict ||
-        (v.fuzzyMatches.length > 0 && !r.proceedAnyway) ||
-        isBrandNameOnly)
-    );
-  });
+        try {
+          const response = await fetch(
+            `/api/admin/gear/create/check?${params}`,
+          );
+          const json = await response.json();
+          const data = CheckResponse.parse(json);
+          patchRow(row.id, {
+            validationStatus: "done",
+            validation: {
+              slugPreview: data.slugPreview,
+              slugConflict: Boolean(data.hard.slug),
+              modelConflict: Boolean(data.hard.modelName),
+              fuzzyMatches: data.fuzzy,
+            },
+          });
+        } catch {
+          patchRow(row.id, { validationStatus: "error", validation: null });
+        }
+      }
+    },
+    [patchRow],
+  );
 
-  const addRow = () => {
-    const newRow: RowState = {
-      id: crypto.randomUUID(),
-      name: "",
-      modelNumber: "",
-      validation: null,
-      proceedAnyway: false,
-      status: "pending",
+  const queueRowValidation = React.useCallback(
+    (row: ImportRowState) => {
+      const currentTimer = validationTimers.current.get(row.id);
+      if (currentTimer) clearTimeout(currentTimer);
+
+      const timer = setTimeout(() => {
+        validationTimers.current.delete(row.id);
+        void validateRows([row]);
+      }, 450);
+      validationTimers.current.set(row.id, timer);
+    },
+    [validateRows],
+  );
+
+  React.useEffect(() => {
+    return () => {
+      for (const timer of validationTimers.current.values()) {
+        clearTimeout(timer);
+      }
+      validationTimers.current.clear();
     };
-    setRows((prev) => [...prev, newRow]);
-  };
+  }, []);
 
-  const handleImportCsv = async () => {
-    if (!canEditRows) return;
-    const parsed = parseSingleColumnCsv(csvText);
-    if (parsed.length === 0) {
-      setIsCsvOpen(false);
-      setCsvText("");
-      return;
-    }
-    const existing = new Set(
-      rows.map((r) => r.name.trim().toLowerCase()).filter((n) => n.length > 0),
-    );
-    const uniqueNames: string[] = [];
-    for (const raw of parsed) {
-      const t = raw.trim();
-      if (!t) continue;
-      const key = t.toLowerCase();
-      if (existing.has(key)) continue;
-      existing.add(key);
-      uniqueNames.push(t);
-    }
-    if (uniqueNames.length === 0) {
-      setIsCsvOpen(false);
-      setCsvText("");
-      return;
-    }
+  const updateEditableRow = React.useCallback(
+    (
+      id: string,
+      patch: Partial<
+        Pick<ImportRowState, "name" | "modelNumber" | "brandId" | "brandName">
+      >,
+    ) => {
+      const current = rows.find((row) => row.id === id);
+      if (!current || current.status === "created") return;
+
+      const withBrand =
+        patch.brandId !== undefined
+          ? (() => {
+              const brand = getBrandById(patch.brandId);
+              return {
+                ...patch,
+                brandId: brand?.id,
+                brandName: brand?.name,
+              };
+            })()
+          : patch;
+      const next = applyNameInferences({
+        ...current,
+        ...withBrand,
+        validation: null,
+        validationStatus: "pending",
+        status: "idle",
+        errorMessage: undefined,
+        proceedAnyway: false,
+      });
+
+      setRows((existing) =>
+        existing.map((row) => (row.id === id ? next : row)),
+      );
+      queueRowValidation(next);
+    },
+    [queueRowValidation, rows],
+  );
+
+  const importCsv = React.useCallback(async () => {
     setIsImporting(true);
     try {
-      for (const name of uniqueNames) {
-        const newRow: RowState = {
-          id: crypto.randomUUID(),
-          name,
-          modelNumber: "",
-          validation: null,
-          proceedAnyway: false,
-          status: "pending",
-        };
-        setRows((prev) => [...prev, newRow]);
-        // Stagger additions slightly so validations fire in sequence
-        await new Promise((r) => setTimeout(r, 50));
+      const parsed = parseGearBulkImportCsv(csvText);
+      setParseErrors(parsed.errors);
+      setUnknownHeaders(parsed.unknownHeaders);
+      const nextRows: ImportRowState[] = parsed.rows.map((row) => ({
+        ...row,
+        id: crypto.randomUUID(),
+        validation: null,
+        validationStatus: "pending",
+        proceedAnyway: false,
+        expanded: false,
+        status: "idle",
+      }));
+      setRows(nextRows);
+      if (parsed.errors.length === 0) {
+        setIsCsvOpen(false);
+        void validateRows(nextRows);
       }
-      setIsCsvOpen(false);
-      setCsvText("");
     } finally {
       setIsImporting(false);
     }
-  };
+  }, [csvText, validateRows]);
 
-  const updateRow = (id: string, patch: Partial<RowState>) => {
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
-  };
+  const removeRow = React.useCallback((id: string) => {
+    setRows((current) => current.filter((row) => row.id !== id));
+  }, []);
 
-  const removeRow = (id: string) => {
-    setRows((prev) => prev.filter((r) => r.id !== id));
-  };
+  const addManualRow = React.useCallback(() => {
+    const lastRow = rows.at(-1);
+    const nextRow = makeManualRow({
+      rowNumber: rows.reduce((max, row) => Math.max(max, row.rowNumber), 0) + 1,
+      brandId: lastRow?.brandId,
+    });
+    setRows((current) => [...current, nextRow]);
+  }, [rows]);
 
-  const createAll = async () => {
-    if (!canEditRows || validRows.length === 0) return;
+  const toggleExpanded = React.useCallback((id: string) => {
+    setRows((current) =>
+      current.map((row) =>
+        row.id === id ? { ...row, expanded: !row.expanded } : row,
+      ),
+    );
+  }, []);
+
+  const toggleProceed = React.useCallback((id: string) => {
+    setRows((current) =>
+      current.map((row) =>
+        row.id === id ? { ...row, proceedAnyway: !row.proceedAnyway } : row,
+      ),
+    );
+  }, []);
+
+  const readyRows = React.useMemo(
+    () => rows.filter((row) => isRowReady(row, gearType)),
+    [gearType, rows],
+  );
+
+  const validationReport = React.useMemo(
+    () =>
+      buildBulkImportValidationReport(
+        rows.map((row) => ({
+          rowNumber: row.rowNumber,
+          name: row.name,
+          brandName: row.brandName,
+          mountValues: row.mountValues,
+          validations: row.validations,
+          duplicateMessages: validationMessagesForRow(row, gearType),
+        })),
+      ),
+    [gearType, rows],
+  );
+
+  const aiFixPrompt = React.useMemo(
+    () =>
+      buildBulkImportAiFixPrompt({
+        csvText,
+        validationReport,
+        fieldGuide: BULK_IMPORT_FIELD_GUIDE,
+      }),
+    [csvText, validationReport],
+  );
+
+  const createAll = React.useCallback(async () => {
+    if (!gearType || readyRows.length === 0) return;
     setIsSubmitting(true);
     let createdCount = 0;
+
     try {
-      for (const r of validRows) {
-        const name = r.name.trim();
-        if (!name) continue;
-        const v = r.validation;
-        const canCreate =
-          v &&
-          !v.slugConflict &&
-          !v.modelConflict &&
-          (v.fuzzyMatches.length === 0 || r.proceedAnyway);
-        if (!canCreate) {
-          updateRow(r.id, { status: "blocked" });
-          continue;
-        }
-        updateRow(r.id, { status: "creating" });
+      const { actionCreateGear } = await import("~/server/admin/gear/actions");
+      for (const row of readyRows) {
+        if (!row.brandId) continue;
+        patchRow(row.id, { status: "creating", errorMessage: undefined });
         try {
-          const { actionCreateGear } =
-            await import("~/server/admin/gear/actions");
-        const sharedMountId =
-          selectedMountId.trim().length > 0 ? selectedMountId.trim() : "";
-        const mountPayload =
-          sharedMountId.length > 0 ? [sharedMountId] : undefined;
           const result = await actionCreateGear({
-            name,
-            modelNumber: r.modelNumber.trim() || undefined,
-            brandId,
-            mountIds: mountPayload,
-            gearType: gearType as GearType,
+            name: row.name,
+            modelNumber: row.modelNumber,
+            brandId: row.brandId,
+            gearType,
             publicationState,
-            force: r.proceedAnyway,
+            mountIds: row.mountIds.length > 0 ? row.mountIds : undefined,
+            initialCore: row.core,
+            initialLensSpecs: gearType === "LENS" ? row.lens : undefined,
+            force: row.proceedAnyway,
           });
-          updateRow(r.id, { status: "created", createdSlug: result.slug });
+          createdCount++;
+          patchRow(row.id, {
+            status: "created",
+            createdSlug: result.slug,
+            expanded: false,
+          });
         } catch (error) {
-          updateRow(r.id, {
+          patchRow(row.id, {
             status: "error",
             errorMessage:
-              error instanceof Error ? error.message : "Unknown error",
+              error instanceof Error ? error.message : "Unknown create error.",
           });
-          continue;
         }
-        createdCount++;
       }
-      // Show success state and clear form
-      setSuccessCount(createdCount);
-      setIsSuccess(true);
-      console.log(
-        "🎉 Success! Created",
-        createdCount,
-        "items. Setting success state to true",
+      toast.success(
+        `Created ${createdCount} gear item${createdCount === 1 ? "" : "s"}`,
       );
-      setRows([]);
-      setBrandId("");
-      setGearType("");
-      setPublicationState(GEAR_PUBLICATION_STATES.PUBLISHED);
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [gearType, patchRow, publicationState, readyRows]);
 
-  // Reset success state and rows when brand/type changes
-  useEffect(() => {
-    if (brandId || gearType) {
-      setRows([]);
-    }
-    if (isSuccess) {
-      console.log("🔄 Resetting success state due to brand/type change");
-    }
-    setIsSuccess(false);
-    setSuccessCount(0);
-    setSelectedMountId("");
-  }, [brandId, gearType]);
-
-  return (
-    <div className="space-y-4">
-      {isSuccess && (
-        <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <svg
-                  className="h-6 w-6 text-green-600"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M20 6L9 17l-5-5" />
-                </svg>
-                <div>
-                  <h3 className="text-lg font-semibold text-green-800 dark:text-green-200">
-                    🎉 Successfully created {successCount} gear item
-                    {successCount !== 1 ? "s" : ""}!
-                  </h3>
-                  <p className="text-sm text-green-600 dark:text-green-300">
-                    The form has been cleared. You can create more items or
-                    start a new batch.
-                  </p>
-                </div>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsSuccess(false)}
-                className="border-green-300 text-green-700 hover:bg-green-100 dark:border-green-600 dark:text-green-300 dark:hover:bg-green-900/30"
-              >
-                Dismiss
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Bulk Create Gear</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-4">
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Brand</label>
-              <BrandSelect
-                value={brandId}
-                onChange={setBrandId}
-                disabled={isImporting || isSubmitting}
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Type</label>
-              <Select
-                value={gearType}
-                onValueChange={(v) => setGearType(v as GearType)}
-                disabled={isImporting || isSubmitting}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(ENUMS.gear_type ?? []).map((v) => (
-                    <SelectItem key={v} value={v}>
-                      {v === "ANALOG_CAMERA" ? "Analog Camera" : humanizeKey(v)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Mount</label>
-              <MountSelect
-                mode="single"
-                value={selectedMountId}
-                onChange={(val) => {
-                  const next = typeof val === "string" ? val : "";
-                  setSelectedMountId(next);
-                }}
-                brandId={brandId || undefined}
-                placeholder="Optional (applies to every row)"
-                disabled={!gearType || !canInteractRows || isSuccess}
-                showLabel={false}
-                className="w-full"
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm font-medium">
-                {t("publicationStateLabel")}
-              </label>
-              <Select
-                value={publicationState}
-                onValueChange={(value) =>
-                  setPublicationState(
-                    value as "PUBLISHED" | "RUMORED" | "HIDDEN",
-                  )
-                }
-                disabled={isImporting || isSubmitting}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={GEAR_PUBLICATION_STATES.PUBLISHED}>
-                    {t("publicationStatePublished")}
-                  </SelectItem>
-                  <SelectItem value={GEAR_PUBLICATION_STATES.RUMORED}>
-                    {t("publicationStateRumored")}
-                  </SelectItem>
-                  <SelectItem value={GEAR_PUBLICATION_STATES.HIDDEN}>
-                    {t("publicationStateHidden")}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+  const columns = React.useMemo<ColumnDef<ImportRowState>[]>(
+    () => [
+      {
+        id: "rowNumber",
+        header: "#",
+        cell: ({ row }) => row.original.rowNumber,
+      },
+      {
+        accessorKey: "brandName",
+        header: "Brand",
+        cell: ({ row }) => (
+          <BrandSelect
+            value={row.original.brandId ?? ""}
+            onChange={(brandId) =>
+              updateEditableRow(row.original.id, { brandId })
+            }
+            disabled={row.original.status === "created"}
+            placeholder="Brand"
+            allowClear
+            className="min-w-[10rem]"
+          />
+        ),
+      },
+      {
+        accessorKey: "name",
+        header: "Name",
+        cell: ({ row }) => (
+          <Input
+            value={row.original.name}
+            onChange={(event) =>
+              updateEditableRow(row.original.id, {
+                name: event.target.value,
+              })
+            }
+            disabled={row.original.status === "created"}
+            placeholder="Product name"
+            className="min-w-[18rem]"
+          />
+        ),
+      },
+      {
+        accessorKey: "modelNumber",
+        header: "Model",
+        cell: ({ row }) => (
+          <Input
+            value={row.original.modelNumber ?? ""}
+            onChange={(event) =>
+              updateEditableRow(row.original.id, {
+                modelNumber: event.target.value.trim() || undefined,
+              })
+            }
+            disabled={row.original.status === "created"}
+            placeholder="Optional"
+            className="min-w-[9rem]"
+          />
+        ),
+      },
+      {
+        id: "mounts",
+        header: "Mounts",
+        cell: ({ row }) =>
+          row.original.mountValues.length > 0
+            ? row.original.mountValues.join(", ")
+            : "—",
+      },
+      {
+        id: "lens",
+        header: "Focal / Aperture",
+        cell: ({ row }) => (
+          <div className="text-sm">
+            <div>{formatFocal(row.original)}</div>
+            <div className="text-muted-foreground">
+              {formatAperture(row.original)}
             </div>
           </div>
+        ),
+      },
+      {
+        id: "mapped",
+        header: "Mapped",
+        cell: ({ row }) => getMappedValueCount(row.original),
+      },
+      {
+        id: "status",
+        header: "Validation",
+        cell: ({ row }) => {
+          const original = row.original;
+          const messages = [
+            ...original.validations,
+            ...validationMessagesForRow(original, gearType),
+          ];
+          const hasError = messages.some(
+            (message) => message.level === "error",
+          );
+          const hasWarning = messages.some(
+            (message) => message.level === "warning",
+          );
+          const reviewedDuplicate =
+            (original.validation?.fuzzyMatches.length ?? 0) > 0 &&
+            original.proceedAnyway;
 
-          <div className="overflow-hidden rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[30%]">Name</TableHead>
-                  <TableHead className="w-[20%]">Model Number</TableHead>
-                  <TableHead className="w-[20%]">Slug Preview</TableHead>
-                  <TableHead className="w-[20%]">Validation</TableHead>
-                  <TableHead className="w-[10%]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={5}
-                      className="text-muted-foreground text-center text-sm"
-                    >
-                      {isSuccess
-                        ? "Form cleared after successful creation"
-                        : "Add rows to begin"}
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  rows.map((r) => (
-                    <BulkCreateRow
-                      key={r.id}
-                      row={r}
-                      brandId={brandId}
-                      gearType={gearType}
-                      canEditRows={canEditRows}
-                      updateRow={updateRow}
-                      removeRow={removeRow}
-                    />
-                  ))
-                )}
-              </TableBody>
-            </Table>
-            <div className="bg-muted/30 flex items-center gap-2 border-t p-3">
-              <Button
-                type="button"
-                onClick={addRow}
-                disabled={!canInteractRows}
-                variant="outline"
-                size="sm"
-              >
-                + Add Row
-              </Button>
-              <Dialog open={isCsvOpen} onOpenChange={setIsCsvOpen}>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsCsvOpen(true)}
-                  disabled={
-                    !canEditRows || isImporting || isSubmitting || isSuccess
-                  }
-                >
-                  Import with CSV
-                </Button>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Import from CSV</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-2">
-                    <p className="text-muted-foreground text-sm">
-                      Paste a single column of names. The first column will be
-                      used.
-                    </p>
-                    <Textarea
-                      value={csvText}
-                      onChange={(e) => setCsvText(e.target.value)}
-                      placeholder="One name per line or first column of CSV"
-                      rows={10}
-                    />
-                  </div>
-                  <DialogFooter>
+          if (original.status === "created") {
+            return (
+              <Badge variant="secondary">
+                <CheckCircle data-icon="inline-start" />
+                Created
+              </Badge>
+            );
+          }
+          if (
+            original.status === "creating" ||
+            original.validationStatus === "validating"
+          ) {
+            return (
+              <Badge variant="secondary">
+                <Loader2 data-icon="inline-start" className="animate-spin" />
+                Checking
+              </Badge>
+            );
+          }
+          if (hasError) {
+            return (
+              <Badge variant="destructive">
+                <XCircle data-icon="inline-start" />
+                Errors
+              </Badge>
+            );
+          }
+          if (reviewedDuplicate) {
+            return (
+              <Badge variant="secondary">
+                <CheckCircle data-icon="inline-start" />
+                Reviewed
+              </Badge>
+            );
+          }
+          if (hasWarning) {
+            return <Badge variant="secondary">Review</Badge>;
+          }
+          return (
+            <Badge variant="secondary">
+              <CheckCircle data-icon="inline-start" />
+              Ready
+            </Badge>
+          );
+        },
+      },
+      {
+        id: "actions",
+        header: "",
+        cell: ({ row }) => (
+          <div className="flex justify-end gap-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => toggleExpanded(row.original.id)}
+            >
+              <ChevronDown
+                data-icon="inline-start"
+                className={row.original.expanded ? "rotate-180" : undefined}
+              />
+              Details
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              aria-label="Remove row"
+              onClick={() => removeRow(row.original.id)}
+              disabled={row.original.status === "creating"}
+            >
+              <Trash2 data-icon="inline-start" />
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    [gearType, removeRow, toggleExpanded, updateEditableRow],
+  );
+
+  const table = useReactTable({
+    data: rows,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
+
+  const conflictCount = rows.filter(
+    (row) =>
+      row.validations.some((message) => message.level === "error") ||
+      validationMessagesForRow(row, gearType).some(
+        (message) => message.level === "error",
+      ),
+  ).length;
+  const reviewCount = rows.filter(
+    (row) =>
+      (row.validation?.fuzzyMatches.length ?? 0) > 0 && !row.proceedAnyway,
+  ).length;
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-[minmax(12rem,16rem)_minmax(12rem,16rem)_1fr]">
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium">Type</label>
+          <Select
+            value={gearType}
+            onValueChange={(value) => setGearType(value as GearType)}
+            disabled={isSubmitting}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a type" />
+            </SelectTrigger>
+            <SelectContent>
+              {(ENUMS.gear_type ?? []).map((value) => (
+                <SelectItem key={value} value={value}>
+                  {value === "ANALOG_CAMERA"
+                    ? "Analog Camera"
+                    : humanizeKey(value)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium">
+            {t("publicationStateLabel")}
+          </label>
+          <Select
+            value={publicationState}
+            onValueChange={(value) =>
+              setPublicationState(value as "PUBLISHED" | "RUMORED" | "HIDDEN")
+            }
+            disabled={isSubmitting}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={GEAR_PUBLICATION_STATES.PUBLISHED}>
+                {t("publicationStatePublished")}
+              </SelectItem>
+              <SelectItem value={GEAR_PUBLICATION_STATES.RUMORED}>
+                {t("publicationStateRumored")}
+              </SelectItem>
+              <SelectItem value={GEAR_PUBLICATION_STATES.HIDDEN}>
+                {t("publicationStateHidden")}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex gap-2 md:justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={addManualRow}
+            disabled={isSubmitting}
+          >
+            + Add Row
+          </Button>
+          <Dialog open={isCsvOpen} onOpenChange={setIsCsvOpen}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsCsvOpen(true)}
+              disabled={isSubmitting}
+            >
+              <Upload data-icon="inline-start" />
+              Paste CSV
+            </Button>
+            <DialogContent className="max-h-[90vh] w-[calc(100vw-2rem)] max-w-none overflow-y-auto sm:w-[min(92vw,84rem)]">
+              <DialogHeader>
+                <DialogTitle>Import from CSV</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-3 lg:grid-cols-2">
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-sm font-medium">Template CSV</div>
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => setIsCsvOpen(false)}
-                      disabled={isImporting}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={handleImportCsv}
-                      disabled={
-                        isImporting ||
-                        !canEditRows ||
-                        csvText.trim().length === 0
+                      size="sm"
+                      onClick={() =>
+                        copyText(BULK_IMPORT_TEMPLATE_CSV, "Template copied")
                       }
                     >
-                      {isImporting ? (
-                        <>
-                          <svg
-                            className="mr-2 h-4 w-4 animate-spin"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <circle
-                              className="opacity-25"
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                              strokeWidth="4"
-                            ></circle>
-                            <path
-                              className="opacity-75"
-                              fill="currentColor"
-                              d="M4 12a8 0 018-8v4a4 4 0 00-4 4H4z"
-                            ></path>
-                          </svg>
-                          Importing…
-                        </>
-                      ) : (
-                        "Import"
-                      )}
+                      <Copy data-icon="inline-start" />
+                      Copy
                     </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </div>
-
-          <div className="flex flex-col items-start justify-between gap-3 md:flex-row md:items-center">
-            <div className="text-muted-foreground text-sm">
-              <span className="text-foreground font-medium">
-                {validRows.length}
-              </span>{" "}
-              ready •{" "}
-              <span>
-                {
-                  rows.filter(
-                    (r) =>
-                      r.validation?.slugConflict || r.validation?.modelConflict,
-                  ).length
-                }
-              </span>{" "}
-              conflicts •{" "}
-              <span>
-                {
-                  rows.filter(
-                    (r) =>
-                      (r.validation?.fuzzyMatches?.length || 0) > 0 &&
-                      !r.proceedAnyway,
-                  ).length
-                }
-              </span>{" "}
-              need review
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                onClick={createAll}
-                disabled={
-                  !canEditRows ||
-                  validRows.length === 0 ||
-                  isSubmitting ||
-                  isImporting ||
-                  anyFailing ||
-                  isSuccess
-                }
-              >
-                {isSubmitting ? (
-                  <>
-                    <svg
-                      className="mr-2 h-4 w-4 animate-spin"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+                  </div>
+                  <Textarea
+                    value={BULK_IMPORT_TEMPLATE_CSV}
+                    readOnly
+                    rows={4}
+                    className="field-sizing-fixed resize-y font-mono text-xs"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-sm font-medium">Field Guide</div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        copyText(BULK_IMPORT_FIELD_GUIDE, "Field guide copied")
+                      }
                     >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 0 018-8v4a4 4 0 00-4 4H4z"
-                      ></path>
-                    </svg>
-                    Creating…
-                  </>
-                ) : (
-                  `Create All (${validRows.length})`
-                )}
-              </Button>
-            </div>
+                      <Copy data-icon="inline-start" />
+                      Copy
+                    </Button>
+                  </div>
+                  <Textarea
+                    value={BULK_IMPORT_FIELD_GUIDE}
+                    readOnly
+                    rows={4}
+                    className="field-sizing-fixed resize-y text-xs"
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium">CSV rows</label>
+                <Textarea
+                  value={csvText}
+                  onChange={(event) => setCsvText(event.target.value)}
+                  rows={20}
+                  className="field-sizing-fixed min-h-[42vh] resize-y overflow-auto font-mono text-sm break-words whitespace-pre-wrap"
+                  wrap="soft"
+                />
+                {parseErrors.length > 0 ? (
+                  <div className="text-destructive text-sm">
+                    {parseErrors.join(" ")}
+                  </div>
+                ) : null}
+                {unknownHeaders.length > 0 ? (
+                  <div className="text-muted-foreground text-sm">
+                    Ignored unknown headers: {unknownHeaders.join(", ")}
+                  </div>
+                ) : null}
+              </div>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsCsvOpen(false)}
+                  disabled={isImporting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={importCsv}
+                  disabled={isImporting || csvText.trim().length === 0}
+                >
+                  {isImporting ? (
+                    <Loader2
+                      data-icon="inline-start"
+                      className="animate-spin"
+                    />
+                  ) : (
+                    <Upload data-icon="inline-start" />
+                  )}
+                  Import
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={!validationReport}
+            onClick={() => copyText(aiFixPrompt, "AI fix prompt copied")}
+          >
+            <Clipboard data-icon="inline-start" />
+            Copy AI Fix Prompt
+          </Button>
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-md border">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.length > 0 ? (
+              table.getRowModel().rows.map((row) => (
+                <React.Fragment key={row.id}>
+                  <TableRow className="odd:bg-transparent even:bg-transparent">
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                  {row.original.expanded ? (
+                    <TableRow className="odd:bg-transparent even:bg-transparent hover:bg-transparent">
+                      <TableCell
+                        colSpan={columns.length}
+                        className="max-w-0 p-0 whitespace-normal"
+                      >
+                        <Collapsible open={row.original.expanded}>
+                          <CollapsibleContent forceMount>
+                            <RowDetails
+                              row={row.original}
+                              gearType={gearType}
+                              onToggleProceed={toggleProceed}
+                            />
+                          </CollapsibleContent>
+                        </Collapsible>
+                      </TableCell>
+                    </TableRow>
+                  ) : null}
+                </React.Fragment>
+              ))
+            ) : (
+              <TableRow className="odd:bg-transparent even:bg-transparent">
+                <TableCell
+                  colSpan={columns.length}
+                  className="text-muted-foreground h-24 text-center"
+                >
+                  Paste a CSV batch to preview mapped rows.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+        <div className="bg-muted/30 flex flex-col gap-3 border-t p-3 md:flex-row md:items-center md:justify-between">
+          <div className="text-muted-foreground text-sm">
+            <span className="text-foreground font-medium">
+              {readyRows.length}
+            </span>{" "}
+            ready • <span>{conflictCount}</span> errors •{" "}
+            <span>{reviewCount}</span> need duplicate review
           </div>
-        </CardContent>
-      </Card>
+          <Button
+            type="button"
+            onClick={createAll}
+            disabled={
+              !gearType ||
+              readyRows.length === 0 ||
+              isSubmitting ||
+              rows.some((row) => row.validationStatus === "validating")
+            }
+          >
+            {isSubmitting ? (
+              <Loader2 data-icon="inline-start" className="animate-spin" />
+            ) : (
+              <CheckCircle data-icon="inline-start" />
+            )}
+            Create Ready Rows ({readyRows.length})
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

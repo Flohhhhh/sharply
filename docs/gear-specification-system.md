@@ -95,6 +95,11 @@ Many-to-many relationship table for gear that supports multiple mounts (e.g., th
   - Cameras: Typically have single mount (use `gear.mountId` for backward compatibility)
 - **Indexes**: Indexed on both `gearId` and `mountId` for efficient lookups
 
+Admin CSV bulk import accepts mount identifiers using `mounts.value` strings,
+such as `z-nikon` or `e-sony`, separated with `|` or `;`. The importer resolves
+those values to `mounts.id`, writes all matches to `gear_mounts`, and keeps the
+first mount mirrored in the deprecated `gear.mountId` compatibility column.
+
 #### `cameraSpecs` - Camera Specifications
 
 Stores detailed camera-specific specifications:
@@ -135,6 +140,13 @@ Stores detailed lens-specific specifications:
 - **Aperture**: Maximum aperture value
 - **Stabilization**: Whether the lens has stabilization
 - **Flexibility**: JSONB extra field for additional specs
+
+Admin CSV bulk import can create the initial lens spec row with mapped values.
+The lens-oriented template includes `imageCircleSize`, which accepts a sensor
+format slug, id, or exact name and stores the resolved `sensor_formats.id`.
+When focal length or maximum aperture cells are blank, the importer can infer
+them from conventional lens names such as `60mm f/2.8`, `24-70mm f/2.8`, or
+`f/4.5-6.3`.
 
 #### `fixed_lens_specs` - Integrated Lens Specifications (Cameras)
 
