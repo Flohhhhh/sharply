@@ -1,5 +1,6 @@
 import { eq, inArray } from "drizzle-orm";
 import "server-only";
+import { toNullableNumber } from "~/server/gear/number-utils";
 import { db } from "~/server/db";
 import {
   analogCameraSpecs,
@@ -22,12 +23,6 @@ export type GearListingTableFields = {
   maxApertureWide: number | null;
   maxApertureTele: number | null;
 };
-
-function toNullableNumber(value: number | string | null) {
-  if (value == null) return null;
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : null;
-}
 
 export async function fetchGearListingTableFields(gearIds: string[]) {
   if (!gearIds.length) return new Map<string, GearListingTableFields>();

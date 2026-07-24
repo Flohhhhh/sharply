@@ -10,6 +10,7 @@ import {
 } from "~/lib/constants";
 import { db } from "~/server/db";
 import { brands, gear, gearMounts, lensSpecs } from "~/server/db/schema";
+import type { GearListingTableFields } from "~/server/gear/listing-table-data";
 import type { GearAlias, GearType } from "~/types/gear";
 import {
   LENS_FOCAL_LENGTH_SORT,
@@ -33,16 +34,7 @@ export type BrowseGearRow = {
   mpbMaxPriceUsdCents: number | null;
   lensFocalLengthMinMm?: number | null;
   lensFocalLengthMaxMm?: number | null;
-  mountNames?: string[];
-  sensorFormatName?: string | null;
-  analogCaptureMedium?: string | null;
-  weightGrams?: number | null;
-  focalLengthMinMm?: number | null;
-  focalLengthMaxMm?: number | null;
-  isPrime?: boolean | null;
-  maxApertureWide?: number | null;
-  maxApertureTele?: number | null;
-};
+} & Partial<GearListingTableFields>;
 
 export type SearchGearResult = {
   items: BrowseGearRow[];

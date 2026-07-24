@@ -22,7 +22,7 @@ describe("search route filter parsing", () => {
   it("normalizes reversed numeric ranges and forwards valid specification filters", async () => {
     const response = await GET(
       new NextRequest(
-        "http://localhost/api/search?megapixelsMin=60&megapixelsMax=24&isoMin=25600&isoMax=100&focalIncludes=85&widestFocalMax=35&longestFocalMin=120&fastestApertureMax=2.8&hasAutofocus=true&hasStabilization=true&hasIbis=true&hasWeatherSealing=true",
+        "http://localhost/api/search?priceMin=1000&priceMax=500&megapixelsMin=60&megapixelsMax=24&isoMin=25600&isoMax=100&focalIncludes=85&widestFocalMax=35&longestFocalMin=120&fastestApertureMax=2.8&hasAutofocus=true&hasStabilization=true&hasIbis=true&hasWeatherSealing=true",
       ),
     );
 
@@ -31,6 +31,8 @@ describe("search route filter parsing", () => {
       expect.objectContaining({
         includeConstructionState: true,
         filters: expect.objectContaining({
+          priceMin: 500,
+          priceMax: 1000,
           megapixelsMin: 24,
           megapixelsMax: 60,
           isoMin: 100,

@@ -55,8 +55,10 @@ export async function GET(request: NextRequest) {
   const analogCameraType = searchParams.get("analogCameraType");
   const rawPriceMin = searchParams.get("priceMin");
   const rawPriceMax = searchParams.get("priceMax");
-  const priceMin = parsePriceParam(rawPriceMin);
-  const priceMax = parsePriceParam(rawPriceMax);
+  const [priceMin, priceMax] = normalizeRange(
+    parsePriceParam(rawPriceMin),
+    parsePriceParam(rawPriceMax),
+  );
   const [megapixelsMin, megapixelsMax] = normalizeRange(
     parseNonNegativeNumber(searchParams.get("megapixelsMin")),
     parseNonNegativeNumber(searchParams.get("megapixelsMax")),

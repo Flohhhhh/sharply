@@ -1,4 +1,5 @@
 import type { ConstructionMinimalRow } from "~/server/gear/data";
+import { toNullableNumber } from "~/server/gear/number-utils";
 import type { GearItem } from "~/types/gear";
 
 type ConstructionRow = ConstructionMinimalRow & { mountIds: string[] };
@@ -32,7 +33,7 @@ export function toConstructionGearItem(row: ConstructionRow): GearItem {
             isPrime: row.lens_isPrime,
             focalLengthMinMm: row.lens_focalMin,
             focalLengthMaxMm: row.lens_focalMax,
-            maxApertureWide: row.lens_maxApertureWide,
+            maxApertureWide: toNullableNumber(row.lens_maxApertureWide),
             imageCircleSizeId: row.lens_imageCircleSizeId,
           }
         : null,

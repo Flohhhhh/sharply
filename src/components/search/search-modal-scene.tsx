@@ -226,7 +226,7 @@ export function SearchModalScene({
           !isBestMatchSuggestion(row.suggestion),
       ),
     };
-  }, [results]);
+  }, [results, t]);
 
   const selectableItems = useMemo<SelectableItem[]>(() => {
     if (!hasQuery) return [];

@@ -90,6 +90,8 @@ describe("header model", () => {
       (item) => item.href === "/search",
     );
 
+    expect(newsIndex).toBeGreaterThanOrEqual(0);
+    expect(searchIndex).toBeGreaterThanOrEqual(0);
     expect(searchIndex).toBe(newsIndex + 1);
     expect(model.navItems[searchIndex]?.items).toBeUndefined();
   });

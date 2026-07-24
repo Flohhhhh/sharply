@@ -160,7 +160,9 @@ async function parseLensesForCamera(
   const match = query.match(LENSES_FOR_RE);
   if (!match) return null;
 
-  const rawTail = normalizeWhitespace(match[1] ?? "");
+  const rawTail = normalizeWhitespace(
+    trimEdgePunctuation(match[1] ?? ""),
+  );
   if (!rawTail) return null;
 
   const tokens = rawTail.split(" ");

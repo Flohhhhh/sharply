@@ -314,8 +314,9 @@ export function FiltersSidebar({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="megapixels">{t("megapixels")}</Label>
+              <Label htmlFor={id("megapixels")}>{t("megapixels")}</Label>
               <Slider
+                id={id("megapixels")}
                 value={[
                   mpToSlider(megapixelsRange[0], MP_MAX),
                   mpToSlider(megapixelsRange[1], MP_MAX),

@@ -1,6 +1,7 @@
 "use client";
 
 import { ClockIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useSWRInfinite from "swr/infinite";
 import { GearCard, GearCardSkeleton } from "~/components/gear/gear-card";
@@ -45,6 +46,7 @@ export function ReleaseFeedGrid({
   brandSlug,
   trendingSlugs,
 }: ReleaseFeedGridProps) {
+  const t = useTranslations("browsePage");
   const isMobile = useIsMobile();
   const [infiniteActive, setInfiniteActive] = useState(false);
   const { view, setView } = useGearResultsView();
@@ -182,7 +184,7 @@ export function ReleaseFeedGrid({
     requestNextPage();
   }, [isMobile, requestNextPage]);
 
-  const errorText = error ? "Unable to load more gear right now." : null;
+  const errorText = error ? t("loadError") : null;
 
   return (
     <div className="space-y-4">
@@ -199,7 +201,7 @@ export function ReleaseFeedGrid({
 
       {showEmpty ? (
         <div className="text-muted-foreground text-sm">
-          No gear found yet. Try another brand or check back soon.
+          {t("noGearFound")}
         </div>
       ) : null}
 
@@ -253,7 +255,7 @@ export function ReleaseFeedGrid({
             onClick={handleLoadMore}
             disabled={isLoadingMore}
           >
-            {isLoadingMore ? "Loading..." : "Load more"}
+            {isLoadingMore ? t("loading") : t("loadMore")}
           </Button>
         </div>
       ) : null}

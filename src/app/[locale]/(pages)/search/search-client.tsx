@@ -275,7 +275,7 @@ export function SearchClient({ initialPage }: SearchClientProps) {
               size="sm"
               icon={<RefreshCcwDot className="size-4" />}
               onClick={() => {
-                void setGearType("all");
+                void setGearType(null);
                 void setMount(null);
                 void setSensorFormat(null);
                 void setBrand(null);

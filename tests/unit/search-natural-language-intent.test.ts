@@ -149,6 +149,26 @@ describe("parseNaturalLanguageSearchIntent", () => {
     });
   });
 
+  it("strips trailing punctuation from the camera lookup tail", async () => {
+    const resolver = vi.fn(async (query: string) =>
+      query === "D5300" ? makeCameraMatch() : null,
+    );
+
+    const intent = await parseNaturalLanguageSearchIntent(
+      "lenses for D5300?",
+      resolver,
+    );
+
+    expect(intent).toEqual({
+      kind: "lenses-for-camera",
+      subject: "Nikon D5300",
+      filters: {
+        gearType: "LENS",
+        mount: "f-nikon",
+      },
+    });
+  });
+
   it("falls back when the mount token is ambiguous", async () => {
     const intent = await parseNaturalLanguageSearchIntent(
       "S mount lenses",

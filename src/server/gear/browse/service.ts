@@ -293,11 +293,10 @@ export async function fetchReleaseFeedPage(params: {
     offset,
   });
 
-  const aliasesById = await fetchGearAliasesByGearIds(
-    page.items.map((item) => item.id),
-  );
-
-  const tableItems = await attachGearListingTableFields(page.items);
+  const [aliasesById, tableItems] = await Promise.all([
+    fetchGearAliasesByGearIds(page.items.map((item) => item.id)),
+    attachGearListingTableFields(page.items),
+  ]);
   const items = tableItems.map((item) => ({
     ...item,
     regionalAliases: aliasesById.get(item.id) ?? [],
@@ -390,10 +389,10 @@ function serializeBrowseListItem(
 }
 
 async function attachAliasesToLists(lists: SearchGearResult) {
-  const tableItems = await attachGearListingTableFields(lists.items);
-  const aliasesById = await fetchGearAliasesByGearIds(
-    tableItems.map((item) => item.id),
-  );
+  const [tableItems, aliasesById] = await Promise.all([
+    attachGearListingTableFields(lists.items),
+    fetchGearAliasesByGearIds(lists.items.map((item) => item.id)),
+  ]);
   return {
     ...lists,
     items: tableItems.map((item) => ({

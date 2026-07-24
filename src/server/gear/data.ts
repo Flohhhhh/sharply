@@ -1199,12 +1199,7 @@ async function fetchGearForConstructionData(
     ? await db
         .select({ gearId: gearMounts.gearId, mountId: gearMounts.mountId })
         .from(gearMounts)
-        .where(
-          sql`${gearMounts.gearId} IN (${sql.join(
-            fetchedGearIds.map((id) => sql`${id}`),
-            sql`, `,
-          )})`,
-        )
+        .where(inArray(gearMounts.gearId, fetchedGearIds))
     : [];
 
   const mountIdsByGearId = new Map<string, string[]>();
