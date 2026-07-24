@@ -10,6 +10,7 @@ This document explains how search works in Sharply: routing, URL model, UI surfa
   - Non-empty input stays visually closed until useful suggestions arrive.
   - After non-empty suggestions have appeared once, the panel stays open until the input is cleared.
   - Plain `Enter` prioritizes arrow-key selection, then smart action, then best-match gear, then `/search?q=...`.
+- Header and footer navigation: the standalone **Search** link routes to `/search`; it appears after **News** and before the **Gear** category in the shared navigation definition.
 - Command palette: `src/components/search/command-palette.tsx`
   - Opens with ⌘K/Ctrl+K or programmatically via `document.dispatchEvent(new CustomEvent("sharply:open-command-palette"))`.
   - Debounced typeahead (200ms) calling `/api/search/suggest`.

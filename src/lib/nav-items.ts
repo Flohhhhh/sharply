@@ -69,6 +69,11 @@ const navItems: NavItem[] = [
     url: "/news",
   },
   {
+    titleKey: "search",
+    type: "link",
+    url: "/search",
+  },
+  {
     titleKey: "gear",
     type: "category",
     items: [
