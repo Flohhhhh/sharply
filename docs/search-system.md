@@ -201,7 +201,15 @@ Sort order remains `DESC(relevance), ASC(name)` for `relevance`; otherwise `ASC(
 
 ### Filters
 
-Optional ANDed filters for brand/mount/gearType/price range/sensor format. These are layered on top of the text matching WHERE clause.
+Optional ANDed filters are layered on top of the text matching WHERE clause. The `/search` results page exposes brand, mount, gear type, price range, sensor format, megapixel range, lens type, and analog camera type.
+
+On mobile, the same filters are available from the Filters bottom drawer; desktop keeps the persistent sidebar.
+
+Camera-only filters are `megapixelsMin`, `megapixelsMax`, `isoMin`, `isoMax`, `hasIbis=true`, and `hasWeatherSealing=true`. ISO bounds describe native ISO coverage: a matching camera has a native minimum at or below `isoMin` and a native maximum at or above `isoMax`.
+
+Lens-only filters are `focalIncludes`, `widestFocalMax`, `longestFocalMin`, `fastestApertureMax`, `hasAutofocus=true`, and `hasStabilization=true`. `focalIncludes` matches an interchangeable lens whose focal range contains the requested millimeter value; the advanced bounds match its widest and longest focal lengths. `fastestApertureMax` evaluates the wide-end maximum aperture, so `2.8` means f/2.8 or faster. Macro remains intentionally unfiltered.
+
+Numeric range bounds are non-negative (positive where zero is not meaningful); reversed min/max pairs are normalized by the API. Capability filters only match an explicitly recorded positive value, excluding unknown specifications.
 
 ### Numeric tokens
 

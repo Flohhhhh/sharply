@@ -17,6 +17,16 @@ export type SearchFilters = {
   lensType?: "prime" | "zoom";
   megapixelsMin?: number;
   megapixelsMax?: number;
+  focalIncludes?: number;
+  widestFocalMax?: number;
+  longestFocalMin?: number;
+  fastestApertureMax?: number;
+  isoMin?: number;
+  isoMax?: number;
+  hasAutofocus?: boolean;
+  hasStabilization?: boolean;
+  hasIbis?: boolean;
+  hasWeatherSealing?: boolean;
   analogCameraType?: string;
 };
 

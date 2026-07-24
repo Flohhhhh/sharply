@@ -16,6 +16,10 @@ export interface IsoInputProps {
   value?: number | null;
   onChange: (value: number | undefined) => void;
   disabled?: boolean;
+  minValue?: number;
+  maxValue?: number;
+  allowClear?: boolean;
+  clearLabel?: string;
   className?: string;
   placeholder?: string;
 }
@@ -41,6 +45,10 @@ const IsoInput = ({
   value,
   onChange,
   disabled = false,
+  minValue,
+  maxValue,
+  allowClear = false,
+  clearLabel = "Clear",
   className = "",
   placeholder = "Select ISO",
 }: IsoInputProps) => {
@@ -50,6 +58,10 @@ const IsoInput = ({
       <Select
         value={value ? value.toString() : ""}
         onValueChange={(selectedValue) => {
+          if (selectedValue === "__clear__") {
+            onChange(undefined);
+            return;
+          }
           const isoValue = parseInt(selectedValue);
           if (!isNaN(isoValue)) {
             onChange(isoValue);
@@ -57,12 +69,22 @@ const IsoInput = ({
         }}
         disabled={disabled}
       >
-        <SelectTrigger className="w-full">
+        <SelectTrigger id={id} className="w-full">
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
+          {allowClear ? (
+            <SelectItem value="__clear__">{clearLabel}</SelectItem>
+          ) : null}
           {COMMON_ISO_VALUES.map((iso) => (
-            <SelectItem key={iso} value={iso.toString()}>
+            <SelectItem
+              key={iso}
+              value={iso.toString()}
+              disabled={
+                (minValue !== undefined && iso < minValue) ||
+                (maxValue !== undefined && iso > maxValue)
+              }
+            >
               ISO {iso}
             </SelectItem>
           ))}

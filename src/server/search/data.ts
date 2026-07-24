@@ -20,7 +20,7 @@ if (process.env.NEXT_RUNTIME) {
  * - queryGearSuggestions / queryBrandSuggestions: lighter-weight suggestion queries.
  */
 
-import { asc,desc,eq,ilike,sql,type SQL } from "drizzle-orm";
+import { asc, desc, eq, ilike, sql, type SQL } from "drizzle-orm";
 import { GEAR_PUBLICATION_STATES } from "~/lib/gear/publication-state";
 import { db } from "~/server/db";
 import {
@@ -34,6 +34,7 @@ import {
   mounts,
   sensorFormats,
 } from "~/server/db/schema";
+import type { SearchFilters } from "~/types/search-results";
 import {
   buildApertureTokenRegex,
   buildDecimalNumericTokenRegex,
@@ -51,10 +52,94 @@ function buildPublishedGearClause() {
   return eq(gear.publicationState, GEAR_PUBLICATION_STATES.PUBLISHED);
 }
 
-function buildNumericTokenMatchClause(
-  searchLower: SQL,
-  token: string,
-): SQL {
+/** Builds the catalog-specification constraints shared by result and count queries. */
+export function buildSearchFilterClause(
+  filters: SearchFilters,
+): SQL | undefined {
+  const conditions: SQL[] = [];
+  const hasPrice = sql`
+    ${gear.msrpNowUsdCents} IS NOT NULL
+    OR ${gear.msrpAtLaunchUsdCents} IS NOT NULL
+    OR ${gear.mpbMaxPriceUsdCents} IS NOT NULL
+  `;
+  const effectivePriceCentsForMax = sql`COALESCE(${gear.msrpNowUsdCents}, ${gear.mpbMaxPriceUsdCents}, ${gear.msrpAtLaunchUsdCents})`;
+  const effectivePriceCentsForMin = sql`COALESCE(${gear.msrpNowUsdCents}, ${gear.msrpAtLaunchUsdCents}, ${gear.mpbMaxPriceUsdCents})`;
+
+  if (filters.brand)
+    conditions.push(sql`${brands.name} ILIKE ${`%${filters.brand}%`}`);
+  if (filters.mount) conditions.push(sql`${mounts.id} = ${filters.mount}`);
+  if (filters.gearType)
+    conditions.push(sql`${gear.gearType} = ${filters.gearType}`);
+  if (filters.sensorFormat)
+    conditions.push(sql`${sensorFormats.slug} = ${filters.sensorFormat}`);
+  if (filters.lensType) {
+    const isPrime = filters.lensType === "prime";
+    conditions.push(
+      sql`(${lensSpecs.isPrime} = ${isPrime} OR ${fixedLensSpecs.isPrime} = ${isPrime})`,
+    );
+  }
+  if (filters.analogCameraType)
+    conditions.push(
+      sql`${analogCameraSpecs.cameraType} = ${filters.analogCameraType}`,
+    );
+
+  const megapixelsMin =
+    filters.megapixelsMin == null
+      ? undefined
+      : Math.max(0, filters.megapixelsMin - 0.9);
+  const megapixelsMax =
+    filters.megapixelsMax == null ? undefined : filters.megapixelsMax + 0.9;
+  if (megapixelsMin !== undefined)
+    conditions.push(sql`${cameraSpecs.resolutionMp} >= ${megapixelsMin}`);
+  if (megapixelsMax !== undefined)
+    conditions.push(sql`${cameraSpecs.resolutionMp} <= ${megapixelsMax}`);
+  if (filters.isoMin !== undefined)
+    conditions.push(sql`${cameraSpecs.isoMin} <= ${filters.isoMin}`);
+  if (filters.isoMax !== undefined)
+    conditions.push(sql`${cameraSpecs.isoMax} >= ${filters.isoMax}`);
+  if (filters.hasIbis) conditions.push(sql`${cameraSpecs.hasIbis} = true`);
+  if (filters.hasWeatherSealing)
+    conditions.push(sql`${cameraSpecs.hasWeatherSealing} = true`);
+
+  if (filters.focalIncludes !== undefined) {
+    conditions.push(
+      sql`${lensSpecs.focalLengthMinMm} <= ${filters.focalIncludes} AND ${lensSpecs.focalLengthMaxMm} >= ${filters.focalIncludes}`,
+    );
+  }
+  if (filters.widestFocalMax !== undefined)
+    conditions.push(
+      sql`${lensSpecs.focalLengthMinMm} <= ${filters.widestFocalMax}`,
+    );
+  if (filters.longestFocalMin !== undefined)
+    conditions.push(
+      sql`${lensSpecs.focalLengthMaxMm} >= ${filters.longestFocalMin}`,
+    );
+  if (filters.fastestApertureMax !== undefined)
+    conditions.push(
+      sql`${lensSpecs.maxApertureWide} <= ${filters.fastestApertureMax}`,
+    );
+  if (filters.hasAutofocus)
+    conditions.push(sql`${lensSpecs.hasAutofocus} = true`);
+  if (filters.hasStabilization)
+    conditions.push(sql`${lensSpecs.hasStabilization} = true`);
+
+  if (filters.priceMin !== undefined) {
+    conditions.push(
+      sql`(${hasPrice}) AND (${effectivePriceCentsForMin} >= ${filters.priceMin * 100})`,
+    );
+  }
+  if (filters.priceMax !== undefined) {
+    conditions.push(
+      sql`(NOT (${hasPrice}) OR ${effectivePriceCentsForMax} <= ${filters.priceMax * 100})`,
+    );
+  }
+
+  return conditions.length
+    ? sql`(${sql.join(conditions, sql` AND `)})`
+    : undefined;
+}
+
+function buildNumericTokenMatchClause(searchLower: SQL, token: string): SQL {
   const decimalPattern = buildDecimalNumericTokenRegex(token);
   if (decimalPattern) {
     return sql`${searchLower} ~ ${decimalPattern}`;
@@ -117,8 +202,9 @@ export function buildSearchWhereClause(query: string): SQL | undefined {
       : null;
 
   if (parsedQuery.isLowInformationFeatureAcronymQuery) {
-    const rawAcronymClauses = parsedQuery.rawLensFeatureAcronymTokens.map((token) =>
-      buildRegexMatchClause(searchLower, buildWholeWordTokenRegex(token)),
+    const rawAcronymClauses = parsedQuery.rawLensFeatureAcronymTokens.map(
+      (token) =>
+        buildRegexMatchClause(searchLower, buildWholeWordTokenRegex(token)),
     );
     if (rawAcronymClauses.length > 0) {
       return sql`(${sql.join(rawAcronymClauses, sql` AND `)})`;
@@ -177,7 +263,9 @@ export function buildSearchWhereClause(query: string): SQL | undefined {
     const numericAndForOr = sql`(${sql.join(andClauses, sql` AND `)})`;
     conditions.push(numericAndForOr);
   } else if (numericTokens.length === 1) {
-    conditions.push(buildNumericTokenMatchClause(searchLower, numericTokens[0]!));
+    conditions.push(
+      buildNumericTokenMatchClause(searchLower, numericTokens[0]!),
+    );
   }
   if (acronymAndClause) {
     conditions.push(acronymAndClause);
@@ -379,7 +467,10 @@ export async function querySearchRows(options: {
   if (options.includeSensorFormats) {
     query = query
       .leftJoin(cameraSpecs, eq(gear.id, cameraSpecs.gearId))
-      .leftJoin(sensorFormats, eq(cameraSpecs.sensorFormatId, sensorFormats.id));
+      .leftJoin(
+        sensorFormats,
+        eq(cameraSpecs.sensorFormatId, sensorFormats.id),
+      );
   }
   if (options.includeLensSpecs) {
     query = query
@@ -387,7 +478,10 @@ export async function querySearchRows(options: {
       .leftJoin(fixedLensSpecs, eq(gear.id, fixedLensSpecs.gearId));
   }
   if (options.includeAnalogSpecs) {
-    query = query.leftJoin(analogCameraSpecs, eq(gear.id, analogCameraSpecs.gearId));
+    query = query.leftJoin(
+      analogCameraSpecs,
+      eq(gear.id, analogCameraSpecs.gearId),
+    );
   }
 
   const groupByColumns = [
@@ -444,7 +538,10 @@ export async function querySearchTotal(
   if (includeSensorFormats) {
     query = query
       .leftJoin(cameraSpecs, eq(gear.id, cameraSpecs.gearId))
-      .leftJoin(sensorFormats, eq(cameraSpecs.sensorFormatId, sensorFormats.id));
+      .leftJoin(
+        sensorFormats,
+        eq(cameraSpecs.sensorFormatId, sensorFormats.id),
+      );
   }
   if (includeLensSpecs) {
     query = query
@@ -452,7 +549,10 @@ export async function querySearchTotal(
       .leftJoin(fixedLensSpecs, eq(gear.id, fixedLensSpecs.gearId));
   }
   if (includeAnalogSpecs) {
-    query = query.leftJoin(analogCameraSpecs, eq(gear.id, analogCameraSpecs.gearId));
+    query = query.leftJoin(
+      analogCameraSpecs,
+      eq(gear.id, analogCameraSpecs.gearId),
+    );
   }
 
   const rows = await query.where(

@@ -9,6 +9,7 @@ import type { GearSuggestion } from "~/types/search";
 
 const searchDataMocks = vi.hoisted(() => ({
   buildSearchWhereClause: vi.fn(),
+  buildSearchFilterClause: vi.fn(),
   buildRelevanceExpr: vi.fn(),
   querySearchRows: vi.fn(),
   querySearchTotal: vi.fn(),
@@ -34,6 +35,9 @@ describe("search service high-impact behavior", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     searchDataMocks.buildSearchWhereClause.mockReturnValue({ clause: "where" });
+    searchDataMocks.buildSearchFilterClause.mockReturnValue({
+      clause: "filters",
+    });
     searchDataMocks.buildRelevanceExpr.mockReturnValue({ clause: "relevance" });
     searchDataMocks.querySearchRows.mockResolvedValue([
       {
@@ -129,6 +133,16 @@ describe("search service high-impact behavior", () => {
         sensorFormat: "full-frame",
         lensType: "prime",
         analogCameraType: "SLR",
+        focalIncludes: 85,
+        widestFocalMax: 35,
+        longestFocalMin: 120,
+        fastestApertureMax: 2.8,
+        hasAutofocus: true,
+        hasStabilization: true,
+        isoMin: 100,
+        isoMax: 25_600,
+        hasIbis: true,
+        hasWeatherSealing: true,
       },
     });
 
@@ -141,12 +155,53 @@ describe("search service high-impact behavior", () => {
       }),
     );
 
+    expect(searchDataMocks.buildSearchFilterClause).toHaveBeenCalledWith(
+      expect.objectContaining({
+        focalIncludes: 85,
+        widestFocalMax: 35,
+        longestFocalMin: 120,
+        fastestApertureMax: 2.8,
+        isoMin: 100,
+        isoMax: 25_600,
+        hasAutofocus: true,
+        hasStabilization: true,
+        hasIbis: true,
+        hasWeatherSealing: true,
+      }),
+    );
+
     expect(searchDataMocks.querySearchTotal).toHaveBeenCalledWith(
       expect.anything(),
       true,
       true,
       true,
       true,
+    );
+  });
+
+  it("joins specification tables for the new filters without unrelated filters", async () => {
+    await searchGear({
+      query: undefined,
+      sort: "newest",
+      page: 1,
+      pageSize: 10,
+      filters: { focalIncludes: 85, isoMax: 25_600 },
+    });
+
+    expect(searchDataMocks.querySearchRows).toHaveBeenCalledWith(
+      expect.objectContaining({
+        includeMounts: false,
+        includeSensorFormats: true,
+        includeLensSpecs: true,
+        includeAnalogSpecs: false,
+      }),
+    );
+    expect(searchDataMocks.querySearchTotal).toHaveBeenCalledWith(
+      expect.anything(),
+      false,
+      true,
+      true,
+      false,
     );
   });
 

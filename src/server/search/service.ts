@@ -7,16 +7,7 @@ if (process.env.NEXT_RUNTIME) {
 
 import { asc, desc, sql, type SQL } from "drizzle-orm";
 import { buildCompareHref } from "~/lib/utils/url";
-import {
-  analogCameraSpecs,
-  brands,
-  cameraSpecs,
-  fixedLensSpecs,
-  gear,
-  lensSpecs,
-  mounts,
-  sensorFormats,
-} from "~/server/db/schema";
+import { gear } from "~/server/db/schema";
 import { fetchGearAliasesByGearIds } from "~/server/gear/data";
 import { attachGearListingTableFields } from "~/server/gear/listing-table-service";
 import type { GearAlias, GearRegion } from "~/types/gear";
@@ -28,6 +19,7 @@ import type {
 } from "~/types/search";
 import {
   buildRelevanceExpr,
+  buildSearchFilterClause,
   buildSearchWhereClause,
   queryBrandSuggestions,
   queryGearSuggestions,
@@ -44,6 +36,7 @@ import {
   parseCompareIntent,
 } from "./suggestion-intent";
 import type {
+  SearchFilters,
   SearchParams,
   SearchResponse,
   SearchResult,
@@ -80,73 +73,8 @@ export async function searchGear(
   }
 
   if (filters) {
-    const filterConditions: SQL[] = [];
-    const hasPrice = sql`
-      ${gear.msrpNowUsdCents} IS NOT NULL
-      OR ${gear.msrpAtLaunchUsdCents} IS NOT NULL
-      OR ${gear.mpbMaxPriceUsdCents} IS NOT NULL
-    `;
-    // Prefer current MSRP, then used market (MPB), then launch MSRP.
-    const effectivePriceCentsForMax = sql`COALESCE(${gear.msrpNowUsdCents}, ${gear.mpbMaxPriceUsdCents}, ${gear.msrpAtLaunchUsdCents})`;
-    // For min bounds, prefer current MSRP, then launch, then used price.
-    const effectivePriceCentsForMin = sql`COALESCE(${gear.msrpNowUsdCents}, ${gear.msrpAtLaunchUsdCents}, ${gear.mpbMaxPriceUsdCents})`;
-    if (filters.brand) {
-      filterConditions.push(sql`${brands.name} ILIKE ${`%${filters.brand}%`}`);
-    }
-    if (filters.mount) {
-      filterConditions.push(sql`${mounts.id} = ${filters.mount}`);
-    }
-    if (filters.gearType) {
-      filterConditions.push(sql`${gear.gearType} = ${filters.gearType}`);
-    }
-    if (filters.sensorFormat) {
-      filterConditions.push(
-        sql`${sensorFormats.slug} = ${filters.sensorFormat}`,
-      );
-    }
-    if (filters.lensType) {
-      const isPrime = filters.lensType === "prime";
-      filterConditions.push(
-        sql`(${lensSpecs.isPrime} = ${isPrime} OR ${fixedLensSpecs.isPrime} = ${isPrime})`,
-      );
-    }
-    if (filters.analogCameraType) {
-      filterConditions.push(
-        sql`${analogCameraSpecs.cameraType} = ${filters.analogCameraType}`,
-      );
-    }
-    const adjustedMpMin =
-      filters.megapixelsMin !== undefined
-        ? Math.max(0, filters.megapixelsMin - 0.9)
-        : undefined;
-    const adjustedMpMax =
-      filters.megapixelsMax !== undefined
-        ? filters.megapixelsMax + 0.9
-        : undefined;
-    if (filters.megapixelsMin !== undefined) {
-      filterConditions.push(
-        sql`${cameraSpecs.resolutionMp} >= ${adjustedMpMin!}`,
-      );
-    }
-    if (filters.megapixelsMax !== undefined) {
-      filterConditions.push(
-        sql`${cameraSpecs.resolutionMp} <= ${adjustedMpMax!}`,
-      );
-    }
-    if (filters.priceMin !== undefined) {
-      // Require a known price and enforce the lower bound.
-      filterConditions.push(
-        sql`(${hasPrice}) AND (${effectivePriceCentsForMin} >= ${filters.priceMin * 100})`,
-      );
-    }
-    if (filters.priceMax !== undefined) {
-      filterConditions.push(
-        sql`(NOT (${hasPrice}) OR ${effectivePriceCentsForMax} <= ${filters.priceMax * 100})`,
-      );
-    }
-
-    if (filterConditions.length > 0) {
-      const filterClause = sql`(${sql.join(filterConditions, sql` AND `)})`;
+    const filterClause = buildSearchFilterClause(filters);
+    if (filterClause) {
       whereClause = whereClause
         ? sql`(${whereClause}) AND (${filterClause})`
         : filterClause;
@@ -177,11 +105,8 @@ export async function searchGear(
     offset,
     relevanceExpr: query && sort === "relevance" ? relevanceExpr : undefined,
     includeMounts: Boolean(filters?.mount),
-    includeSensorFormats:
-      Boolean(filters?.sensorFormat) ||
-      filters?.megapixelsMin !== undefined ||
-      filters?.megapixelsMax !== undefined,
-    includeLensSpecs: Boolean(filters?.lensType),
+    includeSensorFormats: needsCameraSpecs(filters),
+    includeLensSpecs: needsLensSpecs(filters),
     includeAnalogSpecs: Boolean(filters?.analogCameraType),
   })) as unknown as Array<{ id: string }>;
 
@@ -201,10 +126,8 @@ export async function searchGear(
       : await querySearchTotal(
           whereClause,
           Boolean(filters?.mount),
-          Boolean(filters?.sensorFormat) ||
-            filters?.megapixelsMin !== undefined ||
-            filters?.megapixelsMax !== undefined,
-          Boolean(filters?.lensType),
+          needsCameraSpecs(filters),
+          needsLensSpecs(filters),
           Boolean(filters?.analogCameraType),
         );
   const totalPages =
@@ -217,6 +140,30 @@ export async function searchGear(
     page,
     pageSize,
   };
+}
+
+function needsCameraSpecs(filters?: SearchFilters) {
+  return (
+    Boolean(filters?.sensorFormat) ||
+    filters?.megapixelsMin !== undefined ||
+    filters?.megapixelsMax !== undefined ||
+    filters?.isoMin !== undefined ||
+    filters?.isoMax !== undefined ||
+    Boolean(filters?.hasIbis) ||
+    Boolean(filters?.hasWeatherSealing)
+  );
+}
+
+function needsLensSpecs(filters?: SearchFilters) {
+  return (
+    Boolean(filters?.lensType) ||
+    filters?.focalIncludes !== undefined ||
+    filters?.widestFocalMax !== undefined ||
+    filters?.longestFocalMin !== undefined ||
+    filters?.fastestApertureMax !== undefined ||
+    Boolean(filters?.hasAutofocus) ||
+    Boolean(filters?.hasStabilization)
+  );
 }
 
 export type GetSuggestionsOptions = {

@@ -14,6 +14,7 @@ import { useDebounce } from "~/lib/hooks/useDebounce";
 import type { SearchResponse } from "~/types/search-results";
 import { buildSearchHref } from "~/lib/utils/url";
 import { FiltersSidebar } from "./filters-sidebar";
+import { MobileFiltersDrawer } from "./mobile-filters-drawer";
 import { SearchResults } from "./search-results";
 
 const fetcher = <T,>(url: string): Promise<T> =>
@@ -47,6 +48,20 @@ export function SearchClient({ initialPage }: SearchClientProps) {
   const [priceMax, setPriceMax] = useQueryState("priceMax");
   const [megapixelsMin, setMegapixelsMin] = useQueryState("megapixelsMin");
   const [megapixelsMax, setMegapixelsMax] = useQueryState("megapixelsMax");
+  const [focalIncludes, setFocalIncludes] = useQueryState("focalIncludes");
+  const [widestFocalMax, setWidestFocalMax] = useQueryState("widestFocalMax");
+  const [longestFocalMin, setLongestFocalMin] =
+    useQueryState("longestFocalMin");
+  const [fastestApertureMax, setFastestApertureMax] =
+    useQueryState("fastestApertureMax");
+  const [isoMin, setIsoMin] = useQueryState("isoMin");
+  const [isoMax, setIsoMax] = useQueryState("isoMax");
+  const [hasAutofocus, setHasAutofocus] = useQueryState("hasAutofocus");
+  const [hasStabilization, setHasStabilization] =
+    useQueryState("hasStabilization");
+  const [hasIbis, setHasIbis] = useQueryState("hasIbis");
+  const [hasWeatherSealing, setHasWeatherSealing] =
+    useQueryState("hasWeatherSealing");
   const debouncedQ = useDebounce(q, 400);
 
   const mappedGearType = useMemo(() => {
@@ -92,6 +107,16 @@ export function SearchClient({ initialPage }: SearchClientProps) {
         analogCameraType,
         megapixelsMin,
         megapixelsMax,
+        focalIncludes,
+        widestFocalMax,
+        longestFocalMin,
+        fastestApertureMax,
+        isoMin,
+        isoMax,
+        hasAutofocus,
+        hasStabilization,
+        hasIbis,
+        hasWeatherSealing,
         priceMin,
         priceMax,
       });
@@ -107,6 +132,16 @@ export function SearchClient({ initialPage }: SearchClientProps) {
     analogCameraType,
     megapixelsMin,
     megapixelsMax,
+    focalIncludes,
+    widestFocalMax,
+    longestFocalMin,
+    fastestApertureMax,
+    isoMin,
+    isoMax,
+    hasAutofocus,
+    hasStabilization,
+    hasIbis,
+    hasWeatherSealing,
     priceMin,
     priceMax,
   ]);
@@ -120,7 +155,19 @@ export function SearchClient({ initialPage }: SearchClientProps) {
       !lensType &&
       !analogCameraType &&
       !megapixelsMin &&
-      !megapixelsMax
+      !megapixelsMax &&
+      !focalIncludes &&
+      !widestFocalMax &&
+      !longestFocalMin &&
+      !fastestApertureMax &&
+      !isoMin &&
+      !isoMax &&
+      !hasAutofocus &&
+      !hasStabilization &&
+      !hasIbis &&
+      !hasWeatherSealing &&
+      !priceMin &&
+      !priceMax
     );
   }, [
     brand,
@@ -131,6 +178,18 @@ export function SearchClient({ initialPage }: SearchClientProps) {
     analogCameraType,
     megapixelsMin,
     megapixelsMax,
+    focalIncludes,
+    widestFocalMax,
+    longestFocalMin,
+    fastestApertureMax,
+    isoMin,
+    isoMax,
+    hasAutofocus,
+    hasStabilization,
+    hasIbis,
+    hasWeatherSealing,
+    priceMin,
+    priceMax,
   ]);
 
   const { data, error, size, setSize } = useSWRInfinite<SearchResponse>(
@@ -228,12 +287,25 @@ export function SearchClient({ initialPage }: SearchClientProps) {
                 void setPriceMax(null);
                 void setMegapixelsMin(null);
                 void setMegapixelsMax(null);
+                void setFocalIncludes(null);
+                void setWidestFocalMax(null);
+                void setLongestFocalMin(null);
+                void setFastestApertureMax(null);
+                void setIsoMin(null);
+                void setIsoMax(null);
+                void setHasAutofocus(null);
+                void setHasStabilization(null);
+                void setHasIbis(null);
+                void setHasWeatherSealing(null);
               }}
             >
               Reset filters
             </Button>
           </div>
           <div className="flex items-center gap-2">
+            <div className="sm:hidden">
+              <MobileFiltersDrawer />
+            </div>
             <GearViewToggle view={view} onViewChange={setView} />
             <SortSelect />
           </div>
