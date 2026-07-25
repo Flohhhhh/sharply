@@ -293,21 +293,8 @@ export default async function GearPage({ params }: GearPageProps) {
             regionalAliases={item.regionalAliases ?? []}
           />
         </div>
-        {/* Item Name and Brand */}
+        {/* Item Name */}
         <div>
-          <div className="flex items-center gap-3">
-            {/* <span className="bg-secondary rounded-full px-3 py-1 text-xs font-medium">
-            {item.gearType}
-          </span> */}
-            {item.brands && (
-              <Link
-                href={`/brand/${item.brands.slug}`}
-                className="text-muted-foreground text-sm"
-              >
-                {item.brands.name}
-              </Link>
-            )}
-          </div>
           <div className="flex items-center gap-2">
             <h1 className="text-3xl font-bold sm:text-5xl">
               <GearDisplayName
