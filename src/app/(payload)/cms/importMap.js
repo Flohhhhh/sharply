@@ -24,7 +24,7 @@ import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0
 import { default as default_a0e1d1d1fb40cf5ed5fe0177647860ef } from '../../../../src/payload-fields/BrandSelect'
 import { default as default_92cd3e2267e666dcbd092a7db26afbf0 } from '../../../../src/payload-fields/GearMultiSelect'
 import { default as default_fad41fa71450c9e7872ed320792a2e41 } from '../../../../src/payload-fields/GearSelect'
-import { UploadthingClientUploadHandler as UploadthingClientUploadHandler_749dcaa11bb61b873d113cb6c609bc10 } from '@payloadcms/storage-uploadthing/client'
+import { VercelBlobClientUploadHandler as VercelBlobClientUploadHandler_16c82c5e25f430251a3e3ba57219ff4e } from '@payloadcms/storage-vercel-blob/client'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
 export const importMap = {
@@ -54,6 +54,6 @@ export const importMap = {
   "../src/payload-fields/BrandSelect#default": default_a0e1d1d1fb40cf5ed5fe0177647860ef,
   "../src/payload-fields/GearMultiSelect#default": default_92cd3e2267e666dcbd092a7db26afbf0,
   "../src/payload-fields/GearSelect#default": default_fad41fa71450c9e7872ed320792a2e41,
-  "@payloadcms/storage-uploadthing/client#UploadthingClientUploadHandler": UploadthingClientUploadHandler_749dcaa11bb61b873d113cb6c609bc10,
+  "@payloadcms/storage-vercel-blob/client#VercelBlobClientUploadHandler": VercelBlobClientUploadHandler_16c82c5e25f430251a3e3ba57219ff4e,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }

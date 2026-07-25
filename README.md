@@ -71,7 +71,17 @@ It's highly advised you set up at least one of these, otherwise you can't test o
 - `DISCORD_CHANGE_REQUEST_WEBHOOK_URL` – used for moderator alerts on new pending change requests (immediate + aggregated via `/api/admin/proposals/webhook/flush`)
 - `DISCORD_BOT_INTERNAL_API_TOKEN` – shared bearer token that authorizes internal bot requests under `/api/internal/discord/**`
 - `OPENAI_API_KEY` – enables AI review summaries; `src/server/reviews/summary/service.ts` safely no-ops if it is missing
-- `UPLOADTHING_TOKEN` – used by the Payload CMS instance and the raw-sample cleanup job that permanently deletes UploadThing files
+- `BLOB_READ_WRITE_TOKEN` – enables Vercel Blob storage for Payload CMS media and is required when running the media migration
+- `BLOB_STORE_ID` – optional Vercel Blob store metadata; Payload derives the store from the read/write token
+- `BLOB_WEBHOOK_PUBLIC_KEY` – optional Vercel Blob webhook metadata; the Payload storage adapter does not consume it
+- `UPLOADTHING_TOKEN` – used by profile-picture and raw-sample uploads, plus the raw-sample cleanup job; keep it configured after Payload media moves to Blob
+
+Payload’s Blob variables are intentionally optional in global environment
+validation. The main application can start without them; Payload falls back to
+its non-adapter configuration until `BLOB_READ_WRITE_TOKEN` is available, but
+CMS media upload and delivery should be considered unavailable. See
+[`docs/payload-media-storage.md`](docs/payload-media-storage.md) for the media
+migration and rollback procedure.
 
 > Use the template comments as guidance; keep secrets out of version control.
 
@@ -147,10 +157,13 @@ npm run db:seed -- --confirm-seed --allow-gear-overwrite
 ```
 
 ### Development Server
+
 Make sure you're using correct node version, `.nvmrc` is available.
+
 ```bash
 nvm use
 ```
+
 ```bash
 npm i
 ```

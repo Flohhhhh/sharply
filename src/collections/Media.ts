@@ -10,6 +10,17 @@ export const Media: CollectionConfig = {
   },
   fields: [
     {
+      // Deprecated UploadThing identifier retained for migration and rollback.
+      name: "_key",
+      type: "text",
+      admin: {
+        disableBulkEdit: true,
+        disableListColumn: true,
+        disableListFilter: true,
+        hidden: true,
+      },
+    },
+    {
       name: "alt",
       type: "text",
       required: true,

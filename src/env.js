@@ -47,6 +47,9 @@ export const env = createEnv({
         ? z.string()
         : z.string().optional(),
     PAYLOAD_SECRET: z.string(),
+    BLOB_READ_WRITE_TOKEN: z.string().optional(),
+    BLOB_STORE_ID: z.string().optional(),
+    BLOB_WEBHOOK_PUBLIC_KEY: z.string().optional(),
     RESEND_API_KEY: z.string().optional(),
     RESEND_EMAIL_FROM: z.string().email().optional(),
     RESEND_EMAIL_CONTACT: z.string().email().optional(),
@@ -95,11 +98,13 @@ export const env = createEnv({
     DISCORD_ROLLUP_WEBHOOK_URL: process.env.DISCORD_ROLLUP_WEBHOOK_URL,
     DISCORD_CHANGE_REQUEST_WEBHOOK_URL:
       process.env.DISCORD_CHANGE_REQUEST_WEBHOOK_URL,
-    DISCORD_BOT_INTERNAL_API_TOKEN:
-      process.env.DISCORD_BOT_INTERNAL_API_TOKEN,
+    DISCORD_BOT_INTERNAL_API_TOKEN: process.env.DISCORD_BOT_INTERNAL_API_TOKEN,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     NODE_ENV: process.env.NODE_ENV,
     PAYLOAD_SECRET: process.env.PAYLOAD_SECRET,
+    BLOB_READ_WRITE_TOKEN: process.env.BLOB_READ_WRITE_TOKEN,
+    BLOB_STORE_ID: process.env.BLOB_STORE_ID,
+    BLOB_WEBHOOK_PUBLIC_KEY: process.env.BLOB_WEBHOOK_PUBLIC_KEY,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     RESEND_EMAIL_FROM: process.env.RESEND_EMAIL_FROM,
     RESEND_EMAIL_CONTACT: process.env.RESEND_EMAIL_CONTACT,
