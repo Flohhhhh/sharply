@@ -141,6 +141,20 @@ Stores detailed lens-specific specifications:
 - **Stabilization**: Whether the lens has stabilization
 - **Flexibility**: JSONB extra field for additional specs
 
+Nikon DX naming heuristic: for `gear_type = LENS` with brand slug `nikon`, a
+whole-token `DX` in the gear name (case-insensitive) maps to sensor format slug
+`aps-c`; otherwise the lens maps to `full-frame`. Apply with the CLI backfill
+(dry-run by default; pass `--apply` to write):
+
+```bash
+npm run gear:backfill-nikon-image-circles
+npm run gear:backfill-nikon-image-circles -- --apply
+```
+
+The script updates `lens_specs.image_circle_size_id` only when the target differs
+from the current value. It does not touch `fixed_lens_specs` or non-LENS gear.
+Point `DATABASE_URL` at a development/preview database before applying.
+
 Admin CSV bulk import can create the initial lens spec row with mapped values.
 The lens-oriented template includes `imageCircleSize`, which accepts a sensor
 format slug, id, or exact name and stores the resolved `sensor_formats.id`.

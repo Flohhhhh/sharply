@@ -13,6 +13,7 @@
     "db:seed": "tsx scripts/seed.ts",
     "reviews:generate-fake-summary": "tsx scripts/generate-fake-review-summary.ts",
     "gear:list-missing-links": "tsx scripts/list-missing-links.ts",
+    "gear:backfill-nikon-image-circles": "tsx scripts/backfill-nikon-lens-image-circles.ts",
     "raw-samples:cleanup": "tsx scripts/cleanup-deleted-raw-samples.ts",
     "constants:generate": "tsx scripts/generate-constants.ts",
     "dev": "next dev --turbo",
