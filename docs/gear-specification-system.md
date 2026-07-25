@@ -198,7 +198,7 @@ CREATE TABLE sharply_gear (
   -- Primary key and identifiers
   -- Basic information (name, slug, search name)
   -- Classification (gear type, brand, mount)
-  -- Metadata (release date, price, thumbnail, top/rear secondary images)
+  -- Metadata (announced/release/discontinued dates + precision, price, thumbnail, top/rear secondary images)
   -- Timestamps
 );
 

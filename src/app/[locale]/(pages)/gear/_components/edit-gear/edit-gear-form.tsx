@@ -298,6 +298,18 @@ function EditGearForm({
           return getSpecFieldLabel(t, "core", "releaseDate", "Release Date");
         case "releaseDatePrecision":
           return tf("editGear.fields.releaseDatePrecision", "Release Date Precision");
+        case "discontinuedDate":
+          return getSpecFieldLabel(
+            t,
+            "core",
+            "discontinuedDate",
+            "Discontinued Date",
+          );
+        case "discontinuedDatePrecision":
+          return tf(
+            "editGear.fields.discontinuedDatePrecision",
+            "Discontinued Date Precision",
+          );
         case "msrpNowUsdCents":
           return tf("editGear.fields.msrpNow", "MSRP now (USD)");
         case "msrpAtLaunchUsdCents":
@@ -598,6 +610,8 @@ function EditGearForm({
       "announceDatePrecision",
       "releaseDate",
       "releaseDatePrecision",
+      "discontinuedDate",
+      "discontinuedDatePrecision",
       "msrpNowUsdCents",
       "msrpAtLaunchUsdCents",
       "mpbMaxPriceUsdCents",
@@ -1106,6 +1120,8 @@ function EditGearForm({
           announceDatePrecision: formData.announceDatePrecision,
           releaseDate: formData.releaseDate ?? null,
           releaseDatePrecision: formData.releaseDatePrecision,
+          discontinuedDate: formData.discontinuedDate ?? null,
+          discontinuedDatePrecision: formData.discontinuedDatePrecision,
           msrpNowUsdCents: formData.msrpNowUsdCents ?? null,
           msrpAtLaunchUsdCents: formData.msrpAtLaunchUsdCents ?? null,
           mpbMaxPriceUsdCents: formData.mpbMaxPriceUsdCents ?? null,
@@ -1128,6 +1144,9 @@ function EditGearForm({
           announceDatePrecision: initialCoreSpecs.announceDatePrecision,
           releaseDate: initialCoreSpecs.releaseDate ?? null,
           releaseDatePrecision: initialCoreSpecs.releaseDatePrecision,
+          discontinuedDate: initialCoreSpecs.discontinuedDate ?? null,
+          discontinuedDatePrecision:
+            initialCoreSpecs.discontinuedDatePrecision,
           msrpNowUsdCents: initialCoreSpecs.msrpNowUsdCents ?? null,
           msrpAtLaunchUsdCents: initialCoreSpecs.msrpAtLaunchUsdCents ?? null,
           mpbMaxPriceUsdCents: initialCoreSpecs.mpbMaxPriceUsdCents ?? null,
@@ -1309,7 +1328,9 @@ function EditGearForm({
                           )
                             display = formatPrice(normalizePriceCents(v));
                           if (
-                            (k === "releaseDate" || k === "announcedDate") &&
+                            (k === "releaseDate" ||
+                              k === "announcedDate" ||
+                              k === "discontinuedDate") &&
                             (typeof v === "string" || v instanceof Date)
                           )
                             display = formatDate(v, {

@@ -31,6 +31,7 @@ function renderCoreFields(gearType: "CAMERA" | "ANALOG_CAMERA" | "LENS") {
           currentSpecs: {
             announcedDate: null,
             releaseDate: null,
+            discontinuedDate: null,
             weightGrams: null,
             mountId: null,
             mountIds: [],
@@ -39,6 +40,7 @@ function renderCoreFields(gearType: "CAMERA" | "ANALOG_CAMERA" | "LENS") {
           initialSpecs: {
             announcedDate: null,
             releaseDate: null,
+            discontinuedDate: null,
             weightGrams: null,
             mountId: null,
             mountIds: [],

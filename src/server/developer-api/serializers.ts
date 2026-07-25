@@ -81,6 +81,8 @@ export function serializeDeveloperCatalogData(
     releaseDatePrecision: item.releaseDatePrecision,
     announcedDate: serializeDate(item.announcedDate),
     announceDatePrecision: item.announceDatePrecision,
+    discontinuedDate: serializeDate(item.discontinuedDate),
+    discontinuedDatePrecision: item.discontinuedDatePrecision,
   }));
 }
 
@@ -450,6 +452,8 @@ export function serializeGear(item: DeveloperApiGear) {
       announceDatePrecision: item.announceDatePrecision,
       releaseDate: serializeDate(item.releaseDate),
       releaseDatePrecision: item.releaseDatePrecision,
+      discontinuedDate: serializeDate(item.discontinuedDate),
+      discontinuedDatePrecision: item.discontinuedDatePrecision,
       msrpNowUsdCents: item.msrpNowUsdCents,
       msrpAtLaunchUsdCents: item.msrpAtLaunchUsdCents,
       mpbMaxPriceUsdCents: item.mpbMaxPriceUsdCents,

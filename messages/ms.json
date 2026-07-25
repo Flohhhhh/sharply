@@ -594,6 +594,7 @@
       "fields": {
         "announcedDatePrecision": "Ketepatan tarikh pengumuman",
         "releaseDatePrecision": "Ketepatan tarikh keluaran",
+        "discontinuedDatePrecision": "Ketepatan tarikh dihentikan",
         "datePrecisionHelp": "Pilih tahap ketepatan untuk tarikh. Contohnya, memilih \"Bulan\" akan memaparkan tarikh sebagai \"September 2025\" dan bukannya \"5 September 2025\". Memilih \"Tahun\" hanya akan memaparkan tahun. Gunakan \"Hari\" apabila tarikh penuh diketahui.",
         "datePrecisionYear": "Tahun",
         "datePrecisionMonth": "Bulan",
@@ -756,6 +757,9 @@
             },
             "releaseDate": {
               "label": "Tarikh pelancaran"
+            },
+            "discontinuedDate": {
+              "label": "Tarikh dihentikan"
             },
             "msrpAtLaunchUsdCents": {
               "label": "MSRP semasa pelancaran"

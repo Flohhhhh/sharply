@@ -468,6 +468,26 @@ export const specDictionary: SpecSectionDef[] = [
         editElementId: "release-date",
       },
       {
+        key: "discontinuedDate",
+        label: "Discontinued Date",
+        searchTerms: [
+          "discontinued",
+          "end of life",
+          "EOL",
+          "discontinuation date",
+        ],
+        getRawValue: (item) => item.discontinuedDate,
+        formatDisplay: (_, item, __, ___, locale) =>
+          item.discontinuedDate
+            ? formatDateWithPrecision(item.discontinuedDate, {
+                locale: locale ?? "en",
+                precision: (item.discontinuedDatePrecision ??
+                  "DAY") as DatePrecision,
+              })
+            : undefined,
+        editElementId: "discontinued-date",
+      },
+      {
         key: "msrpAtLaunchUsdCents",
         label: "MSRP At Launch",
         searchTerms: ["price", "launch price", "retail price", "cost", "msrp"],

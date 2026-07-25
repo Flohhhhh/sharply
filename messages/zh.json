@@ -595,6 +595,7 @@
         "aperture": "光圈",
         "announcedDatePrecision": "公布的日期精度",
         "releaseDatePrecision": "发布日期精度",
+        "discontinuedDatePrecision": "停产日期精度",
         "datePrecisionHelp": "选择日期的精度级别。例如，选择“月”会将日期显示为“2025 年 9 月”，而不是“2025 年 9 月 5 日”。选择“年份”将仅显示年份。当完整日期已知时，使用“日”。",
         "datePrecisionYear": "年",
         "datePrecisionMonth": "月",
@@ -756,6 +757,9 @@
             },
             "releaseDate": {
               "label": "发布日期"
+            },
+            "discontinuedDate": {
+              "label": "停产日期"
             },
             "msrpAtLaunchUsdCents": {
               "label": "发布时的建议零售价"

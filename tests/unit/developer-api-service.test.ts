@@ -164,6 +164,8 @@ describe("getDeveloperGear", () => {
         releaseDatePrecision: "DAY",
         announcedDate: null,
         announceDatePrecision: null,
+        discontinuedDate: null,
+        discontinuedDatePrecision: null,
       },
     ]);
 

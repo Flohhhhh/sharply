@@ -11,6 +11,9 @@ const CHANGE_REQUEST_FIELD_POLICIES: Record<string, ChangeRequestFieldPolicy> =
     "core.announceDatePrecision": {
       allowAutoApprovalOverwrite: true,
     },
+    "core.discontinuedDatePrecision": {
+      allowAutoApprovalOverwrite: true,
+    },
   };
 
 export function allowsAutoApprovalOverwrite(
