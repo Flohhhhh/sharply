@@ -45,6 +45,20 @@ describe("proposeLensOpticsBackfillFromName", () => {
     });
   });
 
+  it("fills optics from glued focal+aperture tokens used by Fujifilm names", () => {
+    const proposal = proposeLensOpticsBackfillFromName(
+      "Fujifilm XF23mmF2 R WR",
+      emptyOptics,
+    );
+
+    expect(proposal.proposed).toMatchObject({
+      focalLengthMinMm: 23,
+      focalLengthMaxMm: 23,
+      isPrime: true,
+      maxApertureWide: 2,
+    });
+  });
+
   it("fills aperture only when focal and isPrime already exist", () => {
     const proposal = proposeLensOpticsBackfillFromName(
       "Sigma 150-600mm F4.5-6.3",
