@@ -123,7 +123,7 @@ describe("spec registry i18n", () => {
     );
 
     expect(discontinuedRow?.label).toBe("Discontinued Date");
-    expect(String(discontinuedRow?.value)).toMatch(/June 2024|Jun 2024/);
+    expect(discontinuedRow?.value).toBe("June 2024");
   });
 
   it("uses the plural mount translation key when a lens has multiple mounts", () => {
