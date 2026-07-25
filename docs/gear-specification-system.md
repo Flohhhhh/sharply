@@ -52,6 +52,7 @@ Rules:
 - `HIDDEN` fully removes the item from public access and discovery.
 - The `/lists/under-construction` surface is only for incomplete **published** items.
 - Its catalog-completion disclosure compares completed published items with the total catalog, with the same completed/total progress available for every configured brand.
+- Item names on the under-construction list link to their public gear pages. Each row reports uploaded default-view images against the supported slot count (five for cameras, two for lenses), and the image filter selects only rows with zero uploaded images. Row actions are revealed on hover, keyboard focus, or a non-interactive touch target; contributors can open the missing-spec editor, while editors and higher roles can also open image management.
 - The homepage contribution banner links through `/contribute/random`, which chooses from the same under-construction pool and falls back to one of the 20 least-complete published items when that pool is empty.
 - Editors can still use normal admin and edit surfaces to prefill specs, images, and manuals on rumored or hidden items before publication.
 

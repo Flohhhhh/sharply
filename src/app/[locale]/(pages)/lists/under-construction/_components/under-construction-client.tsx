@@ -20,23 +20,8 @@ import {
 } from "~/components/ui/select";
 import { splitBrandsWithPriority } from "~/lib/brands";
 import { GEAR_TYPE_LABELS } from "~/lib/constants";
+import type { UnderConstructionRowData } from "./under-construction-row";
 import UnderConstructionTable from "./under-construction-table";
-
-type Row = {
-  id: string;
-  slug: string;
-  name: string;
-  brandName: string | null;
-  thumbnailUrl: string | null;
-  hasImage: boolean;
-  gearType: string;
-  missingCount: number;
-  missing: string[];
-  completionPercent: number;
-  createdAt: string | Date;
-  underConstruction: boolean;
-  brandId?: string | null;
-};
 
 type Option = {
   value: string;
@@ -53,14 +38,16 @@ type Summary = {
 };
 
 export default function UnderConstructionClient({
+  canManageImages = false,
   canToggleAutoSubmit = false,
   items,
   summary,
   brands,
   types,
 }: {
+  canManageImages?: boolean;
   canToggleAutoSubmit?: boolean;
-  items: Row[];
+  items: UnderConstructionRowData[];
   summary: Summary;
   brands: Option[];
   types: readonly string[];
@@ -87,7 +74,7 @@ export default function UnderConstructionClient({
     return items.filter((it) => {
       if (brandId !== "all" && it.brandId !== brandId) return false;
       if (gearType !== "all" && it.gearType !== gearType) return false;
-      if (missingImagesOnly && it.hasImage) return false;
+      if (missingImagesOnly && it.imageCount > 0) return false;
       return true;
     });
   }, [items, brandId, gearType, missingImagesOnly]);
@@ -196,8 +183,9 @@ export default function UnderConstructionClient({
       </div>
       <div className="mt-8">
         <UnderConstructionTable
+          canManageImages={canManageImages}
           canToggleAutoSubmit={canToggleAutoSubmit}
-          items={filtered as any}
+          items={filtered}
         />
       </div>
     </>

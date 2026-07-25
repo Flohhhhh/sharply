@@ -1,9 +1,11 @@
 "use client";
 
-import { ImageOff,Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useCallback,useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
 import EditModalContent from "~/app/[locale]/(pages)/gear/_components/edit-gear/edit-modal-content";
 import {
@@ -16,8 +18,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
-import { Badge } from "~/components/ui/badge";
-import { Button } from "~/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -25,34 +25,28 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { Label } from "~/components/ui/label";
-import { Progress } from "~/components/ui/progress";
 import { Switch } from "~/components/ui/switch";
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { GEAR_TYPE_LABELS } from "~/lib/constants";
 import { useUnsavedChangesGuard } from "~/lib/hooks/useUnsavedChangesGuard";
-import type { GearItem,GearType } from "~/types/gear";
+import type { GearItem, GearType } from "~/types/gear";
+import {
+  UnderConstructionRow,
+  type UnderConstructionRowData,
+} from "./under-construction-row";
 
-type Row = {
-  id: string;
-  slug: string;
-  name: string;
-  brandName: string | null;
-  thumbnailUrl: string | null;
-  hasImage: boolean;
-  gearType: string;
-  missingCount: number;
-  missing: string[];
-  completionPercent: number;
-  createdAt: string | Date;
-  underConstruction: boolean;
-};
+const GearImageModal = dynamic(
+  () =>
+    import("~/components/modals/gear-image-modal").then(
+      (mod) => mod.GearImageModal,
+    ),
+  { ssr: false },
+);
 
 async function fetchGearEditData(url: string): Promise<GearItem> {
   const res = await fetch(url, { method: "GET" });
@@ -61,152 +55,137 @@ async function fetchGearEditData(url: string): Promise<GearItem> {
 }
 
 export function UnderConstructionTable({
+  canManageImages = false,
   canToggleAutoSubmit = false,
   items,
 }: {
+  canManageImages?: boolean;
   canToggleAutoSubmit?: boolean;
-  items: Row[];
+  items: UnderConstructionRowData[];
 }) {
   const router = useRouter();
   const t = useTranslations("underConstructionPage");
+  const tableRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
+  const [imageOpen, setImageOpen] = useState(false);
+  const [imageRequested, setImageRequested] = useState(false);
+  const [revealedRowId, setRevealedRowId] = useState<string | null>(null);
   const [selected, setSelected] = useState<{
+    id: string;
     slug: string;
     type: GearType;
   } | null>(null);
   const [isDirty, setIsDirty] = useState(false);
   const [showMissingOnly, setShowMissingOnly] = useState(true);
-  const {
-    cancelLeave,
-    confirmLeave,
-    isConfirmOpen,
-    requestLeave,
-  } = useUnsavedChangesGuard({
-    interceptHistory: true,
-    isDirty,
-  });
+  const { cancelLeave, confirmLeave, isConfirmOpen, requestLeave } =
+    useUnsavedChangesGuard({
+      interceptHistory: true,
+      isDirty,
+    });
   const selectedEditDataUrl =
-    open && selected ? `/api/gear/${selected.slug}/edit-data` : null;
-  const { data: gearData, error, isLoading: loading } = useSWR<GearItem>(
-    selectedEditDataUrl,
-    fetchGearEditData,
-  );
+    selected && (open || imageOpen || imageRequested)
+      ? `/api/gear/${selected.slug}/edit-data`
+      : null;
+  const {
+    data: gearData,
+    error,
+    isLoading: loading,
+  } = useSWR<GearItem>(selectedEditDataUrl, fetchGearEditData);
 
   if (error) {
     console.error("[UnderConstructionTable] fetch edit-data error", error);
   }
 
+  useEffect(() => {
+    if (!revealedRowId) return;
+
+    const dismissRevealedRow = (event: PointerEvent) => {
+      if (
+        event.target instanceof Node &&
+        !tableRef.current?.contains(event.target)
+      ) {
+        setRevealedRowId(null);
+      }
+    };
+
+    document.addEventListener("pointerdown", dismissRevealedRow);
+    return () => {
+      document.removeEventListener("pointerdown", dismissRevealedRow);
+    };
+  }, [revealedRowId]);
+
+  useEffect(() => {
+    if (!imageRequested) return;
+    if (gearData) {
+      setImageOpen(true);
+      setImageRequested(false);
+    } else if (error) {
+      toast.error(t("imageLoadError"));
+      setImageRequested(false);
+    }
+  }, [error, gearData, imageRequested, t]);
+
   const requestClose = useCallback(
     (opts?: { force?: boolean }) => {
-      requestLeave(
-        () => {
-          setOpen(false);
-          setIsDirty(false);
-        },
-        opts,
-      );
+      requestLeave(() => {
+        setOpen(false);
+        setIsDirty(false);
+      }, opts);
     },
     [requestLeave],
   );
 
-  const handleOpen = useCallback((slug: string, type: GearType) => {
-    setSelected({ slug, type });
+  const handleOpen = useCallback((id: string, slug: string, type: GearType) => {
+    setSelected({ id, slug, type });
     setIsDirty(false);
     setShowMissingOnly(true); // default to missing-only when launched from this page
     setOpen(true);
   }, []);
 
+  const handleImageOpen = useCallback(
+    (id: string, slug: string, type: GearType) => {
+      setSelected({ id, slug, type });
+      setImageOpen(false);
+      setImageRequested(true);
+    },
+    [],
+  );
+
   return (
     <>
-      <div className="rounded-md border">
+      <div
+        ref={tableRef}
+        className="rounded-md border"
+        onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            setRevealedRowId(null);
+          }
+        }}
+      >
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>{t("item")}</TableHead>
-              <TableHead>{t("type")}</TableHead>
+              <TableHead>{t("images")}</TableHead>
               <TableHead>{t("missing")}</TableHead>
               <TableHead>{t("progress")}</TableHead>
               <TableHead className="text-right">{t("status")}</TableHead>
-              <TableHead className="text-right">{t("actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {items.map((it, idx) => {
               return (
-                <TableRow
+                <UnderConstructionRow
                   key={it.id}
-                  className={`cursor-pointer overflow-visible ${idx % 2 === 0 ? "hover:bg-accent/25" : "hover:bg-accent/60"}`}
-                  onClick={() => router.push(`/gear/${it.slug}`)}
-                  role="button"
-                >
-                  <TableCell className="max-w-[360px]">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium underline-offset-2 group-hover:underline">
-                        {it.name}
-                      </span>
-                      {!it.hasImage && (
-                        <Badge
-                          variant="outline"
-                          className="flex items-center gap-1"
-                        >
-                          <ImageOff className="h-3 w-3" />
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="text-muted-foreground text-xs">
-                      {it.brandName ?? ""}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-xs whitespace-nowrap">
-                    {/* Type cast needed because gearType is string from server data */}
-                    {GEAR_TYPE_LABELS[it.gearType as keyof typeof GEAR_TYPE_LABELS] ?? it.gearType}
-                  </TableCell>
-                  <TableCell className="align-top">
-                    <div className="flex flex-wrap gap-1">
-                      {it.missing.slice(0, 6).map((m) => (
-                        <Badge key={m} variant="outline" className="text-xs">
-                          {m}
-                        </Badge>
-                      ))}
-                      {it.missing.length > 6 ? (
-                        <Badge variant="outline" className="text-xs">
-                          {t("moreMissing", { count: it.missing.length - 6 })}
-                        </Badge>
-                      ) : null}
-                    </div>
-                  </TableCell>
-                  <TableCell className="w-[240px]">
-                    <div className="flex items-center gap-2">
-                      <Progress value={it.completionPercent} className="h-2" />
-                      <span className="text-muted-foreground w-10 text-right text-xs">
-                        {it.completionPercent}%
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {it.underConstruction ? (
-                      <Badge variant="destructive">
-                        {t("statusUnderConstruction")}
-                      </Badge>
-                    ) : (
-                      <Badge variant="secondary">
-                        {t("statusLowCompleteness")}
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleOpen(it.slug, it.gearType as GearType);
-                      }}
-                    >
-                      {t("openModal")}
-                    </Button>
-                  </TableCell>
-                </TableRow>
+                  canManageImages={canManageImages}
+                  index={idx}
+                  isLoadingImages={imageRequested && selected?.id === it.id}
+                  isRevealed={revealedRowId === it.id}
+                  item={it}
+                  onEdit={handleOpen}
+                  onManageImages={handleImageOpen}
+                  onReveal={setRevealedRowId}
+                />
               );
             })}
           </TableBody>
@@ -284,6 +263,24 @@ export function UnderConstructionTable({
           </div>
         </DialogContent>
       </Dialog>
+
+      {selected && gearData && (imageOpen || imageRequested) ? (
+        <GearImageModal
+          open={imageOpen}
+          onOpenChange={setImageOpen}
+          trigger={null}
+          gearId={gearData.id}
+          slug={selected.slug}
+          gearType={selected.type}
+          currentThumbnailUrl={gearData.thumbnailUrl ?? undefined}
+          currentTopViewUrl={gearData.topViewUrl ?? undefined}
+          currentRearViewUrl={gearData.rearViewUrl ?? undefined}
+          currentLeftViewUrl={gearData.leftViewUrl ?? undefined}
+          currentRightViewUrl={gearData.rightViewUrl ?? undefined}
+          currentColorways={gearData.colorways ?? undefined}
+          onSuccess={() => router.refresh()}
+        />
+      ) : null}
 
       <AlertDialog
         open={isConfirmOpen}

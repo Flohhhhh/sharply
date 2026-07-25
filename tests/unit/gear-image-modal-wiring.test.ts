@@ -16,9 +16,7 @@ describe("GearImageModal rear view wiring", () => {
     expect(source).toContain("currentRearViewUrl?: string;");
     expect(source).toContain("currentLeftViewUrl?: string;");
     expect(source).toContain("currentRightViewUrl?: string;");
-    expect(source).toContain(
-      '"leftView"',
-    );
+    expect(source).toContain('"leftView"');
     expect(source).toContain('"rightView"');
     expect(source).toContain(
       'props.gearType === "CAMERA" || props.gearType === "ANALOG_CAMERA"',
@@ -63,6 +61,16 @@ describe("GearImageModal rear view wiring", () => {
     expect(source).toContain("currentColorways={colorways}");
   });
 
+  it("supports controlled, triggerless callers without changing trigger-based use", () => {
+    const source = read("src/components/modals/gear-image-modal.tsx");
+
+    expect(source).toContain("open?: boolean;");
+    expect(source).toContain("onOpenChange?: (open: boolean) => void;");
+    expect(source).toContain("trigger?: ReactNode | null;");
+    expect(source).toContain("const open = props.open ?? internalOpen;");
+    expect(source).toContain("props.trigger !== null ? (");
+  });
+
   it("places the color manager after the image manager in the dock", () => {
     const source = read("src/components/gear/gear-tools-dock/dock-buttons.tsx");
 
@@ -76,10 +84,10 @@ describe("GearImageModal rear view wiring", () => {
 
     expect(source).toContain("import { Tabs, TabsList, TabsTrigger }");
     expect(source).toContain(
-      'TabsList className="h-auto max-w-full justify-start gap-1 overflow-x-auto rounded-md border border-input/70 bg-background/70 p-1 shadow-sm"',
+      'TabsList className="border-input/70 bg-background/70 h-auto max-w-full justify-start gap-1 overflow-x-auto rounded-md border p-1 shadow-sm"',
     );
     expect(source).toContain(
-      'className="h-8 rounded-sm px-3 text-xs font-semibold text-foreground/70 data-[state=active]:border-border data-[state=active]:bg-foreground/10 data-[state=active]:text-foreground data-[state=active]:shadow-none"',
+      'className="text-foreground/70 data-[state=active]:border-border data-[state=active]:bg-foreground/10 data-[state=active]:text-foreground h-8 rounded-sm px-3 text-xs font-semibold data-[state=active]:shadow-none"',
     );
   });
 

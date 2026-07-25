@@ -57,6 +57,7 @@ vi.mock(
 import Page from "~/app/[locale]/(pages)/lists/under-construction/page";
 
 type ClientProps = {
+  canManageImages: boolean;
   canToggleAutoSubmit: boolean;
   items: unknown[];
   brands: Array<{
@@ -124,6 +125,7 @@ describe("under construction page", () => {
       1,
     );
     expect(props.canToggleAutoSubmit).toBe(true);
+    expect(props.canManageImages).toBe(true);
     expect(props.items).toBe(items);
     expect(props.brands).toEqual(
       BRANDS.map((brand) => ({
@@ -160,6 +162,18 @@ describe("under construction page", () => {
     expect(
       props.brands.every((brand) => brand.underConstructionCount === 0),
     ).toBe(true);
+  });
+
+  it("does not expose editor-only image management to lower roles", async () => {
+    authHelperMocks.requireRole.mockReturnValue(false);
+    gearServiceMocks.listUnderConstruction.mockResolvedValue([]);
+    metricsMocks.fetchGearCount.mockResolvedValue(0);
+
+    renderToStaticMarkup(await Page(pageParams));
+    const props = getClientProps();
+
+    expect(props.canManageImages).toBe(false);
+    expect(props.canToggleAutoSubmit).toBe(false);
   });
 
   it("clamps completed items at zero when the backlog matches the total", async () => {
