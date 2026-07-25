@@ -48,6 +48,8 @@ interface CoreFieldsProps {
     announceDatePrecision?: DatePrecision | null;
     releaseDate: Date | null;
     releaseDatePrecision?: DatePrecision | null;
+    discontinuedDate: Date | null;
+    discontinuedDatePrecision?: DatePrecision | null;
     msrpNowUsdCents?: number | null;
     msrpAtLaunchUsdCents?: number | null;
     mpbMaxPriceUsdCents?: number | null;
@@ -153,6 +155,22 @@ function CoreFieldsComponent({
       const d = Number(dStr);
       const utcDate = new Date(Date.UTC(y, m - 1, d));
       onChange("announcedDate", utcDate);
+    },
+    [onChange],
+  );
+
+  const handleDiscontinuedDateChange = useCallback(
+    (value: string) => {
+      if (!value) {
+        onChange("discontinuedDate", null);
+        return;
+      }
+      const [yStr, mStr, dStr] = value.split("-");
+      const y = Number(yStr);
+      const m = Number(mStr);
+      const d = Number(dStr);
+      const utcDate = new Date(Date.UTC(y, m - 1, d));
+      onChange("discontinuedDate", utcDate);
     },
     [onChange],
   );
@@ -314,6 +332,10 @@ function CoreFieldsComponent({
     return formatDateInputValue(currentSpecs.releaseDate);
   }, [currentSpecs.releaseDate]);
 
+  const formattedDiscontinuedDate = useMemo(() => {
+    return formatDateInputValue(currentSpecs.discontinuedDate);
+  }, [currentSpecs.discontinuedDate]);
+
   // Safely format the current MSRP and launch MSRP for the inputs (convert cents to dollars)
   const formattedMsrpNow = useMemo(() => {
     return centsToUsd(currentSpecs.msrpNowUsdCents);
@@ -410,6 +432,8 @@ function CoreFieldsComponent({
   const user = data.user;
   const announcedDatePrecision = currentSpecs.announceDatePrecision ?? "DAY";
   const releaseDatePrecision = currentSpecs.releaseDatePrecision ?? "DAY";
+  const discontinuedDatePrecision =
+    currentSpecs.discontinuedDatePrecision ?? "DAY";
 
   if (!session) return null;
 
@@ -577,6 +601,85 @@ function CoreFieldsComponent({
                       releaseDatePrecision === "YEAR"
                         ? "year"
                         : releaseDatePrecision === "MONTH"
+                        ? "month"
+                        : "day"
+                    }
+                />
+              </>
+            );
+          })()}
+
+          {/* Discontinued Date + Precision (paired) */}
+          {(() => {
+            const showPair =
+              showWhenMissing(initialSpecs?.discontinuedDate) ||
+              showWhenMissing(initialSpecs?.discontinuedDatePrecision);
+            if (!showPair) return null;
+            return (
+              <>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Label>
+                      {tf(
+                        "editGear.fields.discontinuedDatePrecision",
+                        "Discontinued Date Precision",
+                      )}
+                    </Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <InfoIcon className="text-muted-foreground h-4 w-4" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-md">
+                        {tf(
+                          "editGear.fields.datePrecisionHelp",
+                          'Select a precision level for the date. For example, selecting "Month" will display the date as "September 2025" instead of "September 5, 2025". Selecting "Year" will only show the year. Use "Day" when the full date is known.',
+                        )}
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <ToggleGroup
+                    type="single"
+                    value={discontinuedDatePrecision}
+                    onValueChange={(v) =>
+                      v && onChange("discontinuedDatePrecision", v)
+                    }
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <ToggleGroupItem
+                      className="data-[state=on]:bg-accent hover:bg-accent/50"
+                      value="YEAR"
+                    >
+                      {tf("editGear.fields.datePrecisionYear", "Year")}
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      className="data-[state=on]:bg-accent hover:bg-accent/50"
+                      value="MONTH"
+                    >
+                      {tf("editGear.fields.datePrecisionMonth", "Month")}
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      className="data-[state=on]:bg-accent hover:bg-accent/50"
+                      value="DAY"
+                    >
+                      {tf("editGear.fields.datePrecisionDay", "Day")}
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
+
+                  <DateInput
+                    label={getSpecFieldLabel(
+                      t,
+                      "core",
+                      "discontinuedDate",
+                      "Discontinued Date",
+                    )}
+                    value={formattedDiscontinuedDate}
+                    onChange={handleDiscontinuedDateChange}
+                    granularity={
+                      discontinuedDatePrecision === "YEAR"
+                        ? "year"
+                        : discontinuedDatePrecision === "MONTH"
                         ? "month"
                         : "day"
                     }

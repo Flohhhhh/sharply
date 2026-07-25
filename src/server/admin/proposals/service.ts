@@ -49,6 +49,8 @@ const CATALOG_CORE_FIELDS = new Set([
   "releaseDatePrecision",
   "announcedDate",
   "announceDatePrecision",
+  "discontinuedDate",
+  "discontinuedDatePrecision",
   "publicationState",
 ]);
 

@@ -41,8 +41,9 @@ Required query parameter: `q` (2–200 characters). Optional `limit` defaults to
 
 Downloads one shared, lightweight snapshot of every published gear record. It is
 slug-sorted and contains only `name`, `slug`, `brandName`, `gearType`,
-`thumbnailUrl`, `releaseDate`, `releaseDatePrecision`, `announcedDate`, and
-`announceDatePrecision` for each item. It deliberately excludes specifications,
+`thumbnailUrl`, `releaseDate`, `releaseDatePrecision`, `announcedDate`,
+`announceDatePrecision`, `discontinuedDate`, and `discontinuedDatePrecision`
+for each item. It deliberately excludes specifications,
 aliases, samples, colourways, prices, IDs, and audit metadata.
 
 ```json

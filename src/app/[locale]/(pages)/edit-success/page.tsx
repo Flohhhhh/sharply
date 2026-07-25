@@ -195,7 +195,11 @@ export default async function EditSuccessPage({
                             k === "msrpAtLaunchUsdCents"
                           )
                             display = formatPrice(v as number);
-                          if (k === "releaseDate")
+                          if (
+                            k === "releaseDate" ||
+                            k === "announcedDate" ||
+                            k === "discontinuedDate"
+                          )
                             display = formatDate(v as any, {
                               locale,
                               preset: "date-long",

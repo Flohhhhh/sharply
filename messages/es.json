@@ -594,6 +594,7 @@
       "fields": {
         "announcedDatePrecision": "Precisión de la fecha de anuncio",
         "releaseDatePrecision": "Precisión de la fecha de lanzamiento",
+        "discontinuedDatePrecision": "Precisión de la fecha de discontinuación",
         "datePrecisionHelp": "Selecciona un nivel de precisión para la fecha. Por ejemplo, al elegir \"Mes\" la fecha se mostrará como \"septiembre de 2025\" en lugar de \"5 de septiembre de 2025\". Al elegir \"Año\" solo se mostrará el año. Usa \"Día\" cuando se conozca la fecha completa.",
         "datePrecisionYear": "Año",
         "datePrecisionMonth": "Mes",
@@ -756,6 +757,9 @@
             },
             "releaseDate": {
               "label": "Fecha de lanzamiento"
+            },
+            "discontinuedDate": {
+              "label": "Fecha de discontinuación"
             },
             "msrpAtLaunchUsdCents": {
               "label": "PVP de lanzamiento"

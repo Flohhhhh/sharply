@@ -29,6 +29,8 @@ function createGearItem(overrides: Partial<GearItem>): GearItem {
     announceDatePrecision: null,
     releaseDate: null,
     releaseDatePrecision: null,
+    discontinuedDate: null,
+    discontinuedDatePrecision: null,
     regionalAliases: null,
     cameraSpecs: null,
     analogCameraSpecs: null,
@@ -83,6 +85,8 @@ describe("spec registry i18n", () => {
       gearType: "CAMERA",
       announcedDate: new Date("2020-01-02T00:00:00.000Z"),
       announceDatePrecision: "DAY",
+      discontinuedDate: new Date("2024-06-01T00:00:00.000Z"),
+      discontinuedDatePrecision: "MONTH",
     });
 
     const sections = buildGearSpecsSections(item, {
@@ -95,6 +99,31 @@ describe("spec registry i18n", () => {
     expect(coreSection?.data.find((row) => row.key === "announcedDate")?.label).toBe(
       "Announced Date",
     );
+    expect(
+      coreSection?.data.find((row) => row.key === "discontinuedDate")?.label,
+    ).toBe("Discontinued Date");
+  });
+
+  it("formats discontinued date with precision", () => {
+    const item = createGearItem({
+      discontinuedDate: new Date("2024-06-15T00:00:00.000Z"),
+      discontinuedDatePrecision: "MONTH",
+    });
+
+    const sections = buildGearSpecsSections(item, {
+      locale: "en",
+      t: createTranslator({
+        "specRegistry.sections.core.fields.discontinuedDate.label":
+          "Discontinued Date",
+      }),
+    });
+    const coreSection = sections.find((section) => section.id === "core");
+    const discontinuedRow = coreSection?.data.find(
+      (row) => row.key === "discontinuedDate",
+    );
+
+    expect(discontinuedRow?.label).toBe("Discontinued Date");
+    expect(discontinuedRow?.value).toBe("June 2024");
   });
 
   it("uses the plural mount translation key when a lens has multiple mounts", () => {

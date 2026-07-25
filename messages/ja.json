@@ -594,6 +594,7 @@
       "fields": {
         "announcedDatePrecision": "発表日の精度",
         "releaseDatePrecision": "発売日の精度",
+        "discontinuedDatePrecision": "販売終了日の精度",
         "datePrecisionHelp": "日付の精度レベルを選択してください。たとえば「月」を選ぶと、日付は「2025年9月」のように表示され、「2025年9月5日」では表示されません。「年」を選ぶと年のみ表示されます。完全な日付が分かっている場合は「日」を使ってください。",
         "datePrecisionYear": "年",
         "datePrecisionMonth": "月",
@@ -756,6 +757,9 @@
             },
             "releaseDate": {
               "label": "発売日"
+            },
+            "discontinuedDate": {
+              "label": "販売終了日"
             },
             "msrpAtLaunchUsdCents": {
               "label": "発売時希望小売価格"

@@ -213,7 +213,12 @@ export function GearProposalsList() {
       k === "msrpAtLaunchUsdCents"
     )
       return formatPrice(v as number);
-    if (k === "releaseDate") return formatDisplayDate(v);
+    if (
+      k === "releaseDate" ||
+      k === "announcedDate" ||
+      k === "discontinuedDate"
+    )
+      return formatDisplayDate(v);
     if (k === "sensorFormatId") return sensorNameFromSlug(v as string);
     if (k === "mountId") return getMountLongNameById(v as string);
     if (k === "mountIds") {
@@ -237,7 +242,12 @@ export function GearProposalsList() {
       k === "msrpAtLaunchUsdCents"
     )
       return formatPrice(v as number);
-    if (k === "releaseDate") return formatDisplayDate(v);
+    if (
+      k === "releaseDate" ||
+      k === "announcedDate" ||
+      k === "discontinuedDate"
+    )
+      return formatDisplayDate(v);
     if (k === "sensorFormatId") return sensorNameFromId(v as string);
     if (k === "mountId") return getMountLongNameById(v as string);
     if (k === "mountIds") {

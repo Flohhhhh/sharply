@@ -595,6 +595,7 @@
         "aperture": "Aperture",
         "announcedDatePrecision": "Announced Date Precision",
         "releaseDatePrecision": "Release Date Precision",
+        "discontinuedDatePrecision": "Discontinued Date Precision",
         "datePrecisionHelp": "Select a precision level for the date. For example, selecting \"Month\" will display the date as \"September 2025\" instead of \"September 5, 2025\". Selecting \"Year\" will only show the year. Use \"Day\" when the full date is known.",
         "datePrecisionYear": "Year",
         "datePrecisionMonth": "Month",
@@ -756,6 +757,9 @@
             },
             "releaseDate": {
               "label": "Release Date"
+            },
+            "discontinuedDate": {
+              "label": "Discontinued Date"
             },
             "msrpAtLaunchUsdCents": {
               "label": "MSRP At Launch"
