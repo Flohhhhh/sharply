@@ -291,9 +291,9 @@ export function parseFocalLengthFromName(
   name: string,
 ): { min: number; max: number; isPrime: boolean } | null {
   // Allow mount prefixes glued to the focal token (FD100mm, FE24-70mm).
-  // Do not require a leading word boundary before the digits.
+  // Also allow glued aperture tokens (XF23mmF2, XF16-55mmF2.8-4).
   const range = name.match(
-    /(\d+(?:\.\d+)?)\s*[-–]\s*(\d+(?:\.\d+)?)\s*mm\b/i,
+    /(\d+(?:\.\d+)?)\s*[-–]\s*(\d+(?:\.\d+)?)\s*mm(?=\b|\s*[ft]\s*\/?\s*\d)/i,
   );
   if (range?.[1] && range[2]) {
     const min = Number(range[1]);
@@ -303,7 +303,9 @@ export function parseFocalLengthFromName(
     }
   }
 
-  const prime = name.match(/(\d+(?:\.\d+)?)\s*mm\b/i);
+  const prime = name.match(
+    /(\d+(?:\.\d+)?)\s*mm(?=\b|\s*[ft]\s*\/?\s*\d)/i,
+  );
   if (prime?.[1]) {
     const focal = Number(prime[1]);
     if (Number.isFinite(focal)) {
@@ -329,9 +331,11 @@ export function parseApertureFromName(
     .replace(/[—–]/g, "-");
 
   const patterns = [
-    /\bf\s*\/?\s*(\d+(?:\.\d+)?)(?:\s*-\s*(\d+(?:\.\d+)?))?/i,
+    // Accept glued forms after focal length tokens (XF23mmF2), but avoid
+    // matching brand/mount prefixes like "RF24" by requiring a safe prefix.
+    /(?:^|[^a-z0-9]|mm)\s*f\s*\/?\s*(\d+(?:\.\d+)?)(?:\s*-\s*(\d+(?:\.\d+)?))?/i,
     /\b1\s*:\s*(\d+(?:\.\d+)?)(?:\s*-\s*(\d+(?:\.\d+)?))?/i,
-    /\bt\s*\/?\s*(\d+(?:\.\d+)?)(?:\s*-\s*(\d+(?:\.\d+)?))?/i,
+    /(?:^|[^a-z0-9]|mm)\s*t\s*\/?\s*(\d+(?:\.\d+)?)(?:\s*-\s*(\d+(?:\.\d+)?))?/i,
   ];
 
   for (const pattern of patterns) {

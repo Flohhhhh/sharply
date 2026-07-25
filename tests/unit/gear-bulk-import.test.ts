@@ -36,6 +36,7 @@ describe("gear bulk import utilities", () => {
     ["Canon EF 8-15mm f/4L Fisheye USM", { min: 8, max: 15, isPrime: false }],
     ["Canon FD100mm f/2.8 S.S.C.", { min: 100, max: 100, isPrime: true }],
     ["Sony FE24-70mm F2.8 GM", { min: 24, max: 70, isPrime: false }],
+    ["Fujifilm XF23mmF2 R WR", { min: 23, max: 23, isPrime: true }],
   ])("parses focal length from %s", (name, expected) => {
     expect(parseFocalLengthFromName(name)).toEqual(expected);
   });
@@ -68,6 +69,7 @@ describe("gear bulk import utilities", () => {
     ["Nikon Nikkor Z 50mm ƒ/1.8", { wide: 1.8 }],
     ["Sigma 24-70mm F2.8 DG DN Art", { wide: 2.8 }],
     ["Sigma 150-600mm F4.5-6.3", { wide: 4.5, tele: 6.3 }],
+    ["Fujifilm XF23mmF2 R WR", { wide: 2 }],
     ["Canon RF 24-105mm f/4-7.1", { wide: 4, tele: 7.1 }],
     ["Canon EF 24-105mm f/4L IS USM", { wide: 4 }],
     ["Nikon AF-S NIKKOR 500mm f/5.6E PF", { wide: 5.6 }],
@@ -86,6 +88,7 @@ describe("gear bulk import utilities", () => {
 
   it("returns null when no aperture token is present", () => {
     expect(parseApertureFromName("Nikon Nikkor Z 50mm")).toBeNull();
+    expect(parseApertureFromName("Canon RF24-70mm")).toBeNull();
   });
 
   it("parses structured CSV rows with inferred brand, mounts, focal length, and aperture", () => {
