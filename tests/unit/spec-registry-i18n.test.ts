@@ -427,7 +427,7 @@ describe("spec registry i18n", () => {
     const getWeightValue = (weightGrams: number | string | null | undefined) =>
       buildGearSpecsSections(
         createGearItem({
-          weightGrams,
+          weightGrams: weightGrams as unknown as GearItem["weightGrams"],
         }),
         {
           locale: "en",

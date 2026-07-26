@@ -130,11 +130,11 @@ describe("CameraFields video gating", () => {
           initialSpecs: {
             hasVideo: false,
             afAreaModes: [],
-          } as EnrichedCameraSpecs,
+          } as unknown as EnrichedCameraSpecs,
           currentSpecs: {
             hasVideo: false,
             afAreaModes: [],
-          } as EnrichedCameraSpecs,
+          } as unknown as EnrichedCameraSpecs,
           showMissingOnly: true,
           onChange: () => {},
         }),
