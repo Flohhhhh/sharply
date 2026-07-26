@@ -1,6 +1,7 @@
 import { type Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { BotIdClient } from "botid/client";
 import { Archivo,Crimson_Text } from "next/font/google";
 import { getTranslations,setRequestLocale } from "next-intl/server";
@@ -90,6 +91,8 @@ export default async function RootLayout({
 }>) {
   const { locale } = await params;
   const shouldMountAnalytics = process.env.VERCEL_ENV === "production";
+  const shouldMountSpeedInsights =
+    shouldMountAnalytics && process.env.ENABLE_VERCEL_SPEED_INSIGHTS === "true";
 
   if (!isLocale(locale)) {
     notFound();
@@ -113,6 +116,7 @@ export default async function RootLayout({
           <Toaster />
         </Providers>
         {shouldMountAnalytics ? <Analytics /> : null}
+        {shouldMountSpeedInsights ? <SpeedInsights /> : null}
       </body>
     </html>
   );

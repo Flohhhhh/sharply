@@ -80,6 +80,7 @@
     "@uswriting/exiftool": "^1.0.9",
     "@vercel/analytics": "^1.5.0",
     "@vercel/blob": "^2.6.1",
+    "@vercel/speed-insights": "^2.0.0",
     "archiver": "^7.0.1",
     "better-auth": "^1.4.9",
     "better-call": "^1.1.7",

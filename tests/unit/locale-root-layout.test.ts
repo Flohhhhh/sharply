@@ -7,6 +7,9 @@ import { DEFAULT_OG_IMAGE_PATH } from "~/lib/seo/default-og-image";
 const analyticsMock = vi.hoisted(() =>
   vi.fn(() => createElement("div", { "data-testid": "analytics" })),
 );
+const speedInsightsMock = vi.hoisted(() =>
+  vi.fn(() => createElement("div", { "data-testid": "speed-insights" })),
+);
 const botIdClientMock = vi.hoisted(() =>
   vi.fn(() => createElement("meta", { name: "botid-client" })),
 );
@@ -43,6 +46,9 @@ const navigationMocks = vi.hoisted(() => ({
 vi.mock("@vercel/analytics/next", () => ({
   Analytics: analyticsMock,
 }));
+vi.mock("@vercel/speed-insights/next", () => ({
+  SpeedInsights: speedInsightsMock,
+}));
 vi.mock("botid/client", () => ({
   BotIdClient: botIdClientMock,
 }));
@@ -64,10 +70,12 @@ import RootLayout, {
 
 describe("locale root layout", () => {
   const originalVercelEnv = process.env.VERCEL_ENV;
+  const originalSpeedInsightsEnabled = process.env.ENABLE_VERCEL_SPEED_INSIGHTS;
 
   beforeEach(() => {
     vi.clearAllMocks();
     delete process.env.VERCEL_ENV;
+    delete process.env.ENABLE_VERCEL_SPEED_INSIGHTS;
     i18nMessageMocks.getMessagesForLocale.mockResolvedValue({});
     intlServerMocks.getTranslations.mockResolvedValue((key: string) => {
       if (key === "siteDescription") return "Sharply description";
@@ -77,15 +85,21 @@ describe("locale root layout", () => {
 
   afterEach(() => {
     delete process.env.VERCEL_ENV;
+    delete process.env.ENABLE_VERCEL_SPEED_INSIGHTS;
   });
 
   afterAll(() => {
     if (originalVercelEnv === undefined) {
       delete process.env.VERCEL_ENV;
-      return;
+    } else {
+      process.env.VERCEL_ENV = originalVercelEnv;
     }
 
-    process.env.VERCEL_ENV = originalVercelEnv;
+    if (originalSpeedInsightsEnabled === undefined) {
+      delete process.env.ENABLE_VERCEL_SPEED_INSIGHTS;
+    } else {
+      process.env.ENABLE_VERCEL_SPEED_INSIGHTS = originalSpeedInsightsEnabled;
+    }
   });
 
   it("mounts analytics in production", async () => {
@@ -100,6 +114,22 @@ describe("locale root layout", () => {
 
     expect(markup).toContain("data-testid=\"analytics\"");
     expect(analyticsMock).toHaveBeenCalledTimes(1);
+    expect(speedInsightsMock).not.toHaveBeenCalled();
+  });
+
+  it("mounts Speed Insights only when explicitly enabled in production", async () => {
+    process.env.VERCEL_ENV = "production";
+    process.env.ENABLE_VERCEL_SPEED_INSIGHTS = "true";
+
+    const markup = renderToStaticMarkup(
+      await RootLayout({
+        children: createElement("main", null, "content"),
+        params: Promise.resolve({ locale: "en" }),
+      }),
+    );
+
+    expect(markup).toContain('data-testid="speed-insights"');
+    expect(speedInsightsMock).toHaveBeenCalledTimes(1);
   });
 
   it("renders the validated locale as the document language", async () => {
@@ -127,6 +157,7 @@ describe("locale root layout", () => {
 
   it("skips analytics outside production", async () => {
     process.env.VERCEL_ENV = "preview";
+    process.env.ENABLE_VERCEL_SPEED_INSIGHTS = "true";
 
     const markup = renderToStaticMarkup(
       await RootLayout({
@@ -137,6 +168,8 @@ describe("locale root layout", () => {
 
     expect(markup).not.toContain("data-testid=\"analytics\"");
     expect(analyticsMock).not.toHaveBeenCalled();
+    expect(markup).not.toContain('data-testid="speed-insights"');
+    expect(speedInsightsMock).not.toHaveBeenCalled();
   });
 
   it("keeps the locale static params list in sync with supported locales", () => {
