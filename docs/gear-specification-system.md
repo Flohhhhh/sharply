@@ -143,6 +143,8 @@ Stores detailed lens-specific specifications:
 - **Flexibility**: JSONB extra field for additional specs
 
 Admin CSV bulk import can create the initial lens spec row with mapped values.
+Duplicate review checks for editable bulk-import rows are debounced per row so
+typing remains uninterrupted, and superseded checks are discarded.
 The lens-oriented template includes `imageCircleSize`, which accepts a sensor
 format slug, id, or exact name and stores the resolved `sensor_formats.id`.
 Focal length, prime/zoom (`isPrime`), and maximum aperture are not CSV columns;
