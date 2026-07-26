@@ -57,6 +57,20 @@ describe("Payload media storage configuration", () => {
     }
   });
 
+  it("allows only the connected public Blob store through image optimization", () => {
+    const source = read("next.config.js");
+    expect(source).toContain(
+      'hostname: "8ohygcz3uqpkb9ee.public.blob.vercel-storage.com"',
+    );
+    expect(source).toContain('pathname: "/**"');
+    expect(source).not.toContain(
+      'hostname: "*.public.blob.vercel-storage.com"',
+    );
+    expect(source).not.toContain(
+      'hostname: "**.public.blob.vercel-storage.com"',
+    );
+  });
+
   it("retains UploadThing for non-Payload upload features", () => {
     const packageJson = read("package.json");
     expect(packageJson).toContain('"@uploadthing/react"');

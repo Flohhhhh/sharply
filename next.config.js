@@ -58,6 +58,11 @@ const config = {
       },
       {
         protocol: "https",
+        hostname: "8ohygcz3uqpkb9ee.public.blob.vercel-storage.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
         hostname: "*.ytimg.com",
       },
       {

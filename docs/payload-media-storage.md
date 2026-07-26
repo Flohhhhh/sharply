@@ -26,6 +26,11 @@ New uploads receive random Blob pathname suffixes to prevent collisions. The
 legacy migration intentionally preserves exact Payload filenames so existing
 records continue to resolve without a database rewrite.
 
+The public Blob store hostname is explicitly allowed in `next.config.js` under
+`images.remotePatterns`. This allows Payload media to be rendered through
+Next.js image optimization in production. If the connected Blob store changes,
+update the hostname there to match the new store URL before deploying.
+
 ## Migrating legacy Payload images
 
 The migration is non-destructive: it reads Payload records and UploadThing
