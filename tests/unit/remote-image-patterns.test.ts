@@ -21,7 +21,7 @@ describe("next image remote patterns", () => {
     expect(nextConfigSource).toContain('hostname: "img.youtube.com"');
   });
 
-  it("keeps sharp externalized for server bundles", () => {
-    expect(nextConfigSource).toContain('serverExternalPackages: ["sharp"]');
+  it("allows Next.js to trace sharp and its native libvips dependency", () => {
+    expect(nextConfigSource).not.toContain('serverExternalPackages: ["sharp"]');
   });
 });

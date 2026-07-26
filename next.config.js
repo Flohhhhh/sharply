@@ -80,7 +80,6 @@ const config = {
     ],
   },
   outputFileTracingRoot,
-  serverExternalPackages: ["sharp"],
   webpack: (config, { isServer, webpack }) => {
     if (!isServer) {
       config.plugins.push(
