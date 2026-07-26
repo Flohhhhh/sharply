@@ -19,6 +19,12 @@ export type HomePost = {
 
 export type NewsCardSize = "lg" | "md" | "sm";
 
+const NEWS_CARD_IMAGE_SIZES: Record<NewsCardSize, string> = {
+  lg: "(min-width: 1280px) 840px, (min-width: 768px) calc(60vw - 48px), (min-width: 640px) calc(100vw - 72px), calc(100vw - 56px)",
+  md: "(min-width: 1280px) 840px, (min-width: 768px) calc(60vw - 48px), (min-width: 640px) calc(100vw - 72px), calc(100vw - 56px)",
+  sm: "(min-width: 768px) calc(33vw - 24px), (min-width: 640px) calc(50vw - 30px), calc(100vw - 48px)",
+};
+
 function HomeNewsCardPendingState({
   children,
 }: {
@@ -74,9 +80,9 @@ export function NewsCard({
                     src={post.image}
                     alt={post.title}
                     priority={imagePriority}
-                    width={720}
-                    height={480}
-                    className="h-full w-full rounded-lg object-cover"
+                    fill
+                    sizes={NEWS_CARD_IMAGE_SIZES[size]}
+                    className="rounded-lg object-cover"
                   />
                   {badge ? (
                     <div className="absolute top-3 left-3">

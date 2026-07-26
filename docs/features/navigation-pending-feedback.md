@@ -40,6 +40,12 @@ Common behavior:
 - disable repeated interaction with `pointer-events-none`
 - expose stable `data-*` markers for unit and Playwright assertions
 
+The shared news card also uses responsive `next/image` sizing. Homepage cards
+advertise the width of the wide featured column, while `size="sm"` cards use
+the narrower related-articles grid width. Keep those sizing hints aligned with
+their layouts so the optimizer does not stretch undersized image candidates or
+over-fetch full-width images for small cards.
+
 Use this approach when the surface has custom composition:
 
 - image cards
