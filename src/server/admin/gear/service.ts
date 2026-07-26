@@ -10,7 +10,6 @@ import { GEAR_REGIONS, type GearRegion } from "~/lib/gear/region";
 import { shouldBlockFuzzyResults } from "~/lib/utils/gear-creation";
 import { getSessionOrThrow } from "~/server/auth";
 import { reviewGearImageUpload } from "~/server/gear-image-review/service";
-import { isUploadThingFileUrl } from "~/server/raw-samples/uploadthing";
 import { db } from "~/server/db";
 import {
   auditLogs,
@@ -438,9 +437,6 @@ export async function setGearOgImageService(params: {
   }
 
   const { gearId: maybeId, slug, ogImageUrl } = params;
-  if (ogImageUrl && !isUploadThingFileUrl(ogImageUrl)) {
-    throw Object.assign(new Error("Invalid image upload URL"), { status: 422 });
-  }
   let gearId = maybeId;
   if (!gearId) {
     if (!slug) {
