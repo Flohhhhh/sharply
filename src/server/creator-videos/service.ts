@@ -1,8 +1,12 @@
 import "server-only";
 
+import { cache } from "react";
 import { z } from "zod";
 import { requireRole } from "~/lib/auth/auth-helpers";
-import { fetchActiveApprovedCreatorsForPlatform,fetchApprovedCreatorById } from "~/server/admin/approved-creators/service";
+import {
+  fetchActiveApprovedCreatorsForPlatform,
+  fetchApprovedCreatorById,
+} from "~/server/admin/approved-creators/service";
 import { getSessionOrThrow } from "~/server/auth";
 import { resolveGearIdOrThrow } from "~/server/gear/service";
 import {
@@ -64,8 +68,14 @@ async function requireEditorSession() {
 
 export async function fetchPublicGearCreatorVideos(slug: string) {
   const gearId = await resolveGearIdOrThrow(slug);
-  return fetchPublicGearCreatorVideosByGearIdData(gearId);
+  return fetchPublicGearCreatorVideosByGearId(gearId);
 }
+
+export const fetchPublicGearCreatorVideosByGearId = cache(
+  async function fetchPublicGearCreatorVideosByGearId(gearId: string) {
+    return fetchPublicGearCreatorVideosByGearIdData(gearId);
+  },
+);
 
 export async function fetchManageGearCreatorVideos(slug: string) {
   await requireEditorSession();
@@ -81,10 +91,12 @@ export async function fetchManageGearCreatorVideos(slug: string) {
 
 export async function resolveGearCreatorVideoInput(input: unknown) {
   await requireEditorSession();
-  const parsed = gearCreatorVideoInput.pick({
-    creatorId: true,
-    url: true,
-  }).parse(input);
+  const parsed = gearCreatorVideoInput
+    .pick({
+      creatorId: true,
+      url: true,
+    })
+    .parse(input);
 
   const creator = await fetchApprovedCreatorById(parsed.creatorId);
   if (!creator?.isActive) {
@@ -95,9 +107,12 @@ export async function resolveGearCreatorVideoInput(input: unknown) {
 
   const resolution = await resolveCreatorVideoMetadata(parsed.url);
   if (resolution.platform !== creator.platform) {
-    throw Object.assign(new Error("Video platform must match the selected creator"), {
-      status: 400,
-    });
+    throw Object.assign(
+      new Error("Video platform must match the selected creator"),
+      {
+        status: 400,
+      },
+    );
   }
 
   return resolution;
@@ -131,23 +146,26 @@ export async function createGearCreatorVideo(slug: string, input: unknown) {
     resolution.externalVideoId !== normalized.externalVideoId
   ) {
     throw Object.assign(
-      new Error("Video details are out of date. Fetch the video details again."),
+      new Error(
+        "Video details are out of date. Fetch the video details again.",
+      ),
       { status: 400 },
     );
   }
 
   if (resolution.platform !== creator.platform) {
-    throw Object.assign(new Error("Video platform must match the selected creator"), {
-      status: 400,
-    });
+    throw Object.assign(
+      new Error("Video platform must match the selected creator"),
+      {
+        status: 400,
+      },
+    );
   }
 
   const manualTitle = parsed.title?.trim() || null;
   const manualThumbnailUrl = parsed.thumbnailUrl?.trim() || null;
   const title =
-    resolution.metadataStatus === "resolved"
-      ? resolution.title
-      : manualTitle;
+    resolution.metadataStatus === "resolved" ? resolution.title : manualTitle;
 
   if (!title) {
     throw Object.assign(
@@ -159,7 +177,7 @@ export async function createGearCreatorVideo(slug: string, input: unknown) {
   const thumbnailUrl =
     resolution.metadataStatus === "resolved"
       ? resolution.thumbnailUrl
-      : manualThumbnailUrl ?? resolution.thumbnailUrl;
+      : (manualThumbnailUrl ?? resolution.thumbnailUrl);
 
   const publishedAt = parseOptionalDate(parsed.publishedAt || undefined);
 

@@ -217,7 +217,17 @@ Best initial candidates:
 
 The migration itself did not adopt the new Cache Components model.
 
-### 4. Revisit newly disabled React hooks/compiler rules
+### 4. Gear detail waterfall reduction
+
+The gear detail route now keeps its initial server-rendered fold focused on
+the item identity, specifications, staff verdict, and existing action controls.
+Lower-priority catalog sections stream independently, while personalized action
+state continues to hydrate through its existing client-side endpoint. ORM reads
+shared by metadata and the page use request-scoped React memoization; this is
+compatible with the existing ISR model and does not introduce a new persistent
+cache or invalidation contract.
+
+### 5. Revisit newly disabled React hooks/compiler rules
 
 These should be reviewed later in a dedicated cleanup pass.
 
@@ -227,7 +237,7 @@ Goals:
 - re-enable rules selectively where practical
 - avoid treating the migration-era config as permanent if it does not need to be
 
-### 5. Clean remaining non-blocking warnings
+### 6. Clean remaining non-blocking warnings
 
 Current known examples:
 
@@ -237,7 +247,7 @@ Current known examples:
 
 These were not blockers for the migration, but reducing warning noise will help future upgrades and performance work.
 
-### 6. Simplify passkey typing when upstream types allow it
+### 7. Simplify passkey typing when upstream types allow it
 
 If Better Auth exposes a cleaner typed contract for `listPasskeys()`, remove the runtime coercion logic and replace it with a direct typed path.
 

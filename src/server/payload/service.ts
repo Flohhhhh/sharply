@@ -1,4 +1,5 @@
-import type { LearnPage,News,Review } from "~/payload-types";
+import type { LearnPage, News, Review } from "~/payload-types";
+import { cache } from "react";
 import {
   getNewsByRelatedGearSlugData,
   getNewsPostBySlugData,
@@ -52,18 +53,18 @@ export const getReviewBySlug = async (slug: string): Promise<Review | null> => {
   return review;
 };
 
-export const getReviewByGearSlug = async (
-  gearSlug: string,
-): Promise<Review | null> => {
-  const review = await getReviewByGearSlugData(gearSlug);
-  if (!review) {
-    return null;
-  }
-  if (review._status !== "published") {
-    return null;
-  }
-  return review;
-};
+export const getReviewByGearSlug = cache(
+  async (gearSlug: string): Promise<Review | null> => {
+    const review = await getReviewByGearSlugData(gearSlug);
+    if (!review) {
+      return null;
+    }
+    if (review._status !== "published") {
+      return null;
+    }
+    return review;
+  },
+);
 
 export const getNewsByRelatedGearSlug = async (
   gearSlug: string,
@@ -74,10 +75,7 @@ export const getNewsByRelatedGearSlug = async (
 };
 
 // Learn Pages
-import {
-  getLearnPageBySlugData,
-  getLearnPagesData,
-} from "./data";
+import { getLearnPageBySlugData, getLearnPagesData } from "./data";
 
 export const getLearnPages = async (): Promise<LearnPage[]> => {
   const pages = await getLearnPagesData();

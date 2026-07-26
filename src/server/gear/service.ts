@@ -2,6 +2,7 @@ import "server-only";
 
 import { track } from "@vercel/analytics/server";
 import { headers } from "next/headers";
+import { cache } from "react";
 import { z } from "zod";
 import { auth } from "~/auth";
 import { requireRole } from "~/lib/auth/auth-helpers";
@@ -788,8 +789,12 @@ export async function fetchOwnershipStatus(slug: string) {
 
 export async function fetchGearStats(slug: string) {
   const gearId = await resolveGearIdOrThrow(slug);
-  const stats = await getGearStatsById(gearId);
+  const stats = await fetchGearStatsByGearId(gearId);
   return { gearId, ...stats };
+}
+
+export async function fetchGearStatsByGearId(gearId: string) {
+  return getGearStatsById(gearId);
 }
 
 export async function fetchLatestGearCards(
@@ -813,11 +818,20 @@ export async function fetchContributorsByGearIdService(
 
 export async function fetchUseCaseRatings(slug: string) {
   const gearId = await resolveGearIdOrThrow(slug);
-  return fetchUseCaseRatingsByGearIdData(gearId);
+  return fetchUseCaseRatingsByGearId(gearId);
 }
 
 export async function fetchStaffVerdict(slug: string) {
   const gearId = await resolveGearIdOrThrow(slug);
+  return fetchStaffVerdictByGearId(gearId);
+}
+
+/** Public gear-page composition helpers for callers that already have a gear ID. */
+export async function fetchUseCaseRatingsByGearId(gearId: string) {
+  return fetchUseCaseRatingsByGearIdData(gearId);
+}
+
+export async function fetchStaffVerdictByGearId(gearId: string) {
   return fetchStaffVerdictByGearIdData(gearId);
 }
 
@@ -1600,8 +1614,16 @@ export async function fetchGearAlternatives(
   slug: string,
 ): Promise<GearAlternativeRow[]> {
   const gearId = await resolveGearIdOrThrow(slug);
-  return fetchAlternativesByGearId(gearId);
+  return fetchGearAlternativesByGearId(gearId);
 }
+
+export const fetchGearAlternativesByGearId = cache(
+  async function fetchGearAlternativesByGearId(
+    gearId: string,
+  ): Promise<GearAlternativeRow[]> {
+    return fetchAlternativesByGearId(gearId);
+  },
+);
 
 // Re-export type for convenience
 export type { GearAlternativeRow };
@@ -1613,7 +1635,31 @@ export async function fetchGearLineage(
   slug: string,
 ): Promise<GearLineageRelationships> {
   const gearId = await resolveGearIdOrThrow(slug);
-  return fetchGearLineageByGearId(gearId);
+  return fetchGearLineageByGearIdService(gearId);
+}
+
+export const fetchGearLineageByGearIdService = cache(
+  async function fetchGearLineageByGearIdService(
+    gearId: string,
+  ): Promise<GearLineageRelationships> {
+    return fetchGearLineageByGearId(gearId);
+  },
+);
+
+/** Editor-only relationship data for the gear tools dock. */
+export async function fetchGearEditorRelationships(slug: string) {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session.user, ["EDITOR"])) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+
+  const gearId = await resolveGearIdOrThrow(slug);
+  const [alternatives, lineage] = await Promise.all([
+    fetchGearAlternativesByGearId(gearId),
+    fetchGearLineageByGearIdService(gearId),
+  ]);
+
+  return { alternatives, lineage };
 }
 
 const alternativesInput = z.object({

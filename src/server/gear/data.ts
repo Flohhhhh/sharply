@@ -12,6 +12,7 @@ import {
   or,
   sql,
 } from "drizzle-orm";
+import { cache } from "react";
 import { GEAR_PUBLICATION_STATES } from "~/lib/gear/publication-state";
 import { buildGearSearchName } from "~/lib/gear/naming";
 import type { AutoApprovalMetadata } from "~/lib/gear/auto-approval-reasons";
@@ -322,7 +323,9 @@ export async function fetchGearMetadataById(id: string): Promise<Gear> {
 /**
  * Fetch comprehensive gear item with related specs by slug. Used by lib proxy.
  */
-export async function fetchGearBySlug(slug: string): Promise<GearItem> {
+export const fetchGearBySlug = cache(async function fetchGearBySlug(
+  slug: string,
+): Promise<GearItem> {
   const gearItem = await db
     .select()
     .from(gear)
@@ -363,41 +366,38 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
 
   // CAMERA SPECS
   if (gearItem[0]!.gear.gearType === "CAMERA") {
-    const camera = await db
-      .select()
-      .from(cameraSpecs)
-      .where(eq(cameraSpecs.gearId, gearItem[0]!.gear.id))
-      .limit(1);
-
-    const afRows = await db
-      .select()
-      .from(cameraAfAreaSpecs)
-      .innerJoin(
-        afAreaModes,
-        eq(cameraAfAreaSpecs.afAreaModeId, afAreaModes.id),
-      )
-      .where(
-        and(
-          eq(cameraAfAreaSpecs.gearId, gearItem[0]!.gear.id),
-          eq(afAreaModes.brandId, gearItem[0]!.gear.brandId),
+    const [camera, afRows, slots, fixed, videoModes] = await Promise.all([
+      db
+        .select()
+        .from(cameraSpecs)
+        .where(eq(cameraSpecs.gearId, gearItem[0]!.gear.id))
+        .limit(1),
+      db
+        .select()
+        .from(cameraAfAreaSpecs)
+        .innerJoin(
+          afAreaModes,
+          eq(cameraAfAreaSpecs.afAreaModeId, afAreaModes.id),
+        )
+        .where(
+          and(
+            eq(cameraAfAreaSpecs.gearId, gearItem[0]!.gear.id),
+            eq(afAreaModes.brandId, gearItem[0]!.gear.brandId),
+          ),
         ),
-      );
+      db
+        .select()
+        .from(cameraCardSlots)
+        .where(eq(cameraCardSlots.gearId, gearItem[0]!.gear.id)),
+      db
+        .select()
+        .from(fixedLensSpecs)
+        .where(eq(fixedLensSpecs.gearId, gearItem[0]!.gear.id))
+        .limit(1),
+      fetchVideoModesByGearId(gearItem[0]!.gear.id),
+    ]);
 
     const modes = afRows.map((r) => r.af_area_modes);
-
-    // card slots
-    const slots = await db
-      .select()
-      .from(cameraCardSlots)
-      .where(eq(cameraCardSlots.gearId, gearItem[0]!.gear.id));
-
-    // fixed-lens specs (for integrated lens cameras)
-    const fixed = await db
-      .select()
-      .from(fixedLensSpecs)
-      .where(eq(fixedLensSpecs.gearId, gearItem[0]!.gear.id))
-      .limit(1);
-    const videoModes = await fetchVideoModesByGearId(gearItem[0]!.gear.id);
 
     return {
       ...base,
@@ -435,7 +435,7 @@ export async function fetchGearBySlug(slug: string): Promise<GearItem> {
   } else {
     return base;
   }
-}
+});
 
 export async function fetchAllGearExportRowsData(): Promise<GearExportRow[]> {
   const rows = await db
@@ -909,14 +909,16 @@ export async function fetchUseCaseRatingsByGearIdData(gearId: string) {
     .where(eq(useCaseRatings.gearId, gearId));
 }
 
-export async function fetchStaffVerdictByGearIdData(gearId: string) {
-  const rows = await db
-    .select()
-    .from(staffVerdicts)
-    .where(eq(staffVerdicts.gearId, gearId))
-    .limit(1);
-  return rows[0] ?? null;
-}
+export const fetchStaffVerdictByGearIdData = cache(
+  async function fetchStaffVerdictByGearIdData(gearId: string) {
+    const rows = await db
+      .select()
+      .from(staffVerdicts)
+      .where(eq(staffVerdicts.gearId, gearId))
+      .limit(1);
+    return rows[0] ?? null;
+  },
+);
 
 export async function upsertStaffVerdictByGearIdData(params: {
   gearId: string;

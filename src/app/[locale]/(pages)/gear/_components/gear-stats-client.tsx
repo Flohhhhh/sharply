@@ -1,16 +1,16 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect,useReducer } from "react";
+import { useEffect, useReducer } from "react";
 import useSWR from "swr";
 
 type Props = {
   slug: string;
-  viewsToday: number;
-  lifetimeViews: number;
-  views30d: number;
-  wishlistTotal: number;
-  ownershipTotal: number;
+  viewsToday?: number;
+  lifetimeViews?: number;
+  views30d?: number;
+  wishlistTotal?: number;
+  ownershipTotal?: number;
 };
 
 type StatsState = {
@@ -60,14 +60,14 @@ const fetcher = async (url: string): Promise<Partial<StatsState>> => {
 export default function GearStatsClient(props: Props) {
   const t = useTranslations("gearDetail");
   const [stats, dispatch] = useReducer(statsReducer, {
-    viewsToday: props.viewsToday,
-    lifetimeViews: props.lifetimeViews,
-    views30d: props.views30d,
-    wishlistTotal: props.wishlistTotal,
-    ownershipTotal: props.ownershipTotal,
+    viewsToday: props.viewsToday ?? 0,
+    lifetimeViews: props.lifetimeViews ?? 0,
+    views30d: props.views30d ?? 0,
+    wishlistTotal: props.wishlistTotal ?? 0,
+    ownershipTotal: props.ownershipTotal ?? 0,
   });
 
-  const { mutate } = useSWR<Partial<StatsState>>(
+  const { data, error, isLoading, mutate } = useSWR<Partial<StatsState>>(
     `/api/gear/${encodeURIComponent(props.slug)}/stats`,
     fetcher,
     {
@@ -112,6 +112,26 @@ export default function GearStatsClient(props: Props) {
       );
     };
   }, [props.slug, mutate]);
+
+  const hasInitialStats =
+    props.viewsToday !== undefined &&
+    props.lifetimeViews !== undefined &&
+    props.views30d !== undefined &&
+    props.wishlistTotal !== undefined &&
+    props.ownershipTotal !== undefined;
+
+  // Stats are intentionally client-fetched. Keep their allotted space as a
+  // skeleton until a real response arrives, including after a failed request,
+  // rather than briefly presenting misleading zeroes.
+  if (!hasInitialStats && (isLoading || !data || error)) {
+    return (
+      <div className="space-y-2 py-2" aria-label={t("popularity")}>
+        <div className="bg-muted h-4 w-full animate-pulse rounded" />
+        <div className="bg-muted h-4 w-4/5 animate-pulse rounded" />
+        <div className="bg-muted h-4 w-3/5 animate-pulse rounded" />
+      </div>
+    );
+  }
 
   return (
     <div className="divide-border divide-y text-sm">

@@ -40,15 +40,14 @@ import { shouldPrebuildHeavyRouteLocale } from "~/lib/static-generation";
 import { getConstructionState } from "~/lib/utils";
 import { isInHallOfFame } from "~/lib/utils/is-in-hall-of-fame";
 import { isNewRelease } from "~/lib/utils/is-new";
-import { fetchPublicGearCreatorVideos } from "~/server/creator-videos/service";
+import type { GearItem } from "~/types/gear";
+import { fetchPublicGearCreatorVideosByGearId } from "~/server/creator-videos/service";
 import {
-  fetchGearAlternatives,
-  fetchGearLineage,
+  fetchGearAlternativesByGearId,
   fetchGearBySlug,
   fetchNewestGearSlugs,
   fetchPendingEditCountForGear,
-  fetchStaffVerdict,
-  fetchUseCaseRatings,
+  fetchStaffVerdictByGearId,
 } from "~/server/gear/service";
 import {
   getNewsByRelatedGearSlug,
@@ -139,53 +138,13 @@ export default async function GearPage({ params }: GearPageProps) {
           currentRightViewUrl={item.rightViewUrl ?? null}
           currentInstructionManualUrl={item.linkInstructionManual ?? null}
           publicationState={item.publicationState}
-          alternatives={[]}
-          lineage={await fetchGearLineage(slug)}
           rawSamples={item.rawSamples ?? []}
-          hasCreatorVideos={false}
           colorways={item.colorways ?? []}
         />
         <RumoredFullPage gearName={regionalDisplayName} slug={item.slug} />
       </main>
     );
   }
-
-  // Fetch editorial content
-  const [ratingsRows, staffVerdictRows, pendingChangeRequests] =
-    await Promise.all([
-      fetchUseCaseRatings(slug),
-      (async () => {
-        const v = await fetchStaffVerdict(slug);
-        return v ? [v] : [];
-      })(),
-      fetchPendingEditCountForGear(item.id),
-    ]);
-
-  const ratings = (ratingsRows ?? []).filter((r) => r.genreId != null);
-  ratings.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
-  const verdict = staffVerdictRows?.[0] ?? null;
-
-  const [review, relatedNews, alternatives, creatorVideos, lineage] =
-    await Promise.all([
-      getReviewByGearSlug(item.slug),
-      getNewsByRelatedGearSlug(item.slug, 9),
-      fetchGearAlternatives(slug),
-      fetchPublicGearCreatorVideos(slug),
-      fetchGearLineage(slug),
-    ]);
-  const isNew = isNewRelease(
-    item.releaseDate ?? item.announcedDate,
-    item.releaseDatePrecision ?? item.announceDatePrecision,
-  );
-
-  // Check trending status for this item and all alternatives
-  const allSlugs = [item.slug, ...alternatives.map((alt) => alt.slug)];
-  const trendingSlugs = await getTrendingStatusForSlugs(allSlugs, {
-    timeframe: "30d",
-    limit: 20,
-  });
-  const isTrending = trendingSlugs.has(item.slug);
-  const isHallOfFameItem = isInHallOfFame(item.slug);
 
   // Under construction state
   const construction = getConstructionState(item);
@@ -202,6 +161,20 @@ export default async function GearPage({ params }: GearPageProps) {
       </main>
     );
   }
+
+  const [verdict, trendingSlugs] = await Promise.all([
+    fetchStaffVerdictByGearId(item.id),
+    getTrendingStatusForSlugs([item.slug], {
+      timeframe: "30d",
+      limit: 20,
+    }),
+  ]);
+  const isNew = isNewRelease(
+    item.releaseDate ?? item.announcedDate,
+    item.releaseDatePrecision ?? item.announceDatePrecision,
+  );
+  const isTrending = trendingSlugs.has(item.slug);
+  const isHallOfFameItem = isInHallOfFame(item.slug);
 
   const specSections = buildGearSpecsSections(item, {
     locale,
@@ -235,16 +208,16 @@ export default async function GearPage({ params }: GearPageProps) {
     },
   ].filter(Boolean) as CrumbItem[];
   const sectionNavItems = buildGearSectionNavItems({
-    hasEditorialReview: Boolean(review),
+    hasEditorialReview: false,
     hasInstructionManual: Boolean(item.linkInstructionManual?.trim()),
-    hasCreatorVideos: creatorVideos.length > 0,
+    hasCreatorVideos: false,
     hasRawSamples: Boolean(
       item.gearType === "CAMERA" &&
       item.rawSamples &&
       item.rawSamples.length > 0,
     ),
-    hasAlternatives: alternatives.length > 0,
-    hasRelatedArticles: relatedNews.length > 0,
+    hasAlternatives: false,
+    hasRelatedArticles: false,
     verdict,
     labels: {
       staffVerdict: t("staffVerdict"),
@@ -266,7 +239,7 @@ export default async function GearPage({ params }: GearPageProps) {
         <EditAlreadyPendingToast />
       </Suspense>
       <GearItemDock
-        slug={slug}
+        slug={item.slug}
         gearId={item.id}
         gearType={item.gearType}
         currentThumbnailUrl={item.thumbnailUrl ?? null}
@@ -276,10 +249,7 @@ export default async function GearPage({ params }: GearPageProps) {
         currentRightViewUrl={item.rightViewUrl ?? null}
         currentInstructionManualUrl={item.linkInstructionManual ?? null}
         publicationState={item.publicationState}
-        alternatives={alternatives}
-        lineage={lineage}
         rawSamples={item.rawSamples ?? []}
-        hasCreatorVideos={creatorVideos.length > 0}
         colorways={item.colorways ?? []}
       />
       {/* Track page visit for popularity */}
@@ -353,6 +323,21 @@ export default async function GearPage({ params }: GearPageProps) {
                 {item.label}
               </Link>
             ))}
+            <Suspense fallback={null}>
+              <EditorialReviewNavItem label={t("review")} slug={item.slug} />
+            </Suspense>
+            <Suspense fallback={null}>
+              <AlternativesNavItem gearId={item.id} label={t("alternatives")} />
+            </Suspense>
+            <Suspense fallback={null}>
+              <CreatorVideosNavItem
+                gearId={item.id}
+                label={t("creatorVideos")}
+              />
+            </Suspense>
+            <Suspense fallback={null}>
+              <RelatedArticlesNavItem label={t("articles")} slug={item.slug} />
+            </Suspense>
           </div>
         </section>
       )}
@@ -376,25 +361,9 @@ export default async function GearPage({ params }: GearPageProps) {
           />
           {/* Sign-in CTA banner for editing specs (client, only when signed out) */}
           <SignInToEditSpecsCta slug={item.slug} gearType={item.gearType} />
-          {/* Editorial Reviews*/}
-          {review && (
-            <section id="editorial-review" className="scroll-mt-24">
-              {/* <h2 className="mb-2 text-lg font-semibold">Our Review</h2> */}
-              <Link href={`/reviews/${review.slug}`}>
-                <div className="flex flex-col gap-2 rounded-md border p-4">
-                  <span className="text-lg font-bold">{review.title}</span>
-                  <p className="text-muted-foreground text-sm">
-                    {review.review_summary}
-                  </p>
-                  <div className="mt-2">
-                    <Button variant="outline" className="hover:cursor-pointer">
-                      {t("readFullReview")}
-                    </Button>
-                  </div>
-                </div>
-              </Link>
-            </section>
-          )}
+          <Suspense fallback={null}>
+            <EditorialReviewSection slug={item.slug} />
+          </Suspense>
           {/* Raw Samples (only for cameras) */}
           {item.gearType === "CAMERA" &&
             item.rawSamples &&
@@ -432,12 +401,9 @@ export default async function GearPage({ params }: GearPageProps) {
               </section>
             )}
           {/* Alternatives */}
-          <GearAlternativesSection
-            alternatives={alternatives}
-            trendingSlugs={trendingSlugs}
-          />
-
-          <CreatorVideosSection videos={creatorVideos} />
+          <Suspense fallback={null}>
+            <GearAlternativesAndVideos gearId={item.id} slug={item.slug} />
+          </Suspense>
         </div>
         {/* Right column */}
         <div className="static top-28 col-span-1 -mt-4 w-full space-y-8 self-start sm:sticky md:col-span-3">
@@ -469,35 +435,13 @@ export default async function GearPage({ params }: GearPageProps) {
           </div>
 
           {/* Contributors */}
-          <GearContributors gearId={item.id} />
+          <Suspense fallback={null}>
+            <GearContributors gearId={item.id} />
+          </Suspense>
           <GearStatsCard slug={slug} />
-          {/* Page Metadata */}
-          <div className="mt-8 border-t pt-6">
-            <div className="text-muted-foreground space-y-2 text-sm">
-              <div className="flex justify-between">
-                {t("openChangeRequests")}
-                <span>{pendingChangeRequests}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>{t("itemCreated")}</span>
-                <span>
-                  {formatDate(item.createdAt, {
-                    locale,
-                    preset: "date-long",
-                  })}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>{t("lastUpdated")}</span>
-                <span>
-                  {formatRelativeDate(item.updatedAt, {
-                    locale,
-                    capitalize: true,
-                  })}
-                </span>
-              </div>
-            </div>
-          </div>
+          <Suspense fallback={null}>
+            <GearPageMetadata item={item} locale={locale} />
+          </Suspense>
         </div>
       </div>
 
@@ -505,48 +449,219 @@ export default async function GearPage({ params }: GearPageProps) {
       <section id="reviews" className="scroll-mt-24">
         <GearReviews
           slug={item.slug}
-          bannerSlot={<AiReviewBanner gearId={item.id} />}
+          bannerSlot={
+            <Suspense fallback={null}>
+              <AiReviewBanner gearId={item.id} />
+            </Suspense>
+          }
         />
       </section>
 
       <DiscordBanner />
 
-      {/* Articles about this item */}
-      {relatedNews.length > 0 && (
-        <section id="related-articles" className="scroll-mt-24">
-          <h2 className="mb-2 text-lg font-semibold">
-            {t("articlesAboutItem")}
-          </h2>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
-            {relatedNews.map((post) => {
-              const image =
-                post.thumbnail && typeof post.thumbnail === "object"
-                  ? (post.thumbnail.url ?? "/image-temp.png")
-                  : "/image-temp.png";
-              return (
-                <NewsCard
-                  key={post.id}
-                  post={{
-                    id: post.id,
-                    title: post.title,
-                    excerpt: (post.excerpt as any) ?? undefined,
-                    href: `/news/${post.slug}`,
-                    image,
-                    date: formatDate(post.override_date || post.createdAt, {
-                      locale,
-                      preset: "date-medium",
-                    }),
-                  }}
-                  size="sm"
-                />
-              );
-            })}
-          </div>
-        </section>
-      )}
+      <Suspense fallback={null}>
+        <RelatedArticlesSection locale={locale} slug={item.slug} />
+      </Suspense>
 
       <JsonLd gear={item} />
     </main>
+  );
+}
+
+function GearSectionNavLink({ href, label }: { href: string; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="text-muted-foreground hover:text-primary text-sm transition-colors hover:underline"
+    >
+      {label}
+    </Link>
+  );
+}
+
+async function EditorialReviewNavItem({
+  label,
+  slug,
+}: {
+  label: string;
+  slug: string;
+}) {
+  const review = await getReviewByGearSlug(slug);
+  return review ? (
+    <GearSectionNavLink href="#editorial-review" label={label} />
+  ) : null;
+}
+
+async function AlternativesNavItem({
+  gearId,
+  label,
+}: {
+  gearId: string;
+  label: string;
+}) {
+  const alternatives = await fetchGearAlternativesByGearId(gearId);
+  return alternatives.length > 0 ? (
+    <GearSectionNavLink href="#alternatives" label={label} />
+  ) : null;
+}
+
+async function CreatorVideosNavItem({
+  gearId,
+  label,
+}: {
+  gearId: string;
+  label: string;
+}) {
+  const videos = await fetchPublicGearCreatorVideosByGearId(gearId);
+  return videos.length > 0 ? (
+    <GearSectionNavLink href="#creator-videos" label={label} />
+  ) : null;
+}
+
+async function RelatedArticlesNavItem({
+  label,
+  slug,
+}: {
+  label: string;
+  slug: string;
+}) {
+  const relatedNews = await getNewsByRelatedGearSlug(slug, 1);
+  return relatedNews.length > 0 ? (
+    <GearSectionNavLink href="#related-articles" label={label} />
+  ) : null;
+}
+
+async function EditorialReviewSection({ slug }: { slug: string }) {
+  const [review, t] = await Promise.all([
+    getReviewByGearSlug(slug),
+    getTranslations("gearDetail"),
+  ]);
+  if (!review) return null;
+
+  return (
+    <section id="editorial-review" className="scroll-mt-24">
+      <Link href={`/reviews/${review.slug}`}>
+        <div className="flex flex-col gap-2 rounded-md border p-4">
+          <span className="text-lg font-bold">{review.title}</span>
+          <p className="text-muted-foreground text-sm">
+            {review.review_summary}
+          </p>
+          <div className="mt-2">
+            <Button variant="outline" className="hover:cursor-pointer">
+              {t("readFullReview")}
+            </Button>
+          </div>
+        </div>
+      </Link>
+    </section>
+  );
+}
+
+async function GearAlternativesAndVideos({
+  gearId,
+  slug,
+}: {
+  gearId: string;
+  slug: string;
+}) {
+  const [alternatives, creatorVideos] = await Promise.all([
+    fetchGearAlternativesByGearId(gearId),
+    fetchPublicGearCreatorVideosByGearId(gearId),
+  ]);
+  const trendingSlugs = await getTrendingStatusForSlugs(
+    [slug, ...alternatives.map((alternative) => alternative.slug)],
+    { timeframe: "30d", limit: 20 },
+  );
+
+  return (
+    <>
+      <GearAlternativesSection
+        alternatives={alternatives}
+        trendingSlugs={trendingSlugs}
+      />
+      <CreatorVideosSection videos={creatorVideos} />
+    </>
+  );
+}
+
+async function GearPageMetadata({
+  item,
+  locale,
+}: {
+  item: GearItem;
+  locale: string;
+}) {
+  const [pendingChangeRequests, t] = await Promise.all([
+    fetchPendingEditCountForGear(item.id),
+    getTranslations({ locale, namespace: "gearDetail" }),
+  ]);
+
+  return (
+    <div className="mt-8 border-t pt-6">
+      <div className="text-muted-foreground space-y-2 text-sm">
+        <div className="flex justify-between">
+          {t("openChangeRequests")}
+          <span>{pendingChangeRequests}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>{t("itemCreated")}</span>
+          <span>
+            {formatDate(item.createdAt, { locale, preset: "date-long" })}
+          </span>
+        </div>
+        <div className="flex justify-between">
+          <span>{t("lastUpdated")}</span>
+          <span>
+            {formatRelativeDate(item.updatedAt, { locale, capitalize: true })}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+async function RelatedArticlesSection({
+  locale,
+  slug,
+}: {
+  locale: string;
+  slug: string;
+}) {
+  const [relatedNews, t] = await Promise.all([
+    getNewsByRelatedGearSlug(slug, 9),
+    getTranslations({ locale, namespace: "gearDetail" }),
+  ]);
+  if (relatedNews.length === 0) return null;
+
+  return (
+    <section id="related-articles" className="scroll-mt-24">
+      <h2 className="mb-2 text-lg font-semibold">{t("articlesAboutItem")}</h2>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
+        {relatedNews.map((post) => {
+          const image =
+            post.thumbnail && typeof post.thumbnail === "object"
+              ? (post.thumbnail.url ?? "/image-temp.png")
+              : "/image-temp.png";
+          return (
+            <NewsCard
+              key={post.id}
+              post={{
+                id: post.id,
+                title: post.title,
+                excerpt: (post.excerpt as any) ?? undefined,
+                href: `/news/${post.slug}`,
+                image,
+                date: formatDate(post.override_date || post.createdAt, {
+                  locale,
+                  preset: "date-medium",
+                }),
+              }}
+              size="sm"
+            />
+          );
+        })}
+      </div>
+    </section>
   );
 }
 

@@ -3,11 +3,13 @@
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import useSWR from "swr";
 
 import { Dock, DockIcon } from "~/components/ui/dock";
 import { TooltipProvider } from "~/components/ui/tooltip";
 import { useSession } from "~/lib/auth/auth-client";
 import { requireRole } from "~/lib/auth/auth-helpers";
+import { fetchJson } from "~/lib/fetch-json";
 import { isRumoredGear } from "~/lib/gear/publication-state";
 import {
   actionAddGearRawSample,
@@ -50,6 +52,11 @@ interface GearItemDockClientProps {
   hasCreatorVideos?: boolean;
   colorways?: GearColorway[];
 }
+
+type GearRelationshipsResponse = {
+  alternatives: GearAlternativeRow[];
+  lineage: GearLineageRelationships;
+};
 
 type ManagedSampleState = Omit<RawSample, "createdAt" | "updatedAt"> & {
   createdAt?: string | null;
@@ -113,6 +120,26 @@ export function GearItemDockClient({
   const t = useTranslations("gearDetail");
   const { data } = useSession();
   const user = data?.user;
+  const canManageRelationships = Boolean(
+    gearId && requireRole(user, ["EDITOR"]),
+  );
+  const { data: relationships } = useSWR<GearRelationshipsResponse>(
+    canManageRelationships
+      ? `/api/gear/${encodeURIComponent(slug)}/relationships`
+      : null,
+    (url: string) =>
+      fetchJson<GearRelationshipsResponse>(url, {
+        credentials: "same-origin",
+        cache: "no-store",
+      }),
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+      shouldRetryOnError: false,
+    },
+  );
+  const resolvedAlternatives = relationships?.alternatives ?? alternatives;
+  const resolvedLineage = relationships?.lineage ?? lineage;
 
   const [managedSamples, setManagedSamples] = useState<ManagedSampleState[]>(
     () => rawSamples.map(normalizeSampleDates),
@@ -206,8 +233,10 @@ export function GearItemDockClient({
         colorwaysManageLabel: t("colorways.manager.title"),
         relationshipsLabel: t("relationships.title"),
         locale,
-        alternatives,
-        lineage,
+        alternatives: resolvedAlternatives,
+        lineage: resolvedLineage,
+        relationshipDataReady:
+          !canManageRelationships || Boolean(relationships),
         hasCreatorVideos,
         managedSamples,
         isManagerOpen,
@@ -218,8 +247,10 @@ export function GearItemDockClient({
         handleSampleRemoval,
       }),
     [
-      alternatives,
-      lineage,
+      resolvedAlternatives,
+      resolvedLineage,
+      canManageRelationships,
+      relationships,
       currentThumbnailUrl,
       currentTopViewUrl,
       currentRearViewUrl,
@@ -244,9 +275,10 @@ export function GearItemDockClient({
     ],
   );
 
-  const isElevated = user && requireRole(user, ["MODERATOR"]);
-
-  if (!isElevated) return null;
+  // Do not render the dock shell until the client session confirms editor access.
+  // This preserves the previous authorization boundary while allowing editor
+  // controls that do not need relationship data to appear immediately.
+  if (!requireRole(user, ["EDITOR"])) return null;
 
   const visibleButtons = buttons.filter((button) => button.allowed(user));
   const isPreRelease = isRumoredGear({ publicationState });
