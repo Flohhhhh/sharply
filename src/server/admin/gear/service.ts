@@ -10,6 +10,7 @@ import { GEAR_REGIONS, type GearRegion } from "~/lib/gear/region";
 import { shouldBlockFuzzyResults } from "~/lib/utils/gear-creation";
 import { getSessionOrThrow } from "~/server/auth";
 import { reviewGearImageUpload } from "~/server/gear-image-review/service";
+import { isUploadThingFileUrl } from "~/server/raw-samples/uploadthing";
 import { db } from "~/server/db";
 import {
   auditLogs,

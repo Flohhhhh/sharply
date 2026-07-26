@@ -262,4 +262,15 @@ describe("thumbnail gear admin service", () => {
     });
     expect(cacheMocks.invalidateCatalog).not.toHaveBeenCalled();
   });
+
+  it("rejects an editor's OG image URL unless it is an UploadThing URL", async () => {
+    await expect(
+      setGearOgImageService({
+        gearId: "gear-1",
+        ogImageUrl: "https://cdn.example.com/front-og.jpg",
+      }),
+    ).rejects.toMatchObject({ message: "Invalid image upload URL", status: 422 });
+
+    expect(adminGearDataMocks.updateGearOgImageData).not.toHaveBeenCalled();
+  });
 });
