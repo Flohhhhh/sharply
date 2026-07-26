@@ -2,6 +2,7 @@ import "server-only";
 
 import { track } from "@vercel/analytics/server";
 import { headers } from "next/headers";
+import { cache } from "react";
 import { z } from "zod";
 import { auth } from "~/auth";
 import { requireRole } from "~/lib/auth/auth-helpers";
@@ -11,6 +12,11 @@ import {
   isRumoredGear,
 } from "~/lib/gear/publication-state";
 import { allowsAutoApprovalOverwrite } from "~/lib/gear/change-request-field-policy";
+import {
+  getCompletedSpecLocks,
+  isCompletedSpecFieldLocked,
+  type ProposalSpecSection,
+} from "~/lib/gear/completed-spec-edit-policy";
 import type {
   AutoApprovalDecisionMetadata,
   AutoApprovalPath,
@@ -783,8 +789,12 @@ export async function fetchOwnershipStatus(slug: string) {
 
 export async function fetchGearStats(slug: string) {
   const gearId = await resolveGearIdOrThrow(slug);
-  const stats = await getGearStatsById(gearId);
+  const stats = await fetchGearStatsByGearId(gearId);
   return { gearId, ...stats };
+}
+
+export async function fetchGearStatsByGearId(gearId: string) {
+  return getGearStatsById(gearId);
 }
 
 export async function fetchLatestGearCards(
@@ -808,11 +818,20 @@ export async function fetchContributorsByGearIdService(
 
 export async function fetchUseCaseRatings(slug: string) {
   const gearId = await resolveGearIdOrThrow(slug);
-  return fetchUseCaseRatingsByGearIdData(gearId);
+  return fetchUseCaseRatingsByGearId(gearId);
 }
 
 export async function fetchStaffVerdict(slug: string) {
   const gearId = await resolveGearIdOrThrow(slug);
+  return fetchStaffVerdictByGearId(gearId);
+}
+
+/** Public gear-page composition helpers for callers that already have a gear ID. */
+export async function fetchUseCaseRatingsByGearId(gearId: string) {
+  return fetchUseCaseRatingsByGearIdData(gearId);
+}
+
+export async function fetchStaffVerdictByGearId(gearId: string) {
   return fetchStaffVerdictByGearIdData(gearId);
 }
 
@@ -1056,12 +1075,40 @@ function isAddOnlyProposal(
   return true;
 }
 
+function findCompletedSpecLockViolation(
+  payload: NormalizedProposalPayload,
+  gearItem: GearItem,
+) {
+  const locks = getCompletedSpecLocks(gearItem);
+  const sections: ProposalSpecSection[] = [
+    "core",
+    "camera",
+    "analogCamera",
+    "lens",
+    "fixedLens",
+  ];
+
+  for (const section of sections) {
+    const values = payload[section];
+    if (!values || typeof values !== "object" || Array.isArray(values)) {
+      continue;
+    }
+    for (const field of Object.keys(values)) {
+      if (isCompletedSpecFieldLocked(locks, section, field)) {
+        return `${section}.${field}`;
+      }
+    }
+  }
+  return null;
+}
+
 async function getTrustedAddOnlyAutoApprovalEligibility(params: {
   userId: string;
   gearSlug: string | null | undefined;
   payload: NormalizedProposalPayload;
   autoSubmit: boolean | null;
   hasPendingEdits: boolean;
+  gearItem?: GearItem;
 }): Promise<AutoApprovalDecisionMetadata> {
   if (!params.gearSlug) {
     return {
@@ -1086,7 +1133,8 @@ async function getTrustedAddOnlyAutoApprovalEligibility(params: {
     };
   }
 
-  const gearItem = await fetchGearBySlugData(params.gearSlug);
+  const gearItem =
+    params.gearItem ?? (await fetchGearBySlugData(params.gearSlug));
   const eligible = isAddOnlyProposal(gearItem, params.payload);
   return {
     eligible,
@@ -1107,6 +1155,7 @@ async function evaluateAutoApprovalDecision(params: {
   autoSubmit: boolean | null;
   gearSlug: string | null | undefined;
   payload: NormalizedProposalPayload;
+  gearItem?: GearItem;
 }): Promise<AutoApprovalDecisionMetadata> {
   const canAutoApproveStaff = requireRole(params.user, ["EDITOR"]);
   const nonStaffPath: AutoApprovalPath = "trusted_candidate";
@@ -1150,6 +1199,7 @@ async function evaluateAutoApprovalDecision(params: {
     payload: params.payload,
     autoSubmit: params.autoSubmit,
     hasPendingEdits: false,
+    gearItem: params.gearItem,
   });
 }
 
@@ -1170,6 +1220,26 @@ export async function submitGearEditProposal(body: unknown) {
     gearName: gearMeta?.name ?? "Gear",
     gearSlug: gearMeta?.slug ?? data.slug ?? gearId,
   };
+  let currentGearItem: GearItem | undefined;
+  if (!requireRole(user, ["EDITOR"])) {
+    currentGearItem = await fetchGearBySlugData(gearContext.gearSlug);
+    const lockedField = findCompletedSpecLockViolation(
+      normalizedPayload,
+      currentGearItem,
+    );
+    if (lockedField) {
+      throw Object.assign(
+        new Error(
+          "This completed specification can only be changed by an editor",
+        ),
+        {
+          status: 403,
+          code: "completed_spec_editor_only",
+          field: lockedField,
+        },
+      );
+    }
+  }
   const submitterLabel = formatProposalSubmitterLabel(user);
   let autoApprovalDecision = await evaluateAutoApprovalDecision({
     user,
@@ -1178,6 +1248,7 @@ export async function submitGearEditProposal(body: unknown) {
     autoSubmit: typeof data.autoSubmit === "boolean" ? data.autoSubmit : null,
     gearSlug: gearMeta?.slug,
     payload: normalizedPayload,
+    gearItem: currentGearItem,
   });
   let proposalMetadata = {
     autoApprovalDecision,
@@ -1543,8 +1614,16 @@ export async function fetchGearAlternatives(
   slug: string,
 ): Promise<GearAlternativeRow[]> {
   const gearId = await resolveGearIdOrThrow(slug);
-  return fetchAlternativesByGearId(gearId);
+  return fetchGearAlternativesByGearId(gearId);
 }
+
+export const fetchGearAlternativesByGearId = cache(
+  async function fetchGearAlternativesByGearId(
+    gearId: string,
+  ): Promise<GearAlternativeRow[]> {
+    return fetchAlternativesByGearId(gearId);
+  },
+);
 
 // Re-export type for convenience
 export type { GearAlternativeRow };
@@ -1556,7 +1635,31 @@ export async function fetchGearLineage(
   slug: string,
 ): Promise<GearLineageRelationships> {
   const gearId = await resolveGearIdOrThrow(slug);
-  return fetchGearLineageByGearId(gearId);
+  return fetchGearLineageByGearIdService(gearId);
+}
+
+export const fetchGearLineageByGearIdService = cache(
+  async function fetchGearLineageByGearIdService(
+    gearId: string,
+  ): Promise<GearLineageRelationships> {
+    return fetchGearLineageByGearId(gearId);
+  },
+);
+
+/** Editor-only relationship data for the gear tools dock. */
+export async function fetchGearEditorRelationships(slug: string) {
+  const session = await getSessionOrThrow();
+  if (!requireRole(session.user, ["EDITOR"])) {
+    throw Object.assign(new Error("Unauthorized"), { status: 401 });
+  }
+
+  const gearId = await resolveGearIdOrThrow(slug);
+  const [alternatives, lineage] = await Promise.all([
+    fetchGearAlternativesByGearId(gearId),
+    fetchGearLineageByGearIdService(gearId),
+  ]);
+
+  return { alternatives, lineage };
 }
 
 const alternativesInput = z.object({

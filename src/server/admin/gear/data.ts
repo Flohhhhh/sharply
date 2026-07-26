@@ -21,6 +21,7 @@ import {
   analogCameraSpecs,
   brands,
   cameraSpecs,
+  fixedLensSpecs,
   gear,
   gearAliases,
   gearMounts,
@@ -238,6 +239,21 @@ export interface GearCreationParams {
     frontFilterThreadSizeMm?: number;
     hasWeatherSealing?: boolean;
   };
+  initialCameraSpecs?: {
+    sensorFormatId?: string;
+    resolutionMp?: number;
+  };
+  initialAnalogCameraSpecs?: {
+    cameraType?: typeof analogCameraSpecs.$inferInsert.cameraType;
+    captureMedium?: typeof analogCameraSpecs.$inferInsert.captureMedium;
+  };
+  initialFixedLensSpecs?: {
+    isPrime?: boolean;
+    focalLengthMinMm?: number;
+    focalLengthMaxMm?: number;
+    maxApertureWide?: number;
+    maxApertureTele?: number;
+  };
   force?: boolean;
 }
 
@@ -262,6 +278,9 @@ export async function createGearData(
     linkAmazon,
     initialCore,
     initialLensSpecs,
+    initialCameraSpecs,
+    initialAnalogCameraSpecs,
+    initialFixedLensSpecs,
   } = params;
 
   const normalizedLinkMpb = normalizeMpbLinkForStorage(
@@ -346,6 +365,8 @@ export async function createGearData(
       Object.fromEntries(
         Object.entries(value).filter(([, entry]) => entry !== undefined),
       ) as T;
+    const toDecimalInput = (value: number | undefined) =>
+      value === undefined ? undefined : String(value);
 
     const inserted = await tx
       .insert(gear)
@@ -384,14 +405,52 @@ export async function createGearData(
 
     // Create an empty specs row matching the gear type
     if (gearType === "CAMERA") {
-      await tx.insert(cameraSpecs).values({ gearId: createdGear.id });
-    } else if (gearType === "ANALOG_CAMERA") {
-      await tx.insert(analogCameraSpecs).values({ gearId: createdGear.id });
-    } else if (gearType === "LENS") {
-      await tx.insert(lensSpecs).values({
+      const values = pruneUndefined({
         gearId: createdGear.id,
-        ...(pruneUndefined(initialLensSpecs ?? {}) as Record<string, unknown>),
-      } as typeof lensSpecs.$inferInsert);
+        sensorFormatId: initialCameraSpecs?.sensorFormatId,
+        resolutionMp: toDecimalInput(initialCameraSpecs?.resolutionMp),
+      } satisfies typeof cameraSpecs.$inferInsert);
+      await tx.insert(cameraSpecs).values(values);
+    } else if (gearType === "ANALOG_CAMERA") {
+      const values = pruneUndefined({
+        gearId: createdGear.id,
+        cameraType: initialAnalogCameraSpecs?.cameraType,
+        captureMedium: initialAnalogCameraSpecs?.captureMedium,
+      } satisfies typeof analogCameraSpecs.$inferInsert);
+      await tx.insert(analogCameraSpecs).values(values);
+    } else if (gearType === "LENS") {
+      const values = pruneUndefined({
+        gearId: createdGear.id,
+        isPrime: initialLensSpecs?.isPrime,
+        focalLengthMinMm: initialLensSpecs?.focalLengthMinMm,
+        focalLengthMaxMm: initialLensSpecs?.focalLengthMaxMm,
+        imageCircleSizeId: initialLensSpecs?.imageCircleSizeId,
+        maxApertureWide: toDecimalInput(initialLensSpecs?.maxApertureWide),
+        maxApertureTele: toDecimalInput(initialLensSpecs?.maxApertureTele),
+        minApertureWide: toDecimalInput(initialLensSpecs?.minApertureWide),
+        minApertureTele: toDecimalInput(initialLensSpecs?.minApertureTele),
+        hasAutofocus: initialLensSpecs?.hasAutofocus,
+        hasStabilization: initialLensSpecs?.hasStabilization,
+        isMacro: initialLensSpecs?.isMacro,
+        frontFilterThreadSizeMm: initialLensSpecs?.frontFilterThreadSizeMm,
+        hasWeatherSealing: initialLensSpecs?.hasWeatherSealing,
+      } satisfies typeof lensSpecs.$inferInsert);
+      await tx.insert(lensSpecs).values(values);
+    }
+
+    if (
+      (gearType === "CAMERA" || gearType === "ANALOG_CAMERA") &&
+      initialFixedLensSpecs
+    ) {
+      const values = pruneUndefined({
+        gearId: createdGear.id,
+        isPrime: initialFixedLensSpecs.isPrime,
+        focalLengthMinMm: initialFixedLensSpecs.focalLengthMinMm,
+        focalLengthMaxMm: initialFixedLensSpecs.focalLengthMaxMm,
+        maxApertureWide: toDecimalInput(initialFixedLensSpecs.maxApertureWide),
+        maxApertureTele: toDecimalInput(initialFixedLensSpecs.maxApertureTele),
+      } satisfies typeof fixedLensSpecs.$inferInsert);
+      await tx.insert(fixedLensSpecs).values(values);
     }
 
     return createdGear;

@@ -99,8 +99,75 @@ describe("createGearData bulk import initial values", () => {
       isPrime: true,
       focalLengthMinMm: 60,
       focalLengthMaxMm: 60,
-      maxApertureWide: 2.8,
+      maxApertureWide: "2.8",
       hasAutofocus: true,
+    });
+  });
+
+  it("writes digital camera completeness fields during creation", async () => {
+    dbState.selectResults = [
+      [{ id: "brand-sony", name: "Sony" }],
+      [{ id: "mount-e" }],
+      [],
+    ];
+
+    await createGearData({
+      name: "Alpha 7R V",
+      brandId: "brand-sony",
+      gearType: "CAMERA",
+      mountIds: ["mount-e"],
+      initialCameraSpecs: {
+        sensorFormatId: "sensor-full-frame",
+        resolutionMp: 61,
+      },
+    });
+
+    expect(dbState.insertValues[0]?.payload).toMatchObject({
+      name: "Sony Alpha 7R V",
+      mountId: "mount-e",
+    });
+    expect(dbState.insertValues[2]?.payload).toEqual({
+      gearId: "gear-1",
+      sensorFormatId: "sensor-full-frame",
+      resolutionMp: "61",
+    });
+  });
+
+  it("writes analog completeness and integrated-lens fields together", async () => {
+    dbState.selectResults = [
+      [{ id: "brand-fujifilm", name: "Fujifilm" }],
+      [{ id: "mount-fixed" }],
+      [],
+    ];
+
+    await createGearData({
+      name: "Fujifilm Klasse W 28mm f/2.8",
+      brandId: "brand-fujifilm",
+      gearType: "ANALOG_CAMERA",
+      mountIds: ["mount-fixed"],
+      initialAnalogCameraSpecs: {
+        cameraType: "point-and-shoot",
+        captureMedium: "35mm",
+      },
+      initialFixedLensSpecs: {
+        isPrime: true,
+        focalLengthMinMm: 28,
+        focalLengthMaxMm: 28,
+        maxApertureWide: 2.8,
+      },
+    });
+
+    expect(dbState.insertValues[2]?.payload).toEqual({
+      gearId: "gear-1",
+      cameraType: "point-and-shoot",
+      captureMedium: "35mm",
+    });
+    expect(dbState.insertValues[3]?.payload).toMatchObject({
+      gearId: "gear-1",
+      isPrime: true,
+      focalLengthMinMm: 28,
+      focalLengthMaxMm: 28,
+      maxApertureWide: "2.8",
     });
   });
 });

@@ -78,4 +78,22 @@ describe("thumbnail gear admin actions", () => {
     expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/admin/gear");
     expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/gear/nikon-z6iii");
   });
+
+  it("returns a serializable review rejection without revalidating", async () => {
+    serviceMocks.setGearThumbnailService.mockRejectedValue(
+      Object.assign(new Error("GEAR_IMAGE_REVIEW_REJECTED:IMAGE_TOO_SMALL"), {
+        code: "GEAR_IMAGE_REVIEW_REJECTED",
+      }),
+    );
+
+    await expect(
+      actionSetGearThumbnail({
+        gearId: "gear-1",
+        thumbnailUrl: "https://utfs.io/f/front.jpg",
+      }),
+    ).resolves.toEqual({
+      review: { status: "rejected", reason: "IMAGE_TOO_SMALL" },
+    });
+    expect(cacheMocks.revalidatePath).not.toHaveBeenCalled();
+  });
 });

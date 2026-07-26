@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect,useMemo,useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { ToggleGroup,ToggleGroupItem } from "~/components/ui/toggle-group";
+import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 
 export interface FocalLengthInputChange {
   focalLengthMinMm: number | null;
@@ -14,21 +14,24 @@ export interface FocalLengthInputChange {
 
 export interface FocalLengthInputProps {
   id?: string;
-  label?: string;
+  label: string;
   minValue?: number | null;
   maxValue?: number | null;
   onChange: (values: FocalLengthInputChange) => void;
   disabled?: boolean;
   className?: string;
+  labelAdornment?: ReactNode;
 }
 
 const FocalLengthInput = ({
   id = "focal-length",
+  label,
   minValue,
   maxValue,
   onChange,
   disabled = false,
   className = "",
+  labelAdornment,
 }: FocalLengthInputProps) => {
   // Initialize mode once from incoming values
   const initialMode: "PRIME" | "ZOOM" = useMemo(() => {
@@ -116,7 +119,10 @@ const FocalLengthInput = ({
   return (
     <div className={className}>
       <div className="space-y-2">
-        <Label htmlFor={id}>Lens Type</Label>
+        <div className="flex items-center gap-2">
+          <Label htmlFor={`${id}-min`}>{label}</Label>
+          {labelAdornment}
+        </div>
         <ToggleGroup
           type="single"
           value={mode}

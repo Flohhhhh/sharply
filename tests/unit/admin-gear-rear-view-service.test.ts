@@ -53,6 +53,9 @@ vi.mock("~/server/db/schema", () => ({
 }));
 vi.mock("~/server/admin/gear/data", () => adminGearDataMocks);
 vi.mock("~/server/gear/data", () => gearDataMocks);
+vi.mock("~/server/gear-image-review/service", () => ({
+  reviewGearImageUpload: vi.fn().mockResolvedValue({ status: "passed", checksRun: 1 }),
+}));
 
 import {
   clearGearLeftViewService,

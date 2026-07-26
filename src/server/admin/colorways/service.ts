@@ -4,6 +4,7 @@ import slugify from "slugify";
 
 import { requireRole } from "~/lib/auth/auth-helpers";
 import { getSessionOrThrow } from "~/server/auth";
+import { reviewGearImageUpload } from "~/server/gear-image-review/service";
 import {
   createGearColorwayData,
   deleteGearColorwayData,
@@ -170,6 +171,14 @@ export async function setGearColorwayImageService(params: {
     )
   ) {
     throw Object.assign(new Error("Invalid image type"), { status: 400 });
+  }
+  if (params.imageUrl) {
+    await reviewGearImageUpload({
+      actor: session.user,
+      gearId: params.gearId,
+      imageType: params.imageType,
+      imageUrl: params.imageUrl,
+    });
   }
   return setGearColorwayImageData({ ...params, actorUserId: session.user.id });
 }

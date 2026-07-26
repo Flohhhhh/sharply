@@ -139,6 +139,11 @@ Stores detailed lens-specific specifications:
 - **Focal Length**: Minimum and maximum focal length in mm (decimal, 0.1mm precision)
 - **Image Circle**: `imageCircleSizeId` references `sensor_formats.id` to capture coverage (e.g., full frame, APS-C)
 - **Aperture**: Maximum aperture value
+
+Creation flows validate camera resolution and lens/fixed-lens aperture values as
+numbers, then pass typed decimal-string inputs to the database without changing
+the database representation.
+
 - **Stabilization**: Whether the lens has stabilization
 - **Flexibility**: JSONB extra field for additional specs
 
@@ -311,6 +316,7 @@ The registry exports `buildGearSpecsSections(item: GearItem, options?)` which re
 - **Intentional Exceptions**: Editor-managed resource links such as `gear.linkInstructionManual` may live on the core `gear` table while rendering outside the spec table and outside the public suggestion flow.
 - **Display Conditions**: Prefer field-level `condition` functions for sentinel values that should not render at all. Example: `internalStorageGb` only renders when the numeric value is greater than `0`, so `0` does not show as a misleading graph/spec entry.
 - **Missing-only Editor Mode**: Fields with `alwaysShowInEditor: true` remain editable even when they already have a value. Use this only for capability toggles whose current `false` value would otherwise lock their dependent editor fields.
+- **Completed-spec edit policy**: Construction completeness and contributor permissions are separate. Regular contributors may fill a missing construction-critical spec, but may not replace or clear it after its completion group is filled; `EDITOR` and higher roles may always edit it. The shared policy is `src/lib/gear/completed-spec-edit-policy.ts`, and coupled fields such as focal length lock only after the full group is complete.
 
 ### Localization
 
@@ -467,6 +473,15 @@ To add a new gear type (e.g., tripods, lighting):
 ### Admin Workflow Notes
 
 - Staff can create gear directly as `PUBLISHED`, `RUMORED`, or `HIDDEN`.
+- The single-item creation modal uses two steps: identity first, then optional
+  type-specific completeness fields. All gear can select a mount; lenses
+  support multiple mounts and image-circle coverage; digital cameras expose
+  sensor format and resolution; analog cameras expose camera type and capture
+  medium; and fixed-lens cameras expose integrated-lens optics.
+- Focal length and maximum aperture are inferred as a best effort from the item
+  name with the same parsers as bulk import, and remain editable. Submission
+  disables all controls. Errors remain inline without closing the modal;
+  success closes it and shows a toast action linking to the created gear page.
 - The admin gear table can switch publication state after creation.
 - Rumored pages intentionally keep edit tooling available so staff can fill out specs and supporting assets before launch.
 - Public-only actions that do not make sense before release should be disabled on rumored pages rather than exposed as if the item were live.

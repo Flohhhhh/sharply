@@ -1,6 +1,6 @@
 "use client";
 
-import { ImageIcon, Trash, Upload } from "lucide-react";
+import { CircleAlert, ImageIcon, Trash, Upload } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import {
@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { genUploader } from "uploadthing/client";
 import type { OurFileRouter } from "~/app/api/uploadthing/core";
 import { Button } from "~/components/ui/button";
+import { Alert, AlertDescription } from "~/components/ui/alert";
 import {
   Dialog,
   DialogContent,
@@ -30,6 +31,11 @@ import {
   createGearOgImageFileFromSource,
   shouldAutoGenerateGearOgImageOnThumbnailUpload,
 } from "~/lib/gear/og-image";
+import {
+  reportImageUploadFeedback,
+  type ImageUploadFeedback,
+} from "~/lib/gear/image-upload-feedback";
+import { isGearImageReviewRejectedResult } from "~/lib/gear/image-review-result";
 import type { GearType } from "~/types/gear";
 import type { GearColorway } from "~/types/gear";
 import { actionSetGearColorwayImage } from "~/server/admin/colorways/actions";
@@ -40,6 +46,7 @@ import {
   actionClearGearThumbnail,
   actionClearGearTopView,
   actionSetGearLeftView,
+  actionSetGearOgImage,
   actionSetGearRearView,
   actionSetGearRightView,
   actionSetGearThumbnail,
@@ -77,6 +84,20 @@ type GearImageUploadResult = {
   };
 };
 
+const reviewMessageKeyByReason = {
+  IMAGE_TOO_SMALL: "reviewImageTooSmall",
+  LLM_REVIEW_UNAVAILABLE: "reviewUnavailable",
+  OBSCENE_OR_SEXUAL_CONTENT: "reviewObsceneContent",
+  UNSAFE_CONTENT: "reviewUnsafeContent",
+  NOT_PHOTOGRAPHY_GEAR: "reviewNotPhotographyGear",
+  SUSPICIOUS_CONTENT: "reviewSuspiciousContent",
+} as const;
+
+const UPLOAD_PROGRESS_END = 70;
+const REVIEW_PROGRESS_END = 85;
+const SAVE_PROGRESS_INCREMENT = 3;
+const SAVE_PROGRESS_INTERVAL_MS = 30;
+
 export function GearImageModal(props: GearImageModalProps) {
   const t = useTranslations("gearDetail.gearImages");
   const statusT = useTranslations("gearDetail.editGear.status");
@@ -91,8 +112,11 @@ export function GearImageModal(props: GearImageModalProps) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [combinedProgress, setCombinedProgress] = useState(0);
   const [showProgress, setShowProgress] = useState(false);
+  const [uploadFeedback, setUploadFeedback] = useState<ImageUploadFeedback[]>(
+    [],
+  );
   const [progressMode, setProgressMode] = useState<
-    "upload" | "save" | "delete" | null
+    "upload" | "review" | "save" | "delete" | null
   >(null);
   const [activeImageType, setActiveImageType] =
     useState<ImageType>("thumbnail");
@@ -108,6 +132,30 @@ export function GearImageModal(props: GearImageModalProps) {
   const leftViewFileInputRef = useRef<HTMLInputElement>(null);
   const rightViewFileInputRef = useRef<HTMLInputElement>(null);
   const savingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const saveProgressResolveRef = useRef<(() => void) | null>(null);
+
+  async function animateSaveProgress() {
+    if (savingTimerRef.current) clearInterval(savingTimerRef.current);
+    setCombinedProgress(REVIEW_PROGRESS_END);
+
+    await new Promise<void>((resolve) => {
+      saveProgressResolveRef.current = resolve;
+      let progress = REVIEW_PROGRESS_END;
+      const timer = setInterval(() => {
+        progress = Math.min(100, progress + SAVE_PROGRESS_INCREMENT);
+        setCombinedProgress(progress);
+        if (progress === 100) {
+          clearInterval(timer);
+          if (savingTimerRef.current === timer) {
+            savingTimerRef.current = null;
+          }
+          saveProgressResolveRef.current = null;
+          resolve();
+        }
+      }, SAVE_PROGRESS_INTERVAL_MS);
+      savingTimerRef.current = timer;
+    });
+  }
   const [localThumbnailUrl, setLocalThumbnailUrl] = useState<
     string | undefined
   >(props.currentThumbnailUrl ?? undefined);
@@ -179,6 +227,23 @@ export function GearImageModal(props: GearImageModalProps) {
     setSelectedColorwayId(colorwayId);
   }
 
+  function reportReviewRejection(reason: string) {
+    reportImageUploadFeedback({
+      setFeedback: setUploadFeedback,
+      feedback: {
+        id: "review-result",
+        message: t(
+          reviewMessageKeyByReason[
+            reason as keyof typeof reviewMessageKeyByReason
+          ] ?? "reviewRejected",
+        ),
+        variant: "destructive",
+        callout: true,
+        toast: true,
+      },
+    });
+  }
+
   const { uploadFiles } = genUploader<OurFileRouter>();
 
   async function uploadGearImageFile(
@@ -204,6 +269,8 @@ export function GearImageModal(props: GearImageModalProps) {
   useEffect(() => {
     return () => {
       if (savingTimerRef.current) clearInterval(savingTimerRef.current);
+      saveProgressResolveRef.current?.();
+      saveProgressResolveRef.current = null;
     };
   }, []);
 
@@ -238,53 +305,37 @@ export function GearImageModal(props: GearImageModalProps) {
       setIsUploading(true);
       setProgressMode("upload");
       setShowProgress(true);
+      setUploadFeedback([]);
       setUploadProgress(0);
       setCombinedProgress(0);
       setActiveImageType(imageType);
-      const url = await uploadGearImageFile(file, (progress) => {
-        setUploadProgress(progress);
-        const mapped = Math.min(60, Math.max(0, Math.round(progress * 0.6)));
-        setCombinedProgress((prev) => (mapped > prev ? mapped : prev));
-      });
-
-      let ogImageUrl: string | null | undefined;
       const shouldGenerateOgImage =
         (!isExplicitMode || isDefaultColorway) &&
         shouldAutoGenerateGearOgImageOnThumbnailUpload({
           imageType,
           currentThumbnailUrl: displayedThumbnailUrl,
         });
-
-      if (imageType === "thumbnail" && shouldGenerateOgImage) {
-        try {
-          setCombinedProgress((prev) => (prev < 62 ? 62 : prev));
-          const ogImageFile = await createGearOgImageFileFromSource({
-            source: file,
-            fileNameStem: `${props.slug ?? props.gearId ?? "gear"}-og`,
-          });
-          ogImageUrl = await uploadGearImageFile(ogImageFile, (progress) => {
-            const mapped = 60 + Math.round(progress * 0.15);
-            setCombinedProgress((prev) => (mapped > prev ? mapped : prev));
-          });
-        } catch (error) {
-          console.error(
-            "Failed to generate gear OG image during upload",
-            error,
-          );
-          ogImageUrl = null;
-        }
-      } else if (imageType === "thumbnail" && displayedThumbnailUrl) {
-        // Replacements should fall back to the fresh thumbnail until an admin
-        // backfill/regeneration run stores a new dedicated OG asset.
-        ogImageUrl = null;
-      }
+      const ogImageUrlForPrimaryMutation =
+        imageType === "thumbnail" && displayedThumbnailUrl ? null : undefined;
+      const url = await uploadGearImageFile(file, (progress) => {
+        setUploadProgress(progress);
+        const mapped = Math.min(
+          UPLOAD_PROGRESS_END,
+          Math.max(0, Math.round(progress * (UPLOAD_PROGRESS_END / 100))),
+        );
+        setCombinedProgress((prev) => (mapped > prev ? mapped : prev));
+      });
 
       setIsUpdating(true);
-      setProgressMode("save");
-      setCombinedProgress(75);
+      setProgressMode("review");
+      setCombinedProgress(UPLOAD_PROGRESS_END);
       if (savingTimerRef.current) clearInterval(savingTimerRef.current);
       savingTimerRef.current = setInterval(() => {
-        setCombinedProgress((prev) => (prev < 95 ? prev + 2 : prev));
+        setCombinedProgress((prev) =>
+          prev < REVIEW_PROGRESS_END
+            ? Math.min(REVIEW_PROGRESS_END, prev + 1)
+            : prev,
+        );
       }, 120);
 
       if (isExplicitMode && (!selectedColorway || !props.gearId)) {
@@ -297,65 +348,127 @@ export function GearImageModal(props: GearImageModalProps) {
           colorwayId: selectedColorway!.id,
           imageType: imageType === "thumbnail" ? "front" : imageType,
           imageUrl: url,
-          ogImageUrl,
         });
+        if (isGearImageReviewRejectedResult(result)) {
+          reportReviewRejection(result.review.reason);
+          return;
+        }
         setLocalColorways((current) =>
           current.map((item) =>
             item.id === result.colorway.id ? result.colorway : item,
           ),
         );
       } else if (imageType === "thumbnail") {
-        await actionSetGearThumbnail({
+        const result = await actionSetGearThumbnail({
           gearId: props.gearId,
           slug: props.slug,
           thumbnailUrl: url,
-          ogImageUrl,
+          ogImageUrl: ogImageUrlForPrimaryMutation,
         });
+        if (isGearImageReviewRejectedResult(result)) {
+          reportReviewRejection(result.review.reason);
+          return;
+        }
         setLocalThumbnailUrl(url);
       } else if (imageType === "topView") {
-        await actionSetGearTopView({
+        const result = await actionSetGearTopView({
           gearId: props.gearId,
           slug: props.slug,
           topViewUrl: url,
         });
+        if (isGearImageReviewRejectedResult(result)) {
+          reportReviewRejection(result.review.reason);
+          return;
+        }
         setLocalTopViewUrl(url);
       } else if (imageType === "rearView") {
-        await actionSetGearRearView({
+        const result = await actionSetGearRearView({
           gearId: props.gearId,
           slug: props.slug,
           rearViewUrl: url,
         });
+        if (isGearImageReviewRejectedResult(result)) {
+          reportReviewRejection(result.review.reason);
+          return;
+        }
         setLocalRearViewUrl(url);
       } else if (imageType === "leftView") {
-        await actionSetGearLeftView({
+        const result = await actionSetGearLeftView({
           gearId: props.gearId,
           slug: props.slug,
           leftViewUrl: url,
         });
+        if (isGearImageReviewRejectedResult(result)) {
+          reportReviewRejection(result.review.reason);
+          return;
+        }
         setLocalLeftViewUrl(url);
       } else {
-        await actionSetGearRightView({
+        const result = await actionSetGearRightView({
           gearId: props.gearId,
           slug: props.slug,
           rightViewUrl: url,
         });
+        if (isGearImageReviewRejectedResult(result)) {
+          reportReviewRejection(result.review.reason);
+          return;
+        }
         setLocalRightViewUrl(url);
       }
+      setProgressMode("save");
+      if (imageType === "thumbnail" && shouldGenerateOgImage) {
+        try {
+          const ogImageFile = await createGearOgImageFileFromSource({
+            source: file,
+            fileNameStem: `${props.slug ?? props.gearId ?? "gear"}-og`,
+          });
+          const ogImageUrl = await uploadGearImageFile(ogImageFile);
+          await actionSetGearOgImage({
+            gearId: props.gearId,
+            slug: props.slug,
+            ogImageUrl,
+          });
+        } catch (error) {
+          console.error(
+            "Failed to generate gear OG image after approval",
+            error,
+          );
+        }
+      }
+      await animateSaveProgress();
       toast.success(
         t("updated", {
           view: getImageTypeLabel(t, imageType, supportsSideViews),
         }),
       );
-
-      setCombinedProgress(100);
-      if (savingTimerRef.current) {
-        clearInterval(savingTimerRef.current);
-        savingTimerRef.current = null;
+      if (!canDelete) {
+        reportImageUploadFeedback({
+          setFeedback: setUploadFeedback,
+          feedback: {
+            id: "review-result",
+            message: t("reviewPassed"),
+            variant: "default",
+            toast: true,
+          },
+        });
       }
       props.onSuccess?.({ url });
     } catch (e) {
       const message = e instanceof Error ? e.message : "Failed to upload";
-      toast.error(message || profileT("failedToUpload"));
+      const reviewReason = message.startsWith("GEAR_IMAGE_REVIEW_REJECTED:")
+        ? message.slice("GEAR_IMAGE_REVIEW_REJECTED:".length)
+        : null;
+      const isReviewRejection =
+        reviewReason !== null ||
+        (typeof e === "object" &&
+          e !== null &&
+          "code" in e &&
+          e.code === "GEAR_IMAGE_REVIEW_REJECTED");
+      if (isReviewRejection) {
+        reportReviewRejection(reviewReason ?? "REVIEW_REJECTED");
+      } else {
+        toast.error(message || profileT("failedToUpload"));
+      }
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -405,6 +518,10 @@ export function GearImageModal(props: GearImageModalProps) {
           imageType: imageType === "thumbnail" ? "front" : imageType,
           imageUrl: null,
         });
+        if (isGearImageReviewRejectedResult(result)) {
+          reportReviewRejection(result.review.reason);
+          return;
+        }
         setLocalColorways((current) =>
           current.map((item) =>
             item.id === result.colorway.id ? result.colorway : item,
@@ -707,15 +824,28 @@ export function GearImageModal(props: GearImageModalProps) {
               ? profileT("uploadingProgress", {
                   percent: Math.min(100, Math.round(uploadProgress)),
                 })
-              : progressMode === "delete"
-                ? combinedProgress < 100
-                  ? t("deleting")
-                  : t("deleted")
-                : combinedProgress < 100
-                  ? profileT("saving")
-                  : profileT("done")}
+              : progressMode === "review"
+                ? t("reviewing")
+                : progressMode === "delete"
+                  ? combinedProgress < 100
+                    ? t("deleting")
+                    : t("deleted")
+                  : combinedProgress < 100
+                    ? profileT("saving")
+                    : profileT("done")}
           </div>
         </div>
+
+        {uploadFeedback.length > 0 ? (
+          <div className="space-y-2" aria-live="polite">
+            {uploadFeedback.map((feedback) => (
+              <Alert key={feedback.id} variant={feedback.variant}>
+                <CircleAlert />
+                <AlertDescription>{feedback.message}</AlertDescription>
+              </Alert>
+            ))}
+          </div>
+        ) : null}
 
         <div className="text-muted-foreground space-y-1 text-xs">
           <div>{t("limits")}</div>

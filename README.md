@@ -74,6 +74,7 @@ It's highly advised you set up at least one of these, otherwise you can't test o
 - `BLOB_READ_WRITE_TOKEN` – enables Vercel Blob storage for Payload CMS media and is required when running the media migration
 - `BLOB_STORE_ID` – optional Vercel Blob store metadata; Payload derives the store from the read/write token
 - `BLOB_WEBHOOK_PUBLIC_KEY` – optional Vercel Blob webhook metadata; the Payload storage adapter does not consume it
+- `ENABLE_VERCEL_SPEED_INSIGHTS` – defaults to disabled; set to `true` only in the production deployment that should report Vercel Speed Insights, keeping contributor forks opted out
 - `UPLOADTHING_TOKEN` – used by profile-picture and raw-sample uploads, plus the raw-sample cleanup job; keep it configured after Payload media moves to Blob
 
 Payload’s Blob variables are intentionally optional in global environment

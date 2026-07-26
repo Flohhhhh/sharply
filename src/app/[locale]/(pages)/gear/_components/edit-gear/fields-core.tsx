@@ -1,16 +1,16 @@
 "use client";
 
 import { InfoIcon } from "lucide-react";
-import { useLocale,useTranslations, type TranslationValues } from "next-intl";
-import { memo,useCallback,useEffect,useMemo,useState } from "react";
+import { useLocale, useTranslations, type TranslationValues } from "next-intl";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { DateInput } from "~/components/custom-inputs";
 import CurrencyInput from "~/components/custom-inputs/currency-input";
 import { MountSelect } from "~/components/custom-inputs/mount-select";
 import { NumberInput } from "~/components/custom-inputs/number-input";
-import { Card,CardContent,CardHeader,CardTitle } from "~/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
 import MultiSelect from "~/components/ui/multi-select";
-import { ToggleGroup,ToggleGroupItem } from "~/components/ui/toggle-group";
+import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import {
   Tooltip,
   TooltipContent,
@@ -27,12 +27,15 @@ import {
   translateGearDetailWithFallback,
 } from "~/lib/i18n/gear-detail";
 import { normalizeMpbLinkInput } from "~/lib/links/mpb";
-import { centsToUsd,usdToCents } from "~/lib/utils";
+import { hasMountValue } from "~/lib/gear/completed-spec-edit-policy";
+import { centsToUsd, usdToCents } from "~/lib/utils";
 import {
   normalizeAmazonProductLink,
   toDisplayAmazonProductLink,
 } from "~/lib/validation/amazon";
 import { normalizeBhProductLink } from "~/lib/validation/bhphoto";
+import { CompletedSpecLock } from "./completed-spec-lock";
+import type { GearItem } from "~/types/gear";
 
 type DatePrecision = "YEAR" | "MONTH" | "DAY";
 
@@ -70,6 +73,7 @@ interface CoreFieldsProps {
   initialSpecs?: CoreFieldsProps["currentSpecs"]; // initial snapshot for filtering only
   onChange: (field: string, value: any) => void;
   sectionId?: string;
+  disableCompletedSpecs?: boolean;
 }
 
 function CoreFieldsComponent({
@@ -79,6 +83,7 @@ function CoreFieldsComponent({
   initialSpecs,
   onChange,
   sectionId,
+  disableCompletedSpecs = false,
 }: CoreFieldsProps) {
   const t = useTranslations("gearDetail");
   const locale = useLocale();
@@ -88,6 +93,16 @@ function CoreFieldsComponent({
       translateGearDetailWithFallback(t, key, fallback, values),
     [t],
   );
+  const completedSpecMessage = tf(
+    "editGear.completedSpecEditorOnly",
+    "This completed specification can only be changed by an editor.",
+  );
+  const mountLocked =
+    disableCompletedSpecs &&
+    hasMountValue({
+      mountId: initialSpecs?.mountId,
+      mountIds: initialSpecs?.mountIds,
+    } as GearItem);
 
   const isMissing = useCallback((v: unknown): boolean => {
     if (v == null) return true;
@@ -422,11 +437,17 @@ function CoreFieldsComponent({
   }
   if (error) {
     return (
-      <div>{tf("editGear.status.error", "Error: {error}", { error: error.message })}</div>
+      <div>
+        {tf("editGear.status.error", "Error: {error}", {
+          error: error.message,
+        })}
+      </div>
     );
   }
   if (!data) {
-    return <div>{tf("editGear.status.unauthenticated", "Unauthenticated")}</div>;
+    return (
+      <div>{tf("editGear.status.unauthenticated", "Unauthenticated")}</div>
+    );
   }
   const session = data.session;
   const user = data.user;
@@ -509,22 +530,22 @@ function CoreFieldsComponent({
                   </ToggleGroup>
                 </div>
 
-                  <DateInput
-                    label={getSpecFieldLabel(
-                      t,
-                      "core",
-                      "announcedDate",
-                      "Announced Date",
-                    )}
-                    value={formattedAnnouncedDate}
-                    onChange={handleAnnouncedDateChange}
-                    granularity={
-                      announcedDatePrecision === "YEAR"
-                        ? "year"
-                        : announcedDatePrecision === "MONTH"
+                <DateInput
+                  label={getSpecFieldLabel(
+                    t,
+                    "core",
+                    "announcedDate",
+                    "Announced Date",
+                  )}
+                  value={formattedAnnouncedDate}
+                  onChange={handleAnnouncedDateChange}
+                  granularity={
+                    announcedDatePrecision === "YEAR"
+                      ? "year"
+                      : announcedDatePrecision === "MONTH"
                         ? "month"
                         : "day"
-                    }
+                  }
                 />
               </>
             );
@@ -588,22 +609,22 @@ function CoreFieldsComponent({
                   </ToggleGroup>
                 </div>
 
-                  <DateInput
-                    label={getSpecFieldLabel(
-                      t,
-                      "core",
-                      "releaseDate",
-                      "Release Date",
-                    )}
-                    value={formattedReleaseDate}
-                    onChange={handleReleaseDateChange}
-                    granularity={
-                      releaseDatePrecision === "YEAR"
-                        ? "year"
-                        : releaseDatePrecision === "MONTH"
+                <DateInput
+                  label={getSpecFieldLabel(
+                    t,
+                    "core",
+                    "releaseDate",
+                    "Release Date",
+                  )}
+                  value={formattedReleaseDate}
+                  onChange={handleReleaseDateChange}
+                  granularity={
+                    releaseDatePrecision === "YEAR"
+                      ? "year"
+                      : releaseDatePrecision === "MONTH"
                         ? "month"
                         : "day"
-                    }
+                  }
                 />
               </>
             );
@@ -667,22 +688,22 @@ function CoreFieldsComponent({
                   </ToggleGroup>
                 </div>
 
-                  <DateInput
-                    label={getSpecFieldLabel(
-                      t,
-                      "core",
-                      "discontinuedDate",
-                      "Discontinued Date",
-                    )}
-                    value={formattedDiscontinuedDate}
-                    onChange={handleDiscontinuedDateChange}
-                    granularity={
-                      discontinuedDatePrecision === "YEAR"
-                        ? "year"
-                        : discontinuedDatePrecision === "MONTH"
+                <DateInput
+                  label={getSpecFieldLabel(
+                    t,
+                    "core",
+                    "discontinuedDate",
+                    "Discontinued Date",
+                  )}
+                  value={formattedDiscontinuedDate}
+                  onChange={handleDiscontinuedDateChange}
+                  granularity={
+                    discontinuedDatePrecision === "YEAR"
+                      ? "year"
+                      : discontinuedDatePrecision === "MONTH"
                         ? "month"
                         : "day"
-                    }
+                  }
                 />
               </>
             );
@@ -775,6 +796,12 @@ function CoreFieldsComponent({
                         "Select compatible mounts",
                       )
                 }
+                disabled={mountLocked}
+                labelAdornment={
+                  mountLocked ? (
+                    <CompletedSpecLock message={completedSpecMessage} />
+                  ) : undefined
+                }
               />
             );
           })()}
@@ -852,7 +879,9 @@ function CoreFieldsComponent({
           {showWhenMissing(initialSpecs?.genres) && (
             <div className="space-y-2 md:col-span-2">
               <div className="flex items-center gap-2">
-                <Label>{tf("editGear.fields.bestUseCases", "Best use cases")}</Label>
+                <Label>
+                  {tf("editGear.fields.bestUseCases", "Best use cases")}
+                </Label>
                 <Tooltip>
                   <TooltipTrigger>
                     <InfoIcon className="h-4 w-4" />
@@ -954,7 +983,10 @@ function CoreFieldsComponent({
                 <p className="mt-1 text-xs text-red-600">{mpbError}</p>
               ) : mpbNoticeUrl ? (
                 <p className="text-muted-foreground mt-1 text-xs">
-                  {tf("editGear.fields.linkSavedAsPrefix", "This link will be saved as")}{" "}
+                  {tf(
+                    "editGear.fields.linkSavedAsPrefix",
+                    "This link will be saved as",
+                  )}{" "}
                   <a
                     href={mpbNoticeUrl}
                     target="_blank"
@@ -1039,7 +1071,11 @@ function CoreFieldsComponent({
                     {toDisplayAmazonProductLink(amazonNoticeUrl) ||
                       amazonNoticeUrl}
                   </a>
-                  . {tf("editGear.fields.verifyLinkStillWorks", "Please verify it still works.")}
+                  .{" "}
+                  {tf(
+                    "editGear.fields.verifyLinkStillWorks",
+                    "Please verify it still works.",
+                  )}
                 </p>
               ) : (
                 amazonPreviewUrl && (
@@ -1056,7 +1092,11 @@ function CoreFieldsComponent({
                     >
                       {amazonPreviewUrl}
                     </a>
-                    . {tf("editGear.fields.verifyLinkWillWork", "Please verify it will work.")}
+                    .{" "}
+                    {tf(
+                      "editGear.fields.verifyLinkWillWork",
+                      "Please verify it will work.",
+                    )}
                   </p>
                 )
               )}

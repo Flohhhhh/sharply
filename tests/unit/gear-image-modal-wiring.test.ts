@@ -46,11 +46,35 @@ describe("GearImageModal rear view wiring", () => {
     expect(source).toContain("createGearOgImageFileFromSource");
     expect(source).toContain("shouldAutoGenerateGearOgImageOnThumbnailUpload");
     expect(source).toContain("currentThumbnailUrl: displayedThumbnailUrl");
-    expect(source).toContain("ogImageUrl = null");
     expect(source).toContain("actionSetGearThumbnail({");
     expect(source).toContain("actionSetGearColorwayImage({");
     expect(source).toContain('t("colorwayContextMissing")');
-    expect(source).toContain("ogImageUrl,");
+    expect(source).toContain("actionSetGearOgImage({");
+    expect(source.indexOf("actionSetGearThumbnail({")).toBeLessThan(
+      source.indexOf("actionSetGearOgImage({"),
+    );
+  });
+
+  it("shows a review stage after upload and before persisting the image", () => {
+    const source = read("src/components/modals/gear-image-modal.tsx");
+
+    expect(source).toContain('"upload" | "review" | "save" | "delete"');
+    expect(source).toContain('setProgressMode("review")');
+    expect(source).toContain('t("reviewing")');
+    expect(source.indexOf('setProgressMode("review")')).toBeLessThan(
+      source.indexOf("actionSetGearColorwayImage({"),
+    );
+  });
+
+  it("allocates progress through upload, review, then save", () => {
+    const source = read("src/components/modals/gear-image-modal.tsx");
+
+    expect(source).toContain("const UPLOAD_PROGRESS_END = 70;");
+    expect(source).toContain("const REVIEW_PROGRESS_END = 85;");
+    expect(source).toContain("const SAVE_PROGRESS_INCREMENT = 3;");
+    expect(source).toContain('setCombinedProgress(UPLOAD_PROGRESS_END)');
+    expect(source).toContain('setProgressMode("save")');
+    expect(source).toContain("await animateSaveProgress()");
   });
 
   it("passes the gear id required by explicit colorway image actions", () => {

@@ -1,7 +1,14 @@
 import { clsx,type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { buildGearSearchName } from "~/lib/gear/naming";
-import { MOUNTS } from "~/lib/generated";
+import {
+  hasConstructionNumber,
+  hasFixedLensFocalLength,
+  hasFixedLensMount,
+  hasLensFocalLengthGroup,
+  hasMountValue,
+  isCompletedSpecValue,
+} from "~/lib/gear/completed-spec-edit-policy";
 import type { GearItem } from "~/types/gear";
 
 export function cn(...inputs: ClassValue[]) {
@@ -84,72 +91,49 @@ export function getConstructionState(gearItem: GearItem) {
   const missing: string[] = [];
 
   // Core checks
-  if (!gearItem?.brandId) missing.push("Brand");
+  if (!isCompletedSpecValue(gearItem?.brandId)) missing.push("Brand");
   // Check both legacy mountId and new multi-mount mountIds array
-  const hasMount =
-    gearItem?.mountId || (gearItem?.mountIds && gearItem.mountIds.length > 0);
+  const hasMount = hasMountValue(gearItem);
   if (!hasMount) missing.push("Mount");
 
   if (gearItem.gearType === "LENS") {
-    const focalMin = gearItem.lensSpecs?.focalLengthMinMm ?? null;
-    const focalMax = gearItem.lensSpecs?.focalLengthMaxMm ?? null;
-    if (!focalMin || !focalMax) {
+    if (!hasLensFocalLengthGroup(gearItem)) {
       missing.push("Focal length");
     }
     if (gearItem.lensSpecs?.isPrime == null) {
       missing.push("Prime/Zoom");
     }
-    if (gearItem.lensSpecs?.maxApertureWide == null) {
+    if (!hasConstructionNumber(gearItem.lensSpecs?.maxApertureWide)) {
       missing.push("Max aperture");
     }
-    if (!gearItem.lensSpecs?.imageCircleSizeId) {
+    if (!isCompletedSpecValue(gearItem.lensSpecs?.imageCircleSizeId)) {
       missing.push(humanizeKey("imageCircleSizeId"));
     }
   }
 
   if (gearItem.gearType === "CAMERA") {
     const sensorFormatId = gearItem.cameraSpecs?.sensorFormatId ?? null;
-    const resolution =
-      Number(gearItem.cameraSpecs?.resolutionMp ?? null) || null;
-    if (!sensorFormatId) missing.push("Sensor type");
-    if (!resolution) missing.push("Sensor resolution");
-
-    // Integrated lens cameras: if mount = fixed-lens and focal length is missing, mark under construction
-    const primaryMountId = Array.isArray(gearItem.mountIds)
-      ? (gearItem.mountIds[0] ?? gearItem.mountId)
-      : gearItem.mountId;
-    const mountValue = (MOUNTS as any[]).find((m) => m.id === primaryMountId)
-      ?.value as string | undefined;
-    if (mountValue === "fixed-lens") {
-      const fmin = gearItem.fixedLensSpecs?.focalLengthMinMm ?? null;
-      const fmax = gearItem.fixedLensSpecs?.focalLengthMaxMm ?? null;
-      if (fmin == null && fmax == null) {
-        missing.push("Integrated lens focal length");
-      }
+    if (!isCompletedSpecValue(sensorFormatId)) missing.push("Sensor type");
+    if (!hasConstructionNumber(gearItem.cameraSpecs?.resolutionMp)) {
+      missing.push("Sensor resolution");
     }
+
   }
 
   if (gearItem.gearType === "ANALOG_CAMERA") {
     const cameraType = gearItem.analogCameraSpecs?.cameraType ?? null;
     const captureMedium = gearItem.analogCameraSpecs?.captureMedium ?? null;
-    if (!cameraType) missing.push("Camera type");
-    if (!captureMedium) missing.push("Capture medium");
+    if (!isCompletedSpecValue(cameraType)) missing.push("Camera type");
+    if (!isCompletedSpecValue(captureMedium)) missing.push("Capture medium");
   }
 
   // Integrated lens check for camera-like gear (digital or analog)
-  if (gearItem.gearType === "CAMERA" || gearItem.gearType === "ANALOG_CAMERA") {
-    const primaryMountId = Array.isArray(gearItem.mountIds)
-      ? (gearItem.mountIds[0] ?? gearItem.mountId)
-      : gearItem.mountId;
-    const mountValue = (MOUNTS as any[]).find((m) => m.id === primaryMountId)
-      ?.value as string | undefined;
-    if (mountValue === "fixed-lens") {
-      const fmin = gearItem.fixedLensSpecs?.focalLengthMinMm ?? null;
-      const fmax = gearItem.fixedLensSpecs?.focalLengthMaxMm ?? null;
-      if (fmin == null && fmax == null) {
-        missing.push("Integrated lens focal length");
-      }
-    }
+  if (
+    (gearItem.gearType === "CAMERA" || gearItem.gearType === "ANALOG_CAMERA") &&
+    hasFixedLensMount(gearItem) &&
+    !hasFixedLensFocalLength(gearItem)
+  ) {
+    missing.push("Integrated lens focal length");
   }
 
   return {

@@ -24,7 +24,7 @@ Editors can enable colorways, add or rename rows, edit swatches, reorder rows, a
 
 Reset defaults to deleting every colorway row after copying the default colorway's images onto the base gear fields. Admins can instead choose a different colorway to apply first, or keep the base gear photos currently stored on the gear record.
 
-All mutations use `server/admin/colorways` through data → service → actions. Lifecycle and image mutations create audit records; image uploads and replacements create contribution payloads under `colorwayImageUpload`.
+All mutations use `server/admin/colorways` through data → service → actions. Lifecycle and image mutations create audit records; image uploads and replacements create contribution payloads under `colorwayImageUpload`. Uploaded colorway images pass through the shared server-side gear-image review pipeline before their URLs are persisted.
 
 ## Collection display
 

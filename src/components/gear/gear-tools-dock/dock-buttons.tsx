@@ -72,6 +72,7 @@ export interface BuildDockButtonsParams {
   locale: string;
   alternatives: GearAlternativeRow[];
   lineage: GearLineageRelationships;
+  relationshipDataReady: boolean;
   hasCreatorVideos: boolean;
   managedSamples: DockSample[];
   isManagerOpen: boolean;
@@ -105,6 +106,7 @@ export function buildDockButtons({
   locale,
   alternatives,
   lineage,
+  relationshipDataReady,
   managedSamples,
   isManagerOpen,
   setIsManagerOpen,
@@ -247,7 +249,11 @@ export function buildDockButtons({
     {
       id: "relationships",
       allowed: (currentUser) =>
-        Boolean(gearId && requireRole(currentUser, ["EDITOR"])),
+        Boolean(
+          relationshipDataReady &&
+          gearId &&
+          requireRole(currentUser, ["EDITOR"]),
+        ),
       render: () =>
         gearId ? (
           <Tooltip key="relationships">

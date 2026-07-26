@@ -10,10 +10,14 @@ const dataMocks = vi.hoisted(() => ({
   setGearColorwayImageData: vi.fn(),
   updateGearColorwayData: vi.fn(),
 }));
+const reviewMocks = vi.hoisted(() => ({
+  reviewGearImageUpload: vi.fn(),
+}));
 
 vi.mock("server-only", () => ({}));
 vi.mock("~/server/auth", () => authMocks);
 vi.mock("~/server/admin/colorways/data", () => dataMocks);
+vi.mock("~/server/gear-image-review/service", () => reviewMocks);
 
 import {
   deleteGearColorwayService,
@@ -26,6 +30,10 @@ import {
 describe("colorway admin service", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    reviewMocks.reviewGearImageUpload.mockResolvedValue({
+      status: "passed",
+      checksRun: 1,
+    });
     authMocks.getSessionOrThrow.mockResolvedValue({
       user: { id: "editor-1", role: "EDITOR" },
     });

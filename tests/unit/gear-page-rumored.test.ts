@@ -9,19 +9,26 @@ process.env.OPENAI_API_KEY ??= "test-openai-key";
 
 const gearServiceMocks = vi.hoisted(() => ({
   fetchGearAlternatives: vi.fn(),
+  fetchGearAlternativesByGearId: vi.fn(),
   fetchGearBySlug: vi.fn(),
   fetchGearLineage: vi.fn().mockResolvedValue({
+    predecessor: null,
+    successor: null,
+  }),
+  fetchGearLineageByGearIdService: vi.fn().mockResolvedValue({
     predecessor: null,
     successor: null,
   }),
   fetchNewestGearSlugs: vi.fn(),
   fetchPendingEditCountForGear: vi.fn(),
   fetchStaffVerdict: vi.fn(),
+  fetchStaffVerdictByGearId: vi.fn(),
   fetchUseCaseRatings: vi.fn(),
 }));
 
 const creatorVideoMocks = vi.hoisted(() => ({
   fetchPublicGearCreatorVideos: vi.fn(),
+  fetchPublicGearCreatorVideosByGearId: vi.fn(),
 }));
 
 const payloadServiceMocks = vi.hoisted(() => ({
@@ -95,6 +102,7 @@ vi.mock("~/app/[locale]/(pages)/gear/_components/rumored-full", () => ({
 vi.mock("~/app/[locale]/(pages)/gear/_components/construction-full", () => ({
   ConstructionFullPage: constructionPageMock,
 }));
+vi.mock("~/server/admin/gear/actions", () => ({}));
 
 import Page from "~/app/[locale]/(pages)/gear/[slug]/page";
 
@@ -102,7 +110,9 @@ describe("gear page rumored state", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     headersMocks.headers.mockResolvedValue(new Headers());
-    authMocks.auth.api.getSession.mockResolvedValue({ user: { id: "editor-1" } });
+    authMocks.auth.api.getSession.mockResolvedValue({
+      user: { id: "editor-1" },
+    });
     authHelperMocks.requireRole.mockReturnValue(true);
   });
 

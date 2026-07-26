@@ -390,7 +390,7 @@ describe("gear edit submission", () => {
     expect(webhookMocks.notifyChangeRequestModerators).not.toHaveBeenCalled();
   });
 
-  it("keeps trusted contributors pending when they overwrite an existing value", async () => {
+  it("rejects a contributor overwrite of a completed construction spec", async () => {
     authMocks.getSessionOrThrow.mockResolvedValue({
       user: { id: "user-1", role: "USER", name: "Alex Photographer" },
     });
@@ -399,43 +399,37 @@ describe("gear edit submission", () => {
       makeUnderConstructionGear({ brandId: "existing-brand" }),
     );
 
-    const result = await submitGearEditProposal({
-      gearId: "22222222-2222-4222-8222-222222222222",
-      payload: { core: { brandId: "brand-1" } },
-      autoSubmit: true,
-    });
-
-    expect(result.autoApproved).toBe(false);
-    expect(result.proposal.status).toBe("PENDING");
-    expect(result.proposal.metadata).toEqual({
-      autoApprovalDecision: {
-        eligible: false,
-        path: "trusted_candidate",
-        reasonCode: "proposal_not_add_only",
-        approvedEdits: 1,
+    await expect(
+      submitGearEditProposal({
+        gearId: "22222222-2222-4222-8222-222222222222",
+        payload: { core: { brandId: "brand-2" } },
         autoSubmit: true,
-        hasPendingEdits: false,
-      },
+      }),
+    ).rejects.toMatchObject({
+      status: 403,
+      code: "completed_spec_editor_only",
+      field: "core.brandId",
     });
+    expect(gearDataMocks.createGearEditProposal).not.toHaveBeenCalled();
     expect(proposalServiceMocks.approveProposal).not.toHaveBeenCalled();
     expect(
       proposalServiceMocks.applyTrustedContributorProposalApproval,
     ).not.toHaveBeenCalled();
     expect(webhookMocks.notifyAutoApprovedChangeRequest).not.toHaveBeenCalled();
-    expect(console.info).toHaveBeenCalledWith(
-      "[submitGearEditProposal] auto-approval skipped",
-      {
-        proposalId: "11111111-1111-4111-8111-111111111111",
-        gearId: "22222222-2222-4222-8222-222222222222",
-        userId: "user-1",
-        reasonCode: "proposal_not_add_only",
-        path: "trusted_candidate",
-        approvedEdits: 1,
-        autoSubmit: true,
-        hasPendingEdits: false,
-      },
-    );
-    expect(webhookMocks.notifyChangeRequestModerators).toHaveBeenCalledTimes(1);
+    expect(console.info).not.toHaveBeenCalled();
+    expect(webhookMocks.notifyChangeRequestModerators).not.toHaveBeenCalled();
+  });
+
+  it("allows an editor to overwrite a completed construction spec", async () => {
+    gearDataMocks.fetchGearBySlug.mockResolvedValue(makeCompleteGear());
+
+    const result = await submitGearEditProposal({
+      gearId: "22222222-2222-4222-8222-222222222222",
+      payload: { camera: { resolutionMp: 25 } },
+    });
+
+    expect(result.autoApproved).toBe(true);
+    expect(gearDataMocks.createGearEditProposal).toHaveBeenCalled();
   });
 
   it.each([

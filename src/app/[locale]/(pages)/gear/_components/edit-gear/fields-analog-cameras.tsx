@@ -1,8 +1,12 @@
 "use client";
 
 import { useTranslations, type TranslationValues } from "next-intl";
-import { BooleanInput,MultiTextInput,NumberInput } from "~/components/custom-inputs";
-import { Card,CardContent,CardHeader,CardTitle } from "~/components/ui/card";
+import {
+  BooleanInput,
+  MultiTextInput,
+  NumberInput,
+} from "~/components/custom-inputs";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { MultiSelect } from "~/components/ui/multi-select";
 import {
   Select,
@@ -16,8 +20,10 @@ import {
   getSpecSectionTitle,
   translateGearDetailWithFallback,
 } from "~/lib/i18n/gear-detail";
+import { isCompletedSpecValue } from "~/lib/gear/completed-spec-edit-policy";
 import { ANALOG_OPTIONS } from "~/lib/mapping/analog-types-map";
 import type { AnalogCameraSpecs } from "~/types/gear";
+import { CompletedSpecLock } from "./completed-spec-lock";
 
 type Option = { value: string; label: string };
 const toMulti = (opts: Option[]) =>
@@ -49,19 +55,30 @@ interface AnalogCameraFieldsProps {
   showMissingOnly?: boolean;
   onChange: (field: keyof AnalogCameraSpecs, value: any) => void;
   sectionId?: string;
+  disableCompletedSpecs?: boolean;
 }
 
 export function AnalogCameraFields({
   currentSpecs,
+  initialSpecs,
   showMissingOnly,
   onChange,
   sectionId,
+  disableCompletedSpecs = false,
 }: AnalogCameraFieldsProps) {
   const t = useTranslations("gearDetail");
   const tf = (key: string, fallback: string, values?: TranslationValues) =>
     translateGearDetailWithFallback(t, key, fallback, values);
   const specLabel = (fieldKey: string, fallback: string) =>
     getSpecFieldLabel(t, "analog-camera", fieldKey, fallback);
+  const completedSpecMessage = tf(
+    "editGear.completedSpecEditorOnly",
+    "This completed specification can only be changed by an editor.",
+  );
+  const cameraTypeLocked =
+    disableCompletedSpecs && isCompletedSpecValue(initialSpecs?.cameraType);
+  const captureMediumLocked =
+    disableCompletedSpecs && isCompletedSpecValue(initialSpecs?.captureMedium);
 
   return (
     <Card
@@ -80,12 +97,18 @@ export function AnalogCameraFields({
         <div className="flex flex-col gap-3">
           {shouldShowField(currentSpecs?.cameraType, showMissingOnly) && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">
-                {specLabel("cameraType", "Camera Type")}
-              </label>
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium">
+                  {specLabel("cameraType", "Camera Type")}
+                </label>
+                {cameraTypeLocked ? (
+                  <CompletedSpecLock message={completedSpecMessage} />
+                ) : null}
+              </div>
               <Select
                 value={currentSpecs?.cameraType ?? undefined}
                 onValueChange={(value) => onChange("cameraType", value)}
+                disabled={cameraTypeLocked}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue
@@ -108,12 +131,18 @@ export function AnalogCameraFields({
 
           {shouldShowField(currentSpecs?.captureMedium, showMissingOnly) && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">
-                {specLabel("captureMedium", "Capture Medium")}
-              </label>
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium">
+                  {specLabel("captureMedium", "Capture Medium")}
+                </label>
+                {captureMediumLocked ? (
+                  <CompletedSpecLock message={completedSpecMessage} />
+                ) : null}
+              </div>
               <Select
                 value={currentSpecs?.captureMedium ?? undefined}
                 onValueChange={(value) => onChange("captureMedium", value)}
+                disabled={captureMediumLocked}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue
@@ -226,7 +255,10 @@ export function AnalogCameraFields({
           {shouldShowField(currentSpecs?.shutterSpeedMax, showMissingOnly) && (
             <NumberInput
               id="shutterSpeedMax"
-              label={tf("editGear.fields.shutterSpeedMaxSeconds", "Longest Shutter Speed")}
+              label={tf(
+                "editGear.fields.shutterSpeedMaxSeconds",
+                "Longest Shutter Speed",
+              )}
               suffix="sec."
               value={currentSpecs?.shutterSpeedMax ?? null}
               onChange={(value) => onChange("shutterSpeedMax", value)}
@@ -349,7 +381,10 @@ export function AnalogCameraFields({
           ) && (
             <BooleanInput
               id="hasExposureCompensation"
-              label={specLabel("hasExposureCompensation", "Exposure Compensation")}
+              label={specLabel(
+                "hasExposureCompensation",
+                "Exposure Compensation",
+              )}
               checked={currentSpecs?.hasExposureCompensation ?? null}
               onChange={(value) => onChange("hasExposureCompensation", value)}
               allowNull
@@ -457,10 +492,15 @@ export function AnalogCameraFields({
           {shouldShowField(currentSpecs?.maxContinuousFps, showMissingOnly) && (
             <NumberInput
               id="maxContinuousFps"
-              label={tf("editGear.fields.maxContinuousFps", "Max Continuous FPS")}
+              label={tf(
+                "editGear.fields.maxContinuousFps",
+                "Max Continuous FPS",
+              )}
               value={(() => {
                 if (currentSpecs?.maxContinuousFps == null) return null;
-                const parsed = parseFloat(String(currentSpecs.maxContinuousFps));
+                const parsed = parseFloat(
+                  String(currentSpecs.maxContinuousFps),
+                );
                 return Number.isFinite(parsed) ? parsed : null;
               })()}
               onChange={(value) => onChange("maxContinuousFps", value)}
@@ -512,18 +552,18 @@ export function AnalogCameraFields({
             />
           )}
 
-          {shouldShowField(currentSpecs?.supportedBatteries, showMissingOnly) && (
-            <div
-              data-force-ring-container
-              className="space-y-2"
-            >
+          {shouldShowField(
+            currentSpecs?.supportedBatteries,
+            showMissingOnly,
+          ) && (
+            <div data-force-ring-container className="space-y-2">
               <MultiTextInput
                 id="supportedBatteries"
                 label={specLabel("supportedBatteries", "Supported Batteries")}
                 values={
                   Array.isArray(currentSpecs?.supportedBatteries)
                     ? currentSpecs.supportedBatteries.filter(
-                        (x): x is string => typeof x === "string"
+                        (x): x is string => typeof x === "string",
                       )
                     : []
                 }

@@ -48,6 +48,12 @@ This document records the current cookie and analytics surface in Sharply so the
   - Vercel Web Analytics is first-party and cookie-free at the analytics layer
   - Vercel documents that visitor identification is based on a request hash rather than third-party cookies
 
+### Vercel Speed Insights
+
+- Package: `@vercel/speed-insights`
+- Mount point: `src/app/[locale]/layout.tsx`
+- Production behavior: enabled only when `ENABLE_VERCEL_SPEED_INSIGHTS=true`. It is disabled by default so open-source contributors and fork deployments do not report performance data unless they explicitly opt in.
+
 ### Custom Analytics Events
 
 Sharply also sends custom Vercel analytics events to understand feature usage and service performance.

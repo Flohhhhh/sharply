@@ -1193,6 +1193,7 @@ function EditGearForm({
             : [],
         }}
         onChange={handleChange}
+        disableCompletedSpecs={!canToggleAutoSubmit}
       />
 
       {/* TODO: Add gear-type-specific fields */}
@@ -1206,6 +1207,7 @@ function EditGearForm({
           initialGearItem={gearData}
           onChange={(field, value) => handleChange(field, value, "cameraSpecs")}
           onChangeTopLevel={(field, value) => handleChange(field, value)}
+          disableCompletedSpecs={!canToggleAutoSubmit}
         />
       )}
 
@@ -1218,6 +1220,7 @@ function EditGearForm({
           onChange={(field, value) =>
             handleChange(field as string, value, "analogCameraSpecs")
           }
+          disableCompletedSpecs={!canToggleAutoSubmit}
         />
       )}
 
@@ -1247,6 +1250,7 @@ function EditGearForm({
                     }) as GearItem,
                 );
               }}
+              disableCompletedSpecs={!canToggleAutoSubmit}
             />
           );
         })()}
@@ -1258,6 +1262,7 @@ function EditGearForm({
           showMissingOnly={Boolean(showMissingOnly)}
           initialSpecs={initialLensSpecs}
           onChange={(field, value) => handleChange(field, value, "lensSpecs")}
+          disableCompletedSpecs={!canToggleAutoSubmit}
         />
       )}
 

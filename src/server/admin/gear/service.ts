@@ -9,6 +9,8 @@ import { buildGearSearchName } from "~/lib/gear/naming";
 import { GEAR_REGIONS, type GearRegion } from "~/lib/gear/region";
 import { shouldBlockFuzzyResults } from "~/lib/utils/gear-creation";
 import { getSessionOrThrow } from "~/server/auth";
+import { reviewGearImageUpload } from "~/server/gear-image-review/service";
+import { isUploadThingFileUrl } from "~/server/raw-samples/uploadthing";
 import { db } from "~/server/db";
 import {
   auditLogs,
@@ -339,6 +341,14 @@ export async function setGearThumbnailService(params: {
     if (!id) throw Object.assign(new Error("Gear not found"), { status: 404 });
     gearId = id;
   }
+  if (thumbnailUrl) {
+    await reviewGearImageUpload({
+      actor: session.user,
+      gearId,
+      imageType: "thumbnail",
+      imageUrl: thumbnailUrl,
+    });
+  }
 
   // Fetch current gear state to determine if this is an upload, replace, or remove
   const { fetchGearMetadataById } = await import("~/server/gear/data");
@@ -428,6 +438,10 @@ export async function setGearOgImageService(params: {
   }
 
   const { gearId: maybeId, slug, ogImageUrl } = params;
+  const isAdmin = requireRole(session.user, ["ADMIN"]);
+  if (ogImageUrl && !isAdmin && !isUploadThingFileUrl(ogImageUrl)) {
+    throw Object.assign(new Error("Invalid image upload URL"), { status: 422 });
+  }
   let gearId = maybeId;
   if (!gearId) {
     if (!slug) {
@@ -469,6 +483,14 @@ export async function setGearTopViewService(params: {
     const id = await getGearIdBySlug(slug);
     if (!id) throw Object.assign(new Error("Gear not found"), { status: 404 });
     gearId = id;
+  }
+  if (topViewUrl) {
+    await reviewGearImageUpload({
+      actor: session.user,
+      gearId,
+      imageType: "topView",
+      imageUrl: topViewUrl,
+    });
   }
 
   // Fetch current gear state to determine if this is an upload, replace, or remove
@@ -547,6 +569,14 @@ export async function setGearRearViewService(params: {
     const id = await getGearIdBySlug(slug);
     if (!id) throw Object.assign(new Error("Gear not found"), { status: 404 });
     gearId = id;
+  }
+  if (rearViewUrl) {
+    await reviewGearImageUpload({
+      actor: session.user,
+      gearId,
+      imageType: "rearView",
+      imageUrl: rearViewUrl,
+    });
   }
 
   // Fetch current gear state to determine if this is an upload, replace, or remove
@@ -627,6 +657,14 @@ export async function setGearLeftViewService(params: {
     if (!id) throw Object.assign(new Error("Gear not found"), { status: 404 });
     gearId = id;
   }
+  if (leftViewUrl) {
+    await reviewGearImageUpload({
+      actor: session.user,
+      gearId,
+      imageType: "leftView",
+      imageUrl: leftViewUrl,
+    });
+  }
 
   const { fetchGearMetadataById } = await import("~/server/gear/data");
   const currentGear = await fetchGearMetadataById(gearId);
@@ -695,6 +733,14 @@ export async function setGearRightViewService(params: {
     const id = await getGearIdBySlug(slug);
     if (!id) throw Object.assign(new Error("Gear not found"), { status: 404 });
     gearId = id;
+  }
+  if (rightViewUrl) {
+    await reviewGearImageUpload({
+      actor: session.user,
+      gearId,
+      imageType: "rightView",
+      imageUrl: rightViewUrl,
+    });
   }
 
   const { fetchGearMetadataById } = await import("~/server/gear/data");

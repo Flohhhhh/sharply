@@ -30,6 +30,7 @@ export interface NumberInputProps {
   icon?: ReactNode;
   tooltip?: ReactNode;
   disabled?: boolean;
+  labelAdornment?: ReactNode;
 }
 
 export const NumberInput = ({
@@ -46,6 +47,7 @@ export const NumberInput = ({
   icon,
   tooltip,
   disabled,
+  labelAdornment,
 }: NumberInputProps) => {
   const decimalsAllowed =
     typeof step === "number" ? !Number.isInteger(step) : true;
@@ -198,6 +200,7 @@ export const NumberInput = ({
     <div className={`space-y-2 ${className}`}>
       <div className="flex items-center gap-2">
         <Label htmlFor={id}>{label}</Label>
+        {labelAdornment}
         {tooltip ? (
           <Tooltip>
             <TooltipTrigger asChild>
