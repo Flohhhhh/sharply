@@ -69,6 +69,10 @@ describe("GearImageModal rear view wiring", () => {
     expect(source).toContain("trigger?: ReactNode | null;");
     expect(source).toContain("const open = props.open ?? internalOpen;");
     expect(source).toContain("props.trigger !== null ? (");
+    expect(source).toContain("const isTriggerless = props.trigger === null;");
+    expect(source).toContain(
+      'return isTriggerless ? null : <div>{statusT("loading")}</div>;',
+    );
   });
 
   it("places the color manager after the image manager in the dock", () => {

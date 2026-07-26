@@ -2,9 +2,9 @@
 
 import { track } from "@vercel/analytics";
 import { Crop } from "lucide-react";
-import { useLocale,useTranslations, type TranslationValues } from "next-intl";
+import { useLocale, useTranslations, type TranslationValues } from "next-intl";
 import { useRouter } from "next/navigation";
-import React,{ useCallback,useState } from "react";
+import React, { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { NotesFields } from "~/app/[locale]/(pages)/gear/_components/edit-gear/fields-notes";
 import { Button } from "~/components/ui/button";
@@ -18,7 +18,10 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { Label } from "~/components/ui/label";
-import { formatDate } from "~/lib/format/date";
+import {
+  formatDateWithPrecision,
+  getPairedDatePrecision,
+} from "~/lib/format/date";
 import { MOUNTS } from "~/lib/generated";
 import {
   getSpecFieldLabel,
@@ -41,7 +44,7 @@ import {
   videoModesEqual,
 } from "~/lib/video/mode-schema";
 import { actionSubmitGearProposal } from "~/server/gear/actions";
-import type { FixedLensSpecs,GearItem,GearType } from "~/types/gear";
+import type { FixedLensSpecs, GearItem, GearType } from "~/types/gear";
 import { AnalogCameraFields } from "./fields-analog-cameras";
 import { getInitialAutoSubmitValue } from "./auto-submit";
 import CameraFields from "./fields-cameras";
@@ -224,7 +227,9 @@ function EditGearForm({
   const initialAnalogCameraSpecs = gearData.analogCameraSpecs;
   const initialFixedLensSpecs = gearData.fixedLensSpecs;
   const initialLensSpecs = gearData.lensSpecs;
-  const formMountIds = Array.isArray(formData.mountIds) ? formData.mountIds : [];
+  const formMountIds = Array.isArray(formData.mountIds)
+    ? formData.mountIds
+    : [];
   const primaryMountId = formMountIds[0] ?? formData.mountId ?? null;
   const effectiveAutoSubmit =
     typeof autoSubmit === "boolean" ? autoSubmit : internalAutoSubmit;
@@ -291,13 +296,24 @@ function EditGearForm({
             "labelPlural",
           );
         case "announcedDate":
-          return getSpecFieldLabel(t, "core", "announcedDate", "Announced Date");
+          return getSpecFieldLabel(
+            t,
+            "core",
+            "announcedDate",
+            "Announced Date",
+          );
         case "announceDatePrecision":
-          return tf("editGear.fields.announcedDatePrecision", "Announced Date Precision");
+          return tf(
+            "editGear.fields.announcedDatePrecision",
+            "Announced Date Precision",
+          );
         case "releaseDate":
           return getSpecFieldLabel(t, "core", "releaseDate", "Release Date");
         case "releaseDatePrecision":
-          return tf("editGear.fields.releaseDatePrecision", "Release Date Precision");
+          return tf(
+            "editGear.fields.releaseDatePrecision",
+            "Release Date Precision",
+          );
         case "discontinuedDate":
           return getSpecFieldLabel(
             t,
@@ -417,11 +433,7 @@ function EditGearForm({
 
   const getSectionDiffLabel = useCallback(
     (
-      section:
-        | "analogCamera"
-        | "camera"
-        | "lens"
-        | "fixedLens",
+      section: "analogCamera" | "camera" | "lens" | "fixedLens",
       key: string,
     ) => {
       if (section === "camera") return getCameraDiffLabel(key);
@@ -508,18 +520,16 @@ function EditGearForm({
       };
       if (section) {
         // Handle nested updates (e.g., cameraSpecs, lensSpecs)
-        applyUpdate(
-          (prev) => {
-            const currentSection = prev[section];
-            return {
-              ...prev,
-              [section]: {
-                ...toRecord(currentSection),
-                [field]: value,
-              },
-            };
-          },
-        );
+        applyUpdate((prev) => {
+          const currentSection = prev[section];
+          return {
+            ...prev,
+            [section]: {
+              ...toRecord(currentSection),
+              [field]: value,
+            },
+          };
+        });
       } else {
         // Handle direct gear field updates
         applyUpdate(
@@ -626,7 +636,11 @@ function EditGearForm({
       "genres",
       "notes",
     ] as const;
-    const coreDiff = diffByKeys(toRecord(gearData), toRecord(formData), coreKeys);
+    const coreDiff = diffByKeys(
+      toRecord(gearData),
+      toRecord(formData),
+      coreKeys,
+    );
     if (Object.keys(coreDiff).length > 0) payload.core = coreDiff;
 
     if (formData.cameraSpecs) {
@@ -692,7 +706,11 @@ function EditGearForm({
         "hasUsbFileTransfer",
       ] as const;
       const orig = toRecord(gearData.cameraSpecs);
-      const diffs = diffByKeys(orig, toRecord(formData.cameraSpecs), cameraKeys);
+      const diffs = diffByKeys(
+        orig,
+        toRecord(formData.cameraSpecs),
+        cameraKeys,
+      );
       if (Object.keys(diffs).length > 0) payload.camera = diffs;
     }
 
@@ -823,7 +841,11 @@ function EditGearForm({
         "hasLensHood",
       ] as const;
       const orig = toRecord(gearData.fixedLensSpecs);
-      const diffs = diffByKeys(orig, toRecord(formData.fixedLensSpecs), fixedKeys);
+      const diffs = diffByKeys(
+        orig,
+        toRecord(formData.fixedLensSpecs),
+        fixedKeys,
+      );
       if (Object.keys(diffs).length > 0) payload.fixedLens = diffs;
     }
 
@@ -902,7 +924,9 @@ function EditGearForm({
             Number.isFinite(rawIndex) && rawIndex > 0
               ? Math.trunc(rawIndex)
               : 0;
-          const supportedFormFactors = Array.isArray(slotRecord.supportedFormFactors)
+          const supportedFormFactors = Array.isArray(
+            slotRecord.supportedFormFactors,
+          )
             ? [...slotRecord.supportedFormFactors]
                 .filter((x: unknown): x is string => typeof x === "string")
                 .sort()
@@ -912,7 +936,9 @@ function EditGearForm({
                 .filter((x: unknown): x is string => typeof x === "string")
                 .sort()
             : [];
-          const supportedSpeedClasses = Array.isArray(slotRecord.supportedSpeedClasses)
+          const supportedSpeedClasses = Array.isArray(
+            slotRecord.supportedSpeedClasses,
+          )
             ? [...slotRecord.supportedSpeedClasses]
                 .filter((x: unknown): x is string => typeof x === "string")
                 .sort()
@@ -937,12 +963,8 @@ function EditGearForm({
       payload.cameraCardSlots = nextSlots;
     }
 
-    const prevVideoModes = normalizeVideoModesFromUnknown(
-      gearData.videoModes,
-    );
-    const nextVideoModes = normalizeVideoModesFromUnknown(
-      formData.videoModes,
-    );
+    const prevVideoModes = normalizeVideoModesFromUnknown(gearData.videoModes);
+    const nextVideoModes = normalizeVideoModesFromUnknown(formData.videoModes);
     videoModesDiffRef.current = diffVideoModes(prevVideoModes, nextVideoModes);
     if (!videoModesEqual(prevVideoModes, nextVideoModes)) {
       payload.videoModes = nextVideoModes;
@@ -953,9 +975,7 @@ function EditGearForm({
   const computePayloadStats = (payload: DiffPayload) => {
     const counts = {
       coreFields: payload.core ? Object.keys(payload.core).length : 0,
-      cameraFields: payload.camera
-        ? Object.keys(payload.camera).length
-        : 0,
+      cameraFields: payload.camera ? Object.keys(payload.camera).length : 0,
       lensFields: payload.lens ? Object.keys(payload.lens).length : 0,
       fixedLensFields: payload.fixedLens
         ? Object.keys(payload.fixedLens).length
@@ -1038,7 +1058,10 @@ function EditGearForm({
             : tf("editGear.submitSuccessTitle", "Suggestion submitted"),
           {
             description: autoApproved
-              ? tf("editGear.submitAutoApprovedDescription", "Your update is live now.")
+              ? tf(
+                  "editGear.submitAutoApprovedDescription",
+                  "Your update is live now.",
+                )
               : tf(
                   "editGear.submitSuccessDescription",
                   "Thanks! We'll review it shortly.",
@@ -1057,12 +1080,15 @@ function EditGearForm({
           router.replace(`/edit-success?id=${createdId ?? ""}`);
         }
       } else {
-        toast.error(tf("editGear.submitFailedTitle", "Failed to submit suggestion"), {
-          description: tf(
-            "editGear.submitFailedDescription",
-            "Please try again in a moment.",
-          ),
-        });
+        toast.error(
+          tf("editGear.submitFailedTitle", "Failed to submit suggestion"),
+          {
+            description: tf(
+              "editGear.submitFailedDescription",
+              "Please try again in a moment.",
+            ),
+          },
+        );
         void track("gear_edit_submit_failure", {
           gearSlug,
           reason: "unknown",
@@ -1070,12 +1096,15 @@ function EditGearForm({
       }
     } catch (err) {
       console.error("[EditGearForm] submit error", err);
-      toast.error(tf("editGear.submitUnexpectedTitle", "Something went wrong"), {
-        description: tf(
-          "editGear.submitUnexpectedDescription",
-          "Could not submit your suggestion.",
-        ),
-      });
+      toast.error(
+        tf("editGear.submitUnexpectedTitle", "Something went wrong"),
+        {
+          description: tf(
+            "editGear.submitUnexpectedDescription",
+            "Could not submit your suggestion.",
+          ),
+        },
+      );
       void track("gear_edit_submit_failure", {
         gearSlug,
         reason: err instanceof Error ? err.message : "unknown",
@@ -1145,8 +1174,7 @@ function EditGearForm({
           releaseDate: initialCoreSpecs.releaseDate ?? null,
           releaseDatePrecision: initialCoreSpecs.releaseDatePrecision,
           discontinuedDate: initialCoreSpecs.discontinuedDate ?? null,
-          discontinuedDatePrecision:
-            initialCoreSpecs.discontinuedDatePrecision,
+          discontinuedDatePrecision: initialCoreSpecs.discontinuedDatePrecision,
           msrpNowUsdCents: initialCoreSpecs.msrpNowUsdCents ?? null,
           msrpAtLaunchUsdCents: initialCoreSpecs.msrpAtLaunchUsdCents ?? null,
           mpbMaxPriceUsdCents: initialCoreSpecs.mpbMaxPriceUsdCents ?? null,
@@ -1196,9 +1224,9 @@ function EditGearForm({
       {/* Integrated Lens section (separate card), only when mount is fixed-lens */}
       {(gearType === "CAMERA" || gearType === "ANALOG_CAMERA") &&
         (() => {
-          const mv = (
-            MOUNTS as Array<{ id: string; value: string }>
-          ).find((mount) => mount.id === primaryMountId)?.value;
+          const mv = (MOUNTS as Array<{ id: string; value: string }>).find(
+            (mount) => mount.id === primaryMountId,
+          )?.value;
           const isFixed = mv === "fixed-lens";
           if (!isFixed) return null;
           return (
@@ -1333,9 +1361,12 @@ function EditGearForm({
                               k === "discontinuedDate") &&
                             (typeof v === "string" || v instanceof Date)
                           )
-                            display = formatDate(v, {
+                            display = formatDateWithPrecision(v, {
                               locale,
-                              preset: "date-long",
+                              precision: getPairedDatePrecision(
+                                k,
+                                diffPreview.core,
+                              ),
                             });
                           if (k === "mountIds") {
                             const ids = Array.isArray(v) ? (v as string[]) : [];
@@ -1370,20 +1401,20 @@ function EditGearForm({
                       <ul className="list-disc pl-5">
                         {Object.entries(diffPreview.analogCamera).map(
                           ([k, v]) => {
-                          let display = safeString(v);
-                          const booleanDisplay = formatBooleanText(
-                            v,
-                            booleanLabels,
-                          );
-                          if (booleanDisplay) display = booleanDisplay;
-                          return (
-                          <li key={k}>
-                            <span className="text-muted-foreground">
-                              {getSectionDiffLabel("analogCamera", k)}:
-                            </span>{" "}
-                            <span className="font-medium">{display}</span>
-                          </li>
-                          );
+                            let display = safeString(v);
+                            const booleanDisplay = formatBooleanText(
+                              v,
+                              booleanLabels,
+                            );
+                            if (booleanDisplay) display = booleanDisplay;
+                            return (
+                              <li key={k}>
+                                <span className="text-muted-foreground">
+                                  {getSectionDiffLabel("analogCamera", k)}:
+                                </span>{" "}
+                                <span className="font-medium">{display}</span>
+                              </li>
+                            );
                           },
                         )}
                       </ul>
@@ -1454,12 +1485,12 @@ function EditGearForm({
                           );
                           if (booleanDisplay) display = booleanDisplay;
                           return (
-                          <li key={k}>
-                            <span className="text-muted-foreground">
-                              {getSectionDiffLabel("lens", k)}:
-                            </span>{" "}
-                            <span className="font-medium">{display}</span>
-                          </li>
+                            <li key={k}>
+                              <span className="text-muted-foreground">
+                                {getSectionDiffLabel("lens", k)}:
+                              </span>{" "}
+                              <span className="font-medium">{display}</span>
+                            </li>
                           );
                         })}
                       </ul>
@@ -1479,12 +1510,12 @@ function EditGearForm({
                           );
                           if (booleanDisplay) display = booleanDisplay;
                           return (
-                          <li key={k}>
-                            <span className="text-muted-foreground">
-                              {getSectionDiffLabel("fixedLens", k)}:
-                            </span>{" "}
-                            <span className="font-medium">{display}</span>
-                          </li>
+                            <li key={k}>
+                              <span className="text-muted-foreground">
+                                {getSectionDiffLabel("fixedLens", k)}:
+                              </span>{" "}
+                              <span className="font-medium">{display}</span>
+                            </li>
                           );
                         })}
                       </ul>
@@ -1497,25 +1528,24 @@ function EditGearForm({
                       </div>
                       <ul className="list-disc pl-5">
                         {diffPreview.cameraCardSlots.map((slot, i) => (
-                            <li key={i}>
-                              <span className="text-muted-foreground">
-                                {tf("editGear.slotLabel", "Slot {index}", {
-                                  index: slot.slotIndex,
-                                })}
-                                :
-                              </span>{" "}
-                              <span className="font-medium">
-                                {formatCardSlotDetails({
-                                  slotIndex: Number(slot.slotIndex) || null,
-                                  supportedFormFactors:
-                                    slot.supportedFormFactors,
-                                  supportedBuses: slot.supportedBuses,
-                                  supportedSpeedClasses:
-                                    slot.supportedSpeedClasses,
-                                })}
-                              </span>
-                            </li>
-                          ))}
+                          <li key={i}>
+                            <span className="text-muted-foreground">
+                              {tf("editGear.slotLabel", "Slot {index}", {
+                                index: slot.slotIndex,
+                              })}
+                              :
+                            </span>{" "}
+                            <span className="font-medium">
+                              {formatCardSlotDetails({
+                                slotIndex: Number(slot.slotIndex) || null,
+                                supportedFormFactors: slot.supportedFormFactors,
+                                supportedBuses: slot.supportedBuses,
+                                supportedSpeedClasses:
+                                  slot.supportedSpeedClasses,
+                              })}
+                            </span>
+                          </li>
+                        ))}
                       </ul>
                     </div>
                   )}
@@ -1632,15 +1662,15 @@ function EditGearForm({
                 <Checkbox
                   id="edit-gear-confirm-auto-submit"
                   checked={effectiveAutoSubmit}
-                onCheckedChange={(checked) =>
-                  handleAutoSubmitChange(checked === true)
-                }
-              />
-              <Label htmlFor="edit-gear-confirm-auto-submit">
-                {tf("editGear.autoSubmit", "Auto-Submit")}
-              </Label>
-            </div>
-          ) : null}
+                  onCheckedChange={(checked) =>
+                    handleAutoSubmitChange(checked === true)
+                  }
+                />
+                <Label htmlFor="edit-gear-confirm-auto-submit">
+                  {tf("editGear.autoSubmit", "Auto-Submit")}
+                </Label>
+              </div>
+            ) : null}
             <Button
               type="button"
               variant="outline"

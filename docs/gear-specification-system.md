@@ -21,7 +21,7 @@ The central table that stores common gear information:
 - **Brand & Mount**: References to brands and mounts
   - `mountId`: Single mount reference (kept for backward compatibility, stores "primary" mount)
   - Mount relationships managed via `gear_mounts` junction table for multi-mount support
-- **Metadata**: Release date, price, thumbnail URL, optional stored Open Graph URL, optional top-view URL, optional rear-view URL, and optional camera side-view URLs
+- **Metadata**: Announced, release, and discontinued dates with precision; price; thumbnail URL; optional stored Open Graph URL; optional top-view URL; optional rear-view URL; and optional camera side-view URLs
   - `thumbnailUrl` applies to all gear
   - `ogImageUrl` stores a precomputed padded social-preview image derived from the front thumbnail
   - `topViewUrl` applies to cameras and lenses; lens UI labels this as "Orthographic"

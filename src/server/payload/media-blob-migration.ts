@@ -81,6 +81,30 @@ export function findDuplicateFilenames(
   return [...duplicates].sort();
 }
 
+export async function findBlobByFilename(
+  filename: string,
+  listPage: (cursor?: string) => Promise<{
+    blobs: Array<{ pathname: string; size: number; url: string }>;
+    cursor?: string;
+    hasMore: boolean;
+  }>,
+): Promise<{ size: number; url: string } | null> {
+  let cursor: string | undefined;
+  let hasMore = true;
+
+  while (hasMore) {
+    const result = await listPage(cursor);
+    const exactMatch = result.blobs.find((blob) => blob.pathname === filename);
+    if (exactMatch) {
+      return { size: exactMatch.size, url: exactMatch.url };
+    }
+    cursor = result.cursor;
+    hasMore = result.hasMore;
+  }
+
+  return null;
+}
+
 export async function migratePreparedMedia(
   item: PreparedMediaMigration,
   dependencies: MigrationDependencies,

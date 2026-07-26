@@ -5,6 +5,7 @@ import { getPayload } from "payload";
 
 import config from "../src/payload.config";
 import {
+  findBlobByFilename,
   findDuplicateFilenames,
   migratePreparedMedia,
   prepareMediaMigration,
@@ -51,23 +52,14 @@ async function findExistingBlob(
   filename: string,
   token: string,
 ): Promise<{ size: number; url: string } | null> {
-  let cursor: string | undefined;
-
-  do {
-    const result = await list({
+  return findBlobByFilename(filename, (cursor) =>
+    list({
       prefix: filename,
       limit: 100,
       cursor,
       token,
-    });
-    const exactMatch = result.blobs.find((blob) => blob.pathname === filename);
-    if (exactMatch) {
-      return { size: exactMatch.size, url: exactMatch.url };
-    }
-    cursor = result.cursor;
-  } while (cursor);
-
-  return null;
+    }),
+  );
 }
 
 async function migrateOne(

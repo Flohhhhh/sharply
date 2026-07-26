@@ -1557,6 +1557,7 @@
     "showItemsWithoutImages": "画像のない項目のみ表示",
     "item": "項目",
     "images": "画像",
+    "imageCountLabel": "{capacity}枚中{count}枚の画像をアップロード済み",
     "missing": "不足",
     "progress": "進捗",
     "status": "状態",

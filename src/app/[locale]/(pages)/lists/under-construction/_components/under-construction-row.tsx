@@ -100,7 +100,12 @@ export function UnderConstructionRow({
           ) : (
             <ImageIcon className="size-4" aria-hidden="true" />
           )}
-          <span>
+          <span
+            aria-label={t("imageCountLabel", {
+              count: item.imageCount,
+              capacity: item.imageCapacity,
+            })}
+          >
             {item.imageCount}/{item.imageCapacity}
           </span>
         </div>

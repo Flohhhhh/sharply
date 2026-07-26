@@ -1,4 +1,4 @@
-import { describe,expect,it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { normalizeProposalPayloadForDb } from "~/server/db/normalizers";
 
@@ -41,8 +41,8 @@ describe("normalizeProposalPayloadForDb", () => {
     ).toEqual({
       camera: {
         hasIlluminatedButtons: null,
-        },
-      });
+      },
+    });
   });
 
   it.each([
@@ -168,6 +168,23 @@ describe("normalizeProposalPayloadForDb", () => {
       normalizeProposalPayloadForDb({
         core: {
           discontinuedDatePrecision: "WEEK",
+        },
+      }),
+    ).toEqual({});
+  });
+
+  it("drops overflowed discontinued calendar dates", () => {
+    expect(
+      normalizeProposalPayloadForDb({
+        core: {
+          discontinuedDate: "2024-02-31",
+        },
+      }),
+    ).toEqual({});
+    expect(
+      normalizeProposalPayloadForDb({
+        core: {
+          discontinuedDate: "2024-13-01",
         },
       }),
     ).toEqual({});

@@ -82,6 +82,7 @@ export function GearImageModal(props: GearImageModalProps) {
   const statusT = useTranslations("gearDetail.editGear.status");
   const profileT = useTranslations("profileSettings");
   const { data, isPending, error } = useSession();
+  const isTriggerless = props.trigger === null;
 
   const [internalOpen, setInternalOpen] = useState(false);
   const open = props.open ?? internalOpen;
@@ -207,13 +208,15 @@ export function GearImageModal(props: GearImageModalProps) {
   }, []);
 
   if (isPending) {
-    return <div>{statusT("loading")}</div>;
+    return isTriggerless ? null : <div>{statusT("loading")}</div>;
   }
   if (error) {
-    return <div>{statusT("error", { error: error.message })}</div>;
+    return isTriggerless ? null : (
+      <div>{statusT("error", { error: error.message })}</div>
+    );
   }
   if (!data) {
-    return <div>{statusT("unauthenticated")}</div>;
+    return isTriggerless ? null : <div>{statusT("unauthenticated")}</div>;
   }
   const session = data.session;
   const user = data.user;

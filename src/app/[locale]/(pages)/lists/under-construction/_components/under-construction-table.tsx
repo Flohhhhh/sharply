@@ -39,6 +39,7 @@ import {
   UnderConstructionRow,
   type UnderConstructionRowData,
 } from "./under-construction-row";
+import { buildGearEditDataUrl } from "./under-construction-row-actions";
 
 const GearImageModal = dynamic(
   () =>
@@ -69,6 +70,7 @@ export function UnderConstructionTable({
   const [open, setOpen] = useState(false);
   const [imageOpen, setImageOpen] = useState(false);
   const [imageRequested, setImageRequested] = useState(false);
+  const [imageRequestVersion, setImageRequestVersion] = useState(0);
   const [revealedRowId, setRevealedRowId] = useState<string | null>(null);
   const [selected, setSelected] = useState<{
     id: string;
@@ -84,7 +86,10 @@ export function UnderConstructionTable({
     });
   const selectedEditDataUrl =
     selected && (open || imageOpen || imageRequested)
-      ? `/api/gear/${selected.slug}/edit-data`
+      ? buildGearEditDataUrl(
+          selected.slug,
+          imageOpen || imageRequested ? imageRequestVersion : undefined,
+        )
       : null;
   const {
     data: gearData,
@@ -146,6 +151,7 @@ export function UnderConstructionTable({
     (id: string, slug: string, type: GearType) => {
       setSelected({ id, slug, type });
       setImageOpen(false);
+      setImageRequestVersion((version) => version + 1);
       setImageRequested(true);
     },
     [],

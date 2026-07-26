@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  findBlobByFilename,
   findDuplicateFilenames,
   hasMatchingSize,
   migratePreparedMedia,
@@ -59,6 +60,40 @@ describe("Payload media Blob migration", () => {
         { ...base, id: 3, filename: "same.jpg" },
       ]),
     ).toEqual(["same.jpg"]);
+  });
+
+  it("walks Blob pages while hasMore is true and finds an exact pathname", async () => {
+    const listPage = vi
+      .fn()
+      .mockResolvedValueOnce({
+        blobs: [{ pathname: "photo.jpg.webp", size: 10, url: "wrong" }],
+        cursor: "next",
+        hasMore: true,
+      })
+      .mockResolvedValueOnce({
+        blobs: [{ pathname: "photo.jpg", size: 42, url: "exact" }],
+        hasMore: false,
+      });
+
+    await expect(findBlobByFilename("photo.jpg", listPage)).resolves.toEqual({
+      size: 42,
+      url: "exact",
+    });
+    expect(listPage).toHaveBeenNthCalledWith(1, undefined);
+    expect(listPage).toHaveBeenNthCalledWith(2, "next");
+  });
+
+  it("stops when hasMore is false even if a cursor is present", async () => {
+    const listPage = vi.fn().mockResolvedValue({
+      blobs: [],
+      cursor: "stale-cursor",
+      hasMore: false,
+    });
+
+    await expect(
+      findBlobByFilename("missing.jpg", listPage),
+    ).resolves.toBeNull();
+    expect(listPage).toHaveBeenCalledTimes(1);
   });
 
   it("classifies a verified existing object without uploading", async () => {

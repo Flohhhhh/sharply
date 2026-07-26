@@ -1,27 +1,27 @@
 "use client";
 
-import { Check,X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { useLocale } from "next-intl";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { useEffect,useMemo,useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { VideoSpecsSummary } from "~/app/[locale]/(pages)/gear/_components/video/video-summary";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "~/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
-import { Card,CardContent } from "~/components/ui/card";
+import { Card, CardContent } from "~/components/ui/card";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "~/components/ui/collapsible";
 import { Label } from "~/components/ui/label";
-import { RadioGroup,RadioGroupItem } from "~/components/ui/radio-group";
-import { formatDate } from "~/lib/format/date";
+import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
+import {
+  formatDate,
+  formatDateWithPrecision,
+  getPairedDatePrecision,
+} from "~/lib/format/date";
 import {
   formatAutoApprovalDecisionForAdmin,
   getAutoApprovalDecisionFromMetadata,
@@ -34,7 +34,7 @@ import {
 } from "~/lib/mapping";
 import { formatMaxFpsPlain } from "~/lib/mapping/max-fps-map";
 import { getMountLongNameById } from "~/lib/mapping/mounts-map";
-import { sensorNameFromId,sensorNameFromSlug } from "~/lib/mapping/sensor-map";
+import { sensorNameFromId, sensorNameFromSlug } from "~/lib/mapping/sensor-map";
 import { humanizeKey } from "~/lib/utils";
 import {
   normalizedToCameraVideoModes,
@@ -202,7 +202,11 @@ export function GearProposalsList() {
     [proposals],
   );
 
-  const formatValueForKey = (k: string, v: any): string => {
+  const formatValueForKey = (
+    k: string,
+    v: any,
+    coreValues?: Record<string, unknown>,
+  ): string => {
     const isEmpty = v === null || v === undefined || v === "";
     if (isEmpty) return "Empty";
     const booleanDisplay = formatBooleanProposalValue(v, booleanLabels);
@@ -218,7 +222,10 @@ export function GearProposalsList() {
       k === "announcedDate" ||
       k === "discontinuedDate"
     )
-      return formatDisplayDate(v);
+      return formatDateWithPrecision(v, {
+        locale,
+        precision: getPairedDatePrecision(k, coreValues),
+      });
     if (k === "sensorFormatId") return sensorNameFromSlug(v as string);
     if (k === "mountId") return getMountLongNameById(v as string);
     if (k === "mountIds") {
@@ -233,7 +240,11 @@ export function GearProposalsList() {
     if (k === "maxFpsByShutter") return formatMaxFpsPlain(v);
     return String(v);
   };
-  const formatBeforeValueForKey = (k: string, v: any): string => {
+  const formatBeforeValueForKey = (
+    k: string,
+    v: any,
+    coreValues?: Record<string, unknown>,
+  ): string => {
     const booleanDisplay = formatBooleanProposalValue(v, booleanLabels);
     if (booleanDisplay) return booleanDisplay;
     if (
@@ -247,7 +258,10 @@ export function GearProposalsList() {
       k === "announcedDate" ||
       k === "discontinuedDate"
     )
-      return formatDisplayDate(v);
+      return formatDateWithPrecision(v, {
+        locale,
+        precision: getPairedDatePrecision(k, coreValues),
+      });
     if (k === "sensorFormatId") return sensorNameFromId(v as string);
     if (k === "mountId") return getMountLongNameById(v as string);
     if (k === "mountIds") {
@@ -407,7 +421,9 @@ export function GearProposalsList() {
           ) : null}
         </div>
         {proposal.note?.trim() ? (
-          <p className="text-muted-foreground text-sm">{proposal.note.trim()}</p>
+          <p className="text-muted-foreground text-sm">
+            {proposal.note.trim()}
+          </p>
         ) : null}
       </CardContent>
     </Card>
@@ -422,44 +438,46 @@ export function GearProposalsList() {
     const hasUnresolved = conflicts.some((c) => selections[c.fieldKey] == null);
     const groupAction = loadingByGearId[group.gearId] ?? null;
     const contributors = Array.from(
-      pendingProposals.reduce(
-        (map, proposal) => {
-          const existing = map.get(proposal.createdById);
-          if (existing) {
-            existing.count += 1;
-            if (
-              new Date(proposal.createdAt as any).getTime() >
-              new Date(existing.latestCreatedAt as any).getTime()
-            ) {
-              existing.latestCreatedAt = proposal.createdAt;
+      pendingProposals
+        .reduce(
+          (map, proposal) => {
+            const existing = map.get(proposal.createdById);
+            if (existing) {
+              existing.count += 1;
+              if (
+                new Date(proposal.createdAt as any).getTime() >
+                new Date(existing.latestCreatedAt as any).getTime()
+              ) {
+                existing.latestCreatedAt = proposal.createdAt;
+              }
+              if (proposal.note?.trim()) {
+                existing.notes.push(proposal.note.trim());
+              }
+            } else {
+              map.set(proposal.createdById, {
+                id: proposal.createdById,
+                name: proposal.createdByName,
+                image: proposal.createdByImage,
+                count: 1,
+                latestCreatedAt: proposal.createdAt,
+                notes: proposal.note?.trim() ? [proposal.note.trim()] : [],
+              });
             }
-            if (proposal.note?.trim()) {
-              existing.notes.push(proposal.note.trim());
+            return map;
+          },
+          new Map<
+            string,
+            {
+              id: string;
+              name: string | null;
+              image: string | null;
+              count: number;
+              latestCreatedAt: string | Date;
+              notes: string[];
             }
-          } else {
-            map.set(proposal.createdById, {
-              id: proposal.createdById,
-              name: proposal.createdByName,
-              image: proposal.createdByImage,
-              count: 1,
-              latestCreatedAt: proposal.createdAt,
-              notes: proposal.note?.trim() ? [proposal.note.trim()] : [],
-            });
-          }
-          return map;
-        },
-        new Map<
-          string,
-          {
-            id: string;
-            name: string | null;
-            image: string | null;
-            count: number;
-            latestCreatedAt: string | Date;
-            notes: string[];
-          }
-        >(),
-      ).values(),
+          >(),
+        )
+        .values(),
     ).sort(
       (a, b) =>
         new Date(b.latestCreatedAt as any).getTime() -
@@ -517,7 +535,7 @@ export function GearProposalsList() {
                       </AvatarFallback>
                     </Avatar>
                     <div className="min-w-0 space-y-1">
-                      <div className="truncate text-sm font-semibold leading-none">
+                      <div className="truncate text-sm leading-none font-semibold">
                         {formatContributorName(contributor.name)}
                       </div>
                       <div className="text-muted-foreground text-xs leading-tight">
@@ -581,32 +599,41 @@ export function GearProposalsList() {
                         }))
                       }
                     >
-                      {c.options.map((opt) => (
-                        <Label
-                          key={opt.proposalId}
-                          className="items-start gap-3"
-                        >
-                          <RadioGroupItem value={opt.proposalId} />
-                          <div className="grid w-full grid-cols-1 gap-1 sm:grid-cols-2">
-                            <span className="text-muted-foreground text-xs">
-                              By {opt.createdByName ?? "Unknown"} on{" "}
-                              {formatDisplayDate(opt.createdAt as any)}
-                            </span>
-                            <span className="text-sm">
-                              {c.fieldKey === "cameraCardSlots"
-                                ? Array.isArray(opt.value)
-                                  ? opt.value
-                                      .map(
-                                        (s: any, idx: number) =>
-                                          `S${s?.slotIndex ?? idx + 1}: ${formatCardSlotDetails(s)}`,
-                                      )
-                                      .join("; ")
-                                  : String(opt.value)
-                                : formatValueForKey(c.key || "", opt.value)}
-                            </span>
-                          </div>
-                        </Label>
-                      ))}
+                      {c.options.map((opt) => {
+                        const proposal = group.proposals.find(
+                          (item) => item.id === opt.proposalId,
+                        );
+                        return (
+                          <Label
+                            key={opt.proposalId}
+                            className="items-start gap-3"
+                          >
+                            <RadioGroupItem value={opt.proposalId} />
+                            <div className="grid w-full grid-cols-1 gap-1 sm:grid-cols-2">
+                              <span className="text-muted-foreground text-xs">
+                                By {opt.createdByName ?? "Unknown"} on{" "}
+                                {formatDisplayDate(opt.createdAt as any)}
+                              </span>
+                              <span className="text-sm">
+                                {c.fieldKey === "cameraCardSlots"
+                                  ? Array.isArray(opt.value)
+                                    ? opt.value
+                                        .map(
+                                          (s: any, idx: number) =>
+                                            `S${s?.slotIndex ?? idx + 1}: ${formatCardSlotDetails(s)}`,
+                                        )
+                                        .join("; ")
+                                    : String(opt.value)
+                                  : formatValueForKey(
+                                      c.key || "",
+                                      opt.value,
+                                      proposal?.payload.core,
+                                    )}
+                              </span>
+                            </div>
+                          </Label>
+                        );
+                      })}
                       <Label className="items-start gap-3">
                         <RadioGroupItem value="__SKIP__" />
                         <div className="text-xs">
@@ -753,8 +780,16 @@ export function GearProposalsList() {
                     beforeVal === "";
                   const beforeDisplay = beforeIsEmpty
                     ? "Empty"
-                    : formatBeforeValueForKey(key!, beforeVal);
-                  const afterDisplay = formatValueForKey(key!, n.value);
+                    : formatBeforeValueForKey(
+                        key!,
+                        beforeVal,
+                        provider?.beforeCore,
+                      );
+                  const afterDisplay = formatValueForKey(
+                    key!,
+                    n.value,
+                    provider?.payload.core,
+                  );
                   return (
                     <div
                       key={n.fieldKey}
@@ -764,8 +799,8 @@ export function GearProposalsList() {
                         {humanizeKey(key!)}
                       </div>
                       <div className="text-muted-foreground mb-2 text-xs">
-                        From {formatContributorName(n.provider.createdByName)} on{" "}
-                        {formatDisplayDate(n.provider.createdAt as any)}
+                        From {formatContributorName(n.provider.createdByName)}{" "}
+                        on {formatDisplayDate(n.provider.createdAt as any)}
                       </div>
                       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                         <span
@@ -823,9 +858,7 @@ export function GearProposalsList() {
                 size="sm"
                 onClick={() => handleApproveGroup(group)}
                 loading={groupAction === "approve"}
-                disabled={
-                  groupAction !== null || hasUnresolved
-                }
+                disabled={groupAction !== null || hasUnresolved}
               >
                 <Check className="mr-2 h-4 w-4" /> Approve Selected
               </Button>

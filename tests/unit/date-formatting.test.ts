@@ -1,12 +1,36 @@
-import { describe,expect,it } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   formatDate,
   formatDateInputValue,
   formatDateWithPrecision,
   formatRelativeDate,
+  getPairedDatePrecision,
   parseDateLike,
 } from "~/lib/format/date";
 import { resolveRuntimeLocale } from "~/i18n/runtime-locale";
+
+describe("getPairedDatePrecision", () => {
+  it("matches each core date to its precision field", () => {
+    const core = {
+      announceDatePrecision: "YEAR",
+      releaseDatePrecision: "MONTH",
+      discontinuedDatePrecision: "DAY",
+    };
+
+    expect(getPairedDatePrecision("announcedDate", core)).toBe("YEAR");
+    expect(getPairedDatePrecision("releaseDate", core)).toBe("MONTH");
+    expect(getPairedDatePrecision("discontinuedDate", core)).toBe("DAY");
+  });
+
+  it("ignores unrelated fields and invalid precision values", () => {
+    expect(getPairedDatePrecision("createdAt", {})).toBeUndefined();
+    expect(
+      getPairedDatePrecision("releaseDate", {
+        releaseDatePrecision: "WEEK",
+      }),
+    ).toBeUndefined();
+  });
+});
 
 describe("parseDateLike", () => {
   it("accepts Date, epoch numbers, and ISO strings", () => {
@@ -51,7 +75,9 @@ describe("formatDate", () => {
   const value = "2026-04-21T15:30:45.000Z";
 
   it("formats each supported preset", () => {
-    expect(formatDate(value, { locale, preset: "date-short" })).toBe("4/21/2026");
+    expect(formatDate(value, { locale, preset: "date-short" })).toBe(
+      "4/21/2026",
+    );
     expect(formatDate(value, { locale, preset: "date-medium" })).toBe(
       "Apr 21, 2026",
     );
@@ -153,24 +179,24 @@ describe("formatRelativeDate", () => {
         justNowLabel: "just now",
       }),
     ).toBe("just now");
-    expect(formatRelativeDate("2026-04-21T11:15:00.000Z", { locale, now })).toBe(
-      "today",
-    );
-    expect(formatRelativeDate("2026-04-21T08:00:00.000Z", { locale, now })).toBe(
-      "today",
-    );
-    expect(formatRelativeDate("2026-04-20T12:00:00.000Z", { locale, now })).toBe(
-      "yesterday",
-    );
-    expect(formatRelativeDate("2026-04-18T12:00:00.000Z", { locale, now })).toBe(
-      "3 days ago",
-    );
-    expect(formatRelativeDate("2026-04-13T12:00:00.000Z", { locale, now })).toBe(
-      "last week",
-    );
-    expect(formatRelativeDate("2026-03-10T12:00:00.000Z", { locale, now })).toBe(
-      "last month",
-    );
+    expect(
+      formatRelativeDate("2026-04-21T11:15:00.000Z", { locale, now }),
+    ).toBe("today");
+    expect(
+      formatRelativeDate("2026-04-21T08:00:00.000Z", { locale, now }),
+    ).toBe("today");
+    expect(
+      formatRelativeDate("2026-04-20T12:00:00.000Z", { locale, now }),
+    ).toBe("yesterday");
+    expect(
+      formatRelativeDate("2026-04-18T12:00:00.000Z", { locale, now }),
+    ).toBe("3 days ago");
+    expect(
+      formatRelativeDate("2026-04-13T12:00:00.000Z", { locale, now }),
+    ).toBe("last week");
+    expect(
+      formatRelativeDate("2026-03-10T12:00:00.000Z", { locale, now }),
+    ).toBe("last month");
   });
 
   it("keeps threshold-based relative units when numeric is forced", () => {
@@ -209,9 +235,9 @@ describe("formatRelativeDate", () => {
         numeric: "always",
       }),
     ).toBe("2 months ago");
-    expect(formatRelativeDate("2024-04-21T12:00:00.000Z", { locale, now })).toBe(
-      "2 years ago",
-    );
+    expect(
+      formatRelativeDate("2024-04-21T12:00:00.000Z", { locale, now }),
+    ).toBe("2 years ago");
   });
 
   it("supports short style output", () => {
@@ -253,14 +279,18 @@ describe("formatRelativeDate", () => {
 describe("runtime locale normalization", () => {
   it("maps the app zh locale to zh-CN for Intl formatting", () => {
     expect(resolveRuntimeLocale("zh")).toBe("zh-CN");
-    expect(formatDate("2026-04-21T15:30:45.000Z", {
-      locale: "zh",
-      preset: "date-long",
-    })).toBe("2026年4月21日");
-    expect(formatRelativeDate("2026-04-21T11:15:00.000Z", {
-      locale: "zh",
-      now: "2026-04-21T12:00:00.000Z",
-    })).toBe("今天");
+    expect(
+      formatDate("2026-04-21T15:30:45.000Z", {
+        locale: "zh",
+        preset: "date-long",
+      }),
+    ).toBe("2026年4月21日");
+    expect(
+      formatRelativeDate("2026-04-21T11:15:00.000Z", {
+        locale: "zh",
+        now: "2026-04-21T12:00:00.000Z",
+      }),
+    ).toBe("今天");
   });
 });
 
@@ -269,9 +299,7 @@ describe("formatDateInputValue", () => {
     expect(formatDateInputValue("2026")).toBe("2026-01-01");
     expect(formatDateInputValue("2026-04")).toBe("2026-04-01");
     expect(formatDateInputValue("2026-04-21")).toBe("2026-04-21");
-    expect(formatDateInputValue("2026-04-21T15:30:45.000Z")).toBe(
-      "2026-04-21",
-    );
+    expect(formatDateInputValue("2026-04-21T15:30:45.000Z")).toBe("2026-04-21");
   });
 
   it("returns the fallback for invalid inputs", () => {

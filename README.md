@@ -77,9 +77,9 @@ It's highly advised you set up at least one of these, otherwise you can't test o
 - `UPLOADTHING_TOKEN` – used by profile-picture and raw-sample uploads, plus the raw-sample cleanup job; keep it configured after Payload media moves to Blob
 
 Payload’s Blob variables are intentionally optional in global environment
-validation. The main application can start without them; Payload falls back to
-its non-adapter configuration until `BLOB_READ_WRITE_TOKEN` is available, but
-CMS media upload and delivery should be considered unavailable. See
+validation. The main application can start without them; Payload uses local
+media storage until `BLOB_READ_WRITE_TOKEN` is available. Production deployments
+should configure the token so CMS media remains durable. See
 [`docs/payload-media-storage.md`](docs/payload-media-storage.md) for the media
 migration and rollback procedure.
 

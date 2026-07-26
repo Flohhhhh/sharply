@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ENUMS,SENSOR_FORMATS } from "~/lib/constants";
+import { ENUMS, SENSOR_FORMATS } from "~/lib/constants";
 import { normalizeMpbLinkForStorage } from "~/lib/links/mpb";
 import { normalizeBhProductLink } from "~/lib/validation/bhphoto";
 import {
@@ -38,7 +38,15 @@ function parseDateUTC(value: string): Date | null {
     const month = Number(m[2]);
     const day = Number(m[3]);
     const d = new Date(Date.UTC(year, month - 1, day));
-    return isNaN(d.getTime()) ? null : d;
+    if (
+      isNaN(d.getTime()) ||
+      d.getUTCFullYear() !== year ||
+      d.getUTCMonth() !== month - 1 ||
+      d.getUTCDate() !== day
+    ) {
+      return null;
+    }
+    return d;
   }
   const d = new Date(value);
   return isNaN(d.getTime()) ? null : d;

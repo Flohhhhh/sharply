@@ -10,7 +10,7 @@ import type sharp from "sharp";
 import { fileURLToPath } from "url";
 
 import { LearnPages } from "./collections/LearnPages";
-import { Media } from "./collections/Media";
+import { canManageMedia, Media } from "./collections/Media";
 import { News } from "./collections/News";
 import { Review } from "./collections/Review";
 import { Users } from "./collections/Users";
@@ -68,6 +68,7 @@ export default buildConfig({
     payloadCloudPlugin(),
     // storage-adapter-placeholder
     vercelBlobStorage({
+      enabled: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
       collections: {
         media: {
           disableLocalStorage: true,
@@ -76,12 +77,9 @@ export default buildConfig({
       },
       token: process.env.BLOB_READ_WRITE_TOKEN,
       clientUploads: {
-        access: ({ req: { user } }) =>
-          user?.role === "editor" ||
-          user?.role === "admin" ||
-          user?.role === "superadmin",
+        access: canManageMedia,
       },
-      addRandomSuffix: false,
+      addRandomSuffix: true,
     }),
   ],
   email:

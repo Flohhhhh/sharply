@@ -1557,6 +1557,7 @@
     "showItemsWithoutImages": "仅显示没有图像的项目",
     "item": "物品",
     "images": "图像",
+    "imageCountLabel": "已上传 {count}/{capacity} 张图像",
     "missing": "缺失",
     "progress": "进度",
     "status": "状态",

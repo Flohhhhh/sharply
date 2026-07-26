@@ -1557,6 +1557,7 @@
     "showItemsWithoutImages": "Only show items without images",
     "item": "Item",
     "images": "Images",
+    "imageCountLabel": "{count} of {capacity} images uploaded",
     "missing": "Missing",
     "progress": "Progress",
     "status": "Status",

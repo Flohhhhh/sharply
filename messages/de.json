@@ -1557,6 +1557,7 @@
     "showItemsWithoutImages": "Nur Einträge ohne Bilder anzeigen",
     "item": "Eintrag",
     "images": "Bilder",
+    "imageCountLabel": "{count} von {capacity} Bildern hochgeladen",
     "missing": "Fehlt",
     "progress": "Fortschritt",
     "status": "Status",

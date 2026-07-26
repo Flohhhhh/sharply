@@ -16,12 +16,15 @@ the deployment:
   read by the Payload storage adapter.
 
 All three values are optional in application-wide environment validation. When
-the read/write token is absent, Payload disables the Blob adapter. The main
-Sharply application can still start, but CMS media upload and delivery should
-not be considered available.
+the read/write token is absent, Sharply explicitly disables the Blob adapter and
+Payload uses local media storage instead. The main application can therefore
+start without Blob credentials, while production deployments should configure
+the token so CMS media remains durable across deployments.
 
 Payload uses direct client uploads to avoid Vercel's server upload-size limit.
-Blob paths are the exact Payload filenames and do not receive random suffixes.
+New uploads receive random Blob pathname suffixes to prevent collisions. The
+legacy migration intentionally preserves exact Payload filenames so existing
+records continue to resolve without a database rewrite.
 
 ## Migrating legacy Payload images
 

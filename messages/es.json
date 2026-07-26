@@ -1557,6 +1557,7 @@
     "showItemsWithoutImages": "Mostrar solo elementos sin imágenes",
     "item": "Elemento",
     "images": "Imágenes",
+    "imageCountLabel": "{count} de {capacity} imágenes cargadas",
     "missing": "Faltan",
     "progress": "Progreso",
     "status": "Estado",
