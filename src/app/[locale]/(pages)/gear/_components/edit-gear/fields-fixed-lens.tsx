@@ -1,11 +1,11 @@
 "use client";
 
 import { useTranslations, type TranslationValues } from "next-intl";
-import { memo,useCallback,useMemo } from "react";
-import { BooleanInput,NumberInput } from "~/components/custom-inputs";
+import { memo, useCallback, useMemo } from "react";
+import { BooleanInput, NumberInput } from "~/components/custom-inputs";
 import FocalLengthInput from "~/components/custom-inputs/focal-length-input";
 import LensApertureInput from "~/components/custom-inputs/lens-aperture-input";
-import { Card,CardContent,CardHeader,CardTitle } from "~/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
 import {
   Select,
@@ -19,8 +19,10 @@ import {
   getSpecFieldLabel,
   translateGearDetailWithFallback,
 } from "~/lib/i18n/gear-detail";
+import { hasFixedLensFocalLength } from "~/lib/gear/completed-spec-edit-policy";
 import { sortSensorFormats } from "~/lib/sensor-formats";
 import type { fixedLensSpecs } from "~/server/db/schema";
+import type { GearItem } from "~/types/gear";
 import { CompletedSpecLock } from "./completed-spec-lock";
 
 type SensorFormatOption = {
@@ -75,8 +77,7 @@ function FixedLensFieldsComponent({
   );
   const focalLocked =
     disableCompletedSpecs &&
-    (initialSpecs?.focalLengthMinMm != null ||
-      initialSpecs?.focalLengthMaxMm != null);
+    hasFixedLensFocalLength({ fixedLensSpecs: initialSpecs } as GearItem);
 
   const numOrNull = (v: unknown): number | null => {
     if (typeof v === "number" && Number.isFinite(v)) return v;
@@ -106,10 +107,12 @@ function FixedLensFieldsComponent({
   const CLEAR_SENSOR_FORMAT_VALUE = "none";
   const sensorFormatOptions = useMemo(
     () =>
-      sortSensorFormats(SENSOR_FORMATS as SensorFormatOption[]).map((format) => ({
-        id: format.id,
-        name: format.name,
-      })),
+      sortSensorFormats(SENSOR_FORMATS as SensorFormatOption[]).map(
+        (format) => ({
+          id: format.id,
+          name: format.name,
+        }),
+      ),
     [],
   );
   const specLabel = useCallback(
@@ -145,7 +148,9 @@ function FixedLensFieldsComponent({
               maxValue={currentSpecs?.focalLengthMaxMm ?? null}
               disabled={focalLocked}
               labelAdornment={
-                focalLocked ? <CompletedSpecLock message={completedSpecMessage} /> : undefined
+                focalLocked ? (
+                  <CompletedSpecLock message={completedSpecMessage} />
+                ) : undefined
               }
               onChange={({ focalLengthMinMm, focalLengthMaxMm, isPrime }) => {
                 handleFieldChange("focalLengthMinMm", focalLengthMinMm);
@@ -199,10 +204,7 @@ function FixedLensFieldsComponent({
                   )
                 }
               >
-                <SelectTrigger
-                  id="fixed-image-circle-size"
-                  className="w-full"
-                >
+                <SelectTrigger id="fixed-image-circle-size" className="w-full">
                   <SelectValue
                     placeholder={tf(
                       "editGear.fields.sensorFormatCoveragePlaceholder",
@@ -251,7 +253,10 @@ function FixedLensFieldsComponent({
           {showWhenMissing(initialSpecs?.frontFilterThreadSizeMm) && (
             <NumberInput
               id="fixed-front-filter-thread-size-mm"
-              label={specLabel("frontFilterThreadSizeMm", "Front Filter Thread Size")}
+              label={specLabel(
+                "frontFilterThreadSizeMm",
+                "Front Filter Thread Size",
+              )}
               suffix="mm"
               value={numOrNull(currentSpecs?.frontFilterThreadSizeMm)}
               onChange={(value) =>
@@ -263,7 +268,10 @@ function FixedLensFieldsComponent({
           {showWhenMissing(initialSpecs?.minimumFocusDistanceMm) && (
             <NumberInput
               id="fixed-minimum-focus-distance"
-              label={specLabel("minimumFocusDistanceMm", "Minimum Focus Distance")}
+              label={specLabel(
+                "minimumFocusDistanceMm",
+                "Minimum Focus Distance",
+              )}
               suffix="cm"
               step={0.1}
               min={0}

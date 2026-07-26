@@ -251,7 +251,11 @@ export function GearCreateCard({
     for (const link of [linkManufacturer, linkAmazon]) {
       if (!link.trim()) continue;
       try {
-        new URL(link);
+        const parsed = new URL(link);
+        if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+          setSubmitError(t("urlError"));
+          return;
+        }
       } catch {
         setSubmitError(t("urlError"));
         return;

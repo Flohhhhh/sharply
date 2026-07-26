@@ -1,11 +1,11 @@
 "use client";
 
 import { useTranslations, type TranslationValues } from "next-intl";
-import { memo,useCallback,useMemo } from "react";
-import { BooleanInput,NumberInput } from "~/components/custom-inputs";
+import { memo, useCallback, useMemo } from "react";
+import { BooleanInput, NumberInput } from "~/components/custom-inputs";
 import FocalLengthInput from "~/components/custom-inputs/focal-length-input";
 import LensApertureInput from "~/components/custom-inputs/lens-aperture-input";
-import { Card,CardContent,CardHeader,CardTitle } from "~/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { MultiSelect } from "~/components/ui/multi-select";
@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { ENUMS,SENSOR_FORMATS } from "~/lib/constants";
+import { ENUMS, SENSOR_FORMATS } from "~/lib/constants";
 import {
   getSpecFieldLabel,
   translateGearDetailWithFallback,
@@ -140,10 +140,12 @@ function LensFieldsComponent({
   const CLEAR_SENSOR_FORMAT_VALUE = "none";
   const sensorFormatOptions = useMemo(
     () =>
-      sortSensorFormats(SENSOR_FORMATS as SensorFormatOption[]).map((format) => ({
-        id: format.id,
-        name: format.name,
-      })),
+      sortSensorFormats(SENSOR_FORMATS as SensorFormatOption[]).map(
+        (format) => ({
+          id: format.id,
+          name: format.name,
+        }),
+      ),
     [],
   );
   const specLabel = useCallback(
@@ -154,10 +156,7 @@ function LensFieldsComponent({
     },
     [t],
   );
-  const completedSpecMessage = tf(
-    "editGear.completedSpecEditorOnly",
-    "This completed specification can only be changed by an editor.",
-  );
+  const completedSpecMessage = t("editGear.completedSpecEditorOnly");
   const focalLocked =
     disableCompletedSpecs &&
     initialSpecs?.focalLengthMinMm != null &&
@@ -175,10 +174,7 @@ function LensFieldsComponent({
     >
       <CardHeader className="px-0">
         <CardTitle className="text-2xl">
-          {tf(
-            "editGear.sections.lensSpecifications",
-            "Lens Specifications",
-          )}
+          {tf("editGear.sections.lensSpecifications", "Lens Specifications")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 px-0">
@@ -194,7 +190,9 @@ function LensFieldsComponent({
               maxValue={currentSpecs?.focalLengthMaxMm ?? null}
               disabled={focalLocked}
               labelAdornment={
-                focalLocked ? <CompletedSpecLock message={completedSpecMessage} /> : undefined
+                focalLocked ? (
+                  <CompletedSpecLock message={completedSpecMessage} />
+                ) : undefined
               }
               onChange={({ focalLengthMinMm, focalLengthMaxMm, isPrime }) => {
                 handleFieldChange("focalLengthMinMm", focalLengthMinMm);
@@ -214,7 +212,9 @@ function LensFieldsComponent({
                 <Label htmlFor="imageCircleSize">
                   {specLabel("imageCircleSize", "Image Circle Size")}
                 </Label>
-                {imageCircleLocked ? <CompletedSpecLock message={completedSpecMessage} /> : null}
+                {imageCircleLocked ? (
+                  <CompletedSpecLock message={completedSpecMessage} />
+                ) : null}
               </div>
               <Select
                 value={
@@ -267,7 +267,9 @@ function LensFieldsComponent({
               minApertureTele={numOrNull(currentSpecs?.minApertureTele)}
               disabled={apertureLocked}
               labelAdornment={
-                apertureLocked ? <CompletedSpecLock message={completedSpecMessage} /> : undefined
+                apertureLocked ? (
+                  <CompletedSpecLock message={completedSpecMessage} />
+                ) : undefined
               }
               onChange={({
                 maxApertureWide,
@@ -306,7 +308,10 @@ function LensFieldsComponent({
           {showWhenMissing(initialSpecs?.hasStabilizationSwitch) && (
             <BooleanInput
               id="hasStabilizationSwitch"
-              label={specLabel("hasStabilizationSwitch", "Has Stabilization Switch")}
+              label={specLabel(
+                "hasStabilizationSwitch",
+                "Has Stabilization Switch",
+              )}
               checked={
                 hasStabilization
                   ? (currentSpecs?.hasStabilizationSwitch ?? null)
@@ -372,9 +377,7 @@ function LensFieldsComponent({
               <Input
                 id="focusMotorType"
                 disabled={!hasAutofocus}
-                value={
-                  hasAutofocus ? (currentSpecs?.focusMotorType ?? "") : ""
-                }
+                value={hasAutofocus ? (currentSpecs?.focusMotorType ?? "") : ""}
                 onChange={(e) =>
                   handleFieldChange(
                     "focusMotorType",
@@ -419,7 +422,10 @@ function LensFieldsComponent({
           {showWhenMissing(initialSpecs?.hasFocusRecallButton) && (
             <BooleanInput
               id="hasFocusRecallButton"
-              label={specLabel("hasFocusRecallButton", "Has Focus Recall Button")}
+              label={specLabel(
+                "hasFocusRecallButton",
+                "Has Focus Recall Button",
+              )}
               checked={
                 hasAutofocus
                   ? (currentSpecs?.hasFocusRecallButton ?? null)
@@ -450,7 +456,10 @@ function LensFieldsComponent({
             <div className="space-y-1">
               <NumberInput
                 id="minimumFocusDistanceMm"
-                label={specLabel("minimumFocusDistanceMm", "Minimum Focus Distance")}
+                label={specLabel(
+                  "minimumFocusDistanceMm",
+                  "Minimum Focus Distance",
+                )}
                 // tooltip="Enter in cm. Stored as mm. Examples: 25 cm = 250 mm; 1 m = 100 cm = 1000 mm."
                 suffix="cm"
                 step={0.1}
@@ -495,7 +504,10 @@ function LensFieldsComponent({
           {showWhenMissing(initialSpecs?.numberElementGroups) && (
             <NumberInput
               id="numberElementGroups"
-              label={specLabel("numberElementGroups", "Number of Element Groups")}
+              label={specLabel(
+                "numberElementGroups",
+                "Number of Element Groups",
+              )}
               value={numOrNull(currentSpecs?.numberElementGroups)}
               onChange={(value) =>
                 handleFieldChange("numberElementGroups", value)
@@ -507,7 +519,10 @@ function LensFieldsComponent({
           {showWhenMissing(initialSpecs?.hasDiffractiveOptics) && (
             <BooleanInput
               id="hasDiffractiveOptics"
-              label={specLabel("hasDiffractiveOptics", "Has Diffractive Optics")}
+              label={specLabel(
+                "hasDiffractiveOptics",
+                "Has Diffractive Optics",
+              )}
               checked={currentSpecs?.hasDiffractiveOptics ?? null}
               allowNull
               showStateText
@@ -667,7 +682,10 @@ function LensFieldsComponent({
           {showWhenMissing(initialSpecs?.numberFunctionButtons) && (
             <NumberInput
               id="numberFunctionButtons"
-              label={specLabel("numberFunctionButtons", "Number of Function Buttons")}
+              label={specLabel(
+                "numberFunctionButtons",
+                "Number of Function Buttons",
+              )}
               value={numOrNull(currentSpecs?.numberFunctionButtons)}
               onChange={(value) =>
                 handleFieldChange("numberFunctionButtons", value)
@@ -707,7 +725,10 @@ function LensFieldsComponent({
           {showWhenMissing(initialSpecs?.frontFilterThreadSizeMm) && (
             <NumberInput
               id="frontFilterThreadSizeMm"
-              label={specLabel("frontFilterThreadSizeMm", "Front Filter Thread Size")}
+              label={specLabel(
+                "frontFilterThreadSizeMm",
+                "Front Filter Thread Size",
+              )}
               suffix="mm"
               disabled={
                 !currentSpecs?.acceptsFilterTypes?.includes("front-screw-on")
@@ -723,7 +744,10 @@ function LensFieldsComponent({
           {showWhenMissing(initialSpecs?.rearFilterThreadSizeMm) && (
             <NumberInput
               id="rearFilterThreadSizeMm"
-              label={specLabel("rearFilterThreadSizeMm", "Rear Filter Thread Size")}
+              label={specLabel(
+                "rearFilterThreadSizeMm",
+                "Rear Filter Thread Size",
+              )}
               suffix="mm"
               disabled={
                 !currentSpecs?.acceptsFilterTypes?.includes("rear-screw-on")

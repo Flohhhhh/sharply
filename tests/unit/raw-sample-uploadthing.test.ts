@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { describe,expect,it } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   extractUploadThingFileKey,
   isUploadThingFileUrl,
@@ -31,7 +31,9 @@ describe("extractUploadThingFileKey", () => {
 
   it("returns null for invalid or unsupported URLs", () => {
     expect(extractUploadThingFileKey("not-a-url")).toBeNull();
-    expect(extractUploadThingFileKey("https://example.com/files/photo.jpg")).toBeNull();
+    expect(
+      extractUploadThingFileKey("https://example.com/files/photo.jpg"),
+    ).toBeNull();
     expect(extractUploadThingFileKey("https://utfs.io/f")).toBeNull();
   });
 });
@@ -39,9 +41,14 @@ describe("extractUploadThingFileKey", () => {
 describe("isUploadThingFileUrl", () => {
   it("accepts supported UploadThing delivery hosts only", () => {
     expect(isUploadThingFileUrl("https://utfs.io/f/photo.jpg")).toBe(true);
-    expect(isUploadThingFileUrl("https://ufs.sh/a/app_123/photo.jpg")).toBe(true);
+    expect(isUploadThingFileUrl("https://ufs.sh/a/app_123/photo.jpg")).toBe(
+      true,
+    );
+    expect(isUploadThingFileUrl("http://utfs.io/f/photo.jpg")).toBe(false);
     expect(isUploadThingFileUrl("https://example.com/f/photo.jpg")).toBe(false);
-    expect(isUploadThingFileUrl("http://169.254.169.254/f/photo.jpg")).toBe(false);
+    expect(isUploadThingFileUrl("http://169.254.169.254/f/photo.jpg")).toBe(
+      false,
+    );
   });
 });
 
@@ -49,7 +56,7 @@ describe("raw sample upload configuration", () => {
   it("allows raw sample uploads up to 256MB", () => {
     const source = read("src/app/api/uploadthing/core.ts");
 
-    expect(source).toContain('rawSampleUploader: f({');
+    expect(source).toContain("rawSampleUploader: f({");
     expect(source).toContain('maxFileSize: "256MB"');
   });
 });

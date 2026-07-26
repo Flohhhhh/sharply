@@ -238,6 +238,9 @@ describe("thumbnail gear admin service", () => {
   });
 
   it("updates stored OG assets directly for admin backfill runs", async () => {
+    authMocks.getSessionOrThrow.mockResolvedValue({
+      user: { id: "admin-1", role: "ADMIN" },
+    });
     adminGearDataMocks.updateGearOgImageData.mockResolvedValue({
       id: "gear-1",
       slug: "nikon-z6iii",

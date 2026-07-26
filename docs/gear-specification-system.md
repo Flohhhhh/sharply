@@ -139,6 +139,11 @@ Stores detailed lens-specific specifications:
 - **Focal Length**: Minimum and maximum focal length in mm (decimal, 0.1mm precision)
 - **Image Circle**: `imageCircleSizeId` references `sensor_formats.id` to capture coverage (e.g., full frame, APS-C)
 - **Aperture**: Maximum aperture value
+
+Creation flows validate camera resolution and lens/fixed-lens aperture values as
+numbers, then pass typed decimal-string inputs to the database without changing
+the database representation.
+
 - **Stabilization**: Whether the lens has stabilization
 - **Flexibility**: JSONB extra field for additional specs
 

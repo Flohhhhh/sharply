@@ -437,6 +437,10 @@ export async function setGearOgImageService(params: {
   }
 
   const { gearId: maybeId, slug, ogImageUrl } = params;
+  const isAdmin = requireRole(session.user, ["ADMIN"]);
+  if (ogImageUrl && !isAdmin && !isUploadThingFileUrl(ogImageUrl)) {
+    throw Object.assign(new Error("Invalid image upload URL"), { status: 422 });
+  }
   let gearId = maybeId;
   if (!gearId) {
     if (!slug) {

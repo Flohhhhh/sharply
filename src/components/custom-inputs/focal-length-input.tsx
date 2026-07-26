@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect,useMemo,useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { ToggleGroup,ToggleGroupItem } from "~/components/ui/toggle-group";
+import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 
 export interface FocalLengthInputChange {
   focalLengthMinMm: number | null;
@@ -14,7 +14,7 @@ export interface FocalLengthInputChange {
 
 export interface FocalLengthInputProps {
   id?: string;
-  label?: string;
+  label: string;
   minValue?: number | null;
   maxValue?: number | null;
   onChange: (values: FocalLengthInputChange) => void;
@@ -120,7 +120,7 @@ const FocalLengthInput = ({
     <div className={className}>
       <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <Label htmlFor={id}>{label ?? "Focal Length"}</Label>
+          <Label htmlFor={`${id}-min`}>{label}</Label>
           {labelAdornment}
         </div>
         <ToggleGroup

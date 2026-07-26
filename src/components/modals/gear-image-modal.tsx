@@ -132,12 +132,14 @@ export function GearImageModal(props: GearImageModalProps) {
   const leftViewFileInputRef = useRef<HTMLInputElement>(null);
   const rightViewFileInputRef = useRef<HTMLInputElement>(null);
   const savingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const saveProgressResolveRef = useRef<(() => void) | null>(null);
 
   async function animateSaveProgress() {
     if (savingTimerRef.current) clearInterval(savingTimerRef.current);
     setCombinedProgress(REVIEW_PROGRESS_END);
 
     await new Promise<void>((resolve) => {
+      saveProgressResolveRef.current = resolve;
       let progress = REVIEW_PROGRESS_END;
       const timer = setInterval(() => {
         progress = Math.min(100, progress + SAVE_PROGRESS_INCREMENT);
@@ -147,6 +149,7 @@ export function GearImageModal(props: GearImageModalProps) {
           if (savingTimerRef.current === timer) {
             savingTimerRef.current = null;
           }
+          saveProgressResolveRef.current = null;
           resolve();
         }
       }, SAVE_PROGRESS_INTERVAL_MS);
@@ -266,6 +269,8 @@ export function GearImageModal(props: GearImageModalProps) {
   useEffect(() => {
     return () => {
       if (savingTimerRef.current) clearInterval(savingTimerRef.current);
+      saveProgressResolveRef.current?.();
+      saveProgressResolveRef.current = null;
     };
   }, []);
 
@@ -424,7 +429,10 @@ export function GearImageModal(props: GearImageModalProps) {
             ogImageUrl,
           });
         } catch (error) {
-          console.error("Failed to generate gear OG image after approval", error);
+          console.error(
+            "Failed to generate gear OG image after approval",
+            error,
+          );
         }
       }
       await animateSaveProgress();
@@ -818,13 +826,13 @@ export function GearImageModal(props: GearImageModalProps) {
                 })
               : progressMode === "review"
                 ? t("reviewing")
-              : progressMode === "delete"
-                ? combinedProgress < 100
-                  ? t("deleting")
-                  : t("deleted")
-                : combinedProgress < 100
-                  ? profileT("saving")
-                  : profileT("done")}
+                : progressMode === "delete"
+                  ? combinedProgress < 100
+                    ? t("deleting")
+                    : t("deleted")
+                  : combinedProgress < 100
+                    ? profileT("saving")
+                    : profileT("done")}
           </div>
         </div>
 

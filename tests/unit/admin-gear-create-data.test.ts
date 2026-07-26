@@ -99,7 +99,7 @@ describe("createGearData bulk import initial values", () => {
       isPrime: true,
       focalLengthMinMm: 60,
       focalLengthMaxMm: 60,
-      maxApertureWide: 2.8,
+      maxApertureWide: "2.8",
       hasAutofocus: true,
     });
   });
@@ -129,7 +129,7 @@ describe("createGearData bulk import initial values", () => {
     expect(dbState.insertValues[2]?.payload).toEqual({
       gearId: "gear-1",
       sensorFormatId: "sensor-full-frame",
-      resolutionMp: 61,
+      resolutionMp: "61",
     });
   });
 
@@ -167,7 +167,7 @@ describe("createGearData bulk import initial values", () => {
       isPrime: true,
       focalLengthMinMm: 28,
       focalLengthMaxMm: 28,
-      maxApertureWide: 2.8,
+      maxApertureWide: "2.8",
     });
   });
 });

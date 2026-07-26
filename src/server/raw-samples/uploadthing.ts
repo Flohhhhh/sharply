@@ -48,7 +48,11 @@ export function extractUploadThingFileKey(fileUrl: string): string | null {
 export function isUploadThingFileUrl(fileUrl: string): boolean {
   try {
     const parsedUrl = new URL(fileUrl);
-    return isUploadThingHost(parsedUrl.hostname) && Boolean(extractUploadThingFileKey(fileUrl));
+    return (
+      parsedUrl.protocol === "https:" &&
+      isUploadThingHost(parsedUrl.hostname) &&
+      Boolean(extractUploadThingFileKey(fileUrl))
+    );
   } catch {
     return false;
   }

@@ -23,11 +23,13 @@ describe("gear page stacking", () => {
     const gearPage = readSource(
       "src/app/[locale]/(pages)/gear/[slug]/page.tsx",
     );
+    const staffVerdictIndex = gearPage.indexOf("<StaffVerdictSection");
+    const editorialReviewIndex = gearPage.indexOf("<EditorialReviewSection");
 
     expect(gearPage).toContain("fetchStaffVerdictByGearId(item.id)");
-    expect(gearPage.indexOf("<StaffVerdictSection")).toBeLessThan(
-      gearPage.indexOf("<EditorialReviewSection"),
-    );
+    expect(staffVerdictIndex).toBeGreaterThanOrEqual(0);
+    expect(editorialReviewIndex).toBeGreaterThanOrEqual(0);
+    expect(staffVerdictIndex).toBeLessThan(editorialReviewIndex);
     expect(gearPage).toContain("<GearActionButtons");
     expect(gearPage).toContain("initialIsAuthenticated={isAuthenticated}");
   });

@@ -402,7 +402,7 @@ describe("gear edit submission", () => {
     await expect(
       submitGearEditProposal({
         gearId: "22222222-2222-4222-8222-222222222222",
-        payload: { core: { brandId: "brand-1" } },
+        payload: { core: { brandId: "brand-2" } },
         autoSubmit: true,
       }),
     ).rejects.toMatchObject({
