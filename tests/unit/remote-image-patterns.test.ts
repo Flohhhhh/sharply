@@ -21,7 +21,14 @@ describe("next image remote patterns", () => {
     expect(nextConfigSource).toContain('hostname: "img.youtube.com"');
   });
 
-  it("allows Next.js to trace sharp and its native libvips dependency", () => {
+  it("includes sharp's Linux native artifacts in every server route trace", () => {
     expect(nextConfigSource).not.toContain('serverExternalPackages: ["sharp"]');
+    expect(nextConfigSource).toContain("outputFileTracingIncludes");
+    expect(nextConfigSource).toContain(
+      '"./node_modules/@img/sharp-linux-x64/**/*"',
+    );
+    expect(nextConfigSource).toContain(
+      '"./node_modules/@img/sharp-libvips-linux-x64/**/*"',
+    );
   });
 });
