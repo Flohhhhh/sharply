@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ENUMS,SENSOR_FORMATS } from "~/lib/constants";
+import { ENUMS, SENSOR_FORMATS } from "~/lib/constants";
 import { normalizeMpbLinkForStorage } from "~/lib/links/mpb";
 import { normalizeBhProductLink } from "~/lib/validation/bhphoto";
 import {
@@ -38,7 +38,15 @@ function parseDateUTC(value: string): Date | null {
     const month = Number(m[2]);
     const day = Number(m[3]);
     const d = new Date(Date.UTC(year, month - 1, day));
-    return isNaN(d.getTime()) ? null : d;
+    if (
+      isNaN(d.getTime()) ||
+      d.getUTCFullYear() !== year ||
+      d.getUTCMonth() !== month - 1 ||
+      d.getUTCDate() !== day
+    ) {
+      return null;
+    }
+    return d;
   }
   const d = new Date(value);
   return isNaN(d.getTime()) ? null : d;
@@ -159,6 +167,26 @@ export function normalizeProposalPayloadForDb(
         }, z.date().nullable().optional())
         .optional(),
       releaseDatePrecision: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          if (typeof value !== "string") return undefined;
+          const v = value.toUpperCase();
+          const allowed =
+            ((ENUMS as any).date_precision_enum as readonly string[]) ??
+            (["YEAR", "MONTH", "DAY"] as const);
+          return allowed.includes(v) ? v : undefined;
+        }, z.string().nullable().optional())
+        .optional(),
+      discontinuedDate: z
+        .preprocess((value) => {
+          if (value === null) return null; // allow explicit clearing
+          if (value instanceof Date) return value;
+          if (typeof value === "string")
+            return parseDateUTC(value) ?? undefined;
+          return undefined;
+        }, z.date().nullable().optional())
+        .optional(),
+      discontinuedDatePrecision: z
         .preprocess((value) => {
           if (value === null) return null;
           if (typeof value !== "string") return undefined;

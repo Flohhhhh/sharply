@@ -594,6 +594,7 @@
       "fields": {
         "announcedDatePrecision": "Precisión de la fecha de anuncio",
         "releaseDatePrecision": "Precisión de la fecha de lanzamiento",
+        "discontinuedDatePrecision": "Precisión de la fecha de discontinuación",
         "datePrecisionHelp": "Selecciona un nivel de precisión para la fecha. Por ejemplo, al elegir \"Mes\" la fecha se mostrará como \"septiembre de 2025\" en lugar de \"5 de septiembre de 2025\". Al elegir \"Año\" solo se mostrará el año. Usa \"Día\" cuando se conozca la fecha completa.",
         "datePrecisionYear": "Año",
         "datePrecisionMonth": "Mes",
@@ -756,6 +757,9 @@
             },
             "releaseDate": {
               "label": "Fecha de lanzamiento"
+            },
+            "discontinuedDate": {
+              "label": "Fecha de discontinuación"
             },
             "msrpAtLaunchUsdCents": {
               "label": "PVP de lanzamiento"
@@ -1543,24 +1547,26 @@
     "metaDescription": "Consulta qué fichas de equipo siguen incompletas y ayuda a completar las especificaciones que faltan.",
     "pageTitle": "Lista en construcción",
     "intro1": "Esta página destaca equipo incompleto en nuestra base de datos. Los elementos marcados como Under construction tienen especificaciones críticas ausentes, como montura, sensor o distancia focal. Los elementos con Low completeness aún no alcanzan nuestro umbral de completitud, pero pueden seguir siendo útiles.",
-    "intro2": "Las filas se priorizan según la cantidad de especificaciones clave que faltan y luego por el porcentaje total de completitud. Abre cualquier fila en el modal para contribuir.",
+    "intro2": "Las filas se priorizan según la cantidad de especificaciones clave que faltan y luego por el porcentaje total de completitud. Abre un elemento desde su nombre o muestra las acciones de la fila para contribuir.",
     "catalogCompletion": "Completitud del catálogo",
     "catalogSummary": "{underConstructionCount} en construcción • {totalCount} en total",
     "brand": "Marca",
     "type": "Tipo",
     "allBrands": "Todas las marcas",
     "allTypes": "Todos los tipos",
-    "showItemsWithoutImages": "Mostrar elementos sin imágenes",
+    "showItemsWithoutImages": "Mostrar solo elementos sin imágenes",
     "item": "Elemento",
+    "images": "Imágenes",
+    "imageCountLabel": "{count} de {capacity} imágenes cargadas",
     "missing": "Faltan",
     "progress": "Progreso",
     "status": "Estado",
-    "actions": "Acciones",
     "moreMissing": "+{count} más",
     "statusUnderConstruction": "En construcción",
     "searchIndicatorTooltip": "Este elemento está en construcción.",
     "statusLowCompleteness": "Baja completitud",
-    "openModal": "Abrir modal",
+    "editSpecs": "Editar especificaciones",
+    "imageLoadError": "No se pudo cargar la gestión de imágenes. Inténtalo de nuevo.",
     "editItem": "Editar {slug}",
     "loading": "Cargando…",
     "showMissingOnly": "Mostrar solo faltantes",

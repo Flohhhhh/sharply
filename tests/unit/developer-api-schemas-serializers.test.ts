@@ -62,6 +62,8 @@ describe("developer API serializers", () => {
         releaseDatePrecision: "DAY",
         announcedDate: null,
         announceDatePrecision: null,
+        discontinuedDate: null,
+        discontinuedDatePrecision: null,
         id: "internal-id",
         createdAt: new Date(),
       },
@@ -75,6 +77,8 @@ describe("developer API serializers", () => {
         releaseDatePrecision: null,
         announcedDate: new Date("2024-06-17T00:00:00.000Z"),
         announceDatePrecision: "DAY",
+        discontinuedDate: new Date("2025-01-01T00:00:00.000Z"),
+        discontinuedDatePrecision: "MONTH",
       },
     ] as never);
 
@@ -89,6 +93,8 @@ describe("developer API serializers", () => {
         releaseDatePrecision: "DAY",
         announcedDate: null,
         announceDatePrecision: null,
+        discontinuedDate: null,
+        discontinuedDatePrecision: null,
       },
       {
         name: "Zulu",
@@ -100,6 +106,8 @@ describe("developer API serializers", () => {
         releaseDatePrecision: null,
         announcedDate: "2024-06-17T00:00:00.000Z",
         announceDatePrecision: "DAY",
+        discontinuedDate: "2025-01-01T00:00:00.000Z",
+        discontinuedDatePrecision: "MONTH",
       },
     ]);
   });
@@ -161,6 +169,8 @@ describe("developer API serializers", () => {
       announceDatePrecision: "DAY",
       releaseDate: new Date("2024-01-01T00:00:00.000Z"),
       releaseDatePrecision: "DAY",
+      discontinuedDate: new Date("2026-03-01T00:00:00.000Z"),
+      discontinuedDatePrecision: "MONTH",
       thumbnailUrl: "https://example.test/front.jpg",
       topViewUrl: "https://example.test/top.jpg",
       rearViewUrl: "https://example.test/rear.jpg",
@@ -316,6 +326,8 @@ describe("developer API serializers", () => {
       announceDatePrecision: "DAY",
       releaseDate: "2024-01-01T00:00:00.000Z",
       releaseDatePrecision: "DAY",
+      discontinuedDate: "2026-03-01T00:00:00.000Z",
+      discontinuedDatePrecision: "MONTH",
       thumbnailUrl: "https://example.test/front.jpg",
       topViewUrl: "https://example.test/top.jpg",
       rearViewUrl: "https://example.test/rear.jpg",

@@ -15,6 +15,29 @@ export type DateFormatPreset =
   | "year";
 export type PrecisionFormatVariant = "full" | "month-year";
 
+const DATE_PRECISION_FIELD_BY_DATE_FIELD = {
+  announcedDate: "announceDatePrecision",
+  releaseDate: "releaseDatePrecision",
+  discontinuedDate: "discontinuedDatePrecision",
+} as const;
+
+export function getPairedDatePrecision(
+  field: string,
+  values: Record<string, unknown> | null | undefined,
+): DatePrecision | null | undefined {
+  const precisionField =
+    DATE_PRECISION_FIELD_BY_DATE_FIELD[
+      field as keyof typeof DATE_PRECISION_FIELD_BY_DATE_FIELD
+    ];
+  if (!precisionField || !values) return undefined;
+
+  const precision = values[precisionField];
+  if (precision === null) return null;
+  return precision === "DAY" || precision === "MONTH" || precision === "YEAR"
+    ? precision
+    : undefined;
+}
+
 const DEFAULT_TIME_ZONE = "UTC";
 const DEFAULT_FALLBACK = "";
 const MS_PER_SECOND = 1000;
@@ -35,7 +58,10 @@ function capitalizeFirstCharacter(value: string, locale: string): string {
   }
 
   const [firstCharacter = "", ...rest] = Array.from(value);
-  return firstCharacter.toLocaleUpperCase(resolveRuntimeLocale(locale)) + rest.join("");
+  return (
+    firstCharacter.toLocaleUpperCase(resolveRuntimeLocale(locale)) +
+    rest.join("")
+  );
 }
 
 function resolveTimeZone(
@@ -175,7 +201,11 @@ function parseUtcDateParts(
   month: number,
   day: number,
 ): Date | null {
-  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) {
+  if (
+    !Number.isInteger(year) ||
+    !Number.isInteger(month) ||
+    !Number.isInteger(day)
+  ) {
     return null;
   }
 
@@ -316,8 +346,7 @@ export function formatDateWithPrecision(
   if (precision === "MONTH" || variant === "month-year") {
     return formatDate(parsed, {
       locale: options.locale,
-      preset:
-        monthStyle === "short" ? "month-year-short" : "month-year-long",
+      preset: monthStyle === "short" ? "month-year-short" : "month-year-long",
       timeZone: options.timeZone,
       fallback: options.fallback,
     });

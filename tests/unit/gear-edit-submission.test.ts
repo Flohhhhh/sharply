@@ -441,6 +441,7 @@ describe("gear edit submission", () => {
   it.each([
     ["releaseDatePrecision", "DAY", "MONTH"],
     ["announceDatePrecision", "MONTH", "YEAR"],
+    ["discontinuedDatePrecision", "DAY", "YEAR"],
   ] as const)(
     "auto-approves trusted contributors when they replace %s",
     async (fieldKey, currentValue, proposedValue) => {
@@ -467,7 +468,11 @@ describe("gear edit submission", () => {
     },
   );
 
-  it.each(["releaseDatePrecision", "announceDatePrecision"] as const)(
+  it.each([
+    "releaseDatePrecision",
+    "announceDatePrecision",
+    "discontinuedDatePrecision",
+  ] as const)(
     "keeps trusted contributors pending when they clear %s",
     async (fieldKey) => {
       authMocks.getSessionOrThrow.mockResolvedValue({
@@ -492,7 +497,7 @@ describe("gear edit submission", () => {
     },
   );
 
-  it.each(["releaseDate", "announcedDate"] as const)(
+  it.each(["releaseDate", "announcedDate", "discontinuedDate"] as const)(
     "keeps trusted contributors pending when they replace %s",
     async (fieldKey) => {
       authMocks.getSessionOrThrow.mockResolvedValue({

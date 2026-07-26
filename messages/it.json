@@ -594,6 +594,7 @@
       "fields": {
         "announcedDatePrecision": "Precisione della data di annuncio",
         "releaseDatePrecision": "Precisione della data di uscita",
+        "discontinuedDatePrecision": "Precisione della data di dismissione",
         "datePrecisionHelp": "Seleziona un livello di precisione per la data. Ad esempio, scegliendo \"Mese\" la data sarà mostrata come \"settembre 2025\" invece di \"5 settembre 2025\". Scegliendo \"Anno\" verrà mostrato solo l’anno. Usa \"Giorno\" quando è disponibile la data completa.",
         "datePrecisionYear": "Anno",
         "datePrecisionMonth": "Mese",
@@ -756,6 +757,9 @@
             },
             "releaseDate": {
               "label": "Data di uscita"
+            },
+            "discontinuedDate": {
+              "label": "Data di dismissione"
             },
             "msrpAtLaunchUsdCents": {
               "label": "Prezzo di listino al lancio"
@@ -1543,24 +1547,26 @@
     "metaDescription": "Scopri quali schede attrezzatura sono ancora incomplete e aiuta a completare le specifiche mancanti.",
     "pageTitle": "Lista in costruzione",
     "intro1": "Questa pagina evidenzia l’attrezzatura incompleta nel nostro database. Gli elementi contrassegnati come Under construction hanno specifiche critiche mancanti, come attacco, sensore o lunghezza focale. Gli elementi con Low completeness non raggiungono ancora la nostra soglia di completezza, ma possono comunque essere utili.",
-    "intro2": "Le righe sono ordinate in base al numero di specifiche chiave mancanti e poi alla percentuale complessiva di completezza. Apri una riga nel modal per contribuire.",
+    "intro2": "Le righe sono ordinate in base al numero di specifiche chiave mancanti e poi alla percentuale complessiva di completezza. Apri un elemento dal suo nome o mostra le azioni della riga per contribuire.",
     "catalogCompletion": "Completezza catalogo",
     "catalogSummary": "{underConstructionCount} in costruzione • {totalCount} totali",
     "brand": "Marchio",
     "type": "Tipo",
     "allBrands": "Tutti i marchi",
     "allTypes": "Tutti i tipi",
-    "showItemsWithoutImages": "Mostra elementi senza immagini",
+    "showItemsWithoutImages": "Mostra solo elementi senza immagini",
     "item": "Elemento",
+    "images": "Immagini",
+    "imageCountLabel": "{count} immagini su {capacity} caricate",
     "missing": "Mancanti",
     "progress": "Progresso",
     "status": "Stato",
-    "actions": "Azioni",
     "moreMissing": "+{count} altri",
     "statusUnderConstruction": "In costruzione",
     "searchIndicatorTooltip": "Questo elemento è in costruzione.",
     "statusLowCompleteness": "Bassa completezza",
-    "openModal": "Apri modal",
+    "editSpecs": "Modifica specifiche",
+    "imageLoadError": "Impossibile caricare la gestione delle immagini. Riprova.",
     "editItem": "Modifica {slug}",
     "loading": "Caricamento…",
     "showMissingOnly": "Mostra solo i mancanti",

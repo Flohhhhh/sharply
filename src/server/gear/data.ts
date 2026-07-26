@@ -1119,6 +1119,10 @@ export type ConstructionMinimalRow = {
   gearType: string;
   publicationState: typeof gear.$inferSelect.publicationState;
   thumbnailUrl: string | null;
+  topViewUrl: string | null;
+  rearViewUrl: string | null;
+  leftViewUrl: string | null;
+  rightViewUrl: string | null;
   brandId: string | null;
   brandName: string | null;
   mountId: string | null; // legacy single-mount pointer
@@ -1158,6 +1162,10 @@ async function fetchGearForConstructionData(
       gearType: gear.gearType,
       publicationState: gear.publicationState,
       thumbnailUrl: gear.thumbnailUrl,
+      topViewUrl: gear.topViewUrl,
+      rearViewUrl: gear.rearViewUrl,
+      leftViewUrl: gear.leftViewUrl,
+      rightViewUrl: gear.rightViewUrl,
       brandId: gear.brandId,
       brandName: brands.name,
       mountId: gear.mountId,

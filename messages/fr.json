@@ -594,6 +594,7 @@
       "fields": {
         "announcedDatePrecision": "Précision de la date d’annonce",
         "releaseDatePrecision": "Précision de la date de sortie",
+        "discontinuedDatePrecision": "Précision de la date de fin de commercialisation",
         "datePrecisionHelp": "Choisissez un niveau de précision pour la date. Par exemple, sélectionner « Mois » affichera la date comme « septembre 2025 » au lieu de « 5 septembre 2025 ». « Année » n’affichera que l’année. Utilisez « Jour » lorsque la date complète est connue.",
         "datePrecisionYear": "Année",
         "datePrecisionMonth": "Mois",
@@ -756,6 +757,9 @@
             },
             "releaseDate": {
               "label": "Date de sortie"
+            },
+            "discontinuedDate": {
+              "label": "Date de fin de commercialisation"
             },
             "msrpAtLaunchUsdCents": {
               "label": "Prix de lancement conseillé"
@@ -1543,24 +1547,26 @@
     "metaDescription": "Voyez quels éléments de matériel sont encore incomplets et aidez à compléter les spécifications manquantes.",
     "pageTitle": "Liste en construction",
     "intro1": "Cette page met en avant le matériel incomplet dans notre base de données. Les éléments marqués Under construction ont des spécifications critiques manquantes, comme la monture, le capteur ou la focale. Ceux marqués Low completeness n’atteignent pas encore notre seuil de complétude, mais peuvent tout de même être utiles.",
-    "intro2": "Les lignes sont priorisées selon le nombre de spécifications clés manquantes puis selon le pourcentage global de complétude. Ouvrez une ligne dans la modale pour contribuer.",
+    "intro2": "Les lignes sont priorisées selon le nombre de spécifications clés manquantes puis selon le pourcentage global de complétude. Ouvrez un élément par son nom ou affichez les actions de sa ligne pour contribuer.",
     "catalogCompletion": "Complétude du catalogue",
     "catalogSummary": "{underConstructionCount} en construction • {totalCount} au total",
     "brand": "Marque",
     "type": "Type",
     "allBrands": "Toutes les marques",
     "allTypes": "Tous les types",
-    "showItemsWithoutImages": "Afficher les éléments sans image",
+    "showItemsWithoutImages": "Afficher uniquement les éléments sans image",
     "item": "Élément",
+    "images": "Images",
+    "imageCountLabel": "{count} images sur {capacity} importées",
     "missing": "Manquant",
     "progress": "Progression",
     "status": "Statut",
-    "actions": "Actions",
     "moreMissing": "+{count} de plus",
     "statusUnderConstruction": "En construction",
     "searchIndicatorTooltip": "Cet élément est en construction.",
     "statusLowCompleteness": "Complétude faible",
-    "openModal": "Ouvrir la modale",
+    "editSpecs": "Modifier les caractéristiques",
+    "imageLoadError": "Impossible de charger la gestion des images. Réessayez.",
     "editItem": "Modifier {slug}",
     "loading": "Chargement…",
     "showMissingOnly": "Afficher uniquement les manquants",

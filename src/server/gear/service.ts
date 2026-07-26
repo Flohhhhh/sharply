@@ -1376,6 +1376,8 @@ export type UnderConstructionRow = {
   brandName: string | null;
   thumbnailUrl: string | null;
   hasImage: boolean;
+  imageCount: number;
+  imageCapacity: number;
   gearType: string;
   missingCount: number;
   missing: string[];
@@ -1457,13 +1459,28 @@ async function buildGearCompletenessRows(): Promise<UnderConstructionRow[]> {
       totalFields > 0 ? Math.round((filledFields / totalFields) * 100) : 0;
 
     const base = rows[idx]!;
+    const supportsSideViews =
+      base.gearType === "CAMERA" || base.gearType === "ANALOG_CAMERA";
+    const supportedImageUrls = supportsSideViews
+      ? [
+          base.thumbnailUrl,
+          base.topViewUrl,
+          base.rearViewUrl,
+          base.leftViewUrl,
+          base.rightViewUrl,
+        ]
+      : [base.thumbnailUrl, base.topViewUrl];
+    const imageCount = supportedImageUrls.filter(Boolean).length;
+
     return {
       id: base.id,
       slug: base.slug,
       name: base.name,
       brandName: base.brandName,
       thumbnailUrl: base.thumbnailUrl ?? null,
-      hasImage: Boolean(base.thumbnailUrl),
+      hasImage: imageCount > 0,
+      imageCount,
+      imageCapacity: supportedImageUrls.length,
       gearType: base.gearType,
       missingCount: missing.length,
       missing,

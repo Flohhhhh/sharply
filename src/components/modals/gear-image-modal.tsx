@@ -51,7 +51,9 @@ export interface GearImageModalProps {
   gearId?: string;
   slug?: string;
   gearType: GearType;
-  trigger?: ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  trigger?: ReactNode | null;
   onSuccess?: (params: { url: string }) => void;
   currentThumbnailUrl?: string;
   currentTopViewUrl?: string;
@@ -80,8 +82,10 @@ export function GearImageModal(props: GearImageModalProps) {
   const statusT = useTranslations("gearDetail.editGear.status");
   const profileT = useTranslations("profileSettings");
   const { data, isPending, error } = useSession();
+  const isTriggerless = props.trigger === null;
 
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = props.open ?? internalOpen;
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -204,13 +208,15 @@ export function GearImageModal(props: GearImageModalProps) {
   }, []);
 
   if (isPending) {
-    return <div>{statusT("loading")}</div>;
+    return isTriggerless ? null : <div>{statusT("loading")}</div>;
   }
   if (error) {
-    return <div>{statusT("error", { error: error.message })}</div>;
+    return isTriggerless ? null : (
+      <div>{statusT("error", { error: error.message })}</div>
+    );
   }
   if (!data) {
-    return <div>{statusT("unauthenticated")}</div>;
+    return isTriggerless ? null : <div>{statusT("unauthenticated")}</div>;
   }
   const session = data.session;
   const user = data.user;
@@ -462,10 +468,12 @@ export function GearImageModal(props: GearImageModalProps) {
   const handleOpenChange = (next: boolean) => {
     if (next && !access) {
       toast.error(t("editorRequired"));
-      setOpen(false);
+      if (props.open === undefined) setInternalOpen(false);
+      props.onOpenChange?.(false);
       return;
     }
-    setOpen(next);
+    if (props.open === undefined) setInternalOpen(next);
+    props.onOpenChange?.(next);
   };
 
   const ImageSection = ({
@@ -590,13 +598,15 @@ export function GearImageModal(props: GearImageModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        {props.trigger ?? (
-          <Button icon={<ImageIcon className="h-4 w-4" />} variant="outline">
-            {t("manageButton")}
-          </Button>
-        )}
-      </DialogTrigger>
+      {props.trigger !== null ? (
+        <DialogTrigger asChild>
+          {props.trigger ?? (
+            <Button icon={<ImageIcon className="h-4 w-4" />} variant="outline">
+              {t("manageButton")}
+            </Button>
+          )}
+        </DialogTrigger>
+      ) : null}
       <DialogContent className="sm:max-w-5xl">
         <DialogHeader>
           <DialogTitle>{t("manageTitle")}</DialogTitle>
@@ -609,13 +619,13 @@ export function GearImageModal(props: GearImageModalProps) {
 
         {isExplicitMode ? (
           <Tabs value={activeColorwayId} onValueChange={selectColorway}>
-            <TabsList className="h-auto max-w-full justify-start gap-1 overflow-x-auto rounded-md border border-input/70 bg-background/70 p-1 shadow-sm">
+            <TabsList className="border-input/70 bg-background/70 h-auto max-w-full justify-start gap-1 overflow-x-auto rounded-md border p-1 shadow-sm">
               {localColorways.map((colorway) => (
                 <TabsTrigger
                   key={colorway.id}
                   value={colorway.id}
                   disabled={isBusy}
-                  className="h-8 rounded-sm px-3 text-xs font-semibold text-foreground/70 data-[state=active]:border-border data-[state=active]:bg-foreground/10 data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                  className="text-foreground/70 data-[state=active]:border-border data-[state=active]:bg-foreground/10 data-[state=active]:text-foreground h-8 rounded-sm px-3 text-xs font-semibold data-[state=active]:shadow-none"
                 >
                   {colorway.name}
                 </TabsTrigger>

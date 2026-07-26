@@ -3,14 +3,14 @@ import { postgresAdapter } from "@payloadcms/db-postgres";
 import { resendAdapter } from "@payloadcms/email-resend";
 import { payloadCloudPlugin } from "@payloadcms/payload-cloud";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
-import { uploadthingStorage } from "@payloadcms/storage-uploadthing";
+import { vercelBlobStorage } from "@payloadcms/storage-vercel-blob";
 import path from "path";
 import { buildConfig } from "payload";
 import type sharp from "sharp";
 import { fileURLToPath } from "url";
 
 import { LearnPages } from "./collections/LearnPages";
-import { Media } from "./collections/Media";
+import { canManageMedia, Media } from "./collections/Media";
 import { News } from "./collections/News";
 import { Review } from "./collections/Review";
 import { Users } from "./collections/Users";
@@ -67,17 +67,19 @@ export default buildConfig({
   plugins: [
     payloadCloudPlugin(),
     // storage-adapter-placeholder
-    uploadthingStorage({
+    vercelBlobStorage({
+      enabled: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
       collections: {
         media: {
           disableLocalStorage: true,
           disablePayloadAccessControl: true,
         },
       },
-      options: {
-        token: process.env.UPLOADTHING_TOKEN || "",
-        acl: "public-read",
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+      clientUploads: {
+        access: canManageMedia,
       },
+      addRandomSuffix: true,
     }),
   ],
   email:

@@ -21,7 +21,7 @@ The central table that stores common gear information:
 - **Brand & Mount**: References to brands and mounts
   - `mountId`: Single mount reference (kept for backward compatibility, stores "primary" mount)
   - Mount relationships managed via `gear_mounts` junction table for multi-mount support
-- **Metadata**: Release date, price, thumbnail URL, optional stored Open Graph URL, optional top-view URL, optional rear-view URL, and optional camera side-view URLs
+- **Metadata**: Announced, release, and discontinued dates with precision; price; thumbnail URL; optional stored Open Graph URL; optional top-view URL; optional rear-view URL; and optional camera side-view URLs
   - `thumbnailUrl` applies to all gear
   - `ogImageUrl` stores a precomputed padded social-preview image derived from the front thumbnail
   - `topViewUrl` applies to cameras and lenses; lens UI labels this as "Orthographic"
@@ -52,6 +52,7 @@ Rules:
 - `HIDDEN` fully removes the item from public access and discovery.
 - The `/lists/under-construction` surface is only for incomplete **published** items.
 - Its catalog-completion disclosure compares completed published items with the total catalog, with the same completed/total progress available for every configured brand.
+- Item names on the under-construction list link to their public gear pages. Each row reports uploaded default-view images against the supported slot count (five for cameras, two for lenses), and the image filter selects only rows with zero uploaded images. Row actions are revealed on hover, keyboard focus, or a non-interactive touch target; contributors can open the missing-spec editor, while editors and higher roles can also open image management.
 - The homepage contribution banner links through `/contribute/random`, which chooses from the same under-construction pool and falls back to one of the 20 least-complete published items when that pool is empty.
 - Editors can still use normal admin and edit surfaces to prefill specs, images, and manuals on rumored or hidden items before publication.
 
@@ -142,6 +143,8 @@ Stores detailed lens-specific specifications:
 - **Flexibility**: JSONB extra field for additional specs
 
 Admin CSV bulk import can create the initial lens spec row with mapped values.
+Duplicate review checks for editable bulk-import rows are debounced per row so
+typing remains uninterrupted, and superseded checks are discarded.
 The lens-oriented template includes `imageCircleSize`, which accepts a sensor
 format slug, id, or exact name and stores the resolved `sensor_formats.id`.
 Focal length, prime/zoom (`isPrime`), and maximum aperture are not CSV columns;
@@ -198,7 +201,7 @@ CREATE TABLE sharply_gear (
   -- Primary key and identifiers
   -- Basic information (name, slug, search name)
   -- Classification (gear type, brand, mount)
-  -- Metadata (release date, price, thumbnail, top/rear secondary images)
+  -- Metadata (announced/release/discontinued dates + precision, price, thumbnail, top/rear secondary images)
   -- Timestamps
 );
 

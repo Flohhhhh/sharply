@@ -624,6 +624,10 @@ export const gear = appSchema.table(
     releaseDatePrecision: datePrecisionEnum("release_date_precision").default(
       "DAY",
     ),
+    discontinuedDate: timestamp("discontinued_date", { withTimezone: true }),
+    discontinuedDatePrecision: datePrecisionEnum(
+      "discontinued_date_precision",
+    ).default("DAY"),
     msrpNowUsdCents: integer("msrp_now_usd_cents"),
     msrpAtLaunchUsdCents: integer("msrp_at_launch_usd_cents"),
     // Max observed price on MPB (USD cents), optional

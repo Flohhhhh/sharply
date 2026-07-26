@@ -1,0 +1,2 @@
+ALTER TABLE "app"."gear" ADD COLUMN "discontinued_date" timestamp with time zone;--> statement-breakpoint
+ALTER TABLE "app"."gear" ADD COLUMN "discontinued_date_precision" date_precision_enum DEFAULT 'DAY';

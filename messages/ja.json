@@ -594,6 +594,7 @@
       "fields": {
         "announcedDatePrecision": "発表日の精度",
         "releaseDatePrecision": "発売日の精度",
+        "discontinuedDatePrecision": "販売終了日の精度",
         "datePrecisionHelp": "日付の精度レベルを選択してください。たとえば「月」を選ぶと、日付は「2025年9月」のように表示され、「2025年9月5日」では表示されません。「年」を選ぶと年のみ表示されます。完全な日付が分かっている場合は「日」を使ってください。",
         "datePrecisionYear": "年",
         "datePrecisionMonth": "月",
@@ -756,6 +757,9 @@
             },
             "releaseDate": {
               "label": "発売日"
+            },
+            "discontinuedDate": {
+              "label": "販売終了日"
             },
             "msrpAtLaunchUsdCents": {
               "label": "発売時希望小売価格"
@@ -1543,7 +1547,7 @@
     "metaDescription": "まだ未完成の機材項目を確認し、不足しているスペックの補完に協力できます。",
     "pageTitle": "工事中リスト",
     "intro1": "このページでは、データベース内で未完成の機材を確認できます。Under construction の項目は、マウント、センサー、焦点距離などの重要なスペックが不足しています。Low completeness の項目は、入力済みスペックの基準にまだ達していませんが、閲覧は可能です。",
-    "intro2": "行は不足している重要スペック数、その次に全体の完成度で優先表示されます。各行からモーダルを開いて更新に協力できます。",
+    "intro2": "行は不足している重要スペック数、その次に全体の完成度で優先表示されます。名前から項目を開くか、行の操作を表示して更新に協力できます。",
     "catalogCompletion": "カタログ完成度",
     "catalogSummary": "{underConstructionCount} 件が工事中 • 全 {totalCount} 件",
     "brand": "ブランド",
@@ -1552,15 +1556,17 @@
     "allTypes": "すべてのタイプ",
     "showItemsWithoutImages": "画像のない項目のみ表示",
     "item": "項目",
+    "images": "画像",
+    "imageCountLabel": "{capacity}枚中{count}枚の画像をアップロード済み",
     "missing": "不足",
     "progress": "進捗",
     "status": "状態",
-    "actions": "操作",
     "moreMissing": "さらに {count} 件",
     "statusUnderConstruction": "工事中",
     "searchIndicatorTooltip": "この項目は作成中です。",
     "statusLowCompleteness": "完成度低め",
-    "openModal": "モーダルを開く",
+    "editSpecs": "仕様を編集",
+    "imageLoadError": "画像管理を読み込めませんでした。もう一度お試しください。",
     "editItem": "{slug} を編集",
     "loading": "読み込み中…",
     "showMissingOnly": "不足項目のみ表示",

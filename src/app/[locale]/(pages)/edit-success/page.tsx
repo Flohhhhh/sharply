@@ -5,8 +5,11 @@ import Link from "next/link";
 import { VideoSpecsSummary } from "~/app/[locale]/(pages)/gear/_components/video/video-summary";
 import { auth } from "~/auth";
 import { requireRole } from "~/lib/auth/auth-helpers";
-import { formatDate } from "~/lib/format/date";
-import { formatPrecaptureSupport,formatPrice } from "~/lib/mapping";
+import {
+  formatDateWithPrecision,
+  getPairedDatePrecision,
+} from "~/lib/format/date";
+import { formatPrecaptureSupport, formatPrice } from "~/lib/mapping";
 import {
   formatAnalogCameraType,
   formatAnalogExposureMode,
@@ -195,10 +198,17 @@ export default async function EditSuccessPage({
                             k === "msrpAtLaunchUsdCents"
                           )
                             display = formatPrice(v as number);
-                          if (k === "releaseDate")
-                            display = formatDate(v as any, {
+                          if (
+                            k === "releaseDate" ||
+                            k === "announcedDate" ||
+                            k === "discontinuedDate"
+                          )
+                            display = formatDateWithPrecision(v as any, {
                               locale,
-                              preset: "date-long",
+                              precision: getPairedDatePrecision(
+                                k,
+                                (edit.payload as any).core,
+                              ),
                             });
                           return (
                             <li key={String(k)}>

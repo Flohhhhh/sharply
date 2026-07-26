@@ -79,7 +79,7 @@ Publication state and completeness are separate:
 
 - For each included key under `core`, `camera`, `analogCamera`, `lens`, and `fixedLens`, the **current** value on the gear must be “empty” and the **proposed** value must be non-empty (no overwrites, no clearing), except registered overwrite allowlist entries.
 - Same idea for top-level **`cameraCardSlots`** and **`videoModes`**: only allowed when the current value is empty and the proposal fills them.
-- The current overwrite allowlist permits non-empty replacements of `core.releaseDatePrecision` and `core.announceDatePrecision`; clearing either field or replacing any other populated value still requires review.
+- The current overwrite allowlist permits non-empty replacements of `core.releaseDatePrecision`, `core.announceDatePrecision`, and `core.discontinuedDatePrecision`; clearing any of those fields or replacing any other populated value still requires review.
 
 **Slug:** Eligibility loads the full gear row by **`gearMeta.slug`**; if slug is missing, trusted eligibility is false.
 

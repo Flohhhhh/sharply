@@ -55,18 +55,28 @@ import {
 function makeConstructionRow(params: {
   slug: string;
   publicationState: "PUBLISHED" | "RUMORED" | "HIDDEN";
+  gearType?: "CAMERA" | "ANALOG_CAMERA" | "LENS";
   brandId?: string | null;
   mountId?: string | null;
   cameraAll?: Record<string, unknown> | null;
   createdAt?: Date;
+  thumbnailUrl?: string | null;
+  topViewUrl?: string | null;
+  rearViewUrl?: string | null;
+  leftViewUrl?: string | null;
+  rightViewUrl?: string | null;
 }) {
   return {
     id: `${params.slug}-id`,
     slug: params.slug,
     name: params.slug,
-    gearType: "CAMERA",
+    gearType: params.gearType ?? "CAMERA",
     publicationState: params.publicationState,
-    thumbnailUrl: null,
+    thumbnailUrl: params.thumbnailUrl ?? null,
+    topViewUrl: params.topViewUrl ?? null,
+    rearViewUrl: params.rearViewUrl ?? null,
+    leftViewUrl: params.leftViewUrl ?? null,
+    rightViewUrl: params.rightViewUrl ?? null,
     brandId: params.brandId === undefined ? "brand-1" : params.brandId,
     brandName: "Brand",
     mountId: params.mountId ?? null,
@@ -290,6 +300,69 @@ describe("gear publication state service", () => {
     expect(rows[0]).toMatchObject({
       slug: "canon-r5ii",
       underConstruction: true,
+    });
+  });
+
+  it("reports uploaded images against the slots supported by each gear type", async () => {
+    gearDataMocks.fetchAllGearForConstructionData.mockResolvedValue([
+      makeConstructionRow({
+        slug: "camera-images",
+        publicationState: "PUBLISHED",
+        thumbnailUrl: "/front.webp",
+        topViewUrl: "/top.webp",
+        rightViewUrl: "/right.webp",
+      }),
+      makeConstructionRow({
+        slug: "lens-images",
+        publicationState: "PUBLISHED",
+        gearType: "LENS",
+        topViewUrl: "/orthographic.webp",
+        rearViewUrl: "/ignored-rear.webp",
+      }),
+    ]);
+    constructionMocks.getConstructionState.mockReturnValue({
+      underConstruction: true,
+      missing: ["mountId"],
+    });
+
+    const rows = await listUnderConstruction();
+
+    expect(rows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          slug: "camera-images",
+          hasImage: true,
+          imageCount: 3,
+          imageCapacity: 5,
+        }),
+        expect.objectContaining({
+          slug: "lens-images",
+          hasImage: true,
+          imageCount: 1,
+          imageCapacity: 2,
+        }),
+      ]),
+    );
+  });
+
+  it("marks a row as imageless only when every supported slot is empty", async () => {
+    gearDataMocks.fetchAllGearForConstructionData.mockResolvedValue([
+      makeConstructionRow({
+        slug: "no-images",
+        publicationState: "PUBLISHED",
+      }),
+    ]);
+    constructionMocks.getConstructionState.mockReturnValue({
+      underConstruction: true,
+      missing: ["mountId"],
+    });
+
+    const rows = await listUnderConstruction();
+
+    expect(rows[0]).toMatchObject({
+      hasImage: false,
+      imageCount: 0,
+      imageCapacity: 5,
     });
   });
 

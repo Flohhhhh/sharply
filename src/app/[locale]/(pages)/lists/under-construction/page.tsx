@@ -60,6 +60,7 @@ export default async function Page({
   const completedCount = Math.max(totalCount - underConstructionCount, 0);
   const completedPercent =
     totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+  const isEditor = requireRole(session?.user, ["EDITOR"]);
   const totalByBrandId = new Map(
     brandCounts.map(({ brandId, count }) => [brandId, count]),
   );
@@ -83,7 +84,8 @@ export default async function Page({
       </header>
 
       <UnderConstructionClient
-        canToggleAutoSubmit={requireRole(session?.user, ["EDITOR"])}
+        canManageImages={isEditor}
+        canToggleAutoSubmit={isEditor}
         items={items}
         summary={{
           totalCount,

@@ -1,4 +1,4 @@
-import { describe,expect,it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { normalizeProposalPayloadForDb } from "~/server/db/normalizers";
 
@@ -41,8 +41,8 @@ describe("normalizeProposalPayloadForDb", () => {
     ).toEqual({
       camera: {
         hasIlluminatedButtons: null,
-        },
-      });
+      },
+    });
   });
 
   it.each([
@@ -126,6 +126,65 @@ describe("normalizeProposalPayloadForDb", () => {
       normalizeProposalPayloadForDb({
         analogCamera: {
           maxContinuousFps: "fast",
+        },
+      }),
+    ).toEqual({});
+  });
+
+  it("normalizes discontinued date and precision", () => {
+    expect(
+      normalizeProposalPayloadForDb({
+        core: {
+          discontinuedDate: "2024-06-15",
+          discontinuedDatePrecision: "month",
+        },
+      }),
+    ).toEqual({
+      core: {
+        discontinuedDate: new Date(Date.UTC(2024, 5, 15)),
+        discontinuedDatePrecision: "MONTH",
+      },
+    });
+  });
+
+  it("allows clearing discontinued date fields", () => {
+    expect(
+      normalizeProposalPayloadForDb({
+        core: {
+          discontinuedDate: null,
+          discontinuedDatePrecision: null,
+        },
+      }),
+    ).toEqual({
+      core: {
+        discontinuedDate: null,
+        discontinuedDatePrecision: null,
+      },
+    });
+  });
+
+  it("drops invalid discontinued date precision", () => {
+    expect(
+      normalizeProposalPayloadForDb({
+        core: {
+          discontinuedDatePrecision: "WEEK",
+        },
+      }),
+    ).toEqual({});
+  });
+
+  it("drops overflowed discontinued calendar dates", () => {
+    expect(
+      normalizeProposalPayloadForDb({
+        core: {
+          discontinuedDate: "2024-02-31",
+        },
+      }),
+    ).toEqual({});
+    expect(
+      normalizeProposalPayloadForDb({
+        core: {
+          discontinuedDate: "2024-13-01",
         },
       }),
     ).toEqual({});

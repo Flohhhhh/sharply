@@ -594,6 +594,7 @@
       "fields": {
         "announcedDatePrecision": "Präzision des Ankündigungsdatums",
         "releaseDatePrecision": "Präzision des Veröffentlichungsdatums",
+        "discontinuedDatePrecision": "Präzision des Einstellungsdatums",
         "datePrecisionHelp": "Wähle eine Genauigkeitsstufe für das Datum. Wenn du zum Beispiel „Monat“ auswählst, wird das Datum als „September 2025“ statt „5. September 2025“ angezeigt. Mit „Jahr“ wird nur das Jahr gezeigt. Verwende „Tag“, wenn das vollständige Datum bekannt ist.",
         "datePrecisionYear": "Jahr",
         "datePrecisionMonth": "Monat",
@@ -756,6 +757,9 @@
             },
             "releaseDate": {
               "label": "Veröffentlichungsdatum"
+            },
+            "discontinuedDate": {
+              "label": "Einstellungsdatum"
             },
             "msrpAtLaunchUsdCents": {
               "label": "UVP zum Marktstart"
@@ -1543,24 +1547,26 @@
     "metaDescription": "Sieh dir an, welche Ausrüstungseinträge noch unvollständig sind, und hilf beim Ergänzen fehlender Spezifikationen.",
     "pageTitle": "Baustellenliste",
     "intro1": "Diese Seite zeigt Ausrüstung, die in unserer Datenbank noch unvollständig ist. Elemente mit dem Status Under construction haben kritische fehlende Spezifikationen wie Mount, Sensor oder Brennweite. Elemente mit Low completeness erfüllen unseren Schwellenwert noch nicht, können aber trotzdem nutzbar sein.",
-    "intro2": "Die Reihen sind zuerst nach Anzahl fehlender Kernspecs und dann nach Gesamtvollständigkeit sortiert. Öffne eine Zeile im Modal und hilf mit kleinen Aktualisierungen.",
+    "intro2": "Die Reihen sind zuerst nach Anzahl fehlender Kernspecs und dann nach Gesamtvollständigkeit sortiert. Öffne einen Eintrag über seinen Namen oder blende die Zeilenaktionen ein, um Aktualisierungen beizutragen.",
     "catalogCompletion": "Katalog-Vollständigkeit",
     "catalogSummary": "{underConstructionCount} im Aufbau • {totalCount} gesamt",
     "brand": "Marke",
     "type": "Typ",
     "allBrands": "Alle Marken",
     "allTypes": "Alle Typen",
-    "showItemsWithoutImages": "Elemente ohne Bilder anzeigen",
+    "showItemsWithoutImages": "Nur Einträge ohne Bilder anzeigen",
     "item": "Eintrag",
+    "images": "Bilder",
+    "imageCountLabel": "{count} von {capacity} Bildern hochgeladen",
     "missing": "Fehlt",
     "progress": "Fortschritt",
     "status": "Status",
-    "actions": "Aktionen",
     "moreMissing": "+{count} weitere",
     "statusUnderConstruction": "Im Aufbau",
     "searchIndicatorTooltip": "Dieser Eintrag befindet sich im Aufbau.",
     "statusLowCompleteness": "Geringe Vollständigkeit",
-    "openModal": "Modal öffnen",
+    "editSpecs": "Spezifikationen bearbeiten",
+    "imageLoadError": "Die Bildverwaltung konnte nicht geladen werden. Versuche es erneut.",
     "editItem": "{slug} bearbeiten",
     "loading": "Wird geladen…",
     "showMissingOnly": "Nur fehlende anzeigen",

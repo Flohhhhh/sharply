@@ -62,6 +62,8 @@ export type DeveloperApiCatalogItem = {
   releaseDatePrecision: string | null;
   announcedDate: Date | null;
   announceDatePrecision: string | null;
+  discontinuedDate: Date | null;
+  discontinuedDatePrecision: string | null;
 };
 
 /** A deliberately narrow, slug-sorted read for the downloadable API catalog. */
@@ -79,6 +81,8 @@ export async function fetchDeveloperCatalogData(): Promise<
       releaseDatePrecision: gear.releaseDatePrecision,
       announcedDate: gear.announcedDate,
       announceDatePrecision: gear.announceDatePrecision,
+      discontinuedDate: gear.discontinuedDate,
+      discontinuedDatePrecision: gear.discontinuedDatePrecision,
     })
     .from(gear)
     .innerJoin(brands, eq(gear.brandId, brands.id))

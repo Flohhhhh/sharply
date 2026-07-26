@@ -59,6 +59,7 @@ import {
   type BulkImportParsedRow,
   type BulkImportValidationMessage,
 } from "~/lib/admin/gear-bulk-import";
+import { createBulkGearReviewDebouncer } from "~/lib/admin/gear-bulk-review-debounce";
 import { BRANDS, ENUMS } from "~/lib/constants";
 import { GEAR_PUBLICATION_STATES } from "~/lib/gear/publication-state";
 import { humanizeKey } from "~/lib/utils";
@@ -339,9 +340,15 @@ export default function GearBulkCreate(): React.JSX.Element {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [parseErrors, setParseErrors] = React.useState<string[]>([]);
   const [unknownHeaders, setUnknownHeaders] = React.useState<string[]>([]);
-  const validationTimers = React.useRef<
-    Map<string, ReturnType<typeof setTimeout>>
-  >(new Map());
+  const rowsRef = React.useRef(rows);
+  const [validationDebouncer] = React.useState(() =>
+    createBulkGearReviewDebouncer(),
+  );
+  const validationRequests = React.useRef(new Map<string, AbortController>());
+
+  React.useEffect(() => {
+    rowsRef.current = rows;
+  }, [rows]);
 
   const patchRow = React.useCallback(
     (id: string, patch: Partial<ImportRowState>) => {
@@ -352,66 +359,93 @@ export default function GearBulkCreate(): React.JSX.Element {
     [],
   );
 
-  const validateRows = React.useCallback(
-    async (rowsToValidate: ImportRowState[]) => {
-      for (const row of rowsToValidate) {
-        if (!row.brandId || !row.name.trim()) {
-          patchRow(row.id, { validationStatus: "done", validation: null });
-          continue;
+  const validateRow = React.useCallback(
+    async (row: ImportRowState) => {
+      if (row.status === "created" || !row.brandId || !row.name.trim()) {
+        patchRow(row.id, { validationStatus: "done", validation: null });
+        return;
+      }
+
+      validationRequests.current.get(row.id)?.abort();
+      const request = new AbortController();
+      validationRequests.current.set(row.id, request);
+
+      patchRow(row.id, { validationStatus: "validating" });
+      const params = new URLSearchParams({
+        brandId: row.brandId,
+        name: row.name,
+        modelNumber: row.modelNumber ?? "",
+      }).toString();
+
+      try {
+        const response = await fetch(`/api/admin/gear/create/check?${params}`, {
+          signal: request.signal,
+        });
+        if (!response.ok) {
+          throw new Error(`Duplicate check failed with ${response.status}`);
         }
-
-        patchRow(row.id, { validationStatus: "validating" });
-        const params = new URLSearchParams({
-          brandId: row.brandId,
-          name: row.name,
-          modelNumber: row.modelNumber ?? "",
-        }).toString();
-
-        try {
-          const response = await fetch(
-            `/api/admin/gear/create/check?${params}`,
-          );
-          const json = await response.json();
-          const data = CheckResponse.parse(json);
-          patchRow(row.id, {
-            validationStatus: "done",
-            validation: {
-              slugPreview: data.slugPreview,
-              slugConflict: Boolean(data.hard.slug),
-              modelConflict: Boolean(data.hard.modelName),
-              fuzzyMatches: data.fuzzy,
-            },
-          });
-        } catch {
-          patchRow(row.id, { validationStatus: "error", validation: null });
+        const json = await response.json();
+        const data = CheckResponse.parse(json);
+        if (
+          request.signal.aborted ||
+          validationRequests.current.get(row.id) !== request
+        ) {
+          return;
+        }
+        patchRow(row.id, {
+          validationStatus: "done",
+          validation: {
+            slugPreview: data.slugPreview,
+            slugConflict: Boolean(data.hard.slug),
+            modelConflict: Boolean(data.hard.modelName),
+            fuzzyMatches: data.fuzzy,
+          },
+        });
+      } catch {
+        if (
+          request.signal.aborted ||
+          validationRequests.current.get(row.id) !== request
+        ) {
+          return;
+        }
+        patchRow(row.id, { validationStatus: "error", validation: null });
+      } finally {
+        if (validationRequests.current.get(row.id) === request) {
+          validationRequests.current.delete(row.id);
         }
       }
     },
     [patchRow],
   );
 
-  const queueRowValidation = React.useCallback(
-    (row: ImportRowState) => {
-      const currentTimer = validationTimers.current.get(row.id);
-      if (currentTimer) clearTimeout(currentTimer);
-
-      const timer = setTimeout(() => {
-        validationTimers.current.delete(row.id);
-        void validateRows([row]);
-      }, 450);
-      validationTimers.current.set(row.id, timer);
+  const validateRows = React.useCallback(
+    async (rowsToValidate: ImportRowState[]) => {
+      await Promise.all(rowsToValidate.map(validateRow));
     },
-    [validateRows],
+    [validateRow],
+  );
+
+  const queueRowValidation = React.useCallback(
+    (rowId: string) => {
+      validationRequests.current.get(rowId)?.abort();
+      validationRequests.current.delete(rowId);
+      validationDebouncer.schedule(rowId, () => {
+        const current = rowsRef.current.find((row) => row.id === rowId);
+        if (current) void validateRow(current);
+      });
+    },
+    [validateRow, validationDebouncer],
   );
 
   React.useEffect(() => {
     return () => {
-      for (const timer of validationTimers.current.values()) {
-        clearTimeout(timer);
+      validationDebouncer.clear();
+      for (const request of validationRequests.current.values()) {
+        request.abort();
       }
-      validationTimers.current.clear();
+      validationRequests.current.clear();
     };
-  }, []);
+  }, [validationDebouncer]);
 
   const updateEditableRow = React.useCallback(
     (
@@ -420,9 +454,6 @@ export default function GearBulkCreate(): React.JSX.Element {
         Pick<ImportRowState, "name" | "modelNumber" | "brandId" | "brandName">
       >,
     ) => {
-      const current = rows.find((row) => row.id === id);
-      if (!current || current.status === "created") return;
-
       const withBrand =
         patch.brandId !== undefined
           ? (() => {
@@ -434,22 +465,24 @@ export default function GearBulkCreate(): React.JSX.Element {
               };
             })()
           : patch;
-      const next = applyNameInferences({
-        ...current,
-        ...withBrand,
-        validation: null,
-        validationStatus: "pending",
-        status: "idle",
-        errorMessage: undefined,
-        proceedAnyway: false,
-      });
 
       setRows((existing) =>
-        existing.map((row) => (row.id === id ? next : row)),
+        existing.map((row) => {
+          if (row.id !== id || row.status === "created") return row;
+          return applyNameInferences({
+            ...row,
+            ...withBrand,
+            validation: null,
+            validationStatus: "pending",
+            status: "idle",
+            errorMessage: undefined,
+            proceedAnyway: false,
+          });
+        }),
       );
-      queueRowValidation(next);
+      queueRowValidation(id);
     },
-    [queueRowValidation, rows],
+    [queueRowValidation],
   );
 
   const importCsv = React.useCallback(async () => {
@@ -477,9 +510,15 @@ export default function GearBulkCreate(): React.JSX.Element {
     }
   }, [csvText, validateRows]);
 
-  const removeRow = React.useCallback((id: string) => {
-    setRows((current) => current.filter((row) => row.id !== id));
-  }, []);
+  const removeRow = React.useCallback(
+    (id: string) => {
+      validationDebouncer.cancel(id);
+      validationRequests.current.get(id)?.abort();
+      validationRequests.current.delete(id);
+      setRows((current) => current.filter((row) => row.id !== id));
+    },
+    [validationDebouncer],
+  );
 
   const addManualRow = React.useCallback(() => {
     const lastRow = rows.at(-1);
