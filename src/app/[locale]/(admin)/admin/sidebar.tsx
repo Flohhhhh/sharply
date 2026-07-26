@@ -50,7 +50,12 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useSession } from "~/lib/auth/auth-client";
 import { requireRole } from "~/lib/auth/auth-helpers";
@@ -128,7 +133,10 @@ const sidebarItems: SidebarItem[] = [
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const t = useTranslations("developerApi");
+  const createT = useTranslations("gearCreate");
   const { data, isPending, error } = useSession();
+  const [createGearOpen, setCreateGearOpen] = React.useState(false);
+  const [createGearLoading, setCreateGearLoading] = React.useState(false);
 
   if (isPending) {
     return <div>Loading...</div>;
@@ -172,14 +180,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </>
         ) : (
           <>
-            <Dialog>
+            <Dialog
+              open={createGearOpen}
+              onOpenChange={(open) => {
+                if (!createGearLoading || open) setCreateGearOpen(open);
+              }}
+            >
               <DialogTrigger asChild>
                 <Button size="sm" icon={<Plus className="size-5" />}>
                   Create Gear Item
                 </Button>
               </DialogTrigger>
               <DialogContent className="border-none bg-transparent p-0 shadow-none sm:max-w-3xl">
-                <GearCreateCard />
+                <DialogTitle className="sr-only">
+                  {createT("title")}
+                </DialogTitle>
+                <GearCreateCard
+                  onCreated={() => setCreateGearOpen(false)}
+                  onLoadingChange={setCreateGearLoading}
+                />
               </DialogContent>
             </Dialog>
             {/* Only show links the user is allowed to see */}

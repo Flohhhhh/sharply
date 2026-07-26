@@ -21,6 +21,7 @@ import {
   analogCameraSpecs,
   brands,
   cameraSpecs,
+  fixedLensSpecs,
   gear,
   gearAliases,
   gearMounts,
@@ -238,6 +239,21 @@ export interface GearCreationParams {
     frontFilterThreadSizeMm?: number;
     hasWeatherSealing?: boolean;
   };
+  initialCameraSpecs?: {
+    sensorFormatId?: string;
+    resolutionMp?: number;
+  };
+  initialAnalogCameraSpecs?: {
+    cameraType?: typeof analogCameraSpecs.$inferInsert.cameraType;
+    captureMedium?: typeof analogCameraSpecs.$inferInsert.captureMedium;
+  };
+  initialFixedLensSpecs?: {
+    isPrime?: boolean;
+    focalLengthMinMm?: number;
+    focalLengthMaxMm?: number;
+    maxApertureWide?: number;
+    maxApertureTele?: number;
+  };
   force?: boolean;
 }
 
@@ -262,6 +278,9 @@ export async function createGearData(
     linkAmazon,
     initialCore,
     initialLensSpecs,
+    initialCameraSpecs,
+    initialAnalogCameraSpecs,
+    initialFixedLensSpecs,
   } = params;
 
   const normalizedLinkMpb = normalizeMpbLinkForStorage(
@@ -384,14 +403,36 @@ export async function createGearData(
 
     // Create an empty specs row matching the gear type
     if (gearType === "CAMERA") {
-      await tx.insert(cameraSpecs).values({ gearId: createdGear.id });
+      await tx.insert(cameraSpecs).values({
+        gearId: createdGear.id,
+        ...(pruneUndefined(initialCameraSpecs ?? {}) as Record<
+          string,
+          unknown
+        >),
+      } as typeof cameraSpecs.$inferInsert);
     } else if (gearType === "ANALOG_CAMERA") {
-      await tx.insert(analogCameraSpecs).values({ gearId: createdGear.id });
+      await tx.insert(analogCameraSpecs).values({
+        gearId: createdGear.id,
+        ...(pruneUndefined(initialAnalogCameraSpecs ?? {}) as Record<
+          string,
+          unknown
+        >),
+      } as typeof analogCameraSpecs.$inferInsert);
     } else if (gearType === "LENS") {
       await tx.insert(lensSpecs).values({
         gearId: createdGear.id,
         ...(pruneUndefined(initialLensSpecs ?? {}) as Record<string, unknown>),
       } as typeof lensSpecs.$inferInsert);
+    }
+
+    if (
+      (gearType === "CAMERA" || gearType === "ANALOG_CAMERA") &&
+      initialFixedLensSpecs
+    ) {
+      await tx.insert(fixedLensSpecs).values({
+        gearId: createdGear.id,
+        ...(pruneUndefined(initialFixedLensSpecs) as Record<string, unknown>),
+      } as typeof fixedLensSpecs.$inferInsert);
     }
 
     return createdGear;

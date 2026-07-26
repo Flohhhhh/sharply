@@ -467,6 +467,15 @@ To add a new gear type (e.g., tripods, lighting):
 ### Admin Workflow Notes
 
 - Staff can create gear directly as `PUBLISHED`, `RUMORED`, or `HIDDEN`.
+- The single-item creation modal uses two steps: identity first, then optional
+  type-specific completeness fields. All gear can select a mount; lenses
+  support multiple mounts and image-circle coverage; digital cameras expose
+  sensor format and resolution; analog cameras expose camera type and capture
+  medium; and fixed-lens cameras expose integrated-lens optics.
+- Focal length and maximum aperture are inferred as a best effort from the item
+  name with the same parsers as bulk import, and remain editable. Submission
+  disables all controls. Errors remain inline without closing the modal;
+  success closes it and shows a toast action linking to the created gear page.
 - The admin gear table can switch publication state after creation.
 - Rumored pages intentionally keep edit tooling available so staff can fill out specs and supporting assets before launch.
 - Public-only actions that do not make sense before release should be disabled on rumored pages rather than exposed as if the item were live.
