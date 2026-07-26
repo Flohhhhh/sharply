@@ -7,15 +7,10 @@ import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Progress } from "~/components/ui/progress";
 import { TableCell, TableRow } from "~/components/ui/table";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "~/components/ui/tooltip";
-import { GEAR_TYPE_LABELS } from "~/lib/constants";
 import { cn } from "~/lib/utils";
 import type { GearType } from "~/types/gear";
 import { shouldRevealRowActions } from "./under-construction-row-actions";
+import { splitBrandPrefix } from "./under-construction-row-display";
 
 export type UnderConstructionRowData = {
   id: string;
@@ -56,9 +51,10 @@ export function UnderConstructionRow({
 }) {
   const t = useTranslations("underConstructionPage");
   const imageT = useTranslations("gearDetail.gearImages");
-  const typeLabel =
-    GEAR_TYPE_LABELS[item.gearType as keyof typeof GEAR_TYPE_LABELS] ??
-    item.gearType;
+  const { brandPrefix, modelName } = splitBrandPrefix(
+    item.name,
+    item.brandName,
+  );
 
   return (
     <TableRow
@@ -79,36 +75,28 @@ export function UnderConstructionRow({
         }
       }}
     >
-      <TableCell className="max-w-[360px]">
+      <TableCell className="w-[420px] max-w-[420px]">
         <div className="flex items-center gap-2">
           <Link
             href={`/gear/${item.slug}`}
             className="group/name focus-visible:ring-ring block min-w-0 flex-1 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           >
             <span className="block truncate font-medium underline-offset-2 group-hover/name:underline">
-              {item.name}
-            </span>
-            <span className="text-muted-foreground flex items-center gap-1 text-xs">
-              {item.brandName ? (
-                <>
-                  <span className="truncate">{item.brandName}</span>
-                  <span aria-hidden="true">·</span>
-                </>
+              {brandPrefix ? (
+                <span className="text-muted-foreground/85 font-normal">
+                  {brandPrefix}
+                </span>
               ) : null}
-              <span>{typeLabel}</span>
+              {brandPrefix && modelName ? " " : null}
+              {modelName}
             </span>
           </Link>
         </div>
       </TableCell>
       <TableCell className="w-24">
-        <div
-          className={cn(
-            "text-muted-foreground flex items-center gap-1.5 text-xs tabular-nums",
-            item.imageCount === 0 && "text-orange-500",
-          )}
-        >
+        <div className="text-muted-foreground flex items-center gap-1.5 text-xs tabular-nums">
           {item.imageCount === 0 ? (
-            <ImageOff className="size-4" aria-hidden="true" />
+            <ImageOff className="size-4 text-orange-500" aria-hidden="true" />
           ) : (
             <ImageIcon className="size-4" aria-hidden="true" />
           )}
@@ -135,7 +123,7 @@ export function UnderConstructionRow({
           ) : null}
         </div>
       </TableCell>
-      <TableCell className="w-[240px]">
+      <TableCell className="w-[200px]">
         <div className="flex items-center gap-2">
           <Progress value={item.completionPercent} className="h-2" />
           <span className="text-muted-foreground w-10 text-right text-xs">
@@ -144,64 +132,50 @@ export function UnderConstructionRow({
         </div>
       </TableCell>
       <TableCell className="relative min-w-[176px] text-right">
-        <div
-          className={cn(
-            "transition-opacity duration-150 group-focus-within:opacity-0 group-hover:opacity-0",
-            isRevealed && "opacity-0",
-          )}
-        >
+        <div className="flex justify-end">
           {item.underConstruction ? (
-            <Badge variant="destructive">{t("statusUnderConstruction")}</Badge>
+            <Badge
+              variant="outline"
+              className="border-amber-500/25 bg-amber-500/10 font-normal text-amber-700 dark:text-amber-300"
+            >
+              {t("statusUnderConstruction")}
+            </Badge>
           ) : (
             <Badge variant="secondary">{t("statusLowCompleteness")}</Badge>
           )}
         </div>
         <div
           className={cn(
-            "via-background/90 to-background pointer-events-none absolute inset-y-0 right-0 flex items-center justify-end gap-1.5 bg-gradient-to-r from-transparent pr-2 pl-8 opacity-0 transition-opacity duration-150",
-            canManageImages ? "w-32" : "w-20",
+            "via-background/80 to-background/95 pointer-events-none absolute inset-y-0 right-0 z-10 flex items-center justify-end gap-1.5 bg-gradient-to-r from-transparent pr-2 pl-12 opacity-0 transition-opacity duration-150",
+            canManageImages ? "w-[48rem]" : "w-[36rem]",
             "group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100",
             isRevealed && "pointer-events-auto opacity-100",
           )}
         >
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                size="icon"
-                variant="outline"
-                className="size-8 rounded-full"
-                icon={<Pencil />}
-                aria-label={t("editSpecs")}
-                onClick={() =>
-                  onEdit(item.id, item.slug, item.gearType as GearType)
-                }
-              />
-            </TooltipTrigger>
-            <TooltipContent sideOffset={8}>{t("editSpecs")}</TooltipContent>
-          </Tooltip>
+          <Button
+            size="sm"
+            variant="default"
+            className="cursor-pointer"
+            icon={<Pencil />}
+            onClick={() =>
+              onEdit(item.id, item.slug, item.gearType as GearType)
+            }
+          >
+            {t("editSpecs")}
+          </Button>
           {canManageImages ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  size="icon"
-                  variant="outline"
-                  className="size-8 rounded-full"
-                  icon={<ImageIcon />}
-                  loading={isLoadingImages}
-                  aria-label={imageT("manageButton")}
-                  onClick={() =>
-                    onManageImages(
-                      item.id,
-                      item.slug,
-                      item.gearType as GearType,
-                    )
-                  }
-                />
-              </TooltipTrigger>
-              <TooltipContent sideOffset={8}>
-                {imageT("manageButton")}
-              </TooltipContent>
-            </Tooltip>
+            <Button
+              size="sm"
+              variant="outline"
+              className="cursor-pointer"
+              icon={<ImageIcon />}
+              loading={isLoadingImages}
+              onClick={() =>
+                onManageImages(item.id, item.slug, item.gearType as GearType)
+              }
+            >
+              {imageT("manageButton")}
+            </Button>
           ) : null}
         </div>
       </TableCell>
