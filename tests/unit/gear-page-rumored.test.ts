@@ -102,6 +102,7 @@ vi.mock("~/app/[locale]/(pages)/gear/_components/rumored-full", () => ({
 vi.mock("~/app/[locale]/(pages)/gear/_components/construction-full", () => ({
   ConstructionFullPage: constructionPageMock,
 }));
+vi.mock("~/server/admin/gear/actions", () => ({}));
 
 import Page from "~/app/[locale]/(pages)/gear/[slug]/page";
 
