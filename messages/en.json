@@ -544,6 +544,7 @@
       "title": "Edit Gear Item",
       "unsaved": "Unsaved",
       "showMissingOnly": "Show missing only",
+      "completedSpecEditorOnly": "This completed specification can only be changed by an editor.",
       "autoSubmit": "Auto-Submit",
       "continue": "Continue",
       "save": "Save",

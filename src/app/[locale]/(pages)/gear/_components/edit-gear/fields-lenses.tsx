@@ -25,6 +25,7 @@ import { formatFilterType } from "~/lib/mapping/filter-types-map";
 import { formatFocusDistance } from "~/lib/mapping/focus-distance-map";
 import { sortSensorFormats } from "~/lib/sensor-formats";
 import type { lensSpecs } from "~/server/db/schema";
+import { CompletedSpecLock } from "./completed-spec-lock";
 
 type SensorFormatOption = {
   id: string;
@@ -38,6 +39,7 @@ interface LensFieldsProps {
   showMissingOnly?: boolean;
   onChange: (field: string, value: any) => void;
   sectionId?: string;
+  disableCompletedSpecs?: boolean;
 }
 
 const lensFieldSections: Record<string, string> = {
@@ -89,6 +91,7 @@ function LensFieldsComponent({
   showMissingOnly,
   onChange,
   sectionId,
+  disableCompletedSpecs = false,
 }: LensFieldsProps) {
   const t = useTranslations("gearDetail");
   const tf = useCallback(
@@ -151,6 +154,19 @@ function LensFieldsComponent({
     },
     [t],
   );
+  const completedSpecMessage = tf(
+    "editGear.completedSpecEditorOnly",
+    "This completed specification can only be changed by an editor.",
+  );
+  const focalLocked =
+    disableCompletedSpecs &&
+    initialSpecs?.focalLengthMinMm != null &&
+    initialSpecs?.focalLengthMaxMm != null &&
+    initialSpecs?.isPrime != null;
+  const imageCircleLocked =
+    disableCompletedSpecs && Boolean(initialSpecs?.imageCircleSizeId);
+  const apertureLocked =
+    disableCompletedSpecs && initialSpecs?.maxApertureWide != null;
 
   return (
     <Card
@@ -176,6 +192,10 @@ function LensFieldsComponent({
               label={specLabel("focalLength", "Focal Length (mm)")}
               minValue={currentSpecs?.focalLengthMinMm ?? null}
               maxValue={currentSpecs?.focalLengthMaxMm ?? null}
+              disabled={focalLocked}
+              labelAdornment={
+                focalLocked ? <CompletedSpecLock message={completedSpecMessage} /> : undefined
+              }
               onChange={({ focalLengthMinMm, focalLengthMaxMm, isPrime }) => {
                 handleFieldChange("focalLengthMinMm", focalLengthMinMm);
                 handleFieldChange("focalLengthMaxMm", focalLengthMaxMm);
@@ -190,9 +210,12 @@ function LensFieldsComponent({
           {/* Image Circle Size */}
           {showWhenMissing(initialSpecs?.imageCircleSizeId) && (
             <div className="space-y-2">
-              <Label htmlFor="imageCircleSize">
-                {specLabel("imageCircleSize", "Image Circle Size")}
-              </Label>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="imageCircleSize">
+                  {specLabel("imageCircleSize", "Image Circle Size")}
+                </Label>
+                {imageCircleLocked ? <CompletedSpecLock message={completedSpecMessage} /> : null}
+              </div>
               <Select
                 value={
                   currentSpecs?.imageCircleSizeId ?? CLEAR_SENSOR_FORMAT_VALUE
@@ -203,6 +226,7 @@ function LensFieldsComponent({
                     value === CLEAR_SENSOR_FORMAT_VALUE ? null : value,
                   )
                 }
+                disabled={imageCircleLocked}
               >
                 <SelectTrigger id="imageCircleSize" className="w-full">
                   <SelectValue
@@ -241,6 +265,10 @@ function LensFieldsComponent({
               maxApertureTele={numOrNull(currentSpecs?.maxApertureTele)}
               minApertureWide={numOrNull(currentSpecs?.minApertureWide)}
               minApertureTele={numOrNull(currentSpecs?.minApertureTele)}
+              disabled={apertureLocked}
+              labelAdornment={
+                apertureLocked ? <CompletedSpecLock message={completedSpecMessage} /> : undefined
+              }
               onChange={({
                 maxApertureWide,
                 maxApertureTele,

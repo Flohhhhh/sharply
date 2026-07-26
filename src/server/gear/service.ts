@@ -11,6 +11,11 @@ import {
   isRumoredGear,
 } from "~/lib/gear/publication-state";
 import { allowsAutoApprovalOverwrite } from "~/lib/gear/change-request-field-policy";
+import {
+  getCompletedSpecLocks,
+  isCompletedSpecFieldLocked,
+  type ProposalSpecSection,
+} from "~/lib/gear/completed-spec-edit-policy";
 import type {
   AutoApprovalDecisionMetadata,
   AutoApprovalPath,
@@ -1056,12 +1061,40 @@ function isAddOnlyProposal(
   return true;
 }
 
+function findCompletedSpecLockViolation(
+  payload: NormalizedProposalPayload,
+  gearItem: GearItem,
+) {
+  const locks = getCompletedSpecLocks(gearItem);
+  const sections: ProposalSpecSection[] = [
+    "core",
+    "camera",
+    "analogCamera",
+    "lens",
+    "fixedLens",
+  ];
+
+  for (const section of sections) {
+    const values = payload[section];
+    if (!values || typeof values !== "object" || Array.isArray(values)) {
+      continue;
+    }
+    for (const field of Object.keys(values)) {
+      if (isCompletedSpecFieldLocked(locks, section, field)) {
+        return `${section}.${field}`;
+      }
+    }
+  }
+  return null;
+}
+
 async function getTrustedAddOnlyAutoApprovalEligibility(params: {
   userId: string;
   gearSlug: string | null | undefined;
   payload: NormalizedProposalPayload;
   autoSubmit: boolean | null;
   hasPendingEdits: boolean;
+  gearItem?: GearItem;
 }): Promise<AutoApprovalDecisionMetadata> {
   if (!params.gearSlug) {
     return {
@@ -1086,7 +1119,8 @@ async function getTrustedAddOnlyAutoApprovalEligibility(params: {
     };
   }
 
-  const gearItem = await fetchGearBySlugData(params.gearSlug);
+  const gearItem =
+    params.gearItem ?? (await fetchGearBySlugData(params.gearSlug));
   const eligible = isAddOnlyProposal(gearItem, params.payload);
   return {
     eligible,
@@ -1107,6 +1141,7 @@ async function evaluateAutoApprovalDecision(params: {
   autoSubmit: boolean | null;
   gearSlug: string | null | undefined;
   payload: NormalizedProposalPayload;
+  gearItem?: GearItem;
 }): Promise<AutoApprovalDecisionMetadata> {
   const canAutoApproveStaff = requireRole(params.user, ["EDITOR"]);
   const nonStaffPath: AutoApprovalPath = "trusted_candidate";
@@ -1150,6 +1185,7 @@ async function evaluateAutoApprovalDecision(params: {
     payload: params.payload,
     autoSubmit: params.autoSubmit,
     hasPendingEdits: false,
+    gearItem: params.gearItem,
   });
 }
 
@@ -1170,6 +1206,26 @@ export async function submitGearEditProposal(body: unknown) {
     gearName: gearMeta?.name ?? "Gear",
     gearSlug: gearMeta?.slug ?? data.slug ?? gearId,
   };
+  let currentGearItem: GearItem | undefined;
+  if (!requireRole(user, ["EDITOR"])) {
+    currentGearItem = await fetchGearBySlugData(gearContext.gearSlug);
+    const lockedField = findCompletedSpecLockViolation(
+      normalizedPayload,
+      currentGearItem,
+    );
+    if (lockedField) {
+      throw Object.assign(
+        new Error(
+          "This completed specification can only be changed by an editor",
+        ),
+        {
+          status: 403,
+          code: "completed_spec_editor_only",
+          field: lockedField,
+        },
+      );
+    }
+  }
   const submitterLabel = formatProposalSubmitterLabel(user);
   let autoApprovalDecision = await evaluateAutoApprovalDecision({
     user,
@@ -1178,6 +1234,7 @@ export async function submitGearEditProposal(body: unknown) {
     autoSubmit: typeof data.autoSubmit === "boolean" ? data.autoSubmit : null,
     gearSlug: gearMeta?.slug,
     payload: normalizedPayload,
+    gearItem: currentGearItem,
   });
   let proposalMetadata = {
     autoApprovalDecision,

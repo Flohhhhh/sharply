@@ -544,6 +544,7 @@
       "title": "機材を編集",
       "unsaved": "未保存",
       "showMissingOnly": "未入力のみ表示",
+      "completedSpecEditorOnly": "この入力済み仕様は編集者のみ変更できます。",
       "autoSubmit": "自動送信",
       "continue": "続行",
       "save": "保存",

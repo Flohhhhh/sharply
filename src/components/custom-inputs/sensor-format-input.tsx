@@ -1,6 +1,7 @@
 "use client";
 
 import { Label } from "~/components/ui/label";
+import type { ReactNode } from "react";
 import {
   Select,
   SelectContent,
@@ -21,6 +22,7 @@ export interface SensorFormatInputProps {
   className?: string;
   placeholder?: string;
   filterFormats?: (format: (typeof SENSOR_FORMATS)[number]) => boolean;
+  labelAdornment?: ReactNode;
 }
 
 export interface SensorFormatInputConfig {
@@ -40,6 +42,7 @@ const SensorFormatInput = ({
   className = "",
   placeholder = "Select sensor format",
   filterFormats,
+  labelAdornment,
 }: SensorFormatInputProps) => {
   // Convert value to slug if it's an ID, otherwise use as-is
   const getDisplaySlug = (val: string | null | undefined): string => {
@@ -64,7 +67,10 @@ const SensorFormatInput = ({
 
   return (
     <div className={`w-full space-y-2 ${className}`}>
-      <Label htmlFor={id}>{label}</Label>
+      <div className="flex items-center gap-2">
+        <Label htmlFor={id}>{label}</Label>
+        {labelAdornment}
+      </div>
       <Select value={displaySlug} onValueChange={onChange} disabled={disabled}>
         <SelectTrigger className="w-full">
           {displayName ? (

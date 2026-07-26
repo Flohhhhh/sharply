@@ -544,6 +544,7 @@
       "title": "Modifier le matériel",
       "unsaved": "Non enregistré",
       "showMissingOnly": "Afficher seulement les champs manquants",
+      "completedSpecEditorOnly": "Cette spécification complète ne peut être modifiée que par un éditeur.",
       "autoSubmit": "Soumettre automatiquement",
       "continue": "Continuer",
       "save": "Enregistrer",

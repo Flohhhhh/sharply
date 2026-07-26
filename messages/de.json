@@ -544,6 +544,7 @@
       "title": "Ausrüstung bearbeiten",
       "unsaved": "Ungespeichert",
       "showMissingOnly": "Nur Fehlendes anzeigen",
+      "completedSpecEditorOnly": "Diese vollständige Spezifikation kann nur von einem Redakteur geändert werden.",
       "autoSubmit": "Automatisch einreichen",
       "continue": "Weiter",
       "save": "Speichern",

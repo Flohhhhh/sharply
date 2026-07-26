@@ -32,6 +32,7 @@ import { formatCameraType,PRECAPTURE_SUPPORT_OPTIONS } from "~/lib/mapping";
 import type { EnrichedCameraSpecs,GearItem } from "~/types/gear";
 import CardSlotsManager,{ type CardSlot } from "./card-slots-manager";
 import { VideoModesManager } from "./video-modes-manager";
+import { CompletedSpecLock } from "./completed-spec-lock";
 // Integrated lens UI moved to edit form level
 
 interface CameraFieldsProps {
@@ -43,6 +44,7 @@ interface CameraFieldsProps {
   onChange: (field: string, value: any) => void;
   onChangeTopLevel?: (field: string, value: any) => void; // for cameraCardSlots
   sectionId?: string;
+  disableCompletedSpecs?: boolean;
 }
 
 const shutterTypeOrder = ["mechanical", "efc", "electronic"] as const;
@@ -353,6 +355,7 @@ function CameraFieldsComponent({
   onChange,
   onChangeTopLevel,
   sectionId,
+  disableCompletedSpecs = false,
 }: CameraFieldsProps) {
   // Debug logging
   // console.log("CameraFieldsComponent - currentSpecs:", currentSpecs);
@@ -362,6 +365,14 @@ function CameraFieldsComponent({
       translateGearDetailWithFallback(t, key, fallback, values),
     [t],
   );
+  const completedSpecMessage = tf(
+    "editGear.completedSpecEditorOnly",
+    "This completed specification can only be changed by an editor.",
+  );
+  const sensorFormatLocked =
+    disableCompletedSpecs && Boolean(initialSpecs?.sensorFormatId);
+  const resolutionLocked =
+    disableCompletedSpecs && initialSpecs?.resolutionMp != null;
   const specLabel = useCallback(
     (fieldKey: string, fallback: string) => {
       const sectionId = cameraFieldSections[fieldKey];
@@ -520,6 +531,10 @@ function CameraFieldsComponent({
               label={specLabel("sensorFormatId", "Sensor Format")}
               value={currentSpecs?.sensorFormatId}
               onChange={(value) => handleFieldChange("sensorFormatId", value)}
+              disabled={sensorFormatLocked}
+              labelAdornment={
+                sensorFormatLocked ? <CompletedSpecLock message={completedSpecMessage} /> : undefined
+              }
             />
           )}
 
@@ -539,6 +554,10 @@ function CameraFieldsComponent({
               suffix="MP"
               step={0.1}
               min={0}
+              disabled={resolutionLocked}
+              labelAdornment={
+                resolutionLocked ? <CompletedSpecLock message={completedSpecMessage} /> : undefined
+              }
             />
           )}
 

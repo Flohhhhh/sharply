@@ -544,6 +544,7 @@
       "title": "Modifica attrezzatura",
       "unsaved": "Non salvato",
       "showMissingOnly": "Mostra solo i campi mancanti",
+      "completedSpecEditorOnly": "Questa specifica completa può essere modificata solo da un editor.",
       "autoSubmit": "Invio automatico",
       "continue": "Continua",
       "save": "Salva",

@@ -544,6 +544,7 @@
       "title": "Edit gear",
       "unsaved": "Belum disimpan",
       "showMissingOnly": "Tunjukkan yang belum diisi sahaja",
+      "completedSpecEditorOnly": "Spesifikasi lengkap ini hanya boleh diubah oleh editor.",
       "autoSubmit": "Hantar automatik",
       "continue": "Teruskan",
       "save": "Simpan",

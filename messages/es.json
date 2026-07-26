@@ -544,6 +544,7 @@
       "title": "Editar equipo",
       "unsaved": "Sin guardar",
       "showMissingOnly": "Mostrar solo faltantes",
+      "completedSpecEditorOnly": "Esta especificación completa solo puede modificarla un editor.",
       "autoSubmit": "Enviar automáticamente",
       "continue": "Continuar",
       "save": "Guardar",

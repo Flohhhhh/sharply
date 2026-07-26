@@ -2,6 +2,7 @@
 
 import { XIcon } from "lucide-react";
 import { useMemo } from "react";
+import type { ReactNode } from "react";
 import { Label } from "~/components/ui/label";
 import MultiSelect from "~/components/ui/multi-select";
 import {
@@ -46,6 +47,7 @@ interface MountSelectProps {
   className?: string;
   allowClear?: boolean;
   clearLabel?: string;
+  labelAdornment?: ReactNode;
 }
 
 export function MountSelect({
@@ -60,6 +62,7 @@ export function MountSelect({
   className,
   allowClear = false,
   clearLabel = "Clear selection",
+  labelAdornment,
 }: MountSelectProps) {
   const clearValue = "__mount_clear__";
   const brandOptions = BRANDS as BrandOption[];
@@ -171,7 +174,12 @@ export function MountSelect({
 
     return (
       <div id="mount" className={cn("space-y-2", className)}>
-        {showLabel && <Label htmlFor="mount">{label}</Label>}
+        {showLabel && (
+          <div className="flex items-center gap-2">
+            <Label htmlFor="mount">{label}</Label>
+            {labelAdornment}
+          </div>
+        )}
         <Select
           value={selectValue}
           onValueChange={(nextValue) => {
@@ -221,7 +229,12 @@ export function MountSelect({
 
   return (
     <div id="mount" className={cn("space-y-2", className)}>
-      {showLabel && <Label>{label}</Label>}
+      {showLabel && (
+        <div className="flex items-center gap-2">
+          <Label>{label}</Label>
+          {labelAdornment}
+        </div>
+      )}
       <div className={disabled ? "pointer-events-none opacity-60" : undefined}>
         <MultiSelect
           options={orderedOptions}

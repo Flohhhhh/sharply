@@ -21,6 +21,7 @@ import {
 } from "~/lib/i18n/gear-detail";
 import { sortSensorFormats } from "~/lib/sensor-formats";
 import type { fixedLensSpecs } from "~/server/db/schema";
+import { CompletedSpecLock } from "./completed-spec-lock";
 
 type SensorFormatOption = {
   id: string;
@@ -34,6 +35,7 @@ interface FixedLensFieldsProps {
   showMissingOnly?: boolean;
   onChange: (field: string, value: any) => void;
   sectionId?: string;
+  disableCompletedSpecs?: boolean;
 }
 
 const fixedLensFieldKeys: Record<string, string> = {
@@ -53,6 +55,7 @@ function FixedLensFieldsComponent({
   showMissingOnly,
   onChange,
   sectionId,
+  disableCompletedSpecs = false,
 }: FixedLensFieldsProps) {
   const t = useTranslations("gearDetail");
   const tf = useCallback(
@@ -66,6 +69,14 @@ function FixedLensFieldsComponent({
     },
     [onChange],
   );
+  const completedSpecMessage = tf(
+    "editGear.completedSpecEditorOnly",
+    "This completed specification can only be changed by an editor.",
+  );
+  const focalLocked =
+    disableCompletedSpecs &&
+    (initialSpecs?.focalLengthMinMm != null ||
+      initialSpecs?.focalLengthMaxMm != null);
 
   const numOrNull = (v: unknown): number | null => {
     if (typeof v === "number" && Number.isFinite(v)) return v;
@@ -132,6 +143,10 @@ function FixedLensFieldsComponent({
               label={specLabel("focalLength", "Focal Length (mm)")}
               minValue={currentSpecs?.focalLengthMinMm ?? null}
               maxValue={currentSpecs?.focalLengthMaxMm ?? null}
+              disabled={focalLocked}
+              labelAdornment={
+                focalLocked ? <CompletedSpecLock message={completedSpecMessage} /> : undefined
+              }
               onChange={({ focalLengthMinMm, focalLengthMaxMm, isPrime }) => {
                 handleFieldChange("focalLengthMinMm", focalLengthMinMm);
                 handleFieldChange("focalLengthMaxMm", focalLengthMaxMm);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect,useMemo,useState } from "react";
+import { useEffect,useMemo,useState, type ReactNode } from "react";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 import ApertureInput from "./aperture-input";
@@ -23,6 +23,7 @@ export interface LensApertureInputProps {
 	onChange: (values: LensApertureChange) => void;
 	disabled?: boolean;
 	className?: string;
+	labelAdornment?: ReactNode;
 }
 
 /**
@@ -43,6 +44,7 @@ export default function LensApertureInput({
 	onChange,
 	disabled = false,
 	className = "",
+	labelAdornment,
 }: LensApertureInputProps) {
 	const initialIsVariable = useMemo(() => {
 		const hasTele =
@@ -122,7 +124,10 @@ export default function LensApertureInput({
 	return (
 		<div id={id} data-force-ring-container className={`w-full ${className}`}>
 			<div className="space-y-2">
-				<Label htmlFor={id}>{label}</Label>
+				<div className="flex items-center gap-2">
+					<Label htmlFor={id}>{label}</Label>
+					{labelAdornment}
+				</div>
 			</div>
 
 			{/* Compact single-column layout when not variable */}

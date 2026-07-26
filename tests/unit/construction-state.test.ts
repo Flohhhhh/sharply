@@ -104,4 +104,16 @@ describe("getConstructionState", () => {
       missing: [],
     });
   });
+
+  it("treats zero-valued numeric specs as missing", () => {
+    const result = getConstructionState({
+      ...BASE_LENS,
+      lensSpecs: {
+        ...BASE_LENS.lensSpecs!,
+        focalLengthMinMm: 0,
+      },
+    });
+
+    expect(result.missing).toContain("Focal length");
+  });
 });

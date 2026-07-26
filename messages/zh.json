@@ -544,6 +544,7 @@
       "title": "编辑器材项目",
       "unsaved": "未保存",
       "showMissingOnly": "仅显示缺失",
+      "completedSpecEditorOnly": "此完整规格只能由编辑修改。",
       "autoSubmit": "自动提交",
       "continue": "继续",
       "save": "节省",

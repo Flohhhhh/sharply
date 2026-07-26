@@ -311,6 +311,7 @@ The registry exports `buildGearSpecsSections(item: GearItem, options?)` which re
 - **Intentional Exceptions**: Editor-managed resource links such as `gear.linkInstructionManual` may live on the core `gear` table while rendering outside the spec table and outside the public suggestion flow.
 - **Display Conditions**: Prefer field-level `condition` functions for sentinel values that should not render at all. Example: `internalStorageGb` only renders when the numeric value is greater than `0`, so `0` does not show as a misleading graph/spec entry.
 - **Missing-only Editor Mode**: Fields with `alwaysShowInEditor: true` remain editable even when they already have a value. Use this only for capability toggles whose current `false` value would otherwise lock their dependent editor fields.
+- **Completed-spec edit policy**: Construction completeness and contributor permissions are separate. Regular contributors may fill a missing construction-critical spec, but may not replace or clear it after its completion group is filled; `EDITOR` and higher roles may always edit it. The shared policy is `src/lib/gear/completed-spec-edit-policy.ts`, and coupled fields such as focal length lock only after the full group is complete.
 
 ### Localization
 

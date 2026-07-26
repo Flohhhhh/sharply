@@ -18,6 +18,7 @@ import {
 } from "~/lib/i18n/gear-detail";
 import { ANALOG_OPTIONS } from "~/lib/mapping/analog-types-map";
 import type { AnalogCameraSpecs } from "~/types/gear";
+import { CompletedSpecLock } from "./completed-spec-lock";
 
 type Option = { value: string; label: string };
 const toMulti = (opts: Option[]) =>
@@ -49,19 +50,30 @@ interface AnalogCameraFieldsProps {
   showMissingOnly?: boolean;
   onChange: (field: keyof AnalogCameraSpecs, value: any) => void;
   sectionId?: string;
+  disableCompletedSpecs?: boolean;
 }
 
 export function AnalogCameraFields({
   currentSpecs,
+  initialSpecs,
   showMissingOnly,
   onChange,
   sectionId,
+  disableCompletedSpecs = false,
 }: AnalogCameraFieldsProps) {
   const t = useTranslations("gearDetail");
   const tf = (key: string, fallback: string, values?: TranslationValues) =>
     translateGearDetailWithFallback(t, key, fallback, values);
   const specLabel = (fieldKey: string, fallback: string) =>
     getSpecFieldLabel(t, "analog-camera", fieldKey, fallback);
+  const completedSpecMessage = tf(
+    "editGear.completedSpecEditorOnly",
+    "This completed specification can only be changed by an editor.",
+  );
+  const cameraTypeLocked =
+    disableCompletedSpecs && Boolean(initialSpecs?.cameraType);
+  const captureMediumLocked =
+    disableCompletedSpecs && Boolean(initialSpecs?.captureMedium);
 
   return (
     <Card
@@ -80,12 +92,16 @@ export function AnalogCameraFields({
         <div className="flex flex-col gap-3">
           {shouldShowField(currentSpecs?.cameraType, showMissingOnly) && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">
-                {specLabel("cameraType", "Camera Type")}
-              </label>
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium">
+                  {specLabel("cameraType", "Camera Type")}
+                </label>
+                {cameraTypeLocked ? <CompletedSpecLock message={completedSpecMessage} /> : null}
+              </div>
               <Select
                 value={currentSpecs?.cameraType ?? undefined}
                 onValueChange={(value) => onChange("cameraType", value)}
+                disabled={cameraTypeLocked}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue
@@ -108,12 +124,16 @@ export function AnalogCameraFields({
 
           {shouldShowField(currentSpecs?.captureMedium, showMissingOnly) && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">
-                {specLabel("captureMedium", "Capture Medium")}
-              </label>
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium">
+                  {specLabel("captureMedium", "Capture Medium")}
+                </label>
+                {captureMediumLocked ? <CompletedSpecLock message={completedSpecMessage} /> : null}
+              </div>
               <Select
                 value={currentSpecs?.captureMedium ?? undefined}
                 onValueChange={(value) => onChange("captureMedium", value)}
+                disabled={captureMediumLocked}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue

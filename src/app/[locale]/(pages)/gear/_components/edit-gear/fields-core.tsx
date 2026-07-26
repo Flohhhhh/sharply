@@ -33,6 +33,7 @@ import {
   toDisplayAmazonProductLink,
 } from "~/lib/validation/amazon";
 import { normalizeBhProductLink } from "~/lib/validation/bhphoto";
+import { CompletedSpecLock } from "./completed-spec-lock";
 
 type DatePrecision = "YEAR" | "MONTH" | "DAY";
 
@@ -70,6 +71,7 @@ interface CoreFieldsProps {
   initialSpecs?: CoreFieldsProps["currentSpecs"]; // initial snapshot for filtering only
   onChange: (field: string, value: any) => void;
   sectionId?: string;
+  disableCompletedSpecs?: boolean;
 }
 
 function CoreFieldsComponent({
@@ -79,6 +81,7 @@ function CoreFieldsComponent({
   initialSpecs,
   onChange,
   sectionId,
+  disableCompletedSpecs = false,
 }: CoreFieldsProps) {
   const t = useTranslations("gearDetail");
   const locale = useLocale();
@@ -88,6 +91,14 @@ function CoreFieldsComponent({
       translateGearDetailWithFallback(t, key, fallback, values),
     [t],
   );
+  const completedSpecMessage = tf(
+    "editGear.completedSpecEditorOnly",
+    "This completed specification can only be changed by an editor.",
+  );
+  const mountLocked =
+    disableCompletedSpecs &&
+    ((Array.isArray(initialSpecs?.mountIds) && initialSpecs.mountIds.length > 0) ||
+      Boolean(initialSpecs?.mountId));
 
   const isMissing = useCallback((v: unknown): boolean => {
     if (v == null) return true;
@@ -774,6 +785,12 @@ function CoreFieldsComponent({
                         "editGear.fields.mountsPlaceholder",
                         "Select compatible mounts",
                       )
+                }
+                disabled={mountLocked}
+                labelAdornment={
+                  mountLocked ? (
+                    <CompletedSpecLock message={completedSpecMessage} />
+                  ) : undefined
                 }
               />
             );
