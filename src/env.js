@@ -46,6 +46,8 @@ export const env = createEnv({
       process.env.NODE_ENV === "production"
         ? z.string()
         : z.string().optional(),
+    OPENROUTER_API_KEY: z.string().optional(),
+    GEAR_IMAGE_REVIEW_MODEL: z.string().optional(),
     PAYLOAD_SECRET: z.string(),
     BLOB_READ_WRITE_TOKEN: z.string().optional(),
     BLOB_STORE_ID: z.string().optional(),
@@ -100,6 +102,8 @@ export const env = createEnv({
       process.env.DISCORD_CHANGE_REQUEST_WEBHOOK_URL,
     DISCORD_BOT_INTERNAL_API_TOKEN: process.env.DISCORD_BOT_INTERNAL_API_TOKEN,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
+    GEAR_IMAGE_REVIEW_MODEL: process.env.GEAR_IMAGE_REVIEW_MODEL,
     NODE_ENV: process.env.NODE_ENV,
     PAYLOAD_SECRET: process.env.PAYLOAD_SECRET,
     BLOB_READ_WRITE_TOKEN: process.env.BLOB_READ_WRITE_TOKEN,

@@ -6,6 +6,15 @@ function safeDecode(segment: string): string {
   }
 }
 
+function isUploadThingHost(hostname: string) {
+  return (
+    hostname === "utfs.io" ||
+    hostname.endsWith(".utfs.io") ||
+    hostname === "ufs.sh" ||
+    hostname.endsWith(".ufs.sh")
+  );
+}
+
 export function extractUploadThingFileKey(fileUrl: string): string | null {
   let parsedUrl: URL;
 
@@ -33,4 +42,14 @@ export function extractUploadThingFileKey(fileUrl: string): string | null {
   }
 
   return null;
+}
+
+/** Returns true only for UploadThing delivery URLs with a usable file key. */
+export function isUploadThingFileUrl(fileUrl: string): boolean {
+  try {
+    const parsedUrl = new URL(fileUrl);
+    return isUploadThingHost(parsedUrl.hostname) && Boolean(extractUploadThingFileKey(fileUrl));
+  } catch {
+    return false;
+  }
 }

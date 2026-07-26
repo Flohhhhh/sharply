@@ -43,6 +43,10 @@ const cacheMocks = vi.hoisted(() => ({
   invalidateCatalog: vi.fn(),
 }));
 
+const reviewMocks = vi.hoisted(() => ({
+  reviewGearImageUpload: vi.fn(),
+}));
+
 vi.mock("server-only", () => ({}));
 vi.mock("~/server/auth", () => authMocks);
 vi.mock("~/server/db", () => ({
@@ -60,6 +64,7 @@ vi.mock("~/server/gear/data", () => gearDataMocks);
 vi.mock("~/server/developer-api/cache", () => ({
   invalidateDeveloperApiCatalogCache: cacheMocks.invalidateCatalog,
 }));
+vi.mock("~/server/gear-image-review/service", () => reviewMocks);
 
 import {
   clearGearThumbnailService,
@@ -75,6 +80,10 @@ describe("thumbnail gear admin service", () => {
       user: { id: "editor-1", role: "EDITOR" },
     });
     gearDataMocks.getGearIdBySlug.mockResolvedValue("gear-1");
+    reviewMocks.reviewGearImageUpload.mockResolvedValue({
+      status: "passed",
+      checksRun: 1,
+    });
   });
 
   it("stores both thumbnail and OG asset on the first thumbnail upload", async () => {
@@ -112,6 +121,36 @@ describe("thumbnail gear admin service", () => {
       gearId: "gear-1",
     });
     expect(cacheMocks.invalidateCatalog).toHaveBeenCalledTimes(1);
+    expect(reviewMocks.reviewGearImageUpload).toHaveBeenCalledWith({
+      actor: expect.objectContaining({ id: "editor-1", role: "EDITOR" }),
+      gearId: "gear-1",
+      imageType: "thumbnail",
+      imageUrl: "https://cdn.example.com/front.jpg",
+    });
+  });
+
+  it("reviews a replacement before changing its stored image", async () => {
+    gearDataMocks.fetchGearMetadataById.mockResolvedValue({
+      thumbnailUrl: "https://cdn.example.com/old-front.jpg",
+    });
+    adminGearDataMocks.updateGearThumbnailData.mockResolvedValue({
+      id: "gear-1",
+      slug: "nikon-z6iii",
+      thumbnailUrl: "https://cdn.example.com/new-front.jpg",
+      ogImageUrl: null,
+    });
+
+    await setGearThumbnailService({
+      gearId: "gear-1",
+      thumbnailUrl: "https://cdn.example.com/new-front.jpg",
+      ogImageUrl: null,
+    });
+
+    expect(
+      reviewMocks.reviewGearImageUpload.mock.invocationCallOrder[0]!,
+    ).toBeLessThan(
+      adminGearDataMocks.updateGearThumbnailData.mock.invocationCallOrder[0]!,
+    );
   });
 
   it("clears any stored OG asset when replacing an existing thumbnail", async () => {

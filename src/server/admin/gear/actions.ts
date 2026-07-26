@@ -4,6 +4,10 @@ import "server-only";
 import { revalidatePath } from "next/cache";
 import { type GearRegion } from "~/lib/gear/region";
 import {
+  isGearImageReviewRejectedError,
+  reviewRejectionResult,
+} from "~/lib/gear/image-review-result";
+import {
   clearGearLeftViewService,
   clearGearRearViewService,
   clearGearRightViewService,
@@ -66,7 +70,13 @@ export async function actionSetGearThumbnail(params: {
   thumbnailUrl: string;
   ogImageUrl?: string | null;
 }) {
-  const result = await setGearThumbnailService(params);
+  let result;
+  try {
+    result = await setGearThumbnailService(params);
+  } catch (error) {
+    if (isGearImageReviewRejectedError(error)) return reviewRejectionResult(error);
+    throw error;
+  }
   revalidatePath("/admin/gear");
   revalidatePath(`/gear/${result.slug}`);
   revalidatePath("/browse");
@@ -100,7 +110,13 @@ export async function actionSetGearTopView(params: {
   slug?: string;
   topViewUrl: string;
 }) {
-  const result = await setGearTopViewService(params);
+  let result;
+  try {
+    result = await setGearTopViewService(params);
+  } catch (error) {
+    if (isGearImageReviewRejectedError(error)) return reviewRejectionResult(error);
+    throw error;
+  }
   revalidatePath("/admin/gear");
   revalidatePath(`/gear/${result.slug}`);
   revalidatePath("/browse");
@@ -123,7 +139,13 @@ export async function actionSetGearRearView(params: {
   slug?: string;
   rearViewUrl: string;
 }) {
-  const result = await setGearRearViewService(params);
+  let result;
+  try {
+    result = await setGearRearViewService(params);
+  } catch (error) {
+    if (isGearImageReviewRejectedError(error)) return reviewRejectionResult(error);
+    throw error;
+  }
   revalidatePath("/admin/gear");
   revalidatePath(`/gear/${result.slug}`);
   revalidatePath("/browse");
@@ -146,7 +168,13 @@ export async function actionSetGearLeftView(params: {
   slug?: string;
   leftViewUrl: string;
 }) {
-  const result = await setGearLeftViewService(params);
+  let result;
+  try {
+    result = await setGearLeftViewService(params);
+  } catch (error) {
+    if (isGearImageReviewRejectedError(error)) return reviewRejectionResult(error);
+    throw error;
+  }
   revalidatePath("/admin/gear");
   revalidatePath(`/gear/${result.slug}`);
   revalidatePath("/browse");
@@ -169,7 +197,13 @@ export async function actionSetGearRightView(params: {
   slug?: string;
   rightViewUrl: string;
 }) {
-  const result = await setGearRightViewService(params);
+  let result;
+  try {
+    result = await setGearRightViewService(params);
+  } catch (error) {
+    if (isGearImageReviewRejectedError(error)) return reviewRejectionResult(error);
+    throw error;
+  }
   revalidatePath("/admin/gear");
   revalidatePath(`/gear/${result.slug}`);
   revalidatePath("/browse");

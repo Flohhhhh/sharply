@@ -5,6 +5,10 @@ import { revalidatePath } from "next/cache";
 
 import { locales } from "~/i18n/config";
 import { localizePathname } from "~/i18n/routing";
+import {
+  isGearImageReviewRejectedError,
+  reviewRejectionResult,
+} from "~/lib/gear/image-review-result";
 
 import {
   createGearColorwayService,
@@ -66,5 +70,10 @@ export async function actionResetGearColorways(
 export async function actionSetGearColorwayImage(
   params: Parameters<typeof setGearColorwayImageService>[0],
 ) {
-  return revalidateColorwayResult(await setGearColorwayImageService(params));
+  try {
+    return revalidateColorwayResult(await setGearColorwayImageService(params));
+  } catch (error) {
+    if (isGearImageReviewRejectedError(error)) return reviewRejectionResult(error);
+    throw error;
+  }
 }
