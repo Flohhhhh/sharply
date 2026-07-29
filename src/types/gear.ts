@@ -13,10 +13,12 @@ import type {
   gearColorways,
   gearEdits,
   gearRawSamples,
+  gearTags,
   gearPublicationStateEnum,
   gearRegionEnum,
   lensSpecs,
   mounts,
+  tags,
   popularityEventTypeEnum,
   rawSamples,
   sensorFormats,
@@ -44,6 +46,12 @@ export type RawSample = typeof rawSamples.$inferSelect;
 export type GearRawSample = typeof gearRawSamples.$inferSelect;
 export type GearAlias = typeof gearAliases.$inferSelect;
 export type GearColorway = typeof gearColorways.$inferSelect;
+export type Tag = typeof tags.$inferSelect;
+export type GearTagDisplay = Pick<
+  Tag,
+  "id" | "name" | "slug" | "description" | "icon" | "createdAt" | "updatedAt"
+>;
+export type GearTag = typeof gearTags.$inferSelect;
 export type GearRegion = (typeof gearRegionEnum.enumValues)[number];
 export type GearPublicationState =
   (typeof gearPublicationStateEnum.enumValues)[number];
@@ -78,6 +86,7 @@ export type GearItem = Gear & {
   videoModes?: (CameraVideoMode | VideoModeNormalized)[] | null;
   rawSamples?: RawSample[] | null;
   colorways?: GearColorway[] | null;
+  tags?: GearTagDisplay[] | null;
   selectedColorwayId?: string | null;
 };
 

@@ -44,6 +44,7 @@ import {
   Lock,
   Plus,
   SquareTerminal,
+  Tags,
   Users,
   Video,
   Wrench,
@@ -79,6 +80,12 @@ const sidebarItems: SidebarItem[] = [
     label: "Gear",
     href: "/admin/gear",
     icon: <Camera className="size-5" />,
+    allowed: ["EDITOR", "ADMIN", "SUPERADMIN"],
+  },
+  {
+    label: "Tags",
+    href: "/admin/tags",
+    icon: <Tags className="size-5" />,
     allowed: ["EDITOR", "ADMIN", "SUPERADMIN"],
   },
   {

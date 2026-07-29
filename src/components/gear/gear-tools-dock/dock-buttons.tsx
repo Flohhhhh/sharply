@@ -5,6 +5,7 @@ import {
   ImageIcon,
   Pencil,
   Palette,
+  Tags,
   Waypoints,
   Trash,
   Upload,
@@ -19,6 +20,7 @@ import { ManageStaffVerdictModal } from "~/app/[locale]/(pages)/gear/_components
 import type { AuthUser } from "~/auth";
 import { GearImageModal } from "~/components/modals/gear-image-modal";
 import { ManageColorwaysModal } from "~/components/gear/manage-colorways-modal";
+import { ManageGearTagsModal } from "~/components/gear/manage-gear-tags-modal";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -85,7 +87,7 @@ export interface BuildDockButtonsParams {
 
 const MAX_SAMPLES = 3;
 const baseTriggerClass =
-  "hover:bg-accent/80 flex h-10 w-10 items-center justify-center rounded-full transition-all hover:cursor-pointer hover:border hover:bg-accent/80 ";
+  "hover:bg-accent/80 flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:cursor-pointer hover:border hover:bg-accent/80 ";
 
 export function buildDockButtons({
   slug,
@@ -189,6 +191,31 @@ export function buildDockButtons({
             }
           />
           <TooltipContent sideOffset={10}>Gear Images</TooltipContent>
+        </Tooltip>
+      ),
+    },
+    {
+      id: "tags",
+      allowed: (currentUser) =>
+        Boolean(gearId && requireRole(currentUser, ["ADMIN"])),
+      render: () => (
+        <Tooltip key="tags">
+          <ManageGearTagsModal
+            gearId={gearId!}
+            slug={slug}
+            trigger={
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  className={baseTriggerClass}
+                  aria-label="Manage Tags"
+                >
+                  <Tags className="text-foreground/70 size-4.5" />
+                </button>
+              </TooltipTrigger>
+            }
+          />
+          <TooltipContent sideOffset={10}>Manage Tags</TooltipContent>
         </Tooltip>
       ),
     },

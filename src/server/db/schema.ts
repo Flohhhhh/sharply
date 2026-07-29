@@ -673,6 +673,49 @@ export const gear = appSchema.table(
   ],
 );
 
+// Editorial discovery tags. Tags deliberately remain separate from structured
+// specifications so they can support curation without becoming canonical gear data.
+export const tags = appSchema.table(
+  "tags",
+  () => ({
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    name: varchar("name", { length: 120 }).notNull().unique(),
+    slug: varchar("slug", { length: 140 }).notNull().unique(),
+    description: varchar("description", { length: 500 }),
+    icon: varchar("icon", { length: 100 }),
+    pageTitle: varchar("page_title", { length: 240 }),
+    pageContent: text("page_content"),
+    internalNotes: text("internal_notes"),
+    unlisted: boolean("unlisted").notNull().default(false),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [index("tags_name_idx").on(t.name)],
+);
+
+// One editorial tag may be assigned to a gear item at most once.
+export const gearTags = appSchema.table(
+  "gear_tags",
+  (d) => ({
+    gearId: d
+      .varchar("gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    tagId: d
+      .varchar("tag_id", { length: 36 })
+      .notNull()
+      .references(() => tags.id, { onDelete: "restrict" }),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    primaryKey({ columns: [t.gearId, t.tagId] }),
+    index("gear_tags_tag_idx").on(t.tagId),
+  ],
+);
+
 export const gearColorways = appSchema.table(
   "gear_colorways",
   () => ({

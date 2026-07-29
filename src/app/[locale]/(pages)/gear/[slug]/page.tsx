@@ -20,6 +20,7 @@ import { TrendingBadge } from "~/components/gear-badges/trending-badge";
 import { GearDisplayName } from "~/components/gear/gear-display-name";
 import { GearItemDock } from "~/components/gear/gear-tools-dock/gear-item-dock";
 import { RenameGearButton } from "~/components/gear/rename-gear-button";
+import { TagCloud } from "~/components/gear/tag-cloud";
 import { NewsCard } from "~/components/home/news-card";
 import { JsonLd } from "~/components/json-ld";
 import { Breadcrumbs, type CrumbItem } from "~/components/layout/breadcrumbs";
@@ -439,6 +440,12 @@ export default async function GearPage({ params }: GearPageProps) {
             <GearContributors gearId={item.id} />
           </Suspense>
           <GearStatsCard slug={slug} />
+          {item.tags?.length ? (
+            <section className="border-t pt-6">
+              <div className="mb-2 text-lg font-semibold">{t("tags")}</div>
+              <TagCloud tags={item.tags} />
+            </section>
+          ) : null}
           <Suspense fallback={null}>
             <GearPageMetadata item={item} locale={locale} />
           </Suspense>

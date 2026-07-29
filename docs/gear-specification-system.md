@@ -70,6 +70,20 @@ Stores alternate consumer-facing names used in specific regions (aliases, not lo
   - Rokinon branding for Samyang products in the United States
 - **Search**: Aliases are denormalized into `gear.search_name` for query performance
 
+#### `tags` and `gear_tags` - Editorial Discovery Labels
+
+Tags supplement structured specifications with editor-managed discovery labels.
+`gear_tags` is a unique many-to-many junction, so a gear item can have many
+tags without duplicate assignments.
+
+- **Public content**: A tag can include a short description, public page title,
+  public page content, and an optional Lucide icon name for the dictionary,
+  tag page, and gear tag chip.
+- **Visibility**: `tags.unlisted` defaults to `false`. When true, editors can
+  still manage the tag and its gear assignments, while public dictionary and
+  tag-page queries exclude it.
+- **Private content**: Internal notes are never selected by public tag queries.
+
 #### `gear_exif_aliases` - EXIF Metadata Model Aliases
 
 Stores EXIF-oriented make/model identifiers used to map uploaded metadata back to a canonical gear item.
