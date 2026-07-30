@@ -2603,6 +2603,18 @@ export const users = appSchema.table("user", (d) => ({
   inviteId: varchar("invite_id", { length: 36 }),
   // Social links (array of {label: string, url: string, icon?: string})
   socialLinks: jsonb("social_links"),
+  preferredBrandId: varchar("preferred_brand_id", { length: 36 }).references(
+    () => brands.id,
+    {
+      onDelete: "set null",
+    },
+  ),
+  preferredMountId: varchar("preferred_mount_id", { length: 36 }).references(
+    () => mounts.id,
+    {
+      onDelete: "set null",
+    },
+  ),
   // Developer API access is explicitly granted by an administrator.
   developerAccessEnabled: d
     .boolean("developer_access_enabled")

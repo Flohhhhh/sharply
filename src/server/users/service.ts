@@ -4,6 +4,7 @@ import { and,eq,sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { auth,type AuthUser } from "~/auth";
+import { getMountById } from "~/lib/mapping/mounts-map";
 import { getSessionOrThrow } from "~/server/auth";
 import { db } from "~/server/db";
 import {
@@ -25,10 +26,19 @@ import {
 } from "~/server/gear/data";
 import type { GearItem,Mount } from "~/types/gear";
 import { createNotificationData } from "../notifications/data";
-import { updateUserSocialLinks } from "./data";
+import {
+  fetchMountPreferenceOption,
+  updateUserPreferredFilters,
+  updateUserSocialLinks,
+} from "./data";
 
 async function updateCurrentAuthUser(
-  data: Partial<Pick<AuthUser, "handle" | "image" | "name">>,
+  data: Partial<
+    Pick<
+      AuthUser,
+      "handle" | "image" | "name" | "preferredBrandId" | "preferredMountId"
+    >
+  >,
 ) {
   await auth.api.updateUser({
     headers: await headers(),
@@ -428,6 +438,52 @@ export async function updateSocialLinks(rawLinks: unknown) {
   const socialLinks = socialLinksArraySchema.parse(rawLinks);
   await updateUserSocialLinks(user.id, socialLinks);
   return { ok: true as const, socialLinks };
+}
+
+const preferredFiltersSchema = z.object({
+  preferredBrandId: z.string().trim().min(1).nullable(),
+  preferredMountId: z.string().trim().min(1).nullable(),
+});
+
+export async function updatePreferredFilters(rawPreferences: unknown) {
+  const { user } = await getSessionOrThrow();
+  const preferences = preferredFiltersSchema.parse(rawPreferences);
+
+  if (!preferences.preferredBrandId && preferences.preferredMountId) {
+    throw new Error("Preferred mount requires a preferred brand");
+  }
+
+  if (preferences.preferredMountId) {
+    const mount =
+      (await fetchMountPreferenceOption(preferences.preferredMountId)) ??
+      getMountById(preferences.preferredMountId);
+
+    if (!mount) {
+      throw new Error("Preferred mount is invalid");
+    }
+
+    const mountBrandId =
+      "brandId" in mount ? mount.brandId : (mount.brand_id ?? null);
+
+    if (mountBrandId !== preferences.preferredBrandId) {
+      throw new Error("Preferred mount must belong to the selected brand");
+    }
+  }
+
+  const normalizedPreferences = {
+    preferredBrandId: preferences.preferredBrandId,
+    preferredMountId: preferences.preferredBrandId
+      ? preferences.preferredMountId
+      : null,
+  };
+
+  await updateUserPreferredFilters(user.id, normalizedPreferences);
+  await updateCurrentAuthUser(normalizedPreferences);
+
+  return {
+    ok: true as const,
+    ...normalizedPreferences,
+  };
 }
 
 export const RESERVED_HANDLES = [
