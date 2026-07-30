@@ -25,6 +25,7 @@ export type HeaderIconKey =
   | "pencilRuler"
   | "instagram"
   | "flame"
+  | "circlePile"
   | "squareStop";
 
 export type HeaderUser = {
@@ -54,6 +55,7 @@ export type HeaderNavItemSource = {
     url: string;
     description?: string;
     iconKey?: HeaderIconKey;
+    featured?: boolean;
   }[];
 };
 
@@ -65,6 +67,7 @@ export type HeaderNavItem = {
     href: string;
     description?: string;
     iconKey?: HeaderIconKey;
+    featured?: boolean;
   }[];
 };
 
@@ -148,6 +151,7 @@ function localizeHeaderNavItems(
       href: localizePathname(subItem.url, locale),
       description: subItem.description,
       iconKey: subItem.iconKey,
+      ...(subItem.featured ? { featured: true } : {}),
     })),
   }));
 }

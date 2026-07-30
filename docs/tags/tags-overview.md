@@ -37,6 +37,10 @@ mechanism.
 show the tag icon, and use public page content when present, falling back to the
 short description.
 
+The shared Gear navigation exposes `/tags` as **Collections**, described as a
+way to browse lists of gear. The link is available in the desktop and mobile
+navigation menus and the footer Gear section.
+
 `/tags/[slug]` renders the optional page title/content, tag icon, and matching
 published gear. It deliberately never returns internal notes. The gear table
 supports local name/brand/slug search plus type and brand filters; it defaults
