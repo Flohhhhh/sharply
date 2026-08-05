@@ -599,6 +599,20 @@
           "electronic": "EVF (électronique)"
         }
       },
+      "apertureProfile": {
+        "label": "Variable Aperture Profile",
+        "manage": "Manage profile",
+        "unavailable": "Available for zoom lenses with different wide and tele maximum apertures.",
+        "endpointHelp": "Endpoint values come from the lens focal length and maximum aperture fields.",
+        "focalLength": "Focal length",
+        "maximumAperture": "Maximum aperture",
+        "removePoint": "Remove profile point",
+        "addPoint": "Add point",
+        "cancel": "Cancel",
+        "save": "Save profile",
+        "invalid": "Each point must have a unique focal length within the lens range and a positive aperture.",
+        "viewDetails": "View profile details"
+      },
       "status": {
         "loading": "Chargement...",
         "error": "Erreur : {error}",
@@ -1062,6 +1076,7 @@
             "minAperture": {
               "label": "Ouverture minimale"
             },
+            "apertureProfileJson": { "label": "Variable Aperture Profile" },
             "numberDiaphragmBlades": {
               "label": "Nombre de lamelles"
             },
@@ -2240,6 +2255,7 @@
     "pageTitle": "Page title",
     "pageContent": "Page content",
     "pageContentHint": "Describe items that have this tag.",
+    "metadataPreview": "Aperçu de recherche",
     "internalNotes": "Internal notes",
     "publicStatus": "Public visibility",
     "listed": "Listed publicly",
@@ -2261,6 +2277,7 @@
     "assignedTags": "Assigned tags",
     "noAssignedTags": "No tags assigned yet.",
     "noMatchingTags": "No matching tags.",
+    "tagPageDescription": "Parcourez le matériel photo portant le tag {tag}.",
     "noMatchingGear": "No matching gear.",
     "searchGear": "Search gear...",
     "assignedGear": "Assigned gear",

@@ -599,6 +599,20 @@
           "electronic": "EVF (elektronik)"
         }
       },
+      "apertureProfile": {
+        "label": "Variable Aperture Profile",
+        "manage": "Manage profile",
+        "unavailable": "Available for zoom lenses with different wide and tele maximum apertures.",
+        "endpointHelp": "Endpoint values come from the lens focal length and maximum aperture fields.",
+        "focalLength": "Focal length",
+        "maximumAperture": "Maximum aperture",
+        "removePoint": "Remove profile point",
+        "addPoint": "Add point",
+        "cancel": "Cancel",
+        "save": "Save profile",
+        "invalid": "Each point must have a unique focal length within the lens range and a positive aperture.",
+        "viewDetails": "View profile details"
+      },
       "status": {
         "loading": "Memuatkan...",
         "error": "Ralat: {error}",
@@ -1062,6 +1076,7 @@
             "minAperture": {
               "label": "Bukaan minimum"
             },
+            "apertureProfileJson": { "label": "Variable Aperture Profile" },
             "numberDiaphragmBlades": {
               "label": "Bilangan bilah diafragma"
             },
@@ -2240,6 +2255,7 @@
     "pageTitle": "Tajuk halaman",
     "pageContent": "Kandungan halaman",
     "pageContentHint": "Terangkan item yang mempunyai tag ini.",
+    "metadataPreview": "Pratonton carian",
     "internalNotes": "Nota dalaman",
     "publicStatus": "Keterlihatan awam",
     "listed": "Disenaraikan secara awam",
@@ -2261,6 +2277,7 @@
     "assignedTags": "Tag yang ditugaskan",
     "noAssignedTags": "Belum ada tag yang ditugaskan.",
     "noMatchingTags": "Tiada tag yang sepadan.",
+    "tagPageDescription": "Layari peralatan fotografi dengan tag {tag}.",
     "noMatchingGear": "Tiada peralatan yang sepadan.",
     "searchGear": "Cari peralatan...",
     "assignedGear": "Peralatan yang ditugaskan",

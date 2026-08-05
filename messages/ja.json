@@ -599,6 +599,20 @@
           "electronic": "EVF（電子）"
         }
       },
+      "apertureProfile": {
+        "label": "Variable Aperture Profile",
+        "manage": "Manage profile",
+        "unavailable": "Available for zoom lenses with different wide and tele maximum apertures.",
+        "endpointHelp": "Endpoint values come from the lens focal length and maximum aperture fields.",
+        "focalLength": "Focal length",
+        "maximumAperture": "Maximum aperture",
+        "removePoint": "Remove profile point",
+        "addPoint": "Add point",
+        "cancel": "Cancel",
+        "save": "Save profile",
+        "invalid": "Each point must have a unique focal length within the lens range and a positive aperture.",
+        "viewDetails": "View profile details"
+      },
       "status": {
         "loading": "読み込み中...",
         "error": "エラー: {error}",
@@ -1062,6 +1076,7 @@
             "minAperture": {
               "label": "最小F値"
             },
+            "apertureProfileJson": { "label": "Variable Aperture Profile" },
             "numberDiaphragmBlades": {
               "label": "絞り羽根枚数"
             },
@@ -2240,6 +2255,7 @@
     "pageTitle": "ページタイトル",
     "pageContent": "ページ内容",
     "pageContentHint": "このタグを持つ項目を説明します。",
+    "metadataPreview": "検索プレビュー",
     "internalNotes": "内部メモ",
     "publicStatus": "公開設定",
     "listed": "公開リストに表示",
@@ -2261,6 +2277,7 @@
     "assignedTags": "割り当て済みタグ",
     "noAssignedTags": "まだタグは割り当てられていません。",
     "noMatchingTags": "一致するタグはありません。",
+    "tagPageDescription": "「{tag}」タグが付いた写真機材を閲覧できます。",
     "noMatchingGear": "一致する機材はありません。",
     "searchGear": "機材を検索...",
     "assignedGear": "割り当て済み機材",

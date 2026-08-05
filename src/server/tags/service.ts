@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { z } from "zod";
 import { requireRole } from "~/lib/auth/auth-helpers";
 import { getSessionOrThrow } from "~/server/auth";
@@ -139,8 +140,13 @@ export async function deleteTag(id: string) {
 export async function fetchPublicTagDictionary() {
   return fetchPublicTagsData();
 }
+
+export const fetchPublicTagBySlug = cache(async (slug: string) =>
+  fetchPublicTagBySlugData(slug),
+);
+
 export async function fetchPublicTagPage(slug: string) {
-  const tag = await fetchPublicTagBySlugData(slug);
+  const tag = await fetchPublicTagBySlug(slug);
   if (!tag) return null;
   return {
     ...tag,

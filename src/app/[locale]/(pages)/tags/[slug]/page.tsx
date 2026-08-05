@@ -1,11 +1,39 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { TagIcon } from "~/components/gear/tag-icon";
-import { fetchPublicTagPage } from "~/server/tags/service";
+import { buildTagPageMetadata } from "~/lib/tags/tag-page-metadata";
+import {
+  fetchPublicTagBySlug,
+  fetchPublicTagPage,
+} from "~/server/tags/service";
 import { TagGearTable } from "./tag-gear-table";
 
 export const revalidate = 60;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; slug: string }>;
+}): Promise<Metadata> {
+  const { locale, slug } = await params;
+  const [tag, t] = await Promise.all([
+    fetchPublicTagBySlug(slug),
+    getTranslations({ locale, namespace: "tags" }),
+  ]);
+
+  if (!tag) {
+    return { robots: { index: false, follow: false } };
+  }
+
+  return buildTagPageMetadata(
+    slug,
+    tag,
+    t("tagPageDescription", { tag: tag.name }),
+  );
+}
+
 export default async function TagPage({
   params,
 }: {

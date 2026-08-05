@@ -25,6 +25,7 @@ import {
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Textarea } from "~/components/ui/textarea";
+import { resolveTagPageMetadata } from "~/lib/tags/tag-page-metadata";
 import {
   actionAssignTagToGear,
   actionCreateTag,
@@ -351,120 +352,166 @@ function TagFormDialog({
     setForm((current) => ({ ...current, [field]: value }));
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
+      <DialogContent className="h-[calc(100dvh-2rem)] max-h-[56rem] grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden p-0 sm:max-w-5xl">
+        <DialogHeader className="px-6 pt-6 pr-12 pb-4">
           <DialogTitle>{editing ? t("editTag") : t("createTag")}</DialogTitle>
           <DialogDescription>{t("formDescription")}</DialogDescription>
         </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="tag-name">{t("name")}</Label>
-            <Input
-              id="tag-name"
-              value={form.name}
-              onChange={(event) => update("name", event.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="tag-slug">{t("slug")}</Label>
-            <Input
-              id="tag-slug"
-              disabled={Boolean(editing)}
-              value={form.slug}
-              onChange={(event) => update("slug", event.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="tag-description">{t("description")}</Label>
-            <p className="text-muted-foreground text-sm">
-              {t("descriptionHint")}
-            </p>
-            <Textarea
-              id="tag-description"
-              value={form.description}
-              onChange={(event) => update("description", event.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="tag-icon">{t("icon")}</Label>
-            <div className="relative">
-              <Input
-                id="tag-icon"
-                value={form.icon}
-                onChange={(event) => update("icon", event.target.value)}
-                placeholder="Camera"
-                className="pr-10"
-              />
-              <span
-                className="absolute top-1/2 right-3 -translate-y-1/2"
-                title={hasValidIcon ? form.icon : t("invalidIcon")}
-              >
-                {hasValidIcon ? (
-                  <TagIcon name={form.icon} size={17} />
-                ) : (
-                  <span className="border-muted-foreground/50 block size-4 rounded-sm border" />
-                )}
-              </span>
+        <div className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)] lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:grid-rows-1">
+          <aside className="bg-muted/30 border-b p-6 lg:border-r lg:border-b-0">
+            <TagMetadataPreview form={form} />
+          </aside>
+          <div className="flex min-h-0 flex-col">
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-6">
+              <div className="space-y-2">
+                <Label htmlFor="tag-name">{t("name")}</Label>
+                <Input
+                  id="tag-name"
+                  value={form.name}
+                  onChange={(event) => update("name", event.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="tag-slug">{t("slug")}</Label>
+                <Input
+                  id="tag-slug"
+                  disabled={Boolean(editing)}
+                  value={form.slug}
+                  onChange={(event) => update("slug", event.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="tag-description">{t("description")}</Label>
+                <p className="text-muted-foreground text-sm">
+                  {t("descriptionHint")}
+                </p>
+                <Textarea
+                  id="tag-description"
+                  value={form.description}
+                  onChange={(event) =>
+                    update("description", event.target.value)
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="tag-icon">{t("icon")}</Label>
+                <div className="relative">
+                  <Input
+                    id="tag-icon"
+                    value={form.icon}
+                    onChange={(event) => update("icon", event.target.value)}
+                    placeholder="Camera"
+                    className="pr-10"
+                  />
+                  <span
+                    className="absolute top-1/2 right-3 -translate-y-1/2"
+                    title={hasValidIcon ? form.icon : t("invalidIcon")}
+                  >
+                    {hasValidIcon ? (
+                      <TagIcon name={form.icon} size={17} />
+                    ) : (
+                      <span className="border-muted-foreground/50 block size-4 rounded-sm border" />
+                    )}
+                  </span>
+                </div>
+                <a
+                  href="https://lucide.dev/icons/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-primary text-sm hover:underline"
+                >
+                  {t("browseLucideIcons")}
+                </a>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="tag-page-title">{t("pageTitle")}</Label>
+                <Input
+                  id="tag-page-title"
+                  value={form.pageTitle}
+                  onChange={(event) => update("pageTitle", event.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="tag-page-content">{t("pageContent")}</Label>
+                <p className="text-muted-foreground text-sm">
+                  {t("pageContentHint")}
+                </p>
+                <Textarea
+                  id="tag-page-content"
+                  value={form.pageContent}
+                  onChange={(event) =>
+                    update("pageContent", event.target.value)
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="tag-internal-notes">{t("internalNotes")}</Label>
+                <Textarea
+                  id="tag-internal-notes"
+                  value={form.internalNotes}
+                  onChange={(event) =>
+                    update("internalNotes", event.target.value)
+                  }
+                />
+              </div>
+              <div className="flex items-start gap-3 rounded-md border px-4 py-3">
+                <Checkbox
+                  id="tag-unlisted"
+                  checked={form.unlisted}
+                  onCheckedChange={(checked) =>
+                    update("unlisted", checked === true)
+                  }
+                />
+                <div className="space-y-1">
+                  <Label htmlFor="tag-unlisted">{t("unlisted")}</Label>
+                  <p className="text-muted-foreground text-sm">
+                    {t("unlistedHint")}
+                  </p>
+                </div>
+              </div>
             </div>
-            <a
-              href="https://lucide.dev/icons/"
-              target="_blank"
-              rel="noreferrer"
-              className="text-primary text-sm hover:underline"
-            >
-              {t("browseLucideIcons")}
-            </a>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="tag-page-title">{t("pageTitle")}</Label>
-            <Input
-              id="tag-page-title"
-              value={form.pageTitle}
-              onChange={(event) => update("pageTitle", event.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="tag-page-content">{t("pageContent")}</Label>
-            <p className="text-muted-foreground text-sm">
-              {t("pageContentHint")}
-            </p>
-            <Textarea
-              id="tag-page-content"
-              value={form.pageContent}
-              onChange={(event) => update("pageContent", event.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="tag-internal-notes">{t("internalNotes")}</Label>
-            <Textarea
-              id="tag-internal-notes"
-              value={form.internalNotes}
-              onChange={(event) => update("internalNotes", event.target.value)}
-            />
-          </div>
-          <div className="flex items-start gap-3 rounded-md border px-4 py-3">
-            <Checkbox
-              id="tag-unlisted"
-              checked={form.unlisted}
-              onCheckedChange={(checked) =>
-                update("unlisted", checked === true)
-              }
-            />
-            <div className="space-y-1">
-              <Label htmlFor="tag-unlisted">{t("unlisted")}</Label>
-              <p className="text-muted-foreground text-sm">
-                {t("unlistedHint")}
-              </p>
-            </div>
+            <DialogFooter className="bg-background border-t px-6 py-4">
+              <Button onClick={onSave} disabled={isPending}>
+                {t("save")}
+              </Button>
+            </DialogFooter>
           </div>
         </div>
-        <DialogFooter>
-          <Button onClick={onSave} disabled={isPending}>
-            {t("save")}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function TagMetadataPreview({ form }: { form: FormState }) {
+  const t = useTranslations("tags");
+  const slug = form.slug.trim() || "…";
+  const { title, description } = resolveTagPageMetadata(
+    form,
+    t("tagPageDescription", { tag: form.name.trim() || "…" }),
+  );
+  const documentTitle = title ? `${title} | Sharply` : "Sharply";
+
+  return (
+    <section
+      aria-labelledby="tag-metadata-preview"
+      className="bg-background/70 space-y-2 rounded-md border p-4"
+    >
+      <p
+        id="tag-metadata-preview"
+        className="text-muted-foreground text-sm font-medium"
+      >
+        {t("metadataPreview")}
+      </p>
+      <div className="space-y-1.5">
+        <p className="truncate text-lg leading-6 font-medium text-blue-700 dark:text-blue-400">
+          {documentTitle}
+        </p>
+        <p className="text-sm text-emerald-700 dark:text-emerald-400">
+          sharplyphoto.com/tags/{slug}
+        </p>
+        <p className="text-muted-foreground text-sm leading-5">{description}</p>
+      </div>
+    </section>
   );
 }
 

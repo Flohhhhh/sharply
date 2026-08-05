@@ -33,9 +33,10 @@ mechanism.
 
 ## Public experience
 
-`/tags` is an ISR dictionary of listed tags. Cards link to the public tag page,
-show the tag icon, and use public page content when present, falling back to the
-short description.
+`/tags` is an ISR dictionary of listed tags. Visitors can filter the loaded
+dictionary by a tag's name, slug, title, or public copy. Cards link to the
+public tag page, show the tag icon, and use the public page title/content when
+present, falling back to the tag name and short description.
 
 The shared Gear navigation exposes `/tags` as **Collections**, described as a
 way to browse lists of gear. The link is available in the desktop and mobile
@@ -45,6 +46,12 @@ navigation menus and the footer Gear section.
 published gear. It deliberately never returns internal notes. The gear table
 supports local name/brand/slug search plus type and brand filters; it defaults
 to newest-first ordering and uses the shared gear-table columns.
+
+Each public tag page also supplies localized canonical metadata. The title uses
+the configured page title (or tag name), while the description uses the short
+page content (or short description) and falls back to a localized tag summary.
+The tag editor provides a live search-result preview using the same precedence
+and description-length limit as the public metadata.
 
 Gear detail pages show listed assigned tags in the sidebar below popularity.
 Tag chips include the optional icon and link to the public tag page. Unlisted

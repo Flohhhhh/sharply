@@ -599,6 +599,20 @@
           "electronic": "EVF（电子）"
         }
       },
+      "apertureProfile": {
+        "label": "Variable Aperture Profile",
+        "manage": "Manage profile",
+        "unavailable": "Available for zoom lenses with different wide and tele maximum apertures.",
+        "endpointHelp": "Endpoint values come from the lens focal length and maximum aperture fields.",
+        "focalLength": "Focal length",
+        "maximumAperture": "Maximum aperture",
+        "removePoint": "Remove profile point",
+        "addPoint": "Add point",
+        "cancel": "Cancel",
+        "save": "Save profile",
+        "invalid": "Each point must have a unique focal length within the lens range and a positive aperture.",
+        "viewDetails": "View profile details"
+      },
       "status": {
         "loading": "加载中...",
         "error": "错误：{error}",
@@ -1062,6 +1076,7 @@
             "minAperture": {
               "label": "最小光圈"
             },
+            "apertureProfileJson": { "label": "Variable Aperture Profile" },
             "numberDiaphragmBlades": {
               "label": "隔膜叶片数量"
             },
@@ -2240,6 +2255,7 @@
     "pageTitle": "Page title",
     "pageContent": "Page content",
     "pageContentHint": "Describe items that have this tag.",
+    "metadataPreview": "搜索预览",
     "internalNotes": "Internal notes",
     "publicStatus": "Public visibility",
     "listed": "Listed publicly",
@@ -2261,6 +2277,7 @@
     "assignedTags": "Assigned tags",
     "noAssignedTags": "No tags assigned yet.",
     "noMatchingTags": "No matching tags.",
+    "tagPageDescription": "浏览带有“{tag}”标签的摄影器材。",
     "noMatchingGear": "No matching gear.",
     "searchGear": "Search gear...",
     "assignedGear": "Assigned gear",

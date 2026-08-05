@@ -599,6 +599,20 @@
           "electronic": "EVF (elektronisch)"
         }
       },
+      "apertureProfile": {
+        "label": "Variable Aperture Profile",
+        "manage": "Manage profile",
+        "unavailable": "Available for zoom lenses with different wide and tele maximum apertures.",
+        "endpointHelp": "Endpoint values come from the lens focal length and maximum aperture fields.",
+        "focalLength": "Focal length",
+        "maximumAperture": "Maximum aperture",
+        "removePoint": "Remove profile point",
+        "addPoint": "Add point",
+        "cancel": "Cancel",
+        "save": "Save profile",
+        "invalid": "Each point must have a unique focal length within the lens range and a positive aperture.",
+        "viewDetails": "View profile details"
+      },
       "status": {
         "loading": "Lädt...",
         "error": "Fehler: {error}",
@@ -1062,6 +1076,7 @@
             "minAperture": {
               "label": "Kleinste Blendenöffnung"
             },
+            "apertureProfileJson": { "label": "Variable Aperture Profile" },
             "numberDiaphragmBlades": {
               "label": "Anzahl der Blendenlamellen"
             },
@@ -2240,6 +2255,7 @@
     "pageTitle": "Seitentitel",
     "pageContent": "Seiteninhalt",
     "pageContentHint": "Beschreibe Elemente, die dieses Tag haben.",
+    "metadataPreview": "Suchvorschau",
     "internalNotes": "Interne Notizen",
     "publicStatus": "Öffentliche Sichtbarkeit",
     "listed": "Öffentlich gelistet",
@@ -2261,6 +2277,7 @@
     "assignedTags": "Zugewiesene Tags",
     "noAssignedTags": "Noch keine Tags zugewiesen.",
     "noMatchingTags": "Keine passenden Tags.",
+    "tagPageDescription": "Fotografieausrüstung mit dem Tag „{tag}“ durchsuchen.",
     "noMatchingGear": "Keine passende Ausrüstung.",
     "searchGear": "Ausrüstung suchen...",
     "assignedGear": "Zugewiesene Ausrüstung",

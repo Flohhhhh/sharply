@@ -599,6 +599,20 @@
           "electronic": "EVF (electrónico)"
         }
       },
+      "apertureProfile": {
+        "label": "Variable Aperture Profile",
+        "manage": "Manage profile",
+        "unavailable": "Available for zoom lenses with different wide and tele maximum apertures.",
+        "endpointHelp": "Endpoint values come from the lens focal length and maximum aperture fields.",
+        "focalLength": "Focal length",
+        "maximumAperture": "Maximum aperture",
+        "removePoint": "Remove profile point",
+        "addPoint": "Add point",
+        "cancel": "Cancel",
+        "save": "Save profile",
+        "invalid": "Each point must have a unique focal length within the lens range and a positive aperture.",
+        "viewDetails": "View profile details"
+      },
       "status": {
         "loading": "Cargando...",
         "error": "Error: {error}",
@@ -1062,6 +1076,7 @@
             "minAperture": {
               "label": "Apertura mínima"
             },
+            "apertureProfileJson": { "label": "Variable Aperture Profile" },
             "numberDiaphragmBlades": {
               "label": "Número de láminas del diafragma"
             },
@@ -2240,6 +2255,7 @@
     "pageTitle": "Título de la página",
     "pageContent": "Contenido de la página",
     "pageContentHint": "Describe elementos que tienen esta etiqueta.",
+    "metadataPreview": "Vista previa de búsqueda",
     "internalNotes": "Notas internas",
     "publicStatus": "Visibilidad pública",
     "listed": "Listado públicamente",
@@ -2261,6 +2277,7 @@
     "assignedTags": "Etiquetas asignadas",
     "noAssignedTags": "Aún no hay etiquetas asignadas.",
     "noMatchingTags": "No hay etiquetas coincidentes.",
+    "tagPageDescription": "Explora equipo fotográfico con la etiqueta {tag}.",
     "noMatchingGear": "No hay equipo coincidente.",
     "searchGear": "Buscar equipo...",
     "assignedGear": "Equipo asignado",
