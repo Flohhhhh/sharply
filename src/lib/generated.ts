@@ -241,21 +241,25 @@ export const MOUNTS = [
     "created_at": "2025-12-09 17:19:07.960016+00",
     "updated_at": "2025-12-09 17:19:07.960016+00",
     "short_name": "v"
+  },
+  {
+    "id": "1555c3ee-35b1-4067-bbd8-004d352acfdb",
+    "value": "dl-dji",
+    "brand_id": "e45a3ace-dfc4-47ae-ae90-202645bccd5d",
+    "created_at": "2026-07-24 15:23:29.687134+00",
+    "updated_at": "2026-07-24 15:23:29.687134+00",
+    "short_name": "dl"
+  },
+  {
+    "id": "d7dfed30-7511-44c8-a460-cd5f911639bf",
+    "value": "pl-arri",
+    "brand_id": "98ba2096-308b-4e4b-850b-41892ea65351",
+    "created_at": "2026-07-24 15:21:14.209812+00",
+    "updated_at": "2026-07-24 15:21:14.209812+00",
+    "short_name": "pl"
   }
 ];
 export const SENSOR_FORMATS = [
-  {
-    "id": "0d97617b-ec5a-47d6-bd60-010b3337e375",
-    "name": "1/5\"",
-    "slug": "fifth-inch",
-    "crop_factor": "11.50",
-    "description": null,
-    "created_at": "2026-01-11 00:36:54.959034+00",
-    "updated_at": "2026-01-11 00:36:54.959034+00",
-    "width_mm": null,
-    "height_mm": null,
-    "area_mm_2": null
-  },
   {
     "id": "ac4bc86d-501a-4eec-9817-d17a3b2d37a0",
     "name": "Cinema Large Format",
@@ -353,18 +357,6 @@ export const SENSOR_FORMATS = [
     "area_mm_2": "332.30"
   },
   {
-    "id": "a5b24cc2-4b36-47d4-8765-777a5c2e10ca",
-    "name": "1\"",
-    "slug": "1-inch",
-    "crop_factor": "2.70",
-    "description": "Compact cameras",
-    "created_at": "2025-08-19 01:55:28.397056+00",
-    "updated_at": "2025-08-19 01:55:28.397056+00",
-    "width_mm": "13.20",
-    "height_mm": "8.80",
-    "area_mm_2": "116.20"
-  },
-  {
     "id": "670ac585-aa5d-4e4d-88a0-c6ee2f7e036e",
     "name": "Leica Medium Format",
     "slug": "medium-format-45x30",
@@ -387,6 +379,42 @@ export const SENSOR_FORMATS = [
     "width_mm": null,
     "height_mm": null,
     "area_mm_2": null
+  },
+  {
+    "id": "5956bef2-269a-47f9-af32-e6563c2070b7",
+    "name": "1/1.3\"",
+    "slug": "1-1-3-inch",
+    "crop_factor": "3.60",
+    "description": "Action cameras, smartphones",
+    "created_at": "2026-07-12 12:13:31.593124+00",
+    "updated_at": "2026-07-12 12:13:31.593124+00",
+    "width_mm": null,
+    "height_mm": null,
+    "area_mm_2": null
+  },
+  {
+    "id": "0d97617b-ec5a-47d6-bd60-010b3337e375",
+    "name": "1/5\"",
+    "slug": "fifth-inch",
+    "crop_factor": "11.50",
+    "description": "Phones and compact devices",
+    "created_at": "2026-01-11 00:36:54.959034+00",
+    "updated_at": "2026-01-11 00:36:54.959034+00",
+    "width_mm": null,
+    "height_mm": null,
+    "area_mm_2": null
+  },
+  {
+    "id": "a5b24cc2-4b36-47d4-8765-777a5c2e10ca",
+    "name": "1\"",
+    "slug": "1-inch",
+    "crop_factor": "2.70",
+    "description": "Compact cameras, and high-end phones and action cameras.",
+    "created_at": "2025-08-19 01:55:28.397056+00",
+    "updated_at": "2025-08-19 01:55:28.397056+00",
+    "width_mm": "13.20",
+    "height_mm": "8.80",
+    "area_mm_2": "116.20"
   }
 ];
 export const BRANDS = [
@@ -476,14 +504,6 @@ export const BRANDS = [
     "slug": "meike",
     "created_at": "2025-08-19 01:55:21.910307+00",
     "updated_at": "2025-08-19 01:55:21.910307+00",
-    "sort_order": null
-  },
-  {
-    "id": "216afe1e-7c64-4a0a-8e27-77cd6b4ff0a9",
-    "name": "Samyang/Rokinon",
-    "slug": "samyang",
-    "created_at": "2025-08-19 01:55:22.145443+00",
-    "updated_at": "2025-08-19 01:55:22.145443+00",
     "sort_order": null
   },
   {
@@ -748,6 +768,38 @@ export const BRANDS = [
     "slug": "blazar",
     "created_at": "2026-07-02 21:23:18.341268+00",
     "updated_at": "2026-07-02 21:23:18.341268+00",
+    "sort_order": null
+  },
+  {
+    "id": "336364c9-3de3-4060-84c5-be7469d41e7a",
+    "name": "C4 Precision Optics",
+    "slug": "c4-precision-optics",
+    "created_at": "2026-07-07 20:56:10.748815+00",
+    "updated_at": "2026-07-07 20:56:10.748815+00",
+    "sort_order": null
+  },
+  {
+    "id": "4a419324-e4cb-42a7-9249-51a6a81fcd6b",
+    "name": "Epson",
+    "slug": "epson",
+    "created_at": "2026-07-09 00:08:31.008952+00",
+    "updated_at": "2026-07-09 00:08:31.008952+00",
+    "sort_order": null
+  },
+  {
+    "id": "67ea3933-8e31-4100-85bd-480868d258a0",
+    "name": "Insta360",
+    "slug": "insta360",
+    "created_at": "2026-07-12 11:57:14.171051+00",
+    "updated_at": "2026-07-12 11:57:14.171051+00",
+    "sort_order": null
+  },
+  {
+    "id": "216afe1e-7c64-4a0a-8e27-77cd6b4ff0a9",
+    "name": "Samyang",
+    "slug": "samyang",
+    "created_at": "2025-08-19 01:55:22.145443+00",
+    "updated_at": "2025-08-19 01:55:22.145443+00",
     "sort_order": null
   }
 ];
@@ -1415,6 +1467,7 @@ export const ENUMS = {
   ],
   "gear_region": [
     "GLOBAL",
+    "US",
     "EU",
     "JP"
   ],

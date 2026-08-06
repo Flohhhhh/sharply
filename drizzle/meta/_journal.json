@@ -204,6 +204,13 @@
       "when": 1785034192573,
       "tag": "0028_workable_red_wolf",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1786033429884,
+      "tag": "0029_pink_punisher",
+      "breakpoints": true
     }
   ]
 }
