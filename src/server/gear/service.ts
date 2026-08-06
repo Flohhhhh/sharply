@@ -1225,14 +1225,16 @@ export async function submitGearEditProposal(body: unknown) {
     gearSlug: gearMeta?.slug ?? data.slug ?? gearId,
   };
   let currentGearItem: GearItem | undefined;
-  const submittedProfile = normalizedPayload.lens?.apertureProfileJson;
-  if (submittedProfile !== undefined && submittedProfile !== null) {
+  const lensChanges = normalizedPayload.lens as
+    | Record<string, unknown>
+    | undefined;
+  const submittedProfile = lensChanges?.apertureProfileJson;
+  if (lensChanges && submittedProfile !== null) {
     currentGearItem = await fetchGearBySlugData(gearContext.gearSlug);
     const currentLens = currentGearItem?.lensSpecs as
       | Record<string, unknown>
       | null
       | undefined;
-    const lensChanges = normalizedPayload.lens as Record<string, unknown>;
     const effectiveLensValue = (key: string) =>
       Object.hasOwn(lensChanges, key) ? lensChanges[key] : currentLens?.[key];
     const apertureEndpointValue = (key: string) => {
@@ -1254,9 +1256,15 @@ export async function submitGearEditProposal(body: unknown) {
       maxApertureWide: apertureEndpointValue("maxApertureWide"),
       maxApertureTele: apertureEndpointValue("maxApertureTele"),
     });
-    const profile = normalizeApertureProfile(submittedProfile, endpoints);
-    if (!profile || profile.length < 3) {
-      throw Object.assign(new Error("Invalid aperture profile"), { status: 400 });
+    const profileToValidate =
+      submittedProfile ?? currentLens?.apertureProfileJson;
+    if (profileToValidate !== undefined) {
+      const profile = normalizeApertureProfile(profileToValidate, endpoints);
+      if (!profile || profile.length < 3) {
+        throw Object.assign(new Error("Invalid aperture profile"), {
+          status: 400,
+        });
+      }
     }
   }
   if (!requireRole(user, ["EDITOR"])) {

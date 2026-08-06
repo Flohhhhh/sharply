@@ -61,8 +61,8 @@ tags are not exposed on public gear pages.
 
 The database is the source of truth. Public dictionary and detail routes use a
 60-second ISR window. Admin mutations revalidate the affected dictionary and
-tag routes immediately; assignment changes also revalidate the affected public
-tag page and gear page.
+tag routes immediately for every supported locale; assignment changes also
+revalidate the affected public tag page and gear page in every locale.
 
 ## Intentionally not implemented
 
