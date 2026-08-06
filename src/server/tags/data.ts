@@ -5,6 +5,7 @@ import { db } from "~/server/db";
 import { brands, gear, gearTags, tags } from "~/server/db/schema";
 
 export type TagRow = typeof tags.$inferSelect;
+export type EditorTagRow = Omit<TagRow, "unlisted">;
 
 export type AdminTagRow = TagRow & {
   assignedGearCount: number;
@@ -29,8 +30,21 @@ export type PublicTagRow = Pick<
   "id" | "name" | "slug" | "description" | "icon" | "pageTitle" | "pageContent"
 >;
 
-export async function fetchTagsData(): Promise<TagRow[]> {
-  return db.select().from(tags).orderBy(asc(tags.name));
+const editorTagSelection = {
+  id: tags.id,
+  name: tags.name,
+  slug: tags.slug,
+  description: tags.description,
+  icon: tags.icon,
+  pageTitle: tags.pageTitle,
+  pageContent: tags.pageContent,
+  internalNotes: tags.internalNotes,
+  createdAt: tags.createdAt,
+  updatedAt: tags.updatedAt,
+};
+
+export async function fetchTagsData(): Promise<EditorTagRow[]> {
+  return db.select(editorTagSelection).from(tags).orderBy(asc(tags.name));
 }
 
 export async function fetchAdminTagsData(): Promise<AdminTagRow[]> {
@@ -201,21 +215,11 @@ export async function removeTagFromGearData(params: {
     );
 }
 
-export async function fetchTagsByGearIdData(gearId: string): Promise<TagRow[]> {
+export async function fetchTagsByGearIdData(
+  gearId: string,
+): Promise<EditorTagRow[]> {
   return db
-    .select({
-      id: tags.id,
-      name: tags.name,
-      slug: tags.slug,
-      description: tags.description,
-      icon: tags.icon,
-      pageTitle: tags.pageTitle,
-      pageContent: tags.pageContent,
-      internalNotes: tags.internalNotes,
-      unlisted: tags.unlisted,
-      createdAt: tags.createdAt,
-      updatedAt: tags.updatedAt,
-    })
+    .select(editorTagSelection)
     .from(gearTags)
     .innerJoin(tags, eq(gearTags.tagId, tags.id))
     .where(eq(gearTags.gearId, gearId))

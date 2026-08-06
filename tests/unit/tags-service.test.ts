@@ -2,6 +2,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   requireRole: vi.fn().mockReturnValue(true),
+  fetchAdminTagsData: vi.fn(),
+  fetchTagsByGearIdData: vi.fn(),
+  fetchTagsData: vi.fn(),
+  assignTagToGearData: vi.fn(),
+  removeTagFromGearData: vi.fn(),
+  fetchTagByIdData: vi.fn(),
+  findGearByIdData: vi.fn(),
   insertTagData: vi.fn(),
   updateTagData: vi.fn(),
   countTagAssignmentsData: vi.fn(),
@@ -19,22 +26,31 @@ vi.mock("~/server/gear/listing-table-service", () => ({
   attachGearListingTableFields: vi.fn(),
 }));
 vi.mock("~/server/tags/data", () => ({
-  assignTagToGearData: vi.fn(),
+  assignTagToGearData: mocks.assignTagToGearData,
   countTagAssignmentsData: mocks.countTagAssignmentsData,
   deleteTagData: mocks.deleteTagData,
-  fetchAdminTagsData: vi.fn(),
+  fetchAdminTagsData: mocks.fetchAdminTagsData,
   fetchGearByTagIdData: vi.fn(),
-  fetchTagByIdData: vi.fn(),
-  fetchTagsByGearIdData: vi.fn(),
-  fetchTagsData: vi.fn(),
-  findGearByIdData: vi.fn(),
+  fetchTagByIdData: mocks.fetchTagByIdData,
+  fetchTagsByGearIdData: mocks.fetchTagsByGearIdData,
+  fetchTagsData: mocks.fetchTagsData,
+  findGearByIdData: mocks.findGearByIdData,
   insertTagData: mocks.insertTagData,
-  removeTagFromGearData: vi.fn(),
+  removeTagFromGearData: mocks.removeTagFromGearData,
   searchGearForTagAssignmentData: vi.fn(),
   updateTagData: mocks.updateTagData,
 }));
 
-import { createTag, deleteTag, updateTag } from "~/server/tags/service";
+import {
+  assignTagToGear,
+  createTag,
+  deleteTag,
+  fetchAdminTags,
+  fetchGearTagsForEditor,
+  fetchTagsForEditor,
+  removeTagFromGear,
+  updateTag,
+} from "~/server/tags/service";
 
 describe("tag service", () => {
   beforeEach(() => {
@@ -65,7 +81,75 @@ describe("tag service", () => {
     ]);
   });
 
-  it("rejects tag mutations without an admin role", async () => {
+  it("returns only the editor-safe list and assigned tag rows", async () => {
+    const tag = { id: "tag-1", name: "Wildlife", slug: "wildlife" };
+    mocks.fetchTagsData.mockResolvedValue([tag]);
+    mocks.fetchTagsByGearIdData.mockResolvedValue([tag]);
+
+    await expect(fetchTagsForEditor()).resolves.toEqual([tag]);
+    await expect(fetchGearTagsForEditor("gear-1")).resolves.toEqual([tag]);
+    expect(mocks.fetchTagsData).toHaveBeenCalledOnce();
+    expect(mocks.fetchTagsByGearIdData).toHaveBeenCalledWith("gear-1");
+  });
+
+  it("prevents editors from reading the full admin tag list", async () => {
+    mocks.requireRole.mockReturnValueOnce(true).mockReturnValueOnce(false);
+
+    await expect(fetchAdminTags()).rejects.toThrow("Unauthorized");
+    expect(mocks.fetchAdminTagsData).not.toHaveBeenCalled();
+  });
+
+  it("creates editor tags as unlisted without internal notes", async () => {
+    mocks.requireRole.mockReturnValueOnce(true).mockReturnValueOnce(false);
+    mocks.insertTagData.mockResolvedValue({
+      id: "tag-1",
+      name: "Wildlife",
+      slug: "wildlife",
+      description: null,
+      icon: null,
+      pageTitle: null,
+      pageContent: null,
+      internalNotes: null,
+      unlisted: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const tag = await createTag({
+      name: "Wildlife",
+      slug: "wildlife",
+      internalNotes: "attempted override",
+      unlisted: false,
+    });
+
+    expect(mocks.insertTagData).toHaveBeenCalledWith(
+      expect.objectContaining({ internalNotes: null, unlisted: true }),
+    );
+    expect(tag).toHaveProperty("internalNotes", null);
+    expect(tag).not.toHaveProperty("unlisted");
+  });
+
+  it("allows editors to manage tag assignments", async () => {
+    mocks.fetchTagByIdData.mockResolvedValue({ id: "tag-1", slug: "wildlife" });
+    mocks.findGearByIdData.mockResolvedValue({
+      id: "gear-1",
+      slug: "nikon-zf",
+    });
+
+    await assignTagToGear({ gearId: "gear-1", tagId: "tag-1" });
+    await removeTagFromGear({ gearId: "gear-1", tagId: "tag-1" });
+
+    expect(mocks.assignTagToGearData).toHaveBeenCalledWith({
+      gearId: "gear-1",
+      tagId: "tag-1",
+    });
+    expect(mocks.removeTagFromGearData).toHaveBeenCalledWith({
+      gearId: "gear-1",
+      tagId: "tag-1",
+    });
+  });
+
+  it("rejects tag creation without an editor role", async () => {
     mocks.requireRole.mockReturnValueOnce(false);
 
     await expect(
@@ -85,6 +169,22 @@ describe("tag service", () => {
     expect(mocks.updateTagData).toHaveBeenCalledWith(
       expect.objectContaining({ id: "tag-1", unlisted: true }),
     );
+  });
+
+  it("keeps updates admin-only", async () => {
+    mocks.requireRole.mockReturnValueOnce(true).mockReturnValueOnce(false);
+
+    await expect(updateTag("tag-1", { name: "Wildlife" })).rejects.toThrow(
+      "Unauthorized",
+    );
+    expect(mocks.updateTagData).not.toHaveBeenCalled();
+  });
+
+  it("keeps deletion admin-only", async () => {
+    mocks.requireRole.mockReturnValueOnce(true).mockReturnValueOnce(false);
+
+    await expect(deleteTag("tag-1")).rejects.toThrow("Unauthorized");
+    expect(mocks.countTagAssignmentsData).not.toHaveBeenCalled();
   });
 
   it("rejects invalid slugs before writing", async () => {

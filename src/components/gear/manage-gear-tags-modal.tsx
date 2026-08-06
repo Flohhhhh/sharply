@@ -21,9 +21,12 @@ import {
   actionAssignTagToGear,
   actionRemoveTagFromGear,
 } from "~/server/tags/actions";
-import type { TagRow } from "~/server/tags/service";
+import type { EditorTagRow } from "~/server/tags/service";
 
-type TagResponse = { tags: TagRow[]; assignedTags: TagRow[] };
+type TagResponse = {
+  tags: EditorTagRow[];
+  assignedTags: EditorTagRow[];
+};
 
 export function ManageGearTagsModal({
   gearId,
@@ -139,7 +142,14 @@ export function ManageGearTagsModal({
                     onClick={() => assign(tag.id)}
                     className="hover:bg-muted flex w-full items-center gap-2 px-3 py-2 text-left text-sm disabled:opacity-50"
                   >
-                    <span>{tag.name}</span>
+                    <span className="min-w-0">
+                      <span className="block">{tag.name}</span>
+                      {tag.internalNotes ? (
+                        <span className="text-muted-foreground block truncate text-xs">
+                          {tag.internalNotes}
+                        </span>
+                      ) : null}
+                    </span>
                     <span className="text-muted-foreground ml-auto text-xs">
                       {tag.slug}
                     </span>
@@ -170,7 +180,7 @@ export function ManageGearTagsTrigger({
       trigger={
         <button
           type="button"
-          className="hover:bg-accent/80 flex h-10 w-10 items-center justify-center rounded-full transition-all hover:cursor-pointer hover:border"
+          className="hover:bg-accent/80 flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:cursor-pointer hover:border"
           aria-label={t("manageGearTitle")}
         >
           <Tags className="text-foreground/70 size-4.5" />

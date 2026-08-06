@@ -9,18 +9,25 @@ focal length, weight, or sensor format.
 - `tags` stores a stable name and immutable URL-safe slug, short description,
   optional Lucide icon name, optional public page title/content, private
   internal notes, and `unlisted` visibility.
-- `unlisted` defaults to `false`. Unlisted tags remain visible to authenticated
-  tag viewers, but are excluded from `/tags` and public `/tags/[slug]` routes.
+- `unlisted` defaults to `false`. Unlisted tags are excluded from `/tags` and
+  public `/tags/[slug]` routes. Its state is visible only to administrators;
+  internal notes are available to editors as assignment guidance.
 - `gear_tags` is a unique gear-to-tag junction. A gear item can have many tags,
   but cannot receive the same tag twice. Deleting gear cascades its assignments;
   a tag with assignments cannot be deleted.
 
 ## Roles and administration
 
-Editors can open `/admin/tags`, search, and inspect the tag table. Only admins
-can create, update, delete, or assign tags. The admin list uses hover actions,
-shows public visibility, links listed names to their public page, and displays
-the configured tag icon beside the name.
+Editors can open `/admin/tags`, search the safe tag table, create new tags, and
+manage tag assignments on gear. Editor-created tags are forced unlisted until
+an admin reviews and publishes them. Editors receive internal notes for
+assignment context but never visibility state, and cannot edit or delete
+existing tags.
+
+Admins retain full tag control: they can create, update, delete, publish, and
+manage assignments. The admin list uses hover actions, shows public visibility,
+links listed names to their public page, and displays the configured tag icon
+beside the name.
 
 The admin form supports all currently implemented tag fields. Icon values are
 plain Lucide names (for example, `Camera` or `circle-dot`); the form links to

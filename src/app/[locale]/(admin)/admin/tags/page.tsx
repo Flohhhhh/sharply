@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "~/auth";
 import { requireRole } from "~/lib/auth/auth-helpers";
-import { fetchAdminTags } from "~/server/tags/service";
+import { fetchAdminTags, fetchTagsForEditor } from "~/server/tags/service";
 import { TagsManager } from "./tags-manager";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +12,7 @@ export default async function TagsPage() {
   if (!session?.user || !requireRole(session.user, ["EDITOR"]))
     redirect("/admin");
   const canManage = requireRole(session.user, ["ADMIN"]);
-  const tags = await fetchAdminTags();
+  const tags = canManage ? await fetchAdminTags() : await fetchTagsForEditor();
   return (
     <div className="space-y-6">
       <div className="space-y-2">

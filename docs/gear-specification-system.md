@@ -79,10 +79,12 @@ tags without duplicate assignments.
 - **Public content**: A tag can include a short description, public page title,
   public page content, and an optional Lucide icon name for the dictionary,
   tag page, and gear tag chip.
-- **Visibility**: `tags.unlisted` defaults to `false`. When true, editors can
-  still manage the tag and its gear assignments, while public dictionary and
-  tag-page queries exclude it.
-- **Private content**: Internal notes are never selected by public tag queries.
+- **Visibility**: `tags.unlisted` defaults to `false`. Editor-created tags are
+  forced unlisted; administrators control publication. Public dictionary and
+  tag-page queries exclude unlisted tags.
+- **Private content**: Visibility state is never selected by public or editor
+  tag queries. Internal notes are never public, but are available to editors
+  as assignment guidance.
 
 #### `gear_exif_aliases` - EXIF Metadata Model Aliases
 

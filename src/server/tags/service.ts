@@ -23,8 +23,15 @@ import {
   searchGearForTagAssignmentData,
   updateTagData,
 } from "./data";
+import type { EditorTagRow, TagRow } from "./data";
 
-export type { AdminTagRow, TagGearRow, TagRow, PublicTagRow } from "./data";
+export type {
+  AdminTagRow,
+  EditorTagRow,
+  TagGearRow,
+  TagRow,
+  PublicTagRow,
+} from "./data";
 
 const createTagSchema = z.object({
   name: z.string().trim().min(1).max(120),
@@ -46,16 +53,21 @@ const createTagSchema = z.object({
 const updateTagSchema = createTagSchema
   .omit({ slug: true, unlisted: true })
   .extend({ unlisted: z.boolean().optional() });
+const editorCreateTagSchema = createTagSchema.omit({
+  internalNotes: true,
+  unlisted: true,
+});
 
 async function requireTagViewer() {
   const session = await getSessionOrThrow();
   if (!requireRole(session.user, ["EDITOR"])) {
     throw Object.assign(new Error("Unauthorized"), { status: 403 });
   }
+  return session;
 }
 
 async function requireTagAdmin() {
-  const session = await getSessionOrThrow();
+  const session = await requireTagViewer();
   if (!requireRole(session.user, ["ADMIN"])) {
     throw Object.assign(new Error("Unauthorized"), { status: 403 });
   }
@@ -66,13 +78,28 @@ function nullable(value: string | undefined) {
   return trimmed ? trimmed : null;
 }
 
+function editorTagRow(tag: TagRow): EditorTagRow {
+  return {
+    id: tag.id,
+    name: tag.name,
+    slug: tag.slug,
+    description: tag.description,
+    icon: tag.icon,
+    pageTitle: tag.pageTitle,
+    pageContent: tag.pageContent,
+    internalNotes: tag.internalNotes,
+    createdAt: tag.createdAt,
+    updatedAt: tag.updatedAt,
+  };
+}
+
 export async function fetchTagsForEditor() {
   await requireTagViewer();
   return fetchTagsData();
 }
 
 export async function fetchAdminTags() {
-  await requireTagViewer();
+  await requireTagAdmin();
   return fetchAdminTagsData();
 }
 
@@ -92,17 +119,32 @@ export async function searchGearForTagAssignment(query: string) {
 }
 
 export async function createTag(input: unknown) {
-  await requireTagAdmin();
-  const parsed = createTagSchema.parse(input);
-  return insertTagData({
-    ...parsed,
-    description: nullable(parsed.description),
-    icon: nullable(parsed.icon),
-    pageTitle: nullable(parsed.pageTitle),
-    pageContent: nullable(parsed.pageContent),
-    internalNotes: nullable(parsed.internalNotes),
-    unlisted: parsed.unlisted,
-  });
+  const session = await requireTagViewer();
+  if (requireRole(session.user, ["ADMIN"])) {
+    const parsed = createTagSchema.parse(input);
+    return insertTagData({
+      ...parsed,
+      description: nullable(parsed.description),
+      icon: nullable(parsed.icon),
+      pageTitle: nullable(parsed.pageTitle),
+      pageContent: nullable(parsed.pageContent),
+      internalNotes: nullable(parsed.internalNotes),
+      unlisted: parsed.unlisted,
+    });
+  }
+
+  const parsed = editorCreateTagSchema.parse(input);
+  return editorTagRow(
+    await insertTagData({
+      ...parsed,
+      description: nullable(parsed.description),
+      icon: nullable(parsed.icon),
+      pageTitle: nullable(parsed.pageTitle),
+      pageContent: nullable(parsed.pageContent),
+      internalNotes: null,
+      unlisted: true,
+    }),
+  );
 }
 
 export async function updateTag(id: string, input: unknown) {
@@ -161,7 +203,7 @@ export async function assignTagToGear(params: {
   gearId: string;
   tagId: string;
 }) {
-  await requireTagAdmin();
+  await requireTagViewer();
   const [tag, gear] = await Promise.all([
     fetchTagByIdData(params.tagId),
     findGearByIdData(params.gearId),
@@ -176,7 +218,7 @@ export async function removeTagFromGear(params: {
   gearId: string;
   tagId: string;
 }) {
-  await requireTagAdmin();
+  await requireTagViewer();
   const [tag, gear] = await Promise.all([
     fetchTagByIdData(params.tagId),
     findGearByIdData(params.gearId),

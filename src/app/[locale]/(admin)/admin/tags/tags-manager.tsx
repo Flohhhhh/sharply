@@ -32,7 +32,11 @@ import {
   actionRemoveTagFromGear,
   actionUpdateTag,
 } from "~/server/tags/actions";
-import type { AdminTagRow, TagGearRow } from "~/server/tags/service";
+import type {
+  AdminTagRow,
+  EditorTagRow,
+  TagGearRow,
+} from "~/server/tags/service";
 import { fetchJson } from "~/lib/fetch-json";
 
 type FormState = {
@@ -98,14 +102,12 @@ const ADMIN_TAG_TEXT: Record<string, string> = {
   slug: "Slug",
   tagPageDescription: "Browse photography gear tagged {tag}.",
   unlisted: "Unlisted",
-  unlistedHint: "Hide this tag from the dictionary and disable its public page.",
+  unlistedHint:
+    "Hide this tag from the dictionary and disable its public page.",
   updated: "Tag updated",
 };
 
-function adminTagText(
-  key: string,
-  values?: Record<string, string | number>,
-) {
+function adminTagText(key: string, values?: Record<string, string | number>) {
   const template = ADMIN_TAG_TEXT[key] ?? key;
   return values
     ? template.replace(/\{(\w+)\}/g, (_, name: string) =>
@@ -115,6 +117,11 @@ function adminTagText(
 }
 
 type GearResponse = { gear: TagGearRow[] };
+type TagListRow = AdminTagRow | EditorTagRow;
+
+function isAdminTagRow(tag: TagListRow): tag is AdminTagRow {
+  return "unlisted" in tag;
+}
 
 function tagForm(tag?: AdminTagRow | null): FormState {
   return tag
@@ -135,7 +142,7 @@ export function TagsManager({
   initialTags,
   canManage,
 }: {
-  initialTags: AdminTagRow[];
+  initialTags: TagListRow[];
   canManage: boolean;
 }) {
   const t = adminTagText;
@@ -144,7 +151,7 @@ export function TagsManager({
   const [editing, setEditing] = useState<AdminTagRow | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [formOpen, setFormOpen] = useState(false);
-  const [assignmentTag, setAssignmentTag] = useState<AdminTagRow | null>(null);
+  const [assignmentTag, setAssignmentTag] = useState<TagListRow | null>(null);
   const [isPending, startTransition] = useTransition();
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -158,9 +165,7 @@ export function TagsManager({
         );
   }, [initialTags, query]);
   const { data: assigned, mutate: mutateAssigned } = useSWR<GearResponse>(
-    canManage && assignmentTag
-      ? `/api/admin/tags/${assignmentTag.id}/gear`
-      : null,
+    assignmentTag ? `/api/admin/tags/${assignmentTag.id}/gear` : null,
     fetchJson,
     { revalidateOnFocus: false },
   );
@@ -181,7 +186,15 @@ export function TagsManager({
           await actionUpdateTag(editing.id, form);
           toast.success(t("updated"));
         } else {
-          await actionCreateTag(form);
+          const publicFields = {
+            name: form.name,
+            slug: form.slug,
+            description: form.description,
+            icon: form.icon,
+            pageTitle: form.pageTitle,
+            pageContent: form.pageContent,
+          };
+          await actionCreateTag(canManage ? form : publicFields);
           toast.success(t("created"));
         }
         setFormOpen(false);
@@ -244,12 +257,10 @@ export function TagsManager({
             className="pl-9"
           />
         </div>
-        {canManage ? (
-          <Button onClick={openCreate}>
-            <Plus className="size-4" />
-            {t("create")}
-          </Button>
-        ) : null}
+        <Button onClick={openCreate}>
+          <Plus className="size-4" />
+          {t("create")}
+        </Button>
       </div>
       <div className="overflow-hidden rounded-md border">
         <table className="w-full text-sm">
@@ -262,24 +273,26 @@ export function TagsManager({
               <th className="hidden px-4 py-3 text-left font-medium lg:table-cell">
                 {t("description")}
               </th>
-              <th className="w-12 px-4 py-3 text-center">
-                <span className="sr-only">{t("publicStatus")}</span>
-              </th>
-              <th className="px-4 py-3 text-right font-medium">
-                {t("gearCount")}
-              </th>
               {canManage ? (
-                <th className="w-28 px-4 py-3 text-right">
-                  <span className="sr-only">{t("actions")}</span>
-                </th>
+                <>
+                  <th className="w-12 px-4 py-3 text-center">
+                    <span className="sr-only">{t("publicStatus")}</span>
+                  </th>
+                  <th className="px-4 py-3 text-right font-medium">
+                    {t("gearCount")}
+                  </th>
+                </>
               ) : null}
+              <th className="w-28 px-4 py-3 text-right">
+                <span className="sr-only">{t("actions")}</span>
+              </th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
               <tr>
                 <td
-                  colSpan={canManage ? 6 : 5}
+                  colSpan={canManage ? 6 : 4}
                   className="text-muted-foreground px-4 py-10 text-center"
                 >
                   {t("noTags")}
@@ -291,15 +304,15 @@ export function TagsManager({
                   <td className="px-4 py-3">
                     <span className="flex items-center gap-2 font-medium">
                       <TagIcon name={tag.icon} size={16} />
-                      {tag.unlisted ? (
-                        tag.name
-                      ) : (
+                      {canManage && isAdminTagRow(tag) && !tag.unlisted ? (
                         <Link
                           href={`/tags/${tag.slug}`}
                           className="hover:text-primary hover:underline"
                         >
                           {tag.name}
                         </Link>
+                      ) : (
+                        tag.name
                       )}
                     </span>
                   </td>
@@ -309,80 +322,83 @@ export function TagsManager({
                   <td className="text-muted-foreground hidden max-w-md truncate px-4 py-3 lg:table-cell">
                     {tag.description || "—"}
                   </td>
-                  <td className="px-4 py-3 text-center">
-                    {tag.unlisted ? (
-                      <EyeOff
-                        className="text-muted-foreground mx-auto size-4"
-                        aria-label={t("unlisted")}
-                      />
-                    ) : (
-                      <Eye
-                        className="mx-auto size-4"
-                        aria-label={t("listed")}
-                      />
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums">
-                    {tag.assignedGearCount}
-                  </td>
-                  {canManage ? (
-                    <td className="px-4 py-3">
-                      <div className="flex justify-end gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          aria-label={t("manageAssignments")}
-                          onClick={() => setAssignmentTag(tag)}
-                        >
-                          <Tags className="size-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          aria-label={t("edit")}
-                          onClick={() => openEdit(tag)}
-                        >
-                          <Edit className="size-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          aria-label={t("delete")}
-                          disabled={tag.assignedGearCount > 0 || isPending}
-                          onClick={() => removeTag(tag)}
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
-                      </div>
-                    </td>
+                  {canManage && isAdminTagRow(tag) ? (
+                    <>
+                      <td className="px-4 py-3 text-center">
+                        {tag.unlisted ? (
+                          <EyeOff
+                            className="text-muted-foreground mx-auto size-4"
+                            aria-label={t("unlisted")}
+                          />
+                        ) : (
+                          <Eye
+                            className="mx-auto size-4"
+                            aria-label={t("listed")}
+                          />
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums">
+                        {tag.assignedGearCount}
+                      </td>
+                    </>
                   ) : null}
+                  <td className="px-4 py-3">
+                    <div className="flex justify-end gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={t("manageAssignments")}
+                        onClick={() => setAssignmentTag(tag)}
+                      >
+                        <Tags className="size-4" />
+                      </Button>
+                      {canManage && isAdminTagRow(tag) ? (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label={t("edit")}
+                            onClick={() => openEdit(tag)}
+                          >
+                            <Edit className="size-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label={t("delete")}
+                            disabled={tag.assignedGearCount > 0 || isPending}
+                            onClick={() => removeTag(tag)}
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        </>
+                      ) : null}
+                    </div>
+                  </td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
       </div>
-      {canManage ? (
-        <>
-          <TagFormDialog
-            open={formOpen}
-            onOpenChange={setFormOpen}
-            editing={editing}
-            form={form}
-            setForm={setForm}
-            isPending={isPending}
-            onSave={save}
-          />
-          <AssignmentDialog
-            tag={assignmentTag}
-            onOpenChange={(open) => !open && setAssignmentTag(null)}
-            assigned={assigned?.gear ?? []}
-            isPending={isPending}
-            onAssign={assign}
-            onRemove={unassign}
-          />
-        </>
-      ) : null}
+      <TagFormDialog
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        editing={editing}
+        form={form}
+        setForm={setForm}
+        isPending={isPending}
+        onSave={save}
+        canManage={canManage}
+      />
+      <AssignmentDialog
+        tag={assignmentTag}
+        onOpenChange={(open) => !open && setAssignmentTag(null)}
+        assigned={assigned?.gear ?? []}
+        isPending={isPending}
+        onAssign={assign}
+        onRemove={unassign}
+      />
     </div>
   );
 }
@@ -395,6 +411,7 @@ function TagFormDialog({
   setForm,
   isPending,
   onSave,
+  canManage,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -403,6 +420,7 @@ function TagFormDialog({
   setForm: React.Dispatch<React.SetStateAction<FormState>>;
   isPending: boolean;
   onSave: () => void;
+  canManage: boolean;
 }) {
   const t = adminTagText;
   const hasValidIcon = isTagIconName(form.icon);
@@ -502,31 +520,37 @@ function TagFormDialog({
                   }
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="tag-internal-notes">{t("internalNotes")}</Label>
-                <Textarea
-                  id="tag-internal-notes"
-                  value={form.internalNotes}
-                  onChange={(event) =>
-                    update("internalNotes", event.target.value)
-                  }
-                />
-              </div>
-              <div className="flex items-start gap-3 rounded-md border px-4 py-3">
-                <Checkbox
-                  id="tag-unlisted"
-                  checked={form.unlisted}
-                  onCheckedChange={(checked) =>
-                    update("unlisted", checked === true)
-                  }
-                />
-                <div className="space-y-1">
-                  <Label htmlFor="tag-unlisted">{t("unlisted")}</Label>
-                  <p className="text-muted-foreground text-sm">
-                    {t("unlistedHint")}
-                  </p>
-                </div>
-              </div>
+              {canManage ? (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="tag-internal-notes">
+                      {t("internalNotes")}
+                    </Label>
+                    <Textarea
+                      id="tag-internal-notes"
+                      value={form.internalNotes}
+                      onChange={(event) =>
+                        update("internalNotes", event.target.value)
+                      }
+                    />
+                  </div>
+                  <div className="flex items-start gap-3 rounded-md border px-4 py-3">
+                    <Checkbox
+                      id="tag-unlisted"
+                      checked={form.unlisted}
+                      onCheckedChange={(checked) =>
+                        update("unlisted", checked === true)
+                      }
+                    />
+                    <div className="space-y-1">
+                      <Label htmlFor="tag-unlisted">{t("unlisted")}</Label>
+                      <p className="text-muted-foreground text-sm">
+                        {t("unlistedHint")}
+                      </p>
+                    </div>
+                  </div>
+                </>
+              ) : null}
             </div>
             <DialogFooter className="bg-background border-t px-6 py-4">
               <Button onClick={onSave} disabled={isPending}>
@@ -581,7 +605,7 @@ function AssignmentDialog({
   onAssign,
   onRemove,
 }: {
-  tag: AdminTagRow | null;
+  tag: TagListRow | null;
   onOpenChange: (open: boolean) => void;
   assigned: TagGearRow[];
   isPending: boolean;
