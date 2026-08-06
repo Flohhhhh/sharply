@@ -70,9 +70,17 @@ function formatCompactNumber(value: unknown): string {
 
 function formatApertureProfile(value: unknown): string {
   const points = normalizeApertureProfile(value);
-  return points
-    ? points.map((point) => `${point.focalLength}mm f/${point.aperture}`).join(" · ")
-    : String(value ?? "Empty");
+  if (points) {
+    return points
+      .map((point) => `${point.focalLength}mm f/${point.aperture}`)
+      .join(" · ");
+  }
+  if (value == null) return "Empty";
+  try {
+    return JSON.stringify(value) ?? "Empty";
+  } catch {
+    return "Empty";
+  }
 }
 
 export function GearProposalsList() {

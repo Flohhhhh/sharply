@@ -152,7 +152,11 @@ Stores detailed lens-specific specifications:
 - **Primary Key**: `gearId` (1:1 relationship with gear)
 - **Focal Length**: Minimum and maximum focal length in mm (decimal, 0.1mm precision)
 - **Image Circle**: `imageCircleSizeId` references `sensor_formats.id` to capture coverage (e.g., full frame, APS-C)
-- **Aperture**: Maximum aperture value
+- **Aperture**: Maximum aperture value plus optional `apertureProfileJson`, an
+  ordered JSON array of `{ focalLength, aperture }` points for
+  variable-aperture zoom lenses. The first and last points mirror the canonical
+  focal-length and maximum-aperture endpoints; intermediate points record
+  aperture changes within the zoom range.
 
 Creation flows validate camera resolution and lens/fixed-lens aperture values as
 numbers, then pass typed decimal-string inputs to the database without changing
@@ -187,7 +191,6 @@ For cameras that use the `fixed-lens` mount, a simplified lens spec table stores
   - `focalLengthMinMm` (decimal, 0.1mm precision), `focalLengthMaxMm` (decimal, 0.1mm precision)
   - `maxApertureWide` (decimal), `maxApertureTele` (decimal)
   - `minApertureWide` (decimal), `minApertureTele` (decimal)
-  - `apertureProfileJson` (optional ordered JSON array of `{ focalLength, aperture }` points for variable-aperture zoom lenses). The first and last points mirror the canonical focal-length and maximum-aperture endpoints; intermediate points record aperture changes within the zoom range.
   - `imageCircleSizeId` references `sensor_formats.id` to describe coverage for equivalent focal-length calculations and editing workflows; integrated-lens gear pages do not render it as a separate spec row
   - `hasAutofocus` (boolean)
   - `minimumFocusDistanceMm` (int)

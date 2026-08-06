@@ -3,7 +3,6 @@
 import { Edit, Eye, EyeOff, Plus, Search, Tags, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
 import { useMemo, useState, useTransition } from "react";
 import useSWR from "swr";
 import { toast } from "sonner";
@@ -56,6 +55,65 @@ const emptyForm: FormState = {
   internalNotes: "",
   unlisted: false,
 };
+
+const ADMIN_TAG_TEXT: Record<string, string> = {
+  actions: "Actions",
+  assigned: "Tag assigned",
+  assignedGear: "Assigned gear",
+  assignmentFailed: "Could not assign tag",
+  browseLucideIcons: "Browse Lucide icons",
+  create: "Create tag",
+  created: "Tag created",
+  createTag: "Create tag",
+  delete: "Delete",
+  deleted: "Tag deleted",
+  deleteFailed: "Could not delete tag",
+  description: "Description",
+  descriptionHint: "Describe this item that has the tag.",
+  edit: "Edit",
+  editTag: "Edit tag",
+  formDescription: "Use a stable slug for public tag chips.",
+  gearCount: "Gear",
+  icon: "Icon",
+  internalNotes: "Internal notes",
+  invalidIcon: "Enter a Lucide icon name",
+  listed: "Listed publicly",
+  manageAssignments: "Manage assignments",
+  metadataPreview: "Search preview",
+  name: "Name",
+  noAssignedGear: "No gear assigned yet.",
+  noMatchingGear: "No matching gear.",
+  noTags: "No tags found.",
+  pageContent: "Page content",
+  pageContentHint: "Describe items that have this tag.",
+  pageTitle: "Page title",
+  publicStatus: "Public visibility",
+  removalFailed: "Could not remove tag",
+  remove: "Remove",
+  removed: "Tag removed",
+  save: "Save",
+  saveFailed: "Could not save tag",
+  searchGear: "Search gear...",
+  searchTags: "Search tags...",
+  slug: "Slug",
+  tagPageDescription: "Browse photography gear tagged {tag}.",
+  unlisted: "Unlisted",
+  unlistedHint: "Hide this tag from the dictionary and disable its public page.",
+  updated: "Tag updated",
+};
+
+function adminTagText(
+  key: string,
+  values?: Record<string, string | number>,
+) {
+  const template = ADMIN_TAG_TEXT[key] ?? key;
+  return values
+    ? template.replace(/\{(\w+)\}/g, (_, name: string) =>
+        String(values[name] ?? `{${name}}`),
+      )
+    : template;
+}
+
 type GearResponse = { gear: TagGearRow[] };
 
 function tagForm(tag?: AdminTagRow | null): FormState {
@@ -80,7 +138,7 @@ export function TagsManager({
   initialTags: AdminTagRow[];
   canManage: boolean;
 }) {
-  const t = useTranslations("tags");
+  const t = adminTagText;
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [editing, setEditing] = useState<AdminTagRow | null>(null);
@@ -346,7 +404,7 @@ function TagFormDialog({
   isPending: boolean;
   onSave: () => void;
 }) {
-  const t = useTranslations("tags");
+  const t = adminTagText;
   const hasValidIcon = isTagIconName(form.icon);
   const update = <K extends keyof FormState>(field: K, value: FormState[K]) =>
     setForm((current) => ({ ...current, [field]: value }));
@@ -483,7 +541,7 @@ function TagFormDialog({
 }
 
 function TagMetadataPreview({ form }: { form: FormState }) {
-  const t = useTranslations("tags");
+  const t = adminTagText;
   const slug = form.slug.trim() || "…";
   const { title, description } = resolveTagPageMetadata(
     form,
@@ -530,7 +588,7 @@ function AssignmentDialog({
   onAssign: (id: string) => void;
   onRemove: (id: string) => void;
 }) {
-  const t = useTranslations("tags");
+  const t = adminTagText;
   const [selectedGear, setSelectedGear] = useState<GearOption | null>(null);
   return (
     <Dialog open={Boolean(tag)} onOpenChange={onOpenChange}>

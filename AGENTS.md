@@ -6,7 +6,7 @@ Sharply is a photography gear database and cataloging application built with Nex
 
 - Unit tests must be run against all touched scopes (avoid full test suite when changes are minimal, run full test suite when changes are large)
 - All relevant docs in `/docs` must be updated to ensure no drift.
-- Any new hardcoded user-facing strings must be replaced with translation keys for all locales.
+- Any new hardcoded user-facing strings must be replaced with translation keys for all locales. (Except any admin routes, those should stay hard-coded.)
 - Translation key parity must be maintained: if a key is added, removed, or renamed in `messages/en.json`, the same key change must be applied across all locale files. This is enforced by `tests/unit/translation-parity.test.ts` (covered by `npm run test` / CI Vitest runs).
 - Changes that introduce or modify behavior must include or update automated tests (vitest and/or targeted playwright) covering the primary path and at least one meaningful edge case.
 - Respect server layering: keep the `data -> service -> actions` flow and do not introduce direct database access in UI or generic lib modules.

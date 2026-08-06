@@ -15,6 +15,9 @@ vi.mock("~/server/auth", () => ({
 vi.mock("~/lib/auth/auth-helpers", () => ({
   requireRole: mocks.requireRole,
 }));
+vi.mock("~/server/gear/listing-table-service", () => ({
+  attachGearListingTableFields: vi.fn(),
+}));
 vi.mock("~/server/tags/data", () => ({
   assignTagToGearData: vi.fn(),
   countTagAssignmentsData: mocks.countTagAssignmentsData,
