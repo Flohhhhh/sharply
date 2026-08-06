@@ -1235,6 +1235,12 @@ export async function submitGearEditProposal(body: unknown) {
     const lensChanges = normalizedPayload.lens as Record<string, unknown>;
     const effectiveLensValue = (key: string) =>
       Object.hasOwn(lensChanges, key) ? lensChanges[key] : currentLens?.[key];
+    const apertureEndpointValue = (key: string) => {
+      const value = effectiveLensValue(key);
+      return typeof value === "string" || typeof value === "number" || value == null
+        ? value
+        : undefined;
+    };
     const endpoints = getVariableApertureProfileEndpoints({
       isPrime: effectiveLensValue("isPrime") as boolean | null | undefined,
       focalLengthMinMm: effectiveLensValue("focalLengthMinMm") as
@@ -1245,8 +1251,8 @@ export async function submitGearEditProposal(body: unknown) {
         | number
         | null
         | undefined,
-      maxApertureWide: effectiveLensValue("maxApertureWide"),
-      maxApertureTele: effectiveLensValue("maxApertureTele"),
+      maxApertureWide: apertureEndpointValue("maxApertureWide"),
+      maxApertureTele: apertureEndpointValue("maxApertureTele"),
     });
     const profile = normalizeApertureProfile(submittedProfile, endpoints);
     if (!profile || profile.length < 3) {

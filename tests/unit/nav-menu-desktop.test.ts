@@ -31,8 +31,9 @@ vi.mock("~/components/ui/navigation-menu", () => {
 });
 
 import { NavMenuDesktop } from "~/components/layout/nav-menu-desktop";
+import type { HeaderNavItem } from "~/components/layout/header-model";
 
-const featuredItems = [
+const featuredItems: HeaderNavItem[] = [
   {
     title: "Gear",
     href: "/gear",
