@@ -36,6 +36,7 @@ import {
 import { getMountLongNamesById } from "~/lib/mapping/mounts-map";
 import { sensorNameFromSlug } from "~/lib/mapping/sensor-map";
 import { humanizeKey } from "~/lib/utils";
+import { normalizeApertureProfile } from "~/lib/lens-aperture-profile";
 import {
   normalizeVideoModes,
   type VideoModeInput,
@@ -82,6 +83,14 @@ function safeString(value: unknown): string {
   } catch {
     return "";
   }
+}
+
+function formatApertureProfileValue(value: unknown): string {
+  if (value == null) return "Empty";
+  const points = normalizeApertureProfile(value);
+  return points
+    ? points.map((point) => `${point.focalLength}mm f/${point.aperture}`).join(" · ")
+    : safeString(value);
 }
 
 function formatFpsValue(value: unknown): string {
@@ -471,6 +480,7 @@ function EditGearForm({
               maxApertureTele: "lens-aperture",
               minApertureWide: "lens-aperture",
               minApertureTele: "lens-aperture",
+              apertureProfileJson: "lens-aperture",
               numberDiaphragmBlades: "lens-aperture",
               hasRoundedDiaphragmBlades: "lens-aperture",
               hasApertureRing: "lens-build",
@@ -765,6 +775,7 @@ function EditGearForm({
         "maxApertureTele",
         "minApertureWide",
         "minApertureTele",
+        "apertureProfileJson",
         "hasStabilization",
         "cipaStabilizationRatingStops",
         "hasStabilizationSwitch",
@@ -1489,6 +1500,8 @@ function EditGearForm({
                             booleanLabels,
                           );
                           if (booleanDisplay) display = booleanDisplay;
+                          if (k === "apertureProfileJson")
+                            display = formatApertureProfileValue(v);
                           return (
                             <li key={k}>
                               <span className="text-muted-foreground">

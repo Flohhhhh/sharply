@@ -3,6 +3,41 @@ import { describe, expect, it } from "vitest";
 import { normalizeProposalPayloadForDb } from "~/server/db/normalizers";
 
 describe("normalizeProposalPayloadForDb", () => {
+  it("normalizes a lens aperture profile into focal-length order", () => {
+    expect(
+      normalizeProposalPayloadForDb({
+        lens: {
+          apertureProfileJson: [
+            { focalLength: 70, aperture: 4 },
+            { focalLength: 24, aperture: 2.8 },
+            { focalLength: 50, aperture: 3.5 },
+          ],
+        },
+      }),
+    ).toEqual({
+      lens: {
+        apertureProfileJson: [
+          { focalLength: 24, aperture: 2.8 },
+          { focalLength: 50, aperture: 3.5 },
+          { focalLength: 70, aperture: 4 },
+        ],
+      },
+    });
+  });
+
+  it("rejects duplicate focal lengths in a lens aperture profile", () => {
+    expect(() =>
+      normalizeProposalPayloadForDb({
+        lens: {
+          apertureProfileJson: [
+            { focalLength: 24, aperture: 2.8 },
+            { focalLength: 24, aperture: 3.5 },
+          ],
+        },
+      }),
+    ).toThrow("Invalid aperture profile");
+  });
+
   it("preserves true for camera yes-only booleans", () => {
     expect(
       normalizeProposalPayloadForDb({

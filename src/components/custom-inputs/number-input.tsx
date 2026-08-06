@@ -14,7 +14,7 @@ import {
 
 export interface NumberInputProps {
   id: string;
-  label: string;
+  label: ReactNode;
   value?: number | null;
   onChange: (value: number | null) => void;
   placeholder?: string;

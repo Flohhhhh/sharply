@@ -70,6 +70,22 @@ Stores alternate consumer-facing names used in specific regions (aliases, not lo
   - Rokinon branding for Samyang products in the United States
 - **Search**: Aliases are denormalized into `gear.search_name` for query performance
 
+#### `tags` and `gear_tags` - Editorial Discovery Labels
+
+Tags supplement structured specifications with editor-managed discovery labels.
+`gear_tags` is a unique many-to-many junction, so a gear item can have many
+tags without duplicate assignments.
+
+- **Public content**: A tag can include a short description, public page title,
+  public page content, and an optional Lucide icon name for the dictionary,
+  tag page, and gear tag chip.
+- **Visibility**: `tags.unlisted` defaults to `false`. Editor-created tags are
+  forced unlisted; administrators control publication. Public dictionary and
+  tag-page queries exclude unlisted tags.
+- **Private content**: Visibility state is never selected by public or editor
+  tag queries. Internal notes are never public, but are available to editors
+  as assignment guidance.
+
 #### `gear_exif_aliases` - EXIF Metadata Model Aliases
 
 Stores EXIF-oriented make/model identifiers used to map uploaded metadata back to a canonical gear item.
@@ -138,7 +154,11 @@ Stores detailed lens-specific specifications:
 - **Primary Key**: `gearId` (1:1 relationship with gear)
 - **Focal Length**: Minimum and maximum focal length in mm (decimal, 0.1mm precision)
 - **Image Circle**: `imageCircleSizeId` references `sensor_formats.id` to capture coverage (e.g., full frame, APS-C)
-- **Aperture**: Maximum aperture value
+- **Aperture**: Maximum aperture value plus optional `apertureProfileJson`, an
+  ordered JSON array of `{ focalLength, aperture }` points for
+  variable-aperture zoom lenses. The first and last points mirror the canonical
+  focal-length and maximum-aperture endpoints; intermediate points record
+  aperture changes within the zoom range.
 
 Creation flows validate camera resolution and lens/fixed-lens aperture values as
 numbers, then pass typed decimal-string inputs to the database without changing

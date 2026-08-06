@@ -306,6 +306,7 @@ function serializeLensSpecs(specs: DeveloperApiLensSpecs | null | undefined) {
     maxApertureTele: specs.maxApertureTele,
     minApertureWide: specs.minApertureWide,
     minApertureTele: specs.minApertureTele,
+    apertureProfileJson: specs.apertureProfileJson,
     hasStabilization: specs.hasStabilization,
     cipaStabilizationRatingStops: specs.cipaStabilizationRatingStops,
     hasStabilizationSwitch: specs.hasStabilizationSwitch,

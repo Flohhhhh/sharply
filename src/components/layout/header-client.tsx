@@ -3,6 +3,7 @@
 import { useScrollState } from "@/lib/hooks/useScrollState";
 import { track } from "@vercel/analytics";
 import { LayoutDashboard, LogIn, Menu } from "lucide-react";
+import { ThinkingOrb } from "thinking-orbs";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
@@ -88,15 +89,15 @@ export default function HeaderClient({
 
   const user: HeaderUser = session?.user
     ? {
-        id: session.user.id,
-        role: session.user.role,
-        handle: session.user.handle ?? null,
-        memberNumber: session.user.memberNumber ?? null,
-        name: session.user.name ?? null,
-        email: session.user.email ?? null,
-        image: session.user.image ?? null,
-        developerAccessEnabled: session.user.developerAccessEnabled ?? false,
-      }
+      id: session.user.id,
+      role: session.user.role,
+      handle: session.user.handle ?? null,
+      memberNumber: session.user.memberNumber ?? null,
+      name: session.user.name ?? null,
+      email: session.user.email ?? null,
+      image: session.user.image ?? null,
+      developerAccessEnabled: session.user.developerAccessEnabled ?? false,
+    }
     : null;
 
   const isAdminOrEditor =
@@ -134,11 +135,10 @@ export default function HeaderClient({
 
   return (
     <header
-      className={`fixed top-0 right-0 left-0 z-50 transition-all duration-200 ${
-        shouldShowHeaderSearch
-          ? "bg-background h-16 shadow-sm backdrop-blur-sm"
-          : "bg-background h-20"
-      }`}
+      className={`fixed top-0 right-0 left-0 z-50 transition-all duration-200 ${shouldShowHeaderSearch
+        ? "bg-background h-16 shadow-sm backdrop-blur-sm"
+        : "bg-background h-20"
+        }`}
     >
       <Suspense fallback={null}>
         <HeaderSearchParamsSync
@@ -147,17 +147,15 @@ export default function HeaderClient({
       </Suspense>
       <div className="mx-auto h-full px-4 sm:px-8">
         <div
-          className={`h-full items-center ${
-            shouldShowHeaderSearch
-              ? "flex justify-between gap-6 sm:gap-12"
-              : "grid grid-cols-3"
-          }`}
+          className={`h-full items-center ${shouldShowHeaderSearch
+            ? "flex justify-between gap-6 sm:gap-12"
+            : "grid grid-cols-3"
+            }`}
         >
           <div className="flex justify-start">
             <div
-              className={`font-extrabold transition-all duration-200 ${
-                shouldShowHeaderSearch ? "text-lg" : "text-2xl"
-              }`}
+              className={`font-extrabold transition-all duration-200 ${shouldShowHeaderSearch ? "text-lg" : "text-2xl"
+                }`}
             >
               {shouldShowHeaderSearch ? (
                 <div className="flex items-center gap-0 sm:gap-2">
@@ -197,7 +195,19 @@ export default function HeaderClient({
               </div>
             ) : (
               <div className="hidden md:flex">
-                <NavMenuDesktop items={model.navItems} />
+                <NavMenuDesktop
+                  items={model.navItems}
+                  featuredContent={
+                    <div className="flex h-full w-full items-start justify-end p-2">
+                      <ThinkingOrb
+                        state="searching"
+                        size={64}
+                        speed={0.25}
+                        aria-hidden="true"
+                      />
+                    </div>
+                  }
+                />
               </div>
             )}
           </div>

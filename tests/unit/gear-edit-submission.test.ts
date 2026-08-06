@@ -432,6 +432,67 @@ describe("gear edit submission", () => {
     expect(gearDataMocks.createGearEditProposal).toHaveBeenCalled();
   });
 
+  it("rejects endpoint-only edits that invalidate a retained aperture profile", async () => {
+    gearDataMocks.fetchGearBySlug.mockResolvedValue(
+      makeUnderConstructionGear({
+        gearType: "LENS",
+        lensSpecs: {
+          isPrime: false,
+          focalLengthMinMm: 24,
+          focalLengthMaxMm: 70,
+          maxApertureWide: 4,
+          maxApertureTele: 5.6,
+          apertureProfileJson: [
+            { focalLength: 24, aperture: 4 },
+            { focalLength: 50, aperture: 4.8 },
+            { focalLength: 70, aperture: 5.6 },
+          ],
+        },
+      }),
+    );
+
+    await expect(
+      submitGearEditProposal({
+        gearId: "22222222-2222-4222-8222-222222222222",
+        payload: { lens: { maxApertureTele: 6.3 } },
+      }),
+    ).rejects.toMatchObject({
+      message: "Invalid aperture profile",
+      status: 400,
+    });
+    expect(gearDataMocks.createGearEditProposal).not.toHaveBeenCalled();
+  });
+
+  it("allows endpoint edits when the aperture profile is explicitly removed", async () => {
+    gearDataMocks.fetchGearBySlug.mockResolvedValue(
+      makeUnderConstructionGear({
+        gearType: "LENS",
+        lensSpecs: {
+          isPrime: false,
+          focalLengthMinMm: 24,
+          focalLengthMaxMm: 70,
+          maxApertureWide: 4,
+          maxApertureTele: 5.6,
+          apertureProfileJson: [
+            { focalLength: 24, aperture: 4 },
+            { focalLength: 50, aperture: 4.8 },
+            { focalLength: 70, aperture: 5.6 },
+          ],
+        },
+      }),
+    );
+
+    const result = await submitGearEditProposal({
+      gearId: "22222222-2222-4222-8222-222222222222",
+      payload: {
+        lens: { maxApertureTele: 6.3, apertureProfileJson: null },
+      },
+    });
+
+    expect(result.autoApproved).toBe(true);
+    expect(gearDataMocks.createGearEditProposal).toHaveBeenCalled();
+  });
+
   it.each([
     ["releaseDatePrecision", "DAY", "MONTH"],
     ["announceDatePrecision", "MONTH", "YEAR"],

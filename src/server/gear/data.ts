@@ -38,6 +38,7 @@ import {
   gearPopularityLifetime,
   gearPopularityWindows,
   gearRawSamples,
+  gearTags,
   genres,
   imageRequests,
   lensSpecs,
@@ -48,6 +49,7 @@ import {
   reviewFlags,
   reviews,
   staffVerdicts,
+  tags,
   useCaseRatings,
   users,
   wishlists,
@@ -340,7 +342,7 @@ export const fetchGearBySlug = cache(async function fetchGearBySlug(
 
   // Fetch all mount IDs for this gear from junction table
   const gearId = gearItem[0]!.gear.id;
-  const [mountIdRows, rawSampleRows, aliasRows, colorwayRows] =
+  const [mountIdRows, rawSampleRows, aliasRows, colorwayRows, tagRows] =
     await Promise.all([
       db
         .select({ mountId: gearMounts.mountId })
@@ -349,6 +351,20 @@ export const fetchGearBySlug = cache(async function fetchGearBySlug(
       fetchRawSamplesByGearId(gearId),
       fetchGearAliasesByGearId(gearId),
       fetchGearColorwaysByGearId(gearId),
+      db
+        .select({
+          id: tags.id,
+          name: tags.name,
+          slug: tags.slug,
+          description: tags.description,
+          icon: tags.icon,
+          createdAt: tags.createdAt,
+          updatedAt: tags.updatedAt,
+        })
+        .from(gearTags)
+        .innerJoin(tags, eq(gearTags.tagId, tags.id))
+        .where(and(eq(gearTags.gearId, gearId), eq(tags.unlisted, false)))
+        .orderBy(asc(tags.name)),
     ]);
 
   const base: GearItem = {
@@ -362,6 +378,7 @@ export const fetchGearBySlug = cache(async function fetchGearBySlug(
     regionalAliases: aliasRows,
     rawSamples: rawSampleRows,
     colorways: colorwayRows,
+    tags: tagRows,
   };
 
   // CAMERA SPECS

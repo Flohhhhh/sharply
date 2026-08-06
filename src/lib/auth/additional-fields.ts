@@ -36,6 +36,16 @@ export const authAdditionalFields = {
       required: false,
       defaultValue: [],
     },
+    preferredBrandId: {
+      type: "string",
+      required: false,
+      defaultValue: null,
+    },
+    preferredMountId: {
+      type: "string",
+      required: false,
+      defaultValue: null,
+    },
     developerAccessEnabled: {
       type: "boolean",
       required: false,

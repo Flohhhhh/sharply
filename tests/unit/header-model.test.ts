@@ -95,4 +95,64 @@ describe("header model", () => {
     expect(searchIndex).toBe(newsIndex + 1);
     expect(model.navItems[searchIndex]?.items).toBeUndefined();
   });
+
+  it("adds localized Collections navigation under Gear", () => {
+    const defaultLocaleModel = buildHeaderViewModel({
+      locale: "en",
+      navItems: getNavItems(t),
+      footerItems: getFooterItems(t),
+      labels,
+      moreLabel: "More",
+    });
+    const gearItem = defaultLocaleModel.navItems.find(
+      (item) => item.title === "gear",
+    );
+    const collectionsItem = gearItem?.items?.find(
+      (item) => item.href === "/tags",
+    );
+
+    expect(collectionsItem).toEqual({
+      title: "gearCollectionsTitle",
+      href: "/tags",
+      description: "gearCollectionsDescription",
+      iconKey: "circlePile",
+    });
+
+    const browseItem = gearItem?.items?.find((item) => item.href === "/gear");
+    expect(browseItem?.featured).toBe(true);
+    expect(gearItem?.items?.filter((item) => item.featured)).toHaveLength(1);
+
+    const japaneseModel = buildHeaderViewModel({
+      locale: "ja",
+      navItems: getNavItems(t),
+      footerItems: getFooterItems(t),
+      labels,
+      moreLabel: "More",
+    });
+    const localizedGearItem = japaneseModel.navItems.find(
+      (item) => item.title === "gear",
+    );
+
+    expect(localizedGearItem?.items).toEqual(
+      expect.arrayContaining([expect.objectContaining({ href: "/ja/tags" })]),
+    );
+    expect(
+      localizedGearItem?.items?.find((item) => item.href === "/ja/gear")
+        ?.featured,
+    ).toBe(true);
+  });
+
+  it("keeps categories without featured items in the standard shape", () => {
+    const model = buildHeaderViewModel({
+      locale: "en",
+      navItems: getNavItems(t),
+      footerItems: getFooterItems(t),
+      labels,
+      moreLabel: "More",
+    });
+    const toolsItem = model.navItems.find((item) => item.title === "tools");
+
+    expect(toolsItem?.items).toHaveLength(3);
+    expect(toolsItem?.items?.every((item) => !item.featured)).toBe(true);
+  });
 });

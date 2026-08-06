@@ -1,4 +1,4 @@
-import { expect,test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 async function expectHeaderMode(page: Page, mode: "expanded" | "compact") {
   const header = page.getByRole("banner");
@@ -61,6 +61,56 @@ test.describe("smoke", () => {
     await expect(page).toHaveURL(/\/browse/);
     await expectHeaderMode(page, "compact");
     await expect(page.getByRole("heading", { name: "All Gear" })).toBeVisible();
+  });
+
+  test("gear navigation exposes Collections", async ({ page }) => {
+    await page.goto("/");
+
+    await expectHeaderMode(page, "expanded");
+    await page.getByRole("button", { name: "Gear" }).click();
+
+    const expectedLinks = [
+      ["/gear", /^Browse Explore all cameras, lenses, and accessories/],
+      [
+        "/lists/under-construction",
+        /^Contribute View items that need contributions/,
+      ],
+      [
+        "/lists/hall-of-fame",
+        /^Hall of Fame The most iconic and influential gear/,
+      ],
+      ["/lists/trending", /^Trending The most popular gear based on activity/],
+      ["/tags", /^Collections Browse lists of gear/],
+    ] as const;
+
+    for (const [href, name] of expectedLinks) {
+      const link = page.getByRole("link", { name });
+      await expect(link).toBeVisible();
+      await expect(link).toHaveAttribute("href", href);
+    }
+
+    await expect(
+      page.getByRole("link", {
+        name: /^Browse Explore all cameras, lenses, and accessories/,
+      }),
+    ).toHaveClass(/min-h-(?:\[220px\]|55)/);
+    await expect(
+      page.getByRole("link", {
+        name: /^Browse Explore all cameras, lenses, and accessories/,
+      }),
+    ).toHaveClass(/bg-(?:gradient-to-br|linear-to-br)/);
+    const featuredSlot = page.locator('[data-nav-featured-slot="true"]');
+    await expect(featuredSlot).toBeVisible();
+    await expect(featuredSlot).toHaveClass(/opacity-75/);
+    await expect(featuredSlot.locator("canvas")).toBeVisible();
+
+    const featuredCategory = page.locator(
+      '[data-nav-category-layout="featured"]',
+    );
+    await expect(featuredCategory).toHaveClass(/gap-1\.5/);
+    await expect(
+      page.locator('[data-slot="navigation-menu-viewport"]'),
+    ).toHaveClass(/rounded-2xl/);
   });
 
   test("browse hub surfaces key sections", async ({ page }) => {

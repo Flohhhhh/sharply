@@ -6,13 +6,16 @@ import { DataTable } from "./data-table";
 import { createGearTableColumns } from "./gear-table-columns";
 import { resolveGearTableScope } from "./gear-table-adapter";
 import type { GearTableRow, GearTableScope } from "./gear-table-types";
+import type { SortingState } from "@tanstack/react-table";
 
 export function GearTable({
   rows,
   scope,
+  initialSorting,
 }: {
   rows: GearTableRow[];
   scope?: GearTableScope;
+  initialSorting?: SortingState;
 }) {
   const t = useTranslations("gearTable");
   const construction = useTranslations("underConstructionPage");
@@ -42,6 +45,11 @@ export function GearTable({
   );
 
   return (
-    <DataTable columns={columns} data={rows} emptyContent={t("noResults")} />
+    <DataTable
+      columns={columns}
+      data={rows}
+      emptyContent={t("noResults")}
+      initialSorting={initialSorting}
+    />
   );
 }

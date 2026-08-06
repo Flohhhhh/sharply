@@ -14,6 +14,7 @@ import type { SocialLink } from "~/server/users/service";
 import { AccountLinksSection } from "./account-links-section";
 import { DisplayNameForm } from "./display-name-form";
 import { PasskeySection } from "./passkey-section";
+import { PreferredFiltersForm } from "./preferred-filters-form";
 import { SocialLinksForm } from "./social-links-form";
 import { UserHandleForm } from "./user-handle-form";
 
@@ -126,6 +127,17 @@ export default async function SettingsPage({
           <DisplayNameForm
             key={user.name ?? ""}
             defaultName={user.name ?? ""}
+          />
+        </section>
+
+        <section className="border-border space-y-3 rounded-lg border p-4">
+          <h2 className="text-lg font-semibold">{t("preferredFilters")}</h2>
+          <p className="text-muted-foreground text-sm">
+            {t("preferredFiltersDescription")}
+          </p>
+          <PreferredFiltersForm
+            defaultBrandId={user.preferredBrandId ?? null}
+            defaultMountId={user.preferredMountId ?? null}
           />
         </section>
 

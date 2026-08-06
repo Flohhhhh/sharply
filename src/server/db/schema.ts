@@ -673,6 +673,49 @@ export const gear = appSchema.table(
   ],
 );
 
+// Editorial discovery tags. Tags deliberately remain separate from structured
+// specifications so they can support curation without becoming canonical gear data.
+export const tags = appSchema.table(
+  "tags",
+  () => ({
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    name: varchar("name", { length: 120 }).notNull().unique(),
+    slug: varchar("slug", { length: 140 }).notNull().unique(),
+    description: varchar("description", { length: 500 }),
+    icon: varchar("icon", { length: 100 }),
+    pageTitle: varchar("page_title", { length: 240 }),
+    pageContent: text("page_content"),
+    internalNotes: text("internal_notes"),
+    unlisted: boolean("unlisted").notNull().default(false),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [index("tags_name_idx").on(t.name)],
+);
+
+// One editorial tag may be assigned to a gear item at most once.
+export const gearTags = appSchema.table(
+  "gear_tags",
+  (d) => ({
+    gearId: d
+      .varchar("gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "cascade" }),
+    tagId: d
+      .varchar("tag_id", { length: 36 })
+      .notNull()
+      .references(() => tags.id, { onDelete: "restrict" }),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    primaryKey({ columns: [t.gearId, t.tagId] }),
+    index("gear_tags_tag_idx").on(t.tagId),
+  ],
+);
+
 export const gearColorways = appSchema.table(
   "gear_colorways",
   () => ({
@@ -1060,7 +1103,9 @@ export const lensSpecs = appSchema.table(
     maxApertureTele: decimal("max_aperture_tele", { precision: 4, scale: 2 }), // nullable
     minApertureWide: decimal("min_aperture_wide", { precision: 4, scale: 2 }),
     minApertureTele: decimal("min_aperture_tele", { precision: 4, scale: 2 }), // nullable
-    //apertureProfileJson: jsonb("aperture_profile_json"), // could be used to accurately show how the aperture changes across the focal length range
+    apertureProfileJson: jsonb("aperture_profile_json").$type<
+      { focalLength: number; aperture: number }[]
+    >(),
     // stabilization
     hasStabilization: boolean("has_stabilization"),
     cipaStabilizationRatingStops: decimal("cipa_stabilization_rating_stops", {
@@ -2560,6 +2605,18 @@ export const users = appSchema.table("user", (d) => ({
   inviteId: varchar("invite_id", { length: 36 }),
   // Social links (array of {label: string, url: string, icon?: string})
   socialLinks: jsonb("social_links"),
+  preferredBrandId: varchar("preferred_brand_id", { length: 36 }).references(
+    () => brands.id,
+    {
+      onDelete: "set null",
+    },
+  ),
+  preferredMountId: varchar("preferred_mount_id", { length: 36 }).references(
+    () => mounts.id,
+    {
+      onDelete: "set null",
+    },
+  ),
   // Developer API access is explicitly granted by an administrator.
   developerAccessEnabled: d
     .boolean("developer_access_enabled")

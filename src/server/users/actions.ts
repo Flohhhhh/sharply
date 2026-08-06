@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import "server-only";
 import {
   updateDisplayName,
+  updatePreferredFilters,
   updateProfileImage,
   updateSocialLinks,
   updateUserHandle,
@@ -24,6 +25,12 @@ export async function actionUpdateSocialLinks(links: unknown) {
   const res = await updateSocialLinks(links);
   revalidatePath("/profile/settings");
   revalidatePath("/u/[handle]", "page");
+  return res;
+}
+
+export async function actionUpdatePreferredFilters(preferences: unknown) {
+  const res = await updatePreferredFilters(preferences);
+  revalidatePath("/profile/settings");
   return res;
 }
 

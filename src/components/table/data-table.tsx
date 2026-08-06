@@ -22,14 +22,16 @@ type DataTableProps<TData> = {
   columns: ColumnDef<TData, unknown>[];
   data: TData[];
   emptyContent: string;
+  initialSorting?: SortingState;
 };
 
 export function DataTable<TData>({
   columns,
   data,
   emptyContent,
+  initialSorting = [],
 }: DataTableProps<TData>) {
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [sorting, setSorting] = useState<SortingState>(initialSorting);
   const table = useReactTable({
     data,
     columns,

@@ -2,6 +2,7 @@ import {
   BarChart3,
   BookOpen,
   Camera,
+  CirclePile,
   FileText,
   Film,
   Flame,
@@ -33,6 +34,7 @@ interface NavItem {
     titleKey: string;
     url: string;
     descriptionKey?: string;
+    featured?: boolean;
     iconKey?:
       | "camera"
       | "search"
@@ -55,6 +57,7 @@ interface NavItem {
       | "pencilRuler"
       | "instagram"
       | "flame"
+      | "circlePile"
       | "squareStop";
   }[];
   hideFromNavbar?: boolean;
@@ -81,7 +84,14 @@ const navItems: NavItem[] = [
         titleKey: "gearBrowseTitle",
         url: "/gear",
         descriptionKey: "gearBrowseDescription",
+        featured: true,
         iconKey: "camera",
+      },
+      {
+        titleKey: "gearCollectionsTitle",
+        url: "/tags",
+        descriptionKey: "gearCollectionsDescription",
+        iconKey: "circlePile",
       },
       {
         titleKey: "gearContributeTitle",
@@ -198,6 +208,7 @@ export const iconMap = {
   wreath: TbLaurelWreath,
   instagram: FaInstagram,
   flame: Flame,
+  circlePile: CirclePile,
   squareStop: SquareStop,
 };
 
@@ -216,6 +227,7 @@ export const getNavItems = (t: NavTranslator) => {
                 ? t(subItem.descriptionKey)
                 : undefined,
               iconKey: subItem.iconKey,
+              ...(subItem.featured ? { featured: true } : {}),
             }))
           : undefined,
     }));
