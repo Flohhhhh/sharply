@@ -26,6 +26,7 @@ import { formatFocusDistance } from "~/lib/mapping/focus-distance-map";
 import { sortSensorFormats } from "~/lib/sensor-formats";
 import type { lensSpecs } from "~/server/db/schema";
 import { CompletedSpecLock } from "./completed-spec-lock";
+import { ApertureProfileManager } from "./aperture-profile-manager";
 
 type SensorFormatOption = {
   id: string;
@@ -52,6 +53,7 @@ const lensFieldSections: Record<string, string> = {
   hasDiffractiveOptics: "lens-optics",
   maxAperture: "lens-aperture",
   minAperture: "lens-aperture",
+  apertureProfileJson: "lens-aperture",
   numberDiaphragmBlades: "lens-aperture",
   hasRoundedDiaphragmBlades: "lens-aperture",
   hasApertureRing: "lens-aperture",
@@ -284,6 +286,18 @@ function LensFieldsComponent({
               }}
             />
           )}
+          <ApertureProfileManager
+            value={currentSpecs?.apertureProfileJson}
+            bounds={{
+              isPrime: currentSpecs?.isPrime,
+              focalLengthMinMm: currentSpecs?.focalLengthMinMm,
+              focalLengthMaxMm: currentSpecs?.focalLengthMaxMm,
+              maxApertureWide: currentSpecs?.maxApertureWide,
+              maxApertureTele: currentSpecs?.maxApertureTele,
+            }}
+            disabled={apertureLocked}
+            onChange={(value) => handleFieldChange("apertureProfileJson", value)}
+          />
 
           {/* Image Stabilization */}
           {showWhenMissing(initialSpecs?.hasStabilization) && (

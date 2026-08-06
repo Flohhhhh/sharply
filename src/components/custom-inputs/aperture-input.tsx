@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect,useState } from "react";
+import { useEffect,useState, type ReactNode } from "react";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 
 // Types for the aperture input
 export interface ApertureInputProps {
   id: string;
-  label: string;
+  label: ReactNode;
   value?: number;
   onChange: (value: number | undefined) => void;
   disabled?: boolean;
@@ -17,7 +17,7 @@ export interface ApertureInputProps {
 
 export interface ApertureInputConfig {
   id: string;
-  label: string;
+  label: ReactNode;
   disabled?: boolean;
   className?: string;
   placeholder?: string;

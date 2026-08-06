@@ -1103,7 +1103,9 @@ export const lensSpecs = appSchema.table(
     maxApertureTele: decimal("max_aperture_tele", { precision: 4, scale: 2 }), // nullable
     minApertureWide: decimal("min_aperture_wide", { precision: 4, scale: 2 }),
     minApertureTele: decimal("min_aperture_tele", { precision: 4, scale: 2 }), // nullable
-    //apertureProfileJson: jsonb("aperture_profile_json"), // could be used to accurately show how the aperture changes across the focal length range
+    apertureProfileJson: jsonb("aperture_profile_json").$type<
+      { focalLength: number; aperture: number }[]
+    >(),
     // stabilization
     hasStabilization: boolean("has_stabilization"),
     cipaStabilizationRatingStops: decimal("cipa_stabilization_rating_stops", {

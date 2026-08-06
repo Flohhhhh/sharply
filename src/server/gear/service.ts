@@ -13,6 +13,10 @@ import {
 } from "~/lib/gear/publication-state";
 import { allowsAutoApprovalOverwrite } from "~/lib/gear/change-request-field-policy";
 import {
+  getVariableApertureProfileEndpoints,
+  normalizeApertureProfile,
+} from "~/lib/lens-aperture-profile";
+import {
   getCompletedSpecLocks,
   isCompletedSpecFieldLocked,
   type ProposalSpecSection,
@@ -1221,8 +1225,36 @@ export async function submitGearEditProposal(body: unknown) {
     gearSlug: gearMeta?.slug ?? data.slug ?? gearId,
   };
   let currentGearItem: GearItem | undefined;
-  if (!requireRole(user, ["EDITOR"])) {
+  const submittedProfile = normalizedPayload.lens?.apertureProfileJson;
+  if (submittedProfile !== undefined && submittedProfile !== null) {
     currentGearItem = await fetchGearBySlugData(gearContext.gearSlug);
+    const currentLens = currentGearItem?.lensSpecs as
+      | Record<string, unknown>
+      | null
+      | undefined;
+    const lensChanges = normalizedPayload.lens as Record<string, unknown>;
+    const effectiveLensValue = (key: string) =>
+      Object.hasOwn(lensChanges, key) ? lensChanges[key] : currentLens?.[key];
+    const endpoints = getVariableApertureProfileEndpoints({
+      isPrime: effectiveLensValue("isPrime") as boolean | null | undefined,
+      focalLengthMinMm: effectiveLensValue("focalLengthMinMm") as
+        | number
+        | null
+        | undefined,
+      focalLengthMaxMm: effectiveLensValue("focalLengthMaxMm") as
+        | number
+        | null
+        | undefined,
+      maxApertureWide: effectiveLensValue("maxApertureWide"),
+      maxApertureTele: effectiveLensValue("maxApertureTele"),
+    });
+    const profile = normalizeApertureProfile(submittedProfile, endpoints);
+    if (!profile || profile.length < 3) {
+      throw Object.assign(new Error("Invalid aperture profile"), { status: 400 });
+    }
+  }
+  if (!requireRole(user, ["EDITOR"])) {
+    currentGearItem ??= await fetchGearBySlugData(gearContext.gearSlug);
     const lockedField = findCompletedSpecLockViolation(
       normalizedPayload,
       currentGearItem,

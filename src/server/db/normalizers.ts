@@ -7,6 +7,7 @@ import {
   normalizeVideoModes,
   videoModeInputSchema,
 } from "~/lib/video/mode-schema";
+import { normalizeApertureProfile } from "~/lib/lens-aperture-profile";
 
 type ProposalPayloadSection = Record<string, unknown>;
 type ProposalPayload = {
@@ -1075,6 +1076,7 @@ export function normalizeProposalPayloadForDb(
           return num === null ? undefined : num;
         }, z.number().nullable().optional())
         .optional(),
+      apertureProfileJson: z.unknown().optional(),
       hasStabilization: z
         .preprocess(
           (value) =>
@@ -1395,6 +1397,19 @@ export function normalizeProposalPayloadForDb(
 
   if (payload.lens) {
     const parsed = LensSchema.parse(payload.lens);
+    if (parsed.apertureProfileJson !== undefined) {
+      const profile =
+        parsed.apertureProfileJson === null
+          ? null
+          : normalizeApertureProfile(parsed.apertureProfileJson);
+      if (
+        parsed.apertureProfileJson !== null &&
+        (!profile || profile.length < 3)
+      ) {
+        throw new Error("Invalid aperture profile");
+      }
+      parsed.apertureProfileJson = profile;
+    }
     const pruned = pruneUndefined(parsed);
     if (Object.keys(pruned).length) normalized.lens = pruned;
   }

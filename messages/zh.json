@@ -600,18 +600,20 @@
         }
       },
       "apertureProfile": {
-        "label": "Variable Aperture Profile",
-        "manage": "Manage profile",
-        "unavailable": "Available for zoom lenses with different wide and tele maximum apertures.",
-        "endpointHelp": "Endpoint values come from the lens focal length and maximum aperture fields.",
-        "focalLength": "Focal length",
-        "maximumAperture": "Maximum aperture",
-        "removePoint": "Remove profile point",
-        "addPoint": "Add point",
-        "cancel": "Cancel",
-        "save": "Save profile",
-        "invalid": "Each point must have a unique focal length within the lens range and a positive aperture.",
-        "viewDetails": "View profile details"
+        "label": "可变光圈配置",
+        "manage": "管理配置",
+        "unavailable": "适用于广角端和长焦端最大光圈不同的变焦镜头。",
+        "addPointsToPreview": "添加点位以查看预览。",
+        "endpointHelp": "端点值来自镜头的焦距和最大光圈字段。",
+        "focalLength": "焦距",
+        "maximumAperture": "最大光圈",
+        "removePoint": "移除配置点",
+        "addPoint": "添加点位",
+        "cancel": "取消",
+        "save": "保存配置",
+        "invalid": "每个点位必须在镜头范围内具有唯一焦距，且光圈值必须为正数。",
+        "viewDetails": "查看配置详情",
+        "expand": "展开"
       },
       "status": {
         "loading": "加载中...",

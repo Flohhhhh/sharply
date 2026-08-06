@@ -603,6 +603,7 @@
         "label": "Variable Aperture Profile",
         "manage": "Manage profile",
         "unavailable": "Available for zoom lenses with different wide and tele maximum apertures.",
+        "addPointsToPreview": "Add points to see preview.",
         "endpointHelp": "Endpoint values come from the lens focal length and maximum aperture fields.",
         "focalLength": "Focal length",
         "maximumAperture": "Maximum aperture",
@@ -612,6 +613,7 @@
         "save": "Save profile",
         "invalid": "Each point must have a unique focal length within the lens range and a positive aperture.",
         "viewDetails": "View profile details"
+        ,"expand": "Expand"
       },
       "status": {
         "loading": "Loading...",

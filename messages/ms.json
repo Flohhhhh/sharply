@@ -600,18 +600,20 @@
         }
       },
       "apertureProfile": {
-        "label": "Variable Aperture Profile",
-        "manage": "Manage profile",
-        "unavailable": "Available for zoom lenses with different wide and tele maximum apertures.",
-        "endpointHelp": "Endpoint values come from the lens focal length and maximum aperture fields.",
-        "focalLength": "Focal length",
-        "maximumAperture": "Maximum aperture",
-        "removePoint": "Remove profile point",
-        "addPoint": "Add point",
-        "cancel": "Cancel",
-        "save": "Save profile",
-        "invalid": "Each point must have a unique focal length within the lens range and a positive aperture.",
-        "viewDetails": "View profile details"
+        "label": "Profil apertur berubah",
+        "manage": "Urus profil",
+        "unavailable": "Tersedia untuk lensa zum dengan apertur maksimum sudut lebar dan tele yang berbeza.",
+        "addPointsToPreview": "Tambahkan titik untuk melihat pratonton.",
+        "endpointHelp": "Nilai hujung diperoleh daripada medan panjang fokus dan apertur maksimum lensa.",
+        "focalLength": "Panjang fokus",
+        "maximumAperture": "Apertur maksimum",
+        "removePoint": "Buang titik profil",
+        "addPoint": "Tambah titik",
+        "cancel": "Batal",
+        "save": "Simpan profil",
+        "invalid": "Setiap titik mesti mempunyai panjang fokus yang unik dalam julat lensa dan apertur positif.",
+        "viewDetails": "Lihat butiran profil",
+        "expand": "Kembangkan"
       },
       "status": {
         "loading": "Memuatkan...",

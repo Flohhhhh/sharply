@@ -36,6 +36,7 @@ import { formatMaxFpsPlain } from "~/lib/mapping/max-fps-map";
 import { getMountLongNameById } from "~/lib/mapping/mounts-map";
 import { sensorNameFromId, sensorNameFromSlug } from "~/lib/mapping/sensor-map";
 import { humanizeKey } from "~/lib/utils";
+import { normalizeApertureProfile } from "~/lib/lens-aperture-profile";
 import {
   normalizedToCameraVideoModes,
   type VideoModeNormalized,
@@ -61,6 +62,19 @@ type ResolvedResponse = {
   days?: number;
 };
 
+function formatCompactNumber(value: unknown): string {
+  const num = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(num)) return String(value);
+  return Number.isInteger(num) ? String(num) : String(Number(num.toFixed(1)));
+}
+
+function formatApertureProfile(value: unknown): string {
+  const points = normalizeApertureProfile(value);
+  return points
+    ? points.map((point) => `${point.focalLength}mm f/${point.aperture}`).join(" · ")
+    : String(value ?? "Empty");
+}
+
 export function GearProposalsList() {
   const locale = useLocale();
   const tGearDetail = useTranslations("gearDetail");
@@ -82,11 +96,6 @@ export function GearProposalsList() {
       locale,
       preset: "date-long",
     });
-  const formatCompactNumber = (value: unknown) => {
-    const num = typeof value === "number" ? value : Number(value);
-    if (!Number.isFinite(num)) return String(value);
-    return Number.isInteger(num) ? String(num) : String(Number(num.toFixed(1)));
-  };
 
   const getVideoBundle = (modes?: VideoModeNormalized[] | null) => {
     if (!Array.isArray(modes) || modes.length === 0) return null;
@@ -237,6 +246,7 @@ export function GearProposalsList() {
       return formatPrecaptureSupport(v) ?? String(v);
     }
     if (k === "maxContinuousFps") return formatCompactNumber(v);
+    if (k === "apertureProfileJson") return formatApertureProfile(v);
     if (k === "maxFpsByShutter") return formatMaxFpsPlain(v);
     return String(v);
   };
@@ -273,6 +283,7 @@ export function GearProposalsList() {
       return formatPrecaptureSupport(v) ?? String(v ?? "Empty");
     }
     if (k === "maxContinuousFps") return formatCompactNumber(v);
+    if (k === "apertureProfileJson") return formatApertureProfile(v);
     if (k === "maxFpsByShutter") return formatMaxFpsPlain(v);
     return String(v ?? "Empty");
   };

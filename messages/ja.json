@@ -600,18 +600,20 @@
         }
       },
       "apertureProfile": {
-        "label": "Variable Aperture Profile",
-        "manage": "Manage profile",
-        "unavailable": "Available for zoom lenses with different wide and tele maximum apertures.",
-        "endpointHelp": "Endpoint values come from the lens focal length and maximum aperture fields.",
-        "focalLength": "Focal length",
-        "maximumAperture": "Maximum aperture",
-        "removePoint": "Remove profile point",
-        "addPoint": "Add point",
-        "cancel": "Cancel",
-        "save": "Save profile",
-        "invalid": "Each point must have a unique focal length within the lens range and a positive aperture.",
-        "viewDetails": "View profile details"
+        "label": "可変絞りプロファイル",
+        "manage": "プロファイルを管理",
+        "unavailable": "広角側と望遠側で最大絞りが異なるズームレンズで利用できます。",
+        "addPointsToPreview": "プレビューを表示するにはポイントを追加してください。",
+        "endpointHelp": "両端の値は、レンズの焦点距離と最大絞りのフィールドから取得されます。",
+        "focalLength": "焦点距離",
+        "maximumAperture": "最大絞り",
+        "removePoint": "プロファイルポイントを削除",
+        "addPoint": "ポイントを追加",
+        "cancel": "キャンセル",
+        "save": "プロファイルを保存",
+        "invalid": "各ポイントには、レンズ範囲内の一意の焦点距離と正の絞り値が必要です。",
+        "viewDetails": "プロファイルの詳細を表示",
+        "expand": "展開"
       },
       "status": {
         "loading": "読み込み中...",

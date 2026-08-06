@@ -600,18 +600,20 @@
         }
       },
       "apertureProfile": {
-        "label": "Variable Aperture Profile",
-        "manage": "Manage profile",
-        "unavailable": "Available for zoom lenses with different wide and tele maximum apertures.",
-        "endpointHelp": "Endpoint values come from the lens focal length and maximum aperture fields.",
-        "focalLength": "Focal length",
-        "maximumAperture": "Maximum aperture",
-        "removePoint": "Remove profile point",
-        "addPoint": "Add point",
-        "cancel": "Cancel",
-        "save": "Save profile",
-        "invalid": "Each point must have a unique focal length within the lens range and a positive aperture.",
-        "viewDetails": "View profile details"
+        "label": "Profil d’ouverture variable",
+        "manage": "Gérer le profil",
+        "unavailable": "Disponible pour les zooms dont l’ouverture maximale diffère entre grand-angle et téléobjectif.",
+        "addPointsToPreview": "Ajoutez des points pour afficher un aperçu.",
+        "endpointHelp": "Les valeurs des extrémités proviennent des champs de focale et d’ouverture maximale de l’objectif.",
+        "focalLength": "Focale",
+        "maximumAperture": "Ouverture maximale",
+        "removePoint": "Supprimer le point du profil",
+        "addPoint": "Ajouter un point",
+        "cancel": "Annuler",
+        "save": "Enregistrer le profil",
+        "invalid": "Chaque point doit avoir une focale unique dans la plage de l’objectif et une ouverture positive.",
+        "viewDetails": "Afficher les détails du profil",
+        "expand": "Agrandir"
       },
       "status": {
         "loading": "Chargement...",
