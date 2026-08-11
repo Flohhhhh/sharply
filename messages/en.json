@@ -1867,7 +1867,7 @@
       "title": "Terms of Service",
       "lastUpdated": "Last updated: May 17, 2026",
       "intro": "Welcome to Sharply. By accessing or using our website, applications, or services (collectively, the \"Service\"), you agree to these Terms of Service (\"Terms\"). If you do not agree, do not use the Service.",
-      "privacyNotice": "As described in our {privacyPolicy}, the Service uses essential and functional cookies together with limited privacy-focused first-party analytics and measurement to operate, secure, and improve the Service. We do not use the Service for advertising, cross-site tracking, or behavioral profile building.",
+      "privacyNotice": "As described in our <privacyPolicy>{privacyPolicyLabel}</privacyPolicy>, the Service uses essential and functional cookies together with limited privacy-focused first-party analytics and measurement to operate, secure, and improve the Service. We do not use the Service for advertising, cross-site tracking, or behavioral profile building.",
       "sections": {
         "whatSharplyIs": {
           "title": "1. What Sharply Is",
@@ -1928,7 +1928,7 @@
         },
         "contact": {
           "title": "13. Contact",
-          "body": "Questions about these Terms or the Service? Please contact us via the support channel listed on our website. See also our {privacyPolicy}."
+          "body": "Questions about these Terms or the Service? Please contact us via the support channel listed on our website. See also our <privacyPolicy>{privacyPolicyLabel}</privacyPolicy>."
         }
       }
     }

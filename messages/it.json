@@ -1867,7 +1867,7 @@
       "title": "Termini di servizio",
       "lastUpdated": "Ultimo aggiornamento: 17 maggio 2026",
       "intro": "Benvenuto su Sharply. Accedendo o utilizzando il nostro sito web, le applicazioni o i servizi (collettivamente, il \"Servizio\"), accetti questi Termini di servizio (i \"Termini\"). Se non sei d’accordo, non utilizzare il Servizio.",
-      "privacyNotice": "Come descritto nella nostra {privacyPolicy}, il Servizio utilizza cookie essenziali e funzionali insieme ad analisi e misurazioni first-party limitate e orientate alla privacy per gestire, proteggere e migliorare il Servizio. Non utilizziamo il Servizio per pubblicità, tracciamento tra siti o creazione di profili comportamentali.",
+      "privacyNotice": "Come descritto nella nostra <privacyPolicy>{privacyPolicyLabel}</privacyPolicy>, il Servizio utilizza cookie essenziali e funzionali insieme ad analisi e misurazioni first-party limitate e orientate alla privacy per gestire, proteggere e migliorare il Servizio. Non utilizziamo il Servizio per pubblicità, tracciamento tra siti o creazione di profili comportamentali.",
       "sections": {
         "whatSharplyIs": {
           "title": "1. Che cos’è Sharply",
@@ -1928,7 +1928,7 @@
         },
         "contact": {
           "title": "13. Contatti",
-          "body": "Hai domande su questi Termini o sul Servizio? Contattaci tramite il canale di supporto indicato sul nostro sito web. Consulta anche la nostra {privacyPolicy}."
+          "body": "Hai domande su questi Termini o sul Servizio? Contattaci tramite il canale di supporto indicato sul nostro sito web. Consulta anche la nostra <privacyPolicy>{privacyPolicyLabel}</privacyPolicy>."
         }
       }
     }

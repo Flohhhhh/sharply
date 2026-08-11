@@ -25,11 +25,10 @@ export default async function TermsOfServicePage() {
         <p>{t("intro")}</p>
         <p>
           {t.rich("privacyNotice", {
-            privacyPolicy: () => (
-              <LocaleLink href="/privacy-policy">
-                {tCommon("privacyPolicy")}
-              </LocaleLink>
+            privacyPolicy: (chunks) => (
+              <LocaleLink href="/privacy-policy">{chunks}</LocaleLink>
             ),
+            privacyPolicyLabel: tCommon("privacyPolicy"),
           })}
         </p>
 
@@ -85,11 +84,10 @@ export default async function TermsOfServicePage() {
         <h2>{t("sections.contact.title")}</h2>
         <p>
           {t.rich("sections.contact.body", {
-            privacyPolicy: () => (
-              <LocaleLink href="/privacy-policy">
-                {tCommon("privacyPolicy")}
-              </LocaleLink>
+            privacyPolicy: (chunks) => (
+              <LocaleLink href="/privacy-policy">{chunks}</LocaleLink>
             ),
+            privacyPolicyLabel: tCommon("privacyPolicy"),
           })}
         </p>
       </article>

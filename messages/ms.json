@@ -1867,7 +1867,7 @@
       "title": "Terma Perkhidmatan",
       "lastUpdated": "Kemas kini terakhir: 17 Mei 2026",
       "intro": "Selamat datang ke Sharply. Dengan mengakses atau menggunakan laman web, aplikasi atau perkhidmatan kami (secara kolektif, “Perkhidmatan”), anda bersetuju dengan Terma Perkhidmatan ini (“Terma”). Jika anda tidak bersetuju, jangan gunakan Perkhidmatan.",
-      "privacyNotice": "Seperti yang diterangkan dalam {privacyPolicy} kami, Perkhidmatan menggunakan kuki penting dan fungsian bersama analitik dan pengukuran pihak pertama yang terhad serta memfokuskan privasi untuk mengendalikan, melindungi dan menambah baik Perkhidmatan. Kami tidak menggunakan Perkhidmatan untuk pengiklanan, penjejakan rentas laman atau pembinaan profil tingkah laku.",
+      "privacyNotice": "Seperti yang diterangkan dalam <privacyPolicy>{privacyPolicyLabel}</privacyPolicy> kami, Perkhidmatan menggunakan kuki penting dan fungsian bersama analitik dan pengukuran pihak pertama yang terhad serta memfokuskan privasi untuk mengendalikan, melindungi dan menambah baik Perkhidmatan. Kami tidak menggunakan Perkhidmatan untuk pengiklanan, penjejakan rentas laman atau pembinaan profil tingkah laku.",
       "sections": {
         "whatSharplyIs": {
           "title": "1. Apakah itu Sharply",
@@ -1928,7 +1928,7 @@
         },
         "contact": {
           "title": "13. Hubungi",
-          "body": "Ada soalan tentang Terma ini atau Perkhidmatan? Sila hubungi kami melalui saluran sokongan yang disenaraikan di laman web kami. Lihat juga {privacyPolicy} kami."
+          "body": "Ada soalan tentang Terma ini atau Perkhidmatan? Sila hubungi kami melalui saluran sokongan yang disenaraikan di laman web kami. Lihat juga <privacyPolicy>{privacyPolicyLabel}</privacyPolicy> kami."
         }
       }
     }
