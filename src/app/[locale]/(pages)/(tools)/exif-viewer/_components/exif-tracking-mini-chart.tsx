@@ -2,8 +2,8 @@
 
 import { useLocale } from "next-intl";
 import { useMemo } from "react";
-import { Line,LineChart,XAxis,YAxis } from "recharts";
-import { ChartContainer,type ChartConfig } from "~/components/ui/chart";
+import { Line, LineChart, XAxis, YAxis } from "recharts";
+import { ChartContainer, type ChartConfig } from "~/components/ui/chart";
 import type {
   ExifTrackedCameraHistoryEntry,
   ExifTrackingChartSeries,
@@ -14,6 +14,7 @@ import {
   getSeriesDomain,
   resolveMiniChartSeries,
 } from "./exif-tracking-chart-utils";
+import { MINI_CHART_DOT_STYLE } from "./exif-tracking-chart-marker-styles";
 
 type ExifTrackingMiniChartProps = {
   readings: ExifTrackedCameraHistoryEntry[];
@@ -94,11 +95,7 @@ export default function ExifTrackingMiniChart({
           dataKey={dataKey}
           stroke={`var(--color-${dataKey})`}
           strokeWidth={2.25}
-          dot={{
-            r: 1.75,
-            fill: `var(--color-${dataKey})`,
-            stroke: "rgba(0,0,0,0)",
-          }}
+          dot={MINI_CHART_DOT_STYLE}
           activeDot={false}
           isAnimationActive={false}
         />
