@@ -156,6 +156,10 @@ function FixedLensFieldsComponent({
                 handleFieldChange("focalLengthMinMm", focalLengthMinMm);
                 handleFieldChange("focalLengthMaxMm", focalLengthMaxMm);
                 handleFieldChange("isPrime", isPrime);
+                if (isPrime) {
+                  handleFieldChange("maxApertureTele", null);
+                  handleFieldChange("minApertureTele", null);
+                }
               }}
             />
           )}
@@ -174,6 +178,7 @@ function FixedLensFieldsComponent({
               maxApertureTele={numOrNull(currentSpecs?.maxApertureTele)}
               minApertureWide={numOrNull(currentSpecs?.minApertureWide)}
               minApertureTele={numOrNull(currentSpecs?.minApertureTele)}
+              isPrime={currentSpecs?.isPrime}
               onChange={({
                 maxApertureWide,
                 maxApertureTele,

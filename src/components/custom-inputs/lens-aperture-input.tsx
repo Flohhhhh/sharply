@@ -20,6 +20,7 @@ export interface LensApertureInputProps {
 	minApertureWide?: number | null;
 	maxApertureTele?: number | null;
 	minApertureTele?: number | null;
+	isPrime?: boolean | null;
 	onChange: (values: LensApertureChange) => void;
 	disabled?: boolean;
 	className?: string;
@@ -41,6 +42,7 @@ export default function LensApertureInput({
 	minApertureWide,
 	maxApertureTele,
 	minApertureTele,
+	isPrime = false,
 	onChange,
 	disabled = false,
 	className = "",
@@ -55,8 +57,8 @@ export default function LensApertureInput({
 				maxApertureTele !== maxApertureWide) ||
 			(typeof minApertureTele === "number" &&
 				minApertureTele !== minApertureWide);
-		return hasTele || differs;
-	}, [maxApertureTele, minApertureTele, maxApertureWide, minApertureWide]);
+		return isPrime !== true && (hasTele || differs);
+	}, [isPrime, maxApertureTele, minApertureTele, maxApertureWide, minApertureWide]);
 
 	const [isVariable, setIsVariable] = useState<boolean>(initialIsVariable);
 
@@ -149,14 +151,14 @@ export default function LensApertureInput({
 					/>
 
 					<div className="flex items-center gap-3">
-						<Switch
+					<Switch
 							id={`${id}-variable`}
 							checked={isVariable}
 							onCheckedChange={(checked) => {
 								setIsVariable(checked);
 								emit({}, checked);
 							}}
-							disabled={disabled}
+							disabled={disabled || isPrime === true}
 						/>
 						<Label htmlFor={`${id}-variable`} className="text-sm">
 							Variable aperture across zoom
@@ -221,7 +223,7 @@ export default function LensApertureInput({
 								setIsVariable(checked);
 								emit({}, checked);
 							}}
-							disabled={disabled}
+							disabled={disabled || isPrime === true}
 						/>
 						<Label htmlFor={`${id}-variable`} className="text-sm">
 							Variable aperture across zoom

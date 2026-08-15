@@ -202,6 +202,8 @@ function LensFieldsComponent({
                 handleFieldChange("isPrime", isPrime);
                 if (isPrime) {
                   handleFieldChange("hasInternalZoom", null);
+                  handleFieldChange("maxApertureTele", null);
+                  handleFieldChange("minApertureTele", null);
                 }
               }}
             />
@@ -267,6 +269,7 @@ function LensFieldsComponent({
               maxApertureTele={numOrNull(currentSpecs?.maxApertureTele)}
               minApertureWide={numOrNull(currentSpecs?.minApertureWide)}
               minApertureTele={numOrNull(currentSpecs?.minApertureTele)}
+              isPrime={currentSpecs?.isPrime}
               disabled={apertureLocked}
               labelAdornment={
                 apertureLocked ? (
