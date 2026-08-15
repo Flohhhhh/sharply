@@ -1258,7 +1258,7 @@ export async function submitGearEditProposal(body: unknown) {
     });
     const profileToValidate =
       submittedProfile ?? currentLens?.apertureProfileJson;
-    if (profileToValidate !== undefined) {
+    if (profileToValidate != null) {
       const profile = normalizeApertureProfile(profileToValidate, endpoints);
       if (!profile || profile.length < 3) {
         throw Object.assign(new Error("Invalid aperture profile"), {

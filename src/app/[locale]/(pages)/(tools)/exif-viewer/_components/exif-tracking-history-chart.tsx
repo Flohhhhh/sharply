@@ -29,6 +29,10 @@ import {
   getCombinedSeriesDomain,
   resolveFullChartSeries,
 } from "./exif-tracking-chart-utils";
+import {
+  HISTORY_CHART_ACTIVE_DOT_STYLE,
+  HISTORY_CHART_DOT_STYLE,
+} from "./exif-tracking-chart-marker-styles";
 
 type ExifTrackingHistoryChartProps = {
   readings: ExifTrackedCameraHistoryEntry[];
@@ -202,11 +206,10 @@ export default function ExifTrackingHistoryChart({
                   strokeWidth={2.4}
                   connectNulls={false}
                   dot={{
-                    r: pointCount < 2 ? 3 : 2.25,
-                    fill: `var(--color-${dataKey})`,
-                    stroke: "rgba(0,0,0,0)",
+                    ...HISTORY_CHART_DOT_STYLE,
+                    r: pointCount < 2 ? 4 : 3.5,
                   }}
-                  activeDot={{ r: 4 }}
+                  activeDot={HISTORY_CHART_ACTIVE_DOT_STYLE}
                   isAnimationActive={false}
                 />
               );

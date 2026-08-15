@@ -197,6 +197,7 @@
     "activityUpdated": "已更新",
     "justNow": "现在",
     "viewAllGear": "查看所有器材",
+    "browseAllGear": "浏览所有器材",
     "learnMore": "了解更多",
     "newToPhotographyTitle": "摄影新手？",
     "newToPhotographyDescription": "我们整理了一份初学者指南，其中包含您入门所需了解的所有信息！查看我们的分步指南系列。",
@@ -1867,7 +1868,7 @@
       "title": "服务条款",
       "lastUpdated": "最后更新时间：2026 年 5 月 17 日",
       "intro": "欢迎来到 Sharply。访问或使用我们的网站、应用程序或服务（统称“服务”）即表示您同意这些服务条款（以下简称“条款”）。如果您不同意，请不要使用本服务。",
-      "privacyNotice": "如我们的 {privacyPolicy} 中所述，该服务使用基本和功能性 cookie 以及有限的注重隐私的第一方分析和测量来操作、保护和改进服务。我们不会将服务用于广告、跨站点跟踪或行为档案构建。",
+      "privacyNotice": "如我们的 <privacyPolicy>{privacyPolicyLabel}</privacyPolicy> 中所述，该服务使用基本和功能性 cookie 以及有限的注重隐私的第一方分析和测量来操作、保护和改进服务。我们不会将服务用于广告、跨站点跟踪或行为档案构建。",
       "sections": {
         "whatSharplyIs": {
           "title": "1. 夏普是什么",
@@ -1928,7 +1929,7 @@
         },
         "contact": {
           "title": "13. 联系方式",
-          "body": "对这些条款或服务有疑问吗？请通过我们网站上列出的支持渠道与我们联系。另请参阅我们的 {privacyPolicy}。"
+          "body": "对这些条款或服务有疑问吗？请通过我们网站上列出的支持渠道与我们联系。另请参阅我们的 <privacyPolicy>{privacyPolicyLabel}</privacyPolicy>。"
         }
       }
     }

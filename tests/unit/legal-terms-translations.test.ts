@@ -1,5 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
+import { createElement, type ReactNode } from "react";
+import { createTranslator } from "use-intl/core";
 import { describe, expect, it } from "vitest";
 
 const messagesDirectory = path.join(process.cwd(), "messages");
@@ -7,6 +9,15 @@ const messagesDirectory = path.join(process.cwd(), "messages");
 type LegalMessages = {
   legal?: {
     terms?: Record<string, unknown>;
+  };
+};
+
+type RichTermsMessages = {
+  privacyNotice: string;
+  sections: {
+    contact: {
+      body: string;
+    };
   };
 };
 
@@ -77,6 +88,7 @@ describe("legal terms translations", () => {
     expect(enMessages.title).toBe("Terms of Service");
 
     const locales = [
+      "en.json",
       "de.json",
       "es.json",
       "fr.json",
@@ -92,6 +104,49 @@ describe("legal terms translations", () => {
       for (const keyPath of requiredPaths) {
         expect(getPathValue(messages, keyPath)).toBeTruthy();
       }
+
+      expect(getPathValue(messages, "privacyNotice")).toContain(
+        "<privacyPolicy>{privacyPolicyLabel}</privacyPolicy>",
+      );
+      expect(getPathValue(messages, "sections.contact.body")).toContain(
+        "<privacyPolicy>{privacyPolicyLabel}</privacyPolicy>",
+      );
+    }
+  });
+
+  it("formats the privacy policy links as rich text for every locale", () => {
+    const locales = [
+      "en.json",
+      "de.json",
+      "es.json",
+      "fr.json",
+      "it.json",
+      "ja.json",
+      "ms.json",
+      "zh.json",
+    ];
+
+    for (const localeFileName of locales) {
+      const errors: string[] = [];
+      const translator = createTranslator({
+        locale: localeFileName.replace(".json", ""),
+        messages: {
+          legal: {
+            terms: readTermsMessages(localeFileName) as RichTermsMessages,
+          },
+        },
+        namespace: "legal.terms",
+        onError: (error) => errors.push(error.message),
+      });
+      const values = {
+        privacyPolicy: (chunks: ReactNode) =>
+          createElement("a", { href: "/privacy-policy" }, chunks),
+        privacyPolicyLabel: "Privacy Policy",
+      };
+
+      expect(translator.rich("privacyNotice", values)).toBeTruthy();
+      expect(translator.rich("sections.contact.body", values)).toBeTruthy();
+      expect(errors).toEqual([]);
     }
   });
 });

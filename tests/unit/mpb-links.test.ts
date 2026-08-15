@@ -189,9 +189,11 @@ describe("MPB link helpers", () => {
     expect(unmappedMountValues).toMatchInlineSnapshot(`
       [
         "a-minolta",
+        "dl-dji",
         "fixed-lens",
         "m42-zeiss",
         "m645-mamiya",
+        "pl-arri",
         "s-nikon",
         "sr-minolta",
       ]

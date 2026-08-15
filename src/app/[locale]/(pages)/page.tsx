@@ -164,10 +164,17 @@ export default async function Home({
                   <GlobalSearchBar size="lg" showRotatingExamples />
                 </Suspense>
               </div>
+              <LinkButton
+                href={localizePathname("/browse", locale)}
+                className="mt-3 w-full md:hidden"
+                icon={<Library className="h-4 w-4" />}
+              >
+                {t("browseAllGear")}
+              </LinkButton>
 
               {/* <ScopeChips /> */}
             </div>
-            <p className="text-muted-foreground mx-auto mt-2 max-w-2xl text-balance">
+            <p className="text-muted-foreground mx-auto mt-2 hidden max-w-2xl text-balance md:block">
               {t("heroSubtitle")}
             </p>
             {/* 

@@ -158,7 +158,9 @@ Stores detailed lens-specific specifications:
   ordered JSON array of `{ focalLength, aperture }` points for
   variable-aperture zoom lenses. The first and last points mirror the canonical
   focal-length and maximum-aperture endpoints; intermediate points record
-  aperture changes within the zoom range.
+  aperture changes within the zoom range. Prime and constant-aperture lenses
+  leave this field `null`. Prime lenses also leave the tele-end maximum and
+  minimum aperture fields `null` because they have no zoom range.
 
 Creation flows validate camera resolution and lens/fixed-lens aperture values as
 numbers, then pass typed decimal-string inputs to the database without changing

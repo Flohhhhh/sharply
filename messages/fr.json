@@ -197,6 +197,7 @@
     "activityUpdated": "mis à jour",
     "justNow": "à l'instant",
     "viewAllGear": "Voir tout le matériel",
+    "browseAllGear": "Parcourir tout le matériel",
     "learnMore": "En savoir plus",
     "newToPhotographyTitle": "Nouveau en photographie ?",
     "newToPhotographyDescription": "Nous avons préparé un guide pour débutants couvrant tout ce qu’il faut savoir pour commencer. Consultez notre série de guides pas à pas.",
@@ -1867,7 +1868,7 @@
       "title": "Conditions d’utilisation",
       "lastUpdated": "Dernière mise à jour : 17 mai 2026",
       "intro": "Bienvenue sur Sharply. En accédant à notre site web, à nos applications ou à nos services, ou en les utilisant (collectivement, le « Service »), vous acceptez les présentes Conditions d’utilisation (« Conditions »). Si vous n’êtes pas d’accord, n’utilisez pas le Service.",
-      "privacyNotice": "Comme décrit dans notre {privacyPolicy}, le Service utilise des cookies essentiels et fonctionnels ainsi qu’une analytique et une mesure first-party limitées et respectueuses de la vie privée pour exploiter, sécuriser et améliorer le Service. Nous n’utilisons pas le Service à des fins publicitaires, de suivi intersites ou de création de profils comportementaux.",
+      "privacyNotice": "Comme décrit dans notre <privacyPolicy>{privacyPolicyLabel}</privacyPolicy>, le Service utilise des cookies essentiels et fonctionnels ainsi qu’une analytique et une mesure first-party limitées et respectueuses de la vie privée pour exploiter, sécuriser et améliorer le Service. Nous n’utilisons pas le Service à des fins publicitaires, de suivi intersites ou de création de profils comportementaux.",
       "sections": {
         "whatSharplyIs": {
           "title": "1. Qu’est-ce que Sharply ?",
@@ -1928,7 +1929,7 @@
         },
         "contact": {
           "title": "13. Contact",
-          "body": "Des questions sur ces Conditions ou sur le Service ? Veuillez nous contacter via le canal d’assistance indiqué sur notre site web. Consultez également notre {privacyPolicy}."
+          "body": "Des questions sur ces Conditions ou sur le Service ? Veuillez nous contacter via le canal d’assistance indiqué sur notre site web. Consultez également notre <privacyPolicy>{privacyPolicyLabel}</privacyPolicy>."
         }
       }
     }

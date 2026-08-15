@@ -463,6 +463,30 @@ describe("gear edit submission", () => {
     expect(gearDataMocks.createGearEditProposal).not.toHaveBeenCalled();
   });
 
+  it("allows prime lens edits when the retained aperture profile is null", async () => {
+    gearDataMocks.fetchGearBySlug.mockResolvedValue(
+      makeUnderConstructionGear({
+        gearType: "LENS",
+        lensSpecs: {
+          isPrime: true,
+          focalLengthMinMm: 50,
+          focalLengthMaxMm: 50,
+          maxApertureWide: 1.8,
+          maxApertureTele: null,
+          apertureProfileJson: null,
+        },
+      }),
+    );
+
+    const result = await submitGearEditProposal({
+      gearId: "22222222-2222-4222-8222-222222222222",
+      payload: { lens: { numberDiaphragmBlades: 9 } },
+    });
+
+    expect(result.autoApproved).toBe(true);
+    expect(gearDataMocks.createGearEditProposal).toHaveBeenCalled();
+  });
+
   it("allows endpoint edits when the aperture profile is explicitly removed", async () => {
     gearDataMocks.fetchGearBySlug.mockResolvedValue(
       makeUnderConstructionGear({
