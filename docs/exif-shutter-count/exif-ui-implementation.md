@@ -546,7 +546,7 @@ The history modal now adds a full line chart above the saved-readings table. Whe
 The history dialog is intentionally simple in v1:
 
 - title from mapped gear name or parsed model
-- summary fields for latest count, latest capture, first seen, and last seen
+- summary fields for latest count, latest capture, and first seen
 - full shutter-count chart above the table
 - collapsed-by-default readings table
 - per-reading delete action
