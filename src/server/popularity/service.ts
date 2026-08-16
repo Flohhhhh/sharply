@@ -35,17 +35,40 @@ async function fetchTrendingRanking(params: {
 }): Promise<TrendingEntry[]> {
   const timeframe = params.timeframe;
   const filters = params.filters ?? {};
-  const candidateLimit = Math.max(
+  const targetCount = Math.max(
     1,
     params.candidateLimit ?? DEFAULT_TRENDING_CANDIDATE_POOL,
   );
+  let sourceLimit = targetCount;
 
-  const [baseline, liveSnapshot] = await Promise.all([
-    getTrendingData(timeframe, candidateLimit, filters, 0),
-    getLiveTrendingSnapshot(candidateLimit, filters, 0),
-  ]);
+  while (true) {
+    const [baseline, liveSnapshot] = await Promise.all([
+      getTrendingData(timeframe, sourceLimit, filters, 0),
+      getLiveTrendingSnapshot(sourceLimit, filters, 0),
+    ]);
+    const ranked = applyLiveBoostToTrending({ baseline, liveSnapshot });
+    const baselineExhausted = baseline.length < sourceLimit;
+    const liveExhausted = liveSnapshot.items.length < sourceLimit;
+    const nextBaselineScore = baselineExhausted
+      ? 0
+      : (baseline.at(-1)?.score ?? 0);
+    const nextLiveScore = liveExhausted
+      ? 0
+      : (liveSnapshot.items.at(-1)?.liveScore ?? 0);
+    const lastRequiredScore = ranked[targetCount - 1]?.score;
 
-  return applyLiveBoostToTrending({ baseline, liveSnapshot });
+    // Any omitted item can score at most the sum of the two source cutoffs.
+    // Expand on ties as well so source ordering cannot change the final prefix.
+    if (
+      (baselineExhausted && liveExhausted) ||
+      (lastRequiredScore !== undefined &&
+        lastRequiredScore > nextBaselineScore + nextLiveScore)
+    ) {
+      return ranked;
+    }
+
+    sourceLimit *= 2;
+  }
 }
 
 /**

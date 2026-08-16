@@ -133,6 +133,7 @@ await fetch(`${base}/api/gear/nikon-z6-iii/wishlist`, {
 - Data flow:
   - Every deduped popularity event increments `gear_popularity_intraday` via an atomic upsert alongside `popularity_events`.
   - `getLiveTrendingSnapshot` mirrors the standard score formula over the current UTC-day rows and caches its item list for ~120 seconds (`trending-live` tag).
+  - Stable and live rankings are merged before the requested limit is applied. Candidate reads expand until omitted stable and live scores cannot mathematically displace the requested ranked prefix.
   - Service layer automatically adds the live boost to the window score and can emit telemetry/log messages containing the top movers.
 - Lifecycle:
   - Rollup removes old intraday rows after finishing window calculations and revalidates `trending`; `trending-live` expires naturally within about two minutes.
