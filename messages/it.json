@@ -679,6 +679,7 @@
         "selectViewfinderType": "Seleziona tipo di mirino",
         "magnificationPlaceholder": "es. 0,80",
         "viewfinderResolutionPlaceholder": "es. 5,76",
+        "viewfinderEyePointPlaceholder": "es. 21,00",
         "stopsPlaceholder": "es. 3,0",
         "selectAvailableShutterTypesFirst": "Seleziona prima i tipi di otturatore disponibili per inserire i valori FPS massimi.",
         "rawFps": "FPS RAW",
@@ -931,6 +932,9 @@
             },
             "viewfinderMagnification": {
               "label": "Ingrandimento mirino"
+            },
+            "viewfinderEyePointMm": {
+              "label": "Estrazione pupillare del mirino"
             },
             "viewfinderResolutionMillionDots": {
               "label": "Risoluzione mirino"
@@ -1213,6 +1217,9 @@
             },
             "viewfinderType": {
               "label": "Tipo di mirino"
+            },
+            "viewfinderEyePointMm": {
+              "label": "Estrazione pupillare del mirino"
             },
             "shutterType": {
               "label": "Tipo di otturatore"

@@ -679,6 +679,7 @@
         "selectViewfinderType": "选择取景器类型",
         "magnificationPlaceholder": "例如，0.80",
         "viewfinderResolutionPlaceholder": "例如，5.76",
+        "viewfinderEyePointPlaceholder": "例如，21.00",
         "stopsPlaceholder": "例如，3.0",
         "selectAvailableShutterTypesFirst": "选择可用的快门类型以输入最大 FPS 值。",
         "rawFps": "原始帧率",
@@ -931,6 +932,9 @@
             },
             "viewfinderMagnification": {
               "label": "取景器放大倍率"
+            },
+            "viewfinderEyePointMm": {
+              "label": "取景器眼点"
             },
             "viewfinderResolutionMillionDots": {
               "label": "取景器分辨率"
@@ -1213,6 +1217,9 @@
             },
             "viewfinderType": {
               "label": "取景器类型"
+            },
+            "viewfinderEyePointMm": {
+              "label": "取景器眼点"
             },
             "shutterType": {
               "label": "快门类型"

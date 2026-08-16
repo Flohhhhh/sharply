@@ -613,8 +613,8 @@
         "cancel": "Cancel",
         "save": "Save profile",
         "invalid": "Each point must have a unique focal length within the lens range and a positive aperture.",
-        "viewDetails": "View profile details"
-        ,"expand": "Expand"
+        "viewDetails": "View profile details",
+        "expand": "Expand"
       },
       "status": {
         "loading": "Loading...",
@@ -679,6 +679,7 @@
         "selectViewfinderType": "Select viewfinder type",
         "magnificationPlaceholder": "e.g., 0.80",
         "viewfinderResolutionPlaceholder": "e.g., 5.76",
+        "viewfinderEyePointPlaceholder": "e.g., 21.00",
         "stopsPlaceholder": "e.g., 3.0",
         "selectAvailableShutterTypesFirst": "Select available shutter types to enter max FPS values.",
         "rawFps": "RAW FPS",
@@ -931,6 +932,9 @@
             },
             "viewfinderMagnification": {
               "label": "Viewfinder Magnification"
+            },
+            "viewfinderEyePointMm": {
+              "label": "Viewfinder Eye Point"
             },
             "viewfinderResolutionMillionDots": {
               "label": "Viewfinder Resolution"
@@ -1213,6 +1217,9 @@
             },
             "viewfinderType": {
               "label": "Viewfinder Type"
+            },
+            "viewfinderEyePointMm": {
+              "label": "Viewfinder Eye Point"
             },
             "shutterType": {
               "label": "Shutter Type"

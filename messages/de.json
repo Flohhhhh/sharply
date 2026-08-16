@@ -679,6 +679,7 @@
         "selectViewfinderType": "Suchertyp wählen",
         "magnificationPlaceholder": "z. B. 0,80",
         "viewfinderResolutionPlaceholder": "z. B. 5,76",
+        "viewfinderEyePointPlaceholder": "z. B. 21,00",
         "stopsPlaceholder": "z. B. 3,0",
         "selectAvailableShutterTypesFirst": "Wähle zuerst verfügbare Verschlusstypen, um maximale FPS-Werte einzugeben.",
         "rawFps": "RAW-FPS",
@@ -931,6 +932,9 @@
             },
             "viewfinderMagnification": {
               "label": "Suchervergrößerung"
+            },
+            "viewfinderEyePointMm": {
+              "label": "Sucher-Augenabstand"
             },
             "viewfinderResolutionMillionDots": {
               "label": "Sucherauflösung"
@@ -1213,6 +1217,9 @@
             },
             "viewfinderType": {
               "label": "Suchertyp"
+            },
+            "viewfinderEyePointMm": {
+              "label": "Sucher-Augenabstand"
             },
             "shutterType": {
               "label": "Verschlussart"

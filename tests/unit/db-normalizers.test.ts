@@ -166,6 +166,27 @@ describe("normalizeProposalPayloadForDb", () => {
     ).toEqual({});
   });
 
+  it("normalizes digital and analog viewfinder eye point measurements", () => {
+    expect(
+      normalizeProposalPayloadForDb({
+        camera: { viewfinderEyePointMm: "21.126" },
+        analogCamera: { viewfinderEyePointMm: 18.555 },
+      }),
+    ).toEqual({
+      camera: { viewfinderEyePointMm: 21.13 },
+      analogCamera: { viewfinderEyePointMm: 18.56 },
+    });
+  });
+
+  it("preserves eye point clearing and drops unusable values", () => {
+    expect(
+      normalizeProposalPayloadForDb({
+        camera: { viewfinderEyePointMm: null },
+        analogCamera: { viewfinderEyePointMm: "unknown" },
+      }),
+    ).toEqual({ camera: { viewfinderEyePointMm: null } });
+  });
+
   it("normalizes discontinued date and precision", () => {
     expect(
       normalizeProposalPayloadForDb({

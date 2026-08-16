@@ -99,6 +99,8 @@ Returns the complete currently publishable catalog record, including available r
 
 The response is an explicit public allowlist. It includes catalog identity, release and price data, dimensions, public links, approved relation fields, and type-specific specification values. `mounts` contains `{ value, shortName }` records from the gear-to-mount relationship. `predecessor` and `successor` are nullable `{ slug, name }` objects describing the adjacent product lineage. `cameraSpecs.sensorFormat` and `lensSpecs.imageCircle` / `fixedLensSpecs.imageCircle` contain `{ slug, name, cropFactor }` when the referenced sensor format exists, otherwise `null`.
 
+Digital and analog camera specification objects expose nullable `viewfinderEyePointMm` values in millimeters alongside their viewfinder type.
+
 ```json
 {
   "data": {

@@ -237,7 +237,8 @@ The admin approval queue groups pending edit proposals by gear item and lets edi
 
 On approval, the UI builds a merged, filtered payload composed of only the selected fields:
 
-- Namespaces supported: `core`, `camera`, `lens`, and `cameraCardSlots`.
+- Namespaces supported: `core`, `camera`, `analogCamera`, `lens`, `fixedLens`, `cameraCardSlots`, and `videoModes`.
+- Measurement changes such as digital and analog `viewfinderEyePointMm` use a friendly field label and unit-formatted values in both contributor previews and moderator review.
 - For conflicts, the chosen option (or Skip) determines inclusion.
 - For non-conflicts, inclusion depends on the checkbox state (default included).
 - `cameraCardSlots` is treated as a replace-set operation; if included, the provided array replaces existing slots for the gear.

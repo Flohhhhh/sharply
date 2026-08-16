@@ -89,7 +89,9 @@ function formatApertureProfileValue(value: unknown): string {
   if (value == null) return "Empty";
   const points = normalizeApertureProfile(value);
   return points
-    ? points.map((point) => `${point.focalLength}mm f/${point.aperture}`).join(" · ")
+    ? points
+        .map((point) => `${point.focalLength}mm f/${point.aperture}`)
+        .join(" · ")
     : safeString(value);
 }
 
@@ -398,6 +400,7 @@ function EditGearForm({
     rearDisplaySizeInches: "camera-hardware",
     viewfinderType: "camera-hardware",
     viewfinderMagnification: "camera-hardware",
+    viewfinderEyePointMm: "camera-hardware",
     viewfinderResolutionMillionDots: "camera-hardware",
     hasTopDisplay: "camera-hardware",
     hasRearTouchscreen: "camera-hardware",
@@ -678,6 +681,7 @@ function EditGearForm({
         "hasRearTouchscreen",
         "viewfinderType",
         "viewfinderMagnification",
+        "viewfinderEyePointMm",
         "viewfinderResolutionMillionDots",
         "hasTopDisplay",
         "processorName",
@@ -732,6 +736,7 @@ function EditGearForm({
         "hasAutoFilmAdvance",
         "hasOptionalMotorizedDrive",
         "viewfinderType",
+        "viewfinderEyePointMm",
         "shutterType",
         "shutterSpeedMax",
         "shutterSpeedMin",
