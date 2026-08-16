@@ -8,14 +8,14 @@ Sharply is a photography gear database and cataloging application built with Nex
 - All relevant docs in `/docs` must be updated to ensure no drift.
 - Any new hardcoded user-facing strings must be replaced with translation keys for all locales. (Except any admin routes, those should stay hard-coded.)
 - Translation key parity must be maintained: if a key is added, removed, or renamed in `messages/en.json`, the same key change must be applied across all locale files. This is enforced by `tests/unit/translation-parity.test.ts` (covered by `npm run test` / CI Vitest runs).
-- Changes that introduce or modify behavior must include or update automated tests (vitest and/or targeted playwright) covering the primary path and at least one meaningful edge case.
+- Selectively make tests for changes that introduce or modify significant functional logic only. Not for simple UI/style/surface level assertions. Clean up relevant tests that don't follow this rule if you are touching related ones.
 - Respect server layering: keep the `data -> service -> actions` flow and do not introduce direct database access in UI or generic lib modules.
 - If `src/server/db/schema.ts` changes, update related docs and keep changes backwards compatible by default (prefer deprecations over destructive deletions).
 - Run targeted Playwright coverage (`npm run test:e2e` or affected specs) when changing auth, critical user flows, or navigation behavior.
 
 ## Project Structure
 
-- **Frontend**: Next.js 15 with React 19, TypeScript, and Tailwind CSS
+- **Frontend**: Next.js 16 with React 19, TypeScript, and Tailwind CSS
 - **Backend**: Next.js API routes with BetterAuth for authentication
 - **Database**: PostgreSQL with Drizzle ORM
 - **Schema**: Located in `src/server/db/schema.ts`
@@ -42,15 +42,15 @@ Sharply is a photography gear database and cataloging application built with Nex
 
 ### Keeping `/docs` Up to Date
 
-- **ALWAYS** update relevant documentation when making schema changes
 - **Document new features** and their database implications
 - **Update gear-specification-system.md** when gear-related schemas change
 - **Update mapping-system.md** when mapping or relationship logic changes
 - **Maintain consistency** between code and documentation
+- Do not add every single spec or small change to docs, only conceptual context and possible confusion points, clean up any docs content that does not fit this rule without destroying anything important.
 
 ## Agent-Specific Instructions
 
-- **Always check linting** errors after significant changes using `npm run lint` scoped to the touched files and correct any errors related to changed/touched files in the scope of your task. (Errors only, not warnings)
+- **Check linting** errors after significant changes using `npm run lint` scoped to the touched files and correct any errors related to changed/touched files in the scope of your task. (Errors only, not warnings)
 
 ### Server Code Structure (data/service/actions)
 
