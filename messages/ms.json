@@ -679,6 +679,7 @@
         "selectViewfinderType": "Pilih jenis pemidang tilik",
         "magnificationPlaceholder": "cth. 0.80",
         "viewfinderResolutionPlaceholder": "cth. 5.76",
+        "viewfinderEyePointPlaceholder": "cth. 21.00",
         "stopsPlaceholder": "cth. 3.0",
         "selectAvailableShutterTypesFirst": "Pilih dahulu jenis pengatup yang tersedia untuk memasukkan nilai FPS maksimum.",
         "rawFps": "FPS RAW",
@@ -931,6 +932,9 @@
             },
             "viewfinderMagnification": {
               "label": "Pembesaran pemidang tilik"
+            },
+            "viewfinderEyePointMm": {
+              "label": "Titik mata pemidang tilik"
             },
             "viewfinderResolutionMillionDots": {
               "label": "Resolusi pemidang tilik"
@@ -1213,6 +1217,9 @@
             },
             "viewfinderType": {
               "label": "Jenis pemidang tilik"
+            },
+            "viewfinderEyePointMm": {
+              "label": "Titik mata pemidang tilik"
             },
             "shutterType": {
               "label": "Jenis pengatup"

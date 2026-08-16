@@ -32,6 +32,7 @@ These components use local pending descendants inside the link subtree:
 - `src/components/gear/gear-card-horizontal.tsx`
 - `src/components/home/news-card.tsx`
 - `src/components/trending-list.client.tsx`
+- `src/components/layout/nav-menu-desktop.tsx` (Gear dropdown cards only)
 
 Common behavior:
 
@@ -73,6 +74,7 @@ Implementation notes:
 Current usage:
 
 - homepage CTA links in `src/app/[locale]/(pages)/page.tsx`
+- the gear specifications section's Suggest Edit link
 
 ## Selection Guide
 
@@ -107,12 +109,17 @@ Relevant files:
 - `tests/unit/home-news-card-navigation-pending.test.ts`
 - `tests/unit/trending-list-navigation-pending.test.ts`
 - `tests/unit/link-button-navigation-pending.test.ts`
+- `tests/unit/nav-menu-desktop.test.ts`
 - `tests/playwright/basic/gear-card-pending-navigation.spec.ts`
 - `tests/playwright/basic/home-news-card-pending-navigation.spec.ts`
+- `tests/playwright/basic/nav-menu-pending-navigation.spec.ts`
 
 ## Header Navigation Guidance
 
-Current recommendation is to leave the main header links without individual pending loaders.
+Top-level header links remain without individual pending loaders. Gear dropdown
+cards are the deliberate exception: the clicked card fades while a centered,
+full-card spinner overlay is shown. The feedback uses `useLinkStatus()` inside
+the card link, so neighboring cards remain idle.
 
 Reasoning:
 
@@ -120,4 +127,5 @@ Reasoning:
 - per-link loaders on plain text nav are visually noisy
 - repeated header use makes even subtle loading motion feel heavier than on cards or CTAs
 
-If header navigation ever needs extra reassurance, prefer a single minimal global signal over per-link spinners.
+For any additional header navigation feedback, prefer a single minimal global
+signal unless the link is a card-like surface comparable to the Gear dropdown.

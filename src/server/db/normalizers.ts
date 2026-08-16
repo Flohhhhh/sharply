@@ -752,6 +752,13 @@ export function normalizeProposalPayloadForDb(
           return num === null ? undefined : Math.round(num * 100) / 100;
         }, z.number().nullable().optional())
         .optional(),
+      viewfinderEyePointMm: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.round(num * 100) / 100;
+        }, z.number().nonnegative().max(999.99).nullable().optional())
+        .optional(),
       viewfinderResolutionMillionDots: z
         .preprocess((value) => {
           if (value === null) return null;
@@ -835,6 +842,13 @@ export function normalizeProposalPayloadForDb(
             value,
           );
         }, z.string().nullable().optional())
+        .optional(),
+      viewfinderEyePointMm: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.round(num * 100) / 100;
+        }, z.number().nonnegative().max(999.99).nullable().optional())
         .optional(),
       shutterType: z
         .preprocess((value) => {

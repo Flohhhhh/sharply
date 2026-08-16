@@ -946,6 +946,10 @@ export const cameraSpecs = appSchema.table(
       precision: 4,
       scale: 2,
     }),
+    viewfinderEyePointMm: decimal("viewfinder_eye_point_mm", {
+      precision: 5,
+      scale: 2,
+    }),
     viewfinderResolutionMillionDots: decimal(
       "viewfinder_resolution_million_dots",
       { precision: 6, scale: 2 },
@@ -1038,6 +1042,10 @@ export const analogCameraSpecs = appSchema.table(
     hasOptionalMotorizedDrive: boolean("has_optional_motorized_drive"), //weather the camera has an optional motorized drive for the film advance
     // viewfinder
     viewfinderType: analogViewfinderTypesEnum("viewfinder_type"),
+    viewfinderEyePointMm: decimal("viewfinder_eye_point_mm", {
+      precision: 5,
+      scale: 2,
+    }),
     // exposure & shutter
     shutterType: shutterTypeEnum("shutter_type"),
     shutterSpeedMax: integer("shutter_speed_max"), // in seconds

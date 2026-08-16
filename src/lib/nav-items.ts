@@ -62,6 +62,7 @@ interface NavItem {
   }[];
   hideFromNavbar?: boolean;
   hideFromFooter?: boolean;
+  pendingFeedback?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -79,6 +80,7 @@ const navItems: NavItem[] = [
   {
     titleKey: "gear",
     type: "category",
+    pendingFeedback: true,
     items: [
       {
         titleKey: "gearBrowseTitle",
@@ -218,6 +220,7 @@ export const getNavItems = (t: NavTranslator) => {
     .map((item) => ({
       title: t(item.titleKey),
       url: item.url || "#",
+      pendingFeedback: item.pendingFeedback,
       items:
         item.type === "category"
           ? item.items?.map((subItem) => ({

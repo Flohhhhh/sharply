@@ -22,6 +22,7 @@ import {
 } from "~/lib/i18n/gear-detail";
 import { isCompletedSpecValue } from "~/lib/gear/completed-spec-edit-policy";
 import { ANALOG_OPTIONS } from "~/lib/mapping/analog-types-map";
+import { supportsViewfinderEyePoint } from "~/lib/specs/viewfinder";
 import type { AnalogCameraSpecs } from "~/types/gear";
 import { CompletedSpecLock } from "./completed-spec-lock";
 
@@ -201,7 +202,12 @@ export function AnalogCameraFields({
               </label>
               <Select
                 value={currentSpecs?.viewfinderType ?? undefined}
-                onValueChange={(value) => onChange("viewfinderType", value)}
+                onValueChange={(value) => {
+                  onChange("viewfinderType", value);
+                  if (!supportsViewfinderEyePoint(value)) {
+                    onChange("viewfinderEyePointMm", null);
+                  }
+                }}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue
@@ -220,6 +226,33 @@ export function AnalogCameraFields({
                 </SelectContent>
               </Select>
             </div>
+          )}
+
+          {shouldShowField(
+            currentSpecs?.viewfinderEyePointMm,
+            showMissingOnly,
+          ) && (
+            <NumberInput
+              id="viewfinderEyePointMm"
+              label={specLabel("viewfinderEyePointMm", "Viewfinder Eye Point")}
+              suffix="mm"
+              value={
+                currentSpecs?.viewfinderEyePointMm != null
+                  ? Number(currentSpecs.viewfinderEyePointMm)
+                  : null
+              }
+              onChange={(value) => onChange("viewfinderEyePointMm", value)}
+              placeholder={tf(
+                "editGear.fields.viewfinderEyePointPlaceholder",
+                "e.g., 21.00",
+              )}
+              step={0.01}
+              min={0}
+              max={999.99}
+              disabled={
+                !supportsViewfinderEyePoint(currentSpecs?.viewfinderType)
+              }
+            />
           )}
         </div>
 

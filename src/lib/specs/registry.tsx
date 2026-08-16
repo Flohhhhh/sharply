@@ -44,6 +44,7 @@ import {
 import { buildVideoDisplayBundle } from "~/lib/video/transform";
 import type { CameraVideoMode, GearAlias, GearItem } from "~/types/gear";
 import { supportsVideoMeaningfully } from "./helpers";
+import { supportsViewfinderEyePoint } from "./viewfinder";
 
 export type SpecTranslator = ((key: string) => string) & {
   has?: (key: string) => boolean;
@@ -1139,6 +1140,22 @@ export const specDictionary: SpecSectionDef[] = [
         },
       },
       {
+        key: "viewfinderEyePointMm",
+        label: "Viewfinder Eye Point",
+        getRawValue: (item) => item.cameraSpecs?.viewfinderEyePointMm,
+        condition: (item) =>
+          supportsViewfinderEyePoint(item.cameraSpecs?.viewfinderType),
+        formatDisplay: (raw, _item, _forceLeftAlign, _viewerRegion, locale) => {
+          const n = raw == null ? NaN : Number(raw);
+          return Number.isFinite(n)
+            ? `${new Intl.NumberFormat(locale, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }).format(n)} mm`
+            : undefined;
+        },
+      },
+      {
         key: "hasTopDisplay",
         label: "Has Top Display",
         getRawValue: (item) => item.cameraSpecs?.hasTopDisplay,
@@ -2058,6 +2075,22 @@ export const specDictionary: SpecSectionDef[] = [
         label: "Viewfinder Type",
         getRawValue: (item) => item.analogCameraSpecs?.viewfinderType,
         formatDisplay: (raw) => formatAnalogViewfinderType(raw as string),
+      },
+      {
+        key: "viewfinderEyePointMm",
+        label: "Viewfinder Eye Point",
+        getRawValue: (item) => item.analogCameraSpecs?.viewfinderEyePointMm,
+        condition: (item) =>
+          supportsViewfinderEyePoint(item.analogCameraSpecs?.viewfinderType),
+        formatDisplay: (raw, _item, _forceLeftAlign, _viewerRegion, locale) => {
+          const n = raw == null ? NaN : Number(raw);
+          return Number.isFinite(n)
+            ? `${new Intl.NumberFormat(locale, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }).format(n)} mm`
+            : undefined;
+        },
       },
       {
         key: "shutterType",

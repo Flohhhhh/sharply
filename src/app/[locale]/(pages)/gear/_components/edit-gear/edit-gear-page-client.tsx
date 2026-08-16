@@ -1,9 +1,9 @@
 "use client";
 
-import { Check,CheckCircle,ChevronRight,Circle } from "lucide-react";
+import { Check, CheckCircle, ChevronRight, Circle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useMemo,useRef,useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,7 +19,7 @@ import { Switch } from "~/components/ui/switch";
 import { useUnsavedChangesGuard } from "~/lib/hooks/useUnsavedChangesGuard";
 import { translateGearDetailWithFallback } from "~/lib/i18n/gear-detail";
 import { buildEditSidebarSections } from "~/lib/specs/registry";
-import type { CameraSpecs,GearItem } from "~/types/gear";
+import type { CameraSpecs, GearItem } from "~/types/gear";
 import { EditGearForm } from "./edit-gear-form";
 
 interface Props {
@@ -178,12 +178,13 @@ export default function EditGearClient({
         return [targetId, "viewfinderType"];
       if (fieldKey === "viewfinderMagnification")
         return [targetId, "viewfinderType"];
+      if (fieldKey === "viewfinderEyePointMm")
+        return [targetId, "viewfinderType"];
       return [targetId];
     })();
-    const el = (candidates
-      .map((id) => document.getElementById(id))
-      .find((n) => n) ||
-      document.getElementById(sectionId));
+    const el =
+      candidates.map((id) => document.getElementById(id)).find((n) => n) ||
+      document.getElementById(sectionId);
     if (!el) return;
     // Prefer inputs/selects/comboboxes; fallback to any focusable
     const primarySelector =
@@ -191,12 +192,10 @@ export default function EditGearClient({
     const fallbackSelector =
       "button,[role='switch'],[role='slider'],[contenteditable='true'],[tabindex]:not([tabindex='-1'])";
     const focusEl: HTMLElement | null =
-      (el.matches(primarySelector)
-        ? el
-        : (el.querySelector(primarySelector))) ||
+      (el.matches(primarySelector) ? el : el.querySelector(primarySelector)) ||
       (el.matches(fallbackSelector)
         ? el
-        : (el.querySelector(fallbackSelector))) ||
+        : el.querySelector(fallbackSelector)) ||
       el;
     const headerOffset = 64; // page header spacing
     if (container) {
@@ -211,9 +210,7 @@ export default function EditGearClient({
           if (focusEl?.getAttribute("data-sidebar-focus-target") === "true") {
             focusEl.classList.add("force-focus");
             const ringContainer =
-              (focusEl?.closest(
-                "[data-force-ring-container]",
-              )) || null;
+              focusEl?.closest("[data-force-ring-container]") || null;
             if (ringContainer) ringContainer.classList.add("force-focus");
             setTimeout(() => {
               focusEl?.classList.remove("force-focus");
@@ -231,9 +228,7 @@ export default function EditGearClient({
           if (focusEl?.getAttribute("data-sidebar-focus-target") === "true") {
             focusEl.classList.add("force-focus");
             const ringContainer =
-              (focusEl?.closest(
-                "[data-force-ring-container]",
-              )) || null;
+              focusEl?.closest("[data-force-ring-container]") || null;
             if (ringContainer) ringContainer.classList.add("force-focus");
             setTimeout(() => {
               focusEl?.classList.remove("force-focus");
@@ -248,142 +243,143 @@ export default function EditGearClient({
   return (
     <>
       <div className="flex flex-col">
-      <div className="border-b p-3">
-        <div className="flex items-center justify-between gap-4">
-          <h1 className="text-lg font-semibold">
-            {tf("editGear.title", "Edit Gear Item")}
-          </h1>
-          <div className="flex items-center gap-4">
-            <span
-              className={`inline-flex items-center gap-1.5 text-xs ${isDirty ? "opacity-100" : "opacity-0"}`}
-              aria-live="polite"
-            >
-              <span className="h-2 w-2 rounded-full bg-amber-500" />
-              <span className="text-muted-foreground">
-                {tf("editGear.unsaved", "Unsaved")}
+        <div className="border-b p-3">
+          <div className="flex items-center justify-between gap-4">
+            <h1 className="text-lg font-semibold">
+              {tf("editGear.title", "Edit Gear Item")}
+            </h1>
+            <div className="flex items-center gap-4">
+              <span
+                className={`inline-flex items-center gap-1.5 text-xs ${isDirty ? "opacity-100" : "opacity-0"}`}
+                aria-live="polite"
+              >
+                <span className="h-2 w-2 rounded-full bg-amber-500" />
+                <span className="text-muted-foreground">
+                  {tf("editGear.unsaved", "Unsaved")}
+                </span>
               </span>
-            </span>
-            <div className="flex items-center gap-2">
-              <Label htmlFor="show-missing-only">
-                {tf("editGear.showMissingOnly", "Show missing only")}
-              </Label>
-              <Switch
-                id="show-missing-only"
-                checked={showMissingOnly}
-                onCheckedChange={setShowMissingOnly}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid flex-1 grid-cols-1 md:grid-cols-[260px_1fr]">
-        <aside className="border-border/60 hidden border-r md:block">
-          <div className="sticky top-24">
-            <div className="h-[calc(100vh-6rem)] overflow-y-auto p-3 pb-24">
-              <div className="mb-2 font-semibold">
-                {gearData.name || gearSlug}
+              <div className="flex items-center gap-2">
+                <Label htmlFor="show-missing-only">
+                  {tf("editGear.showMissingOnly", "Show missing only")}
+                </Label>
+                <Switch
+                  id="show-missing-only"
+                  checked={showMissingOnly}
+                  onCheckedChange={setShowMissingOnly}
+                />
               </div>
-              <nav className="space-y-1">
-                {sidebarSectionsFiltered.map((section) => {
-                  const allFilled =
-                    Array.isArray(section.fields) &&
-                    section.fields.length > 0 &&
-                    section.fields.every(
-                      (f) =>
-                        getFieldCompletion(f.key, f.rawValue) === "complete",
-                    );
-                  const fieldsSorted = Array.isArray(section.fields)
-                    ? [...section.fields].sort((a, b) =>
-                        String(a.label).localeCompare(String(b.label)),
-                      )
-                    : [];
-                  const fieldsToRender = showMissingOnly
-                    ? fieldsSorted.filter(
-                        (f) =>
-                          getFieldCompletion(f.key, f.rawValue) !== "complete",
-                      )
-                    : fieldsSorted;
-                  if (showMissingOnly && fieldsToRender.length === 0)
-                    return null;
-                  return (
-                    <div key={section.id} className="space-y-1">
-                      <button
-                        type="button"
-                        className="hover:bg-accent/40 flex w-full items-center justify-between rounded-md px-2 py-1 text-left text-sm"
-                        onClick={() => toggle(section.id)}
-                      >
-                        <span className="flex min-w-0 items-center gap-2">
-                          <ChevronRight
-                            className={`h-3.5 w-3.5 flex-shrink-0 transition-transform ${expanded[section.id] ? "rotate-90" : "rotate-0"}`}
-                          />
-                          <span className="truncate">{section.title}</span>
-                        </span>
-                        {allFilled ? (
-                          <Check className="text-muted-foreground h-3.5 w-3.5" />
-                        ) : null}
-                      </button>
-                      {expanded[section.id] && (
-                        <div className="ml-5 space-y-0.5">
-                          {fieldsToRender.map((field) => (
-                            <button
-                              key={field.key}
-                              type="button"
-                              onClick={() =>
-                                scrollToFieldOrSection(
-                                  section.anchor,
-                                  (field as any).targetId || field.key,
-                                  field.key,
-                                )
-                              }
-                              className="text-muted-foreground hover:text-foreground flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-xs"
-                            >
-                              {(() => {
-                                const status = getFieldCompletion(
-                                  field.key,
-                                  field.rawValue,
-                                );
-                                if (status === "complete") {
-                                  return (
-                                    <CheckCircle className="h-3.5 w-3.5 text-green-500" />
-                                  );
-                                }
-                                if (status === "partial") {
-                                  return (
-                                    <span
-                                      aria-hidden
-                                      className="h-3.5 w-3.5 rounded-full border border-[#f59e0b] bg-[conic-gradient(#f59e0b_0_50%,transparent_50%_100%)]"
-                                    />
-                                  );
-                                }
-                                return (
-                                  <Circle className="text-muted-foreground h-3.5 w-3.5" />
-                                );
-                              })()}
-                              <span className="truncate">{field.label}</span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </nav>
             </div>
           </div>
-        </aside>
-        <div className="p-6 pb-36">
-          <EditGearForm
-            canToggleAutoSubmit={canToggleAutoSubmit}
-            gearType={gearType}
-            gearData={preparedData}
-            gearSlug={gearSlug}
-            showMissingOnly={showMissingOnly}
-            onDirtyChange={setIsDirty}
-            onFormDataChange={(d) => setLiveItem(d as unknown as GearItem)}
-          />
         </div>
-      </div>
+
+        <div className="grid flex-1 grid-cols-1 md:grid-cols-[260px_1fr]">
+          <aside className="border-border/60 hidden border-r md:block">
+            <div className="sticky top-24">
+              <div className="h-[calc(100vh-6rem)] overflow-y-auto p-3 pb-24">
+                <div className="mb-2 font-semibold">
+                  {gearData.name || gearSlug}
+                </div>
+                <nav className="space-y-1">
+                  {sidebarSectionsFiltered.map((section) => {
+                    const allFilled =
+                      Array.isArray(section.fields) &&
+                      section.fields.length > 0 &&
+                      section.fields.every(
+                        (f) =>
+                          getFieldCompletion(f.key, f.rawValue) === "complete",
+                      );
+                    const fieldsSorted = Array.isArray(section.fields)
+                      ? [...section.fields].sort((a, b) =>
+                          String(a.label).localeCompare(String(b.label)),
+                        )
+                      : [];
+                    const fieldsToRender = showMissingOnly
+                      ? fieldsSorted.filter(
+                          (f) =>
+                            getFieldCompletion(f.key, f.rawValue) !==
+                            "complete",
+                        )
+                      : fieldsSorted;
+                    if (showMissingOnly && fieldsToRender.length === 0)
+                      return null;
+                    return (
+                      <div key={section.id} className="space-y-1">
+                        <button
+                          type="button"
+                          className="hover:bg-accent/40 flex w-full items-center justify-between rounded-md px-2 py-1 text-left text-sm"
+                          onClick={() => toggle(section.id)}
+                        >
+                          <span className="flex min-w-0 items-center gap-2">
+                            <ChevronRight
+                              className={`h-3.5 w-3.5 flex-shrink-0 transition-transform ${expanded[section.id] ? "rotate-90" : "rotate-0"}`}
+                            />
+                            <span className="truncate">{section.title}</span>
+                          </span>
+                          {allFilled ? (
+                            <Check className="text-muted-foreground h-3.5 w-3.5" />
+                          ) : null}
+                        </button>
+                        {expanded[section.id] && (
+                          <div className="ml-5 space-y-0.5">
+                            {fieldsToRender.map((field) => (
+                              <button
+                                key={field.key}
+                                type="button"
+                                onClick={() =>
+                                  scrollToFieldOrSection(
+                                    section.anchor,
+                                    (field as any).targetId || field.key,
+                                    field.key,
+                                  )
+                                }
+                                className="text-muted-foreground hover:text-foreground flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-xs"
+                              >
+                                {(() => {
+                                  const status = getFieldCompletion(
+                                    field.key,
+                                    field.rawValue,
+                                  );
+                                  if (status === "complete") {
+                                    return (
+                                      <CheckCircle className="h-3.5 w-3.5 text-green-500" />
+                                    );
+                                  }
+                                  if (status === "partial") {
+                                    return (
+                                      <span
+                                        aria-hidden
+                                        className="h-3.5 w-3.5 rounded-full border border-[#f59e0b] bg-[conic-gradient(#f59e0b_0_50%,transparent_50%_100%)]"
+                                      />
+                                    );
+                                  }
+                                  return (
+                                    <Circle className="text-muted-foreground h-3.5 w-3.5" />
+                                  );
+                                })()}
+                                <span className="truncate">{field.label}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </nav>
+              </div>
+            </div>
+          </aside>
+          <div className="p-6 pb-36">
+            <EditGearForm
+              canToggleAutoSubmit={canToggleAutoSubmit}
+              gearType={gearType}
+              gearData={preparedData}
+              gearSlug={gearSlug}
+              showMissingOnly={showMissingOnly}
+              onDirtyChange={setIsDirty}
+              onFormDataChange={(d) => setLiveItem(d as unknown as GearItem)}
+            />
+          </div>
+        </div>
       </div>
       <AlertDialog
         open={isConfirmOpen}
@@ -393,9 +389,7 @@ export default function EditGearClient({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t("editGear.discardTitle")}
-            </AlertDialogTitle>
+            <AlertDialogTitle>{t("editGear.discardTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
               {t("editGear.discardDescription")}
             </AlertDialogDescription>

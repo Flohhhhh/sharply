@@ -28,6 +28,7 @@ import {
   translateGearDetailWithFallback,
 } from "~/lib/i18n/gear-detail";
 import { isSpecAlwaysShownInEditor } from "~/lib/specs/registry";
+import { supportsViewfinderEyePoint } from "~/lib/specs/viewfinder";
 import { formatCameraType, PRECAPTURE_SUPPORT_OPTIONS } from "~/lib/mapping";
 import type { EnrichedCameraSpecs, GearItem } from "~/types/gear";
 import CardSlotsManager, { type CardSlot } from "./card-slots-manager";
@@ -81,6 +82,7 @@ const cameraFieldSections: Record<string, string> = {
   rearDisplayResolutionMillionDots: "camera-hardware",
   viewfinderType: "camera-hardware",
   viewfinderMagnification: "camera-hardware",
+  viewfinderEyePointMm: "camera-hardware",
   viewfinderResolutionMillionDots: "camera-hardware",
   hasTopDisplay: "camera-hardware",
   hasRearTouchscreen: "camera-hardware",
@@ -893,9 +895,12 @@ function CameraFieldsComponent({
               </Label>
               <Select
                 value={currentSpecs?.viewfinderType ?? ""}
-                onValueChange={(value) =>
-                  handleFieldChange("viewfinderType", value)
-                }
+                onValueChange={(value) => {
+                  handleFieldChange("viewfinderType", value);
+                  if (!supportsViewfinderEyePoint(value)) {
+                    handleFieldChange("viewfinderEyePointMm", null);
+                  }
+                }}
               >
                 <SelectTrigger id="viewfinderType" className="w-full">
                   <SelectValue
@@ -952,6 +957,32 @@ function CameraFieldsComponent({
                 min={0}
               />
             )}
+
+          {showWhenMissing(initialSpecs?.viewfinderEyePointMm) && (
+            <NumberInput
+              id="viewfinderEyePointMm"
+              label={specLabel("viewfinderEyePointMm", "Viewfinder Eye Point")}
+              suffix="mm"
+              value={
+                currentSpecs?.viewfinderEyePointMm != null
+                  ? Number(currentSpecs.viewfinderEyePointMm)
+                  : null
+              }
+              onChange={(value) =>
+                handleFieldChange("viewfinderEyePointMm", value)
+              }
+              placeholder={tf(
+                "editGear.fields.viewfinderEyePointPlaceholder",
+                "e.g., 21.00",
+              )}
+              step={0.01}
+              min={0}
+              max={999.99}
+              disabled={
+                !supportsViewfinderEyePoint(currentSpecs?.viewfinderType)
+              }
+            />
+          )}
 
           {/* Viewfinder Resolution (million dots) */}
           {(currentSpecs?.viewfinderType ?? "") === "electronic" &&

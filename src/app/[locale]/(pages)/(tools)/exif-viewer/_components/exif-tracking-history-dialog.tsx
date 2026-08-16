@@ -82,7 +82,7 @@ export default function ExifTrackingHistoryDialog({
           <div className="text-sm text-red-300">{error}</div>
         ) : trackedCamera ? (
           <div className="flex min-h-0 flex-col gap-4">
-            <dl className="grid gap-4 text-sm sm:grid-cols-2">
+            <dl className="grid gap-4 text-sm sm:grid-cols-3">
               <div className="space-y-1">
                 <dt className="text-muted-foreground">Latest count</dt>
                 <dd>{formatCount(trackedCamera.latestPrimaryCountValue)}</dd>
@@ -94,10 +94,6 @@ export default function ExifTrackingHistoryDialog({
               <div className="space-y-1">
                 <dt className="text-muted-foreground">First seen</dt>
                 <dd>{formatDateTime(trackedCamera.firstSeenAt, locale)}</dd>
-              </div>
-              <div className="space-y-1">
-                <dt className="text-muted-foreground">Last seen</dt>
-                <dd>{formatDateTime(trackedCamera.lastSeenAt, locale)}</dd>
               </div>
             </dl>
 

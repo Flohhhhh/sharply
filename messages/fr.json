@@ -679,6 +679,7 @@
         "selectViewfinderType": "Sélectionner le type de viseur",
         "magnificationPlaceholder": "ex. 0,80",
         "viewfinderResolutionPlaceholder": "ex. 5,76",
+        "viewfinderEyePointPlaceholder": "ex. 21.00",
         "stopsPlaceholder": "ex. 3,0",
         "selectAvailableShutterTypesFirst": "Sélectionnez d’abord les types d’obturateur disponibles pour saisir les FPS max.",
         "rawFps": "FPS RAW",
@@ -931,6 +932,9 @@
             },
             "viewfinderMagnification": {
               "label": "Grossissement du viseur"
+            },
+            "viewfinderEyePointMm": {
+              "label": "Dégagement oculaire du viseur"
             },
             "viewfinderResolutionMillionDots": {
               "label": "Résolution du viseur"
@@ -1213,6 +1217,9 @@
             },
             "viewfinderType": {
               "label": "Type de viseur"
+            },
+            "viewfinderEyePointMm": {
+              "label": "Dégagement oculaire du viseur"
             },
             "shutterType": {
               "label": "Type d'obturateur"

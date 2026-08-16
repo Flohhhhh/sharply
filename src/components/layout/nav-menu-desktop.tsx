@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import type { ReactNode } from "react";
 import {
   NavigationMenu,
@@ -12,29 +12,49 @@ import {
   navigationMenuTriggerStyle,
 } from "~/components/ui/navigation-menu";
 import type { HeaderNavItem } from "~/components/layout/header-model";
+import { Spinner } from "~/components/ui/spinner";
 import { iconMap } from "~/lib/nav-items";
 import { cn } from "~/lib/utils";
 
 type HeaderNavSubItem = NonNullable<HeaderNavItem["items"]>[number];
+
+function NavMenuCardPendingState({ enabled }: { enabled: boolean }) {
+  const { pending } = useLinkStatus();
+
+  if (!enabled || !pending) return null;
+
+  return (
+    <span
+      aria-hidden="true"
+      className="absolute inset-0 z-20 flex items-center justify-center"
+      data-nav-card-pending-overlay="true"
+    >
+      <Spinner />
+    </span>
+  );
+}
 
 function NavMenuCard({
   item,
   featured = false,
   list = false,
   featuredContent,
+  pendingFeedback = false,
 }: {
   item: HeaderNavSubItem;
   featured?: boolean;
   list?: boolean;
   featuredContent?: ReactNode;
+  pendingFeedback?: boolean;
 }) {
   const Icon = item.iconKey ? iconMap[item.iconKey] : null;
 
   return (
     <Link
       href={item.href}
+      data-nav-card-link="true"
       className={cn(
-        "group hover:bg-accent/30 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground block no-underline outline-none select-none",
+        "group hover:bg-accent/30 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground relative block no-underline outline-none select-none has-[[data-nav-card-pending-overlay=true]]:pointer-events-none",
         featured
           ? "to-background dark:from-primary/10 dark:to-background relative flex min-h-55 flex-col justify-between overflow-hidden rounded-xl border bg-linear-to-br from-white p-4"
           : list
@@ -46,14 +66,15 @@ function NavMenuCard({
         <div
           aria-hidden="true"
           data-nav-featured-slot="true"
-          className="pointer-events-none absolute inset-0 z-0 overflow-hidden opacity-75 [&>*]:h-full [&>*]:w-full [&>*]:max-w-none"
+          className="pointer-events-none absolute inset-0 z-0 overflow-hidden opacity-75 transition-opacity group-has-[[data-nav-card-pending-overlay=true]]:opacity-30 [&>*]:h-full [&>*]:w-full [&>*]:max-w-none"
         >
           {featuredContent}
         </div>
       )}
+      <NavMenuCardPendingState enabled={pendingFeedback} />
       <div
         className={cn(
-          "relative z-10 flex",
+          "relative z-10 flex transition-opacity group-has-[[data-nav-card-pending-overlay=true]]:opacity-40",
           featured ? "flex-col items-start gap-3" : "items-center gap-2",
         )}
       >
@@ -77,7 +98,7 @@ function NavMenuCard({
       {item.description && (
         <p
           className={cn(
-            "text-muted-foreground group-hover:text-accent-foreground relative z-10 line-clamp-3 text-xs leading-snug",
+            "text-muted-foreground group-hover:text-accent-foreground relative z-10 line-clamp-3 text-xs leading-snug transition-opacity group-has-[[data-nav-card-pending-overlay=true]]:opacity-40",
             featured && "max-w-[18rem] text-sm leading-relaxed",
           )}
         >
@@ -91,9 +112,11 @@ function NavMenuCard({
 function NavMenuCategory({
   items,
   featuredContent,
+  pendingFeedback = false,
 }: {
   items: HeaderNavSubItem[];
   featuredContent?: ReactNode;
+  pendingFeedback?: boolean;
 }) {
   if (items.length < 4) {
     return (
@@ -102,7 +125,12 @@ function NavMenuCategory({
         className="divide-border flex w-[400px] flex-col divide-y px-1.5 py-1 md:w-[500px] lg:w-[600px]"
       >
         {items.map((subItem) => (
-          <NavMenuCard key={subItem.title} item={subItem} list />
+          <NavMenuCard
+            key={subItem.title}
+            item={subItem}
+            list
+            pendingFeedback={pendingFeedback}
+          />
         ))}
       </div>
     );
@@ -117,7 +145,12 @@ function NavMenuCategory({
         className="divide-border flex w-[400px] flex-col divide-y px-1.5 py-1 md:w-[500px] lg:w-[600px]"
       >
         {items.map((subItem) => (
-          <NavMenuCard key={subItem.title} item={subItem} list />
+          <NavMenuCard
+            key={subItem.title}
+            item={subItem}
+            list
+            pendingFeedback={pendingFeedback}
+          />
         ))}
       </div>
     );
@@ -136,10 +169,15 @@ function NavMenuCategory({
         item={featuredItem}
         featured
         featuredContent={featuredContent}
+        pendingFeedback={pendingFeedback}
       />
       <div className="grid grid-cols-2 gap-1.5">
         {regularItems.map((subItem) => (
-          <NavMenuCard key={subItem.title} item={subItem} />
+          <NavMenuCard
+            key={subItem.title}
+            item={subItem}
+            pendingFeedback={pendingFeedback}
+          />
         ))}
       </div>
     </div>
@@ -166,6 +204,7 @@ export function NavMenuDesktop({
                   <NavMenuCategory
                     items={item.items}
                     featuredContent={featuredContent}
+                    pendingFeedback={item.pendingFeedback}
                   />
                 </NavigationMenuContent>
               </NavigationMenuItem>

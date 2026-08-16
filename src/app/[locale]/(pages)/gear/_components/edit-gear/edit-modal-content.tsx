@@ -9,16 +9,16 @@ import {
   X,
 } from "lucide-react";
 import { useTranslations, type TranslationValues } from "next-intl";
-import { useEffect,useMemo,useRef,useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
-import { DialogHeader,DialogTitle } from "~/components/ui/dialog";
+import { DialogHeader, DialogTitle } from "~/components/ui/dialog";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 import { translateGearDetailWithFallback } from "~/lib/i18n/gear-detail";
 import { sensorTypeLabel } from "~/lib/mapping/sensor-map";
 import { buildEditSidebarSections } from "~/lib/specs/registry";
-import type { CameraSpecs,GearItem,GearType } from "~/types/gear";
+import type { CameraSpecs, GearItem, GearType } from "~/types/gear";
 import { getInitialAutoSubmitValue } from "./auto-submit";
 import { EditGearForm } from "./edit-gear-form";
 
@@ -230,12 +230,13 @@ export function EditModalContent({
         return [targetId, "viewfinderType"];
       if (fieldKey === "viewfinderMagnification")
         return [targetId, "viewfinderType"];
+      if (fieldKey === "viewfinderEyePointMm")
+        return [targetId, "viewfinderType"];
       return [targetId];
     })();
-    const el = (candidates
-      .map((id) => document.getElementById(id))
-      .find((n) => n) ||
-      document.getElementById(sectionId));
+    const el =
+      candidates.map((id) => document.getElementById(id)).find((n) => n) ||
+      document.getElementById(sectionId);
     if (!el) return;
     // Prefer inputs/selects/comboboxes; fallback to any focusable
     const primarySelector =
@@ -243,12 +244,10 @@ export function EditModalContent({
     const fallbackSelector =
       "button,[role='switch'],[role='slider'],[contenteditable='true'],[tabindex]:not([tabindex='-1'])";
     const focusEl: HTMLElement | null =
-      (el.matches(primarySelector)
-        ? el
-        : (el.querySelector(primarySelector))) ||
+      (el.matches(primarySelector) ? el : el.querySelector(primarySelector)) ||
       (el.matches(fallbackSelector)
         ? el
-        : (el.querySelector(fallbackSelector))) ||
+        : el.querySelector(fallbackSelector)) ||
       el;
     const doFocus = () => {
       try {
@@ -257,9 +256,7 @@ export function EditModalContent({
           if (focusEl.getAttribute("data-sidebar-focus-target") === "true") {
             focusEl.classList.add("force-focus");
             const ringContainer =
-              (focusEl.closest(
-                "[data-force-ring-container]",
-              )) || null;
+              focusEl.closest("[data-force-ring-container]") || null;
             if (ringContainer) ringContainer.classList.add("force-focus");
             setTimeout(() => {
               focusEl.classList.remove("force-focus");

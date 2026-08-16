@@ -68,6 +68,12 @@ function formatCompactNumber(value: unknown): string {
   return Number.isInteger(num) ? String(num) : String(Number(num.toFixed(1)));
 }
 
+function formatProposalFieldLabel(key: string): string {
+  return key === "viewfinderEyePointMm"
+    ? "Viewfinder Eye Point"
+    : humanizeKey(key);
+}
+
 function formatApertureProfile(value: unknown): string {
   const points = normalizeApertureProfile(value);
   if (points) {
@@ -254,6 +260,7 @@ export function GearProposalsList() {
       return formatPrecaptureSupport(v) ?? String(v);
     }
     if (k === "maxContinuousFps") return formatCompactNumber(v);
+    if (k === "viewfinderEyePointMm") return `${Number(v).toFixed(2)} mm`;
     if (k === "apertureProfileJson") return formatApertureProfile(v);
     if (k === "maxFpsByShutter") return formatMaxFpsPlain(v);
     return String(v);
@@ -291,6 +298,7 @@ export function GearProposalsList() {
       return formatPrecaptureSupport(v) ?? String(v ?? "Empty");
     }
     if (k === "maxContinuousFps") return formatCompactNumber(v);
+    if (k === "viewfinderEyePointMm") return `${Number(v).toFixed(2)} mm`;
     if (k === "apertureProfileJson") return formatApertureProfile(v);
     if (k === "maxFpsByShutter") return formatMaxFpsPlain(v);
     return String(v ?? "Empty");
@@ -604,7 +612,7 @@ export function GearProposalsList() {
                     <div className="text-muted-foreground mb-2 text-[11px] font-medium">
                       {c.fieldKey === "cameraCardSlots"
                         ? "Card Slots"
-                        : humanizeKey(c.key || "")}
+                        : formatProposalFieldLabel(c.key || "")}
                     </div>
                     <RadioGroup
                       value={selections[c.fieldKey] ?? undefined}
@@ -815,7 +823,7 @@ export function GearProposalsList() {
                       className="border-input rounded border p-2"
                     >
                       <div className="text-muted-foreground mb-1 text-[11px]">
-                        {humanizeKey(key!)}
+                        {formatProposalFieldLabel(key!)}
                       </div>
                       <div className="text-muted-foreground mb-2 text-xs">
                         From {formatContributorName(n.provider.createdByName)}{" "}

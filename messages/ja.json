@@ -679,6 +679,7 @@
         "selectViewfinderType": "ファインダータイプを選択",
         "magnificationPlaceholder": "例: 0.80",
         "viewfinderResolutionPlaceholder": "例: 5.76",
+        "viewfinderEyePointPlaceholder": "例: 21.00",
         "stopsPlaceholder": "例: 3.0",
         "selectAvailableShutterTypesFirst": "最大FPS値を入力するには、先に利用可能なシャッタータイプを選択してください。",
         "rawFps": "RAW FPS",
@@ -931,6 +932,9 @@
             },
             "viewfinderMagnification": {
               "label": "ファインダー倍率"
+            },
+            "viewfinderEyePointMm": {
+              "label": "ファインダーアイポイント"
             },
             "viewfinderResolutionMillionDots": {
               "label": "ファインダー解像度"
@@ -1213,6 +1217,9 @@
             },
             "viewfinderType": {
               "label": "ファインダータイプ"
+            },
+            "viewfinderEyePointMm": {
+              "label": "ファインダーアイポイント"
             },
             "shutterType": {
               "label": "シャッター方式"

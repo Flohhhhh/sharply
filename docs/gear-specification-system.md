@@ -133,7 +133,7 @@ Stores detailed camera-specific specifications:
   - `1`: Yes (RAW)
   - `2`: Yes (JPEG only)
 - **Displays**: rear display type (none, fixed, single_axis_tilt, dual_axis_tilt, fully_articulated, four_axis_tilt_flip, other), rear display size (inches), rear display resolution (million dots), has top display, has rear touchscreen
-- **Viewfinder**: type (none/optical/electronic), magnification (x), resolution (million dots)
+- **Viewfinder**: type (none/optical/electronic), magnification (x), eye point (millimeters), resolution (million dots). Eye point is nullable and only applies when the viewfinder type is known and not `none`.
 - **Video**: `hasVideo` is nullable to distinguish unknown support from confirmed availability or absence. Editors can change the dependent video capabilities and mode matrix only when it is `true`; `null` keeps legacy stored video details visible publicly, while `false` hides all dependent video details without deleting them. The mode matrix (`camera_video_modes`) and dependent capability flags cover log profile, 10-bit, 12-bit, open gate, external recording, and recording to a drive.
 - **Misc**: capture convenience and body feature flags such as built-in flash, hot shoe, illuminated buttons, intervalometer, self timer, and USB file transfer
 - **Flexibility**: JSONB extra field for additional specs
@@ -144,6 +144,7 @@ Stores detailed analog-camera-specific specifications:
 
 - **Primary Key**: `gearId` (1:1 relationship with gear)
 - **Exposure / operation**: shutter, metering, exposure, ISO, focus-assist, and battery requirements
+- **Viewfinder**: type and optional eye point in millimeters. Eye point is only editable and displayed for a known, non-`none` viewfinder type.
 - **Continuous drive**: `hasContinuousDrive` plus `max_continuous_fps` stored as decimal `numeric(4,1)` so fractional drive rates such as `3.5 fps` can be preserved
 - **Display**: continuous-drive FPS renders compactly, so round values show as `3 FPS` rather than `3.0 FPS`
 

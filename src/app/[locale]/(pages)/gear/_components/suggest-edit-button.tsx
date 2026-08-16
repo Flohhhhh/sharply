@@ -1,10 +1,10 @@
 "use client";
 
-import { Clock,Pencil } from "lucide-react";
+import { Clock, Pencil } from "lucide-react";
 import { useTranslations } from "next-intl";
-import Link from "next/link";
-import { useEffect,useMemo,useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "~/components/ui/button";
+import { LinkButton } from "~/components/ui/link-button";
 import {
   Tooltip,
   TooltipContent,
@@ -90,9 +90,7 @@ export function SuggestEditButton({
               {pendingContent}
             </span>
           </TooltipTrigger>
-          <TooltipContent>
-            {t("existingOpenChangeRequest")}
-          </TooltipContent>
+          <TooltipContent>{t("existingOpenChangeRequest")}</TooltipContent>
         </Tooltip>
       );
     }
@@ -112,18 +110,20 @@ export function SuggestEditButton({
             </Button>
           </span>
         </TooltipTrigger>
-        <TooltipContent>
-          {t("existingOpenChangeRequest")}
-        </TooltipContent>
+        <TooltipContent>{t("existingOpenChangeRequest")}</TooltipContent>
       </Tooltip>
     );
   }
 
   return (
-    <Button asChild size="sm" icon={<Pencil />} variant={buttonVariant as any}>
-      <Link scroll={false} href={targetUrl}>
-        {label ?? t("suggestEdit")}
-      </Link>
-    </Button>
+    <LinkButton
+      href={targetUrl}
+      icon={<Pencil />}
+      scroll={false}
+      size="sm"
+      variant={buttonVariant}
+    >
+      {label ?? t("suggestEdit")}
+    </LinkButton>
   );
 }

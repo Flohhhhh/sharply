@@ -1,6 +1,6 @@
-import { describe,expect,it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { MOUNTS,SENSOR_FORMATS } from "~/lib/generated";
+import { MOUNTS, SENSOR_FORMATS } from "~/lib/generated";
 import {
   buildGearSpecsSections,
   buildEditSidebarSections,
@@ -8,9 +8,7 @@ import {
 } from "~/lib/specs/registry";
 import type { GearItem } from "~/types/gear";
 
-function createTranslator(
-  messages: Record<string, string>,
-): SpecTranslator {
+function createTranslator(messages: Record<string, string>): SpecTranslator {
   const translator = ((key: string) => messages[key] ?? key) as SpecTranslator;
   translator.has = (key: string) => key in messages;
   return translator;
@@ -46,7 +44,8 @@ function createGearItem(overrides: Partial<GearItem>): GearItem {
 describe("spec registry i18n", () => {
   it("localizes section titles, field labels, and shared registry values", () => {
     const translator = createTranslator({
-      "specRegistry.sections.camera-sensor-shutter.title": "Sensor und Verschluss",
+      "specRegistry.sections.camera-sensor-shutter.title":
+        "Sensor und Verschluss",
       "specRegistry.sections.camera-sensor-shutter.fields.hasIbis.label":
         "Hat IBIS",
       "specRegistry.shared.yes": "Ja",
@@ -96,9 +95,9 @@ describe("spec registry i18n", () => {
     const coreSection = sections.find((section) => section.id === "core");
 
     expect(coreSection?.title).toBe("Basic Information");
-    expect(coreSection?.data.find((row) => row.key === "announcedDate")?.label).toBe(
-      "Announced Date",
-    );
+    expect(
+      coreSection?.data.find((row) => row.key === "announcedDate")?.label,
+    ).toBe("Announced Date");
     expect(
       coreSection?.data.find((row) => row.key === "discontinuedDate")?.label,
     ).toBe("Discontinued Date");
@@ -260,10 +259,75 @@ describe("spec registry i18n", () => {
     });
   });
 
+  it("formats digital and analog viewfinder eye point measurements", () => {
+    const digitalSections = buildGearSpecsSections(
+      createGearItem({
+        cameraSpecs: {
+          viewfinderType: "electronic",
+          viewfinderEyePointMm: "21.1",
+        } as GearItem["cameraSpecs"],
+      }),
+    );
+    const analogSections = buildGearSpecsSections(
+      createGearItem({
+        gearType: "ANALOG_CAMERA",
+        analogCameraSpecs: {
+          viewfinderType: "pentaprism",
+          viewfinderEyePointMm: "18",
+        } as GearItem["analogCameraSpecs"],
+      }),
+    );
+
+    expect(
+      digitalSections
+        .flatMap((section) => section.data)
+        .find((row) => row.key === "viewfinderEyePointMm"),
+    ).toMatchObject({ label: "Viewfinder Eye Point", value: "21.10 mm" });
+    expect(
+      analogSections
+        .flatMap((section) => section.data)
+        .find((row) => row.key === "viewfinderEyePointMm"),
+    ).toMatchObject({ label: "Viewfinder Eye Point", value: "18.00 mm" });
+  });
+
+  it("formats viewfinder eye point measurements for the active locale", () => {
+    const sections = buildGearSpecsSections(
+      createGearItem({
+        cameraSpecs: {
+          viewfinderType: "electronic",
+          viewfinderEyePointMm: "21.1",
+        } as GearItem["cameraSpecs"],
+      }),
+      { locale: "de" },
+    );
+
+    expect(
+      sections
+        .flatMap((section) => section.data)
+        .find((row) => row.key === "viewfinderEyePointMm")?.value,
+    ).toBe("21,10 mm");
+  });
+
+  it("hides viewfinder eye point for unknown and no-viewfinder cameras", () => {
+    for (const viewfinderType of [null, "none"] as const) {
+      const sections = buildGearSpecsSections(
+        createGearItem({
+          cameraSpecs: {
+            viewfinderType,
+            viewfinderEyePointMm: "21",
+          } as GearItem["cameraSpecs"],
+        }),
+      );
+      expect(
+        sections
+          .flatMap((section) => section.data)
+          .some((row) => row.key === "viewfinderEyePointMm"),
+      ).toBe(false);
+    }
+  });
+
   it("keeps existing autofocus details visible while capability is unset", () => {
-    const buildFocusRows = (
-      hasAutofocus: boolean | null,
-    ) =>
+    const buildFocusRows = (hasAutofocus: boolean | null) =>
       buildGearSpecsSections(
         createGearItem({
           gearType: "CAMERA",
@@ -458,15 +522,17 @@ describe("spec registry i18n", () => {
       (section) => section.id === "core",
     );
     const weight = coreSection?.data.find((row) => row.key === "weightGrams");
-    const dimensions = coreSection?.data.find((row) => row.key === "dimensions");
+    const dimensions = coreSection?.data.find(
+      (row) => row.key === "dimensions",
+    );
 
     expect(weight?.value).toBe("~451 g");
-    expect(renderToStaticMarkup(dimensions?.value as React.ReactElement)).toContain(
-      "~85",
-    );
-    expect(renderToStaticMarkup(dimensions?.value as React.ReactElement)).toContain(
-      ">72.4<",
-    );
+    expect(
+      renderToStaticMarkup(dimensions?.value as React.ReactElement),
+    ).toContain("~85");
+    expect(
+      renderToStaticMarkup(dimensions?.value as React.ReactElement),
+    ).toContain(">72.4<");
   });
 
   it("keeps single-mount lens dimensions and weight precise", () => {
@@ -482,12 +548,14 @@ describe("spec registry i18n", () => {
       (section) => section.id === "core",
     );
     const weight = coreSection?.data.find((row) => row.key === "weightGrams");
-    const dimensions = coreSection?.data.find((row) => row.key === "dimensions");
+    const dimensions = coreSection?.data.find(
+      (row) => row.key === "dimensions",
+    );
 
     expect(weight?.value).toBe("450.6 g");
-    expect(renderToStaticMarkup(dimensions?.value as React.ReactElement)).toContain(
-      "84.5",
-    );
+    expect(
+      renderToStaticMarkup(dimensions?.value as React.ReactElement),
+    ).toContain("84.5");
   });
 
   it("renders analog max continuous fps without trailing .0 for whole numbers", () => {
@@ -537,11 +605,11 @@ describe("spec registry i18n", () => {
     );
 
     expect(
-      fixedLensSection?.data.some(
-        (row) => row.key === "fixedImageCircleSize",
-      ),
+      fixedLensSection?.data.some((row) => row.key === "fixedImageCircleSize"),
     ).toBe(false);
-    expect(fixedLensSection?.data.find((row) => row.key === "focalLength")).toEqual(
+    expect(
+      fixedLensSection?.data.find((row) => row.key === "focalLength"),
+    ).toEqual(
       expect.objectContaining({
         label: "Focal Length",
         value: expect.anything(),
@@ -564,9 +632,13 @@ describe("spec registry i18n", () => {
     const sections = buildGearSpecsSections(item, {
       locale: "en",
     });
-    const opticsSection = sections.find((section) => section.id === "lens-optics");
+    const opticsSection = sections.find(
+      (section) => section.id === "lens-optics",
+    );
 
-    expect(opticsSection?.data.find((row) => row.key === "imageCircleSize")).toEqual(
+    expect(
+      opticsSection?.data.find((row) => row.key === "imageCircleSize"),
+    ).toEqual(
       expect.objectContaining({
         label: "Image Circle Size",
         value: "APS-C",
