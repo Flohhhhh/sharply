@@ -38,6 +38,7 @@ type BrowseResultsGridProps = {
   brandName?: string;
   scope: RouteScope;
   trendingBrandId?: string;
+  trendingMountId?: string;
   trendingSlugs?: string[];
 };
 
@@ -64,6 +65,7 @@ export function BrowseResultsGrid({
   brandName,
   scope,
   trendingBrandId,
+  trendingMountId,
   trendingSlugs,
 }: BrowseResultsGridProps) {
   const { view, setView } = useGearResultsView();
@@ -76,6 +78,7 @@ export function BrowseResultsGrid({
         brandName={brandName}
         scope={scope}
         trendingBrandId={trendingBrandId}
+        trendingMountId={trendingMountId}
         trendingSlugs={trendingSlugs}
         view={view}
         setView={setView}
@@ -89,6 +92,7 @@ function BrowseResultsGridContent({
   brandName,
   scope,
   trendingBrandId,
+  trendingMountId,
   trendingSlugs,
   view,
   setView,
@@ -349,11 +353,12 @@ function BrowseResultsGridContent({
               thumbnailUrl={g.thumbnailUrl ?? undefined}
               gearType={g.gearType ?? undefined}
               isTrending={trendingSet.has(g.slug)}
-              trendingQuery={
-                trendingBrandId
-                  ? { filters: { brandId: trendingBrandId } }
-                  : undefined
-              }
+              trendingQuery={{
+                filters: {
+                  brandId: trendingBrandId,
+                  mountId: trendingMountId,
+                },
+              }}
               releaseDate={g.releaseDate}
               releaseDatePrecision={g.releaseDatePrecision}
               announcedDate={g.announcedDate}

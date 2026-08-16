@@ -91,6 +91,7 @@ Notes:
   - Brand ordering for browse pickers and featured buttons follows `BRANDS[*].sort_order` from generated constants when present, then falls back to alphabetical ordering for unranked brands.
   - The Trending Gear strip always tries to show 3 unique cards by using scoped `7d` trending first, then scoped `30d` trending, then newest gear as a final fallback.
   - The dedicated three-card strip is live-boosted and server-rendered. Other browse-card Trending badges use the stable rolled-up ranking in server markup, then batch a live-status check only for cards that become visible; no gear data is client-fetched.
+  - Mount-level browse routes scope both the server-rendered badge baseline and hydrated live-status check through the canonical `gear_mounts` relationship.
 - Depth 1: Large buttons for Cameras/Lenses when both categories have published gear.
   - Empty categories are hidden.
   - If exactly one category has published gear, the brand route redirects directly to that category.

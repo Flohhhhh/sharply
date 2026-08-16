@@ -7,6 +7,7 @@ import {
   brands,
   comparePairCounts,
   gear,
+  gearMounts,
   gearPopularityDaily,
   gearPopularityIntraday,
   gearPopularityLifetime,
@@ -26,6 +27,15 @@ const MIN_TRENDING_SCORE = 1;
 
 function buildPublishedGearClause() {
   return eq(gear.publicationState, GEAR_PUBLICATION_STATES.PUBLISHED);
+}
+
+function buildGearMountClause(mountId: string) {
+  return sql`EXISTS (
+    SELECT 1
+    FROM ${gearMounts}
+    WHERE ${gearMounts.gearId} = ${gear.id}
+      AND ${gearMounts.mountId} = ${mountId}
+  )`;
 }
 
 /**
@@ -98,7 +108,8 @@ export async function getTrendingData(
       ];
       // Optional scoping filters
       if (filters.brandId) conditions.push(eq(gear.brandId, filters.brandId));
-      // TODO: mountId filter will be migrated to junction-based in Phase 2
+      if (filters.mountId)
+        conditions.push(buildGearMountClause(filters.mountId));
       if (filters.gearType)
         conditions.push(eq(gear.gearType, filters.gearType));
       conditions.push(sql`${scoreFormula} >= ${MIN_TRENDING_SCORE}`);
@@ -184,8 +195,10 @@ export async function getLiveTrendingSnapshot(
   filters: TrendingFiltersInput = {},
   offset = 0,
 ): Promise<LiveTrendingSnapshot> {
+  const currentUtcDate = new Date().toISOString().slice(0, 10);
   const key = [
     "pop-trending-live",
+    currentUtcDate,
     String(limit),
     filters.brandId ?? "-",
     filters.mountId ?? "-",
@@ -208,6 +221,8 @@ export async function getLiveTrendingSnapshot(
         buildPublishedGearClause(),
       ];
       if (filters.brandId) conditions.push(eq(gear.brandId, filters.brandId));
+      if (filters.mountId)
+        conditions.push(buildGearMountClause(filters.mountId));
       if (filters.gearType)
         conditions.push(eq(gear.gearType, filters.gearType));
       conditions.push(sql`${scoreFormula} >= ${MIN_TRENDING_SCORE}`);
@@ -316,6 +331,8 @@ export async function getTrendingTotalCount(
         ${gearPopularityWindows.reviewSubmitsSum} * 2.5
       )`;
       if (filters.brandId) conditions.push(eq(gear.brandId, filters.brandId));
+      if (filters.mountId)
+        conditions.push(buildGearMountClause(filters.mountId));
       if (filters.gearType)
         conditions.push(eq(gear.gearType, filters.gearType));
       conditions.push(sql`${scoreFormula} >= ${MIN_TRENDING_SCORE}`);

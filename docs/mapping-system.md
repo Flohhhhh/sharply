@@ -160,3 +160,5 @@ Regional aliases are resolved through a single helper to keep UI consistent:
 ## Routing note: Mount shortName
 
 The browse routing uses `mounts.short_name` as the URL segment for mount-level pages (e.g., `/browse/nikon/lenses/z`). Ensure `short_name` is unique per brand for clean URLs.
+
+Mount-scoped popularity and Trending badge queries resolve membership through the canonical `gear_mounts` junction. They do not rely on the deprecated single `gear.mount_id` pointer, so multi-mount lenses participate in every applicable mount ranking.

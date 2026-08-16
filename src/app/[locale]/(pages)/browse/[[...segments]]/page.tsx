@@ -158,7 +158,7 @@ export default async function BrowseCatchAll({
   const trendingSlugs = await fetchTrendingSlugs({
     timeframe: "30d",
     limit: 20,
-    filters: { brandId: brand!.id },
+    filters: { brandId: brand!.id, mountId: mount!.id },
   });
 
   return (
@@ -182,6 +182,7 @@ export default async function BrowseCatchAll({
           brandName={brand!.name}
           scope={scope}
           trendingBrandId={brand!.id}
+          trendingMountId={mount!.id}
           trendingSlugs={trendingSlugs}
         />
       </Suspense>
