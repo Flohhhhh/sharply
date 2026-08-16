@@ -4,6 +4,16 @@ import { db } from "~/server/db";
 import { rollupRuns } from "~/server/db/schema";
 
 type SqlClient = { execute: (q: any) => Promise<any> };
+type RevalidateTag = (tag: string, profile: "max") => void;
+
+export async function revalidatePopularityCachesAfterRollup(
+  revalidate?: RevalidateTag,
+): Promise<void> {
+  const revalidateTag =
+    revalidate ?? (await import("next/cache")).revalidateTag;
+  revalidateTag("trending", "max");
+  console.info("popularity_rollup: revalidated tag", { tag: "trending" });
+}
 
 /**
  * Drizzle execute() result normalizer.
@@ -358,13 +368,7 @@ export async function runDailyPopularityRollup(
 
     // Invalidate cached trending endpoints since windows/lifetime changed
     try {
-      const { revalidateTag } = await import("next/cache");
-      revalidateTag("trending", "max");
-      console.info("popularity_rollup: revalidated tag", { tag: "trending" });
-      revalidateTag("trending-live", "max");
-      console.info("popularity_rollup: revalidated tag", {
-        tag: "trending-live",
-      });
+      await revalidatePopularityCachesAfterRollup();
     } catch (e) {
       console.warn("popularity_rollup: failed to revalidate tag", { error: e });
     }

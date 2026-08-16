@@ -1,16 +1,14 @@
-import { createElement,type ReactNode } from "react";
+import { createElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe,expect,it,vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 vi.mock("next/link", () => ({
-  default: (props: { children?: unknown; href: string } & Record<string, unknown>) => {
+  default: (
+    props: { children?: unknown; href: string } & Record<string, unknown>,
+  ) => {
     const { children, href, ...rest } = props;
     return createElement("a", { href, ...rest }, children as ReactNode);
   },
-}));
-
-vi.mock("~/lib/format/date", () => ({
-  formatRelativeDate: vi.fn(() => "1h ago"),
 }));
 
 vi.mock("next-intl/server", () => ({
@@ -21,6 +19,7 @@ vi.mock("next-intl/server", () => ({
           activityTitle: "Activity",
           activityCreated: "created",
           activityUpdated: "updated",
+          justNow: "just now",
         };
         return messages[key] ?? key;
       };
@@ -130,9 +129,7 @@ describe("mapGearRowsToHomeActivityItems", () => {
 describe("ActivityList", () => {
   it("renders nothing when there are no items", async () => {
     expect(
-      renderToStaticMarkup(
-        await ActivityList({ items: [], locale: "en" }),
-      ),
+      renderToStaticMarkup(await ActivityList({ items: [], locale: "en" })),
     ).toBe("");
   });
 
@@ -166,5 +163,8 @@ describe("ActivityList", () => {
     expect(html).toContain("updated");
     expect(html).toContain("Nikon Z9 II");
     expect(html).toContain("created");
+    expect(html).toContain(
+      '<time dateTime="2026-03-21T10:00:00.000Z" class="text-muted-foreground shrink-0 text-xs">Mar 21, 2026</time>',
+    );
   });
 });

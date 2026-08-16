@@ -4,7 +4,7 @@ They verify score math, live-only entries, sort order, and result limits with fi
 If this breaks, the trending list users see can become misleading.
 */
 
-import { describe,expect,it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { applyLiveBoostToTrending } from "~/server/popularity/live";
 
 function makeBaseline(overrides?: Partial<any>) {
@@ -68,7 +68,6 @@ describe("live trending merge behavior", () => {
     const merged = applyLiveBoostToTrending({
       baseline: [makeBaseline()],
       liveSnapshot: {
-        generatedAt: "2026-03-06T00:00:00.000Z",
         items: [makeLiveItem()],
       },
     });
@@ -85,8 +84,9 @@ describe("live trending merge behavior", () => {
     const merged = applyLiveBoostToTrending({
       baseline: [makeBaseline()],
       liveSnapshot: {
-        generatedAt: "2026-03-06T00:00:00.000Z",
-        items: [makeLiveItem({ gearId: "gear-2", slug: "gear-2", liveScore: 7 })],
+        items: [
+          makeLiveItem({ gearId: "gear-2", slug: "gear-2", liveScore: 7 }),
+        ],
       },
     });
 
@@ -101,9 +101,11 @@ describe("live trending merge behavior", () => {
 
   it("sorts merged results by score descending", () => {
     const merged = applyLiveBoostToTrending({
-      baseline: [makeBaseline({ gearId: "low", score: 1 }), makeBaseline({ gearId: "high", score: 5 })],
+      baseline: [
+        makeBaseline({ gearId: "low", score: 1 }),
+        makeBaseline({ gearId: "high", score: 5 }),
+      ],
       liveSnapshot: {
-        generatedAt: "2026-03-06T00:00:00.000Z",
         items: [
           makeLiveItem({ gearId: "low", slug: "low", liveScore: 10 }),
           makeLiveItem({ gearId: "high", slug: "high", liveScore: 0 }),

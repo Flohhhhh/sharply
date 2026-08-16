@@ -1,4 +1,4 @@
-import { and,desc,eq,gte,inArray,lt,sql,type SQL } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lt, sql, type SQL } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { unstable_cache } from "next/cache";
 import { GEAR_PUBLICATION_STATES } from "~/lib/gear/publication-state";
@@ -276,10 +276,7 @@ export async function getLiveTrendingSnapshot(
         liveScore: Number(r.score),
       }));
 
-      return {
-        generatedAt: new Date().toISOString(),
-        items,
-      };
+      return { items };
     },
     key,
     { revalidate: 60 * 2, tags: ["trending-live"] },
@@ -458,7 +455,10 @@ export async function fetchHighTrafficGearSlugsData(limit: number) {
     .from(gearPopularityLifetime)
     .innerJoin(gear, eq(gearPopularityLifetime.gearId, gear.id))
     .where(
-      and(gte(gearPopularityLifetime.viewsLifetime, 1), buildPublishedGearClause()),
+      and(
+        gte(gearPopularityLifetime.viewsLifetime, 1),
+        buildPublishedGearClause(),
+      ),
     )
     .orderBy(
       desc(gearPopularityLifetime.viewsLifetime),

@@ -15,8 +15,8 @@ import { GearReviews } from "~/app/[locale]/(pages)/gear/_components/gear-review
 import { GearVisitTracker } from "~/app/[locale]/(pages)/gear/_components/gear-visit-tracker";
 import DiscordBanner from "~/components/discord-banner";
 import { HallOfFameBadge } from "~/components/gear-badges/hall-of-fame-badge";
+import { LiveTrendingBadge } from "~/components/gear-badges/live-trending-badge";
 import { NewBadge } from "~/components/gear-badges/new-badge";
-import { TrendingBadge } from "~/components/gear-badges/trending-badge";
 import { GearDisplayName } from "~/components/gear/gear-display-name";
 import { GearItemDock } from "~/components/gear/gear-tools-dock/gear-item-dock";
 import { RenameGearButton } from "~/components/gear/rename-gear-button";
@@ -24,6 +24,7 @@ import { TagCloud } from "~/components/gear/tag-cloud";
 import { NewsCard } from "~/components/home/news-card";
 import { JsonLd } from "~/components/json-ld";
 import { Breadcrumbs, type CrumbItem } from "~/components/layout/breadcrumbs";
+import { RelativeTime } from "~/components/relative-time";
 import { Button } from "~/components/ui/button";
 import {
   Item,
@@ -31,7 +32,7 @@ import {
   ItemContent,
   ItemTitle,
 } from "~/components/ui/item";
-import { formatDate, formatRelativeDate } from "~/lib/format/date";
+import { formatDate } from "~/lib/format/date";
 import { GetGearDisplayName } from "~/lib/gear/naming";
 import { resolveRegionFromCountryCode } from "~/lib/gear/region";
 import { getItemDisplayPrice, PRICE_FALLBACK_TEXT } from "~/lib/mapping";
@@ -289,7 +290,10 @@ export default async function GearPage({ params }: GearPageProps) {
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             {isHallOfFameItem ? <HallOfFameBadge /> : null}
-            {isTrending ? <TrendingBadge /> : null}
+            <LiveTrendingBadge
+              slug={item.slug}
+              initialIsTrending={isTrending}
+            />
             {isNew ? <NewBadge /> : null}
           </div>
         </div>
@@ -618,9 +622,11 @@ async function GearPageMetadata({
         </div>
         <div className="flex justify-between">
           <span>{t("lastUpdated")}</span>
-          <span>
-            {formatRelativeDate(item.updatedAt, { locale, capitalize: true })}
-          </span>
+          <RelativeTime
+            isoDate={item.updatedAt.toISOString()}
+            locale={locale}
+            capitalize
+          />
         </div>
       </div>
     </div>

@@ -50,3 +50,14 @@ Invalid input returns `null` from `parseDateLike` and the configured `fallback` 
 - Pass an explicit `locale` at display call sites.
 - Do not call `new Intl.DateTimeFormat(...)`, `new Intl.RelativeTimeFormat(...)`, `toLocaleDateString`, `toLocaleString`, or `date-fns` directly for product UI formatting.
 - Keep parsing and formatting logic in `src/lib/format/date.ts` instead of duplicating small date helpers in components.
+
+## Relative time in cached server output
+
+Use `src/components/relative-time.tsx` when relative text appears in an ISR or otherwise cached server-rendered route.
+
+- Pass a stable ISO timestamp and the active locale.
+- The server renders a deterministic localized absolute date inside `<time dateTime="…">`.
+- After hydration, the component replaces only the text with `formatRelativeDate`; it does not start a timer or make a request.
+- Pass the existing `style`, `numeric`, `capitalize`, and `justNowLabel` options through to preserve the surrounding UI's wording.
+
+This avoids baking the current time into cached HTML while retaining meaningful, accessible content before JavaScript hydrates.

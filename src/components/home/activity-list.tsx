@@ -1,8 +1,8 @@
-import { PencilLine,Plus } from "lucide-react";
+import { PencilLine, Plus } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import * as React from "react";
-import { formatRelativeDate } from "~/lib/format/date";
+import { RelativeTime } from "~/components/relative-time";
 import type { HomeActivityItem } from "~/server/gear/home-activity";
 
 const EVENT_ICONS = {
@@ -33,8 +33,8 @@ export async function ActivityList({
       <div className="flex items-center gap-4">
         <h2 className="text-lg font-bold">{t("activityTitle")}</h2>
         <span className="relative flex h-3 w-3">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-          <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+          <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500" />
         </span>
       </div>
       <ol className="divide-border divide-y rounded-md border">
@@ -48,7 +48,7 @@ export async function ActivityList({
                 className="group flex items-center justify-between gap-3 px-4 py-2.5 text-sm"
               >
                 <span className="flex min-w-0 flex-1 items-center gap-2.5">
-                  <span className="bg-muted/35 rounded-lg text-muted-foreground flex size-6 shrink-0 items-center justify-center">
+                  <span className="bg-muted/35 text-muted-foreground flex size-6 shrink-0 items-center justify-center rounded-lg">
                     <Icon className="size-3" />
                   </span>
                   <span className="min-w-0 truncate">
@@ -60,13 +60,13 @@ export async function ActivityList({
                     </span>
                   </span>
                 </span>
-                <span className="text-muted-foreground shrink-0 text-xs">
-                  {formatRelativeDate(item.eventAt, {
-                    locale,
-                    style: "short",
-                    justNowLabel: t("justNow"),
-                  })}
-                </span>
+                <RelativeTime
+                  isoDate={item.eventAt.toISOString()}
+                  locale={locale}
+                  style="short"
+                  justNowLabel={t("justNow")}
+                  className="text-muted-foreground shrink-0 text-xs"
+                />
               </Link>
             </li>
           );

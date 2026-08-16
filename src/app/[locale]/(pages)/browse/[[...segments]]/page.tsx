@@ -6,7 +6,7 @@ import { Suspense } from "react";
 import { GearCardSkeleton } from "~/components/gear/gear-card";
 import type { Locale } from "~/i18n/config";
 import { localizePathname } from "~/i18n/routing";
-import { BRANDS,MOUNTS } from "~/lib/constants";
+import { BRANDS, MOUNTS } from "~/lib/constants";
 import { getMountDisplayName } from "~/lib/mapping/mounts-map";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import {
@@ -129,7 +129,8 @@ export default async function BrowseCatchAll({
           category={scope.categorySlug}
         />
         <h1 className="text-3xl font-semibold">
-          {brand!.name} {scope.categorySlug === "cameras" ? t("cameras") : t("lenses")}
+          {brand!.name}{" "}
+          {scope.categorySlug === "cameras" ? t("cameras") : t("lenses")}
         </h1>
         <MountButtons
           brandId={brand!.id}
@@ -139,11 +140,14 @@ export default async function BrowseCatchAll({
         <Suspense fallback={<SortSelectFallback label={t("sortBy")} />}>
           <BrowseQueryControls category={scope.categorySlug} hasMount={false} />
         </Suspense>
-        <Suspense fallback={<BrowseResultsLoading label={t("loadingResults")} />}>
+        <Suspense
+          fallback={<BrowseResultsLoading label={t("loadingResults")} />}
+        >
           <BrowseResultsGrid
             initialPage={initialPage}
             brandName={brand!.name}
             scope={scope}
+            trendingBrandId={brand!.id}
             trendingSlugs={trendingSlugs}
           />
         </Suspense>
@@ -165,7 +169,8 @@ export default async function BrowseCatchAll({
         mountValue={mount?.value ?? null}
       />
       <h1 className="text-3xl font-semibold">
-        {brand!.name} {t("mountLabel", { mount: getMountDisplayName(mount?.value) })}{" "}
+        {brand!.name}{" "}
+        {t("mountLabel", { mount: getMountDisplayName(mount?.value) })}{" "}
         {scope.categorySlug === "cameras" ? t("cameras") : t("lenses")}
       </h1>
       <Suspense fallback={<SortSelectFallback label={t("sortBy")} />}>
@@ -176,6 +181,7 @@ export default async function BrowseCatchAll({
           initialPage={initialPage}
           brandName={brand!.name}
           scope={scope}
+          trendingBrandId={brand!.id}
           trendingSlugs={trendingSlugs}
         />
       </Suspense>
@@ -183,11 +189,7 @@ export default async function BrowseCatchAll({
   );
 }
 
-function SortSelectFallback({
-  label,
-}: {
-  label: string;
-}): JSX.Element {
+function SortSelectFallback({ label }: { label: string }): JSX.Element {
   return (
     <div className="mb-2 flex items-center justify-end gap-2">
       <div className="border-input text-muted-foreground inline-flex h-10 w-[200px] items-center rounded-md border px-3 text-sm">
@@ -197,11 +199,7 @@ function SortSelectFallback({
   );
 }
 
-function BrowseResultsLoading({
-  label,
-}: {
-  label: string;
-}): JSX.Element {
+function BrowseResultsLoading({ label }: { label: string }): JSX.Element {
   return (
     <div className="space-y-4">
       <p className="text-muted-foreground text-sm">{label}</p>
