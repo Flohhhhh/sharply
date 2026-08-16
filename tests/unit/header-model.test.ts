@@ -111,6 +111,7 @@ describe("header model", () => {
       (item) => item.href === "/tags",
     );
 
+    expect(gearItem?.pendingFeedback).toBe(true);
     expect(collectionsItem).toEqual({
       title: "gearCollectionsTitle",
       href: "/tags",
@@ -133,6 +134,7 @@ describe("header model", () => {
       (item) => item.title === "gear",
     );
 
+    expect(localizedGearItem?.pendingFeedback).toBe(true);
     expect(localizedGearItem?.items).toEqual(
       expect.arrayContaining([expect.objectContaining({ href: "/ja/tags" })]),
     );

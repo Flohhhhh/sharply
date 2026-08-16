@@ -50,6 +50,7 @@ export type HeaderMode = "expanded" | "compact";
 export type HeaderNavItemSource = {
   title: string;
   url: string;
+  pendingFeedback?: boolean;
   items?: {
     title: string;
     url: string;
@@ -62,6 +63,7 @@ export type HeaderNavItemSource = {
 export type HeaderNavItem = {
   title: string;
   href: string;
+  pendingFeedback?: boolean;
   items?: {
     title: string;
     href: string;
@@ -146,6 +148,7 @@ function localizeHeaderNavItems(
   return items.map((item) => ({
     title: item.title,
     href: localizePathname(item.url, locale),
+    pendingFeedback: item.pendingFeedback,
     items: item.items?.map((subItem) => ({
       title: subItem.title,
       href: localizePathname(subItem.url, locale),
