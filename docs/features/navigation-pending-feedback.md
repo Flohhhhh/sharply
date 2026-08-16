@@ -74,6 +74,7 @@ Implementation notes:
 Current usage:
 
 - homepage CTA links in `src/app/[locale]/(pages)/page.tsx`
+- the gear specifications section's Suggest Edit link
 
 ## Selection Guide
 
