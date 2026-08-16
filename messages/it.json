@@ -679,7 +679,7 @@
         "selectViewfinderType": "Seleziona tipo di mirino",
         "magnificationPlaceholder": "es. 0,80",
         "viewfinderResolutionPlaceholder": "es. 5,76",
-        "viewfinderEyePointPlaceholder": "es. 21,00",
+        "viewfinderEyePointPlaceholder": "es. 21.00",
         "stopsPlaceholder": "es. 3,0",
         "selectAvailableShutterTypesFirst": "Seleziona prima i tipi di otturatore disponibili per inserire i valori FPS massimi.",
         "rawFps": "FPS RAW",

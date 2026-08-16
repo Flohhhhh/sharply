@@ -977,6 +977,7 @@ function CameraFieldsComponent({
               )}
               step={0.01}
               min={0}
+              max={999.99}
               disabled={
                 !supportsViewfinderEyePoint(currentSpecs?.viewfinderType)
               }

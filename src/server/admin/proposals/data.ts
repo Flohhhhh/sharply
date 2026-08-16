@@ -1,6 +1,7 @@
 import "server-only";
 
 import { and,desc,eq,gte,ne,sql } from "drizzle-orm";
+import { normalizeViewfinderEyePointUpdate } from "~/lib/specs/viewfinder";
 import type { VideoModeNormalized } from "~/lib/video/mode-schema";
 import { db } from "~/server/db";
 import { normalizeProposalPayloadForDb } from "~/server/db/normalizers";
@@ -310,6 +311,56 @@ export async function approveProposalData(
     // Determine final payload (filtered if provided) and normalize to DB types
     const source = filteredPayload ?? payload;
     const normalized = normalizeProposalPayloadForDb(source);
+    const normalizedPayload =
+      normalized && typeof normalized === "object"
+        ? (normalized as {
+            core?: any;
+            analogCamera?: any;
+            camera?: any;
+            lens?: any;
+            fixedLens?: any;
+          })
+        : null;
+
+    if (normalizedPayload?.camera || normalizedPayload?.analogCamera) {
+      const [currentCamera, currentAnalogCamera] = await Promise.all([
+        normalizedPayload.camera
+          ? tx
+              .select({
+                viewfinderType: cameraSpecs.viewfinderType,
+                viewfinderEyePointMm: cameraSpecs.viewfinderEyePointMm,
+              })
+              .from(cameraSpecs)
+              .where(eq(cameraSpecs.gearId, gearId))
+              .limit(1)
+              .then(([row]) => row)
+          : Promise.resolve(undefined),
+        normalizedPayload.analogCamera
+          ? tx
+              .select({
+                viewfinderType: analogCameraSpecs.viewfinderType,
+                viewfinderEyePointMm: analogCameraSpecs.viewfinderEyePointMm,
+              })
+              .from(analogCameraSpecs)
+              .where(eq(analogCameraSpecs.gearId, gearId))
+              .limit(1)
+              .then(([row]) => row)
+          : Promise.resolve(undefined),
+      ]);
+
+      if (normalizedPayload.camera) {
+        normalizedPayload.camera = normalizeViewfinderEyePointUpdate(
+          currentCamera,
+          normalizedPayload.camera,
+        );
+      }
+      if (normalizedPayload.analogCamera) {
+        normalizedPayload.analogCamera = normalizeViewfinderEyePointUpdate(
+          currentAnalogCamera,
+          normalizedPayload.analogCamera,
+        );
+      }
+    }
 
     // Update the proposal status to APPROVED and persist only the applied changes
     await tx
@@ -330,14 +381,7 @@ export async function approveProposalData(
     });
 
     // Apply the changes to the gear
-    if (normalized && typeof normalized === "object") {
-      const normalizedPayload = normalized as {
-        core?: any;
-        analogCamera?: any;
-        camera?: any;
-        lens?: any;
-        fixedLens?: any;
-      };
+    if (normalizedPayload) {
       if (normalizedPayload.core) {
         // Map legacy keys to current column names and avoid empty UPDATE SET
         const coreUpdate: Record<string, unknown> = {

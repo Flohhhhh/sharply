@@ -187,6 +187,28 @@ describe("normalizeProposalPayloadForDb", () => {
     ).toEqual({ camera: { viewfinderEyePointMm: null } });
   });
 
+  it("rejects eye point values that exceed the database numeric bound", () => {
+    expect(() =>
+      normalizeProposalPayloadForDb({
+        camera: { viewfinderEyePointMm: 1000 },
+      }),
+    ).toThrow();
+    expect(() =>
+      normalizeProposalPayloadForDb({
+        analogCamera: { viewfinderEyePointMm: "999.999" },
+      }),
+    ).toThrow();
+    expect(
+      normalizeProposalPayloadForDb({
+        camera: { viewfinderEyePointMm: 999.99 },
+        analogCamera: { viewfinderEyePointMm: 999.99 },
+      }),
+    ).toEqual({
+      camera: { viewfinderEyePointMm: 999.99 },
+      analogCamera: { viewfinderEyePointMm: 999.99 },
+    });
+  });
+
   it("normalizes discontinued date and precision", () => {
     expect(
       normalizeProposalPayloadForDb({

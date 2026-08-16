@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { VideoSpecsSummary } from "~/app/[locale]/(pages)/gear/_components/video/video-summary";
@@ -47,8 +47,11 @@ const describeUnknownValue = (value: unknown): string => {
   }
 };
 
-const formatProposalFieldLabel = (key: string): string =>
-  key === "viewfinderEyePointMm" ? "Viewfinder Eye Point" : humanizeKey(key);
+const formatProposalFieldLabel = (
+  key: string,
+  viewfinderEyePointLabel: string,
+): string =>
+  key === "viewfinderEyePointMm" ? viewfinderEyePointLabel : humanizeKey(key);
 
 const formatEyePoint = (key: string, value: unknown): string | undefined => {
   if (key !== "viewfinderEyePointMm" || value == null) return undefined;
@@ -83,6 +86,13 @@ export default async function EditSuccessPage({
   searchParams,
 }: EditSuccessPageProps) {
   const locale = await getLocale();
+  const tGearDetail = await getTranslations({
+    locale,
+    namespace: "gearDetail",
+  });
+  const viewfinderEyePointLabel = tGearDetail(
+    "specRegistry.sections.camera-hardware.fields.viewfinderEyePointMm.label",
+  );
   const { id } = await searchParams;
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -222,7 +232,11 @@ export default async function EditSuccessPage({
                           return (
                             <li key={String(k)}>
                               <span className="text-muted-foreground">
-                                {formatProposalFieldLabel(String(k))}:
+                                {formatProposalFieldLabel(
+                                  String(k),
+                                  viewfinderEyePointLabel,
+                                )}
+                                :
                               </span>{" "}
                               <span className="font-medium">{display}</span>
                             </li>
@@ -281,7 +295,11 @@ export default async function EditSuccessPage({
                         return (
                           <li key={String(k)}>
                             <span className="text-muted-foreground">
-                              {formatProposalFieldLabel(String(k))}:
+                              {formatProposalFieldLabel(
+                                String(k),
+                                viewfinderEyePointLabel,
+                              )}
+                              :
                             </span>{" "}
                             <span className="font-medium">{display}</span>
                           </li>
@@ -316,7 +334,11 @@ export default async function EditSuccessPage({
                           return (
                             <li key={String(k)}>
                               <span className="text-muted-foreground">
-                                {formatProposalFieldLabel(String(k))}:
+                                {formatProposalFieldLabel(
+                                  String(k),
+                                  viewfinderEyePointLabel,
+                                )}
+                                :
                               </span>{" "}
                               <span className="font-medium">{display}</span>
                             </li>

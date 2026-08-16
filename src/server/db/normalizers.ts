@@ -757,7 +757,7 @@ export function normalizeProposalPayloadForDb(
           if (value === null) return null;
           const num = coerceNumber(value);
           return num === null ? undefined : Math.round(num * 100) / 100;
-        }, z.number().nonnegative().nullable().optional())
+        }, z.number().nonnegative().max(999.99).nullable().optional())
         .optional(),
       viewfinderResolutionMillionDots: z
         .preprocess((value) => {
@@ -848,7 +848,7 @@ export function normalizeProposalPayloadForDb(
           if (value === null) return null;
           const num = coerceNumber(value);
           return num === null ? undefined : Math.round(num * 100) / 100;
-        }, z.number().nonnegative().nullable().optional())
+        }, z.number().nonnegative().max(999.99).nullable().optional())
         .optional(),
       shutterType: z
         .preprocess((value) => {

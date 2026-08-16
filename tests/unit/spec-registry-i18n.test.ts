@@ -290,6 +290,24 @@ describe("spec registry i18n", () => {
     ).toMatchObject({ label: "Viewfinder Eye Point", value: "18.00 mm" });
   });
 
+  it("formats viewfinder eye point measurements for the active locale", () => {
+    const sections = buildGearSpecsSections(
+      createGearItem({
+        cameraSpecs: {
+          viewfinderType: "electronic",
+          viewfinderEyePointMm: "21.1",
+        } as GearItem["cameraSpecs"],
+      }),
+      { locale: "de" },
+    );
+
+    expect(
+      sections
+        .flatMap((section) => section.data)
+        .find((row) => row.key === "viewfinderEyePointMm")?.value,
+    ).toBe("21,10 mm");
+  });
+
   it("hides viewfinder eye point for unknown and no-viewfinder cameras", () => {
     for (const viewfinderType of [null, "none"] as const) {
       const sections = buildGearSpecsSections(

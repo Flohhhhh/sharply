@@ -37,6 +37,7 @@ import { getMountLongNamesById } from "~/lib/mapping/mounts-map";
 import { sensorNameFromSlug } from "~/lib/mapping/sensor-map";
 import { humanizeKey } from "~/lib/utils";
 import { normalizeApertureProfile } from "~/lib/lens-aperture-profile";
+import { normalizeViewfinderEyePointUpdate } from "~/lib/specs/viewfinder";
 import {
   normalizeVideoModes,
   type VideoModeInput,
@@ -99,6 +100,27 @@ function formatFpsValue(value: unknown): string {
   const num = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(num)) return String(value);
   return `${num} fps`;
+}
+
+function formatEyePointValue(value: unknown, locale: string): string {
+  const num = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(num)) return safeString(value);
+  return `${new Intl.NumberFormat(locale, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(num)} mm`;
+}
+
+function normalizeGearViewfinderEyePoints(gearItem: GearItem): GearItem {
+  return {
+    ...gearItem,
+    cameraSpecs: gearItem.cameraSpecs
+      ? normalizeViewfinderEyePointUpdate({}, gearItem.cameraSpecs)
+      : gearItem.cameraSpecs,
+    analogCameraSpecs: gearItem.analogCameraSpecs
+      ? normalizeViewfinderEyePointUpdate({}, gearItem.analogCameraSpecs)
+      : gearItem.analogCameraSpecs,
+  };
 }
 
 function formatMaxFpsByShutter(value: unknown): string {
@@ -231,7 +253,9 @@ function EditGearForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
-  const [formData, setFormData] = useState<GearItem>(gearData);
+  const [formData, setFormData] = useState<GearItem>(() =>
+    normalizeGearViewfinderEyePoints(gearData),
+  );
   const [diffPreview, setDiffPreview] = useState<DiffPayload | null>(null);
   const initialCoreSpecs = gearData;
   const initialCameraSpecs = gearData.cameraSpecs;
@@ -257,7 +281,7 @@ function EditGearForm({
 
   React.useEffect(() => {
     if (!isDirty) {
-      setFormData(gearData);
+      setFormData(normalizeGearViewfinderEyePoints(gearData));
     }
   }, [gearData, isDirty]);
 
@@ -1428,6 +1452,9 @@ function EditGearForm({
                               booleanLabels,
                             );
                             if (booleanDisplay) display = booleanDisplay;
+                            if (k === "viewfinderEyePointMm") {
+                              display = formatEyePointValue(v, locale);
+                            }
                             return (
                               <li key={k}>
                                 <span className="text-muted-foreground">
@@ -1479,6 +1506,9 @@ function EditGearForm({
                           }
                           if (k === "internalStorageGb") {
                             display = formatStorageValue(v);
+                          }
+                          if (k === "viewfinderEyePointMm") {
+                            display = formatEyePointValue(v, locale);
                           }
                           return (
                             <li key={k}>

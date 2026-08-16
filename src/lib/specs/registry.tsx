@@ -1145,9 +1145,14 @@ export const specDictionary: SpecSectionDef[] = [
         getRawValue: (item) => item.cameraSpecs?.viewfinderEyePointMm,
         condition: (item) =>
           supportsViewfinderEyePoint(item.cameraSpecs?.viewfinderType),
-        formatDisplay: (raw) => {
+        formatDisplay: (raw, _item, _forceLeftAlign, _viewerRegion, locale) => {
           const n = raw == null ? NaN : Number(raw);
-          return Number.isFinite(n) ? `${n.toFixed(2)} mm` : undefined;
+          return Number.isFinite(n)
+            ? `${new Intl.NumberFormat(locale, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }).format(n)} mm`
+            : undefined;
         },
       },
       {
@@ -2077,9 +2082,14 @@ export const specDictionary: SpecSectionDef[] = [
         getRawValue: (item) => item.analogCameraSpecs?.viewfinderEyePointMm,
         condition: (item) =>
           supportsViewfinderEyePoint(item.analogCameraSpecs?.viewfinderType),
-        formatDisplay: (raw) => {
+        formatDisplay: (raw, _item, _forceLeftAlign, _viewerRegion, locale) => {
           const n = raw == null ? NaN : Number(raw);
-          return Number.isFinite(n) ? `${n.toFixed(2)} mm` : undefined;
+          return Number.isFinite(n)
+            ? `${new Intl.NumberFormat(locale, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }).format(n)} mm`
+            : undefined;
         },
       },
       {
