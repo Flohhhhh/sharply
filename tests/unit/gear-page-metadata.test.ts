@@ -84,6 +84,48 @@ describe("gear page metadata", () => {
     ]);
   });
 
+  it("falls back to a lens orthographic image when no front or OG image exists", async () => {
+    gearServiceMocks.fetchGearBySlug.mockResolvedValue({
+      name: "Nikon Z 50mm f/1.8 S",
+      regionalAliases: [],
+      gearType: "LENS",
+      thumbnailUrl: null,
+      topViewUrl: "https://cdn.example.com/orthographic.jpg",
+      ogImageUrl: null,
+    });
+
+    const metadata = await generateGearPageMetadata({
+      locale: "en",
+      slug: "nikon-z-50mm-f18-s",
+    });
+
+    expect(metadata.openGraph?.images).toEqual([
+      { url: "https://cdn.example.com/orthographic.jpg" },
+    ]);
+    expect(metadata.twitter?.images).toEqual([
+      { url: "https://cdn.example.com/orthographic.jpg" },
+    ]);
+  });
+
+  it("does not use a camera top view as an OG fallback", async () => {
+    gearServiceMocks.fetchGearBySlug.mockResolvedValue({
+      name: "Nikon Z6III",
+      regionalAliases: [],
+      gearType: "CAMERA",
+      thumbnailUrl: null,
+      topViewUrl: "https://cdn.example.com/top.jpg",
+      ogImageUrl: null,
+    });
+
+    const metadata = await generateGearPageMetadata({
+      locale: "en",
+      slug: "nikon-z6iii",
+    });
+
+    expect(metadata.openGraph?.images).toEqual([]);
+    expect(metadata.twitter?.images).toEqual([]);
+  });
+
   it("returns empty image arrays when no image is available", async () => {
     gearServiceMocks.fetchGearBySlug.mockResolvedValue({
       name: "Nikon Z6III",

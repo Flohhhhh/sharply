@@ -500,6 +500,13 @@ export async function setGearTopViewService(params: {
 
   const updated = await updateGearTopViewData({ gearId, topViewUrl });
 
+  if (
+    currentGear.gearType === "LENS" &&
+    !currentGear.thumbnailUrl?.trim()
+  ) {
+    await updateGearOgImageData({ gearId, ogImageUrl: null });
+  }
+
   if (topViewUrl) {
     // Clear outstanding image requests once an image is provided
     await clearImageRequestsForGear(gearId);

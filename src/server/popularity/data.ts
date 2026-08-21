@@ -22,6 +22,7 @@ import type {
   TrendingEntry,
   TrendingFiltersInput,
 } from "~/types/popularity";
+import { getGearDisplayImageSql } from "~/server/gear/display-image";
 
 const MIN_TRENDING_SCORE = 1;
 
@@ -136,7 +137,7 @@ export async function getTrendingData(
           announceDatePrecision: gear.announceDatePrecision,
           msrpNowUsdCents: gear.msrpNowUsdCents,
           mpbMaxPriceUsdCents: gear.mpbMaxPriceUsdCents,
-          thumbnailUrl: gear.thumbnailUrl,
+          thumbnailUrl: getGearDisplayImageSql(),
           lifetimeViews: gearPopularityLifetime.viewsLifetime,
         })
         .from(gearPopularityWindows)
@@ -247,7 +248,7 @@ export async function getLiveTrendingSnapshot(
           announceDatePrecision: gear.announceDatePrecision,
           msrpNowUsdCents: gear.msrpNowUsdCents,
           mpbMaxPriceUsdCents: gear.mpbMaxPriceUsdCents,
-          thumbnailUrl: gear.thumbnailUrl,
+          thumbnailUrl: getGearDisplayImageSql(),
           lifetimeViews: gearPopularityLifetime.viewsLifetime,
         })
         .from(gearPopularityIntraday)

@@ -6,6 +6,7 @@ import { GearCardHorizontal } from "~/components/gear/gear-card-horizontal";
 import { RichText } from "~/components/rich-text";
 import { TableOfContents } from "~/components/rich-text/table-of-contents";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
+import { getGearDisplayImageUrl } from "~/lib/gear/display-image";
 import { GetGearDisplayName } from "~/lib/gear/naming";
 import { getBrandNameById } from "~/lib/mapping/brand-map";
 import { buildDefaultOgImageUrl } from "~/lib/seo/default-og-image";
@@ -44,9 +45,10 @@ export async function generateMetadata({
     const title = t("reviewTitle", { name: gearItem.name });
     const description = review.review_summary || review.title;
     const defaultOgImageUrl = buildDefaultOgImageUrl(baseUrl);
-    const ogImage = gearItem.thumbnailUrl
+    const displayImageUrl = getGearDisplayImageUrl(gearItem);
+    const ogImage = displayImageUrl
       ? {
-          url: gearItem.thumbnailUrl,
+          url: displayImageUrl,
           width: 1200,
           height: 630,
           alt: `${gearItem.name} Review`,
@@ -102,6 +104,7 @@ export default async function ReviewPage({
 
   const gearItem = await fetchGearBySlug(review.review_gear_item);
   const brandName = getBrandNameById(gearItem.brandId ?? "");
+  const displayImageUrl = getGearDisplayImageUrl(gearItem);
 
   return (
     <div className="mx-auto my-24 flex min-h-screen flex-col items-center gap-12 px-4 pt-8 sm:px-8">
@@ -116,10 +119,10 @@ export default async function ReviewPage({
       </div>
 
       <div className="w-full max-w-5xl space-y-6">
-        {gearItem.thumbnailUrl ? (
+        {displayImageUrl ? (
           <div className="bg-muted dark:bg-card min-h-[300px] overflow-hidden rounded-md p-6 sm:p-12">
             <Image
-              src={gearItem.thumbnailUrl}
+              src={displayImageUrl}
               alt={gearItem.name}
               className="mx-auto h-full max-h-[300px] w-full max-w-[600px] object-contain sm:max-h-[420px]"
               width={720}
@@ -183,7 +186,7 @@ export default async function ReviewPage({
                   slug={gearItem.slug}
                   name={gearItem.name}
                   regionalAliases={gearItem.regionalAliases}
-                  thumbnailUrl={gearItem.thumbnailUrl}
+                  thumbnailUrl={displayImageUrl}
                   brandName={brandName ?? ""}
                   gearType={gearItem.gearType}
                   href={`/gear/${gearItem.slug}`}

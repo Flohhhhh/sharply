@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { getGearDisplayImageUrl } from "~/lib/gear/display-image";
 import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
 import { getItemDisplayPrice } from "~/lib/mapping";
 import { getBrandNameById } from "~/lib/mapping/brand-map";
@@ -31,6 +32,7 @@ export function WishlistGearCard({
     style: "short",
     padWholeAmounts: true,
   });
+  const displayImageUrl = getGearDisplayImageUrl(item);
   const brandLabel = brandName || "Unknown brand";
 
   if (isRemoved) {
@@ -53,10 +55,10 @@ export function WishlistGearCard({
         </div>
       ) : null}
       <div className="flex gap-3 p-2">
-        {item.thumbnailUrl ? (
+        {displayImageUrl ? (
           <div className="bg-muted relative aspect-4/3 w-28 shrink-0 overflow-hidden rounded-lg">
             <Image
-              src={item.thumbnailUrl}
+              src={displayImageUrl}
               alt={displayName}
               fill
               sizes="(min-width: 1024px) 180px, 30vw"

@@ -16,6 +16,7 @@ import {
   LENS_FOCAL_LENGTH_SORT,
   lensFocalLengthSortExpression,
 } from "./lens-sort";
+import { getGearDisplayImageSql } from "../display-image";
 
 export type BrowseGearRow = {
   id: string;
@@ -151,7 +152,7 @@ export async function searchGear(
     brandId: gear.brandId,
     brandName: brands.name,
     gearType: gear.gearType,
-    thumbnailUrl: gear.thumbnailUrl,
+    thumbnailUrl: getGearDisplayImageSql(),
     releaseDate: gear.releaseDate,
     releaseDatePrecision: gear.releaseDatePrecision,
     announcedDate: gear.announcedDate,
@@ -282,7 +283,7 @@ export async function getReleaseOrderedGearPage(params: {
       slug: gear.slug,
       name: gear.name,
       brandName: brands.name,
-      thumbnailUrl: gear.thumbnailUrl,
+      thumbnailUrl: getGearDisplayImageSql(),
       gearType: gear.gearType,
       releaseDate: gear.releaseDate,
       releaseDatePrecision: gear.releaseDatePrecision,

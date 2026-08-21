@@ -11,6 +11,7 @@ import { TableOfContents } from "~/components/rich-text/table-of-contents";
 import { Badge } from "~/components/ui/badge";
 import { Separator } from "~/components/ui/separator";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
+import { getGearDisplayImageUrl } from "~/lib/gear/display-image";
 import { formatDate } from "~/lib/format/date";
 import { getItemDisplayPrice } from "~/lib/mapping";
 import { getBrandNameById } from "~/lib/mapping/brand-map";
@@ -184,7 +185,7 @@ export default async function DynamicPage({
                     slug={item.slug}
                     name={item.name}
                     regionalAliases={item.regionalAliases}
-                    thumbnailUrl={item.thumbnailUrl}
+                    thumbnailUrl={getGearDisplayImageUrl(item)}
                     brandName={getBrandNameById(item.brandId ?? "") ?? ""}
                     gearType={item.gearType}
                     releaseDate={item.releaseDate}

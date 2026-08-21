@@ -3,6 +3,7 @@
 import { CircleQuestionMark } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { getGearDisplayImageUrl } from "~/lib/gear/display-image";
 import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
 import type { GearItem } from "~/types/gear";
 import {
@@ -33,7 +34,8 @@ export function CollectionCard(props: {
     name: item.name,
     regionalAliases: item.regionalAliases,
   });
-  const hasImage = Boolean(item.thumbnailUrl);
+  const displayImageUrl = getGearDisplayImageUrl(item);
+  const hasImage = Boolean(displayImageUrl);
   const isCamera =
     item.gearType === "CAMERA" || item.gearType === "ANALOG_CAMERA";
   const cardWidthPixels = getCollectionCardWidthPixels(displayWidthPixels);
@@ -57,7 +59,7 @@ export function CollectionCard(props: {
       >
         {hasImage ? (
           <Image
-            src={item.thumbnailUrl!}
+            src={displayImageUrl!}
             alt={displayName}
             width={imageWidthPixels}
             height={imageHeightPixels}

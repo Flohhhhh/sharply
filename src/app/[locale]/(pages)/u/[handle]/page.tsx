@@ -40,6 +40,7 @@ import { auth } from "~/auth";
 import { Button } from "~/components/ui/button";
 import { UserAvatar } from "~/components/ui/user-avatar";
 import { GetGearDisplayName } from "~/lib/gear/naming";
+import { getGearDisplayImageUrl } from "~/lib/gear/display-image";
 import { getBrandNameById } from "~/lib/mapping/brand-map";
 import type { GearItem } from "~/types/gear";
 
@@ -326,6 +327,7 @@ function GearCard({ item }: { item: GearItem }) {
     style: "short",
     padWholeAmounts: true,
   });
+  const displayImageUrl = getGearDisplayImageUrl(item);
   const brandLabel = brandName || "Unknown brand";
 
   return (
@@ -334,10 +336,10 @@ function GearCard({ item }: { item: GearItem }) {
       className="group border-border/80 hover:border-foreground/50 block overflow-hidden rounded-xl border transition-colors"
     >
       <div className="flex gap-3 p-2">
-        {item.thumbnailUrl ? (
+        {displayImageUrl ? (
           <div className="bg-muted relative aspect-4/3 w-28 shrink-0 overflow-hidden rounded-lg">
             <Image
-              src={item.thumbnailUrl}
+              src={displayImageUrl}
               alt={displayName}
               fill
               sizes="(min-width: 1024px) 180px, 30vw"

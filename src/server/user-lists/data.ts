@@ -12,6 +12,7 @@ import {
 } from "~/server/db/schema";
 import { fetchGearAliasesByGearIds,getGearIdBySlug } from "~/server/gear/data";
 import type { GearAlias } from "~/types/gear";
+import { getGearDisplayImageSql } from "~/server/gear/display-image";
 
 export type UserListRow = typeof userLists.$inferSelect;
 export type SharedListRow = typeof sharedLists.$inferSelect;
@@ -231,7 +232,7 @@ export async function fetchListItemsByListIdsData(
       slug: gear.slug,
       name: gear.name,
       gearType: gear.gearType,
-      thumbnailUrl: gear.thumbnailUrl,
+      thumbnailUrl: getGearDisplayImageSql(),
       releaseDate: gear.releaseDate,
       releaseDatePrecision: gear.releaseDatePrecision,
       announcedDate: gear.announcedDate,

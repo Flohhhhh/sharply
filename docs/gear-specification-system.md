@@ -23,8 +23,9 @@ The central table that stores common gear information:
   - Mount relationships managed via `gear_mounts` junction table for multi-mount support
 - **Metadata**: Announced, release, and discontinued dates with precision; price; thumbnail URL; optional stored Open Graph URL; optional top-view URL; optional rear-view URL; and optional camera side-view URLs
   - `thumbnailUrl` applies to all gear
-  - `ogImageUrl` stores a precomputed padded social-preview image derived from the front thumbnail
+  - `ogImageUrl` stores a precomputed padded social-preview image derived from the front thumbnail, or from a lens orthographic image when no front image exists
   - `topViewUrl` applies to cameras and lenses; lens UI labels this as "Orthographic"
+  - Public cards and social metadata use a lens `topViewUrl` as a fallback only when `thumbnailUrl` is absent; camera secondary views are not fallbacks
   - `rearViewUrl` applies only to `CAMERA` and `ANALOG_CAMERA`
   - `leftViewUrl` and `rightViewUrl` apply only to `CAMERA` and `ANALOG_CAMERA`
 - **Publication State**: `publicationState` controls whether the item is publicly visible

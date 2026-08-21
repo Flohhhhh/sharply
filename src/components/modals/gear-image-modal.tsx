@@ -29,7 +29,7 @@ import { useSession } from "~/lib/auth/auth-client";
 import { requireRole } from "~/lib/auth/auth-helpers";
 import {
   createGearOgImageFileFromSource,
-  shouldAutoGenerateGearOgImageOnThumbnailUpload,
+  shouldAutoGenerateGearOgImageOnUpload,
 } from "~/lib/gear/og-image";
 import {
   reportImageUploadFeedback,
@@ -311,10 +311,16 @@ export function GearImageModal(props: GearImageModalProps) {
       setActiveImageType(imageType);
       const shouldGenerateOgImage =
         (!isExplicitMode || isDefaultColorway) &&
-        shouldAutoGenerateGearOgImageOnThumbnailUpload({
+        shouldAutoGenerateGearOgImageOnUpload({
           imageType,
+          gearType: props.gearType,
           currentThumbnailUrl: displayedThumbnailUrl,
         });
+      const shouldClearLensOrthographicOgImage =
+        (!isExplicitMode || isDefaultColorway) &&
+        props.gearType === "LENS" &&
+        imageType === "topView" &&
+        !displayedThumbnailUrl;
       const ogImageUrlForPrimaryMutation =
         imageType === "thumbnail" && displayedThumbnailUrl ? null : undefined;
       const url = await uploadGearImageFile(file, (progress) => {
@@ -348,6 +354,9 @@ export function GearImageModal(props: GearImageModalProps) {
           colorwayId: selectedColorway!.id,
           imageType: imageType === "thumbnail" ? "front" : imageType,
           imageUrl: url,
+          ...(shouldClearLensOrthographicOgImage
+            ? { ogImageUrl: null }
+            : {}),
         });
         if (isGearImageReviewRejectedResult(result)) {
           reportReviewRejection(result.review.reason);
@@ -416,7 +425,7 @@ export function GearImageModal(props: GearImageModalProps) {
         setLocalRightViewUrl(url);
       }
       setProgressMode("save");
-      if (imageType === "thumbnail" && shouldGenerateOgImage) {
+      if (shouldGenerateOgImage) {
         try {
           const ogImageFile = await createGearOgImageFileFromSource({
             source: file,
@@ -506,6 +515,11 @@ export function GearImageModal(props: GearImageModalProps) {
         setCombinedProgress((prev) => (prev < 95 ? prev + 3 : prev));
       }, 120);
       savingTimerRef.current = interval;
+      const shouldClearLensOrthographicOgImage =
+        (!isExplicitMode || isDefaultColorway) &&
+        props.gearType === "LENS" &&
+        imageType === "topView" &&
+        !displayedThumbnailUrl;
 
       if (isExplicitMode && (!selectedColorway || !props.gearId)) {
         throw new Error(t("colorwayContextMissing"));
@@ -517,6 +531,9 @@ export function GearImageModal(props: GearImageModalProps) {
           colorwayId: selectedColorway!.id,
           imageType: imageType === "thumbnail" ? "front" : imageType,
           imageUrl: null,
+          ...(shouldClearLensOrthographicOgImage
+            ? { ogImageUrl: null }
+            : {}),
         });
         if (isGearImageReviewRejectedResult(result)) {
           reportReviewRejection(result.review.reason);
