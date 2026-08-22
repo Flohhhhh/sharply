@@ -11,8 +11,8 @@ import { cn } from "~/lib/utils";
 import { isInHallOfFame } from "~/lib/utils/is-in-hall-of-fame";
 import { isNewRelease } from "~/lib/utils/is-new";
 import { HallOfFameBadge } from "../gear-badges/hall-of-fame-badge";
+import { LiveTrendingBadge } from "../gear-badges/live-trending-badge";
 import { NewBadge } from "../gear-badges/new-badge";
-import { TrendingBadge } from "../gear-badges/trending-badge";
 import {
   formatGearCardDate,
   GearCardLinkPendingState,
@@ -98,6 +98,8 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
     gearType,
     releaseDate,
     isTrending,
+    trendingQuery,
+    trendingStatusSource,
     releaseDatePrecision,
     announcedDate,
     announceDatePrecision,
@@ -122,18 +124,24 @@ export function GearCardHorizontal(props: GearCardHorizontalProps) {
   const isHallOfFameItem = isInHallOfFame(slug);
   const badgeNodes: React.ReactNode[] = [];
   if (isHallOfFameItem) badgeNodes.push(<HallOfFameBadge key="hall-of-fame" />);
-  if (isTrending) badgeNodes.push(<TrendingBadge key="trending" />);
+  if (isTrending !== undefined) {
+    badgeNodes.push(
+      <LiveTrendingBadge
+        key="trending"
+        slug={slug}
+        initialIsTrending={isTrending}
+        query={trendingQuery}
+        source={trendingStatusSource}
+      />,
+    );
+  }
   if (isNew) badgeNodes.push(<NewBadge key="new" />);
   if (badges) badgeNodes.push(badges);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 
   return (
     <div className={cn("group relative", className)}>
-      <Link
-        href={href}
-        className="block"
-        data-gear-card-link="true"
-      >
+      <Link href={href} className="block" data-gear-card-link="true">
         <GearCardLinkPendingState>
           {(pending) => (
             <div

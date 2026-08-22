@@ -1,4 +1,4 @@
-import { and,desc,eq,gte,inArray,lt,sql,type SQL } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lt, sql, type SQL } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { unstable_cache } from "next/cache";
 import { GEAR_PUBLICATION_STATES } from "~/lib/gear/publication-state";
@@ -7,6 +7,7 @@ import {
   brands,
   comparePairCounts,
   gear,
+  gearMounts,
   gearPopularityDaily,
   gearPopularityIntraday,
   gearPopularityLifetime,
@@ -21,11 +22,21 @@ import type {
   TrendingEntry,
   TrendingFiltersInput,
 } from "~/types/popularity";
+import { getGearDisplayImageSql } from "~/server/gear/display-image";
 
 const MIN_TRENDING_SCORE = 1;
 
 function buildPublishedGearClause() {
   return eq(gear.publicationState, GEAR_PUBLICATION_STATES.PUBLISHED);
+}
+
+function buildGearMountClause(mountId: string) {
+  return sql`EXISTS (
+    SELECT 1
+    FROM ${gearMounts}
+    WHERE ${gearMounts.gearId} = ${gear.id}
+      AND ${gearMounts.mountId} = ${mountId}
+  )`;
 }
 
 /**
@@ -98,7 +109,8 @@ export async function getTrendingData(
       ];
       // Optional scoping filters
       if (filters.brandId) conditions.push(eq(gear.brandId, filters.brandId));
-      // TODO: mountId filter will be migrated to junction-based in Phase 2
+      if (filters.mountId)
+        conditions.push(buildGearMountClause(filters.mountId));
       if (filters.gearType)
         conditions.push(eq(gear.gearType, filters.gearType));
       conditions.push(sql`${scoreFormula} >= ${MIN_TRENDING_SCORE}`);
@@ -125,7 +137,7 @@ export async function getTrendingData(
           announceDatePrecision: gear.announceDatePrecision,
           msrpNowUsdCents: gear.msrpNowUsdCents,
           mpbMaxPriceUsdCents: gear.mpbMaxPriceUsdCents,
-          thumbnailUrl: gear.thumbnailUrl,
+          thumbnailUrl: getGearDisplayImageSql(),
           lifetimeViews: gearPopularityLifetime.viewsLifetime,
         })
         .from(gearPopularityWindows)
@@ -184,8 +196,10 @@ export async function getLiveTrendingSnapshot(
   filters: TrendingFiltersInput = {},
   offset = 0,
 ): Promise<LiveTrendingSnapshot> {
+  const currentUtcDate = new Date().toISOString().slice(0, 10);
   const key = [
     "pop-trending-live",
+    currentUtcDate,
     String(limit),
     filters.brandId ?? "-",
     filters.mountId ?? "-",
@@ -208,6 +222,8 @@ export async function getLiveTrendingSnapshot(
         buildPublishedGearClause(),
       ];
       if (filters.brandId) conditions.push(eq(gear.brandId, filters.brandId));
+      if (filters.mountId)
+        conditions.push(buildGearMountClause(filters.mountId));
       if (filters.gearType)
         conditions.push(eq(gear.gearType, filters.gearType));
       conditions.push(sql`${scoreFormula} >= ${MIN_TRENDING_SCORE}`);
@@ -232,7 +248,7 @@ export async function getLiveTrendingSnapshot(
           announceDatePrecision: gear.announceDatePrecision,
           msrpNowUsdCents: gear.msrpNowUsdCents,
           mpbMaxPriceUsdCents: gear.mpbMaxPriceUsdCents,
-          thumbnailUrl: gear.thumbnailUrl,
+          thumbnailUrl: getGearDisplayImageSql(),
           lifetimeViews: gearPopularityLifetime.viewsLifetime,
         })
         .from(gearPopularityIntraday)
@@ -276,10 +292,7 @@ export async function getLiveTrendingSnapshot(
         liveScore: Number(r.score),
       }));
 
-      return {
-        generatedAt: new Date().toISOString(),
-        items,
-      };
+      return { items };
     },
     key,
     { revalidate: 60 * 2, tags: ["trending-live"] },
@@ -319,6 +332,8 @@ export async function getTrendingTotalCount(
         ${gearPopularityWindows.reviewSubmitsSum} * 2.5
       )`;
       if (filters.brandId) conditions.push(eq(gear.brandId, filters.brandId));
+      if (filters.mountId)
+        conditions.push(buildGearMountClause(filters.mountId));
       if (filters.gearType)
         conditions.push(eq(gear.gearType, filters.gearType));
       conditions.push(sql`${scoreFormula} >= ${MIN_TRENDING_SCORE}`);
@@ -458,7 +473,10 @@ export async function fetchHighTrafficGearSlugsData(limit: number) {
     .from(gearPopularityLifetime)
     .innerJoin(gear, eq(gearPopularityLifetime.gearId, gear.id))
     .where(
-      and(gte(gearPopularityLifetime.viewsLifetime, 1), buildPublishedGearClause()),
+      and(
+        gte(gearPopularityLifetime.viewsLifetime, 1),
+        buildPublishedGearClause(),
+      ),
     )
     .orderBy(
       desc(gearPopularityLifetime.viewsLifetime),

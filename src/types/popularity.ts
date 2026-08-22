@@ -64,7 +64,6 @@ export type LiveTrendingSnapshotItem = {
 };
 
 export type LiveTrendingSnapshot = {
-  generatedAt: string;
   items: LiveTrendingSnapshotItem[];
 };
 

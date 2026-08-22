@@ -17,7 +17,7 @@ This document describes the end‑to‑end popularity tracking in Sharply: inges
 
 - **Storage layout (Drizzle schema)**
   - `app.popularity_events`: raw events (short-lived; 48h retention).
-- `app.gear_popularity_intraday`: UTC-day live counters that power the automatic live boost; truncated after each rollup.
+  - `app.gear_popularity_intraday`: UTC-day live counters that power the automatic live boost; old UTC-day rows are truncated after each rollup.
   - `app.gear_popularity_daily`: per-gear daily pivoted counts (idempotent upsert).
   - `app.gear_popularity_windows`: rolling snapshots (rows per `7d`/`30d`, `as_of_date` at D‑1).
   - `app.gear_popularity_lifetime`: cumulative monotonic totals by gear.
@@ -35,13 +35,13 @@ This document describes the end‑to‑end popularity tracking in Sharply: inges
     3. Recompute windows as‑of D‑1
     4. Recompute lifetime totals
     5. Purge only D‑2 raw events
-    6. Truncate `gear_popularity_intraday` rows older than the current UTC day and revalidate `trending-live`.
+    6. Truncate `gear_popularity_intraday` rows older than the current UTC day and revalidate the stable `trending` baseline.
   - Observability: Discord webhook with counts/durations; `rollup_runs` row persisted per run; Admin page lists recent runs.
   - Scheduling: Vercel Cron → `POST /api/admin/popularity/rollup` (`Authorization: Bearer CRON_SECRET`).
 
 - **Caching & revalidation**
   - Trending API and UI cache ~12h; revalidated proactively after rollup via `revalidateTag('trending')`.
-  - Live boost snapshot caches ~2 minutes via `unstable_cache` tagged `trending-live`; invalidated nightly when intraday rows are cleared.
+  - Live boost snapshots cache ~2 minutes via `unstable_cache` tagged `trending-live` and expire naturally; the rollup does not invalidate this short-lived cache.
   - Gear stats endpoint caches ~1h with tags (`popularity`, `gear-stats:{slug}`).
   - Pair counts are direct reads from `compare_pair_counts` and do not participate in nightly rollups.
 
@@ -60,6 +60,12 @@ This document describes the end‑to‑end popularity tracking in Sharply: inges
   - Only rows meeting a minimum weighted score threshold (`score >= 1`) are included (single-view noise and zero-signal rows are excluded).
   - Ordering is deterministic on score + tie-break columns so pagination is stable.
   - Live boosts are automatically applied so gear that surges midday shows up before the nightly rollup.
+
+- `GET /api/trending/status` (internal UI endpoint)
+  - Accepts repeated `slug` values plus the badge ranking's `timeframe`, `limit`, and optional filters.
+  - Returns only the requested slugs that are present in the current live-boosted ranking.
+  - Visible badge checks are batched (maximum 50 slugs per request) and use `Cache-Control: no-store`; the underlying live snapshot still uses its two-minute server cache.
+  - Brand and mount filter IDs must be UUIDs. Mount-scoped rankings use `app.gear_mounts`, including gear with any matching canonical mount rather than only a legacy primary mount.
 
 - Ingestion routes (append‑only):
   - `POST /api/gear/[slug]/visit` → records `view` (anonymous allowed; deduped per visitor/day)
@@ -109,12 +115,14 @@ await fetch(`${base}/api/gear/nikon-z6-iii/wishlist`, {
   - Files: `src/server/gear/browse/service.ts`, `src/app/[locale]/(pages)/browse/_components/all-gear-content.tsx`
   - The 3-card strip on `/browse` and `/browse/[brand]` uses a display-only fallback ladder: scoped `7d` trending, then scoped `30d` trending, then scoped newest gear.
   - Only items sourced from the trending queries render with the trending badge; newest fallback cards are present only to keep the row filled.
+  - The strip itself is server-rendered from live-boosted rankings and does not perform the badge-status enhancement request.
 
 - Gear page
   - `GearStatsCard` (server + client)
     - Fetches from `/api/gear/[slug]/stats` (1h cache); optimistic local increments on wishlist/ownership via custom browser events.
-  - `GearBadges` (server)
-    - Minimal, extendable badges; adds a live “Trending” badge (30d) if found in trending.
+  - `GearBadges` (server baseline + visible client enhancement)
+    - Badge helpers read the stable rolled-up window ranking, so cached pages immediately server-render deterministic 30d badge state.
+    - After hydration, only visible gear badge anchors are batched by ranking scope and checked against the live-boosted ranking. A badge changes only when live status differs; the request does not fetch gear content.
 
 - Admin dashboard
   - `Popularity Rollup Runs`: lists recent runs from `app.rollup_runs`.
@@ -124,12 +132,13 @@ await fetch(`${base}/api/gear/nikon-z6-iii/wishlist`, {
 - Purpose: surface intra-day spikes (e.g., breaking news) without waiting for the nightly rollup.
 - Data flow:
   - Every deduped popularity event increments `gear_popularity_intraday` via an atomic upsert alongside `popularity_events`.
-  - `getLiveTrendingSnapshot` mirrors the standard score formula over the current UTC-day rows and caches for ~120 seconds (`trending-live` tag).
+  - `getLiveTrendingSnapshot` mirrors the standard score formula over the current UTC-day rows and caches its item list for ~120 seconds (`trending-live` tag).
+  - Stable and live rankings are merged before the requested limit is applied. Candidate reads expand until omitted stable and live scores cannot mathematically displace the requested ranked prefix.
   - Service layer automatically adds the live boost to the window score and can emit telemetry/log messages containing the top movers.
 - Lifecycle:
-  - Rollup truncates the intraday table after finishing window calculations and revalidates `trending-live`.
+  - Rollup removes old intraday rows after finishing window calculations and revalidates `trending`; `trending-live` expires naturally within about two minutes.
   - Admin/Discord notifications summarize the top live movers so operators can confirm the live boost is healthy.
-- UI components read the baked-in `liveBoost` metadata (if present) to render badges/labels such as “🔥 Live today.”
+- Dedicated Trending and Home lists read the live-boosted ranking on the server. General gear badges use the stable baseline in server markup and check live status only after their gear becomes visible.
 
 ## Rollup Flow (Detailed)
 

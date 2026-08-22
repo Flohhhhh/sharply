@@ -40,11 +40,12 @@ describe("GearImageModal rear view wiring", () => {
     expect(source).toContain('title={t("orthographicView")}');
   });
 
-  it("only auto-generates gear OG assets for the first front-view image", () => {
+  it("auto-generates lens OG assets from an orthographic-only upload", () => {
     const source = read("src/components/modals/gear-image-modal.tsx");
 
     expect(source).toContain("createGearOgImageFileFromSource");
-    expect(source).toContain("shouldAutoGenerateGearOgImageOnThumbnailUpload");
+    expect(source).toContain("shouldAutoGenerateGearOgImageOnUpload");
+    expect(source).toContain("gearType: props.gearType");
     expect(source).toContain("currentThumbnailUrl: displayedThumbnailUrl");
     expect(source).toContain("actionSetGearThumbnail({");
     expect(source).toContain("actionSetGearColorwayImage({");

@@ -3,6 +3,7 @@ import "server-only";
 import { and, asc, count, eq, ilike, or } from "drizzle-orm";
 import { db } from "~/server/db";
 import { brands, gear, gearTags, tags } from "~/server/db/schema";
+import { getGearDisplayImageSql } from "~/server/gear/display-image";
 
 export type TagRow = typeof tags.$inferSelect;
 export type EditorTagRow = Omit<TagRow, "unlisted">;
@@ -170,7 +171,7 @@ export async function fetchPublishedGearByTagIdData(
       announceDatePrecision: gear.announceDatePrecision,
       msrpNowUsdCents: gear.msrpNowUsdCents,
       mpbMaxPriceUsdCents: gear.mpbMaxPriceUsdCents,
-      thumbnailUrl: gear.thumbnailUrl,
+      thumbnailUrl: getGearDisplayImageSql(),
     })
     .from(gearTags)
     .innerJoin(gear, eq(gearTags.gearId, gear.id))

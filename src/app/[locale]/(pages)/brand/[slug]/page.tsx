@@ -79,9 +79,7 @@ export default async function BrandPage({ params }: BrandPageProps) {
 
       {brandGear.length === 0 ? (
         <div className="py-12 text-center">
-          <p className="text-muted-foreground text-lg">
-            {t("noGearFound")}
-          </p>
+          <p className="text-muted-foreground text-lg">{t("noGearFound")}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -96,6 +94,7 @@ export default async function BrandPage({ params }: BrandPageProps) {
               thumbnailUrl={item.thumbnailUrl}
               gearType={item.gearType}
               isTrending={trendingSet.has(item.slug)}
+              trendingQuery={{ filters: { brandId: brand.id } }}
               releaseDate={item.releaseDate}
               releaseDatePrecision={item.releaseDatePrecision}
             />

@@ -66,6 +66,7 @@ import type {
   GearRegion,
 } from "~/types/gear";
 import type { GearActivityRow } from "./home-activity";
+import { getGearDisplayImageSql } from "./display-image";
 
 type DbClient = Pick<typeof db, "select" | "update" | "insert" | "delete">;
 
@@ -100,7 +101,7 @@ export async function fetchGearSummariesBySlugs(
       slug: gear.slug,
       name: gear.name,
       brandName: brands.name,
-      thumbnailUrl: gear.thumbnailUrl,
+      thumbnailUrl: getGearDisplayImageSql(),
       releaseDate: gear.releaseDate,
       releaseDatePrecision: gear.releaseDatePrecision,
       announcedDate: gear.announcedDate,
@@ -633,7 +634,7 @@ export async function fetchLatestGearCardsData(
       gearType: gear.gearType,
       brandName: brands.name,
       brandSlug: brands.slug,
-      thumbnailUrl: gear.thumbnailUrl,
+      thumbnailUrl: getGearDisplayImageSql(),
       msrpNowUsdCents: gear.msrpNowUsdCents,
       msrpAtLaunchUsdCents: gear.msrpAtLaunchUsdCents,
       releaseDate: gear.releaseDate,
@@ -693,7 +694,7 @@ export async function fetchBrandGearData(
       gearType: gear.gearType,
       brandName: brands.name,
       brandSlug: brands.slug,
-      thumbnailUrl: gear.thumbnailUrl,
+      thumbnailUrl: getGearDisplayImageSql(),
       msrpUsdCents: gear.msrpNowUsdCents,
       releaseDate: gear.releaseDate,
       releaseDatePrecision: gear.releaseDatePrecision,
@@ -1871,7 +1872,11 @@ export async function fetchAlternativesByGearId(
       // Gear A info
       gearAName: sql<string>`ga.name`.as("gear_a_name"),
       gearASlug: sql<string>`ga.slug`.as("gear_a_slug"),
-      gearAThumbnail: sql<string | null>`ga.thumbnail_url`.as(
+      gearAThumbnail: sql<string | null>`CASE
+        WHEN ga.gear_type = 'LENS'
+          THEN COALESCE(NULLIF(ga.thumbnail_url, ''), NULLIF(ga.top_view_url, ''))
+        ELSE ga.thumbnail_url
+      END`.as(
         "gear_a_thumbnail",
       ),
       gearAType: sql<string>`ga.gear_type`.as("gear_a_type"),
@@ -1897,7 +1902,11 @@ export async function fetchAlternativesByGearId(
       // Gear B info
       gearBName: sql<string>`gb.name`.as("gear_b_name"),
       gearBSlug: sql<string>`gb.slug`.as("gear_b_slug"),
-      gearBThumbnail: sql<string | null>`gb.thumbnail_url`.as(
+      gearBThumbnail: sql<string | null>`CASE
+        WHEN gb.gear_type = 'LENS'
+          THEN COALESCE(NULLIF(gb.thumbnail_url, ''), NULLIF(gb.top_view_url, ''))
+        ELSE gb.thumbnail_url
+      END`.as(
         "gear_b_thumbnail",
       ),
       gearBType: sql<string>`gb.gear_type`.as("gear_b_type"),

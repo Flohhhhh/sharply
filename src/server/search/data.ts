@@ -35,6 +35,7 @@ import {
   sensorFormats,
 } from "~/server/db/schema";
 import type { SearchFilters } from "~/types/search-results";
+import { getGearDisplayImageSql } from "~/server/gear/display-image";
 import {
   buildApertureTokenRegex,
   buildDecimalNumericTokenRegex,
@@ -446,7 +447,7 @@ export async function querySearchRows(options: {
       slug: gear.slug,
       brandName: brands.name,
       gearType: gear.gearType,
-      thumbnailUrl: gear.thumbnailUrl,
+      thumbnailUrl: getGearDisplayImageSql(),
       msrpNowUsdCents: gear.msrpNowUsdCents,
       msrpAtLaunchUsdCents: gear.msrpAtLaunchUsdCents,
       mpbMaxPriceUsdCents: gear.mpbMaxPriceUsdCents,
@@ -491,6 +492,7 @@ export async function querySearchRows(options: {
     brands.name,
     gear.gearType,
     gear.thumbnailUrl,
+    gear.topViewUrl,
     gear.msrpNowUsdCents,
     gear.msrpAtLaunchUsdCents,
     gear.mpbMaxPriceUsdCents,

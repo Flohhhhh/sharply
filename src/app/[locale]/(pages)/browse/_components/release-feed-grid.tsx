@@ -22,6 +22,7 @@ type ReleaseFeedGridProps = {
   heading: string;
   initialPage: BrowseFeedPage;
   brandSlug?: string;
+  trendingBrandId?: string;
   trendingSlugs?: string[];
 };
 
@@ -44,6 +45,7 @@ export function ReleaseFeedGrid({
   heading,
   initialPage,
   brandSlug,
+  trendingBrandId,
   trendingSlugs,
 }: ReleaseFeedGridProps) {
   const t = useTranslations("browsePage");
@@ -200,9 +202,7 @@ export function ReleaseFeedGrid({
       ) : null}
 
       {showEmpty ? (
-        <div className="text-muted-foreground text-sm">
-          {t("noGearFound")}
-        </div>
+        <div className="text-muted-foreground text-sm">{t("noGearFound")}</div>
       ) : null}
 
       {view === "list" ? (
@@ -220,6 +220,11 @@ export function ReleaseFeedGrid({
               thumbnailUrl={g.thumbnailUrl ?? undefined}
               gearType={g.gearType}
               isTrending={trendingSet.has(g.slug)}
+              trendingQuery={
+                trendingBrandId
+                  ? { filters: { brandId: trendingBrandId } }
+                  : undefined
+              }
               releaseDate={g.releaseDate}
               releaseDatePrecision={g.releaseDatePrecision}
               announcedDate={g.announcedDate}

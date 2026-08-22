@@ -6,6 +6,9 @@ The front view can also drive a dedicated stored Open Graph asset for social emb
 ## Gear-Type Rules
 
 - Front view (`thumbnailUrl`) applies to all gear.
+- Public gear cards and social metadata use the front view first. For lenses
+  only, `topViewUrl` (the orthographic view) is the fallback when no front view
+  exists. Camera top/rear/side images are never card-image fallbacks.
 - Stored OG image (`ogImageUrl`) is derived from the front view when available, using a dark 1200x630 matte with a 64px inset.
 - Top view (`topViewUrl`) applies to cameras and lenses. Lens UI labels this slot as "Orthographic"; the schema name remains unchanged.
 - Rear view (`rearViewUrl`) applies only to `CAMERA` and `ANALOG_CAMERA`.
@@ -26,9 +29,13 @@ Stored directly on `gear` table:
 ## OG Asset Generation
 
 - First front-view uploads can also persist `ogImageUrl` alongside `thumbnailUrl`.
-- Automatic OG generation only happens when the upload creates the first front-view image for an item.
+- For lenses without a front view, the first orthographic upload can persist a
+  padded `ogImageUrl` derived from `topViewUrl`.
 - Replacing an existing front-view image clears `ogImageUrl`, so metadata temporarily falls back to the fresh raw thumbnail until an admin backfill or regeneration run stores a new OG asset.
-- Top-view, rear-view, and side-view uploads never generate OG assets.
+- Replacing or removing a lens orthographic image while no front view exists
+  clears the stored OG asset; a replacement upload regenerates it after the
+  image is saved.
+- Camera top-view, rear-view, and side-view uploads never generate OG assets.
 
 ## Audit Actions
 

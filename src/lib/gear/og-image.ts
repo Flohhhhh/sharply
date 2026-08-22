@@ -11,15 +11,24 @@ export type GearImageType =
   | "leftView"
   | "rightView";
 
-export function shouldAutoGenerateGearOgImageOnThumbnailUpload(params: {
+export function shouldAutoGenerateGearOgImageOnUpload(params: {
   imageType: GearImageType;
+  gearType?: string | null;
   currentThumbnailUrl?: string | null;
 }) {
+  const hasThumbnail = Boolean(params.currentThumbnailUrl?.trim());
+
+  if (hasThumbnail) return false;
+
   return (
-    params.imageType === "thumbnail" &&
-    !(params.currentThumbnailUrl ?? "").trim()
+    params.imageType === "thumbnail" ||
+    (params.imageType === "topView" && params.gearType === "LENS")
   );
 }
+
+/** @deprecated Use shouldAutoGenerateGearOgImageOnUpload instead. */
+export const shouldAutoGenerateGearOgImageOnThumbnailUpload =
+  shouldAutoGenerateGearOgImageOnUpload;
 
 export function getGearOgImageDrawRect(params: {
   sourceWidth: number;

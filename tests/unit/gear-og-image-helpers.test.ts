@@ -4,13 +4,13 @@ import {
   GEAR_OG_PADDING,
   GEAR_OG_WIDTH,
   getGearOgImageDrawRect,
-  shouldAutoGenerateGearOgImageOnThumbnailUpload,
+  shouldAutoGenerateGearOgImageOnUpload,
 } from "~/lib/gear/og-image";
 
 describe("gear OG image helpers", () => {
   it("auto-generates on the first thumbnail upload", () => {
     expect(
-      shouldAutoGenerateGearOgImageOnThumbnailUpload({
+      shouldAutoGenerateGearOgImageOnUpload({
         imageType: "thumbnail",
         currentThumbnailUrl: null,
       }),
@@ -19,18 +19,39 @@ describe("gear OG image helpers", () => {
 
   it("does not auto-generate when replacing an existing thumbnail", () => {
     expect(
-      shouldAutoGenerateGearOgImageOnThumbnailUpload({
+      shouldAutoGenerateGearOgImageOnUpload({
         imageType: "thumbnail",
         currentThumbnailUrl: "https://cdn.example.com/front.jpg",
       }),
     ).toBe(false);
   });
 
-  it("does not auto-generate for alternate image slots", () => {
+  it("auto-generates a lens OG asset from the first orthographic upload", () => {
     expect(
-      shouldAutoGenerateGearOgImageOnThumbnailUpload({
+      shouldAutoGenerateGearOgImageOnUpload({
         imageType: "topView",
+        gearType: "LENS",
         currentThumbnailUrl: null,
+      }),
+    ).toBe(true);
+  });
+
+  it("does not auto-generate from camera secondary images", () => {
+    expect(
+      shouldAutoGenerateGearOgImageOnUpload({
+        imageType: "topView",
+        gearType: "CAMERA",
+        currentThumbnailUrl: null,
+      }),
+    ).toBe(false);
+  });
+
+  it("does not generate an orthographic OG asset when a lens has a front image", () => {
+    expect(
+      shouldAutoGenerateGearOgImageOnUpload({
+        imageType: "topView",
+        gearType: "LENS",
+        currentThumbnailUrl: "https://cdn.example.com/front.jpg",
       }),
     ).toBe(false);
   });

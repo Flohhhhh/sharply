@@ -6,19 +6,19 @@ import Link, { useLinkStatus } from "next/link";
 import type React from "react";
 import { useState } from "react";
 import { BRANDS } from "~/lib/constants";
-import {
-  formatDateWithPrecision,
-  type DatePrecision,
-} from "~/lib/format/date";
+import { formatDateWithPrecision, type DatePrecision } from "~/lib/format/date";
 import { useGearDisplayName } from "~/lib/hooks/useGearDisplayName";
 import { PRICE_FALLBACK_TEXT } from "~/lib/mapping";
 import { cn } from "~/lib/utils";
 import { isInHallOfFame } from "~/lib/utils/is-in-hall-of-fame";
 import { isNewRelease } from "~/lib/utils/is-new";
 import type { GearAlias } from "~/types/gear";
+import {
+  LiveTrendingBadge,
+  type TrendingBadgeQuery,
+} from "../gear-badges/live-trending-badge";
 import { HallOfFameBadge } from "../gear-badges/hall-of-fame-badge";
 import { NewBadge } from "../gear-badges/new-badge";
-import { TrendingBadge } from "../gear-badges/trending-badge";
 import { Spinner } from "../ui/spinner";
 import { GearCardMoreMenu } from "./gear-card-more-menu";
 
@@ -95,6 +95,8 @@ export type GearCardProps = {
   thumbnailUrl?: string | null;
   gearType?: string | null;
   isTrending?: boolean;
+  trendingQuery?: TrendingBadgeQuery;
+  trendingStatusSource?: "baseline" | "live";
   releaseDate?: string | Date | null;
   releaseDatePrecision?: DatePrecision | null;
   announcedDate?: string | Date | null;
@@ -144,6 +146,8 @@ export function GearCard(props: GearCardProps) {
     thumbnailUrl,
     gearType,
     isTrending,
+    trendingQuery,
+    trendingStatusSource,
     releaseDate,
     releaseDatePrecision,
     announcedDate,
@@ -169,7 +173,17 @@ export function GearCard(props: GearCardProps) {
   const isHallOfFameItem = isInHallOfFame(slug);
   const badgeNodes: React.ReactNode[] = [];
   if (isHallOfFameItem) badgeNodes.push(<HallOfFameBadge key="hall-of-fame" />);
-  if (isTrending) badgeNodes.push(<TrendingBadge key="trending" />);
+  if (isTrending !== undefined) {
+    badgeNodes.push(
+      <LiveTrendingBadge
+        key="trending"
+        slug={slug}
+        initialIsTrending={isTrending}
+        query={trendingQuery}
+        source={trendingStatusSource}
+      />,
+    );
+  }
   if (isNew) badgeNodes.push(<NewBadge key="new" />);
   if (badges) badgeNodes.push(badges);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
@@ -177,11 +191,7 @@ export function GearCard(props: GearCardProps) {
   return (
     <div className={cn("group relative", className)}>
       {/* Outer card with hover-thicker border */}
-      <Link
-        href={href}
-        className="block"
-        data-gear-card-link="true"
-      >
+      <Link href={href} className="block" data-gear-card-link="true">
         <GearCardLinkPendingState>
           {(pending) => (
             <div
@@ -304,7 +314,6 @@ export function GearCard(props: GearCardProps) {
           )}
         </GearCardLinkPendingState>
       </Link>
-
     </div>
   );
 }

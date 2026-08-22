@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import { getGearDisplayImageUrl } from "~/lib/gear/display-image";
 import { isRumoredGear } from "~/lib/gear/publication-state";
 import { GetGearDisplayName } from "~/lib/gear/naming";
 import { resolveRegionFromCountryCode } from "~/lib/gear/region";
@@ -62,7 +63,8 @@ export async function generateGearPageMetadata(params: {
       displayName,
       staffVerdictContent: verdict?.content ?? null,
     });
-    const socialImageUrl = item.ogImageUrl ?? item.thumbnailUrl ?? null;
+    const socialImageUrl =
+      item.ogImageUrl ?? getGearDisplayImageUrl(item) ?? null;
     const images = socialImageUrl ? [{ url: socialImageUrl }] : [];
 
     return buildLocalizedMetadata(`/gear/${slug}`, {

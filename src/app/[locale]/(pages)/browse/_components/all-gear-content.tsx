@@ -129,6 +129,7 @@ export default async function AllGearContent({
 
       <ReleaseSection
         brandSlug={brandSlug}
+        trendingBrandId={brandId}
         initialReleasePage={initialReleasePage}
         trendingSlugs={trendingSlugs}
         latestReleasesLabel={t("latestReleases")}
@@ -156,6 +157,7 @@ async function TrendingGrid({ brandId }: { brandId?: string }) {
           thumbnailUrl={g.thumbnailUrl ?? undefined}
           gearType={g.gearType}
           isTrending={g.isTrending}
+          trendingStatusSource="live"
           releaseDate={g.releaseDate}
           releaseDatePrecision={g.releaseDatePrecision}
           announcedDate={g.announcedDate}
@@ -172,11 +174,13 @@ async function TrendingGrid({ brandId }: { brandId?: string }) {
 
 async function ReleaseSection({
   brandSlug,
+  trendingBrandId,
   initialReleasePage,
   trendingSlugs,
   latestReleasesLabel,
 }: {
   brandSlug?: string;
+  trendingBrandId?: string;
   initialReleasePage: Awaited<ReturnType<typeof fetchReleaseFeedPage>>;
   trendingSlugs: string[];
   latestReleasesLabel: string;
@@ -187,6 +191,7 @@ async function ReleaseSection({
         heading={latestReleasesLabel}
         initialPage={initialReleasePage}
         brandSlug={brandSlug}
+        trendingBrandId={trendingBrandId}
         trendingSlugs={trendingSlugs}
       />
     </section>

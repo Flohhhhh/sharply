@@ -1,7 +1,6 @@
 import "server-only";
 
 import { eq } from "drizzle-orm";
-import { unstable_cache } from "next/cache";
 import { headers } from "next/headers";
 import { auth } from "~/auth";
 import { db } from "~/server/db";
@@ -36,17 +35,40 @@ async function fetchTrendingRanking(params: {
 }): Promise<TrendingEntry[]> {
   const timeframe = params.timeframe;
   const filters = params.filters ?? {};
-  const candidateLimit = Math.max(
+  const targetCount = Math.max(
     1,
     params.candidateLimit ?? DEFAULT_TRENDING_CANDIDATE_POOL,
   );
+  let sourceLimit = targetCount;
 
-  const [baseline, liveSnapshot] = await Promise.all([
-    getTrendingData(timeframe, candidateLimit, filters, 0),
-    getLiveTrendingSnapshot(candidateLimit, filters, 0),
-  ]);
+  while (true) {
+    const [baseline, liveSnapshot] = await Promise.all([
+      getTrendingData(timeframe, sourceLimit, filters, 0),
+      getLiveTrendingSnapshot(sourceLimit, filters, 0),
+    ]);
+    const ranked = applyLiveBoostToTrending({ baseline, liveSnapshot });
+    const baselineExhausted = baseline.length < sourceLimit;
+    const liveExhausted = liveSnapshot.items.length < sourceLimit;
+    const nextBaselineScore = baselineExhausted
+      ? 0
+      : (baseline.at(-1)?.score ?? 0);
+    const nextLiveScore = liveExhausted
+      ? 0
+      : (liveSnapshot.items.at(-1)?.liveScore ?? 0);
+    const lastRequiredScore = ranked[targetCount - 1]?.score;
 
-  return applyLiveBoostToTrending({ baseline, liveSnapshot });
+    // Any omitted item can score at most the sum of the two source cutoffs.
+    // Expand on ties as well so source ordering cannot change the final prefix.
+    if (
+      (baselineExhausted && liveExhausted) ||
+      (lastRequiredScore !== undefined &&
+        lastRequiredScore > nextBaselineScore + nextLiveScore)
+    ) {
+      return ranked;
+    }
+
+    sourceLimit *= 2;
+  }
 }
 
 /**
@@ -196,26 +218,23 @@ type TrendingSlugsParams = {
   filters?: TrendingFiltersInput;
 };
 
-const cachedTrendingSlugs = unstable_cache(
-  async (params: TrendingSlugsParams = {}): Promise<string[]> => {
-    const res = await fetchTrending({
-      timeframe: params.timeframe ?? "30d",
-      limit: params.limit ?? 20,
-      filters: params.filters,
-    });
-    return res.map((item) => item.slug);
-  },
-  ["popularity:trending-slugs"],
-  { revalidate: 7200 },
-);
-
 export async function fetchTrendingSlugs(
   params?: TrendingSlugsParams,
 ): Promise<string[]> {
-  return cachedTrendingSlugs(params ?? {});
+  const timeframe = params?.timeframe ?? "30d";
+  const limit = params?.limit ?? 20;
+  const items = await getTrendingData(
+    timeframe,
+    limit,
+    params?.filters ?? {},
+    0,
+  );
+  return items.map((item) => item.slug);
 }
 
-export async function fetchHighTrafficGearSlugs(limit = 200): Promise<string[]> {
+export async function fetchHighTrafficGearSlugs(
+  limit = 200,
+): Promise<string[]> {
   return fetchHighTrafficGearSlugsData(limit);
 }
 
@@ -251,6 +270,20 @@ export async function getTrendingStatusForSlugs(
 ): Promise<Set<string>> {
   const trendingSlugs = await fetchTrendingSlugs(params);
   const trendingSet = new Set(trendingSlugs);
+  return new Set(slugs.filter((slug) => trendingSet.has(slug)));
+}
+
+export async function getLiveTrendingStatusForSlugs(
+  slugs: string[],
+  params?: TrendingSlugsParams,
+): Promise<Set<string>> {
+  const limit = params?.limit ?? 20;
+  const ranked = await fetchTrendingRanking({
+    timeframe: params?.timeframe ?? "30d",
+    filters: params?.filters,
+    candidateLimit: Math.max(DEFAULT_TRENDING_CANDIDATE_POOL, limit),
+  });
+  const trendingSet = new Set(ranked.slice(0, limit).map((item) => item.slug));
   return new Set(slugs.filter((slug) => trendingSet.has(slug)));
 }
 

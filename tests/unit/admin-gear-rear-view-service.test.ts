@@ -12,6 +12,7 @@ const adminGearDataMocks = vi.hoisted(() => ({
   performFuzzySearch: vi.fn(),
   renameGearData: vi.fn(),
   updateGearLeftViewData: vi.fn(),
+  updateGearOgImageData: vi.fn(),
   updateGearRearViewData: vi.fn(),
   updateGearRightViewData: vi.fn(),
   updateGearThumbnailData: vi.fn(),
@@ -63,6 +64,7 @@ import {
   clearGearRightViewService,
   clearGearTopViewService,
   setGearLeftViewService,
+  setGearTopViewService,
   setGearRearViewService,
   setGearRightViewService,
 } from "~/server/admin/gear/service";
@@ -182,6 +184,29 @@ describe("rear view gear admin service", () => {
       action: "GEAR_REAR_VIEW_REMOVE",
       actorUserId: "admin-1",
       gearId: "gear-1",
+    });
+  });
+
+  it("invalidates a lens OG asset when its orthographic image changes", async () => {
+    gearDataMocks.fetchGearMetadataById.mockResolvedValue({
+      gearType: "LENS",
+      thumbnailUrl: null,
+      topViewUrl: "https://cdn.example.com/old-orthographic.webp",
+    });
+    adminGearDataMocks.updateGearTopViewData.mockResolvedValue({
+      id: "gear-1",
+      slug: "nikon-z-50mm-f18-s",
+      topViewUrl: "https://cdn.example.com/new-orthographic.webp",
+    });
+
+    await setGearTopViewService({
+      gearId: "gear-1",
+      topViewUrl: "https://cdn.example.com/new-orthographic.webp",
+    });
+
+    expect(adminGearDataMocks.updateGearOgImageData).toHaveBeenCalledWith({
+      gearId: "gear-1",
+      ogImageUrl: null,
     });
   });
 
