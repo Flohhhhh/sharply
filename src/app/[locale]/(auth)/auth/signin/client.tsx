@@ -26,7 +26,7 @@ export default function SignInClient({
   emailOtpAvailability: { enabled: boolean; missing: string[] };
 }) {
   const t = useTranslations("auth");
-  const tCommon = useTranslations("common");
+  const tNav = useTranslations("nav");
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
   const [passkeySigningIn, setPasskeySigningIn] = useState(false);
@@ -350,22 +350,24 @@ export default function SignInClient({
       </div>
       <p className="text-muted-foreground mt-4 text-center text-xs">
         {t.rich("agreeToTerms", {
-          terms: () => (
+          terms: (chunks) => (
             <LocaleLink
               href="/terms-of-service"
               className="underline underline-offset-4"
             >
-              {tCommon("termsOfService")}
+              {chunks}
             </LocaleLink>
           ),
-          privacy: () => (
+          privacy: (chunks) => (
             <LocaleLink
               href="/privacy-policy"
               className="underline underline-offset-4"
             >
-              {tCommon("privacy")}
+              {chunks}
             </LocaleLink>
           ),
+          termsLabel: tNav("termsOfService"),
+          privacyLabel: tNav("privacyPolicy"),
         })}
       </p>
     </div>

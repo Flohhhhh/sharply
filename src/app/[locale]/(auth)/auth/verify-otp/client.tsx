@@ -19,7 +19,7 @@ import { signIn } from "~/lib/auth/auth-client";
 
 export default function VerifyOtpClient() {
   const t = useTranslations("auth");
-  const tCommon = useTranslations("common");
+  const tNav = useTranslations("nav");
   const searchParams = useSearchParams();
   const router = useRouter();
   const email = searchParams.get("email") ?? "";
@@ -181,22 +181,24 @@ export default function VerifyOtpClient() {
         </div>
         <p className="text-muted-foreground mt-4 text-center text-xs">
           {t.rich("agreeToTermsVerify", {
-            terms: () => (
+            terms: (chunks) => (
               <LocaleLink
                 href="/terms-of-service"
                 className="underline underline-offset-4"
               >
-                {tCommon("termsOfService")}
+                {chunks}
               </LocaleLink>
             ),
-            privacy: () => (
+            privacy: (chunks) => (
               <LocaleLink
                 href="/privacy-policy"
                 className="underline underline-offset-4"
               >
-                {tCommon("privacy")}
+                {chunks}
               </LocaleLink>
             ),
+            termsLabel: tNav("termsOfService"),
+            privacyLabel: tNav("privacyPolicy"),
           })}
         </p>
       </div>
