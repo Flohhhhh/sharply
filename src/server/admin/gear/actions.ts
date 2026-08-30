@@ -7,6 +7,7 @@ import {
   isGearImageReviewRejectedError,
   reviewRejectionResult,
 } from "~/lib/gear/image-review-result";
+import { revalidateGearPages } from "~/server/revalidation";
 import {
   clearGearLeftViewService,
   clearGearRearViewService,
@@ -31,7 +32,7 @@ import {
 export async function actionCreateGear(params: GearCreationParams) {
   const result = await createGearAdmin(params);
   revalidatePath("/admin");
-  revalidatePath("/browse");
+  revalidateGearPages([result.slug], { includeBrowse: true });
   return result;
 }
 
@@ -40,10 +41,10 @@ export async function actionRenameGear(params: {
   newName: string;
 }) {
   const result = await renameGearService(params);
-  // Revalidate both old and new paths
   revalidatePath("/admin/gear");
-  revalidatePath(`/gear/${result.slug}`);
-  revalidatePath("/browse");
+  revalidateGearPages([result.previousSlug, result.slug], {
+    includeBrowse: true,
+  });
   return result;
 }
 
@@ -55,12 +56,9 @@ export async function actionUpdateGearAliases(params: {
   const { ...rest } = params;
   const result = await updateGearAliasesService(rest);
   revalidatePath("/admin/gear");
-  if (params.gearSlug) {
-    revalidatePath(`/gear/${params.gearSlug}`);
-  } else {
-    revalidatePath("/gear");
-  }
-  revalidatePath("/browse");
+  revalidateGearPages([result.slug ?? params.gearSlug ?? ""], {
+    includeBrowse: true,
+  });
   return result;
 }
 
@@ -74,12 +72,12 @@ export async function actionSetGearThumbnail(params: {
   try {
     result = await setGearThumbnailService(params);
   } catch (error) {
-    if (isGearImageReviewRejectedError(error)) return reviewRejectionResult(error);
+    if (isGearImageReviewRejectedError(error))
+      return reviewRejectionResult(error);
     throw error;
   }
   revalidatePath("/admin/gear");
-  revalidatePath(`/gear/${result.slug}`);
-  revalidatePath("/browse");
+  revalidateGearPages([result.slug], { includeBrowse: true });
   return result;
 }
 
@@ -90,7 +88,7 @@ export async function actionSetGearOgImage(params: {
 }) {
   const result = await setGearOgImageService(params);
   revalidatePath("/admin/gear");
-  revalidatePath(`/gear/${result.slug}`);
+  revalidateGearPages([result.slug]);
   return result;
 }
 
@@ -100,8 +98,7 @@ export async function actionClearGearThumbnail(params: {
 }) {
   const result = await clearGearThumbnailService(params);
   revalidatePath("/admin/gear");
-  revalidatePath(`/gear/${result.slug}`);
-  revalidatePath("/browse");
+  revalidateGearPages([result.slug], { includeBrowse: true });
   return result;
 }
 
@@ -114,12 +111,12 @@ export async function actionSetGearTopView(params: {
   try {
     result = await setGearTopViewService(params);
   } catch (error) {
-    if (isGearImageReviewRejectedError(error)) return reviewRejectionResult(error);
+    if (isGearImageReviewRejectedError(error))
+      return reviewRejectionResult(error);
     throw error;
   }
   revalidatePath("/admin/gear");
-  revalidatePath(`/gear/${result.slug}`);
-  revalidatePath("/browse");
+  revalidateGearPages([result.slug], { includeBrowse: true });
   return result;
 }
 
@@ -129,8 +126,7 @@ export async function actionClearGearTopView(params: {
 }) {
   const result = await clearGearTopViewService(params);
   revalidatePath("/admin/gear");
-  revalidatePath(`/gear/${result.slug}`);
-  revalidatePath("/browse");
+  revalidateGearPages([result.slug], { includeBrowse: true });
   return result;
 }
 
@@ -143,12 +139,12 @@ export async function actionSetGearRearView(params: {
   try {
     result = await setGearRearViewService(params);
   } catch (error) {
-    if (isGearImageReviewRejectedError(error)) return reviewRejectionResult(error);
+    if (isGearImageReviewRejectedError(error))
+      return reviewRejectionResult(error);
     throw error;
   }
   revalidatePath("/admin/gear");
-  revalidatePath(`/gear/${result.slug}`);
-  revalidatePath("/browse");
+  revalidateGearPages([result.slug], { includeBrowse: true });
   return result;
 }
 
@@ -158,8 +154,7 @@ export async function actionClearGearRearView(params: {
 }) {
   const result = await clearGearRearViewService(params);
   revalidatePath("/admin/gear");
-  revalidatePath(`/gear/${result.slug}`);
-  revalidatePath("/browse");
+  revalidateGearPages([result.slug], { includeBrowse: true });
   return result;
 }
 
@@ -172,12 +167,12 @@ export async function actionSetGearLeftView(params: {
   try {
     result = await setGearLeftViewService(params);
   } catch (error) {
-    if (isGearImageReviewRejectedError(error)) return reviewRejectionResult(error);
+    if (isGearImageReviewRejectedError(error))
+      return reviewRejectionResult(error);
     throw error;
   }
   revalidatePath("/admin/gear");
-  revalidatePath(`/gear/${result.slug}`);
-  revalidatePath("/browse");
+  revalidateGearPages([result.slug], { includeBrowse: true });
   return result;
 }
 
@@ -187,8 +182,7 @@ export async function actionClearGearLeftView(params: {
 }) {
   const result = await clearGearLeftViewService(params);
   revalidatePath("/admin/gear");
-  revalidatePath(`/gear/${result.slug}`);
-  revalidatePath("/browse");
+  revalidateGearPages([result.slug], { includeBrowse: true });
   return result;
 }
 
@@ -201,12 +195,12 @@ export async function actionSetGearRightView(params: {
   try {
     result = await setGearRightViewService(params);
   } catch (error) {
-    if (isGearImageReviewRejectedError(error)) return reviewRejectionResult(error);
+    if (isGearImageReviewRejectedError(error))
+      return reviewRejectionResult(error);
     throw error;
   }
   revalidatePath("/admin/gear");
-  revalidatePath(`/gear/${result.slug}`);
-  revalidatePath("/browse");
+  revalidateGearPages([result.slug], { includeBrowse: true });
   return result;
 }
 
@@ -216,16 +210,14 @@ export async function actionClearGearRightView(params: {
 }) {
   const result = await clearGearRightViewService(params);
   revalidatePath("/admin/gear");
-  revalidatePath(`/gear/${result.slug}`);
-  revalidatePath("/browse");
+  revalidateGearPages([result.slug], { includeBrowse: true });
   return result;
 }
 
 export async function actionDeleteGear(gearId: string) {
   const result = await deleteGearService(gearId);
   revalidatePath("/admin/gear");
-  revalidatePath(`/gear/${result.slug}`);
-  revalidatePath("/browse");
+  revalidateGearPages([result.slug], { includeBrowse: true });
   return result;
 }
 
@@ -235,8 +227,7 @@ export async function actionUpdateGearPublicationState(params: {
 }) {
   const result = await updateGearPublicationStateService(params);
   revalidatePath("/admin/gear");
-  revalidatePath(`/gear/${result.slug}`);
-  revalidatePath("/browse");
+  revalidateGearPages([result.slug], { includeBrowse: true });
   revalidatePath("/lists/under-construction");
   revalidatePath("/");
   return result;
@@ -248,8 +239,7 @@ export async function actionApplyLensOpticsBackfill(params: {
   const result = await applyLensOpticsBackfillService(params);
   revalidatePath("/admin/tools");
   revalidatePath("/admin/gear");
-  revalidatePath(`/gear/${result.slug}`);
+  revalidateGearPages([result.slug], { includeBrowse: true });
   revalidatePath("/lists/under-construction");
-  revalidatePath("/browse");
   return result;
 }

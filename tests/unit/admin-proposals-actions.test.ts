@@ -1,7 +1,11 @@
-import { beforeEach,describe,expect,it,vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const cacheMocks = vi.hoisted(() => ({
   revalidatePath: vi.fn(),
+}));
+
+const revalidationMocks = vi.hoisted(() => ({
+  revalidateGearPages: vi.fn(),
 }));
 
 const serviceMocks = vi.hoisted(() => ({
@@ -13,6 +17,7 @@ const serviceMocks = vi.hoisted(() => ({
 vi.mock("next/cache", () => cacheMocks);
 vi.mock("server-only", () => ({}));
 vi.mock("~/server/admin/proposals/service", () => serviceMocks);
+vi.mock("~/server/revalidation", () => revalidationMocks);
 
 import {
   actionApproveProposal,
@@ -46,16 +51,15 @@ describe("admin proposal actions", () => {
         gearSlug: "nikon-fm2",
       },
     );
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledTimes(3);
+    expect(cacheMocks.revalidatePath).toHaveBeenCalledTimes(2);
     expect(cacheMocks.revalidatePath).toHaveBeenNthCalledWith(1, "/admin");
     expect(cacheMocks.revalidatePath).toHaveBeenNthCalledWith(
       2,
       "/lists/under-construction",
     );
-    expect(cacheMocks.revalidatePath).toHaveBeenNthCalledWith(
-      3,
-      "/gear/nikon-fm2",
-    );
+    expect(revalidationMocks.revalidateGearPages).toHaveBeenCalledWith([
+      "nikon-fm2",
+    ]);
   });
 
   it("keeps merge and reject revalidation scoped to admin", async () => {

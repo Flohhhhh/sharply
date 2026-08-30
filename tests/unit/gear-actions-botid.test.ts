@@ -1,4 +1,4 @@
-import { beforeEach,describe,expect,it,vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const cacheMocks = vi.hoisted(() => ({
   revalidatePath: vi.fn(),
@@ -22,10 +22,15 @@ const gearServiceMocks = vi.hoisted(() => ({
   upsertStaffVerdict: vi.fn(),
 }));
 
+const revalidationMocks = vi.hoisted(() => ({
+  revalidateGearPages: vi.fn(),
+}));
+
 vi.mock("server-only", () => ({}));
 vi.mock("next/cache", () => cacheMocks);
 vi.mock("~/server/security/botid", () => botIdMocks);
 vi.mock("~/server/gear/service", () => gearServiceMocks);
+vi.mock("~/server/revalidation", () => revalidationMocks);
 
 import { actionSubmitGearProposal } from "~/server/gear/actions";
 
@@ -51,5 +56,39 @@ describe("gear actions BotID guard", () => {
 
     expect(gearServiceMocks.submitGearEditProposal).not.toHaveBeenCalled();
     expect(cacheMocks.revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("revalidates every locale when an edit is auto-approved", async () => {
+    gearServiceMocks.submitGearEditProposal.mockResolvedValue({
+      ok: true,
+      autoApproved: true,
+      proposal: { id: "proposal-1" },
+    });
+
+    await actionSubmitGearProposal({
+      slug: "nikon-zf",
+      payload: { core: { name: "Updated" } },
+      autoSubmit: true,
+    });
+
+    expect(revalidationMocks.revalidateGearPages).toHaveBeenCalledWith([
+      "nikon-zf",
+    ]);
+  });
+
+  it("does not invalidate the public page for edits awaiting review", async () => {
+    gearServiceMocks.submitGearEditProposal.mockResolvedValue({
+      ok: true,
+      autoApproved: false,
+      proposal: { id: "proposal-1" },
+    });
+
+    await actionSubmitGearProposal({
+      slug: "nikon-zf",
+      payload: { core: { name: "Updated" } },
+      autoSubmit: false,
+    });
+
+    expect(revalidationMocks.revalidateGearPages).not.toHaveBeenCalled();
   });
 });

@@ -2,11 +2,9 @@ import "server-only";
 
 import { env } from "~/env";
 import type { User } from "~/server/db/schema";
+import { notifyUserSignup } from "~/server/discord-logs/general";
 
-import {
-  createDevelopmentUserData,
-  findUserByEmailData,
-} from "./data";
+import { createDevelopmentUserData, findUserByEmailData } from "./data";
 
 const DEFAULT_DEV_AUTH_EMAIL = "dev@sharply.local";
 
@@ -74,7 +72,9 @@ export function isDevelopmentAuthHostAllowed(
   return hostname === "localhost";
 }
 
-export function isDevelopmentAuthRequestAllowed(host: string | null | undefined) {
+export function isDevelopmentAuthRequestAllowed(
+  host: string | null | undefined,
+) {
   return isDevelopmentAuthEnabled() && isDevelopmentAuthHostAllowed(host);
 }
 
@@ -92,5 +92,10 @@ export async function getOrCreateDevelopmentAuthUser(): Promise<User> {
     return existingUser;
   }
 
-  return createDevelopmentUserData(email);
+  const createdUser = await createDevelopmentUserData(email);
+  void notifyUserSignup({
+    name: createdUser.name,
+    provider: "Development bypass",
+  });
+  return createdUser;
 }

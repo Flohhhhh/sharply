@@ -2,13 +2,14 @@
 import "server-only";
 
 import { revalidatePath } from "next/cache";
-import { approveProposal,mergeProposal,rejectProposal } from "./service";
+import { approveProposal, mergeProposal, rejectProposal } from "./service";
+import { revalidateGearPages } from "~/server/revalidation";
 
 function revalidateProposalApprovalPaths(gearSlug: string) {
   revalidatePath("/admin");
   revalidatePath("/lists/under-construction");
   if (gearSlug) {
-    revalidatePath(`/gear/${gearSlug}`);
+    revalidateGearPages([gearSlug]);
   }
 }
 

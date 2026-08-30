@@ -1,7 +1,11 @@
-import { beforeEach,describe,expect,it,vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const cacheMocks = vi.hoisted(() => ({
   revalidatePath: vi.fn(),
+}));
+
+const revalidationMocks = vi.hoisted(() => ({
+  revalidateGearPages: vi.fn(),
 }));
 
 const serviceMocks = vi.hoisted(() => ({
@@ -24,6 +28,7 @@ const serviceMocks = vi.hoisted(() => ({
 vi.mock("next/cache", () => cacheMocks);
 vi.mock("server-only", () => ({}));
 vi.mock("~/server/admin/gear/service", () => serviceMocks);
+vi.mock("~/server/revalidation", () => revalidationMocks);
 
 import {
   actionClearGearLeftView,
@@ -55,8 +60,10 @@ describe("rear view gear admin actions", () => {
       rearViewUrl: "https://cdn.example.com/rear.webp",
     });
     expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/admin/gear");
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/gear/nikon-zf");
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/browse");
+    expect(revalidationMocks.revalidateGearPages).toHaveBeenCalledWith(
+      ["nikon-zf"],
+      { includeBrowse: true },
+    );
   });
 
   it("revalidates dependent routes after clearing a rear view", async () => {
@@ -75,8 +82,10 @@ describe("rear view gear admin actions", () => {
       rearViewUrl: null,
     });
     expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/admin/gear");
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/gear/nikon-zf");
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/browse");
+    expect(revalidationMocks.revalidateGearPages).toHaveBeenCalledWith(
+      ["nikon-zf"],
+      { includeBrowse: true },
+    );
   });
 
   it("revalidates dependent routes after setting side views", async () => {
@@ -105,8 +114,16 @@ describe("rear view gear admin actions", () => {
       rightViewUrl: "https://cdn.example.com/right.webp",
     });
     expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/admin/gear");
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/gear/nikon-zf");
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/browse");
+    expect(revalidationMocks.revalidateGearPages).toHaveBeenNthCalledWith(
+      1,
+      ["nikon-zf"],
+      { includeBrowse: true },
+    );
+    expect(revalidationMocks.revalidateGearPages).toHaveBeenNthCalledWith(
+      2,
+      ["nikon-zf"],
+      { includeBrowse: true },
+    );
   });
 
   it("revalidates dependent routes after clearing a side view", async () => {
@@ -125,7 +142,9 @@ describe("rear view gear admin actions", () => {
       leftViewUrl: null,
     });
     expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/admin/gear");
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/gear/nikon-zf");
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/browse");
+    expect(revalidationMocks.revalidateGearPages).toHaveBeenCalledWith(
+      ["nikon-zf"],
+      { includeBrowse: true },
+    );
   });
 });

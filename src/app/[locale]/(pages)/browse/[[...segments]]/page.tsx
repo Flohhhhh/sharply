@@ -64,7 +64,7 @@ export async function generateMetadata({
   });
 }
 
-export const revalidate = 3600;
+export const revalidate = 86400;
 const BROWSE_PAGE_SKELETON_KEYS = Array.from(
   { length: 12 },
   (_, index) => `browse-page-skeleton-${index + 1}`,

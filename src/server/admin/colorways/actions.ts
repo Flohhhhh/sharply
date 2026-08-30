@@ -1,14 +1,14 @@
 "use server";
 import "server-only";
 
-import { revalidatePath } from "next/cache";
-
-import { locales } from "~/i18n/config";
-import { localizePathname } from "~/i18n/routing";
 import {
   isGearImageReviewRejectedError,
   reviewRejectionResult,
 } from "~/lib/gear/image-review-result";
+import {
+  revalidateGearPages,
+  revalidateLocalizedPaths,
+} from "~/server/revalidation";
 
 import {
   createGearColorwayService,
@@ -23,11 +23,8 @@ import {
 async function revalidateColorwayResult<T extends { gearSlug: string }>(
   result: T,
 ) {
-  for (const locale of locales) {
-    revalidatePath(localizePathname(`/gear/${result.gearSlug}`, locale));
-    revalidatePath(localizePathname("/browse", locale));
-    revalidatePath(localizePathname("/admin/gear", locale));
-  }
+  revalidateGearPages([result.gearSlug], { includeBrowse: true });
+  revalidateLocalizedPaths(["/admin/gear"]);
   return result;
 }
 
@@ -73,7 +70,8 @@ export async function actionSetGearColorwayImage(
   try {
     return revalidateColorwayResult(await setGearColorwayImageService(params));
   } catch (error) {
-    if (isGearImageReviewRejectedError(error)) return reviewRejectionResult(error);
+    if (isGearImageReviewRejectedError(error))
+      return reviewRejectionResult(error);
     throw error;
   }
 }

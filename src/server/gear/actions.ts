@@ -1,8 +1,8 @@
 "use server";
 import "server-only";
 
-import { revalidatePath } from "next/cache";
 import { classifyBotTraffic } from "~/server/security/botid";
+import { revalidateGearPages } from "~/server/revalidation";
 import {
   addRawSampleToGear,
   removeRawSampleFromGear,
@@ -27,8 +27,6 @@ export async function actionToggleWishlist(
   action: "add" | "remove",
 ) {
   const res = await toggleWishlist(slug, action);
-  // Revalidate gear page and stats card
-  revalidatePath(`/gear/${slug}`);
   return res;
 }
 
@@ -37,7 +35,6 @@ export async function actionToggleOwnership(
   action: "add" | "remove",
 ) {
   const res = await toggleOwnership(slug, action);
-  revalidatePath(`/gear/${slug}`);
   return res;
 }
 
@@ -50,13 +47,12 @@ export async function actionToggleImageRequest(
   action: "add" | "remove",
 ) {
   const res = await toggleImageRequest(slug, action);
-  revalidatePath(`/gear/${slug}`);
   return res;
 }
 
 export async function actionSubmitReview(slug: string, body: unknown) {
   const res = await submitReview(slug, body);
-  revalidatePath(`/gear/${slug}`);
+  revalidateGearPages([slug]);
   return res;
 }
 
@@ -76,7 +72,7 @@ export async function actionSubmitGearProposal(body: unknown) {
         ? (body as { slug?: string }).slug
         : undefined;
     if (slug) {
-      revalidatePath(`/gear/${slug}`);
+      revalidateGearPages([slug]);
     }
   }
   // Revalidate pages that surface proposal counts if any in the future
@@ -85,7 +81,7 @@ export async function actionSubmitGearProposal(body: unknown) {
 
 export async function actionUpsertStaffVerdict(slug: string, body: unknown) {
   const res = await upsertStaffVerdict(slug, body);
-  revalidatePath(`/gear/${slug}`);
+  revalidateGearPages([slug]);
   return res;
 }
 
@@ -94,7 +90,7 @@ export async function actionUpdateGearAlternatives(
   alternatives: Array<{ gearId: string; isCompetitor: boolean }>,
 ) {
   const res = await updateGearAlternatives(slug, { alternatives });
-  revalidatePath(`/gear/${slug}`);
+  revalidateGearPages([slug]);
   return res;
 }
 
@@ -103,9 +99,7 @@ export async function actionUpdateGearLineage(
   lineage: { predecessorGearId: string | null; successorGearId: string | null },
 ) {
   const res = await updateGearLineage(slug, lineage);
-  for (const affectedSlug of new Set([slug, ...res.affectedSlugs])) {
-    revalidatePath(`/gear/${affectedSlug}`);
-  }
+  revalidateGearPages([slug, ...res.affectedSlugs]);
   return res;
 }
 
@@ -118,9 +112,7 @@ export async function actionUpdateGearRelationships(
   },
 ) {
   const res = await updateGearRelationships(slug, relationships);
-  for (const affectedSlug of new Set([slug, ...res.affectedSlugs])) {
-    revalidatePath(`/gear/${affectedSlug}`);
-  }
+  revalidateGearPages([slug, ...res.affectedSlugs]);
   return res;
 }
 
@@ -129,7 +121,7 @@ export async function actionUpdateGearInstructionManualLink(
   body: unknown,
 ) {
   const result = await updateGearInstructionManualLink(slug, body);
-  revalidatePath(`/gear/${slug}`);
+  revalidateGearPages([slug]);
   return result;
 }
 
@@ -138,7 +130,7 @@ export async function actionAddGearRawSample(
   payload: RawSamplePayload,
 ) {
   const result = await addRawSampleToGear(slug, payload);
-  revalidatePath(`/gear/${slug}`);
+  revalidateGearPages([slug]);
   return result;
 }
 
@@ -147,6 +139,6 @@ export async function actionRemoveGearRawSample(
   sampleId: string,
 ) {
   const result = await removeRawSampleFromGear(slug, sampleId);
-  revalidatePath(`/gear/${slug}`);
+  revalidateGearPages([slug]);
   return result;
 }

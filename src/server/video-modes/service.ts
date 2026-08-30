@@ -9,10 +9,7 @@ import {
 } from "~/lib/video/mode-schema";
 import { getSessionOrThrow } from "~/server/auth";
 import { getGearIdBySlug as getGearIdBySlugData } from "~/server/gear/data";
-import {
-  fetchVideoModesByGearId,
-  replaceVideoModesForGear
-} from "./data";
+import { fetchVideoModesByGearId, replaceVideoModesForGear } from "./data";
 
 function assertCanEdit(user: AuthUser | undefined) {
   if (!user || !requireRole(user, ["EDITOR"])) {
@@ -32,6 +29,10 @@ export async function getVideoModesForGearSlug(slug: string) {
   const gearId = await resolveGearIdOrThrow(slug);
   const modes = await fetchVideoModesByGearId(gearId);
   return { gearId, modes };
+}
+
+export async function actionLoadVideoModes(slug: string) {
+  return getVideoModesForGearSlug(slug);
 }
 
 export async function saveVideoModesForGearSlug(
