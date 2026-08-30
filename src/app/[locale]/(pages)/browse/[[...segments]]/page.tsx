@@ -50,18 +50,22 @@ export async function generateStaticParams({
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ segments?: string[] }>;
+  params: Promise<{ locale: string; segments?: string[] }>;
 }): Promise<Metadata> {
-  const { segments = [] } = await params;
+  const { locale, segments = [] } = await params;
   const meta = await buildSeo({ segments });
   const pathname =
     segments.length > 0 ? `/browse/${segments.join("/")}` : "/browse";
-  return buildLocalizedMetadata(pathname, {
-    title: meta.title,
-    description: meta.description,
-    alternates: { canonical: meta.canonical },
-    openGraph: meta.openGraph,
-  });
+  return buildLocalizedMetadata(
+    pathname,
+    {
+      title: meta.title,
+      description: meta.description,
+      alternates: { canonical: meta.canonical },
+      openGraph: meta.openGraph,
+    },
+    locale,
+  );
 }
 
 export const revalidate = 86400;

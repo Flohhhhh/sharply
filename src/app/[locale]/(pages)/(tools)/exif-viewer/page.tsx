@@ -1,54 +1,61 @@
-import { ChartLine,FileLock,ScanSearch } from "lucide-react";
+import { ChartLine, FileLock, ScanSearch } from "lucide-react";
 import type { Metadata } from "next";
-import {
-  buildDefaultOgImageUrl,
-} from "~/lib/seo/default-og-image";
+import { buildDefaultOgImageUrl } from "~/lib/seo/default-og-image";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import ExifPreviewTrigger from "./_components/exif-preview-trigger";
 import ExifViewerClient from "./client";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_BASE_URL ?? "https://www.sharplyphoto.com";
-const canonicalUrl = `${baseUrl}/exif-viewer`;
 const defaultOgImageUrl = buildDefaultOgImageUrl(baseUrl);
 const metadataTitle = "Shutter Count & EXIF Viewer";
 const metadataDescription =
   "Check camera shutter count and inspect EXIF metadata from JPG and supported RAW files, including Panasonic RW2, maker notes, and private history tracking.";
 
-export const metadata: Metadata = buildLocalizedMetadata("/exif-viewer", {
-  title: metadataTitle,
-  description: metadataDescription,
-  keywords: [
-    "camera shutter count",
-    "shutter count checker",
-    "EXIF viewer",
-    "EXIF metadata viewer",
-    "RAW metadata viewer",
-    "camera metadata",
-    "maker notes",
-    "photo metadata tool",
-  ],
-  openGraph: {
-    type: "website",
-    url: canonicalUrl,
-    title: metadataTitle,
-    description: metadataDescription,
-    images: [
-      {
-        url: defaultOgImageUrl,
-        width: 1200,
-        height: 630,
-        alt: "Sharply shutter count and EXIF viewer",
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return buildLocalizedMetadata(
+    "/exif-viewer",
+    {
+      title: metadataTitle,
+      description: metadataDescription,
+      keywords: [
+        "camera shutter count",
+        "shutter count checker",
+        "EXIF viewer",
+        "EXIF metadata viewer",
+        "RAW metadata viewer",
+        "camera metadata",
+        "maker notes",
+        "photo metadata tool",
+      ],
+      openGraph: {
+        type: "website",
+        title: metadataTitle,
+        description: metadataDescription,
+        images: [
+          {
+            url: defaultOgImageUrl,
+            width: 1200,
+            height: 630,
+            alt: "Sharply shutter count and EXIF viewer",
+          },
+        ],
       },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: metadataTitle,
-    description: metadataDescription,
-    images: [defaultOgImageUrl],
-  },
-});
+      twitter: {
+        card: "summary_large_image",
+        title: metadataTitle,
+        description: metadataDescription,
+        images: [defaultOgImageUrl],
+      },
+    },
+    locale,
+  );
+}
 
 export default async function ExifViewerPage() {
   const isLocalPreviewMode = process.env.NODE_ENV !== "production";

@@ -13,12 +13,16 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "browsePage" });
 
-  return buildLocalizedMetadata("/gear", {
-    title: t("legacyGearTitle"),
-    openGraph: {
+  return buildLocalizedMetadata(
+    "/gear",
+    {
       title: t("legacyGearTitle"),
+      openGraph: {
+        title: t("legacyGearTitle"),
+      },
     },
-  });
+    locale,
+  );
 }
 
 export default async function GearIndex({

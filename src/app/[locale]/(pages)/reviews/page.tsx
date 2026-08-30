@@ -14,12 +14,16 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "reviewPage" });
 
-  return buildLocalizedMetadata("/reviews", {
-    title: t("reviewsTitle"),
-    openGraph: {
+  return buildLocalizedMetadata(
+    "/reviews",
+    {
       title: t("reviewsTitle"),
+      openGraph: {
+        title: t("reviewsTitle"),
+      },
     },
-  });
+    locale,
+  );
 }
 
 export default async function ReviewsPage() {

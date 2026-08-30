@@ -3,12 +3,23 @@ import { getTranslations } from "next-intl/server";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
-export const metadata: Metadata = buildLocalizedMetadata("/privacy-policy", {
-  title: "Privacy Policy",
-  openGraph: {
-    title: "Privacy Policy",
-  },
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return buildLocalizedMetadata(
+    "/privacy-policy",
+    {
+      title: "Privacy Policy",
+      openGraph: {
+        title: "Privacy Policy",
+      },
+    },
+    locale,
+  );
+}
 
 export default async function PrivacyPolicyPage() {
   const t = await getTranslations("legal.privacy");
@@ -63,20 +74,12 @@ export default async function PrivacyPolicyPage() {
         </ul>
 
         <h2>3. Cookies and Tracking</h2>
-        <p>
-          {t("cookiesTrackingBody1")}
-        </p>
-        <p>
-          {t("cookiesTrackingBody2")}
-        </p>
+        <p>{t("cookiesTrackingBody1")}</p>
+        <p>{t("cookiesTrackingBody2")}</p>
 
         <h2>4. Analytics and Service Providers</h2>
-        <p>
-          {t("analyticsBody1")}
-        </p>
-        <p>
-          {t("analyticsBody2")}
-        </p>
+        <p>{t("analyticsBody1")}</p>
+        <p>{t("analyticsBody2")}</p>
 
         <h2>5. Information Sharing</h2>
         <ul>
