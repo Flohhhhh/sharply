@@ -61,8 +61,7 @@ export async function generateMetadata({
     {
       title: meta.title,
       description: meta.description,
-      alternates: { canonical: meta.canonical },
-      openGraph: meta.openGraph,
+      openGraph: { title: meta.title, description: meta.description },
     },
     locale,
   );
