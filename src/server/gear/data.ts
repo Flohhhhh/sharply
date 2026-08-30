@@ -997,6 +997,20 @@ export async function fetchAllGearSlugsData() {
   return rows.map((r) => r.slug);
 }
 
+export type GearSitemapEntry = {
+  slug: string;
+  updatedAt: Date | null;
+};
+
+export async function fetchGearSitemapEntriesData(): Promise<
+  GearSitemapEntry[]
+> {
+  return db
+    .select({ slug: gear.slug, updatedAt: gear.updatedAt })
+    .from(gear)
+    .where(publishedGearWhereClause());
+}
+
 export async function fetchNewestGearSlugsData(limit: number) {
   const effectiveReleaseDate = sql`coalesce(${gear.releaseDate}, ${gear.announcedDate}, ${gear.createdAt})`;
   const rows = await db
@@ -1876,9 +1890,7 @@ export async function fetchAlternativesByGearId(
         WHEN ga.gear_type = 'LENS'
           THEN COALESCE(NULLIF(ga.thumbnail_url, ''), NULLIF(ga.top_view_url, ''))
         ELSE ga.thumbnail_url
-      END`.as(
-        "gear_a_thumbnail",
-      ),
+      END`.as("gear_a_thumbnail"),
       gearAType: sql<string>`ga.gear_type`.as("gear_a_type"),
       gearABrandName: sql<string | null>`ba.name`.as("gear_a_brand_name"),
       gearAReleaseDate: sql<string | null>`ga.release_date`.as(
@@ -1906,9 +1918,7 @@ export async function fetchAlternativesByGearId(
         WHEN gb.gear_type = 'LENS'
           THEN COALESCE(NULLIF(gb.thumbnail_url, ''), NULLIF(gb.top_view_url, ''))
         ELSE gb.thumbnail_url
-      END`.as(
-        "gear_b_thumbnail",
-      ),
+      END`.as("gear_b_thumbnail"),
       gearBType: sql<string>`gb.gear_type`.as("gear_b_type"),
       gearBBrandName: sql<string | null>`bb.name`.as("gear_b_brand_name"),
       gearBReleaseDate: sql<string | null>`gb.release_date`.as(
