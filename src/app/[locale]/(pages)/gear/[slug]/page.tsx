@@ -35,7 +35,11 @@ import {
 import { formatDate } from "~/lib/format/date";
 import { GetGearDisplayName } from "~/lib/gear/naming";
 import { resolveRegionFromCountryCode } from "~/lib/gear/region";
-import { getItemDisplayPrice, PRICE_FALLBACK_TEXT } from "~/lib/mapping";
+import {
+  formatPrice,
+  getItemDisplayPrice,
+  PRICE_FALLBACK_TEXT,
+} from "~/lib/mapping";
 import { getBrandById } from "~/lib/mapping/brand-map";
 import { buildGearSpecsSections } from "~/lib/specs/registry";
 import { shouldPrebuildHeavyRouteLocale } from "~/lib/static-generation";
@@ -114,7 +118,14 @@ export default async function GearPage({ params }: GearPageProps) {
 
   if (!item) return notFound();
 
-  const priceDisplay = getItemDisplayPrice(item);
+  const hasMpbPrice = item.mpbMaxPriceUsdCents != null;
+  const priceDisplay = getItemDisplayPrice(item, {
+    style: hasMpbPrice ? "short" : "long",
+  });
+  const msrpNowDisplay =
+    hasMpbPrice && item.msrpNowUsdCents != null
+      ? formatPrice(item.msrpNowUsdCents, { style: "short" })
+      : null;
   const regionalDisplayName = GetGearDisplayName(
     {
       name: item.name,
@@ -285,7 +296,14 @@ export default async function GearPage({ params }: GearPageProps) {
             {priceDisplay === PRICE_FALLBACK_TEXT ? (
               <span className="text-muted-foreground">{priceDisplay}</span>
             ) : (
-              priceDisplay
+              <>
+                {priceDisplay}
+                {msrpNowDisplay ? (
+                  <span className="text-muted-foreground ml-2 text-sm font-normal sm:text-lg">
+                    / {msrpNowDisplay}
+                  </span>
+                ) : null}
+              </>
             )}
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-2">
