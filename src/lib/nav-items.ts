@@ -78,6 +78,13 @@ const navItems: NavItem[] = [
     url: "/search",
   },
   {
+    titleKey: "forum",
+    type: "link",
+    url: "/forum",
+    hideFromNavbar: true,
+    hideFromFooter: true,
+  },
+  {
     titleKey: "gear",
     type: "category",
     pendingFeedback: true,

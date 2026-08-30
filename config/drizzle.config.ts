@@ -8,6 +8,6 @@ export default {
   dbCredentials: {
     url: env.DATABASE_URL,
   },
-  schemaFilter: ["public", "app"],
+  schemaFilter: ["public", "app", "forum"],
   // tablesFilter: ["sharply_*"],
 } satisfies Config;

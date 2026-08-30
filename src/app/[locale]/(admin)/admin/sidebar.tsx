@@ -42,6 +42,7 @@ import {
   HelpCircle,
   ListCheck,
   Lock,
+  MessageSquare,
   Plus,
   SquareTerminal,
   Tags,
@@ -87,6 +88,12 @@ const sidebarItems: SidebarItem[] = [
     href: "/admin/tags",
     icon: <Tags className="size-5" />,
     allowed: ["EDITOR", "ADMIN", "SUPERADMIN"],
+  },
+  {
+    label: "Forums",
+    href: "/admin/forums",
+    icon: <MessageSquare className="size-5" />,
+    allowed: ["ADMIN"],
   },
   {
     label: "Analytics",

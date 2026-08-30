@@ -19,6 +19,9 @@ import {
 // Popularity event enum will be defined below for strong typing in DB
 
 export const appSchema = pgSchema("app");
+// Forum tables live in their own PostgreSQL schema so the community surface
+// stays organized without splitting the Drizzle schema file or database.
+export const forumSchema = pgSchema("forum");
 
 // Create the pg_trgm extension for similarity functions
 export const createExtensions = sql`CREATE EXTENSION IF NOT EXISTS pg_trgm`;
@@ -109,6 +112,18 @@ export const reviewFlagStatusEnum = pgEnum("review_flag_status", [
   "RESOLVED_KEEP",
   "RESOLVED_REJECTED",
   "RESOLVED_DELETED",
+]);
+
+// Forum
+export const forumThreadStatusEnum = pgEnum("forum_thread_status", [
+  "OPEN",
+  "LOCKED",
+  "ARCHIVED",
+]);
+export const forumReportStatusEnum = pgEnum("forum_report_status", [
+  "OPEN",
+  "RESOLVED",
+  "DISMISSED",
 ]);
 
 // Badges
@@ -2807,3 +2822,188 @@ export const authAccountsRelations = relations(authAccounts, ({ one }) => ({
 export const passkeysRelations = relations(passkeys, ({ one }) => ({
   user: one(users, { fields: [passkeys.userId], references: [users.id] }),
 }));
+
+// -- FORUM SCHEMA -----------------------------------------------------------
+// These tables intentionally live in the forum PostgreSQL schema while
+// referring back to the shared app.users and app.gear records.
+
+export const forumCategories = forumSchema.table(
+  "category",
+  (d) => ({
+    id: d
+      .varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    name: d.varchar("name", { length: 120 }).notNull(),
+    slug: d.varchar("slug", { length: 140 }).notNull(),
+    description: d.varchar("description", { length: 500 }),
+    sortOrder: d.integer("sort_order").notNull().default(0),
+    createdById: d
+      .varchar("created_by_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    uniqueIndex("forum_category_slug_uq").on(t.slug),
+    index("forum_category_sort_idx").on(t.sortOrder, t.name),
+  ],
+);
+
+export const forumThreads = forumSchema.table(
+  "thread",
+  (d) => ({
+    id: d
+      .varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    categoryId: d
+      .varchar("category_id", { length: 36 })
+      .notNull()
+      .references(() => forumCategories.id, { onDelete: "restrict" }),
+    title: d.varchar("title", { length: 240 }).notNull(),
+    slug: d.varchar("slug", { length: 280 }).notNull(),
+    authorUserId: d
+      .varchar("author_user_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    status: forumThreadStatusEnum("status").notNull().default("OPEN"),
+    isPinned: d.boolean("is_pinned").notNull().default(false),
+    viewCount: d.integer("view_count").notNull().default(0),
+    replyCount: d.integer("reply_count").notNull().default(0),
+    bestAnswerPostId: d.varchar("best_answer_post_id", { length: 36 }),
+    createdAt,
+    updatedAt,
+    lastActivityAt: d
+      .timestamp("last_activity_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  }),
+  (t) => [
+    uniqueIndex("forum_thread_slug_uq").on(t.slug),
+    index("forum_thread_category_activity_idx").on(
+      t.categoryId,
+      t.lastActivityAt,
+    ),
+    index("forum_thread_activity_idx").on(t.lastActivityAt),
+    index("forum_thread_author_idx").on(t.authorUserId),
+  ],
+);
+
+export const forumPosts = forumSchema.table(
+  "post",
+  (d) => ({
+    id: d
+      .varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    threadId: d
+      .varchar("thread_id", { length: 36 })
+      .notNull()
+      .references(() => forumThreads.id, { onDelete: "cascade" }),
+    authorUserId: d
+      .varchar("author_user_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    content: d.text("content").notNull(),
+    editCount: d.integer("edit_count").notNull().default(0),
+    lastEditedAt: d.timestamp("last_edited_at", { withTimezone: true }),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    index("forum_post_thread_created_idx").on(t.threadId, t.createdAt),
+    index("forum_post_author_idx").on(t.authorUserId),
+  ],
+);
+
+export const forumThreadGear = forumSchema.table(
+  "thread_gear",
+  (d) => ({
+    threadId: d
+      .varchar("thread_id", { length: 36 })
+      .notNull()
+      .references(() => forumThreads.id, { onDelete: "cascade" }),
+    gearId: d
+      .varchar("gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "restrict" }),
+    createdAt,
+  }),
+  (t) => [
+    primaryKey({ columns: [t.threadId, t.gearId] }),
+    index("forum_thread_gear_gear_idx").on(t.gearId),
+  ],
+);
+
+export const forumPostGear = forumSchema.table(
+  "post_gear",
+  (d) => ({
+    postId: d
+      .varchar("post_id", { length: 36 })
+      .notNull()
+      .references(() => forumPosts.id, { onDelete: "cascade" }),
+    gearId: d
+      .varchar("gear_id", { length: 36 })
+      .notNull()
+      .references(() => gear.id, { onDelete: "restrict" }),
+    sortOrder: d.integer("sort_order").notNull().default(0),
+    createdAt,
+  }),
+  (t) => [
+    primaryKey({ columns: [t.postId, t.gearId] }),
+    index("forum_post_gear_gear_idx").on(t.gearId),
+  ],
+);
+
+export const forumPostEdits = forumSchema.table(
+  "post_edit",
+  (d) => ({
+    id: d
+      .varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    postId: d
+      .varchar("post_id", { length: 36 })
+      .notNull()
+      .references(() => forumPosts.id, { onDelete: "cascade" }),
+    editedById: d
+      .varchar("edited_by_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    previousContent: d.text("previous_content").notNull(),
+    createdAt,
+  }),
+  (t) => [index("forum_post_edit_post_idx").on(t.postId, t.createdAt)],
+);
+
+export const forumReports = forumSchema.table(
+  "report",
+  (d) => ({
+    id: d
+      .varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()::text`),
+    postId: d
+      .varchar("post_id", { length: 36 })
+      .notNull()
+      .references(() => forumPosts.id, { onDelete: "cascade" }),
+    reporterUserId: d
+      .varchar("reporter_user_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    reason: d.varchar("reason", { length: 500 }).notNull(),
+    status: forumReportStatusEnum("status").notNull().default("OPEN"),
+    resolvedById: d
+      .varchar("resolved_by_id", { length: 255 })
+      .references(() => users.id, { onDelete: "set null" }),
+    resolvedAt: d.timestamp("resolved_at", { withTimezone: true }),
+    createdAt,
+    updatedAt,
+  }),
+  (t) => [
+    index("forum_report_status_created_idx").on(t.status, t.createdAt),
+    index("forum_report_post_idx").on(t.postId),
+  ],
+);

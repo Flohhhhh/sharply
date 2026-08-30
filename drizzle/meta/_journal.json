@@ -218,6 +218,13 @@
       "when": 1786892836825,
       "tag": "0030_lazy_devos",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1787414481722,
+      "tag": "0031_woozy_chronomancer",
+      "breakpoints": true
     }
   ]
 }
