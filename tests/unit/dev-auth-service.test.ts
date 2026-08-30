@@ -3,7 +3,7 @@ These tests lock down the development auth bypass safety contract.
 If they fail, the bypass may no longer stay opt-in, dev-only, or deterministic.
 */
 
-import { beforeEach,describe,expect,it,vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const envMocks = vi.hoisted(() => ({
   env: {
@@ -20,9 +20,14 @@ const dataMocks = vi.hoisted(() => ({
   createDevelopmentUserData: vi.fn(),
 }));
 
+const discordLogMocks = vi.hoisted(() => ({
+  notifyUserSignup: vi.fn(),
+}));
+
 vi.mock("server-only", () => ({}));
 vi.mock("~/env", () => envMocks);
 vi.mock("~/server/auth/dev-auth/data", () => dataMocks);
+vi.mock("~/server/discord-logs/general", () => discordLogMocks);
 
 import {
   getDevelopmentAuthEmail,
@@ -152,6 +157,7 @@ describe("development auth service", () => {
     expect(result).toEqual(baseUser);
     expect(dataMocks.findUserByEmailData).toHaveBeenCalledWith(baseUser.email);
     expect(dataMocks.createDevelopmentUserData).not.toHaveBeenCalled();
+    expect(discordLogMocks.notifyUserSignup).not.toHaveBeenCalled();
   });
 
   it("creates the dev user when the configured email is missing", async () => {
@@ -168,6 +174,10 @@ describe("development auth service", () => {
     expect(dataMocks.createDevelopmentUserData).toHaveBeenCalledWith(
       "dev@sharply.local",
     );
+    expect(discordLogMocks.notifyUserSignup).toHaveBeenCalledWith({
+      name: "Development User",
+      provider: "Development bypass",
+    });
   });
 
   it("refuses to fetch or create users when the bypass is disabled", async () => {
