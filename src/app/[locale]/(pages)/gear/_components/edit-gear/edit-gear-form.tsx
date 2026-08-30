@@ -1111,19 +1111,12 @@ function EditGearForm({
           },
         );
         if (autoApproved) {
-          // In modal/intercept context, close the modal via onRequestClose (router.back()).
-          // Fallback to replacing the URL to the gear page when no modal context is present.
-          if (onRequestClose) {
-            router.refresh();
-            onRequestClose({ force: true });
-          } else {
-            router.replace(
-              localizePathname(
-                `/gear/${gearSlug}?editApplied=1`,
-                locale as Locale,
-              ),
-            );
-          }
+          router.replace(
+            localizePathname(
+              `/gear/${gearSlug}?editApplied=1`,
+              locale as Locale,
+            ),
+          );
         } else {
           router.replace(`/edit-success?id=${createdId ?? ""}`);
         }

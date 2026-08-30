@@ -44,4 +44,44 @@ describe("Better Auth signup notification adapter", () => {
     expect(backgroundTasks).toHaveLength(1);
     await expect(backgroundTasks[0]).resolves.toEqual({ status: "sent" });
   });
+
+  it("prefers the direct social provider from the request body", () => {
+    discordLogMocks.notifyUserSignup.mockResolvedValue({ status: "sent" });
+
+    dispatchUserSignupNotification({
+      name: "Ada Lovelace",
+      authContext: {
+        body: {
+          provider: "discord",
+        },
+        params: { id: "google" },
+      },
+    });
+
+    expect(discordLogMocks.notifyUserSignup).toHaveBeenLastCalledWith({
+      name: "Ada Lovelace",
+      provider: "Discord",
+    });
+  });
+
+  it("uses the account provider before falling back to the route parameter", () => {
+    discordLogMocks.notifyUserSignup.mockResolvedValue({ status: "sent" });
+
+    dispatchUserSignupNotification({
+      name: "Ada Lovelace",
+      authContext: {
+        body: {
+          account: {
+            providerId: "google",
+          },
+        },
+        params: { id: "discord" },
+      },
+    });
+
+    expect(discordLogMocks.notifyUserSignup).toHaveBeenLastCalledWith({
+      name: "Ada Lovelace",
+      provider: "Google",
+    });
+  });
 });

@@ -1,8 +1,8 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useCallback,useState } from "react";
+import { useCallback, useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,13 +13,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent
-} from "~/components/ui/dialog";
-import { translateGearDetailWithFallback } from "~/lib/i18n/gear-detail";
+import { Dialog, DialogContent } from "~/components/ui/dialog";
+import type { Locale } from "~/i18n/config";
+import { localizePathname } from "~/i18n/routing";
 import { useUnsavedChangesGuard } from "~/lib/hooks/useUnsavedChangesGuard";
-import type { GearItem,GearType } from "~/types/gear";
+import { translateGearDetailWithFallback } from "~/lib/i18n/gear-detail";
+import type { GearItem, GearType } from "~/types/gear";
 import EditModalContent from "./edit-modal-content";
 
 interface EditGearModalProps {
@@ -42,27 +41,27 @@ export function EditGearModal({
   const t = useTranslations("gearDetail");
   const tf = (key: string, fallback: string) =>
     translateGearDetailWithFallback(t, key, fallback);
+  const locale = useLocale();
   const router = useRouter();
   const [isDirty, setIsDirty] = useState(false);
   const [showMissingOnly] = useState(Boolean(initialShowMissingOnly));
-  const {
-    cancelLeave,
-    confirmLeave,
-    isConfirmOpen,
-    leaveByHistoryBack,
-    requestLeave,
-  } = useUnsavedChangesGuard({
-    interceptHistory: true,
-    interceptLinks: true,
-    isDirty,
-    navigate: (href) => router.push(href),
-  });
+  const { cancelLeave, confirmLeave, isConfirmOpen, requestLeave } =
+    useUnsavedChangesGuard({
+      interceptHistory: true,
+      interceptLinks: true,
+      isDirty,
+      navigate: (href) => router.push(href),
+    });
+
+  const navigateToGear = useCallback(() => {
+    router.replace(localizePathname(`/gear/${gearSlug}`, locale as Locale));
+  }, [gearSlug, locale, router]);
 
   const requestClose = useCallback(
     (opts?: { force?: boolean }) => {
-      requestLeave(leaveByHistoryBack, opts);
+      requestLeave(navigateToGear, opts);
     },
-    [leaveByHistoryBack, requestLeave],
+    [navigateToGear, requestLeave],
   );
 
   const handleOpenChange = useCallback(

@@ -20,13 +20,13 @@ describe("shared public revalidation helpers", () => {
     vi.clearAllMocks();
   });
 
-  it("revalidates localized page paths", () => {
-    revalidateLocalizedPaths(["/gear/nikon-zf"], "page");
+  it("revalidates localized dynamic page paths", () => {
+    revalidateLocalizedPaths(["/gear/[slug]"], "page");
 
     expect(cacheMocks.revalidatePath).toHaveBeenCalledTimes(locales.length);
     for (const locale of locales) {
       expect(cacheMocks.revalidatePath).toHaveBeenCalledWith(
-        localizePathname("/gear/nikon-zf", locale),
+        localizePathname("/gear/[slug]", locale),
         "page",
       );
     }
@@ -36,10 +36,7 @@ describe("shared public revalidation helpers", () => {
     revalidateGearPages(["nikon-zf", " nikon-zf ", ""]);
 
     expect(cacheMocks.revalidatePath).toHaveBeenCalledTimes(locales.length);
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith(
-      "/ja/gear/nikon-zf",
-      "page",
-    );
+    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/ja/gear/nikon-zf");
   });
 
   it("revalidates the browse layout for every locale", () => {
@@ -60,13 +57,9 @@ describe("shared public revalidation helpers", () => {
     });
 
     expect(cacheMocks.revalidatePath).toHaveBeenCalledTimes(locales.length * 3);
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith(
-      "/gear/canon-r5",
-      "page",
-    );
+    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/gear/canon-r5");
     expect(cacheMocks.revalidatePath).toHaveBeenCalledWith(
       "/ja/gear/canon-r5-ii",
-      "page",
     );
     expect(cacheMocks.revalidatePath).toHaveBeenCalledWith(
       "/de/browse",

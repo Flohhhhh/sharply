@@ -3,6 +3,10 @@ import "server-only";
 import { notifyUserSignup, type UserSignupProvider } from "./general";
 
 type AuthHookContext = {
+  body?: {
+    provider?: unknown;
+    account?: { providerId?: unknown } | null;
+  } | null;
   params?: { id?: unknown };
   context?: {
     runInBackground?: (task: Promise<unknown>) => void;
@@ -36,7 +40,11 @@ export function dispatchUserSignupNotification(
 ) {
   const notification = (deps?.notify ?? notifyUserSignup)({
     name,
-    provider: resolveUserSignupProvider(authContext?.params?.id),
+    provider: resolveUserSignupProvider(
+      authContext?.body?.provider ??
+        authContext?.body?.account?.providerId ??
+        authContext?.params?.id,
+    ),
   });
 
   const runInBackground = authContext?.context?.runInBackground;

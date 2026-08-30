@@ -41,7 +41,7 @@ The database still stores one row per codec (contributors set `codec_label` when
 - **Editors** – `src/app/[locale]/(pages)/gear/_components/edit-gear/video-modes-manager.tsx` implements the guided flow plus the shared `VideoBitDepthMatrix` painter that replaces the old advanced table. The manager now stages modes in the main gear edit form instead of writing directly to the database.
 - **Form Integration** – `src/app/[locale]/(pages)/gear/_components/edit-gear/edit-gear-form.tsx` normalizes staged modes, includes them in the diff payload, and previews the pending rows in the confirmation dialog.
 - **Proposal Pipeline** – `src/server/db/normalizers.ts` validates and normalizes the `videoModes` payload, while `src/server/admin/proposals/data.ts` applies the rows during approval by replacing `camera_video_modes`.
-- **Server Layer** – `src/server/video-modes/data.ts` + `service.ts` provide CRUD helpers, while `src/server/video-modes/actions.ts` expose read/save/regenerate actions to client components.
+- **Server Layer** – `src/server/video-modes/data.ts` + `service.ts` provide CRUD and read helpers, while `src/server/video-modes/actions.ts` exposes save and regenerate mutation actions to client components.
 
 ### Saving & Regeneration
 

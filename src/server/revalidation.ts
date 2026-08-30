@@ -54,10 +54,7 @@ export function revalidateGearPages(
       .filter((slug) => slug.length > 0),
   );
 
-  revalidateLocalizedPaths(
-    Array.from(uniqueSlugs, (slug) => `/gear/${slug}`),
-    "page",
-  );
+  revalidateLocalizedPaths(Array.from(uniqueSlugs, (slug) => `/gear/${slug}`));
 
   if (options.includeBrowse) {
     revalidateBrowsePages();
