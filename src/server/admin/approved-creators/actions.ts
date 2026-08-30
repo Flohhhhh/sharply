@@ -2,6 +2,7 @@
 import "server-only";
 
 import { revalidatePath } from "next/cache";
+import { revalidateGearPages } from "~/server/revalidation";
 import {
   createApprovedCreatorAdmin,
   fetchGearSlugsByCreatorId,
@@ -11,9 +12,7 @@ import {
 
 async function revalidateCreatorPages(creatorId: string) {
   const slugs = await fetchGearSlugsByCreatorId(creatorId);
-  for (const { slug } of slugs) {
-    revalidatePath(`/gear/${slug}`);
-  }
+  revalidateGearPages(slugs.map(({ slug }) => slug));
 }
 
 export async function actionCreateApprovedCreator(input: unknown) {
@@ -22,10 +21,7 @@ export async function actionCreateApprovedCreator(input: unknown) {
   return creator;
 }
 
-export async function actionUpdateApprovedCreator(
-  id: string,
-  input: unknown,
-) {
+export async function actionUpdateApprovedCreator(id: string, input: unknown) {
   const creator = await updateApprovedCreatorAdmin(id, input);
   revalidatePath("/admin/approved-creators");
   await revalidateCreatorPages(id);

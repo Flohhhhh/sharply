@@ -51,7 +51,11 @@ Notes:
     - `/browse/[brand]` for all `BRANDS`
     - `/browse/[brand]/[cameras|lenses]`
   - mount-depth browse routes (`/browse/[brand]/[category]/[mount]`) are left to on-demand ISR
-- `export const revalidate = 3600` (1 hour) for ISR.
+- `export const revalidate = 86400` (24 hours) for the safety fallback. Gear
+  mutations invalidate affected localized routes immediately, so the fallback
+  is not the primary freshness mechanism.
+- Browse invalidation targets the localized `/browse` layout, which covers the
+  root, brand, category, and mount-depth catch-all routes.
 - `dynamicParams = true` so non-prebuilt combinations still render on-demand.
 - `getPopularScopes` is deprecated and no longer used.
 

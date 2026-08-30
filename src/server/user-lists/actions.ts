@@ -43,7 +43,6 @@ export async function actionAddGearToUserList(params: {
 }) {
   const result = await addGearToUserList(params);
   revalidateCommonPaths();
-  revalidatePath(`/gear/${params.slug}`);
   return result;
 }
 
@@ -53,7 +52,6 @@ export async function actionRemoveGearFromUserList(params: {
 }) {
   const result = await removeGearFromUserList(params);
   revalidateCommonPaths();
-  revalidatePath(`/gear/${params.slug}`);
   return result;
 }
 

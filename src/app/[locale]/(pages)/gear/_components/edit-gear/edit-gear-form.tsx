@@ -38,6 +38,8 @@ import { sensorNameFromSlug } from "~/lib/mapping/sensor-map";
 import { humanizeKey } from "~/lib/utils";
 import { normalizeApertureProfile } from "~/lib/lens-aperture-profile";
 import { normalizeViewfinderEyePointUpdate } from "~/lib/specs/viewfinder";
+import type { Locale } from "~/i18n/config";
+import { localizePathname } from "~/i18n/routing";
 import {
   normalizeVideoModes,
   type VideoModeInput,
@@ -1112,9 +1114,15 @@ function EditGearForm({
           // In modal/intercept context, close the modal via onRequestClose (router.back()).
           // Fallback to replacing the URL to the gear page when no modal context is present.
           if (onRequestClose) {
+            router.refresh();
             onRequestClose({ force: true });
           } else {
-            router.replace(`/gear/${gearSlug}?editApplied=1`);
+            router.replace(
+              localizePathname(
+                `/gear/${gearSlug}?editApplied=1`,
+                locale as Locale,
+              ),
+            );
           }
         } else {
           router.replace(`/edit-success?id=${createdId ?? ""}`);

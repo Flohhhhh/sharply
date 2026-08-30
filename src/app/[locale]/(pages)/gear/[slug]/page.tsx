@@ -80,7 +80,7 @@ import { StaffVerdictSection } from "../_components/staff-verdict-section";
 import { UserPendingEditBanner } from "../_components/user-pending-edit-banner";
 import { generateGearPageMetadata } from "./metadata";
 
-export const revalidate = 3600;
+export const revalidate = 86400;
 export const dynamicParams = true;
 
 const GEAR_PREBUILD_TRENDING_LIMIT = 100;

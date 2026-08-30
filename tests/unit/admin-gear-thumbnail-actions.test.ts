@@ -1,7 +1,11 @@
-import { beforeEach,describe,expect,it,vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const cacheMocks = vi.hoisted(() => ({
   revalidatePath: vi.fn(),
+}));
+
+const revalidationMocks = vi.hoisted(() => ({
+  revalidateGearPages: vi.fn(),
 }));
 
 const serviceMocks = vi.hoisted(() => ({
@@ -25,8 +29,10 @@ const serviceMocks = vi.hoisted(() => ({
 vi.mock("next/cache", () => cacheMocks);
 vi.mock("server-only", () => ({}));
 vi.mock("~/server/admin/gear/service", () => serviceMocks);
+vi.mock("~/server/revalidation", () => revalidationMocks);
 
 import {
+  actionRenameGear,
   actionSetGearOgImage,
   actionSetGearThumbnail,
 } from "~/server/admin/gear/actions";
@@ -55,8 +61,10 @@ describe("thumbnail gear admin actions", () => {
       ogImageUrl: "https://cdn.example.com/front-og.jpg",
     });
     expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/admin/gear");
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/gear/nikon-z6iii");
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/browse");
+    expect(revalidationMocks.revalidateGearPages).toHaveBeenCalledWith(
+      ["nikon-z6iii"],
+      { includeBrowse: true },
+    );
   });
 
   it("revalidates the gear page after storing a generated OG asset", async () => {
@@ -76,7 +84,33 @@ describe("thumbnail gear admin actions", () => {
       ogImageUrl: "https://cdn.example.com/front-og.jpg",
     });
     expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/admin/gear");
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/gear/nikon-z6iii");
+    expect(revalidationMocks.revalidateGearPages).toHaveBeenCalledWith([
+      "nikon-z6iii",
+    ]);
+  });
+
+  it("revalidates both old and new gear paths after a rename", async () => {
+    serviceMocks.renameGearService.mockResolvedValue({
+      id: "gear-1",
+      name: "Nikon Z6 IV",
+      previousSlug: "nikon-z6iii",
+      slug: "nikon-z6-iv",
+      searchName: "nikon z6 iv",
+    });
+
+    const result = await actionRenameGear({
+      gearId: "gear-1",
+      newName: "Z6 IV",
+    });
+
+    expect(result).toMatchObject({
+      previousSlug: "nikon-z6iii",
+      slug: "nikon-z6-iv",
+    });
+    expect(revalidationMocks.revalidateGearPages).toHaveBeenCalledWith(
+      ["nikon-z6iii", "nikon-z6-iv"],
+      { includeBrowse: true },
+    );
   });
 
   it("returns a serializable review rejection without revalidating", async () => {
