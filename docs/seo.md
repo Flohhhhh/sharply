@@ -18,6 +18,10 @@ live in `src/lib/seo/` and `src/app/sitemap.ts` / `src/app/robots.ts`.
 - Pages must not use static `export const metadata` with
   `buildLocalizedMetadata` — module-level metadata cannot know the locale.
   Use `generateMetadata` and read `params.locale`.
+- Never pass `alternates.canonical` or a hand-built `openGraph.url` into
+  `buildLocalizedMetadata` — overrides win over the locale-aware values and
+  reintroduce cross-locale (or env-dependent) canonicals. The pathname
+  argument is the single source of truth for both.
 
 ## Structured data (JSON-LD)
 
