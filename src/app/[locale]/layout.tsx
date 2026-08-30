@@ -3,13 +3,18 @@ import { notFound } from "next/navigation";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { BotIdClient } from "botid/client";
-import { Archivo,Crimson_Text } from "next/font/google";
-import { getTranslations,setRequestLocale } from "next-intl/server";
+import { Archivo, Crimson_Text } from "next/font/google";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import { JsonLd } from "~/components/json-ld";
 import { Toaster } from "~/components/ui/sonner";
-import { isLocale,locales } from "~/i18n/config";
+import { isLocale, locales } from "~/i18n/config";
 import { getMessagesForLocale } from "~/i18n/messages";
 import { botIdProtectedRoutes } from "~/lib/security/botid-protected-routes";
 import { DEFAULT_OG_IMAGE_PATH } from "~/lib/seo/default-og-image";
+import {
+  buildOrganizationJsonLd,
+  buildWebSiteJsonLd,
+} from "~/lib/seo/json-ld-helpers";
 import { Providers } from "./providers";
 
 const archivo = Archivo({
@@ -111,6 +116,7 @@ export default async function RootLayout({
         <BotIdClient protect={botIdProtectedRoutes} />
       </head>
       <body>
+        <JsonLd data={[buildWebSiteJsonLd(), buildOrganizationJsonLd()]} />
         <Providers locale={locale} messages={messages} timeZone="UTC">
           {children}
           <Toaster />

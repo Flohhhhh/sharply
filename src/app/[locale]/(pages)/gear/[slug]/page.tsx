@@ -24,6 +24,12 @@ import { TagCloud } from "~/components/gear/tag-cloud";
 import { NewsCard } from "~/components/home/news-card";
 import { JsonLd } from "~/components/json-ld";
 import { Breadcrumbs, type CrumbItem } from "~/components/layout/breadcrumbs";
+import { getGearDisplayImageUrl } from "~/lib/gear/display-image";
+import { buildGearMetaDescription } from "~/lib/seo/build-gear-meta-description";
+import {
+  buildBreadcrumbJsonLd,
+  buildGearProductJsonLd,
+} from "~/lib/seo/json-ld-helpers";
 import { RelativeTime } from "~/components/relative-time";
 import { Button } from "~/components/ui/button";
 import {
@@ -492,7 +498,29 @@ export default async function GearPage({ params }: GearPageProps) {
         <RelatedArticlesSection locale={locale} slug={item.slug} />
       </Suspense>
 
-      <JsonLd gear={item} />
+      <JsonLd
+        data={[
+          buildGearProductJsonLd({
+            item,
+            displayName: regionalDisplayName,
+            description: buildGearMetaDescription({
+              gear: item,
+              displayName: regionalDisplayName,
+              staffVerdictContent: verdict?.content ?? null,
+            }),
+            imageUrl: item.ogImageUrl ?? getGearDisplayImageUrl(item),
+          }),
+          buildBreadcrumbJsonLd([
+            ...breadCrumbItems
+              .filter((crumb) => typeof crumb.label === "string")
+              .map((crumb) => ({
+                name: crumb.label as string,
+                path: crumb.href,
+              })),
+            { name: regionalDisplayName },
+          ]),
+        ]}
+      />
     </main>
   );
 }
