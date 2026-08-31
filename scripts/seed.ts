@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-import { and,eq,isNull } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import slugify from "slugify";
 
 import {
@@ -20,6 +20,7 @@ import {
   gear,
   gearGenres,
   gearMounts,
+  gearPopularityWindows,
   genres as genresTable,
   lensSpecs,
   mounts,
@@ -136,6 +137,7 @@ async function main() {
   await seedNikonZ6III(context, options);
   await seedAdditionalCameras(context, options);
   log("seed complete");
+  await seedPopularityWindows();
 }
 
 async function seedTaxonomyFromGenerated(opts?: {
@@ -1124,6 +1126,38 @@ async function ensureUser(userSeed: ReviewSeed["user"]) {
     })
     .returning();
   return inserted!;
+}
+
+async function seedPopularityWindows() {
+  const seededGear = await db.select({ id: gear.id }).from(gear).limit(10);
+  if (seededGear.length === 0) {
+    console.log("[seed] popularity: no gear rows, skipping");
+    return;
+  }
+
+  const asOfDate = new Date().toISOString().slice(0, 10);
+  const timeframes = ["7d", "30d"] as const;
+
+  for (const timeframe of timeframes) {
+    for (const [index, row] of seededGear.entries()) {
+      await db
+        .insert(gearPopularityWindows)
+        .values({
+          gearId: row.id,
+          timeframe,
+          asOfDate,
+          viewsSum: 500 - index * 40,
+          wishlistAddsSum: Math.max(0, 25 - index * 2),
+          ownerAddsSum: 5,
+          compareAddsSum: 10,
+          reviewSubmitsSum: 3,
+        })
+        .onConflictDoNothing();
+    }
+  }
+  console.log(
+    `[seed] popularity: ${seededGear.length} gear x ${timeframes.length} timeframes`,
+  );
 }
 
 main().catch((error) => {
