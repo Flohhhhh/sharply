@@ -2,6 +2,28 @@
 
 This project keeps root-level configuration files to the minimum required by framework and platform conventions.
 
+## Error monitoring
+
+Sentry is initialized for the browser, Node.js, and Edge runtimes. Set
+`SENTRY_DSN` and `NEXT_PUBLIC_SENTRY_DSN` (normally to the same project DSN) to
+enable error monitoring and tracing. Development traces are sampled at 100%; other
+environments use a 10% sample rate.
+
+Production builds upload source maps when `SENTRY_ORG`, `SENTRY_PROJECT`, and the
+secret `SENTRY_AUTH_TOKEN` are available. The SDK detects Vercel environments and
+injects a shared release identifier into browser and server bundles automatically;
+`SENTRY_ENVIRONMENT` and `SENTRY_RELEASE` are optional overrides. Server stack-frame
+local variables are not collected. The `/monitoring` tunnel route is reserved for
+Sentry and bypasses the locale proxy.
+
+The framework entrypoints live at `src/instrumentation.ts` and
+`src/instrumentation-client.ts`, as required by Next.js. Runtime-specific Sentry
+initializers are grouped under `src/instrumentation/`.
+
+When neither DSN is configured, the Sentry build wrapper is disabled. Local
+development and E2E runs therefore do not generate source maps, add a tunnel, or
+send telemetry unless Sentry is deliberately enabled in that environment.
+
 ## Root-level config files
 
 - `next.config.js` (Next.js auto-discovery requires root)

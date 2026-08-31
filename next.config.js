@@ -1,4 +1,5 @@
 import { withPayload } from "@payloadcms/next/withPayload";
+import { withSentryConfig } from "@sentry/nextjs/config";
 import { withBotId } from "botid/next/config";
 import { fileURLToPath } from "node:url";
 import createNextIntlPlugin from "next-intl/plugin";
@@ -103,4 +104,21 @@ const config = {
   },
 };
 
-export default withBotId(withPayload(withNextIntl(config)));
+const configuredApp = withBotId(withPayload(withNextIntl(config)));
+const sentryEnabled = Boolean(
+  process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN,
+);
+
+export default sentryEnabled
+  ? withSentryConfig(configuredApp, {
+      org: process.env.SENTRY_ORG,
+      project: process.env.SENTRY_PROJECT,
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+      widenClientFileUpload: true,
+      tunnelRoute: "/monitoring",
+      silent: !process.env.CI,
+      bundleSizeOptimizations: {
+        excludeDebugStatements: true,
+      },
+    })
+  : configuredApp;
