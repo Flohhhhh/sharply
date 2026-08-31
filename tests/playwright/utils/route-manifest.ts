@@ -34,11 +34,16 @@ const NEWS_TITLE = "Sharply E2E seed news post";
 export const routeManifest: RouteEntry[] = [
   // --- core ---
   { path: "/", pattern: "/", marker: { role: "heading", name: "Photography gear made simple." }, spec: "core" },
-  { path: "/gear", pattern: "/gear", marker: { text: GEAR.name }, spec: "core" },
+  // GearCard splits brand/model into sibling text nodes ("Nikon" / "Z6III"),
+  // so a combined getByText(GEAR.name) never matches a single text node on
+  // grid pages; the rendered <Link>'s accessible name concatenates them
+  // (plus the thumbnail's alt text) with spaces, so role "link" still finds
+  // the seeded gear card by GEAR.name as a substring.
+  { path: "/gear", pattern: "/gear", marker: { role: "link", name: GEAR.name }, spec: "core" },
   { path: `/gear/${GEAR.slug}`, pattern: "/gear/[slug]", marker: { role: "heading", name: GEAR.name }, spec: "core" },
   { path: "/browse", pattern: "/browse/[[...segments]]", marker: { role: "heading", name: "All Gear" }, spec: "core" },
-  { path: "/search?q=z6", pattern: "/search", marker: { text: GEAR.name }, spec: "core" },
-  { path: "/brand/nikon", pattern: "/brand/[slug]", marker: { text: GEAR.name }, spec: "core" },
+  { path: "/search?q=z6", pattern: "/search", marker: { role: "link", name: GEAR.name }, spec: "core" },
+  { path: "/brand/nikon", pattern: "/brand/[slug]", marker: { role: "link", name: GEAR.name }, spec: "core" },
   // --- static ---
   { path: "/about", pattern: "/about", marker: { role: "heading", name: "Photography for Everyone" }, spec: "static" },
   // (privacy-policy, terms-of-service, developer, developer/docs, discord/*,
