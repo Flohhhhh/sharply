@@ -24,9 +24,9 @@ npm run pr:create -- --fill  # extra args go to gh pr create
 
 PR creation is gated on a green suite: if any test fails, `gh pr create`
 never runs. The suite uses the managed dev server (`dev:e2e`), so it
-needs your dev database up and `DEV_AUTH=true` in `.env` (see above).
-CI re-runs the same suite on the PR either way — this gate just saves
-the round-trip.
+needs your dev database up — no `.env` changes are needed, `dev:e2e` sets
+`DEV_AUTH=true` itself (see above). CI re-runs the same suite on the PR
+either way — this gate just saves the round-trip.
 
 ### Pre-push hook (automatic)
 
