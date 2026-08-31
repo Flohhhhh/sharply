@@ -50,9 +50,10 @@ cat <<EOF
 [e2e] database ready: ${DATABASE_URL}
 
 CI-identical run (production build):
-  DATABASE_URL="${DATABASE_URL}" SKIP_ENV_VALIDATION=1 npx next build --webpack
+  DATABASE_URL="${DATABASE_URL}" NEXT_PUBLIC_BASE_URL="${NEXT_PUBLIC_BASE_URL}" \\
+    OPENAI_API_KEY="${OPENAI_API_KEY}" SKIP_ENV_VALIDATION=1 npx next build --webpack
   DATABASE_URL="${DATABASE_URL}" PAYLOAD_SECRET="${PAYLOAD_SECRET}" AUTH_SECRET="${AUTH_SECRET}" \\
-    PLAYWRIGHT_SERVER_COMMAND="npm run start:e2e" npm run test:e2e
+    OPENAI_API_KEY="${OPENAI_API_KEY}" PLAYWRIGHT_SERVER_COMMAND="npm run start:e2e" npm run test:e2e
 
 Tear down when done:
   docker rm -f ${CONTAINER_NAME}
