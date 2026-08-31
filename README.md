@@ -110,6 +110,8 @@ npm run db:seed -- --confirm-seed    # (optional) populate sample data
 npx drizzle-kit studio               # (optional) view the database in Drizzle studio (or use your own viewer)
 ```
 
+> **Fresh database?** Run `CREATE EXTENSION IF NOT EXISTS pg_trgm;` on it (or use `npm run e2e:setup-local`, which handles this) — search returns silently empty results without it.
+
 **After pulling changes** (when migrations have been generated and merged to main):
 
 ```bash
