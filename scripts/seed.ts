@@ -837,6 +837,47 @@ async function seedAdditionalCameras(
         frontFilterThreadSizeMm: 58,
       },
     },
+    {
+      // Canon needs gear in BOTH categories (cameras + lenses): a brand with a
+      // single category redirects /browse/canon -> /browse/canon/cameras, which
+      // breaks the e2e brand-route spec on fresh/sparse databases.
+      key: "canon-rf-50mm-f18-stm",
+      brandSlug: "canon",
+      mountValue: "rf-canon",
+      data: {
+        id: "9f6b2c47-1d3e-4b8a-9c5f-7e2a8d4b6c10",
+        slug: "canon-rf-50mm-f-1-8-stm",
+        name: "Canon RF 50mm f/1.8 STM",
+        searchName: "canon rf 50mm f/1.8 stm",
+        gearType: "LENS",
+        announcedDate: new Date("2020-11-04T00:00:00.000Z"),
+        releaseDate: new Date("2020-12-15T00:00:00.000Z"),
+        announceDatePrecision: "DAY",
+        releaseDatePrecision: "DAY",
+        msrpNowUsdCents: 19999,
+        msrpAtLaunchUsdCents: 19999,
+        thumbnailUrl: null,
+        weightGrams: 160,
+        widthMm: "69.2",
+        heightMm: "69.2",
+        depthMm: "40.5",
+        linkManufacturer: "https://www.usa.canon.com/shop/p/rf50mm-f1-8-stm",
+        linkMpb: null,
+        linkAmazon: null,
+        genres: ["street", "portraits"],
+        notes: [],
+      },
+      lensSpecs: {
+        isPrime: true,
+        focalLengthMinMm: 50,
+        focalLengthMaxMm: 50,
+        maxApertureWide: "1.8",
+        minApertureWide: "22",
+        hasAutofocus: true,
+        hasStabilization: false,
+        frontFilterThreadSizeMm: 43,
+      },
+    },
   ];
 
   for (const fixture of lensFixtures) {
@@ -1160,7 +1201,13 @@ async function seedPopularityWindows() {
   );
 }
 
-main().catch((error) => {
-  console.error("[seed] failed", error);
-  process.exit(1);
-});
+main()
+  .then(() => {
+    // The shared db client (src/server/db) keeps the event loop alive;
+    // exit explicitly so pipelines (e2e:setup-local, CI) don't hang.
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error("[seed] failed", error);
+    process.exit(1);
+  });
