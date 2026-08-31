@@ -70,9 +70,10 @@ Gotchas encoded in the pipeline — don't reorder it:
   run. Assert on what you created or what the seed deterministically
   contains.
 - Auth: hit `/api/dev-login` (see `tests/playwright/basic/routing-auth.spec.ts`);
-  the dev user self-provisions. For the default local flow
-  (`npm run test:e2e` against `dev:e2e`), the auth specs need
-  `DEV_AUTH=true` in your `.env` — CI sets it via `start:e2e`.
+  the dev user self-provisions. The default local flow (`npm run test:e2e`
+  against `dev:e2e`) needs nothing in your `.env` — `dev:e2e` sets
+  `DEV_AUTH=true` itself, same as CI's `start:e2e`. Only set `DEV_AUTH=true`
+  in `.env` yourself if you're running the app via a different server command.
 - Mock only the outermost third-party boundary with `page.route`
   (pattern: `tests/playwright/contact.spec.ts`); everything inside the
   app runs for real.

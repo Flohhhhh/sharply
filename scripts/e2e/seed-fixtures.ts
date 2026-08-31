@@ -139,7 +139,26 @@ async function ensureRecommendationChart() {
   });
 }
 
+// Guards against running against the wrong database: this script writes a
+// SUPERADMIN user, and some environments (see AGENTS.md) inject a
+// DATABASE_URL pointing at a Neon preview branch derived from production.
+function assertLocalDatabase() {
+  let hostname: string;
+  try {
+    hostname = new URL(process.env.DATABASE_URL ?? "").hostname;
+  } catch {
+    hostname = "";
+  }
+  if (hostname !== "localhost" && hostname !== "127.0.0.1") {
+    console.error(
+      `[e2e:seed-fixtures] refusing to run: DATABASE_URL host "${hostname || "(unset/unparseable)"}" is not localhost/127.0.0.1 — this script writes a SUPERADMIN user and must only target a local e2e database.`,
+    );
+    process.exit(1);
+  }
+}
+
 async function main() {
+  assertLocalDatabase();
   const devUser = await ensureDevUser();
   await ensureTag();
   await ensureSharedList(devUser.id);

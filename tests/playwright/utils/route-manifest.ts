@@ -8,6 +8,11 @@ export type Marker =
   | { text: string | RegExp }
   | { testId: string };
 
+// messages/en.json -> errors.genericTitle; rendered by src/app/[locale]/error.tsx.
+// Lives here (not expect-page-renders.ts) so tests/unit/route-sweep-parity.test.ts
+// can assert it against en.json without importing @playwright/test.
+export const ERROR_BOUNDARY_TEXT = "Something went wrong!";
+
 export type SweepSpec =
   | "core"
   | "static"

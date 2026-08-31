@@ -1,9 +1,6 @@
 import { expect, type Page } from "@playwright/test";
 
-import type { Marker, RouteEntry } from "./route-manifest";
-
-// messages/en.json -> error.genericTitle; rendered by src/app/[locale]/error.tsx
-const ERROR_BOUNDARY_TEXT = "Something went wrong!";
+import { ERROR_BOUNDARY_TEXT, type Marker, type RouteEntry } from "./route-manifest";
 
 function resolveMarker(page: Page, marker: Marker) {
   if ("role" in marker) return page.getByRole(marker.role, { name: marker.name });

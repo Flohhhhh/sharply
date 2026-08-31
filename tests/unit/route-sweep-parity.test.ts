@@ -4,7 +4,9 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
+import messages from "../../messages/en.json";
 import {
+  ERROR_BOUNDARY_TEXT,
   routeManifest,
   skippedRoutes,
 } from "../playwright/utils/route-manifest";
@@ -57,5 +59,13 @@ describe("route sweep parity", () => {
     for (const p of Object.keys(skippedRoutes)) {
       expect(live.has(p), `skip list references removed route ${p}`).toBe(true);
     }
+  });
+
+  it("ERROR_BOUNDARY_TEXT stays in sync with the error boundary's actual copy", () => {
+    // src/app/[locale]/error.tsx: useTranslations("errors") + t("genericTitle").
+    expect(
+      ERROR_BOUNDARY_TEXT,
+      "route-manifest.ts's ERROR_BOUNDARY_TEXT and messages/en.json's errors.genericTitle must move together — the sweep's error-boundary-absent check silently passes vacuously if they drift apart",
+    ).toBe(messages.errors.genericTitle);
   });
 });
