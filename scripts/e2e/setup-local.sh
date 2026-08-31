@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # One-command local mirror of the e2e CI pipeline.
 # Spins up a disposable Postgres (port 5433 — never clashes with the dev DB),
-# then runs: pg_trgm -> constants -> drizzle push -> payload bootstrap -> seed.
+# then runs: pg_trgm -> drizzle push -> payload bootstrap -> seed.
 # Docs: docs/e2e-testing.md   Spec: docs/superpowers/specs/2026-08-31-e2e-ci-design.md
 set -euo pipefail
 
@@ -13,9 +13,19 @@ export PAYLOAD_SECRET="${PAYLOAD_SECRET:-e2e-local-secret}"
 export AUTH_SECRET="${AUTH_SECRET:-e2e-local-auth-secret}"
 export OPENAI_API_KEY="${OPENAI_API_KEY:-e2e-local-dummy}"
 export NEXT_PUBLIC_BASE_URL="${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}"
+export BETTER_AUTH_URL="${BETTER_AUTH_URL:-http://localhost:3000}"
 export SKIP_ENV_VALIDATION=1
 
 if [ -n "$(docker ps -aq -f name="^${CONTAINER_NAME}$")" ]; then
+  # Guard against a stale container published on a different port: DATABASE_URL
+  # is built from DB_PORT, and drizzle push --force against the wrong Postgres
+  # would be destructive.
+  published_port="$(docker inspect -f '{{ (index (index .HostConfig.PortBindings "5432/tcp") 0).HostPort }}' "${CONTAINER_NAME}" 2>/dev/null || echo "")"
+  if [ "${published_port}" != "${DB_PORT}" ]; then
+    echo "[e2e] ERROR: container ${CONTAINER_NAME} publishes port ${published_port:-<none>}, but E2E_DB_PORT=${DB_PORT}." >&2
+    echo "[e2e] Remove it (docker rm -f ${CONTAINER_NAME}) or rerun with E2E_DB_PORT=${published_port}." >&2
+    exit 1
+  fi
   docker start "${CONTAINER_NAME}" >/dev/null
   echo "[e2e] reusing container ${CONTAINER_NAME}"
 else
@@ -27,20 +37,26 @@ else
   echo "[e2e] started container ${CONTAINER_NAME} on port ${DB_PORT}"
 fi
 
+# Probe over TCP: the image's initdb-phase temporary server listens only on the
+# unix socket, so a socket probe can succeed before the real server is up.
 echo "[e2e] waiting for postgres..."
+db_ready=false
 for _ in $(seq 1 60); do
-  if docker exec "${CONTAINER_NAME}" pg_isready -U postgres -d sharply_e2e >/dev/null 2>&1; then
+  if docker exec "${CONTAINER_NAME}" pg_isready -h 127.0.0.1 -U postgres -d sharply_e2e >/dev/null 2>&1; then
+    db_ready=true
     break
   fi
   sleep 0.5
 done
-docker exec "${CONTAINER_NAME}" pg_isready -U postgres -d sharply_e2e >/dev/null
+if [ "${db_ready}" != "true" ]; then
+  echo "[e2e] ERROR: postgres did not become ready within 30s — check 'docker logs ${CONTAINER_NAME}'" >&2
+  exit 1
+fi
 
 docker exec "${CONTAINER_NAME}" psql -U postgres -d sharply_e2e \
   -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;" >/dev/null
 echo "[e2e] pg_trgm ready"
 
-npm run constants:generate
 npx drizzle-kit push --force --config=config/drizzle.config.ts
 npm run e2e:bootstrap
 npm run db:seed -- --confirm-seed
@@ -49,10 +65,12 @@ cat <<EOF
 
 [e2e] database ready: ${DATABASE_URL}
 
-CI-identical run (production build):
-  DATABASE_URL="${DATABASE_URL}" NEXT_PUBLIC_BASE_URL="${NEXT_PUBLIC_BASE_URL}" \\
-    OPENAI_API_KEY="${OPENAI_API_KEY}" SKIP_ENV_VALIDATION=1 npx next build --webpack
+CI-identical run (production build; CI=true matches workers/retries/reporters):
   DATABASE_URL="${DATABASE_URL}" PAYLOAD_SECRET="${PAYLOAD_SECRET}" AUTH_SECRET="${AUTH_SECRET}" \\
+    BETTER_AUTH_URL="${BETTER_AUTH_URL}" NEXT_PUBLIC_BASE_URL="${NEXT_PUBLIC_BASE_URL}" \\
+    OPENAI_API_KEY="${OPENAI_API_KEY}" SKIP_ENV_VALIDATION=1 npx next build --webpack
+  CI=true DATABASE_URL="${DATABASE_URL}" PAYLOAD_SECRET="${PAYLOAD_SECRET}" AUTH_SECRET="${AUTH_SECRET}" \\
+    BETTER_AUTH_URL="${BETTER_AUTH_URL}" NEXT_PUBLIC_BASE_URL="${NEXT_PUBLIC_BASE_URL}" \\
     OPENAI_API_KEY="${OPENAI_API_KEY}" PLAYWRIGHT_SERVER_COMMAND="npm run start:e2e" npm run test:e2e
 
 Tear down when done:

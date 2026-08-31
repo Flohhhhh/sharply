@@ -13,8 +13,10 @@ on:
     - cron: "17 9 * * *" # off-peak, non-top-of-hour; runs the full browser matrix
   workflow_dispatch:
 
+# event_name in the group keeps a manual dispatch from cancelling the nightly
+# (both resolve to refs/heads/main otherwise); PR runs still cancel per-PR.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 # Dummy values only — this workflow must never hold a real secret (fork PRs run it).
@@ -22,8 +24,12 @@ env:
   DATABASE_URL: postgres://postgres:postgres@localhost:5432/sharply_e2e
   PAYLOAD_SECRET: e2e-ci-payload-secret
   AUTH_SECRET: e2e-ci-auth-secret
-  # The creator-videos route constructs an OpenAI client at module scope; the
-  # SDK throws at import time without a key. Never called by any spec.
+  # Without an explicit base URL, better-auth infers production from NODE_ENV
+  # under `next start` and issues Secure session cookies, which WebKit drops
+  # over plain http — breaking auth specs on the Mobile Safari matrix project.
+  BETTER_AUTH_URL: http://localhost:3000
+  # src/lib/open-ai constructs an OpenAI client at module scope; the SDK
+  # throws at import time without a key. Never called by any spec.
   OPENAI_API_KEY: e2e-ci-dummy
   NEXT_PUBLIC_BASE_URL: http://localhost:3000
   SKIP_ENV_VALIDATION: "1"
@@ -93,9 +99,6 @@ jobs:
       - name: Enable pg_trgm
         run: psql "$DATABASE_URL" -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
 
-      - name: Generate constants
-        run: npm run constants:generate
-
       - name: Push database schema
         run: npx drizzle-kit push --force --config=config/drizzle.config.ts
 
@@ -114,11 +117,14 @@ jobs:
           PLAYWRIGHT_SERVER_COMMAND: npm run start:e2e
 
       - name: Report pass-on-retry flakes
+        id: flakes
         if: always()
         run: node scripts/e2e/report-flakes.mjs test-results/results.json
 
+      # Also upload on flaky-but-green runs: the retained first-failure traces
+      # are the evidence the quarantine policy depends on.
       - name: Upload Playwright report
-        if: failure()
+        if: ${{ failure() || steps.flakes.outputs.flaky == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report

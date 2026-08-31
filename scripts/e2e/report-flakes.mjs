@@ -1,7 +1,7 @@
 // Reads a Playwright JSON report and emits a GitHub Actions warning for every
 // test that passed only on retry ("flaky" status). Green checks hide these;
 // this keeps them visible. Always exits 0 — it warns, it never fails a run.
-import { readFileSync } from "node:fs";
+import { appendFileSync, readFileSync } from "node:fs";
 
 /**
  * @param {any} report Parsed Playwright JSON report.
@@ -42,4 +42,12 @@ if (isMain) {
     );
   }
   if (flaky.length === 0) console.log("[e2e] no pass-on-retry flakes");
+  // Let the workflow upload the report/traces on flaky-but-green runs, so
+  // the quarantine decision never has to be made without evidence.
+  if (process.env.GITHUB_OUTPUT) {
+    appendFileSync(
+      process.env.GITHUB_OUTPUT,
+      `flaky=${flaky.length > 0 ? "true" : "false"}\n`,
+    );
+  }
 }

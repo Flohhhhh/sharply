@@ -846,7 +846,7 @@ async function seedAdditionalCameras(
       mountValue: "rf-canon",
       data: {
         id: "9f6b2c47-1d3e-4b8a-9c5f-7e2a8d4b6c10",
-        slug: "canon-rf-50mm-f-1-8-stm",
+        slug: "canon-rf-50mm-f18-stm",
         name: "Canon RF 50mm f/1.8 STM",
         searchName: "canon rf 50mm f/1.8 stm",
         gearType: "LENS",
@@ -1181,19 +1181,27 @@ async function seedPopularityWindows() {
 
   for (const timeframe of timeframes) {
     for (const [index, row] of seededGear.entries()) {
+      const values = {
+        asOfDate,
+        viewsSum: 500 - index * 40,
+        wishlistAddsSum: Math.max(0, 25 - index * 2),
+        ownerAddsSum: 5,
+        compareAddsSum: 10,
+        reviewSubmitsSum: 3,
+      };
+      // Upsert (not do-nothing): trending readers filter on MAX(as_of_date),
+      // so stale rows from a prior day's run would silently drop out of
+      // trending on dirty-DB reruns unless asOfDate refreshes.
       await db
         .insert(gearPopularityWindows)
-        .values({
-          gearId: row.id,
-          timeframe,
-          asOfDate,
-          viewsSum: 500 - index * 40,
-          wishlistAddsSum: Math.max(0, 25 - index * 2),
-          ownerAddsSum: 5,
-          compareAddsSum: 10,
-          reviewSubmitsSum: 3,
-        })
-        .onConflictDoNothing();
+        .values({ gearId: row.id, timeframe, ...values })
+        .onConflictDoUpdate({
+          target: [
+            gearPopularityWindows.gearId,
+            gearPopularityWindows.timeframe,
+          ],
+          set: { ...values, updatedAt: new Date() },
+        });
     }
   }
   console.log(

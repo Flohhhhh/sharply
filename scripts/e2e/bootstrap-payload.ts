@@ -10,7 +10,11 @@ import { fileURLToPath } from "node:url";
 
 import { getPayload } from "payload";
 
-import config from "../../src/payload.config";
+// Hermetic by design: a blob token inherited from the shell would make
+// payload.config switch Media storage to the REAL Vercel Blob store and
+// upload e2e fixtures into production storage. Delete it before the config
+// is loaded (hence the dynamic import in main()).
+delete process.env.BLOB_READ_WRITE_TOKEN;
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const fixturePath = path.resolve(
@@ -21,6 +25,7 @@ const fixturePath = path.resolve(
 const NEWS_TITLE = "Sharply E2E seed news post";
 
 async function main() {
+  const { default: config } = await import("../../src/payload.config");
   const payload = await getPayload({ config });
 
   const existing = await payload.find({
