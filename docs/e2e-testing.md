@@ -15,6 +15,19 @@ The script prints the two commands for a CI-identical run (production
 build + `npm run test:e2e`). For the usual dev-server flow,
 `npm run test:e2e` alone still works exactly as before.
 
+## Creating a PR (e2e-gated)
+
+```bash
+npm run pr:create            # runs the e2e suite, then gh pr create --base development
+npm run pr:create -- --fill  # extra args go to gh pr create
+```
+
+PR creation is gated on a green suite: if any test fails, `gh pr create`
+never runs. The suite uses the managed dev server (`dev:e2e`), so it
+needs your dev database up and `DEV_AUTH=true` in `.env` (see above).
+CI re-runs the same suite on the PR either way — this gate just saves
+the round-trip.
+
 ## The CI pipeline
 
 health check → `CREATE EXTENSION pg_trgm` → `drizzle-kit push --force` →

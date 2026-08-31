@@ -25,6 +25,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prebuild": "npm run constants:generate",
+    "pr:create": "npm run test:e2e && gh pr create --base development",
     "preview": "next build --webpack && next start",
     "preview:e2e": "SKIP_ENV_VALIDATION=1 next build --webpack && DEV_AUTH_PREVIEW=true SKIP_ENV_VALIDATION=1 next start -H 127.0.0.1 -p 3000",
     "start": "next start",
