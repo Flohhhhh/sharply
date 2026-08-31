@@ -16,7 +16,7 @@ Sharply is a photography gear database and cataloging application. It combines a
 
 ## Prerequisites
 
-- Node.js 20 (LTS) and npm 10
+- Node.js 24 (LTS) and npm 11
 - PostgreSQL 15+ (local or containerized)
 - pnpm or yarn are not officially supported; use npm
 - Docker or Podman (optional) if you want the provided database script
