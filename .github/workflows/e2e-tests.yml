@@ -108,6 +108,9 @@ jobs:
       - name: Seed database
         run: npm run db:seed -- --confirm-seed
 
+      - name: Seed e2e fixtures
+        run: npm run e2e:seed-fixtures
+
       - name: Build app
         run: npx next build --webpack
 
