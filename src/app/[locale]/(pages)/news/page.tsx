@@ -16,14 +16,18 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "newsPage" });
 
-  return buildLocalizedMetadata("/news", {
-    title: t("metaTitle"),
-    description: t("metaDescription"),
-    openGraph: {
+  return buildLocalizedMetadata(
+    "/news",
+    {
       title: t("metaTitle"),
       description: t("metaDescription"),
+      openGraph: {
+        title: t("metaTitle"),
+        description: t("metaDescription"),
+      },
     },
-  });
+    locale,
+  );
 }
 
 export default async function NewsPage({

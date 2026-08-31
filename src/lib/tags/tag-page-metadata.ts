@@ -28,17 +28,22 @@ export function buildTagPageMetadata(
   slug: string,
   tag: TagMetadataSource,
   fallbackDescription: string,
+  locale: string,
 ): Metadata {
   const { title, description } = resolveTagPageMetadata(
     tag,
     fallbackDescription,
   );
 
-  return buildLocalizedMetadata(`/tags/${slug}`, {
-    title,
-    description,
-    openGraph: { title, description },
-  });
+  return buildLocalizedMetadata(
+    `/tags/${slug}`,
+    {
+      title,
+      description,
+      openGraph: { title, description },
+    },
+    locale,
+  );
 }
 
 function getTagMetadataDescription(content: string | null, fallback: string) {

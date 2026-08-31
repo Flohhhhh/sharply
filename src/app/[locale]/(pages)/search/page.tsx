@@ -6,12 +6,23 @@ import { NaturalLanguageSearchToast } from "./natural-language-search-toast";
 import { SearchClient } from "./search-client";
 import { SearchPageSkeleton } from "./search-page-skeleton";
 
-export const metadata: Metadata = buildLocalizedMetadata("/search", {
-  title: "Search",
-  openGraph: {
-    title: "Search",
-  },
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return buildLocalizedMetadata(
+    "/search",
+    {
+      title: "Search",
+      openGraph: {
+        title: "Search",
+      },
+    },
+    locale,
+  );
+}
 
 type SearchPageProps = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;

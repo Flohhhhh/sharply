@@ -26,14 +26,18 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "aboutPage" });
 
-  return buildLocalizedMetadata("/about", {
-    title: t("metaTitle"),
-    description: t("metaDescription"),
-    openGraph: {
+  return buildLocalizedMetadata(
+    "/about",
+    {
       title: t("metaTitle"),
       description: t("metaDescription"),
+      openGraph: {
+        title: t("metaTitle"),
+        description: t("metaDescription"),
+      },
     },
-  });
+    locale,
+  );
 }
 
 export default async function About({

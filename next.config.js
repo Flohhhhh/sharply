@@ -80,7 +80,15 @@ const config = {
     ],
   },
   outputFileTracingRoot,
-  serverExternalPackages: ["sharp"],
+  // sharp is auto-externalized by Next.js. Its native binding loads libvips at
+  // runtime, so explicitly include the Linux artifacts in every Vercel route
+  // trace instead of relying on static import analysis to find them.
+  outputFileTracingIncludes: {
+    "/*": [
+      "./node_modules/@img/sharp-linux-x64/**/*",
+      "./node_modules/@img/sharp-libvips-linux-x64/**/*",
+    ],
+  },
   webpack: (config, { isServer, webpack }) => {
     if (!isServer) {
       config.plugins.push(

@@ -21,7 +21,14 @@ describe("next image remote patterns", () => {
     expect(nextConfigSource).toContain('hostname: "img.youtube.com"');
   });
 
-  it("keeps sharp externalized for server bundles", () => {
-    expect(nextConfigSource).toContain('serverExternalPackages: ["sharp"]');
+  it("includes sharp's Linux native artifacts in every server route trace", () => {
+    expect(nextConfigSource).not.toContain('serverExternalPackages: ["sharp"]');
+    expect(nextConfigSource).toContain("outputFileTracingIncludes");
+    expect(nextConfigSource).toContain(
+      '"./node_modules/@img/sharp-linux-x64/**/*"',
+    );
+    expect(nextConfigSource).toContain(
+      '"./node_modules/@img/sharp-libvips-linux-x64/**/*"',
+    );
   });
 });

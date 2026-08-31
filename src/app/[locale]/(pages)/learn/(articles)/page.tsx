@@ -3,16 +3,27 @@ import Image from "next/image";
 import Link from "next/link";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
-export const metadata: Metadata = buildLocalizedMetadata("/learn", {
-  title: "Learn Photography",
-  description:
-    "Explore photography guides from beginner fundamentals to deeper concepts and practical techniques.",
-  openGraph: {
-    title: "Learn Photography",
-    description:
-      "Explore photography guides from beginner fundamentals to deeper concepts and practical techniques.",
-  },
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return buildLocalizedMetadata(
+    "/learn",
+    {
+      title: "Learn Photography",
+      description:
+        "Explore photography guides from beginner fundamentals to deeper concepts and practical techniques.",
+      openGraph: {
+        title: "Learn Photography",
+        description:
+          "Explore photography guides from beginner fundamentals to deeper concepts and practical techniques.",
+      },
+    },
+    locale,
+  );
+}
 
 export default function LearnPage() {
   const basicsArticles = [

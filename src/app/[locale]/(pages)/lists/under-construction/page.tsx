@@ -27,14 +27,18 @@ export async function generateMetadata({
     namespace: "underConstructionPage",
   });
 
-  return buildLocalizedMetadata("/lists/under-construction", {
-    title: t("metaTitle"),
-    description: t("metaDescription"),
-    openGraph: {
+  return buildLocalizedMetadata(
+    "/lists/under-construction",
+    {
       title: t("metaTitle"),
       description: t("metaDescription"),
+      openGraph: {
+        title: t("metaTitle"),
+        description: t("metaDescription"),
+      },
     },
-  });
+    locale,
+  );
 }
 
 export default async function Page({

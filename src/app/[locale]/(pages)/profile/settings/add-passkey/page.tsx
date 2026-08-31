@@ -14,12 +14,16 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "profileSettings" });
 
-  return buildLocalizedMetadata("/profile/settings/add-passkey", {
-    title: t("addPasskey"),
-    openGraph: {
+  return buildLocalizedMetadata(
+    "/profile/settings/add-passkey",
+    {
       title: t("addPasskey"),
+      openGraph: {
+        title: t("addPasskey"),
+      },
     },
-  });
+    locale,
+  );
 }
 
 export default async function AddPasskeyPage({

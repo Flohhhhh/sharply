@@ -31,6 +31,7 @@ export async function generateMetadata({
     slug,
     tag,
     t("tagPageDescription", { tag: tag.name }),
+    locale,
   );
 }
 

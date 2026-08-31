@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
-import { notFound,redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { GearCard } from "~/components/gear/gear-card";
-import { Avatar,AvatarFallback,AvatarImage } from "~/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { getItemDisplayPrice } from "~/lib/mapping";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import { fetchPublicSharedListByParam } from "~/server/user-lists/service";
@@ -39,24 +39,25 @@ export async function generateMetadata({
       ? t("sharedGearListFromOwner", { owner: ownerName })
       : t("currentlyUnpublished");
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-
-  return buildLocalizedMetadata(payload.canonicalPath, {
-    title,
-    description,
-    robots: { index: false, follow: false },
-    openGraph: {
+  return buildLocalizedMetadata(
+    payload.canonicalPath,
+    {
       title,
       description,
-      type: "website",
-      url: baseUrl ? `${baseUrl}${payload.canonicalPath}` : undefined,
+      robots: { index: false, follow: false },
+      openGraph: {
+        title,
+        description,
+        type: "website",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+      },
     },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-    },
-  });
+    locale,
+  );
 }
 
 export default async function SharedListPage({ params }: SharedListPageProps) {
@@ -80,10 +81,16 @@ export default async function SharedListPage({ params }: SharedListPageProps) {
         <h1 className="text-4xl font-bold">{payload.list.name}</h1>
         <div className="flex items-center gap-3">
           <Avatar>
-            <AvatarImage src={payload.owner.image ?? undefined} alt={ownerName} />
+            <AvatarImage
+              src={payload.owner.image ?? undefined}
+              alt={ownerName}
+            />
             <AvatarFallback>{ownerName.slice(0, 2)}</AvatarFallback>
           </Avatar>
-          <Link href={profilePath} className="text-muted-foreground hover:underline">
+          <Link
+            href={profilePath}
+            className="text-muted-foreground hover:underline"
+          >
             {ownerName}
           </Link>
         </div>
@@ -100,10 +107,16 @@ export default async function SharedListPage({ params }: SharedListPageProps) {
         <h1 className="text-4xl font-bold sm:text-5xl">{payload.list.name}</h1>
         <div className="flex items-center gap-3">
           <Avatar>
-            <AvatarImage src={payload.owner.image ?? undefined} alt={ownerName} />
+            <AvatarImage
+              src={payload.owner.image ?? undefined}
+              alt={ownerName}
+            />
             <AvatarFallback>{ownerName.slice(0, 2)}</AvatarFallback>
           </Avatar>
-          <Link href={profilePath} className="text-muted-foreground hover:underline">
+          <Link
+            href={profilePath}
+            className="text-muted-foreground hover:underline"
+          >
             {ownerName}
           </Link>
         </div>
