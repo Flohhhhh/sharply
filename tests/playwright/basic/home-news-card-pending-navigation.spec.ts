@@ -87,8 +87,10 @@ test("homepage browse CTA shows pending feedback before navigating", async ({
 
   await page.goto("/");
 
+  // Two browse CTAs exist (mobile hero + desktop "View all gear"); :visible
+  // picks the one for the current viewport and keeps strict mode satisfied.
   const browseCta = page.locator(
-    '[data-link-button-root="true"][href$="/browse"]',
+    '[data-link-button-root="true"][href$="/browse"]:visible',
   );
   await expect(browseCta).toBeVisible();
 
