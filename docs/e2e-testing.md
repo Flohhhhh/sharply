@@ -77,6 +77,55 @@ Gotchas encoded in the pipeline — don't reorder it:
   (pattern: `tests/playwright/contact.spec.ts`); everything inside the
   app runs for real.
 
+## Page sweep
+
+Alongside the isolation-rule specs above, `tests/playwright/pages/` runs a
+reads-only sweep over (almost) every page route. Rationale and alternatives
+considered: `docs/decisions/2026-08-31-page-sweep-and-coverage.md`.
+
+- **Manifest.** `tests/playwright/utils/route-manifest.ts` is the single
+  source of truth: each `RouteEntry` names a concrete path, its
+  filesystem-derived pattern, a render marker, which spec bucket it belongs
+  to (`core` / `static` / `community` / `tools` / `auth-gated` / `admin`),
+  and whether it needs the signed-in storage state. Spec files
+  (`tests/playwright/pages/*.spec.ts`) just iterate `routesForSpec(...)` —
+  new coverage is a manifest edit, not a new spec file.
+- **Parity guard.** `tests/unit/route-sweep-parity.test.ts` walks `src/app`
+  for every `page.tsx`, and fails if a route pattern is neither in the
+  manifest nor in `route-manifest.ts`'s `skippedRoutes` map. A failure means:
+  add your new route to the manifest, or add it to `skippedRoutes` with a
+  reason.
+- **Assertion contract** (`tests/playwright/utils/expect-page-renders.ts`):
+  for each route, the marker must be visible (primary — proves
+  routing -> service -> data ran), no error boundary text may be present
+  (a late-streamed error still fails the test even though the response was
+  already 200), and the HTTP response must be `.ok()` (secondary — streaming
+  SSR sends its 200 before a late error boundary can paint). Browser-side
+  requests to any host other than `localhost`/`127.0.0.1` are aborted via
+  `page.route`, so the sweep can't flake on an unreachable third party; CI's
+  dummy keys mean server-side calls to those same services already run for
+  real (against dummy credentials) and can't be intercepted from the page.
+- **Fixtures.** `scripts/e2e/seed-fixtures.ts` runs after `db:seed` in the
+  e2e pipeline (`npm run e2e:setup-local` and CI both call it via
+  `e2e:seed-fixtures`) and seeds the deterministic rows some manifest markers
+  depend on (a tag, a shared list, an invite, a recommendation chart) plus
+  the dev user. `scripts/e2e/bootstrap-payload.ts` seeds the Payload-owned
+  fixtures (a published news post, a learn page, a review). **Manifest
+  marker values and fixture values must move together** — renaming a seeded
+  title/slug without updating its `RouteEntry` (or vice versa) breaks the
+  sweep silently until the spec runs.
+- **Auth.** `tests/playwright/auth.setup.ts` is a Playwright `setup` project
+  (`config/playwright.config.ts`) that runs once per invocation: it hits
+  `/api/dev-login` to mint a session for the single seeded identity
+  (`dev@sharply.local`, seeded `SUPERADMIN` by `seed-fixtures.ts`) and
+  writes the resulting cookies to a shared storage state file
+  (`tests/playwright/utils/auth.ts`'s `STORAGE_STATE_PATH`). Every
+  browser project depends on `setup`, and any `RouteEntry` with `auth: true`
+  runs against that storage state. There is only one identity — the sweep
+  cannot currently assert role-scoped or per-user views. The documented (not
+  built) upgrade path is a gated `email` query param on `/api/dev-login` to
+  mint additional seeded identities on demand.
+
 ## Flakes
 
 CI retries twice and warns (`::warning`) on any test that passed only on

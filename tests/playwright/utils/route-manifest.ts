@@ -120,12 +120,16 @@ export const routeManifest: RouteEntry[] = [
   // same reason — same rendered content as above.
   { path: "/developer/docs", pattern: "/developer/docs", marker: { role: "heading", name: "Developer access is not enabled" }, spec: "auth-gated", auth: true },
   // --- admin (signed in as dev@sharply.local, seeded SUPERADMIN) ---
-  // Admin pages are hardcoded English (AGENTS.md). Every /admin/... page also
-  // renders a shared, hidden "Admin Dashboard" <h1> from the layout's header
-  // (admin-header.tsx) — never use it as a marker, it can't distinguish one
-  // admin page's rendered content from another's. Markers below are each
-  // page's own first page-specific heading (or, where a page has none —
-  // shadcn CardTitle renders a <div>, not a heading role — its visible text).
+  // Admin pages are hardcoded English (AGENTS.md) — one exception,
+  // /admin/developer-api, pulls its heading from en.json via i18n, but stays
+  // deterministic because admin paths are unprefixed and defaultLocale is en
+  // (src/i18n/config.ts), so it always resolves to the English string. Every
+  // /admin/... page also renders a shared, hidden "Admin Dashboard" <h1> from
+  // the layout's header (admin-header.tsx) — never use it as a marker, it
+  // can't distinguish one admin page's rendered content from another's.
+  // Markers below are each page's own first page-specific heading (or, where
+  // a page has none — shadcn CardTitle renders a <div>, not a heading role —
+  // its visible text).
   { path: "/admin", pattern: "/admin", marker: { role: "heading", name: "Gear Edit Proposals" }, spec: "admin", auth: true },
   { path: "/admin/analytics", pattern: "/admin/analytics", marker: { role: "heading", name: "Image Requests" }, spec: "admin", auth: true },
   { path: "/admin/approved-creators", pattern: "/admin/approved-creators", marker: { role: "heading", name: "Approved Creators" }, spec: "admin", auth: true },
@@ -148,8 +152,9 @@ export const routeManifest: RouteEntry[] = [
   { path: "/admin/recommended-lenses/new", pattern: "/admin/recommended-lenses/new", marker: { role: "heading", name: "Create Chart" }, spec: "admin", auth: true },
 ];
 
-/** pattern -> reason. Permanent skips keep their reason; "fixture pending"
- *  entries migrate into routeManifest in Tasks 5-8. */
+/** pattern -> reason. Every route in src/app either lands in routeManifest
+ *  above or gets a skip entry here with a reason — see
+ *  tests/unit/route-sweep-parity.test.ts, which fails the build otherwise. */
 export const skippedRoutes: Record<string, string> = {
   "/cms/[[...segments]]": "Payload's own admin UI — not ours to sweep",
   "/ui-demo": "dev-only component gallery",
