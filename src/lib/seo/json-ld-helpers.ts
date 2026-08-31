@@ -1,4 +1,4 @@
-import { defaultLocale } from "~/i18n/config";
+import { defaultLocale, type Locale } from "~/i18n/config";
 import { getLocalizedUrl } from "~/i18n/routing";
 import { BRANDS, SENSOR_FORMATS } from "~/lib/generated";
 import type { GearItem, GearType } from "~/types/gear";
@@ -261,6 +261,7 @@ export type ArticleJsonLdInput = {
   type: "Article" | "NewsArticle";
   /** App-relative path of the article (e.g. "/news/some-post"). */
   path: string;
+  locale: Locale;
   headline: string;
   description?: string | null;
   imageUrl?: string | null;
@@ -269,7 +270,7 @@ export type ArticleJsonLdInput = {
 };
 
 export function buildArticleJsonLd(input: ArticleJsonLdInput): JsonLdNode {
-  const canonicalUrl = getLocalizedUrl(input.path, defaultLocale);
+  const canonicalUrl = getLocalizedUrl(input.path, input.locale);
   const article: JsonLdNode = {
     "@type": input.type,
     "@id": canonicalUrl,

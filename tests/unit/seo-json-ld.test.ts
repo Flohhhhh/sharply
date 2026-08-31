@@ -198,6 +198,7 @@ describe("buildArticleJsonLd", () => {
     const node = buildArticleJsonLd({
       type: "NewsArticle",
       path: "/news/big-announcement",
+      locale: "en",
       headline: "Big Announcement",
       description: "Something happened.",
       datePublished: "2026-08-01T00:00:00.000Z",
@@ -209,6 +210,19 @@ describe("buildArticleJsonLd", () => {
     expect(node.author).toEqual({ "@id": `${BASE}/#organization` });
     expect(node.datePublished).toBe("2026-08-01T00:00:00.000Z");
     expect(node.dateModified).toBe("2026-08-02T00:00:00.000Z");
+  });
+
+  it("uses the article locale for canonical URLs", () => {
+    const node = buildArticleJsonLd({
+      type: "Article",
+      path: "/learn/exposure",
+      locale: "de",
+      headline: "Belichtung",
+    });
+
+    expect(node["@id"]).toBe(`${BASE}/de/learn/exposure`);
+    expect(node.url).toBe(`${BASE}/de/learn/exposure`);
+    expect(node.mainEntityOfPage).toBe(`${BASE}/de/learn/exposure`);
   });
 });
 

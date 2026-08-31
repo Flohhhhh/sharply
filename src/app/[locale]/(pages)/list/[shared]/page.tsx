@@ -39,8 +39,6 @@ export async function generateMetadata({
       ? t("sharedGearListFromOwner", { owner: ownerName })
       : t("currentlyUnpublished");
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-
   return buildLocalizedMetadata(
     payload.canonicalPath,
     {
@@ -51,7 +49,6 @@ export async function generateMetadata({
         title,
         description,
         type: "website",
-        url: baseUrl ? `${baseUrl}${payload.canonicalPath}` : undefined,
       },
       twitter: {
         card: "summary_large_image",

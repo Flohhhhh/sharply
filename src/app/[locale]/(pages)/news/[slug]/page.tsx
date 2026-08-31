@@ -12,6 +12,7 @@ import { TableOfContents } from "~/components/rich-text/table-of-contents";
 import { Badge } from "~/components/ui/badge";
 import { Separator } from "~/components/ui/separator";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
+import type { Locale } from "~/i18n/config";
 import { getGearDisplayImageUrl } from "~/lib/gear/display-image";
 import { formatDate } from "~/lib/format/date";
 import { getItemDisplayPrice } from "~/lib/mapping";
@@ -32,7 +33,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ locale: string; slug: string }>;
+  params: Promise<{ locale: Locale; slug: string }>;
 }): Promise<Metadata> {
   const { locale, slug } = await params;
   const t = await getTranslations({ locale, namespace: "newsPage" });
@@ -82,7 +83,7 @@ export async function generateMetadata({
 export default async function DynamicPage({
   params,
 }: {
-  params: Promise<{ locale: string; slug: string }>;
+  params: Promise<{ locale: Locale; slug: string }>;
 }) {
   const { locale, slug } = await params;
   const t = await getTranslations({ locale, namespace: "newsPage" });
@@ -149,6 +150,7 @@ export default async function DynamicPage({
           buildArticleJsonLd({
             type: "NewsArticle",
             path: `/news/${slug}`,
+            locale,
             headline: page.title,
             description: page.excerpt ?? null,
             imageUrl: imageSrc ?? null,

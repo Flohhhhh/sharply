@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JsonLd } from "~/components/json-ld";
 import { RichText } from "~/components/rich-text";
+import type { Locale } from "~/i18n/config";
 import { buildArticleJsonLd } from "~/lib/seo/json-ld-helpers";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import {
@@ -25,7 +26,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ locale: string; slug: string }>;
+  params: Promise<{ locale: Locale; slug: string }>;
 }): Promise<Metadata> {
   const { locale, slug } = await params;
   const page = await getLearnPageBySlug(slug);
@@ -60,9 +61,9 @@ export async function generateMetadata({
 export default async function LearnArticlePage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: Locale; slug: string }>;
 }) {
-  const { slug } = await params;
+  const { locale, slug } = await params;
   const page = await getLearnPageBySlug(slug);
   if (!page) {
     notFound();
@@ -86,6 +87,7 @@ export default async function LearnArticlePage({
           buildArticleJsonLd({
             type: "Article",
             path: `/learn/${slug}`,
+            locale,
             headline: page.title,
             description: page.excerpt ?? null,
             imageUrl: thumbUrl,
