@@ -42,11 +42,25 @@ Sharply is a photography gear database and cataloging application built with Nex
 
 ### Keeping `/docs` Up to Date
 
+- Treat `/docs` as the source of truth for the application's current architecture, behavior, and operational workflows.
 - **Document new features** and their database implications
 - **Update gear-specification-system.md** when gear-related schemas change
 - **Update mapping-system.md** when mapping or relationship logic changes
 - **Maintain consistency** between code and documentation
 - Do not add every single spec or small change to docs, only conceptual context and possible confusion points, clean up any docs content that does not fit this rule without destroying anything important.
+
+### Decision Records
+
+- Store durable technical decisions in `docs/decisions/` using `YYYY-MM-DD-short-topic.md` filenames.
+- Add a decision record only for a significant, non-obvious, long-lived architectural, data-model, security, operational, or development-workflow choice whose reasoning would help future contributors.
+- Each record should concisely state its status, context, decision, important alternatives, consequences, and related documentation or pull requests.
+- Update or supersede an existing record when the project changes direction; do not leave conflicting decisions without explanation.
+- Do not create decision records for routine fixes or self-explanatory changes.
+
+### Plans
+
+- Do not commit implementation plans, agent checklists, planning-mode output, or skill-generated plans to the repository.
+- Planning may be performed ephemerally by contributors or agents, but only shipped behavior belongs in the relevant `/docs` pages and only durable rationale belongs in `docs/decisions/`.
 
 ## Agent-Specific Instructions
 

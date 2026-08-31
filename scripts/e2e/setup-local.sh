@@ -2,7 +2,7 @@
 # One-command local mirror of the e2e CI pipeline.
 # Spins up a disposable Postgres (port 5433 — never clashes with the dev DB),
 # then runs: pg_trgm -> drizzle push -> payload bootstrap -> seed.
-# Docs: docs/e2e-testing.md   Spec: docs/superpowers/specs/2026-08-31-e2e-ci-design.md
+# Docs: docs/e2e-testing.md   Decision: docs/decisions/2026-08-31-hermetic-e2e-ci.md
 set -euo pipefail
 
 CONTAINER_NAME="sharply-e2e-postgres"

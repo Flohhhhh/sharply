@@ -1,7 +1,7 @@
 /**
  * E2E bootstrap: initializes the Payload Local API under NODE_ENV=development,
  * which triggers the postgres adapter's dev-mode schema push (this repo has no
- * Payload migrations — see docs/superpowers/specs/2026-08-31-e2e-ci-design.md §2),
+ * Payload migrations — see docs/decisions/2026-08-31-hermetic-e2e-ci.md),
  * then seeds the minimal published content the Playwright suite asserts on.
  * Idempotent: safe to re-run against a dirty local database.
  */

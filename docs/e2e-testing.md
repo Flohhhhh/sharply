@@ -3,7 +3,7 @@
 The Playwright suite (`tests/playwright/`) runs on every PR via
 `.github/workflows/e2e-tests.yml` against a hermetic Postgres service
 container — no Neon, no secrets, no Vercel involvement.
-Design: `docs/superpowers/specs/2026-08-31-e2e-ci-design.md`.
+Decision record: `docs/decisions/2026-08-31-hermetic-e2e-ci.md`.
 
 ## Local setup (one command)
 
