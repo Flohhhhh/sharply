@@ -22,6 +22,9 @@ env:
   DATABASE_URL: postgres://postgres:postgres@localhost:5432/sharply_e2e
   PAYLOAD_SECRET: e2e-ci-payload-secret
   AUTH_SECRET: e2e-ci-auth-secret
+  # The creator-videos route constructs an OpenAI client at module scope; the
+  # SDK throws at import time without a key. Never called by any spec.
+  OPENAI_API_KEY: e2e-ci-dummy
   NEXT_PUBLIC_BASE_URL: http://localhost:3000
   SKIP_ENV_VALIDATION: "1"
   PLAYWRIGHT_ALL_PROJECTS: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'true' || '' }}

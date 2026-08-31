@@ -29,6 +29,10 @@ Gotchas encoded in the pipeline — don't reorder it:
 - The build must run AFTER seeding: ISR/SSG pages query the DB at build time.
 - `PLAYWRIGHT_BASE_URL` must stay unset in CI: setting it disables the
   managed webServer (`config/playwright.config.ts`).
+- Some SDK clients are constructed at module scope and throw at import
+  without a key (OpenAI, via the creator-videos route) — CI carries dummy
+  values for these. Locally, `next build` silently reads your `.env`, so a
+  missing dummy only ever surfaces in CI.
 
 ## Writing specs — isolation rules
 

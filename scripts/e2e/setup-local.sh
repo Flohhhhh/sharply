@@ -11,6 +11,7 @@ DB_PORT="${E2E_DB_PORT:-5433}"
 export DATABASE_URL="postgres://postgres:postgres@localhost:${DB_PORT}/sharply_e2e"
 export PAYLOAD_SECRET="${PAYLOAD_SECRET:-e2e-local-secret}"
 export AUTH_SECRET="${AUTH_SECRET:-e2e-local-auth-secret}"
+export OPENAI_API_KEY="${OPENAI_API_KEY:-e2e-local-dummy}"
 export NEXT_PUBLIC_BASE_URL="${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}"
 export SKIP_ENV_VALIDATION=1
 
