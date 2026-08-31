@@ -25,24 +25,24 @@ Run e2e hermetically on GitHub-hosted runners: a Postgres service container, det
 
 Each of these was checked in-repo during design, not assumed:
 
-| Fact | Evidence |
-|---|---|
-| Repo is public → Actions minutes free | `gh repo view` → `"visibility": "PUBLIC"` |
-| Playwright config expands to 4 browser projects whenever `CI=true` | `config/playwright.config.ts:7-8` |
-| Setting `PLAYWRIGHT_BASE_URL` disables Playwright's managed web server | `config/playwright.config.ts:9` (`shouldManageServer`) |
-| The landing page queries Payload at render time | `src/app/[locale]/(pages)/page.tsx` → `getNewsPosts`, `getReviews` |
-| Payload has **no migrations** in the repo; its tables exist only via dev-mode auto-push | `find` for Payload migration files → none |
-| `src/lib/generated` is **not committed**; seed imports it | `git ls-files src/lib/generated` → empty; `scripts/seed.ts` imports |
-| Fresh DBs lack `pg_trgm`; search fails **silently** without it | `schema.ts:24` exports the statement but nothing executes it; suggest route swallows the error |
-| `TrendingList` renders `null` with no popularity data | `src/components/trending-list.tsx:77` |
-| Seed populates no popularity tables | `scripts/seed.ts` imports (no popularity tables) |
-| News and Review collections require a Media upload | `src/collections/News.ts` / `Review.ts` (`type: "upload", required: true`) |
-| Blob storage is disabled without a token (local-disk fallback) | `src/payload.config.ts:71` (`enabled: Boolean(process.env.BLOB_READ_WRITE_TOKEN)`) |
-| `/api/dev-login` self-provisions its user (`dev@sharply.local`) | `src/server/auth/dev-auth/service.ts` + `createDevelopmentUserData` |
-| The contact spec mocks `/api/contact`; no Resend key needed | `tests/playwright/contact.spec.ts` (`page.route`) |
-| The news-card spec requires ≥1 published news post | `home-news-card-pending-navigation.spec.ts` (`expect(firstNewsCard).toBeVisible()`) |
-| Scheduled workflows run from the default branch (`main`); integration happens on `development` | `git remote show origin`; memory: PRs target `development`, `main` moves via promotion PRs |
-| `drizzle.config.ts` reads `env.DATABASE_URL` | `config/drizzle.config.ts:9` |
+| Fact                                                                                                                                                                     | Evidence                                                                                                         |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| Repo is public → Actions minutes free                                                                                                                                    | `gh repo view` → `"visibility": "PUBLIC"`                                                                        |
+| Playwright config expands to 4 browser projects whenever `CI=true`                                                                                                       | `config/playwright.config.ts:7-8`                                                                                |
+| Setting `PLAYWRIGHT_BASE_URL` disables Playwright's managed web server                                                                                                   | `config/playwright.config.ts:9` (`shouldManageServer`)                                                           |
+| The landing page queries Payload at render time                                                                                                                          | `src/app/[locale]/(pages)/page.tsx` → `getNewsPosts`, `getReviews`                                               |
+| Payload has **no migrations** in the repo; its tables exist only via dev-mode auto-push                                                                                  | `find` for Payload migration files → none                                                                        |
+| `src/lib/generated.ts` **is committed** (an earlier check used a directory path and was wrong); `constants:generate` is a guarded no-op unless `GENERATE_CONSTANTS=true` | `git ls-files src/lib/generated.ts`; `scripts/generate-constants.ts` guard — the final workflow dropped the step |
+| Fresh DBs lack `pg_trgm`; search fails **silently** without it                                                                                                           | `schema.ts:24` exports the statement but nothing executes it; suggest route swallows the error                   |
+| `TrendingList` renders `null` with no popularity data                                                                                                                    | `src/components/trending-list.tsx:77`                                                                            |
+| Seed populates no popularity tables                                                                                                                                      | `scripts/seed.ts` imports (no popularity tables)                                                                 |
+| News and Review collections require a Media upload                                                                                                                       | `src/collections/News.ts` / `Review.ts` (`type: "upload", required: true`)                                       |
+| Blob storage is disabled without a token (local-disk fallback)                                                                                                           | `src/payload.config.ts:71` (`enabled: Boolean(process.env.BLOB_READ_WRITE_TOKEN)`)                               |
+| `/api/dev-login` self-provisions its user (`dev@sharply.local`)                                                                                                          | `src/server/auth/dev-auth/service.ts` + `createDevelopmentUserData`                                              |
+| The contact spec mocks `/api/contact`; no Resend key needed                                                                                                              | `tests/playwright/contact.spec.ts` (`page.route`)                                                                |
+| The news-card spec requires ≥1 published news post                                                                                                                       | `home-news-card-pending-navigation.spec.ts` (`expect(firstNewsCard).toBeVisible()`)                              |
+| Scheduled workflows run from the default branch (`main`); integration happens on `development`                                                                           | `git remote show origin`; memory: PRs target `development`, `main` moves via promotion PRs                       |
+| `drizzle.config.ts` reads `env.DATABASE_URL`                                                                                                                             | `config/drizzle.config.ts:9`                                                                                     |
 
 ## 1. CI workflow anatomy
 
@@ -58,7 +58,7 @@ A new `.github/workflows/e2e-tests.yml`, mirroring `unit-tests.yml` conventions.
 4. **Next.js build cache** (`.next/cache`, keyed on lockfile + source-file hashes with graceful `restore-keys`) — the build step is the largest chunk of the run (~3–4 min cold); a warm webpack cache roughly halves it.
 5. Postgres 17 service container (`postgres:17-alpine`, `pg_isready` health check, port 5432).
 6. `psql -c "CREATE EXTENSION IF NOT EXISTS pg_trgm"` — before schema push (see §2).
-7. `npm run constants:generate` — seed and app import the uncommitted `src/lib/generated`.
+7. ~~`npm run constants:generate`~~ — dropped during implementation: `src/lib/generated.ts` is committed and the generator is a guarded no-op without `GENERATE_CONSTANTS=true` (a clobber trap if ever enabled here).
 8. `drizzle-kit push --force` — `--force` is mandatory; interactive prompts hang headless runners.
 9. `npm run e2e:bootstrap` — Payload schema push + Payload content fixtures (see §2, §3).
 10. `npm run db:seed` — Drizzle data, extended with popularity rollups (see §2).
@@ -90,9 +90,9 @@ A new `.github/workflows/e2e-tests.yml`, mirroring `unit-tests.yml` conventions.
 **Two content seeds, matching the two owners:**
 
 - `db:seed` for Drizzle data — **extended to insert deterministic popularity rollups** for a handful of seeded gear items, without which `TrendingList` renders `null` and the home trending spec fails. Extending the main seed (not an e2e-only shim) also fixes fresh local setups.
-- The bootstrap script seeds minimal Payload content via the Local API, in dependency order: a Media doc from a committed fixture image in `tests/fixtures/` (News's `image` field is `required: true`), then ≥1 **published** news post referencing it. With no blob token, uploads land on local disk — free, hermetic. The script is find-or-create idempotent (CI never needs that; the local dry-run loop does). A Payload review is added only if the dry run shows the home page needs one — no current spec asserts review cards.
+- The bootstrap script seeds minimal Payload content via the Local API, in dependency order: a Media doc from a committed fixture image in `tests/fixtures/` (News's `thumbnail` upload field is `required: true`), then ≥1 **published** news post referencing it. With no blob token, uploads land on local disk — free, hermetic. The script is find-or-create idempotent (CI never needs that; the local dry-run loop does). A Payload review is added only if the dry run shows the home page needs one — no current spec asserts review cards.
 
-**Pipeline order:** health check → `pg_trgm` → `constants:generate` → `db:push --force` → `bootstrap-payload` → `db:seed` → `next build` → Playwright.
+**Pipeline order (as shipped):** health check → `pg_trgm` → `db:push --force` → `bootstrap-payload` → `db:seed` → `next build` → Playwright.
 
 **Data guarantees the seeds must provide** (what existing specs assert): ≥1 published news post; ≥1 trending gear row; ≥1 brand link on `/browse`; a populated gear list.
 
@@ -101,6 +101,7 @@ A new `.github/workflows/e2e-tests.yml`, mirroring `unit-tests.yml` conventions.
 **Auth:** no seeded users — `/api/dev-login` self-provisions; specs authenticate exactly as `routing-auth.spec.ts` already does. Its Discord signup notification no-ops with the webhook env unset.
 
 **Isolation rules for spec authors** (goes in the runbook; matters more as coverage grows):
+
 - Cross-run: guaranteed clean — the DB dies with the runner.
 - Within-run: one worker runs files serially in no guaranteed order. Specs may write, but must never assert global aggregates ("exactly 12 gear items") or assume another spec hasn't run. Assert on what you created or what the seed deterministically contains.
 
@@ -119,7 +120,7 @@ Everything else stays: `retries: 2` on CI, `workers: 1`, `forbidOnly`, trace/scr
 
 - `"e2e:bootstrap": "NODE_ENV=development tsx scripts/e2e/bootstrap-payload.ts"`
 - `"start:e2e": "DEV_AUTH=true DEV_AUTH_PREVIEW=true SKIP_ENV_VALIDATION=1 next start -p 3000"` — deliberately no `-H 127.0.0.1`; default binding sidesteps localhost-resolution mismatch on runners.
-- `"e2e:setup-local": "bash scripts/e2e/setup-local.sh"` — the one-command local mirror of CI: starts a disposable Docker Postgres (on a non-default port so it never clashes with the dev database), creates `pg_trgm`, and runs the full pipeline (`constants:generate` → `db:push --force` → `e2e:bootstrap` → `db:seed`), leaving the developer one `npm run test:e2e` away from a CI-identical run. This script **is** the Phase-0 dry run, and it permanently fixes the fresh-local-setup traps (silent search, empty trending, missing Payload tables).
+- `"e2e:setup-local": "bash scripts/e2e/setup-local.sh"` — the one-command local mirror of CI: starts a disposable Docker Postgres (on a non-default port so it never clashes with the dev database), creates `pg_trgm`, and runs the full pipeline (`db:push --force` → `e2e:bootstrap` → `db:seed`), leaving the developer one `npm run test:e2e` away from a CI-identical run. This script **is** the Phase-0 dry run, and it permanently fixes the fresh-local-setup traps (silent search, empty trending, missing Payload tables).
 
 **Maintainer trap, documented:** `PLAYWRIGHT_BASE_URL` must stay **unset** in CI — setting it flips `shouldManageServer` to false and Playwright waits forever for a server nobody started.
 
@@ -143,7 +144,7 @@ Everything else stays: `retries: 2` on CI, `workers: 1`, `forbidOnly`, trace/scr
 
 **Nightly matrix — against the integration branch, explicitly.** Cron at an off-peak, non-top-of-hour time (e.g. `17 9 * * *`) + `workflow_dispatch`, with `PLAYWRIGHT_ALL_PROJECTS=true`, `timeout-minutes: 45`. Scheduled workflows execute from the default branch (`main`), so the job pins its checkout to `ref: development` — otherwise nightly matrix-tests stale code. Failures surface via Actions and scheduled-failure emails; a Discord webhook is a cheap follow-up if those get missed. GitHub pauses schedules after 60 days of repo inactivity — `workflow_dispatch` is the fallback. If nightly brushes the 45-minute cap: it's a diagnostic, not a gate — bump the cap, don't split the job.
 
-**Flake discipline — including the invisible kind.** Retries make *passing* flakes invisible (fail-then-pass shows green, uploads nothing). The JSON-report tripwire (§1 step 12) emits a warning annotation whenever a test passed on retry. Policy: two flakes in a week ⇒ quarantine immediately (`test.fixme` + an issue). A jittery check people override is worse than no check.
+**Flake discipline — including the invisible kind.** Retries make _passing_ flakes invisible (fail-then-pass shows green, uploads nothing). The JSON-report tripwire (§1 step 12) emits a warning annotation whenever a test passed on retry. Policy: two flakes in a week ⇒ quarantine immediately (`test.fixme` + an issue). A jittery check people override is worse than no check.
 
 **Cost posture.** $0 today at any volume. If the repo ever goes private: ~10–14 min/PR run against 2,000 free monthly minutes ≈ ~150 PR runs before a bill; first levers are dropping the nightly matrix and tightening triggers.
 

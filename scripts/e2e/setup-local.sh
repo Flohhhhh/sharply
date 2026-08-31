@@ -15,6 +15,10 @@ export OPENAI_API_KEY="${OPENAI_API_KEY:-e2e-local-dummy}"
 export NEXT_PUBLIC_BASE_URL="${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}"
 export BETTER_AUTH_URL="${BETTER_AUTH_URL:-http://localhost:3000}"
 export SKIP_ENV_VALIDATION=1
+# A blob token inherited from the shell (e.g. direnv) would point Payload at
+# the REAL Vercel Blob store during build/start. The bootstrap script guards
+# itself; this covers every other step run from this script.
+unset BLOB_READ_WRITE_TOKEN
 
 if [ -n "$(docker ps -aq -f name="^${CONTAINER_NAME}$")" ]; then
   # Guard against a stale container published on a different port: DATABASE_URL
@@ -65,13 +69,16 @@ cat <<EOF
 
 [e2e] database ready: ${DATABASE_URL}
 
-CI-identical run (production build; CI=true matches workers/retries/reporters):
-  DATABASE_URL="${DATABASE_URL}" PAYLOAD_SECRET="${PAYLOAD_SECRET}" AUTH_SECRET="${AUTH_SECRET}" \\
-    BETTER_AUTH_URL="${BETTER_AUTH_URL}" NEXT_PUBLIC_BASE_URL="${NEXT_PUBLIC_BASE_URL}" \\
-    OPENAI_API_KEY="${OPENAI_API_KEY}" SKIP_ENV_VALIDATION=1 npx next build --webpack
-  CI=true DATABASE_URL="${DATABASE_URL}" PAYLOAD_SECRET="${PAYLOAD_SECRET}" AUTH_SECRET="${AUTH_SECRET}" \\
-    BETTER_AUTH_URL="${BETTER_AUTH_URL}" NEXT_PUBLIC_BASE_URL="${NEXT_PUBLIC_BASE_URL}" \\
-    OPENAI_API_KEY="${OPENAI_API_KEY}" PLAYWRIGHT_SERVER_COMMAND="npm run start:e2e" npm run test:e2e
+CI-identical run (production build; CI=true matches workers/retries/reporters;
+BLOB_READ_WRITE_TOKEN blanked so a shell-exported token can't reach real storage):
+  BLOB_READ_WRITE_TOKEN= DATABASE_URL="${DATABASE_URL}" PAYLOAD_SECRET="${PAYLOAD_SECRET}" \\
+    AUTH_SECRET="${AUTH_SECRET}" BETTER_AUTH_URL="${BETTER_AUTH_URL}" \\
+    NEXT_PUBLIC_BASE_URL="${NEXT_PUBLIC_BASE_URL}" OPENAI_API_KEY="${OPENAI_API_KEY}" \\
+    SKIP_ENV_VALIDATION=1 npx next build --webpack
+  CI=true BLOB_READ_WRITE_TOKEN= DATABASE_URL="${DATABASE_URL}" PAYLOAD_SECRET="${PAYLOAD_SECRET}" \\
+    AUTH_SECRET="${AUTH_SECRET}" BETTER_AUTH_URL="${BETTER_AUTH_URL}" \\
+    NEXT_PUBLIC_BASE_URL="${NEXT_PUBLIC_BASE_URL}" OPENAI_API_KEY="${OPENAI_API_KEY}" \\
+    PLAYWRIGHT_SERVER_COMMAND="npm run start:e2e" npm run test:e2e
 
 Tear down when done:
   docker rm -f ${CONTAINER_NAME}

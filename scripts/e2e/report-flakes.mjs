@@ -3,8 +3,11 @@
 // this keeps them visible. Always exits 0 — it warns, it never fails a run.
 import { appendFileSync, readFileSync } from "node:fs";
 
+/** @param {unknown} value @returns {any[]} */
+const asArray = (value) => (Array.isArray(value) ? value : []);
+
 /**
- * @param {any} report Parsed Playwright JSON report.
+ * @param {any} report Parsed Playwright JSON report (untrusted shape).
  * @returns {string[]} Human-readable titles of tests that passed only on retry.
  */
 export function collectFlakyTests(report) {
@@ -12,17 +15,19 @@ export function collectFlakyTests(report) {
   const flaky = [];
   /** @type {(suite: any, trail: string[]) => void} */
   const walk = (suite, trail) => {
-    for (const child of suite.suites ?? [])
-      walk(child, [...trail, child.title]);
-    for (const spec of suite.specs ?? []) {
+    for (const child of asArray(suite?.suites))
+      walk(child, [...trail, child?.title]);
+    for (const spec of asArray(suite?.specs)) {
       if (
-        (spec.tests ?? []).some((/** @type {any} */ t) => t.status === "flaky")
+        asArray(spec?.tests).some(
+          (/** @type {any} */ t) => t?.status === "flaky",
+        )
       ) {
-        flaky.push([...trail, spec.title].filter(Boolean).join(" › "));
+        flaky.push([...trail, spec?.title].filter(Boolean).join(" › "));
       }
     }
   };
-  for (const suite of report?.suites ?? []) walk(suite, [suite.title]);
+  for (const suite of asArray(report?.suites)) walk(suite, [suite?.title]);
   return flaky;
 }
 

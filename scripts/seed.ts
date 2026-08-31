@@ -1170,7 +1170,13 @@ async function ensureUser(userSeed: ReviewSeed["user"]) {
 }
 
 async function seedPopularityWindows() {
-  const seededGear = await db.select({ id: gear.id }).from(gear).limit(10);
+  // Ordered so the same gear get the same rank-dependent scores on every
+  // database — LIMIT without ORDER BY is nondeterministic in Postgres.
+  const seededGear = await db
+    .select({ id: gear.id })
+    .from(gear)
+    .orderBy(gear.slug)
+    .limit(10);
   if (seededGear.length === 0) {
     console.log("[seed] popularity: no gear rows, skipping");
     return;

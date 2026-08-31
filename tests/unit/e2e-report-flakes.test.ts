@@ -33,5 +33,18 @@ describe("collectFlakyTests", () => {
   it("handles empty and malformed reports", () => {
     expect(collectFlakyTests({})).toEqual([]);
     expect(collectFlakyTests({ suites: [] })).toEqual([]);
+    expect(collectFlakyTests(null)).toEqual([]);
+    expect(collectFlakyTests("not a report")).toEqual([]);
+    expect(collectFlakyTests({ suites: "oops" })).toEqual([]);
+    expect(
+      collectFlakyTests({
+        suites: [{ title: "s", suites: 42, specs: { bad: true } }],
+      }),
+    ).toEqual([]);
+    expect(
+      collectFlakyTests({
+        suites: [{ title: "s", specs: [{ title: "t", tests: "broken" }] }],
+      }),
+    ).toEqual([]);
   });
 });
