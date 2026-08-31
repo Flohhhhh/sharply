@@ -69,16 +69,23 @@ async function ensureSharedList(userId: string) {
     .where(eq(sharedLists.publicId, "e2eseedpub1"))
     .limit(1);
   if (existing[0]) return;
-  const [list] = await db
-    .insert(userLists)
-    .values({ userId, name: "E2E Shared List" })
-    .returning();
-  await db.insert(userListItems).values({ listId: list!.id, gearId: Z6III_ID });
-  await db.insert(sharedLists).values({
-    listId: list!.id,
-    slug: "e2e-shared-list",
-    publicId: "e2eseedpub1",
-    isPublished: true,
+  // Transaction: without it, a crash between the userLists insert and the
+  // sharedLists insert leaves an orphaned list with no visible fixture row —
+  // the existence check above (on sharedLists.publicId) would never see it
+  // and would keep retrying the whole chain. Atomicity makes that impossible:
+  // either every row lands, or none does and the next run starts clean.
+  await db.transaction(async (tx) => {
+    const [list] = await tx
+      .insert(userLists)
+      .values({ userId, name: "E2E Shared List" })
+      .returning();
+    await tx.insert(userListItems).values({ listId: list!.id, gearId: Z6III_ID });
+    await tx.insert(sharedLists).values({
+      listId: list!.id,
+      slug: "e2e-shared-list",
+      publicId: "e2eseedpub1",
+      isPublished: true,
+    });
   });
 }
 
@@ -94,24 +101,39 @@ async function ensureInvite(createdById: string) {
 }
 
 async function ensureRecommendationChart() {
-  const existing = await db
+  const existingChart = await db
     .select()
     .from(recommendationCharts)
     .where(eq(recommendationCharts.slug, "e2e-seed-chart"))
     .limit(1);
-  if (existing[0]) return;
-  const [chart] = await db
-    .insert(recommendationCharts)
-    .values({
-      brand: "nikon",
-      slug: "e2e-seed-chart",
-      title: "E2E Seed Nikon Chart",
-      updatedDate: "2026-08-31",
-      isPublished: true,
-    })
-    .returning();
+  const chartId =
+    existingChart[0]?.id ??
+    (
+      await db
+        .insert(recommendationCharts)
+        .values({
+          brand: "nikon",
+          slug: "e2e-seed-chart",
+          title: "E2E Seed Nikon Chart",
+          updatedDate: "2026-08-31",
+          isPublished: true,
+        })
+        .returning()
+    )[0]!.id;
+
+  // Re-check the child row explicitly instead of returning early once the
+  // chart exists: an early return keyed only on the parent (as this used to
+  // do) can never notice a chart whose item is missing — whether from a
+  // crash between the two inserts, a manual deletion, or any other cause —
+  // and would then report "fixtures ensured" forever while under-seeded.
+  const existingItem = await db
+    .select()
+    .from(recommendationItems)
+    .where(eq(recommendationItems.chartId, chartId))
+    .limit(1);
+  if (existingItem[0]) return;
   await db.insert(recommendationItems).values({
-    chartId: chart!.id,
+    chartId,
     gearId: Z6III_ID,
     rating: "balanced", // recommendationRatingEnum, schema.ts:336
   });
