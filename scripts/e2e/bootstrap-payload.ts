@@ -11,6 +11,8 @@ import { fileURLToPath } from "node:url";
 import { getPayload } from "payload";
 import type { CollectionSlug } from "payload";
 
+import { assertLocalDatabase } from "./assert-local-e2e-db";
+
 // Hermetic by design: a blob token inherited from the shell would make
 // payload.config switch Media storage to the REAL Vercel Blob store and
 // upload e2e fixtures into production storage. Delete it before the config
@@ -96,6 +98,13 @@ async function docExists(
 }
 
 async function main() {
+  // Must run before the config import below: this script writes published
+  // content via the Payload Local API, and some environments (see AGENTS.md)
+  // inject a DATABASE_URL pointing at a Neon preview branch derived from
+  // production. Checking after config/Payload init would be too late — the
+  // dynamic import itself is what triggers the postgres adapter's dev-mode
+  // schema push against whatever DATABASE_URL is set.
+  assertLocalDatabase("e2e:bootstrap");
   const { default: config } = await import("../../src/payload.config");
   const payload = await getPayload({ config });
 

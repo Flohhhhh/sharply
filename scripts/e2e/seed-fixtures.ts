@@ -5,7 +5,7 @@
  */
 import "dotenv/config";
 
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 import { db } from "../../src/server/db";
 import {
@@ -19,6 +19,7 @@ import {
   userLists,
   users,
 } from "../../src/server/db/schema";
+import { assertLocalDatabase } from "./assert-local-e2e-db";
 
 const Z6III_ID = "ec11113e-ae24-44cb-871f-4eb763d2d378"; // scripts/seed.ts liveZ6iii
 
@@ -101,10 +102,18 @@ async function ensureInvite(createdById: string) {
 }
 
 async function ensureRecommendationChart() {
+  // recommendation_charts' unique index is composite (brand, slug) — a
+  // slug-only lookup could match a different brand's chart of the same slug
+  // and skip creating this one.
   const existingChart = await db
     .select()
     .from(recommendationCharts)
-    .where(eq(recommendationCharts.slug, "e2e-seed-chart"))
+    .where(
+      and(
+        eq(recommendationCharts.brand, "nikon"),
+        eq(recommendationCharts.slug, "e2e-seed-chart"),
+      ),
+    )
     .limit(1);
   const chartId =
     existingChart[0]?.id ??
@@ -139,26 +148,8 @@ async function ensureRecommendationChart() {
   });
 }
 
-// Guards against running against the wrong database: this script writes a
-// SUPERADMIN user, and some environments (see AGENTS.md) inject a
-// DATABASE_URL pointing at a Neon preview branch derived from production.
-function assertLocalDatabase() {
-  let hostname: string;
-  try {
-    hostname = new URL(process.env.DATABASE_URL ?? "").hostname;
-  } catch {
-    hostname = "";
-  }
-  if (hostname !== "localhost" && hostname !== "127.0.0.1") {
-    console.error(
-      `[e2e:seed-fixtures] refusing to run: DATABASE_URL host "${hostname || "(unset/unparseable)"}" is not localhost/127.0.0.1 — this script writes a SUPERADMIN user and must only target a local e2e database.`,
-    );
-    process.exit(1);
-  }
-}
-
 async function main() {
-  assertLocalDatabase();
+  assertLocalDatabase("e2e:seed-fixtures");
   const devUser = await ensureDevUser();
   await ensureTag();
   await ensureSharedList(devUser.id);
