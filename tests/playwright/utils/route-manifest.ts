@@ -93,6 +93,17 @@ export const routeManifest: RouteEntry[] = [
   // renders verbatim in the subtitle <p> beneath it. Deviates from the
   // brief's role:"heading" marker for that reason.
   { path: "/reviews/sharply-e2e-seed-review", pattern: "/reviews/[slug]", marker: { text: "Sharply E2E seed review" }, spec: "community" },
+  // --- tools (client-heavy static tools, no fixture data) ---
+  // No ?i= pair is supplied, so CompareEmptyState renders — its heading is
+  // the genuinely-rendered default state, not a data-backed comparison.
+  { path: "/compare", pattern: "/compare", marker: { role: "heading", name: "Nothing to compare yet" }, spec: "tools" },
+  { path: "/exif-viewer", pattern: "/exif-viewer", marker: { role: "heading", name: "Shutter Count & EXIF Viewer" }, spec: "tools" },
+  { path: "/focal-length-reference", pattern: "/focal-length-reference", marker: { role: "heading", name: "Field of View Reference" }, spec: "tools" },
+  { path: "/focal-simulator", pattern: "/focal-simulator", marker: { role: "heading", name: "Focal Length Simulator" }, spec: "tools" },
+  // Desktop editor UI has no page h1 (one exists but only renders in the
+  // mobile "Desktop Only" branch); "Aspect Ratio" is the first page-specific
+  // (non-shared-chrome) heading in the always-rendered desktop controls panel.
+  { path: "/instagram-post-builder", pattern: "/instagram-post-builder", marker: { role: "heading", name: "Aspect Ratio" }, spec: "tools" },
 ];
 
 /** pattern -> reason. Permanent skips keep their reason; "fixture pending"
@@ -104,11 +115,6 @@ export const skippedRoutes: Record<string, string> = {
   "/auth/verify-otp": "renders only mid-auth-flow; redirects covered by routing-auth.spec",
   "/auth/welcome": "renders only mid-auth-flow post-signup",
   // fixture pending — migrate in later Phase 2 tasks:
-  "/compare": "fixture pending (Task 7: tools markers)",
-  "/exif-viewer": "fixture pending (Task 7: tools markers)",
-  "/focal-length-reference": "fixture pending (Task 7: tools markers)",
-  "/focal-simulator": "fixture pending (Task 7: tools markers)",
-  "/instagram-post-builder": "fixture pending (Task 7: tools markers)",
   "/profile": "fixture pending (Task 8: auth)",
   "/profile/settings": "fixture pending (Task 8: auth)",
   "/profile/settings/add-passkey": "fixture pending (Task 8: auth)",
