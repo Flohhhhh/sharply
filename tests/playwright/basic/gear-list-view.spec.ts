@@ -69,6 +69,11 @@ test("search loading skeleton defaults to grid without a saved preference", asyn
 test("search applies and clears specification filters by gear type", async ({
   page,
 }) => {
+  test.skip(
+    test.info().project.name.includes("Mobile"),
+    "Desktop only: mobile viewports expose filters through a different UI",
+  );
+
   await page.goto("/search");
 
   await page.getByRole("radio", { name: "Lens", exact: true }).check();

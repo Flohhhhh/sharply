@@ -65,6 +65,31 @@ npx playwright show-report path/to/downloaded/playwright-report
 Traces are retained on first failure — open one with
 `npx playwright show-trace <trace.zip>`.
 
+## Known cross-browser debt (phase-2 unskip targets)
+
+The first full-matrix run (2026-08-31) surfaced pre-existing failures in
+non-chromium/mobile combos that had never run anywhere. Each is now an
+explicit, reasoned skip rather than a red nightly:
+
+- **Pending-navigation specs** (`*-pending-navigation.spec.ts`) run on
+  desktop chromium only: they assert a transient loading state whose
+  timing races prefetch/soft-navigation on firefox and mobile engines
+  (and flaked once even on chromium under the long matrix session — the
+  robust fix is delaying prefetch/RSC requests too, not just documents).
+- **Desktop-only UI interactions** skip on mobile projects: search
+  filter panel (`gear-list-view`), Gear dropdown (`smoke`), decimal
+  typing (`number-input`).
+- **Mobile locale divergence — possible REAL BUG:** under mobile device
+  emulation, the locale middleware misbehaved (a `ja` locale-cookie
+  redirect not honored on Mobile Chrome; an `/en/`-prefixed
+  `callbackUrl` on Mobile Safari — the default locale should stay
+  unprefixed). Both `routing-auth` tests skip on mobile until this is
+  investigated app-side. Relevant to the SEO canonicalization work.
+
+Unskipping these — by fixing specs (pending-nav), writing mobile
+variants (UI), or fixing the app (locale) — is part of the agreed
+coverage phase 2.
+
 ## Nightly matrix
 
 A scheduled run executes the full browser matrix (firefox, mobile
