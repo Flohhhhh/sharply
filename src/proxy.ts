@@ -1,5 +1,5 @@
-import { NextResponse,type NextRequest } from "next/server";
-import { defaultLocale,isLocale,localeCookieName } from "./i18n/config";
+import { NextResponse, type NextRequest } from "next/server";
+import { defaultLocale, isLocale, localeCookieName } from "./i18n/config";
 import {
   applyRoutingRequestHeaders,
   localizePathname,
@@ -41,11 +41,14 @@ export function proxy(request: NextRequest) {
   }
 
   if (prefixedLocale) {
-    const requestHeaders = applyRoutingRequestHeaders(new Headers(request.headers), {
-      locale: prefixedLocale,
-      normalizedPathname,
-      normalizedSearch: search,
-    });
+    const requestHeaders = applyRoutingRequestHeaders(
+      new Headers(request.headers),
+      {
+        locale: prefixedLocale,
+        normalizedPathname,
+        normalizedSearch: search,
+      },
+    );
     const response = NextResponse.next({
       request: {
         headers: requestHeaders,
@@ -66,11 +69,14 @@ export function proxy(request: NextRequest) {
 
   const url = request.nextUrl.clone();
   url.pathname = getInternalLocalePath(normalizedPathname, defaultLocale);
-  const requestHeaders = applyRoutingRequestHeaders(new Headers(request.headers), {
-    locale: defaultLocale,
-    normalizedPathname,
-    normalizedSearch: search,
-  });
+  const requestHeaders = applyRoutingRequestHeaders(
+    new Headers(request.headers),
+    {
+      locale: defaultLocale,
+      normalizedPathname,
+      normalizedSearch: search,
+    },
+  );
   requestHeaders.set(internalLocaleRewriteHeader, "1");
 
   const response = NextResponse.rewrite(url, {
@@ -83,5 +89,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next|cms|api|favicon.ico|.*\\..*).*)"],
+  matcher: ["/((?!monitoring|_next|cms|api|favicon.ico|.*\\..*).*)"],
 };

@@ -1,5 +1,6 @@
 "use client"; // Error boundaries must be Client Components
 
+import * as Sentry from "@sentry/nextjs";
 import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 import { Button } from "~/components/ui/button";
@@ -15,8 +16,9 @@ export default function Error({
   const t = useTranslations("errors");
 
   useEffect(() => {
-    // Log the error to an error reporting service
-    console.error(error);
+    if (error.digest !== "NEXT_NOT_FOUND" && !error.message.includes("404")) {
+      Sentry.captureException(error);
+    }
   }, [error]);
 
   // If Next.js signaled a 404 via its special digest, render our NotFound UI
