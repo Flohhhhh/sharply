@@ -49,10 +49,9 @@ export const routeManifest: RouteEntry[] = [
   { path: "/about", pattern: "/about", marker: { role: "heading", name: "Photography for Everyone" }, spec: "static" },
   { path: "/privacy-policy", pattern: "/privacy-policy", marker: { role: "heading", name: "Privacy Policy" }, spec: "static" },
   { path: "/terms-of-service", pattern: "/terms-of-service", marker: { role: "heading", name: "Terms of Service" }, spec: "static" },
-  // Unauthenticated visit redirects to the sign-in gate ("Welcome" is the
-  // sign-in shell's heading) — that redirect is the genuinely rendered content.
-  { path: "/developer", pattern: "/developer", marker: { role: "heading", name: "Welcome" }, spec: "static" },
-  { path: "/developer/docs", pattern: "/developer/docs", marker: { role: "heading", name: "Welcome" }, spec: "static" },
+  // /developer and /developer/docs moved to the auth-gated bucket below —
+  // now that a signed-in storage state exists, they no longer need to prove
+  // the anonymous sign-in redirect.
   { path: "/discord/bingo", pattern: "/discord/bingo", marker: { role: "heading", name: "Photography Lounge Bingo" }, spec: "static" },
   { path: "/discord/bot-commands", pattern: "/discord/bot-commands", marker: { role: "heading", name: "Discord Bot Commands" }, spec: "static" },
   { path: "/auth/signin", pattern: "/auth/signin", marker: { role: "heading", name: "Welcome" }, spec: "static" },
@@ -104,6 +103,49 @@ export const routeManifest: RouteEntry[] = [
   // mobile "Desktop Only" branch); "Aspect Ratio" is the first page-specific
   // (non-shared-chrome) heading in the always-rendered desktop controls panel.
   { path: "/instagram-post-builder", pattern: "/instagram-post-builder", marker: { role: "heading", name: "Aspect Ratio" }, spec: "tools" },
+  // --- auth-gated (signed in as dev@sharply.local via tests/playwright/auth.setup.ts) ---
+  // Redirects to the signed-in user's own profile — the seeded display name
+  // ("Sharply Dev User") is the data-driven proof it's the dev fixture's page.
+  { path: "/profile", pattern: "/profile", marker: { text: "Sharply Dev User" }, spec: "auth-gated", auth: true },
+  { path: "/profile/settings", pattern: "/profile/settings", marker: { role: "heading", name: "Account Settings" }, spec: "auth-gated", auth: true },
+  { path: "/profile/settings/add-passkey", pattern: "/profile/settings/add-passkey", marker: { role: "heading", name: "Add a passkey" }, spec: "auth-gated", auth: true },
+  { path: `/gear/${GEAR.slug}/edit`, pattern: "/gear/[slug]/edit", marker: { role: "heading", name: "Edit Gear Item" }, spec: "auth-gated", auth: true },
+  // Was previously asserting the anonymous sign-in redirect ("Welcome"); now
+  // signed in, the dev fixture has no developer API access grant
+  // (users.developerAccessEnabled is false), so the genuinely-rendered
+  // content is the access-required gate, not the full portal — that's the
+  // real signed-in state, verified against the live page.
+  { path: "/developer", pattern: "/developer", marker: { role: "heading", name: "Developer access is not enabled" }, spec: "auth-gated", auth: true },
+  // Throws developer_access_required and redirects to /developer for the
+  // same reason — same rendered content as above.
+  { path: "/developer/docs", pattern: "/developer/docs", marker: { role: "heading", name: "Developer access is not enabled" }, spec: "auth-gated", auth: true },
+  // --- admin (signed in as dev@sharply.local, seeded SUPERADMIN) ---
+  // Admin pages are hardcoded English (AGENTS.md). Every /admin/... page also
+  // renders a shared, hidden "Admin Dashboard" <h1> from the layout's header
+  // (admin-header.tsx) — never use it as a marker, it can't distinguish one
+  // admin page's rendered content from another's. Markers below are each
+  // page's own first page-specific heading (or, where a page has none —
+  // shadcn CardTitle renders a <div>, not a heading role — its visible text).
+  { path: "/admin", pattern: "/admin", marker: { role: "heading", name: "Gear Edit Proposals" }, spec: "admin", auth: true },
+  { path: "/admin/analytics", pattern: "/admin/analytics", marker: { role: "heading", name: "Image Requests" }, spec: "admin", auth: true },
+  { path: "/admin/approved-creators", pattern: "/admin/approved-creators", marker: { role: "heading", name: "Approved Creators" }, spec: "admin", auth: true },
+  // Redirects to /admin/gear — marker matches that page's own heading.
+  { path: "/admin/bulk-create", pattern: "/admin/bulk-create", marker: { role: "heading", name: "Bulk Create" }, spec: "admin", auth: true },
+  { path: "/admin/developer-api", pattern: "/admin/developer-api", marker: { role: "heading", name: "Developer API access" }, spec: "admin", auth: true },
+  { path: "/admin/gear", pattern: "/admin/gear", marker: { role: "heading", name: "Bulk Create" }, spec: "admin", auth: true },
+  { path: "/admin/help", pattern: "/admin/help", marker: { role: "heading", name: "Admin Help" }, spec: "admin", auth: true },
+  // CardTitle ("Top Contributors") renders a <div>, not a heading role.
+  { path: "/admin/leaderboard", pattern: "/admin/leaderboard", marker: { text: "Top Contributors" }, spec: "admin", auth: true },
+  { path: "/admin/logs", pattern: "/admin/logs", marker: { role: "heading", name: "Logs" }, spec: "admin", auth: true },
+  // No page-specific heading role (CardTitle divs only); the seeded invite
+  // fixture ("E2E Invitee", scripts/e2e/seed-fixtures.ts) is the data-driven
+  // proof the Invites card's data actually loaded.
+  { path: "/admin/private", pattern: "/admin/private", marker: { text: "E2E Invitee" }, spec: "admin", auth: true },
+  { path: "/admin/tags", pattern: "/admin/tags", marker: { role: "heading", name: "Tags" }, spec: "admin", auth: true },
+  { path: "/admin/tools", pattern: "/admin/tools", marker: { role: "heading", name: "Live Boosts (Today)" }, spec: "admin", auth: true },
+  { path: "/admin/recommended-lenses", pattern: "/admin/recommended-lenses", marker: { role: "heading", name: "Recommended Lenses — Admin" }, spec: "admin", auth: true },
+  { path: "/admin/recommended-lenses/nikon/e2e-seed-chart", pattern: "/admin/recommended-lenses/[brand]/[slug]", marker: { role: "heading", name: "Edit: nikon/e2e-seed-chart" }, spec: "admin", auth: true },
+  { path: "/admin/recommended-lenses/new", pattern: "/admin/recommended-lenses/new", marker: { role: "heading", name: "Create Chart" }, spec: "admin", auth: true },
 ];
 
 /** pattern -> reason. Permanent skips keep their reason; "fixture pending"
@@ -114,27 +156,15 @@ export const skippedRoutes: Record<string, string> = {
   "/construction-test": "dev-only page",
   "/auth/verify-otp": "renders only mid-auth-flow; redirects covered by routing-auth.spec",
   "/auth/welcome": "renders only mid-auth-flow post-signup",
-  // fixture pending — migrate in later Phase 2 tasks:
-  "/profile": "fixture pending (Task 8: auth)",
-  "/profile/settings": "fixture pending (Task 8: auth)",
-  "/profile/settings/add-passkey": "fixture pending (Task 8: auth)",
-  "/gear/[slug]/edit": "fixture pending (Task 8: auth)",
-  "/contribute/random": "fixture pending (Task 8: auth triage)",
-  "/admin": "fixture pending (Task 8: admin auth)",
-  "/admin/analytics": "fixture pending (Task 8: admin auth)",
-  "/admin/approved-creators": "fixture pending (Task 8: admin auth)",
-  "/admin/bulk-create": "fixture pending (Task 8: admin auth)",
-  "/admin/developer-api": "fixture pending (Task 8: admin auth)",
-  "/admin/gear": "fixture pending (Task 8: admin auth)",
-  "/admin/help": "fixture pending (Task 8: admin auth)",
-  "/admin/leaderboard": "fixture pending (Task 8: admin auth)",
-  "/admin/logs": "fixture pending (Task 8: admin auth)",
-  "/admin/private": "fixture pending (Task 8: admin auth)",
-  "/admin/tags": "fixture pending (Task 8: admin auth)",
-  "/admin/tools": "fixture pending (Task 8: admin auth)",
-  "/admin/recommended-lenses": "fixture pending (Task 8: admin auth)",
-  "/admin/recommended-lenses/[brand]/[slug]": "fixture pending (Task 8: admin auth)",
-  "/admin/recommended-lenses/new": "fixture pending (Task 8: admin auth)",
+  // /contribute/random redirects to fetchRandomLowCompletionGearUrl()'s pick —
+  // confirmed nondeterministic across repeated signed-in visits (different
+  // gear slug almost every time, occasionally /lists/under-construction).
+  // The redirect target is itself already covered by the /gear/[slug] sweep;
+  // asserting only "some heading rendered" would add coverage of the random
+  // selection + redirect plumbing, but at the cost of depending on every
+  // low-completion gear page's heading rendering correctly, which is already
+  // the /gear/[slug] entry's job. A reasoned skip beats a flaky spec.
+  "/contribute/random": "nondeterministic redirect target — landing covered by /gear/[slug] sweep",
 };
 
 export function routesForSpec(spec: SweepSpec): RouteEntry[] {
