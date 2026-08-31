@@ -105,10 +105,13 @@ After Postgres is running:
 **First-time setup** (for new contributors setting up a fresh database):
 
 ```bash
+psql "$DATABASE_URL" -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;"  # required BEFORE db:push — search is silently empty without it
 npm run db:push                      # sync schema directly from src/server/db/schema.ts (one-time initial setup)
 npm run db:seed -- --confirm-seed    # (optional) populate sample data
 npx drizzle-kit studio               # (optional) view the database in Drizzle studio (or use your own viewer)
 ```
+
+> The e2e pipeline (`npm run e2e:setup-local`) creates `pg_trgm` for its own throwaway database, but NOT for your dev database — the psql line above is still required here.
 
 **After pulling changes** (when migrations have been generated and merged to main):
 
