@@ -84,6 +84,15 @@ export const routeManifest: RouteEntry[] = [
   // chart title text.
   { path: "/recommended-lenses", pattern: "/recommended-lenses", marker: { role: "button", name: "Nikon" }, spec: "community" },
   { path: "/recommended-lenses/nikon/e2e-seed-chart", pattern: "/recommended-lenses/[brand]/[slug]", marker: { role: "heading", name: "E2E Seed Nikon Chart" }, spec: "community" },
+  // --- community (Payload fixtures, scripts/e2e/bootstrap-payload.ts) ---
+  { path: "/learn", pattern: "/learn", marker: { text: "Sharply E2E seed learn page" }, spec: "community" },
+  { path: "/learn/sharply-e2e-seed-learn-page", pattern: "/learn/[slug]", marker: { role: "heading", name: "Sharply E2E seed learn page" }, spec: "community" },
+  { path: "/reviews", pattern: "/reviews", marker: { text: "Sharply E2E seed review" }, spec: "community" },
+  // The detail page's h1 is an i18n template keyed on the *gear* name
+  // ("<Gear> Review"), not the review's own title — review.title only
+  // renders verbatim in the subtitle <p> beneath it. Deviates from the
+  // brief's role:"heading" marker for that reason.
+  { path: "/reviews/sharply-e2e-seed-review", pattern: "/reviews/[slug]", marker: { text: "Sharply E2E seed review" }, spec: "community" },
 ];
 
 /** pattern -> reason. Permanent skips keep their reason; "fixture pending"
@@ -95,10 +104,6 @@ export const skippedRoutes: Record<string, string> = {
   "/auth/verify-otp": "renders only mid-auth-flow; redirects covered by routing-auth.spec",
   "/auth/welcome": "renders only mid-auth-flow post-signup",
   // fixture pending — migrate in later Phase 2 tasks:
-  "/reviews": "fixture pending (Task 6: payload review)",
-  "/reviews/[slug]": "fixture pending (Task 6: payload review)",
-  "/learn": "fixture pending (Task 6: payload learn page)",
-  "/learn/[slug]": "fixture pending (Task 6: payload learn page)",
   "/compare": "fixture pending (Task 7: tools markers)",
   "/exif-viewer": "fixture pending (Task 7: tools markers)",
   "/focal-length-reference": "fixture pending (Task 7: tools markers)",
