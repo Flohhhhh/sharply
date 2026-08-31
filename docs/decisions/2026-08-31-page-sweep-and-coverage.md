@@ -2,7 +2,7 @@
 
 - **Date:** 2026-08-31
 - **Status:** Accepted
-- **Related:** PRs #394 #395; `docs/e2e-testing.md`
+- **Related:** PRs #394 #395 #396; `docs/e2e-testing.md`
 
 ## Context
 
