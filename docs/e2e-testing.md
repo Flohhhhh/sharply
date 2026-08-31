@@ -28,6 +28,18 @@ needs your dev database up and `DEV_AUTH=true` in `.env` (see above).
 CI re-runs the same suite on the PR either way — this gate just saves
 the round-trip.
 
+### Pre-push hook (automatic)
+
+A committed `pre-push` hook (`.githooks/pre-push`, wired by the npm
+`prepare` script via `git config core.hooksPath .githooks`) enforces the
+same gate for people who push first and open PRs in the GitHub UI: the
+**first push of a branch** (no open PR yet) runs the e2e suite and
+blocks the push if it fails. Pushes to branches with an open PR,
+`development`/`main`, tags, and deletions all skip instantly — CI
+already covers those. Bypass once with `git push --no-verify`. If `gh`
+isn't installed the hook warns and lets the push through rather than
+bricking it.
+
 ## The CI pipeline
 
 health check → `CREATE EXTENSION pg_trgm` → `drizzle-kit push --force` →

@@ -83,6 +83,7 @@ Sharply is a photography gear database and cataloging application built with Nex
 - `npm run test` — runs Vitest unit tests. No database or dev server required.
 - `npm run test:e2e` — Playwright suite. CI runs it on every PR; `npm run e2e:setup-local` mirrors the CI database pipeline locally. See `docs/e2e-testing.md`.
 - `npm run pr:create` — e2e-gated PR creation: runs the Playwright suite and only opens the PR (`gh pr create --base development`) when it passes. Prefer this over a bare `gh pr create`.
+- A `pre-push` hook (`.githooks/pre-push`, auto-wired by `npm install` via the `prepare` script) runs the e2e suite on the first push of any branch without an open PR and blocks the push on failure. `git push --no-verify` bypasses it once.
 
 ### Database setup
 
