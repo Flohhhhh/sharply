@@ -5,11 +5,6 @@ test.describe("routing and auth", () => {
   test("keeps default-locale routes canonical and honors locale-cookie redirects", async ({
     page,
   }) => {
-    test.skip(
-      test.info().project.name.includes("Mobile"),
-      "Locale middleware diverges under mobile device emulation (cookie redirect not honored) — real-bug candidate, see docs/e2e-testing.md",
-    );
-
     await page.goto("/about");
     await expect(page).toHaveURL(/\/about$/);
     await expect(
@@ -18,6 +13,12 @@ test.describe("routing and auth", () => {
 
     await page.goto("/en/about");
     await expect(page).toHaveURL(/\/about$/);
+
+    // The middleware re-sets NEXT_LOCALE on every response (src/proxy.ts), so
+    // a late prefetch/RSC response from the navigations above can overwrite an
+    // injected cookie. Leaving the page aborts those in-flight requests
+    // (networkidle is unusable here — the page polls continuously).
+    await page.goto("about:blank");
 
     await page.context().addCookies([
       {
@@ -33,11 +34,6 @@ test.describe("routing and auth", () => {
   test("gated profile routes redirect to sign-in and dev-login restores access", async ({
     page,
   }) => {
-    test.skip(
-      test.info().project.name.includes("Mobile"),
-      "Locale middleware diverges under mobile device emulation (/en/-prefixed callbackUrl) — real-bug candidate, see docs/e2e-testing.md",
-    );
-
     test.slow();
 
     await page.goto("/profile/settings");

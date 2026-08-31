@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+import { delayNavigation } from "../utils/delay-navigation";
+
 // Pending-state timing is calibrated for desktop chromium; other engines and
 // mobile viewports race prefetch/soft-navigation. Phase-2 debt: docs/e2e-testing.md.
 test.skip(
@@ -12,17 +14,12 @@ test("Gear dropdown centers pending feedback over only the clicked card", async 
 }) => {
   test.slow();
 
+  // Installed before goto: the home page prefetches nav links immediately on
+  // load, so a route added afterwards can miss the prefetch and the click
+  // resolves instantly with no observable pending state.
+  await delayNavigation(page, (pathname) => pathname.endsWith("/gear"), 500);
+
   await page.goto("/");
-
-  let delayedNavigation = false;
-  await page.route("**/gear", async (route) => {
-    if (!delayedNavigation) {
-      delayedNavigation = true;
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-
-    await route.continue();
-  });
 
   await page.getByRole("button", { name: "Gear" }).click();
 

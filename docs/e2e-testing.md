@@ -17,11 +17,13 @@ build + `npm run test:e2e`). For the usual dev-server flow,
 
 ## The CI pipeline
 
-health check → `CREATE EXTENSION pg_trgm` → `constants:generate` →
-`drizzle-kit push --force` → `e2e:bootstrap` (Payload schema push +
-published news fixture) → `db:seed` (includes popularity windows) →
-`next build` → Playwright (chromium on PRs; full matrix nightly via
-`PLAYWRIGHT_ALL_PROJECTS=true`).
+health check → `CREATE EXTENSION pg_trgm` → `drizzle-kit push --force` →
+`e2e:bootstrap` (Payload schema push + published news fixture) →
+`db:seed` (includes popularity windows) → `next build` → Playwright
+(chromium on PRs; full matrix nightly via `PLAYWRIGHT_ALL_PROJECTS=true`).
+The committed `src/lib/generated.ts` feeds the seed — do NOT set
+`GENERATE_CONSTANTS=true` around this pipeline; the generator would read
+the throwaway e2e database and clobber the tracked constants file.
 
 Gotchas encoded in the pipeline — don't reorder it:
 
@@ -30,9 +32,9 @@ Gotchas encoded in the pipeline — don't reorder it:
 - `PLAYWRIGHT_BASE_URL` must stay unset in CI: setting it disables the
   managed webServer (`config/playwright.config.ts`).
 - Some SDK clients are constructed at module scope and throw at import
-  without a key (OpenAI, via the creator-videos route) — CI carries dummy
-  values for these. Locally, `next build` silently reads your `.env`, so a
-  missing dummy only ever surfaces in CI.
+  without a key (the OpenAI client in `src/lib/open-ai`) — CI carries
+  dummy values for these. Locally, `next build` silently reads your
+  `.env`, so a missing dummy only ever surfaces in CI.
 
 ## Writing specs — isolation rules
 
@@ -43,7 +45,9 @@ Gotchas encoded in the pipeline — don't reorder it:
   run. Assert on what you created or what the seed deterministically
   contains.
 - Auth: hit `/api/dev-login` (see `tests/playwright/basic/routing-auth.spec.ts`);
-  the dev user self-provisions.
+  the dev user self-provisions. For the default local flow
+  (`npm run test:e2e` against `dev:e2e`), the auth specs need
+  `DEV_AUTH=true` in your `.env` — CI sets it via `start:e2e`.
 - Mock only the outermost third-party boundary with `page.route`
   (pattern: `tests/playwright/contact.spec.ts`); everything inside the
   app runs for real.
@@ -79,12 +83,16 @@ explicit, reasoned skip rather than a red nightly:
 - **Desktop-only UI interactions** skip on mobile projects: search
   filter panel (`gear-list-view`), Gear dropdown (`smoke`), decimal
   typing (`number-input`).
-- **Mobile locale divergence — possible REAL BUG:** under mobile device
-  emulation, the locale middleware misbehaved (a `ja` locale-cookie
-  redirect not honored on Mobile Chrome; an `/en/`-prefixed
-  `callbackUrl` on Mobile Safari — the default locale should stay
-  unprefixed). Both `routing-auth` tests skip on mobile until this is
-  investigated app-side. Relevant to the SEO canonicalization work.
+- **routing-auth mobile failures — RESOLVED, no skips:** the
+  locale-cookie flake was a test-side race, root-caused and fixed: the
+  middleware re-sets `NEXT_LOCALE` on every response (`src/proxy.ts`),
+  so an in-flight prefetch/RSC response could overwrite the
+  test-injected `ja` cookie — the spec now leaves the page
+  (`about:blank`) to abort in-flight requests before injecting
+  (verified 16/16 across chromium + Mobile Chrome). The Mobile Safari
+  auth failure was WebKit dropping Secure session cookies over plain
+  http — better-auth infers production under `next start` without an
+  explicit base URL, so CI sets `BETTER_AUTH_URL=http://localhost:3000`.
 
 Unskipping these — by fixing specs (pending-nav), writing mobile
 variants (UI), or fixing the app (locale) — is part of the agreed
@@ -95,3 +103,10 @@ coverage phase 2.
 A scheduled run executes the full browser matrix (firefox, mobile
 Chrome/Safari) against `development`. Trigger manually:
 Actions → E2E tests → Run workflow.
+
+Two schedule facts worth knowing: the cron does not fire until the
+workflow file reaches `main` (promotion PR), and a scheduled run always
+executes `main`'s copy of the workflow — only the checkout is pinned to
+`development`. Pipeline changes on `development` therefore apply to
+nightlies only after promotion. Flaky-but-green runs upload the
+Playwright report artifact too, so quarantine decisions have evidence.

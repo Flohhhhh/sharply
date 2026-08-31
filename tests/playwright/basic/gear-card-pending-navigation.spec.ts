@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+import { delayNavigation } from "../utils/delay-navigation";
+
 // Pending-state timing is calibrated for desktop chromium; other engines and
 // mobile viewports race prefetch/soft-navigation. Phase-2 debt: docs/e2e-testing.md.
 test.skip(
@@ -12,19 +14,7 @@ test("browse gear card shows pending feedback before navigating to detail", asyn
 }) => {
   test.slow();
 
-  let delayedDocumentNavigation = false;
-
-  await page.route("**/gear/**", async (route) => {
-    if (
-      !delayedDocumentNavigation &&
-      route.request().resourceType() === "document"
-    ) {
-      delayedDocumentNavigation = true;
-      await new Promise((resolve) => setTimeout(resolve, 350));
-    }
-
-    await route.continue();
-  });
+  await delayNavigation(page, (pathname) => pathname.includes("/gear/"));
 
   await page.goto("/browse");
 
