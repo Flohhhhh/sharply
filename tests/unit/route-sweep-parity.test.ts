@@ -54,7 +54,8 @@ describe("route sweep parity", () => {
       expect(live.has(r.pattern), `manifest references removed route ${r.pattern}`).toBe(true);
       expect(r.pattern in skippedRoutes, `${r.pattern} is both swept and skipped`).toBe(false);
     }
-    for (const p of Object.keys(skippedRoutes)) {
+    for (const [p, reason] of Object.entries(skippedRoutes)) {
+      expect(reason.trim(), `skip list entry ${p} needs a reason`).not.toBe("");
       expect(live.has(p), `skip list references removed route ${p}`).toBe(true);
     }
   });
