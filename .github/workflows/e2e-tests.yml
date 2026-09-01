@@ -1,0 +1,135 @@
+name: E2E tests
+
+on:
+  pull_request:
+    branches:
+      - development
+      - main
+  merge_group:
+    branches:
+      - development
+      - main
+  schedule:
+    - cron: "17 9 * * *" # off-peak, non-top-of-hour; runs the full browser matrix
+  workflow_dispatch:
+
+# event_name in the group keeps a manual dispatch from cancelling the nightly
+# (both resolve to refs/heads/main otherwise); PR runs still cancel per-PR.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+# Dummy values only — this workflow must never hold a real secret (fork PRs run it).
+env:
+  DATABASE_URL: postgres://postgres:postgres@localhost:5432/sharply_e2e
+  PAYLOAD_SECRET: e2e-ci-payload-secret
+  AUTH_SECRET: e2e-ci-auth-secret
+  # Without an explicit base URL, better-auth infers production from NODE_ENV
+  # under `next start` and issues Secure session cookies, which WebKit drops
+  # over plain http — breaking auth specs on the Mobile Safari matrix project.
+  BETTER_AUTH_URL: http://localhost:3000
+  # src/lib/open-ai constructs an OpenAI client at module scope; the SDK
+  # throws at import time without a key. Never called by any spec.
+  OPENAI_API_KEY: e2e-ci-dummy
+  NEXT_PUBLIC_BASE_URL: http://localhost:3000
+  SKIP_ENV_VALIDATION: "1"
+  PLAYWRIGHT_ALL_PROJECTS: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'true' || '' }}
+
+jobs:
+  e2e-tests:
+    name: e2e-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 45 || 20 }}
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: sharply_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sharply_e2e"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          # schedule runs from the default branch (main); test the integration branch instead
+          ref: ${{ github.event_name == 'schedule' && 'development' || '' }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Resolve Playwright version
+        id: pw-version
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw-version.outputs.version }}-${{ env.PLAYWRIGHT_ALL_PROJECTS == 'true' && 'all' || 'chromium' }}
+
+      - name: Install Playwright browsers (chromium)
+        if: env.PLAYWRIGHT_ALL_PROJECTS != 'true'
+        run: npx playwright install chromium --with-deps
+
+      - name: Install Playwright browsers (all)
+        if: env.PLAYWRIGHT_ALL_PROJECTS == 'true'
+        run: npx playwright install --with-deps
+
+      - name: Cache Next.js build cache
+        uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: nextjs-e2e-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**', 'config/**', 'next.config.js') }}
+          restore-keys: |
+            nextjs-e2e-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+            nextjs-e2e-${{ runner.os }}-
+
+      - name: Enable pg_trgm
+        run: psql "$DATABASE_URL" -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
+
+      - name: Push database schema
+        run: npx drizzle-kit push --force --config=config/drizzle.config.ts
+
+      - name: Bootstrap Payload (schema + content)
+        run: npm run e2e:bootstrap
+
+      - name: Seed database
+        run: npm run db:seed -- --confirm-seed
+
+      - name: Seed e2e fixtures
+        run: npm run e2e:seed-fixtures
+
+      - name: Build app
+        run: npx next build --webpack
+
+      - name: Run Playwright tests
+        run: npm run test:e2e
+        env:
+          PLAYWRIGHT_SERVER_COMMAND: npm run start:e2e
+
+      - name: Report pass-on-retry flakes
+        id: flakes
+        if: always()
+        run: node scripts/e2e/report-flakes.mjs test-results/results.json
+
+      # Also upload on flaky-but-green runs: the retained first-failure traces
+      # are the evidence the quarantine policy depends on.
+      - name: Upload Playwright report
+        if: ${{ failure() || steps.flakes.outputs.flaky == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

@@ -1,4 +1,4 @@
-import { Bot,MessageSquare } from "lucide-react";
+import { Bot, MessageSquare } from "lucide-react";
 import type { Metadata } from "next";
 import DiscordBanner from "~/components/discord-banner";
 import commandManifest from "~/data/discord-command-manifest.json";
@@ -8,19 +8,27 @@ import type {
   DiscordCommandManifestOption,
 } from "~/types/discord-command-manifest";
 
-export const metadata: Metadata = buildLocalizedMetadata(
-  "/discord/bot-commands",
-  {
-  title: "Discord Bot Commands",
-  description:
-    "Complete list of available Discord bot commands for the Sharply bot",
-  openGraph: {
-    title: "Discord Bot Commands",
-    description:
-      "Complete list of available Discord bot commands for the Sharply bot",
-  },
-  },
-);
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return buildLocalizedMetadata(
+    "/discord/bot-commands",
+    {
+      title: "Discord Bot Commands",
+      description:
+        "Complete list of available Discord bot commands for the Sharply bot",
+      openGraph: {
+        title: "Discord Bot Commands",
+        description:
+          "Complete list of available Discord bot commands for the Sharply bot",
+      },
+    },
+    locale,
+  );
+}
 
 export default function BotCommandsPage() {
   const commands = commandManifest as DiscordCommandManifestEntry[];
@@ -82,19 +90,17 @@ export default function BotCommandsPage() {
                       <span className="font-mono">{commandName}</span>
                       {options && options.length > 0 && (
                         <div className="flex flex-wrap items-center gap-2 pl-2 text-base">
-                          {options.map(
-                            (opt: DiscordCommandManifestOption) => {
-                              const isRequired = Boolean(opt.required);
-                              return (
-                                <span
-                                  key={opt.name}
-                                  className={`font-mono ${isRequired ? "text-destructive" : "text-muted-foreground"}`}
-                                >
-                                  [{opt.name}]
-                                </span>
-                              );
-                            },
-                          )}
+                          {options.map((opt: DiscordCommandManifestOption) => {
+                            const isRequired = Boolean(opt.required);
+                            return (
+                              <span
+                                key={opt.name}
+                                className={`font-mono ${isRequired ? "text-destructive" : "text-muted-foreground"}`}
+                              >
+                                [{opt.name}]
+                              </span>
+                            );
+                          })}
                         </div>
                       )}
                     </div>
@@ -105,7 +111,7 @@ export default function BotCommandsPage() {
                       {options && options.length > 0 && (
                         <div className="space-y-2">
                           <ul className="space-y-1">
-                          {options.map(
+                            {options.map(
                               (opt: DiscordCommandManifestOption) => {
                                 const isRequired = Boolean(opt.required);
                                 return (
@@ -123,7 +129,9 @@ export default function BotCommandsPage() {
                                     {opt.options && opt.options.length > 0 && (
                                       <div className="text-muted-foreground mt-1 pl-5 text-xs">
                                         {opt.options.map((child) => (
-                                          <div key={`${opt.name}-${child.name}`}>
+                                          <div
+                                            key={`${opt.name}-${child.name}`}
+                                          >
                                             [{child.name}]
                                             {child.description
                                               ? ` — ${child.description}`

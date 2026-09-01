@@ -6,10 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { TbLaurelWreath } from "react-icons/tb";
 import { defaultLocale } from "~/i18n/config";
-import {
-  formatDateWithPrecision,
-  type DatePrecision,
-} from "~/lib/format/date";
+import { formatDateWithPrecision, type DatePrecision } from "~/lib/format/date";
 import { GetGearDisplayName } from "~/lib/gear/naming";
 import { stripLeadingBrand } from "~/lib/mapping/brand-map";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
@@ -27,14 +24,18 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "hallOfFamePage" });
 
-  return buildLocalizedMetadata("/lists/hall-of-fame", {
-    title: t("metaTitle"),
-    description: t("metaDescription"),
-    openGraph: {
+  return buildLocalizedMetadata(
+    "/lists/hall-of-fame",
+    {
       title: t("metaTitle"),
       description: t("metaDescription"),
+      openGraph: {
+        title: t("metaTitle"),
+        description: t("metaDescription"),
+      },
     },
-  });
+    locale,
+  );
 }
 
 function pickBestDate(gear: {
@@ -92,33 +93,31 @@ export default async function HallOfFamePage({
   const t = await getTranslations({ locale, namespace: "hallOfFamePage" });
   const gearBySlug = new Map(
     (
-      await fetchGearSummariesBySlugs(
-        hallOfFameItems.map((item) => item.slug),
-      )
+      await fetchGearSummariesBySlugs(hallOfFameItems.map((item) => item.slug))
     ).map((item) => [item.slug, item] as const),
   );
 
   const rawEntries = hallOfFameItems.map((item) => {
-      const gear = gearBySlug.get(item.slug);
-      if (!gear) {
-        return null;
-      }
+    const gear = gearBySlug.get(item.slug);
+    if (!gear) {
+      return null;
+    }
 
-      const best = pickBestDate(gear);
-      return best
-        ? {
-            slug: item.slug,
-            text:
-              locale === defaultLocale || !t.has(item.textKey)
-                ? item.defaultText
-                : t(item.textKey),
-            gear,
-            bestDate: best.date,
-            bestPrecision: best.precision,
-            sortDate: normalizeForSort(best.date, best.precision),
-          }
-        : null;
-    });
+    const best = pickBestDate(gear);
+    return best
+      ? {
+          slug: item.slug,
+          text:
+            locale === defaultLocale || !t.has(item.textKey)
+              ? item.defaultText
+              : t(item.textKey),
+          gear,
+          bestDate: best.date,
+          bestPrecision: best.precision,
+          sortDate: normalizeForSort(best.date, best.precision),
+        }
+      : null;
+  });
 
   const entries = rawEntries
     .filter((e): e is NonNullable<typeof e> => Boolean(e))
@@ -164,12 +163,8 @@ export default async function HallOfFamePage({
             <BlurFade delay={0.3}>
               <div className="text-muted-foreground flex flex-col items-center gap-4 rounded-lg border border-dashed px-6 py-12 text-center">
                 <TbLaurelWreath className="text-primary size-12" />
-                <p className="text-lg font-medium">
-                  {t("emptyTitle")}
-                </p>
-                <p className="text-sm">
-                  {t("emptyDescription")}
-                </p>
+                <p className="text-lg font-medium">{t("emptyTitle")}</p>
+                <p className="text-sm">{t("emptyDescription")}</p>
               </div>
             </BlurFade>
           ) : (

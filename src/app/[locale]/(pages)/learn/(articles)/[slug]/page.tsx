@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { JsonLd } from "~/components/json-ld";
 import { RichText } from "~/components/rich-text";
+import type { Locale } from "~/i18n/config";
+import { buildArticleJsonLd } from "~/lib/seo/json-ld-helpers";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import {
   getAllPublishedLearnPages,
@@ -23,9 +26,9 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: Locale; slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
+  const { locale, slug } = await params;
   const page = await getLearnPageBySlug(slug);
   if (!page) {
     return {
@@ -40,23 +43,27 @@ export async function generateMetadata({
     page.thumbnail && typeof page.thumbnail === "object"
       ? ((page.thumbnail as any).url ?? undefined)
       : undefined;
-  return buildLocalizedMetadata(`/learn/${slug}`, {
-    title: page.title,
-    description: page.excerpt ?? "",
-    openGraph: {
+  return buildLocalizedMetadata(
+    `/learn/${slug}`,
+    {
       title: page.title,
       description: page.excerpt ?? "",
-      ...(imageSrc ? { images: [imageSrc] } : {}),
+      openGraph: {
+        title: page.title,
+        description: page.excerpt ?? "",
+        ...(imageSrc ? { images: [imageSrc] } : {}),
+      },
     },
-  });
+    locale,
+  );
 }
 
 export default async function LearnArticlePage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: Locale; slug: string }>;
 }) {
-  const { slug } = await params;
+  const { locale, slug } = await params;
   const page = await getLearnPageBySlug(slug);
   if (!page) {
     notFound();
@@ -75,6 +82,20 @@ export default async function LearnArticlePage({
 
   return (
     <>
+      <JsonLd
+        data={[
+          buildArticleJsonLd({
+            type: "Article",
+            path: `/learn/${slug}`,
+            locale,
+            headline: page.title,
+            description: page.excerpt ?? null,
+            imageUrl: thumbUrl,
+            datePublished: page.createdAt,
+            dateModified: page.updatedAt,
+          }),
+        ]}
+      />
       <h1 className="mt-2 text-2xl font-bold sm:text-4xl">{page.title}</h1>
       {thumbUrl ? (
         <Image

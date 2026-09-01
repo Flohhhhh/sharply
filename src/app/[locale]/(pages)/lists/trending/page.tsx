@@ -15,14 +15,18 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "trendingPage" });
 
-  return buildLocalizedMetadata("/lists/trending", {
-    title: t("metaTitle"),
-    description: t("metaDescription"),
-    openGraph: {
+  return buildLocalizedMetadata(
+    "/lists/trending",
+    {
       title: t("metaTitle"),
       description: t("metaDescription"),
+      openGraph: {
+        title: t("metaTitle"),
+        description: t("metaDescription"),
+      },
     },
-  });
+    locale,
+  );
 }
 
 export default async function TrendingPage({

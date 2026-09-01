@@ -7,16 +7,27 @@ import { requireRole } from "~/lib/auth/auth-helpers";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import DiscordBingoClient from "./_components/discord-bingo-client";
 
-export const metadata: Metadata = buildLocalizedMetadata("/discord/bingo", {
-  title: "Photography Lounge Bingo",
-  description:
-    "A collaborative Photography Lounge bingo board. Work together with the community to claim tiles and earn points for every tile you mark off.",
-  openGraph: {
-    title: "Photography Lounge Bingo",
-    description:
-      "A collaborative Photography Lounge bingo board. Work together with the community to claim tiles and earn points for every tile you mark off.",
-  },
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return buildLocalizedMetadata(
+    "/discord/bingo",
+    {
+      title: "Photography Lounge Bingo",
+      description:
+        "A collaborative Photography Lounge bingo board. Work together with the community to claim tiles and earn points for every tile you mark off.",
+      openGraph: {
+        title: "Photography Lounge Bingo",
+        description:
+          "A collaborative Photography Lounge bingo board. Work together with the community to claim tiles and earn points for every tile you mark off.",
+      },
+    },
+    locale,
+  );
+}
 
 export default async function DiscordBingoPage() {
   const session = await auth.api.getSession({

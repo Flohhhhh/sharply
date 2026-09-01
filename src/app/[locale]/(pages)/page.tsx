@@ -25,8 +25,13 @@ import { getNewsPosts, getReviews } from "~/server/payload/service";
 
 export const revalidate = 60;
 
-export async function generateMetadata(): Promise<Metadata> {
-  return buildLocalizedMetadata("/", {});
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return buildLocalizedMetadata("/", {}, locale);
 }
 
 function stripHtml(html: string | null | undefined, maxLength = 160) {
@@ -138,7 +143,7 @@ export default async function Home({
     <div className="min-h-screen px-4 sm:px-6">
       {/* HERO */}
       <section className="w-full pt-20">
-        <div className="mx-auto max-w-7xl px-2 sm:px-4 py-8 md:py-10">
+        <div className="mx-auto max-w-7xl px-2 py-8 sm:px-4 md:py-10">
           <div className="mx-auto space-y-4 text-center">
             <HeroTitle
               line1={t("heroTitleLine1")}
@@ -240,7 +245,9 @@ export default async function Home({
               {/* Stats */}
               <div className="flex flex-col gap-2 px-4"></div>
               <Separator className="my-2" />
-              <Suspense fallback={<TrendingList locale={locale} loading rows={10} />}>
+              <Suspense
+                fallback={<TrendingList locale={locale} loading rows={10} />}
+              >
                 <TrendingList locale={locale} timeframe="7d" limit={10} />
               </Suspense>
               <Separator className="my-2" />

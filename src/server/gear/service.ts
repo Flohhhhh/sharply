@@ -57,6 +57,7 @@ import {
   fetchAllGearExportRowsData,
   fetchAllGearForConstructionData,
   fetchAllGearSlugsData,
+  fetchGearSitemapEntriesData,
   fetchAllImageRequests as fetchAllImageRequestsData,
   fetchAlternativesByGearId,
   fetchGearLineageByGearId,
@@ -872,6 +873,10 @@ export async function fetchAllGearSlugs() {
   return fetchAllGearSlugsData();
 }
 
+export async function fetchGearSitemapEntries() {
+  return fetchGearSitemapEntriesData();
+}
+
 export async function fetchNewestGearSlugs(limit: number) {
   return fetchNewestGearSlugsData(limit);
 }
@@ -1239,7 +1244,9 @@ export async function submitGearEditProposal(body: unknown) {
       Object.hasOwn(lensChanges, key) ? lensChanges[key] : currentLens?.[key];
     const apertureEndpointValue = (key: string) => {
       const value = effectiveLensValue(key);
-      return typeof value === "string" || typeof value === "number" || value == null
+      return typeof value === "string" ||
+        typeof value === "number" ||
+        value == null
         ? value
         : undefined;
     };

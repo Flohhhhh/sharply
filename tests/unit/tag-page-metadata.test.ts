@@ -15,6 +15,7 @@ describe("buildTagPageMetadata", () => {
         description: "Short tag description.",
       },
       "Browse photography gear tagged Wildlife.",
+      "en",
     );
 
     expect(metadata.title).toBe("Wildlife photography gear");
@@ -37,6 +38,7 @@ describe("buildTagPageMetadata", () => {
         description: null,
       },
       "Browse photography gear tagged Wildlife.",
+      "en",
     );
 
     expect(metadata.title).toBe("Wildlife");

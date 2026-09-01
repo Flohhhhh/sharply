@@ -1,4 +1,4 @@
-import { expect,test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { localeCookieName } from "~/i18n/config";
 
 test.describe("routing and auth", () => {
@@ -13,6 +13,12 @@ test.describe("routing and auth", () => {
 
     await page.goto("/en/about");
     await expect(page).toHaveURL(/\/about$/);
+
+    // The middleware re-sets NEXT_LOCALE on every response (src/proxy.ts), so
+    // a late prefetch/RSC response from the navigations above can overwrite an
+    // injected cookie. Leaving the page aborts those in-flight requests
+    // (networkidle is unusable here — the page polls continuously).
+    await page.goto("about:blank");
 
     await page.context().addCookies([
       {

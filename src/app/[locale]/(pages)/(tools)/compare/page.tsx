@@ -7,16 +7,19 @@ import { CompareLoadingOverlayProvider } from "~/components/compare/compare-load
 import { CompareReplaceButton } from "~/components/compare/compare-replace-button";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
 import { GetGearDisplayName } from "~/lib/gear/naming";
-import { getBrandNameById,stripLeadingBrand } from "~/lib/mapping/brand-map";
+import { getBrandNameById, stripLeadingBrand } from "~/lib/mapping/brand-map";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import { fetchGearBySlug } from "~/server/gear/service";
 import { ComparePairTracker } from "./_components/compare-pair-tracker";
 
 export async function generateMetadata({
+  params: routeParams,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<Metadata> {
+  const { locale } = await routeParams;
   const params = await searchParams;
   const usp = new URLSearchParams();
   const raw = params.i; // string | string[] | undefined
@@ -46,14 +49,20 @@ export async function generateMetadata({
       })
     : (slugB ?? "");
 
-  return buildLocalizedMetadata("/compare", {
-    title:
-      pair.length === 1 ? `Compare ${nameA}` : `Compare ${nameA} vs ${nameB}`,
-    openGraph: {
+  return buildLocalizedMetadata(
+    "/compare",
+    {
       title:
         pair.length === 1 ? `Compare ${nameA}` : `Compare ${nameA} vs ${nameB}`,
+      openGraph: {
+        title:
+          pair.length === 1
+            ? `Compare ${nameA}`
+            : `Compare ${nameA} vs ${nameB}`,
+      },
     },
-  });
+    locale,
+  );
 }
 
 function getPairFromParams(searchParams: URLSearchParams): string[] {

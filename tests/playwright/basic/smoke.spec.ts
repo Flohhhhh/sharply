@@ -64,6 +64,11 @@ test.describe("smoke", () => {
   });
 
   test("gear navigation exposes Collections", async ({ page }) => {
+    test.skip(
+      test.info().project.name.includes("Mobile"),
+      "Desktop only: mobile viewports use the hamburger menu, not the Gear dropdown",
+    );
+
     await page.goto("/");
 
     await expectHeaderMode(page, "expanded");

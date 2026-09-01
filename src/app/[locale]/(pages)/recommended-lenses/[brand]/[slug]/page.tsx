@@ -21,9 +21,9 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ brand: string; slug: string }>;
+  params: Promise<{ locale: string; brand: string; slug: string }>;
 }): Promise<Metadata> {
-  const { brand, slug } = await params;
+  const { locale, brand, slug } = await params;
   const result = await serviceGetChart(brand, slug);
   if (!result) {
     return {
@@ -34,12 +34,16 @@ export async function generateMetadata({
     };
   }
   return {
-    ...buildLocalizedMetadata(`/recommended-lenses/${brand}/${slug}`, {
-      title: result.title,
-      openGraph: {
+    ...buildLocalizedMetadata(
+      `/recommended-lenses/${brand}/${slug}`,
+      {
         title: result.title,
+        openGraph: {
+          title: result.title,
+        },
       },
-    }),
+      locale,
+    ),
   };
 }
 

@@ -26,12 +26,16 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "profileSettings" });
 
-  return buildLocalizedMetadata("/profile/settings", {
-    title: t("metaTitle"),
-    openGraph: {
+  return buildLocalizedMetadata(
+    "/profile/settings",
+    {
       title: t("metaTitle"),
+      openGraph: {
+        title: t("metaTitle"),
+      },
     },
-  });
+    locale,
+  );
 }
 
 export default async function SettingsPage({

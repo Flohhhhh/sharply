@@ -1,4 +1,4 @@
-import { Calendar,ExternalLink } from "lucide-react";
+import { Calendar, ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import Image from "next/image";
@@ -6,19 +6,22 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import DiscordBanner from "~/components/discord-banner";
 import { GearCardHorizontal } from "~/components/gear/gear-card-horizontal";
+import { JsonLd } from "~/components/json-ld";
 import { RichText } from "~/components/rich-text";
 import { TableOfContents } from "~/components/rich-text/table-of-contents";
 import { Badge } from "~/components/ui/badge";
 import { Separator } from "~/components/ui/separator";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
+import type { Locale } from "~/i18n/config";
 import { getGearDisplayImageUrl } from "~/lib/gear/display-image";
 import { formatDate } from "~/lib/format/date";
 import { getItemDisplayPrice } from "~/lib/mapping";
 import { getBrandNameById } from "~/lib/mapping/brand-map";
 import { buildDefaultOgImageUrl } from "~/lib/seo/default-og-image";
+import { buildArticleJsonLd } from "~/lib/seo/json-ld-helpers";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import { fetchGearBySlug } from "~/server/gear/service";
-import { getNewsPostBySlug,getNewsPosts } from "~/server/payload/service";
+import { getNewsPostBySlug, getNewsPosts } from "~/server/payload/service";
 
 export const revalidate = 60;
 
@@ -30,7 +33,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ locale: string; slug: string }>;
+  params: Promise<{ locale: Locale; slug: string }>;
 }): Promise<Metadata> {
   const { locale, slug } = await params;
   const t = await getTranslations({ locale, namespace: "newsPage" });
@@ -55,29 +58,32 @@ export async function generateMetadata({
         height: 630,
         alt: t("newsOgAlt"),
       };
-  return buildLocalizedMetadata(`/news/${slug}`, {
-    title: `${page.title}`,
-    description: page.excerpt ?? "",
-    openGraph: {
-      type: "article",
+  return buildLocalizedMetadata(
+    `/news/${slug}`,
+    {
       title: `${page.title}`,
       description: page.excerpt ?? "",
-      url: `${baseUrl}/news/${slug}`,
-      images: [ogImage],
+      openGraph: {
+        type: "article",
+        title: `${page.title}`,
+        description: page.excerpt ?? "",
+        images: [ogImage],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `${page.title}`,
+        description: page.excerpt ?? "",
+        images: [ogImage.url],
+      },
     },
-    twitter: {
-      card: "summary_large_image",
-      title: `${page.title}`,
-      description: page.excerpt ?? "",
-      images: [ogImage.url],
-    },
-  });
+    locale,
+  );
 }
 
 export default async function DynamicPage({
   params,
 }: {
-  params: Promise<{ locale: string; slug: string }>;
+  params: Promise<{ locale: Locale; slug: string }>;
 }) {
   const { locale, slug } = await params;
   const t = await getTranslations({ locale, namespace: "newsPage" });
@@ -96,7 +102,7 @@ export default async function DynamicPage({
   const relatedGearItems = Array.isArray(page.related_gear_items)
     ? (
         await Promise.all(
-          (page.related_gear_items)
+          page.related_gear_items
             .filter((v): v is string => typeof v === "string")
             .map(async (gearSlug) => {
               try {
@@ -139,6 +145,20 @@ export default async function DynamicPage({
 
   return (
     <div className="mx-auto my-24 flex min-h-screen flex-col items-center gap-12 px-4 sm:px-8">
+      <JsonLd
+        data={[
+          buildArticleJsonLd({
+            type: "NewsArticle",
+            path: `/news/${slug}`,
+            locale,
+            headline: page.title,
+            description: page.excerpt ?? null,
+            imageUrl: imageSrc ?? null,
+            datePublished: page.override_date ?? page.createdAt,
+            dateModified: page.updatedAt,
+          }),
+        ]}
+      />
       <ScrollProgress bottomOffset={300} />
       <div className="flex flex-col items-center gap-4">
         <Badge className="bg-accent text-accent-foreground">{category}</Badge>
@@ -245,10 +265,7 @@ export default async function DynamicPage({
           ) : null}
         </aside>
       </div>
-      <DiscordBanner
-        label={t("joinDiscussion")}
-        className="w-full max-w-5xl"
-      />
+      <DiscordBanner label={t("joinDiscussion")} className="w-full max-w-5xl" />
     </div>
   );
 }

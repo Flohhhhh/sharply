@@ -8,16 +8,27 @@ import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import ContactClient from "./_components/contact-client";
 import EmailCopyButton from "./_components/email-copy-button";
 
-export const metadata: Metadata = buildLocalizedMetadata("/contact", {
-  title: "Contact",
-  description:
-    "Get in touch with Sharply for questions, corrections, partnership requests, or thoughtful feedback.",
-  openGraph: {
-    title: "Contact",
-    description:
-      "Get in touch with Sharply for questions, corrections, partnership requests, or thoughtful feedback.",
-  },
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return buildLocalizedMetadata(
+    "/contact",
+    {
+      title: "Contact",
+      description:
+        "Get in touch with Sharply for questions, corrections, partnership requests, or thoughtful feedback.",
+      openGraph: {
+        title: "Contact",
+        description:
+          "Get in touch with Sharply for questions, corrections, partnership requests, or thoughtful feedback.",
+      },
+    },
+    locale,
+  );
+}
 
 export default function ContactPage() {
   const email =

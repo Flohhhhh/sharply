@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { GearCardHorizontal } from "~/components/gear/gear-card-horizontal";
+import { JsonLd } from "~/components/json-ld";
 import { RichText } from "~/components/rich-text";
 import { TableOfContents } from "~/components/rich-text/table-of-contents";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
@@ -10,6 +11,7 @@ import { getGearDisplayImageUrl } from "~/lib/gear/display-image";
 import { GetGearDisplayName } from "~/lib/gear/naming";
 import { getBrandNameById } from "~/lib/mapping/brand-map";
 import { buildDefaultOgImageUrl } from "~/lib/seo/default-og-image";
+import { buildEditorialReviewJsonLd } from "~/lib/seo/json-ld-helpers";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import { fetchGearBySlug } from "~/server/gear/service";
 import { getReviewBySlug } from "~/server/payload/service";
@@ -60,23 +62,26 @@ export async function generateMetadata({
           alt: t("reviewsOgAlt"),
         };
 
-    return buildLocalizedMetadata(`/reviews/${slug}`, {
-      title,
-      description,
-      openGraph: {
-        type: "article",
+    return buildLocalizedMetadata(
+      `/reviews/${slug}`,
+      {
         title,
         description,
-        url: `${baseUrl}/reviews/${slug}`,
-        images: [ogImage],
+        openGraph: {
+          type: "article",
+          title,
+          description,
+          images: [ogImage],
+        },
+        twitter: {
+          card: "summary_large_image",
+          title,
+          description,
+          images: [ogImage.url],
+        },
       },
-      twitter: {
-        card: "summary_large_image",
-        title,
-        description,
-        images: [ogImage.url],
-      },
-    });
+      locale,
+    );
   } catch (err: any) {
     if (err?.status === 404) {
       return {
@@ -108,6 +113,26 @@ export default async function ReviewPage({
 
   return (
     <div className="mx-auto my-24 flex min-h-screen flex-col items-center gap-12 px-4 pt-8 sm:px-8">
+      <JsonLd
+        data={[
+          buildEditorialReviewJsonLd({
+            path: `/reviews/${slug}`,
+            headline: review.title,
+            productName: gearItem.name,
+            gearSlug: review.review_gear_item,
+            description: review.review_summary ?? null,
+            imageUrl: displayImageUrl,
+            datePublished: review.createdAt,
+            dateModified: review.updatedAt,
+            pros: (review.goodPoints ?? [])
+              .map((point) => point.goodNote)
+              .filter((note): note is string => Boolean(note)),
+            cons: (review.badPoints ?? [])
+              .map((point) => point.badNote)
+              .filter((note): note is string => Boolean(note)),
+          }),
+        ]}
+      />
       <ScrollProgress bottomOffset={300} />
       <div className="flex flex-col items-center gap-3 text-center">
         <h1 className="text-center text-4xl font-bold sm:text-6xl">

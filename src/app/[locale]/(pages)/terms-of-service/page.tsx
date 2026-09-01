@@ -4,12 +4,23 @@ import { LocaleLink } from "~/components/locale-link";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 
-export const metadata: Metadata = buildLocalizedMetadata("/terms-of-service", {
-  title: "Terms of Service",
-  openGraph: {
-    title: "Terms of Service",
-  },
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return buildLocalizedMetadata(
+    "/terms-of-service",
+    {
+      title: "Terms of Service",
+      openGraph: {
+        title: "Terms of Service",
+      },
+    },
+    locale,
+  );
+}
 
 export default async function TermsOfServicePage() {
   const t = await getTranslations("legal.terms");
