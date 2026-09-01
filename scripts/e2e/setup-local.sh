@@ -64,6 +64,7 @@ echo "[e2e] pg_trgm ready"
 npx drizzle-kit push --force --config=config/drizzle.config.ts
 npm run e2e:bootstrap
 npm run db:seed -- --confirm-seed
+npm run e2e:seed-fixtures
 
 cat <<EOF
 

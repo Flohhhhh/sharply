@@ -9,8 +9,21 @@ const shouldManageServer = !process.env.PLAYWRIGHT_BASE_URL;
 const configDirectoryName = path.dirname(fileURLToPath(import.meta.url));
 const workspaceRootPath = path.resolve(configDirectoryName, "..");
 
+const setupProject = {
+  name: "setup",
+  testMatch: /auth\.setup\.ts/,
+};
+
+// The storage-state cookies produced by the chromium-run setup project work
+// in every browser project — it's a JSON cookie file, not a browser profile —
+// so one setup run covers the whole matrix.
+const withSetup = <T extends { name: string }>(browserProjects: T[]) => [
+  setupProject,
+  ...browserProjects.map((p) => ({ ...p, dependencies: ["setup"] })),
+];
+
 const projects = runFullBrowserMatrix
-  ? [
+  ? withSetup([
       {
         name: "chromium",
         use: { ...devices["Desktop Chrome"] },
@@ -27,13 +40,13 @@ const projects = runFullBrowserMatrix
         name: "Mobile Safari",
         use: { ...devices["iPhone 12"] },
       },
-    ]
-  : [
+    ])
+  : withSetup([
       {
         name: "chromium",
         use: { ...devices["Desktop Chrome"] },
       },
-    ];
+    ]);
 
 export default defineConfig({
   testDir: path.join(workspaceRootPath, "tests/playwright"),
