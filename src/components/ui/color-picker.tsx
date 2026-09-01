@@ -25,9 +25,15 @@ type HslColor = {
   l: number;
 };
 
-type SaturationLightnessPoint = {
+type HsvColor = {
+  h: number;
+  s: number;
+  v: number;
+};
+
+type SaturationValuePoint = {
   saturation: number;
-  lightness: number;
+  value: number;
 };
 
 type ColorPickerLabels = {
@@ -182,39 +188,90 @@ export function hslToRgba(hsl: HslColor, alpha = 1): RgbaColor {
   });
 }
 
+export function rgbaToHsv(value: RgbaColor): HsvColor {
+  const r = clamp(value.r, 0, 255) / 255;
+  const g = clamp(value.g, 0, 255) / 255;
+  const b = clamp(value.b, 0, 255) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const delta = max - min;
+  let hue = 0;
+
+  if (delta !== 0) {
+    if (max === r) hue = 60 * (((g - b) / delta) % 6);
+    else if (max === g) hue = 60 * ((b - r) / delta + 2);
+    else hue = 60 * ((r - g) / delta + 4);
+    if (hue < 0) hue += 360;
+  }
+
+  return {
+    h: hue,
+    s: max === 0 ? 0 : (delta / max) * 100,
+    v: max * 100,
+  };
+}
+
+export function hsvToRgba(hsv: HsvColor, alpha = 1): RgbaColor {
+  const h = ((hsv.h % 360) + 360) % 360;
+  const s = clamp(hsv.s, 0, 100) / 100;
+  const v = clamp(hsv.v, 0, 100) / 100;
+  const chroma = v * s;
+  const x = chroma * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = v - chroma;
+  const [r, g, b] =
+    h < 60
+      ? [chroma, x, 0]
+      : h < 120
+        ? [x, chroma, 0]
+        : h < 180
+          ? [0, chroma, x]
+          : h < 240
+            ? [0, x, chroma]
+            : h < 300
+              ? [x, 0, chroma]
+              : [chroma, 0, x];
+
+  return normalizeRgbaColor({
+    r: (r + m) * 255,
+    g: (g + m) * 255,
+    b: (b + m) * 255,
+    a: alpha,
+  });
+}
+
 export function applyHueToColor(value: RgbaColor, hue: number): RgbaColor {
-  const hsl = rgbaToHsl(value);
-  return hslToRgba(
+  const hsv = rgbaToHsv(value);
+  return hsvToRgba(
     {
       h: hue,
-      s: hsl.s,
-      l: hsl.l,
+      s: hsv.s,
+      v: hsv.v,
     },
     value.a,
   );
 }
 
-export function applySaturationLightnessToColor(
+export function applySaturationValueToColor(
   value: RgbaColor,
   saturation: number,
-  lightness: number,
+  brightness: number,
 ): RgbaColor {
-  const hsl = rgbaToHsl(value);
-  return hslToRgba(
+  const hsv = rgbaToHsv(value);
+  return hsvToRgba(
     {
-      h: hsl.h,
+      h: hsv.h,
       s: saturation,
-      l: lightness,
+      v: brightness,
     },
     value.a,
   );
 }
 
-export function getSaturationLightnessFromPointerPosition(
+export function getSaturationValueFromPointerPosition(
   clientX: number,
   clientY: number,
   rect: { left: number; top: number; width: number; height: number },
-): SaturationLightnessPoint {
+): SaturationValuePoint {
   const x =
     rect.width > 0 ? clamp((clientX - rect.left) / rect.width, 0, 1) : 0;
   const y =
@@ -222,7 +279,7 @@ export function getSaturationLightnessFromPointerPosition(
 
   return {
     saturation: x * 100,
-    lightness: (1 - y) * 100,
+    value: (1 - y) * 100,
   };
 }
 
@@ -318,8 +375,8 @@ export function ColorPickerPanel({
     () => normalizeRgbaColor(value, opacityEnabled),
     [opacityEnabled, value],
   );
-  const hsl = React.useMemo(
-    () => rgbaToHsl(normalizedValue),
+  const hsv = React.useMemo(
+    () => rgbaToHsv(normalizedValue),
     [normalizedValue],
   );
   const [hexInput, setHexInput] = React.useState(() =>
@@ -361,16 +418,16 @@ export function ColorPickerPanel({
     (clientX: number, clientY: number) => {
       if (disabled || !saturationRef.current) return;
       const rect = saturationRef.current.getBoundingClientRect();
-      const next = getSaturationLightnessFromPointerPosition(
+      const next = getSaturationValueFromPointerPosition(
         clientX,
         clientY,
         rect,
       );
       emitValue(
-        applySaturationLightnessToColor(
+        applySaturationValueToColor(
           normalizedValue,
           next.saturation,
-          next.lightness,
+          next.value,
         ),
       );
     },
@@ -398,18 +455,18 @@ export function ColorPickerPanel({
     (event: React.KeyboardEvent<HTMLDivElement>) => {
       if (disabled) return;
       const step = event.shiftKey ? 5 : 1;
-      let nextS = hsl.s;
-      let nextL = hsl.l;
+      let nextS = hsv.s;
+      let nextV = hsv.v;
       if (event.key === "ArrowLeft") nextS -= step;
       else if (event.key === "ArrowRight") nextS += step;
-      else if (event.key === "ArrowUp") nextL += step;
-      else if (event.key === "ArrowDown") nextL -= step;
+      else if (event.key === "ArrowUp") nextV += step;
+      else if (event.key === "ArrowDown") nextV -= step;
       else return;
 
       event.preventDefault();
-      emitValue(applySaturationLightnessToColor(normalizedValue, nextS, nextL));
+      emitValue(applySaturationValueToColor(normalizedValue, nextS, nextV));
     },
-    [disabled, emitValue, hsl.l, hsl.s, normalizedValue],
+    [disabled, emitValue, hsv.s, hsv.v, normalizedValue],
   );
 
   const commitHex = React.useCallback(() => {
@@ -432,9 +489,9 @@ export function ColorPickerPanel({
     }
   }, [alphaInput, emitValue, normalizedValue, opacityEnabled]);
 
-  const pointerLeft = `${hsl.s}%`;
-  const pointerTop = `${100 - hsl.l}%`;
-  const huePreview = `hsl(${Math.round(hsl.h)} 100% 50%)`;
+  const pointerLeft = `${hsv.s}%`;
+  const pointerTop = `${100 - hsv.v}%`;
+  const huePreview = `hsl(${Math.round(hsv.h)} 100% 50%)`;
   const rgbaCss = `rgba(${normalizedValue.r}, ${normalizedValue.g}, ${normalizedValue.b}, ${normalizedValue.a})`;
 
   return (
@@ -489,7 +546,7 @@ export function ColorPickerPanel({
             emitValue(applyHueToColor(normalizedValue, values[0] ?? 0));
           }}
           step={1}
-          value={[hsl.h]}
+          value={[hsv.h]}
         />
       </div>
 

@@ -381,7 +381,7 @@
         "colorB": "颜色 2",
         "hex": "十六进制颜色",
         "hue": "色相",
-        "saturationLightness": "饱和度和明度",
+        "saturationLightness": "饱和度和亮度",
         "presets": "统一预设",
         "black": "黑色",
         "gray": "灰色",

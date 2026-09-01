@@ -3,17 +3,18 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import {
   applyHueToColor,
-  applySaturationLightnessToColor,
+  applySaturationValueToColor,
   ColorPickerField,
   ColorPickerPanel,
   commitAlphaInput,
   commitHexInput,
-  getSaturationLightnessFromPointerPosition,
+  getSaturationValueFromPointerPosition,
   normalizeRgbaColor,
   parseAlphaInput,
   parseHexColor,
   rgbaToHex,
   rgbaToHsl,
+  rgbaToHsv,
   type RgbaColor,
 } from "../../src/components/ui/color-picker";
 
@@ -176,17 +177,17 @@ describe("color-picker helpers", () => {
     expect(next.a).toBe(BASE_COLOR.a);
   });
 
-  it("applies saturation/lightness changes from the visual plane", () => {
-    const next = applySaturationLightnessToColor(BASE_COLOR, 25, 75);
-    const hsl = rgbaToHsl(next);
-    expect(Math.round(hsl.s)).toBe(25);
-    expect(Math.round(hsl.l)).toBe(75);
+  it("applies saturation/value changes from the visual plane", () => {
+    const next = applySaturationValueToColor(BASE_COLOR, 25, 75);
+    const hsv = rgbaToHsv(next);
+    expect(Math.round(hsv.s)).toBe(25);
+    expect(Math.round(hsv.v)).toBe(75);
     expect(next.a).toBe(BASE_COLOR.a);
   });
 
-  it("maps pointer positions into saturation and lightness values", () => {
+  it("maps pointer positions into saturation and value", () => {
     expect(
-      getSaturationLightnessFromPointerPosition(25, 75, {
+      getSaturationValueFromPointerPosition(25, 75, {
         left: 0,
         top: 0,
         width: 100,
@@ -194,7 +195,25 @@ describe("color-picker helpers", () => {
       }),
     ).toEqual({
       saturation: 25,
-      lightness: 25,
+      value: 25,
+    });
+  });
+
+  it("maps the visual plane corners to white, saturated hue, and black", () => {
+    expect(applySaturationValueToColor(BASE_COLOR, 0, 100)).toMatchObject({
+      r: 255,
+      g: 255,
+      b: 255,
+    });
+    expect(applySaturationValueToColor(BASE_COLOR, 100, 100)).toMatchObject({
+      r: 255,
+      g: 0,
+      b: 128,
+    });
+    expect(applySaturationValueToColor(BASE_COLOR, 100, 0)).toMatchObject({
+      r: 0,
+      g: 0,
+      b: 0,
     });
   });
 });
