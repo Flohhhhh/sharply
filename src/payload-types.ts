@@ -431,6 +431,10 @@ export interface LearnPage {
     [k: string]: unknown;
   };
   /**
+   * Optionally recommend another published Learn page at the end of this article.
+   */
+  read_next?: (number | null) | LearnPage;
+  /**
    * These aliases can be used in /learn [alias or slug] command to access this page from Discord bot quickly. Include at least one.
    */
   command_aliases: {
@@ -679,6 +683,7 @@ export interface LearnPagesSelect<T extends boolean = true> {
   slug?: T;
   excerpt?: T;
   content?: T;
+  read_next?: T;
   command_aliases?:
     | T
     | {

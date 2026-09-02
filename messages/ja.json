@@ -1622,6 +1622,9 @@
     "backToGear": "機材一覧へ戻る",
     "learnMore": "詳しく見る"
   },
+  "learnArticlePage": {
+    "readNext": "次に読む"
+  },
   "learnBasicsPage": {
     "metaTitle": "基礎",
     "metaDescription": "現代のカメラ、露出、初心者向けの学習導線など、写真の基礎を学び始めましょう。",

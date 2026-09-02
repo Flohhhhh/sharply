@@ -1622,6 +1622,9 @@
     "backToGear": "Back to Gear",
     "learnMore": "Learn more"
   },
+  "learnArticlePage": {
+    "readNext": "Read next"
+  },
   "learnBasicsPage": {
     "metaTitle": "The Basics",
     "metaDescription": "Start learning photography fundamentals, including modern cameras, exposure, and beginner-friendly paths.",

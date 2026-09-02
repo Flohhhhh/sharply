@@ -1622,6 +1622,9 @@
     "backToGear": "Retour au matériel",
     "learnMore": "En savoir plus"
   },
+  "learnArticlePage": {
+    "readNext": "À lire ensuite"
+  },
   "learnBasicsPage": {
     "metaTitle": "Les bases",
     "metaDescription": "Commencez à apprendre les fondamentaux de la photographie, y compris les appareils modernes, l’exposition et des parcours adaptés aux débutants.",
