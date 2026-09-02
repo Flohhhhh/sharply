@@ -30,7 +30,7 @@ export default function LearnMobileArticleSheet({
   }
 
   return (
-    <div className="bg-background/95 sticky top-0 z-40 mt-16 border-b shadow-sm backdrop-blur lg:hidden">
+    <div className="bg-background/95 sticky top-0 z-40 mt-16 border-b shadow-sm backdrop-blur 2xl:hidden">
       <div className="mx-auto flex max-w-[1500px] items-center justify-between px-4 py-3">
         <div>
           <p className="text-foreground text-sm font-semibold">

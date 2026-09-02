@@ -1,9 +1,11 @@
 "use client";
 
-import { TableOfContentsIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
-import { useEffect,useMemo,useRef,useState } from "react";
+import { useEffect,useRef,useState } from "react";
+
+import { getActiveHeadingId } from "~/components/rich-text/table-of-contents-utils";
+import { cn } from "~/lib/utils";
 
 type HeadingItem = {
   id: string;
@@ -11,30 +13,44 @@ type HeadingItem = {
   level: number;
 };
 
+const headingSelector = "h2, h3, h4";
+
 function extractHeadings(container: HTMLElement | null): HeadingItem[] {
   if (!container) return [];
-  const selector = "h2, h3, h4";
-  const nodes = Array.from(container.querySelectorAll(selector));
-  return nodes
-    .map((el) => {
-      const tag = el.tagName.toLowerCase();
-      const level = tag === "h2" ? 2 : tag === "h3" ? 3 : 4;
-      const id =
-        el.id ||
-        el.textContent
-          ?.toLowerCase()
-          .trim()
-          .replace(/\s+/g, "-")
-          .replace(/[^a-z0-9-]/g, "") ||
-        "";
-      if (!el.id && id) el.id = id;
-      return {
-        id,
-        text: el.textContent || "",
-        level,
-      };
-    })
-    .filter((h) => Boolean(h.id && h.text));
+
+  const headings: HeadingItem[] = [];
+
+  for (const element of container.querySelectorAll<HTMLElement>(
+    headingSelector,
+  )) {
+    const level = Number(element.tagName.slice(1));
+    const id =
+      element.id ||
+      element.textContent
+        ?.toLowerCase()
+        .trim()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-]/g, "") ||
+      "";
+    const text = element.textContent?.trim() || "";
+
+    if (!element.id && id) element.id = id;
+    if (id && text) headings.push({ id, text, level });
+  }
+
+  return headings;
+}
+
+function getLineWidth(level: number) {
+  if (level === 2) return "w-6";
+  if (level === 3) return "w-4.5";
+  return "w-3";
+}
+
+function getLabelPadding(level: number) {
+  if (level === 2) return "pl-2";
+  if (level === 3) return "pl-4";
+  return "pl-6";
 }
 
 export function TableOfContents(props: {
@@ -42,69 +58,136 @@ export function TableOfContents(props: {
   className?: string;
 }) {
   const t = useTranslations("common");
-  const { contentSelector = ".prose", className = "" } = props;
+  const { contentSelector = ".prose", className } = props;
   const [headings, setHeadings] = useState<HeadingItem[]>([]);
-  const [activeId, setActiveId] = useState<string>("");
-  const observerRef = useRef<IntersectionObserver | null>(null);
+  const [activeId, setActiveId] = useState("");
+  const headingElementsRef = useRef<HTMLElement[]>([]);
+  const frameRef = useRef<number | null>(null);
   const pathname = usePathname();
 
   useEffect(() => {
     const container = document.querySelector<HTMLElement>(contentSelector);
-    setHeadings(extractHeadings(container));
-
-    const headingsEls = container
-      ? Array.from(container.querySelectorAll<HTMLElement>("h2, h3, h4"))
+    const nextHeadings = extractHeadings(container);
+    const headingElements = container
+      ? Array.from(container.querySelectorAll<HTMLElement>(headingSelector))
       : [];
-    if (observerRef.current) observerRef.current.disconnect();
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((e) => e.isIntersecting)
-          .sort(
-            (a, b) =>
-              (a.target as HTMLElement).offsetTop -
-              (b.target as HTMLElement).offsetTop,
-          );
-        if (visible[0]) setActiveId((visible[0].target as HTMLElement).id);
-      },
-      { rootMargin: "0px 0px -70% 0px", threshold: [0, 1] },
-    );
-    headingsEls.forEach((el) => observerRef.current?.observe(el));
-    return () => observerRef.current?.disconnect();
+
+    setHeadings(nextHeadings);
+    headingElementsRef.current = headingElements;
+
+    const updateActiveHeading = () => {
+      frameRef.current = null;
+      const elements = headingElementsRef.current;
+
+      if (elements.length === 0) {
+        setActiveId("");
+        return;
+      }
+
+      const readingLine = 112;
+      const isAtPageEnd =
+        window.scrollY + window.innerHeight >=
+        document.documentElement.scrollHeight - 2;
+      const nextActiveId = getActiveHeadingId(
+        elements.map((element) => ({
+          id: element.id,
+          top: element.getBoundingClientRect().top,
+        })),
+        readingLine,
+        isAtPageEnd,
+      );
+
+      setActiveId((currentId) =>
+        currentId === nextActiveId ? currentId : nextActiveId,
+      );
+    };
+
+    const scheduleUpdate = () => {
+      if (frameRef.current !== null) return;
+      frameRef.current = window.requestAnimationFrame(updateActiveHeading);
+    };
+
+    scheduleUpdate();
+    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+    window.addEventListener("resize", scheduleUpdate);
+
+    return () => {
+      window.removeEventListener("scroll", scheduleUpdate);
+      window.removeEventListener("resize", scheduleUpdate);
+      if (frameRef.current !== null) {
+        window.cancelAnimationFrame(frameRef.current);
+      }
+    };
   }, [contentSelector, pathname]);
 
-  const items = useMemo(() => headings, [headings]);
-
-  if (!items.length) return null;
+  if (!headings.length) return null;
 
   return (
     <nav
-      className={["text-sm", className].filter(Boolean).join(" ")}
+      className={cn(
+        "group/toc relative ml-auto w-10 rounded-lg p-2 outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        className,
+      )}
       aria-label={t("tableOfContents")}
+      tabIndex={0}
     >
-      <div className="mb-2 flex items-center gap-2">
-        <TableOfContentsIcon className="text-muted-foreground size-4" />
-        <span className="text-muted-foreground">{t("onThisPage")}</span>
-      </div>
+      <ul aria-hidden="true" className="space-y-1">
+        {headings.map((heading) => {
+          const isActive = activeId === heading.id;
 
-      <ul className="space-y-1">
-        {items.map((h) => (
-          <li
-            key={h.id}
-            className={h.level === 2 ? "pl-0" : h.level === 3 ? "pl-4" : "pl-8"}
-          >
-            <a
-              href={`#${h.id}`}
-              className={[
-                "block truncate hover:underline",
-                activeId === h.id ? "text-primary" : "text-muted-foreground",
-              ].join(" ")}
-            >
-              {h.text}
-            </a>
-          </li>
-        ))}
+          return (
+            <li key={heading.id}>
+              <a
+                href={`#${heading.id}`}
+                tabIndex={-1}
+                className={cn(
+                  "group/item flex h-3 items-center justify-end",
+                  isActive
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <span
+                  className={cn(
+                    "h-0.5 shrink-0 rounded-full bg-current transition-[opacity,box-shadow] duration-150",
+                    getLineWidth(heading.level),
+                    isActive
+                      ? "opacity-100 shadow-[0_0_6px_currentColor]"
+                      : "opacity-45 group-hover/item:opacity-75",
+                  )}
+                />
+              </a>
+            </li>
+          );
+        })}
       </ul>
+      <div className="invisible absolute top-0 right-0 z-20 w-72 translate-x-1 opacity-0 transition-[opacity,transform,visibility] duration-150 group-hover/toc:visible group-hover/toc:translate-x-0 group-hover/toc:opacity-100 group-focus-within/toc:visible group-focus-within/toc:translate-x-0 group-focus-within/toc:opacity-100">
+        <div className="border-border/60 bg-background/95 rounded-xl border p-2 shadow-lg backdrop-blur">
+          <ul className="space-y-1">
+            {headings.map((heading) => {
+              const isActive = activeId === heading.id;
+
+              return (
+                <li key={heading.id}>
+                  <a
+                    href={`#${heading.id}`}
+                    aria-current={isActive ? "location" : undefined}
+                    className={cn(
+                      "hover:bg-accent/50 focus-visible:ring-ring block truncate rounded-md py-1.5 pr-2 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none",
+                      getLabelPadding(heading.level),
+                      isActive
+                        ? "bg-accent/50 text-foreground"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {heading.text}
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </div>
     </nav>
   );
 }

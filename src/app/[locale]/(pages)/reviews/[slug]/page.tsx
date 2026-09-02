@@ -134,6 +134,9 @@ export default async function ReviewPage({
         ]}
       />
       <ScrollProgress bottomOffset={300} />
+      <aside className="fixed top-24 right-6 z-20 hidden w-10 lg:block">
+        <TableOfContents contentSelector="#review-content" />
+      </aside>
       <div className="flex flex-col items-center gap-3 text-center">
         <h1 className="text-center text-4xl font-bold sm:text-6xl">
           {t("reviewTitle", { name: gearItem.name })}
@@ -163,9 +166,8 @@ export default async function ReviewPage({
           </div>
         )}
 
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_260px]">
-          <div className="space-y-8 lg:space-y-10">
-            <section id="review-content" className="space-y-6 lg:space-y-8">
+        <div className="mx-auto w-full max-w-3xl space-y-8 lg:space-y-10">
+          <section id="review-content" className="space-y-6 lg:space-y-8">
               {/* Summary */}
               <div className="space-y-2">
                 <h2 className="scroll-mt-24 text-lg font-semibold">
@@ -234,16 +236,7 @@ export default async function ReviewPage({
                 genreRatings={review.genreRatings ?? {}}
                 gearName={GetGearDisplayName(gearItem)}
               />
-            </section>
-          </div>
-
-          <div>
-            <div className="lg:sticky lg:top-24">
-              <div className="rounded-2xl p-5 shadow-lg">
-                <TableOfContents contentSelector="#review-content" />
-              </div>
-            </div>
-          </div>
+          </section>
         </div>
       </div>
     </div>
