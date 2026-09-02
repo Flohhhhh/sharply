@@ -1,13 +1,13 @@
 "use client";
 
-import { CheckCircle2,Loader } from "lucide-react";
-import { useRouter,useSearchParams } from "next/navigation";
-import { useEffect,useMemo,useState,useTransition } from "react";
-import { FaDiscord,FaGoogle } from "react-icons/fa";
+import { CheckCircle2, Loader } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { FaDiscord, FaGoogle } from "react-icons/fa";
 import { toast } from "sonner";
-import { linkSocial,unlinkAccount } from "~/lib/auth/auth-client";
+import { linkSocial } from "~/lib/auth/auth-client";
 
-import { useLocale,useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,6 +22,10 @@ import {
 import { Button } from "~/components/ui/button";
 import { getAuthCallbackUrlForOrigin } from "~/lib/auth/callback-url";
 import type { LinkedAccountInfo } from "~/server/auth/account-linking";
+import {
+  actionDisconnectLinkedAccount,
+  actionSyncCurrentDiscordAvatar,
+} from "~/server/users/actions";
 
 type ProviderKey = "discord" | "google";
 
@@ -68,6 +72,7 @@ export function AccountLinksSection({
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [connecting, setConnecting] = useState<ProviderKey | null>(null);
+  const handledLinkedProviderRef = useRef<string | null>(null);
 
   useEffect(() => {
     setLocalLinks(linkedAccounts);
@@ -81,11 +86,28 @@ export function AccountLinksSection({
   useEffect(() => {
     const linkedProvider = searchParams.get("linked");
     if (!linkedProvider) return;
-    if (linkedProvider === "discord" || linkedProvider === "google") {
-      const meta = PROVIDER_METADATA[linkedProvider];
-      toast.success(t("providerLinked", { provider: meta.label }));
+    if (
+      handledLinkedProviderRef.current === linkedProvider ||
+      (linkedProvider !== "discord" && linkedProvider !== "google")
+    ) {
+      return;
     }
-    router.replace(`/${locale}/profile/settings`);
+    handledLinkedProviderRef.current = linkedProvider;
+
+    void (async () => {
+      try {
+        if (linkedProvider === "discord") {
+          await actionSyncCurrentDiscordAvatar();
+        }
+        const meta = PROVIDER_METADATA[linkedProvider];
+        toast.success(t("providerLinked", { provider: meta.label }));
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : t("genericError"));
+      } finally {
+        router.replace(`/${locale}/profile/settings`);
+        router.refresh();
+      }
+    })();
   }, [locale, router, searchParams, t]);
 
   const handleConnect = async (provider: ProviderKey) => {
@@ -147,21 +169,22 @@ export function AccountLinksSection({
       }),
     );
     startTransition(async () => {
-      const { error } = await unlinkAccount({
-        providerId: provider,
-        accountId: accountId,
-      });
-      if (error) {
-        throw new Error(error.message);
+      try {
+        await actionDisconnectLinkedAccount(provider, accountId);
+        setLocalLinks((prev) => ({ ...prev, [provider]: null }));
+        toast.success(
+          t("providerDisconnected", {
+            provider: PROVIDER_METADATA[provider].label,
+          }),
+        );
+      } catch (err) {
+        const message = err instanceof Error ? err.message : t("genericError");
+        setError(message);
+        toast.error(message);
+      } finally {
+        toast.dismiss(toastId);
+        setConnecting(null);
       }
-      setLocalLinks((prev) => ({ ...prev, [provider]: null }));
-      toast.success(
-        t("providerDisconnected", {
-          provider: PROVIDER_METADATA[provider].label,
-        }),
-      );
-      toast.dismiss(toastId);
-      setConnecting(null);
     });
   };
 

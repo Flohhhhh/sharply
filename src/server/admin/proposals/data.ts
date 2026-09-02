@@ -1,9 +1,10 @@
 import "server-only";
 
-import { and,desc,eq,gte,ne,sql } from "drizzle-orm";
+import { and, desc, eq, gte, ne, sql } from "drizzle-orm";
 import { normalizeViewfinderEyePointUpdate } from "~/lib/specs/viewfinder";
 import type { VideoModeNormalized } from "~/lib/video/mode-schema";
 import { db } from "~/server/db";
+import { getResolvedUserImageSql } from "~/server/users/data";
 import { normalizeProposalPayloadForDb } from "~/server/db/normalizers";
 import {
   analogCameraSpecs,
@@ -29,11 +30,11 @@ type ProposalSelect = {
   createdById: string;
   createdByName: string | null;
   createdByImage: string | null;
-    status: GearEditProposal["status"];
-    payload: GearEditProposal["payload"];
-    metadata: GearEditProposal["metadata"];
-    note: string | null;
-    createdAt: Date;
+  status: GearEditProposal["status"];
+  payload: GearEditProposal["payload"];
+  metadata: GearEditProposal["metadata"];
+  note: string | null;
+  createdAt: Date;
 };
 
 type Baseline = {
@@ -74,7 +75,7 @@ async function fetchEnrichedProposals(
       gearSlug: gear.slug,
       createdById: gearEdits.createdById,
       createdByName: users.name,
-      createdByImage: users.image,
+      createdByImage: getResolvedUserImageSql(),
       status: gearEdits.status,
       payload: gearEdits.payload,
       metadata: gearEdits.metadata,
@@ -137,7 +138,7 @@ async function fetchEnrichedProposals(
   // Attach before values for only the keys present in payload
   const enriched: EnrichedProposal[] = await Promise.all(
     proposals.map(async (p): Promise<EnrichedProposal> => {
-      const base = (await getBaseline(p.gearId));
+      const base = await getBaseline(p.gearId);
       const payload = (p.payload ?? {}) as Record<string, unknown> & {
         core?: Record<string, unknown>;
         analogCamera?: Record<string, unknown>;
@@ -149,10 +150,7 @@ async function fetchEnrichedProposals(
       return {
         ...p,
         beforeCore: pickSubset(base.core, payload.core),
-        beforeAnalogCamera: pickSubset(
-          base.analogCamera,
-          payload.analogCamera,
-        ),
+        beforeAnalogCamera: pickSubset(base.analogCamera, payload.analogCamera),
         beforeCamera: pickSubset(base.camera, payload.camera),
         beforeLens: pickSubset(base.lens, payload.lens),
         beforeFixedLens: pickSubset(base.fixedLens, payload.fixedLens),
@@ -186,7 +184,7 @@ export async function fetchRecentResolvedProposalsData(
       gearSlug: gear.slug,
       createdById: gearEdits.createdById,
       createdByName: users.name,
-      createdByImage: users.image,
+      createdByImage: getResolvedUserImageSql(),
       status: gearEdits.status,
       payload: gearEdits.payload,
       metadata: gearEdits.metadata,
@@ -243,7 +241,7 @@ export async function fetchRecentResolvedProposalsData(
 
   const enriched: EnrichedProposal[] = await Promise.all(
     proposals.map(async (p): Promise<EnrichedProposal> => {
-      const base = (await getBaseline(p.gearId));
+      const base = await getBaseline(p.gearId);
       const payload = (p.payload ?? {}) as Record<string, unknown> & {
         core?: Record<string, unknown>;
         analogCamera?: Record<string, unknown>;
@@ -255,10 +253,7 @@ export async function fetchRecentResolvedProposalsData(
       return {
         ...p,
         beforeCore: pickSubset(base.core, payload.core),
-        beforeAnalogCamera: pickSubset(
-          base.analogCamera,
-          payload.analogCamera,
-        ),
+        beforeAnalogCamera: pickSubset(base.analogCamera, payload.analogCamera),
         beforeCamera: pickSubset(base.camera, payload.camera),
         beforeLens: pickSubset(base.lens, payload.lens),
         beforeFixedLens: pickSubset(base.fixedLens, payload.fixedLens),
