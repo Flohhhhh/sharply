@@ -39,12 +39,15 @@ function centsToPrice(cents: number): string {
 /**
  * Wraps nodes in a single schema.org @graph document. Nodes may reference
  * each other (and the sitewide WebSite/Organization nodes rendered by the
- * locale layout) via `{"@id": ...}`.
+ * locale layout) via `{"@id": ...}`. Nullish entries are dropped so
+ * builders can return null when a node would be ineligible.
  */
-export function buildJsonLdGraph(nodes: JsonLdNode[]): JsonLdNode {
+export function buildJsonLdGraph(
+  nodes: Array<JsonLdNode | null | undefined>,
+): JsonLdNode {
   return {
     "@context": "https://schema.org",
-    "@graph": nodes,
+    "@graph": nodes.filter((node): node is JsonLdNode => node != null),
   };
 }
 
@@ -204,10 +207,23 @@ export type GearProductJsonLdInput = {
   imageUrl?: string | null;
 };
 
+/**
+ * Google renders Product snippets only when one of `offers`, `review`, or
+ * `aggregateRating` is present; a Product with none of them is reported as
+ * a Search Console critical issue and can never produce a rich result.
+ * An offer from the displayed price is the only one of the three emitted
+ * today (nesting staff verdicts / editorial reviews as `review` is
+ * deliberately deferred until the review system is built out), so items
+ * without price data emit no Product node at all.
+ */
 export function buildGearProductJsonLd(
   input: GearProductJsonLdInput,
-): JsonLdNode {
+): JsonLdNode | null {
   const { item, displayName, description, imageUrl } = input;
+
+  const offer = buildGearOfferJsonLd(item);
+  if (!offer) return null;
+
   const canonicalUrl = getLocalizedUrl(`/gear/${item.slug}`, defaultLocale);
 
   const product: JsonLdNode = {
@@ -216,6 +232,7 @@ export function buildGearProductJsonLd(
     "@id": canonicalUrl,
     url: canonicalUrl,
     name: displayName,
+    offers: offer,
   };
 
   if (description) {
@@ -247,11 +264,6 @@ export function buildGearProductJsonLd(
       name: spec.name,
       value: spec.value,
     }));
-  }
-
-  const offer = buildGearOfferJsonLd(item);
-  if (offer) {
-    product.offers = offer;
   }
 
   return product;
