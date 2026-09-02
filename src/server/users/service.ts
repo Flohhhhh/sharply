@@ -1,11 +1,17 @@
 import "server-only";
 
-import { and,eq,sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import { z } from "zod";
-import { auth,type AuthUser } from "~/auth";
+import { auth, type AuthUser } from "~/auth";
+import {
+  avatarSourceValues,
+  resolveUserAvatar,
+  type AvatarSource,
+} from "~/lib/auth/avatar";
 import { getMountById } from "~/lib/mapping/mounts-map";
 import { getSessionOrThrow } from "~/server/auth";
+import { fetchLinkedAccountsForUser } from "~/server/auth/account-linking";
 import { db } from "~/server/db";
 import {
   brands,
@@ -24,10 +30,11 @@ import {
   fetchGearAliasesByGearIds,
   fetchGearColorwaysByGearIds,
 } from "~/server/gear/data";
-import type { GearItem,Mount } from "~/types/gear";
+import type { GearItem, Mount } from "~/types/gear";
 import { createNotificationData } from "../notifications/data";
 import {
   fetchMountPreferenceOption,
+  updateUserAvatarData,
   updateUserPreferredFilters,
   updateUserSocialLinks,
 } from "./data";
@@ -36,7 +43,13 @@ async function updateCurrentAuthUser(
   data: Partial<
     Pick<
       AuthUser,
-      "handle" | "image" | "name" | "preferredBrandId" | "preferredMountId"
+      | "avatarSource"
+      | "discordImage"
+      | "handle"
+      | "image"
+      | "name"
+      | "preferredBrandId"
+      | "preferredMountId"
     >
   >,
 ) {
@@ -96,12 +109,21 @@ export async function fetchUserById(userId: string) {
       handle: users.handle,
       email: users.email,
       image: users.image,
+      discordImage: users.discordImage,
+      avatarSource: users.avatarSource,
       memberNumber: users.memberNumber,
     })
     .from(users)
     .where(eq(users.id, userId))
     .limit(1);
-  return row[0] ?? null;
+  const user = row[0];
+  if (!user) return null;
+
+  return {
+    ...user,
+    customImage: user.image,
+    image: resolveUserAvatar(user),
+  };
 }
 
 export async function fetchFullUserById(
@@ -112,7 +134,12 @@ export async function fetchFullUserById(
     .from(users)
     .where(eq(users.id, userId))
     .limit(1);
-  return row[0] as AuthUser | null;
+  const user = row[0];
+  if (!user) return null;
+  return {
+    ...user,
+    image: resolveUserAvatar(user),
+  } as AuthUser;
 }
 
 async function fetchWishlistGearItems(userId: string): Promise<GearItem[]> {
@@ -189,10 +216,10 @@ function getEffectiveCollectionThumbnail(params: {
   const selectedColorway =
     params.selectedColorwayId === null
       ? null
-      : params.colorways.find(
+      : (params.colorways.find(
           (colorway) =>
             colorway.id === params.selectedColorwayId && colorway.frontImageUrl,
-        ) ?? null;
+        ) ?? null);
 
   return selectedColorway?.frontImageUrl ?? params.baseThumbnailUrl;
 }
@@ -330,11 +357,71 @@ export async function updateProfileImage(imageUrl: string) {
 
   // Get old image URL before updating
   const currentUser = await fetchUserById(user.id);
-  const oldImageUrl = currentUser?.image ?? null;
+  const oldImageUrl = currentUser?.customImage ?? null;
 
-  await updateCurrentAuthUser({ image: validatedUrl });
+  await updateUserAvatarData(user.id, {
+    image: validatedUrl,
+    avatarSource: "custom",
+  });
 
-  return { ok: true as const, imageUrl: validatedUrl, oldImageUrl };
+  return {
+    ok: true as const,
+    imageUrl: validatedUrl,
+    avatarSource: "custom" as const,
+    oldImageUrl,
+  };
+}
+
+export async function clearProfileImage() {
+  const { user } = await getSessionOrThrow();
+  const currentUser = await fetchUserById(user.id);
+
+  await updateUserAvatarData(user.id, {
+    image: null,
+    avatarSource: "custom",
+  });
+
+  return {
+    ok: true as const,
+    imageUrl: null,
+    avatarSource: "custom" as const,
+    oldImageUrl: currentUser?.customImage ?? null,
+  };
+}
+
+const avatarSourceSchema = z.enum(avatarSourceValues);
+
+export async function updateAvatarSource(rawSource: AvatarSource) {
+  const { user } = await getSessionOrThrow();
+  const avatarSource = avatarSourceSchema.parse(rawSource);
+
+  if (avatarSource === "discord") {
+    const [currentUser, linkedAccounts] = await Promise.all([
+      fetchUserById(user.id),
+      fetchLinkedAccountsForUser(user.id),
+    ]);
+
+    if (!linkedAccounts.discord || !currentUser?.discordImage) {
+      throw new Error(
+        "A linked Discord account with a synced avatar is required",
+      );
+    }
+
+    await updateUserAvatarData(user.id, { avatarSource });
+    return {
+      ok: true as const,
+      avatarSource,
+      imageUrl: currentUser.discordImage,
+    };
+  }
+
+  const currentUser = await fetchUserById(user.id);
+  await updateUserAvatarData(user.id, { avatarSource });
+  return {
+    ok: true as const,
+    avatarSource,
+    imageUrl: currentUser?.customImage ?? null,
+  };
 }
 
 /**

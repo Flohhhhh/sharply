@@ -1,4 +1,4 @@
-import { beforeEach,describe,expect,it,vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const authHelperMocks = vi.hoisted(() => ({
   getSessionOrThrow: vi.fn(),
@@ -15,6 +15,10 @@ const betterAuthMocks = vi.hoisted(() => ({
 
 const headerMocks = vi.hoisted(() => ({
   headers: vi.fn(),
+}));
+
+const accountLinkingMocks = vi.hoisted(() => ({
+  fetchLinkedAccountsForUser: vi.fn(),
 }));
 
 const dbState = vi.hoisted(() => ({
@@ -51,6 +55,8 @@ const schemaMocks = vi.hoisted(() => ({
     emailVerified: "emailVerified",
     handle: "handle",
     image: "image",
+    discordImage: "discordImage",
+    avatarSource: "avatarSource",
     memberNumber: "memberNumber",
     name: "name",
   },
@@ -59,6 +65,7 @@ const schemaMocks = vi.hoisted(() => ({
 
 const dataMocks = vi.hoisted(() => ({
   updateUserSocialLinks: vi.fn(),
+  updateUserAvatarData: vi.fn(),
 }));
 
 const notificationDataMocks = vi.hoisted(() => ({
@@ -70,6 +77,7 @@ const gearDataMocks = vi.hoisted(() => ({
 }));
 
 vi.mock("~/server/auth", () => authHelperMocks);
+vi.mock("~/server/auth/account-linking", () => accountLinkingMocks);
 vi.mock("~/auth", () => betterAuthMocks);
 vi.mock("next/headers", () => headerMocks);
 vi.mock("~/server/db", () => ({ db: dbMocks }));
@@ -97,7 +105,12 @@ vi.mock("drizzle-orm", () => ({
   ),
 }));
 
-import { updateUserHandle } from "~/server/users/service";
+import {
+  clearProfileImage,
+  updateAvatarSource,
+  updateProfileImage,
+  updateUserHandle,
+} from "~/server/users/service";
 
 describe("users service handle updates", () => {
   beforeEach(() => {
@@ -149,6 +162,100 @@ describe("users service handle updates", () => {
     );
 
     expect(dbMocks.select).not.toHaveBeenCalled();
+    expect(betterAuthMocks.auth.api.updateUser).not.toHaveBeenCalled();
+  });
+
+  it("stores uploads as the custom avatar without overwriting Discord", async () => {
+    dbState.selectResults.push([
+      {
+        id: "user-1",
+        image: "https://utfs.io/f/old.png",
+        discordImage: "https://cdn.discordapp.com/avatars/1/old.png",
+        avatarSource: "discord",
+      },
+    ]);
+
+    await expect(
+      updateProfileImage("https://utfs.io/f/new.png"),
+    ).resolves.toEqual({
+      ok: true,
+      imageUrl: "https://utfs.io/f/new.png",
+      avatarSource: "custom",
+      oldImageUrl: "https://utfs.io/f/old.png",
+    });
+
+    expect(dataMocks.updateUserAvatarData).toHaveBeenCalledWith("user-1", {
+      image: "https://utfs.io/f/new.png",
+      avatarSource: "custom",
+    });
+  });
+
+  it("clears only the custom avatar and keeps the custom source selected", async () => {
+    dbState.selectResults.push([
+      {
+        id: "user-1",
+        image: "https://utfs.io/f/custom.png",
+        discordImage: "https://cdn.discordapp.com/avatars/1/current.png",
+        avatarSource: "custom",
+      },
+    ]);
+
+    await expect(clearProfileImage()).resolves.toEqual({
+      ok: true,
+      imageUrl: null,
+      avatarSource: "custom",
+      oldImageUrl: "https://utfs.io/f/custom.png",
+    });
+
+    expect(dataMocks.updateUserAvatarData).toHaveBeenCalledWith("user-1", {
+      image: null,
+      avatarSource: "custom",
+    });
+  });
+
+  it("selects a synchronized avatar for a linked Discord account", async () => {
+    const discordImage = "https://cdn.discordapp.com/avatars/1/new.png";
+    dbState.selectResults.push([
+      {
+        id: "user-1",
+        image: "https://utfs.io/f/custom.png",
+        discordImage,
+        avatarSource: "custom",
+      },
+    ]);
+    accountLinkingMocks.fetchLinkedAccountsForUser.mockResolvedValue({
+      discord: { provider: "discord", providerAccountId: "discord-1" },
+      google: null,
+    });
+
+    await expect(updateAvatarSource("discord")).resolves.toEqual({
+      ok: true,
+      avatarSource: "discord",
+      imageUrl: discordImage,
+    });
+
+    expect(dataMocks.updateUserAvatarData).toHaveBeenCalledWith("user-1", {
+      avatarSource: "discord",
+    });
+  });
+
+  it("rejects Discord selection without a linked synchronized avatar", async () => {
+    dbState.selectResults.push([
+      {
+        id: "user-1",
+        image: null,
+        discordImage: null,
+        avatarSource: "custom",
+      },
+    ]);
+    accountLinkingMocks.fetchLinkedAccountsForUser.mockResolvedValue({
+      discord: null,
+      google: null,
+    });
+
+    await expect(updateAvatarSource("discord")).rejects.toThrow(
+      "A linked Discord account with a synced avatar is required",
+    );
     expect(betterAuthMocks.auth.api.updateUser).not.toHaveBeenCalled();
   });
 });

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and,asc,desc,eq,inArray,sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "~/server/db";
 import {
   brands,
@@ -10,9 +10,10 @@ import {
   userLists,
   users,
 } from "~/server/db/schema";
-import { fetchGearAliasesByGearIds,getGearIdBySlug } from "~/server/gear/data";
+import { fetchGearAliasesByGearIds, getGearIdBySlug } from "~/server/gear/data";
 import type { GearAlias } from "~/types/gear";
 import { getGearDisplayImageSql } from "~/server/gear/display-image";
+import { getResolvedUserImageSql } from "~/server/users/data";
 
 export type UserListRow = typeof userLists.$inferSelect;
 export type SharedListRow = typeof sharedLists.$inferSelect;
@@ -195,9 +196,7 @@ export async function fetchPublishedUserListsData(
     .from(userLists)
     .innerJoin(sharedLists, eq(sharedLists.listId, userLists.id))
     .leftJoin(userListItems, eq(userListItems.listId, userLists.id))
-    .where(
-      and(eq(userLists.userId, userId), eq(sharedLists.isPublished, true)),
-    )
+    .where(and(eq(userLists.userId, userId), eq(sharedLists.isPublished, true)))
     .groupBy(
       userLists.id,
       userLists.userId,
@@ -354,7 +353,9 @@ export async function addGearToListData(listId: string, gearId: string) {
 export async function removeGearFromListData(listId: string, gearId: string) {
   const deleted = await db
     .delete(userListItems)
-    .where(and(eq(userListItems.listId, listId), eq(userListItems.gearId, gearId)))
+    .where(
+      and(eq(userListItems.listId, listId), eq(userListItems.gearId, gearId)),
+    )
     .returning({ id: userListItems.id });
 
   if (!deleted.length) {
@@ -387,7 +388,9 @@ export async function updateListItemPositionsData(
       await tx
         .update(userListItems)
         .set({ position, updatedAt: new Date() })
-        .where(and(eq(userListItems.id, itemId), eq(userListItems.listId, listId)));
+        .where(
+          and(eq(userListItems.id, itemId), eq(userListItems.listId, listId)),
+        );
     }
   });
 }
@@ -421,7 +424,7 @@ export async function fetchSharedListByPublicIdData(publicId: string) {
       ownerHandle: users.handle,
       ownerMemberNumber: users.memberNumber,
       ownerName: users.name,
-      ownerImage: users.image,
+      ownerImage: getResolvedUserImageSql(),
       listName: userLists.name,
     })
     .from(sharedLists)

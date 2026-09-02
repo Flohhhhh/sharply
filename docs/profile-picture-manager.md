@@ -6,7 +6,7 @@ This document describes the profile picture upload and management feature added 
 
 Users can upload and manage their profile pictures from the account settings page at `/profile/settings`. Profile pictures are automatically resized to a maximum of 256px on the longest side before upload to ensure optimal performance and storage.
 
-OAuth provider avatars and custom uploaded profile images share the same `users.image` field. Avatar UI surfaces render that field directly through the shared avatar component rather than wrapping it with `next/image`, which avoids remote optimizer host issues for provider-hosted images while keeping uploaded avatars lightweight.
+Custom and legacy profile images are stored in `users.image`. Discord's current OAuth avatar is stored separately in `users.discordImage`, and `users.avatarSource` records whether Sharply should display the custom or Discord image. Avatar UI surfaces render the resolved URL directly through the shared avatar component rather than wrapping it with `next/image`.
 
 ## Features
 
@@ -15,6 +15,9 @@ OAuth provider avatars and custom uploaded profile images share the same `users.
 3. **Real-time Preview**: Users see their current profile picture with avatar fallback
 4. **Progress Indicators**: Upload and save progress are displayed to users
 5. **Session Updates**: Profile picture changes are reflected immediately in the user session
+6. **Avatar Source Selection**: Users with a linked, synchronized Discord account can switch between their custom and Discord images
+7. **Discord Synchronization**: Discord images refresh after a Discord sign-in or immediately after a first-time Discord link without replacing a custom upload
+8. **Custom Image Removal**: Users can clear their custom image without uploading a replacement; the Discord image remains available as a separate source
 
 ## Implementation
 
@@ -43,7 +46,7 @@ export async function updateProfileImage(imageUrl: string);
 - Validates the user is authenticated via `auth.api.getSession({ headers })`
 - Validates the image URL format
 - Retrieves old image URL for potential cleanup
-- Calls data layer to update user image
+- Updates the custom image and selects the custom avatar source
 - Returns old and new image URLs
 
 #### Actions Layer (`src/server/users/actions.ts`)
@@ -132,13 +135,17 @@ The modal can be used with a custom trigger:
 
 ## Database Schema
 
-The profile picture URL is stored in the `users` table:
+Avatar state is stored in the `users` table:
 
 ```typescript
 image: d.varchar({ length: 255 });
+discordImage: d.varchar("discord_image", { length: 500 });
+avatarSource: d.varchar("avatar_source", { length: 16 });
 ```
 
-Better Auth uses this field for the user avatar (including any provider profile image pulled during OAuth).
+`image` remains the custom/legacy value for backwards compatibility. An explicit `discord` source resolves to `discordImage` with `image` as a fallback; `custom` resolves to `image`. For rows created before source tracking, recognized Discord CDN URLs are treated as Discord and other URLs as custom until a source is explicitly saved.
+
+`discordImage` and `avatarSource` are server-owned Better Auth fields and cannot be written through the generic user-update API. Discord OAuth profile mapping refreshes an existing linked user's Discord image, while the post-link server action handles a newly created link. New Discord-authenticated users initialize both fields from the provider image in the user creation hook. Broad provider-profile override remains disabled, so signing in cannot replace a user's custom image or display name. Disconnecting Discord always switches the source to custom but retains the cached Discord URL for a future reconnect.
 
 ## Future Improvements
 
