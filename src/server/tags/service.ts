@@ -1,5 +1,6 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import { z } from "zod";
 import { requireRole } from "~/lib/auth/auth-helpers";
@@ -12,6 +13,7 @@ import {
   fetchAdminTagsData,
   fetchGearByTagIdData,
   fetchPublicTagBySlugData,
+  fetchPublicTagOptionsData,
   fetchPublicTagsData,
   fetchPublishedGearByTagIdData,
   fetchTagByIdData,
@@ -25,6 +27,7 @@ import {
   updateTagData,
 } from "./data";
 import type { EditorTagRow, TagRow } from "./data";
+import { PUBLIC_TAG_OPTIONS_CACHE_TAG } from "./constants";
 
 export type {
   AdminTagRow,
@@ -32,7 +35,14 @@ export type {
   TagGearRow,
   TagRow,
   PublicTagRow,
+  PublicTagOption,
 } from "./data";
+
+const fetchCachedPublicTagOptions = unstable_cache(
+  fetchPublicTagOptionsData,
+  ["public-tag-options"],
+  { revalidate: false, tags: [PUBLIC_TAG_OPTIONS_CACHE_TAG] },
+);
 
 const createTagSchema = z.object({
   name: z.string().trim().min(1).max(120),
@@ -182,6 +192,10 @@ export async function deleteTag(id: string) {
 
 export async function fetchPublicTagDictionary() {
   return fetchPublicTagsData();
+}
+
+export async function fetchPublicTagOptions() {
+  return fetchCachedPublicTagOptions();
 }
 
 export async function fetchTagSitemapEntries() {

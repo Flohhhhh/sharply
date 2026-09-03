@@ -3,6 +3,9 @@ const revalidationMocks = vi.hoisted(() => ({
   revalidateGearPages: vi.fn(),
   revalidateLocalizedPaths: vi.fn(),
 }));
+const cacheMocks = vi.hoisted(() => ({
+  invalidatePublicTagOptionsCache: vi.fn(),
+}));
 
 const serviceMocks = vi.hoisted(() => ({
   assignTagToGear: vi.fn(),
@@ -15,6 +18,7 @@ const serviceMocks = vi.hoisted(() => ({
 vi.mock("server-only", () => ({}));
 vi.mock("~/server/tags/service", () => serviceMocks);
 vi.mock("~/server/revalidation", () => revalidationMocks);
+vi.mock("~/server/tags/cache", () => cacheMocks);
 
 import {
   actionAssignTagToGear,
@@ -40,6 +44,7 @@ describe("tag actions", () => {
       "/tags",
       "/tags/wildlife",
     ]);
+    expect(cacheMocks.invalidatePublicTagOptionsCache).toHaveBeenCalledOnce();
   });
 
   it("revalidates localized tag and admin pages after updating a tag", async () => {
@@ -55,6 +60,7 @@ describe("tag actions", () => {
       "/tags",
       "/tags/wildlife",
     ]);
+    expect(cacheMocks.invalidatePublicTagOptionsCache).toHaveBeenCalledOnce();
   });
 
   it("revalidates localized tag routes after deleting a tag", async () => {
@@ -66,6 +72,7 @@ describe("tag actions", () => {
       1,
       ["/admin/tags", "/tags"],
     );
+    expect(cacheMocks.invalidatePublicTagOptionsCache).toHaveBeenCalledOnce();
     expect(revalidationMocks.revalidateLocalizedPaths).toHaveBeenNthCalledWith(
       2,
       ["/tags/[slug]"],
@@ -92,6 +99,7 @@ describe("tag actions", () => {
       "/tags/wildlife",
       "/admin/tags",
     ]);
+    expect(cacheMocks.invalidatePublicTagOptionsCache).not.toHaveBeenCalled();
   });
 
   it("revalidates localized gear, tag, and admin pages after removing a tag", async () => {
@@ -113,5 +121,6 @@ describe("tag actions", () => {
       "/tags/wildlife",
       "/admin/tags",
     ]);
+    expect(cacheMocks.invalidatePublicTagOptionsCache).not.toHaveBeenCalled();
   });
 });

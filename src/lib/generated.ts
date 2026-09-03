@@ -357,6 +357,18 @@ export const SENSOR_FORMATS = [
     "area_mm_2": "332.30"
   },
   {
+    "id": "a5b24cc2-4b36-47d4-8765-777a5c2e10ca",
+    "name": "1\"",
+    "slug": "1-inch",
+    "crop_factor": "2.70",
+    "description": "Compact cameras",
+    "created_at": "2025-08-19 01:55:28.397056+00",
+    "updated_at": "2025-08-19 01:55:28.397056+00",
+    "width_mm": "13.20",
+    "height_mm": "8.80",
+    "area_mm_2": "116.20"
+  },
+  {
     "id": "670ac585-aa5d-4e4d-88a0-c6ee2f7e036e",
     "name": "Leica Medium Format",
     "slug": "medium-format-45x30",
@@ -405,16 +417,28 @@ export const SENSOR_FORMATS = [
     "area_mm_2": null
   },
   {
-    "id": "a5b24cc2-4b36-47d4-8765-777a5c2e10ca",
-    "name": "1\"",
-    "slug": "1-inch",
-    "crop_factor": "2.70",
-    "description": "Compact cameras, and high-end phones and action cameras.",
-    "created_at": "2025-08-19 01:55:28.397056+00",
-    "updated_at": "2025-08-19 01:55:28.397056+00",
-    "width_mm": "13.20",
-    "height_mm": "8.80",
-    "area_mm_2": "116.20"
+    "id": "da91a2ad-47fd-48cc-8fb2-ca49ad685796",
+    "name": "1/2.5\"",
+    "slug": "half-inch",
+    "crop_factor": "5.60",
+    "description": "Commonly called \"half-inch\", used in compact cameras.",
+    "created_at": "2026-07-29 11:40:22.341863+00",
+    "updated_at": "2026-07-29 11:40:22.341863+00",
+    "width_mm": null,
+    "height_mm": null,
+    "area_mm_2": null
+  },
+  {
+    "id": "6c5542e2-4823-4ada-a612-e705463a72cb",
+    "name": "Super 35",
+    "slug": "super-35",
+    "crop_factor": "1.36",
+    "description": "Catch-all for wider format sensors based on width of 35mm film. Actual size varies. Commonly used in cinema and video cameras.",
+    "created_at": "2026-07-29 14:11:04.346716+00",
+    "updated_at": "2026-07-29 14:11:04.346716+00",
+    "width_mm": null,
+    "height_mm": null,
+    "area_mm_2": null
   }
 ];
 export const BRANDS = [
@@ -488,14 +512,6 @@ export const BRANDS = [
     "slug": "tokina",
     "created_at": "2025-08-19 01:55:21.427242+00",
     "updated_at": "2025-08-19 01:55:21.427242+00",
-    "sort_order": null
-  },
-  {
-    "id": "1601f80f-a7cc-4d5e-b643-5caf01b28fc1",
-    "name": "TTAritsan",
-    "slug": "ttartisan",
-    "created_at": "2025-08-19 01:55:21.675145+00",
-    "updated_at": "2025-08-19 01:55:21.675145+00",
     "sort_order": null
   },
   {
@@ -800,6 +816,14 @@ export const BRANDS = [
     "slug": "samyang",
     "created_at": "2025-08-19 01:55:22.145443+00",
     "updated_at": "2025-08-19 01:55:22.145443+00",
+    "sort_order": null
+  },
+  {
+    "id": "1601f80f-a7cc-4d5e-b643-5caf01b28fc1",
+    "name": "TTArtisan",
+    "slug": "ttartisan",
+    "created_at": "2025-08-19 01:55:21.675145+00",
+    "updated_at": "2025-08-19 01:55:21.675145+00",
     "sort_order": null
   }
 ];

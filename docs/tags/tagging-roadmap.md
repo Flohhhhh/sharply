@@ -27,9 +27,8 @@ events, with a preview for proposed additions, removals, and preserved claims.
 ## Public discovery and content
 
 Extend public tag pages with related guides, lists, and adjacent tags. Use tags
-to supplement search, browse filters, related content, similar gear,
-alternatives, and recommended pairings—never as a substitute for structured
-specifications.
+to supplement browse filters, related content, similar gear, alternatives, and
+recommended pairings—never as a substitute for structured specifications.
 
 If public content needs rich layouts, store safe structured content such as
 Payload/Lexical JSON; do not store executable React components in `tags`.

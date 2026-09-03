@@ -1,6 +1,6 @@
 "use client";
 
-import { Check,ChevronsUpDown,X } from "lucide-react";
+import { Check, ChevronsUpDown, X } from "lucide-react";
 import * as React from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -24,6 +24,9 @@ type MultiSelectProps = {
   searchPlaceholder?: string;
   inDialog?: boolean;
   disabled?: boolean;
+  emptyLabel?: string;
+  getRemoveLabel?: (optionName: string) => string;
+  ariaLabel?: string;
 };
 
 export function MultiSelect({
@@ -36,6 +39,9 @@ export function MultiSelect({
   searchPlaceholder = "Search...",
   inDialog,
   disabled = false,
+  emptyLabel = "No results",
+  getRemoveLabel = (optionName) => `Remove ${optionName}`,
+  ariaLabel,
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
@@ -118,6 +124,7 @@ export function MultiSelect({
             role="combobox"
             data-sidebar-focus-target="true"
             aria-expanded={open}
+            aria-label={ariaLabel}
             disabled={disabled}
             className="h-auto min-h-9 w-full items-start justify-between"
           >
@@ -145,7 +152,7 @@ export function MultiSelect({
                       className="pointer-events-auto inline-flex h-3 w-3 items-center justify-center"
                       role="button"
                       aria-disabled={disabled}
-                      aria-label={`Remove ${s.name}`}
+                      aria-label={getRemoveLabel(s.name)}
                       onMouseDown={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -175,7 +182,7 @@ export function MultiSelect({
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </P.PopoverTrigger>
-        <P.PopoverContent className="w-[--radix-popover-trigger-width] p-2">
+        <P.PopoverContent className="w-(--radix-popover-trigger-width) p-2">
           <div className="mb-2">
             <Input
               value={query}
@@ -215,7 +222,7 @@ export function MultiSelect({
             })}
             {filtered.length === 0 && (
               <div className="text-muted-foreground px-2 py-1 text-sm">
-                No results
+                {emptyLabel}
               </div>
             )}
           </div>

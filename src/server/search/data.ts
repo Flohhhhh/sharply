@@ -29,10 +29,12 @@ import {
   cameraSpecs,
   fixedLensSpecs,
   gear,
+  gearTags,
   gearMounts,
   lensSpecs,
   mounts,
   sensorFormats,
+  tags,
 } from "~/server/db/schema";
 import type { SearchFilters } from "~/types/search-results";
 import { getGearDisplayImageSql } from "~/server/gear/display-image";
@@ -133,6 +135,20 @@ export function buildSearchFilterClause(
     conditions.push(
       sql`(NOT (${hasPrice}) OR ${effectivePriceCentsForMax} <= ${filters.priceMax * 100})`,
     );
+  }
+
+  if (filters.tags?.length) {
+    conditions.push(sql`EXISTS (
+      SELECT 1
+      FROM ${gearTags}
+      INNER JOIN ${tags} ON ${tags.id} = ${gearTags.tagId}
+      WHERE ${gearTags.gearId} = ${gear.id}
+        AND ${tags.unlisted} = false
+        AND ${tags.slug} IN (${sql.join(
+          filters.tags.map((slug) => sql`${slug}`),
+          sql`, `,
+        )})
+    )`);
   }
 
   return conditions.length
