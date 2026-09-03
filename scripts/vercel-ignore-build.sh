@@ -21,7 +21,7 @@ branch_is_allowed () {
 
 # Vercel treats exit 0 as "ignore this build" and exit 1 as "continue".
 # Check pull request metadata first so a PR can never be allowed merely because
-# its commit ref happens to match an allowed branch name.
+# its commit ref happens to match an allowed branch name
 if [[ -n "${VERCEL_GIT_PULL_REQUEST_ID:-}" ]]; then
   echo "🚫 Ignored: pull request deployment #${VERCEL_GIT_PULL_REQUEST_ID}"
   exit 0
