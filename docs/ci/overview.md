@@ -52,7 +52,9 @@ pushes to `development` do not rerun them, because the feature pull request is
 the validation boundary.
 
 Vercel automatic deployments are disabled for all feature branches and for
-`development`. Only `main` is allowed to deploy automatically.
+`development`. Only `main` is allowed to deploy automatically. The fail-closed
+rule uses the recursive `**` branch pattern so it also matches branch names that
+contain `/`, such as `feature/search` or `chore/ci`.
 
 ## Release preparation and preview
 

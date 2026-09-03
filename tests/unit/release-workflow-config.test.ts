@@ -25,7 +25,7 @@ describe("release workflow configuration", () => {
       fs.readFileSync(path.join(projectRoot, "vercel.json"), "utf8"),
     );
 
-    expect(config.git.deploymentEnabled).toEqual({ "*": false, main: true });
+    expect(config.git.deploymentEnabled).toEqual({ "**": false, main: true });
     expect(config.buildCommand).toBe("npm run db:migrate && npm run build");
   });
 
