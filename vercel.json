@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "ignoreCommand": "bash scripts/vercel-ignore-build.sh",
+  "buildCommand": "npm run db:migrate && npm run build",
   "crons": [
     {
       "path": "/api/admin/popularity/rollup",
