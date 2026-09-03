@@ -4,11 +4,15 @@ on:
   pull_request:
     branches:
       - development
-      - main
   merge_group:
     branches:
       - development
-      - main
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: Exact release commit to validate
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -24,6 +28,8 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_sha || github.sha }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
