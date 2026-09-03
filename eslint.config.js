@@ -14,6 +14,7 @@ export default tseslint.config(
       "drizzle/**",
       "plans/**",
       "src/components/ui/**",
+      "src/server/payload/migrations/**",
     ],
   },
   ...nextVitals,
