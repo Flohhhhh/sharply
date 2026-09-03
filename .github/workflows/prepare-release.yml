@@ -45,10 +45,9 @@ jobs:
         run: npm run db:generate
 
       - name: Commit generated migration if needed
-        id: migration
         run: |
           if git diff --quiet -- drizzle/; then
-            echo "created=false" >> "$GITHUB_OUTPUT"
+            echo "No new migration files generated."
             exit 0
           fi
 
@@ -57,14 +56,19 @@ jobs:
           git add drizzle/
           git commit -m "chore(release): generate migrations for PR #${{ github.event.pull_request.number }}"
           git push origin HEAD:development
-          echo "created=true" >> "$GITHUB_OUTPUT"
 
-      # If a migration commit was pushed, GitHub emits a synchronize event and
-      # this workflow runs again against that exact prepared development state.
+      # Trigger the preview in this same run. Pushes made with GITHUB_TOKEN do
+      # not reliably trigger a follow-up pull_request workflow run.
       - name: Trigger Vercel release preview
-        if: steps.migration.outputs.created == 'false'
         env:
           VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
         run: |
           test -n "$VERCEL_DEPLOY_HOOK_URL"
-          curl --fail-with-body --silent --show-error --request POST "$VERCEL_DEPLOY_HOOK_URL"
+          curl \
+            --fail-with-body \
+            --silent \
+            --show-error \
+            --request POST \
+            --connect-timeout 10 \
+            --max-time 30 \
+            "$VERCEL_DEPLOY_HOOK_URL"
