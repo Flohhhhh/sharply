@@ -1,0 +1,118 @@
+name: Prepare release preview
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+permissions:
+  actions: write
+  contents: write
+
+concurrency:
+  group: prepare-release-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  prepare-release:
+    if: github.head_ref == 'development'
+    runs-on: ubuntu-latest
+    env:
+      # drizzle.config.ts imports env validation even though generation is based
+      # on the schema and migration snapshots.
+      DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/sharply_generate
+      SKIP_ENV_VALIDATION: "1"
+      NEON_PREVIEW_BRANCH: preview/development
+    steps:
+      - name: Check out development
+        uses: actions/checkout@v4
+        with:
+          ref: development
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate canonical migration
+        run: npm run db:generate
+
+      - name: Commit generated migration if needed
+        run: |
+          if git diff --quiet -- drizzle/; then
+            echo "No new migration files generated."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add drizzle/
+          git commit -m "chore(release): generate migrations for PR #${{ github.event.pull_request.number }}"
+          git push origin HEAD:development
+
+      - name: Resolve final development commit
+        id: release
+        run: |
+          release_sha="$(git rev-parse HEAD)"
+          remote_sha="$(git ls-remote origin refs/heads/development | cut -f1)"
+          test -n "$remote_sha"
+
+          if [ "$release_sha" != "$remote_sha" ]; then
+            echo "development advanced while this release was being prepared" >&2
+            exit 1
+          fi
+
+          echo "sha=$release_sha" >> "$GITHUB_OUTPUT"
+
+      # GITHUB_TOKEN pushes do not start the pull_request workflows again.
+      # Dispatch each check explicitly so it validates the migration-bearing SHA.
+      - name: Dispatch release checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          for workflow in lint.yml unit-tests.yml build.yml e2e-tests.yml; do
+            gh workflow run "$workflow" \
+              --ref development \
+              --field release_sha="$RELEASE_SHA"
+          done
+
+      # Start every release preview from the current parent (production) state.
+      # Neon branch reset preserves the preview branch/connection string but
+      # replaces its data and schema with the latest parent state.
+      - name: Reset Neon preview database from parent
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+        run: |
+          test -n "$NEON_API_KEY"
+          test -n "$NEON_PROJECT_ID"
+          npx --no-install neonctl branches reset "$NEON_PREVIEW_BRANCH" \
+            --parent \
+            --project-id "$NEON_PROJECT_ID" \
+            --api-key "$NEON_API_KEY"
+
+      # Trigger the preview in this same run. Pushes made with GITHUB_TOKEN do
+      # not reliably trigger a follow-up pull_request workflow run.
+      - name: Trigger Vercel release preview
+        env:
+          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+        run: |
+          test -n "$VERCEL_DEPLOY_HOOK_URL"
+          curl \
+            --fail-with-body \
+            --silent \
+            --show-error \
+            --request POST \
+            --connect-timeout 10 \
+            --max-time 30 \
+            "$VERCEL_DEPLOY_HOOK_URL"

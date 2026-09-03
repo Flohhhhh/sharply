@@ -4,14 +4,20 @@ on:
   pull_request:
     branches:
       - development
-      - main
   merge_group:
     branches:
       - development
-      - main
   schedule:
     - cron: "17 9 * * *" # off-peak, non-top-of-hour; runs the full browser matrix
   workflow_dispatch:
+    inputs:
+      release_sha:
+        description: Exact release commit to validate
+        required: false
+        type: string
+
+permissions:
+  contents: read
 
 # event_name in the group keeps a manual dispatch from cancelling the nightly
 # (both resolve to refs/heads/main otherwise); PR runs still cancel per-PR.
@@ -54,11 +60,18 @@ jobs:
           --health-timeout 5s
           --health-retries 12
     steps:
+      - name: Verify dispatched release commit
+        if: inputs.release_sha != ''
+        env:
+          RELEASE_SHA: ${{ inputs.release_sha }}
+        run: test "$RELEASE_SHA" = "$GITHUB_SHA"
+
       - name: Check out code
         uses: actions/checkout@v4
         with:
           # schedule runs from the default branch (main); test the integration branch instead
-          ref: ${{ github.event_name == 'schedule' && 'development' || '' }}
+          ref: ${{ (github.event_name == 'schedule' && 'development') || github.sha }}
+          persist-credentials: false
 
       - name: Set up Node.js
         uses: actions/setup-node@v4

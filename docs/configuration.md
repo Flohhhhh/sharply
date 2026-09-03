@@ -32,31 +32,19 @@ send telemetry unless Sentry is deliberately enabled in that environment.
 - `package.json` (project manifest and script entry points)
 - `.env.example` (documented environment variable template)
 - `vercel.json` (Vercel project configuration at root)
-- `.github/workflows/lint.yml` (GitHub Actions lint check for pull requests and merge queue runs targeting `development`/`main`)
-- `.github/workflows/unit-tests.yml` (GitHub Actions unit test check for pull requests and merge queue runs targeting `development`/`main`)
-- `.github/workflows/build.yml` (GitHub Actions production build check for pull requests and merge queue runs targeting `development`/`main`)
+- `.github/workflows/lint.yml` (GitHub Actions lint check for feature pull requests and merge queue runs targeting `development`)
+- `.github/workflows/unit-tests.yml` (GitHub Actions unit test check for feature pull requests and merge queue runs targeting `development`)
+- `.github/workflows/build.yml` (GitHub Actions compile-only build check for feature pull requests and merge queue runs targeting `development`)
+- `.github/workflows/prepare-release.yml` (migration preparation and persistent preview deployment for the `development` to `main` release pull request)
 
-## Vercel deployment gating
+## Release validation and Vercel deployment gating
 
-Vercel's Ignored Build Step is configured in `vercel.json` to run
-`bash scripts/vercel-ignore-build.sh`. Vercel interprets exit code `0` as "skip
-this deployment" and exit code `1` as "continue building."
+Vercel's Git integration is fail closed in `vercel.json`: automatic deployments
+are disabled for every branch except `main`. The `development` to `main` release
+pull request prepares migrations and explicitly deploys the persistent preview.
 
-The script permits direct pushes to `main` and `development`. It ignores every
-pull request deployment, including PRs from branches in this repository, and
-ignores all other branch or incomplete-metadata deployments. `development` is
-therefore the shared preview environment, updated after changes reach that
-branch, while `main` remains the production deployment source.
-
-Pull requests still run the separate GitHub Actions build check. That workflow
-disables database-backed constant generation, uses non-secret placeholder
-configuration, and runs Next.js in compile build mode. Compile mode verifies the
-production webpack compilation and TypeScript checks without running the
-database-backed page-generation phase. Full page generation remains covered by
-Vercel's trusted `main` and `development` builds. This lets public contributors
-prove the application compiles without receiving deployment credentials or
-database access. Exceptional PR previews must be initiated manually in Vercel;
-automated opt-in previews are not part of the current policy.
+See [Continuous Integration and Release Flow](ci/overview.md) for the complete
+feature validation, release preparation, preview, and production lifecycle.
 
 ## BotID integration
 
