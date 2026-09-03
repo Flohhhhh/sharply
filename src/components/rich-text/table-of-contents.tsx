@@ -119,6 +119,7 @@ export function TableOfContents(props: {
       window.removeEventListener("resize", scheduleUpdate);
       if (frameRef.current !== null) {
         window.cancelAnimationFrame(frameRef.current);
+        frameRef.current = null;
       }
     };
   }, [contentSelector, pathname]);
