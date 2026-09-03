@@ -93,6 +93,5 @@ describe("release workflow configuration", () => {
     }
     expect(resetStep.env.NEON_PROJECT_ID).toBe("${{ vars.NEON_PROJECT_ID }}");
     expect(resetStep.run).toContain("npx --no-install neonctl");
-    expect(resetStep.run).toContain("--preserve-under-name");
   });
 });

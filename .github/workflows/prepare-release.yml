@@ -98,7 +98,6 @@ jobs:
           test -n "$NEON_PROJECT_ID"
           npx --no-install neonctl branches reset "$NEON_PREVIEW_BRANCH" \
             --parent \
-            --preserve-under-name "preview-development-before-release-${{ github.run_id }}-${{ github.run_attempt }}" \
             --project-id "$NEON_PROJECT_ID" \
             --api-key "$NEON_API_KEY"
 

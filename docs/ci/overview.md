@@ -77,8 +77,8 @@ The workflow:
 5. Dispatches lint, unit, compile-build, and E2E workflows with the SHA so the
    migration-bearing commit is validated.
 6. Resets the persistent Neon `preview/development` branch from its production
-   parent. If the branch has children, Neon preserves its previous state under
-   a unique release-run name and reparents those children there.
+   parent. The preview branch must not have child branches; other development
+   branches should be created directly from the production parent.
 7. Calls the Vercel deploy hook configured for `development`.
 
 The Vercel preview applies committed migrations with `npm run db:migrate` before
