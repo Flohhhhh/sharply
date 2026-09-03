@@ -47,6 +47,8 @@ describe("Discord avatar behavior during account unlinking", () => {
     });
     expect(dataMocks.updateUserAvatarData).toHaveBeenCalledWith("user-1", {
       avatarSource: "custom",
+      image: null,
+      discordImage: null,
     });
   });
 
@@ -71,6 +73,24 @@ describe("Discord avatar behavior during account unlinking", () => {
         id: "user-1",
         image: "https://cdn.discordapp.com/avatars/1/legacy.png",
         avatarSource: null,
+      },
+    });
+
+    await disconnectLinkedAccount("discord", "discord-1");
+
+    expect(dataMocks.updateUserAvatarData).toHaveBeenCalledWith("user-1", {
+      avatarSource: "custom",
+      image: null,
+      discordImage: null,
+    });
+  });
+
+  it("preserves independently uploaded custom images when unlinking Discord", async () => {
+    authMocks.getSession.mockResolvedValue({
+      user: {
+        id: "user-1",
+        image: "https://uploadthing.com/custom-upload.jpg",
+        avatarSource: "custom",
       },
     });
 

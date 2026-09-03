@@ -3,6 +3,7 @@ import "server-only";
 import { headers } from "next/headers";
 
 import { auth } from "~/auth";
+import { getEffectiveAvatarSource } from "~/lib/auth/avatar";
 import { getDiscordAvatarUrl } from "~/server/auth/discord-profile";
 import {
   syncDiscordAvatarForUser,
@@ -84,7 +85,14 @@ export async function disconnectLinkedAccount(
   });
 
   if (provider === "discord") {
-    await updateUserAvatarData(session.user.id, { avatarSource: "custom" });
+    const effectiveSource = getEffectiveAvatarSource(session.user);
+    const isDiscordDerived = effectiveSource === "discord";
+
+    await updateUserAvatarData(session.user.id, {
+      avatarSource: "custom",
+      // Clear Discord-derived images; preserve independently uploaded custom images
+      ...(isDiscordDerived ? { image: null, discordImage: null } : {}),
+    });
   }
 
   return { ok: true as const };
