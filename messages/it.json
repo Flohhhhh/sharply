@@ -66,7 +66,7 @@
     "github": "GitHub",
     "productImagesDisclaimer": "Immagini prodotto © rispettivi produttori. Utilizzate solo per scopi editoriali e informativi. Questo sito è indipendente e non affiliato a Nikon, Canon, Sony o altri marchi.",
     "amazonAffiliateDisclaimer": "In qualità di affiliato Amazon, Sharply può guadagnare una commissione sugli acquisti idonei effettuati tramite link ad Amazon.",
-    "copyright": "© 2026 Sharply. Tutti i diritti riservati."
+    "copyright": "© 2026 New York Photo House. Tutti i diritti riservati."
   },
   "search": {
     "dialogTitle": "Cerca in Sharply",
@@ -278,7 +278,6 @@
     "tags": "Tag",
     "viewsAllTime": "Visualizzazioni (totali)",
     "views30Days": "Visualizzazioni (30 giorni)",
-    "viewsToday": "Visualizzazioni (oggi)",
     "wishlists": "Wishlist",
     "owners": "Proprietari",
     "theGood": "I pregi",
@@ -1623,6 +1622,9 @@
     "backToGear": "Torna all’attrezzatura",
     "learnMore": "Scopri di più"
   },
+  "learnArticlePage": {
+    "readNext": "Leggi il prossimo"
+  },
   "learnBasicsPage": {
     "metaTitle": "Le basi",
     "metaDescription": "Inizia a imparare i fondamenti della fotografia, incluse fotocamere moderne, esposizione e percorsi adatti ai principianti.",
@@ -1780,6 +1782,17 @@
     "disconnectLastOauthWarning": "Questo è il tuo ultimo account OAuth collegato. Se continui, dovrai accedere usando email / magic link.",
     "profileThumbnailPreview": "Anteprima miniatura profilo",
     "avatar": "Avatar",
+    "avatarSourceDescription": "Scegli quale immagine del profilo mostra Sharply.",
+    "useCustomProfilePicture": "Usa immagine del profilo personalizzata",
+    "useDiscordProfilePicture": "Usa immagine del profilo Discord",
+    "changePicture": "Cambia immagine",
+    "removePicture": "Rimuovi immagine",
+    "removePictureTitle": "Rimuovere l'immagine personalizzata?",
+    "removePictureDescription": "L'immagine del profilo personalizzata verrà rimossa. L'immagine del profilo Discord non verrà modificata.",
+    "profilePictureRemoved": "Immagine del profilo personalizzata rimossa.",
+    "profilePictureRemoveFailed": "Impossibile rimuovere l'immagine del profilo personalizzata.",
+    "avatarSourceUpdated": "Origine dell'immagine del profilo aggiornata.",
+    "avatarSourceUpdateFailed": "Impossibile aggiornare l'origine dell'immagine del profilo.",
     "updateProfilePicture": "Aggiorna immagine profilo",
     "imageExceedsLimit": "L’immagine supera 4 MB. Scegli un file più piccolo.",
     "uploadFailedTryAgain": "Caricamento non riuscito. Riprova.",

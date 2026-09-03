@@ -59,6 +59,7 @@ export default buildConfig({
   },
   db: postgresAdapter({
     schemaName: "payload",
+    migrationDir: path.resolve(dirname, "server/payload/migrations"),
     pool: {
       connectionString: process.env.DATABASE_URL || "",
     },

@@ -1,4 +1,5 @@
 import type { DBFieldAttribute } from "@better-auth/core/db";
+import { avatarSourceValues } from "~/lib/auth/avatar";
 
 export const userRoleValues = [
   "USER",
@@ -50,6 +51,18 @@ export const authAdditionalFields = {
       type: "boolean",
       required: false,
       defaultValue: false,
+    },
+    discordImage: {
+      type: "string",
+      required: false,
+      defaultValue: null,
+      input: false,
+    },
+    avatarSource: {
+      type: [...avatarSourceValues],
+      required: false,
+      defaultValue: null,
+      input: false,
     },
   },
 } satisfies {

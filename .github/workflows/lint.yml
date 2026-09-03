@@ -9,6 +9,15 @@ on:
     branches:
       - development
       - main
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: Exact release commit to validate
+        required: false
+        type: string
+
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -17,10 +26,19 @@ concurrency:
 jobs:
   lint:
     name: lint
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
+      - name: Verify dispatched release commit
+        if: inputs.release_sha != ''
+        env:
+          RELEASE_SHA: ${{ inputs.release_sha }}
+        run: test "$RELEASE_SHA" = "$GITHUB_SHA"
+
       - name: Check out code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
 
       - name: Set up Node.js
         uses: actions/setup-node@v4

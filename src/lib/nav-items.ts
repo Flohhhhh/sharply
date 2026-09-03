@@ -160,7 +160,7 @@ const navItems: NavItem[] = [
   {
     titleKey: "github",
     type: "link",
-    url: "https://github.com/Flohhhhh/sharply",
+    url: "https://github.com/nyphotohouse/sharply",
     hideFromNavbar: true,
     hideFromFooter: false,
   },

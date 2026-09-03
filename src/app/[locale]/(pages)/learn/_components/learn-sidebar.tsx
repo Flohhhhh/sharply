@@ -51,7 +51,7 @@ export function LearnSidebar({
         collapsible="none"
         style={{ "--sidebar": "transparent" } as React.CSSProperties}
       >
-        <SidebarHeader className="mx-0 px-0 pb-2">
+        <SidebarHeader className="mx-0 p-0 pb-2">
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild isActive={pathname === "/learn"}>
@@ -77,7 +77,10 @@ export function LearnSidebar({
                 >
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
-                      <SidebarMenuButton isActive={isSectionActive}>
+                      <SidebarMenuButton
+                        isActive={isSectionActive}
+                        className="data-[active=true]:bg-accent/50"
+                      >
                         {section.icon ? (
                           <section.icon className="h-4 w-4" />
                         ) : null}
@@ -86,13 +89,13 @@ export function LearnSidebar({
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
-                      <SidebarMenuSub>
+                      <SidebarMenuSub className="gap-2">
                         {section.items.map((item) => (
                           <SidebarMenuSubItem key={item.href}>
                             <SidebarMenuSubButton
                               asChild
                               isActive={pathname === item.href}
-                              className="hover:bg-accent/50 hover:text-primary data-[active=true]:bg-accent data-[active=true]:text-primary transition-colors"
+                              className="hover:bg-accent/50 hover:text-primary data-[active=true]:bg-accent/50 data-[active=true]:text-primary transition-colors"
                             >
                               <LocaleLink href={item.href}>
                                 <span>{item.title}</span>
@@ -114,7 +117,7 @@ export function LearnSidebar({
                   <SidebarMenuButton
                     asChild
                     isActive={pathname === item.href}
-                    className="hover:bg-accent/50 hover:text-primary data-[active=true]:bg-accent data-[active=true]:text-primary transition-colors"
+                    className="hover:bg-accent/50 hover:text-primary data-[active=true]:bg-accent/50 data-[active=true]:text-primary transition-colors"
                   >
                     <LocaleLink href={item.href} className="items-center">
                       <span>{item.title}</span>

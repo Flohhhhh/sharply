@@ -1,8 +1,9 @@
 import LearnBreadcrumbs from "~/app/[locale]/(pages)/learn/_components/learn-breadcrumbs";
-import LearnMobileArticleSheet,{
+import LearnMobileArticleSheet, {
   type LearnMobileArticleGroup,
 } from "~/app/[locale]/(pages)/learn/_components/learn-mobile-article-sheet";
 import LearnSidebar from "~/app/[locale]/(pages)/learn/_components/learn-sidebar";
+import { ScrollFadeGrid } from "~/app/[locale]/(pages)/learn/_components/scroll-fade-grid";
 import { TableOfContents } from "~/components/rich-text/table-of-contents";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
 import type { LearnPage } from "~/payload-types";
@@ -117,12 +118,18 @@ export default async function ArticlesLayout({
     <>
       <ScrollProgress bottomOffset={300} />
       <LearnMobileArticleSheet groups={mobileGroups} />
-      <div className="mx-auto min-h-screen max-w-[1400px] p-6 py-12 sm:py-24">
-        <div className="grid gap-8 md:grid-cols-[280px_1fr] lg:grid-cols-[240px_1fr_260px]">
-          <aside className="hidden lg:block">
-            <LearnSidebar data={{ sections, rootItems }} />
+      <div className="mx-auto min-h-screen max-w-[1500px] pb-48">
+        <ScrollFadeGrid>
+          <aside className="fixed top-24 left-6 z-20 hidden w-64 2xl:block">
+            <div className="transition-opacity duration-200 group-data-[scrolled=true]/scroll-fade:opacity-55 hover:opacity-100 focus-within:opacity-100">
+              <LearnSidebar data={{ sections, rootItems }} />
+            </div>
           </aside>
-          <section className="sm:mr-4">
+          <section className="mx-auto w-full max-w-4xl p-6 py-12 sm:py-24 lg:p-0 lg:pt-8">
+            <div
+              aria-hidden="true"
+              className="from-background via-background/80 pointer-events-none sticky top-16 z-10 -mb-6 hidden h-24 bg-gradient-to-b to-transparent opacity-0 transition-opacity duration-200 group-data-[scrolled=true]/scroll-fade:opacity-100 lg:block"
+            />
             <LearnBreadcrumbs pages={pages} />
             <article
               id="learn-article"
@@ -131,12 +138,12 @@ export default async function ArticlesLayout({
               {children}
             </article>
           </section>
-          <aside className="hidden lg:block">
-            <div className="sticky top-28">
+          <aside className="fixed top-24 right-6 z-20 hidden w-10 lg:block">
+            <div className="relative pt-3.5">
               <TableOfContents contentSelector="#learn-article" />
             </div>
           </aside>
-        </div>
+        </ScrollFadeGrid>
       </div>
     </>
   );

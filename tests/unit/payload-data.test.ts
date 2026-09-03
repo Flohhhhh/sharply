@@ -1,4 +1,4 @@
-import { beforeEach,describe,expect,it,vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const cacheMocks = vi.hoisted(() => ({
   unstable_cache: vi.fn(
@@ -74,9 +74,8 @@ describe("payload data client", () => {
 
     payloadMocks.getPayload.mockReturnValueOnce(deferredClient.promise);
 
-    const { getNewsPostsData,getReviewsData } = await import(
-      "~/server/payload/data"
-    );
+    const { getNewsPostsData, getReviewsData } =
+      await import("~/server/payload/data");
 
     const newsPromise = getNewsPostsData();
     const reviewsPromise = getReviewsData();
@@ -88,5 +87,23 @@ describe("payload data client", () => {
     await expect(newsPromise).resolves.toEqual([{ collection: "news" }]);
     await expect(reviewsPromise).resolves.toEqual([{ collection: "review" }]);
     expect(payloadMocks.getPayload).toHaveBeenCalledTimes(1);
+  });
+
+  it("expands a Learn page's Read Next thumbnail", async () => {
+    const payloadClient = {
+      find: vi.fn().mockResolvedValue({ docs: [] }),
+    };
+    payloadMocks.getPayload.mockResolvedValue(payloadClient);
+
+    const { getLearnPageBySlugData } = await import("~/server/payload/data");
+
+    await getLearnPageBySlugData("camera-basics");
+
+    expect(payloadClient.find).toHaveBeenCalledWith({
+      collection: "learn-pages",
+      where: { slug: { equals: "camera-basics" } },
+      limit: 1,
+      depth: 2,
+    });
   });
 });

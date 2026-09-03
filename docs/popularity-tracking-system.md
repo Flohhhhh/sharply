@@ -120,6 +120,7 @@ await fetch(`${base}/api/gear/nikon-z6-iii/wishlist`, {
 - Gear page
   - `GearStatsCard` (server + client)
     - Fetches from `/api/gear/[slug]/stats` (1h cache); optimistic local increments on wishlist/ownership via custom browser events.
+    - Displays lifetime views, wishlists, and owners as equal full-width icon-labeled rows with compact totals. Today's and 30-day views remain in the API response for compatibility, but only lifetime views are currently shown in the public sidebar.
   - `GearBadges` (server baseline + visible client enhancement)
     - Badge helpers read the stable rolled-up window ranking, so cached pages immediately server-render deterministic 30d badge state.
     - After hydration, only visible gear badge anchors are batched by ranking scope and checked against the live-boosted ranking. A badge changes only when live status differs; the request does not fetch gear content.

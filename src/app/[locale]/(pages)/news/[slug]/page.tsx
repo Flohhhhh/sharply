@@ -10,7 +10,6 @@ import { JsonLd } from "~/components/json-ld";
 import { RichText } from "~/components/rich-text";
 import { TableOfContents } from "~/components/rich-text/table-of-contents";
 import { Badge } from "~/components/ui/badge";
-import { Separator } from "~/components/ui/separator";
 import { ScrollProgress } from "~/components/ui/skiper-ui/scroll-progress";
 import type { Locale } from "~/i18n/config";
 import { getGearDisplayImageUrl } from "~/lib/gear/display-image";
@@ -160,6 +159,9 @@ export default async function DynamicPage({
         ]}
       />
       <ScrollProgress bottomOffset={300} />
+      <aside className="fixed top-24 right-6 z-20 hidden w-10 lg:block">
+        <TableOfContents contentSelector="#news-content" />
+      </aside>
       <div className="flex flex-col items-center gap-4">
         <Badge className="bg-accent text-accent-foreground">{category}</Badge>
         <h1 className="max-w-3xl text-center text-3xl font-semibold sm:max-w-5xl sm:text-6xl">
@@ -185,8 +187,8 @@ export default async function DynamicPage({
           className="aspect-video w-full max-w-5xl rounded-lg object-cover"
         />
       )}
-      <div className="mx-auto grid w-full max-w-5xl grid-cols-1 gap-8 lg:grid-cols-7">
-        <div id="news-content" className="col-span-5 mx-auto w-full max-w-3xl">
+      <div className="mx-auto w-full max-w-5xl">
+        <div id="news-content" className="mx-auto w-full max-w-3xl">
           <RichText
             data={page.content}
             demoteHeadingsBy={1}
@@ -239,33 +241,29 @@ export default async function DynamicPage({
           ) : null}
         </div>
 
-        <aside className="sticky top-24 col-span-2 hidden h-fit space-y-8 self-start lg:block">
-          <TableOfContents contentSelector="#news-content" />
-          <Separator />
-          {sourceLinks.length > 0 ? (
-            <div className="space-y-3">
-              <div className="text-muted-foreground text-sm font-semibold">
-                {t("links")}
-              </div>
-              <div className="flex flex-col gap-2 text-sm">
-                {sourceLinks.map((source) => (
-                  <Link
-                    key={source.id ?? source.link}
-                    href={source.link}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    className="text-primary flex items-start gap-2 rounded border px-3 py-2 hover:underline"
-                  >
-                    <ExternalLink className="text-muted-foreground mt-0.5 h-4 w-4" />
-                    <span>{source.name}</span>
-                  </Link>
-                ))}
-              </div>
+        {sourceLinks.length > 0 ? (
+          <div className="mx-auto mt-12 w-full max-w-3xl space-y-3">
+            <div className="text-muted-foreground text-sm font-semibold">
+              {t("links")}
             </div>
-          ) : null}
-        </aside>
+            <div className="flex w-full flex-col gap-2 text-sm">
+              {sourceLinks.map((source) => (
+                <Link
+                  key={source.id ?? source.link}
+                  href={source.link}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="text-primary flex w-full items-start gap-2 rounded border px-3 py-2 hover:underline"
+                >
+                  <ExternalLink className="text-muted-foreground mt-0.5 h-4 w-4" />
+                  <span>{source.name}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </div>
-      <DiscordBanner label={t("joinDiscussion")} className="w-full max-w-5xl" />
+      <DiscordBanner label={t("joinDiscussion")} className="w-full max-w-3xl" />
     </div>
   );
 }

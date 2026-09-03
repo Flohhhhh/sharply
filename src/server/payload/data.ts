@@ -1,7 +1,7 @@
 import { unstable_cache } from "next/cache";
 import { getPayload } from "payload";
 import "server-only";
-import type { LearnPage,News,Review } from "~/payload-types";
+import type { LearnPage, News, Review } from "~/payload-types";
 import config from "~/payload.config";
 
 const PAYLOAD_CONTENT_REVALIDATE_SECONDS = 60;
@@ -124,7 +124,8 @@ export const getLearnPageBySlugData = async (
     collection: "learn-pages",
     where: { slug: { equals: slug } },
     limit: 1,
-    depth: 1,
+    // Expand the Read Next page and that page's thumbnail upload.
+    depth: 2,
   })) as unknown as { docs: LearnPage[] };
   return res.docs[0] ?? null;
 };

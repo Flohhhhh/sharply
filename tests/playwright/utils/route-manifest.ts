@@ -89,7 +89,11 @@ export const routeManifest: RouteEntry[] = [
   { path: "/recommended-lenses", pattern: "/recommended-lenses", marker: { role: "button", name: "Nikon" }, spec: "community" },
   { path: "/recommended-lenses/nikon/e2e-seed-chart", pattern: "/recommended-lenses/[brand]/[slug]", marker: { role: "heading", name: "E2E Seed Nikon Chart" }, spec: "community" },
   // --- community (Payload fixtures, scripts/e2e/bootstrap-payload.ts) ---
-  { path: "/learn", pattern: "/learn", marker: { text: "Sharply E2E seed learn page" }, spec: "community" },
+  // The layout's article list (where seed learn pages appear) is collapsed
+  // behind an "Open list" toggle since the editorial nav redesign, so the
+  // listing asserts its own h1; the seed-data pipeline is still proven by
+  // the /learn/[slug] entry below.
+  { path: "/learn", pattern: "/learn", marker: { role: "heading", name: "Learn Photography" }, spec: "community" },
   { path: "/learn/sharply-e2e-seed-learn-page", pattern: "/learn/[slug]", marker: { role: "heading", name: "Sharply E2E seed learn page" }, spec: "community" },
   { path: "/reviews", pattern: "/reviews", marker: { text: "Sharply E2E seed review" }, spec: "community" },
   // The detail page's h1 is an i18n template keyed on the *gear* name

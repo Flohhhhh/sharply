@@ -1,13 +1,13 @@
 "use client";
 
-import { ImageIcon,Upload } from "lucide-react";
+import { ImageIcon, Upload } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useEffect,useRef,useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { genUploader } from "uploadthing/client";
 import type { OurFileRouter } from "~/app/api/uploadthing/core";
-import { Avatar,AvatarFallback,AvatarImage } from "~/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -25,6 +25,7 @@ export interface ProfilePictureModalProps {
   trigger?: React.ReactNode;
   onSuccess?: (params: { url: string }) => void;
   currentImageUrl?: string | null;
+  onMutationChange?: (pending: boolean) => void;
 }
 
 export function ProfilePictureModal(props: ProfilePictureModalProps) {
@@ -138,6 +139,7 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
       return;
     }
     try {
+      props.onMutationChange?.(true);
       setIsUploading(true);
       setProgressMode("upload");
       setShowProgress(true);
@@ -195,6 +197,7 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
       const message = e instanceof Error ? e.message : t("failedToUpload");
       toast.error(message);
     } finally {
+      props.onMutationChange?.(false);
       setIsUploading(false);
       setUploadProgress(0);
       setIsUpdating(false);
@@ -228,13 +231,15 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
       <DialogTrigger asChild>
         {props.trigger ?? (
           <Button icon={<ImageIcon className="h-4 w-4" />} variant="outline">
-            {t("updateProfilePicture")}
+            {displayedImageUrl ? t("changePicture") : t("uploadNewPicture")}
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{t("updateProfilePicture")}</DialogTitle>
+          <DialogTitle>
+            {displayedImageUrl ? t("changePicture") : t("uploadNewPicture")}
+          </DialogTitle>
           <DialogDescription>
             {t("uploadProfilePictureDescription")}
           </DialogDescription>
@@ -242,7 +247,9 @@ export function ProfilePictureModal(props: ProfilePictureModalProps) {
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <div className="text-muted-foreground text-xs">{t("currentPicture")}</div>
+            <div className="text-muted-foreground text-xs">
+              {t("currentPicture")}
+            </div>
             <div className="bg-muted dark:bg-card flex h-32 w-full items-center justify-center overflow-hidden rounded border">
               <Avatar className="h-24 w-24">
                 <AvatarImage
