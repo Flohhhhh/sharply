@@ -1,6 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "ignoreCommand": "bash scripts/vercel-ignore-build.sh",
+  "git": {
+    "deploymentEnabled": {
+      "development": false
+    }
+  },
   "buildCommand": "npm run db:migrate && npm run build",
   "crons": [
     {
