@@ -10,6 +10,10 @@ import { emailOTP } from "better-auth/plugins";
 import { authAdditionalFields } from "~/lib/auth/additional-fields";
 import { getResend } from "~/lib/email";
 import { resolveAuthOriginConfig } from "~/server/auth/auth-origin-config";
+import {
+  getInitialDiscordAvatarData,
+  mapDiscordProfileToUser,
+} from "~/server/auth/discord-profile";
 import { db } from "~/server/db"; // your drizzle instance
 import * as schema from "~/server/db/schema";
 import { dispatchUserSignupNotification } from "~/server/discord-logs/user-signup";
@@ -58,6 +62,7 @@ function createAuthOptions() {
       discord: {
         clientId: process.env.AUTH_DISCORD_ID!,
         clientSecret: process.env.AUTH_DISCORD_SECRET!,
+        mapProfileToUser: mapDiscordProfileToUser,
       },
     },
 
@@ -84,6 +89,17 @@ function createAuthOptions() {
     databaseHooks: {
       user: {
         create: {
+          before: async (user) => {
+            const avatarData = getInitialDiscordAvatarData(user.image);
+            if (!avatarData) return;
+
+            return {
+              data: {
+                ...user,
+                ...avatarData,
+              },
+            };
+          },
           after: async (user, context) => {
             dispatchUserSignupNotification({
               authContext: context,

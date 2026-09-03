@@ -1,5 +1,6 @@
-import { ExternalLink,Globe,Instagram } from "lucide-react";
+import { ExternalLink, Globe } from "lucide-react";
 import Link from "next/link";
+import { FaInstagram } from "react-icons/fa";
 import type { SocialLink } from "~/server/users/service";
 
 type SocialLinksDisplayProps = {
@@ -14,7 +15,7 @@ export function SocialLinksDisplay({ links }: SocialLinksDisplayProps) {
   const getIconComponent = (icon?: string) => {
     switch (icon) {
       case "instagram":
-        return <Instagram className="h-4 w-4" />;
+        return <FaInstagram className="h-4 w-4" />;
       case "website":
         return <Globe className="h-4 w-4" />;
       default:

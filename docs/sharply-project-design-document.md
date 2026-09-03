@@ -93,6 +93,9 @@ It is designed to serve both experienced photographers seeking deep technical da
 
 - **Focal Length Simulator**: Learning tool to visualize different focal lengths in real time.
 - **Beginner-Friendly Guide Library**: Simplifies complex topics without diluting accuracy.
+- Learn articles can optionally nominate another published Learn article as
+  **Read next**. The recommendation appears after the article body to create
+  intentional learning paths; draft or incomplete targets are not shown.
 
 ---
 

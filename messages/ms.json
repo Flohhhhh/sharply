@@ -278,7 +278,6 @@
     "tags": "Tag",
     "viewsAllTime": "Tontonan (Sepanjang Masa)",
     "views30Days": "Tontonan (30 Hari)",
-    "viewsToday": "Tontonan (Hari ini)",
     "wishlists": "Senarai hajat",
     "owners": "Pemilik",
     "theGood": "Yang Baik",
@@ -1623,6 +1622,9 @@
     "backToGear": "Kembali ke Gear",
     "learnMore": "Ketahui lebih lanjut"
   },
+  "learnArticlePage": {
+    "readNext": "Baca seterusnya"
+  },
   "learnBasicsPage": {
     "metaTitle": "Asas",
     "metaDescription": "Mula belajar asas fotografi, termasuk kamera moden, pendedahan dan laluan mesra pemula.",
@@ -1780,6 +1782,17 @@
     "disconnectLastOauthWarning": "Ini ialah akaun OAuth terpaut terakhir anda. Jika anda meneruskan, anda perlu log masuk menggunakan pautan e-mel/ajaib anda.",
     "profileThumbnailPreview": "Pratonton lakaran kenit profil",
     "avatar": "Avatar",
+    "avatarSourceDescription": "Pilih gambar profil yang dipaparkan oleh Sharply.",
+    "useCustomProfilePicture": "Gunakan gambar profil tersuai",
+    "useDiscordProfilePicture": "Gunakan gambar profil Discord",
+    "changePicture": "Tukar gambar",
+    "removePicture": "Buang gambar",
+    "removePictureTitle": "Buang gambar tersuai?",
+    "removePictureDescription": "Gambar profil tersuai anda akan dikosongkan. Gambar profil Discord anda tidak akan terjejas.",
+    "profilePictureRemoved": "Gambar profil tersuai dibuang.",
+    "profilePictureRemoveFailed": "Gagal membuang gambar profil tersuai.",
+    "avatarSourceUpdated": "Sumber gambar profil dikemas kini.",
+    "avatarSourceUpdateFailed": "Gagal mengemas kini sumber gambar profil.",
     "updateProfilePicture": "Kemas kini Gambar Profil",
     "imageExceedsLimit": "Imej melebihi 4MB. Pilih fail yang lebih kecil.",
     "uploadFailedTryAgain": "Muat naik gagal. Sila cuba lagi.",

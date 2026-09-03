@@ -1,4 +1,6 @@
+import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -7,12 +9,68 @@ import { RichText } from "~/components/rich-text";
 import type { Locale } from "~/i18n/config";
 import { buildArticleJsonLd } from "~/lib/seo/json-ld-helpers";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
+import type { LearnPage } from "~/payload-types";
 import {
   getAllPublishedLearnPages,
   getLearnPageBySlug,
 } from "~/server/payload/service";
 
 export const revalidate = 60;
+
+function ReadNextCard({
+  article,
+  label,
+}: {
+  article: LearnPage;
+  label: string;
+}) {
+  const thumbnail =
+    article.thumbnail && typeof article.thumbnail === "object"
+      ? article.thumbnail
+      : null;
+  const thumbnailUrl =
+    thumbnail && typeof thumbnail.url === "string" ? thumbnail.url : null;
+
+  return (
+    <aside className="not-prose mt-16 border-t pt-8" aria-label={label}>
+      <p className="text-muted-foreground mb-3 text-sm font-semibold">
+        {label}
+      </p>
+      <Link
+        href={`/learn/${article.slug}`}
+        className="group border-input bg-card/50 hover:border-foreground/40 flex overflow-hidden rounded-lg border p-2 transition-colors"
+      >
+        {thumbnailUrl ? (
+          <div className="bg-muted relative hidden aspect-video w-48 shrink-0 overflow-hidden rounded sm:block">
+            <Image
+              src={thumbnailUrl}
+              alt=""
+              fill
+              sizes="192px"
+              className="object-cover"
+            />
+          </div>
+        ) : null}
+        <div className="flex min-w-0 flex-1 items-center justify-between gap-4 px-3 py-2 sm:px-4">
+          <div className="min-w-0">
+            <h2 className="text-lg leading-tight font-semibold sm:text-xl">
+              {article.title}
+            </h2>
+            {article.excerpt ? (
+              <p className="text-muted-foreground mt-2 line-clamp-2 text-sm leading-relaxed">
+                {article.excerpt}
+              </p>
+            ) : null}
+          </div>
+          <ArrowRight
+            className="text-muted-foreground size-5 shrink-0 transition-transform group-hover:translate-x-1"
+            aria-hidden="true"
+          />
+        </div>
+      </Link>
+    </aside>
+  );
+}
 
 export async function generateStaticParams() {
   const pages = await getAllPublishedLearnPages();
@@ -64,7 +122,10 @@ export default async function LearnArticlePage({
   params: Promise<{ locale: Locale; slug: string }>;
 }) {
   const { locale, slug } = await params;
-  const page = await getLearnPageBySlug(slug);
+  const [page, t] = await Promise.all([
+    getLearnPageBySlug(slug),
+    getTranslations({ locale, namespace: "learnArticlePage" }),
+  ]);
   if (!page) {
     notFound();
   }
@@ -79,6 +140,13 @@ export default async function LearnArticlePage({
     thumb && typeof (thumb as any).alt === "string"
       ? ((thumb as any).alt as string)
       : page.title;
+  const readNext =
+    page.read_next &&
+    typeof page.read_next === "object" &&
+    page.read_next._status === "published" &&
+    page.read_next.slug
+      ? page.read_next
+      : null;
 
   return (
     <>
@@ -129,6 +197,9 @@ export default async function LearnArticlePage({
         </div>
       )}
       <RichText data={page.content as any} className="mt-6 w-full max-w-none" />
+      {readNext ? (
+        <ReadNextCard article={readNext} label={t("readNext")} />
+      ) : null}
     </>
   );
 }

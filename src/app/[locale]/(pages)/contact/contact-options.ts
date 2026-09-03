@@ -64,7 +64,7 @@ export const CONTACT_OPTIONS: ContactOption[] = [
     value: "technical-issue",
     additionalInfo:
       "Remember, Sharply is open source! If you want you can submit an issue or pull request to our GitHub repository.",
-    infoLink: "https://github.com/Flohhhhh/sharply",
+    infoLink: "https://github.com/nyphotohouse/sharply",
     subjectTemplate: "Technical issue report",
     messageTemplate:
       "I ran into a technical issue on Sharply:\n\n- What I was doing:\n- What happened:\n- What I expected:\n- Steps to reproduce (if known):\n\nThanks for looking into it.",

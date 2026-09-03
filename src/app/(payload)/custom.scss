@@ -1,5 +1,16 @@
 /* Custom admin overrides for Payload */
 
+/*
+ * The public app themes through a `.dark` class, while Payload themes through
+ * `html[data-theme]`. Re-assert Payload's document colors here so the public
+ * body's global background cannot leave a dark Payload login on a light canvas.
+ */
+html,
+body {
+  background-color: var(--theme-bg);
+  color: var(--theme-text);
+}
+
 /* Use a stable class from our field components for reliable targeting */
 .sharply-field {
   padding-top: 12px !important;

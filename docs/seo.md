@@ -39,8 +39,15 @@ Which page emits what:
 - **Gear pages**: `Product` (with `additionalType: ProductModel`) including
   brand, category, key specs as `additionalProperty`, and an `offers` node
   that mirrors the *displayed* price (MPB used price first, else current
-  MSRP — same order as `price-map.ts`). Plus `BreadcrumbList`. Rumored and
-  under-construction gear pages emit nothing (they are noindexed or thin).
+  MSRP — same order as `price-map.ts`). Google renders Product snippets
+  only when one of `offers`/`review`/`aggregateRating` is present; an
+  offer from the displayed price is the only one emitted today (nesting
+  staff verdicts / editorial reviews as `review` is deferred until the
+  review system is built out), so items without price data emit no
+  `Product` node at all (the builder returns null and `buildJsonLdGraph`
+  drops nullish nodes). Plus `BreadcrumbList` on every gear page. Rumored
+  and under-construction gear pages emit nothing (they are noindexed or
+  thin).
 - **Editorial review pages**: `Product` + nested `Review` with
   `positiveNotes`/`negativeNotes` from the review's good/bad points,
   targeting Google's pros-and-cons rich result. No `reviewRating`: the

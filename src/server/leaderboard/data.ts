@@ -1,8 +1,9 @@
 import "server-only";
 
-import { count,eq,inArray } from "drizzle-orm";
+import { count, eq, inArray } from "drizzle-orm";
 import { db } from "~/server/db";
-import { auditLogs,gearEdits,users } from "~/server/db/schema";
+import { auditLogs, gearEdits, users } from "~/server/db/schema";
+import { getResolvedUserImageSql } from "~/server/users/data";
 
 export interface LeaderboardRow {
   id: string;
@@ -43,7 +44,7 @@ export async function fetchContributorLeaderboardData(
     let total = 0;
     const sections = ["core", "camera", "lens"] as const;
     for (const key of sections) {
-      const section = (payload)[key];
+      const section = payload[key];
       if (section && typeof section === "object") {
         total += Object.keys(section).length;
       }
@@ -69,7 +70,11 @@ export async function fetchContributorLeaderboardData(
   const ids = Array.from(userIds);
   const userRows = ids.length
     ? await db
-        .select({ id: users.id, name: users.name, image: users.image })
+        .select({
+          id: users.id,
+          name: users.name,
+          image: getResolvedUserImageSql(),
+        })
         .from(users)
         .where(inArray(users.id, ids))
     : [];

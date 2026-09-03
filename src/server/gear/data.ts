@@ -57,6 +57,7 @@ import {
 import { incrementGearPopularityIntraday } from "~/server/popularity/data";
 import { hasEventForUserOnUtcDay } from "~/server/validation/dedupe";
 import { fetchVideoModesByGearId } from "~/server/video-modes/data";
+import { getResolvedUserImageSql } from "~/server/users/data";
 import type {
   Gear,
   GearAlias,
@@ -820,7 +821,7 @@ export async function getApprovedReviewsByGearId(gearId: string) {
         name: users.name,
         handle: users.handle,
         memberNumber: users.memberNumber,
-        image: users.image,
+        image: getResolvedUserImageSql(),
       },
     })
     .from(reviews)
@@ -1074,7 +1075,7 @@ export async function fetchContributorsByGearIdData(
       name: users.name,
       handle: users.handle,
       memberNumber: users.memberNumber,
-      image: users.image,
+      image: getResolvedUserImageSql(),
       payload: gearEdits.payload,
       videoContributionCount: sql<number>`0`,
     })
@@ -1088,7 +1089,7 @@ export async function fetchContributorsByGearIdData(
       name: users.name,
       handle: users.handle,
       memberNumber: users.memberNumber,
-      image: users.image,
+      image: getResolvedUserImageSql(),
       videoContributionCount: count(gearCreatorVideos.id),
     })
     .from(gearCreatorVideos)
@@ -1105,6 +1106,8 @@ export async function fetchContributorsByGearIdData(
       users.handle,
       users.memberNumber,
       users.image,
+      users.discordImage,
+      users.avatarSource,
     );
 
   const contributorRows: ContributorRow[] = editRows.map((row) => ({

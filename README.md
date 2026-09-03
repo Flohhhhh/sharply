@@ -27,7 +27,7 @@ Sharply is a photography gear database and cataloging application. It combines a
 Clone the repository and install dependencies:
 
 ```bash
-git clone https://github.com/Flohhhhh/sharply.git
+git clone https://github.com/nyphotohouse/sharply.git
 cd sharply
 npm install
 ```

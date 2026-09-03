@@ -28,12 +28,22 @@ function makeGearItem(overrides: Record<string, unknown> = {}): GearItem {
   } as unknown as GearItem;
 }
 
+/** Fails with a named assertion (not a null deref) when no Product is built. */
+function expectProduct(
+  product: ReturnType<typeof buildGearProductJsonLd>,
+): NonNullable<typeof product> {
+  expect(product).not.toBeNull();
+  return product!;
+}
+
 describe("buildGearProductJsonLd", () => {
   it("builds a Product with brand, category, and canonical ids", () => {
-    const product = buildGearProductJsonLd({
-      item: makeGearItem(),
-      displayName: "Test Camera",
-    });
+    const product = expectProduct(
+      buildGearProductJsonLd({
+        item: makeGearItem({ msrpNowUsdCents: 199900 }),
+        displayName: "Test Camera",
+      }),
+    );
 
     expect(product["@type"]).toBe("Product");
     expect(product.additionalType).toBe("https://schema.org/ProductModel");
@@ -48,14 +58,16 @@ describe("buildGearProductJsonLd", () => {
   });
 
   it("emits a used-condition offer mirroring the displayed MPB price", () => {
-    const product = buildGearProductJsonLd({
-      item: makeGearItem({
-        mpbMaxPriceUsdCents: 123456,
-        msrpNowUsdCents: 200000,
-        linkMpb: "https://www.mpb.com/product/test",
+    const product = expectProduct(
+      buildGearProductJsonLd({
+        item: makeGearItem({
+          mpbMaxPriceUsdCents: 123456,
+          msrpNowUsdCents: 200000,
+          linkMpb: "https://www.mpb.com/product/test",
+        }),
+        displayName: "Test Camera",
       }),
-      displayName: "Test Camera",
-    });
+    );
 
     expect(product.offers).toMatchObject({
       "@type": "Offer",
@@ -67,10 +79,12 @@ describe("buildGearProductJsonLd", () => {
   });
 
   it("falls back to a new-condition MSRP offer without MPB data", () => {
-    const product = buildGearProductJsonLd({
-      item: makeGearItem({ msrpNowUsdCents: 199900 }),
-      displayName: "Test Camera",
-    });
+    const product = expectProduct(
+      buildGearProductJsonLd({
+        item: makeGearItem({ msrpNowUsdCents: 199900 }),
+        displayName: "Test Camera",
+      }),
+    );
 
     expect(product.offers).toMatchObject({
       price: "1999.00",
@@ -78,21 +92,31 @@ describe("buildGearProductJsonLd", () => {
     });
   });
 
-  it("omits offers entirely without positive price data", () => {
-    const product = buildGearProductJsonLd({
-      item: makeGearItem({ mpbMaxPriceUsdCents: 0 }),
-      displayName: "Test Camera",
-    });
-
-    expect(product.offers).toBeUndefined();
+  it("emits no Product at all without positive price data", () => {
+    // Google requires offers, review, or aggregateRating for Product
+    // snippets; a Product with none is a Search Console critical issue.
+    expect(
+      buildGearProductJsonLd({
+        item: makeGearItem(),
+        displayName: "Test Camera",
+      }),
+    ).toBeNull();
+    expect(
+      buildGearProductJsonLd({
+        item: makeGearItem({ mpbMaxPriceUsdCents: 0 }),
+        displayName: "Test Camera",
+      }),
+    ).toBeNull();
   });
 
   it("absolutizes relative image urls and omits missing descriptions", () => {
-    const product = buildGearProductJsonLd({
-      item: makeGearItem(),
-      displayName: "Test Camera",
-      imageUrl: "/images/test.jpg",
-    });
+    const product = expectProduct(
+      buildGearProductJsonLd({
+        item: makeGearItem({ msrpNowUsdCents: 199900 }),
+        displayName: "Test Camera",
+        imageUrl: "/images/test.jpg",
+      }),
+    );
 
     expect(product.image).toBe(`${BASE}/images/test.jpg`);
     expect(product.description).toBeUndefined();
@@ -264,6 +288,12 @@ describe("buildWebSiteJsonLd / buildJsonLdGraph", () => {
 
     const graph = buildJsonLdGraph([site]);
     expect(graph["@context"]).toBe("https://schema.org");
+    expect(graph["@graph"]).toEqual([site]);
+  });
+
+  it("drops nullish nodes so ineligible builders can be called inline", () => {
+    const site = buildWebSiteJsonLd();
+    const graph = buildJsonLdGraph([null, site, undefined]);
     expect(graph["@graph"]).toEqual([site]);
   });
 });
