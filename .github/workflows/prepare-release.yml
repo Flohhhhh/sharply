@@ -25,7 +25,7 @@ jobs:
       # on the schema and migration snapshots.
       DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/sharply_generate
       SKIP_ENV_VALIDATION: "1"
-      NEON_PREVIEW_BRANCH: development
+      NEON_PREVIEW_BRANCH: preview/development
     steps:
       - name: Check out development
         uses: actions/checkout@v4
@@ -43,7 +43,7 @@ jobs:
         run: npm ci
 
       # Start every release preview from the current parent (production) state.
-      # Neon branch reset preserves the development branch/connection string but
+      # Neon branch reset preserves the preview branch/connection string but
       # replaces its data and schema with the latest parent state.
       - name: Reset Neon preview database from parent
         env:
