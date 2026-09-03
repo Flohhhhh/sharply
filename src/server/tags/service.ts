@@ -53,7 +53,8 @@ const createTagSchema = z.object({
       /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
       "Slug must use lowercase letters, numbers, and hyphens.",
     )
-    .max(140),
+    .max(140)
+    .refine((slug) => slug !== "none", 'The slug "none" is reserved.'),
   description: z.string().trim().max(500).optional().or(z.literal("")),
   icon: z.string().trim().max(100).optional().or(z.literal("")),
   pageTitle: z.string().trim().max(240).optional().or(z.literal("")),

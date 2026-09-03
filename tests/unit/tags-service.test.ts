@@ -229,6 +229,17 @@ describe("tag service", () => {
     expect(mocks.insertTagData).not.toHaveBeenCalled();
   });
 
+  it('rejects the reserved "none" slug before writing', async () => {
+    await expect(
+      createTag({ name: "None", slug: "none" }),
+    ).rejects.toMatchObject({
+      issues: [
+        expect.objectContaining({ message: 'The slug "none" is reserved.' }),
+      ],
+    });
+    expect(mocks.insertTagData).not.toHaveBeenCalled();
+  });
+
   it("blocks deletion while a tag remains assigned", async () => {
     mocks.countTagAssignmentsData.mockResolvedValue(1);
 
