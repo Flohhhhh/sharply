@@ -2,9 +2,12 @@
 
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
-import { useEffect,useRef,useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { getActiveHeadingId } from "~/components/rich-text/table-of-contents-utils";
+import {
+  createUniqueHeadingId,
+  getActiveHeadingId,
+} from "~/components/rich-text/table-of-contents-utils";
 import { cn } from "~/lib/utils";
 
 type HeadingItem = {
@@ -19,23 +22,23 @@ function extractHeadings(container: HTMLElement | null): HeadingItem[] {
   if (!container) return [];
 
   const headings: HeadingItem[] = [];
+  const elements = Array.from(
+    container.querySelectorAll<HTMLElement>(headingSelector),
+  );
+  const usedIds = new Set(
+    elements.flatMap((element) => (element.id ? [element.id] : [])),
+  );
 
-  for (const element of container.querySelectorAll<HTMLElement>(
-    headingSelector,
-  )) {
+  for (const [index, element] of elements.entries()) {
     const level = Number(element.tagName.slice(1));
-    const id =
-      element.id ||
-      element.textContent
-        ?.toLowerCase()
-        .trim()
-        .replace(/\s+/g, "-")
-        .replace(/[^a-z0-9-]/g, "") ||
-      "";
     const text = element.textContent?.trim() || "";
 
-    if (!element.id && id) element.id = id;
-    if (id && text) headings.push({ id, text, level });
+    if (!text) continue;
+
+    const id = element.id || createUniqueHeadingId(text, index, usedIds);
+
+    if (!element.id) element.id = id;
+    headings.push({ id, text, level });
   }
 
   return headings;

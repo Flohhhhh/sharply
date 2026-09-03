@@ -1,6 +1,33 @@
-import { describe,expect,it } from "vitest";
+import { describe, expect, it } from "vitest";
 
-import { getActiveHeadingId } from "~/components/rich-text/table-of-contents-utils";
+import {
+  createUniqueHeadingId,
+  getActiveHeadingId,
+} from "~/components/rich-text/table-of-contents-utils";
+
+describe("createUniqueHeadingId", () => {
+  it("keeps non-Latin headings in Unicode-safe slugs", () => {
+    expect(createUniqueHeadingId("カメラ 設定", 0, new Set())).toBe(
+      "カメラ-設定",
+    );
+  });
+
+  it("deduplicates repeated headings with stable suffixes", () => {
+    const usedIds = new Set<string>();
+
+    expect(createUniqueHeadingId("Lens Tests", 0, usedIds)).toBe("lens-tests");
+    expect(createUniqueHeadingId("Lens Tests", 1, usedIds)).toBe(
+      "lens-tests-2",
+    );
+    expect(createUniqueHeadingId("Lens Tests", 2, usedIds)).toBe(
+      "lens-tests-3",
+    );
+  });
+
+  it("uses a deterministic non-empty fallback when no slug remains", () => {
+    expect(createUniqueHeadingId("📷", 3, new Set())).toBe("heading-4");
+  });
+});
 
 describe("getActiveHeadingId", () => {
   const headings = [
