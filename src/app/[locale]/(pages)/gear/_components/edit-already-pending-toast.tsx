@@ -8,7 +8,7 @@ import { toast } from "sonner";
  * Reads the `editAlreadyPending` search param set by the edit route redirect,
  * shows a user-facing toast, and cleans up the URL.
  *
- * Mirrors the pattern used by `EditAppliedToast` for the `editApplied` param.
+ * Consumes the redirect marker once and removes it from the current URL.
  */
 export function EditAlreadyPendingToast() {
   const rawPathname = usePathname();

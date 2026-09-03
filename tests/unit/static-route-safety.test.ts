@@ -84,7 +84,13 @@ describe("static route safety", () => {
     expect(gearPage).not.toMatch(/await searchParams/);
     expect(gearPage).not.toMatch(/\bheaders\(/);
     expect(gearPage).not.toMatch(/\bcookies\(/);
-    expect(gearPage).toMatch(/<EditAppliedToast \/>/);
+    expect(gearPage).not.toContain("EditAppliedToast");
+
+    const editGearForm = readSource(
+      "src/app/[locale]/(pages)/gear/_components/edit-gear/edit-gear-form.tsx",
+    );
+    expect(editGearForm).not.toContain("editApplied");
+    expect(editGearForm).toContain("onRequestClose({ force: true })");
   });
 
   it("rejects invalid locales during root layout metadata resolution", () => {

@@ -212,7 +212,7 @@ type ComponentName = keyof typeof SPEC_INPUT_COMPONENTS;
 - **Publication-state awareness**:
   - Rumored and hidden items still keep the internal edit flow available to staff so content can be prepared before publication.
   - Rumored is a manual public-display override and should not fall through to the public under-construction page.
-- **Completion Handling**: Confirmation page for queued submissions; instant redirect back to the gear page with a success banner when changes are auto-applied
+- **Completion Handling**: Confirmation page for queued submissions; auto-applied changes show an immediate success toast and replace the edit route with the canonical gear URL. No transient success query parameter is added, so browser back/forward navigation cannot replay the toast.
 - **Decision Persistence**: Each submission stores `metadata.autoApprovalDecision` on the proposal row so admins can see the exact submission-time reason it did or did not auto-approve later on.
 
 ## Admin Approval Workflow (Grouped by Gear Item)

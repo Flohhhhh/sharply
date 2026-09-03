@@ -1111,12 +1111,13 @@ function EditGearForm({
           },
         );
         if (autoApproved) {
-          router.replace(
-            localizePathname(
-              `/gear/${gearSlug}?editApplied=1`,
-              locale as Locale,
-            ),
-          );
+          if (onRequestClose) {
+            onRequestClose({ force: true });
+          } else {
+            router.replace(
+              localizePathname(`/gear/${gearSlug}`, locale as Locale),
+            );
+          }
         } else {
           router.replace(`/edit-success?id=${createdId ?? ""}`);
         }
