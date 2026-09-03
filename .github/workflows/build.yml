@@ -14,6 +14,9 @@ on:
         required: false
         type: string
 
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -30,10 +33,17 @@ jobs:
       PAYLOAD_SECRET: ci-build-placeholder
       NEXT_PUBLIC_BASE_URL: http://localhost:3000
     steps:
+      - name: Verify dispatched release commit
+        if: inputs.release_sha != ''
+        env:
+          RELEASE_SHA: ${{ inputs.release_sha }}
+        run: test "$RELEASE_SHA" = "$GITHUB_SHA"
+
       - name: Check out code
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.release_sha || github.sha }}
+          ref: ${{ github.sha }}
+          persist-credentials: false
 
       - name: Set up Node.js
         uses: actions/setup-node@v4

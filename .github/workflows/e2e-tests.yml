@@ -16,6 +16,9 @@ on:
         required: false
         type: string
 
+permissions:
+  contents: read
+
 # event_name in the group keeps a manual dispatch from cancelling the nightly
 # (both resolve to refs/heads/main otherwise); PR runs still cancel per-PR.
 concurrency:
@@ -57,11 +60,18 @@ jobs:
           --health-timeout 5s
           --health-retries 12
     steps:
+      - name: Verify dispatched release commit
+        if: inputs.release_sha != ''
+        env:
+          RELEASE_SHA: ${{ inputs.release_sha }}
+        run: test "$RELEASE_SHA" = "$GITHUB_SHA"
+
       - name: Check out code
         uses: actions/checkout@v4
         with:
           # schedule runs from the default branch (main); test the integration branch instead
-          ref: ${{ inputs.release_sha || (github.event_name == 'schedule' && 'development') || github.sha }}
+          ref: ${{ (github.event_name == 'schedule' && 'development') || github.sha }}
+          persist-credentials: false
 
       - name: Set up Node.js
         uses: actions/setup-node@v4

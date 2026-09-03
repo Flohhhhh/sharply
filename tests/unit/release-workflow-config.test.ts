@@ -38,6 +38,23 @@ describe("release workflow configuration", () => {
       expect(workflow.on.merge_group.branches).toEqual(["development"]);
       expect(workflow.on.push).toBeUndefined();
       expect(workflow.on.workflow_dispatch.inputs.release_sha).toBeDefined();
+      expect(workflow.permissions).toEqual({ contents: "read" });
+
+      const job = Object.values(workflow.jobs)[0] as {
+        steps: Array<Record<string, unknown>>;
+      };
+      const verifyStep = job.steps.find(
+        (step) => step.name === "Verify dispatched release commit",
+      );
+      const checkoutStep = job.steps.find(
+        (step) => step.uses === "actions/checkout@v4",
+      ) as { with: Record<string, unknown> };
+
+      expect(verifyStep).toMatchObject({
+        if: "inputs.release_sha != ''",
+        run: 'test "$RELEASE_SHA" = "$GITHUB_SHA"',
+      });
+      expect(checkoutStep.with["persist-credentials"]).toBe(false);
     },
   );
 
