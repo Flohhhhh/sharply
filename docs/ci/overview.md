@@ -15,7 +15,9 @@ flowchart TD
 
     D[Direct push to development] --> N
 
-    M -->|Open development to main pull request| R[Prepare release workflow]
+    M -->|Open development to main pull request| RP[Release pull request]
+    RP --> R[Prepare release workflow]
+    RP --> RCI[Normal lint, unit, compile-build, and E2E checks]
     R --> G[Generate canonical Drizzle migration]
     G --> C{Migration changed?}
     C -->|Yes| P[Commit and push migration to development]
@@ -59,8 +61,11 @@ contain `/`, such as `feature/search` or `chore/ci`.
 ## Release preparation and preview
 
 Opening or updating the `development` to `main` pull request runs
-`prepare-release.yml`. It is intentionally restricted to that exact head/base
-combination because it can write migrations and access release credentials.
+the standard CI workflows and `prepare-release.yml` in parallel. Release pull
+requests therefore receive the same lint, unit, compile-build, and E2E checks as
+feature pull requests. The preparation workflow is intentionally restricted to
+the exact `development` head and `main` base combination because it can write
+migrations and access release credentials.
 
 The workflow:
 

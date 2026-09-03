@@ -30,12 +30,15 @@ describe("release workflow configuration", () => {
   });
 
   it.each(standardWorkflows)(
-    "%s runs automatically only for changes targeting development",
+    "%s runs for feature and release pull requests",
     (fileName) => {
       const workflow = readWorkflow(fileName);
 
-      expect(workflow.on.pull_request.branches).toEqual(["development"]);
-      expect(workflow.on.merge_group.branches).toEqual(["development"]);
+      expect(workflow.on.pull_request.branches).toEqual([
+        "development",
+        "main",
+      ]);
+      expect(workflow.on.merge_group.branches).toEqual(["development", "main"]);
       expect(workflow.on.push).toBeUndefined();
       expect(workflow.on.workflow_dispatch.inputs.release_sha).toBeDefined();
       expect(workflow.permissions).toEqual({ contents: "read" });

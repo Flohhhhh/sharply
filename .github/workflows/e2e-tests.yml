@@ -4,9 +4,11 @@ on:
   pull_request:
     branches:
       - development
+      - main
   merge_group:
     branches:
       - development
+      - main
   schedule:
     - cron: "17 9 * * *" # off-peak, non-top-of-hour; runs the full browser matrix
   workflow_dispatch:

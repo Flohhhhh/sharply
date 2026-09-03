@@ -32,9 +32,9 @@ send telemetry unless Sentry is deliberately enabled in that environment.
 - `package.json` (project manifest and script entry points)
 - `.env.example` (documented environment variable template)
 - `vercel.json` (Vercel project configuration at root)
-- `.github/workflows/lint.yml` (GitHub Actions lint check for feature pull requests and merge queue runs targeting `development`)
-- `.github/workflows/unit-tests.yml` (GitHub Actions unit test check for feature pull requests and merge queue runs targeting `development`)
-- `.github/workflows/build.yml` (GitHub Actions compile-only build check for feature pull requests and merge queue runs targeting `development`)
+- `.github/workflows/lint.yml` (GitHub Actions lint check for pull requests and merge queue runs targeting `development` or `main`)
+- `.github/workflows/unit-tests.yml` (GitHub Actions unit test check for pull requests and merge queue runs targeting `development` or `main`)
+- `.github/workflows/build.yml` (GitHub Actions compile-only build check for pull requests and merge queue runs targeting `development` or `main`)
 - `.github/workflows/prepare-release.yml` (migration preparation and persistent preview deployment for the `development` to `main` release pull request)
 
 ## Release validation and Vercel deployment gating
