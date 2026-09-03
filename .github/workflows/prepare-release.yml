@@ -107,7 +107,10 @@ jobs:
         env:
           VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
         run: |
-          test -n "$VERCEL_DEPLOY_HOOK_URL"
+          if [[ ! "$VERCEL_DEPLOY_HOOK_URL" =~ ^https://[^[:space:]]+$ ]]; then
+            echo "VERCEL_DEPLOY_HOOK_URL must be a non-empty HTTPS URL" >&2
+            exit 1
+          fi
           curl \
             --fail-with-body \
             --silent \
