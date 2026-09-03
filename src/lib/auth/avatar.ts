@@ -30,7 +30,10 @@ export function getEffectiveAvatarSource(user: AvatarFields): AvatarSource {
 
 export function resolveUserAvatar(user: AvatarFields): string | null {
   if (getEffectiveAvatarSource(user) === "discord") {
-    return user.discordImage ?? user.image ?? null;
+    return (
+      user.discordImage ??
+      (isDiscordAvatarUrl(user.image) ? (user.image ?? null) : null)
+    );
   }
 
   return user.image ?? null;

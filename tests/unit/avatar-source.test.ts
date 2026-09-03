@@ -36,6 +36,12 @@ describe("avatar source resolution", () => {
     ).toBe(discordUrl);
   });
 
+  it("does not use a custom image when the Discord image is missing", () => {
+    expect(
+      resolveUserAvatar({ image: customUrl, avatarSource: "discord" }),
+    ).toBeNull();
+  });
+
   it("infers legacy Discord URLs without classifying other URLs as Discord", () => {
     expect(isDiscordAvatarUrl(discordUrl)).toBe(true);
     expect(
