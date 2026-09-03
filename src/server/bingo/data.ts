@@ -1,7 +1,8 @@
 import "server-only";
 
-import { and,asc,desc,eq,gt,isNull,sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, isNull, sql } from "drizzle-orm";
 import { db } from "~/server/db";
+import { getResolvedUserImageSql } from "~/server/users/data";
 import {
   bingoBoardTiles,
   bingoBoards,
@@ -78,7 +79,7 @@ export async function fetchBoardTilesWithProofData(
       completedAt: bingoBoardTiles.completedAt,
       completedById: users.id,
       completedByName: users.name,
-      completedByImage: users.image,
+      completedByImage: getResolvedUserImageSql(),
       submissionId: bingoSubmissions.id,
       submissionUrl: bingoSubmissions.discordMessageUrl,
       submissionGuildId: bingoSubmissions.discordGuildId,
@@ -228,7 +229,10 @@ export async function countCompletedTilesData(
     })
     .from(bingoBoardTiles)
     .where(
-      and(eq(bingoBoardTiles.boardId, boardId), sql`${bingoBoardTiles.completedAt} is not null`),
+      and(
+        eq(bingoBoardTiles.boardId, boardId),
+        sql`${bingoBoardTiles.completedAt} is not null`,
+      ),
     );
   return Number(rows[0]?.value ?? 0);
 }
@@ -371,7 +375,10 @@ export async function fetchBoardEventsSinceData(
     })
     .from(bingoEvents)
     .where(
-      and(eq(bingoEvents.boardId, params.boardId), gt(bingoEvents.id, params.since)),
+      and(
+        eq(bingoEvents.boardId, params.boardId),
+        gt(bingoEvents.id, params.since),
+      ),
     )
     .orderBy(asc(bingoEvents.id))
     .limit(params.limit ?? 100);
@@ -387,7 +394,7 @@ export async function fetchBoardLeaderboardData(
       userId: bingoScores.userId,
       points: bingoScores.points,
       name: users.name,
-      image: users.image,
+      image: getResolvedUserImageSql(),
     })
     .from(bingoScores)
     .innerJoin(users, eq(users.id, bingoScores.userId))

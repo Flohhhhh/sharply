@@ -67,7 +67,7 @@
     "github": "GitHub",
     "productImagesDisclaimer": "Produktbilder © jeweilige Hersteller. Nur für redaktionelle und informative Zwecke verwendet. Diese Website ist unabhängig und nicht mit Nikon, Canon, Sony oder anderen Marken verbunden.",
     "amazonAffiliateDisclaimer": "Als Amazon-Partner kann Sharply eine Provision für qualifizierte Käufe verdienen, die über Amazon-Links erfolgen.",
-    "copyright": "© 2026 Sharply. Alle Rechte vorbehalten."
+    "copyright": "© 2026 New York Photo House. Alle Rechte vorbehalten."
   },
   "search": {
     "dialogTitle": "Sharply durchsuchen",
@@ -364,7 +364,6 @@
     "tags": "Tags",
     "viewsAllTime": "Aufrufe (gesamt)",
     "views30Days": "Aufrufe (30 Tage)",
-    "viewsToday": "Aufrufe (heute)",
     "wishlists": "Wunschlisten",
     "owners": "Besitzer",
     "theGood": "Das Gute",
@@ -1709,6 +1708,9 @@
     "backToGear": "Zur Ausrüstung",
     "learnMore": "Mehr erfahren"
   },
+  "learnArticlePage": {
+    "readNext": "Als Nächstes lesen"
+  },
   "learnBasicsPage": {
     "metaTitle": "Die Grundlagen",
     "metaDescription": "Lerne die Grundlagen der Fotografie kennen, darunter moderne Kameras, Belichtung und einsteigerfreundliche Lernpfade.",
@@ -1866,6 +1868,17 @@
     "disconnectLastOauthWarning": "Dies ist dein letztes verbundenes OAuth-Konto. Wenn du fortfährst, musst du dich per E-Mail/Magic Link anmelden.",
     "profileThumbnailPreview": "Vorschau des Profilbilds",
     "avatar": "Avatar",
+    "avatarSourceDescription": "Wähle aus, welches Profilbild Sharply anzeigt.",
+    "useCustomProfilePicture": "Benutzerdefiniertes Profilbild verwenden",
+    "useDiscordProfilePicture": "Discord-Profilbild verwenden",
+    "changePicture": "Bild ändern",
+    "removePicture": "Bild entfernen",
+    "removePictureTitle": "Benutzerdefiniertes Bild entfernen?",
+    "removePictureDescription": "Dein benutzerdefiniertes Profilbild wird entfernt. Dein Discord-Profilbild bleibt unverändert.",
+    "profilePictureRemoved": "Benutzerdefiniertes Profilbild entfernt.",
+    "profilePictureRemoveFailed": "Benutzerdefiniertes Profilbild konnte nicht entfernt werden.",
+    "avatarSourceUpdated": "Profilbildquelle aktualisiert.",
+    "avatarSourceUpdateFailed": "Profilbildquelle konnte nicht aktualisiert werden.",
     "updateProfilePicture": "Profilbild aktualisieren",
     "imageExceedsLimit": "Das Bild überschreitet 4 MB. Bitte wähle eine kleinere Datei.",
     "uploadFailedTryAgain": "Upload fehlgeschlagen. Bitte versuche es erneut.",
@@ -2044,8 +2057,8 @@
     "emailHint": "Wir senden einen 6-stelligen Code an diese Adresse.",
     "sendCode": "Code senden",
     "signInImageAlt": "Anmelden",
-    "agreeToTerms": "Mit Klick auf Weiter stimmst du unseren {terms} und unserer {privacy} zu.",
-    "agreeToTermsVerify": "Mit dem Fortfahren stimmst du unseren {terms} und unserer {privacy} zu.",
+    "agreeToTerms": "Mit Klick auf Weiter stimmst du unseren <terms>{termsLabel}</terms> und unserer <privacy>{privacyLabel}</privacy> zu.",
+    "agreeToTermsVerify": "Mit dem Fortfahren stimmst du unseren <terms>{termsLabel}</terms> und unserer <privacy>{privacyLabel}</privacy> zu.",
     "verifyTitle": "Bestätigungscode eingeben",
     "verifySubtitle": "Gib den 6-stelligen Code ein, den wir an {email} gesendet haben.",
     "verifyHint": "Dieser Code läuft in 10 Minuten ab. Lass diesen Tab während der Bestätigung geöffnet.",

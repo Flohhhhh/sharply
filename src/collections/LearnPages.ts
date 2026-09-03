@@ -1,8 +1,6 @@
 import type { CollectionConfig } from "payload";
 import slugify from "slugify";
-import {
-  relatedGearItemsField
-} from "~/payload-fields/custom-fields";
+import { relatedGearItemsField } from "~/payload-fields/custom-fields";
 import { lexicalFirstParagraphText } from "~/server/payload/richtext";
 
 export const LearnPages: CollectionConfig = {
@@ -159,6 +157,17 @@ export const LearnPages: CollectionConfig = {
       name: "content",
       type: "richText",
       required: true,
+    },
+    {
+      name: "read_next",
+      label: "Read Next",
+      type: "relationship",
+      relationTo: "learn-pages",
+      admin: {
+        position: "sidebar",
+        description:
+          "Optionally recommend another published Learn page at the end of this article.",
+      },
     },
     {
       name: "command_aliases",

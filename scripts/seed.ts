@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-import { and,eq,isNull } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import slugify from "slugify";
 
 import {
@@ -20,6 +20,7 @@ import {
   gear,
   gearGenres,
   gearMounts,
+  gearPopularityWindows,
   genres as genresTable,
   lensSpecs,
   mounts,
@@ -136,6 +137,7 @@ async function main() {
   await seedNikonZ6III(context, options);
   await seedAdditionalCameras(context, options);
   log("seed complete");
+  await seedPopularityWindows();
 }
 
 async function seedTaxonomyFromGenerated(opts?: {
@@ -835,6 +837,47 @@ async function seedAdditionalCameras(
         frontFilterThreadSizeMm: 58,
       },
     },
+    {
+      // Canon needs gear in BOTH categories (cameras + lenses): a brand with a
+      // single category redirects /browse/canon -> /browse/canon/cameras, which
+      // breaks the e2e brand-route spec on fresh/sparse databases.
+      key: "canon-rf-50mm-f18-stm",
+      brandSlug: "canon",
+      mountValue: "rf-canon",
+      data: {
+        id: "9f6b2c47-1d3e-4b8a-9c5f-7e2a8d4b6c10",
+        slug: "canon-rf-50mm-f18-stm",
+        name: "Canon RF 50mm f/1.8 STM",
+        searchName: "canon rf 50mm f/1.8 stm",
+        gearType: "LENS",
+        announcedDate: new Date("2020-11-04T00:00:00.000Z"),
+        releaseDate: new Date("2020-12-15T00:00:00.000Z"),
+        announceDatePrecision: "DAY",
+        releaseDatePrecision: "DAY",
+        msrpNowUsdCents: 19999,
+        msrpAtLaunchUsdCents: 19999,
+        thumbnailUrl: null,
+        weightGrams: 160,
+        widthMm: "69.2",
+        heightMm: "69.2",
+        depthMm: "40.5",
+        linkManufacturer: "https://www.usa.canon.com/shop/p/rf50mm-f1-8-stm",
+        linkMpb: null,
+        linkAmazon: null,
+        genres: ["street", "portraits"],
+        notes: [],
+      },
+      lensSpecs: {
+        isPrime: true,
+        focalLengthMinMm: 50,
+        focalLengthMaxMm: 50,
+        maxApertureWide: "1.8",
+        minApertureWide: "22",
+        hasAutofocus: true,
+        hasStabilization: false,
+        frontFilterThreadSizeMm: 43,
+      },
+    },
   ];
 
   for (const fixture of lensFixtures) {
@@ -1126,7 +1169,59 @@ async function ensureUser(userSeed: ReviewSeed["user"]) {
   return inserted!;
 }
 
-main().catch((error) => {
-  console.error("[seed] failed", error);
-  process.exit(1);
-});
+async function seedPopularityWindows() {
+  // Ordered so the same gear get the same rank-dependent scores on every
+  // database — LIMIT without ORDER BY is nondeterministic in Postgres.
+  const seededGear = await db
+    .select({ id: gear.id })
+    .from(gear)
+    .orderBy(gear.slug)
+    .limit(10);
+  if (seededGear.length === 0) {
+    console.log("[seed] popularity: no gear rows, skipping");
+    return;
+  }
+
+  const asOfDate = new Date().toISOString().slice(0, 10);
+  const timeframes = ["7d", "30d"] as const;
+
+  for (const timeframe of timeframes) {
+    for (const [index, row] of seededGear.entries()) {
+      const values = {
+        asOfDate,
+        viewsSum: 500 - index * 40,
+        wishlistAddsSum: Math.max(0, 25 - index * 2),
+        ownerAddsSum: 5,
+        compareAddsSum: 10,
+        reviewSubmitsSum: 3,
+      };
+      // Upsert (not do-nothing): trending readers filter on MAX(as_of_date),
+      // so stale rows from a prior day's run would silently drop out of
+      // trending on dirty-DB reruns unless asOfDate refreshes.
+      await db
+        .insert(gearPopularityWindows)
+        .values({ gearId: row.id, timeframe, ...values })
+        .onConflictDoUpdate({
+          target: [
+            gearPopularityWindows.gearId,
+            gearPopularityWindows.timeframe,
+          ],
+          set: { ...values, updatedAt: new Date() },
+        });
+    }
+  }
+  console.log(
+    `[seed] popularity: ${seededGear.length} gear x ${timeframes.length} timeframes`,
+  );
+}
+
+main()
+  .then(() => {
+    // The shared db client (src/server/db) keeps the event loop alive;
+    // exit explicitly so pipelines (e2e:setup-local, CI) don't hang.
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error("[seed] failed", error);
+    process.exit(1);
+  });

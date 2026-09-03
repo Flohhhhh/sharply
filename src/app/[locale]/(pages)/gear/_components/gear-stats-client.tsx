@@ -1,12 +1,12 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import { useEffect, useReducer } from "react";
+import { BanknoteCheck, Eye, Heart } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
+import { useEffect, useMemo, useReducer } from "react";
 import useSWR from "swr";
 
 type Props = {
   slug: string;
-  viewsToday?: number;
   lifetimeViews?: number;
   views30d?: number;
   wishlistTotal?: number;
@@ -14,7 +14,6 @@ type Props = {
 };
 
 type StatsState = {
-  viewsToday: number;
   lifetimeViews: number;
   views30d: number;
   wishlistTotal: number;
@@ -30,7 +29,6 @@ function statsReducer(state: StatsState, action: StatsAction): StatsState {
   switch (action.type) {
     case "sync":
       return {
-        viewsToday: Number(action.data.viewsToday ?? state.viewsToday),
         lifetimeViews: Number(action.data.lifetimeViews ?? state.lifetimeViews),
         views30d: Number(action.data.views30d ?? state.views30d),
         wishlistTotal: Number(action.data.wishlistTotal ?? state.wishlistTotal),
@@ -59,13 +57,21 @@ const fetcher = async (url: string): Promise<Partial<StatsState>> => {
 
 export default function GearStatsClient(props: Props) {
   const t = useTranslations("gearDetail");
+  const locale = useLocale();
   const [stats, dispatch] = useReducer(statsReducer, {
-    viewsToday: props.viewsToday ?? 0,
     lifetimeViews: props.lifetimeViews ?? 0,
     views30d: props.views30d ?? 0,
     wishlistTotal: props.wishlistTotal ?? 0,
     ownershipTotal: props.ownershipTotal ?? 0,
   });
+  const numberFormatter = useMemo(
+    () =>
+      new Intl.NumberFormat(locale, {
+        notation: "compact",
+        maximumFractionDigits: 1,
+      }),
+    [locale],
+  );
 
   const { data, error, isLoading, mutate } = useSWR<Partial<StatsState>>(
     `/api/gear/${encodeURIComponent(props.slug)}/stats`,
@@ -114,7 +120,6 @@ export default function GearStatsClient(props: Props) {
   }, [props.slug, mutate]);
 
   const hasInitialStats =
-    props.viewsToday !== undefined &&
     props.lifetimeViews !== undefined &&
     props.views30d !== undefined &&
     props.wishlistTotal !== undefined &&
@@ -125,35 +130,66 @@ export default function GearStatsClient(props: Props) {
   // rather than briefly presenting misleading zeroes.
   if (!hasInitialStats && (isLoading || !data || error)) {
     return (
-      <div className="space-y-2 py-2" aria-label={t("popularity")}>
-        <div className="bg-muted h-4 w-full animate-pulse rounded" />
-        <div className="bg-muted h-4 w-4/5 animate-pulse rounded" />
-        <div className="bg-muted h-4 w-3/5 animate-pulse rounded" />
+      <div className="space-y-2 py-1" aria-label={t("popularity")}>
+        <div className="bg-muted h-9 animate-pulse rounded" />
+        <div className="bg-muted h-9 animate-pulse rounded" />
+        <div className="bg-muted h-9 animate-pulse rounded" />
       </div>
     );
   }
 
   return (
-    <div className="divide-border divide-y text-sm">
-      <div className="flex items-center justify-between py-2">
-        <div className="text-muted-foreground">{t("viewsAllTime")}</div>
-        <div className="font-medium tabular-nums">{stats.lifetimeViews}</div>
+    <div className="py-1 text-sm">
+      <div className="flex items-center gap-2 py-2">
+        <Eye
+          aria-hidden="true"
+          className="text-muted-foreground size-4 shrink-0"
+        />
+        <span className="text-muted-foreground min-w-0 flex-1">
+          {t("viewsAllTime")}
+        </span>
+        <span className="font-medium tabular-nums">
+          {numberFormatter.format(stats.lifetimeViews)}
+        </span>
       </div>
-      <div className="flex items-center justify-between py-2">
-        <div className="text-muted-foreground">{t("views30Days")}</div>
-        <div className="font-medium tabular-nums">{stats.views30d}</div>
+      {/* Temporarily hidden while the compact popularity layout is evaluated.
+      <div className="border-border flex items-center gap-2 border-t py-2">
+        <CalendarDays
+          aria-hidden="true"
+          className="text-muted-foreground size-4 shrink-0"
+        />
+        <span className="text-muted-foreground min-w-0 flex-1">
+          {t("views30Days")}
+        </span>
+        <span className="font-medium tabular-nums">
+          {numberFormatter.format(stats.views30d)}
+        </span>
       </div>
-      <div className="flex items-center justify-between py-2">
-        <div className="text-muted-foreground">{t("viewsToday")}</div>
-        <div className="font-medium tabular-nums">{stats.viewsToday}</div>
+      */}
+
+      <div className="border-border flex items-center gap-2 border-t py-2">
+        <Heart
+          aria-hidden="true"
+          className="text-muted-foreground size-4 shrink-0"
+        />
+        <span className="text-muted-foreground min-w-0 flex-1">
+          {t("wishlists")}
+        </span>
+        <span className="font-medium tabular-nums">
+          {numberFormatter.format(stats.wishlistTotal)}
+        </span>
       </div>
-      <div className="flex items-center justify-between py-2">
-        <div className="text-muted-foreground">{t("wishlists")}</div>
-        <div className="font-medium tabular-nums">{stats.wishlistTotal}</div>
-      </div>
-      <div className="flex items-center justify-between py-2">
-        <div className="text-muted-foreground">{t("owners")}</div>
-        <div className="font-medium tabular-nums">{stats.ownershipTotal}</div>
+      <div className="border-border flex items-center gap-2 border-t py-2">
+        <BanknoteCheck
+          aria-hidden="true"
+          className="text-muted-foreground size-4 shrink-0"
+        />
+        <span className="text-muted-foreground min-w-0 flex-1">
+          {t("owners")}
+        </span>
+        <span className="font-medium tabular-nums">
+          {numberFormatter.format(stats.ownershipTotal)}
+        </span>
       </div>
     </div>
   );

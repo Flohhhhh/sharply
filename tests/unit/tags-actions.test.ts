@@ -1,10 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import { locales } from "~/i18n/config";
-import { localizePathname } from "~/i18n/routing";
-
-const cacheMocks = vi.hoisted(() => ({
-  revalidatePath: vi.fn(),
+const revalidationMocks = vi.hoisted(() => ({
+  revalidateGearPages: vi.fn(),
+  revalidateLocalizedPaths: vi.fn(),
 }));
 
 const serviceMocks = vi.hoisted(() => ({
@@ -15,9 +12,9 @@ const serviceMocks = vi.hoisted(() => ({
   updateTag: vi.fn(),
 }));
 
-vi.mock("next/cache", () => cacheMocks);
 vi.mock("server-only", () => ({}));
 vi.mock("~/server/tags/service", () => serviceMocks);
+vi.mock("~/server/revalidation", () => revalidationMocks);
 
 import {
   actionAssignTagToGear,
@@ -26,21 +23,6 @@ import {
   actionRemoveTagFromGear,
   actionUpdateTag,
 } from "~/server/tags/actions";
-
-function expectLocalizedPaths(
-  pathnames: string[],
-  totalCalls: number = locales.length * pathnames.length,
-) {
-  expect(cacheMocks.revalidatePath).toHaveBeenCalledTimes(totalCalls);
-
-  for (const locale of locales) {
-    for (const pathname of pathnames) {
-      expect(cacheMocks.revalidatePath).toHaveBeenCalledWith(
-        localizePathname(pathname, locale),
-      );
-    }
-  }
-}
 
 describe("tag actions", () => {
   beforeEach(() => {
@@ -53,18 +35,26 @@ describe("tag actions", () => {
 
     await expect(actionCreateTag({ name: "Wildlife" })).resolves.toBe(tag);
 
-    expectLocalizedPaths(["/admin/tags", "/tags", "/tags/wildlife"]);
+    expect(revalidationMocks.revalidateLocalizedPaths).toHaveBeenCalledWith([
+      "/admin/tags",
+      "/tags",
+      "/tags/wildlife",
+    ]);
   });
 
   it("revalidates localized tag and admin pages after updating a tag", async () => {
     const tag = { id: "tag-1", slug: "wildlife" };
     serviceMocks.updateTag.mockResolvedValue(tag);
 
-    await expect(
-      actionUpdateTag("tag-1", { name: "Wildlife" }),
-    ).resolves.toBe(tag);
+    await expect(actionUpdateTag("tag-1", { name: "Wildlife" })).resolves.toBe(
+      tag,
+    );
 
-    expectLocalizedPaths(["/admin/tags", "/tags", "/tags/wildlife"]);
+    expect(revalidationMocks.revalidateLocalizedPaths).toHaveBeenCalledWith([
+      "/admin/tags",
+      "/tags",
+      "/tags/wildlife",
+    ]);
   });
 
   it("revalidates localized tag routes after deleting a tag", async () => {
@@ -72,14 +62,15 @@ describe("tag actions", () => {
 
     await actionDeleteTag("tag-1");
 
-    expectLocalizedPaths(["/admin/tags", "/tags"], locales.length * 3);
-    for (const locale of locales) {
-      expect(cacheMocks.revalidatePath).toHaveBeenCalledWith(
-        localizePathname("/tags/[slug]", locale),
-        "page",
-      );
-    }
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledTimes(locales.length * 3);
+    expect(revalidationMocks.revalidateLocalizedPaths).toHaveBeenNthCalledWith(
+      1,
+      ["/admin/tags", "/tags"],
+    );
+    expect(revalidationMocks.revalidateLocalizedPaths).toHaveBeenNthCalledWith(
+      2,
+      ["/tags/[slug]"],
+      "page",
+    );
   });
 
   it("revalidates localized gear, tag, and admin pages after assigning a tag", async () => {
@@ -94,7 +85,13 @@ describe("tag actions", () => {
       gearId: "gear-1",
       tagId: "tag-1",
     });
-    expectLocalizedPaths(["/gear/nikon-zf", "/tags/wildlife", "/admin/tags"]);
+    expect(revalidationMocks.revalidateGearPages).toHaveBeenCalledWith([
+      "nikon-zf",
+    ]);
+    expect(revalidationMocks.revalidateLocalizedPaths).toHaveBeenCalledWith([
+      "/tags/wildlife",
+      "/admin/tags",
+    ]);
   });
 
   it("revalidates localized gear, tag, and admin pages after removing a tag", async () => {
@@ -109,6 +106,12 @@ describe("tag actions", () => {
       gearId: "gear-1",
       tagId: "tag-1",
     });
-    expectLocalizedPaths(["/gear/nikon-zf", "/tags/wildlife", "/admin/tags"]);
+    expect(revalidationMocks.revalidateGearPages).toHaveBeenCalledWith([
+      "nikon-zf",
+    ]);
+    expect(revalidationMocks.revalidateLocalizedPaths).toHaveBeenCalledWith([
+      "/tags/wildlife",
+      "/admin/tags",
+    ]);
   });
 });

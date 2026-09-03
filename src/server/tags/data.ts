@@ -137,6 +137,18 @@ export async function fetchPublicTagsData(): Promise<PublicTagRow[]> {
     .where(eq(tags.unlisted, false))
     .orderBy(asc(tags.name));
 }
+export type TagSitemapEntry = {
+  slug: string;
+  updatedAt: Date | null;
+};
+
+export async function fetchTagSitemapEntriesData(): Promise<TagSitemapEntry[]> {
+  return db
+    .select({ slug: tags.slug, updatedAt: tags.updatedAt })
+    .from(tags)
+    .where(eq(tags.unlisted, false));
+}
+
 export async function fetchPublicTagBySlugData(
   slug: string,
 ): Promise<PublicTagRow | null> {

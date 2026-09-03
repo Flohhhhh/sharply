@@ -9,6 +9,15 @@ on:
     branches:
       - development
       - main
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: Exact release commit to validate
+        required: false
+        type: string
+
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -17,10 +26,19 @@ concurrency:
 jobs:
   unit-tests:
     name: unit-tests
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
+      - name: Verify dispatched release commit
+        if: inputs.release_sha != ''
+        env:
+          RELEASE_SHA: ${{ inputs.release_sha }}
+        run: test "$RELEASE_SHA" = "$GITHUB_SHA"
+
       - name: Check out code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -31,5 +49,26 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run unit tests
-        run: npm run test:unit
+      - name: Run unit tests with coverage
+        run: npm run test:coverage
+
+      - name: Append coverage summary to job summary
+        if: always()
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            node -e "
+            const s = require('./coverage/coverage-summary.json').total;
+            const row = (k) => \`| \${k} | \${s[k].pct}% (\${s[k].covered}/\${s[k].total}) |\`;
+            console.log('## Unit coverage (src/server, src/lib, src/hooks)');
+            console.log('| metric | value |'); console.log('| --- | --- |');
+            for (const k of ['lines','statements','functions','branches']) console.log(row(k));
+            " >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload coverage HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 14

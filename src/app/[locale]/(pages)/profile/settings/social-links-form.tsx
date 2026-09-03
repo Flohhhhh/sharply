@@ -1,8 +1,9 @@
 "use client";
 
-import { Globe,Instagram } from "lucide-react";
+import { Globe } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect,useState,useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { FaInstagram } from "react-icons/fa";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -124,7 +125,7 @@ export function SocialLinksForm({
         <div className="space-y-1.5">
           <Label htmlFor="instagram">{t("instagram")}</Label>
           <div className="relative">
-            <Instagram className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+            <FaInstagram className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
             <Input
               id="instagram"
               value={instagramSlug}
@@ -143,7 +144,7 @@ export function SocialLinksForm({
         <div className="space-y-1.5">
           <Label htmlFor="portfolio">{t("portfolio")}</Label>
           <div className="relative">
-            <Globe className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+            <Globe className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
             <Input
               id="portfolio"
               value={portfolioUrl}
@@ -162,7 +163,7 @@ export function SocialLinksForm({
 
       {error ? <p className="text-destructive text-sm">{error}</p> : null}
       {success ? (
-        <p className="text-green-600 dark:text-green-400 text-sm">
+        <p className="text-sm text-green-600 dark:text-green-400">
           {t("socialLinksUpdated")}
         </p>
       ) : null}

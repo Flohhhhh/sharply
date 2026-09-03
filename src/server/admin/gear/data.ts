@@ -587,6 +587,7 @@ export interface RenameGearParams {
 export interface RenameGearResult {
   id: string;
   name: string;
+  previousSlug: string;
   slug: string;
   searchName: string;
 }
@@ -611,7 +612,7 @@ export async function renameGearData(
   return db.transaction(async (tx) => {
     // Load existing gear with brand for normalization
     const existing = await tx
-      .select({ id: gear.id, brandId: gear.brandId })
+      .select({ id: gear.id, brandId: gear.brandId, slug: gear.slug })
       .from(gear)
       .where(eq(gear.id, gearId))
       .limit(1);
@@ -685,6 +686,7 @@ export async function renameGearData(
     return {
       id: row.id,
       name: row.name,
+      previousSlug: existing[0]!.slug,
       slug: row.slug,
       searchName: row.searchName as unknown as string,
     };

@@ -1,33 +1,21 @@
-import { GetGearDisplayName } from "~/lib/gear/naming";
-import {
-  generateGearPageJsonLd,
-  type GearPageJsonLdInput,
-} from "~/lib/seo/json-ld-helpers";
-import type { GearItem } from "~/types/gear";
+import { buildJsonLdGraph, type JsonLdNode } from "~/lib/seo/json-ld-helpers";
 
-export function JsonLd(props: { gear: GearItem }) {
-  const { gear } = props;
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-  if (!baseUrl) {
-    throw new Error(
-      "Tried to generate JSON-LD without NEXT_PUBLIC_BASE_URL being set",
-    );
-  }
-  const url = `${baseUrl}/gear/${gear.slug}`;
-  const displayName = GetGearDisplayName({
-    name: gear.name,
-    regionalAliases: gear.regionalAliases ?? [],
-  });
+/**
+ * Renders schema.org JSON-LD. Pass a single complete document (with
+ * "@context") or an array of nodes to wrap in one @graph document —
+ * nullish array entries are dropped, so nullable builders can be called
+ * inline.
+ *
+ * Rendered as a text child on purpose: React emits script text raw while
+ * escaping "</script>" breakouts, so this is XSS-safe for data that may
+ * contain user-provided strings (unlike dangerouslySetInnerHTML).
+ */
+export function JsonLd(props: {
+  data: JsonLdNode | Array<JsonLdNode | null | undefined>;
+}) {
+  const document = Array.isArray(props.data)
+    ? buildJsonLdGraph(props.data)
+    : props.data;
 
-  const input: GearPageJsonLdInput = {
-    canonicalUrl: url,
-    name: displayName,
-    brandId: gear.brandId,
-    image: gear.thumbnailUrl ?? undefined,
-    category: gear.gearType,
-  };
-
-  return (
-    <script type="application/ld+json">{generateGearPageJsonLd(input)}</script>
-  );
+  return <script type="application/ld+json">{JSON.stringify(document)}</script>;
 }

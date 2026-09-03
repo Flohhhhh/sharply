@@ -2,6 +2,28 @@
 
 This project keeps root-level configuration files to the minimum required by framework and platform conventions.
 
+## Error monitoring
+
+Sentry is initialized for the browser, Node.js, and Edge runtimes. Set
+`SENTRY_DSN` and `NEXT_PUBLIC_SENTRY_DSN` (normally to the same project DSN) to
+enable error monitoring and tracing. Development traces are sampled at 100%; other
+environments use a 10% sample rate.
+
+Production builds upload source maps when `SENTRY_ORG`, `SENTRY_PROJECT`, and the
+secret `SENTRY_AUTH_TOKEN` are available. The SDK detects Vercel environments and
+injects a shared release identifier into browser and server bundles automatically;
+`SENTRY_ENVIRONMENT` and `SENTRY_RELEASE` are optional overrides. Server stack-frame
+local variables are not collected. The `/monitoring` tunnel route is reserved for
+Sentry and bypasses the locale proxy.
+
+The framework entrypoints live at `src/instrumentation.ts` and
+`src/instrumentation-client.ts`, as required by Next.js. Runtime-specific Sentry
+initializers are grouped under `src/instrumentation/`.
+
+When neither DSN is configured, the Sentry build wrapper is disabled. Local
+development and E2E runs therefore do not generate source maps, add a tunnel, or
+send telemetry unless Sentry is deliberately enabled in that environment.
+
 ## Root-level config files
 
 - `next.config.js` (Next.js auto-discovery requires root)
@@ -10,8 +32,19 @@ This project keeps root-level configuration files to the minimum required by fra
 - `package.json` (project manifest and script entry points)
 - `.env.example` (documented environment variable template)
 - `vercel.json` (Vercel project configuration at root)
-- `.github/workflows/lint.yml` (GitHub Actions lint check for pull requests and merge queue runs targeting `development`/`main`)
-- `.github/workflows/unit-tests.yml` (GitHub Actions unit test check for pull requests and merge queue runs targeting `development`/`main`)
+- `.github/workflows/lint.yml` (GitHub Actions lint check for pull requests and merge queue runs targeting `development` or `main`)
+- `.github/workflows/unit-tests.yml` (GitHub Actions unit test check for pull requests and merge queue runs targeting `development` or `main`)
+- `.github/workflows/build.yml` (GitHub Actions compile-only build check for pull requests and merge queue runs targeting `development` or `main`)
+- `.github/workflows/prepare-release.yml` (migration preparation and persistent preview deployment for the `development` to `main` release pull request)
+
+## Release validation and Vercel deployment gating
+
+Vercel's Git integration is fail closed in `vercel.json`: automatic deployments
+are disabled for every branch except `main`. The `development` to `main` release
+pull request prepares migrations and explicitly deploys the persistent preview.
+
+See [Continuous Integration and Release Flow](ci/overview.md) for the complete
+feature validation, release preparation, preview, and production lifecycle.
 
 ## BotID integration
 

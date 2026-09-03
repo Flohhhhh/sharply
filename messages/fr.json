@@ -67,7 +67,7 @@
     "github": "GitHub",
     "productImagesDisclaimer": "Images produit © fabricants respectifs. Utilisées à des fins éditoriales et informatives uniquement. Ce site est indépendant et n’est affilié ni à Nikon, Canon, Sony, ni à d’autres marques.",
     "amazonAffiliateDisclaimer": "En tant que partenaire Amazon, Sharply peut percevoir une commission sur les achats éligibles effectués via des liens Amazon.",
-    "copyright": "© 2026 Sharply. Tous droits réservés."
+    "copyright": "© 2026 New York Photo House. Tous droits réservés."
   },
   "search": {
     "dialogTitle": "Rechercher sur Sharply",
@@ -364,7 +364,6 @@
     "tags": "Étiquettes",
     "viewsAllTime": "Vues (totales)",
     "views30Days": "Vues (30 jours)",
-    "viewsToday": "Vues (aujourd’hui)",
     "wishlists": "Listes d’envies",
     "owners": "Propriétaires",
     "theGood": "Les points forts",
@@ -1709,6 +1708,9 @@
     "backToGear": "Retour au matériel",
     "learnMore": "En savoir plus"
   },
+  "learnArticlePage": {
+    "readNext": "À lire ensuite"
+  },
   "learnBasicsPage": {
     "metaTitle": "Les bases",
     "metaDescription": "Commencez à apprendre les fondamentaux de la photographie, y compris les appareils modernes, l’exposition et des parcours adaptés aux débutants.",
@@ -1866,6 +1868,17 @@
     "disconnectLastOauthWarning": "C’est votre dernier compte OAuth lié. Si vous continuez, vous devrez vous connecter via e-mail / magic link.",
     "profileThumbnailPreview": "Aperçu de la photo de profil",
     "avatar": "Avatar",
+    "avatarSourceDescription": "Choisissez la photo de profil affichée par Sharply.",
+    "useCustomProfilePicture": "Utiliser une photo de profil personnalisée",
+    "useDiscordProfilePicture": "Utiliser la photo de profil Discord",
+    "changePicture": "Changer la photo",
+    "removePicture": "Supprimer la photo",
+    "removePictureTitle": "Supprimer la photo personnalisée ?",
+    "removePictureDescription": "Votre photo de profil personnalisée sera supprimée. Votre photo de profil Discord ne sera pas affectée.",
+    "profilePictureRemoved": "Photo de profil personnalisée supprimée.",
+    "profilePictureRemoveFailed": "Impossible de supprimer la photo de profil personnalisée.",
+    "avatarSourceUpdated": "Source de la photo de profil mise à jour.",
+    "avatarSourceUpdateFailed": "Impossible de mettre à jour la source de la photo de profil.",
     "updateProfilePicture": "Mettre à jour la photo de profil",
     "imageExceedsLimit": "L’image dépasse 4 Mo. Choisissez un fichier plus petit.",
     "uploadFailedTryAgain": "Échec de l’envoi. Réessayez.",
@@ -2044,8 +2057,8 @@
     "emailHint": "Nous enverrons un code à 6 chiffres à cette adresse.",
     "sendCode": "Envoyer le code",
     "signInImageAlt": "Se connecter",
-    "agreeToTerms": "En cliquant sur continuer, vous acceptez nos {terms} et notre {privacy}.",
-    "agreeToTermsVerify": "En continuant, vous acceptez nos {terms} et notre {privacy}.",
+    "agreeToTerms": "En cliquant sur continuer, vous acceptez nos <terms>{termsLabel}</terms> et notre <privacy>{privacyLabel}</privacy>.",
+    "agreeToTermsVerify": "En continuant, vous acceptez nos <terms>{termsLabel}</terms> et notre <privacy>{privacyLabel}</privacy>.",
     "verifyTitle": "Saisissez le code de vérification",
     "verifySubtitle": "Saisissez le code à 6 chiffres envoyé à {email}.",
     "verifyHint": "Ce code expire dans 10 minutes. Gardez cet onglet ouvert pendant la vérification.",

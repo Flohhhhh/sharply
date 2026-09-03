@@ -53,3 +53,5 @@ node_modules/
 /playwright/.cache/
 /playwright/.auth/
 .playwright-mcp/
+# Payload local upload storage (e2e bootstrap writes here when no blob token)
+/media/

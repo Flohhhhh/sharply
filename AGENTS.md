@@ -9,6 +9,8 @@ Sharply is a photography gear database and cataloging application built with Nex
 - Any new hardcoded user-facing strings must be replaced with translation keys for all locales. (Except any admin routes, those should stay hard-coded.)
 - Translation key parity must be maintained: if a key is added, removed, or renamed in `messages/en.json`, the same key change must be applied across all locale files. This is enforced by `tests/unit/translation-parity.test.ts` (covered by `npm run test` / CI Vitest runs).
 - Selectively make tests for changes that introduce or modify significant functional logic only. Not for simple UI/style/surface level assertions. Clean up relevant tests that don't follow this rule if you are touching related ones.
+- New page routes must be added to the e2e page sweep manifest (`tests/playwright/utils/route-manifest.ts`) or its skip list with a reason — enforced by `tests/unit/route-sweep-parity.test.ts`.
+- New `src/server/` modules ship unit tests in the same PR (coverage is reported on every PR; don't regrow 0% domains).
 - Respect server layering: keep the `data -> service -> actions` flow and do not introduce direct database access in UI or generic lib modules.
 - If `src/server/db/schema.ts` changes, update related docs and keep changes backwards compatible by default (prefer deprecations over destructive deletions).
 - Run targeted Playwright coverage (`npm run test:e2e` or affected specs) when changing auth, critical user flows, or navigation behavior.
@@ -42,11 +44,25 @@ Sharply is a photography gear database and cataloging application built with Nex
 
 ### Keeping `/docs` Up to Date
 
+- Treat `/docs` as the source of truth for the application's current architecture, behavior, and operational workflows.
 - **Document new features** and their database implications
 - **Update gear-specification-system.md** when gear-related schemas change
 - **Update mapping-system.md** when mapping or relationship logic changes
 - **Maintain consistency** between code and documentation
 - Do not add every single spec or small change to docs, only conceptual context and possible confusion points, clean up any docs content that does not fit this rule without destroying anything important.
+
+### Decision Records
+
+- Store durable technical decisions in `docs/decisions/` using `YYYY-MM-DD-short-topic.md` filenames.
+- Add a decision record only for a significant, non-obvious, long-lived architectural, data-model, security, operational, or development-workflow choice whose reasoning would help future contributors.
+- Each record should concisely state its status, context, decision, important alternatives, consequences, and related documentation or pull requests.
+- Update or supersede an existing record when the project changes direction; do not leave conflicting decisions without explanation.
+- Do not create decision records for routine fixes or self-explanatory changes.
+
+### Plans
+
+- Do not commit implementation plans, agent checklists, planning-mode output, or skill-generated plans to the repository.
+- Planning may be performed ephemerally by contributors or agents, but only shipped behavior belongs in the relevant `/docs` pages and only durable rationale belongs in `docs/decisions/`.
 
 ## Agent-Specific Instructions
 
@@ -81,6 +97,10 @@ Sharply is a photography gear database and cataloging application built with Nex
 ### Running tests
 
 - `npm run test` — runs Vitest unit tests. No database or dev server required.
+- `npm run test:coverage` — runs the unit suite with v8 coverage; prints a text summary and writes `coverage/` (gitignored). CI reports the summary on every PR; there are no enforced thresholds.
+- `npm run test:e2e` — Playwright suite. CI runs it on every PR; `npm run e2e:setup-local` mirrors the CI database pipeline locally. See `docs/e2e-testing.md`.
+- `npm run pr:create` — e2e-gated PR creation: runs the Playwright suite and only opens the PR (`gh pr create --base development`) when it passes. Prefer this over a bare `gh pr create`.
+- A `pre-push` hook (`.githooks/pre-push`, auto-wired by `npm install` via the `prepare` script) runs the e2e suite on the first push of any branch without an open PR and blocks the push on failure. `git push --no-verify` bypasses it once.
 
 ### Database setup
 

@@ -10,7 +10,7 @@ import { LocaleLink } from "~/components/locale-link";
 import { ProfilePictureSettingsSection } from "~/components/profile/profile-picture-settings-section";
 import { buildLocalizedMetadata } from "~/lib/seo/metadata";
 import { fetchLinkedAccountsForUser } from "~/server/auth/account-linking";
-import type { SocialLink } from "~/server/users/service";
+import { fetchUserById, type SocialLink } from "~/server/users/service";
 import { AccountLinksSection } from "./account-links-section";
 import { DisplayNameForm } from "./display-name-form";
 import { PasskeySection } from "./passkey-section";
@@ -26,12 +26,16 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "profileSettings" });
 
-  return buildLocalizedMetadata("/profile/settings", {
-    title: t("metaTitle"),
-    openGraph: {
+  return buildLocalizedMetadata(
+    "/profile/settings",
+    {
       title: t("metaTitle"),
+      openGraph: {
+        title: t("metaTitle"),
+      },
     },
-  });
+    locale,
+  );
 }
 
 export default async function SettingsPage({
@@ -56,7 +60,10 @@ export default async function SettingsPage({
     redirect(`/${locale}/auth/signin?callbackUrl=/${locale}/profile/settings`);
   }
 
-  const linkedAccounts = await fetchLinkedAccountsForUser(user.id);
+  const [linkedAccounts, avatarSettings] = await Promise.all([
+    fetchLinkedAccountsForUser(user.id),
+    fetchUserById(user.id),
+  ]);
   const userEmail = user.email ?? null;
 
   // Fetch passkeys for display
@@ -107,7 +114,14 @@ export default async function SettingsPage({
       <div className="space-y-6">
         <section className="border-border space-y-3 rounded-lg border p-4">
           <h2 className="text-lg font-semibold">{t("profilePicture")}</h2>
-          <ProfilePictureSettingsSection initialImageUrl={user.image ?? null} />
+          <ProfilePictureSettingsSection
+            key={`${Boolean(linkedAccounts.discord)}:${avatarSettings?.avatarSource ?? "legacy"}:${avatarSettings?.customImage ?? ""}:${avatarSettings?.discordImage ?? ""}`}
+            initialCustomImageUrl={avatarSettings?.customImage ?? null}
+            initialDiscordImageUrl={avatarSettings?.discordImage ?? null}
+            initialAvatarSource={avatarSettings?.avatarSource ?? null}
+            hasLinkedDiscord={Boolean(linkedAccounts.discord)}
+            userName={user.name?.trim() || user.email || null}
+          />
         </section>
 
         <section className="border-border space-y-3 rounded-lg border p-4">

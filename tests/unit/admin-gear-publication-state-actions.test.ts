@@ -4,6 +4,10 @@ const cacheMocks = vi.hoisted(() => ({
   revalidatePath: vi.fn(),
 }));
 
+const revalidationMocks = vi.hoisted(() => ({
+  revalidateGearPages: vi.fn(),
+}));
+
 const serviceMocks = vi.hoisted(() => ({
   updateGearPublicationStateService: vi.fn(),
 }));
@@ -11,6 +15,7 @@ const serviceMocks = vi.hoisted(() => ({
 vi.mock("next/cache", () => cacheMocks);
 vi.mock("server-only", () => ({}));
 vi.mock("~/server/admin/gear/service", () => serviceMocks);
+vi.mock("~/server/revalidation", () => revalidationMocks);
 
 import { actionUpdateGearPublicationState } from "~/server/admin/gear/actions";
 
@@ -38,13 +43,12 @@ describe("gear publication state admin action", () => {
     expect(cacheMocks.revalidatePath).toHaveBeenNthCalledWith(1, "/admin/gear");
     expect(cacheMocks.revalidatePath).toHaveBeenNthCalledWith(
       2,
-      "/gear/nikon-z9ii",
-    );
-    expect(cacheMocks.revalidatePath).toHaveBeenNthCalledWith(3, "/browse");
-    expect(cacheMocks.revalidatePath).toHaveBeenNthCalledWith(
-      4,
       "/lists/under-construction",
     );
-    expect(cacheMocks.revalidatePath).toHaveBeenNthCalledWith(5, "/");
+    expect(cacheMocks.revalidatePath).toHaveBeenNthCalledWith(3, "/");
+    expect(revalidationMocks.revalidateGearPages).toHaveBeenCalledWith(
+      ["nikon-z9ii"],
+      { includeBrowse: true },
+    );
   });
 });

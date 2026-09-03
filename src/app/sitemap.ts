@@ -1,12 +1,13 @@
 import type { MetadataRoute } from "next";
-import { getLocaleAlternates,getLocalizedUrl } from "~/i18n/routing";
-import { BRANDS,MOUNTS } from "~/lib/generated";
-import { fetchAllGearSlugs } from "~/server/gear/service";
+import { getLocaleAlternates, getLocalizedUrl } from "~/i18n/routing";
+import { BRANDS, MOUNTS } from "~/lib/generated";
+import { fetchGearSitemapEntries } from "~/server/gear/service";
 import {
   getLearnPages,
   getNewsPosts,
   getReviews,
 } from "~/server/payload/service";
+import { fetchTagSitemapEntries } from "~/server/tags/service";
 
 export const revalidate = 3600; // Revalidate every hour
 
@@ -23,8 +24,22 @@ function createSitemapEntry(
   };
 }
 
+/**
+ * lastModified is only set from real content timestamps. Static pages omit
+ * it — stamping every URL with the generation time teaches crawlers to
+ * distrust the field entirely.
+ */
+function toLastModified(
+  value: Date | string | null | undefined,
+): Date | undefined {
+  if (!value) return undefined;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? undefined : date;
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const slugs = await fetchAllGearSlugs();
+  const gearEntries = await fetchGearSitemapEntries();
+  const tagEntries = await fetchTagSitemapEntries();
   const newsPosts = await getNewsPosts();
   const publishedNewsPosts = newsPosts.filter((p) => p._status === "published");
   const learnPages = await getLearnPages();
@@ -38,79 +53,103 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     createSitemapEntry("/", {
-      lastModified: new Date(),
       changeFrequency: "daily" as const,
       priority: 1,
     }),
     createSitemapEntry("/about", {
-      lastModified: new Date(),
       changeFrequency: "monthly" as const,
       priority: 0.8,
     }),
+    createSitemapEntry("/contact", {
+      changeFrequency: "monthly" as const,
+      priority: 0.4,
+    }),
     createSitemapEntry("/learn", {
-      lastModified: new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.5,
     }),
+    createSitemapEntry("/learn/basics", {
+      changeFrequency: "monthly" as const,
+      priority: 0.5,
+    }),
     createSitemapEntry("/search", {
-      lastModified: new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.5,
+    }),
+    createSitemapEntry("/reviews", {
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
     }),
     // Reviews
     ...publishedReviews.map((review) =>
       createSitemapEntry(`/reviews/${review.slug}`, {
-        lastModified: new Date(),
+        lastModified: toLastModified(review.updatedAt),
         changeFrequency: "weekly" as const,
         priority: 0.5,
       }),
     ),
     createSitemapEntry("/privacy-policy", {
-      lastModified: new Date(),
-      changeFrequency: "weekly" as const,
-      priority: 0.5,
+      changeFrequency: "monthly" as const,
+      priority: 0.3,
     }),
     createSitemapEntry("/terms-of-service", {
-      lastModified: new Date(),
-      changeFrequency: "weekly" as const,
+      changeFrequency: "monthly" as const,
+      priority: 0.3,
+    }),
+    // Tools
+    createSitemapEntry("/compare", {
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    }),
+    createSitemapEntry("/exif-viewer", {
+      changeFrequency: "monthly" as const,
       priority: 0.5,
     }),
-    createSitemapEntry("/gear", {
-      lastModified: new Date(),
-      changeFrequency: "weekly" as const,
+    createSitemapEntry("/focal-length-reference", {
+      changeFrequency: "monthly" as const,
       priority: 0.5,
+    }),
+    createSitemapEntry("/instagram-post-builder", {
+      changeFrequency: "monthly" as const,
+      priority: 0.5,
+    }),
+    // Lists
+    createSitemapEntry("/lists/hall-of-fame", {
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    }),
+    createSitemapEntry("/lists/trending", {
+      changeFrequency: "daily" as const,
+      priority: 0.6,
     }),
     // generate gear page urls
-    ...slugs.map((slug: string) =>
-      createSitemapEntry(`/gear/${slug}`, {
-        lastModified: new Date(),
+    ...gearEntries.map((entry) =>
+      createSitemapEntry(`/gear/${entry.slug}`, {
+        lastModified: toLastModified(entry.updatedAt),
         changeFrequency: "weekly" as const,
         priority: 0.5,
       }),
     ),
     createSitemapEntry("/news", {
-      lastModified: new Date(),
-      changeFrequency: "weekly" as const,
-      priority: 0.5,
+      changeFrequency: "daily" as const,
+      priority: 0.6,
     }),
     // generate news post urls
     ...publishedNewsPosts.map((post) =>
       createSitemapEntry(`/news/${post.slug}`, {
-        lastModified: new Date(),
-        changeFrequency: "weekly" as const,
+        lastModified: toLastModified(post.updatedAt),
+        changeFrequency: "monthly" as const,
         priority: 0.5,
       }),
     ),
     createSitemapEntry("/browse", {
-      lastModified: new Date(),
-      changeFrequency: "hourly" as const,
+      changeFrequency: "daily" as const,
       priority: 0.6,
     }),
     // /browse/[brand]
     ...BRANDS.map((b) =>
       createSitemapEntry(`/browse/${b.slug}`, {
-        lastModified: new Date(),
-        changeFrequency: "hourly" as const,
+        changeFrequency: "daily" as const,
         priority: 0.6,
       }),
     ),
@@ -122,16 +161,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       );
       const brandCategoryUrls = categories.map((c) =>
         createSitemapEntry(`/browse/${b.slug}/${c}`, {
-          lastModified: new Date(),
-          changeFrequency: "hourly" as const,
+          changeFrequency: "daily" as const,
           priority: 0.6,
         }),
       );
       const mountUrls = categories.flatMap((c) =>
         brandMounts.map((m) =>
           createSitemapEntry(`/browse/${b.slug}/${c}/${String(m.short_name)}`, {
-            lastModified: new Date(),
-            changeFrequency: "hourly" as const,
+            changeFrequency: "daily" as const,
             priority: 0.6,
           }),
         ),
@@ -141,8 +178,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }),
     ...publishedLearnPages.map((page) =>
       createSitemapEntry(`/learn/${page.slug}`, {
-        lastModified: new Date(),
+        lastModified: toLastModified(page.updatedAt),
         changeFrequency: "monthly" as const,
+        priority: 0.5,
+      }),
+    ),
+    // Tag hub pages
+    ...tagEntries.map((tag) =>
+      createSitemapEntry(`/tags/${tag.slug}`, {
+        lastModified: toLastModified(tag.updatedAt),
+        changeFrequency: "weekly" as const,
         priority: 0.5,
       }),
     ),

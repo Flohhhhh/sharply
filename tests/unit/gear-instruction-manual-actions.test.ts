@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const cacheMocks = vi.hoisted(() => ({
-  revalidatePath: vi.fn(),
+const revalidationMocks = vi.hoisted(() => ({
+  revalidateGearPages: vi.fn(),
 }));
 
 const gearServiceMocks = vi.hoisted(() => ({
@@ -20,13 +20,16 @@ const gearServiceMocks = vi.hoisted(() => ({
 }));
 
 vi.mock("server-only", () => ({}));
-vi.mock("next/cache", () => cacheMocks);
 vi.mock("~/server/security/botid", () => ({
   classifyBotTraffic: vi.fn(),
 }));
 vi.mock("~/server/gear/service", () => gearServiceMocks);
+vi.mock("~/server/revalidation", () => revalidationMocks);
 
 import {
+  actionToggleImageRequest,
+  actionToggleOwnership,
+  actionToggleWishlist,
   actionUpdateGearInstructionManualLink,
   actionUpdateGearLineage,
 } from "~/server/gear/actions";
@@ -55,7 +58,48 @@ describe("actionUpdateGearInstructionManualLink", () => {
     ).toHaveBeenCalledWith("nikon-zf", {
       linkInstructionManual: "https://example.com/manual.pdf",
     });
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/gear/nikon-zf");
+    expect(revalidationMocks.revalidateGearPages).toHaveBeenCalledWith([
+      "nikon-zf",
+    ]);
+  });
+});
+
+describe("personalized gear actions", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("does not invalidate the shared gear page for wishlist changes", async () => {
+    gearServiceMocks.toggleWishlist.mockResolvedValue({
+      ok: true,
+      action: "added",
+    });
+
+    await actionToggleWishlist("nikon-zf", "add");
+
+    expect(revalidationMocks.revalidateGearPages).not.toHaveBeenCalled();
+  });
+
+  it("does not invalidate the shared gear page for ownership changes", async () => {
+    gearServiceMocks.toggleOwnership.mockResolvedValue({
+      ok: true,
+      action: "added",
+    });
+
+    await actionToggleOwnership("nikon-zf", "add");
+
+    expect(revalidationMocks.revalidateGearPages).not.toHaveBeenCalled();
+  });
+
+  it("does not invalidate the shared gear page for image requests", async () => {
+    gearServiceMocks.toggleImageRequest.mockResolvedValue({
+      ok: true,
+      action: "added",
+    });
+
+    await actionToggleImageRequest("nikon-zf", "add");
+
+    expect(revalidationMocks.revalidateGearPages).not.toHaveBeenCalled();
   });
 });
 
@@ -82,7 +126,10 @@ describe("actionUpdateGearLineage", () => {
         successorGearId: "gear-r5-ii",
       },
     );
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/gear/canon-r5");
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/gear/canon-r5-ii");
+    expect(revalidationMocks.revalidateGearPages).toHaveBeenCalledWith([
+      "canon-r5",
+      "canon-r5",
+      "canon-r5-ii",
+    ]);
   });
 });

@@ -41,6 +41,7 @@ export const env = createEnv({
         ? z.string().url()
         : z.string().url().optional(),
     DISCORD_CHANGE_REQUEST_WEBHOOK_URL: z.string().url().optional(),
+    DISCORD_GENERAL_LOGS_WEBHOOK_URL: z.string().url().optional(),
     DISCORD_BOT_INTERNAL_API_TOKEN: z.string().optional(),
     OPENAI_API_KEY:
       process.env.NODE_ENV === "production"
@@ -68,6 +69,12 @@ export const env = createEnv({
         ? z.string()
         : z.string().optional(),
     AMAZON_AFFILIATE_TAG: z.string().optional(),
+    SENTRY_DSN: z.string().url().optional(),
+    SENTRY_ENVIRONMENT: z.string().optional(),
+    SENTRY_RELEASE: z.string().optional(),
+    SENTRY_AUTH_TOKEN: z.string().optional(),
+    SENTRY_ORG: z.string().optional(),
+    SENTRY_PROJECT: z.string().optional(),
   },
 
   /**
@@ -79,6 +86,7 @@ export const env = createEnv({
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
     NEXT_PUBLIC_BASE_URL: z.string().url(),
     NEXT_PUBLIC_BETTER_AUTH_URL: z.string().url().optional(),
+    NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional(),
   },
 
   /**
@@ -101,6 +109,8 @@ export const env = createEnv({
     DISCORD_ROLLUP_WEBHOOK_URL: process.env.DISCORD_ROLLUP_WEBHOOK_URL,
     DISCORD_CHANGE_REQUEST_WEBHOOK_URL:
       process.env.DISCORD_CHANGE_REQUEST_WEBHOOK_URL,
+    DISCORD_GENERAL_LOGS_WEBHOOK_URL:
+      process.env.DISCORD_GENERAL_LOGS_WEBHOOK_URL,
     DISCORD_BOT_INTERNAL_API_TOKEN: process.env.DISCORD_BOT_INTERNAL_API_TOKEN,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
@@ -122,6 +132,13 @@ export const env = createEnv({
     NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
     NEXT_PUBLIC_BETTER_AUTH_URL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
     AMAZON_AFFILIATE_TAG: process.env.AMAZON_AFFILIATE_TAG,
+    SENTRY_DSN: process.env.SENTRY_DSN,
+    SENTRY_ENVIRONMENT: process.env.SENTRY_ENVIRONMENT,
+    SENTRY_RELEASE: process.env.SENTRY_RELEASE,
+    SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
+    SENTRY_ORG: process.env.SENTRY_ORG,
+    SENTRY_PROJECT: process.env.SENTRY_PROJECT,
+    NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

@@ -201,7 +201,13 @@ export async function fetchAdminGearItems(
 export async function renameGearService(params: {
   gearId: string;
   newName: string;
-}): Promise<{ id: string; name: string; slug: string; searchName: string }> {
+}): Promise<{
+  id: string;
+  name: string;
+  previousSlug: string;
+  slug: string;
+  searchName: string;
+}> {
   const session = await getSessionOrThrow();
   if (!requireRole(session.user, ["ADMIN", "EDITOR"])) {
     throw Object.assign(new Error("Unauthorized"), { status: 401 });
@@ -230,6 +236,7 @@ export async function updateGearAliasesService(params: {
   aliases: { region: GearRegion; name: string | null }[];
 }): Promise<{
   aliases: { region: GearRegion; name: string }[];
+  slug: string;
   searchName: string;
 }> {
   const session = await getSessionOrThrow();
@@ -287,7 +294,7 @@ export async function updateGearAliasesService(params: {
 
     // Rebuild search name
     const gearRow = await tx
-      .select({ name: gear.name, brandName: brands.name })
+      .select({ name: gear.name, slug: gear.slug, brandName: brands.name })
       .from(gear)
       .leftJoin(brands, eq(gear.brandId, brands.id))
       .where(eq(gear.id, params.gearId))
@@ -313,6 +320,7 @@ export async function updateGearAliasesService(params: {
         region: entry.region,
         name: entry.name,
       })),
+      slug: gearRow[0].slug,
       searchName,
     };
   });
@@ -500,10 +508,7 @@ export async function setGearTopViewService(params: {
 
   const updated = await updateGearTopViewData({ gearId, topViewUrl });
 
-  if (
-    currentGear.gearType === "LENS" &&
-    !currentGear.thumbnailUrl?.trim()
-  ) {
+  if (currentGear.gearType === "LENS" && !currentGear.thumbnailUrl?.trim()) {
     await updateGearOgImageData({ gearId, ogImageUrl: null });
   }
 

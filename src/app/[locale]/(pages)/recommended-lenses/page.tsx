@@ -7,12 +7,23 @@ type ChartListItem = Awaited<ReturnType<typeof serviceListCharts>>[number];
 
 export const revalidate = 86400;
 
-export const metadata: Metadata = buildLocalizedMetadata("/recommended-lenses", {
-  title: "Recommended Lenses",
-  openGraph: {
-    title: "Recommended Lenses",
-  },
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return buildLocalizedMetadata(
+    "/recommended-lenses",
+    {
+      title: "Recommended Lenses",
+      openGraph: {
+        title: "Recommended Lenses",
+      },
+    },
+    locale,
+  );
+}
 
 export default async function Page() {
   const charts = await serviceListCharts();

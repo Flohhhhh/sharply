@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# Pre-push e2e gate: runs the Playwright suite before the FIRST push of a
+# branch — the moment before a PR can be created. Branches that already have
+# an OPEN PR skip (CI covers every PR push). Bypass once: git push --no-verify
+# Wired by the npm "prepare" script: git config core.hooksPath .githooks
+# Docs: docs/e2e-testing.md
+set -uo pipefail
+
+# Read every ref update up front so the test run can't consume our stdin.
+ref_lines="$(cat)"
+
+should_run=false
+target_branch=""
+while IFS=' ' read -r local_ref local_sha remote_ref _remote_sha; do
+  [ -z "${local_ref:-}" ] && continue
+  # Branch deletions push an all-zero sha — nothing to test.
+  case "${local_sha}" in
+    *[!0]*) ;;
+    *) continue ;;
+  esac
+  branch="${remote_ref#refs/heads/}"
+  # Skip protected branches and non-branch refs (tags keep their full name).
+  case "${branch}" in
+    development | main | "${remote_ref}") continue ;;
+  esac
+  target_branch="${branch}"
+  should_run=true
+done <<<"${ref_lines}"
+
+[ "${should_run}" = true ] || exit 0
+
+if ! command -v gh >/dev/null 2>&1; then
+  echo "[pre-push] gh CLI not found — cannot check for an open PR; skipping the e2e gate (CI still covers the PR)." >&2
+  exit 0
+fi
+
+pr_state="$(gh pr view "${target_branch}" --json state -q .state 2>/dev/null || echo "NONE")"
+if [ "${pr_state}" = "OPEN" ]; then
+  echo "[pre-push] ${target_branch} already has an open PR — e2e gate skipped (CI covers it)."
+  exit 0
+fi
+
+echo "[pre-push] first push of ${target_branch}: running the e2e suite (bypass: git push --no-verify)"
+if ! npm run test:e2e </dev/null; then
+  cat >&2 <<'MSG'
+[pre-push] e2e suite failed — push blocked.
+  - Dev database down? Start it and retry (see README "Database").
+  - Auth specs need DEV_AUTH=true in .env (docs/e2e-testing.md).
+  - Bypass once with: git push --no-verify
+MSG
+  exit 1
+fi

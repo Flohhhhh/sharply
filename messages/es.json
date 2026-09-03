@@ -67,7 +67,7 @@
     "github": "GitHub",
     "productImagesDisclaimer": "Imágenes de producto © sus respectivos fabricantes. Se usan únicamente con fines editoriales e informativos. Este sitio es independiente y no está afiliado a Nikon, Canon, Sony ni a otras marcas.",
     "amazonAffiliateDisclaimer": "Como afiliado de Amazon, Sharply puede obtener una comisión por compras válidas realizadas a través de enlaces a Amazon.",
-    "copyright": "© 2026 Sharply. Todos los derechos reservados."
+    "copyright": "© 2026 New York Photo House. Todos los derechos reservados."
   },
   "search": {
     "dialogTitle": "Buscar en Sharply",
@@ -364,7 +364,6 @@
     "tags": "Etiquetas",
     "viewsAllTime": "Vistas (totales)",
     "views30Days": "Vistas (30 días)",
-    "viewsToday": "Vistas (hoy)",
     "wishlists": "Listas de deseos",
     "owners": "Propietarios",
     "theGood": "Lo bueno",
@@ -467,7 +466,7 @@
         "colorB": "Color 2",
         "hex": "Color hex",
         "hue": "Tono",
-        "saturationLightness": "Saturación y luminosidad",
+        "saturationLightness": "Saturación y brillo",
         "presets": "Preajustes consistentes",
         "black": "Negro",
         "gray": "Gris",
@@ -1709,6 +1708,9 @@
     "backToGear": "Volver al equipo",
     "learnMore": "Más información"
   },
+  "learnArticlePage": {
+    "readNext": "Leer a continuación"
+  },
   "learnBasicsPage": {
     "metaTitle": "Lo básico",
     "metaDescription": "Empieza a aprender los fundamentos de la fotografía, incluyendo cámaras modernas, exposición y rutas pensadas para principiantes.",
@@ -1866,6 +1868,17 @@
     "disconnectLastOauthWarning": "Esta es tu última cuenta OAuth vinculada. Si continúas, tendrás que iniciar sesión usando correo / magic link.",
     "profileThumbnailPreview": "Vista previa de la miniatura del perfil",
     "avatar": "Avatar",
+    "avatarSourceDescription": "Elige qué foto de perfil muestra Sharply.",
+    "useCustomProfilePicture": "Usar foto de perfil personalizada",
+    "useDiscordProfilePicture": "Usar foto de perfil de Discord",
+    "changePicture": "Cambiar foto",
+    "removePicture": "Eliminar foto",
+    "removePictureTitle": "¿Eliminar la foto personalizada?",
+    "removePictureDescription": "Se eliminará tu foto de perfil personalizada. Tu foto de perfil de Discord no se verá afectada.",
+    "profilePictureRemoved": "Foto de perfil personalizada eliminada.",
+    "profilePictureRemoveFailed": "No se pudo eliminar la foto de perfil personalizada.",
+    "avatarSourceUpdated": "Fuente de la foto de perfil actualizada.",
+    "avatarSourceUpdateFailed": "No se pudo actualizar la fuente de la foto de perfil.",
     "updateProfilePicture": "Actualizar foto de perfil",
     "imageExceedsLimit": "La imagen supera los 4 MB. Elige un archivo más pequeño.",
     "uploadFailedTryAgain": "La subida falló. Inténtalo de nuevo.",
@@ -2044,8 +2057,8 @@
     "emailHint": "Enviaremos un código de 6 dígitos a esta dirección.",
     "sendCode": "Enviar código",
     "signInImageAlt": "Iniciar sesión",
-    "agreeToTerms": "Al hacer clic en continuar, aceptas nuestros {terms} y nuestra {privacy}.",
-    "agreeToTermsVerify": "Al continuar, aceptas nuestros {terms} y nuestra {privacy}.",
+    "agreeToTerms": "Al hacer clic en continuar, aceptas nuestros <terms>{termsLabel}</terms> y nuestra <privacy>{privacyLabel}</privacy>.",
+    "agreeToTermsVerify": "Al continuar, aceptas nuestros <terms>{termsLabel}</terms> y nuestra <privacy>{privacyLabel}</privacy>.",
     "verifyTitle": "Introduce el código de verificación",
     "verifySubtitle": "Introduce el código de 6 dígitos que enviamos a {email}.",
     "verifyHint": "Este código caduca en 10 minutos. Mantén esta pestaña abierta mientras verificas.",

@@ -16,7 +16,7 @@ Sharply is a photography gear database and cataloging application. It combines a
 
 ## Prerequisites
 
-- Node.js 20 (LTS) and npm 10
+- Node.js 24 (LTS) and npm 11
 - PostgreSQL 15+ (local or containerized)
 - pnpm or yarn are not officially supported; use npm
 - Docker or Podman (optional) if you want the provided database script
@@ -27,7 +27,7 @@ Sharply is a photography gear database and cataloging application. It combines a
 Clone the repository and install dependencies:
 
 ```bash
-git clone https://github.com/Flohhhhh/sharply.git
+git clone https://github.com/nyphotohouse/sharply.git
 cd sharply
 npm install
 ```
@@ -69,6 +69,7 @@ It's highly advised you set up at least one of these, otherwise you can't test o
 - `CRON_SECRET` – only required when hitting the secured cron routes such as `/api/admin/popularity/rollup`
 - `DISCORD_ROLLUP_WEBHOOK_URL` – used to post rollup status messages to Discord; rollups still run without it
 - `DISCORD_CHANGE_REQUEST_WEBHOOK_URL` – used for moderator alerts on new pending change requests (immediate + aggregated via `/api/admin/proposals/webhook/flush`)
+- `DISCORD_GENERAL_LOGS_WEBHOOK_URL` – used for best-effort general operational logs; currently posts new-user signup notices
 - `DISCORD_BOT_INTERNAL_API_TOKEN` – shared bearer token that authorizes internal bot requests under `/api/internal/discord/**`
 - `OPENAI_API_KEY` – enables AI review summaries; `src/server/reviews/summary/service.ts` safely no-ops if it is missing
 - `BLOB_READ_WRITE_TOKEN` – enables Vercel Blob storage for Payload CMS media and is required when running the media migration
@@ -104,10 +105,13 @@ After Postgres is running:
 **First-time setup** (for new contributors setting up a fresh database):
 
 ```bash
+psql "$DATABASE_URL" -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;"  # required BEFORE db:push — search is silently empty without it
 npm run db:push                      # sync schema directly from src/server/db/schema.ts (one-time initial setup)
 npm run db:seed -- --confirm-seed    # (optional) populate sample data
 npx drizzle-kit studio               # (optional) view the database in Drizzle studio (or use your own viewer)
 ```
+
+> The e2e pipeline (`npm run e2e:setup-local`) creates `pg_trgm` for its own throwaway database, but NOT for your dev database — the psql line above is still required here.
 
 **After pulling changes** (when migrations have been generated and merged to main):
 

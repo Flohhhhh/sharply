@@ -1,4 +1,5 @@
 import { withPayload } from "@payloadcms/next/withPayload";
+import { withSentryConfig } from "@sentry/nextjs/config";
 import { withBotId } from "botid/next/config";
 import { fileURLToPath } from "node:url";
 import createNextIntlPlugin from "next-intl/plugin";
@@ -80,7 +81,15 @@ const config = {
     ],
   },
   outputFileTracingRoot,
-  serverExternalPackages: ["sharp"],
+  // sharp is auto-externalized by Next.js. Its native binding loads libvips at
+  // runtime, so explicitly include the Linux artifacts in every Vercel route
+  // trace instead of relying on static import analysis to find them.
+  outputFileTracingIncludes: {
+    "/*": [
+      "./node_modules/@img/sharp-linux-x64/**/*",
+      "./node_modules/@img/sharp-libvips-linux-x64/**/*",
+    ],
+  },
   webpack: (config, { isServer, webpack }) => {
     if (!isServer) {
       config.plugins.push(
@@ -95,4 +104,21 @@ const config = {
   },
 };
 
-export default withBotId(withPayload(withNextIntl(config)));
+const configuredApp = withBotId(withPayload(withNextIntl(config)));
+const sentryEnabled = Boolean(
+  process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN,
+);
+
+export default sentryEnabled
+  ? withSentryConfig(configuredApp, {
+      org: process.env.SENTRY_ORG,
+      project: process.env.SENTRY_PROJECT,
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+      widenClientFileUpload: true,
+      tunnelRoute: "/monitoring",
+      silent: true,
+      bundleSizeOptimizations: {
+        excludeDebugStatements: true,
+      },
+    })
+  : configuredApp;

@@ -24,6 +24,12 @@ import { TagCloud } from "~/components/gear/tag-cloud";
 import { NewsCard } from "~/components/home/news-card";
 import { JsonLd } from "~/components/json-ld";
 import { Breadcrumbs, type CrumbItem } from "~/components/layout/breadcrumbs";
+import { getGearDisplayImageUrl } from "~/lib/gear/display-image";
+import { buildGearMetaDescription } from "~/lib/seo/build-gear-meta-description";
+import {
+  buildBreadcrumbJsonLd,
+  buildGearProductJsonLd,
+} from "~/lib/seo/json-ld-helpers";
 import { RelativeTime } from "~/components/relative-time";
 import { Button } from "~/components/ui/button";
 import {
@@ -35,7 +41,11 @@ import {
 import { formatDate } from "~/lib/format/date";
 import { GetGearDisplayName } from "~/lib/gear/naming";
 import { resolveRegionFromCountryCode } from "~/lib/gear/region";
-import { getItemDisplayPrice, PRICE_FALLBACK_TEXT } from "~/lib/mapping";
+import {
+  formatPrice,
+  getItemDisplayPrice,
+  PRICE_FALLBACK_TEXT,
+} from "~/lib/mapping";
 import { getBrandById } from "~/lib/mapping/brand-map";
 import { buildGearSpecsSections } from "~/lib/specs/registry";
 import { shouldPrebuildHeavyRouteLocale } from "~/lib/static-generation";
@@ -63,7 +73,6 @@ import {
 import { AiReviewBanner } from "../_components/ai-review-banner";
 import { CreatorVideosSection } from "../_components/creator-videos-section";
 import { EditAlreadyPendingToast } from "../_components/edit-already-pending-toast";
-import { EditAppliedToast } from "../_components/edit-applied-toast";
 import { GearAlternativesSection } from "../_components/gear-alternatives-section";
 import { buildGearBreadcrumbItems } from "../_components/gear-breadcrumb-items";
 import { GearBreadcrumbNameHydrator } from "../_components/gear-breadcrumb-name-hydrator";
@@ -76,7 +85,7 @@ import { StaffVerdictSection } from "../_components/staff-verdict-section";
 import { UserPendingEditBanner } from "../_components/user-pending-edit-banner";
 import { generateGearPageMetadata } from "./metadata";
 
-export const revalidate = 3600;
+export const revalidate = 86400;
 export const dynamicParams = true;
 
 const GEAR_PREBUILD_TRENDING_LIMIT = 100;
@@ -114,7 +123,14 @@ export default async function GearPage({ params }: GearPageProps) {
 
   if (!item) return notFound();
 
-  const priceDisplay = getItemDisplayPrice(item);
+  const hasMpbPrice = item.mpbMaxPriceUsdCents != null;
+  const priceDisplay = getItemDisplayPrice(item, {
+    style: hasMpbPrice ? "short" : "long",
+  });
+  const msrpNowDisplay =
+    hasMpbPrice && item.msrpNowUsdCents != null
+      ? formatPrice(item.msrpNowUsdCents, { style: "short" })
+      : null;
   const regionalDisplayName = GetGearDisplayName(
     {
       name: item.name,
@@ -237,7 +253,6 @@ export default async function GearPage({ params }: GearPageProps) {
   return (
     <main className="mx-auto max-w-7xl space-y-8 px-4 pt-20 sm:px-6">
       <Suspense fallback={null}>
-        <EditAppliedToast />
         <EditAlreadyPendingToast />
       </Suspense>
       <GearItemDock
@@ -285,7 +300,14 @@ export default async function GearPage({ params }: GearPageProps) {
             {priceDisplay === PRICE_FALLBACK_TEXT ? (
               <span className="text-muted-foreground">{priceDisplay}</span>
             ) : (
-              priceDisplay
+              <>
+                {priceDisplay}
+                {msrpNowDisplay ? (
+                  <span className="text-muted-foreground ml-2 text-sm font-normal sm:text-lg">
+                    / {msrpNowDisplay}
+                  </span>
+                ) : null}
+              </>
             )}
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -474,7 +496,29 @@ export default async function GearPage({ params }: GearPageProps) {
         <RelatedArticlesSection locale={locale} slug={item.slug} />
       </Suspense>
 
-      <JsonLd gear={item} />
+      <JsonLd
+        data={[
+          buildGearProductJsonLd({
+            item,
+            displayName: regionalDisplayName,
+            description: buildGearMetaDescription({
+              gear: item,
+              displayName: regionalDisplayName,
+              staffVerdictContent: verdict?.content ?? null,
+            }),
+            imageUrl: item.ogImageUrl ?? getGearDisplayImageUrl(item),
+          }),
+          buildBreadcrumbJsonLd([
+            ...breadCrumbItems
+              .filter((crumb) => typeof crumb.label === "string")
+              .map((crumb) => ({
+                name: crumb.label as string,
+                path: crumb.href,
+              })),
+            { name: regionalDisplayName },
+          ]),
+        ]}
+      />
     </main>
   );
 }

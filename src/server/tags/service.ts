@@ -15,6 +15,7 @@ import {
   fetchPublicTagsData,
   fetchPublishedGearByTagIdData,
   fetchTagByIdData,
+  fetchTagSitemapEntriesData,
   fetchTagsByGearIdData,
   fetchTagsData,
   findGearByIdData,
@@ -181,6 +182,10 @@ export async function deleteTag(id: string) {
 
 export async function fetchPublicTagDictionary() {
   return fetchPublicTagsData();
+}
+
+export async function fetchTagSitemapEntries() {
+  return fetchTagSitemapEntriesData();
 }
 
 export const fetchPublicTagBySlug = cache(async (slug: string) =>

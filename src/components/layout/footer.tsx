@@ -62,7 +62,7 @@ export default function Footer({
     },
     {
       icon: <FaGithub className="size-5" />,
-      href: "https://github.com/Flohhhhh/sharply",
+      href: "https://github.com/nyphotohouse/sharply",
       label: tFooter("github"),
     },
   ];

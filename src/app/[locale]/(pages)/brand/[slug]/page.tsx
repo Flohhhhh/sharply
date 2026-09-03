@@ -29,10 +29,14 @@ export async function generateMetadata({
     };
   }
   return {
-    ...buildLocalizedMetadata(`/brand/${slug}`, {
-      title: t("brandGearTitle", { brand: brand.name }),
-      openGraph: { title: t("brandGearTitle", { brand: brand.name }) },
-    }),
+    ...buildLocalizedMetadata(
+      `/brand/${slug}`,
+      {
+        title: t("brandGearTitle", { brand: brand.name }),
+        openGraph: { title: t("brandGearTitle", { brand: brand.name }) },
+      },
+      locale,
+    ),
   };
 }
 

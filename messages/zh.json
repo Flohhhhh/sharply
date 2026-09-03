@@ -67,7 +67,7 @@
     "github": "GitHub",
     "productImagesDisclaimer": "产品图片©各制造商。仅用于编辑和信息目的。本网站是独立的，不隶属于尼康、佳能、索尼或其他品牌。",
     "amazonAffiliateDisclaimer": "作为亚马逊附属公司，Sharply 可以通过亚马逊链接进行的合格购买赚取佣金。",
-    "copyright": "© 2026 Sharply. 版权所有。"
+    "copyright": "© 2026 New York Photo House. 版权所有。"
   },
   "search": {
     "dialogTitle": "搜索 Sharply",
@@ -364,7 +364,6 @@
     "tags": "标签",
     "viewsAllTime": "观看次数（所有时间）",
     "views30Days": "观看次数（30 天）",
-    "viewsToday": "观看次数（今天）",
     "wishlists": "愿望清单",
     "owners": "业主",
     "theGood": "好的",
@@ -467,7 +466,7 @@
         "colorB": "颜色 2",
         "hex": "十六进制颜色",
         "hue": "色相",
-        "saturationLightness": "饱和度和明度",
+        "saturationLightness": "饱和度和亮度",
         "presets": "统一预设",
         "black": "黑色",
         "gray": "灰色",
@@ -1709,6 +1708,9 @@
     "backToGear": "返回器材",
     "learnMore": "了解更多"
   },
+  "learnArticlePage": {
+    "readNext": "接下来阅读"
+  },
   "learnBasicsPage": {
     "metaTitle": "基础知识",
     "metaDescription": "开始学习摄影基础知识，包括现代相机、曝光和适合初学者的路径。",
@@ -1866,6 +1868,17 @@
     "disconnectLastOauthWarning": "这是您最后链接的 OAuth 账户。如果继续，您将需要使用您的电子邮件/魔术链接登录。",
     "profileThumbnailPreview": "个人资料缩略图预览",
     "avatar": "阿凡达",
+    "avatarSourceDescription": "选择 Sharply 显示的个人资料图片。",
+    "useCustomProfilePicture": "使用自定义个人资料图片",
+    "useDiscordProfilePicture": "使用 Discord 个人资料图片",
+    "changePicture": "更改图片",
+    "removePicture": "移除图片",
+    "removePictureTitle": "移除自定义图片？",
+    "removePictureDescription": "你的自定义个人资料图片将被清除。Discord 个人资料图片不会受到影响。",
+    "profilePictureRemoved": "自定义个人资料图片已移除。",
+    "profilePictureRemoveFailed": "无法移除自定义个人资料图片。",
+    "avatarSourceUpdated": "个人资料图片来源已更新。",
+    "avatarSourceUpdateFailed": "无法更新个人资料图片来源。",
     "updateProfilePicture": "更新个人资料图片",
     "imageExceedsLimit": "图片超过 4MB。选择较小的文件。",
     "uploadFailedTryAgain": "上传失败。请再试一次。",
@@ -2044,8 +2057,8 @@
     "emailHint": "我们将向该地址发送一个 6 位代码。",
     "sendCode": "发送代码",
     "signInImageAlt": "登录",
-    "agreeToTerms": "单击继续即表示您同意我们的 {terms} 和 {privacy}。",
-    "agreeToTermsVerify": "继续即表示您同意我们的 {terms} 和 {privacy}。",
+    "agreeToTerms": "单击继续即表示您同意我们的 <terms>{termsLabel}</terms> 和 <privacy>{privacyLabel}</privacy>。",
+    "agreeToTermsVerify": "继续即表示您同意我们的 <terms>{termsLabel}</terms> 和 <privacy>{privacyLabel}</privacy>。",
     "verifyTitle": "输入验证码",
     "verifySubtitle": "输入我们发送至 {email} 的 6 位代码。",
     "verifyHint": "此代码将在 10 分钟后过期。验证时请保持此选项卡打开。",

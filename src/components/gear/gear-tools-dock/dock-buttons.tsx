@@ -3,7 +3,7 @@ import {
   FileBadge,
   FilePlus,
   ImageIcon,
-  Pencil,
+  SquarePen,
   Palette,
   Tags,
   Waypoints,
@@ -156,7 +156,7 @@ export function buildDockButtons({
               className={baseTriggerClass}
               scroll={false}
             >
-              <Pencil className="text-foreground/70 size-4" />
+              <SquarePen className="text-foreground/70 size-4" />
             </Link>
           </TooltipTrigger>
           <TooltipContent sideOffset={10}>Edit Specs</TooltipContent>

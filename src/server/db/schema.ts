@@ -2618,6 +2618,11 @@ export const users = appSchema.table("user", (d) => ({
   // changed from timestamp to boolean
   emailVerified: d.boolean().notNull().default(false),
   image: d.varchar({ length: 255 }),
+  discordImage: d.varchar("discord_image", { length: 500 }),
+  avatarSource: d.varchar("avatar_source", {
+    length: 16,
+    enum: ["discord", "custom"],
+  }),
   role: userRoleEnum("role").notNull().default("USER"),
   // Sequential public member number, first user is 1, second is 2, etc.
   memberNumber: integer("member_number")
