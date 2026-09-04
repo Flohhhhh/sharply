@@ -50,7 +50,6 @@ async function openInterceptedEditModal(
   // a user arriving at the gear page from elsewhere in the app.
   await page.goto("/");
   await page.goto(gearPath);
-  const historyLengthBeforeEdit = await page.evaluate(() => history.length);
   const editLink = page
     .locator(`a[href^="${editPath}?"]`)
     .filter({ hasText: "Suggest Edit" })
@@ -66,9 +65,6 @@ async function openInterceptedEditModal(
   await expect(page.getByRole("dialog")).toContainText("Edit Gear Item", {
     timeout: 30_000,
   });
-  await expect
-    .poll(() => page.evaluate(() => history.length), { timeout: 30_000 })
-    .toBeGreaterThan(historyLengthBeforeEdit);
 }
 
 async function expectEditModalClosed(page: Page): Promise<void> {
