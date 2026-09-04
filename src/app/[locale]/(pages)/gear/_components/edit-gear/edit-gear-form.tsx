@@ -54,6 +54,7 @@ import { FixedLensFields } from "./fields-fixed-lens";
 import { LensFields } from "./fields-lenses";
 import { formatBooleanText } from "./edit-gear-formatters";
 import type { GearEditSubmissionSuccess } from "./edit-gear-navigation";
+import { diffRecordByKeys } from "./edit-gear-diff";
 
 const SHUTTER_LABELS: Record<string, string> = {
   mechanical: "Mechanical",
@@ -253,8 +254,10 @@ function EditGearForm({
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [isDirty, setIsDirty] = useState(false);
   const [formData, setFormData] = useState<GearItem>(() =>
+    normalizeGearViewfinderEyePoints(gearData),
+  );
+  const [comparisonBaseline, setComparisonBaseline] = useState<GearItem>(() =>
     normalizeGearViewfinderEyePoints(gearData),
   );
   const [diffPreview, setDiffPreview] = useState<DiffPayload | null>(null);
@@ -281,10 +284,10 @@ function EditGearForm({
   }, [formData, onFormDataChange]);
 
   React.useEffect(() => {
-    if (!isDirty) {
-      setFormData(normalizeGearViewfinderEyePoints(gearData));
-    }
-  }, [gearData, isDirty]);
+    const normalizedGearData = normalizeGearViewfinderEyePoints(gearData);
+    setFormData(normalizedGearData);
+    setComparisonBaseline(normalizedGearData);
+  }, [gearData]);
 
   React.useEffect(() => {
     onAutoSubmitChange?.(effectiveAutoSubmit);
@@ -578,74 +581,9 @@ function EditGearForm({
             }) as typeof formData,
         );
       }
-      // Mark form dirty on any change
-      setIsDirty(true);
-      onDirtyChange?.(true);
     },
     [],
   );
-
-  // Helpers to compute diff-only payloads we can show and submit
-  const equalish = (a: unknown, b: unknown): boolean => {
-    if (Object.is(a, b)) return true;
-    if (a == null && b == null) return true;
-    if (a == null || b == null) return false;
-
-    // Arrays: shallow, order-sensitive equality for primitives
-    if (Array.isArray(a) && Array.isArray(b)) {
-      if (a.length !== b.length) return false;
-      for (let i = 0; i < a.length; i++) {
-        if (!Object.is(a[i], b[i])) return false;
-      }
-      return true;
-    }
-
-    const toMs = (v: unknown): number | null => {
-      if (v instanceof Date) return v.getTime();
-      if (typeof v === "string") {
-        const t = Date.parse(v);
-        return Number.isNaN(t) ? null : t;
-      }
-      return null;
-    };
-    const aMs = toMs(a);
-    const bMs = toMs(b);
-    if (aMs !== null && bMs !== null) return aMs === bMs;
-
-    const toNum = (v: unknown): number | null => {
-      if (typeof v === "number" && Number.isFinite(v)) return v;
-      if (
-        typeof v === "string" &&
-        v.trim() !== "" &&
-        !Number.isNaN(Number(v))
-      ) {
-        return Number(v);
-      }
-      return null;
-    };
-    const aNum = toNum(a);
-    const bNum = toNum(b);
-    if (aNum !== null && bNum !== null) return aNum === bNum;
-
-    return false;
-  };
-
-  const diffByKeys = (
-    original: Record<string, unknown>,
-    updated: Record<string, unknown>,
-    keys: readonly string[],
-  ): DiffSection => {
-    const out: DiffSection = {};
-    for (const key of keys) {
-      if (!(key in updated)) continue;
-      const nextVal = updated[key];
-      const prevVal = original[key];
-      if (!equalish(prevVal, nextVal)) {
-        out[key] = nextVal ?? null;
-      }
-    }
-    return out;
-  };
 
   const buildDiffPayload = (): DiffPayload => {
     const payload: DiffPayload = {};
@@ -674,10 +612,22 @@ function EditGearForm({
       "genres",
       "notes",
     ] as const;
-    const coreDiff = diffByKeys(
-      toRecord(gearData),
+    const coreDiff = diffRecordByKeys(
+      toRecord(comparisonBaseline),
       toRecord(formData),
       coreKeys,
+      {
+        numericKeys: [
+          "msrpNowUsdCents",
+          "msrpAtLaunchUsdCents",
+          "mpbMaxPriceUsdCents",
+          "weightGrams",
+          "widthMm",
+          "heightMm",
+          "depthMm",
+        ],
+        temporalKeys: ["announcedDate", "releaseDate", "discontinuedDate"],
+      },
     );
     if (Object.keys(coreDiff).length > 0) payload.core = coreDiff;
 
@@ -744,11 +694,34 @@ function EditGearForm({
         "hasIlluminatedButtons",
         "hasUsbFileTransfer",
       ] as const;
-      const orig = toRecord(gearData.cameraSpecs);
-      const diffs = diffByKeys(
-        orig,
+      const diffs = diffRecordByKeys(
+        toRecord(comparisonBaseline.cameraSpecs),
         toRecord(formData.cameraSpecs),
         cameraKeys,
+        {
+          numericKeys: [
+            "resolutionMp",
+            "sensorReadoutSpeedMs",
+            "maxRawBitDepth",
+            "isoMin",
+            "isoMax",
+            "cipaStabilizationRatingStops",
+            "shutterSpeedMax",
+            "shutterSpeedMin",
+            "rearDisplayResolutionMillionDots",
+            "rearDisplaySizeInches",
+            "viewfinderMagnification",
+            "viewfinderEyePointMm",
+            "viewfinderResolutionMillionDots",
+            "focusPoints",
+            "flashSyncSpeed",
+            "maxFpsRaw",
+            "maxFpsJpg",
+            "maxFpsByShutter",
+            "cipaBatteryShotsPerCharge",
+            "internalStorageGb",
+          ],
+        },
       );
       if (Object.keys(diffs).length > 0) payload.camera = diffs;
     }
@@ -786,11 +759,21 @@ function EditGearForm({
         "hasSelfTimer",
         "hasIntervalometer",
       ] as const;
-      const orig = toRecord(gearData.analogCameraSpecs);
-      const diffs = diffByKeys(
-        orig,
+      const diffs = diffRecordByKeys(
+        toRecord(comparisonBaseline.analogCameraSpecs),
         toRecord(formData.analogCameraSpecs),
         analogKeys,
+        {
+          numericKeys: [
+            "viewfinderEyePointMm",
+            "shutterSpeedMax",
+            "shutterSpeedMin",
+            "flashSyncSpeed",
+            "isoMin",
+            "isoMax",
+            "maxContinuousFps",
+          ],
+        },
       );
       if (Object.keys(diffs).length > 0) payload.analogCamera = diffs;
     }
@@ -859,8 +842,30 @@ function EditGearForm({
         adjustedLensSpecs.focalLengthMaxMm = maxVal;
       }
 
-      const orig = toRecord(gearData.lensSpecs);
-      const diffs = diffByKeys(orig, adjustedLensSpecs, lensKeys);
+      const orig = toRecord(comparisonBaseline.lensSpecs);
+      const diffs = diffRecordByKeys(orig, adjustedLensSpecs, lensKeys, {
+        numericKeys: [
+          "focalLengthMinMm",
+          "focalLengthMaxMm",
+          "maxApertureWide",
+          "maxApertureTele",
+          "minApertureWide",
+          "minApertureTele",
+          "magnification",
+          "minimumFocusDistanceMm",
+          "numberElements",
+          "numberElementGroups",
+          "numberDiaphragmBlades",
+          "frontFilterThreadSizeMm",
+          "rearFilterThreadSizeMm",
+          "dropInFilterSizeMm",
+          "numberCustomControlRings",
+          "numberFunctionButtons",
+          "cipaStabilizationRatingStops",
+          "tiltDegrees",
+          "shiftMm",
+        ],
+      });
       if (Object.keys(diffs).length > 0) payload.lens = diffs;
     }
 
@@ -881,11 +886,22 @@ function EditGearForm({
         "frontFilterThreadSizeMm",
         "hasLensHood",
       ] as const;
-      const orig = toRecord(gearData.fixedLensSpecs);
-      const diffs = diffByKeys(
-        orig,
+      const diffs = diffRecordByKeys(
+        toRecord(comparisonBaseline.fixedLensSpecs),
         toRecord(formData.fixedLensSpecs),
         fixedKeys,
+        {
+          numericKeys: [
+            "focalLengthMinMm",
+            "focalLengthMaxMm",
+            "maxApertureWide",
+            "maxApertureTele",
+            "minApertureWide",
+            "minApertureTele",
+            "minimumFocusDistanceMm",
+            "frontFilterThreadSizeMm",
+          ],
+        },
       );
       if (Object.keys(diffs).length > 0) payload.fixedLens = diffs;
     }
@@ -996,7 +1012,7 @@ function EditGearForm({
       return out;
     };
 
-    const prevSlots = normalizeSlots(gearData.cameraCardSlots);
+    const prevSlots = normalizeSlots(comparisonBaseline.cameraCardSlots);
     const nextSlots = normalizeSlots(formData.cameraCardSlots);
     const slotsChanged =
       JSON.stringify(prevSlots) !== JSON.stringify(nextSlots);
@@ -1004,7 +1020,9 @@ function EditGearForm({
       payload.cameraCardSlots = nextSlots;
     }
 
-    const prevVideoModes = normalizeVideoModesFromUnknown(gearData.videoModes);
+    const prevVideoModes = normalizeVideoModesFromUnknown(
+      comparisonBaseline.videoModes,
+    );
     const nextVideoModes = normalizeVideoModesFromUnknown(formData.videoModes);
     videoModesDiffRef.current = diffVideoModes(prevVideoModes, nextVideoModes);
     if (!videoModesEqual(prevVideoModes, nextVideoModes)) {
@@ -1012,6 +1030,13 @@ function EditGearForm({
     }
     return payload;
   };
+
+  const currentDiff = buildDiffPayload();
+  const hasCurrentChanges = Object.keys(currentDiff).length > 0;
+
+  React.useEffect(() => {
+    onDirtyChange?.(hasCurrentChanges);
+  }, [hasCurrentChanges, onDirtyChange]);
 
   const computePayloadStats = (payload: DiffPayload) => {
     const counts = {
@@ -1045,7 +1070,7 @@ function EditGearForm({
 
     // Build diff-only payload: include only changed fields, and include nulls
     // when a value is explicitly cleared.
-    const payload = buildDiffPayload();
+    const payload = currentDiff;
 
     // Guard: no changes
     if (Object.keys(payload).length === 0) {
@@ -1082,7 +1107,8 @@ function EditGearForm({
       })) as ProposalSubmitResult;
       console.timeEnd(`[EditGearForm] submit ${gearSlug}`);
       if (res?.ok) {
-        setIsDirty(false);
+        setComparisonBaseline(normalizeGearViewfinderEyePoints(formData));
+        onDirtyChange?.(false);
         const createdId = res.proposal?.id;
         const autoApproved = Boolean(res.autoApproved);
         void track("gear_edit_submit_success", {
@@ -1150,7 +1176,7 @@ function EditGearForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const preview = buildDiffPayload();
+    const preview = currentDiff;
     // Prevent opening confirmation when nothing actually changed
     if (Object.keys(preview).length === 0) {
       toast.info(tf("editGear.noChangesToastTitle", "No changes to submit"), {
@@ -1333,7 +1359,7 @@ function EditGearForm({
           </Button>
           <Button
             type="submit"
-            disabled={isSubmitting || !isDirty}
+            disabled={isSubmitting || !hasCurrentChanges}
             loading={isSubmitting}
           >
             {tf("editGear.continue", "Continue")}
