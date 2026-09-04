@@ -680,6 +680,10 @@
         "isoMaxNative": "ISO 最大（原始）",
         "isoMinExpanded": "ISO 最小值（扩展）",
         "isoMaxExpanded": "ISO 最大值（扩展）",
+        "addBaseIso": "添加基础 ISO",
+        "removeBaseIso": "移除基础 ISO",
+        "baseIsoHelp": "最多添加 3 个原生基础 ISO 值。",
+        "baseIsoInvalid": "请输入正整数。",
         "selectDisplayType": "选择显示类型",
         "rearDisplayResolutionPlaceholder": "例如，1.62",
         "inchesPlaceholder": "例如，3.2",
@@ -833,6 +837,9 @@
             },
             "isoExpandedRange": {
               "label": "扩展 ISO 范围"
+            },
+            "baseIso": {
+              "label": "基础 ISO"
             },
             "maxFpsByShutter": {
               "label": "最大连续帧率"

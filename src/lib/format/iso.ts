@@ -49,3 +49,21 @@ export function formatIsoRange(
   if (max != null) return `ISO ≤ ${formatIsoNumber(max, options.locale)}`;
   return undefined;
 }
+
+export function normalizeBaseIsoValues(values: readonly number[]): number[] {
+  return [...new Set(values)].sort((a, b) => a - b);
+}
+
+export function formatBaseIsoValues(
+  values: unknown,
+  locale?: string,
+): string | undefined {
+  if (!Array.isArray(values)) return undefined;
+  const normalized = values
+    .map(toIsoNumber)
+    .filter((value): value is number => value != null);
+  if (normalized.length === 0) return undefined;
+  return normalizeBaseIsoValues(normalized)
+    .map((value) => formatIsoNumber(value, locale))
+    .join(" / ");
+}

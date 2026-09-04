@@ -680,6 +680,10 @@
         "isoMaxNative": "ISO Maks (asal)",
         "isoMinExpanded": "ISO Min (Diperluas)",
         "isoMaxExpanded": "ISO Maks (Diperluas)",
+        "addBaseIso": "Tambah ISO asas",
+        "removeBaseIso": "Buang ISO asas",
+        "baseIsoHelp": "Tambah sehingga 3 nilai ISO asas natif.",
+        "baseIsoInvalid": "Masukkan nombor bulat positif.",
         "selectDisplayType": "Pilih jenis paparan",
         "rearDisplayResolutionPlaceholder": "cth. 1.62",
         "inchesPlaceholder": "cth. 3.2",
@@ -833,6 +837,9 @@
             },
             "isoExpandedRange": {
               "label": "Julat ISO Diperluas"
+            },
+            "baseIso": {
+              "label": "ISO asas"
             },
             "maxFpsByShutter": {
               "label": "FPS berterusan maksimum"

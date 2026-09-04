@@ -22,7 +22,7 @@ import {
   formatDateWithPrecision,
   getPairedDatePrecision,
 } from "~/lib/format/date";
-import { formatIsoValue } from "~/lib/format/iso";
+import { formatBaseIsoValues, formatIsoValue } from "~/lib/format/iso";
 import {
   formatAutoApprovalDecisionForAdmin,
   getAutoApprovalDecisionFromMetadata,
@@ -75,6 +75,7 @@ function formatProposalFieldLabel(key: string): string {
     isoMax: "ISO Max (Native)",
     isoMinExpanded: "ISO Min (Expanded)",
     isoMaxExpanded: "ISO Max (Expanded)",
+    baseIso: "Base ISO",
     viewfinderEyePointMm: "Viewfinder Eye Point",
   };
   return labels[key] ?? humanizeKey(key);
@@ -273,6 +274,9 @@ export function GearProposalsList() {
     ) {
       return formatIsoValue(v, locale) ?? String(v);
     }
+    if (k === "baseIso") {
+      return formatBaseIsoValues(v, locale) ?? String(v);
+    }
     if (k === "maxContinuousFps") return formatCompactNumber(v);
     if (k === "viewfinderEyePointMm") return `${Number(v).toFixed(2)} mm`;
     if (k === "apertureProfileJson") return formatApertureProfile(v);
@@ -318,6 +322,9 @@ export function GearProposalsList() {
       k === "isoMaxExpanded"
     ) {
       return formatIsoValue(v, locale) ?? String(v ?? "Empty");
+    }
+    if (k === "baseIso") {
+      return formatBaseIsoValues(v, locale) ?? String(v ?? "Empty");
     }
     if (k === "maxContinuousFps") return formatCompactNumber(v);
     if (k === "viewfinderEyePointMm") return `${Number(v).toFixed(2)} mm`;
