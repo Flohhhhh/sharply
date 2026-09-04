@@ -21,6 +21,14 @@ describe("camera FPS editing", () => {
     });
   });
 
+  it("rounds edited FPS values to the displayed tenth precision", () => {
+    expect(
+      normalizeMaxFpsByShutterValue({ mechanical: { raw: 14.23 } }, [
+        "mechanical",
+      ]),
+    ).toEqual({ mechanical: { raw: 14.2 } });
+  });
+
   it("removes unavailable and invalid entries", () => {
     expect(
       normalizeMaxFpsByShutterValue(

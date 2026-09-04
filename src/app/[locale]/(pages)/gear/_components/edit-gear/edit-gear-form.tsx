@@ -257,6 +257,9 @@ function EditGearForm({
   const [formData, setFormData] = useState<GearItem>(() =>
     normalizeGearViewfinderEyePoints(gearData),
   );
+  const [comparisonBaseline, setComparisonBaseline] = useState<GearItem>(() =>
+    normalizeGearViewfinderEyePoints(gearData),
+  );
   const [diffPreview, setDiffPreview] = useState<DiffPayload | null>(null);
   const initialCoreSpecs = gearData;
   const initialCameraSpecs = gearData.cameraSpecs;
@@ -281,7 +284,9 @@ function EditGearForm({
   }, [formData, onFormDataChange]);
 
   React.useEffect(() => {
-    setFormData(normalizeGearViewfinderEyePoints(gearData));
+    const normalizedGearData = normalizeGearViewfinderEyePoints(gearData);
+    setFormData(normalizedGearData);
+    setComparisonBaseline(normalizedGearData);
   }, [gearData]);
 
   React.useEffect(() => {
@@ -608,9 +613,21 @@ function EditGearForm({
       "notes",
     ] as const;
     const coreDiff = diffRecordByKeys(
-      toRecord(gearData),
+      toRecord(comparisonBaseline),
       toRecord(formData),
       coreKeys,
+      {
+        numericKeys: [
+          "msrpNowUsdCents",
+          "msrpAtLaunchUsdCents",
+          "mpbMaxPriceUsdCents",
+          "weightGrams",
+          "widthMm",
+          "heightMm",
+          "depthMm",
+        ],
+        temporalKeys: ["announcedDate", "releaseDate", "discontinuedDate"],
+      },
     );
     if (Object.keys(coreDiff).length > 0) payload.core = coreDiff;
 
@@ -677,11 +694,34 @@ function EditGearForm({
         "hasIlluminatedButtons",
         "hasUsbFileTransfer",
       ] as const;
-      const orig = toRecord(gearData.cameraSpecs);
       const diffs = diffRecordByKeys(
-        orig,
+        toRecord(comparisonBaseline.cameraSpecs),
         toRecord(formData.cameraSpecs),
         cameraKeys,
+        {
+          numericKeys: [
+            "resolutionMp",
+            "sensorReadoutSpeedMs",
+            "maxRawBitDepth",
+            "isoMin",
+            "isoMax",
+            "cipaStabilizationRatingStops",
+            "shutterSpeedMax",
+            "shutterSpeedMin",
+            "rearDisplayResolutionMillionDots",
+            "rearDisplaySizeInches",
+            "viewfinderMagnification",
+            "viewfinderEyePointMm",
+            "viewfinderResolutionMillionDots",
+            "focusPoints",
+            "flashSyncSpeed",
+            "maxFpsRaw",
+            "maxFpsJpg",
+            "maxFpsByShutter",
+            "cipaBatteryShotsPerCharge",
+            "internalStorageGb",
+          ],
+        },
       );
       if (Object.keys(diffs).length > 0) payload.camera = diffs;
     }
@@ -719,11 +759,21 @@ function EditGearForm({
         "hasSelfTimer",
         "hasIntervalometer",
       ] as const;
-      const orig = toRecord(gearData.analogCameraSpecs);
       const diffs = diffRecordByKeys(
-        orig,
+        toRecord(comparisonBaseline.analogCameraSpecs),
         toRecord(formData.analogCameraSpecs),
         analogKeys,
+        {
+          numericKeys: [
+            "viewfinderEyePointMm",
+            "shutterSpeedMax",
+            "shutterSpeedMin",
+            "flashSyncSpeed",
+            "isoMin",
+            "isoMax",
+            "maxContinuousFps",
+          ],
+        },
       );
       if (Object.keys(diffs).length > 0) payload.analogCamera = diffs;
     }
@@ -792,8 +842,30 @@ function EditGearForm({
         adjustedLensSpecs.focalLengthMaxMm = maxVal;
       }
 
-      const orig = toRecord(gearData.lensSpecs);
-      const diffs = diffRecordByKeys(orig, adjustedLensSpecs, lensKeys);
+      const orig = toRecord(comparisonBaseline.lensSpecs);
+      const diffs = diffRecordByKeys(orig, adjustedLensSpecs, lensKeys, {
+        numericKeys: [
+          "focalLengthMinMm",
+          "focalLengthMaxMm",
+          "maxApertureWide",
+          "maxApertureTele",
+          "minApertureWide",
+          "minApertureTele",
+          "magnification",
+          "minimumFocusDistanceMm",
+          "numberElements",
+          "numberElementGroups",
+          "numberDiaphragmBlades",
+          "frontFilterThreadSizeMm",
+          "rearFilterThreadSizeMm",
+          "dropInFilterSizeMm",
+          "numberCustomControlRings",
+          "numberFunctionButtons",
+          "cipaStabilizationRatingStops",
+          "tiltDegrees",
+          "shiftMm",
+        ],
+      });
       if (Object.keys(diffs).length > 0) payload.lens = diffs;
     }
 
@@ -814,11 +886,22 @@ function EditGearForm({
         "frontFilterThreadSizeMm",
         "hasLensHood",
       ] as const;
-      const orig = toRecord(gearData.fixedLensSpecs);
       const diffs = diffRecordByKeys(
-        orig,
+        toRecord(comparisonBaseline.fixedLensSpecs),
         toRecord(formData.fixedLensSpecs),
         fixedKeys,
+        {
+          numericKeys: [
+            "focalLengthMinMm",
+            "focalLengthMaxMm",
+            "maxApertureWide",
+            "maxApertureTele",
+            "minApertureWide",
+            "minApertureTele",
+            "minimumFocusDistanceMm",
+            "frontFilterThreadSizeMm",
+          ],
+        },
       );
       if (Object.keys(diffs).length > 0) payload.fixedLens = diffs;
     }
@@ -929,7 +1012,7 @@ function EditGearForm({
       return out;
     };
 
-    const prevSlots = normalizeSlots(gearData.cameraCardSlots);
+    const prevSlots = normalizeSlots(comparisonBaseline.cameraCardSlots);
     const nextSlots = normalizeSlots(formData.cameraCardSlots);
     const slotsChanged =
       JSON.stringify(prevSlots) !== JSON.stringify(nextSlots);
@@ -937,7 +1020,9 @@ function EditGearForm({
       payload.cameraCardSlots = nextSlots;
     }
 
-    const prevVideoModes = normalizeVideoModesFromUnknown(gearData.videoModes);
+    const prevVideoModes = normalizeVideoModesFromUnknown(
+      comparisonBaseline.videoModes,
+    );
     const nextVideoModes = normalizeVideoModesFromUnknown(formData.videoModes);
     videoModesDiffRef.current = diffVideoModes(prevVideoModes, nextVideoModes);
     if (!videoModesEqual(prevVideoModes, nextVideoModes)) {
@@ -1022,6 +1107,7 @@ function EditGearForm({
       })) as ProposalSubmitResult;
       console.timeEnd(`[EditGearForm] submit ${gearSlug}`);
       if (res?.ok) {
+        setComparisonBaseline(normalizeGearViewfinderEyePoints(formData));
         onDirtyChange?.(false);
         const createdId = res.proposal?.id;
         const autoApproved = Boolean(res.autoApproved);

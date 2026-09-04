@@ -166,8 +166,12 @@ export function FpsPerShutterInput({
         nextMap[shutterType] = currentEntry;
       }
 
-      const headline = computeHeadlineMaxFps(nextMap);
-      onChange(Object.keys(nextMap).length > 0 ? nextMap : null);
+      const canonicalMap = normalizeMaxFpsByShutterValue(
+        nextMap,
+        normalizedAvailable,
+      );
+      const headline = computeHeadlineMaxFps(canonicalMap);
+      onChange(Object.keys(canonicalMap).length > 0 ? canonicalMap : null);
       onHeadlineChange(headline.maxRaw, headline.maxJpg);
     },
     [normalizedValue, onChange, onHeadlineChange],

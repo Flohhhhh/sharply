@@ -20,7 +20,18 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return prototype === Object.prototype || prototype === null;
 }
 
-export function editValuesEqual(a: unknown, b: unknown): boolean {
+type ComparisonMode = "exact" | "numeric" | "temporal";
+
+export type DiffComparisonOptions = {
+  numericKeys?: readonly string[];
+  temporalKeys?: readonly string[];
+};
+
+export function editValuesEqual(
+  a: unknown,
+  b: unknown,
+  mode: ComparisonMode = "exact",
+): boolean {
   if (Object.is(a, b)) return true;
   if (a == null && b == null) return true;
   if (a == null || b == null) return false;
@@ -29,25 +40,29 @@ export function editValuesEqual(a: unknown, b: unknown): boolean {
     if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) {
       return false;
     }
-    return a.every((value, index) => editValuesEqual(value, b[index]));
+    return a.every((value, index) => editValuesEqual(value, b[index], mode));
   }
 
-  const aTimestamp = toTimestamp(a);
-  const bTimestamp = toTimestamp(b);
-  if (aTimestamp !== null && bTimestamp !== null) {
-    return aTimestamp === bTimestamp;
+  if (mode === "temporal") {
+    const aTimestamp = toTimestamp(a);
+    const bTimestamp = toTimestamp(b);
+    if (aTimestamp !== null && bTimestamp !== null) {
+      return aTimestamp === bTimestamp;
+    }
   }
 
-  const aNumber = toFiniteNumber(a);
-  const bNumber = toFiniteNumber(b);
-  if (aNumber !== null && bNumber !== null) return aNumber === bNumber;
+  if (mode === "numeric") {
+    const aNumber = toFiniteNumber(a);
+    const bNumber = toFiniteNumber(b);
+    if (aNumber !== null && bNumber !== null) return aNumber === bNumber;
+  }
 
   if (isPlainObject(a) && isPlainObject(b)) {
     const aKeys = Object.keys(a);
     const bKeys = Object.keys(b);
     if (aKeys.length !== bKeys.length) return false;
     return aKeys.every(
-      (key) => Object.hasOwn(b, key) && editValuesEqual(a[key], b[key]),
+      (key) => Object.hasOwn(b, key) && editValuesEqual(a[key], b[key], mode),
     );
   }
 
@@ -58,10 +73,18 @@ export function diffRecordByKeys(
   original: Record<string, unknown>,
   updated: Record<string, unknown>,
   keys: readonly string[],
+  options: DiffComparisonOptions = {},
 ): Record<string, unknown> {
   const diff: Record<string, unknown> = {};
+  const numericKeys = new Set(options.numericKeys ?? []);
+  const temporalKeys = new Set(options.temporalKeys ?? []);
   for (const key of keys) {
-    if (key in updated && !editValuesEqual(original[key], updated[key])) {
+    const mode: ComparisonMode = temporalKeys.has(key)
+      ? "temporal"
+      : numericKeys.has(key)
+        ? "numeric"
+        : "exact";
+    if (key in updated && !editValuesEqual(original[key], updated[key], mode)) {
       diff[key] = updated[key] ?? null;
     }
   }
