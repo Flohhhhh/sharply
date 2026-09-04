@@ -601,7 +601,8 @@
         },
         "viewfinderType": {
           "optical": "OVF (optik)",
-          "electronic": "EVF (elektronik)"
+          "electronic": "EVF (elektronik)",
+          "hybrid": "Hibrid"
         }
       },
       "apertureProfile": {
@@ -1309,7 +1310,8 @@
         "other": "Lain-lain",
         "notSpecified": "Tidak dinyatakan",
         "ovf": "OVF",
-        "evf": "EVF"
+        "evf": "EVF",
+        "hybrid": "Hibrid"
       }
     },
     "publicationStateLabel": "Status penerbitan",

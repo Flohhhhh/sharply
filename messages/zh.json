@@ -601,7 +601,8 @@
         },
         "viewfinderType": {
           "optical": "OVF（光学）",
-          "electronic": "EVF（电子）"
+          "electronic": "EVF（电子）",
+          "hybrid": "混合"
         }
       },
       "apertureProfile": {
@@ -1309,7 +1310,8 @@
         "other": "其他",
         "notSpecified": "未指定",
         "ovf": "OVF",
-        "evf": "电子取景器"
+        "evf": "电子取景器",
+        "hybrid": "混合"
       }
     },
     "publicationStateLabel": "发布状态",

@@ -601,7 +601,8 @@
         },
         "viewfinderType": {
           "optical": "OVF (optisch)",
-          "electronic": "EVF (elektronisch)"
+          "electronic": "EVF (elektronisch)",
+          "hybrid": "Hybrid"
         }
       },
       "apertureProfile": {
@@ -1309,7 +1310,8 @@
         "other": "Sonstiges",
         "notSpecified": "Nicht angegeben",
         "ovf": "OVF",
-        "evf": "EVF"
+        "evf": "EVF",
+        "hybrid": "Hybrid"
       }
     },
     "publicationStateLabel": "Veröffentlichungsstatus",
