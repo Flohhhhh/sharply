@@ -204,6 +204,8 @@ function serializeCameraSpecs(
     isBackSideIlluminated: specs.isBackSideIlluminated,
     isoMin: specs.isoMin,
     isoMax: specs.isoMax,
+    isoMinExpanded: specs.isoMinExpanded,
+    isoMaxExpanded: specs.isoMaxExpanded,
     sensorReadoutSpeedMs: specs.sensorReadoutSpeedMs,
     maxRawBitDepth: specs.maxRawBitDepth,
     hasIbis: specs.hasIbis,

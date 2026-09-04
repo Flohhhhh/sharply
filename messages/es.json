@@ -678,6 +678,8 @@
         "selectSupportLevel": "Seleccionar nivel de compatibilidad",
         "isoMinNative": "ISO mín. (nativo)",
         "isoMaxNative": "ISO máx. (nativo)",
+        "isoMinExpanded": "ISO mín. (ampliado)",
+        "isoMaxExpanded": "ISO máx. (ampliado)",
         "selectDisplayType": "Seleccionar tipo de pantalla",
         "rearDisplayResolutionPlaceholder": "p. ej., 1,62",
         "inchesPlaceholder": "p. ej., 3,2",
@@ -828,6 +830,9 @@
             },
             "isoRange": {
               "label": "Rango ISO"
+            },
+            "isoExpandedRange": {
+              "label": "Rango ISO ampliado"
             },
             "maxFpsByShutter": {
               "label": "FPS máx. en ráfaga"

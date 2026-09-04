@@ -125,6 +125,76 @@ describe("spec registry i18n", () => {
     expect(discontinuedRow?.value).toBe("June 2024");
   });
 
+  it("formats translated full and partial expanded ISO ranges and hides empty values", () => {
+    const translated = createTranslator({
+      "specRegistry.sections.camera-sensor-shutter.fields.isoExpandedRange.label":
+        "Erweiterter ISO-Bereich",
+    });
+
+    const fullSections = buildGearSpecsSections(
+      createGearItem({
+        cameraSpecs: {
+          isoMinExpanded: 50,
+          isoMaxExpanded: 204800,
+        } as GearItem["cameraSpecs"],
+      }),
+      { locale: "de", t: translated },
+    );
+    const fullRow = fullSections
+      .find((section) => section.id === "camera-sensor-shutter")
+      ?.data.find((row) => row.key === "isoExpandedRange");
+
+    expect(fullRow).toMatchObject({
+      label: "Erweiterter ISO-Bereich",
+      value: "ISO 50 - 204,800",
+    });
+
+    for (const [field, expected] of [
+      ["isoMinExpanded", "ISO 50+"],
+      ["isoMaxExpanded", "ISO ≤ 204,800"],
+    ] as const) {
+      const value = field === "isoMinExpanded" ? 50 : 204800;
+      const partialSections = buildGearSpecsSections(
+        createGearItem({
+          cameraSpecs: { [field]: value } as unknown as GearItem["cameraSpecs"],
+        }),
+        { locale: "en" },
+      );
+      const partialRow = partialSections
+        .find((section) => section.id === "camera-sensor-shutter")
+        ?.data.find((row) => row.key === "isoExpandedRange");
+
+      expect(partialRow?.value).toBe(expected);
+    }
+
+    const emptySections = buildGearSpecsSections(
+      createGearItem({
+        cameraSpecs: {
+          isoMinExpanded: null,
+          isoMaxExpanded: null,
+        } as GearItem["cameraSpecs"],
+      }),
+    );
+
+    expect(
+      emptySections
+        .flatMap((section) => section.data)
+        .some((row) => row.key === "isoExpandedRange"),
+    ).toBe(false);
+
+    const fallbackSections = buildGearSpecsSections(
+      createGearItem({
+        cameraSpecs: { isoMinExpanded: 50 } as GearItem["cameraSpecs"],
+      }),
+      { locale: "fr", t: createTranslator({}) },
+    );
+    expect(
+      fallbackSections
+        .find((section) => section.id === "camera-sensor-shutter")
+        ?.data.find((row) => row.key === "isoExpandedRange")?.label,
+    ).toBe("Expanded ISO Range");
+  });
+
   it("uses the plural mount translation key when a lens has multiple mounts", () => {
     const [firstMount, secondMount] = MOUNTS;
     const translator = createTranslator({

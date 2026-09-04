@@ -51,6 +51,8 @@ describe("gear detail heading translations", () => {
       "editGear.fields.aperture",
       "editGear.fields.sensorStackingType",
       "editGear.fields.isoMinNative",
+      "editGear.fields.isoMinExpanded",
+      "editGear.fields.isoMaxExpanded",
       "editGear.fields.selectAvailableShutterTypesFirst",
       "editGear.fields.mountMaterialPlaceholder",
       "editGear.fields.analogBatteryPlaceholder",

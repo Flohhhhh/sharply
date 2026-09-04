@@ -670,26 +670,56 @@ function CameraFieldsComponent({
 
           {/* ISO Range anchor (always present for sidebar scrolling) */}
           <div id="isoRange" className="h-0" aria-hidden />
+          {/* Expanded ISO Range anchor (always present for sidebar scrolling) */}
+          <div id="isoExpandedRange" className="h-0" aria-hidden />
 
-          {/* ISO Min */}
-          {showWhenMissing(initialSpecs?.isoMin) && (
-            <IsoInput
-              id="isoMin"
-              label={tf("editGear.fields.isoMinNative", "ISO Min (Native)")}
-              value={currentSpecs?.isoMin}
-              onChange={(value) => handleFieldChange("isoMin", value)}
-            />
-          )}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {/* Native ISO Min */}
+            {showWhenMissing(initialSpecs?.isoMin) && (
+              <IsoInput
+                id="isoMin"
+                label={tf("editGear.fields.isoMinNative", "ISO Min (Native)")}
+                value={currentSpecs?.isoMin}
+                onChange={(value) => handleFieldChange("isoMin", value)}
+              />
+            )}
 
-          {/* ISO Max */}
-          {showWhenMissing(initialSpecs?.isoMax) && (
-            <IsoInput
-              id="isoMax"
-              label={tf("editGear.fields.isoMaxNative", "ISO Max (Native)")}
-              value={currentSpecs?.isoMax}
-              onChange={(value) => handleFieldChange("isoMax", value)}
-            />
-          )}
+            {/* Native ISO Max */}
+            {showWhenMissing(initialSpecs?.isoMax) && (
+              <IsoInput
+                id="isoMax"
+                label={tf("editGear.fields.isoMaxNative", "ISO Max (Native)")}
+                value={currentSpecs?.isoMax}
+                onChange={(value) => handleFieldChange("isoMax", value)}
+              />
+            )}
+
+            {/* Expanded ISO Min */}
+            {showWhenMissing(initialSpecs?.isoMinExpanded) && (
+              <IsoInput
+                id="isoMinExpanded"
+                label={tf(
+                  "editGear.fields.isoMinExpanded",
+                  "ISO Min (Expanded)",
+                )}
+                value={currentSpecs?.isoMinExpanded}
+                onChange={(value) => handleFieldChange("isoMinExpanded", value)}
+              />
+            )}
+
+            {/* Expanded ISO Max */}
+            {showWhenMissing(initialSpecs?.isoMaxExpanded) && (
+              <IsoInput
+                id="isoMaxExpanded"
+                label={tf(
+                  "editGear.fields.isoMaxExpanded",
+                  "ISO Max (Expanded)",
+                )}
+                value={currentSpecs?.isoMaxExpanded}
+                onChange={(value) => handleFieldChange("isoMaxExpanded", value)}
+              />
+            )}
+          </div>
 
           {/* Rear Display Type */}
           {showWhenMissing(initialSpecs?.rearDisplayType) && (

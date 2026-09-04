@@ -113,7 +113,7 @@ Digital and analog camera specification objects expose nullable `viewfinderEyePo
 
 Lineage is intentionally available only on this full gear endpoint; catalog, search, suggestion, selected-spec, and random-low-completion responses remain lightweight and do not include it.
 
-Primary and foreign keys, audit timestamps, search helpers, publication workflow state, genre tags, raw samples, selected colourway IDs, internal notes, video-mode matrices, and flexible `extra` JSON are never returned. Adding a public field requires an intentional serializer, contract, and documentation update. Hidden and rumored gear return `404`.
+Primary and foreign keys, audit timestamps, search helpers, publication workflow state, genre tags, raw samples, selected colourway IDs, internal notes, video-mode matrices, and flexible `extra` JSON are never returned. Camera full-gear responses include native ISO values as `cameraSpecs.isoMin`/`isoMax` and optional expanded values as `cameraSpecs.isoMinExpanded`/`isoMaxExpanded`. Adding a public field requires an intentional serializer, contract, and documentation update. Hidden and rumored gear return `404`.
 
 ### `GET /api/v1/specs`
 
@@ -136,6 +136,8 @@ Each row returns durable raw data and a helpful current display string:
 ```
 
 Treat `id` and `raw` as the durable contract. `display` is English current presentation output and can change.
+
+Expanded digital-camera ISO is available as `camera.sensor.isoExpandedRange`. Its raw value is `{ "min": number | null, "max": number | null }`, and partial bounds are retained; for example, a minimum-only value displays as `ISO 50+` and a maximum-only value as `ISO ≤ 204,800`.
 
 ## Error format
 

@@ -220,6 +220,8 @@ export function EditModalContent({
     const sectionId = sectionAnchor; // already a bare id like "core-section"
     const candidates: string[] = (() => {
       if (fieldKey === "isoRange") return [targetId, "isoMin", "isoMax"];
+      if (fieldKey === "isoExpandedRange")
+        return ["isoMinExpanded", "isoMaxExpanded", targetId];
       if (fieldKey === "dimensions")
         return [targetId, "widthMm", "heightMm", "depthMm"];
       if (fieldKey === "sensorType")

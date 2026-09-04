@@ -678,6 +678,8 @@
         "selectSupportLevel": "Unterstützungsstufe wählen",
         "isoMinNative": "ISO Min (nativ)",
         "isoMaxNative": "ISO Max (nativ)",
+        "isoMinExpanded": "ISO Min (erweitert)",
+        "isoMaxExpanded": "ISO Max (erweitert)",
         "selectDisplayType": "Displaytyp wählen",
         "rearDisplayResolutionPlaceholder": "z. B. 1,62",
         "inchesPlaceholder": "z. B. 3,2",
@@ -828,6 +830,9 @@
             },
             "isoRange": {
               "label": "ISO-Bereich"
+            },
+            "isoExpandedRange": {
+              "label": "Erweiterter ISO-Bereich"
             },
             "maxFpsByShutter": {
               "label": "Max. Serienbildrate"

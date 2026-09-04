@@ -678,6 +678,8 @@
         "selectSupportLevel": "选择支持级别",
         "isoMinNative": "ISO 最小值（原生）",
         "isoMaxNative": "ISO 最大（原始）",
+        "isoMinExpanded": "ISO 最小值（扩展）",
+        "isoMaxExpanded": "ISO 最大值（扩展）",
         "selectDisplayType": "选择显示类型",
         "rearDisplayResolutionPlaceholder": "例如，1.62",
         "inchesPlaceholder": "例如，3.2",
@@ -828,6 +830,9 @@
             },
             "isoRange": {
               "label": "ISO范围"
+            },
+            "isoExpandedRange": {
+              "label": "扩展 ISO 范围"
             },
             "maxFpsByShutter": {
               "label": "最大连续帧率"

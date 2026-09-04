@@ -128,6 +128,33 @@ describe("normalizeProposalPayloadForDb", () => {
     ).toEqual({});
   });
 
+  it("normalizes expanded camera ISO values as truncated integers", () => {
+    expect(
+      normalizeProposalPayloadForDb({
+        camera: {
+          isoMinExpanded: "50.9",
+          isoMaxExpanded: 204800.9,
+        },
+      }),
+    ).toEqual({
+      camera: {
+        isoMinExpanded: 50,
+        isoMaxExpanded: 204800,
+      },
+    });
+  });
+
+  it("preserves expanded ISO clearing and drops invalid values", () => {
+    expect(
+      normalizeProposalPayloadForDb({
+        camera: {
+          isoMinExpanded: null,
+          isoMaxExpanded: "unknown",
+        },
+      }),
+    ).toEqual({ camera: { isoMinExpanded: null } });
+  });
+
   it("preserves analog max continuous fps decimals", () => {
     expect(
       normalizeProposalPayloadForDb({

@@ -40,7 +40,7 @@ describe("developer API spec routes", () => {
       {
         id: "camera.sensor.isoRange",
         raw: { min: 100, max: 51200 },
-        display: "ISO 100 - 51200",
+        display: "ISO 100 - 51,200",
       },
     ]);
     mocks.serializeSpecs.mockReturnValue({
