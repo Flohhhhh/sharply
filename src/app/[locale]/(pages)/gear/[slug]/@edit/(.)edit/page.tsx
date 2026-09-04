@@ -4,7 +4,7 @@ import { EditAlreadyPendingRedirect } from "~/app/[locale]/(pages)/gear/_compone
 import { EditGearModal } from "~/app/[locale]/(pages)/gear/_components/edit-gear/edit-gear-modal";
 import { auth } from "~/auth";
 import { requireRole } from "~/lib/auth/auth-helpers";
-import { fetchGearBySlug,fetchPendingEditId } from "~/server/gear/service";
+import { fetchGearBySlug, fetchPendingEditId } from "~/server/gear/service";
 import type { GearItem } from "~/types/gear";
 
 interface EditGearModalPageProps {
@@ -51,12 +51,6 @@ export default async function EditGearModalPage({
     includeHidden: true,
   });
 
-  console.log("[EditGearModalPage] gearDataResult", gearDataResult);
-
-  // Validate and set default gear type
-  // const gearType = type === "CAMERA" || type === "LENS" ? type : gearDataResult.gearType;
-
-  // Create gearData object outside of JSX to prevent recreation on every render
   const gearData = gearDataResult
     ? {
         ...gearDataResult,

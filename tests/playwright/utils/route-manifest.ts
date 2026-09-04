@@ -165,6 +165,8 @@ export const routeManifest: RouteEntry[] = [
  *  above or gets a skip entry here with a reason — see
  *  tests/unit/route-sweep-parity.test.ts, which fails the build otherwise. */
 export const skippedRoutes: Record<string, string> = {
+  "/gear/[slug]/[...catchAll]":
+    "parallel @edit slot cleanup route; renders null and is exercised through gear edit navigation",
   "/cms/[[...segments]]": "Payload's own admin UI — not ours to sweep",
   "/ui-demo": "dev-only component gallery",
   "/construction-test": "dev-only page",

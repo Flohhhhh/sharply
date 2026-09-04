@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import {
   AlertDialog,
@@ -20,6 +20,10 @@ import { useUnsavedChangesGuard } from "~/lib/hooks/useUnsavedChangesGuard";
 import { translateGearDetailWithFallback } from "~/lib/i18n/gear-detail";
 import type { GearItem, GearType } from "~/types/gear";
 import EditModalContent from "./edit-modal-content";
+import {
+  handleGearEditSubmissionSuccess,
+  type GearEditSubmissionSuccess,
+} from "./edit-gear-navigation";
 
 interface EditGearModalProps {
   canToggleAutoSubmit?: boolean;
@@ -42,26 +46,50 @@ export function EditGearModal({
   const tf = (key: string, fallback: string) =>
     translateGearDetailWithFallback(t, key, fallback);
   const locale = useLocale();
+  const pathname = usePathname();
   const router = useRouter();
+  const [isOpen, setIsOpen] = useState(true);
   const [isDirty, setIsDirty] = useState(false);
   const [showMissingOnly] = useState(Boolean(initialShowMissingOnly));
-  const { cancelLeave, confirmLeave, isConfirmOpen, requestLeave } =
-    useUnsavedChangesGuard({
-      interceptHistory: true,
-      interceptLinks: true,
-      isDirty,
-      navigate: (href) => router.push(href),
-    });
+  const {
+    cancelLeave,
+    confirmLeave,
+    isConfirmOpen,
+    leaveByHistoryBack,
+    navigateAfterHistoryTrap,
+    requestLeave,
+  } = useUnsavedChangesGuard({
+    interceptHistory: true,
+    interceptLinks: true,
+    isDirty,
+    navigate: (href) => router.push(href),
+  });
 
-  const navigateToGear = useCallback(() => {
-    router.replace(localizePathname(`/gear/${gearSlug}`, locale as Locale));
-  }, [gearSlug, locale, router]);
+  const closeToPreviousRoute = useCallback(() => {
+    setIsOpen(false);
+    leaveByHistoryBack();
+  }, [leaveByHistoryBack]);
 
   const requestClose = useCallback(
     (opts?: { force?: boolean }) => {
-      requestLeave(navigateToGear, opts);
+      requestLeave(closeToPreviousRoute, opts);
     },
-    [navigateToGear, requestLeave],
+    [closeToPreviousRoute, requestLeave],
+  );
+
+  const handleSubmitSuccess = useCallback(
+    (result: GearEditSubmissionSuccess) => {
+      setIsOpen(false);
+      handleGearEditSubmissionSuccess({
+        result,
+        closeToGear: leaveByHistoryBack,
+        navigateToSuccess: (href) =>
+          navigateAfterHistoryTrap(() =>
+            router.replace(localizePathname(href, locale as Locale)),
+          ),
+      });
+    },
+    [leaveByHistoryBack, locale, navigateAfterHistoryTrap, router],
   );
 
   const handleOpenChange = useCallback(
@@ -73,10 +101,10 @@ export function EditGearModal({
     [requestClose],
   );
 
-  // console.log("[EditGearModal] gearData", gearData);
+  const isEditRoute = pathname.endsWith(`/gear/${gearSlug}/edit`);
 
   return (
-    <Dialog defaultOpen open onOpenChange={handleOpenChange}>
+    <Dialog open={isOpen && isEditRoute} onOpenChange={handleOpenChange}>
       <DialogContent className="p-0 sm:max-w-4xl" showCloseButton={false}>
         <EditModalContent
           canToggleAutoSubmit={canToggleAutoSubmit}
@@ -86,6 +114,7 @@ export function EditGearModal({
           gearName={gearName}
           onDirtyChange={setIsDirty}
           onRequestClose={requestClose}
+          onSubmitSuccess={handleSubmitSuccess}
           initialShowMissingOnly={showMissingOnly}
           formId="edit-gear-form"
         />

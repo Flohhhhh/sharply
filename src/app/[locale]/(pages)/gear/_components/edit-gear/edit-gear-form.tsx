@@ -3,7 +3,6 @@
 import { track } from "@vercel/analytics";
 import { Crop } from "lucide-react";
 import { useLocale, useTranslations, type TranslationValues } from "next-intl";
-import { useRouter } from "next/navigation";
 import React, { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { NotesFields } from "~/app/[locale]/(pages)/gear/_components/edit-gear/fields-notes";
@@ -38,8 +37,6 @@ import { sensorNameFromSlug } from "~/lib/mapping/sensor-map";
 import { humanizeKey } from "~/lib/utils";
 import { normalizeApertureProfile } from "~/lib/lens-aperture-profile";
 import { normalizeViewfinderEyePointUpdate } from "~/lib/specs/viewfinder";
-import type { Locale } from "~/i18n/config";
-import { localizePathname } from "~/i18n/routing";
 import {
   normalizeVideoModes,
   type VideoModeInput,
@@ -56,6 +53,7 @@ import { CoreFields } from "./fields-core";
 import { FixedLensFields } from "./fields-fixed-lens";
 import { LensFields } from "./fields-lenses";
 import { formatBooleanText } from "./edit-gear-formatters";
+import type { GearEditSubmissionSuccess } from "./edit-gear-navigation";
 
 const SHUTTER_LABELS: Record<string, string> = {
   mechanical: "Mechanical",
@@ -163,6 +161,7 @@ interface EditGearFormProps {
   onAutoSubmitChange?: (autoSubmit: boolean) => void;
   onDirtyChange?: (dirty: boolean) => void;
   onRequestClose?: (opts?: { force?: boolean }) => void;
+  onSubmitSuccess: (result: GearEditSubmissionSuccess) => void;
   onSubmittingChange?: (submitting: boolean) => void;
   showActions?: boolean;
   formId?: string;
@@ -234,6 +233,7 @@ function EditGearForm({
   onAutoSubmitChange,
   onDirtyChange,
   onRequestClose,
+  onSubmitSuccess,
   onSubmittingChange,
   showActions = true,
   formId,
@@ -248,7 +248,6 @@ function EditGearForm({
     yes: tf("specRegistry.shared.yes", "Yes"),
     no: tf("specRegistry.shared.no", "No"),
   };
-  const router = useRouter();
   const [internalAutoSubmit, setInternalAutoSubmit] = useState(
     getInitialAutoSubmitValue(autoSubmit),
   );
@@ -1084,7 +1083,6 @@ function EditGearForm({
       console.timeEnd(`[EditGearForm] submit ${gearSlug}`);
       if (res?.ok) {
         setIsDirty(false);
-        onDirtyChange?.(false);
         const createdId = res.proposal?.id;
         const autoApproved = Boolean(res.autoApproved);
         void track("gear_edit_submit_success", {
@@ -1110,17 +1108,10 @@ function EditGearForm({
                 ),
           },
         );
-        if (autoApproved) {
-          if (onRequestClose) {
-            onRequestClose({ force: true });
-          } else {
-            router.replace(
-              localizePathname(`/gear/${gearSlug}`, locale as Locale),
-            );
-          }
-        } else {
-          router.replace(`/edit-success?id=${createdId ?? ""}`);
-        }
+        onSubmitSuccess({
+          autoApproved,
+          proposalId: createdId ?? undefined,
+        });
       } else {
         toast.error(
           tf("editGear.submitFailedTitle", "Failed to submit suggestion"),
