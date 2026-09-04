@@ -80,14 +80,14 @@ export default function EditGearClient({
     (result: GearEditSubmissionSuccess) => {
       handleGearEditSubmissionSuccess({
         result,
-        closeToGear: () => requestClose({ force: true }),
+        closeToGear: () => navigateAfterHistoryTrap(navigateToGear),
         navigateToSuccess: (href) =>
           navigateAfterHistoryTrap(() =>
             router.replace(localizePathname(href, locale as Locale)),
           ),
       });
     },
-    [locale, navigateAfterHistoryTrap, requestClose, router],
+    [locale, navigateAfterHistoryTrap, navigateToGear, router],
   );
 
   // Helpers to check if a field is filled (supports aggregated registry values)

@@ -82,14 +82,19 @@ export function EditGearModal({
       setIsOpen(false);
       handleGearEditSubmissionSuccess({
         result,
-        closeToGear: leaveByHistoryBack,
+        closeToGear: () =>
+          navigateAfterHistoryTrap(() =>
+            router.replace(
+              localizePathname(`/gear/${gearSlug}`, locale as Locale),
+            ),
+          ),
         navigateToSuccess: (href) =>
           navigateAfterHistoryTrap(() =>
             router.replace(localizePathname(href, locale as Locale)),
           ),
       });
     },
-    [leaveByHistoryBack, locale, navigateAfterHistoryTrap, router],
+    [gearSlug, locale, navigateAfterHistoryTrap, router],
   );
 
   const handleOpenChange = useCallback(
