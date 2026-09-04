@@ -5,6 +5,7 @@ import { normalizeApertureProfile } from "~/lib/lens-aperture-profile";
 import { Badge } from "~/components/ui/badge";
 import { isValidElement, type ReactNode } from "react";
 import { formatDateWithPrecision, type DatePrecision } from "~/lib/format/date";
+import { formatIsoRange } from "~/lib/format/iso";
 import { type GearRegion } from "~/lib/gear/region";
 import { AF_AREA_MODES, MOUNTS } from "~/lib/generated";
 import {
@@ -700,11 +701,27 @@ export const specDictionary: SpecSectionDef[] = [
           min: item.cameraSpecs?.isoMin,
           max: item.cameraSpecs?.isoMax,
         }),
-        formatDisplay: (_, item) =>
-          item.cameraSpecs?.isoMin != null && item.cameraSpecs?.isoMax != null
-            ? `ISO ${item.cameraSpecs.isoMin} - ${item.cameraSpecs.isoMax}`
-            : undefined,
+        formatDisplay: (_, item, __, ___, locale) =>
+          formatIsoRange(item.cameraSpecs?.isoMin, item.cameraSpecs?.isoMax, {
+            allowPartial: false,
+            locale,
+          }),
         editElementId: "isoRange",
+      },
+      {
+        key: "isoExpandedRange",
+        label: "Expanded ISO Range",
+        getRawValue: (item) => ({
+          min: item.cameraSpecs?.isoMinExpanded,
+          max: item.cameraSpecs?.isoMaxExpanded,
+        }),
+        formatDisplay: (_, item, __, ___, locale) =>
+          formatIsoRange(
+            item.cameraSpecs?.isoMinExpanded,
+            item.cameraSpecs?.isoMaxExpanded,
+            { locale },
+          ),
+        editElementId: "isoExpandedRange",
       },
       {
         key: "maxFpsByShutter",
@@ -2489,7 +2506,7 @@ export function getDeveloperApiSpecValue(
   const formatted = field.api.displayOverride
     ? field.api.displayOverride(raw, item)
     : field.formatDisplay
-      ? field.formatDisplay(raw, item, true, "GLOBAL", "en")
+      ? field.formatDisplay(raw, item, true, "GLOBAL", "en-US")
       : raw;
   const display = textFromSpecDisplay(formatted as ReactNode);
   if (!display?.trim()) return undefined;

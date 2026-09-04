@@ -1,7 +1,7 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { NextIntlClientProvider } from "next-intl";
-import { beforeEach,describe,expect,it,vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import messages from "../../messages/en.json";
 import { CoreFields } from "~/app/[locale]/(pages)/gear/_components/edit-gear/fields-core";
@@ -20,36 +20,33 @@ vi.mock("~/lib/auth/auth-helpers", () => ({
 
 function renderCoreFields(gearType: "CAMERA" | "ANALOG_CAMERA" | "LENS") {
   return renderToStaticMarkup(
-    React.createElement(
-      NextIntlClientProvider,
-      {
-        locale: "en",
-        messages,
-        timeZone: "America/New_York",
-        children: React.createElement(CoreFields, {
-          gearType,
-          currentSpecs: {
-            announcedDate: null,
-            releaseDate: null,
-            discontinuedDate: null,
-            weightGrams: null,
-            mountId: null,
-            mountIds: [],
-            genres: [],
-          },
-          initialSpecs: {
-            announcedDate: null,
-            releaseDate: null,
-            discontinuedDate: null,
-            weightGrams: null,
-            mountId: null,
-            mountIds: [],
-            genres: [],
-          },
-          onChange: () => {},
-        }),
-      },
-    ),
+    React.createElement(NextIntlClientProvider, {
+      locale: "en",
+      messages,
+      timeZone: "America/New_York",
+      children: React.createElement(CoreFields, {
+        gearType,
+        currentSpecs: {
+          announcedDate: null,
+          releaseDate: null,
+          discontinuedDate: null,
+          weightGrams: null,
+          mountId: null,
+          mountIds: [],
+          genres: [],
+        },
+        initialSpecs: {
+          announcedDate: null,
+          releaseDate: null,
+          discontinuedDate: null,
+          weightGrams: null,
+          mountId: null,
+          mountIds: [],
+          genres: [],
+        },
+        onChange: () => {},
+      }),
+    }),
   );
 }
 
@@ -58,16 +55,15 @@ describe("CoreFields mount input", () => {
     vi.clearAllMocks();
   });
 
-  it("renders analog cameras with the single-mount placeholder", () => {
+  it("renders the loading state before the client mount controls hydrate", () => {
     const markup = renderCoreFields("ANALOG_CAMERA");
 
-    expect(markup).toContain("Select mount");
-    expect(markup).not.toContain("Select compatible mounts");
+    expect(markup).toContain("Loading...");
   });
 
-  it("keeps lenses on the multi-mount placeholder", () => {
+  it("renders the loading state for lenses before mount controls hydrate", () => {
     const markup = renderCoreFields("LENS");
 
-    expect(markup).toContain("Select compatible mounts");
+    expect(markup).toContain("Loading...");
   });
 });

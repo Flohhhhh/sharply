@@ -203,6 +203,8 @@ export default function EditGearClient({
     const sectionId = sectionAnchor;
     const candidates: string[] = (() => {
       if (fieldKey === "isoRange") return [targetId, "isoMin", "isoMax"];
+      if (fieldKey === "isoExpandedRange")
+        return ["isoMinExpanded", "isoMaxExpanded", targetId];
       if (fieldKey === "dimensions")
         return [targetId, "widthMm", "heightMm", "depthMm"];
       if (fieldKey === "sensorType")

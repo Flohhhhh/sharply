@@ -22,6 +22,7 @@ import {
   formatDateWithPrecision,
   getPairedDatePrecision,
 } from "~/lib/format/date";
+import { formatIsoValue } from "~/lib/format/iso";
 import {
   formatAutoApprovalDecisionForAdmin,
   getAutoApprovalDecisionFromMetadata,
@@ -69,9 +70,14 @@ function formatCompactNumber(value: unknown): string {
 }
 
 function formatProposalFieldLabel(key: string): string {
-  return key === "viewfinderEyePointMm"
-    ? "Viewfinder Eye Point"
-    : humanizeKey(key);
+  const labels: Record<string, string> = {
+    isoMin: "ISO Min (Native)",
+    isoMax: "ISO Max (Native)",
+    isoMinExpanded: "ISO Min (Expanded)",
+    isoMaxExpanded: "ISO Max (Expanded)",
+    viewfinderEyePointMm: "Viewfinder Eye Point",
+  };
+  return labels[key] ?? humanizeKey(key);
 }
 
 function formatApertureProfile(value: unknown): string {
@@ -259,6 +265,14 @@ export function GearProposalsList() {
     if (k === "precaptureSupportLevel") {
       return formatPrecaptureSupport(v) ?? String(v);
     }
+    if (
+      k === "isoMin" ||
+      k === "isoMax" ||
+      k === "isoMinExpanded" ||
+      k === "isoMaxExpanded"
+    ) {
+      return formatIsoValue(v, locale) ?? String(v);
+    }
     if (k === "maxContinuousFps") return formatCompactNumber(v);
     if (k === "viewfinderEyePointMm") return `${Number(v).toFixed(2)} mm`;
     if (k === "apertureProfileJson") return formatApertureProfile(v);
@@ -296,6 +310,14 @@ export function GearProposalsList() {
     }
     if (k === "precaptureSupportLevel") {
       return formatPrecaptureSupport(v) ?? String(v ?? "Empty");
+    }
+    if (
+      k === "isoMin" ||
+      k === "isoMax" ||
+      k === "isoMinExpanded" ||
+      k === "isoMaxExpanded"
+    ) {
+      return formatIsoValue(v, locale) ?? String(v ?? "Empty");
     }
     if (k === "maxContinuousFps") return formatCompactNumber(v);
     if (k === "viewfinderEyePointMm") return `${Number(v).toFixed(2)} mm`;

@@ -678,6 +678,8 @@
         "selectSupportLevel": "対応レベルを選択",
         "isoMinNative": "ISO 最小（ネイティブ）",
         "isoMaxNative": "ISO 最大（ネイティブ）",
+        "isoMinExpanded": "ISO 最小（拡張）",
+        "isoMaxExpanded": "ISO 最大（拡張）",
         "selectDisplayType": "画面タイプを選択",
         "rearDisplayResolutionPlaceholder": "例: 1.62",
         "inchesPlaceholder": "例: 3.2",
@@ -828,6 +830,9 @@
             },
             "isoRange": {
               "label": "ISO感度範囲"
+            },
+            "isoExpandedRange": {
+              "label": "拡張 ISO 感度範囲"
             },
             "maxFpsByShutter": {
               "label": "最高連写速度"

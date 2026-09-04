@@ -239,6 +239,7 @@ On approval, the UI builds a merged, filtered payload composed of only the selec
 
 - Namespaces supported: `core`, `camera`, `analogCamera`, `lens`, `fixedLens`, `cameraCardSlots`, and `videoModes`.
 - Measurement changes such as digital and analog `viewfinderEyePointMm` use a friendly field label and unit-formatted values in both contributor previews and moderator review.
+- Digital camera native and expanded ISO proposal values use friendly translated contributor labels and consistent `ISO …` formatting in contributor previews and moderator review. Expanded bounds are submitted independently as `isoMinExpanded` and `isoMaxExpanded`.
 - For conflicts, the chosen option (or Skip) determines inclusion.
 - For non-conflicts, inclusion depends on the checkbox state (default included).
 - `cameraCardSlots` is treated as a replace-set operation; if included, the provided array replaces existing slots for the gear.

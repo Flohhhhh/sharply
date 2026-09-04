@@ -94,7 +94,7 @@ test("search applies and clears specification filters by gear type", async ({
   await expect(
     page.getByRole("option", { name: "ISO 64", exact: true }),
   ).toHaveAttribute("data-disabled", "");
-  await page.getByRole("option", { name: "ISO 25600", exact: true }).click();
+  await page.getByRole("option", { name: "ISO 25,600", exact: true }).click();
   await page.getByLabel("Has IBIS").check();
   await expect(page).toHaveURL(/isoMin=100/);
   await expect(page).toHaveURL(/isoMax=25600/);
@@ -107,7 +107,7 @@ test("search displays reversed ISO URL bounds in normalized order", async ({
   await page.goto("/search?gearType=camera&isoMin=25600&isoMax=100");
 
   await expect(page.getByLabel("Minimum ISO")).toContainText("ISO 100");
-  await expect(page.getByLabel("Maximum ISO")).toContainText("ISO 25600");
+  await expect(page.getByLabel("Maximum ISO")).toContainText("ISO 25,600");
 });
 
 test("mobile search exposes filters in a drawer", async ({ page }) => {

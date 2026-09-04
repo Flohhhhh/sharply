@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale } from "next-intl";
 import { Label } from "~/components/ui/label";
 import {
   Select,
@@ -8,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { formatIsoOption } from "~/lib/format/iso";
 
 // Types for the ISO input
 export interface IsoInputProps {
@@ -36,7 +38,9 @@ export interface IsoInputConfig {
 const COMMON_ISO_VALUES = [
   50, 64, 80, 100, 125, 160, 200, 250, 320, 400, 500, 640, 800, 1000, 1250,
   1600, 2000, 2500, 3200, 4000, 5000, 6400, 8000, 10000, 12800, 16000, 20000,
-  25600, 32000, 40000, 51200, 64000, 80000, 102400, 200000,
+  25600, 32000, 40000, 51200, 64000, 80000, 102400, 200000, 204800, 256000,
+  320000, 409600, 512000, 640000, 819200, 1024000, 1280000, 1638400, 2048000,
+  2560000, 3276800, 4096000, 5120000, 6553600,
 ];
 
 const IsoInput = ({
@@ -52,6 +56,8 @@ const IsoInput = ({
   className = "",
   placeholder = "Select ISO",
 }: IsoInputProps) => {
+  const locale = useLocale();
+
   return (
     <div className={`w-full space-y-2 ${className}`}>
       <Label htmlFor={id}>{label}</Label>
@@ -85,7 +91,7 @@ const IsoInput = ({
                 (maxValue !== undefined && iso > maxValue)
               }
             >
-              ISO {iso}
+              {formatIsoOption(iso, locale)}
             </SelectItem>
           ))}
         </SelectContent>

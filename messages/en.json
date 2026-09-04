@@ -678,6 +678,8 @@
         "selectSupportLevel": "Select support level",
         "isoMinNative": "ISO Min (Native)",
         "isoMaxNative": "ISO Max (Native)",
+        "isoMinExpanded": "ISO Min (Expanded)",
+        "isoMaxExpanded": "ISO Max (Expanded)",
         "selectDisplayType": "Select display type",
         "rearDisplayResolutionPlaceholder": "e.g., 1.62",
         "inchesPlaceholder": "e.g., 3.2",
@@ -828,6 +830,9 @@
             },
             "isoRange": {
               "label": "ISO Range"
+            },
+            "isoExpandedRange": {
+              "label": "Expanded ISO Range"
             },
             "maxFpsByShutter": {
               "label": "Max Continuous FPS"

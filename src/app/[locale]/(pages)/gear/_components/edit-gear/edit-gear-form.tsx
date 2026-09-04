@@ -21,6 +21,7 @@ import {
   formatDateWithPrecision,
   getPairedDatePrecision,
 } from "~/lib/format/date";
+import { formatIsoValue } from "~/lib/format/iso";
 import { MOUNTS } from "~/lib/generated";
 import {
   getSpecFieldLabel,
@@ -409,6 +410,8 @@ function EditGearForm({
     maxRawBitDepth: "camera-sensor-shutter",
     isoMin: "camera-sensor-shutter",
     isoMax: "camera-sensor-shutter",
+    isoMinExpanded: "camera-sensor-shutter",
+    isoMaxExpanded: "camera-sensor-shutter",
     hasIbis: "camera-sensor-shutter",
     hasElectronicVibrationReduction: "camera-sensor-shutter",
     cipaStabilizationRatingStops: "camera-sensor-shutter",
@@ -462,6 +465,34 @@ function EditGearForm({
 
   const getCameraDiffLabel = useCallback(
     (key: string) => {
+      if (key === "isoMin") {
+        return translateGearDetailWithFallback(
+          t,
+          "editGear.fields.isoMinNative",
+          "ISO Min (Native)",
+        );
+      }
+      if (key === "isoMax") {
+        return translateGearDetailWithFallback(
+          t,
+          "editGear.fields.isoMaxNative",
+          "ISO Max (Native)",
+        );
+      }
+      if (key === "isoMinExpanded") {
+        return translateGearDetailWithFallback(
+          t,
+          "editGear.fields.isoMinExpanded",
+          "ISO Min (Expanded)",
+        );
+      }
+      if (key === "isoMaxExpanded") {
+        return translateGearDetailWithFallback(
+          t,
+          "editGear.fields.isoMaxExpanded",
+          "ISO Max (Expanded)",
+        );
+      }
       const sectionId = cameraFieldSectionMap[key];
       if (sectionId) {
         return getSpecFieldLabel(t, sectionId, key, humanizeKey(key));
@@ -643,6 +674,8 @@ function EditGearForm({
         "maxRawBitDepth",
         "isoMin",
         "isoMax",
+        "isoMinExpanded",
+        "isoMaxExpanded",
         "hasIbis",
         "hasElectronicVibrationReduction",
         "cipaStabilizationRatingStops",
@@ -705,6 +738,8 @@ function EditGearForm({
             "maxRawBitDepth",
             "isoMin",
             "isoMax",
+            "isoMinExpanded",
+            "isoMaxExpanded",
             "cipaStabilizationRatingStops",
             "shutterSpeedMax",
             "shutterSpeedMin",
@@ -1517,6 +1552,15 @@ function EditGearForm({
                           if (booleanDisplay) display = booleanDisplay;
                           if (k === "sensorFormatId")
                             display = sensorNameFromSlug(v as string);
+                          if (
+                            k === "isoMin" ||
+                            k === "isoMax" ||
+                            k === "isoMinExpanded" ||
+                            k === "isoMaxExpanded"
+                          ) {
+                            display =
+                              formatIsoValue(v, locale) ?? safeString(v);
+                          }
                           if (k === "maxFpsRaw" || k === "maxFpsJpg") {
                             display = formatFpsValue(v);
                           }

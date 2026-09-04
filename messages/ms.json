@@ -678,6 +678,8 @@
         "selectSupportLevel": "Pilih tahap sokongan",
         "isoMinNative": "ISO Min (asal)",
         "isoMaxNative": "ISO Maks (asal)",
+        "isoMinExpanded": "ISO Min (Diperluas)",
+        "isoMaxExpanded": "ISO Maks (Diperluas)",
         "selectDisplayType": "Pilih jenis paparan",
         "rearDisplayResolutionPlaceholder": "cth. 1.62",
         "inchesPlaceholder": "cth. 3.2",
@@ -828,6 +830,9 @@
             },
             "isoRange": {
               "label": "Julat ISO"
+            },
+            "isoExpandedRange": {
+              "label": "Julat ISO Diperluas"
             },
             "maxFpsByShutter": {
               "label": "FPS berterusan maksimum"

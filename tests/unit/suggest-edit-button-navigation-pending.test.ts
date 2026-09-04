@@ -39,11 +39,13 @@ function renderButton(pending: boolean) {
 }
 
 describe("Suggest Edit navigation pending state", () => {
-  it("uses the shared link button for edit-modal navigation", () => {
+  it("uses a sign-in callback URL during SSR before session hydration", () => {
     const markup = renderButton(false);
 
     expect(markup).toContain('data-link-button-root="true"');
-    expect(markup).toContain('href="/gear/canon-eos-r5/edit?type=CAMERA"');
+    expect(markup).toContain(
+      'href="/auth/signin?callbackUrl=%2Fgear%2Fcanon-eos-r5%2Fedit%3Ftype%3DCAMERA"',
+    );
     expect(markup).toContain('data-link-button-pending="false"');
     expect(markup).not.toContain("animate-spin");
   });

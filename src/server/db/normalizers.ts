@@ -379,6 +379,20 @@ export function normalizeProposalPayloadForDb(
           return num === null ? undefined : Math.trunc(num);
         }, z.number().int().nullable().optional())
         .optional(),
+      isoMinExpanded: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().nullable().optional())
+        .optional(),
+      isoMaxExpanded: z
+        .preprocess((value) => {
+          if (value === null) return null;
+          const num = coerceNumber(value);
+          return num === null ? undefined : Math.trunc(num);
+        }, z.number().int().nullable().optional())
+        .optional(),
       // enum-backed string with membership check
       sensorStackingType: z
         .preprocess((value) => {
