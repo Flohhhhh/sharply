@@ -271,6 +271,28 @@ describe("search service high-impact behavior", () => {
     );
   });
 
+  it("forwards tag filters without enabling unrelated joins", async () => {
+    await searchGear({
+      query: undefined,
+      sort: "newest",
+      page: 1,
+      pageSize: 10,
+      filters: { tags: ["wildlife", "travel"] },
+    });
+
+    expect(searchDataMocks.buildSearchFilterClause).toHaveBeenCalledWith({
+      tags: ["wildlife", "travel"],
+    });
+    expect(searchDataMocks.querySearchRows).toHaveBeenCalledWith(
+      expect.objectContaining({
+        includeMounts: false,
+        includeSensorFormats: false,
+        includeLensSpecs: false,
+        includeAnalogSpecs: false,
+      }),
+    );
+  });
+
   it("returns no suggestions for very short queries", async () => {
     const suggestions = await getSuggestions("a");
 

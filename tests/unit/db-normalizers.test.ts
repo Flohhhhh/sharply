@@ -128,6 +128,66 @@ describe("normalizeProposalPayloadForDb", () => {
     ).toEqual({});
   });
 
+  it("normalizes expanded camera ISO values as truncated integers", () => {
+    expect(
+      normalizeProposalPayloadForDb({
+        camera: {
+          isoMinExpanded: "50.9",
+          isoMaxExpanded: 204800.9,
+        },
+      }),
+    ).toEqual({
+      camera: {
+        isoMinExpanded: 50,
+        isoMaxExpanded: 204800,
+      },
+    });
+  });
+
+  it("preserves expanded ISO clearing and drops invalid values", () => {
+    expect(
+      normalizeProposalPayloadForDb({
+        camera: {
+          isoMinExpanded: null,
+          isoMaxExpanded: "unknown",
+        },
+      }),
+    ).toEqual({ camera: { isoMinExpanded: null } });
+  });
+
+  it("sorts and deduplicates an unrestricted base ISO array", () => {
+    expect(
+      normalizeProposalPayloadForDb({
+        camera: { baseIso: [12800, 800, 4000, 800, 25600] },
+      }),
+    ).toEqual({ camera: { baseIso: [800, 4000, 12800, 25600] } });
+  });
+
+  it("preserves explicit base ISO clearing", () => {
+    expect(
+      normalizeProposalPayloadForDb({ camera: { baseIso: null } }),
+    ).toEqual({ camera: { baseIso: null } });
+  });
+
+  it("normalizes an empty base ISO array to null", () => {
+    expect(
+      normalizeProposalPayloadForDb({ camera: { baseIso: [] } }),
+    ).toEqual({ camera: { baseIso: null } });
+  });
+
+  it.each([
+    [[800, 0]],
+    [[800, -4000]],
+    [[800, 4000.5]],
+    [[800, 2_147_483_648]],
+    [[800, "4000"]],
+    ["800,4000"],
+  ])("rejects invalid base ISO input %o", (baseIso) => {
+    expect(() =>
+      normalizeProposalPayloadForDb({ camera: { baseIso } }),
+    ).toThrow();
+  });
+
   it("preserves analog max continuous fps decimals", () => {
     expect(
       normalizeProposalPayloadForDb({

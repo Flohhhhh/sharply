@@ -125,6 +125,110 @@ describe("spec registry i18n", () => {
     expect(discontinuedRow?.value).toBe("June 2024");
   });
 
+  it("formats translated full and partial expanded ISO ranges and hides empty values", () => {
+    const translated = createTranslator({
+      "specRegistry.sections.camera-sensor-shutter.fields.isoExpandedRange.label":
+        "Erweiterter ISO-Bereich",
+    });
+
+    const fullSections = buildGearSpecsSections(
+      createGearItem({
+        cameraSpecs: {
+          isoMinExpanded: 50,
+          isoMaxExpanded: 204800,
+        } as GearItem["cameraSpecs"],
+      }),
+      { locale: "de", t: translated },
+    );
+    const fullRow = fullSections
+      .find((section) => section.id === "camera-sensor-shutter")
+      ?.data.find((row) => row.key === "isoExpandedRange");
+
+    expect(fullRow).toMatchObject({
+      label: "Erweiterter ISO-Bereich",
+      value: "ISO 50 - 204.800",
+    });
+
+    for (const [field, expected] of [
+      ["isoMinExpanded", "ISO 50+"],
+      ["isoMaxExpanded", "ISO ≤ 204,800"],
+    ] as const) {
+      const value = field === "isoMinExpanded" ? 50 : 204800;
+      const partialSections = buildGearSpecsSections(
+        createGearItem({
+          cameraSpecs: { [field]: value } as unknown as GearItem["cameraSpecs"],
+        }),
+        { locale: "en" },
+      );
+      const partialRow = partialSections
+        .find((section) => section.id === "camera-sensor-shutter")
+        ?.data.find((row) => row.key === "isoExpandedRange");
+
+      expect(partialRow?.value).toBe(expected);
+    }
+
+    const emptySections = buildGearSpecsSections(
+      createGearItem({
+        cameraSpecs: {
+          isoMinExpanded: null,
+          isoMaxExpanded: null,
+        } as GearItem["cameraSpecs"],
+      }),
+    );
+
+    expect(
+      emptySections
+        .flatMap((section) => section.data)
+        .some((row) => row.key === "isoExpandedRange"),
+    ).toBe(false);
+
+    const fallbackSections = buildGearSpecsSections(
+      createGearItem({
+        cameraSpecs: { isoMinExpanded: 50 } as GearItem["cameraSpecs"],
+      }),
+      { locale: "fr", t: createTranslator({}) },
+    );
+    expect(
+      fallbackSections
+        .find((section) => section.id === "camera-sensor-shutter")
+        ?.data.find((row) => row.key === "isoExpandedRange")?.label,
+    ).toBe("Expanded ISO Range");
+  });
+
+  it("formats sorted base ISO values with localized separators and hides empty values", () => {
+    const sections = buildGearSpecsSections(
+      createGearItem({
+        cameraSpecs: { baseIso: [12800, 800, 4000] } as GearItem["cameraSpecs"],
+      }),
+      {
+        locale: "de",
+        t: createTranslator({
+          "specRegistry.sections.camera-sensor-shutter.fields.baseIso.label":
+            "Basis-ISO",
+        }),
+      },
+    );
+    const row = sections
+      .find((section) => section.id === "camera-sensor-shutter")
+      ?.data.find((entry) => entry.key === "baseIso");
+
+    expect(row).toMatchObject({
+      label: "Basis-ISO",
+      value: "800 / 4.000 / 12.800",
+    });
+
+    const empty = buildGearSpecsSections(
+      createGearItem({
+        cameraSpecs: { baseIso: [] } as unknown as GearItem["cameraSpecs"],
+      }),
+    );
+    expect(
+      empty
+        .flatMap((section) => section.data)
+        .some((entry) => entry.key === "baseIso"),
+    ).toBe(false);
+  });
+
   it("uses the plural mount translation key when a lens has multiple mounts", () => {
     const [firstMount, secondMount] = MOUNTS;
     const translator = createTranslator({
@@ -257,6 +361,29 @@ describe("spec registry i18n", () => {
       label: "Viewfinder Type",
       value: "None",
     });
+  });
+
+  it("formats hybrid and other digital viewfinder types", () => {
+    for (const [viewfinderType, expectedValue] of [
+      ["hybrid", "Hybrid"],
+      ["other", "Other"],
+    ] as const) {
+      const sections = buildGearSpecsSections(
+        createGearItem({
+          gearType: "CAMERA",
+          cameraSpecs: {
+            viewfinderType,
+          } as GearItem["cameraSpecs"],
+        }),
+      );
+      const cameraHardwareSection = sections.find(
+        (section) => section.id === "camera-hardware",
+      );
+
+      expect(
+        cameraHardwareSection?.data.find((row) => row.key === "viewfinderType"),
+      ).toMatchObject({ value: expectedValue });
+    }
   });
 
   it("formats digital and analog viewfinder eye point measurements", () => {

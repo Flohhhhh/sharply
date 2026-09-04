@@ -23,6 +23,10 @@ import { translateGearDetailWithFallback } from "~/lib/i18n/gear-detail";
 import { buildEditSidebarSections } from "~/lib/specs/registry";
 import type { CameraSpecs, GearItem } from "~/types/gear";
 import { EditGearForm } from "./edit-gear-form";
+import {
+  handleGearEditSubmissionSuccess,
+  type GearEditSubmissionSuccess,
+} from "./edit-gear-navigation";
 
 interface Props {
   canToggleAutoSubmit?: boolean;
@@ -48,13 +52,18 @@ export default function EditGearClient({
     Boolean(initialShowMissingOnly),
   );
   const [isDirty, setIsDirty] = useState(false);
-  const { cancelLeave, confirmLeave, isConfirmOpen, requestLeave } =
-    useUnsavedChangesGuard({
-      interceptHistory: true,
-      interceptLinks: true,
-      isDirty,
-      navigate: (href) => router.push(href),
-    });
+  const {
+    cancelLeave,
+    confirmLeave,
+    isConfirmOpen,
+    navigateAfterHistoryTrap,
+    requestLeave,
+  } = useUnsavedChangesGuard({
+    interceptHistory: true,
+    interceptLinks: true,
+    isDirty,
+    navigate: (href) => router.push(href),
+  });
 
   const navigateToGear = useCallback(() => {
     router.replace(localizePathname(`/gear/${gearSlug}`, locale as Locale));
@@ -65,6 +74,20 @@ export default function EditGearClient({
       requestLeave(navigateToGear, opts);
     },
     [navigateToGear, requestLeave],
+  );
+
+  const handleSubmitSuccess = useCallback(
+    (result: GearEditSubmissionSuccess) => {
+      handleGearEditSubmissionSuccess({
+        result,
+        closeToGear: () => navigateAfterHistoryTrap(navigateToGear),
+        navigateToSuccess: (href) =>
+          navigateAfterHistoryTrap(() =>
+            router.replace(localizePathname(href, locale as Locale)),
+          ),
+      });
+    },
+    [locale, navigateAfterHistoryTrap, navigateToGear, router],
   );
 
   // Helpers to check if a field is filled (supports aggregated registry values)
@@ -180,6 +203,8 @@ export default function EditGearClient({
     const sectionId = sectionAnchor;
     const candidates: string[] = (() => {
       if (fieldKey === "isoRange") return [targetId, "isoMin", "isoMax"];
+      if (fieldKey === "isoExpandedRange")
+        return ["isoMinExpanded", "isoMaxExpanded", targetId];
       if (fieldKey === "dimensions")
         return [targetId, "widthMm", "heightMm", "depthMm"];
       if (fieldKey === "sensorType")
@@ -392,6 +417,7 @@ export default function EditGearClient({
               showMissingOnly={showMissingOnly}
               onDirtyChange={setIsDirty}
               onRequestClose={requestClose}
+              onSubmitSuccess={handleSubmitSuccess}
               onFormDataChange={(d) => setLiveItem(d as unknown as GearItem)}
             />
           </div>

@@ -28,6 +28,7 @@ export type SearchFilters = {
   hasIbis?: boolean;
   hasWeatherSealing?: boolean;
   analogCameraType?: string;
+  tags?: string[];
 };
 
 export type SearchParams = {

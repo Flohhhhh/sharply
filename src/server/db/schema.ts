@@ -259,6 +259,8 @@ export const viewfinderTypesEnum = pgEnum("viewfinder_types_enum", [
   "none",
   "optical",
   "electronic",
+  "hybrid",
+  "other",
 ]);
 
 // Rear display articulation types
@@ -869,6 +871,9 @@ export const cameraSpecs = appSchema.table(
     isBackSideIlluminated: boolean("is_back_side_illuminated"),
     isoMin: integer("iso_min"),
     isoMax: integer("iso_max"),
+    isoMinExpanded: integer("iso_min_expanded"),
+    isoMaxExpanded: integer("iso_max_expanded"),
+    baseIso: integer("base_iso").array(),
     sensorReadoutSpeedMs: decimal("sensor_readout_speed_ms", {
       precision: 4,
       scale: 1,

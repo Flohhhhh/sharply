@@ -69,6 +69,13 @@ Gotchas encoded in the pipeline — don't reorder it:
   aggregates ("exactly 12 gear items") or assume another spec hasn't
   run. Assert on what you created or what the seed deterministically
   contains.
+- History-sensitive modal specs must establish a known predecessor route before
+  loading the target page; a fresh Playwright page starts at `about:blank`.
+  Assert that known route after history-based dismissal instead of assuming the
+  target page received its own browser-history entry. Wait for the specific
+  auth-dependent control to become visible and enabled instead of using
+  `networkidle`: recurring background requests make global network idle an
+  unreliable readiness signal in both development and production builds.
 - Auth: hit `/api/dev-login` (see `tests/playwright/basic/routing-auth.spec.ts`);
   the dev user self-provisions. The default local flow (`npm run test:e2e`
   against `dev:e2e`) needs nothing in your `.env` — `dev:e2e` sets

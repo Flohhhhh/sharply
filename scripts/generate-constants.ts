@@ -1,7 +1,7 @@
 import { config } from "dotenv";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { writeFileSync } from "fs";
-import { dirname,join } from "path";
+import { dirname, join } from "path";
 import postgres from "postgres";
 import { fileURLToPath } from "url";
 

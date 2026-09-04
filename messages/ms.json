@@ -104,6 +104,11 @@
     "anySensor": "Mana-mana sensor",
     "brand": "Jenama",
     "anyBrand": "Mana-mana jenama",
+    "tags": "Tag",
+    "selectTags": "Pilih tag",
+    "searchTags": "Cari tag",
+    "noTagsFound": "Tiada tag ditemui",
+    "removeTag": "Alih keluar {name}",
     "priceRange": "Julat harga",
     "noMax": "Tiada maks",
     "clearAll": "Kosongkan semua",
@@ -596,7 +601,8 @@
         },
         "viewfinderType": {
           "optical": "OVF (optik)",
-          "electronic": "EVF (elektronik)"
+          "electronic": "EVF (elektronik)",
+          "hybrid": "Hibrid"
         }
       },
       "apertureProfile": {
@@ -672,6 +678,12 @@
         "selectSupportLevel": "Pilih tahap sokongan",
         "isoMinNative": "ISO Min (asal)",
         "isoMaxNative": "ISO Maks (asal)",
+        "isoMinExpanded": "ISO Min (Diperluas)",
+        "isoMaxExpanded": "ISO Maks (Diperluas)",
+        "addBaseIso": "Tambah ISO asas",
+        "removeBaseIso": "Buang ISO asas",
+        "baseIsoHelp": "Tambah sehingga 3 nilai ISO asas natif.",
+        "baseIsoInvalid": "Masukkan nombor bulat positif.",
         "selectDisplayType": "Pilih jenis paparan",
         "rearDisplayResolutionPlaceholder": "cth. 1.62",
         "inchesPlaceholder": "cth. 3.2",
@@ -822,6 +834,12 @@
             },
             "isoRange": {
               "label": "Julat ISO"
+            },
+            "isoExpandedRange": {
+              "label": "Julat ISO Diperluas"
+            },
+            "baseIso": {
+              "label": "ISO asas"
             },
             "maxFpsByShutter": {
               "label": "FPS berterusan maksimum"
@@ -1304,7 +1322,8 @@
         "other": "Lain-lain",
         "notSpecified": "Tidak dinyatakan",
         "ovf": "OVF",
-        "evf": "EVF"
+        "evf": "EVF",
+        "hybrid": "Hibrid"
       }
     },
     "publicationStateLabel": "Status penerbitan",

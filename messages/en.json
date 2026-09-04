@@ -104,6 +104,11 @@
     "anySensor": "Any sensor",
     "brand": "Brand",
     "anyBrand": "Any brand",
+    "tags": "Tags",
+    "selectTags": "Select tags",
+    "searchTags": "Search tags",
+    "noTagsFound": "No tags found",
+    "removeTag": "Remove {name}",
     "priceRange": "Price range",
     "noMax": "No max",
     "clearAll": "Clear all",
@@ -596,7 +601,8 @@
         },
         "viewfinderType": {
           "optical": "OVF (Optical)",
-          "electronic": "EVF (Electronic)"
+          "electronic": "EVF (Electronic)",
+          "hybrid": "Hybrid"
         }
       },
       "apertureProfile": {
@@ -672,6 +678,12 @@
         "selectSupportLevel": "Select support level",
         "isoMinNative": "ISO Min (Native)",
         "isoMaxNative": "ISO Max (Native)",
+        "isoMinExpanded": "ISO Min (Expanded)",
+        "isoMaxExpanded": "ISO Max (Expanded)",
+        "addBaseIso": "Add base ISO",
+        "removeBaseIso": "Remove base ISO",
+        "baseIsoHelp": "Add up to 3 native base ISO values.",
+        "baseIsoInvalid": "Enter a positive whole number.",
         "selectDisplayType": "Select display type",
         "rearDisplayResolutionPlaceholder": "e.g., 1.62",
         "inchesPlaceholder": "e.g., 3.2",
@@ -822,6 +834,12 @@
             },
             "isoRange": {
               "label": "ISO Range"
+            },
+            "isoExpandedRange": {
+              "label": "Expanded ISO Range"
+            },
+            "baseIso": {
+              "label": "Base ISO"
             },
             "maxFpsByShutter": {
               "label": "Max Continuous FPS"
@@ -1304,7 +1322,8 @@
         "other": "Other",
         "notSpecified": "Not specified",
         "ovf": "OVF",
-        "evf": "EVF"
+        "evf": "EVF",
+        "hybrid": "Hybrid"
       }
     },
     "publicationStateLabel": "Publication State",

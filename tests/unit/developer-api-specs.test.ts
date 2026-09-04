@@ -38,6 +38,7 @@ describe("developer API spec registry", () => {
     expect(sensor?.fields).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: "camera.sensor.isoRange" }),
+        expect.objectContaining({ id: "camera.sensor.isoExpandedRange" }),
       ]),
     );
     expect(
@@ -105,7 +106,29 @@ describe("developer API spec registry", () => {
     expect(value).toEqual({
       id: "camera.sensor.isoRange",
       raw: { min: 100, max: 51200 },
-      display: "ISO 100 - 51200",
+      display: "ISO 100 - 51,200",
+    });
+  });
+
+  it("exposes expanded ISO bounds as structured selected-spec data", () => {
+    const field = getDeveloperApiSpecFields().find(
+      (definition) =>
+        definition.field.api.id === "camera.sensor.isoExpandedRange",
+    );
+    const value = getDeveloperApiSpecValue(
+      createGearItem({
+        cameraSpecs: {
+          isoMinExpanded: 50,
+          isoMaxExpanded: 204800,
+        } as GearItem["cameraSpecs"],
+      }),
+      field!,
+    );
+
+    expect(value).toEqual({
+      id: "camera.sensor.isoExpandedRange",
+      raw: { min: 50, max: 204800 },
+      display: "ISO 50 - 204,800",
     });
   });
 

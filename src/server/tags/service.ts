@@ -1,5 +1,6 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import { z } from "zod";
 import { requireRole } from "~/lib/auth/auth-helpers";
@@ -12,6 +13,7 @@ import {
   fetchAdminTagsData,
   fetchGearByTagIdData,
   fetchPublicTagBySlugData,
+  fetchPublicTagOptionsData,
   fetchPublicTagsData,
   fetchPublishedGearByTagIdData,
   fetchTagByIdData,
@@ -25,6 +27,7 @@ import {
   updateTagData,
 } from "./data";
 import type { EditorTagRow, TagRow } from "./data";
+import { PUBLIC_TAG_OPTIONS_CACHE_TAG } from "./constants";
 
 export type {
   AdminTagRow,
@@ -32,7 +35,14 @@ export type {
   TagGearRow,
   TagRow,
   PublicTagRow,
+  PublicTagOption,
 } from "./data";
+
+const fetchCachedPublicTagOptions = unstable_cache(
+  fetchPublicTagOptionsData,
+  ["public-tag-options"],
+  { revalidate: false, tags: [PUBLIC_TAG_OPTIONS_CACHE_TAG] },
+);
 
 const createTagSchema = z.object({
   name: z.string().trim().min(1).max(120),
@@ -43,7 +53,8 @@ const createTagSchema = z.object({
       /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
       "Slug must use lowercase letters, numbers, and hyphens.",
     )
-    .max(140),
+    .max(140)
+    .refine((slug) => slug !== "none", 'The slug "none" is reserved.'),
   description: z.string().trim().max(500).optional().or(z.literal("")),
   icon: z.string().trim().max(100).optional().or(z.literal("")),
   pageTitle: z.string().trim().max(240).optional().or(z.literal("")),
@@ -182,6 +193,10 @@ export async function deleteTag(id: string) {
 
 export async function fetchPublicTagDictionary() {
   return fetchPublicTagsData();
+}
+
+export async function fetchPublicTagOptions() {
+  return fetchCachedPublicTagOptions();
 }
 
 export async function fetchTagSitemapEntries() {

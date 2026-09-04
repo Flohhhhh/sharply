@@ -124,7 +124,7 @@ Stores detailed camera-specific specifications:
 
 - **Primary Key**: `gearId` (1:1 relationship with gear)
 - **Sensor**: Format reference, resolution in megapixels
-- **Performance**: ISO range (min/max), IBIS (in-body stabilization), available shutter types, viewfinder type
+- **Performance**: native ISO range (`isoMin`/`isoMax`), optional expanded ISO bounds (`isoMinExpanded`/`isoMaxExpanded`, stored as `iso_min_expanded`/`iso_max_expanded`), and native base ISO values (`baseIso`, stored as the nullable, unrestricted `base_iso` integer array), plus IBIS, available shutter types, and viewfinder type. Base ISO values are positive integers stored uniquely in ascending order and displayed with ` / ` separators. The editor currently caps entry at three values; expanded and base ISO values do not affect native ISO search filters.
 - **Focus**: `hasAutofocus` is nullable so unknown capability is distinct from a confirmed absence. When it is explicitly `false`, autofocus-specific detail rows (focus points, AF area modes, AF subject categories, and focus bracketing) are hidden; stored values are retained for a future correction. The edit form keeps those controls visible but disabled unless autofocus is explicitly `true`, while the edit sidebar hides them when autofocus is `false`.
 - **Burst rate**:
   - `max_fps_by_shutter` (JSONB, nullable) stores per-shutter continuous FPS for RAW/JPG. Keys: `mechanical`, `efc`, `electronic` with `{ raw, jpg }` numeric values.
@@ -134,7 +134,7 @@ Stores detailed camera-specific specifications:
   - `1`: Yes (RAW)
   - `2`: Yes (JPEG only)
 - **Displays**: rear display type (none, fixed, single_axis_tilt, dual_axis_tilt, fully_articulated, four_axis_tilt_flip, other), rear display size (inches), rear display resolution (million dots), has top display, has rear touchscreen
-- **Viewfinder**: type (none/optical/electronic), magnification (x), eye point (millimeters), resolution (million dots). Eye point is nullable and only applies when the viewfinder type is known and not `none`.
+- **Viewfinder**: type (none/optical/electronic/hybrid/other), magnification (x), eye point (millimeters), resolution (million dots). Eye point is nullable and only applies when the viewfinder type is known and not `none`. Resolution applies only to electronic viewfinders.
 - **Video**: `hasVideo` is nullable to distinguish unknown support from confirmed availability or absence. Editors can change the dependent video capabilities and mode matrix only when it is `true`; `null` keeps legacy stored video details visible publicly, while `false` hides all dependent video details without deleting them. The mode matrix (`camera_video_modes`) and dependent capability flags cover log profile, 10-bit, 12-bit, open gate, external recording, and recording to a drive.
 - **Misc**: capture convenience and body feature flags such as built-in flash, hot shoe, illuminated buttons, intervalometer, self timer, and USB file transfer
 - **Flexibility**: JSONB extra field for additional specs

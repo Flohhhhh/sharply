@@ -2,7 +2,9 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { getMountIdFromSlug } from "~/lib/mapping/mounts-map";
 import { normalizeSearchGearTypeForApi } from "~/lib/search/gear-type-param";
+import { normalizeTagSlugs } from "~/lib/tags/normalize-tag-slugs";
 import { searchGear, type SearchFilters } from "~/server/search/service";
+import { fetchPublicTagOptions } from "~/server/tags/service";
 
 function parsePriceParam(value: string | null) {
   if (value === null) return undefined;
@@ -47,9 +49,7 @@ export async function GET(request: NextRequest) {
   const mount = searchParams.get("mount")
     ? getMountIdFromSlug(searchParams.get("mount")!)
     : null;
-  const gearType = normalizeSearchGearTypeForApi(
-    searchParams.get("gearType"),
-  );
+  const gearType = normalizeSearchGearTypeForApi(searchParams.get("gearType"));
   const sensorFormat = searchParams.get("sensorFormat");
   const lensType = searchParams.get("lensType");
   const analogCameraType = searchParams.get("analogCameraType");
@@ -81,6 +81,7 @@ export async function GET(request: NextRequest) {
   const hasStabilization = searchParams.get("hasStabilization") === "true";
   const hasIbis = searchParams.get("hasIbis") === "true";
   const hasWeatherSealing = searchParams.get("hasWeatherSealing") === "true";
+  const requestedTagSlugs = searchParams.getAll("tag");
 
   if (brand) filters.brand = brand;
   if (mount) filters.mount = mount;
@@ -104,6 +105,14 @@ export async function GET(request: NextRequest) {
   if (priceMin !== undefined) filters.priceMin = priceMin;
   if (priceMax !== undefined) filters.priceMax = priceMax;
   try {
+    if (requestedTagSlugs.length > 0) {
+      const tagSlugs = normalizeTagSlugs(
+        requestedTagSlugs,
+        await fetchPublicTagOptions(),
+      );
+      if (tagSlugs.length > 0) filters.tags = tagSlugs;
+    }
+
     const result = await searchGear({
       query: query ?? undefined,
       sort: sort as "relevance" | "name" | "newest",

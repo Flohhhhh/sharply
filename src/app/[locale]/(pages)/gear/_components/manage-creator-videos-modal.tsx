@@ -100,6 +100,7 @@ export function ManageCreatorVideosModal({
 }: ManageCreatorVideosModalProps) {
   const locale = useLocale();
   const { data, isPending: isSessionPending, error } = useSession();
+  const [hasMounted, setHasMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -116,6 +117,10 @@ export function ManageCreatorVideosModal({
   const [isResolving, setIsResolving] = useState(false);
   const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({});
   const [isMutating, startTransition] = useTransition();
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   const canManage = useMemo(() => {
     if (!data?.user) return false;
@@ -183,7 +188,7 @@ export function ManageCreatorVideosModal({
     resetResolvedVideoState();
   }, [selectedCreatorId, videoUrl]);
 
-  if (!data || isSessionPending || error || !canManage) {
+  if (!hasMounted || !data || isSessionPending || error || !canManage) {
     return null;
   }
 

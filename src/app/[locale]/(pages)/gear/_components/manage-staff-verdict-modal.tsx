@@ -55,6 +55,7 @@ export function ManageStaffVerdictModal({
   trigger?: ReactNode;
 }) {
   const { data, isPending, error } = useSession();
+  const [hasMounted, setHasMounted] = useState(false);
 
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -77,6 +78,10 @@ export function ManageStaffVerdictModal({
       alternatives: "",
     },
   });
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -142,7 +147,7 @@ export function ManageStaffVerdictModal({
     };
   }, [open, slug, form]);
 
-  if (!data || isPending || error) return null;
+  if (!hasMounted || !data || isPending || error) return null;
 
   const session = data.session;
   const user = data.user;

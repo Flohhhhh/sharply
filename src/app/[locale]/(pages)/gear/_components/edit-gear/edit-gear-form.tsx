@@ -3,7 +3,6 @@
 import { track } from "@vercel/analytics";
 import { Crop } from "lucide-react";
 import { useLocale, useTranslations, type TranslationValues } from "next-intl";
-import { useRouter } from "next/navigation";
 import React, { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { NotesFields } from "~/app/[locale]/(pages)/gear/_components/edit-gear/fields-notes";
@@ -22,6 +21,7 @@ import {
   formatDateWithPrecision,
   getPairedDatePrecision,
 } from "~/lib/format/date";
+import { formatBaseIsoValues, formatIsoValue } from "~/lib/format/iso";
 import { MOUNTS } from "~/lib/generated";
 import {
   getSpecFieldLabel,
@@ -38,8 +38,6 @@ import { sensorNameFromSlug } from "~/lib/mapping/sensor-map";
 import { humanizeKey } from "~/lib/utils";
 import { normalizeApertureProfile } from "~/lib/lens-aperture-profile";
 import { normalizeViewfinderEyePointUpdate } from "~/lib/specs/viewfinder";
-import type { Locale } from "~/i18n/config";
-import { localizePathname } from "~/i18n/routing";
 import {
   normalizeVideoModes,
   type VideoModeInput,
@@ -56,6 +54,8 @@ import { CoreFields } from "./fields-core";
 import { FixedLensFields } from "./fields-fixed-lens";
 import { LensFields } from "./fields-lenses";
 import { formatBooleanText } from "./edit-gear-formatters";
+import type { GearEditSubmissionSuccess } from "./edit-gear-navigation";
+import { diffRecordByKeys } from "./edit-gear-diff";
 
 const SHUTTER_LABELS: Record<string, string> = {
   mechanical: "Mechanical",
@@ -163,6 +163,7 @@ interface EditGearFormProps {
   onAutoSubmitChange?: (autoSubmit: boolean) => void;
   onDirtyChange?: (dirty: boolean) => void;
   onRequestClose?: (opts?: { force?: boolean }) => void;
+  onSubmitSuccess: (result: GearEditSubmissionSuccess) => void;
   onSubmittingChange?: (submitting: boolean) => void;
   showActions?: boolean;
   formId?: string;
@@ -234,6 +235,7 @@ function EditGearForm({
   onAutoSubmitChange,
   onDirtyChange,
   onRequestClose,
+  onSubmitSuccess,
   onSubmittingChange,
   showActions = true,
   formId,
@@ -248,14 +250,15 @@ function EditGearForm({
     yes: tf("specRegistry.shared.yes", "Yes"),
     no: tf("specRegistry.shared.no", "No"),
   };
-  const router = useRouter();
   const [internalAutoSubmit, setInternalAutoSubmit] = useState(
     getInitialAutoSubmitValue(autoSubmit),
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [isDirty, setIsDirty] = useState(false);
   const [formData, setFormData] = useState<GearItem>(() =>
+    normalizeGearViewfinderEyePoints(gearData),
+  );
+  const [comparisonBaseline, setComparisonBaseline] = useState<GearItem>(() =>
     normalizeGearViewfinderEyePoints(gearData),
   );
   const [diffPreview, setDiffPreview] = useState<DiffPayload | null>(null);
@@ -282,10 +285,10 @@ function EditGearForm({
   }, [formData, onFormDataChange]);
 
   React.useEffect(() => {
-    if (!isDirty) {
-      setFormData(normalizeGearViewfinderEyePoints(gearData));
-    }
-  }, [gearData, isDirty]);
+    const normalizedGearData = normalizeGearViewfinderEyePoints(gearData);
+    setFormData(normalizedGearData);
+    setComparisonBaseline(normalizedGearData);
+  }, [gearData]);
 
   React.useEffect(() => {
     onAutoSubmitChange?.(effectiveAutoSubmit);
@@ -407,6 +410,9 @@ function EditGearForm({
     maxRawBitDepth: "camera-sensor-shutter",
     isoMin: "camera-sensor-shutter",
     isoMax: "camera-sensor-shutter",
+    isoMinExpanded: "camera-sensor-shutter",
+    isoMaxExpanded: "camera-sensor-shutter",
+    baseIso: "camera-sensor-shutter",
     hasIbis: "camera-sensor-shutter",
     hasElectronicVibrationReduction: "camera-sensor-shutter",
     cipaStabilizationRatingStops: "camera-sensor-shutter",
@@ -460,6 +466,37 @@ function EditGearForm({
 
   const getCameraDiffLabel = useCallback(
     (key: string) => {
+      if (key === "isoMin") {
+        return translateGearDetailWithFallback(
+          t,
+          "editGear.fields.isoMinNative",
+          "ISO Min (Native)",
+        );
+      }
+      if (key === "isoMax") {
+        return translateGearDetailWithFallback(
+          t,
+          "editGear.fields.isoMaxNative",
+          "ISO Max (Native)",
+        );
+      }
+      if (key === "isoMinExpanded") {
+        return translateGearDetailWithFallback(
+          t,
+          "editGear.fields.isoMinExpanded",
+          "ISO Min (Expanded)",
+        );
+      }
+      if (key === "isoMaxExpanded") {
+        return translateGearDetailWithFallback(
+          t,
+          "editGear.fields.isoMaxExpanded",
+          "ISO Max (Expanded)",
+        );
+      }
+      if (key === "baseIso") {
+        return getSpecFieldLabel(t, "camera-sensor-shutter", key, "Base ISO");
+      }
       const sectionId = cameraFieldSectionMap[key];
       if (sectionId) {
         return getSpecFieldLabel(t, sectionId, key, humanizeKey(key));
@@ -579,74 +616,9 @@ function EditGearForm({
             }) as typeof formData,
         );
       }
-      // Mark form dirty on any change
-      setIsDirty(true);
-      onDirtyChange?.(true);
     },
     [],
   );
-
-  // Helpers to compute diff-only payloads we can show and submit
-  const equalish = (a: unknown, b: unknown): boolean => {
-    if (Object.is(a, b)) return true;
-    if (a == null && b == null) return true;
-    if (a == null || b == null) return false;
-
-    // Arrays: shallow, order-sensitive equality for primitives
-    if (Array.isArray(a) && Array.isArray(b)) {
-      if (a.length !== b.length) return false;
-      for (let i = 0; i < a.length; i++) {
-        if (!Object.is(a[i], b[i])) return false;
-      }
-      return true;
-    }
-
-    const toMs = (v: unknown): number | null => {
-      if (v instanceof Date) return v.getTime();
-      if (typeof v === "string") {
-        const t = Date.parse(v);
-        return Number.isNaN(t) ? null : t;
-      }
-      return null;
-    };
-    const aMs = toMs(a);
-    const bMs = toMs(b);
-    if (aMs !== null && bMs !== null) return aMs === bMs;
-
-    const toNum = (v: unknown): number | null => {
-      if (typeof v === "number" && Number.isFinite(v)) return v;
-      if (
-        typeof v === "string" &&
-        v.trim() !== "" &&
-        !Number.isNaN(Number(v))
-      ) {
-        return Number(v);
-      }
-      return null;
-    };
-    const aNum = toNum(a);
-    const bNum = toNum(b);
-    if (aNum !== null && bNum !== null) return aNum === bNum;
-
-    return false;
-  };
-
-  const diffByKeys = (
-    original: Record<string, unknown>,
-    updated: Record<string, unknown>,
-    keys: readonly string[],
-  ): DiffSection => {
-    const out: DiffSection = {};
-    for (const key of keys) {
-      if (!(key in updated)) continue;
-      const nextVal = updated[key];
-      const prevVal = original[key];
-      if (!equalish(prevVal, nextVal)) {
-        out[key] = nextVal ?? null;
-      }
-    }
-    return out;
-  };
 
   const buildDiffPayload = (): DiffPayload => {
     const payload: DiffPayload = {};
@@ -675,10 +647,22 @@ function EditGearForm({
       "genres",
       "notes",
     ] as const;
-    const coreDiff = diffByKeys(
-      toRecord(gearData),
+    const coreDiff = diffRecordByKeys(
+      toRecord(comparisonBaseline),
       toRecord(formData),
       coreKeys,
+      {
+        numericKeys: [
+          "msrpNowUsdCents",
+          "msrpAtLaunchUsdCents",
+          "mpbMaxPriceUsdCents",
+          "weightGrams",
+          "widthMm",
+          "heightMm",
+          "depthMm",
+        ],
+        temporalKeys: ["announcedDate", "releaseDate", "discontinuedDate"],
+      },
     );
     if (Object.keys(coreDiff).length > 0) payload.core = coreDiff;
 
@@ -694,6 +678,9 @@ function EditGearForm({
         "maxRawBitDepth",
         "isoMin",
         "isoMax",
+        "isoMinExpanded",
+        "isoMaxExpanded",
+        "baseIso",
         "hasIbis",
         "hasElectronicVibrationReduction",
         "cipaStabilizationRatingStops",
@@ -745,11 +732,36 @@ function EditGearForm({
         "hasIlluminatedButtons",
         "hasUsbFileTransfer",
       ] as const;
-      const orig = toRecord(gearData.cameraSpecs);
-      const diffs = diffByKeys(
-        orig,
+      const diffs = diffRecordByKeys(
+        toRecord(comparisonBaseline.cameraSpecs),
         toRecord(formData.cameraSpecs),
         cameraKeys,
+        {
+          numericKeys: [
+            "resolutionMp",
+            "sensorReadoutSpeedMs",
+            "maxRawBitDepth",
+            "isoMin",
+            "isoMax",
+            "isoMinExpanded",
+            "isoMaxExpanded",
+            "cipaStabilizationRatingStops",
+            "shutterSpeedMax",
+            "shutterSpeedMin",
+            "rearDisplayResolutionMillionDots",
+            "rearDisplaySizeInches",
+            "viewfinderMagnification",
+            "viewfinderEyePointMm",
+            "viewfinderResolutionMillionDots",
+            "focusPoints",
+            "flashSyncSpeed",
+            "maxFpsRaw",
+            "maxFpsJpg",
+            "maxFpsByShutter",
+            "cipaBatteryShotsPerCharge",
+            "internalStorageGb",
+          ],
+        },
       );
       if (Object.keys(diffs).length > 0) payload.camera = diffs;
     }
@@ -787,11 +799,21 @@ function EditGearForm({
         "hasSelfTimer",
         "hasIntervalometer",
       ] as const;
-      const orig = toRecord(gearData.analogCameraSpecs);
-      const diffs = diffByKeys(
-        orig,
+      const diffs = diffRecordByKeys(
+        toRecord(comparisonBaseline.analogCameraSpecs),
         toRecord(formData.analogCameraSpecs),
         analogKeys,
+        {
+          numericKeys: [
+            "viewfinderEyePointMm",
+            "shutterSpeedMax",
+            "shutterSpeedMin",
+            "flashSyncSpeed",
+            "isoMin",
+            "isoMax",
+            "maxContinuousFps",
+          ],
+        },
       );
       if (Object.keys(diffs).length > 0) payload.analogCamera = diffs;
     }
@@ -860,8 +882,30 @@ function EditGearForm({
         adjustedLensSpecs.focalLengthMaxMm = maxVal;
       }
 
-      const orig = toRecord(gearData.lensSpecs);
-      const diffs = diffByKeys(orig, adjustedLensSpecs, lensKeys);
+      const orig = toRecord(comparisonBaseline.lensSpecs);
+      const diffs = diffRecordByKeys(orig, adjustedLensSpecs, lensKeys, {
+        numericKeys: [
+          "focalLengthMinMm",
+          "focalLengthMaxMm",
+          "maxApertureWide",
+          "maxApertureTele",
+          "minApertureWide",
+          "minApertureTele",
+          "magnification",
+          "minimumFocusDistanceMm",
+          "numberElements",
+          "numberElementGroups",
+          "numberDiaphragmBlades",
+          "frontFilterThreadSizeMm",
+          "rearFilterThreadSizeMm",
+          "dropInFilterSizeMm",
+          "numberCustomControlRings",
+          "numberFunctionButtons",
+          "cipaStabilizationRatingStops",
+          "tiltDegrees",
+          "shiftMm",
+        ],
+      });
       if (Object.keys(diffs).length > 0) payload.lens = diffs;
     }
 
@@ -882,11 +926,22 @@ function EditGearForm({
         "frontFilterThreadSizeMm",
         "hasLensHood",
       ] as const;
-      const orig = toRecord(gearData.fixedLensSpecs);
-      const diffs = diffByKeys(
-        orig,
+      const diffs = diffRecordByKeys(
+        toRecord(comparisonBaseline.fixedLensSpecs),
         toRecord(formData.fixedLensSpecs),
         fixedKeys,
+        {
+          numericKeys: [
+            "focalLengthMinMm",
+            "focalLengthMaxMm",
+            "maxApertureWide",
+            "maxApertureTele",
+            "minApertureWide",
+            "minApertureTele",
+            "minimumFocusDistanceMm",
+            "frontFilterThreadSizeMm",
+          ],
+        },
       );
       if (Object.keys(diffs).length > 0) payload.fixedLens = diffs;
     }
@@ -997,7 +1052,7 @@ function EditGearForm({
       return out;
     };
 
-    const prevSlots = normalizeSlots(gearData.cameraCardSlots);
+    const prevSlots = normalizeSlots(comparisonBaseline.cameraCardSlots);
     const nextSlots = normalizeSlots(formData.cameraCardSlots);
     const slotsChanged =
       JSON.stringify(prevSlots) !== JSON.stringify(nextSlots);
@@ -1005,7 +1060,9 @@ function EditGearForm({
       payload.cameraCardSlots = nextSlots;
     }
 
-    const prevVideoModes = normalizeVideoModesFromUnknown(gearData.videoModes);
+    const prevVideoModes = normalizeVideoModesFromUnknown(
+      comparisonBaseline.videoModes,
+    );
     const nextVideoModes = normalizeVideoModesFromUnknown(formData.videoModes);
     videoModesDiffRef.current = diffVideoModes(prevVideoModes, nextVideoModes);
     if (!videoModesEqual(prevVideoModes, nextVideoModes)) {
@@ -1013,6 +1070,13 @@ function EditGearForm({
     }
     return payload;
   };
+
+  const currentDiff = buildDiffPayload();
+  const hasCurrentChanges = Object.keys(currentDiff).length > 0;
+
+  React.useEffect(() => {
+    onDirtyChange?.(hasCurrentChanges);
+  }, [hasCurrentChanges, onDirtyChange]);
 
   const computePayloadStats = (payload: DiffPayload) => {
     const counts = {
@@ -1046,7 +1110,7 @@ function EditGearForm({
 
     // Build diff-only payload: include only changed fields, and include nulls
     // when a value is explicitly cleared.
-    const payload = buildDiffPayload();
+    const payload = currentDiff;
 
     // Guard: no changes
     if (Object.keys(payload).length === 0) {
@@ -1083,7 +1147,7 @@ function EditGearForm({
       })) as ProposalSubmitResult;
       console.timeEnd(`[EditGearForm] submit ${gearSlug}`);
       if (res?.ok) {
-        setIsDirty(false);
+        setComparisonBaseline(normalizeGearViewfinderEyePoints(formData));
         onDirtyChange?.(false);
         const createdId = res.proposal?.id;
         const autoApproved = Boolean(res.autoApproved);
@@ -1110,17 +1174,10 @@ function EditGearForm({
                 ),
           },
         );
-        if (autoApproved) {
-          if (onRequestClose) {
-            onRequestClose({ force: true });
-          } else {
-            router.replace(
-              localizePathname(`/gear/${gearSlug}`, locale as Locale),
-            );
-          }
-        } else {
-          router.replace(`/edit-success?id=${createdId ?? ""}`);
-        }
+        onSubmitSuccess({
+          autoApproved,
+          proposalId: createdId ?? undefined,
+        });
       } else {
         toast.error(
           tf("editGear.submitFailedTitle", "Failed to submit suggestion"),
@@ -1159,7 +1216,7 @@ function EditGearForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const preview = buildDiffPayload();
+    const preview = currentDiff;
     // Prevent opening confirmation when nothing actually changed
     if (Object.keys(preview).length === 0) {
       toast.info(tf("editGear.noChangesToastTitle", "No changes to submit"), {
@@ -1342,7 +1399,7 @@ function EditGearForm({
           </Button>
           <Button
             type="submit"
-            disabled={isSubmitting || !isDirty}
+            disabled={isSubmitting || !hasCurrentChanges}
             loading={isSubmitting}
           >
             {tf("editGear.continue", "Continue")}
@@ -1500,6 +1557,19 @@ function EditGearForm({
                           if (booleanDisplay) display = booleanDisplay;
                           if (k === "sensorFormatId")
                             display = sensorNameFromSlug(v as string);
+                          if (
+                            k === "isoMin" ||
+                            k === "isoMax" ||
+                            k === "isoMinExpanded" ||
+                            k === "isoMaxExpanded"
+                          ) {
+                            display =
+                              formatIsoValue(v, locale) ?? safeString(v);
+                          }
+                          if (k === "baseIso") {
+                            display =
+                              formatBaseIsoValues(v, locale) ?? safeString(v);
+                          }
                           if (k === "maxFpsRaw" || k === "maxFpsJpg") {
                             display = formatFpsValue(v);
                           }

@@ -212,6 +212,9 @@ describe("developer API serializers", () => {
           cropFactor: "1.00",
         },
         resolutionMp: "24.5",
+        isoMinExpanded: 50,
+        isoMaxExpanded: 204800,
+        baseIso: [800, 4000],
         hasAutofocus: true,
         hasVideo: true,
         maxFpsByShutter: { mechanical: { raw: 14, jpg: 14 } },
@@ -347,6 +350,9 @@ describe("developer API serializers", () => {
           cropFactor: "1.00",
         },
         resolutionMp: "24.5",
+        isoMinExpanded: 50,
+        isoMaxExpanded: 204800,
+        baseIso: [800, 4000],
         hasAutofocus: true,
         hasVideo: true,
         maxFpsByShutter: { mechanical: { raw: 14, jpg: 14 } },
@@ -487,7 +493,7 @@ describe("developer API serializers", () => {
         {
           id: "camera.sensor.isoRange",
           raw: { min: 100, max: 51200 },
-          display: "ISO 100 - 51200",
+          display: "ISO 100 - 51,200",
         },
       ]),
     ).toEqual({
@@ -495,7 +501,7 @@ describe("developer API serializers", () => {
         {
           id: "camera.sensor.isoRange",
           raw: { min: 100, max: 51200 },
-          display: "ISO 100 - 51200",
+          display: "ISO 100 - 51,200",
         },
       ],
     });

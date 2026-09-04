@@ -104,6 +104,11 @@
     "anySensor": "任何传感器",
     "brand": "品牌",
     "anyBrand": "任何品牌",
+    "tags": "标签",
+    "selectTags": "选择标签",
+    "searchTags": "搜索标签",
+    "noTagsFound": "未找到标签",
+    "removeTag": "移除 {name}",
     "priceRange": "价格范围",
     "noMax": "无最大值",
     "clearAll": "全部清除",
@@ -596,7 +601,8 @@
         },
         "viewfinderType": {
           "optical": "OVF（光学）",
-          "electronic": "EVF（电子）"
+          "electronic": "EVF（电子）",
+          "hybrid": "混合"
         }
       },
       "apertureProfile": {
@@ -672,6 +678,12 @@
         "selectSupportLevel": "选择支持级别",
         "isoMinNative": "ISO 最小值（原生）",
         "isoMaxNative": "ISO 最大（原始）",
+        "isoMinExpanded": "ISO 最小值（扩展）",
+        "isoMaxExpanded": "ISO 最大值（扩展）",
+        "addBaseIso": "添加基础 ISO",
+        "removeBaseIso": "移除基础 ISO",
+        "baseIsoHelp": "最多添加 3 个原生基础 ISO 值。",
+        "baseIsoInvalid": "请输入正整数。",
         "selectDisplayType": "选择显示类型",
         "rearDisplayResolutionPlaceholder": "例如，1.62",
         "inchesPlaceholder": "例如，3.2",
@@ -822,6 +834,12 @@
             },
             "isoRange": {
               "label": "ISO范围"
+            },
+            "isoExpandedRange": {
+              "label": "扩展 ISO 范围"
+            },
+            "baseIso": {
+              "label": "基础 ISO"
             },
             "maxFpsByShutter": {
               "label": "最大连续帧率"
@@ -1304,7 +1322,8 @@
         "other": "其他",
         "notSpecified": "未指定",
         "ovf": "OVF",
-        "evf": "电子取景器"
+        "evf": "电子取景器",
+        "hybrid": "混合"
       }
     },
     "publicationStateLabel": "发布状态",

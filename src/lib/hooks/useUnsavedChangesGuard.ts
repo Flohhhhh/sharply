@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect,useRef,useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const HISTORY_GUARD_KEY = "__sharplyUnsavedChangesGuard";
 
@@ -44,8 +44,8 @@ export interface UseUnsavedChangesGuardOptions {
 function isGuardState(state: unknown): boolean {
   return Boolean(
     state &&
-      typeof state === "object" &&
-      HISTORY_GUARD_KEY in (state as Record<string, unknown>),
+    typeof state === "object" &&
+    HISTORY_GUARD_KEY in (state as Record<string, unknown>),
   );
 }
 
@@ -68,7 +68,12 @@ export function getGuardedLinkNavigationHref(
 ): string | null {
   if (candidate.defaultPrevented) return null;
   if (candidate.button !== undefined && candidate.button !== 0) return null;
-  if (candidate.metaKey || candidate.ctrlKey || candidate.shiftKey || candidate.altKey) {
+  if (
+    candidate.metaKey ||
+    candidate.ctrlKey ||
+    candidate.shiftKey ||
+    candidate.altKey
+  ) {
     return null;
   }
   if (!candidate.href) return null;
@@ -183,6 +188,21 @@ export function useUnsavedChangesGuard({
     window.history.go(getHistoryLeaveDelta(historyTrapArmedRef.current));
   };
 
+  const navigateAfterHistoryTrap = (action: LeaveAction) => {
+    if (!historyTrapArmedRef.current) {
+      executeWithoutGuard(action);
+      return;
+    }
+
+    suppressGuardRef.current = true;
+    suppressNextPopstateRef.current = true;
+    historyTrapArmedRef.current = false;
+    window.addEventListener("popstate", () => executeWithoutGuard(action), {
+      once: true,
+    });
+    window.history.back();
+  };
+
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -222,13 +242,14 @@ export function useUnsavedChangesGuard({
 
     if (historyTrapArmedRef.current) return;
 
-    window.history.pushState({ [HISTORY_GUARD_KEY]: true }, "", window.location.href);
+    window.history.pushState(
+      { [HISTORY_GUARD_KEY]: true },
+      "",
+      window.location.href,
+    );
     historyTrapArmedRef.current = true;
     return () => {
-      if (
-        !historyTrapArmedRef.current ||
-        !isGuardState(window.history.state)
-      ) {
+      if (!historyTrapArmedRef.current || !isGuardState(window.history.state)) {
         return;
       }
 
@@ -268,7 +289,11 @@ export function useUnsavedChangesGuard({
         isDirty: true,
       });
       setIsConfirmOpen(true);
-      window.history.pushState({ [HISTORY_GUARD_KEY]: true }, "", window.location.href);
+      window.history.pushState(
+        { [HISTORY_GUARD_KEY]: true },
+        "",
+        window.location.href,
+      );
       historyTrapArmedRef.current = true;
     };
 
@@ -317,7 +342,8 @@ export function useUnsavedChangesGuard({
     };
 
     document.addEventListener("click", handleDocumentClick, true);
-    return () => document.removeEventListener("click", handleDocumentClick, true);
+    return () =>
+      document.removeEventListener("click", handleDocumentClick, true);
   }, [interceptLinks]);
 
   return {
@@ -325,6 +351,7 @@ export function useUnsavedChangesGuard({
     confirmLeave,
     isConfirmOpen,
     leaveByHistoryBack,
+    navigateAfterHistoryTrap,
     requestLeave,
   };
 }

@@ -2,6 +2,7 @@
 
 import { SlidersHorizontal } from "lucide-react";
 import { useTranslations } from "next-intl";
+import type { TagSelectOption } from "~/components/custom-inputs/tag-select";
 import { Button } from "~/components/ui/button";
 import {
   Drawer,
@@ -15,7 +16,11 @@ import {
 } from "~/components/ui/drawer";
 import { FiltersSidebar } from "./filters-sidebar";
 
-export function MobileFiltersDrawer() {
+export function MobileFiltersDrawer({
+  tagOptions,
+}: {
+  tagOptions: readonly TagSelectOption[];
+}) {
   const t = useTranslations("search");
 
   return (
@@ -39,6 +44,7 @@ export function MobileFiltersDrawer() {
         </DrawerHeader>
         <div className="flex-1 overflow-y-auto px-4 pb-6">
           <FiltersSidebar
+            tagOptions={tagOptions}
             variant="drawer"
             idPrefix="mobile-"
             showTitle={false}

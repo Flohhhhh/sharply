@@ -225,7 +225,7 @@ Optional ANDed filters are layered on top of the text matching WHERE clause. The
 
 On mobile, the same filters are available from the Filters bottom drawer; desktop keeps the persistent sidebar.
 
-Camera-only filters are `megapixelsMin`, `megapixelsMax`, `isoMin`, `isoMax`, `hasIbis=true`, and `hasWeatherSealing=true`. ISO bounds describe native ISO coverage: a matching camera has a native minimum at or below `isoMin` and a native maximum at or above `isoMax`.
+Camera-only filters are `megapixelsMin`, `megapixelsMax`, `isoMin`, `isoMax`, `hasIbis=true`, and `hasWeatherSealing=true`. ISO bounds describe native ISO coverage: a matching camera has a native minimum at or below `isoMin` and a native maximum at or above `isoMax`. Expanded ISO bounds are catalog-only display fields and are not search filters.
 
 Lens-only filters are `focalIncludes`, `widestFocalMax`, `longestFocalMin`, `fastestApertureMax`, `hasAutofocus=true`, and `hasStabilization=true`. `focalIncludes` matches an interchangeable lens whose focal range contains the requested millimeter value; the advanced bounds match its widest and longest focal lengths. `fastestApertureMax` evaluates the wide-end maximum aperture, so `2.8` means f/2.8 or faster. Macro remains intentionally unfiltered.
 

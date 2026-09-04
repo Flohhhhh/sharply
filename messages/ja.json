@@ -104,6 +104,11 @@
     "anySensor": "すべてのセンサー",
     "brand": "ブランド",
     "anyBrand": "すべてのブランド",
+    "tags": "タグ",
+    "selectTags": "タグを選択",
+    "searchTags": "タグを検索",
+    "noTagsFound": "タグが見つかりません",
+    "removeTag": "{name}を削除",
     "priceRange": "価格帯",
     "noMax": "上限なし",
     "clearAll": "すべてクリア",
@@ -596,7 +601,8 @@
         },
         "viewfinderType": {
           "optical": "OVF（光学）",
-          "electronic": "EVF（電子）"
+          "electronic": "EVF（電子）",
+          "hybrid": "ハイブリッド"
         }
       },
       "apertureProfile": {
@@ -672,6 +678,12 @@
         "selectSupportLevel": "対応レベルを選択",
         "isoMinNative": "ISO 最小（ネイティブ）",
         "isoMaxNative": "ISO 最大（ネイティブ）",
+        "isoMinExpanded": "ISO 最小（拡張）",
+        "isoMaxExpanded": "ISO 最大（拡張）",
+        "addBaseIso": "ベースISOを追加",
+        "removeBaseIso": "ベースISOを削除",
+        "baseIsoHelp": "ネイティブのベースISO値を3つまで追加できます。",
+        "baseIsoInvalid": "正の整数を入力してください。",
         "selectDisplayType": "画面タイプを選択",
         "rearDisplayResolutionPlaceholder": "例: 1.62",
         "inchesPlaceholder": "例: 3.2",
@@ -822,6 +834,12 @@
             },
             "isoRange": {
               "label": "ISO感度範囲"
+            },
+            "isoExpandedRange": {
+              "label": "拡張 ISO 感度範囲"
+            },
+            "baseIso": {
+              "label": "ベースISO"
             },
             "maxFpsByShutter": {
               "label": "最高連写速度"
@@ -1304,7 +1322,8 @@
         "other": "その他",
         "notSpecified": "未指定",
         "ovf": "OVF",
-        "evf": "EVF"
+        "evf": "EVF",
+        "hybrid": "ハイブリッド"
       }
     },
     "publicationStateLabel": "公開状態",

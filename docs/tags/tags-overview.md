@@ -64,6 +64,12 @@ Gear detail pages show listed assigned tags in the sidebar below popularity.
 Tag chips include the optional icon and link to the public tag page. Unlisted
 tags are not exposed on public gear pages.
 
+The search page exposes a searchable multi-tag filter backed by a persistent,
+listed-only data cache. Tag registry mutations expire the shared option cache
+immediately. Selected tag slugs are represented as repeated `tag` query
+parameters, multiple selections match gear assigned to any selected tag, and
+the server independently enforces listed-tag visibility for crafted URLs.
+
 ## Caching and invalidation
 
 The database is the source of truth. Public dictionary and detail routes use a

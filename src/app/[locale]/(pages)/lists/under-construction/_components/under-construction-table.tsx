@@ -2,12 +2,16 @@
 
 import { Loader2 } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 import EditModalContent from "~/app/[locale]/(pages)/gear/_components/edit-gear/edit-modal-content";
+import {
+  handleGearEditSubmissionSuccess,
+  type GearEditSubmissionSuccess,
+} from "~/app/[locale]/(pages)/gear/_components/edit-gear/edit-gear-navigation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +30,8 @@ import {
 } from "~/components/ui/dialog";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
+import type { Locale } from "~/i18n/config";
+import { localizePathname } from "~/i18n/routing";
 import {
   Table,
   TableBody,
@@ -65,6 +71,7 @@ export function UnderConstructionTable({
   items: UnderConstructionRowData[];
 }) {
   const router = useRouter();
+  const locale = useLocale();
   const t = useTranslations("underConstructionPage");
   const tableRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
@@ -79,11 +86,16 @@ export function UnderConstructionTable({
   } | null>(null);
   const [isDirty, setIsDirty] = useState(false);
   const [showMissingOnly, setShowMissingOnly] = useState(true);
-  const { cancelLeave, confirmLeave, isConfirmOpen, requestLeave } =
-    useUnsavedChangesGuard({
-      interceptHistory: true,
-      isDirty,
-    });
+  const {
+    cancelLeave,
+    confirmLeave,
+    isConfirmOpen,
+    navigateAfterHistoryTrap,
+    requestLeave,
+  } = useUnsavedChangesGuard({
+    interceptHistory: true,
+    isDirty,
+  });
   const selectedEditDataUrl =
     selected && (open || imageOpen || imageRequested)
       ? buildGearEditDataUrl(
@@ -138,6 +150,22 @@ export function UnderConstructionTable({
       }, opts);
     },
     [requestLeave],
+  );
+
+  const handleSubmitSuccess = useCallback(
+    (result: GearEditSubmissionSuccess) => {
+      handleGearEditSubmissionSuccess({
+        result,
+        closeToGear: () => requestClose({ force: true }),
+        navigateToSuccess: (href) => {
+          setOpen(false);
+          navigateAfterHistoryTrap(() =>
+            router.replace(localizePathname(href, locale as Locale)),
+          );
+        },
+      });
+    },
+    [locale, navigateAfterHistoryTrap, requestClose, router],
   );
 
   const handleOpen = useCallback((id: string, slug: string, type: GearType) => {
@@ -215,6 +243,7 @@ export function UnderConstructionTable({
                 gearData={gearData}
                 onDirtyChange={setIsDirty}
                 onRequestClose={requestClose}
+                onSubmitSuccess={handleSubmitSuccess}
                 initialShowMissingOnly={showMissingOnly}
                 formId="edit-gear-form"
               />

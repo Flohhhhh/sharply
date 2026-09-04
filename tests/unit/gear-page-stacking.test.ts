@@ -53,7 +53,9 @@ describe("gear page stacking", () => {
       "src/components/gear/gear-tools-dock/dock-buttons.tsx",
     );
 
-    expect(dock).toContain('if (!requireRole(user, ["EDITOR"])) return null;');
+    expect(dock).toContain(
+      'if (!hasMounted || !requireRole(user, ["EDITOR"])) return null;',
+    );
     expect(dockButtons).toContain("relationshipDataReady &&");
   });
 

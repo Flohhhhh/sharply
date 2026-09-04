@@ -13,6 +13,11 @@ const mocks = vi.hoisted(() => ({
   updateTagData: vi.fn(),
   countTagAssignmentsData: vi.fn(),
   deleteTagData: vi.fn(),
+  fetchPublicTagOptionsData: vi.fn(),
+}));
+const cacheState = vi.hoisted(() => ({
+  keyParts: undefined as string[] | undefined,
+  options: undefined as { revalidate: false; tags: string[] } | undefined,
 }));
 
 vi.mock("server-only", () => ({}));
@@ -25,12 +30,24 @@ vi.mock("~/lib/auth/auth-helpers", () => ({
 vi.mock("~/server/gear/listing-table-service", () => ({
   attachGearListingTableFields: vi.fn(),
 }));
+vi.mock("next/cache", () => ({
+  unstable_cache: (
+    resolver: () => Promise<unknown>,
+    keyParts: string[],
+    options: { revalidate: false; tags: string[] },
+  ) => {
+    cacheState.keyParts = keyParts;
+    cacheState.options = options;
+    return resolver;
+  },
+}));
 vi.mock("~/server/tags/data", () => ({
   assignTagToGearData: mocks.assignTagToGearData,
   countTagAssignmentsData: mocks.countTagAssignmentsData,
   deleteTagData: mocks.deleteTagData,
   fetchAdminTagsData: mocks.fetchAdminTagsData,
   fetchGearByTagIdData: vi.fn(),
+  fetchPublicTagOptionsData: mocks.fetchPublicTagOptionsData,
   fetchTagByIdData: mocks.fetchTagByIdData,
   fetchTagsByGearIdData: mocks.fetchTagsByGearIdData,
   fetchTagsData: mocks.fetchTagsData,
@@ -47,6 +64,7 @@ import {
   deleteTag,
   fetchAdminTags,
   fetchGearTagsForEditor,
+  fetchPublicTagOptions,
   fetchTagsForEditor,
   removeTagFromGear,
   updateTag,
@@ -79,6 +97,23 @@ describe("tag service", () => {
     expect(mocks.requireRole).toHaveBeenCalledWith(expect.anything(), [
       "ADMIN",
     ]);
+  });
+
+  it("returns the client-safe public tag options", async () => {
+    const options = [
+      { id: "tag-1", name: "Wildlife", slug: "wildlife", icon: null },
+    ];
+    mocks.fetchPublicTagOptionsData.mockResolvedValue(options);
+
+    await expect(fetchPublicTagOptions()).resolves.toEqual(options);
+    expect(mocks.fetchPublicTagOptionsData).toHaveBeenCalledOnce();
+    expect(cacheState).toEqual({
+      keyParts: ["public-tag-options"],
+      options: {
+        revalidate: false,
+        tags: ["public-tag-options"],
+      },
+    });
   });
 
   it("returns only the editor-safe list and assigned tag rows", async () => {
@@ -191,6 +226,17 @@ describe("tag service", () => {
     await expect(
       createTag({ name: "Compact", slug: "Not A Slug" }),
     ).rejects.toThrow("Slug must use lowercase letters, numbers, and hyphens.");
+    expect(mocks.insertTagData).not.toHaveBeenCalled();
+  });
+
+  it('rejects the reserved "none" slug before writing', async () => {
+    await expect(
+      createTag({ name: "None", slug: "none" }),
+    ).rejects.toMatchObject({
+      issues: [
+        expect.objectContaining({ message: 'The slug "none" is reserved.' }),
+      ],
+    });
     expect(mocks.insertTagData).not.toHaveBeenCalled();
   });
 

@@ -21,6 +21,7 @@ import { buildEditSidebarSections } from "~/lib/specs/registry";
 import type { CameraSpecs, GearItem, GearType } from "~/types/gear";
 import { getInitialAutoSubmitValue } from "./auto-submit";
 import { EditGearForm } from "./edit-gear-form";
+import type { GearEditSubmissionSuccess } from "./edit-gear-navigation";
 
 interface EditModalContentProps {
   canToggleAutoSubmit?: boolean;
@@ -30,6 +31,7 @@ interface EditModalContentProps {
   gearData: GearItem;
   onDirtyChange?: (dirty: boolean) => void;
   onRequestClose: (opts?: { force?: boolean }) => void;
+  onSubmitSuccess: (result: GearEditSubmissionSuccess) => void;
   initialShowMissingOnly?: boolean;
   formId?: string;
 }
@@ -42,6 +44,7 @@ export function EditModalContent({
   gearData,
   onDirtyChange,
   onRequestClose,
+  onSubmitSuccess,
   initialShowMissingOnly,
   formId = "edit-gear-form",
 }: EditModalContentProps) {
@@ -217,6 +220,8 @@ export function EditModalContent({
     const sectionId = sectionAnchor; // already a bare id like "core-section"
     const candidates: string[] = (() => {
       if (fieldKey === "isoRange") return [targetId, "isoMin", "isoMax"];
+      if (fieldKey === "isoExpandedRange")
+        return ["isoMinExpanded", "isoMaxExpanded", targetId];
       if (fieldKey === "dimensions")
         return [targetId, "widthMm", "heightMm", "depthMm"];
       if (fieldKey === "sensorType")
@@ -429,6 +434,7 @@ export function EditModalContent({
               onDirtyChange?.(dirty);
             }}
             onRequestClose={onRequestClose}
+            onSubmitSuccess={onSubmitSuccess}
             showActions={false}
             formId={formId}
             showMissingOnly={showMissingOnly}

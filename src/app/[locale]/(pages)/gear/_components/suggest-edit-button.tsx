@@ -32,10 +32,15 @@ export function SuggestEditButton({
   compact,
 }: SuggestEditButtonProps) {
   const t = useTranslations("gearDetail");
-  const { data } = useSession();
+  const { data, isPending } = useSession();
 
   const session = data?.session;
+  const [hasMounted, setHasMounted] = useState(false);
   const [hasPending, setHasPending] = useState<boolean>(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   useEffect(() => {
     const run = async () => {
@@ -48,11 +53,13 @@ export function SuggestEditButton({
         setHasPending(false);
       }
     };
-    if (session)
+    if (session && !isPending)
       run().catch((error) => {
         console.error("[SuggestEditButton] error", error);
       });
-  }, [slug, session]);
+  }, [isPending, session, slug]);
+
+  const sessionForRender = hasMounted && !isPending ? session : null;
 
   const targetUrl = useMemo(() => {
     const qp = new URLSearchParams();
@@ -63,15 +70,15 @@ export function SuggestEditButton({
       }
     }
     const editPath = `/gear/${slug}/edit?${qp.toString()}`;
-    if (!session) {
+    if (!sessionForRender) {
       return `/auth/signin?callbackUrl=${encodeURIComponent(editPath)}`;
     }
     return editPath;
-  }, [slug, gearType, session, searchParams]);
+  }, [gearType, searchParams, sessionForRender, slug]);
 
   const buttonVariant = variant === "primary" ? "default" : variant;
 
-  if (session && hasPending) {
+  if (sessionForRender && hasPending) {
     const pendingContent = (
       <>
         <Clock

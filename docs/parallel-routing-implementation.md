@@ -14,6 +14,7 @@ app/(pages)/gear/[slug]/
 │   └── page.tsx               # Full edit page (mobile/direct navigation)
 └── @edit/
     ├── default.tsx             # Returns null when modal not active
+    ├── [...catchAll]/page.tsx  # Clears stale slot content after soft navigation
     └── (.)edit/
         └── page.tsx            # Modal intercept for /edit route
 ```
@@ -26,7 +27,8 @@ app/(pages)/gear/[slug]/
 2. Navigates to `/gear/[slug]/edit`
 3. `@edit` slot intercepts the route
 4. Modal opens with `(.)edit/page.tsx` content
-5. User stays in context of the gear page
+5. The dialog owns local visibility and closes immediately before navigation
+6. Back navigation or the catch-all route clears the intercepted slot
 
 ### Mobile Experience (Full Page Navigation)
 
@@ -46,7 +48,10 @@ app/(pages)/gear/[slug]/
 ### EditGearModal
 
 - Uses shadcn Dialog component
-- Handles modal open/close via history-aware back navigation
+- Controls dialog visibility locally instead of relying on route unmount timing
+- Handles cancel, Escape, and overlay close through history-aware back navigation
+- Closes immediately after either an auto-approved edit or a submitted change request
+- Removes the synthetic unsaved-change history entry before navigating a pending submission to its confirmation page
 - Shows a discard confirmation when the form is dirty and the user tries to close, go back, or click another in-app link
 - Registers a native browser `beforeunload` warning while the shared edit form is dirty
 - Responsive design with max-width and scroll
@@ -80,6 +85,8 @@ The gear page has two "Suggest Edit" buttons:
 - Full page loads on mobile
 - Browser back button closes the modal only when the form is clean
 - Dirty forms block accidental refresh, tab close, browser back, and same-tab in-app link navigation until the user confirms discard
+- Auto-approved edits close the modal and return to the gear page; pending change requests close it before navigating to the submission confirmation page
+- Soft navigation away from the edit route resolves the `@edit` catch-all to `null`, preventing stale modal content from surviving in the parallel slot
 
 ## Benefits
 

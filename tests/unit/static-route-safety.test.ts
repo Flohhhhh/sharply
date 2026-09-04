@@ -90,7 +90,8 @@ describe("static route safety", () => {
       "src/app/[locale]/(pages)/gear/_components/edit-gear/edit-gear-form.tsx",
     );
     expect(editGearForm).not.toContain("editApplied");
-    expect(editGearForm).toContain("onRequestClose({ force: true })");
+    expect(editGearForm).toContain("onSubmitSuccess({");
+    expect(editGearForm).not.toContain("router.replace(");
   });
 
   it("rejects invalid locales during root layout metadata resolution", () => {

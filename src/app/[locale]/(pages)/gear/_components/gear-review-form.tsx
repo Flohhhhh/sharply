@@ -36,6 +36,11 @@ export function GearReviewForm({
   const { data, isPending } = useSession();
 
   const session = data?.session;
+  const [hasMounted, setHasMounted] = useState(false);
+
+  React.useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   const callbackUrl = `/gear/${gearSlug}`;
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -196,7 +201,7 @@ export function GearReviewForm({
         </div>
         <Button
           onClick={handleCtaClick}
-          loading={isPending}
+          loading={!hasMounted || isPending}
           icon={<Pencil className="h-4 w-4" />}
           className="w-full sm:w-fit"
         >

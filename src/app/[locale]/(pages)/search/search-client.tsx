@@ -1,16 +1,18 @@
 "use client";
 
 import { RefreshCcwDot, SearchIcon } from "lucide-react";
-import { useQueryState } from "nuqs";
+import { parseAsNativeArrayOf, parseAsString, useQueryState } from "nuqs";
 import { useEffect, useMemo, useRef } from "react";
 import useSwr from "swr";
 import useSWRInfinite from "swr/infinite";
+import type { TagSelectOption } from "~/components/custom-inputs/tag-select";
 import { SortSelect } from "~/components/search/sort-select";
 import { GearViewToggle, useGearResultsView } from "~/components/table";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Spinner } from "~/components/ui/spinner";
 import { useDebounce } from "~/lib/hooks/useDebounce";
+import { normalizeTagSlugs } from "~/lib/tags/normalize-tag-slugs";
 import {
   normalizeSearchGearTypeForApi,
   normalizeSearchGearTypeForUi,
@@ -28,6 +30,7 @@ const fetcherJson = <T,>(url: string): Promise<T> =>
 const PAGE_SIZE = 24;
 
 type SearchClientProps = {
+  tagOptions: readonly TagSelectOption[];
   initialPage?: {
     results: any[];
     total?: number;
@@ -37,7 +40,7 @@ type SearchClientProps = {
   } | null;
 };
 
-export function SearchClient({ initialPage }: SearchClientProps) {
+export function SearchClient({ initialPage, tagOptions }: SearchClientProps) {
   const { view, setView } = useGearResultsView();
   const [q, setQ] = useQueryState("q");
   const [sort] = useQueryState("sort");
@@ -66,6 +69,20 @@ export function SearchClient({ initialPage }: SearchClientProps) {
   const [hasIbis, setHasIbis] = useQueryState("hasIbis");
   const [hasWeatherSealing, setHasWeatherSealing] =
     useQueryState("hasWeatherSealing");
+  const [tags, setTags] = useQueryState(
+    "tag",
+    parseAsNativeArrayOf(parseAsString).withDefault([]),
+  );
+  const normalizedTags = useMemo(
+    () => normalizeTagSlugs(tags, tagOptions),
+    [tagOptions, tags],
+  );
+  useEffect(() => {
+    const tagsChanged =
+      normalizedTags.length !== tags.length ||
+      normalizedTags.some((tag, index) => tag !== tags[index]);
+    if (tagsChanged) void setTags(normalizedTags);
+  }, [normalizedTags, setTags, tags]);
   const debouncedQ = useDebounce(q, 400);
 
   const normalizedGearType = useMemo(
@@ -117,6 +134,7 @@ export function SearchClient({ initialPage }: SearchClientProps) {
         hasWeatherSealing,
         priceMin,
         priceMax,
+        tag: normalizedTags,
       });
     };
   }, [
@@ -142,6 +160,7 @@ export function SearchClient({ initialPage }: SearchClientProps) {
     hasWeatherSealing,
     priceMin,
     priceMax,
+    normalizedTags,
   ]);
 
   const noFiltersActive = useMemo(() => {
@@ -165,7 +184,8 @@ export function SearchClient({ initialPage }: SearchClientProps) {
       !hasIbis &&
       !hasWeatherSealing &&
       !priceMin &&
-      !priceMax
+      !priceMax &&
+      normalizedTags.length === 0
     );
   }, [
     brand,
@@ -188,6 +208,7 @@ export function SearchClient({ initialPage }: SearchClientProps) {
     hasWeatherSealing,
     priceMin,
     priceMax,
+    normalizedTags,
   ]);
 
   const { data, error, size, setSize } = useSWRInfinite<SearchResponse>(
@@ -295,6 +316,7 @@ export function SearchClient({ initialPage }: SearchClientProps) {
                 void setHasStabilization(null);
                 void setHasIbis(null);
                 void setHasWeatherSealing(null);
+                void setTags([]);
               }}
             >
               Reset filters
@@ -302,7 +324,7 @@ export function SearchClient({ initialPage }: SearchClientProps) {
           </div>
           <div className="flex items-center gap-2">
             <div className="sm:hidden">
-              <MobileFiltersDrawer />
+              <MobileFiltersDrawer tagOptions={tagOptions} />
             </div>
             <GearViewToggle view={view} onViewChange={setView} />
             <SortSelect />
@@ -312,7 +334,7 @@ export function SearchClient({ initialPage }: SearchClientProps) {
 
       <section className="grid grid-cols-1 border-t px-4 sm:grid-cols-3 sm:px-8 lg:grid-cols-5">
         <div className="col-span-1 hidden h-full sm:block">
-          <FiltersSidebar />
+          <FiltersSidebar tagOptions={tagOptions} />
         </div>
         <div className="col-span-1 h-full min-h-screen pl-4 sm:col-span-2 lg:col-span-4">
           <SearchResults

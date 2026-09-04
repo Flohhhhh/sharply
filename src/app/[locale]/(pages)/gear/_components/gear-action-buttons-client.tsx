@@ -89,8 +89,13 @@ export function GearActionButtonsClient({
   const t = useTranslations("gearDetail");
   const router = useRouter();
   const { data, isPending } = useSession();
+  const [hasMounted, setHasMounted] = useState(false);
   const displayName = useGearDisplayName({ name, regionalAliases });
   const profilePath = buildUserProfilePath(data?.user);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   const session = data?.session;
   const activeUserId = session?.userId ?? null;
@@ -305,6 +310,10 @@ export function GearActionButtonsClient({
       />
     </div>
   );
+
+  if (!hasMounted) {
+    return renderSignedOutButtons(true);
+  }
 
   if (isPending) {
     if (initialIsAuthenticated) {

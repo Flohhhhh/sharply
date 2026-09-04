@@ -104,6 +104,11 @@
     "anySensor": "Cualquier sensor",
     "brand": "Marca",
     "anyBrand": "Cualquier marca",
+    "tags": "Etiquetas",
+    "selectTags": "Seleccionar etiquetas",
+    "searchTags": "Buscar etiquetas",
+    "noTagsFound": "No se encontraron etiquetas",
+    "removeTag": "Quitar {name}",
     "priceRange": "Rango de precios",
     "noMax": "Sin máximo",
     "clearAll": "Borrar todo",
@@ -596,7 +601,8 @@
         },
         "viewfinderType": {
           "optical": "OVF (óptico)",
-          "electronic": "EVF (electrónico)"
+          "electronic": "EVF (electrónico)",
+          "hybrid": "Híbrido"
         }
       },
       "apertureProfile": {
@@ -672,6 +678,12 @@
         "selectSupportLevel": "Seleccionar nivel de compatibilidad",
         "isoMinNative": "ISO mín. (nativo)",
         "isoMaxNative": "ISO máx. (nativo)",
+        "isoMinExpanded": "ISO mín. (ampliado)",
+        "isoMaxExpanded": "ISO máx. (ampliado)",
+        "addBaseIso": "Añadir ISO base",
+        "removeBaseIso": "Eliminar ISO base",
+        "baseIsoHelp": "Añade hasta 3 valores ISO base nativos.",
+        "baseIsoInvalid": "Introduce un número entero positivo.",
         "selectDisplayType": "Seleccionar tipo de pantalla",
         "rearDisplayResolutionPlaceholder": "p. ej., 1,62",
         "inchesPlaceholder": "p. ej., 3,2",
@@ -822,6 +834,12 @@
             },
             "isoRange": {
               "label": "Rango ISO"
+            },
+            "isoExpandedRange": {
+              "label": "Rango ISO ampliado"
+            },
+            "baseIso": {
+              "label": "ISO base"
             },
             "maxFpsByShutter": {
               "label": "FPS máx. en ráfaga"
@@ -1304,7 +1322,8 @@
         "other": "Otro",
         "notSpecified": "No especificado",
         "ovf": "OVF",
-        "evf": "EVF"
+        "evf": "EVF",
+        "hybrid": "Híbrido"
       }
     },
     "publicationStateLabel": "Estado de publicación",

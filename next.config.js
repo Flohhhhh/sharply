@@ -116,7 +116,7 @@ export default sentryEnabled
       authToken: process.env.SENTRY_AUTH_TOKEN,
       widenClientFileUpload: true,
       tunnelRoute: "/monitoring",
-      silent: !process.env.CI,
+      silent: true,
       bundleSizeOptimizations: {
         excludeDebugStatements: true,
       },

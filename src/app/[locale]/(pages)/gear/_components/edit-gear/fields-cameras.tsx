@@ -2,7 +2,7 @@
 
 import { useTranslations, type TranslationValues } from "next-intl";
 import { BatteryFullIcon, Grid3X3, ZapIcon } from "lucide-react";
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import {
   BooleanInput,
   MultiTextInput,
@@ -34,6 +34,15 @@ import type { EnrichedCameraSpecs, GearItem } from "~/types/gear";
 import CardSlotsManager, { type CardSlot } from "./card-slots-manager";
 import { VideoModesManager } from "./video-modes-manager";
 import { CompletedSpecLock } from "./completed-spec-lock";
+import { BaseIsoInput } from "./base-iso-input";
+import {
+  computeHeadlineMaxFps,
+  normalizeMaxFpsByShutterValue,
+  normalizeShutterTypeKey,
+  type ShutterFpsByType,
+  type ShutterFpsEntry,
+  type ShutterType,
+} from "./camera-fps";
 // Integrated lens UI moved to edit form level
 
 interface CameraFieldsProps {
@@ -48,10 +57,6 @@ interface CameraFieldsProps {
   disableCompletedSpecs?: boolean;
 }
 
-const shutterTypeOrder = ["mechanical", "efc", "electronic"] as const;
-type ShutterType = (typeof shutterTypeOrder)[number];
-type ShutterFpsEntry = { raw?: number | null; jpg?: number | null };
-type ShutterFpsByType = Partial<Record<ShutterType, ShutterFpsEntry>>;
 const shutterTypeLabels: Record<ShutterType, string> = {
   mechanical: "Mechanical shutter",
   efc: "Electronic first curtain",
@@ -61,6 +66,7 @@ const shutterTypeLabels: Record<ShutterType, string> = {
 const cameraFieldSections: Record<string, string> = {
   resolutionMp: "camera-sensor-shutter",
   sensorFormatId: "camera-sensor-shutter",
+  baseIso: "camera-sensor-shutter",
   sensorReadoutSpeedMs: "camera-sensor-shutter",
   maxRawBitDepth: "camera-sensor-shutter",
   hasIbis: "camera-sensor-shutter",
@@ -111,93 +117,7 @@ const cameraFieldSections: Record<string, string> = {
   hasUsbFileTransfer: "camera-misc",
 };
 
-function normalizeShutterTypeKey(value: string): ShutterType | null {
-  const lowered = value.toLowerCase();
-  if (lowered === "efcs") return "efc";
-  if (shutterTypeOrder.includes(lowered as ShutterType)) {
-    return lowered as ShutterType;
-  }
-  return null;
-}
-
-function normalizeFpsNumericValue(value: unknown): number | null | undefined {
-  if (value === null) return null;
-  if (value === undefined) return undefined;
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return Math.round(value * 10) / 10;
-  }
-  if (typeof value === "string" && value.trim().length > 0) {
-    const parsed = Number(value);
-    if (Number.isFinite(parsed)) return Math.round(parsed * 10) / 10;
-  }
-  return undefined;
-}
-
-function normalizeMaxFpsByShutterValue(
-  value: unknown,
-  availableShutterTypes: string[],
-): ShutterFpsByType {
-  if (!value || typeof value !== "object") return {};
-  const allowedNormalized = (availableShutterTypes ?? [])
-    .map((shutterType) => normalizeShutterTypeKey(shutterType))
-    .filter((shutterType): shutterType is ShutterType => Boolean(shutterType));
-  const allowedSet = new Set<ShutterType>(allowedNormalized);
-  const collected: ShutterFpsByType = {};
-
-  for (const [rawKey, rawValue] of Object.entries(
-    value as Record<string, unknown>,
-  )) {
-    const normalizedKey =
-      typeof rawKey === "string" ? normalizeShutterTypeKey(rawKey) : null;
-    if (!normalizedKey) continue;
-    if (allowedSet.size > 0 && !allowedSet.has(normalizedKey)) continue;
-    if (typeof rawValue !== "object" || rawValue === null) continue;
-    const rawFps = normalizeFpsNumericValue(
-      (rawValue as Record<string, unknown>).raw,
-    );
-    const jpgFps = normalizeFpsNumericValue(
-      (rawValue as Record<string, unknown>).jpg,
-    );
-    if (rawFps === undefined && jpgFps === undefined) continue;
-    collected[normalizedKey] = {
-      ...(rawFps !== undefined ? { raw: rawFps } : {}),
-      ...(jpgFps !== undefined ? { jpg: jpgFps } : {}),
-    };
-  }
-
-  const orderedResult: ShutterFpsByType = {};
-  const ordering =
-    allowedNormalized.length > 0
-      ? allowedNormalized
-      : Array.from(shutterTypeOrder);
-  for (const shutterType of ordering) {
-    if (collected[shutterType]) {
-      orderedResult[shutterType] = collected[shutterType];
-    }
-  }
-
-  return orderedResult;
-}
-
-function computeHeadlineMaxFps(shutterMap: ShutterFpsByType): {
-  maxRaw: number | null;
-  maxJpg: number | null;
-} {
-  let maxRaw: number | null = null;
-  let maxJpg: number | null = null;
-  for (const entry of Object.values(shutterMap)) {
-    if (!entry) continue;
-    if (typeof entry.raw === "number") {
-      maxRaw = maxRaw === null ? entry.raw : Math.max(maxRaw, entry.raw);
-    }
-    if (typeof entry.jpg === "number") {
-      maxJpg = maxJpg === null ? entry.jpg : Math.max(maxJpg, entry.jpg);
-    }
-  }
-  return { maxRaw, maxJpg };
-}
-
-function FpsPerShutterInput({
+export function FpsPerShutterInput({
   availableShutterTypes,
   value,
   onChange,
@@ -229,22 +149,6 @@ function FpsPerShutterInput({
     [value, normalizedAvailable],
   );
 
-  const { maxRaw, maxJpg } = useMemo(
-    () => computeHeadlineMaxFps(normalizedValue),
-    [normalizedValue],
-  );
-
-  useEffect(() => {
-    const serializedCurrent = JSON.stringify(value ?? {});
-    const serializedNormalized = JSON.stringify(normalizedValue);
-    if (serializedCurrent !== serializedNormalized) {
-      onChange(
-        Object.keys(normalizedValue).length > 0 ? normalizedValue : null,
-      );
-    }
-    onHeadlineChange(maxRaw, maxJpg);
-  }, [maxRaw, maxJpg, normalizedValue, onChange, onHeadlineChange, value]);
-
   const handleValueChange = useCallback(
     (
       shutterType: ShutterType,
@@ -264,8 +168,12 @@ function FpsPerShutterInput({
         nextMap[shutterType] = currentEntry;
       }
 
-      const headline = computeHeadlineMaxFps(nextMap);
-      onChange(Object.keys(nextMap).length > 0 ? nextMap : null);
+      const canonicalMap = normalizeMaxFpsByShutterValue(
+        nextMap,
+        normalizedAvailable,
+      );
+      const headline = computeHeadlineMaxFps(canonicalMap);
+      onChange(Object.keys(canonicalMap).length > 0 ? canonicalMap : null);
       onHeadlineChange(headline.maxRaw, headline.maxJpg);
     },
     [normalizedValue, onChange, onHeadlineChange],
@@ -378,6 +286,10 @@ function CameraFieldsComponent({
     disableCompletedSpecs && Boolean(initialSpecs?.sensorFormatId);
   const resolutionLocked =
     disableCompletedSpecs && initialSpecs?.resolutionMp != null;
+  const baseIsoLocked =
+    disableCompletedSpecs &&
+    Array.isArray(initialSpecs?.baseIso) &&
+    initialSpecs.baseIso.length > 0;
   const specLabel = useCallback(
     (fieldKey: string, fallback: string) => {
       const sectionId = cameraFieldSections[fieldKey];
@@ -764,24 +676,81 @@ function CameraFieldsComponent({
 
           {/* ISO Range anchor (always present for sidebar scrolling) */}
           <div id="isoRange" className="h-0" aria-hidden />
+          {/* Expanded ISO Range anchor (always present for sidebar scrolling) */}
+          <div id="isoExpandedRange" className="h-0" aria-hidden />
 
-          {/* ISO Min */}
-          {showWhenMissing(initialSpecs?.isoMin) && (
-            <IsoInput
-              id="isoMin"
-              label={tf("editGear.fields.isoMinNative", "ISO Min (Native)")}
-              value={currentSpecs?.isoMin}
-              onChange={(value) => handleFieldChange("isoMin", value)}
-            />
-          )}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {/* Native ISO Min */}
+            {showWhenMissing(initialSpecs?.isoMin) && (
+              <IsoInput
+                id="isoMin"
+                label={tf("editGear.fields.isoMinNative", "ISO Min (Native)")}
+                value={currentSpecs?.isoMin}
+                onChange={(value) => handleFieldChange("isoMin", value)}
+              />
+            )}
 
-          {/* ISO Max */}
-          {showWhenMissing(initialSpecs?.isoMax) && (
-            <IsoInput
-              id="isoMax"
-              label={tf("editGear.fields.isoMaxNative", "ISO Max (Native)")}
-              value={currentSpecs?.isoMax}
-              onChange={(value) => handleFieldChange("isoMax", value)}
+            {/* Native ISO Max */}
+            {showWhenMissing(initialSpecs?.isoMax) && (
+              <IsoInput
+                id="isoMax"
+                label={tf("editGear.fields.isoMaxNative", "ISO Max (Native)")}
+                value={currentSpecs?.isoMax}
+                onChange={(value) => handleFieldChange("isoMax", value)}
+              />
+            )}
+
+            {/* Expanded ISO Min */}
+            {showWhenMissing(initialSpecs?.isoMinExpanded) && (
+              <IsoInput
+                id="isoMinExpanded"
+                label={tf(
+                  "editGear.fields.isoMinExpanded",
+                  "ISO Min (Expanded)",
+                )}
+                value={currentSpecs?.isoMinExpanded}
+                onChange={(value) => handleFieldChange("isoMinExpanded", value)}
+              />
+            )}
+
+            {/* Expanded ISO Max */}
+            {showWhenMissing(initialSpecs?.isoMaxExpanded) && (
+              <IsoInput
+                id="isoMaxExpanded"
+                label={tf(
+                  "editGear.fields.isoMaxExpanded",
+                  "ISO Max (Expanded)",
+                )}
+                value={currentSpecs?.isoMaxExpanded}
+                onChange={(value) => handleFieldChange("isoMaxExpanded", value)}
+              />
+            )}
+          </div>
+
+          {showWhenMissing(initialSpecs?.baseIso, "baseIso") && (
+            <BaseIsoInput
+              value={currentSpecs?.baseIso}
+              onChange={(value) => handleFieldChange("baseIso", value)}
+              label={specLabel("baseIso", "Base ISO")}
+              addLabel={tf("editGear.fields.addBaseIso", "Add base ISO")}
+              removeLabel={tf(
+                "editGear.fields.removeBaseIso",
+                "Remove base ISO",
+              )}
+              helpText={tf(
+                "editGear.fields.baseIsoHelp",
+                "Add up to 3 native base ISO values.",
+              )}
+              invalidMessage={tf(
+                "editGear.fields.baseIsoInvalid",
+                "Enter a positive whole number.",
+              )}
+              disabled={baseIsoLocked}
+              labelAdornment={
+                baseIsoLocked ? (
+                  <CompletedSpecLock message={completedSpecMessage} />
+                ) : undefined
+              }
             />
           )}
 
@@ -925,6 +894,12 @@ function CameraFieldsComponent({
                       "editGear.options.viewfinderType.electronic",
                       "EVF (Electronic)",
                     )}
+                  </SelectItem>
+                  <SelectItem value="hybrid">
+                    {tf("editGear.options.viewfinderType.hybrid", "Hybrid")}
+                  </SelectItem>
+                  <SelectItem value="other">
+                    {tf("specRegistry.shared.other", "Other")}
                   </SelectItem>
                 </SelectContent>
               </Select>
