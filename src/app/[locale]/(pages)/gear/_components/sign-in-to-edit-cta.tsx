@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useSession } from "~/lib/auth/auth-client";
 
 interface SignInToEditSpecsCtaProps {
@@ -13,16 +13,24 @@ export function SignInToEditSpecsCta({
   slug,
   gearType,
 }: SignInToEditSpecsCtaProps) {
-  const { data } = useSession();
+  const { data, isPending } = useSession();
   const session = data?.session;
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   const callbackUrl = React.useMemo(
     () => `/gear/${slug}/edit?type=${gearType}`,
     [slug, gearType],
   );
 
-  // If the user is authenticated, don't show the CTA
-  if (session) return null;
+  // Keep the server and initial client render aligned while the session is
+  // loading. The server cannot read the client auth atom, so rendering the
+  // signed-out CTA before the request completes causes a hydration mismatch
+  // for signed-in users.
+  if (!hasMounted || isPending || session) return null;
 
   return (
     <div className="border-border bg-muted/60 text-muted-foreground my-8 rounded-md border px-4 py-3 text-sm">

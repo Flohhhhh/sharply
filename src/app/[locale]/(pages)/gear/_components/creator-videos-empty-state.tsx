@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
 import { useSession } from "~/lib/auth/auth-client";
 import { requireRole } from "~/lib/auth/auth-helpers";
 import { ManageCreatorVideosModal } from "./manage-creator-videos-modal";
@@ -8,8 +9,19 @@ import { ManageCreatorVideosModal } from "./manage-creator-videos-modal";
 export function CreatorVideosEmptyState({ slug }: { slug: string }) {
   const t = useTranslations("gearDetail");
   const { data, isPending, error } = useSession();
+  const [hasMounted, setHasMounted] = useState(false);
 
-  if (!data || isPending || error || !requireRole(data.user, ["EDITOR"])) {
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  if (
+    !hasMounted ||
+    !data ||
+    isPending ||
+    error ||
+    !requireRole(data.user, ["EDITOR"])
+  ) {
     return null;
   }
 

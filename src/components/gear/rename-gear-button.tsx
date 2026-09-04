@@ -1,6 +1,7 @@
 "use client";
 
 import { Pencil } from "lucide-react";
+import { useEffect, useState } from "react";
 import { RenameGearDialog } from "~/components/gear/rename-gear-dialog";
 import { Button } from "~/components/ui/button";
 import { useSession } from "~/lib/auth/auth-client";
@@ -21,11 +22,18 @@ export function RenameGearButton({
   regionalAliases,
 }: RenameGearButtonProps) {
   const { data } = useSession();
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   const session = data?.session;
   const user = data?.user;
 
-  if (!session || !user || !requireRole(user, ["EDITOR"])) return null;
+  if (!hasMounted || !session || !user || !requireRole(user, ["EDITOR"])) {
+    return null;
+  }
 
   return (
     <RenameGearDialog

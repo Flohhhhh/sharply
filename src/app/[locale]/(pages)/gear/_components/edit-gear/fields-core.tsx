@@ -88,6 +88,11 @@ function CoreFieldsComponent({
   const t = useTranslations("gearDetail");
   const locale = useLocale();
   const { data, isPending, error } = useSession();
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
   const tf = useCallback(
     (key: string, fallback: string, values?: TranslationValues) =>
       translateGearDetailWithFallback(t, key, fallback, values),
@@ -432,7 +437,7 @@ function CoreFieldsComponent({
     return Array.isArray(currentSpecs.genres) ? currentSpecs.genres : [];
   }, [currentSpecs.genres]);
 
-  if (isPending) {
+  if (!hasMounted || isPending) {
     return <div>{tf("editGear.status.loading", "Loading...")}</div>;
   }
   if (error) {

@@ -77,16 +77,24 @@ export default function HeaderClient({
     isPending: isSessionPending,
     refetch: refetchSession,
   } = useSession();
+  const [hasMounted, setHasMounted] = useState(false);
   const hasRefetchedSession = useRef(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   // Developer access is granted by an admin outside of Better Auth's cached
   // session payload. Refresh it once so a newly granted user sees the portal
   // without waiting for the compact session cookie to expire.
   useEffect(() => {
-    if (hasRefetchedSession.current) return;
+    // Let Better Auth finish its initial session request first. Starting the
+    // uncached request while the hook is still pending races hydration and
+    // can remount the header repeatedly in dev.
+    if (isSessionPending || hasRefetchedSession.current) return;
     hasRefetchedSession.current = true;
     void refetchSession({ query: { disableCookieCache: true } });
-  }, [refetchSession]);
+  }, [isSessionPending, refetchSession]);
 
   const user: HeaderUser = session?.user
     ? {
@@ -105,14 +113,16 @@ export default function HeaderClient({
     user?.role === "ADMIN" ||
     user?.role === "SUPERADMIN" ||
     user?.role === "EDITOR";
+  const showSessionPending = !hasMounted || isSessionPending;
+  const renderedUser = showSessionPending ? null : user;
 
   const profileHref = (() => {
-    if (!user) return null;
+    if (!renderedUser) return null;
     const profileSlug =
-      user.handle && user.handle.trim() !== ""
-        ? user.handle
-        : user.memberNumber != null
-          ? `user-${user.memberNumber}`
+      renderedUser.handle && renderedUser.handle.trim() !== ""
+        ? renderedUser.handle
+        : renderedUser.memberNumber != null
+          ? `user-${renderedUser.memberNumber}`
           : null;
     return profileSlug ? localizePathname(`/u/${profileSlug}`, locale) : null;
   })();
@@ -224,7 +234,7 @@ export default function HeaderClient({
               signInHref={signInHref}
               profileHref={profileHref}
               accountHref={model.accountHref}
-              user={user}
+              user={renderedUser}
             >
               <Button variant="outline" size="sm" className="md:hidden">
                 <Menu className="size-4" />
@@ -233,7 +243,7 @@ export default function HeaderClient({
 
             <div className="hidden min-w-[8.5rem] items-center justify-end gap-3 md:flex">
               <ThemeSwitcher />
-              {isSessionPending ? (
+              {showSessionPending ? (
                 <div
                   aria-hidden="true"
                   className="bg-muted h-9 w-24 rounded-md"
@@ -242,7 +252,7 @@ export default function HeaderClient({
                 <>
                   <SharedHeaderNotificationsProvider
                     userId={user.id}
-                    isSessionPending={isSessionPending}
+                    isSessionPending={showSessionPending}
                   >
                     <SharedHeaderNotificationsDropdown />
                   </SharedHeaderNotificationsProvider>

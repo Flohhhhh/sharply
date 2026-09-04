@@ -119,9 +119,15 @@ export function GearItemDockClient({
   const locale = useLocale();
   const t = useTranslations("gearDetail");
   const { data } = useSession();
+  const [hasMounted, setHasMounted] = useState(false);
   const user = data?.user;
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
   const canManageRelationships = Boolean(
-    gearId && requireRole(user, ["EDITOR"]),
+    hasMounted && gearId && requireRole(user, ["EDITOR"]),
   );
   const { data: relationships } = useSWR<GearRelationshipsResponse>(
     canManageRelationships
@@ -278,7 +284,7 @@ export function GearItemDockClient({
   // Do not render the dock shell until the client session confirms editor access.
   // This preserves the previous authorization boundary while allowing editor
   // controls that do not need relationship data to appear immediately.
-  if (!requireRole(user, ["EDITOR"])) return null;
+  if (!hasMounted || !requireRole(user, ["EDITOR"])) return null;
 
   const visibleButtons = buttons.filter((button) => button.allowed(user));
   const isPreRelease = isRumoredGear({ publicationState });
