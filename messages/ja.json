@@ -601,7 +601,8 @@
         },
         "viewfinderType": {
           "optical": "OVF（光学）",
-          "electronic": "EVF（電子）"
+          "electronic": "EVF（電子）",
+          "hybrid": "ハイブリッド"
         }
       },
       "apertureProfile": {
@@ -1309,7 +1310,8 @@
         "other": "その他",
         "notSpecified": "未指定",
         "ovf": "OVF",
-        "evf": "EVF"
+        "evf": "EVF",
+        "hybrid": "ハイブリッド"
       }
     },
     "publicationStateLabel": "公開状態",

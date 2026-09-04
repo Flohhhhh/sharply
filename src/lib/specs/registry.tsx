@@ -237,6 +237,7 @@ const SHARED_SPEC_VALUE_KEYS = new Map<string, string>([
   ["Not specified", "specRegistry.shared.notSpecified"],
   ["OVF", "specRegistry.shared.ovf"],
   ["EVF", "specRegistry.shared.evf"],
+  ["Hybrid", "specRegistry.shared.hybrid"],
 ]);
 
 function resolveSpecText(
@@ -1110,6 +1111,8 @@ export const specDictionary: SpecSectionDef[] = [
             none: "None",
             optical: "OVF",
             electronic: "EVF",
+            hybrid: "Hybrid",
+            other: "Other",
           };
           return map[raw] ?? raw;
         },

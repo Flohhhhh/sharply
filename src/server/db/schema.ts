@@ -259,6 +259,8 @@ export const viewfinderTypesEnum = pgEnum("viewfinder_types_enum", [
   "none",
   "optical",
   "electronic",
+  "hybrid",
+  "other",
 ]);
 
 // Rear display articulation types

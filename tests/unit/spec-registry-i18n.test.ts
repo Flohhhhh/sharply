@@ -259,6 +259,29 @@ describe("spec registry i18n", () => {
     });
   });
 
+  it("formats hybrid and other digital viewfinder types", () => {
+    for (const [viewfinderType, expectedValue] of [
+      ["hybrid", "Hybrid"],
+      ["other", "Other"],
+    ] as const) {
+      const sections = buildGearSpecsSections(
+        createGearItem({
+          gearType: "CAMERA",
+          cameraSpecs: {
+            viewfinderType,
+          } as GearItem["cameraSpecs"],
+        }),
+      );
+      const cameraHardwareSection = sections.find(
+        (section) => section.id === "camera-hardware",
+      );
+
+      expect(
+        cameraHardwareSection?.data.find((row) => row.key === "viewfinderType"),
+      ).toMatchObject({ value: expectedValue });
+    }
+  });
+
   it("formats digital and analog viewfinder eye point measurements", () => {
     const digitalSections = buildGearSpecsSections(
       createGearItem({

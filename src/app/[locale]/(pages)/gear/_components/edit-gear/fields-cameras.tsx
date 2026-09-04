@@ -832,6 +832,12 @@ function CameraFieldsComponent({
                       "EVF (Electronic)",
                     )}
                   </SelectItem>
+                  <SelectItem value="hybrid">
+                    {tf("editGear.options.viewfinderType.hybrid", "Hybrid")}
+                  </SelectItem>
+                  <SelectItem value="other">
+                    {tf("specRegistry.shared.other", "Other")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -17,10 +17,7 @@ function readGearDetailMessages(localeFileName: string) {
   return localeMessages.gearDetail ?? {};
 }
 
-function getPathValue(
-  source: Record<string, unknown>,
-  path: string,
-): unknown {
+function getPathValue(source: Record<string, unknown>, path: string): unknown {
   return path.split(".").reduce<unknown>((current, segment) => {
     if (!current || typeof current !== "object") return undefined;
     return (current as Record<string, unknown>)[segment];
@@ -48,6 +45,7 @@ describe("gear detail heading translations", () => {
       "editGear.sections.analogCameraSpecifications",
       "editGear.options.cameraShutterTypes.mechanical",
       "editGear.options.viewfinderType.optical",
+      "editGear.options.viewfinderType.hybrid",
       "editGear.cardSlots.manage",
       "editGear.videoModes.title",
       "editGear.fields.aperture",
@@ -77,6 +75,7 @@ describe("gear detail heading translations", () => {
       "instructionManual.invalidUrl",
       "specRegistry.shared.yes",
       "specRegistry.shared.no",
+      "specRegistry.shared.hybrid",
       "reviewGenres.weddings",
       "reviewGenres.video",
       "reviewGenres.architecture",
