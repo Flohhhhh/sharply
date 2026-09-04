@@ -275,7 +275,10 @@ export function GearProposalsList() {
       return formatIsoValue(v, locale) ?? String(v);
     }
     if (k === "baseIso") {
-      return formatBaseIsoValues(v, locale) ?? String(v);
+      return (
+        formatBaseIsoValues(v, locale) ??
+        (Array.isArray(v) && v.length === 0 ? "Empty" : String(v))
+      );
     }
     if (k === "maxContinuousFps") return formatCompactNumber(v);
     if (k === "viewfinderEyePointMm") return `${Number(v).toFixed(2)} mm`;
@@ -324,7 +327,12 @@ export function GearProposalsList() {
       return formatIsoValue(v, locale) ?? String(v ?? "Empty");
     }
     if (k === "baseIso") {
-      return formatBaseIsoValues(v, locale) ?? String(v ?? "Empty");
+      return (
+        formatBaseIsoValues(v, locale) ??
+        (Array.isArray(v) && v.length === 0
+          ? "Empty"
+          : String(v ?? "Empty"))
+      );
     }
     if (k === "maxContinuousFps") return formatCompactNumber(v);
     if (k === "viewfinderEyePointMm") return `${Number(v).toFixed(2)} mm`;

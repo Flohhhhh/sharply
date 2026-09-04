@@ -179,6 +179,7 @@ describe("normalizeProposalPayloadForDb", () => {
     [[800, 0]],
     [[800, -4000]],
     [[800, 4000.5]],
+    [[800, 2_147_483_648]],
     [[800, "4000"]],
     ["800,4000"],
   ])("rejects invalid base ISO input %o", (baseIso) => {

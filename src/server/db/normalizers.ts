@@ -397,7 +397,7 @@ export function normalizeProposalPayloadForDb(
         .union([
           z.null(),
           z
-            .array(z.number().int().positive())
+            .array(z.number().int().positive().max(2_147_483_647))
             .transform((values) => {
               const normalized = [...new Set(values)].sort((a, b) => a - b);
               return normalized.length === 0 ? null : normalized;
