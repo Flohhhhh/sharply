@@ -24,6 +24,9 @@ export interface IsoInputProps {
   clearLabel?: string;
   className?: string;
   placeholder?: string;
+  hideLabel?: boolean;
+  ariaLabel?: string;
+  required?: boolean;
 }
 
 export interface IsoInputConfig {
@@ -55,13 +58,17 @@ const IsoInput = ({
   clearLabel = "Clear",
   className = "",
   placeholder = "Select ISO",
+  hideLabel = false,
+  ariaLabel,
+  required = false,
 }: IsoInputProps) => {
   const locale = useLocale();
 
   return (
     <div className={`w-full space-y-2 ${className}`}>
-      <Label htmlFor={id}>{label}</Label>
+      {hideLabel ? null : <Label htmlFor={id}>{label}</Label>}
       <Select
+        required={required}
         value={value ? value.toString() : ""}
         onValueChange={(selectedValue) => {
           if (selectedValue === "__clear__") {
@@ -75,7 +82,7 @@ const IsoInput = ({
         }}
         disabled={disabled}
       >
-        <SelectTrigger id={id} className="w-full">
+        <SelectTrigger id={id} aria-label={ariaLabel} className="w-full">
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>

@@ -873,6 +873,7 @@ export const cameraSpecs = appSchema.table(
     isoMax: integer("iso_max"),
     isoMinExpanded: integer("iso_min_expanded"),
     isoMaxExpanded: integer("iso_max_expanded"),
+    baseIso: integer("base_iso").array(),
     sensorReadoutSpeedMs: decimal("sensor_readout_speed_ms", {
       precision: 4,
       scale: 1,

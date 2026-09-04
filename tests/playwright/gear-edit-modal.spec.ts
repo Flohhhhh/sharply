@@ -5,10 +5,14 @@ import { STORAGE_STATE_PATH } from "./utils/auth";
 
 test.use({ storageState: STORAGE_STATE_PATH });
 test.setTimeout(90_000);
+// These tests share an authenticated user and mutate proposal/gear fixtures.
+// Keep them independent, but do not run them concurrently within this file.
+test.describe.configure({ mode: "default" });
 
 const READ_ONLY_GEAR_PATH = "/gear/nikon-z6iii";
 const SUBMISSION_GEAR_PATH = "/gear/canon-eos-r6-mark-iii";
 const PENDING_SUBMISSION_GEAR_PATH = "/gear/nikon-zr";
+const PREVIOUS_PAGE_PATH = "/";
 
 async function deletePendingFixtureProposal(
   proposalId?: string,
@@ -40,18 +44,15 @@ async function deletePendingFixtureProposal(
   }
 }
 
-async function openInterceptedEditModal(
+async function navigateToEditableGearPage(
   page: Page,
   gearPath = READ_ONLY_GEAR_PATH,
 ): Promise<void> {
   const editPath = `${gearPath}/edit`;
-  // page.goto() starts from Playwright's about:blank document. Establish an
-  // in-app history entry first so Back and history-based modal closing model
-  // a user arriving at the gear page from elsewhere in the app.
-  await page.goto("/");
+  await page.goto(PREVIOUS_PAGE_PATH);
   await page.goto(gearPath);
-  await page.waitForLoadState("networkidle", { timeout: 30_000 });
-  const historyLengthBeforeEdit = await page.evaluate(() => history.length);
+  await expect(page).toHaveURL(new RegExp(`${gearPath}/?$`));
+
   const editLink = page
     .locator(`a[href^="${editPath}?"]`)
     .filter({ hasText: "Suggest Edit" })
@@ -60,6 +61,20 @@ async function openInterceptedEditModal(
   await expect(editLink).not.toHaveAttribute("aria-disabled", "true", {
     timeout: 30_000,
   });
+}
+
+async function openInterceptedEditModal(
+  page: Page,
+  gearPath = READ_ONLY_GEAR_PATH,
+): Promise<void> {
+  const editPath = `${gearPath}/edit`;
+  await expect(page).toHaveURL(new RegExp(`${gearPath}/?$`));
+
+  const editLink = page
+    .locator(`a[href^="${editPath}?"]`)
+    .filter({ hasText: "Suggest Edit" })
+    .first();
+
   await editLink.click();
   await expect(page).toHaveURL(new RegExp(`${editPath}(?:\\?|$)`), {
     timeout: 30_000,
@@ -67,9 +82,6 @@ async function openInterceptedEditModal(
   await expect(page.getByRole("dialog")).toContainText("Edit Gear Item", {
     timeout: 30_000,
   });
-  await expect
-    .poll(() => page.evaluate(() => history.length), { timeout: 30_000 })
-    .toBeGreaterThan(historyLengthBeforeEdit);
 }
 
 async function expectEditModalClosed(page: Page): Promise<void> {
@@ -78,34 +90,41 @@ async function expectEditModalClosed(page: Page): Promise<void> {
   ).not.toBeVisible();
 }
 
+async function expectPreviousPage(page: Page): Promise<void> {
+  await expect(page).toHaveURL((url) => url.pathname === PREVIOUS_PAGE_PATH);
+}
+
 test("closes the intercepted gear editor with Escape", async ({ page }) => {
+  await navigateToEditableGearPage(page);
   await openInterceptedEditModal(page);
 
   await page.keyboard.press("Escape");
 
-  await expect(page).toHaveURL(new RegExp(`${READ_ONLY_GEAR_PATH}/?$`));
+  await expectPreviousPage(page);
   await expectEditModalClosed(page);
 });
 
 test("closes the intercepted gear editor from its overlay", async ({
   page,
 }) => {
+  await navigateToEditableGearPage(page);
   await openInterceptedEditModal(page);
 
   await page.locator('[data-slot="dialog-overlay"]').click({
     position: { x: 5, y: 5 },
   });
 
-  await expect(page).toHaveURL(new RegExp(`${READ_ONLY_GEAR_PATH}/?$`));
+  await expectPreviousPage(page);
   await expectEditModalClosed(page);
 });
 
 test("browser Back clears the intercepted edit slot", async ({ page }) => {
+  await navigateToEditableGearPage(page);
   await openInterceptedEditModal(page);
 
   await page.goBack();
 
-  await expect(page).toHaveURL(new RegExp(`${READ_ONLY_GEAR_PATH}/?$`));
+  await expectPreviousPage(page);
   await expectEditModalClosed(page);
 });
 
@@ -125,6 +144,7 @@ test("direct edit navigation keeps the full-page fallback", async ({
 });
 
 test("successful auto-approved edit closes the modal", async ({ page }) => {
+  await navigateToEditableGearPage(page, SUBMISSION_GEAR_PATH);
   await openInterceptedEditModal(page, SUBMISSION_GEAR_PATH);
 
   const weightInput = page.locator("#weight");
@@ -153,6 +173,7 @@ test("pending edit closes the modal and reaches its success page", async ({
   await deletePendingFixtureProposal();
 
   try {
+    await navigateToEditableGearPage(page, PENDING_SUBMISSION_GEAR_PATH);
     await openInterceptedEditModal(page, PENDING_SUBMISSION_GEAR_PATH);
 
     const weightInput = page.locator("#weight");

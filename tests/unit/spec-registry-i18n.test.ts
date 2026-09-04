@@ -195,6 +195,40 @@ describe("spec registry i18n", () => {
     ).toBe("Expanded ISO Range");
   });
 
+  it("formats sorted base ISO values with localized separators and hides empty values", () => {
+    const sections = buildGearSpecsSections(
+      createGearItem({
+        cameraSpecs: { baseIso: [12800, 800, 4000] } as GearItem["cameraSpecs"],
+      }),
+      {
+        locale: "de",
+        t: createTranslator({
+          "specRegistry.sections.camera-sensor-shutter.fields.baseIso.label":
+            "Basis-ISO",
+        }),
+      },
+    );
+    const row = sections
+      .find((section) => section.id === "camera-sensor-shutter")
+      ?.data.find((entry) => entry.key === "baseIso");
+
+    expect(row).toMatchObject({
+      label: "Basis-ISO",
+      value: "800 / 4.000 / 12.800",
+    });
+
+    const empty = buildGearSpecsSections(
+      createGearItem({
+        cameraSpecs: { baseIso: [] } as unknown as GearItem["cameraSpecs"],
+      }),
+    );
+    expect(
+      empty
+        .flatMap((section) => section.data)
+        .some((entry) => entry.key === "baseIso"),
+    ).toBe(false);
+  });
+
   it("uses the plural mount translation key when a lens has multiple mounts", () => {
     const [firstMount, secondMount] = MOUNTS;
     const translator = createTranslator({

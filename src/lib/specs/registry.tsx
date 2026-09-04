@@ -5,7 +5,7 @@ import { normalizeApertureProfile } from "~/lib/lens-aperture-profile";
 import { Badge } from "~/components/ui/badge";
 import { isValidElement, type ReactNode } from "react";
 import { formatDateWithPrecision, type DatePrecision } from "~/lib/format/date";
-import { formatIsoRange } from "~/lib/format/iso";
+import { formatBaseIsoValues, formatIsoRange } from "~/lib/format/iso";
 import { type GearRegion } from "~/lib/gear/region";
 import { AF_AREA_MODES, MOUNTS } from "~/lib/generated";
 import {
@@ -722,6 +722,14 @@ export const specDictionary: SpecSectionDef[] = [
             { locale },
           ),
         editElementId: "isoExpandedRange",
+      },
+      {
+        key: "baseIso",
+        label: "Base ISO",
+        getRawValue: (item) => item.cameraSpecs?.baseIso,
+        formatDisplay: (raw, _, __, ___, locale) =>
+          formatBaseIsoValues(raw, locale),
+        editElementId: "baseIso",
       },
       {
         key: "maxFpsByShutter",

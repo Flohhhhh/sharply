@@ -393,6 +393,17 @@ export function normalizeProposalPayloadForDb(
           return num === null ? undefined : Math.trunc(num);
         }, z.number().int().nullable().optional())
         .optional(),
+      baseIso: z
+        .union([
+          z.null(),
+          z
+            .array(z.number().int().positive().max(2_147_483_647))
+            .transform((values) => {
+              const normalized = [...new Set(values)].sort((a, b) => a - b);
+              return normalized.length === 0 ? null : normalized;
+            }),
+        ])
+        .optional(),
       // enum-backed string with membership check
       sensorStackingType: z
         .preprocess((value) => {

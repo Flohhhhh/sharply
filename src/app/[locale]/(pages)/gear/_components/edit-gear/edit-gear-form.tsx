@@ -21,7 +21,7 @@ import {
   formatDateWithPrecision,
   getPairedDatePrecision,
 } from "~/lib/format/date";
-import { formatIsoValue } from "~/lib/format/iso";
+import { formatBaseIsoValues, formatIsoValue } from "~/lib/format/iso";
 import { MOUNTS } from "~/lib/generated";
 import {
   getSpecFieldLabel,
@@ -412,6 +412,7 @@ function EditGearForm({
     isoMax: "camera-sensor-shutter",
     isoMinExpanded: "camera-sensor-shutter",
     isoMaxExpanded: "camera-sensor-shutter",
+    baseIso: "camera-sensor-shutter",
     hasIbis: "camera-sensor-shutter",
     hasElectronicVibrationReduction: "camera-sensor-shutter",
     cipaStabilizationRatingStops: "camera-sensor-shutter",
@@ -492,6 +493,9 @@ function EditGearForm({
           "editGear.fields.isoMaxExpanded",
           "ISO Max (Expanded)",
         );
+      }
+      if (key === "baseIso") {
+        return getSpecFieldLabel(t, "camera-sensor-shutter", key, "Base ISO");
       }
       const sectionId = cameraFieldSectionMap[key];
       if (sectionId) {
@@ -676,6 +680,7 @@ function EditGearForm({
         "isoMax",
         "isoMinExpanded",
         "isoMaxExpanded",
+        "baseIso",
         "hasIbis",
         "hasElectronicVibrationReduction",
         "cipaStabilizationRatingStops",
@@ -1560,6 +1565,10 @@ function EditGearForm({
                           ) {
                             display =
                               formatIsoValue(v, locale) ?? safeString(v);
+                          }
+                          if (k === "baseIso") {
+                            display =
+                              formatBaseIsoValues(v, locale) ?? safeString(v);
                           }
                           if (k === "maxFpsRaw" || k === "maxFpsJpg") {
                             display = formatFpsValue(v);

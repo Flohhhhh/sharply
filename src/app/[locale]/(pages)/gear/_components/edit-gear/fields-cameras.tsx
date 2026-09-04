@@ -34,6 +34,7 @@ import type { EnrichedCameraSpecs, GearItem } from "~/types/gear";
 import CardSlotsManager, { type CardSlot } from "./card-slots-manager";
 import { VideoModesManager } from "./video-modes-manager";
 import { CompletedSpecLock } from "./completed-spec-lock";
+import { BaseIsoInput } from "./base-iso-input";
 import {
   computeHeadlineMaxFps,
   normalizeMaxFpsByShutterValue,
@@ -65,6 +66,7 @@ const shutterTypeLabels: Record<ShutterType, string> = {
 const cameraFieldSections: Record<string, string> = {
   resolutionMp: "camera-sensor-shutter",
   sensorFormatId: "camera-sensor-shutter",
+  baseIso: "camera-sensor-shutter",
   sensorReadoutSpeedMs: "camera-sensor-shutter",
   maxRawBitDepth: "camera-sensor-shutter",
   hasIbis: "camera-sensor-shutter",
@@ -284,6 +286,10 @@ function CameraFieldsComponent({
     disableCompletedSpecs && Boolean(initialSpecs?.sensorFormatId);
   const resolutionLocked =
     disableCompletedSpecs && initialSpecs?.resolutionMp != null;
+  const baseIsoLocked =
+    disableCompletedSpecs &&
+    Array.isArray(initialSpecs?.baseIso) &&
+    initialSpecs.baseIso.length > 0;
   const specLabel = useCallback(
     (fieldKey: string, fallback: string) => {
       const sectionId = cameraFieldSections[fieldKey];
@@ -720,6 +726,33 @@ function CameraFieldsComponent({
               />
             )}
           </div>
+
+          {showWhenMissing(initialSpecs?.baseIso, "baseIso") && (
+            <BaseIsoInput
+              value={currentSpecs?.baseIso}
+              onChange={(value) => handleFieldChange("baseIso", value)}
+              label={specLabel("baseIso", "Base ISO")}
+              addLabel={tf("editGear.fields.addBaseIso", "Add base ISO")}
+              removeLabel={tf(
+                "editGear.fields.removeBaseIso",
+                "Remove base ISO",
+              )}
+              helpText={tf(
+                "editGear.fields.baseIsoHelp",
+                "Add up to 3 native base ISO values.",
+              )}
+              invalidMessage={tf(
+                "editGear.fields.baseIsoInvalid",
+                "Enter a positive whole number.",
+              )}
+              disabled={baseIsoLocked}
+              labelAdornment={
+                baseIsoLocked ? (
+                  <CompletedSpecLock message={completedSpecMessage} />
+                ) : undefined
+              }
+            />
+          )}
 
           {/* Rear Display Type */}
           {showWhenMissing(initialSpecs?.rearDisplayType) && (

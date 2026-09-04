@@ -124,7 +124,7 @@ Stores detailed camera-specific specifications:
 
 - **Primary Key**: `gearId` (1:1 relationship with gear)
 - **Sensor**: Format reference, resolution in megapixels
-- **Performance**: native ISO range (`isoMin`/`isoMax`) plus optional expanded ISO bounds (`isoMinExpanded`/`isoMaxExpanded`, stored as `iso_min_expanded`/`iso_max_expanded`), IBIS (in-body stabilization), available shutter types, viewfinder type. Expanded bounds are displayed separately and may be partial; they do not affect native ISO search filters.
+- **Performance**: native ISO range (`isoMin`/`isoMax`), optional expanded ISO bounds (`isoMinExpanded`/`isoMaxExpanded`, stored as `iso_min_expanded`/`iso_max_expanded`), and native base ISO values (`baseIso`, stored as the nullable, unrestricted `base_iso` integer array), plus IBIS, available shutter types, and viewfinder type. Base ISO values are positive integers stored uniquely in ascending order and displayed with ` / ` separators. The editor currently caps entry at three values; expanded and base ISO values do not affect native ISO search filters.
 - **Focus**: `hasAutofocus` is nullable so unknown capability is distinct from a confirmed absence. When it is explicitly `false`, autofocus-specific detail rows (focus points, AF area modes, AF subject categories, and focus bracketing) are hidden; stored values are retained for a future correction. The edit form keeps those controls visible but disabled unless autofocus is explicitly `true`, while the edit sidebar hides them when autofocus is `false`.
 - **Burst rate**:
   - `max_fps_by_shutter` (JSONB, nullable) stores per-shutter continuous FPS for RAW/JPG. Keys: `mechanical`, `efc`, `electronic` with `{ raw, jpg }` numeric values.

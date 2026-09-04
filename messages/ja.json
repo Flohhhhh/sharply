@@ -680,6 +680,10 @@
         "isoMaxNative": "ISO 最大（ネイティブ）",
         "isoMinExpanded": "ISO 最小（拡張）",
         "isoMaxExpanded": "ISO 最大（拡張）",
+        "addBaseIso": "ベースISOを追加",
+        "removeBaseIso": "ベースISOを削除",
+        "baseIsoHelp": "ネイティブのベースISO値を3つまで追加できます。",
+        "baseIsoInvalid": "正の整数を入力してください。",
         "selectDisplayType": "画面タイプを選択",
         "rearDisplayResolutionPlaceholder": "例: 1.62",
         "inchesPlaceholder": "例: 3.2",
@@ -833,6 +837,9 @@
             },
             "isoExpandedRange": {
               "label": "拡張 ISO 感度範囲"
+            },
+            "baseIso": {
+              "label": "ベースISO"
             },
             "maxFpsByShutter": {
               "label": "最高連写速度"

@@ -680,6 +680,10 @@
         "isoMaxNative": "ISO Max (nativ)",
         "isoMinExpanded": "ISO Min (erweitert)",
         "isoMaxExpanded": "ISO Max (erweitert)",
+        "addBaseIso": "Basis-ISO hinzufügen",
+        "removeBaseIso": "Basis-ISO entfernen",
+        "baseIsoHelp": "Füge bis zu 3 native Basis-ISO-Werte hinzu.",
+        "baseIsoInvalid": "Gib eine positive ganze Zahl ein.",
         "selectDisplayType": "Displaytyp wählen",
         "rearDisplayResolutionPlaceholder": "z. B. 1,62",
         "inchesPlaceholder": "z. B. 3,2",
@@ -833,6 +837,9 @@
             },
             "isoExpandedRange": {
               "label": "Erweiterter ISO-Bereich"
+            },
+            "baseIso": {
+              "label": "Basis-ISO"
             },
             "maxFpsByShutter": {
               "label": "Max. Serienbildrate"
