@@ -50,7 +50,6 @@ async function openInterceptedEditModal(
   // a user arriving at the gear page from elsewhere in the app.
   await page.goto("/");
   await page.goto(gearPath);
-  await page.waitForLoadState("networkidle", { timeout: 30_000 });
   const historyLengthBeforeEdit = await page.evaluate(() => history.length);
   const editLink = page
     .locator(`a[href^="${editPath}?"]`)
