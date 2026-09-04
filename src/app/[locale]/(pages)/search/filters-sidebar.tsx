@@ -1,10 +1,14 @@
 "use client";
-import { useQueryState } from "nuqs";
+import { parseAsNativeArrayOf, parseAsString, useQueryState } from "nuqs";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { BrandSelect } from "~/components/custom-inputs/brand-select";
 import IsoInput from "~/components/custom-inputs/iso-input";
 import { MountSelect } from "~/components/custom-inputs/mount-select";
+import {
+  TagSelect,
+  type TagSelectOption,
+} from "~/components/custom-inputs/tag-select";
 import SensorFormatInput from "~/components/custom-inputs/sensor-format-input";
 import { Checkbox } from "~/components/ui/checkbox";
 import {
@@ -76,12 +80,14 @@ type FiltersSidebarProps = {
   idPrefix?: string;
   variant?: "sidebar" | "drawer";
   showTitle?: boolean;
+  tagOptions: readonly TagSelectOption[];
 };
 
 export function FiltersSidebar({
   idPrefix = "",
   variant = "sidebar",
   showTitle = true,
+  tagOptions,
 }: FiltersSidebarProps) {
   const t = useTranslations("search");
   const id = (value: string) => `${idPrefix}${value}`;
@@ -110,6 +116,10 @@ export function FiltersSidebar({
   const [hasIbis, setHasIbis] = useQueryState("hasIbis");
   const [hasWeatherSealing, setHasWeatherSealing] =
     useQueryState("hasWeatherSealing");
+  const [tags, setTags] = useQueryState(
+    "tag",
+    parseAsNativeArrayOf(parseAsString).withDefault([]),
+  );
   const normalizedGearType = normalizeSearchGearTypeForUi(gearType);
   const [selectedIsoMin, selectedIsoMax] = normalizeIsoRange(
     parseIsoValue(isoMin),
@@ -244,6 +254,22 @@ export function FiltersSidebar({
                 : null;
             void setMount(slug || null);
           }}
+        />
+      </div>
+
+      {/* Tags */}
+      <div className="space-y-2">
+        <div className="text-sm font-medium">{t("tags")}</div>
+        <TagSelect
+          tags={tagOptions}
+          value={tags}
+          onChange={(value) => void setTags(value)}
+          placeholder={t("selectTags")}
+          searchPlaceholder={t("searchTags")}
+          emptyLabel={t("noTagsFound")}
+          getRemoveLabel={(name) => t("removeTag", { name })}
+          ariaLabel={t("tags")}
+          inDialog={variant === "drawer"}
         />
       </div>
 

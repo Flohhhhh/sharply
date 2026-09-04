@@ -3,9 +3,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const searchServiceMocks = vi.hoisted(() => ({
   searchGear: vi.fn(),
+  fetchPublicTagOptions: vi.fn(),
 }));
 
 vi.mock("~/server/search/service", () => searchServiceMocks);
+vi.mock("~/server/tags/service", () => ({
+  fetchPublicTagOptions: searchServiceMocks.fetchPublicTagOptions,
+}));
 
 import { GET } from "~/app/api/search/route";
 
@@ -17,6 +21,10 @@ describe("search route filter parsing", () => {
       page: 1,
       pageSize: 20,
     });
+    searchServiceMocks.fetchPublicTagOptions.mockResolvedValue([
+      { id: "tag-1", name: "Wildlife", slug: "wildlife", icon: null },
+      { id: "tag-2", name: "Travel", slug: "travel", icon: null },
+    ]);
   });
 
   it("normalizes reversed numeric ranges and forwards valid specification filters", async () => {
@@ -75,6 +83,44 @@ describe("search route filter parsing", () => {
           gearType: "LENS",
         }),
       }),
+    );
+  });
+
+  it("forwards unique, non-empty repeated tag slugs", async () => {
+    await GET(
+      new NextRequest(
+        "http://localhost/api/search?tag=wildlife&tag=&tag=travel&tag=wildlife",
+      ),
+    );
+
+    expect(searchServiceMocks.searchGear).toHaveBeenCalledWith(
+      expect.objectContaining({
+        filters: expect.objectContaining({
+          tags: ["wildlife", "travel"],
+        }),
+      }),
+    );
+  });
+
+  it("drops unknown and unlisted tag slugs", async () => {
+    await GET(
+      new NextRequest(
+        "http://localhost/api/search?tag=unknown&tag=wildlife&tag=private",
+      ),
+    );
+
+    expect(searchServiceMocks.searchGear).toHaveBeenCalledWith(
+      expect.objectContaining({
+        filters: { tags: ["wildlife"] },
+      }),
+    );
+  });
+
+  it("omits the tag filter when no requested slugs are listed", async () => {
+    await GET(new NextRequest("http://localhost/api/search?tag=unknown"));
+
+    expect(searchServiceMocks.searchGear).toHaveBeenCalledWith(
+      expect.objectContaining({ filters: undefined }),
     );
   });
 });

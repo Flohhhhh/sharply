@@ -30,6 +30,7 @@ export type PublicTagRow = Pick<
   TagRow,
   "id" | "name" | "slug" | "description" | "icon" | "pageTitle" | "pageContent"
 >;
+export type PublicTagOption = Pick<TagRow, "id" | "name" | "slug" | "icon">;
 
 const editorTagSelection = {
   id: tags.id,
@@ -132,6 +133,19 @@ export async function fetchPublicTagsData(): Promise<PublicTagRow[]> {
       icon: tags.icon,
       pageTitle: tags.pageTitle,
       pageContent: tags.pageContent,
+    })
+    .from(tags)
+    .where(eq(tags.unlisted, false))
+    .orderBy(asc(tags.name));
+}
+
+export async function fetchPublicTagOptionsData(): Promise<PublicTagOption[]> {
+  return db
+    .select({
+      id: tags.id,
+      name: tags.name,
+      slug: tags.slug,
+      icon: tags.icon,
     })
     .from(tags)
     .where(eq(tags.unlisted, false))
