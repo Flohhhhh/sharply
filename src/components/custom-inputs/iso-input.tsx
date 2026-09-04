@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale } from "next-intl";
 import { Label } from "~/components/ui/label";
 import {
   Select,
@@ -55,6 +56,8 @@ const IsoInput = ({
   className = "",
   placeholder = "Select ISO",
 }: IsoInputProps) => {
+  const locale = useLocale();
+
   return (
     <div className={`w-full space-y-2 ${className}`}>
       <Label htmlFor={id}>{label}</Label>
@@ -88,7 +91,7 @@ const IsoInput = ({
                 (maxValue !== undefined && iso > maxValue)
               }
             >
-              {formatIsoOption(iso)}
+              {formatIsoOption(iso, locale)}
             </SelectItem>
           ))}
         </SelectContent>

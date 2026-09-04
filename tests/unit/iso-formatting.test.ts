@@ -14,6 +14,10 @@ describe("ISO formatting", () => {
     expect(formatIsoValue(6400.5)).toBeUndefined();
   });
 
+  it("uses the active locale for thousands separators", () => {
+    expect(formatIsoValue(204800, "de-DE")).toBe("ISO 204.800");
+  });
+
   it("formats select options with thousands separators", () => {
     expect(formatIsoOption(204800)).toBe("ISO 204,800");
     expect(formatIsoOption(6553600)).toBe("ISO 6,553,600");

@@ -1558,7 +1558,8 @@ function EditGearForm({
                             k === "isoMinExpanded" ||
                             k === "isoMaxExpanded"
                           ) {
-                            display = formatIsoValue(v) ?? safeString(v);
+                            display =
+                              formatIsoValue(v, locale) ?? safeString(v);
                           }
                           if (k === "maxFpsRaw" || k === "maxFpsJpg") {
                             display = formatFpsValue(v);

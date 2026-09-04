@@ -701,9 +701,10 @@ export const specDictionary: SpecSectionDef[] = [
           min: item.cameraSpecs?.isoMin,
           max: item.cameraSpecs?.isoMax,
         }),
-        formatDisplay: (_, item) =>
+        formatDisplay: (_, item, __, ___, locale) =>
           formatIsoRange(item.cameraSpecs?.isoMin, item.cameraSpecs?.isoMax, {
             allowPartial: false,
+            locale,
           }),
         editElementId: "isoRange",
       },
@@ -714,10 +715,11 @@ export const specDictionary: SpecSectionDef[] = [
           min: item.cameraSpecs?.isoMinExpanded,
           max: item.cameraSpecs?.isoMaxExpanded,
         }),
-        formatDisplay: (_, item) =>
+        formatDisplay: (_, item, __, ___, locale) =>
           formatIsoRange(
             item.cameraSpecs?.isoMinExpanded,
             item.cameraSpecs?.isoMaxExpanded,
+            { locale },
           ),
         editElementId: "isoExpandedRange",
       },
@@ -2504,7 +2506,7 @@ export function getDeveloperApiSpecValue(
   const formatted = field.api.displayOverride
     ? field.api.displayOverride(raw, item)
     : field.formatDisplay
-      ? field.formatDisplay(raw, item, true, "GLOBAL", "en")
+      ? field.formatDisplay(raw, item, true, "GLOBAL", "en-US")
       : raw;
   const display = textFromSpecDisplay(formatted as ReactNode);
   if (!display?.trim()) return undefined;

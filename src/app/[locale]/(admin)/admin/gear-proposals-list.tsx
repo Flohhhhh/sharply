@@ -271,7 +271,7 @@ export function GearProposalsList() {
       k === "isoMinExpanded" ||
       k === "isoMaxExpanded"
     ) {
-      return formatIsoValue(v) ?? String(v);
+      return formatIsoValue(v, locale) ?? String(v);
     }
     if (k === "maxContinuousFps") return formatCompactNumber(v);
     if (k === "viewfinderEyePointMm") return `${Number(v).toFixed(2)} mm`;
@@ -317,7 +317,7 @@ export function GearProposalsList() {
       k === "isoMinExpanded" ||
       k === "isoMaxExpanded"
     ) {
-      return formatIsoValue(v) ?? String(v ?? "Empty");
+      return formatIsoValue(v, locale) ?? String(v ?? "Empty");
     }
     if (k === "maxContinuousFps") return formatCompactNumber(v);
     if (k === "viewfinderEyePointMm") return `${Number(v).toFixed(2)} mm`;

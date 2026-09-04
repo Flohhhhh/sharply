@@ -146,7 +146,7 @@ describe("spec registry i18n", () => {
 
     expect(fullRow).toMatchObject({
       label: "Erweiterter ISO-Bereich",
-      value: "ISO 50 - 204,800",
+      value: "ISO 50 - 204.800",
     });
 
     for (const [field, expected] of [
