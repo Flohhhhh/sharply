@@ -69,6 +69,8 @@ Gotchas encoded in the pipeline — don't reorder it:
   aggregates ("exactly 12 gear items") or assume another spec hasn't
   run. Assert on what you created or what the seed deterministically
   contains.
+- History-sensitive modal specs must establish an in-app parent route before
+  opening the modal; a fresh Playwright page starts at `about:blank`.
 - Auth: hit `/api/dev-login` (see `tests/playwright/basic/routing-auth.spec.ts`);
   the dev user self-provisions. The default local flow (`npm run test:e2e`
   against `dev:e2e`) needs nothing in your `.env` — `dev:e2e` sets

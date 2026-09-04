@@ -45,6 +45,10 @@ async function openInterceptedEditModal(
   gearPath = READ_ONLY_GEAR_PATH,
 ): Promise<void> {
   const editPath = `${gearPath}/edit`;
+  // page.goto() starts from Playwright's about:blank document. Establish an
+  // in-app history entry first so Back and history-based modal closing model
+  // a user arriving at the gear page from elsewhere in the app.
+  await page.goto("/");
   await page.goto(gearPath);
   await page.getByRole("link", { name: "Suggest Edit" }).first().click();
   await expect(page).toHaveURL(new RegExp(`${editPath}(?:\\?|$)`), {
